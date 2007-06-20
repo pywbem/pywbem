@@ -256,6 +256,16 @@ class CIMProvider(object):
 
     """
 
+    def __init__(self):
+        # If filter_results is True, the CIMProvider base class 
+        # will filter the instances returned from references() according
+        # to the role, result_role, and result_class_name parameters.  
+        # If the derived class in the provider module filters instances
+        # according to role, result_role, and result_class_name, the 
+        # derived class should set filter_results to False in its
+        # __init__ method. 
+        self.filter_results = True
+
     def get_instance (self, env, model, cim_class):
         """Return an instance.
 
@@ -486,7 +496,8 @@ class CIMProvider(object):
                                        cim_class=cimClass,
                                        keys_only=False):
             inst.path = build_instance_name(inst, keyNames)
-            filter_instance(inst, plist)
+            if self.filter_results:
+                filter_instance(inst, plist)
             result(inst)
         logger.log_debug('CIMProvider MI_enumInstances returning')
 
@@ -529,7 +540,8 @@ class CIMProvider(object):
         rval = self.get_instance(env=env,
                                        model=model,
                                        cim_class=cimClass)
-        filter_instance(rval, plist)
+        if self.filter_results:
+            filter_instance(rval, plist)
         logger.log_debug('CIMProvider MI_getInstance returning')
         if rval is None:
             raise pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND, "")
@@ -649,12 +661,12 @@ class CIMProvider(object):
                     continue
                 if resultRole and resultRole.lower() != lpname:
                     continue
-                if resultClassName and \
+                if prop.value == objectName:
+                    continue
+                if resultClassName and self.filter_results and \
                         not is_subclass(ch, objectName.namespace, 
                                         sub=prop.value.classname, 
                                         super=resultClassName):
-                    continue
-                if prop.value == objectName:
                     continue
                 try:
                     inst = ch.GetInstance(prop.value, 
@@ -719,12 +731,12 @@ class CIMProvider(object):
                     continue
                 if resultRole and resultRole.lower() != lpname:
                     continue
-                if resultClassName and \
+                if prop.value == objectName:
+                    continue
+                if resultClassName and self.filter_results and \
                         not is_subclass(ch, objectName.namespace, 
                                         sub=prop.value.classname, 
                                         super=resultClassName):
-                    continue
-                if prop.value == objectName:
                     continue
                 result(prop.value)
 
@@ -793,7 +805,8 @@ class CIMProvider(object):
                                     result_role=None,
                                     keys_only=False):
             inst.path = build_instance_name(inst, keyNames)
-            filter_instance(inst, plist)
+            if self.filter_results:
+                filter_instance(inst, plist)
             result(inst)
         logger.log_debug('CIMProvider MI_references returning')
 
@@ -1134,6 +1147,7 @@ class %(classname)sProvider(pywbem.CIMProvider):
     code+= '''
 
     def __init__ (self, env):
+        pywbem.CIMProvider.__init__(self)
         logger = env.get_logger()
         logger.log_debug('Initializing provider %%s from %%s' \\
                 %% (self.__class__.__name__, __file__))

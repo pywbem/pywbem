@@ -42,4 +42,4 @@ from cim_constants import *
 from cim_operations import *
 from cim_obj import *
 from tupleparse import ParseError
-from pycim import *
+from cim_provider import *
