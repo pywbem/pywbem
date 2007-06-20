@@ -256,16 +256,6 @@ class CIMProvider(object):
 
     """
 
-    def __init__(self):
-        # If filter_results is True, the CIMProvider base class 
-        # will filter the instances returned from references() according
-        # to the role, result_role, and result_class_name parameters.  
-        # If the derived class in the provider module filters instances
-        # according to role, result_role, and result_class_name, the 
-        # derived class should set filter_results to False in its
-        # __init__ method. 
-        self.filter_results = True
-
     def get_instance (self, env, model, cim_class):
         """Return an instance.
 
@@ -429,6 +419,28 @@ class CIMProvider(object):
 
         """
         pass
+
+    def _set_filter_results(self, value):
+        self._filter_results = value
+    def _get_filter_results(self):
+        if hasattr(self, '_filter_results'):
+            return self._filter_results
+        return True
+    filter_results = property(_get_filter_results, 
+                              _set_filter_results,
+                              None,
+        """Determines if the CIMProvider base class should filter results
+
+        If True, the subclass of CIMProvider in the provider module
+        does not need to filter returned results based on property_list, 
+        and in the case of association providers, role, result_role, and 
+        result_class_name.  The results will be filtered by the 
+        CIMProvider base class. 
+
+        If False, the CIMProvider base class will do no filtering. 
+        Therefore the subclass of CIMProvider in the provider module will
+        have to filter based on property_list, and in the case of 
+        association providers, role, result_role, and result_class_name.""")
 
     def MI_enumInstanceNames(self, 
                              env, 
@@ -1147,10 +1159,13 @@ class %(classname)sProvider(pywbem.CIMProvider):
     code+= '''
 
     def __init__ (self, env):
-        pywbem.CIMProvider.__init__(self)
         logger = env.get_logger()
         logger.log_debug('Initializing provider %%s from %%s' \\
                 %% (self.__class__.__name__, __file__))
+        # If you will be filtering instances yourself according to 
+        # property_list, role, result_role, and result_class_name 
+        # parameters, set self.filter_results to False
+        # self.filter_results = False
 
     def get_instance(%s):
         """%s"""
