@@ -1,0 +1,15 @@
+This package was debianized by Tim Potter <tpot@hp.com> on
+Mon, 19 Feb 2007 13:42:42 +1100.
+
+It was downloaded from http://pywbem.sourceforge.net/
+
+Copyright:
+
+Upstream Author: Tim Potter <tpot@hp.com>
+
+License:
+
+You are free to distribute this software under the terms of
+the GNU General Public License.
+On Debian systems, the complete text of the GNU General Public
+License can be found in the file `/usr/share/common-licenses/GPL'.

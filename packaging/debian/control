@@ -1,0 +1,37 @@
+Source: pywbem
+Section: python
+Priority: optional
+Maintainer: Tim Potter <tpot@hp.com>
+Build-Depends: debhelper (>= 4.0.0), python2.3-dev, python2.4-dev, python (>= 2.3)
+Standards-Version: 3.6.2
+
+Package: python-pywbem
+Architecture: all
+Depends: ${python:Depends}
+Description: Python WBEM client
+ This is a dummy package which depends on the python-pywbem module for the
+ default version of Python.
+
+Package: python2.3-pywbem
+Architecture: any
+Depends: python2.3
+Description: A Python interface to the PAM library
+ PyWBEM is a Python library for making CIM operations over HTTP using the
+ WBEM using the WBEM protocol. It is based on the idea that a good WBEM
+ client should be easy to use and not necessarily require a large amount
+ of programming knowlege.  PyWBEM is suitable for a large range of tasks
+ from simply poking around to writing web and GUI applications.
+ .
+ Homepage: http://pywbem.sourceforge.net/
+
+Package: python2.4-pywbem
+Architecture: any
+Depends: python2.4
+Description: A Python interface to the PAM library
+ PyWBEM is a Python library for making CIM operations over HTTP using the
+ WBEM using the WBEM protocol. It is based on the idea that a good WBEM
+ client should be easy to use and not necessarily require a large amount
+ of programming knowlege.  PyWBEM is suitable for a large range of tasks
+ from simply poking around to writing web and GUI applications.
+ .
+ Homepage: http://pywbem.sourceforge.net/
