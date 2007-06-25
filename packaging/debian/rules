@@ -9,27 +9,22 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-versions=$(subst -dev,,\
-           $(subst python,,\
-             $(filter python%-dev,\
-               $(shell sed -n '/^Build-Depends/s/,//gp' debian/control))))
-
-DEFAULT=2.4
+PYTHON	:= /usr/bin/python
+PYVER   := $(shell $(PYTHON) -c 'import sys; print sys.version[:3]')
 
 build: build-stamp
+
 build-stamp:
 	dh_testdir
-	for version in $(versions); do \
-		python$$version setup.py build; \
-        done
+	python setup.py build
+	touch build-stamp
 	touch build-stamp
 
 clean:
 	dh_testdir
-	for version in $(versions); do \
-		python$$version setup.py clean; \
-        done	
+	dh_testroot
 	rm -rf build-stamp build
+	-find . -name '*.py[co]' | xargs rm -f
 	dh_clean 
 
 install: build
@@ -37,9 +32,8 @@ install: build
 	dh_testroot
 	dh_clean -k 
 	dh_installdirs
-	for version in $(versions); do \
-		python$$version setup.py install --prefix=$(CURDIR)/debian/python$$version-pywbem/usr; \
-	done
+	python setup.py install \
+		--root=$(CURDIR)/debian/python-pywbem
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -49,7 +43,7 @@ binary-indep: build install
 	dh_installchangelogs -i
 	dh_compress -i
 	dh_fixperms -i
-	dh_python -i
+	dh_pycentral -i
 	dh_installdeb -i
 	dh_gencontrol -i
 	dh_md5sums -i
@@ -65,7 +59,7 @@ binary-arch: build install
 	dh_strip -a
 	dh_compress -a
 	dh_fixperms -a
-	dh_python -a
+	dh_pycentral -a
 	dh_installdeb -a
 	dh_shlibdeps -a
 	dh_gencontrol -a
