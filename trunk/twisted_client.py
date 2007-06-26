@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2005 Hewlett-Packard Development Company, L.P.
+# (C) Copyright 2005,2007 Hewlett-Packard Development Company, L.P.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
@@ -25,7 +25,7 @@ that perform WBEM requests over HTTP using the
 twisted.protocols.http.HTTPClient base class.
 """
 
-from twisted.internet import protocol, defer
+from twisted.internet import reactor, protocol, defer
 from twisted.web import http, client, error
 
 from pywbem import CIMClassName, CIMInstanceName, CIMError
@@ -108,6 +108,7 @@ class WBEMClient(http.HTTPClient):
                     CIMError(0, '%s: %s' % (cimerror, errordetail)))
         
 class WBEMClientFactory(protocol.ClientFactory):
+    """Create instances of the WBEMClient class."""
 
     request_xml = None
     response_xml = None
@@ -121,6 +122,12 @@ class WBEMClientFactory(protocol.ClientFactory):
         self.payload = payload
         self.protocol = lambda: WBEMClient()
         self.deferred = defer.Deferred()
+
+    def clientConnectionFailed(self, connector, reason):
+        reactor.callLater(0, self.deferred.errback, reason)
+
+    def clientConnectionLost(self, connector, reason):
+        reactor.callLater(0, self.deferred.errback, reason)
 
     def imethodcallPayload(self, methodname, localnsp, **kwargs):
         """Generate the XML payload for an intrinsic methodcall."""
@@ -162,7 +169,8 @@ class WBEMClientFactory(protocol.ClientFactory):
 
     def parseResponse(self, xml):
         """Parse returned XML and convert into appropriate Python
-        objects."""
+        objects.  Override in subclass"""
+
         pass
 
 # TODO: Eww - we should get rid of the tupletree, tupleparse modules
@@ -186,8 +194,12 @@ class EnumerateInstances(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, creds, 'MethodCall', 'EnumerateInstances',
-            LocalNamespacePath, payload)
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = 'EnumerateInstances',
+            object = LocalNamespacePath, 
+            payload = payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
@@ -216,8 +228,12 @@ class EnumerateInstanceNames(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, creds, 'MethodCall', 'EnumerateInstanceNames',
-            LocalNamespacePath, payload)
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = 'EnumerateInstanceNames',
+            object = LocalNamespacePath, 
+            payload = payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
@@ -246,8 +262,12 @@ class GetInstance(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, creds, 'MethodCall', 'GetInstance',
-            LocalNamespacePath, payload)
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = 'GetInstance',
+            object = LocalNamespacePath, 
+            payload = payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
@@ -276,8 +296,12 @@ class DeleteInstance(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, creds, 'MethodCall', 'DeleteInstance',
-            LocalNamespacePath, payload)
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = 'DeleteInstance',
+            object = LocalNamespacePath, 
+            payload = payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
@@ -298,8 +322,12 @@ class CreateInstance(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, creds, 'MethodCall', 'CreateInstance',
-            LocalNamespacePath, payload)
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = 'CreateInstance',
+            object = LocalNamespacePath, 
+            payload = payload)
 
 class ModifyInstance(WBEMClientFactory):
     """Factory to produce ModifyInstance WBEM clients."""
@@ -318,8 +346,12 @@ class ModifyInstance(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, creds, 'MethodCall', 'ModifyInstance',
-            LocalNamespacePath, payload)
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = 'ModifyInstance',
+            object = LocalNamespacePath, 
+            payload = payload)
 
 class EnumerateClassNames(WBEMClientFactory):
     """Factory to produce EnumerateClassNames WBEM clients."""
@@ -334,8 +366,12 @@ class EnumerateClassNames(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, creds, 'MethodCall', 'EnumerateClassNames',
-            LocalNamespacePath, payload)
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = 'EnumerateClassNames',
+            object = LocalNamespacePath, 
+            payload = payload)
 
     def __repr__(self):
         return '<%s(/%s) at 0x%x>' % \
@@ -361,8 +397,12 @@ class EnumerateClasses(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, creds, 'MethodCall', 'EnumerateClasses',
-            LocalNamespacePath, payload)
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = 'EnumerateClasses',
+            object = LocalNamespacePath, 
+            payload = payload)
 
     def __repr__(self):
         return '<%s(/%s) at 0x%x>' % \
@@ -391,8 +431,12 @@ class GetClass(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, creds, 'MethodCall', 'GetClass',
-            LocalNamespacePath, payload)
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = 'GetClass',
+            object = LocalNamespacePath, 
+            payload = payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
@@ -424,8 +468,12 @@ class Associators(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, creds, 'MethodCall', 'Associators',
-            LocalNamespacePath, payload)
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = 'Associators',
+            object = LocalNamespacePath, 
+            payload = payload)
 
 class AssociatorNames(WBEMClientFactory):
     """Factory to produce AssociatorNames WBEM clients."""
@@ -446,8 +494,12 @@ class AssociatorNames(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, creds, 'MethodCall', 'AssociatorNames',
-            LocalNamespacePath, payload)
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = 'AssociatorNames',
+            object = LocalNamespacePath, 
+            payload = payload)
 
     def parseResponse(self, xml):
 
@@ -482,8 +534,12 @@ class References(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, creds, 'MethodCall', 'References',
-            LocalNamespacePath, payload)
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = 'References',
+            object = LocalNamespacePath, 
+            payload = payload)
 
 class ReferenceNames(WBEMClientFactory):
     """Factory to produce ReferenceNames WBEM clients."""
@@ -504,8 +560,12 @@ class ReferenceNames(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, creds, 'MethodCall', 'ReferenceNames',
-            LocalNamespacePath, payload)
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = 'ReferenceNames',
+            object = LocalNamespacePath, 
+            payload = payload)
 
     def parseResponse(self, xml):
 
