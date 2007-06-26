@@ -8,7 +8,7 @@ Summary:        Python WBEM Client
 Group:          Development/Languages
 License:        LGPL
 URL:            http://pywbem.sourceforge.net
-Source0:        pywbem-%{version}.tar.gz
+Source0:        http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:      noarch
