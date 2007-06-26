@@ -10,6 +10,6 @@ Upstream Author: Tim Potter <tpot@hp.com>
 License:
 
 You are free to distribute this software under the terms of
-the GNU General Public License.
-On Debian systems, the complete text of the GNU General Public
-License can be found in the file `/usr/share/common-licenses/GPL'.
+the GNU lesser General Public License.
+On Debian systems, the complete text of the GNU Lesser General Public
+License can be found in the file `/usr/share/common-licenses/LGPL'.
