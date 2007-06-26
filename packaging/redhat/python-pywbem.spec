@@ -14,6 +14,8 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 BuildRequires:  python-devel
 
+Requires: python >= 2.3
+
 %description
 PyWBEM is a Python library for making CIM operations over HTTP using the 
 WBEM CIM-XML protocol.  WBEM is a manageability protocol, like SNMP,
