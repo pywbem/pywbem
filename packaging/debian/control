@@ -11,5 +11,7 @@ Architecture: all
 Depends: ${python:Depends}
 XB-Python-Version: ${python:Versions}
 Description: Python WBEM client
- This is a dummy package which depends on the python-pywbem module for the
- default version of Python.
+ PyWBEM is a Python library for making CIM operations over HTTP using the 
+ WBEM CIM-XML protocol.  WBEM is a manageability protocol, like SNMP,
+ standardised by the Distributed Management Task Force (DMTF) available
+ at http://www.dmtf.org/standards/wbem.
