@@ -181,15 +181,14 @@ import pywbem.tupletree
 class EnumerateInstances(WBEMClientFactory):
     """Factory to produce EnumerateInstances WBEM clients."""
     
-    def __init__(self, creds, classname,
-                 LocalNamespacePath = 'root/cimv2', **kwargs):
+    def __init__(self, creds, classname, namespace = 'root/cimv2', **kwargs):
 
         self.classname = classname
-        self.localnsp = LocalNamespacePath
+        self.namespace = namespace
 
         payload = self.imethodcallPayload(
             'EnumerateInstances',
-            LocalNamespacePath,
+            namespace,
             ClassName = CIMClassName(classname),
             **kwargs)
 
@@ -198,12 +197,12 @@ class EnumerateInstances(WBEMClientFactory):
             creds, 
             operation = 'MethodCall', 
             method = 'EnumerateInstances',
-            object = LocalNamespacePath, 
+            object = namespace, 
             payload = payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
-               (self.__class__, self.localnsp, self.classname, id(self))
+               (self.__class__, self.namespace, self.classname, id(self))
 
     def parseResponse(self, xml):
 
@@ -215,15 +214,14 @@ class EnumerateInstances(WBEMClientFactory):
 class EnumerateInstanceNames(WBEMClientFactory):
     """Factory to produce EnumerateInstanceNames WBEM clients."""
     
-    def __init__(self, creds, classname,
-                 LocalNamespacePath = 'root/cimv2', **kwargs):
+    def __init__(self, creds, classname, namespace = 'root/cimv2', **kwargs):
 
         self.classname = classname
-        self.localnsp = LocalNamespacePath
+        self.namespace = namespace
 
         payload = self.imethodcallPayload(
             'EnumerateInstanceNames',
-            LocalNamespacePath,
+            namespace,
             ClassName = CIMClassName(classname),
             **kwargs)
 
@@ -232,12 +230,12 @@ class EnumerateInstanceNames(WBEMClientFactory):
             creds, 
             operation = 'MethodCall', 
             method = 'EnumerateInstanceNames',
-            object = LocalNamespacePath, 
+            object = namespace, 
             payload = payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
-               (self.__class__, self.localnsp, self.classname, id(self))
+               (self.__class__, self.namespace, self.classname, id(self))
 
     def parseResponse(self, xml):
 
@@ -249,15 +247,14 @@ class EnumerateInstanceNames(WBEMClientFactory):
 class GetInstance(WBEMClientFactory):
     """Factory to produce GetInstance WBEM clients."""
     
-    def __init__(self, creds, instancename,
-                 LocalNamespacePath = 'root/cimv2', **kwargs):
+    def __init__(self, creds, instancename, namespace = 'root/cimv2', **kwargs):
 
         self.instancename = instancename
-        self.localnsp = LocalNamespacePath
+        self.namespace = namespace
 
         payload = self.imethodcallPayload(
             'GetInstance',
-            LocalNamespacePath,
+            namespace,
             InstanceName = instancename,
             **kwargs)
 
@@ -266,12 +263,12 @@ class GetInstance(WBEMClientFactory):
             creds, 
             operation = 'MethodCall', 
             method = 'GetInstance',
-            object = LocalNamespacePath, 
+            object = namespace, 
             payload = payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
-               (self.__class__, self.localnsp, self.instancename, id(self))
+               (self.__class__, self.namespace, self.instancename, id(self))
 
     def parseResponse(self, xml):
 
@@ -283,15 +280,14 @@ class GetInstance(WBEMClientFactory):
 class DeleteInstance(WBEMClientFactory):
     """Factory to produce DeleteInstance WBEM clients."""
     
-    def __init__(self, creds, instancename,
-                 LocalNamespacePath = 'root/cimv2', **kwargs):
+    def __init__(self, creds, instancename, namespace = 'root/cimv2', **kwargs):
 
         self.instancename = instancename
-        self.localnsp = LocalNamespacePath
+        self.namespace = namespace
 
         payload = self.imethodcallPayload(
             'DeleteInstance',
-            LocalNamespacePath,
+            namespace,
             InstanceName = instancename,
             **kwargs)
 
@@ -300,24 +296,23 @@ class DeleteInstance(WBEMClientFactory):
             creds, 
             operation = 'MethodCall', 
             method = 'DeleteInstance',
-            object = LocalNamespacePath, 
+            object = namespace, 
             payload = payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
-               (self.__class__, self.localnsp, self.instancename, id(self))
+               (self.__class__, self.namespace, self.instancename, id(self))
 
 class CreateInstance(WBEMClientFactory):
     """Factory to produce CreateInstance WBEM clients."""
     
     # TODO: Implement __repr__ method
 
-    def __init__(self, creds, instance,
-                 LocalNamespacePath = 'root/cimv2', **kwargs):
+    def __init__(self, creds, instance, namespace = 'root/cimv2', **kwargs):
 
         payload = self.imethodcallPayload(
             'CreateInstance',
-            LocalNamespacePath,
+            namespace,
             NewInstance = instance,
             **kwargs)
 
@@ -326,7 +321,7 @@ class CreateInstance(WBEMClientFactory):
             creds, 
             operation = 'MethodCall', 
             method = 'CreateInstance',
-            object = LocalNamespacePath, 
+            object = namespace, 
             payload = payload)
 
 class ModifyInstance(WBEMClientFactory):
@@ -334,14 +329,14 @@ class ModifyInstance(WBEMClientFactory):
     
     # TODO: Implement __repr__ method
 
-    def __init__(self, creds, instancename, instance,
-                 LocalNamespacePath = 'root/cimv2', **kwargs):
+    def __init__(self, creds, instancename, instance, namespace = 'root/cimv2', 
+                 **kwargs):
 
         wrapped_instance = CIMNamedInstance(instancename, instance)
 
         payload = self.imethodcallPayload(
             'ModifyInstance',
-            LocalNamespacePath,
+            namespace,
             ModifiedInstance = wrapped_instance,
             **kwargs)
 
@@ -350,19 +345,19 @@ class ModifyInstance(WBEMClientFactory):
             creds, 
             operation = 'MethodCall', 
             method = 'ModifyInstance',
-            object = LocalNamespacePath, 
+            object = namespace, 
             payload = payload)
 
 class EnumerateClassNames(WBEMClientFactory):
     """Factory to produce EnumerateClassNames WBEM clients."""
     
-    def __init__(self, creds, LocalNamespacePath = 'root/cimv2', **kwargs):
+    def __init__(self, creds, namespace = 'root/cimv2', **kwargs):
 
         self.localnsp = LocalNamespacePath
 
         payload = self.imethodcallPayload(
             'EnumerateClassNames',
-            LocalNamespacePath,
+            namespace,
             **kwargs)
 
         WBEMClientFactory.__init__(
@@ -375,7 +370,7 @@ class EnumerateClassNames(WBEMClientFactory):
 
     def __repr__(self):
         return '<%s(/%s) at 0x%x>' % \
-               (self.__class__, self.localnsp, id(self))
+               (self.__class__, self.namespace, id(self))
 
     def parseResponse(self, xml):
 
@@ -387,13 +382,13 @@ class EnumerateClassNames(WBEMClientFactory):
 class EnumerateClasses(WBEMClientFactory):
     """Factory to produce EnumerateClasses WBEM clients."""
     
-    def __init__(self, creds, LocalNamespacePath = 'root/cimv2', **kwargs):
+    def __init__(self, creds, namespace = 'root/cimv2', **kwargs):
 
         self.localnsp = LocalNamespacePath
 
         payload = self.imethodcallPayload(
             'EnumerateClasses',
-            LocalNamespacePath,
+            namespace,
             **kwargs)
 
         WBEMClientFactory.__init__(
@@ -401,12 +396,12 @@ class EnumerateClasses(WBEMClientFactory):
             creds, 
             operation = 'MethodCall', 
             method = 'EnumerateClasses',
-            object = LocalNamespacePath, 
+            object = namespace, 
             payload = payload)
 
     def __repr__(self):
         return '<%s(/%s) at 0x%x>' % \
-               (self.__class__, self.localnsp, id(self))
+               (self.__class__, self.namespace, id(self))
 
     def parseResponse(self, xml):
 
@@ -418,15 +413,14 @@ class EnumerateClasses(WBEMClientFactory):
 class GetClass(WBEMClientFactory):
     """Factory to produce GetClass WBEM clients."""
     
-    def __init__(self, creds, classname,
-                 LocalNamespacePath = 'root/cimv2', **kwargs):
+    def __init__(self, creds, classname, namespace = 'root/cimv2', **kwargs):
 
         self.classname = classname
-        self.localnsp = LocalNamespacePath
+        self.namespace = namespace
 
         payload = self.imethodcallPayload(
             'GetClass',
-            LocalNamespacePath,
+            namespace,
             ClassName = CIMClassName(classname),
             **kwargs)
 
@@ -435,12 +429,12 @@ class GetClass(WBEMClientFactory):
             creds, 
             operation = 'MethodCall', 
             method = 'GetClass',
-            object = LocalNamespacePath, 
+            object = namespace, 
             payload = payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
-               (self.__class__, self.localnsp, self.classname, id(self))
+               (self.__class__, self.namespace, self.classname, id(self))
 
     def parseResponse(self, xml):
 
@@ -454,8 +448,7 @@ class Associators(WBEMClientFactory):
     
     # TODO: Implement __repr__ method
 
-    def __init__(self, creds, obj,
-                 LocalNamespacePath = 'root/cimv2', **kwargs):
+    def __init__(self, creds, obj, namespace = 'root/cimv2', **kwargs):
 
         if isinstance(obj, CIMInstanceName):
             kwargs['ObjectName'] = obj
@@ -464,7 +457,7 @@ class Associators(WBEMClientFactory):
 
         payload = self.imethodcallPayload(
             'Associators',
-            LocalNamespacePath,
+            namespace,
             **kwargs)
 
         WBEMClientFactory.__init__(
@@ -472,7 +465,7 @@ class Associators(WBEMClientFactory):
             creds, 
             operation = 'MethodCall', 
             method = 'Associators',
-            object = LocalNamespacePath, 
+            object = namespace, 
             payload = payload)
 
 class AssociatorNames(WBEMClientFactory):
@@ -480,8 +473,7 @@ class AssociatorNames(WBEMClientFactory):
     
     # TODO: Implement __repr__ method
 
-    def __init__(self, creds, obj,
-                 LocalNamespacePath = 'root/cimv2', **kwargs):
+    def __init__(self, creds, obj, namespace = 'root/cimv2', **kwargs):
 
         if isinstance(obj, CIMInstanceName):
             kwargs['ObjectName'] = obj
@@ -490,7 +482,7 @@ class AssociatorNames(WBEMClientFactory):
 
         payload = self.imethodcallPayload(
             'AssociatorNames',
-            LocalNamespacePath,
+            namespace,
             **kwargs)
 
         WBEMClientFactory.__init__(
@@ -498,7 +490,7 @@ class AssociatorNames(WBEMClientFactory):
             creds, 
             operation = 'MethodCall', 
             method = 'AssociatorNames',
-            object = LocalNamespacePath, 
+            object = namespace, 
             payload = payload)
 
     def parseResponse(self, xml):
@@ -520,8 +512,7 @@ class AssociatorNames(WBEMClientFactory):
 class References(WBEMClientFactory):
     """Factory to produce References WBEM clients."""
     
-    def __init__(self, creds, obj,
-                 LocalNamespacePath = 'root/cimv2', **kwargs):
+    def __init__(self, creds, obj, namespace = 'root/cimv2', **kwargs):
 
         if isinstance(obj, CIMInstanceName):
             kwargs['ObjectName'] = obj
@@ -530,7 +521,7 @@ class References(WBEMClientFactory):
 
         payload = self.imethodcallPayload(
             'References',
-            LocalNamespacePath,
+            namespace,
             **kwargs)
 
         WBEMClientFactory.__init__(
@@ -538,7 +529,7 @@ class References(WBEMClientFactory):
             creds, 
             operation = 'MethodCall', 
             method = 'References',
-            object = LocalNamespacePath, 
+            object = namespace, 
             payload = payload)
 
 class ReferenceNames(WBEMClientFactory):
@@ -546,8 +537,7 @@ class ReferenceNames(WBEMClientFactory):
     
     # TODO: Implement __repr__ method
 
-    def __init__(self, creds, obj,
-                 LocalNamespacePath = 'root/cimv2', **kwargs):
+    def __init__(self, creds, obj, namespace = 'root/cimv2', **kwargs):
 
         if isinstance(obj, CIMInstanceName):
             kwargs['ObjectName'] = obj
@@ -556,7 +546,7 @@ class ReferenceNames(WBEMClientFactory):
 
         payload = self.imethodcallPayload(
             'ReferenceNames',
-            LocalNamespacePath,
+            namespace,
             **kwargs)
 
         WBEMClientFactory.__init__(
@@ -564,7 +554,7 @@ class ReferenceNames(WBEMClientFactory):
             creds, 
             operation = 'MethodCall', 
             method = 'ReferenceNames',
-            object = LocalNamespacePath, 
+            object = namespace, 
             payload = payload)
 
     def parseResponse(self, xml):
