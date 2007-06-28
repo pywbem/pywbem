@@ -1133,22 +1133,26 @@ class CIMQualifierDeclaration(object):
 
     # TODO: Scope and qualifier flavors
     
-    def __init__(self, name, type, data = None, is_array = False,
-                 array_size = None):
+    def __init__(self, name, type, value = None, is_array = False,
+                 array_size = None, scopes = {}, flavors={}):
 
         self.name = name
         self.type = type
-        self.data = data
+        self.value = value
         self.is_array = is_array
         self.array_size = array_size
+        self.scopes = scopes
+        self.flavors = flavors
 
     def copy(self):
 
         return CIMQualifierDeclaration(self.name,
                                        self.type,
-                                       data = self.data,
+                                       value = self.value,
                                        is_array = self.is_array,
-                                       array_size = self.array_size)
+                                       array_size = self.array_size,
+                                       scopes = self.scopes,
+                                       flavors = self.flavors)
                                        
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, `self.name`)
@@ -1162,17 +1166,21 @@ class CIMQualifierDeclaration(object):
 
         return (cmpname(self.name, other.name) or
                 cmp(self.type, other.type) or
-                cmp(self.data, other.data) or
+                cmp(self.value, other.value) or
                 cmp(self.is_array, other.is_array) or
-                cmp(self.array_size, other.array_size))
+                cmp(self.array_size, other.array_size) or
+                cmp(self.scopes, other.scopes) or
+                cmp(self.flavors, other.flavors))
 
     def tocimxml(self):
-
+        
         return QUALIFIER_DECLARATION(self.name,
                                      self.type,
-                                     self.data,
+                                     self.value,
                                      is_array = self.is_array,
-                                     array_size = self.array_size)
+                                     array_size = self.array_size,
+                                     qualifier_flavours = self.flavors,
+                                     qualifier_scopes = self.scopes)
 
 def tocimxml(value):
     """Convert an arbitrary object to CIM xml.  Works with cim_obj

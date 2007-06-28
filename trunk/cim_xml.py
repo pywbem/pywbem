@@ -185,16 +185,27 @@ class QUALIFIER_DECLARATION(CIMElement):
          %QualifierFlavor;>
     """
 
-    def __init__(self, name, type, data, is_array = None,
-                 array_size = None, qualifier_flavours = {}):
+    def __init__(self, name, type, value, is_array = None,
+                 array_size = None, qualifier_flavours = {},
+                 qualifier_scopes = {}):
         Element.__init__(self, 'QUALIFIER.DECLARATION')
         self.setName(name)
         self.setAttribute('TYPE', type)
-        self.setOptionalAttribute(is_array)
-        self.setOptionalAttribute(array_size)
-        for qf in qualifier_flavours.items():
-            self.setAttribute(qf[0], qf[1])
-        self.appendOptionalChild(data)
+        if is_array is not None:
+            self.setOptionalAttribute('ISARRAY', str(is_array).lower())
+        if array_size is not None:
+            self.setOptionalAttribute('ARRAYSIZE', str(array_size))
+        for n, v in qualifier_flavours.items():
+            self.setAttribute(n, str(v).lower())
+        if value is not None:
+            if is_array:
+                xval = VALUE_ARRAY(value)
+            else:
+                xval = VALUE(value)
+            self.appendOptionalChild(xval)
+        if qualifier_scopes:
+            scope = SCOPE(qualifier_scopes)
+            self.appendOptionalChild(scope)
 
 class SCOPE(CIMElement):
     """
@@ -213,17 +224,10 @@ class SCOPE(CIMElement):
          INDICATION   (true|false)      'false'>
     """
     
-    def __init__(self, class_ = False, association = False,
-                 reference = False, property = False, method = False,
-                 parameter = False, indication = False):
+    def __init__(self, scopes={}):
         Element.__init__(self, 'SCOPE')
-        self.setAttribute('CLASS', str(class_).lower())
-        self.setAttribute('ASSOCIATION', str(association).lower())
-        self.setAttribute('REFERENCE', str(reference).lower())
-        self.setAttribute('PROPERTY', str(property).lower())
-        self.setAttribute('METHOD', str(method).lower())
-        self.setAttribute('PARAMETER', str(parameter).lower())
-        self.setAttribute('INDICATION', str(indication).lower())
+        for k, v in scopes.items():
+            self.setOptionalAttribute(k, str(v).lower())
 
 # Object value elements
 
