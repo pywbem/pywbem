@@ -63,7 +63,11 @@ class WBEMClient(http.HTTPClient):
 
         self.endHeaders()
         
-        self.transport.write(self.factory.payload)
+        # TODO: Figure out why twisted doesn't support unicode.  An
+        # exception should be thrown by the str() call if the payload
+        # can't be converted to the current codepage.
+
+        self.transport.write(str(self.factory.payload))
         
     def handleResponse(self, data):
         """Called when all response data has been received."""
@@ -209,7 +213,7 @@ class EnumerateInstances(WBEMClientFactory):
         tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
               for x in xml.findall('.//VALUE.NAMEDINSTANCE')]
         
-        return [pywbem.tupleparse.parse_value_namedinstance(x)[2] for x in tt]
+        return [pywbem.tupleparse.parse_value_namedinstance(x) for x in tt]
 
 class EnumerateInstanceNames(WBEMClientFactory):
     """Factory to produce EnumerateInstanceNames WBEM clients."""
