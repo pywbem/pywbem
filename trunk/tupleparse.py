@@ -744,6 +744,20 @@ def parse_instance(tt):
 
     return obj
 
+def parse_scope(tt):
+    # <!ELEMENT SCOPE EMPTY>
+    # <!ATTLIST SCOPE
+    #   CLASS (true | false) "false"
+    #   ASSOCIATION (true | false) "false"
+    #   REFERENCE (true | false) "false"
+    #   PROPERTY (true | false) "false"
+    #   METHOD (true | false) "false"
+    #   PARAMETER (true | false) "false"
+    #   INDICATION (true | false) "false"
+    check_node(tt, 'SCOPE', [], 
+        ['CLASS', 'ASSOCIATION', 'REFERENCE', 'PROPERTY', 'METHOD', 
+            'PARAMETER', 'INDICATION'], [])
+    return dict([(k,v.lower() == 'true') for k,v in attrs(tt).items()])
 
 def parse_qualifier_declaration(tt):
     ## <!ELEMENT QUALIFIER.DECLARATION (SCOPE?, (VALUE | VALUE.ARRAY)?)>
@@ -761,8 +775,38 @@ def parse_qualifier_declaration(tt):
                ['SCOPE', 'VALUE', 'VALUE.ARRAY'])
 
     a = attrs(tt)
+    qname = a['NAME']
+    type = a['TYPE']
+    try:
+        is_array = a['ISARRAY'].lower() == 'true'
+    except KeyError:
+        is_array = False
+    try:
+        array_size = int(a['ARRAYSIZE'])
+    except KeyError:
+        array_size = None
 
-    return cim_obj.CIMQualifierDeclaration(a['NAME'], a['TYPE'])
+    flavors = {}
+    for f in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE', 'TRANSLATABLE']:
+        try:
+            flavors[f] = a[f].lower() == 'true'
+        except KeyError:
+            pass
+
+    scopes = None
+    value = None
+    for child in kids(tt):
+        if name(child) == 'SCOPE':
+            if scopes is not None:
+                raise ParseError("Multiple SCOPE tags encountered")
+            scopes = parse_any(child)
+        else:
+            if value is not None:
+                raise ParseError("Multiple VALUE/VALUE.ARRAY tags encountered")
+            value = cim_obj.tocimobj(type, parse_any(child))
+            
+    return cim_obj.CIMQualifierDeclaration(qname, type, value, is_array,
+                 array_size, scopes, flavors)
 
 
 def parse_qualifier(tt):
