@@ -266,10 +266,10 @@ class WBEMConnection(object):
                 return cim_xml.VALUE_ARRAY([paramvalue(x) for x in obj])
             raise TypeError('Unsupported parameter type "%s"' % type(obj))
 
-        def isEmbedded(obj):
+        def is_embedded(obj):
             """Determine if an object requires an EmbeddedObject attribute"""
             if isinstance(obj,list) and obj:
-                return isEmbedded(obj[0])
+                return is_embedded(obj[0])
             elif isinstance(obj, CIMClass):
                 return 'object'
             elif isinstance(obj, CIMInstance):
@@ -279,7 +279,7 @@ class WBEMConnection(object):
         plist = [cim_xml.PARAMVALUE(x[0], 
                                     paramvalue(x[1]), 
                                     paramtype(x[1]),
-                                    embedded_object=isEmbedded(x[1]))
+                                    embedded_object=is_embedded(x[1]))
                  for x in params.items()]
 
         # Build XML request

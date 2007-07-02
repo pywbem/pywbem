@@ -256,7 +256,7 @@ def list_of_same(tt, acceptable):
     w = name(k[0])
     if w not in acceptable:
         raise ParseError('expected one of %s under %s, got %s' % 
-                             (acceptable, name(tt), `name(child)`))
+                             (acceptable, name(tt), `w`))
     r = []
     for child in k:
         if name(child) <> w:
@@ -1130,7 +1130,7 @@ def parse_simplereq(tt):
 
     child = one_child(tt, ['IMETHODCALL', 'METHODCALL'])
 
-    return (kids(tt)[0][0], child)
+    return name(tt), attrs(tt), child
 
 
 def parse_simpleexpreq(tt):
@@ -1158,7 +1158,20 @@ def parse_imethodcall(tt):
 
 
 def parse_methodcall(tt):
-    raise ParseError('METHODCALL parser not implemented')
+    """
+    <!ELEMENT METHODCALL ((LOCALCLASSPATH|LOCALINSTANCEPATH),PARAMVALUE*)>
+    <!ATTLIST METHODCALL
+         %CIMName;>
+    """
+
+    check_node(tt, 'METHODCALL', ['NAME'], [],
+               ['LOCALCLASSPATH', 'LOCALINSTANCEPATH', 'PARAMVALUE'])
+    path = list_of_matching(tt, ['LOCALCLASSPATH','LOCALINSTANCEPATH'])
+    if len(path) != 1:
+        raise ParseError('Expecting one of LOCALCLASSPATH or LOCALINSTANCEPATH, got %s' % `path`)
+    path = path[0]
+    params = list_of_matching(tt, ['PARAMVALUE'])
+    return (name(tt), attrs(tt), path, params)
 
 
 def parse_expmethodcall(tt):
