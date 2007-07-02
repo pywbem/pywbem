@@ -470,7 +470,11 @@ class CIMProvider(object):
                                        model=model,
                                        cim_class=cimClass,
                                        keys_only=True):
-            result(build_instance_name(inst))
+            rval = build_instance_name(inst)
+            #if result is None:
+            #    yield rval
+            #else:
+            result(rval)
         logger.log_debug('CIMProvider MI_enumInstanceNames returning')
     
     def MI_enumInstances(self, 
@@ -1347,15 +1351,18 @@ class %(classname)sProvider(pywbem.CIMProvider):
                 refprops.append((prop.name, prop.reference_class))
         for refprop in refprops:
             code+= '''
-        if (not role or role.lower() == '%(refpropname)s') and \\
+        if (not role or role.lower() == '%(refpropnamel)s') and \\
            pywbem.is_subclass(ch, object_name.namespace, 
                        sub=object_name.classname, 
                        super='%(rolecname)s'):
-            yield model # TODO: Yield association instances where 
-                        # object_name is %(refpropname)s.
+            model['%(refpropname)s'] = object_name
+            yield model # TODO: Add other REF properties. 
+                        # Yield association instances where 
+                        # object_name is %(refpropnamel)s.
                         # Only appropriate if object_name.classname 
                         # is '%(rolecname)s' or a subclass.\n''' \
-                               % {'refpropname':refprop[0].lower(),
+                               % {'refpropname':refprop[0],
+                                  'refpropnamel':refprop[0].lower(),
                                   'rolecname':refprop[1]}
 
     if valuemaps:
@@ -1420,16 +1427,16 @@ class ProviderProxy(object):
         provider_name = 'pyprovider_'
         for ch in provid:
             provider_name+= ch.isalnum() and ch or '_'
+        # let providers import other providers in the same directory
+        provdir = dirname(provid)
+        if provdir not in sys.path:
+            sys.path.append(provdir)
         # use full path in module name for uniqueness. 
         self.provmod = load_source(provider_name, provid)
         self.filename = self.provmod.__file__
         self.provregs = {}
         if hasattr(self.provmod, "get_providers"):
             self.provregs = pywbem.NocaseDict(self.provmod.get_providers(env))
-        # let providers import other providers in the same directory
-        provdir = dirname(provid)
-        if provdir not in sys.path:
-            sys.path.append(provdir)
 
     def _get_callable (self, classname, cname):
         """Return a function or method object appropriate to fulfill a request
@@ -1448,9 +1455,9 @@ class ProviderProxy(object):
             callable = getattr(self.provmod, cname)
         if callable is None:
             raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "No callable for %s:%s on provider %s"%(self.provid,
-                                                            classname, 
-                                                            cname))
+                    "No callable for %s:%s on provider %s"%(classname,
+                                                            cname, 
+                                                            self.provid))
         return callable
 
 ##############################################################################
@@ -1462,9 +1469,16 @@ class ProviderProxy(object):
                               result,
                               cimClass):
         logger = env.get_logger()
-        logger.log_debug('CIMProvider MI_enumInstanceNames called...')
-        self._get_callable(cimClass.classname, 'MI_enumInstanceNames') \
-                (env, ns, result, cimClass)
+        logger.log_debug('ProviderProxy MI_enumInstanceNames called...')
+        #if result is None:
+        #    for i in self._get_callable(cimClass.classname, 
+        #                                'MI_enumInstanceNames') \
+        #                                        (env, ns, None, cimClass):
+        #        yield i
+        #else:
+        self._get_callable(cimClass.classname, 
+                               'MI_enumInstanceNames') \
+                                                (env, ns, result, cimClass)
         logger.log_debug('CIMProvider MI_enumInstanceNames returning')
 
 ##############################################################################
