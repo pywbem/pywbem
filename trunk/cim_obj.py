@@ -549,8 +549,7 @@ class CIMInstanceName(object):
                 self.classname,
                 cim_xml.KEYVALUE(str(self.keybindings), 'numeric'))
 
-        elif type(self.keybindings) == dict or \
-               isinstance(self.keybindings, NocaseDict):
+        elif isinstance(self.keybindings, (dict, NocaseDict)):
 
             # Dictionary of keybindings
             # NOCASE_TODO should remove dict below. 
