@@ -160,56 +160,64 @@ class CIMDateTime(CIMType) :
 # CIM integer types
 
 class CIMInt(CIMType, long):
-    def __init__(self, arg, base, cimtype):
+    def __init__(self, arg, base):
         int.__init__(self, arg, base)
-        self.cimtype = cimtype
 
 class Uint8(CIMInt):
+    cimtype = 'uint8'
     def __init__(self, arg, base = 0):
-        CIMInt.__init__(self, arg, base, 'uint8')
+        CIMInt.__init__(self, arg, base)
 
 class Sint8(CIMInt):
+    cimtype = 'sint8'
     def __init__(self, arg, base = 0):
-        CIMInt.__init__(self, arg, base, 'sint8')
+        CIMInt.__init__(self, arg, base)
 
 class Uint16(CIMInt):
+    cimtype = 'uint16'
     def __init__(self, arg, base = 0):
-        CIMInt.__init__(self, arg, base, 'uint16')
+        CIMInt.__init__(self, arg, base)
 
 class Sint16(CIMInt):
+    cimtype = 'sint16'
     def __init__(self, arg, base = 0):
-        CIMInt.__init__(self, arg, base, 'sint16')
+        CIMInt.__init__(self, arg, base)
 
 class Uint32(CIMInt):
+    cimtype = 'uint32'
     def __init__(self, arg, base = 0):
-        CIMInt.__init__(self, arg, base, 'uint32')
+        CIMInt.__init__(self, arg, base)
 
 class Sint32(CIMInt):
+    cimtype = 'sint32'
     def __init__(self, arg, base = 0):
-        CIMInt.__init__(self, arg, base, 'sint32')
+        CIMInt.__init__(self, arg, base)
 
 class Uint64(CIMInt):
+    cimtype = 'uint64'
     def __init__(self, arg, base = 0):
-        CIMInt.__init__(self, arg, base, 'uint64')
+        CIMInt.__init__(self, arg, base)
 
 class Sint64(CIMInt):
+    cimtype = 'sint64'
     def __init__(self, arg, base = 0):
-        CIMInt.__init__(self, arg, base, 'sint64')
+        CIMInt.__init__(self, arg, base)
 
 # CIM float types
 
 class CIMFloat(CIMType, float):
-    def __init__(self, arg, cimtype):
+    def __init__(self, arg):
         float.__init__(self, arg)
-        self.cimtype = cimtype
 
 class Real32(CIMFloat):
+    cimtype = 'real32'
     def __init__(self, arg):
-        CIMFloat.__init__(self, arg, 'real32')
+        CIMFloat.__init__(self, arg)
 
 class Real64(CIMFloat):
+    cimtype = 'real64'
     def __init__(self, arg):
-        CIMFloat.__init__(self, arg, 'real64')
+        CIMFloat.__init__(self, arg)
 
 def cimtype(obj):
     """Return the CIM type name of an object as a string.  For a list, the
