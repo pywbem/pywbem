@@ -1224,9 +1224,14 @@ def parse_iparamvalue(tt):
                             'QUALIFIER.DECLARATION', 'CLASS', 'INSTANCE',
                             'VALUE.NAMEDINSTANCE'])
 
-    ## TODO: unpack_value() where appropriate.
+    name = attrs(tt)['NAME']
+    if isinstance(child, basestring) and \
+            name.lower() in ['deepinheritance', 'localonly', 
+                             'includequalifiers', 'includeclassorigin']:
+        if child.lower() in ['true', 'false']:
+            child = child.lower() == 'true'
 
-    return attrs(tt)['NAME'],  child 
+    return name,  child
 
           
 def parse_expparamvalue(tt):
