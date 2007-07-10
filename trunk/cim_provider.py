@@ -477,7 +477,6 @@ class CIMProvider(object):
     def MI_enumInstances(self, 
                          env, 
                          ns, 
-                         result, 
                          propertyList, 
                          requestedCimClass, 
                          cimClass):
@@ -511,7 +510,7 @@ class CIMProvider(object):
             inst.path = build_instance_name(inst, keyNames)
             if self.filter_results:
                 filter_instance(inst, plist)
-            result(inst)
+            yield inst
         logger.log_debug('CIMProvider MI_enumInstances returning')
 
     def MI_getInstance(self, 
@@ -635,7 +634,6 @@ class CIMProvider(object):
 
     def MI_associators(self, 
                        env, 
-                       result, 
                        objectName, 
                        assocClassName, 
                        resultClassName, 
@@ -665,7 +663,14 @@ class CIMProvider(object):
                                    properties=plist)
         model.path = pywbem.CIMInstanceName(classname=assocClass.classname, 
                                             namespace=objectName.namespace)
-        def newHandler (inst):
+        for inst in self.references(env=env, 
+                                    object_name=objectName, 
+                                    model=model,
+                                    assoc_class=assocClass,
+                                    result_class_name=resultClassName, 
+                                    role=role, 
+                                    result_role=None,
+                                    keys_only=False):
             for prop in inst.properties.values():
                 lpname = prop.name.lower()
                 if prop.type != 'reference':
@@ -693,22 +698,11 @@ class CIMProvider(object):
                         raise
                 if inst.path is None:
                     inst.path = prop.value
-                result(inst)
-
-        for inst in self.references(env=env, 
-                                    object_name=objectName, 
-                                    model=model,
-                                    assoc_class=assocClass,
-                                    result_class_name=resultClassName, 
-                                    role=role, 
-                                    result_role=None,
-                                    keys_only=False):
-            newHandler(inst)
+                yield inst
         logger.log_debug('CIMProvider MI_associators returning')
 
     def MI_associatorNames(self, 
                            env, 
-                           result, 
                            objectName, 
                            assocClassName, 
                            resultClassName, 
@@ -735,7 +729,14 @@ class CIMProvider(object):
                                    properties=keys)
         model.path = pywbem.CIMInstanceName(classname=assocClass.classname, 
                                             namespace=objectName.namespace)
-        def newHandler (inst):
+        for inst in self.references(env=env, 
+                                    object_name=objectName, 
+                                    model=model,
+                                    assoc_class=assocClass,
+                                    result_class_name=resultClassName, 
+                                    role=role, 
+                                    result_role=None,
+                                    keys_only=False):
             for prop in inst.properties.values():
                 lpname = prop.name.lower()
                 if prop.type != 'reference':
@@ -751,22 +752,11 @@ class CIMProvider(object):
                                         sub=prop.value.classname, 
                                         super=resultClassName):
                     continue
-                result(prop.value)
-
-        for inst in self.references(env=env, 
-                                    object_name=objectName, 
-                                    model=model,
-                                    assoc_class=assocClass,
-                                    result_class_name=resultClassName, 
-                                    role=role, 
-                                    result_role=None,
-                                    keys_only=False):
-            newHandler(inst)
+                yield prop.value
         logger.log_debug('CIMProvider MI_associatorNames returning')
 
     def MI_references(self, 
                       env, 
-                      result, 
                       objectName, 
                       resultClassName, 
                       role, 
@@ -820,12 +810,11 @@ class CIMProvider(object):
             inst.path = build_instance_name(inst, keyNames)
             if self.filter_results:
                 filter_instance(inst, plist)
-            result(inst)
+            yield inst
         logger.log_debug('CIMProvider MI_references returning')
 
     def MI_referenceNames(self, 
                           env, 
-                          result, 
                           objectName, 
                           resultClassName, 
                           role):
@@ -869,7 +858,7 @@ class CIMProvider(object):
                                     role=role, 
                                     result_role=None,
                                     keys_only=True):
-            result(build_instance_name(inst, keyNames))
+            yield build_instance_name(inst, keyNames)
         logger.log_debug('CIMProvider MI_referenceNames returning')
 
     def MI_invokeMethod(self, env, objectName, metaMethod, inputParams):
@@ -908,8 +897,8 @@ class CIMProvider(object):
         lmethName = "cim_method_%s" % metaMethod.name.lower()
         if hasattr(self, lmethName) :
             method = getattr(self, lmethName)
-            new_inputs = dict(('param_%s' % k.lower(), v) \
-                            for k, v in inputParams.items())
+            new_inputs = dict([('param_%s' % k.lower(), v) \
+                            for k, v in inputParams.items()])
             (rval, outs) = method(env=env, object_name=objectName, 
                                   method=metaMethod, **new_inputs)
 
@@ -1483,19 +1472,18 @@ class ProviderProxy(object):
     def MI_enumInstances(self, 
                          env, 
                          ns, 
-                         result, 
                          propertyList, 
                          requestedCimClass, 
                          cimClass):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_enumInstances called...')
-        self._get_callable(cimClass.classname, 'MI_enumInstances') \
-               (env, 
-                ns, 
-                result, 
-                propertyList, 
-                requestedCimClass, 
-                cimClass)
+        for i in self._get_callable(cimClass.classname, 'MI_enumInstances') \
+                           (env, 
+                            ns, 
+                            propertyList, 
+                            requestedCimClass, 
+                            cimClass):
+            yield i 
         logger.log_debug('CIMProvider MI_enumInstances returning')
 
 ##############################################################################
@@ -1563,7 +1551,6 @@ class ProviderProxy(object):
 ##############################################################################
     def MI_associators(self, 
                        env, 
-                       result, 
                        objectName, 
                        assocClassName, 
                        resultClassName, 
@@ -1574,9 +1561,10 @@ class ProviderProxy(object):
         #       and propertyList
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_associators called. assocClass: %s' % (assocClassName))
-        self._get_callable(assocClassName, 'MI_associators')  \
-                (env, result, objectName, assocClassName, resultClassName, 
-                 role, resultRole, propertyList)
+        for i in self._get_callable(assocClassName, 'MI_associators')  \
+                (env, objectName, assocClassName, resultClassName, 
+                        role, resultRole, propertyList):
+            yield i 
         logger.log_debug('CIMProvider MI_associators returning')
 
 ##############################################################################
@@ -1584,7 +1572,6 @@ class ProviderProxy(object):
 ##############################################################################
     def MI_associatorNames(self, 
                            env, 
-                           result, 
                            objectName, 
                            assocClassName, 
                            resultClassName, 
@@ -1592,9 +1579,10 @@ class ProviderProxy(object):
                            resultRole):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_associatorNames called. assocClass: %s' % (assocClassName))
-        self._get_callable(assocClassName, 'MI_associatorNames')  \
-                (env, result, objectName, assocClassName, resultClassName, 
-                 role, resultRole)
+        for i in self._get_callable(assocClassName, 'MI_associatorNames')  \
+                (env, objectName, assocClassName, resultClassName, 
+                        role, resultRole):
+            yield i 
         logger.log_debug('CIMProvider MI_associatorNames returning')
 
 ##############################################################################
@@ -1602,20 +1590,19 @@ class ProviderProxy(object):
 ##############################################################################
     def MI_references(self, 
                       env, 
-                      result, 
                       objectName, 
                       resultClassName, 
                       role, 
                       propertyList):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_references called. resultClass: %s' % (resultClassName))
-        self._get_callable(resultClassName, 'MI_references')  \
-               (env, 
-                result, 
-                objectName, 
-                resultClassName, 
-                role, 
-                propertyList)
+        for i in self._get_callable(resultClassName, 'MI_references')  \
+                           (env, 
+                            objectName, 
+                            resultClassName, 
+                            role, 
+                            propertyList):
+            yield i 
         logger.log_debug('CIMProvider MI_references returning')
 
 ##############################################################################
@@ -1623,18 +1610,17 @@ class ProviderProxy(object):
 ##############################################################################
     def MI_referenceNames(self, 
                           env, 
-                          result, 
                           objectName, 
                           resultClassName, 
                           role):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_referenceNames called. resultClass: %s' % (resultClassName))
-        self._get_callable(resultClassName, 'MI_referenceNames')  \
+        for i in self._get_callable(resultClassName, 'MI_referenceNames')  \
                (env, 
-                result, 
                 objectName, 
                 resultClassName, 
-                role)
+                role):
+            yield i 
         logger.log_debug('CIMProvider MI_referenceNames returning')
 
 ##############################################################################
