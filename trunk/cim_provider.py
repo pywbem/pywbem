@@ -196,6 +196,7 @@ import sys
 from os.path import dirname
 import pywbem
 from imp import load_source
+import types
 
 __all__ = ['CIMProvider',
            'is_subclass',
@@ -445,7 +446,6 @@ class CIMProvider(object):
     def MI_enumInstanceNames(self, 
                              env, 
                              ns, 
-                             result, 
                              cimClass):
         """Return instance names of a given CIM class
 
@@ -471,10 +471,7 @@ class CIMProvider(object):
                                        cim_class=cimClass,
                                        keys_only=True):
             rval = build_instance_name(inst)
-            #if result is None:
-            #    yield rval
-            #else:
-            result(rval)
+            yield rval
         logger.log_debug('CIMProvider MI_enumInstanceNames returning')
     
     def MI_enumInstances(self, 
@@ -1422,18 +1419,23 @@ class ProviderProxy(object):
     """Wraps a provider module, and routes requests into the module """
 
     def __init__ (self, env, provid):
-        self.provid = provid
-        # odd chars in a module name tend to break things
-        provider_name = 'pyprovider_'
-        for ch in provid:
-            provider_name+= ch.isalnum() and ch or '_'
-        # let providers import other providers in the same directory
-        provdir = dirname(provid)
-        if provdir not in sys.path:
-            sys.path.append(provdir)
-        # use full path in module name for uniqueness. 
-        self.provmod = load_source(provider_name, provid)
-        self.filename = self.provmod.__file__
+        if isinstance(provid, types.ModuleType):
+            self.provmod = provid
+            self.provid = provid.__name__
+            self.filename = provid.__file__
+        else:
+            self.provid = provid
+            # odd chars in a module name tend to break things
+            provider_name = 'pyprovider_'
+            for ch in provid:
+                provider_name+= ch.isalnum() and ch or '_'
+            # let providers import other providers in the same directory
+            provdir = dirname(provid)
+            if provdir not in sys.path:
+                sys.path.append(provdir)
+            # use full path in module name for uniqueness. 
+            self.provmod = load_source(provider_name, provid)
+            self.filename = self.provmod.__file__
         self.provregs = {}
         if hasattr(self.provmod, "get_providers"):
             self.provregs = pywbem.NocaseDict(self.provmod.get_providers(env))
@@ -1466,19 +1468,13 @@ class ProviderProxy(object):
     def MI_enumInstanceNames (self, 
                               env,
                               ns,
-                              result,
                               cimClass):
         logger = env.get_logger()
         logger.log_debug('ProviderProxy MI_enumInstanceNames called...')
-        #if result is None:
-        #    for i in self._get_callable(cimClass.classname, 
-        #                                'MI_enumInstanceNames') \
-        #                                        (env, ns, None, cimClass):
-        #        yield i
-        #else:
-        self._get_callable(cimClass.classname, 
-                               'MI_enumInstanceNames') \
-                                                (env, ns, result, cimClass)
+        for i in self._get_callable(cimClass.classname, 
+                                    'MI_enumInstanceNames') \
+                                            (env, ns, cimClass):
+            yield i
         logger.log_debug('CIMProvider MI_enumInstanceNames returning')
 
 ##############################################################################
