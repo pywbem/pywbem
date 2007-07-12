@@ -1140,8 +1140,8 @@ class CIMQualifierDeclaration(object):
         self.value = value
         self.is_array = is_array
         self.array_size = array_size
-        self.scopes = scopes
-        self.flavors = flavors
+        self.scopes = NocaseDict(scopes)
+        self.flavors = NocaseDict(flavors)
 
     def copy(self):
 
@@ -1227,10 +1227,13 @@ def tocimobj(_type, value):
     # Boolean type
     
     if _type == 'boolean':
-        if value.lower() == 'true':
-            return True
-        elif value.lower() == 'false':
-            return False
+        if isinstance(value, bool):
+            return value
+        elif isinstance(value, basestring):
+            if value.lower() == 'true':
+                return True
+            elif value.lower() == 'false':
+                return False
         raise ValueError('Invalid boolean value "%s"' % value)
 
     # String type
