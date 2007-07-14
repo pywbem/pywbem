@@ -1133,7 +1133,9 @@ class CIMQualifierDeclaration(object):
     # TODO: Scope and qualifier flavors
     
     def __init__(self, name, type, value = None, is_array = False,
-                 array_size = None, scopes = {}, flavors={}):
+                 array_size = None, scopes = {}, 
+                 overridable = None, tosubclass = None, toinstance = None,
+                 translatable = None):
 
         self.name = name
         self.type = type
@@ -1141,17 +1143,23 @@ class CIMQualifierDeclaration(object):
         self.is_array = is_array
         self.array_size = array_size
         self.scopes = NocaseDict(scopes)
-        self.flavors = NocaseDict(flavors)
+        self.overridable = overridable
+        self.tosubclass = tosubclass
+        self.toinstance = toinstance
+        self.translatable = translatable
 
     def copy(self):
 
         return CIMQualifierDeclaration(self.name,
                                        self.type,
-                                       value = self.value,
-                                       is_array = self.is_array,
-                                       array_size = self.array_size,
-                                       scopes = self.scopes,
-                                       flavors = self.flavors)
+                                       value=self.value,
+                                       is_array=self.is_array,
+                                       array_size=self.array_size,
+                                       scopes=self.scopes,
+                                       overridable=self.overridable,
+                                       tosubclass=self.tosubclass,
+                                       toinstance=self.toinstance,
+                                       translatable=self.translatable)
                                        
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, `self.name`)
@@ -1169,7 +1177,10 @@ class CIMQualifierDeclaration(object):
                 cmp(self.is_array, other.is_array) or
                 cmp(self.array_size, other.array_size) or
                 cmp(self.scopes, other.scopes) or
-                cmp(self.flavors, other.flavors))
+                cmp(self.overridable, other.overridable) or
+                cmp(self.tosubclass, other.tosubclass) or
+                cmp(self.toinstance, other.toinstance) or
+                cmp(self.translatable, other.translatable))
 
     def tocimxml(self):
         
@@ -1178,8 +1189,11 @@ class CIMQualifierDeclaration(object):
                                      self.value,
                                      is_array = self.is_array,
                                      array_size = self.array_size,
-                                     qualifier_flavours = self.flavors,
-                                     qualifier_scopes = self.scopes)
+                                     qualifier_scopes = self.scopes,
+                                     overridable=self.overridable,
+                                     tosubclass=self.tosubclass, 
+                                     toinstance=self.toinstance,
+                                     translatable=self.translatable)
 
 def tocimxml(value):
     """Convert an arbitrary object to CIM xml.  Works with cim_obj

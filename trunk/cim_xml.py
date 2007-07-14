@@ -186,8 +186,9 @@ class QUALIFIER_DECLARATION(CIMElement):
     """
 
     def __init__(self, name, type, value, is_array = None,
-                 array_size = None, qualifier_flavours = {},
-                 qualifier_scopes = {}):
+                 array_size = None, qualifier_scopes = {},
+                 overridable = None, tosubclass = None, 
+                 toinstance = None, translatable = None):
         Element.__init__(self, 'QUALIFIER.DECLARATION')
         self.setName(name)
         self.setAttribute('TYPE', type)
@@ -195,8 +196,16 @@ class QUALIFIER_DECLARATION(CIMElement):
             self.setOptionalAttribute('ISARRAY', str(is_array).lower())
         if array_size is not None:
             self.setOptionalAttribute('ARRAYSIZE', str(array_size))
-        for n, v in qualifier_flavours.items():
-            self.setAttribute(n, str(v).lower())
+
+        if overridable is not None:
+            self.setAttribute('OVERRIDABLE', str(overridable).lower())
+        if tosubclass is not None:
+            self.setAttribute('TOSUBCLASS', str(tosubclass).lower())
+        if toinstance is not None:
+            self.setAttribute('TOINSTANCE', str(toinstance).lower())
+        if translatable is not None:
+            self.setAttribute('TRANSLATABLE', str(translatable).lower())
+            
         if value is not None:
             if is_array:
                 xval = VALUE_ARRAY(value)
@@ -643,13 +652,10 @@ class QUALIFIER(CIMElement):
 
         if overridable is not None:
             self.setAttribute('OVERRIDABLE', str(overridable).lower())
-
         if tosubclass is not None:
             self.setAttribute('TOSUBCLASS', str(tosubclass).lower())
-
         if toinstance is not None:
             self.setAttribute('TOINSTANCE', str(toinstance).lower())
-
         if translatable is not None:
             self.setAttribute('TRANSLATABLE', str(translatable).lower())
 
