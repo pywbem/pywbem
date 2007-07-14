@@ -789,7 +789,7 @@ def parse_qualifier_declaration(tt):
     flavors = {}
     for f in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE', 'TRANSLATABLE']:
         try:
-            flavors[f] = a[f].lower() == 'true'
+            flavors[f.lower()] = a[f].lower() == 'true'
         except KeyError:
             pass
 
@@ -806,7 +806,7 @@ def parse_qualifier_declaration(tt):
             value = cim_obj.tocimobj(type, parse_any(child))
             
     return cim_obj.CIMQualifierDeclaration(qname, type, value, is_array,
-                 array_size, scopes, flavors)
+                 array_size, scopes, **flavors)
 
 
 def parse_qualifier(tt):
