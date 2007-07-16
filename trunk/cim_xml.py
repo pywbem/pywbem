@@ -195,8 +195,7 @@ class QUALIFIER_DECLARATION(CIMElement):
         if is_array is not None:
             self.setOptionalAttribute('ISARRAY', str(is_array).lower())
         if array_size is not None:
-            self.setOptionalAttribute('ARRAYSIZE', str(array_size))
-
+            self.setAttribute('ARRAYSIZE', str(array_size))
         if overridable is not None:
             self.setAttribute('OVERRIDABLE', str(overridable).lower())
         if tosubclass is not None:
@@ -735,7 +734,8 @@ class PROPERTY_ARRAY(CIMElement):
         self.setName(name)
         self.setAttribute('TYPE', type)
 
-        self.setOptionalAttribute('ARRAYSIZE', array_size)
+        if array_size is not None:
+            self.setAttribute('ARRAYSIZE', str(array_size))
         self.setOptionalAttribute('CLASSORIGIN', class_origin)
         self.setOptionalAttribute('EmbeddedObject', embedded_object)
 
@@ -864,7 +864,8 @@ class PARAMETER_ARRAY(CIMElement):
         Element.__init__(self, 'PARAMETER.ARRAY')
         self.setName(name)
         self.setAttribute('TYPE', type)
-        self.setOptionalAttribute('ARRAYSIZE', array_size)
+        if array_size is not None:
+            self.setAttribute('ARRAYSIZE', str(array_size))
         self.appendChildren(qualifiers)
 
 class PARAMETER_REFARRAY(CIMElement):
@@ -885,7 +886,8 @@ class PARAMETER_REFARRAY(CIMElement):
         Element.__init__(self, 'PARAMETER.REFARRAY')
         self.setName(name)
         self.setOptionalAttribute('REFERENCECLASS', reference_class)
-        self.setOptionalAttribute('ARRAYSIZE', array_size)
+        if array_size is not None:
+            self.setAttribute('ARRAYSIZE', str(array_size))
         self.appendChildren(qualifiers)
 
 class TABLECELL_DECLARATION(CIMElement):
