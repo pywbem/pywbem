@@ -156,6 +156,11 @@ class CIMDateTime(CIMType) :
     def __repr__ (self):
         return '%s(%s)'%(self.__class__.__name__, `str(self)`)
 
+    def __getstate__(self):
+        return str(self)
+
+    def __setstate__(self, arg):
+        self.__init__(arg)
 
 # CIM integer types
 
