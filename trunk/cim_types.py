@@ -85,6 +85,9 @@ class CIMDateTime(CIMType) :
             self.__datetime = dtarg; 
         elif isinstance(dtarg, timedelta):
             self.__timedelta = dtarg
+        elif isinstance(dtarg, CIMDateTime):
+            self.__datetime = dtarg.__datetime
+            self.__timedelta = dtarg.__timedelta
         else:
             raise ValueError('Expected datetime, timedelta, or string')
 
