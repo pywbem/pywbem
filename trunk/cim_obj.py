@@ -652,6 +652,21 @@ class CIMInstance(object):
         self.properties = NocaseDict()
         [self.__setitem__(k, v) for k, v in properties.items()]
 
+    def set_property_value(self, name, value):
+        """Update the value of a property.
+
+        Exhibits the following behavior: 
+        - If the property is not previously present on the instance, do 
+          nothing. 
+        - Otherwise, update the value of the specified property, converting
+          it to the appropriate type as needed. 
+        """
+
+        if name not in self.properties:
+            return
+        prop = self.properties[name]
+        prop.value = tocimobj(prop.type, value)
+
     def copy(self):
 
         result = CIMInstance(self.classname)
