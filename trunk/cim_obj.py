@@ -652,7 +652,7 @@ class CIMInstance(object):
         self.properties = NocaseDict()
         [self.__setitem__(k, v) for k, v in properties.items()]
 
-    def update_property(self, name, value):
+    def update(self, name, value):
         """Update the value of a property.
 
         Exhibits the following behavior: 
