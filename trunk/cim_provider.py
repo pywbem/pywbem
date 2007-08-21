@@ -1166,13 +1166,19 @@ class %(classname)sProvider(pywbem.CIMProvider):
         ''' % (args, CIMProvider.get_instance.__doc__ )
     keyProps = [p for p in cc.properties.values() \
                 if 'key' in p.qualifiers]
+    code+= '''
+        # TODO fetch system resource matching the following keys:'''
+    for kp in keyProps:
+        code+= '''
+        #   model['%s']''' % kp.name
+    code+= '\n'
     props = cc.properties.values()
     props.sort()
     for prop in props:
         if 'key' in prop.qualifiers:
             continue
         #if '%(pname)s' in model.properties:
-        line = "#model['%s'] = # TODO (type = %s) %s" % \
+        line = "#model.update('%s', <value>) # TODO (type = %s) %s" % \
                 (prop.name, type_str(prop), is_required(prop))
         if prop.value is not None:
             line+= '(default=%s)' % `prop.value`
