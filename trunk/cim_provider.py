@@ -1178,7 +1178,7 @@ class %(classname)sProvider(pywbem.CIMProvider):
         if 'key' in prop.qualifiers:
             continue
         #if '%(pname)s' in model.properties:
-        line = "#model.update('%s', <value>) # TODO (type = %s) %s" % \
+        line = "#model.update_property('%s', <value>) # TODO (type = %s) %s" % \
                 (prop.name, type_str(prop), is_required(prop))
         if prop.value is not None:
             line+= '(default=%s)' % `prop.value`
