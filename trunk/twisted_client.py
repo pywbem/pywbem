@@ -412,6 +412,13 @@ class CreateInstance(WBEMClientFactory):
             object = namespace, 
             payload = payload)
 
+    def parseResponse(self, xml):
+
+        tt = pywbem.tupletree.xml_to_tupletree(
+            tostring(xml.find('.//INSTANCENAME')))
+
+        return pywbem.tupleparse.parse_instancename(tt)
+
 class ModifyInstance(WBEMClientFactory):
     """Factory to produce ModifyInstance WBEM clients."""
     
