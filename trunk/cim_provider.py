@@ -687,6 +687,8 @@ class CIMProvider(object):
                                         super=resultClassName):
                     continue
                 try:
+                    if prop.value.namespace is None:
+                        prop.value.namespace = objectName.namespace
                     inst = ch.GetInstance(prop.value, 
                                           IncludeQualifiers=True,
                                           IncludeClassOrigin=True,
@@ -752,6 +754,8 @@ class CIMProvider(object):
                                         sub=prop.value.classname, 
                                         super=resultClassName):
                     continue
+                if prop.value.namespace is None:
+                    prop.value.namespace = objectName.namespace
                 yield prop.value
         logger.log_debug('CIMProvider MI_associatorNames returning')
 
@@ -810,6 +814,9 @@ class CIMProvider(object):
             inst.path = build_instance_name(inst, keyNames)
             if self.filter_results:
                 filter_instance(inst, plist)
+            for prop in inst.properties.values():
+                if hasattr(prop.value, 'namespace') and prop.value.namespace is None:
+                    prop.value.namespace = objectName.namespace
             yield inst
         logger.log_debug('CIMProvider MI_references returning')
 
@@ -858,6 +865,9 @@ class CIMProvider(object):
                                     role=role, 
                                     result_role=None,
                                     keys_only=True):
+            for prop in inst.properties.values():
+                if hasattr(prop.value, 'namespace') and prop.value.namespace is None:
+                    prop.value.namespace = objectName.namespace
             yield build_instance_name(inst, keyNames)
         logger.log_debug('CIMProvider MI_referenceNames returning')
 
@@ -920,6 +930,8 @@ class CIMProvider(object):
                 return (tp, v)
 
             for k, v in outs.items():
+                if hasattr(v, 'namespace') and v.namespace is None:
+                    v.namespace = objectName.namespace
                 outs[k] = add_type(v)
             rval = add_type(rval)
             rval = (rval, outs)
