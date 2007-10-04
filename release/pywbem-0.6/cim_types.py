@@ -85,6 +85,9 @@ class CIMDateTime(CIMType) :
             self.__datetime = dtarg; 
         elif isinstance(dtarg, timedelta):
             self.__timedelta = dtarg
+        elif isinstance(dtarg, CIMDateTime):
+            self.__datetime = dtarg.__datetime
+            self.__timedelta = dtarg.__timedelta
         else:
             raise ValueError('Expected datetime, timedelta, or string')
 
@@ -156,6 +159,11 @@ class CIMDateTime(CIMType) :
     def __repr__ (self):
         return '%s(%s)'%(self.__class__.__name__, `str(self)`)
 
+    def __getstate__(self):
+        return str(self)
+
+    def __setstate__(self, arg):
+        self.__init__(arg)
 
 # CIM integer types
 
