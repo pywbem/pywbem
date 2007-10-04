@@ -94,6 +94,26 @@ class DictTest(TestCase):
                      ('Beans', 42) in items)
         self.assert_(len(items) == 2)
 
+        # Test update
+
+        obj.update({'One':'1', 'Two': '2'})
+        self.assert_(obj['one'] == '1')
+        self.assert_(obj['two'] == '2')
+        self.assert_(obj['Chicken'] == 'Ham')
+        obj.update({'Three':'3', 'Four': '4'},[('Five', '5')])
+        self.assert_(obj['three'] == '3')
+        self.assert_(obj['four'] == '4')
+        self.assert_(obj['five'] == '5')
+        obj.update([('Six', '6')], Seven='7', Eight='8')
+        self.assert_(obj['six'] == '6')
+        self.assert_(obj['seven'] == '7')
+        self.assert_(obj['eight'] == '8')
+        obj.update(Nine='9', Ten='10')
+        self.assert_(obj['nine'] == '9')
+        self.assert_(obj['ten'] == '10')
+        self.assert_(obj['Chicken'] == 'Ham')
+
+
 #################################################################
 # CIMInstanceName
 #################################################################
@@ -655,6 +675,47 @@ class CIMInstanceToMOF(TestCase):
              'ref': CIMInstanceName('CIM_Bar')})
 
         i.tomof()
+
+class CIMInstanceUpdateExisting(TestCase):
+
+    def runtest(self):
+        i = CIMInstance(
+            'CIM_Foo',
+            {'string': 'string',
+             'uint8': Uint8(0),
+             'uint8array': [Uint8(1), Uint8(2)],
+             'ref': CIMInstanceName('CIM_Bar')})
+
+        self.assert_(i['string'] == 'string')
+        i.update_existing({'one': '1', 'string': '_string_'})
+        self.assert_('one' not in i)
+        self.assert_(i['string'] == '_string_')
+        try:
+            i['one']
+        except KeyError:
+            pass
+        else:
+            self.fail('KeyError not thrown')
+        self.assert_(i['uint8'] == 0)
+        i.update_existing([('Uint8', 1), ('one', 1)])
+        self.assert_(i['uint8'] == 1)
+        self.assert_('one' not in i)
+        i.update_existing(one=1, uint8=2)
+        self.assert_('one' not in i)
+        self.assert_(i['uint8'] == 2)
+        self.assert_(isinstance(i['uint8'], Uint8))
+        self.assert_(i['uint8'] == Uint8(2))
+        self.assert_(i['uint8'] == 2)
+        i.update_existing(Uint8Array=[3,4,5], foo=[1,2])
+        self.assert_('foo' not in i)
+        self.assert_(i['uint8array'] == [3,4,5])
+        self.assert_(isinstance(i['uint8array'][0], Uint8))
+        name = CIMInstanceName('CIM_Foo', keybindings={'string':'STRING',
+                                                       'one':'1'})
+        i.update_existing(name)
+        self.assert_('one' not in i)
+        self.assert_(i['string'] == 'STRING')
+
 
 #################################################################
 # CIMProperty
@@ -1607,6 +1668,7 @@ tests = [
     CIMInstanceString,
     CIMInstanceToXML,
     CIMInstanceToMOF,
+    CIMInstanceUpdateExisting,
 
     #############################################################
     # Schema classes

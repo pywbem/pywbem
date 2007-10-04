@@ -145,9 +145,16 @@ class NocaseDict(object):
                            for key, value in self.items()])
         return 'NocaseDict({%s})' % items
 
-    def update(self, dict):
-        for key, value in dict.items():
-            self[key] = value
+    def update(self, *args, **kwargs):
+        for mapping in args:
+            if hasattr(mapping, 'items'):
+                for k, v in mapping.items():
+                    self[k] = v
+            else:
+                for (k, v) in mapping:
+                    self[k] = v
+        for k, v in kwargs.items():
+            self[k] = v
 
     def clear(self):
         self.data.clear()
@@ -527,6 +534,7 @@ class CIMInstanceName(object):
     def iterkeys(self): return self.keybindings.iterkeys()
     def itervalues(self): return self.keybindings.itervalues()
     def iteritems(self): return self.keybindings.iteritems()
+    def update(self, *args, **kwargs): self.keybindings.update(*args, **kwargs)
 
     def tocimxml(self):
 
@@ -651,6 +659,55 @@ class CIMInstance(object):
 
         self.properties = NocaseDict()
         [self.__setitem__(k, v) for k, v in properties.items()]
+
+    def update(self, *args, **kwargs):
+        """D.update(E, **F) -> None.  
+        
+        Update D from E and F: for k in E: D[k] = E[k]
+        (if E has keys else: for (k, v) in E: D[k] = v) 
+        then: for k in F: D[k] = F[k] """
+
+        for mapping in args:
+            if hasattr(mapping, 'items'):
+                for k, v in mapping.items():
+                    self[k] = v
+            else:
+                for (k, v) in mapping:
+                    self[k] = v
+        for k, v in kwargs.items():
+            self[k] = v
+
+    def update_existing(self, *args, **kwargs):
+        """Update property values iff the property previously exists.
+        
+        Update D from E and F: for k in E: D[k] = E[k]
+        (if E has keys else: for (k, v) in E: D[k] = v) 
+        then: for k in F: D[k] = F[k] 
+        
+        Like update, but properties that are not already present in the 
+        instance are skipped. """
+
+        for mapping in args:
+            if hasattr(mapping, 'items'):
+                for k, v in mapping.items():
+                    try:
+                        prop = self.properties[k]
+                    except KeyError:
+                        continue
+                    prop.value = tocimobj(prop.type, v)
+            else:
+                for (k, v) in mapping:
+                    try:
+                        prop = self.properties[k]
+                    except KeyError:
+                        continue
+                    prop.value = tocimobj(prop.type, v)
+        for k, v in kwargs.items():
+            try:
+                prop = self.properties[k]
+            except KeyError:
+                continue
+            prop.value = tocimobj(prop.type, v)
 
     def copy(self):
 
