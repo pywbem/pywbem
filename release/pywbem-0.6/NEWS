@@ -17,6 +17,12 @@ pywbem-0.6  YYYY-MM-DD
     * CIMDateTime class should now be used instead of datetime.datetime 
       and datetime.timedelta. 
 
+    * Added a new method, CIMInstance.update_existing().  This behaves 
+      like update() on a dict, but only assigns new values to existing
+      properties.  It skips values for properties not already present
+      in the instance.  This is useful for honoring PropertyList within
+      python providers. 
+
   BUG FIXES:
 
     * Explicitly specify charset="utf-8" in HTTP Content-type header
