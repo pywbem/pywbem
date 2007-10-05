@@ -57,6 +57,8 @@ pywbem-0.6  YYYY-MM-DD
 
     * Numerous bugfixes to Twisted Python client. (Tim Potter)
 
+    * Fix for x.509 SSL certificate handling. (Bas ten Berge)
+
   ENHANCEMENTS:
 
     * Support for OpenWBEM password-less local authentication. 

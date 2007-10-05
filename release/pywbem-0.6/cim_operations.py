@@ -85,6 +85,13 @@ class WBEMConnection(object):
     object, an X509 object, and three integer variables, which are in turn 
     potential error number, error depth and return code. verify_callback 
     should return True if verification passes and False otherwise.
+
+    The value of the x509 argument is used only when the url contains
+    'https'. x509 must be a dictionary containing the keys 'cert_file' 
+    and 'key_file'. The value of 'cert_file' must consist of the
+    filename of an certificate and the value of 'key_file' must consist 
+    of a filename containing the private key belonging to the public key 
+    that is part of the certificate in cert_file. 
     """
     
     def __init__(self, url, creds, default_namespace = DEFAULT_NAMESPACE,
