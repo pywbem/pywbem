@@ -121,13 +121,17 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
 
         if x509 is not None:
             cert_file = x509.get('cert_file')
-            key_file = x509.get('key_file', cert_file)
+            key_file = x509.get('key_file')
 
         if verify_callback is not None:
             try:
                 from OpenSSL import SSL
                 ctx = SSL.Context(SSL.SSLv3_METHOD)
                 ctx.set_verify(SSL.VERIFY_PEER, verify_callback)
+                # Add the key and certificate to the session
+                if cert_file is not None and key_file is not None:
+                  ctx.use_certificate_file(cert_file)
+                  ctx.use_privatekey_file(key_file)
                 s = SSL.Connection(ctx, socket.socket(socket.AF_INET,
                                                       socket.SOCK_STREAM))
                 s.connect((host, port))
