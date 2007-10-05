@@ -55,6 +55,8 @@ pywbem-0.6  YYYY-MM-DD
     * Return correct namespace in path for return value from
       GetInstance. (Tim Potter)
 
+    * Numerous bugfixes to Twisted Python client. (Tim Potter)
+
   ENHANCEMENTS:
 
     * Support for OpenWBEM password-less local authentication. 
@@ -66,6 +68,9 @@ pywbem-0.6  YYYY-MM-DD
     * New CIMDateTime class to deal with CIM-isms of datetimes.
       Most notably, datetime deals with timezone info poorly.
       (Bart Whiteley)
+
+    * Add InvokeMethod() support in Twisted Python client. (Tim
+      Potter)
 
 pywbem-0.5  2006-11-21
 
