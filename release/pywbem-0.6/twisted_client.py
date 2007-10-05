@@ -28,9 +28,11 @@ twisted.protocols.http.HTTPClient base class.
 from twisted.internet import reactor, protocol, defer
 from twisted.web import http, client, error
 
-from pywbem import CIMClassName, CIMInstanceName, CIMError
+from pywbem import CIMClass, CIMClassName, CIMInstance, CIMInstanceName, CIMError, cim_types, cim_xml
 from elementtree.ElementTree import fromstring, tostring
 import string
+from types import StringTypes
+from datetime import datetime, timedelta
 
 class WBEMClient(http.HTTPClient):
     """A HTTPClient subclass that handles WBEM requests."""
@@ -57,9 +59,9 @@ class WBEMClient(http.HTTPClient):
 
         self.sendHeader('Authorization', 'Basic %s' % auth)
 
-        self.sendHeader('CIMOperation', self.factory.operation)
-        self.sendHeader('CIMMethod', self.factory.method)
-        self.sendHeader('CIMObject', self.factory.object)
+        self.sendHeader('CIMOperation', str(self.factory.operation))
+        self.sendHeader('CIMMethod', str(self.factory.method))
+        self.sendHeader('CIMObject', str(self.factory.object))
 
         self.endHeaders()
         
@@ -76,6 +78,9 @@ class WBEMClient(http.HTTPClient):
 
         if self.status == '200':
             self.factory.parseErrorAndResponse(data)
+
+        self.factory.deferred = None
+        self.transport.loseConnection()
 
     def handleStatus(self, version, status, message):
         """Save the status code for processing when we get to the end
@@ -128,10 +133,12 @@ class WBEMClientFactory(protocol.ClientFactory):
         self.deferred = defer.Deferred()
 
     def clientConnectionFailed(self, connector, reason):
-        reactor.callLater(0, self.deferred.errback, reason)
+        if self.deferred is not None:
+            reactor.callLater(0, self.deferred.errback, reason)
 
     def clientConnectionLost(self, connector, reason):
-        reactor.callLater(0, self.deferred.errback, reason)
+        if self.deferred is not None:
+            reactor.callLater(0, self.deferred.errback, reason)
 
     def imethodcallPayload(self, methodname, localnsp, **kwargs):
         """Generate the XML payload for an intrinsic methodcall."""
@@ -151,6 +158,79 @@ class WBEMClientFactory(protocol.ClientFactory):
                 '1001', '1.0'),
             '2.0', '2.0')
 
+        return self.xml_header + payload.toxml()
+
+    def methodcallPayload(self, methodname, obj, namespace, **kwargs):
+        """Generate the XML payload for an extrinsic methodcall."""
+
+        if isinstance(obj, CIMInstanceName):
+
+            path = obj.copy()
+            
+            path.host = None
+            path.namespace = None
+
+            localpath = pywbem.LOCALINSTANCEPATH(
+                pywbem.LOCALNAMESPACEPATH(
+                    [pywbem.NAMESPACE(ns)
+                     for ns in string.split(namespace, '/')]),
+                path.tocimxml())
+        else:
+            localpath = pywbem.LOCALCLASSPATH(
+                pywbem.LOCALNAMESPACEPATH(
+                    [pywbem.NAMESPACE(ns)
+                     for ns in string.split(namespace, '/')]),
+                obj)
+
+        def paramtype(obj):
+            """Return a string to be used as the CIMTYPE for a parameter."""
+            if isinstance(obj, cim_types.CIMType):
+                return obj.cimtype
+            elif type(obj) == bool:
+                return 'boolean'
+            elif isinstance(obj, StringTypes):
+                return 'string'
+            elif isinstance(obj, (datetime, timedelta)):
+                return 'datetime'
+            elif isinstance(obj, (CIMClassName, CIMInstanceName)):
+                return 'reference'
+            elif isinstance(obj, (CIMClass, CIMInstance)):
+                return 'string'
+            elif isinstance(obj, list):
+                return paramtype(obj[0])
+            raise TypeError('Unsupported parameter type "%s"' % type(obj))
+
+        def paramvalue(obj):
+            """Return a cim_xml node to be used as the value for a
+            parameter."""
+            if isinstance(obj, (datetime, timedelta)):
+                obj = CIMDateTime(obj)
+            if isinstance(obj, (cim_types.CIMType, bool, StringTypes)):
+                return cim_xml.VALUE(cim_types.atomic_to_cim_xml(obj))
+            if isinstance(obj, (CIMClassName, CIMInstanceName)):
+                return cim_xml.VALUE_REFERENCE(obj.tocimxml())
+            if isinstance(obj, (CIMClass, CIMInstance)):
+                return cim_xml.VALUE(obj.tocimxml().toxml())
+            if isinstance(obj, list):
+                if isinstance(obj[0], (CIMClassName, CIMInstanceName)):
+                    return cim_xml.VALUE_REFARRAY([paramvalue(x) for x in obj])
+                return cim_xml.VALUE_ARRAY([paramvalue(x) for x in obj])
+            raise TypeError('Unsupported parameter type "%s"' % type(obj))
+
+        param_list = [pywbem.PARAMVALUE(x[0],
+                                        paramvalue(x[1]),
+                                        paramtype(x[1]))
+                      for x in kwargs.items()]
+
+        payload = pywbem.CIM(
+            pywbem.MESSAGE(
+                pywbem.SIMPLEREQ(
+                    pywbem.METHODCALL(methodname,
+                                      localpath,
+                                      param_list)),
+                '1001', '1.0'),
+            '2.0', '2.0')
+                   
         return self.xml_header + payload.toxml()
 
     def parseErrorAndResponse(self, data):
@@ -246,7 +326,11 @@ class EnumerateInstanceNames(WBEMClientFactory):
         tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
               for x in xml.findall('.//INSTANCENAME')]
         
-        return [pywbem.tupleparse.parse_instancename(x) for x in tt]
+        names = [pywbem.tupleparse.parse_instancename(x) for x in tt]
+
+        [setattr(n, 'namespace', self.namespace) for n in names]
+
+        return names
 
 class GetInstance(WBEMClientFactory):
     """Factory to produce GetInstance WBEM clients."""
@@ -327,6 +411,13 @@ class CreateInstance(WBEMClientFactory):
             method = 'CreateInstance',
             object = namespace, 
             payload = payload)
+
+    def parseResponse(self, xml):
+
+        tt = pywbem.tupletree.xml_to_tupletree(
+            tostring(xml.find('.//INSTANCENAME')))
+
+        return pywbem.tupleparse.parse_instancename(tt)
 
 class ModifyInstance(WBEMClientFactory):
     """Factory to produce ModifyInstance WBEM clients."""
@@ -576,3 +667,36 @@ class ReferenceNames(WBEMClientFactory):
                   for x in xml.findall('.//OBJECTPATH')]
             
             return [pywbem.tupleparse.parse_objectpath(x)[2] for x in tt]
+
+class InvokeMethod(WBEMClientFactory):
+    """Factory to produce InvokeMethod WBEM clients."""
+
+    def __init__(self, creds, MethodName, ObjectName, namespace = 'root/cimv2',
+                 **kwargs):
+
+        # Convert string to CIMClassName
+
+        obj = ObjectName
+
+        if isinstance(obj, StringTypes):
+            obj = CIMClassName(obj, namespace = namespace)
+
+        if isinstance(obj, CIMInstanceName) and obj.namespace is None:
+            obj = ObjectName.copy()
+            obj.namespace = namespace
+
+        # Make the method call
+
+        payload = self.methodcallPayload(
+            MethodName,
+            obj,
+            namespace,
+            **kwargs)
+
+        WBEMClientFactory.__init__(
+            self, 
+            creds, 
+            operation = 'MethodCall', 
+            method = MethodName,
+            object = obj, 
+            payload = payload)
