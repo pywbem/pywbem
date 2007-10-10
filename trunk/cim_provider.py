@@ -612,10 +612,9 @@ class CIMProvider(object):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_modifyInstance called...')
         if propertyList is not None:
-            keyNames = get_keys_from_class(cimClass)
-            lkns = [kn.lower() for kn in keyNames]
             plist = [p.lower() for p in propertyList]
-            filter_instance(modifiedInstance, plist + lkns)
+            filter_instance(modifiedInstance, plist)
+            modifiedInstance.update(modifiedInstance.path)
         self.set_instance(env=env,
                               instance=modifiedInstance,
                               previous_instance=previousInstance,
