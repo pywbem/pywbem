@@ -64,6 +64,13 @@ Python Provider Modules
     implementing some functions within the provider module. 
 
     Provider module functions: 
+        init(env):
+            This module function is optional.  It is called immediately 
+            after the provider module is imported.  
+
+            Arguments:
+            env -- Provider Environment (pycimmb.ProviderEnvironment)
+
         get_providers(env):
             Return a dict that maps CIM class names to instances of 
             CIMProvider subclasses.  Note that multiple classes can be 
@@ -1444,7 +1451,9 @@ class ProviderProxy(object):
             self.provmod = load_source(provider_name, provid)
             self.filename = self.provmod.__file__
         self.provregs = {}
-        if hasattr(self.provmod, "get_providers"):
+        if hasattr(self.provmod, 'init'):
+            self.provmod.init(env)
+        if hasattr(self.provmod, 'get_providers'):
             self.provregs = pywbem.NocaseDict(self.provmod.get_providers(env))
 
     def _get_callable (self, classname, cname):
