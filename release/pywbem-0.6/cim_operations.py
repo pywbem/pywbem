@@ -544,7 +544,10 @@ class WBEMConnection(object):
             namespace,
             **params)
 
-        return result and map(lambda x: x.classname, result[2])
+        if result is None:
+            return []
+        else:
+            return map(lambda x: x.classname, result[2])
         
     def EnumerateClasses(self, namespace = None, **params):
         """Return a list of CIM class objects."""
