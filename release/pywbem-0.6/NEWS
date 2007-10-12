@@ -59,6 +59,9 @@ pywbem-0.6  YYYY-MM-DD
 
     * Fix for x.509 SSL certificate handling. (Bas ten Berge)
 
+    * EnumerateClassNames() now returns an empty list instead of None
+      if there are no classes. (Bart Whiteley)
+
   ENHANCEMENTS:
 
     * Support for OpenWBEM password-less local authentication. 
