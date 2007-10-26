@@ -260,7 +260,7 @@ class WBEMConnection(object):
             """Return a cim_xml node to be used as the value for a
             parameter."""
             if isinstance(obj, (datetime, timedelta)):
-                obj = CIMDateTime(obj)
+                obj = cim_types.CIMDateTime(obj)
             if isinstance(obj, (cim_types.CIMType, bool, StringTypes)):
                 return cim_xml.VALUE(cim_types.atomic_to_cim_xml(obj))
             if isinstance(obj, (CIMClassName, CIMInstanceName)):
