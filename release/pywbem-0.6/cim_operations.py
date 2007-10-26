@@ -689,10 +689,10 @@ class WBEMConnection(object):
         return map(lambda x: x[2], result[2])
 
     def AssociatorNames(self, ObjectName, **params):
-        """Enumerate the names of CIM classes or instances that are
+        """Enumerate the names of CIM classes or instances names that are
         associated to a particular source CIM Object.  Pass a keyword
-        parameter of 'ClassName' to return associators for a CIM
-        class, pass 'InstanceName' to return the associators for a CIM
+        parameter of 'ClassName' to return associator names for a CIM
+        class, pass 'InstanceName' to return the associator names for a CIM
         instance.  Returns a list of CIMInstanceName objects with the
         host and namespace attributes set."""
 
