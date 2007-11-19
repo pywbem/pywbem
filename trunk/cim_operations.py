@@ -851,7 +851,7 @@ class WBEMConnection(object):
 
         return names
 
-    def SetQualifier(self, QualiferDeclaration, namespace = None,
+    def SetQualifier(self, QualifierDeclaration, namespace = None,
                      **params):
         """Set a qualifier."""
 
@@ -864,7 +864,7 @@ class WBEMConnection(object):
             QualifierDeclaration = QualifierDeclaration,
             **params)
 
-    def DeleteQualifier(self, QualiferName, namespace = None,
+    def DeleteQualifier(self, QualifierName, namespace = None,
                         **params):
         """Delete a qualifier by name."""
 
