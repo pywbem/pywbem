@@ -1,5 +1,11 @@
 pywbem-0.7  YYYY-MM-DD
 
+  BUG FIXES:
+
+    * Fixed enumInstances and references in cim_provider to do a deep
+      copy of the model before filtering instances so provider writers
+      are less surprised.  (Bart Whiteley)
+
 pywbem-0.6  2007-10-26
 
   LICENSING:
