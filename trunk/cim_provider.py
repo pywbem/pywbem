@@ -502,8 +502,9 @@ class CIMProvider(object):
             lkns = [kn.lower() for kn in keyNames]
             props = pywbem.NocaseDict()
             plist = [s.lower() for s in propertyList]
+            pklist = plist + lkns
             [props.__setitem__(p.name, p) for p in cimClass.properties.values() 
-                    if p.name.lower() in plist + lkns]
+                    if p.name.lower() in pklist]
         else:
             props = cimClass.properties
         path = pywbem.CIMInstanceName(classname=cimClass.classname, 
@@ -515,7 +516,8 @@ class CIMProvider(object):
                                        cim_class=cimClass,
                                        keys_only=False):
             inst.path = build_instance_name(inst, keyNames)
-            if self.filter_results:
+            if self.filter_results and plist is not None:
+                inst = inst.copy()
                 filter_instance(inst, plist)
             yield inst
         logger.log_debug('CIMProvider MI_enumInstances returning')
@@ -541,8 +543,9 @@ class CIMProvider(object):
             lkns = [kn.lower() for kn in keyNames]
             props = pywbem.NocaseDict()
             plist = [s.lower() for s in propertyList]
+            pklist = plist + lkns
             [props.__setitem__(p.name, p) for p in cimClass.properties.values() 
-                    if p.name.lower() in plist + lkns]
+                    if p.name.lower() in pklist]
         else:
             props = cimClass.properties
         model = pywbem.CIMInstance(classname=instanceName.classname, 
@@ -790,10 +793,11 @@ class CIMProvider(object):
         if propertyList is not None:
             lkns = [kn.lower() for kn in keyNames]
             props = pywbem.NocaseDict()
-            plist = [s.lower() for s in propertyList]
+            plist = [s.lower() for s in propertyList] 
+            pklist = plist + lkns
             [props.__setitem__(p.name, p) for p in \
                     assocClass.properties.values() \
-                    if p.name.lower() in plist + lkns]
+                    if p.name.lower() in pklist]
         else:
             props = assocClass.properties
         model = pywbem.CIMInstance(classname=assocClass.classname, 
@@ -818,7 +822,8 @@ class CIMProvider(object):
                                     result_role=None,
                                     keys_only=False):
             inst.path = build_instance_name(inst, keyNames)
-            if self.filter_results:
+            if self.filter_results and plist is not None:
+                inst = inst.copy()
                 filter_instance(inst, plist)
             for prop in inst.properties.values():
                 if hasattr(prop.value, 'namespace') and prop.value.namespace is None:
