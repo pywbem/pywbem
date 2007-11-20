@@ -1410,25 +1410,58 @@ def get_providers(env):
     return {'%(classname)s': %(classname_l)s_prov} 
 ''' % mappings
 
-    ptypes = ['1', 'Instance']
+    owtypes = ['1', 'Instance']
+    pegtypes = ['2', 'Instance']
     if isAssoc:
-        ptypes[0]+= ',3'
-        ptypes[1]+= ', Associator'
+        owtypes[0]+= ',3'
+        owtypes[1]+= ', Associator'
+        pegtypes[0]+= ',3'
+        pegtypes[1]+= ', Associator'
     if cc.methods:
-        ptypes[0]+= ',6'
-        ptypes[1]+= ', Method'
+        owtypes[0]+= ',6'
+        owtypes[1]+= ', Method'
+        pegtypes[0]+= ',5'
+        pegtypes[1]+= ', Method'
     mof ='''
-// Provider registration for %(classname)s
+// OpenWBEM Provider registration for %(classname)s
 instance of OpenWBEM_PyProviderRegistration
 {
-        InstanceID = "<org:product:%(classname)s:unique_id>"; // TODO
-        NamespaceNames = {"root/cimv2"}; 
-        ClassName = "%(classname)s"; 
-        ProviderTypes = {%(ptypeNums)s};  // %(ptypeStrs)s
-        ModulePath = "/usr/lib/pycim/%(classname)sProvider.py";  // TODO
-}; \n''' % {'classname': cc.classname, 
-            'ptypeNums': ptypes[0], 
-            'ptypeStrs': ptypes[1]}
+    InstanceID = "<org:product:%(classname)s:unique_id>"; // TODO
+    NamespaceNames = {"root/cimv2"}; // TODO
+    ClassName = "%(classname)s"; 
+    ProviderTypes = {%(owtypeNums)s};  // %(owtypeStrs)s
+    ModulePath = "/usr/lib/pycim/%(classname)sProvider.py";  // TODO
+}; 
+
+// Pegasus Provider registration for %(classname)s
+instance of PG_ProviderModule
+{
+    Name = "/usr/lib/pycim/%(classname)sProvider.py";
+    InterfaceType = "Python";
+    InterfaceVersion = "0.6";
+    Location = "/usr/lib/pycim/%(classname)sProvider.py";
+    Vendor = "TODO"; // TODO
+    Version = "1.0";
+}; 
+instance of PG_Provider
+{
+    Name = "%(classname)s"; 
+    ProviderModuleName = "/usr/lib/pycim/%(classname)sProvider.py"; 
+}; 
+instance of PG_ProviderCapabilities
+{
+    CapabilityID = "%(classname)s";
+    ProviderModuleName = "/usr/lib/pycim/%(classname)sProvider.py";
+    ProviderName = "%(classname)s";
+    ClassName = "%(classname)s";
+    Namespaces = {"root/cimv2"}; // TODO
+    ProviderType = {%(pegtypeNum)s}; // %(pegtypeStr)s
+};\n''' % {'classname': cc.classname, 
+            'owtypeNums': owtypes[0], 
+            'owtypeStrs': owtypes[1],
+            'pegtypeNum': pegtypes[0], 
+            'pegtypeStr': pegtypes[1]}
+
                 
     return code, mof
 
