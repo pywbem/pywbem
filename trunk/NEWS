@@ -6,6 +6,11 @@ pywbem-0.7  YYYY-MM-DD
       copy of the model before filtering instances so provider writers
       are less surprised.  (Bart Whiteley)
 
+  ENHANCEMENTS:
+
+    * Added support for generating Pegasus provider registration MOF in 
+      cim_provider.codegen(). (Bart Whiteley)
+
 pywbem-0.6  2007-10-26
 
   LICENSING:
