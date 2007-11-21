@@ -6,6 +6,9 @@ pywbem-0.7  YYYY-MM-DD
       copy of the model before filtering instances so provider writers
       are less surprised.  (Bart Whiteley)
 
+    * Added CIMDateTime.__cmp__() so that CIMDateTime instances can be
+      compared.  (Bart Whiteley)
+
   ENHANCEMENTS:
 
     * Added support for generating Pegasus provider registration MOF in 
