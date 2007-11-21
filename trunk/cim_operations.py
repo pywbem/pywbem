@@ -253,7 +253,10 @@ class WBEMConnection(object):
             elif isinstance(obj, (CIMClass, CIMInstance)):
                 return 'string'
             elif isinstance(obj, list):
-                return paramtype(obj[0])
+                if obj:
+                    return paramtype(obj[0])
+                else:
+                    return None
             raise TypeError('Unsupported parameter type "%s"' % type(obj))
 
         def paramvalue(obj):
@@ -268,7 +271,7 @@ class WBEMConnection(object):
             if isinstance(obj, (CIMClass, CIMInstance)):
                 return cim_xml.VALUE(obj.tocimxml().toxml())
             if isinstance(obj, list):
-                if isinstance(obj[0], (CIMClassName, CIMInstanceName)):
+                if obj and isinstance(obj[0], (CIMClassName, CIMInstanceName)):
                     return cim_xml.VALUE_REFARRAY([paramvalue(x) for x in obj])
                 return cim_xml.VALUE_ARRAY([paramvalue(x) for x in obj])
             raise TypeError('Unsupported parameter type "%s"' % type(obj))

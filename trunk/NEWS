@@ -15,6 +15,8 @@ pywbem-0.7  YYYY-MM-DD
     * Fixed REF array out parameters in tupleparse.py.
       (Bart Whiteley)
 
+    * Fixed Array parameters with no elements.  (Bart Whiteley)
+
   ENHANCEMENTS:
 
     * Added support for generating Pegasus provider registration MOF in 
