@@ -923,7 +923,7 @@ class CIMProvider(object):
             (rval, outs) = method(env=env, object_name=objectName, 
                                   method=metaMethod, **new_inputs)
 
-            def add_type(v):
+            def add_type(v, _tp):
                 lv = v
                 if type(v) == list and len(v) > 0:
                     lv = v[0]
@@ -934,8 +934,7 @@ class CIMProvider(object):
                 elif isinstance(lv, pywbem.CIMInstanceName):
                     tp = 'reference'
                 elif v is None or (type(v) == list and len(v) == 0):
-                    param = metaMethod.parameters[k]
-                    tp = param.type
+                    tp = _tp
                 else:
                     tp = pywbem.cimtype(v)
                 return (tp, v)
@@ -943,8 +942,8 @@ class CIMProvider(object):
             for k, v in outs.items():
                 if hasattr(v, 'namespace') and v.namespace is None:
                     v.namespace = objectName.namespace
-                outs[k] = add_type(v)
-            rval = add_type(rval)
+                outs[k] = add_type(v, metaMethod.parameters[k].type)
+            rval = add_type(rval, metaMethod.return_type)
             rval = (rval, outs)
         else:
             raise pywbem.CIMError(pywbem.CIM_ERR_METHOD_NOT_FOUND, 
@@ -1438,7 +1437,7 @@ instance of PG_ProviderModule
 {
     Name = "/usr/lib/pycim/%(classname)sProvider.py";
     InterfaceType = "Python";
-    InterfaceVersion = "0.6";
+    InterfaceVersion = "1.0.0";
     Location = "/usr/lib/pycim/%(classname)sProvider.py";
     Vendor = "TODO"; // TODO
     Version = "1.0";

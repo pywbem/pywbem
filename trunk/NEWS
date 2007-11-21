@@ -9,6 +9,9 @@ pywbem-0.7  YYYY-MM-DD
     * Added CIMDateTime.__cmp__() so that CIMDateTime instances can be
       compared.  (Bart Whiteley)
 
+    * Fixed data types of method return values for python providers.
+      (Bart Whiteley)
+
   ENHANCEMENTS:
 
     * Added support for generating Pegasus provider registration MOF in 
