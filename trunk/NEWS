@@ -12,6 +12,9 @@ pywbem-0.7  YYYY-MM-DD
     * Fixed data types of method return values for python providers.
       (Bart Whiteley)
 
+    * Fixed REF array out parameters in tupleparse.py.
+      (Bart Whiteley)
+
   ENHANCEMENTS:
 
     * Added support for generating Pegasus provider registration MOF in 
