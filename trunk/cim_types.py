@@ -165,6 +165,13 @@ class CIMDateTime(CIMType) :
     def __setstate__(self, arg):
         self.__init__(arg)
 
+    def __cmp__(self, other):
+        if self is other:
+            return 0
+        return (cmp(self.__datetime, other.__datetime) or 
+                cmp(self.__timedelta, other.__timedelta))
+
+
 # CIM integer types
 
 class CIMInt(CIMType, long):
