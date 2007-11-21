@@ -339,7 +339,8 @@ def parse_value_refarray(tt):
 
     children = list_of_various(tt, ['VALUE.REFERENCE'])
 
-    return (name(tt), attrs(tt), children)
+    # The VALUE.REFARRAY wrapper element is discarded
+    return children
 
 
 def parse_value_object(tt):
