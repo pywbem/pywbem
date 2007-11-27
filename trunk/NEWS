@@ -17,6 +17,8 @@ pywbem-0.7  YYYY-MM-DD
 
     * Fixed Array parameters with no elements.  (Bart Whiteley)
 
+    * Fixed precision for real32 and real64 types.  (Bart Whiteley)
+
   ENHANCEMENTS:
 
     * Added support for generating Pegasus provider registration MOF in 
