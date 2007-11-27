@@ -274,6 +274,10 @@ def atomic_to_cim_xml(obj):
 
     elif obj is None:
         return obj
+    elif cimtype(obj) == 'real32':
+        return u'%.24E' % obj
+    elif cimtype(obj) == 'real64':
+        return u'%.53E' % obj
     else:
         return unicode(obj)
 
