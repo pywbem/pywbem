@@ -143,31 +143,20 @@ Python Provider Modules
             handler_instance -- 
             indication_instance -- The indication
 
-        activate_filter (env, filter, event_type, ns, classes, 
+        activate_filter (env, filter, ns, classes, 
                          first_activation):
             Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
             filter --
-            event_type --
             namespace -- 
             classes -- 
             first_activation --
 
-        authorize_filter(env, filter, event_type, ns, classes, owner):
-            Arguments:
-            env -- Provider Environment (pycimmb.ProviderEnvironment)
-            filter --
-            event_type --
-            ns -- 
-            classes -- 
-            owner --
-
-        deactivate_filter(env, filter, event_type, ns, classes, 
+        deactivate_filter(env, filter, ns, classes, 
                           last_activation):
             Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
             filter --
-            event_type --
             ns -- 
             classes -- 
             last_activation --
@@ -1739,59 +1728,37 @@ class ProviderProxy(object):
     def MI_activateFilter (self, 
                            env, 
                            filter,
-                           eventType,
                            namespace,
                            classes,
                            firstActivation):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_activateFilter called')
         if hasattr(self.provmod, 'activate_filter'):
-            self.provmod.activate_filter(env, filter, eventType, namespace,
+            self.provmod.activate_filter(env, filter, namespace,
                     classes, firstActivation)
         elif hasattr(self.provmod, 'MI_activateFilter'):
-            self.provmod.MI_activateFilter(env, filter, eventType, namespace,
+            self.provmod.MI_activateFilter(env, filter, namespace,
                     classes, firstActivation)
         else:
             raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
                     "Provider %s has no support for activate filter"%self.provid)
         logger.log_debug('CIMProvider MI_activateFilter returning')
 
-##############################################################################
-    def MI_authorizeFilter(self,
-                           env,
-                           filter,
-                           eventType,
-                           namespace,
-                           classes,
-                           owner):
-        logger = env.get_logger()
-        logger.log_debug('CIMProvider MI_authorizeFilter called')
-        if hasattr(self.provmod, 'authorize_filter'):
-            self.provmod.authorize_filter(env, filter, eventType, namespace, classes,
-                    owner)
-        elif hasattr(self.provmod, 'MI_authorizeFilter'):
-            self.provmod.MI_authorizeFilter(env, filter, eventType, namespace, classes,
-                    owner)
-        else:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "Provider %s has no support for authorize filter"%self.provid)
-        logger.log_debug('CIMProvider MI_authorizeFilter returning')
                     
 ##############################################################################
     def MI_deActivateFilter(self,
                             env,
                             filter,
-                            eventType,
                             namespace,
                             classes,
                             lastActivation):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_deActivateFilter called')
         if hasattr(self.provmod, 'deactivate_filter'):
-            self.provmod.deactivate_filter(env, filter, eventType, namespace, classes,
+            self.provmod.deactivate_filter(env, filter, namespace, classes,
                     lastActivation)
         elif hasattr(self.provmod, 'MI_deActivateFilter'):
-            self.provmod.MI_deActivateFilter(env, filter, eventType, namespace, classes,
+            self.provmod.MI_deActivateFilter(env, filter, namespace, classes,
                     lastActivation)
         else:
             raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
