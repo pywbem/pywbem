@@ -1817,6 +1817,27 @@ class ProviderProxy(object):
             return True
 
 ##############################################################################
+    def MI_consumeIndication(self,
+                            env,
+                            destinationPath,
+                            indicationInstance):
+
+        logger = env.get_logger()
+        logger.log_debug('ProviderProxy MI_consumeIndication called')
+        if hasattr(self.provmod, 'consume_indication'):
+            self.provmod.consume_indication(env, destinationPath, 
+                    indicationInstance)
+        elif hasattr(self.provmod, 'MI_consumeIndication'):
+            self.provmod.MI_consumeIndication(env, destinationPath,
+                    indicationInstance)
+        else:
+            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+                    "Provider %s has no support for consume indication" % \
+                        self.provid)
+        logger.log_debug('ProviderProxy MI_consumeIndication returning')
+
+
+##############################################################################
     def MI_handleIndication(self,
                             env,
                             ns,
