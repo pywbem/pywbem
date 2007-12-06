@@ -24,6 +24,9 @@ pywbem-0.7  YYYY-MM-DD
     * Added support for generating Pegasus provider registration MOF in 
       cim_provider.codegen(). (Bart Whiteley)
 
+	* Implemented methods to parse indication export requests.
+      (Bart Whiteley)
+
 pywbem-0.6  2007-10-26
 
   LICENSING:
