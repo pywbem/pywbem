@@ -1105,7 +1105,7 @@ def parse_message(tt):
     check_node(tt, 'MESSAGE', ['ID', 'PROTOCOLVERSION'])
 
     messages = one_child(
-        tt, ['SIMPLEREQ', 'MULTIREQ', 'SIMPLERSP', 'MULTIRSP'])
+        tt, ['SIMPLEREQ', 'MULTIREQ', 'SIMPLERSP', 'MULTIRSP', 'SIMPLEEXPREQ'])
     
     if type(messages) is not list:
         # make single and multi forms consistent
@@ -1121,6 +1121,14 @@ def parse_multireq(tt):
 def parse_multiexpreq(tt):
     raise ParseError('MULTIEXPREQ parser not implemented')
 
+def parse_simpleexpreq(tt):
+    """
+    <!ELEMENT SIMPLEEXPREQ (EXPMETHODCALL)>
+    """
+
+    child = one_child(tt, ['EXPMETHODCALL'])
+
+    return name(tt), attrs(tt), child
 
 def parse_simplereq(tt):
     """
@@ -1132,10 +1140,6 @@ def parse_simplereq(tt):
     child = one_child(tt, ['IMETHODCALL', 'METHODCALL'])
 
     return name(tt), attrs(tt), child
-
-
-def parse_simpleexpreq(tt):
-    raise ParseError('SIMPLEEXPREQ parser not implemented')
 
 
 def parse_imethodcall(tt):
@@ -1176,8 +1180,18 @@ def parse_methodcall(tt):
 
 
 def parse_expmethodcall(tt):
-    raise ParseError('EXPMETHODCALL parser not implemented')
+    """
+    <!ELEMENT EXPMETHODCALL (EXPPARAMVALUE*)>
+    <!ATTLIST EXPMETHODCALL 
+        %CIMName;>
+    """
 
+    check_node(tt, 'EXPMETHODCALL', ['NAME'], [], ['EXPPARAMVALUE'])
+
+
+    params = list_of_matching(tt, ['EXPPARAMVALUE'])
+
+    return (name(tt), attrs(tt), params)
 
 
 def parse_paramvalue(tt):
@@ -1236,7 +1250,18 @@ def parse_iparamvalue(tt):
 
           
 def parse_expparamvalue(tt):
-    raise ParseError('EXPPARAMVALUE parser not implemented')
+    """
+    <!ELEMENT EXPPARAMVALUE (INSTANCE?)>
+    <!ATTLIST EXPPARAMVALUE 
+        %CIMName;>
+    """
+
+    check_node(tt, 'EXPPARAMVALUE', ['NAME'], [], ['INSTANCE'])
+
+    child = optional_child(tt, ['INSTANCE'])
+
+    name = attrs(tt)['NAME']
+    return name,  child
 
 
 def parse_multirsp(tt):
