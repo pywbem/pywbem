@@ -306,6 +306,9 @@ class CIMProperty(object):
         if isinstance(value, (datetime, timedelta)):
             value = CIMDateTime(value)
 
+        import __builtin__
+        if __builtin__.type(value) == list:
+            self.is_array = True
         # Determine type of value if not specified
 
         if type is None:
@@ -316,9 +319,7 @@ class CIMProperty(object):
             if value is None:
                 raise TypeError('Null property "%s" must have a type' % name)
         
-            import __builtin__
-            
-            if __builtin__.type(value) == list:
+            if self.is_array:
 
                 # Determine type for list value
 
@@ -335,8 +336,6 @@ class CIMProperty(object):
                 else:
                     self.type = cim_types.cimtype(value[0])
 
-                self.is_array = True
-                
             elif isinstance(value, CIMInstanceName):
 
                 self.type = 'reference'
@@ -1288,6 +1287,9 @@ def tocimobj(_type, value):
     builtin type."""
 
     if value is None or _type is None:
+        return None
+
+    if _type != 'string' and isinstance(value, basestring) and not value:
         return None
 
     # Lists of values
