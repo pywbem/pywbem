@@ -1061,6 +1061,61 @@ def codegen (cc):
         return txt
 
     #################
+    def map_value(obj, val):
+        rv = str(val)
+        if 'ValueMap' not in obj.qualifiers:
+            return rv
+        if 'Values' not in obj.qualifiers:
+            return rv
+        vals = [str(x) for x in obj.qualifiers['Values'].value]
+        maps = [str(x) for x in obj.qualifiers['ValueMap'].value]
+        d = dict(zip(maps, vals))
+        try:
+            tmp = d[str(val)]
+            rv = ''
+            for ch in tmp:
+                rv+= ch.isalnum() and ch or '_'
+        except KeyError:
+            pass
+        return rv
+            
+    #################
+    def type_hint (obj, method_name=None):
+        if hasattr(obj, 'type'):
+            tx = obj.type
+            if 'embeddedinstance' in obj.qualifiers:
+                tx = "pywbem.CIMInstance(classname='%s', ...)" % \
+                        obj.qualifiers['embeddedinstance'].value
+            elif tx == 'reference':
+                tx = "pywbem.CIMInstanceName(classname='%s', ...)" % \
+                        obj.reference_class
+        else:
+            tx = obj.return_type
+        if hasattr(obj, 'value') and obj.value is not None:
+            defval = str(obj.value)
+        else:
+            defval = ''
+        if not tx.startswith('pywbem.'):
+            if tx == 'boolean':
+                tx = 'bool(%s)' % defval
+            elif tx == 'datetime':
+                tx = 'pywbem.CIMDateTime()'
+            elif tx == 'string':
+                tx = "''"
+            else:
+                tx = 'pywbem.%s(%s)' % (tx.capitalize(), defval)
+        if 'valuemap' in obj.qualifiers:
+            if defval:
+                defval = map_value(obj, defval)
+            else:
+                defval = '<VAL>'
+            tx = 'self.Values.%s%s.%s' % \
+                    (method_name and '%s.'%method_name or '',
+                            obj.name, defval)
+        if hasattr(obj, 'is_array') and obj.is_array:
+            tx = '[%s,]' % tx
+        return tx
+    #################
     def type_str (obj, method_name=None):
         if hasattr(obj, 'type'):
             tx = obj.type
@@ -1178,6 +1233,8 @@ class %(classname)sProvider(pywbem.CIMProvider):
     keyProps = [p for p in cc.properties.values() \
                 if 'key' in p.qualifiers]
     code+= '''
+        ux = model.update_existing
+
         # TODO fetch system resource matching the following keys:'''
     for kp in keyProps:
         code+= '''
@@ -1188,11 +1245,10 @@ class %(classname)sProvider(pywbem.CIMProvider):
     for prop in props:
         if 'key' in prop.qualifiers:
             continue
-        #if '%(pname)s' in model.properties:
-        line = "#model.update_existing(%s=<value>) # TODO (type = %s) %s" % \
-                (prop.name, type_str(prop), is_required(prop))
-        if prop.value is not None:
-            line+= '(default=%s)' % `prop.value`
+        #line = "#ux(%s=%s) # TODO (type = %s) %s" % \
+        #        (prop.name, type_hint(prop), type_str(prop), is_required(prop))
+        line = "#ux(%s=%s) # TODO %s" % \
+                (prop.name, type_hint(prop), is_required(prop))
         code+= '''
         %s''' % line
 
@@ -1328,7 +1384,8 @@ class %(classname)sProvider(pywbem.CIMProvider):
 
         for p in outParms:
             code+='''
-        #out_params['%s'] = # TODO (type %s)''' % (p.name.lower(), type_str(p))
+        #out_params['%s'] = %s # TODO''' % (p.name.lower(), 
+                type_hint(p, method.name))
 
         code+='''
         rval = None # TODO (type %s)

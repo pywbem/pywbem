@@ -18,6 +18,9 @@ pywbem-0.7  YYYY-MM-DD
     * Fixed Array parameters with no elements.  (Bart Whiteley)
 
     * Fixed precision for real32 and real64 types.  (Bart Whiteley)
+ 
+    * Fixed Array properties where is_array isn't set in __init__.
+      (Bart Whiteley)
 
   ENHANCEMENTS:
 
@@ -26,6 +29,8 @@ pywbem-0.7  YYYY-MM-DD
 
 	* Implemented methods to parse indication export requests.
       (Bart Whiteley)
+
+    * Python provider code generation enhancements.  (Bart Whiteley)
 
 pywbem-0.6  2007-10-26
 
