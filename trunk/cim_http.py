@@ -29,7 +29,7 @@ being transferred is XML.  It is up to the caller to format the input
 data and interpret the result.
 '''
 
-import sys, string, re, os, socket
+import sys, string, re, os, socket, pwd
 import cim_obj
 from types import StringTypes
 
@@ -75,7 +75,7 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
     import httplib, base64, urllib
 
     ### new connection class
-    class FixedHTTPConnection(httplib.HTTPConnection):
+    class HTTPConnection(httplib.HTTPConnection):
         def __init__(self, host, port=None, strict=None):
             httplib.HTTPConnection.__init__(self, host, port, strict)
     
@@ -93,7 +93,7 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
             self.sock.sendall(str)
     
     ### new connection class
-    class FixedHTTPSConnection(httplib.HTTPSConnection):
+    class HTTPSConnection(httplib.HTTPSConnection):
         def __init__(self, host, port=None, key_file=None, cert_file=None, 
                      strict=None):
             httplib.HTTPSConnection.__init__(self, host, port, key_file, 
@@ -153,21 +153,29 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
         numTries = numTries + 1
 
         if ssl:
-            h = FixedHTTPSConnection(host, port = port, key_file = key_file,
+            h = HTTPSConnection(host, port = port, key_file = key_file,
                                                 cert_file = cert_file)
         else:
-            h = FixedHTTPConnection(host, port = port)
-
+            h = HTTPConnection(host, port = port)
 
         h.putrequest('POST', '/cimom')
 
         h.putheader('Content-type', 'application/xml; charset="utf-8"')
         h.putheader('Content-length', len(data))
+        locallogin = None
+        if host in ('localhost', '127.0.0.1'):
+            uid = os.getuid()
+            try:
+                locallogin = pwd.getpwuid(uid)[0]
+            except KeyError:
+                locallogin = None
         if localAuthHeader is not None:
-            h.putheader('Authorization', localAuthHeader)
+            h.putheader(*localAuthHeader)
         elif creds is not None: 
             h.putheader('Authorization', 'Basic %s' %
                     base64.encodestring('%s:%s' % (creds[0], creds[1]))[:-1])
+        if locallogin is not None and localAuthHeader is None:
+            h.putheader('PegasusAuthorization', 'Local "%s"' % locallogin)
 
         for hdr in headers:
             s = map(lambda x: string.strip(x), string.split(hdr, ":", 1))
@@ -199,10 +207,13 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
                 if response.status == 401:
                     if numTries >= tryLimit:
                         raise AuthError(response.reason)
-                    if 'openwbem' in response.getheader('Server', '') and (host == 'localhost' or host == '127.0.0.1'):
-                        authChal = response.getheader('WWW-Authenticate', '')
+                    if host not in ('localhost', '127.0.0.1'):
+                        raise AuthError(response.reason)
+                    authChal = response.getheader('WWW-Authenticate', '')
+                    if 'openwbem' in response.getheader('Server', ''):
                         if 'OWLocal' not in authChal:
-                            localAuthHeader = 'OWLocal uid="%d"' % os.getuid()
+                            localAuthHeader = ('Authorization', 
+                                    'OWLocal uid="%d"' % uid)
                             continue
                         else:
                             try:
@@ -217,11 +228,30 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
                                 f = open(cookieFile, 'r')
                                 cookie = f.read().strip()
                                 f.close()
-                                localAuthHeader = 'OWLocal nonce="%s", cookie="%s"' % (nonce, cookie)
+                                localAuthHeader = ('Authorization',
+                                        'OWLocal nonce="%s", cookie="%s"' % \
+                                                (nonce, cookie))
                                 continue
                             except:
                                 localAuthHeader = None
                                 continue
+                    elif 'Local' in authChal:
+                        try:
+                            beg = authChal.index('"') + 1
+                            end = authChal.rindex('"')
+                            if end > beg:
+                                file = authChal[beg:end]
+                                fo = open(file, 'r')
+                                cookie = ''
+                                for line in fo:
+                                    cookie+= line.rstrip()
+                                fo.close()
+                                localAuthHeader = ('PegasusAuthorization',
+                                    'Local "%s:%s:%s"' % \
+                                            (locallogin, file, cookie))
+                                continue
+                        except ValueError:
+                            pass
 
                     raise AuthError(response.reason)
                 if response.getheader('CIMError', None) is not None and \
