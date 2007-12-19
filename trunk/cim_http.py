@@ -149,32 +149,32 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
 
     data = '<?xml version="1.0" encoding="utf-8" ?>\n' + data
 
+    if ssl:
+        h = HTTPSConnection(host, port = port, key_file = key_file,
+                                            cert_file = cert_file)
+    else:
+        h = HTTPConnection(host, port = port)
+
+    locallogin = None
+    if host in ('localhost', '127.0.0.1'):
+        uid = os.getuid()
+        try:
+            locallogin = pwd.getpwuid(uid)[0]
+        except KeyError:
+            locallogin = None
     while numTries < tryLimit:
         numTries = numTries + 1
-
-        if ssl:
-            h = HTTPSConnection(host, port = port, key_file = key_file,
-                                                cert_file = cert_file)
-        else:
-            h = HTTPConnection(host, port = port)
 
         h.putrequest('POST', '/cimom')
 
         h.putheader('Content-type', 'application/xml; charset="utf-8"')
         h.putheader('Content-length', len(data))
-        locallogin = None
-        if host in ('localhost', '127.0.0.1'):
-            uid = os.getuid()
-            try:
-                locallogin = pwd.getpwuid(uid)[0]
-            except KeyError:
-                locallogin = None
         if localAuthHeader is not None:
             h.putheader(*localAuthHeader)
         elif creds is not None: 
             h.putheader('Authorization', 'Basic %s' %
                     base64.encodestring('%s:%s' % (creds[0], creds[1]))[:-1])
-        if locallogin is not None and localAuthHeader is None:
+        elif locallogin is not None:
             h.putheader('PegasusAuthorization', 'Local "%s"' % locallogin)
 
         for hdr in headers:
@@ -202,6 +202,7 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
                     raise
 
             response = h.getresponse()
+            body = response.read()
     
             if response.status != 200:
                 if response.status == 401:
@@ -242,9 +243,7 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
                             if end > beg:
                                 file = authChal[beg:end]
                                 fo = open(file, 'r')
-                                cookie = ''
-                                for line in fo:
-                                    cookie+= line.rstrip()
+                                cookie = fo.read().strip()
                                 fo.close()
                                 localAuthHeader = ('PegasusAuthorization',
                                     'Local "%s:%s:%s"' % \
@@ -272,7 +271,7 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
 
         break
 
-    return response.read()
+    return body
 
 
 def get_object_header(obj):
