@@ -94,7 +94,7 @@ class WBEMConnection(object):
     that is part of the certificate in cert_file. 
     """
     
-    def __init__(self, url, creds, default_namespace = DEFAULT_NAMESPACE,
+    def __init__(self, url, creds = None, default_namespace = DEFAULT_NAMESPACE,
                  x509 = None, verify_callback = None):
         self.url = url
         self.creds = creds
