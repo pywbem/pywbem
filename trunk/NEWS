@@ -32,6 +32,8 @@ pywbem-0.7  YYYY-MM-DD
 
     * Python provider code generation enhancements.  (Bart Whiteley)
 
+    * Support for Pegasus Local authentication.  (Bart Whiteley)
+
 pywbem-0.6  2007-10-26
 
   LICENSING:
