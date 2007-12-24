@@ -1485,6 +1485,7 @@ instance of PG_ProviderModule
     InterfaceType = "Python";
     InterfaceVersion = "1.0.0";
     Location = "/usr/lib/pycim/%(classname)sProvider.py";
+    UserContext = 2; // Requestor
     Vendor = "TODO"; // TODO
     Version = "1.0";
 }; 
@@ -1530,7 +1531,11 @@ class ProviderProxy(object):
             if provdir not in sys.path:
                 sys.path.append(provdir)
             # use full path in module name for uniqueness. 
-            self.provmod = load_source(provider_name, provid)
+            try: 
+                self.provmod = load_source(provider_name, provid)
+            except IOError, arg:
+                raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+                        "Error loading provider %s: %s" % (provid, arg))
             self.filename = self.provmod.__file__
         self.provregs = {}
         if hasattr(self.provmod, 'init'):
