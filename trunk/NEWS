@@ -22,6 +22,8 @@ pywbem-0.7  YYYY-MM-DD
     * Fixed Array properties where is_array isn't set in __init__.
       (Bart Whiteley)
 
+    * Added NocaseDict.__cmp__(self, other).  (Bart Whiteley)
+
   ENHANCEMENTS:
 
     * Added support for generating Pegasus provider registration MOF in 
@@ -33,6 +35,8 @@ pywbem-0.7  YYYY-MM-DD
     * Python provider code generation enhancements.  (Bart Whiteley)
 
     * Support for Pegasus Local authentication.  (Bart Whiteley)
+
+    * Support for Pegasus and OpenWBEM Unix Domain Socket.  (Tim and Bart)
 
 pywbem-0.6  2007-10-26
 

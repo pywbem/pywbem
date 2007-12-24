@@ -173,6 +173,15 @@ class NocaseDict(object):
                 return 0
         return len(self) == len(other)
 
+    def __cmp__(self, other):
+        for key, value in self.iteritems():
+            if not (key in other):
+                return -1
+            rv = cmp(value, other[key])
+            if rv != 0:
+                return rv
+        return len(self) - len(other)
+
 def cmpname(name1, name2):
     """Compare to CIM names.  The comparison is done
     case-insensitvely, and one or both of the names may be None."""
