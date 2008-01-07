@@ -24,6 +24,8 @@ pywbem-0.7  YYYY-MM-DD
 
     * Added NocaseDict.__cmp__(self, other).  (Bart Whiteley)
 
+    * Fixed WBEMConnection.__repr__ for anonymous connections. (Tim Potter)
+
   ENHANCEMENTS:
 
     * Added support for generating Pegasus provider registration MOF in 
