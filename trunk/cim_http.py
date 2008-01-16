@@ -30,6 +30,7 @@ data and interpret the result.
 '''
 
 import sys, string, re, os, socket, pwd
+from stat import S_ISSOCK
 import cim_obj
 from types import StringTypes
 
@@ -74,15 +75,13 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
 
     import httplib, base64, urllib
 
-    ### new connection class
-    class HTTPConnection(httplib.HTTPConnection):
-        def __init__(self, host, port=None, strict=None):
-            httplib.HTTPConnection.__init__(self, host, port, strict)
-    
+    class HTTPBaseConnection:
         def send(self, str):
-            """ Same as base class send(), except we don't check for sigpipe
-            and close the connection.  If the connection gets closed, 
-            getresponse() fails """
+            """ Same as httplib.HTTPConnection.send(), except we don't 
+            check for sigpipe and close the connection.  If the connection 
+            gets closed, getresponse() fails. 
+            """
+
             if self.sock is None:
                 if self.auto_open:
                     self.connect()
@@ -91,26 +90,21 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
             if self.debuglevel > 0:
                 print "send:", repr(str)
             self.sock.sendall(str)
+
+    class HTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
+        def __init__(self, host, port=None, strict=None):
+            httplib.HTTPConnection.__init__(self, host, port, strict)
     
-    ### new connection class
-    class HTTPSConnection(httplib.HTTPSConnection):
+    class HTTPSConnection(HTTPBaseConnection, httplib.HTTPSConnection):
         def __init__(self, host, port=None, key_file=None, cert_file=None, 
                      strict=None):
             httplib.HTTPSConnection.__init__(self, host, port, key_file, 
                                              cert_file, strict)
     
-        def send(self, str):
-            """ Same as base class send(), except we don't check for sigpipe
-            and close the connection.  If the connection gets closed, 
-            getresponse() fails """
-            if self.sock is None:
-                if self.auto_open:
-                    self.connect()
-                else:
-                    raise httplib.NotConnected()
-            if self.debuglevel > 0:
-                print "send:", repr(str)
-            self.sock.sendall(str)
+    class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
+        def connect(self):
+            self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            self.sock.connect(host)
 
     host, port, ssl = parse_url(url)
 
@@ -149,14 +143,30 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
 
     data = '<?xml version="1.0" encoding="utf-8" ?>\n' + data
 
+    local = False
     if ssl:
         h = HTTPSConnection(host, port = port, key_file = key_file,
                                             cert_file = cert_file)
     else:
-        h = HTTPConnection(host, port = port)
+        if url.startswith('http'):
+            h = HTTPConnection(host, port = port)
+        else:
+            if url.startswith('file:'):
+                url = url[5:]
+            try:
+                s = os.stat(url)
+                if S_ISSOCK(s.st_mode):
+                    h = FileHTTPConnection(url)
+                    local = True
+                else:
+                    raise Error('Invalid URL')
+            except OSError:
+                raise Error('Invalid URL')
 
     locallogin = None
     if host in ('localhost', '127.0.0.1'):
+        local = True
+    if local:
         uid = os.getuid()
         try:
             locallogin = pwd.getpwuid(uid)[0]
@@ -208,7 +218,7 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
                 if response.status == 401:
                     if numTries >= tryLimit:
                         raise AuthError(response.reason)
-                    if host not in ('localhost', '127.0.0.1'):
+                    if not local:
                         raise AuthError(response.reason)
                     authChal = response.getheader('WWW-Authenticate', '')
                     if 'openwbem' in response.getheader('Server', ''):
