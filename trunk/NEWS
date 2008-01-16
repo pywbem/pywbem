@@ -40,6 +40,9 @@ pywbem-0.7  YYYY-MM-DD
 
     * Support for Pegasus and OpenWBEM Unix Domain Socket.  (Tim and Bart)
 
+    * Added support for Pegasus non-compliant EMBEDDEDOBJECT XML attribute. 
+      (Bart Whiteley)
+
 pywbem-0.6  2007-10-26
 
   LICENSING:
