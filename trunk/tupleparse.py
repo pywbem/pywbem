@@ -858,7 +858,8 @@ def parse_property(tt):
     ## magic fields for the qualifiers and the propagated flag.
     
     check_node(tt, 'PROPERTY', ['TYPE', 'NAME'],
-               ['NAME', 'CLASSORIGIN', 'PROPAGATED', 'EmbeddedObject'],
+               ['NAME', 'CLASSORIGIN', 'PROPAGATED', 'EmbeddedObject',
+                'EMBEDDEDOBJECT'],
                ['QUALIFIER', 'VALUE'])
 
     quals = {}
@@ -868,9 +869,13 @@ def parse_property(tt):
     val = unpack_value(tt)
     a = attrs(tt)
     embedded_object=None
-    if a.has_key('EmbeddedObject'):
+    if 'EmbeddedObject' in a or 'EMBEDDEDOBJECT' in a:
+        try:
+            embedded_object = a['EmbeddedObject']
+        except KeyError:
+            embedded_object = a['EMBEDDEDOBJECT']
+    if embedded_object is not None:
         val = parse_embeddedObject(val)
-        embedded_object=a['EmbeddedObject']
 
     return CIMProperty(a['NAME'],
                        val,
@@ -895,7 +900,7 @@ def parse_property_array(tt):
 
     check_node(tt, 'PROPERTY.ARRAY', ['NAME', 'TYPE'],
                     ['REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED',
-                     'ARRAYSIZE', 'EmbeddedObject'],
+                     'ARRAYSIZE', 'EmbeddedObject', 'EMBEDDEDOBJECT'],
                ['QUALIFIER', 'VALUE.ARRAY'])
 
     quals = {}
@@ -905,9 +910,14 @@ def parse_property_array(tt):
     values = unpack_value(tt)
     a = attrs(tt)
     embedded_object = None
-    if a.has_key('EmbeddedObject'):
+    if 'EmbeddedObject' in a or 'EMBEDDEDOBJECT' in a:
+        try:
+            embedded_object = a['EmbeddedObject']
+        except KeyError:
+            embedded_object = a['EMBEDDEDOBJECT']
+
+    if embedded_object is not None:
         values = parse_embeddedObject(values)
-        embedded_object = a['EmbeddedObject']
 
     obj = CIMProperty(a['NAME'],
                       values,
@@ -1206,7 +1216,8 @@ def parse_paramvalue(tt):
     ## is present in version 2.2.  Make it optional to be backwards
     ## compatible.
 
-    check_node(tt, 'PARAMVALUE', ['NAME'], ['PARAMTYPE','EmbeddedObject'])
+    check_node(tt, 'PARAMVALUE', ['NAME'], ['PARAMTYPE','EmbeddedObject', 
+                                            'EMBEDDEDOBJECT'])
 
     child = optional_child(tt,
                         ['VALUE', 'VALUE.REFERENCE', 'VALUE.ARRAY',
@@ -1217,7 +1228,7 @@ def parse_paramvalue(tt):
     else:
         paramtype = None
 
-    if attrs(tt).has_key('EmbeddedObject'):
+    if 'EmbeddedObject' in attrs(tt) or 'EMBEDDEDOBJECT' in attrs(tt):
         child = parse_embeddedObject(child)
         
     return attrs(tt)['NAME'], paramtype, child
@@ -1382,6 +1393,8 @@ def parse_any(tt):
 def parse_embeddedObject(val):
     if isinstance(val, list):
         return [parse_embeddedObject(obj) for obj in val]
+    if val is None:
+        return None
     tt = xml_to_tupletree(val)
     if tt[0] == 'INSTANCE':
         return parse_instance(tt)
