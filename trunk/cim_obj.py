@@ -879,20 +879,17 @@ class CIMClass(object):
 
     def tomof(self):
 
-        def _makequalifiers(qualifiers):
+        def _makequalifiers(qualifiers, indent):
             """Return a mof fragment for a NocaseDict of qualifiers."""
 
             if len(qualifiers) == 0:
                 return ''
             
-            result = string.join(
-                [q.tomof() for q in qualifiers.values()], ', ')
-
-            return '[%s]' % result
+            return '[%s]' % ',\n '.ljust(indent+2).join([q.tomof() for q in qualifiers.values()])
 
         # Class definition
 
-        s = '%s\n' % _makequalifiers(self.qualifiers)
+        s = '   %s\n' % _makequalifiers(self.qualifiers, 4)
 
         s += 'class %s ' % self.classname
 
@@ -906,14 +903,14 @@ class CIMClass(object):
         # Properties
 
         for p in self.properties.values():
-            s += '\t%s\n' % (_makequalifiers(p.qualifiers))
-            s += '\t%s %s;\n' % (p.type, p.name)
+            s += '      %s\n' % (_makequalifiers(p.qualifiers, 7))
+            s += '   %s %s;\n' % (p.type, p.name)
 
         # Methods
 
         for m in self.methods.values():
-            s += '\t%s\n' % (_makequalifiers(m.qualifiers))
-            s += '\t%s\n' % m.tomof()
+            s += '      %s\n' % (_makequalifiers(m.qualifiers, 7))
+            s += '   %s\n' % m.tomof()
 
         s += '};\n'
         
@@ -1182,13 +1179,13 @@ class CIMQualifier(object):
     def tomof(self):
 
         def valstr(v):
-            if type(v) == string or type(v) == unicode:
+            if isinstance(v, basestring):
                 return '"%s"' % v
             return str(v)
 
         if type(self.value) == list:
             return '%s {' % self.name + \
-                   string.join([valstr(v) for v in self.value], ', ') + '}'
+                   ', '.join([valstr(v) for v in self.value]) + '}'
 
         return '%s (%s)' % (self.name, valstr(self.value))
 
@@ -1259,6 +1256,39 @@ class CIMQualifierDeclaration(object):
                                      tosubclass=self.tosubclass, 
                                      toinstance=self.toinstance,
                                      translatable=self.translatable)
+
+    def tomof(self):
+        mof = 'Qualifier %s : %s' % (self.name, self.type)
+        if self.is_array:
+            mof+= '['
+            if self.array_size is not None:
+                mof+= str(self.array_size)
+            mof+= ']'
+        if self.value is not None:
+            if isinstance(self.value, list):
+                mof+= '{'
+                mof+= ', '.join([atomic_to_cim_xml(tocimobj(self.type, x)) \
+                        for x in self.value])
+                mof+= '}'
+            else:
+                mof+= ' = %s' % atomic_to_cim_xml(tocimobj(self.type,self.value))
+        mof+= ',\n    '
+        mof+= 'Scope('
+        mof+= ', '.join([x.lower() for x, y in self.scopes.items() if y]) + ')'
+        if not self.overridable and not self.tosubclass \
+                and not self.toinstance and not self.translatable:
+            mof+= ';'
+            return mof
+        mof+= ',\n    Flavor('
+        mof+= self.overridable and 'EnableOverride' or 'DisableOverride'
+        mof+= ', '
+        mof+= self.tosubclass and 'ToSubclass' or 'Restricted'
+        if self.toinstance:
+            mof+= ', ToInstance'
+        if self.translatable:
+            mof+= ', Translatable'
+        mof+= ');'
+        return mof
 
 def tocimxml(value):
     """Convert an arbitrary object to CIM xml.  Works with cim_obj
