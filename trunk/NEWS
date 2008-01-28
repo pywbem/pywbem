@@ -26,6 +26,8 @@ pywbem-0.7  YYYY-MM-DD
 
     * Fixed WBEMConnection.__repr__ for anonymous connections. (Tim Potter)
 
+    * Fixed XML encoding of CIMQualifierDeclarations.  (Bart Whiteley)
+
   ENHANCEMENTS:
 
     * Added support for generating Pegasus provider registration MOF in 
@@ -42,6 +44,8 @@ pywbem-0.7  YYYY-MM-DD
 
     * Added support for Pegasus non-compliant EMBEDDEDOBJECT XML attribute. 
       (Bart Whiteley)
+
+    * Added CIMQualifierDeclaration.tomof().  (Bart Whiteley)
 
 pywbem-0.6  2007-10-26
 
