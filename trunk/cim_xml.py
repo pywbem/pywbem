@@ -205,15 +205,15 @@ class QUALIFIER_DECLARATION(CIMElement):
         if translatable is not None:
             self.setAttribute('TRANSLATABLE', str(translatable).lower())
             
+        if qualifier_scopes:
+            scope = SCOPE(qualifier_scopes)
+            self.appendOptionalChild(scope)
         if value is not None:
             if is_array:
                 xval = VALUE_ARRAY(value)
             else:
                 xval = VALUE(value)
             self.appendOptionalChild(xval)
-        if qualifier_scopes:
-            scope = SCOPE(qualifier_scopes)
-            self.appendOptionalChild(scope)
 
 class SCOPE(CIMElement):
     """
@@ -234,6 +234,14 @@ class SCOPE(CIMElement):
     
     def __init__(self, scopes={}):
         Element.__init__(self, 'SCOPE')
+        if 'any' in scopes and scopes['any']:
+            scopes = {'CLASS': True,
+                      'ASSOCIATION': True,
+                      'REFERENCE': True,
+                      'PROPERTY': True,
+                      'METHOD': True,
+                      'PARAMETER': True,
+                      'INDICATION': True}
         for k, v in scopes.items():
             self.setOptionalAttribute(k, str(v).lower())
 
