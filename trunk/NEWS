@@ -27,6 +27,8 @@ pywbem-0.7  YYYY-MM-DD
     * Fixed WBEMConnection.__repr__ for anonymous connections. (Tim Potter)
 
     * Fixed XML encoding of CIMQualifierDeclarations.  (Bart Whiteley)
+    
+    * Fixed EnumerateQualifiers if there are no qualifiers.  (Bart Whiteley)
 
   ENHANCEMENTS:
 

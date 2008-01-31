@@ -836,6 +836,8 @@ class WBEMConnection(object):
 
         if result is not None:
             names = result[2]
+        else:
+            names = []
 
         return names
 
