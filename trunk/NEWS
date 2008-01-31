@@ -47,6 +47,8 @@ pywbem-0.7  YYYY-MM-DD
 
     * Added CIMQualifierDeclaration.tomof().  (Bart Whiteley)
 
+    * Added a powerful MOF compiler.  (Bart Whiteley)
+
 pywbem-0.6  2007-10-26
 
   LICENSING:
