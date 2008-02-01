@@ -27,6 +27,8 @@ from ply.lex import TOKEN
 import pywbem
 
 _optimize = 1
+_tabmodule='pywbem.mofparsetab'
+_lextab='pywbem.moflextab'
 
 reserved = {
     'any':'ANY',
@@ -548,7 +550,14 @@ def p_qualifier(p):
     try:
         qualdecl = p.parser.qualcache[p.parser.ns][qname]
     except KeyError:
-        quals = p.parser.handle.EnumerateQualifiers(namespace=p.parser.ns)
+        try:
+            quals = p.parser.handle.EnumerateQualifiers(namespace=p.parser.ns)
+        except pywbem.CIMError, ce:
+            if ce.args[0] != pywbem.CIM_ERR_INVALID_NAMESPACE:
+                raise
+            _create_ns(p.parser.handle, p.parser.ns)
+            quals = None
+
         if quals:
             for qual in quals:
                 p.parser.qualcache[p.parser.ns][qual.name] = qual
@@ -1210,10 +1219,10 @@ def _print_logger(str):
 class MOFCompiler(object):
     def __init__(self, handle, search_paths=[], verbose=False,
                  log_func=_print_logger):
-        self.parser = yacc.yacc(optimize=_optimize)
+        self.parser = yacc.yacc(tabmodule=_tabmodule, optimize=_optimize)
         self.parser.search_paths = search_paths
         self.parser.handle = handle
-        self.lexer = lex.lex(optimize=_optimize)
+        self.lexer = lex.lex(lextab=_lextab, optimize=_optimize)
         self.lexer.parser = self.parser
         self.parser.qualcache = {handle.default_namespace:pywbem.NocaseDict()}
         self.parser.classnames = {handle.default_namespace:[]}
@@ -1244,42 +1253,44 @@ class MOFCompiler(object):
                         return root + '/' + file
         return None
 
+def _build():
+    yacc.yacc(optimize=_optimize, tabmodule=_tabmodule)
+    lex.lex(optimize=_optimize, lextab=_lextab)
+
 
 if __name__ == '__main__':
-    global mof
-    global search
+    from optparse import OptionParser
+    import os
     oparser = OptionParser()
     oparser.add_option('-s', '--search-dir', dest='search', 
             help='Search path to find missing schema elements', 
-            metavar='File')
+            metavar='Paths')
     oparser.add_option('-n', '--namespace', dest='ns', 
             help='Namespace', metavar='Namespace')
+    oparser.add_option("-v", "--verbose",
+            action="store_true", dest="verbose", default=False,
+            help="Print more messages to stdout")
+
     (options, args) = oparser.parse_args()
     search = options.search
     if not args:
         oparser.error('No input files given for parsing')
     if options.ns is None: 
         oparser.error('No namespace given')
-#    nss = [x for x in conn.Namespaces()] 
-#    if options.ns not in nss:
-#        conn.CreateNamespace(options.ns)
 
     conn = pywbem.WBEMConnection('https://localhost', ('',''))
     conn = pywbem.PegasusUDSConnection()
     #conn.debug = True
     conn.default_namespace = options.ns
-
-    # TODO move this to some class .init()
-    # TODO create namespace if not exist
-    _qualcache[options.ns] = pywbem.NocaseDict()
-    for qual in conn.EnumerateQualifiers(namespace=options.ns):
-        _qualcache[options.ns][qual.name] = qual
+    if search:
+        search = search.split(':')
+    else:
+        search = []
+    mofcomp = MOFCompiler(handle=conn, search_paths=search, 
+            verbose=options.verbose)
 
     for fname in args:
         if fname[0] != '/':
             fname = os.path.curdir + '/' + fname
-        compile_file(fname, options.ns)
-
-
-#    raw_input('press any key...')
+        mofcomp.compile_file(fname, options.ns)
 
