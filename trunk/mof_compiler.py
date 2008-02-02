@@ -208,6 +208,7 @@ def p_mp_createClass(p):
                       | assocDeclaration
                       | indicDeclaration
                       """
+    ns = p.parser.handle.default_namespace
     cc = p[1]
     try:
         fixedNS = fixedRefs = fixedSuper = False
@@ -215,10 +216,10 @@ def p_mp_createClass(p):
             try:
                 if p.parser.verbose:
                     p.parser.log('Creating class ' + cc.classname)
-                p.parser.handle.CreateClass(cc, p.parser.ns)
+                p.parser.handle.CreateClass(cc)
                 if p.parser.verbose:
                     p.parser.log('Created class ' + cc.classname)
-                p.parser.classnames[p.parser.ns].append(cc.classname.lower())
+                p.parser.classnames[ns].append(cc.classname.lower())
                 break
             except pywbem.CIMError, ce:
                 errcode = ce.args[0]
@@ -226,8 +227,8 @@ def p_mp_createClass(p):
                     if fixedNS:
                         raise
                     if p.parser.verbose:
-                        p.parser.log('Creating namespace ' + p.parser.ns)
-                    _create_ns(handle, p.parser.ns)
+                        p.parser.log('Creating namespace ' + ns)
+                    _create_ns(handle, ns)
                     fixedNS = True
                     continue
                 if not p.parser.search_paths:
@@ -238,19 +239,21 @@ def p_mp_createClass(p):
                     moffile = p.parser.mofcomp.find_mof(cc.superclass)
                     if not moffile:
                         raise
-                    p.parser.mofcomp.compile_file(moffile, p.parser.ns)
+                    if p.parser.verbose:
+                        p.parser.log('Compiling file ' + moffile)
+                    p.parser.mofcomp.compile_file(moffile, ns)
                     fixedSuper = True
                 elif errcode in [pywbem.CIM_ERR_INVALID_PARAMETER,
                                  pywbem.CIM_ERR_NOT_FOUND,
                                  pywbem.CIM_ERR_FAILED]:
                     if fixedRefs:
                         raise
-                    if not p.parser.qualcache[p.parser.ns]:
+                    if not p.parser.qualcache[ns]:
                         for fname in ['qualifiers', 'qualifiers_optional']:
                             qualfile = p.parser.mofcomp.find_mof(fname)
                             if qualfile:
-                                p.parser.mofcomp.compile_file(qualfile,p.parser.ns)
-                    if not p.parser.qualcache[p.parser.ns]:
+                                p.parser.mofcomp.compile_file(qualfile,ns)
+                    if not p.parser.qualcache[ns]:
                         # can't find qualifiers
                         raise
                     objects = cc.properties.values()
@@ -274,35 +277,35 @@ def p_mp_createClass(p):
                             dep_classes.append(embedded_inst)
                         continue
                     for klass in dep_classes:
-                        if klass in p.parser.classnames[p.parser.ns]:
+                        if klass in p.parser.classnames[ns]:
                             continue
                         try:
                             p.parser.handle.GetClass(klass,
-                                    namespace=p.parser.ns, 
                                     LocalOnly=True, 
                                     IncludeQualifiers=False, 
                                     PropertyList=[])
-                            p.parser.classnames[p.parser.ns].append(klass)
+                            p.parser.classnames[ns].append(klass)
                         except pywbem.CIMError:
                             moffile = p.parser.mofcomp.find_mof(klass)
                             if not moffile:
                                 raise
-                            p.parser.mofcomp.compile_file(moffile, p.parser.ns)
-                            p.parser.classnames[p.parser.ns].append(klass)
+                            p.parser.mofcomp.compile_file(moffile, ns)
+                            p.parser.classnames[ns].append(klass)
                     fixedRefs = True
                 else:
                     raise
     
     except pywbem.CIMError, ce:
         if ce.args[0] != pywbem.CIM_ERR_ALREADY_EXISTS:
-            # TODO print fatal error
+            p.parser.log('** Fatal error.')
             raise
         if p.parser.verbose:
             p.parser.log('Class %s already exist.  Modifying...' % cc.classname)
         try:
-            p.parser.handle.ModifyClass(cc, p.parser.ns)
-        except pywbem.CIMError:
-            # TODO print recoverable error
+            p.parser.handle.ModifyClass(cc, ns)
+        except pywbem.CIMError, ce:
+            p.parser.log('** Error Modifying class %s: %s, %s' 
+                    % (cc.classname, ce.args[0], ce.args[1]))
             pass
 
 def p_mp_createInstance(p):
@@ -316,23 +319,46 @@ def p_mp_createInstance(p):
         if ce.args[0] == pywbem.CIM_ERR_ALREADY_EXISTS:
             if p.parser.verbose:
                 p.parser.log('Instance of class %s already exist.  Modifying...'  % inst.classname)
-            p.parser.handle.ModifyInstance(inst)
+            try:
+                p.parser.handle.ModifyInstance(inst)
+            except pywbem.CIMError, ce:
+                if ce.args[0] == pywbem.CIM_ERR_NOT_SUPPORTED:
+                    if p.parser.verbose:
+                        p.parser.log('ModifyInstance not supported.  Deleting instance of %s: %s' % (inst.classname, inst.path))
+                    p.parser.handle.DeleteInstance(inst.path)
+                    if p.parser.verbose:
+                        p.parser.log('Creating instance of %s.' % inst.classname)
+                    p.parser.handle.CreateInstance(inst)
         else:
             raise
 
 def p_mp_setQualifier(p):
     """mp_setQualifier : qualifierDeclaration"""
     qualdecl = p[1]
+    ns = p.parser.handle.default_namespace
     if p.parser.verbose:
         p.parser.log('Setting qualifier %s' % qualdecl.name)
     try:
-        p.parser.handle.SetQualifier(qualdecl, p.parser.ns)
+        p.parser.handle.SetQualifier(qualdecl)
     except pywbem.CIMError, ce:
-        if ce.args[0] != pywbem.CIM_ERR_INVALID_NAMESPACE:
+        if ce.args[0] == pywbem.CIM_ERR_INVALID_NAMESPACE:
+            if p.parser.verbose:
+                p.parser.log('Creating namespace ' + ns)
+            _create_ns(p.parser.handle, ns)
+            if p.parser.verbose:
+                p.parser.log('Setting qualifier %s' % qualdecl.name)
+            p.parser.handle.SetQualifier(qualdecl)
+        elif ce.args[0] == pywbem.CIM_ERR_NOT_SUPPORTED:
+            if p.parser.verbose:
+                p.parser.log('Qualifier %s already exists.  Deleting...' 
+                            % qualdecl.name)
+            p.parser.handle.DeleteQualifier(qualdecl.name)
+            if p.parser.verbose:
+                p.parser.log('Setting qualifier %s' % qualdecl.name)
+            p.parser.handle.SetQualifier(qualdecl)
+        else:
             raise
-        _create_ns(p.parser.handle, p.parser.ns)
-        p.parser.handle.SetQualifier(qualdecl, p.parser.ns)
-    p.parser.qualcache[p.parser.ns][qualdecl.name] = qualdecl
+    p.parser.qualcache[ns][qualdecl.name] = qualdecl
 
 def p_compilerDirective(p): 
     """compilerDirective : '#' PRAGMA pragmaName '(' pragmaParameter ')'"""
@@ -345,15 +371,12 @@ def p_compilerDirective(p):
         if p.parser.verbose:
             p.parser.log('Compiling '+ fname)
         oldfile = p.parser.file
-        p.parser.mofcomp.compile_file(fname, p.parser.ns)
+        p.parser.mofcomp.compile_file(fname, p.parser.handle.default_namespace)
         p.parser.file = oldfile
     elif directive == 'namespace':
-        p.parser.ns = param
+        p.parser.handle.default_namespace = param
         if param not in p.parser.qualcache:
             p.parser.qualcache[param] = pywbem.NocaseDict()
-            # TODO create namespace if it doesn't exist
-            for qual in p.parser.handle.EnumerateQualifiers(namespace=param):
-                p.parser.qualcache[param][qual.name] = qual
     
     p[0] = None
 
@@ -538,6 +561,7 @@ def p_qualifier(p):
                  | qualifierName qualifierParameter ':' flavorList
                  """
     qname = p[1]
+    ns = p.parser.handle.default_namespace
     qval = None
     flavorlist = []
     if len(p) == 3:
@@ -548,26 +572,26 @@ def p_qualifier(p):
         qval = p[2]
         flavorlist = p[4]
     try:
-        qualdecl = p.parser.qualcache[p.parser.ns][qname]
+        qualdecl = p.parser.qualcache[ns][qname]
     except KeyError:
         try:
-            quals = p.parser.handle.EnumerateQualifiers(namespace=p.parser.ns)
+            quals = p.parser.handle.EnumerateQualifiers()
         except pywbem.CIMError, ce:
             if ce.args[0] != pywbem.CIM_ERR_INVALID_NAMESPACE:
                 raise
-            _create_ns(p.parser.handle, p.parser.ns)
+            _create_ns(p.parser.handle, ns)
             quals = None
 
         if quals:
             for qual in quals:
-                p.parser.qualcache[p.parser.ns][qual.name] = qual
+                p.parser.qualcache[ns][qual.name] = qual
         else:
             for fname in ['qualifiers', 'qualifiers_optional']:
                 qualfile = p.parser.mofcomp.find_mof(fname)
                 if qualfile:
-                    p.parser.mofcomp.compile_file(qualfile,p.parser.ns)
+                    p.parser.mofcomp.compile_file(qualfile, ns)
     try:
-        qualdecl = p.parser.qualcache[p.parser.ns][qname]
+        qualdecl = p.parser.qualcache[ns][qname]
     except KeyError:
         p.parser.log('Unknown qualifier: ' + qname)
         raise
@@ -1076,6 +1100,7 @@ def p_instanceDeclaration(p):
                            """
     alias = None
     quals = {}
+    ns = p.parser.handle.default_namespace
     if isinstance(p[1], basestring): # no qualifiers
         cname = p[3]
         if p[4] == '{':
@@ -1093,10 +1118,10 @@ def p_instanceDeclaration(p):
             alias = p[5]
 
     try:
-        cc = p.parser.handle.GetClass(cname, p.parser.ns, 
+        cc = p.parser.handle.GetClass(cname,
                 LocalOnly=False, IncludeQualifiers=True, 
                 IncludeClassOrigin=False)
-        p.parser.classnames[p.parser.ns].append(cc.classname.lower())
+        p.parser.classnames[ns].append(cc.classname.lower())
     except pywbem.CIMError, ce:
         if ce.args[0] == pywbem.CIM_ERR_NOT_FOUND:
             file = find_mof(cname)
@@ -1105,8 +1130,8 @@ def p_instanceDeclaration(p):
             if file:
                 if p.parser.verbose:
                     p.parser.log('Found file %s, Compiling...' % file)
-                p.parser.mofcomp.compile_file(file, p.parser.ns)
-                cc = p.parser.handle.GetClass(cname, p.parser.ns, LocalOnly=False, 
+                p.parser.mofcomp.compile_file(file, ns)
+                cc = p.parser.handle.GetClass(cname, LocalOnly=False, 
                         IncludeQualifiers=True, IncludeClassOrigin=False)
             else:
                 if p.parser.verbose:
@@ -1114,7 +1139,7 @@ def p_instanceDeclaration(p):
                 raise pywbem.CIMError(pywbem.CIM_ERR_INVALID_CLASS, cname)
         else:
             raise
-    path = pywbem.CIMInstanceName(cname, namespace=p.parser.ns)
+    path = pywbem.CIMInstanceName(cname, namespace=ns)
     inst = pywbem.CIMInstance(cname, properties=cc.properties, 
             qualifiers=quals, path=path)
     for prop in props: 
@@ -1235,7 +1260,7 @@ class MOFCompiler(object):
         lexer.parser = self.parser
         self.parser.file = filename
         self.parser.mof = mof
-        self.parser.ns = ns
+        self.parser.handle.default_namespace = ns
         return self.parser.parse(mof, lexer=lexer)
 
     def compile_file(self, filename, ns):
@@ -1267,6 +1292,9 @@ if __name__ == '__main__':
             metavar='Paths')
     oparser.add_option('-n', '--namespace', dest='ns', 
             help='Namespace', metavar='Namespace')
+    oparser.add_option('-u', '--url', dest='url', 
+            help='URL', metavar='URL', 
+            default='/var/run/tog-pegasus/cimxml.socket')
     oparser.add_option("-v", "--verbose",
             action="store_true", dest="verbose", default=False,
             help="Print more messages to stdout")
@@ -1278,14 +1306,23 @@ if __name__ == '__main__':
     if options.ns is None: 
         oparser.error('No namespace given')
 
-    conn = pywbem.WBEMConnection('https://localhost', ('',''))
-    conn = pywbem.PegasusUDSConnection()
+    conn = pywbem.WBEMConnection(options.url)
     #conn.debug = True
     conn.default_namespace = options.ns
     if search:
         search = search.split(':')
     else:
         search = []
+
+    search = [os.path.abspath(x) for x in search]
+    for fname in args:
+        path = os.path.abspath(os.path.dirname(fname))
+        for spath in search:
+            if path.startswith(spath):
+                break
+        else:
+            search.append(path)
+
     mofcomp = MOFCompiler(handle=conn, search_paths=search, 
             verbose=options.verbose)
 
