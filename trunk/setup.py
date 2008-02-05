@@ -23,6 +23,19 @@ management protocol.'''
 
 from distutils.core import setup, Extension
 import sys, string, os
+import shutil
+
+for file in ['pywbem.mofparsetab.py', 'mofparsetab.py', 'mofparsetab.pyc',
+             'pywbem.moflextab.py', 'moflextab.py', 'moflextab.py']:
+    try:
+        os.unlink(file)
+    except OSError:
+        pass
+
+import mof_compiler
+mof_compiler._build()
+shutil.move('pywbem.mofparsetab.py', 'mofparsetab.py')
+shutil.move('pywbem.moflextab.py', 'moflextab.py')
 
 args = {'name': 'pywbem',
         'author': 'Tim Potter',
@@ -31,7 +44,7 @@ args = {'name': 'pywbem',
         'long_description': __doc__,
         'platforms': ['any'],
         'url': 'http://pywbem.sf.net/',
-        'version': '0.5.20071003.1',
+        'version': '0.6.20080204.1',
         'license': 'LGPLv2',
         'packages': ['pywbem'],
         # Make packages in root dir appear in pywbem module
