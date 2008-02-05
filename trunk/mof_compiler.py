@@ -30,6 +30,7 @@ _optimize = 1
 _tabmodule='pywbem.mofparsetab'
 _lextab='pywbem.moflextab'
 
+
 reserved = {
     'any':'ANY',
     'as':'AS',
@@ -280,10 +281,14 @@ def p_mp_createClass(p):
                         if klass in p.parser.classnames[ns]:
                             continue
                         try:
+                            # don't limit it with LocalOnly=True, 
+                            # PropertyList, IncludeQualifiers=False, ...
+                            # because of caching in case we're using the
+                            # special WBEMConnection subclass used for 
+                            # removing schema elements
                             p.parser.handle.GetClass(klass,
-                                    LocalOnly=True, 
-                                    IncludeQualifiers=False, 
-                                    PropertyList=[])
+                                    LocalOnly=False, 
+                                    IncludeQualifiers=True)
                             p.parser.classnames[ns].append(klass)
                         except pywbem.CIMError:
                             moffile = p.parser.mofcomp.find_mof(klass)
@@ -1119,8 +1124,7 @@ def p_instanceDeclaration(p):
 
     try:
         cc = p.parser.handle.GetClass(cname,
-                LocalOnly=False, IncludeQualifiers=True, 
-                IncludeClassOrigin=False)
+                LocalOnly=False, IncludeQualifiers=True)
         p.parser.classnames[ns].append(cc.classname.lower())
     except pywbem.CIMError, ce:
         if ce.args[0] == pywbem.CIM_ERR_NOT_FOUND:
@@ -1132,7 +1136,7 @@ def p_instanceDeclaration(p):
                     p.parser.log('Found file %s, Compiling...' % file)
                 p.parser.mofcomp.compile_file(file, ns)
                 cc = p.parser.handle.GetClass(cname, LocalOnly=False, 
-                        IncludeQualifiers=True, IncludeClassOrigin=False)
+                        IncludeQualifiers=True)
             else:
                 if p.parser.verbose:
                     p.parser.log("Can't find file to satisfy class")
@@ -1241,9 +1245,122 @@ def _find_column(input, token):
 def _print_logger(str):
     print str
 
+
+class MOFWBEMConnection(pywbem.WBEMConnection):
+    def __init__(self, *args, **kwargs):
+        pywbem.WBEMConnection.__init__(self, *args, **kwargs)
+        self.class_names = {}
+        self.qualifiers = {}
+        self.instance_names = {}
+        self.class_cache = {}
+
+    def GetClass(self, *args, **kwargs):
+        cname = len(args) > 0 and args[0] or kwargs['ClassName']
+        try:
+            cc = self.class_cache[self.default_namespace][cname]
+        except KeyError:
+            cc = pywbem.WBEMConnection.GetClass(self, *args, **kwargs)
+            try:
+                self.class_cache[self.default_namespace][cc.classname] = cc
+            except KeyError:
+                self.class_cache[self.default_namespace] = \
+                        pywbem.NocaseDict({cc.classname:cc})
+        return cc
+
+    def CreateClass(self, *args, **kwargs):
+        cc = len(args) > 0 and args[0] or kwargs['NewClass']
+        if cc.superclass:
+            super = self.GetClass(cc.superclass, LocalOnly=False, 
+                    IncludeQualifiers=True)
+            for prop in super.properties.values():
+                if prop.name not in cc.properties:
+                    cc.properties[prop.name] = prop
+
+        try:
+            self.class_cache[self.default_namespace][cc.classname] = cc
+        except KeyError:
+            self.class_cache[self.default_namespace] = \
+                        pywbem.NocaseDict({cc.classname:cc})
+
+        # TODO: should we see if it exists first with 
+        # pywbem.WBEMConnection.GetClass()?  Do we want to delete a class
+        # that already existed? 
+        try:
+            self.class_names[self.default_namespace].append(cc.classname)
+        except KeyError:
+            self.class_names[self.default_namespace] = [cc.classname]
+
+    def ModifyClass(self, *args, **kwargs):
+        raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+                'This should not happen!')
+
+    def ModifyInstance(self, *args, **kwargs):
+        raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+                'This should not happen!')
+
+    def GetQualifier(self, *args, **kwargs):
+        qualname = len(args) > 0 and args[0] or kwargs['QualifierName']
+        try:
+            qual = self.qualifiers[self.default_namespace][qualname]
+        except KeyError:
+            qual = pywbem.WBEMConnection.GetQualifier(self, *args, **kwargs)
+        return qual
+
+    def SetQualifier(self, *args, **kwargs):
+        qual = len(args) > 0 and args[0] or kwargs['QualifierDeclaration']
+        try:
+            self.qualifiers[self.default_namespace][qual.name] = qual
+        except KeyError:
+            self.qualifiers[self.default_namespace] = \
+                    pywbem.NocaseDict({qual.name:qual})
+
+    def EnumerateQualifiers(self, *args, **kwargs):
+        rv = pywbem.WBEMConnection.EnumerateQualifiers(self, *args, **kwargs)
+        try:
+            rv+= self.qualifiers[self.default_namespace].values()
+        except KeyError:
+            pass
+        return rv
+
+
+    def CreateInstance(self, *args, **kwargs):
+        inst = len(args) > 0 and args[0] or kwargs['NewInstance']
+        try:
+            self.instance_names[self.default_namespace].append(inst.path)
+        except KeyError:
+            self.instance_names[self.default_namespace] = [inst.path]
+        return inst.path
+
+
+
 class MOFCompiler(object):
     def __init__(self, handle, search_paths=[], verbose=False,
                  log_func=_print_logger):
+        """Initialize the compiler.
+
+        Keyword arguments:
+        handle -- A WBEMConnection or similar object.  The following 
+            attributes and methods need to be present, corresponding to the 
+            the attributes and methods on pywbem.WBEMConnection having 
+            the same names:
+            - default_namespace
+            - EnumerateInstanceNames()
+            - CreateClass()
+            - GetClass()
+            - ModifyClass()
+            - DeleteInstance()
+            - CreateInstance()
+            - ModifyInstance()
+            - DeleteQualifier()
+            - EnumerateQualifiers()
+            - SetQualifier()
+        search_paths -- A list of file system paths specifying where 
+            missing schema elements should be looked for. 
+        verbose -- True if extra messages should be printed. 
+        log_func -- A callable that takes a single string argument.  
+            The default logger prints to stdout. 
+        """
+
         self.parser = yacc.yacc(tabmodule=_tabmodule, optimize=_optimize)
         self.parser.search_paths = search_paths
         self.parser.handle = handle
@@ -1256,6 +1373,17 @@ class MOFCompiler(object):
         self.parser.log = log_func
 
     def compile_string(self, mof, ns, filename=None):
+        """Compile a string of MOF.
+
+        Arguments:
+        mof -- The string of MOF
+        ns -- The CIM namespace
+
+        Keyword arguments:
+        filename -- The name of the file that the MOF was read from.  This 
+            is used in status and error messages.
+        """
+
         lexer = self.lexer.clone()
         lexer.parser = self.parser
         self.parser.file = filename
@@ -1264,12 +1392,26 @@ class MOFCompiler(object):
         return self.parser.parse(mof, lexer=lexer)
 
     def compile_file(self, filename, ns):
+        """Compile MOF from a file.
+
+        Arguments:
+        filename -- The file to read MOF from
+        ns -- The CIM namespace
+        """
+
         f = open(filename, 'r')
         mof = f.read()
         f.close()
         return self.compile_string(mof, ns, filename=filename)
 
     def find_mof(self, classname):
+        """Find a MOF file corresponding to a CIM class name.  The search_paths
+        provided to __init__() are searched recursively.
+
+        Arguments:
+        classname -- The name of the class to look for
+        """
+
         classname = classname.lower()
         for search in self.parser.search_paths:
             for root, dirs, files in os.walk(search):
@@ -1289,7 +1431,7 @@ if __name__ == '__main__':
     oparser = OptionParser()
     oparser.add_option('-s', '--search-dir', dest='search', 
             help='Search path to find missing schema elements', 
-            metavar='Paths')
+            metavar='Paths', action='append')
     oparser.add_option('-n', '--namespace', dest='ns', 
             help='Namespace', metavar='Namespace')
     oparser.add_option('-u', '--url', dest='url', 
@@ -1298,6 +1440,9 @@ if __name__ == '__main__':
     oparser.add_option("-v", "--verbose",
             action="store_true", dest="verbose", default=False,
             help="Print more messages to stdout")
+    oparser.add_option("-r", "--remove",
+            action="store_true", dest="remove", default=False,
+            help="Remove elements found in MOF, instead of create them")
 
     (options, args) = oparser.parse_args()
     search = options.search
@@ -1306,12 +1451,13 @@ if __name__ == '__main__':
     if options.ns is None: 
         oparser.error('No namespace given')
 
-    conn = pywbem.WBEMConnection(options.url)
+    if options.remove:
+        conn = MOFWBEMConnection(options.url)
+    else:
+        conn = pywbem.WBEMConnection(options.url)
     #conn.debug = True
     conn.default_namespace = options.ns
-    if search:
-        search = search.split(':')
-    else:
+    if search is None:
         search = []
 
     search = [os.path.abspath(x) for x in search]
@@ -1323,11 +1469,42 @@ if __name__ == '__main__':
         else:
             search.append(path)
 
+    # if removing, we'll be verbose later when we actually remove stuff.
+    # We don't want MOFCompiler to be verbose, as that would be confusing. 
+    verbose = options.verbose and not options.remove
+
     mofcomp = MOFCompiler(handle=conn, search_paths=search, 
-            verbose=options.verbose)
+            verbose=verbose)
 
     for fname in args:
         if fname[0] != '/':
             fname = os.path.curdir + '/' + fname
         mofcomp.compile_file(fname, options.ns)
+
+    if options.remove:
+        rconn = pywbem.WBEMConnection(options.url)
+        for ns, inames in conn.instance_names.items():
+            rconn.default_namespace = ns
+            inames.reverse()
+            for iname in inames:
+                try:
+                    if options.verbose:
+                        print 'Deleting instance', iname
+                    rconn.DeleteInstance(iname)
+                except pywbem.CIMError, ce:
+                    print 'Error deleting instance', iname
+                    print '    ', '%s %s' % (ce.args[0], ce.args[1])
+        for ns, cnames in conn.class_names.items():
+            rconn.default_namespace = ns
+            cnames.reverse()
+            for cname in cnames:
+                try:
+                    if options.verbose:
+                        print 'Deleting class', cname
+                    rconn.DeleteClass(cname)
+                except pywbem.CIMError, ce:
+                    print 'Error deleting class', cname
+                    print '    ', '%s %s' % (ce.args[0], ce.args[1])
+        # TODO: do we want to do anything with qualifiers? 
+
 
