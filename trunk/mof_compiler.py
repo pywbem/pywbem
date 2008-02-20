@@ -21,14 +21,14 @@
 
 import sys
 import os
-import ply.lex as lex
-import ply.yacc as yacc
-from ply.lex import TOKEN
+import lex as lex
+import yacc as yacc
+from lex import TOKEN
 import pywbem
 
 _optimize = 1
-_tabmodule='pywbem.mofparsetab'
-_lextab='pywbem.moflextab'
+_tabmodule='mofparsetab'
+_lextab='moflextab'
 
 
 reserved = {
@@ -157,6 +157,18 @@ def t_error(t):
     t.lexer.parser.log(msg)
     t.lexer.skip(1)
 
+class ParseError(ValueError):
+    pass
+
+def p_error(p):
+    ex = ParseError()
+    ex.file = p.lexer.parser.file
+    ex.lineno = p.lineno
+    ex.column = _find_column(p.lexer.parser.mof, p)
+    ex.context = _get_error_context(p.lexer.parser.mof, p)
+    raise ex
+
+
 def p_mofSpecification(p):
     """mofSpecification : mofProductionList"""
 
@@ -176,11 +188,24 @@ def p_mofProduction(p):
 def _create_ns(handle, ns):
     # Figure out the flavor of cim server
     cimom_type = None
-    inames = handle.EnumerateInstanceNames('__Namespace', namespace='root')
-    inames = [x['name'] for x in inames]
-    if 'PG_InterOp' in inames:
-        cimom_type = 'pegasus'
-    else:
+    try:
+        inames = handle.EnumerateInstanceNames('__Namespace', namespace='root')
+        inames = [x['name'] for x in inames]
+        if 'PG_InterOp' in inames:
+            cimom_type = 'pegasus'
+    except pywbem.CIMError, ce:
+        if ce.args[0] != pywbem.CIM_ERR_NOT_FOUND:
+            raise
+    if not cimom_type:
+        try:
+            inames = handle.EnumerateInstanceNames('CIM_Namespace', 
+                    namespace='Interop')
+            inames = [x['name'] for x in inames]
+            cimom_type = 'proper'
+        except pywbem.CIMError, ce:
+            raise
+
+    if not cimom_type:
         raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
                 'Unable to determine CIMOM type')
     if cimom_type == 'pegasus':
@@ -200,6 +225,13 @@ def _create_ns(handle, ns):
                             keybindings={'Name':nsl[i]},
                             namespace=containing_ns))
                 handle.CreateInstance(inst)
+    elif cimom_type == 'proper':
+        inst = pywbem.CIMInstance('CIM_Namespace', 
+                properties={'Name': ns},
+                path=pywbem.CIMInstanceName('CIM_Namespace',
+                    namespace='root',
+                    keybindings={'Name':ns}))
+        handle.CreateInstance(inst)
 
 
 
@@ -240,8 +272,6 @@ def p_mp_createClass(p):
                     moffile = p.parser.mofcomp.find_mof(cc.superclass)
                     if not moffile:
                         raise
-                    if p.parser.verbose:
-                        p.parser.log('Compiling file ' + moffile)
                     p.parser.mofcomp.compile_file(moffile, ns)
                     fixedSuper = True
                 elif errcode in [pywbem.CIM_ERR_INVALID_PARAMETER,
@@ -373,8 +403,6 @@ def p_compilerDirective(p):
         fname = param
         #if p.parser.file:
         fname = os.path.dirname(p.parser.file) + '/' + fname
-        if p.parser.verbose:
-            p.parser.log('Compiling '+ fname)
         oldfile = p.parser.file
         p.parser.mofcomp.compile_file(fname, p.parser.handle.default_namespace)
         p.parser.file = oldfile
@@ -409,7 +437,7 @@ def p_classDeclaration(p):
     if isinstance(p[1], basestring): # no class qualifiers
         cname = p[2]
         if p[3][0] == '$': # alias present
-            alias = p[3][1:]
+            alias = p[3]
             if p[4] == '{': # no superclass
                 cfl = p[5]
             else: # superclass
@@ -425,7 +453,7 @@ def p_classDeclaration(p):
         quals = p[1]
         cname = p[3]
         if p[4][0] == '$': # alias present
-            alias = p[4][1:]
+            alias = p[4]
             if p[5] == '{': # no superclass
                 cfl = p[6]
             else: # superclass
@@ -448,7 +476,8 @@ def p_classDeclaration(p):
             props[item.name] = item
     p[0] = pywbem.CIMClass(cname, properties=props, methods=methods, 
             superclass=superclass, qualifiers=quals)
-    # TODO store alias. 
+    if alias:
+        p.parser.aliases[alias] = p[0]
 
 def p_classFeatureList(p):
     """classFeatureList : empty
@@ -489,7 +518,7 @@ def _assoc_or_indic_decl(quals, p):
     if p[7] == '{':
         cfl = p[8]
     elif p[7][0] == '$': # alias
-        alias = p[7][1:]
+        alias = p[7]
         if p[8] == '{':
             cfl = p[9]
         else:
@@ -507,8 +536,11 @@ def _assoc_or_indic_decl(quals, p):
         else:
             props[item.name] = item
     quals = dict([(x.name, x) for x in quals])
-    return pywbem.CIMClass(cname, properties=props, methods=methods, 
+    cc = pywbem.CIMClass(cname, properties=props, methods=methods, 
             superclass=superclass, qualifiers=quals)
+    if alias:
+        p.parser.aliases[alias] = cc
+    return cc
 
 def p_qualifierListEmpty(p):
     """qualifierListEmpty : empty
@@ -956,7 +988,14 @@ def p_referenceInitializer(p):
     """referenceInitializer : objectHandle
                             | aliasIdentifier
                             """
-    p[0] = p[1]
+    if p[1][0] == '$':
+        try:
+            p[0] = p.parser.aliases[p[1]]
+        except KeyError:
+            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+                    'Unknown alias: ' + p[0])
+    else:
+        p[0] = p[1]
 
 def p_objectHandle(p):
     """objectHandle : identifier"""
@@ -1128,12 +1167,10 @@ def p_instanceDeclaration(p):
         p.parser.classnames[ns].append(cc.classname.lower())
     except pywbem.CIMError, ce:
         if ce.args[0] == pywbem.CIM_ERR_NOT_FOUND:
-            file = find_mof(cname)
+            file = p.parser.mofcomp.find_mof(cname)
             if p.parser.verbose:
                 p.parser.log('Class %s does not exist' % cname)
             if file:
-                if p.parser.verbose:
-                    p.parser.log('Found file %s, Compiling...' % file)
                 p.parser.mofcomp.compile_file(file, ns)
                 cc = p.parser.handle.GetClass(cname, LocalOnly=False, 
                         IncludeQualifiers=True)
@@ -1160,7 +1197,8 @@ def p_instanceDeclaration(p):
                     'Key property %s.%s is not set' % (cname, prop.name))
         inst.path.keybindings[prop.name] = prop.value
 
-    # TODO store alias
+    if alias:
+        p.parser.aliases[alias] = inst.path
     p[0] = inst 
 
 def p_valueInitializerList(p):
@@ -1228,11 +1266,6 @@ def p_empty(p):
     'empty :'
     pass
 
-def p_error(p):
-    p.parser.log('Syntax Error in input!')
-    p.parser.log(p)
-    p.parser.log('column: '+ _find_column(p.lexer.parser.mof, p))
-
 def _find_column(input, token):
     i = token.lexpos
     while i > 0:
@@ -1242,24 +1275,75 @@ def _find_column(input, token):
     column = (token.lexpos - i)+1
     return column
 
+def _get_error_context(input, token):
+    try:
+        line = input[token.lexpos : input.index('\n', token.lexpos)]
+    except ValueError:
+        line = input[token.lexpos:]
+    i = input.rfind('\n', 0, token.lexpos)
+    if i < 0: 
+        i = 0
+    line = input[i:token.lexpos] + line
+    lines = [line.strip('\r\n')]
+    col = token.lexpos - i
+    while len(lines) < 5 and i > 0:
+        end = i
+        i = input.rfind('\n', 0, i)
+        if i < 0:
+            i = 0
+        lines.insert(0, input[i:end].strip('\r\n'))
+    pointer = ''
+    for ch in token.value:
+        pointer+= '^'
+    pointline = ''
+    i = 0
+    while i < col -1:
+        if lines[-1][i].isspace():
+            pointline+= lines[-1][i]
+            # otherwise, tabs complicate the alignment
+        else:
+            pointline+= ' '
+        i+= 1
+    lines.append(pointline + pointer)
+    return '\n'.join(lines)
+
 def _print_logger(str):
     print str
 
 
-class MOFWBEMConnection(pywbem.WBEMConnection):
-    def __init__(self, *args, **kwargs):
-        pywbem.WBEMConnection.__init__(self, *args, **kwargs)
+class MOFWBEMConnection(object):
+    def __init__(self, conn=None):
+        self.conn = conn
         self.class_names = {}
         self.qualifiers = {}
-        self.instance_names = {}
+        self.instances = {}
         self.class_cache = {}
+        if conn is None:
+            self.__default_namespace = 'root/cimv2'
+
+    def setns(self, value):
+        if self.conn is not None:
+            self.conn.default_namespace = value
+        else:
+            self.__default_namespace = value
+
+    def getns(self):
+        if self.conn is not None:
+            return self.conn.default_namespace
+        else:
+            return self.__default_namespace
+
+    default_namespace = property(getns, setns, None, 
+            "default_namespace property")
 
     def GetClass(self, *args, **kwargs):
         cname = len(args) > 0 and args[0] or kwargs['ClassName']
         try:
             cc = self.class_cache[self.default_namespace][cname]
         except KeyError:
-            cc = pywbem.WBEMConnection.GetClass(self, *args, **kwargs)
+            if self.conn is None:
+                raise pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND, cname)
+            cc = self.conn.GetClass(*args, **kwargs)
             try:
                 self.class_cache[self.default_namespace][cc.classname] = cc
             except KeyError:
@@ -1283,7 +1367,7 @@ class MOFWBEMConnection(pywbem.WBEMConnection):
                         pywbem.NocaseDict({cc.classname:cc})
 
         # TODO: should we see if it exists first with 
-        # pywbem.WBEMConnection.GetClass()?  Do we want to delete a class
+        # self.conn.GetClass()?  Do we want to create a class
         # that already existed? 
         try:
             self.class_names[self.default_namespace].append(cc.classname)
@@ -1303,7 +1387,9 @@ class MOFWBEMConnection(pywbem.WBEMConnection):
         try:
             qual = self.qualifiers[self.default_namespace][qualname]
         except KeyError:
-            qual = pywbem.WBEMConnection.GetQualifier(self, *args, **kwargs)
+            if self.conn is None:
+                raise pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND, qualname)
+            qual = self.conn.GetQualifier(*args, **kwargs)
         return qual
 
     def SetQualifier(self, *args, **kwargs):
@@ -1315,7 +1401,11 @@ class MOFWBEMConnection(pywbem.WBEMConnection):
                     pywbem.NocaseDict({qual.name:qual})
 
     def EnumerateQualifiers(self, *args, **kwargs):
-        rv = pywbem.WBEMConnection.EnumerateQualifiers(self, *args, **kwargs)
+        if self.conn is not None:
+            rv = self.conn.EnumerateQualifiers(*args, 
+                    **kwargs)
+        else:
+            rv = []
         try:
             rv+= self.qualifiers[self.default_namespace].values()
         except KeyError:
@@ -1326,9 +1416,9 @@ class MOFWBEMConnection(pywbem.WBEMConnection):
     def CreateInstance(self, *args, **kwargs):
         inst = len(args) > 0 and args[0] or kwargs['NewInstance']
         try:
-            self.instance_names[self.default_namespace].append(inst.path)
+            self.instances[self.default_namespace].append(inst)
         except KeyError:
-            self.instance_names[self.default_namespace] = [inst.path]
+            self.instances[self.default_namespace] = [inst]
         return inst.path
 
 
@@ -1371,6 +1461,7 @@ class MOFCompiler(object):
         self.parser.mofcomp = self
         self.parser.verbose = verbose
         self.parser.log = log_func
+        self.parser.aliases = {}
 
     def compile_string(self, mof, ns, filename=None):
         """Compile a string of MOF.
@@ -1399,9 +1490,12 @@ class MOFCompiler(object):
         ns -- The CIM namespace
         """
 
+        if self.parser.verbose:
+            self.parser.log('Compiling file ' + filename)
         f = open(filename, 'r')
         mof = f.read()
         f.close()
+
         return self.compile_string(mof, ns, filename=filename)
 
     def find_mof(self, classname):
@@ -1428,14 +1522,15 @@ def _build():
 if __name__ == '__main__':
     from optparse import OptionParser
     import os
-    oparser = OptionParser()
-    oparser.add_option('-s', '--search-dir', dest='search', 
-            help='Search path to find missing schema elements', 
-            metavar='Paths', action='append')
+    usage = 'usage: %prog -n <namespace> [options] <MOF file> ...'
+    oparser = OptionParser(usage=usage)
+    oparser.add_option('-s', '--search', dest='search', 
+            help='Search path to find missing schema elements.  This option can be present multiple times.', 
+            metavar='Path', action='append')
     oparser.add_option('-n', '--namespace', dest='ns', 
-            help='Namespace', metavar='Namespace')
+            help='Specify the namespace', metavar='Namespace')
     oparser.add_option('-u', '--url', dest='url', 
-            help='URL', metavar='URL', 
+            help='URL to the CIM Server', metavar='URL', 
             default='/var/run/tog-pegasus/cimxml.socket')
     oparser.add_option("-v", "--verbose",
             action="store_true", dest="verbose", default=False,
@@ -1451,10 +1546,9 @@ if __name__ == '__main__':
     if options.ns is None: 
         oparser.error('No namespace given')
 
+    conn = pywbem.WBEMConnection(options.url)
     if options.remove:
-        conn = MOFWBEMConnection(options.url)
-    else:
-        conn = pywbem.WBEMConnection(options.url)
+        conn = MOFWBEMConnection(conn=conn)
     #conn.debug = True
     conn.default_namespace = options.ns
     if search is None:
@@ -1476,32 +1570,36 @@ if __name__ == '__main__':
     mofcomp = MOFCompiler(handle=conn, search_paths=search, 
             verbose=verbose)
 
-    for fname in args:
-        if fname[0] != '/':
-            fname = os.path.curdir + '/' + fname
-        mofcomp.compile_file(fname, options.ns)
+    try:
+        for fname in args:
+            if fname[0] != '/':
+                fname = os.path.curdir + '/' + fname
+            mofcomp.compile_file(fname, options.ns)
+    except ParseError, pe:
+        print 'Syntax error:'
+        print '%s:%s:' % (pe.file, pe.lineno)
+        print pe.context
+        sys.exit(1)
 
     if options.remove:
-        rconn = pywbem.WBEMConnection(options.url)
-        for ns, inames in conn.instance_names.items():
-            rconn.default_namespace = ns
-            inames.reverse()
-            for iname in inames:
+        for ns, insts in conn.instances.items():
+            insts.reverse()
+            for inst in insts:
                 try:
                     if options.verbose:
-                        print 'Deleting instance', iname
-                    rconn.DeleteInstance(iname)
+                        print 'Deleting instance', inst.path
+                    conn.conn.DeleteInstance(inst.path)
                 except pywbem.CIMError, ce:
-                    print 'Error deleting instance', iname
+                    print 'Error deleting instance', inst.path
                     print '    ', '%s %s' % (ce.args[0], ce.args[1])
         for ns, cnames in conn.class_names.items():
-            rconn.default_namespace = ns
+            conn.default_namespace = ns
             cnames.reverse()
             for cname in cnames:
                 try:
                     if options.verbose:
                         print 'Deleting class', cname
-                    rconn.DeleteClass(cname)
+                    conn.conn.DeleteClass(cname)
                 except pywbem.CIMError, ce:
                     print 'Error deleting class', cname
                     print '    ', '%s %s' % (ce.args[0], ce.args[1])
