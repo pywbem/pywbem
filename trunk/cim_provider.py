@@ -457,6 +457,8 @@ class CIMProvider(object):
         keys = pywbem.NocaseDict()
         [keys.__setitem__(p.name, p) for p in cimClass.properties.values()\
                 if 'key' in p.qualifiers]
+        
+        _strip_quals(keys)
         path = pywbem.CIMInstanceName(classname=cimClass.classname, 
                                             namespace=ns)
         model = pywbem.CIMInstance(classname=cimClass.classname, 
@@ -496,6 +498,7 @@ class CIMProvider(object):
                     if p.name.lower() in pklist]
         else:
             props = cimClass.properties
+        _strip_quals(props)
         path = pywbem.CIMInstanceName(classname=cimClass.classname, 
                                             namespace=ns)
         model = pywbem.CIMInstance(classname=cimClass.classname, properties=props,
@@ -537,6 +540,7 @@ class CIMProvider(object):
                     if p.name.lower() in pklist]
         else:
             props = cimClass.properties
+        _strip_quals(props)
         model = pywbem.CIMInstance(classname=instanceName.classname, 
                                    properties=props,
                                    path=instanceName)
@@ -657,6 +661,7 @@ class CIMProvider(object):
         plist = pywbem.NocaseDict()
         [plist.__setitem__(p.name, p) for p in assocClass.properties.values() 
                 if 'key' in p.qualifiers or p.type == 'reference']
+        _strip_quals(plist)
         model = pywbem.CIMInstance(classname=assocClass.classname, 
                                    properties=plist)
         model.path = pywbem.CIMInstanceName(classname=assocClass.classname, 
@@ -725,6 +730,7 @@ class CIMProvider(object):
         keys = pywbem.NocaseDict()
         [keys.__setitem__(p.name, p) for p in assocClass.properties.values() 
                 if 'key' in p.qualifiers or p.type == 'reference' ]
+        _strip_quals(keys)
         model = pywbem.CIMInstance(classname=assocClass.classname, 
                                    properties=keys)
         model.path = pywbem.CIMInstanceName(classname=assocClass.classname, 
@@ -789,6 +795,7 @@ class CIMProvider(object):
                     if p.name.lower() in pklist]
         else:
             props = assocClass.properties
+        _strip_quals(props)
         model = pywbem.CIMInstance(classname=assocClass.classname, 
                                    properties=props)
         model.path = pywbem.CIMInstanceName(classname=assocClass.classname, 
@@ -845,6 +852,7 @@ class CIMProvider(object):
         for keyName in keyNames:
             p = assocClass.properties[keyName]
             keys.__setitem__(p.name, p)
+        _strip_quals(keys)
         model = pywbem.CIMInstance(classname=assocClass.classname, 
                                    properties=keys)
         model.path = pywbem.CIMInstanceName(classname=assocClass.classname, 
@@ -1018,6 +1026,16 @@ def is_subclass(ch, ns, super, sub):
                                PropertyList=[],
                                IncludeClassOrigin=False)
     return False
+
+
+def _strip_quals(props):
+    for prop in props.values(): # remove all but key quals
+        try:
+            prop.qualifiers = pywbem.NocaseDict({'KEY': 
+                    prop.qualifiers['KEY']})
+        except KeyError:
+            prop.qualifiers = pywbem.NocaseDict()
+
 
 def codegen (cc):
     """Generate a Python Provider template. 
@@ -1510,7 +1528,6 @@ instance of PG_ProviderCapabilities
 
                 
     return code, mof
-
 
 class ProviderProxy(object):
     """Wraps a provider module, and routes requests into the module """
