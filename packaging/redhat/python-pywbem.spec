@@ -1,14 +1,15 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name:           python-pywbem
-Version:        0.5
+Version:        0.6
 Release:        1%{?dist}
 Summary:        Python WBEM Client
+Patch0:		add-licence-txt.patch
 
 Group:          Development/Languages
-License:        LGPL
+License:        LGPLv2
 URL:            http://pywbem.sourceforge.net
-Source0:        http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
+Source0:        http://downloads.sourceforge.net/pywbem-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:      noarch
@@ -24,6 +25,7 @@ at http://www.dmtf.org/standards/wbem.
 
 %prep
 %setup -q -n pywbem-%{version}
+%patch0 -p0
 
 %build
 CFLAGS="%{optflags}" %{__python} setup.py build
@@ -38,9 +40,12 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %doc README
+%doc LICENSE.txt
 
 %{python_sitelib}/pywbem
 
 %changelog
+* Mon Mar 17 2008 Tim Potter <tpot@hp.com> - 0.6-1
+- New upstream version
 * Tue Jun 26 2007 Tim Potter <tpot@hp.com> - 0.5-1
 - Initial packaging
