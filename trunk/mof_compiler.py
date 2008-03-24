@@ -21,10 +21,11 @@
 
 import sys
 import os
-import lex as lex
-import yacc as yacc
+import lex
+import yacc
 from lex import TOKEN
 import pywbem
+from cim_constants import *
 
 _optimize = 1
 _tabmodule='mofparsetab'
@@ -185,7 +186,7 @@ def p_mofProduction(p):
                      """
 
 
-def _create_ns(handle, ns):
+def _create_ns(p, handle, ns):
     # Figure out the flavor of cim server
     cimom_type = None
     try:
@@ -195,6 +196,7 @@ def _create_ns(handle, ns):
             cimom_type = 'pegasus'
     except pywbem.CIMError, ce:
         if ce.args[0] != pywbem.CIM_ERR_NOT_FOUND:
+            ce.file_line = (p.parser.file, p.lexer.lineno)
             raise
     if not cimom_type:
         try:
@@ -203,16 +205,21 @@ def _create_ns(handle, ns):
             inames = [x['name'] for x in inames]
             cimom_type = 'proper'
         except pywbem.CIMError, ce:
+            ce.file_line = (p.parser.file, p.lexer.lineno)
             raise
 
     if not cimom_type:
-        raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+        ce = pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
                 'Unable to determine CIMOM type')
+        ce.file_line = (p.parser.file, p.lexer.lineno)
+        raise ce
     if cimom_type == 'pegasus':
         nsl = ns.split('/')
         if nsl[0] != 'root':
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+            ce = pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
                     'Pegasus namespaces must start with "root"')
+            ce.file_line = (p.parser.file, p.lexer.lineno)
+            raise ce
         for i in range(1, len(nsl)):
             containing_ns = '/'.join(nsl[:i])
             inames = handle.EnumerateInstanceNames('__Namespace', 
@@ -255,13 +262,14 @@ def p_mp_createClass(p):
                 p.parser.classnames[ns].append(cc.classname.lower())
                 break
             except pywbem.CIMError, ce:
+                ce.file_line = (p.parser.file, p.lexer.lineno)
                 errcode = ce.args[0]
                 if errcode == pywbem.CIM_ERR_INVALID_NAMESPACE:
                     if fixedNS:
                         raise
                     if p.parser.verbose:
                         p.parser.log('Creating namespace ' + ns)
-                    _create_ns(handle, ns)
+                    _create_ns(p, handle, ns)
                     fixedNS = True
                     continue
                 if not p.parser.search_paths:
@@ -331,17 +339,16 @@ def p_mp_createClass(p):
                     raise
     
     except pywbem.CIMError, ce:
+        ce.file_line = (p.parser.file, p.lexer.lineno)
         if ce.args[0] != pywbem.CIM_ERR_ALREADY_EXISTS:
-            p.parser.log('** Fatal error.')
             raise
         if p.parser.verbose:
             p.parser.log('Class %s already exist.  Modifying...' % cc.classname)
         try:
             p.parser.handle.ModifyClass(cc, ns)
         except pywbem.CIMError, ce:
-            p.parser.log('** Error Modifying class %s: %s, %s' 
+            p.parser.log('Error Modifying class %s: %s, %s' 
                     % (cc.classname, ce.args[0], ce.args[1]))
-            pass
 
 def p_mp_createInstance(p):
     """mp_createInstance : instanceDeclaration"""
@@ -365,6 +372,7 @@ def p_mp_createInstance(p):
                         p.parser.log('Creating instance of %s.' % inst.classname)
                     p.parser.handle.CreateInstance(inst)
         else:
+            ce.file_line = (p.parser.file, p.lexer.lineno)
             raise
 
 def p_mp_setQualifier(p):
@@ -379,7 +387,7 @@ def p_mp_setQualifier(p):
         if ce.args[0] == pywbem.CIM_ERR_INVALID_NAMESPACE:
             if p.parser.verbose:
                 p.parser.log('Creating namespace ' + ns)
-            _create_ns(p.parser.handle, ns)
+            _create_ns(p, p.parser.handle, ns)
             if p.parser.verbose:
                 p.parser.log('Setting qualifier %s' % qualdecl.name)
             p.parser.handle.SetQualifier(qualdecl)
@@ -392,6 +400,7 @@ def p_mp_setQualifier(p):
                 p.parser.log('Setting qualifier %s' % qualdecl.name)
             p.parser.handle.SetQualifier(qualdecl)
         else:
+            ce.file_line = (p.parser.file, p.lexer.lineno)
             raise
     p.parser.qualcache[ns][qualdecl.name] = qualdecl
 
@@ -615,8 +624,9 @@ def p_qualifier(p):
             quals = p.parser.handle.EnumerateQualifiers()
         except pywbem.CIMError, ce:
             if ce.args[0] != pywbem.CIM_ERR_INVALID_NAMESPACE:
+                ce.file_line = (p.parser.file, p.lexer.lineno)
                 raise
-            _create_ns(p.parser.handle, ns)
+            _create_ns(p, p.parser.handle, ns)
             quals = None
 
         if quals:
@@ -992,8 +1002,10 @@ def p_referenceInitializer(p):
         try:
             p[0] = p.parser.aliases[p[1]]
         except KeyError:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+            ce = pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
                     'Unknown alias: ' + p[0])
+            ce.file_line = (p.parser.file, p.lexer.lineno)
+            raise ce
     else:
         p[0] = p[1]
 
@@ -1166,6 +1178,7 @@ def p_instanceDeclaration(p):
                 LocalOnly=False, IncludeQualifiers=True)
         p.parser.classnames[ns].append(cc.classname.lower())
     except pywbem.CIMError, ce:
+        ce.file_line = (p.parser.file, p.lexer.lineno)
         if ce.args[0] == pywbem.CIM_ERR_NOT_FOUND:
             file = p.parser.mofcomp.find_mof(cname)
             if p.parser.verbose:
@@ -1177,7 +1190,9 @@ def p_instanceDeclaration(p):
             else:
                 if p.parser.verbose:
                     p.parser.log("Can't find file to satisfy class")
-                raise pywbem.CIMError(pywbem.CIM_ERR_INVALID_CLASS, cname)
+                ce = pywbem.CIMError(pywbem.CIM_ERR_INVALID_CLASS, cname)
+                ce.file_line = (p.parser.file, p.lexer.lineno)
+                raise ce
         else:
             raise
     path = pywbem.CIMInstanceName(cname, namespace=ns)
@@ -1193,8 +1208,10 @@ def p_instanceDeclaration(p):
         if 'key' not in prop.qualifiers or not prop.qualifiers['key']:
             continue
         if prop.value is None: 
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+            ce = pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
                     'Key property %s.%s is not set' % (cname, prop.name))
+            ce.file_line = (p.parser.file, p.lexer.lineno)
+            raise ce
         inst.path.keybindings[prop.name] = prop.value
 
     if alias:
@@ -1342,7 +1359,8 @@ class MOFWBEMConnection(object):
             cc = self.class_cache[self.default_namespace][cname]
         except KeyError:
             if self.conn is None:
-                raise pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND, cname)
+                ce = pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND, cname)
+                raise ce
             cc = self.conn.GetClass(*args, **kwargs)
             try:
                 self.class_cache[self.default_namespace][cc.classname] = cc
@@ -1422,6 +1440,31 @@ class MOFWBEMConnection(object):
         return inst.path
 
 
+def _errcode2string(code):
+    d = {
+        CIM_ERR_FAILED                 : 'A general error occurred',
+        CIM_ERR_ACCESS_DENIED          : 'Resource not available',
+        CIM_ERR_INVALID_NAMESPACE      : 'The target namespace does not exist',
+        CIM_ERR_INVALID_PARAMETER      : 'Parameter value(s) invalid',
+        CIM_ERR_INVALID_CLASS          : 'The specified Class does not exist',
+        CIM_ERR_NOT_FOUND              : 'Requested object could not be found',
+        CIM_ERR_NOT_SUPPORTED          : 'Operation not supported',
+        CIM_ERR_CLASS_HAS_CHILDREN     : 'Class has subclasses',
+        CIM_ERR_CLASS_HAS_INSTANCES    : 'Class has instances',
+        CIM_ERR_INVALID_SUPERCLASS     : 'Superclass does not exist',
+        CIM_ERR_ALREADY_EXISTS         : 'Object already exists',
+        CIM_ERR_NO_SUCH_PROPERTY       : 'Property does not exist',
+        CIM_ERR_TYPE_MISMATCH          : 'Value incompatible with type',
+        CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED   : 'Query language not supported',
+        CIM_ERR_INVALID_QUERY          : 'Query not valid',
+        CIM_ERR_METHOD_NOT_AVAILABLE   : 'Extrinsic method not executed',
+        CIM_ERR_METHOD_NOT_FOUND       : 'Extrinsic method does not exist',
+        }
+    try:
+        s = d[code]
+    except KeyError:
+        s = 'Unknown Error'
+    return s
 
 class MOFCompiler(object):
     def __init__(self, handle, search_paths=[], verbose=False,
@@ -1579,6 +1622,14 @@ if __name__ == '__main__':
         print 'Syntax error:'
         print '%s:%s:' % (pe.file, pe.lineno)
         print pe.context
+        sys.exit(1)
+    except pywbem.CIMError, ce:
+        if hasattr(ce, 'file_line'):
+            print 'Fatal Error: %s:%s' % (ce.file_line[0], ce.file_line[1])
+        else:
+            print 'Fatal Error:'
+        print '%s%s' % (_errcode2string(ce.args[0]), 
+                ce.args[1] and ': '+ce.args[1] or '')
         sys.exit(1)
 
     if options.remove:
