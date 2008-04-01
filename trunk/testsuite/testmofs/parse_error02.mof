@@ -1,0 +1,57 @@
+Class ex_sampleClass 
+{ 
+	[key] uint32 label1; 
+	[key] string label2; 	
+	uint32 size; 
+	int32 weight; 
+	string comment;
+};
+
+instance of ex_sampleClass 
+{ 
+	label1 = 9921; 
+	label2 = "SampleLabel"; 
+	comment = "Some text with \"quotes\"";
+	size = 80; weight = 45;
+};
+
+instance of ex_sampleClass
+{
+	//label1 = 0121;
+	label1 = 1121;
+	label2 = "Component";
+	comment = "Some text with a \\backslash\\ and a \\\"quote\\\""; 
+	size = 80;
+	weight = 45;
+};
+
+Class ex_composedof 
+{ 
+	[key] ex_sampleClass REF composer; 
+	[key] ex_sampleClass REF component; 
+};
+
+instance of ex_composedof 
+{ 
+	composer = "ex_sampleClass.label1=9921,label2=\"SampleLabel\"";
+	component = "ex_sampleClass.label1=0121,label2=\"Component\"";
+};
+
+//ex_composedof.composer="ex_sampleClass.label1=9921,label2=\"SampleLabel\"",component="ex_sampleClass.label1=0121,label2=\"Component\""
+
+[Association ]
+Class ex_moreComposed
+{
+	[key] composedof REF ex_composedof1;
+	[key] composedof REF ex_composedof2;
+};
+
+/*
+instance of ex_moreComposed
+{
+	ex_composedof1 = "ex_composedof.composer=\"ex_sampleClass.label1=9921,label2=\\\"SampleLabel\\\"\",component=\"ex_sampleClass.label1=0121,label2=\\\"Component\\\"\"";
+	ex_composedof2 = "ex_composedof.composer=\"ex_sampleClass.label1=9921,label2=\\\"SampleLabel\\\"\",component=\"ex_sampleClass.label1=0121,label2=\\\"Component\\\"\"";
+};
+*/
+
+
