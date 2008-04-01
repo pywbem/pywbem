@@ -1609,6 +1609,84 @@ class CIMQualifierDeclarationToXML(TestCase):
     pass
 
 #################################################################
+# ToCIMObj
+#################################################################
+
+class ToCIMObj(TestCase):
+
+    def runtest(self):
+        path = tocimobj('reference',
+                "Acme_OS.Name=\"acmeunit\",SystemName=\"UnixHost\"")
+        self.assert_(isinstance(path, CIMInstanceName))
+        self.assert_equal(path.classname, 'Acme_OS')
+        self.assert_equal(path['Name'], 'acmeunit')
+        self.assert_equal(path['SystemName'], 'UnixHost')
+        self.assert_equal(len(path.keybindings), 2)
+        self.assert_(path.namespace is None)
+        self.assert_(path.host is None)
+
+        path = tocimobj('reference',
+                "Acme_User.uid=33,OSName=\"acmeunit\",SystemName=\"UnixHost\"")
+        self.assert_(isinstance(path, CIMInstanceName))
+        self.assert_(path.namespace is None)
+        self.assert_(path.host is None)
+        self.assert_equal(path.classname, 'Acme_User')
+        self.assert_equal(path['uid'], 33)
+        self.assert_equal(path['OSName'], 'acmeunit')
+        self.assert_equal(path['SystemName'], 'UnixHost')
+        self.assert_equal(len(path.keybindings), 3)
+
+        path = tocimobj('reference',
+                'HTTP://CIMOM_host/root/CIMV2:CIM_Disk.key1="value1"')
+        self.assert_(isinstance(path, CIMInstanceName))
+        self.assert_equal(path.namespace, 'root/CIMV2')
+        self.assert_equal(path.host, 'CIMOM_host')
+        self.assert_equal(path.classname, 'CIM_Disk')
+        self.assert_equal(path['key1'], 'value1')
+        self.assert_equal(len(path.keybindings), 1)
+
+        path = tocimobj('reference', "ex_sampleClass.label1=9921,label2=8821")
+        self.assert_(isinstance(path, CIMInstanceName))
+        self.assert_(path.namespace is None)
+        self.assert_(path.host is None)
+        self.assert_equal(path.classname, 'ex_sampleClass')
+        self.assert_equal(path['label1'], 9921)
+        self.assert_equal(path['label2'], 8821)
+        self.assert_equal(len(path.keybindings), 2)
+
+        path = tocimobj('reference', "ex_sampleClass")
+        self.assert_(isinstance(path, CIMClassName))
+        self.assert_(path.namespace is None)
+        self.assert_(path.host is None)
+        self.assert_equal(path.classname, 'ex_sampleClass')
+
+        path = tocimobj('reference',
+         '//./root/default:LogicalDisk.SystemName="acme",LogicalDisk.Drive="C"')
+        self.assert_(isinstance(path, CIMInstanceName))
+        self.assert_equal(path.namespace, 'root/default')
+        self.assert_equal(path.host, '.')
+        self.assert_equal(path.classname, 'LogicalDisk')
+        self.assert_equal(path['SystemName'], 'acme')
+        self.assert_equal(path['Drive'], 'C')
+        self.assert_equal(len(path.keybindings), 2)
+
+        path = tocimobj('reference', "X.key1=\"John Smith\",key2=33.3")
+        self.assert_(isinstance(path, CIMInstanceName))
+        self.assert_(path.namespace is None)
+        self.assert_(path.host is None)
+        self.assert_equal(path.classname, 'X')
+        self.assert_equal(path['key1'], 'John Smith')
+        self.assert_equal(path['key2'], 33.3)
+
+
+        path = tocimobj('reference', "//./root/default:NetworkCard=2")
+        # TODO: how should pywbem deal with a single, unnamed, keybinding? 
+        #self.assert_(isinstance(path, CIMInstanceName))
+        #self.assert_equal(path.namespace, 'root/default')
+        #self.assert_equal(path.host, '.')
+        #self.assert_equal(path.classname, 'NetworkCard')
+
+#################################################################
 # Main function
 #################################################################
 
@@ -1720,6 +1798,10 @@ tests = [
     CIMQualifierDeclarationSort,
     CIMQualifierDeclarationString,
     CIMQualifierDeclarationToXML,
+
+    # tocimobj
+    
+    ToCIMObj,
 
     ]
 
