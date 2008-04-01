@@ -1397,6 +1397,87 @@ def tocimobj(_type, value):
     if _type == 'datetime':
         return CIMDateTime(value)
 
+    # REF
+    def partition(s, seq):
+        """ S.partition(sep) -> (head, sep, tail)
+
+        Searches for the separator sep in S, and returns the part before it,
+        the separator itself, and the part after it.  If the separator is not
+        found, returns S and two empty strings.
+        """
+        try:
+            return s.partition(seq)
+        except AttributeError:
+            try:
+                idx = s.index(seq)
+            except ValueError:
+                return (s, '', '')
+            return (s[:idx], seq, s[idx+len(seq):])
+
+    if _type == 'reference':
+        # TODO doesn't handle double-quoting, as in refs to refs.  Example:
+        # r'ex_composedof.composer="ex_sampleClass.label1=9921,label2=\"SampleLabel\"",component="ex_sampleClass.label1=0121,label2=\"Component\""')
+        if isinstance(value, (CIMInstanceName, CIMClassName)):
+            return value
+        elif isinstance(value, basestring):
+            ns = host = None
+            head, sep, tail = partition(value, '//')
+            if sep and head.find('"') == -1:
+                # we have a namespace type
+                head, sep, tail = partition(tail, '/')
+                host = head
+            else:
+                tail = head
+            head, sep, tail = partition(tail, ':')
+            if sep:
+                ns = head
+            else:
+                tail = head
+            head, sep, tail = partition(tail, '.')
+            if not sep:
+                return CIMClassName(head, host=host, namespace=ns)
+            classname = head
+            kb = {}
+            while tail:
+                head, sep, tail = partition(tail, ',')
+                if head.count('"') == 1: # quoted string contains comma
+                    tmp, sep, tail = partition(tail,'"')
+                    head = '%s,%s' % (head, tmp)
+                    tail = partition(tail,',')[2]
+                head = head.strip()
+                key, sep, val = partition(head,'=')
+                if sep:
+                    cn, s, k = partition(key, '.')
+                    if s:
+                        if cn != classname:
+                            raise ValueError('Invalid object path: "%s"' % \
+                                    value)
+                        key = k
+                    val = val.strip()
+                    if val[0] == '"' and val[-1] == '"':
+                        val = val.strip('"')
+                    else:
+                        if val.lower() in ('true','false'):
+                            val = val.lower() == 'true'
+                        elif val.isdigit():
+                            val = int(val)
+                        else:
+                            try:
+                                val = float(val)
+                            except ValueError:
+                                try:
+                                    val = CIMDateTime(val)
+                                except ValueError:
+                                    raise ValueError('Invalid key binding: %s'\
+                                            % val)
+                                
+
+                    kb[key] = val
+            return CIMInstanceName(classname, host=host, namespace=ns, 
+                    keybindings=kb)
+        else:
+            raise ValueError('Invalid reference value')
+
     raise ValueError('Invalid CIM type "%s"' % _type)
 
 
