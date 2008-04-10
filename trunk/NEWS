@@ -29,6 +29,9 @@ pywbem-0.7  YYYY-MM-DD
     * Fixed XML encoding of CIMQualifierDeclarations.  (Bart Whiteley)
     
     * Fixed EnumerateQualifiers if there are no qualifiers.  (Bart Whiteley)
+    
+    * Fixed InvokeMethod to only send a LOCALCLASSPATH or LOCALINSTANCEPATH,
+      not a CLASSPATH or INSTANCEPATH.  (Bart Whiteley)
 
   ENHANCEMENTS:
 

@@ -233,6 +233,11 @@ class WBEMConnection(object):
         The parameters are automatically converted to the right
         CIM_XML objects."""
 
+        # METHODCALL only takes a LOCALCLASSPATH or LOCALINSTANCEPATH 
+        if hasattr(localobject, 'host') and localobject.host is not None:
+            localobject = localobject.copy()
+            localobject.host = None
+
         # Create HTTP headers
 
         headers = ['CIMOperation: MethodCall',
