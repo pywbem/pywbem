@@ -183,7 +183,7 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
             h.putheader(*localAuthHeader)
         elif creds is not None: 
             h.putheader('Authorization', 'Basic %s' %
-                    base64.encodestring('%s:%s' % (creds[0], creds[1]))[:-1])
+                    base64.encodestring('%s:%s' % (creds[0], creds[1])).replace('\n',''))
         elif locallogin is not None:
             h.putheader('PegasusAuthorization', 'Local "%s"' % locallogin)
 
