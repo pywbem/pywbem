@@ -33,6 +33,9 @@ pywbem-0.7  YYYY-MM-DD
     * Fixed InvokeMethod to only send a LOCALCLASSPATH or LOCALINSTANCEPATH,
       not a CLASSPATH or INSTANCEPATH.  (Bart Whiteley)
 
+    * Fix unexpected line break in basic auth header for long
+      credentials.  (Daniel Hiltgen)
+
   ENHANCEMENTS:
 
     * Added support for generating Pegasus provider registration MOF in 
