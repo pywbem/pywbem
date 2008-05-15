@@ -109,7 +109,8 @@ class WBEMConnection(object):
             user = 'anonymous'
         else:
             user = 'user=%s' % `self.creds[0]`
-        return "%s(%s, %s)" % (self.__class__.__name__, `self.url`, user)
+        return "%s(%s, %s, namespace=%s)" % (self.__class__.__name__, `self.url`,
+                                             user, `self.default_namespace`)
 
     def imethodcall(self, methodname, namespace, **params):
         """Make an intrinsic method call.
