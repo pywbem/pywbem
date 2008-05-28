@@ -102,9 +102,12 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
                                              cert_file, strict)
     
     class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
+        def __init__(self, uds_path):
+            httplib.HTTPConnection.__init__(self, 'localhost')
+            self.uds_path = uds_path
         def connect(self):
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            self.sock.connect(host)
+            self.sock.connect(self.uds_path)
 
     host, port, ssl = parse_url(url)
 
