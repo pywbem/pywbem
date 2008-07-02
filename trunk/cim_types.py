@@ -168,6 +168,8 @@ class CIMDateTime(CIMType) :
     def __cmp__(self, other):
         if self is other:
             return 0
+        elif not isinstance(other, CIMDateTime):
+            return 1
         return (cmp(self.__datetime, other.__datetime) or 
                 cmp(self.__timedelta, other.__timedelta))
 
