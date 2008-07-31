@@ -198,6 +198,23 @@ __all__ = ['CIMProvider',
            'is_subclass',
            'codegen']
 
+
+def _path_equals_ignore_host(lhs, rhs):
+    """If one object path doesn't inlcude a host, don't include the hosts
+    in the comparison
+
+    """
+
+    if lhs is rhs:
+        return True
+    if lhs.host is not None and rhs.host is not None and lhs.host != rhs.host:
+        return False
+    # need to make sure this stays in sync with CIMInstanceName.__cmp__()
+    return not (pywbem.cmpname(rhs.classname, lhs.classname) or
+                cmp(rhs.keybindings, lhs.keybindings) or
+                pywbem.cmpname(rhs.namespace, lhs.namespace))
+
+
 class CIMProvider(object):
     """Base class for CIM Providers.  
 
@@ -464,10 +481,17 @@ class CIMProvider(object):
         model = pywbem.CIMInstance(classname=cimClass.classname, 
                                    properties=keys,
                                    path=path)
-        for inst in self.enum_instances(env=env,
+        gen = self.enum_instances(env=env,
                                        model=model,
                                        cim_class=cimClass,
-                                       keys_only=True):
+                                       keys_only=True)
+        try:
+            iter(gen)
+        except TypeError:
+            logger.log_debug('CIMProvider MI_enumInstanceNames returning')
+            return
+
+        for inst in gen:
             rval = build_instance_name(inst)
             yield rval
         logger.log_debug('CIMProvider MI_enumInstanceNames returning')
@@ -503,10 +527,16 @@ class CIMProvider(object):
                                             namespace=ns)
         model = pywbem.CIMInstance(classname=cimClass.classname, properties=props,
                                    path=path)
-        for inst in self.enum_instances(env=env,
+        gen = self.enum_instances(env=env,
                                        model=model,
                                        cim_class=cimClass,
-                                       keys_only=False):
+                                       keys_only=False)
+        try:
+            iter(gen)
+        except TypeError:
+            logger.log_debug('CIMProvider MI_enumInstances returning')
+            return
+        for inst in gen:
             inst.path = build_instance_name(inst, keyNames)
             if self.filter_results and plist is not None:
                 inst = inst.copy()
@@ -655,6 +685,9 @@ class CIMProvider(object):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_associators called. assocClass: %s' % (assocClassName))
         ch = env.get_cimom_handle()
+        if not assocClassName:
+            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+                    "Empty assocClassName passed to Associators")
         assocClass = ch.GetClass(assocClassName, objectName.namespace, 
                                  LocalOnly=False, 
                                  IncludeQualifiers=True)
@@ -682,7 +715,7 @@ class CIMProvider(object):
                     continue
                 if resultRole and resultRole.lower() != lpname:
                     continue
-                if prop.value == objectName:
+                if _path_equals_ignore_host(prop.value, objectName):
                     continue
                 if resultClassName and self.filter_results and \
                         not is_subclass(ch, objectName.namespace, 
@@ -724,6 +757,9 @@ class CIMProvider(object):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_associatorNames called. assocClass: %s' % (assocClassName))
         ch = env.get_cimom_handle()
+        if not assocClassName:
+            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+                    "Empty assocClassName passed to AssociatorNames")
         assocClass = ch.GetClass(assocClassName, objectName.namespace, 
                                  LocalOnly=False, 
                                  IncludeQualifiers=True)
@@ -751,7 +787,7 @@ class CIMProvider(object):
                     continue
                 if resultRole and resultRole.lower() != lpname:
                     continue
-                if prop.value == objectName:
+                if _path_equals_ignore_host(prop.value, objectName):
                     continue
                 if resultClassName and self.filter_results and \
                         not is_subclass(ch, objectName.namespace, 
@@ -780,6 +816,9 @@ class CIMProvider(object):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_references called. resultClass: %s' % (resultClassName))
         ch = env.get_cimom_handle()
+        if not resultClassName:
+            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+                    "Empty resultClassName passed to References")
         assocClass = ch.GetClass(resultClassName, objectName.namespace, 
                                  LocalOnly=False, 
                                  IncludeQualifiers=True)
@@ -800,9 +839,9 @@ class CIMProvider(object):
                                    properties=props)
         model.path = pywbem.CIMInstanceName(classname=assocClass.classname, 
                                             namespace=objectName.namespace)
-        if role is None:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                                  "** this shouldn't happen")
+        #if role is None:
+        #    raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+        #                          "** this shouldn't happen")
         if role:
             if role not in model.properties:
                 raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
@@ -841,8 +880,12 @@ class CIMProvider(object):
         """
 
         logger = env.get_logger()
-        logger.log_debug('CIMProvider MI_referenceNames called. resultClass: %s' % (resultClassName))
+        logger.log_debug('CIMProvider MI_referenceNames <2> called. resultClass: %s' % (resultClassName))
         ch = env.get_cimom_handle()
+        if not resultClassName:
+            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+                    "Empty resultClassName passed to ReferenceNames")
+
         assocClass = ch.GetClass(resultClassName, objectName.namespace, 
                                  LocalOnly=False, 
                                  IncludeQualifiers=True)
@@ -857,9 +900,9 @@ class CIMProvider(object):
                                    properties=keys)
         model.path = pywbem.CIMInstanceName(classname=assocClass.classname, 
                                             namespace=objectName.namespace)
-        if role is None:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                                  "** this shouldn't happen")
+        #if role is None:
+        #    raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+        #                          "** this shouldn't happen")
         if role:
             if role not in model.properties:
                 raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
@@ -1692,7 +1735,8 @@ class ProviderProxy(object):
         #       and propertyList
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_associators called. assocClass: %s' % (assocClassName))
-        for i in self._get_callable(assocClassName, 'MI_associators')  \
+        cname = assocClassName
+        for i in self._get_callable(cname, 'MI_associators')  \
                 (env, objectName, assocClassName, resultClassName, 
                         role, resultRole, propertyList):
             yield i 
@@ -1710,7 +1754,8 @@ class ProviderProxy(object):
                            resultRole):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_associatorNames called. assocClass: %s' % (assocClassName))
-        for i in self._get_callable(assocClassName, 'MI_associatorNames')  \
+        cname = assocClassName
+        for i in self._get_callable(cname, 'MI_associatorNames')  \
                 (env, objectName, assocClassName, resultClassName, 
                         role, resultRole):
             yield i 
@@ -1727,7 +1772,8 @@ class ProviderProxy(object):
                       propertyList):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_references called. resultClass: %s' % (resultClassName))
-        for i in self._get_callable(resultClassName, 'MI_references')  \
+        cname = resultClassName
+        for i in self._get_callable(cname, 'MI_references')  \
                            (env, 
                             objectName, 
                             resultClassName, 
@@ -1745,8 +1791,9 @@ class ProviderProxy(object):
                           resultClassName, 
                           role):
         logger = env.get_logger()
-        logger.log_debug('CIMProvider MI_referenceNames called. resultClass: %s' % (resultClassName))
-        for i in self._get_callable(resultClassName, 'MI_referenceNames')  \
+        logger.log_debug('CIMProvider MI_referenceNames <1> called. resultClass: %s' % (resultClassName))
+        cname = resultClassName
+        for i in self._get_callable(cname, 'MI_referenceNames')  \
                (env, 
                 objectName, 
                 resultClassName, 
