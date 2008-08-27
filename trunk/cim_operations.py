@@ -894,9 +894,10 @@ class WBEMConnection(object):
 def PegasusUDSConnection(creds = None):
     return WBEMConnection('/var/run/tog-pegasus/cimxml.socket', creds)
 
+def SFCBUDSConnection(creds = None):
+    return WBEMConnection('/tmp/sfcbHttpSocket', creds)
+
 def OpenWBEMUDSConnection(creds = None):
     return WBEMConnection('/tmp/OW@LCL@APIIPC_72859_Xq47Bf_P9r761-5_J-7_Q',
             creds)
-
-# SFCB has a /tmp/sfcbLocalSocket but it's not CIMXML
 
