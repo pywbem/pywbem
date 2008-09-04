@@ -827,10 +827,30 @@ class CIMInstance(object):
 
     def tomof(self):
 
+        def _prop2mof(_type, value):
+            if value is None:
+                val = 'NULL'
+            elif isinstance(value, list):
+                val = '{'
+                for i,x in enumerate(value):
+                    if i > 0:
+                        val += ', '
+                    val += _prop2mof(_type, x)
+                val += '}'
+            elif _type == 'string':
+                val = '"' + value + '"'
+            else:
+                val = str(value)
+            return val
+
         s = 'instance of %s {\n' % self.classname
-        s += '};\n'
+        for p in self.properties.values():
+            s+= '\t%s = %s;\n' % (p.name, _prop2mof(p.type, p.value))
+        s+= '};\n'
 
         return s
+
+
 
 class CIMClass(object):
 
