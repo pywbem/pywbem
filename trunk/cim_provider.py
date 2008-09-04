@@ -1773,6 +1773,8 @@ class ProviderProxy(object):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_references called. resultClass: %s' % (resultClassName))
         cname = resultClassName
+        if not cname:
+            return
         for i in self._get_callable(cname, 'MI_references')  \
                            (env, 
                             objectName, 
@@ -1793,6 +1795,8 @@ class ProviderProxy(object):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_referenceNames <1> called. resultClass: %s' % (resultClassName))
         cname = resultClassName
+        if not cname:
+            return
         for i in self._get_callable(cname, 'MI_referenceNames')  \
                (env, 
                 objectName, 
