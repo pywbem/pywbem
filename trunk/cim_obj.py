@@ -798,6 +798,8 @@ class CIMInstance(object):
             v = CIMProperty(key, value)
 
         self.properties[key] = v
+        if self.path is not None and key in self.path.keybindings:
+            self.path[key] = v.value
         
     def tocimxml(self):
 
@@ -1003,7 +1005,7 @@ class CIMMethod(object):
 class CIMParameter(object):
 
     def __init__(self, name, type, reference_class = None, is_array = None,
-                 array_size = None, qualifiers = {}):
+                 array_size = None, qualifiers = {}, value = None):
 
         self.name = name
         self.type = type
@@ -1011,6 +1013,7 @@ class CIMParameter(object):
         self.is_array = is_array
         self.array_size = array_size
         self.qualifiers = NocaseDict(qualifiers)
+        self.value = value
 
     def copy(self):
 
@@ -1018,7 +1021,8 @@ class CIMParameter(object):
                               self.type,
                               reference_class = self.reference_class,
                               is_array = self.is_array,
-                              array_size = self.array_size)
+                              array_size = self.array_size,
+                              value = self.value)
 
         result.qualifiers = self.qualifiers.copy()
 
@@ -1042,7 +1046,8 @@ class CIMParameter(object):
                 cmpname(self.reference_class, other.reference_class) or
                 cmp(self.is_array, other.is_array) or
                 cmp(self.array_size, other.array_size) or
-                cmp(self.qualifiers, other.qualifiers))
+                cmp(self.qualifiers, other.qualifiers) or
+                cmp(self.value, other.value))
 
     def tocimxml(self):
 
