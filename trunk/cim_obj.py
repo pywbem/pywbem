@@ -648,7 +648,7 @@ class CIMInstance(object):
     instances."""
 
     def __init__(self, classname, properties = {}, qualifiers = {},
-                 path = None):
+                 path = None, property_list = None):
         """Create CIMInstance.
 
         bindings is a concise way to initialize property values;
@@ -665,6 +665,10 @@ class CIMInstance(object):
         # Assign initialised property values and run through
         # __setitem__ to enforce CIM types for each property.
 
+        if property_list is not None:
+            self.property_list = [x.lower() for x in property_list]
+        else:
+            self.property_list = None
         self.properties = NocaseDict()
         [self.__setitem__(k, v) for k, v in properties.items()]
 
@@ -790,6 +794,9 @@ class CIMInstance(object):
         if type(value) == int or type(value) == float or type(value) == long:
             raise TypeError('Must use a CIM type assigning numeric values.')
 
+        if self.property_list is not None and key.lower() not in \
+                self.property_list:
+            return
         # Convert value to appropriate PyWBEM type
 
         if isinstance(value, CIMProperty):
