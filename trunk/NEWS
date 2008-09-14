@@ -66,6 +66,19 @@ pywbem-0.7  YYYY-MM-DD
 
     * Rigged CIMInstance to automagically update CIMInstance.path.keybindings
       as key properties are set.  (Bart Whiteley)
+	
+    * Added cim_provider2.py: A new provider interface.  Python providers 
+      using this interface can use the cmpi-bindings project within OMC
+      (http://omc-project.org/) to run under any CIMOM supporting the 
+      CMPI interface.  This is prefered to the old cim_provider.py interface
+      that was used with the Python Provider Managers for OpenWBEM and Pegasus.
+
+    * Changed __init__.py to not import anything from cim_provider.py (or 
+      cim_provider2.py) into the pywbem namespace.  Existing providers based
+      on cim_provider.py can still work with a minor adjustment involving
+      importing CIMProvider from pywbem.cim_provider.  The codegen funtion
+      can now be obtained with 'from pywbem.cim_provider import codegen', or
+      'from pywbem.cim_provider2 import codegen' or similar. 
 
 pywbem-0.6  2007-10-26
 
