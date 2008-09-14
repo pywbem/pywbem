@@ -891,6 +891,45 @@ class WBEMConnection(object):
             QualifierName = QualifierName,
             **params)
 
+def is_subclass(ch, ns, super, sub):
+    """Determine if one class is a subclass of another
+
+    Keyword Arguments:
+    ch -- A CIMOMHandle.  Either a pycimmb.CIMOMHandle or a 
+        pywbem.WBEMConnection.
+    ns -- Namespace.
+    super -- A string containing the super class name.
+    sub -- The subclass.  This can either be a string or a pywbem.CIMClass.
+
+    """
+
+    lsuper = super.lower()
+    if isinstance(sub, CIMClass):
+        subname = sub.classname
+        subclass = sub
+    else:
+        subname = sub
+        subclass = None
+    if subname.lower() == lsuper:
+        return True
+    if subclass is None:
+        subclass = ch.GetClass(subname,
+                               ns,
+                               LocalOnly=True, 
+                               IncludeQualifiers=False,
+                               PropertyList=[],
+                               IncludeClassOrigin=False)
+    while subclass.superclass is not None:
+        if subclass.superclass.lower() == lsuper:
+            return True
+        subclass = ch.GetClass(subclass.superclass,
+                               ns,
+                               LocalOnly=True, 
+                               IncludeQualifiers=False,
+                               PropertyList=[],
+                               IncludeClassOrigin=False)
+    return False
+
 def PegasusUDSConnection(creds = None):
     return WBEMConnection('/var/run/tog-pegasus/cimxml.socket', creds)
 
