@@ -194,9 +194,7 @@ import pywbem
 from imp import load_source
 import types
 
-__all__ = ['CIMProvider',
-           'is_subclass',
-           'codegen']
+__all__ = ['CIMProvider']
 
 
 def _path_equals_ignore_host(lhs, rhs):
@@ -718,7 +716,7 @@ class CIMProvider(object):
                 if _path_equals_ignore_host(prop.value, objectName):
                     continue
                 if resultClassName and self.filter_results and \
-                        not is_subclass(ch, objectName.namespace, 
+                        not pywbem.is_subclass(ch, objectName.namespace, 
                                         sub=prop.value.classname, 
                                         super=resultClassName):
                     continue
@@ -790,7 +788,7 @@ class CIMProvider(object):
                 if _path_equals_ignore_host(prop.value, objectName):
                     continue
                 if resultClassName and self.filter_results and \
-                        not is_subclass(ch, objectName.namespace, 
+                        not pywbem.is_subclass(ch, objectName.namespace, 
                                         sub=prop.value.classname, 
                                         super=resultClassName):
                     continue
@@ -1030,45 +1028,6 @@ def build_instance_name(inst, obj=None):
                                        namespace=inst.path.namespace,
                                        host=inst.path.host)
     return inst.path
-
-def is_subclass(ch, ns, super, sub):
-    """Determine if one class is a subclass of another
-
-    Keyword Arguments:
-    ch -- A CIMOMHandle.  Either a pycimmb.CIMOMHandle or a 
-        pywbem.WBEMConnection.
-    ns -- Namespace.
-    super -- A string containing the super class name.
-    sub -- The subclass.  This can either be a string or a pywbem.CIMClass.
-
-    """
-
-    lsuper = super.lower()
-    if isinstance(sub, pywbem.CIMClass):
-        subname = sub.classname
-        subclass = sub
-    else:
-        subname = sub
-        subclass = None
-    if subname.lower() == lsuper:
-        return True
-    if subclass is None:
-        subclass = ch.GetClass(subname,
-                               ns,
-                               LocalOnly=True, 
-                               IncludeQualifiers=False,
-                               PropertyList=[],
-                               IncludeClassOrigin=False)
-    while subclass.superclass is not None:
-        if subclass.superclass.lower() == lsuper:
-            return True
-        subclass = ch.GetClass(subclass.superclass,
-                               ns,
-                               LocalOnly=True, 
-                               IncludeQualifiers=False,
-                               PropertyList=[],
-                               IncludeClassOrigin=False)
-    return False
 
 
 def _strip_quals(props):
