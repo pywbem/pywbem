@@ -42,5 +42,4 @@ from cim_constants import *
 from cim_operations import *
 from cim_obj import *
 from tupleparse import ParseError
-from cim_provider import *
-from cim_provider2 import *
+
