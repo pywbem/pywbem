@@ -195,7 +195,7 @@ import pywbem
 from imp import load_source
 import types
 
-__all__ = ['codegen']
+__all__ = ['CIMProvider2', 'codegen']
 
 
 def _paths_equal(lhs, rhs):
@@ -269,7 +269,7 @@ class CIMProvider2(object):
 
     """
 
-    def get_instance (self, env, model, property_list):
+    def get_instance (self, env, model):
         """Return an instance.
 
         Keyword arguments:
@@ -281,7 +281,6 @@ class CIMProvider2(object):
             request.  Only properties present in the model need to be
             given values.  If you prefer, you can set all of the 
             values, and the instance will be filtered for you. 
-        property_list -- The PropertyList from the request. 
 
         Possible Errors:
         CIM_ERR_ACCESS_DENIED
@@ -294,7 +293,7 @@ class CIMProvider2(object):
         """
         return None
 
-    def enum_instances(self, env, model, property_list, keys_only):
+    def enum_instances(self, env, model, keys_only):
         """Enumerate instances.
 
         The WBEM operations EnumerateInstances and EnumerateInstanceNames
@@ -309,7 +308,6 @@ class CIMProvider2(object):
             the model need to be given values.  If you prefer, you can 
             always set all of the values, and the instance will be filtered 
             for you. 
-        property_list -- The PropertyList from the request. 
         keys_only -- A boolean.  True if only the key properties should be
             set on the generated instances.
 
@@ -319,7 +317,7 @@ class CIMProvider2(object):
         """
         pass
 
-    def set_instance(self, env, instance, modify_existing, property_list):
+    def set_instance(self, env, instance, modify_existing):
         """Return a newly created or modified instance.
 
         Keyword arguments:
@@ -328,7 +326,6 @@ class CIMProvider2(object):
             instance, the properties on this instance have been filtered by 
             the PropertyList from the request.
         modify_existing -- True if ModifyInstance, False if CreateInstance
-        property_list -- The PropertyList from the request. 
 
         Return the new instance.  The keys must be set on the new instance. 
 
@@ -436,7 +433,7 @@ class CIMProvider2(object):
     def simple_refs(self, env, object_name, model, 
                    result_class_name, role, result_role, keys_only):
 
-        gen = self.enum_instances(env, model, model.property_list, keys_only)
+        gen = self.enum_instances(env, model, keys_only)
         for inst in gen:
             for prop in inst.properties.values():
                 if prop.type != 'reference':
@@ -462,27 +459,6 @@ class CIMProvider2(object):
                     cmp(rhs.keybindings, lhs.keybindings) or
                     pywbem.cmpname(rhs.namespace, lhs.namespace))
 
-    def _set_filter_results(self, value):
-        self._filter_results = value
-    def _get_filter_results(self):
-        if hasattr(self, '_filter_results'):
-            return self._filter_results
-        return True
-    filter_results = property(_get_filter_results, 
-                              _set_filter_results,
-                              None,
-        """Determines if the CIMProvider2 base class should filter results
-
-        If True, the subclass of CIMProvider2 in the provider module
-        does not need to filter returned results based on property_list, 
-        and in the case of association providers, role, result_role, and 
-        result_class_name.  The results will be filtered by the 
-        CIMProvider2 base class. 
-
-        If False, the CIMProvider2 base class will do no filtering. 
-        Therefore the subclass of CIMProvider2 in the provider module will
-        have to filter based on property_list, and in the case of 
-        association providers, role, result_role, and result_class_name.""")
 
     def MI_enumInstanceNames(self, 
                              env, 
@@ -501,7 +477,6 @@ class CIMProvider2(object):
                                    path=objPath)
         gen = self.enum_instances(env=env,
                                        model=model,
-                                       property_list = None,
                                        keys_only=True)
         try:
             iter(gen)
@@ -531,7 +506,6 @@ class CIMProvider2(object):
                                    path=objPath)
         gen = self.enum_instances(env=env,
                                        model=model,
-                                       property_list=propertyList,
                                        keys_only=False)
         try:
             iter(gen)
@@ -539,9 +513,6 @@ class CIMProvider2(object):
             logger.log_debug('CIMProvider2 MI_enumInstances returning')
             return
         for inst in gen:
-            if self.filter_results and propertyList:
-                inst = inst.copy()
-                filter_instance(inst, propertyList)
             yield inst
         logger.log_debug('CIMProvider2 MI_enumInstances returning')
 
@@ -567,11 +538,7 @@ class CIMProvider2(object):
                                    path=instanceName, property_list=plist)
         model.update(model.path.keybindings)
 
-        rval = self.get_instance(env=env,
-                                       model=model,
-                                       property_list=plist)
-        if self.filter_results:
-            filter_instance(rval, plist)
+        rval = self.get_instance(env=env, model=model)
         logger.log_debug('CIMProvider2 MI_getInstance returning')
         if rval is None:
             raise pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND, "")
@@ -602,8 +569,7 @@ class CIMProvider2(object):
         # props with default values, if values not supplied by client. 
         rval = self.set_instance(env=env,
                               instance=instance,
-                              modify_existing=False,
-                              property_list=None)
+                              modify_existing=False)
         logger.log_debug('CIMProvider2 MI_createInstance returning')
         return rval.path
 
@@ -630,8 +596,7 @@ class CIMProvider2(object):
             modifiedInstance.update(modifiedInstance.path)
         self.set_instance(env=env,
                               instance=modifiedInstance,
-                              modify_existing=True,
-                              property_list=plist)
+                              modify_existing=True)
         logger.log_debug('CIMProvider2 MI_modifyInstance returning')
     
     def MI_deleteInstance(self, 
@@ -699,7 +664,7 @@ class CIMProvider2(object):
                     continue
                 if self.paths_equal(prop.value, objectName):
                     continue
-                if resultClassName and self.filter_results and \
+                if resultClassName and \
                         resultClassName.lower() != prop.value.classname.lower():
                     continue
                 try:
@@ -760,7 +725,7 @@ class CIMProvider2(object):
                     continue
                 if self.paths_equal(prop.value, objectName):
                     continue
-                if resultClassName and self.filter_results and \
+                if resultClassName and  \
                         resultClassName.lower() != prop.value.classname.lower():
                     continue
                 if prop.value.namespace is None:
@@ -810,9 +775,6 @@ class CIMProvider2(object):
             logger.log_debug('references() returned None instead of generator object')
             return
         for inst in gen:
-            if self.filter_results and plist is not None:
-                inst = inst.copy()
-                filter_instance(inst, plist)
             for prop in inst.properties.values():
                 if hasattr(prop.value, 'namespace') and \
                         prop.value.namespace is None:
@@ -1132,7 +1094,7 @@ Instruments the CIM class %(classname)s
 """
 
 import pywbem
-from cim_provider import CIMProvider2
+from pywbem.cim_provider2 import CIMProvider2
 
 class %(classname)s(CIMProvider2):
     """Instrument the CIM class %(classname)s \n''' % mappings
@@ -1149,10 +1111,6 @@ class %(classname)s(CIMProvider2):
         logger = env.get_logger()
         logger.log_debug('Initializing provider %%s from %%s' \\
                 %% (self.__class__.__name__, __file__))
-        # If you will be filtering instances yourself according to 
-        # property_list, role, result_role, and result_class_name 
-        # parameters, set self.filter_results to False
-        # self.filter_results = False
 
     def get_instance(%s):
         """%s"""
@@ -1224,7 +1182,7 @@ class %(classname)s(CIMProvider2):
                 yield model
             else:
                 try:
-                    yield self.get_instance(env, model, property_list)
+                    yield self.get_instance(env, model)
                 except pywbem.CIMError, (num, msg):
                     if num not in (pywbem.CIM_ERR_NOT_FOUND, 
                                    pywbem.CIM_ERR_ACCESS_DENIED):
@@ -1379,8 +1337,10 @@ class %(classname)s(CIMProvider2):
         code+='''
         # If you are doing simple refs with the code above, remove the 
         # remainder of this method.  Or, remove the stuff above and 
-        # implement references below. 
-        #
+        # implement references below.  You need to pick either the 
+        # above approach or the below, and delete the other.  Otherwise
+        # you'll get a SyntaxError on the first yield below. 
+        
         # Prime model.path with knowledge of the keys, so key values on
         # the CIMInstanceName (model.path) will automatically be set when
         # we set property values on the model. 
