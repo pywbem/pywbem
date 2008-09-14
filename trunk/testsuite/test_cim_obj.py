@@ -676,6 +676,44 @@ class CIMInstanceToMOF(TestCase):
 
         i.tomof()
 
+class CIMInstanceUpdatePath(TestCase):
+
+    def runtest(self):
+        iname = CIMInstanceName('CIM_Foo', namespace='root/cimv2', 
+                keybindings={'k1':None, 'k2':None})
+        i = CIMInstance('CIM_Foo', path=iname)
+        i['k1'] = 'key1'
+        self.assert_(i.path['k1'] == 'key1' == i['k1'])
+        i['k2'] = 'key2'
+        self.assert_(i.path['k2'] == 'key2' == i['k2'])
+        i['p1'] = 'prop1'
+        self.assert_(len(i.path.keybindings) == 2)
+        self.assert_('p1' not in i.path)
+
+
+class CIMInstancePropertyList(TestCase):
+
+    def runtest(self):
+        iname = CIMInstanceName('CIM_Foo', namespace='root/cimv2', 
+                keybindings={'k1':None, 'k2':None})
+        i = CIMInstance('CIM_Foo', path=iname, property_list=['P1','P2'])
+        self.assert_(i.property_list == ['p1','p2'])
+        i['k1'] = 'key1'
+        self.assert_(i.path['k1'] == 'key1' == i['k1'])
+        i['k2'] = 'key2'
+        self.assert_(i.path['k2'] == 'key2' == i['k2'])
+        self.assert_('k2' in i)
+        i['p1'] = 'prop1'
+        self.assert_(len(i.path.keybindings) == 2)
+        self.assert_('p1' not in i.path)
+        self.assert_(i['p1'] == 'prop1')
+        i['p2'] = 'prop2'
+        self.assert_(i['p2'] == 'prop2')
+        self.assert_('p2' in i)
+        i['p3'] = 'prop3'
+        self.assert_('p3' not in i)
+
+
 class CIMInstanceUpdateExisting(TestCase):
 
     def runtest(self):
@@ -1747,6 +1785,8 @@ tests = [
     CIMInstanceToXML,
     CIMInstanceToMOF,
     CIMInstanceUpdateExisting,
+    CIMInstanceUpdatePath,
+    CIMInstancePropertyList,
 
     #############################################################
     # Schema classes
