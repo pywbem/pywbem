@@ -661,14 +661,14 @@ class CIMInstance(object):
         self.classname = classname
         self.qualifiers = NocaseDict(qualifiers)
         self.path = path
-
-        # Assign initialised property values and run through
-        # __setitem__ to enforce CIM types for each property.
-
         if property_list is not None:
             self.property_list = [x.lower() for x in property_list]
         else:
             self.property_list = None
+
+        # Assign initialised property values and run through
+        # __setitem__ to enforce CIM types for each property.
+
         self.properties = NocaseDict()
         [self.__setitem__(k, v) for k, v in properties.items()]
 
@@ -796,7 +796,8 @@ class CIMInstance(object):
 
         if self.property_list is not None and key.lower() not in \
                 self.property_list:
-            return
+            if self.path is not None and key not in self.path.keybindings:
+                return
         # Convert value to appropriate PyWBEM type
 
         if isinstance(value, CIMProperty):
