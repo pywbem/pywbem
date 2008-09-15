@@ -512,9 +512,7 @@ class CIMProvider2(object):
         except TypeError:
             logger.log_debug('CIMProvider2 MI_enumInstances returning')
             return
-        for inst in gen:
-            yield inst
-        logger.log_debug('CIMProvider2 MI_enumInstances returning')
+        return gen
 
     def MI_getInstance(self, 
                        env, 
@@ -591,7 +589,7 @@ class CIMProvider2(object):
         if propertyList is not None:
             plist = [s.lower() for s in propertyList]
             plist+= [s.lower() for s in modifiedInstance.path.keybindings.keys()]
-            filter_instance(modifiedInstance, plist)
+            self.filter_instance(modifiedInstance, plist)
             modifiedInstance.property_list = plist
             modifiedInstance.update(modifiedInstance.path)
         self.set_instance(env=env,
@@ -895,21 +893,21 @@ class CIMProvider2(object):
         logger.log_debug('CIMProvider2 MI_invokeMethod returning')
         return rval
 
-def filter_instance(inst, plist):
-    """Remove properties from an instance that aren't in the PropertyList
-    
-    inst -- The CIMInstance
-    plist -- The property List, or None.  The list items must be all 
-        lowercase.
+    def filter_instance(self, inst, plist):
+        """Remove properties from an instance that aren't in the PropertyList
         
-    """
+        inst -- The CIMInstance
+        plist -- The property List, or None.  The list items must be all 
+            lowercase.
+            
+        """
 
-    if plist is not None:
-        for pname in inst.properties.keys():
-            if pname.lower() not in plist and pname:
-                if inst.path is not None and pname in inst.path.keybindings:
-                    continue
-                del inst.properties[pname]
+        if plist is not None:
+            for pname in inst.properties.keys():
+                if pname.lower() not in plist and pname:
+                    if inst.path is not None and pname in inst.path.keybindings:
+                        continue
+                    del inst.properties[pname]
 
 def codegen (cc):
     """Generate a Python Provider template. 
@@ -1157,13 +1155,13 @@ class %(classname)s(CIMProvider2):
         logger.log_debug('Entering %%s.enum_instances()' \\
                 %% self.__class__.__name__)
                 '''  % (args, CIMProvider2.enum_instances.__doc__)
-    keydict = dict([(kp.name, None) for kp in keyProps])
+    keydict = dict([(str(kp.name), None) for kp in keyProps])
     code+= '''
         # Prime model.path with knowledge of the keys, so key values on
         # the CIMInstanceName (model.path) will automatically be set when
         # we set property values on the model. 
-        model.path.update(%s)
-        ''' % str(keydict)
+        model.pa%s
+        ''' % format_desc('th.update('+str(keydict)+')', 12).strip()
 
     code+= '''
         while False: # TODO more instances?
@@ -1344,9 +1342,10 @@ class %(classname)s(CIMProvider2):
         # Prime model.path with knowledge of the keys, so key values on
         # the CIMInstanceName (model.path) will automatically be set when
         # we set property values on the model. 
-        model.path.update(%s)
+        model.pa%s
 
-        # This is a common pattern.  YMMV''' % str(keydict)
+        # This is a common pattern.  YMMV''' % \
+                   format_desc('th.update('+str(keydict)+')', 12).strip()
 
         for refprop in refprops:
             code+= '''
@@ -1503,7 +1502,7 @@ class ProviderProxy(object):
                     "Error loading provider %s: %s" % (provid, arg))
         self.filename = self.provmod.__file__
 
-    def _get_callable (self, classname, cname, is_assoc = False):
+    def _get_callable (self, classname, cname):
         """Return a function or method object appropriate to fulfill a request
 
         classname -- The CIM class name associated with the request. 
@@ -1516,11 +1515,11 @@ class ProviderProxy(object):
             provClass = self.provregs[classname]
             if hasattr(provClass, cname):
                 callable = getattr(provClass, cname)
-        elif not is_assoc and hasattr(self.provmod, cname):
+        elif hasattr(self.provmod, cname):
             callable = getattr(self.provmod, cname)
-        if callable is None and not is_assoc:
+        if callable is None:
             raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "No callable for %s:%s on provider %s"%(classname,
+                    "No provider registered for %s or no callable for %s:%s on provider %s"%(classname, classname,
                                                             cname, 
                                                             self.provid))
         return callable
@@ -1553,11 +1552,8 @@ class ProviderProxy(object):
         logger = env.get_logger()
         logger.log_debug('ProviderProxy MI_enumInstanceNames called...')
         self._reload_if_necessary(env)
-        for i in self._get_callable(objPath.classname, 
-                                    'MI_enumInstanceNames') \
-                                            (env, objPath):
-            yield i
-        logger.log_debug('CIMProvider2 MI_enumInstanceNames returning')
+        return self._get_callable(objPath.classname, 
+                                    'MI_enumInstanceNames')(env, objPath)
 
 ##############################################################################
 # enumInstances
@@ -1569,12 +1565,10 @@ class ProviderProxy(object):
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_enumInstances called...')
         self._reload_if_necessary(env)
-        for i in self._get_callable(objPath.classname, 'MI_enumInstances') \
+        return self._get_callable(objPath.classname, 'MI_enumInstances') \
                            (env, 
                             objPath, 
-                            propertyList):
-            yield i 
-        logger.log_debug('CIMProvider2 MI_enumInstances returning')
+                            propertyList)
 
 ##############################################################################
 # getInstance
@@ -1663,26 +1657,24 @@ class ProviderProxy(object):
                        resultRole, 
                        propertyList):
                 yield i
-            return
+                return
 
         lcnames = []
-        is_assoc = not cname
         if cname:
             lcnames = [cname]
         else:
             lcnames = self.provregs.keys()
 
         for lcname in lcnames:
-            fn = self._get_callable(lcname, 'MI_associators', is_assoc)
-            if fn is not None:
-                for i in fn(env, 
-                           objectName, 
-                           lcname, 
-                           resultClassName, 
-                           role, 
-                           resultRole, 
-                           propertyList):
-                    yield i
+            fn = self._get_callable(lcname, 'MI_associators')
+            for i in fn(env, 
+                       objectName, 
+                       lcname, 
+                       resultClassName, 
+                       role, 
+                       resultRole, 
+                       propertyList):
+                yield i
         logger.log_debug('CIMProvider2 MI_associators returning')
 
 ##############################################################################
@@ -1708,25 +1700,23 @@ class ProviderProxy(object):
                        role, 
                        resultRole):
                 yield i
-            return
+                return
 
         lcnames = []
-        is_assoc = not cname
         if cname:
             lcnames = [cname]
         else:
             lcnames = self.provregs.keys()
 
         for lcname in lcnames:
-            fn = self._get_callable(lcname, 'MI_associatorNames', is_assoc)
-            if fn is not None:
-                for i in fn(env, 
-                           objectName, 
-                           lcname, 
-                           resultClassName, 
-                           role, 
-                           resultRole):
-                    yield i
+            fn = self._get_callable(lcname, 'MI_associatorNames')
+            for i in fn(env, 
+                       objectName, 
+                       lcname, 
+                       resultClassName, 
+                       role, 
+                       resultRole):
+                yield i
 
         logger.log_debug('CIMProvider2 MI_associatorNames returning')
 
@@ -1747,24 +1737,22 @@ class ProviderProxy(object):
             for i in self.provmod.MI_references(env, objectName, 
                     resultClassName, role, propertyList):
                 yield i
-            return
+                return
 
         lcnames = []
-        is_assoc = not cname
         if cname:
             lcnames = [cname]
         else:
             lcnames = self.provregs.keys()
 
         for lcname in lcnames:
-            fn = self._get_callable(lcname, 'MI_references', is_assoc)
-            if fn is not None:
-                for i in fn(env, 
-                            objectName, 
-                            lcname, 
-                            role, 
-                            propertyList):
-                    yield i
+            fn = self._get_callable(lcname, 'MI_references')
+            for i in fn(env, 
+                        objectName, 
+                        lcname, 
+                        role, 
+                        propertyList):
+                yield i
 
         logger.log_debug('CIMProvider2 MI_references returning')
 
@@ -1785,23 +1773,21 @@ class ProviderProxy(object):
             for i in self.provmod.MI_referenceNames(env, objectName, 
                     resultClassName, role):
                 yield i
-            return
+                return
 
         lcnames = []
-        is_assoc = not cname
         if cname:
             lcnames = [cname]
         else:
             lcnames = self.provregs.keys()
 
         for lcname in lcnames:
-            fn = self._get_callable(lcname, 'MI_referenceNames', is_assoc)
-            if fn is not None:
-                for i in fn(env, 
-                            objectName, 
-                            lcname, 
-                            role):
-                    yield i
+            fn = self._get_callable(lcname, 'MI_referenceNames')
+            for i in fn(env, 
+                        objectName, 
+                        lcname, 
+                        role):
+                yield i
 
         logger.log_debug('CIMProvider2 MI_referenceNames returning')
 
