@@ -216,15 +216,14 @@ def _create_ns(p, handle, ns):
         ce.file_line = (p.parser.file, p.lexer.lineno)
         raise ce
     if cimom_type == 'pegasus':
-        nsl = ns.split('/')
-
-        # To create a top-level namespace in Pegasus, try to create 
-        # an empty string sub-namespace in the new top-level namespace. 
+        # To create a namespace in Pegasus, create an instance of 
+        # __Namespace with  __Namespace.Name = '', and create it in 
+        # the target namespace to be created. 
         inst = CIMInstance('__Namespace', 
                 properties={'Name':''},
                 path=CIMInstanceName('__Namespace', 
                     keybindings={'Name':''},
-                    namespace=nsl[0]))
+                    namespace=ns))
         try:
             handle.CreateInstance(inst)
         except CIMError, ce:
@@ -232,18 +231,6 @@ def _create_ns(p, handle, ns):
                 ce.file_line = (p.parser.file, p.lexer.lineno)
                 raise
 
-        for i in range(1, len(nsl)):
-            containing_ns = '/'.join(nsl[:i])
-            inames = handle.EnumerateInstanceNames('__Namespace', 
-                    namespace=containing_ns)
-            inames = [x['name'] for x in inames]
-            if nsl[i] not in inames:
-                inst = CIMInstance('__Namespace', 
-                        properties={'Name':nsl[i]},
-                        path=CIMInstanceName('__Namespace', 
-                            keybindings={'Name':nsl[i]},
-                            namespace=containing_ns))
-                handle.CreateInstance(inst)
     elif cimom_type == 'proper':
         inst = CIMInstance('CIM_Namespace', 
                 properties={'Name': ns},
