@@ -216,11 +216,21 @@ def _create_ns(p, handle, ns):
         raise ce
     if cimom_type == 'pegasus':
         nsl = ns.split('/')
-        if nsl[0] != 'root':
-            ce = CIMError(CIM_ERR_FAILED, 
-                    'Pegasus namespaces must start with "root"')
-            ce.file_line = (p.parser.file, p.lexer.lineno)
-            raise ce
+
+        # To create a top-level namespace in Pegasus, try to create 
+        # an empty string sub-namespace in the new top-level namespace. 
+        inst = CIMInstance('__Namespace', 
+                properties={'Name':''},
+                path=CIMInstanceName('__Namespace', 
+                    keybindings={'Name':''},
+                    namespace=nsl[0]))
+        try:
+            handle.CreateInstance(inst)
+        except CIMError, ce:
+            if ce.args[0] != CIM_ERR_ALREADY_EXISTS:
+                ce.file_line = (p.parser.file, p.lexer.lineno)
+                raise
+
         for i in range(1, len(nsl)):
             containing_ns = '/'.join(nsl[:i])
             inames = handle.EnumerateInstanceNames('__Namespace', 
