@@ -753,7 +753,8 @@ class CIMProvider2(object):
         plist = None
         if propertyList is not None:
             plist = [s.lower() for s in propertyList] 
-        model = pywbem.CIMInstance(classname=resultClassName)
+        model = pywbem.CIMInstance(classname=resultClassName, 
+                property_list=plist)
         model.path = pywbem.CIMInstanceName(classname=resultClassName, 
                                             namespace=objectName.namespace)
         if role:
