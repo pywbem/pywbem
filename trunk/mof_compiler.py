@@ -190,6 +190,7 @@ def p_mofProduction(p):
 def _create_ns(p, handle, ns):
     # Figure out the flavor of cim server
     cimom_type = None
+    ns = ns.strip('/')
     try:
         inames = handle.EnumerateInstanceNames('__Namespace', namespace='root')
         inames = [x['name'] for x in inames]
