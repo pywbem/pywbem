@@ -22,6 +22,8 @@
 
 import sys # for sys.modules
 import os
+import imp
+
 """Python CIM Providers (aka "nirvana")
 
 This module is an abstraction and utility layer between a CIMOM and 
@@ -32,7 +34,7 @@ Python Provider Modules
 
     Python Providers are implemented as Python modules.  By convention
     these modules are installed into /usr/lib/pycim.  However, they can 
-    be anywhere.  These modules are loaded on demand using load_source() 
+    be anywhere.  These modules are loaded on demand using load_module() 
     from the imp module.  The CIMOM's pycim interface stores the timestamp 
     of the provider modules.  If the modules change, the CIMOM reloads the 
     modules.  This is very useful while developing providers, since the 
@@ -193,7 +195,6 @@ CodeGen
 import sys 
 from os.path import dirname
 import pywbem
-from imp import load_source
 import types
 
 __all__ = ['CIMProvider2', 'codegen']
@@ -1468,6 +1469,7 @@ class ProviderProxy(object):
     """Wraps a provider module, and routes requests into the module """
 
     def __init__ (self, env, provid):
+        self.env = env
         if isinstance(provid, types.ModuleType):
             self.provmod = provid
             self.provid = provid.__name__
@@ -1488,22 +1490,28 @@ class ProviderProxy(object):
 
     def _load_provider_source (self):
         # odd chars in a module name tend to break things
-        self.provider_name = 'pyprovider_'
+        self.provider_module_name = 'pyprovider_'
         for ch in self.provid:
-            self.provider_name+= ch.isalnum() and ch or '_'
+            self.provider_module_name+= ch.isalnum() and ch or '_'
         # let providers import other providers in the same directory
         provdir = dirname(self.provid)
         if provdir not in sys.path:
             sys.path.append(provdir)
         try:
-            self.provmod = sys.modules[self.provider_name]
+            self.provmod = sys.modules[self.provider_module_name]
             print 'Provider %s already loaded, found in sys.modules' \
                     % self.provmod
         except KeyError:
             try: 
                 # use full path in module name for uniqueness. 
                 print 'Loading provider %s from source' % self.provid
-                self.provmod = load_source(self.provider_name, self.provid)
+                path = os.path.dirname(self.provid)
+                basename = os.path.basename(self.provid)[:-3]
+                fn = imp.find_module(basename, [path])
+                try:
+                    self.provmod = imp.load_module(self.provider_module_name, *fn)
+                finally:
+                    fn[0].close()
                 self.provmod.provmod_timestamp = os.path.getmtime(self.provid)
             except IOError, arg:
                 raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
@@ -1536,7 +1544,7 @@ class ProviderProxy(object):
         """Check timestamp of loaded python provider module, and if it has
         changed since load, then reload the provider module.
         """
-        if (sys.modules[self.provider_name].provmod_timestamp \
+        if (sys.modules[self.provider_module_name].provmod_timestamp \
                         != os.path.getmtime(self.provid)):
             print "Need to reload provider at %s" %self.provid
 
@@ -1544,7 +1552,7 @@ class ProviderProxy(object):
             if hasattr(self.provmod, "shutdown"):
                 self.provmod.shutdown(env)
             #now reload and reinit module
-            del sys.modules[self.provider_name]
+            del sys.modules[self.provider_module_name]
             try: 
                 self._load_provider_source()
                 self._init_provider(env)
