@@ -20,8 +20,6 @@
 #         Jon Carey
 ####
 
-from __future__ import with_statement
-
 """Python CIM Providers (aka "nirvana")
 
 This module is an abstraction and utility layer between a CIMOM and 
@@ -1516,12 +1514,15 @@ class ProviderProxy(object):
                 basename = os.path.basename(self.provid)[:-3]
                 fn = imp.find_module(basename, [path])
                 try:
-                    with g_mod_lock:
-                        self.provmod = imp.load_module(
-                                self.provider_module_name, *fn)
-                        self.provmod.provmod_timestamp = \
-                                os.path.getmtime(self.provid)
+                    g_mod_lock.acquire()
+                    imp.acquire_lock()
+                    self.provmod = imp.load_module(
+                            self.provider_module_name, *fn)
+                    self.provmod.provmod_timestamp = \
+                            os.path.getmtime(self.provid)
                 finally:
+                    imp.release_lock()
+                    g_mod_lock.release()
                     fn[0].close()
             except IOError, arg:
                 raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
