@@ -20,9 +20,7 @@
 #         Jon Carey
 ####
 
-import sys # for sys.modules
-import os
-import imp
+from __future__ import with_statement
 
 """Python CIM Providers (aka "nirvana")
 
@@ -196,6 +194,15 @@ import sys
 from os.path import dirname
 import pywbem
 import types
+
+import sys # for sys.modules
+import os
+import imp
+import threading
+
+g_mod_lock = threading.RLock()
+
+
 
 __all__ = ['CIMProvider2', 'codegen']
 
@@ -1509,10 +1516,13 @@ class ProviderProxy(object):
                 basename = os.path.basename(self.provid)[:-3]
                 fn = imp.find_module(basename, [path])
                 try:
-                    self.provmod = imp.load_module(self.provider_module_name, *fn)
+                    with g_mod_lock:
+                        self.provmod = imp.load_module(
+                                self.provider_module_name, *fn)
+                        self.provmod.provmod_timestamp = \
+                                os.path.getmtime(self.provid)
                 finally:
                     fn[0].close()
-                self.provmod.provmod_timestamp = os.path.getmtime(self.provid)
             except IOError, arg:
                 raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
                         "Error loading provider %s: %s" % (self.provid, arg))
