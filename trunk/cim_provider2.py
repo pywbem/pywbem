@@ -869,8 +869,12 @@ class CIMProvider2(object):
             method = getattr(self, lmethName)
             new_inputs = dict([('param_%s' % k.lower(), v) \
                             for k, v in inputParams.items()])
-            (rval, outs) = method(env=env, object_name=objectName, 
+            try:
+                (rval, outs) = method(env=env, object_name=objectName, 
                                   **new_inputs)
+            except TypeError, e:
+                raise pywbem.CIMError(pywbem.CIM_ERR_INVALID_PARAMETER,
+                        e.message)
 
             def add_type(v):
                 if isinstance(v, pywbem.CIMParameter):
@@ -1230,8 +1234,14 @@ class %(classname)s(CIMProvider2):
         code+= '''
     def cim_method_%s(self, env, object_name''' % method.name.lower()
         for p in inParms:
-            code+= ''',\n%sparam_%s''' % (''.rjust(len(method.name)+20),
-                                                    p.name.lower())
+            if 'required' in p.qualifiers and p.qualifiers['required']:
+                code+= ''',\n%sparam_%s''' % (''.rjust(len(method.name)+20),
+                                                        p.name.lower())
+        for p in inParms:
+            if 'required' not in p.qualifiers or not p.qualifiers['required']:
+                code+= ''',\n%sparam_%s=None'''%\
+                                        (''.rjust(len(method.name)+20),
+                                         p.name.lower())
         code+= '''):
         """Implements %s.%s()\n''' % (cc.classname, method.name)
         code+= format_desc(method, 8)
