@@ -1883,6 +1883,29 @@ class ProviderProxy(object):
         return rval
 
 ##############################################################################
+    def MI_authorizeFilter (self,
+                           env,
+                           filter,
+                           classname,
+                           classPath,
+                           owner):
+        logger = env.get_logger()
+        logger.log_debug('CIMProvider2 MI_authorizeFilter called')
+        self._reload_if_necessary(env)
+        if hasattr(self.provmod, 'authorize_filter'):
+            rval = self.provmod.authorize_filter(env, filter, classname,
+                    classPath, owner)
+        elif hasattr(self.provmod, 'MI_authorizeFilter'):
+            rval = self.provmod.MI_authorizeFilter(env, filter, classname,
+                    classPath, owner)
+        else:
+            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED,
+                    "Provider %s has no support for authorize filter"%self.provid)
+        logger.log_debug('CIMProvider2 MI_authorizeFilter returning')
+        return rval
+
+
+##############################################################################
     def MI_activateFilter (self, 
                            env, 
                            filter,
