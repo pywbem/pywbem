@@ -1096,6 +1096,7 @@ def codegen (cc):
     mappings = {'classname':cc.classname,
                 'classname_l':cc.classname.lower()}
     isAssoc = 'association' in cc.qualifiers
+    isIndication = 'indication' in cc.qualifiers
 
     code = '''"""Python Provider for %(classname)s
 
@@ -1381,6 +1382,9 @@ class %(classname)s(CIMProvider2):
                                   'refpropnamel':refprop[0].lower(),
                                   'rolecname':refprop[1]}
 
+    if isIndication:
+        pass
+        
     if valuemaps:
         code+= '''
     class Values(object):'''
@@ -1853,36 +1857,6 @@ class ProviderProxy(object):
         return rval
             
 ##############################################################################
-    def MI_poll (self, env):
-        logger = env.get_logger()
-        logger.log_debug('CIMProvider2 MI_poll called')
-        self._reload_if_necessary(env)
-        if hasattr(self.provmod, 'poll'):
-            rval = self.provmod.poll(env)
-        elif hasattr(self.provmod, 'MI_poll'):
-            rval = self.provmod.MI_poll(env)
-        else:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                     "Provider %s has no support for polling"%self.provid)
-        logger.log_debug('CIMProvider2 MI_poll returning %s' % str(rval))
-        return rval
-
-##############################################################################
-    def MI_getInitialPollingInterval (self, env):
-        logger = env.get_logger()
-        logger.log_debug('CIMProvider2 MI_poll called')
-        self._reload_if_necessary(env)
-        if hasattr(self.provmod, 'get_initial_polling_interval'):
-            rval = self.provmod.get_initial_polling_interval(env)
-        elif hasattr(self.provmod, 'MI_getInitialPollingInterval'):
-            rval = self.provmod.MI_getInitialPollingInterval(env)
-        else:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                     "Provider %s has no support for polling"%self.provid)
-        logger.log_debug('CIMProvider2 MI_poll returning %s' % str(rval))
-        return rval
-
-##############################################################################
     def MI_authorizeFilter (self,
                            env,
                            filter,
@@ -1893,16 +1867,16 @@ class ProviderProxy(object):
         logger.log_debug('CIMProvider2 MI_authorizeFilter called')
         self._reload_if_necessary(env)
         if hasattr(self.provmod, 'authorize_filter'):
-            rval = self.provmod.authorize_filter(env, filter, classname,
+            self.provmod.authorize_filter(env, filter, classname,
                     classPath, owner)
         elif hasattr(self.provmod, 'MI_authorizeFilter'):
-            rval = self.provmod.MI_authorizeFilter(env, filter, classname,
+            self.provmod.MI_authorizeFilter(env, filter, classname,
                     classPath, owner)
         else:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED,
-                    "Provider %s has no support for authorize filter"%self.provid)
+            # if not instrumented in provider, assume success
+            logger.log_debug("Provider %s has no support for authorize filter"%self.provid)
         logger.log_debug('CIMProvider2 MI_authorizeFilter returning')
-        return rval
+        return
 
 
 ##############################################################################
@@ -1921,10 +1895,11 @@ class ProviderProxy(object):
         elif hasattr(self.provmod, 'MI_activateFilter'):
             self.provmod.MI_activateFilter(env, filter, namespace,
                     classes, firstActivation)
-        else:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "Provider %s has no support for activate filter"%self.provid)
+        else: 
+            # if not instrumented in provider, assume success
+            logger.log_debug("Provider %s has no support for activate filter"%self.provid)
         logger.log_debug('CIMProvider2 MI_activateFilter returning')
+        return
 
                     
 ##############################################################################
@@ -1944,9 +1919,44 @@ class ProviderProxy(object):
             self.provmod.MI_deActivateFilter(env, filter, namespace, classes,
                     lastActivation)
         else:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "Provider %s has no support for deactivate filter"%self.provid)
+            # if not instrumented in provider, assume success
+            logger.log_debug("Provider %s has no support for deactivate filter"%self.provid)
         logger.log_debug('CIMProvider2 MI_deActivateFilter returning')
+        return
+
+
+##############################################################################
+    def MI_enableIndications(self,
+                            env):
+        logger = env.get_logger()
+        logger.log_debug('CIMProvider2 MI_enableIndications called')
+        self._reload_if_necessary(env)
+        if hasattr(self.provmod, 'enable_indications'):
+            self.provmod.enable_indications(env)
+        elif hasattr(self.provmod, 'MI_enableIndications'):
+            self.provmod.MI_enableIndications(env)
+        else:
+            # if not instrumented in provider, assume success
+            logger.log_debug("Provider %s has no support for enable indications"%self.provid)
+        logger.log_debug('CIMProvider2 MI_enableIndications returning')
+        return
+
+
+##############################################################################
+    def MI_disableIndications(self,
+                            env):
+        logger = env.get_logger()
+        logger.log_debug('CIMProvider2 MI_disableIndications called')
+        self._reload_if_necessary(env)
+        if hasattr(self.provmod, 'disable_indications'):
+            self.provmod.disable_indications(env)
+        elif hasattr(self.provmod, 'MI_disableIndications'):
+            self.provmod.MI_disableIndications(env)
+        else:
+            # if not instrumented in provider, assume success
+            logger.log_debug("Provider %s has no support for disable indications"%self.provid)
+        logger.log_debug('CIMProvider2 MI_disableIndications returning')
+        return
 
 
 ##############################################################################
