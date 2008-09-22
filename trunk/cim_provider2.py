@@ -90,29 +90,6 @@ Python Provider Modules
                     _fbp = Py_FooBarProvider()
                     return {'Py_Foo':_fbp, 'Py_Bar':_fbp}
 
-        get_initial_polling_interval(env):
-            Return the number of seconds before the first call to poll.
-
-            If this method returns zero, then the poll method is never called.
-
-            Arguments: 
-            env -- Provider Environment (pycimmb.ProviderEnvironment)
-
-        poll(env):
-            Do some work, and return the number of seconds until the next poll.
-
-            A polled provider's poll function will be called periodically by 
-            the CIMOM.  The polled provider can use this opportunity to do 
-            some work, such as checking on some conditions, and generating
-            indications.  The poll function returns the number of seconds the 
-            CIMOM should wait before calling poll again.  A return value of -1
-            indicates to the CIMOM that the previous poll value should be used. 
-            A return value of 0 indicates that the poll function should never
-            be called again. 
-
-            Arguments:
-            env -- Provider Environment (pycimmb.ProviderEnvironment)
-
         can_unload(env):
             Return True if the provider can be unloaded.
 
@@ -139,27 +116,54 @@ Python Provider Modules
 
             Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
-            ns -- The namespace where the even occurred
+            ns -- The namespace where the event occurred
             handler_instance -- 
             indication_instance -- The indication
 
-        activate_filter (env, filter, ns, classes, 
-                         first_activation):
+        authorize_filter (env, filter, ns, classes, 
+                         owner):
+            Allow or disallow an indication subscription request.
+            
             Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
-            filter --
-            namespace -- 
-            classes -- 
-            first_activation --
+            filter -- The WQL select statement
+            namespace -- The namepace where the indication is registered for 
+            classes -- The classpath of the indication registered for
+            owner -- The name of the principal (cimom user)
+
+        activate_filter (env, filter, ns, classes, 
+                         first_activation):
+            Activate an indication subscription.
+            
+            Arguments:
+            env -- Provider Environment (pycimmb.ProviderEnvironment)
+            filter -- The WQL select statement
+            namespace -- The namepace where the indication is registered for 
+            classes -- The classpath of the indication registered for
+            first_activation -- boolean - whether first activation
 
         deactivate_filter(env, filter, ns, classes, 
                           last_activation):
+            Deactivate an indication subscription.
+            
             Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
-            filter --
-            ns -- 
-            classes -- 
-            last_activation --
+            filter -- The WQL select statement
+            ns -- The namepace where the indication is registered for  
+            classes -- The classpath of the indication registered for
+            last_activation -- boolean - whether last activation
+
+        enable_indications(env):
+            Enable indications.
+            
+            Arguments:
+            env -- Provider Environment (pycimmb.ProviderEnvironment)
+
+        disable_indications(env):
+            Disable indications.
+            
+            Arguments:
+            env -- Provider Environment (pycimmb.ProviderEnvironment)
 
 Provider Environment
     
@@ -921,6 +925,62 @@ class CIMProvider2(object):
                         continue
                     del inst.properties[pname]
 
+    def authorize_filter (env, filter, ns, classes, 
+                     owner):
+        """Allow or disallow an indication subscription request.
+        
+        Arguments:
+        env -- Provider Environment (pycimmb.ProviderEnvironment)
+        filter -- The WQL select statement
+        namespace -- The namepace where the indication is registered for 
+        classes -- The classpath of the indication registered for
+        owner -- The name of the principal (cimom user)
+        """
+        pass
+
+    def activate_filter (env, filter, ns, classes, 
+                     first_activation):
+        """Activate an indication subscription.
+        
+        Arguments:
+        env -- Provider Environment (pycimmb.ProviderEnvironment)
+        filter -- The WQL select statement
+        namespace -- The namepace where the indication is registered for 
+        classes -- The classpath of the indication registered for
+        first_activation -- boolean - whether first activation
+        """
+        pass
+
+    def deactivate_filter(env, filter, ns, classes, 
+                      last_activation):
+        """Deactivate an indication subscription.
+        
+        Arguments:
+        env -- Provider Environment (pycimmb.ProviderEnvironment)
+        filter -- The WQL select statement
+        ns -- The namepace where the indication is registered for  
+        classes -- The classpath of the indication registered for
+        last_activation -- boolean - whether last activation
+        """
+        pass
+
+    def enable_indications(env):
+        """Enable indications.
+        
+        Arguments:
+        env -- Provider Environment (pycimmb.ProviderEnvironment)
+        """
+        pass
+
+    def disable_indications(env):
+        """Disable indications.
+        
+        Arguments:
+        env -- Provider Environment (pycimmb.ProviderEnvironment)
+        """
+        pass
+    
+
 def codegen (cc):
     """Generate a Python Provider template. 
 
@@ -1382,9 +1442,6 @@ class %(classname)s(CIMProvider2):
                                   'refpropnamel':refprop[0].lower(),
                                   'rolecname':refprop[1]}
 
-    if isIndication:
-        pass
-        
     if valuemaps:
         code+= '''
     class Values(object):'''
@@ -1409,11 +1466,104 @@ class %(classname)s(CIMProvider2):
 
     code+= '''
 ## end of class %(classname)sProvider
-
+    
+## get_providers() for associating CIM Class Name to python provider class name
+    
 def get_providers(env): 
     %(classname_l)s_prov = %(classname)s(env)  
     return {'%(classname)s': %(classname_l)s_prov} 
 ''' % mappings
+
+    if isIndication:
+        code+= '''
+
+## Indication support methods...
+##   Use these methods if this class will deliver indications.
+##   Remove these methods if this class will not deliver indications.'''
+        args = inspect.getargspec(CIMProvider2.authorize_filter)[0]
+        args = format_desc(', '.join(args), 19).strip()
+        code+= '''
+       
+        
+def authorize_filter(%s):
+    """%s"""
+
+    logger = env.get_logger()
+    logger.log_debug('Entering %%s.authorize_filter()' \\
+            %% self.__class__.__name__)
+    ch = env.get_cimom_handle()
+    #raise pywbem.CIMError(pywbem.CIM_ERR_***) to indicate failure
+    #otherwise just fall through for success''' % \
+            (args, CIMProvider2.authorize_filter.__doc__ or "Doc Goes Here")
+
+        args = inspect.getargspec(CIMProvider2.enable_indications)[0]
+        args = format_desc(', '.join(args), 19).strip()
+        code+= '''
+       
+        
+def enable_indications(%s):
+    """%s"""
+
+    logger = env.get_logger()
+    logger.log_debug('Entering %%s.enable_indications()' \\
+            %% self.__class__.__name__)
+    ch = env.get_cimom_handle()
+    #raise pywbem.CIMError(pywbem.CIM_ERR_***) to indicate failure
+    #otherwise just fall through for success''' % \
+            (args, CIMProvider2.enable_indications.__doc__ or "Doc Goes Here")
+
+        args = inspect.getargspec(CIMProvider2.disable_indications)[0]
+        args = format_desc(', '.join(args), 19).strip()
+        code+= '''
+       
+        
+def disable_indications(%s):
+    """%s"""
+
+    logger = env.get_logger()
+    logger.log_debug('Entering %%s.disable_indications()' \\
+            %% self.__class__.__name__)
+    ch = env.get_cimom_handle()
+    #raise pywbem.CIMError(pywbem.CIM_ERR_***) to indicate failure
+    #otherwise just fall through for success''' % \
+            (args, CIMProvider2.disable_indications.__doc__ or "Doc Goes Here")
+
+        args = inspect.getargspec(CIMProvider2.activate_filter)[0]
+        args = format_desc(', '.join(args), 19).strip()
+        code+= '''
+       
+        
+def activate_filter(%s):
+    """%s"""
+
+    logger = env.get_logger()
+    logger.log_debug('Entering %%s.activate_filter()' \\
+            %% self.__class__.__name__)
+    ch = env.get_cimom_handle()
+    #raise pywbem.CIMError(pywbem.CIM_ERR_***) to indicate failure
+    #otherwise just fall through for success''' % \
+            (args, CIMProvider2.activate_filter.__doc__ or "Doc Goes Here")
+
+    
+        args = inspect.getargspec(CIMProvider2.deactivate_filter)[0]
+        args = format_desc(', '.join(args), 19).strip()
+        code+= '''
+       
+        
+def deactivate_filter(%s):
+    """%s"""
+
+    logger = env.get_logger()
+    logger.log_debug('Entering %%s.deactivate_filter()' \\
+            %% self.__class__.__name__)
+    ch = env.get_cimom_handle()
+    #raise pywbem.CIMError(pywbem.CIM_ERR_***) to indicate failure
+    #otherwise just fall through for success''' % \
+            (args, CIMProvider2.deactivate_filter.__doc__ or "Doc Goes Here")
+
+        code+= '''
+
+## End of Indication Support Methods'''
 
     owtypes = ['1', 'Instance']
     pegtypes = ['2', 'Instance']
