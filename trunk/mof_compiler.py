@@ -159,11 +159,12 @@ def t_error(t):
     t.lexer.parser.log(msg)
     t.lexer.skip(1)
 
-class ParseError(ValueError):
+class MOFParseError(ValueError):
     pass
 
 def p_error(p):
-    ex = ParseError()
+    ex = MOFParseError()
+    import pdb; pdb.set_trace()
     ex.file = p.lexer.parser.file
     ex.lineno = p.lineno
     ex.column = _find_column(p.lexer.parser.mof, p)
@@ -1569,7 +1570,7 @@ class MOFCompiler(object):
             self.parser.file = oldfile
             self.parser.mof = oldmof
             return rv
-        except ParseError, pe:
+        except MOFParseError, pe:
             self.parser.log('Syntax error:')
             self.parser.log('%s:%s:' % (pe.file, pe.lineno))
             self.parser.log('\n'.join(pe.context))
@@ -1677,7 +1678,7 @@ if __name__ == '__main__':
             if fname[0] != '/':
                 fname = os.path.curdir + '/' + fname
             mofcomp.compile_file(fname, options.ns)
-    except ParseError, pe:
+    except MOFParseError, pe:
         sys.exit(1)
     except CIMError, ce:
         sys.exit(1)
