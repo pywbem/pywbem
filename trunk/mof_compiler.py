@@ -164,7 +164,6 @@ class MOFParseError(ValueError):
 
 def p_error(p):
     ex = MOFParseError()
-    import pdb; pdb.set_trace()
     ex.file = p.lexer.parser.file
     ex.lineno = p.lineno
     ex.column = _find_column(p.lexer.parser.mof, p)
