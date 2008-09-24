@@ -281,6 +281,7 @@ class Lexer:
 
                 # Create a token for return
                 tok = LexToken()
+                tok.lexer = self
                 tok.value = m.group()
                 tok.lineno = self.lineno
                 tok.lexpos = lexpos
@@ -305,7 +306,7 @@ class Lexer:
 
                 # If token is processed by a function, call it
 
-                tok.lexer = self      # Set additional attributes useful in token rules
+                # Set additional attributes useful in token rules
                 self.lexmatch = m
                 self.lexpos = lexpos
 
@@ -329,6 +330,7 @@ class Lexer:
                 # No match, see if in literals
                 if lexdata[lexpos] in self.lexliterals:
                     tok = LexToken()
+                    tok.lexer = self
                     tok.value = lexdata[lexpos]
                     tok.lineno = self.lineno
                     tok.type = tok.value
