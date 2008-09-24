@@ -4,7 +4,7 @@
 from comfychair import main, TestCase, NotRunError
 from pywbem import *
 
-from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, ParseError
+from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 
 from urllib import urlretrieve, urlopen
 from time import time
@@ -89,7 +89,7 @@ class TestParseError(MOFTest):
         file = 'testmofs/parse_error01.mof'
         try:
             self.mofcomp.compile_file(file, ns)
-        except ParseError, pe:
+        except MOFParseError, pe:
             self.assert_equal(pe.file, file)
             self.assert_equal(pe.lineno, 16)
             self.assert_equal(pe.context[5][1:5], '^^^^')
@@ -98,11 +98,20 @@ class TestParseError(MOFTest):
         file = 'testmofs/parse_error02.mof'
         try:
             self.mofcomp.compile_file(file, ns)
-        except ParseError, pe:
+        except MOFParseError, pe:
             self.assert_equal(pe.file, file)
             self.assert_equal(pe.lineno, 6)
             self.assert_equal(pe.context[5][7:13], '^^^^^^')
             self.assert_equal(pe.context[4][7:13], 'weight')
+
+        file = 'testmofs/parse_error03.mof'
+        try:
+            self.mofcomp.compile_file(file, ns)
+        except MOFParseError, pe:
+            self.assert_equal(pe.file, file)
+            self.assert_equal(pe.lineno, 24)
+            self.assert_equal(pe.context[5][53], '^')
+            self.assert_equal(pe.context[4][53], '}')
 
 class TestRefs(MOFTest):
     def runtest(self):
