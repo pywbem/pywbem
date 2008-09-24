@@ -27,6 +27,7 @@ from lex import TOKEN
 from cim_operations import CIMError, WBEMConnection
 from cim_obj import *
 from cim_constants import *
+from getpass import getpass
 
 _optimize = 1
 _tabmodule='mofparsetab'
@@ -1634,12 +1635,18 @@ if __name__ == '__main__':
     oparser.add_option('-u', '--url', dest='url', 
             help='URL to the CIM Server', metavar='URL', 
             default='/var/run/tog-pegasus/cimxml.socket')
-    oparser.add_option("-v", "--verbose",
-            action="store_true", dest="verbose", default=False,
-            help="Print more messages to stdout")
-    oparser.add_option("-r", "--remove",
-            action="store_true", dest="remove", default=False,
-            help="Remove elements found in MOF, instead of create them")
+    oparser.add_option('-v', '--verbose',
+            action='store_true', dest='verbose', default=False,
+            help='Print more messages to stdout')
+    oparser.add_option('-r', '--remove',
+            action='store_true', dest='remove', default=False,
+            help='Remove elements found in MOF, instead of create them')
+    oparser.add_option('-l', '--username',
+            dest='username', metavar='Username',
+            help='Specify the username')
+    oparser.add_option('-p', '--password', 
+            dest='password', metavar='Password',
+            help='Specify the password')
 
     (options, args) = oparser.parse_args()
     search = options.search
@@ -1648,7 +1655,13 @@ if __name__ == '__main__':
     if options.ns is None: 
         oparser.error('No namespace given')
 
-    conn = WBEMConnection(options.url)
+    passwd = options.password
+    if options.username and not passwd:
+        passwd = getpass('Enter password for %s: ' % options.username)
+    if options.username:
+        conn = WBEMConnection(options.url, (options.username, passwd))
+    else:
+        conn = WBEMConnection(options.url)
     if options.remove:
         conn = MOFWBEMConnection(conn=conn)
     #conn.debug = True
