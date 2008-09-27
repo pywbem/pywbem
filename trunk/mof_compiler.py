@@ -255,10 +255,10 @@ def p_mp_createClass(p):
         while not fixedNS or not fixedRefs or not fixedSuper:
             try:
                 if p.parser.verbose:
-                    p.parser.log('Creating class ' + cc.classname)
+                    p.parser.log('Creating class %s:%s' % (ns, cc.classname))
                 p.parser.handle.CreateClass(cc)
                 if p.parser.verbose:
-                    p.parser.log('Created class ' + cc.classname)
+                    p.parser.log('Created class %s:%s' % (ns,cc.classname))
                 p.parser.classnames[ns].append(cc.classname.lower())
                 break
             except CIMError, ce:
@@ -1468,6 +1468,30 @@ class MOFWBEMConnection(object):
             self.instances[self.default_namespace] = [inst]
         return inst.path
 
+    def rollback(self, verbose=False):
+        for ns, insts in self.instances.items():
+            insts.reverse()
+            for inst in insts:
+                try:
+                    if verbose:
+                        print 'Deleting instance', inst.path
+                    self.conn.DeleteInstance(inst.path)
+                except CIMError, ce:
+                    print 'Error deleting instance', inst.path
+                    print '    ', '%s %s' % (ce.args[0], ce.args[1])
+        for ns, cnames in self.class_names.items():
+            self.default_namespace = ns
+            cnames.reverse()
+            for cname in cnames:
+                try:
+                    if verbose:
+                        print 'Deleting class %s:%s' % (ns, cname)
+                    self.conn.DeleteClass(cname)
+                except CIMError, ce:
+                    print 'Error deleting class %s:%s' % (ns, cname)
+                    print '    ', '%s %s' % (ce.args[0], ce.args[1])
+        # TODO: do we want to do anything with qualifiers? 
+
 
 def _errcode2string(code):
     d = {
@@ -1617,6 +1641,9 @@ class MOFCompiler(object):
                         return root + '/' + file
         return None
 
+    def rollback(self, verbose=False):
+        self.handle.rollback(verbose=verbose)
+
 def _build():
     yacc.yacc(optimize=_optimize, tabmodule=_tabmodule)
     lex.lex(optimize=_optimize, lextab=_lextab)
@@ -1696,27 +1723,6 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if options.remove:
-        for ns, insts in conn.instances.items():
-            insts.reverse()
-            for inst in insts:
-                try:
-                    if options.verbose:
-                        print 'Deleting instance', inst.path
-                    conn.conn.DeleteInstance(inst.path)
-                except CIMError, ce:
-                    print 'Error deleting instance', inst.path
-                    print '    ', '%s %s' % (ce.args[0], ce.args[1])
-        for ns, cnames in conn.class_names.items():
-            conn.default_namespace = ns
-            cnames.reverse()
-            for cname in cnames:
-                try:
-                    if options.verbose:
-                        print 'Deleting class', cname
-                    conn.conn.DeleteClass(cname)
-                except CIMError, ce:
-                    print 'Error deleting class', cname
-                    print '    ', '%s %s' % (ce.args[0], ce.args[1])
-        # TODO: do we want to do anything with qualifiers? 
+        conn.rollback(verbose=options.verbose)
 
 
