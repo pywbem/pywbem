@@ -165,6 +165,9 @@ class MOFParseError(ValueError):
 
 def p_error(p):
     ex = MOFParseError()
+    if p is None:
+        ex.message = 'Unexpected end of file'
+        raise ex
     ex.file = p.lexer.parser.file
     ex.lineno = p.lineno
     ex.column = _find_column(p.lexer.parser.mof, p)
@@ -1596,8 +1599,12 @@ class MOFCompiler(object):
             return rv
         except MOFParseError, pe:
             self.parser.log('Syntax error:')
-            self.parser.log('%s:%s:' % (pe.file, pe.lineno))
-            self.parser.log('\n'.join(pe.context))
+            if hasattr(pe, 'file') and hasattr(pe, 'lineno'):
+                self.parser.log('%s:%s:' % (pe.file, pe.lineno))
+            if hasattr(pe, 'context'):
+                self.parser.log('\n'.join(pe.context))
+            if pe.message:
+                self.parser.log(pe.message)
             raise
         except CIMError, ce:
             if hasattr(ce, 'file_line'):
