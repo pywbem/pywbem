@@ -1719,15 +1719,22 @@ class ProviderProxy(object):
         """Check timestamp of loaded python provider module, and if it has
         changed since load, then reload the provider module.
         """
-        if (sys.modules[self.provider_module_name].provmod_timestamp \
-                        != os.path.getmtime(self.provid)):
+        try:
+            mod = sys.modules[self.provider_module_name]
+        except KeyError:
+            mod = None
+        if (mod is None or \
+                mod.provmod_timestamp != os.path.getmtime(self.provid)):
             print "Need to reload provider at %s" %self.provid
 
             #first unload the module
-            if hasattr(self.provmod, "shutdown"):
+            if self.provmod and hasattr(self.provmod, "shutdown"):
                 self.provmod.shutdown(env)
             #now reload and reinit module
-            del sys.modules[self.provider_module_name]
+            try:
+                del sys.modules[self.provider_module_name]
+            except KeyError:
+                pass
             try: 
                 self._load_provider_source()
                 self._init_provider(env)
