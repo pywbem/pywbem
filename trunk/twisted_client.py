@@ -29,7 +29,12 @@ from twisted.internet import reactor, protocol, defer
 from twisted.web import http, client, error
 
 from pywbem import CIMClass, CIMClassName, CIMInstance, CIMInstanceName, CIMError, cim_types, cim_xml
-from elementtree.ElementTree import fromstring, tostring
+
+try:
+    from elementtree.ElementTree import fromstring, tostring
+except ImportError, arg:
+    from xml.etree.ElementTree import fromstring, tostring
+
 import string
 from types import StringTypes
 from datetime import datetime, timedelta
