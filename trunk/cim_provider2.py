@@ -877,8 +877,7 @@ class CIMProvider2(object):
                 (rval, outs) = method(env=env, object_name=objectName, 
                                   **new_inputs)
             except TypeError, e:
-                raise pywbem.CIMError(pywbem.CIM_ERR_INVALID_PARAMETER,
-                        str(e))
+                raise pywbem.CIMError(pywbem.CIM_ERR_INVALID_PARAMETER, str(e))
 
             def add_type(v):
                 if isinstance(v, pywbem.CIMParameter):
