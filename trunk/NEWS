@@ -80,6 +80,8 @@ pywbem-0.7  YYYY-MM-DD
       can now be obtained with 'from pywbem.cim_provider import codegen', or
       'from pywbem.cim_provider2 import codegen' or similar. 
 
+    * Added wbemcli.py command line utility.  (Tim Potter)
+
 pywbem-0.6  2007-10-26
 
   LICENSING:
