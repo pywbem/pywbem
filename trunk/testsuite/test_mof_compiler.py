@@ -19,7 +19,7 @@ ns = 'root/test'
 cwd = os.getcwd()
 
 # Change the mofurl when new schema is released.
-mofurl = 'http://www.dmtf.org/standards/cim/cim_schema_v219/cim_schema_2.19.0Experimental-MOFs.zip'
+mofurl = 'http://www.dmtf.org/standards/cim/cim_schema_v2191/cim_schema_2.19.1Experimental-MOFs.zip' 
 
 class MOFTest(TestCase):
     """A base class that creates a MOF compiler instance"""
@@ -42,10 +42,10 @@ class TestFullSchema(MOFTest):
 
     def runtest(self):
         t = time()
-        self.mofcomp.compile_file('schema/cim_schema_2.19.0.mof', ns)
+        self.mofcomp.compile_file('schema/cim_schema_2.19.1.mof', ns)
         print 'elapsed: %f  ' % (time() - t),
         self.assert_equal(len(self.mofcomp.handle.qualifiers[ns]), 71)
-        self.assert_equal(len(self.mofcomp.handle.classes[ns]), 1633)
+        self.assert_equal(len(self.mofcomp.handle.classes[ns]), 1634)
         #print self.mofcomp.handle.classes[ns]['CIM_UnsignedCredential'].properties['OtherPublicKeyEncoding'].qualifiers['Description']
 
 class TestAliases(MOFTest):
