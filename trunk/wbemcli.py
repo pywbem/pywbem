@@ -112,17 +112,23 @@ if len(argv) != 1:
 def remote_connection():
     """Initiate a remote connection, via PyWBEM."""
 
-    proto = 'https'
+    if argv[0][0] == '/':
+        url = argv[0]
+    else:
+        proto = 'https'
 
-    if opts.no_ssl:
-        proto = 'http'
+        if opts.no_ssl:
+            proto = 'http'
 
-    url = '%s://%s' % (proto, argv[0])
+        url = '%s://%s' % (proto, argv[0])
 
-    if opts.port is not None:
-        url += ':%d' % opts.port
+        if opts.port is not None:
+            url += ':%d' % opts.port
 
     creds = None
+
+    if opts.user is not None and opts.password is None:
+        opts.password = getpass.getpass('Enter password for %s: ' % opts.user)
 
     if opts.user is not None or opts.password is not None:
         creds = (opts.user, opts.password)
