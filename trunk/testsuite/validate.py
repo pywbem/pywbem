@@ -22,7 +22,7 @@
 # Author: Tim Potter <tpot@hp.com>
 
 import sys, os, posix, string
-from popen2 import Popen3
+from subprocess import Popen, PIPE
 
 DTD_FILE = 'CIM_DTD_V22.dtd'
 
@@ -34,12 +34,13 @@ def validate_xml(data, dtd_directory = None):
     if dtd_directory is not None:
         dtd_file = '%s/%s' % (dtd_directory, DTD_FILE)
 
-    p = Popen3('xmllint --dtdvalid %s --noout -' % dtd_file)
+    p = Popen('xmllint --dtdvalid %s --noout -' % dtd_file, stdout=PIPE,
+                stderr=PIPE, stdin=PIPE, shell=True)
 
-    p.tochild.write(data)
-    p.tochild.close()
+    p.stdin.write(data)
+    p.stdin.close()
 
-    [sys.stdout.write(x) for x in p.fromchild.readlines()]
+    [sys.stdout.write(x) for x in p.stdout.readlines()]
 
     status = p.wait()
 

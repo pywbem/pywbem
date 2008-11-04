@@ -39,6 +39,8 @@ pywbem-0.7  YYYY-MM-DD
     * Fix Host: HTTP header when connecting to a unix domain socket.
       (Bart Whiteley)
 
+    * Fix deprecation warnings with Python 2.6.  (Bart Whiteley)
+
   ENHANCEMENTS:
 
     * Added support for generating Pegasus provider registration MOF in 
