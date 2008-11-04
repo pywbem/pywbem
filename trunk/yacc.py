@@ -71,7 +71,11 @@ error_count = 3                # Number of symbols that must be shifted to leave
 yaccdevel   = 0                # Set to True if developing yacc.  This turns off optimized
                                # implementations of certain functions.
 
-import re, types, sys, cStringIO, md5, os.path
+import re, types, sys, cStringIO, os.path
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import new as md5
 
 # Exception raised for yacc-related errors
 class YaccError(Exception):   pass
@@ -1156,7 +1160,7 @@ def initialize_vars():
 
     Errorfunc    = None    # User defined error handler
 
-    Signature    = md5.new()   # Digital signature of the grammar rules, precedence
+    Signature    = md5()   # Digital signature of the grammar rules, precedence
                                # and other information.  Used to determined when a
                                # parsing table needs to be regenerated.
     

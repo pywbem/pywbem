@@ -17,7 +17,8 @@ DTD_FILE = 'CIM_DTD_V22.dtd'
 
 def validate_xml(data, dtd_directory = None):
     
-    import sys, posix, popen2
+    import sys, posix
+    from subprocess import Popen, PIPE
 
     # Run xmllint to validate file
 
@@ -25,12 +26,13 @@ def validate_xml(data, dtd_directory = None):
     if dtd_directory is not None:
         dtd_file = '%s/%s' % (dtd_directory, DTD_FILE)
 
-    p = popen2.Popen3('xmllint --dtdvalid %s --noout -' % dtd_file)
+    p = Popen('xmllint --dtdvalid %s --noout -' % dtd_file, stdout=PIPE, 
+                    stdin=PIPE, stderr=PIPE, shell=True)
 
-    p.tochild.write(data)
-    p.tochild.close()
+    p.stdin.write(data)
+    p.stdin.close()
 
-    [sys.stdout.write(x) for x in p.fromchild.readlines()]
+    [sys.stdout.write(x) for x in p.stdout.readlines()]
 
     status = p.wait()
 

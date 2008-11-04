@@ -117,7 +117,7 @@ class TestParseError(MOFTest):
         try:
             self.mofcomp.compile_file(file, ns)
         except MOFParseError, pe:
-            self.assert_equal(pe.message, 'Unexpected end of file')
+            self.assert_equal(str(pe), 'Unexpected end of file')
 
 class TestRefs(MOFTest):
     def runtest(self):
