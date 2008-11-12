@@ -84,6 +84,10 @@ pywbem-0.7  YYYY-MM-DD
 
     * Added wbemcli.py command line utility.  (Tim Potter)
 
+    * Pass keyword args in unix domain socket connection functions down to
+      WBEMConnection().  (Tim Potter)
+
+
 pywbem-0.6  2007-10-26
 
   LICENSING:

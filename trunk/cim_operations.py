@@ -930,13 +930,12 @@ def is_subclass(ch, ns, super, sub):
                                IncludeClassOrigin=False)
     return False
 
-def PegasusUDSConnection(creds = None):
-    return WBEMConnection('/var/run/tog-pegasus/cimxml.socket', creds)
+def PegasusUDSConnection(creds = None, **kwargs):
+    return WBEMConnection('/var/run/tog-pegasus/cimxml.socket', creds, **kwargs)
 
-def SFCBUDSConnection(creds = None):
-    return WBEMConnection('/tmp/sfcbHttpSocket', creds)
+def SFCBUDSConnection(creds = None, **kwargs):
+    return WBEMConnection('/tmp/sfcbHttpSocket', creds, **kwargs)
 
-def OpenWBEMUDSConnection(creds = None):
-    return WBEMConnection('/tmp/OW@LCL@APIIPC_72859_Xq47Bf_P9r761-5_J-7_Q',
-            creds)
-
+def OpenWBEMUDSConnection(creds = None, **kwargs):
+    return WBEMConnection('/tmp/OW@LCL@APIIPC_72859_Xq47Bf_P9r761-5_J-7_Q', 
+                          creds, **kwargs)
