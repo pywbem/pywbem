@@ -272,7 +272,7 @@ def p_mp_createClass(p):
                         raise
                     if p.parser.verbose:
                         p.parser.log('Creating namespace ' + ns)
-                    _create_ns(p, handle, ns)
+                    _create_ns(p, p.parser.handle, ns)
                     fixedNS = True
                     continue
                 if not p.parser.search_paths:
@@ -507,7 +507,7 @@ def p_assocDeclaration(p):
     aqual = CIMQualifier('ASSOCIATION', True, type='boolean')
     # TODO flavor trash. 
     quals = [aqual] + p[3]
-    p[0] = _assoc_or_inic_decl(quals, p)
+    p[0] = _assoc_or_indic_decl(quals, p)
     
 def p_indicDeclaration(p):
     """indicDeclaration : '[' INDICATION qualifierListEmpty ']' CLASS className '{' classFeatureList '}' ';'
@@ -518,7 +518,7 @@ def p_indicDeclaration(p):
     iqual = CIMQualifier('INDICATION', True, type='boolean')
     # TODO flavor trash. 
     quals = [iqual] + p[3]
-    p[0] = _assoc_or_inic_decl(quals, p)
+    p[0] = _assoc_or_indic_decl(quals, p)
 
 def _assoc_or_indic_decl(quals, p):
     """(refer to grammer rules on p_assocDeclaration and p_indicDeclaration)"""
@@ -540,7 +540,7 @@ def _assoc_or_indic_decl(quals, p):
     props = {}
     methods = {}
     for item in cfl:
-        item.class_origin = came
+        item.class_origin = cname
         if isinstance(item, CIMMethod):
             methods[item.name] = item
         else:
@@ -1182,11 +1182,11 @@ def p_instanceDeclaration(p):
     except CIMError, ce:
         ce.file_line = (p.parser.file, p.lexer.lineno)
         if ce.args[0] == CIM_ERR_NOT_FOUND:
-            file = p.parser.mofcomp.find_mof(cname)
+            file_ = p.parser.mofcomp.find_mof(cname)
             if p.parser.verbose:
                 p.parser.log('Class %s does not exist' % cname)
-            if file:
-                p.parser.mofcomp.compile_file(file, ns)
+            if file_:
+                p.parser.mofcomp.compile_file(file_, ns)
                 cc = p.parser.handle.GetClass(cname, LocalOnly=False, 
                         IncludeQualifiers=True)
             else:
@@ -1246,14 +1246,14 @@ def p_valueInitializer(p):
                         | qualifierList identifier defaultValue ';'
                         """
     if len(p) == 4:
-        id = p[1]
+        id_ = p[1]
         val = p[2]
         quals = []
     else:
         quals = p[1]
-        id = p[2]
+        id_ = p[2]
         val = p[3]
-    p[0] = (quals, id, val)
+    p[0] = (quals, id_, val)
 
 def p_booleanValue(p):
     """booleanValue : FALSE
@@ -1388,11 +1388,11 @@ class MOFWBEMConnection(object):
                     pass
                 if len(args) > 0:
                     args = args[1:]
-                super = self.GetClass(cc.superclass, *args, **kwargs)
-                for prop in super.properties.values():
+                super_ = self.GetClass(cc.superclass, *args, **kwargs)
+                for prop in super_.properties.values():
                     if prop.name not in cc.properties:
                         cc.properties[prop.name] = prop
-                for meth in super.methods.values():
+                for meth in super_.methods.values():
                     if meth.name not in cc.methods:
                         cc.methods[meth.name] = meth
         return cc
@@ -1401,7 +1401,7 @@ class MOFWBEMConnection(object):
         cc = len(args) > 0 and args[0] or kwargs['NewClass']
         if cc.superclass:
             try:
-                super = self.GetClass(cc.superclass, LocalOnly=True, 
+                super_ = self.GetClass(cc.superclass, LocalOnly=True, 
                         IncludeQualifiers=False)
             except CIMError, ce:
                 if ce.args[0] == CIM_ERR_NOT_FOUND:
@@ -1643,9 +1643,10 @@ class MOFCompiler(object):
         classname = classname.lower()
         for search in self.parser.search_paths:
             for root, dirs, files in os.walk(search):
-                for file in files:
-                    if file.endswith('.mof') and file[:-4].lower() == classname:
-                        return root + '/' + file
+                for file_ in files:
+                    if file_.endswith('.mof') and \
+                            file_[:-4].lower() == classname:
+                        return root + '/' + file_
         return None
 
     def rollback(self, verbose=False):
@@ -1658,7 +1659,6 @@ def _build():
 
 if __name__ == '__main__':
     from optparse import OptionParser
-    import os
     usage = 'usage: %prog -n <namespace> [options] <MOF file> ...'
     oparser = OptionParser(usage=usage)
     oparser.add_option('-s', '--search', dest='search', 
