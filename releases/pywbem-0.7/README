@@ -1,0 +1,5 @@
+PyWBEM is a pure-Python library for performing operations using the WBEM
+management protocol.  Please see our web site at http://pywbem.sf.net for
+more details.
+
+It is licensed under the GNU LGPL v2.

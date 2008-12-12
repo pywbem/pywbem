@@ -1,0 +1,3 @@
+#pragma namespace ("root/suse")
+#pragma include ("OMC_PowerManagement.mof"
+
