@@ -33,6 +33,11 @@ CFLAGS="%{optflags}" %{__python} setup.py build
 %install
 rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
+chmod +x %{buildroot}%{python_sitelib}/pywbem/wbemcli.py
+chmod +x %{buildroot}%{python_sitelib}/pywbem/mof_compiler.py
+install -d %{buildroot}/usr/bin
+ln -s %{python_sitelib}/pywbem/mof_compiler.py %{buildroot}/usr/bin/mofcomp
+ln -s %{python_sitelib}/pywbem/wbemcli.py %{buildroot}/usr/bin/pywbemcli
 
 %clean
 rm -rf %{buildroot}
@@ -41,8 +46,9 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %doc README
 %doc LICENSE.txt
-
 %{python_sitelib}/*
+/usr/bin/mofcomp
+/usr/bin/pywbemcli
 
 %changelog
 * Tue Jan 05 2009 Tim Potter <tpot@hp.com> - 0.7.0-1
