@@ -1,3 +1,9 @@
+pywbem-0.7.0 XXXX-XX-XX
+
+  PACKAGING:
+
+    * Added LICENSE.txt file to release.  (Tim Potter)
+
 pywbem-0.7  2008-12-12
 
   BUG FIXES:
