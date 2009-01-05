@@ -4,7 +4,7 @@ Name:           python-pywbem
 Version:        0.7.0
 Release:        1%{?dist}
 Summary:        Python WBEM Client
-Patch0:		add-licence-txt.patch
+Patch0:         add-licence-txt.patch
 
 Group:          Development/Languages
 License:        LGPLv2
