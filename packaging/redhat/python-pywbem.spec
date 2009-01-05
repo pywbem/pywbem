@@ -4,7 +4,6 @@ Name:           python-pywbem
 Version:        0.7.0
 Release:        1%{?dist}
 Summary:        Python WBEM Client
-Patch0:         add-licence-txt.patch
 
 Group:          Development/Languages
 License:        LGPLv2
@@ -25,7 +24,6 @@ at http://www.dmtf.org/standards/wbem.
 
 %prep
 %setup -q -n pywbem-%{version}
-%patch0 -p0
 
 %build
 CFLAGS="%{optflags}" %{__python} setup.py build
@@ -45,7 +43,6 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %doc README
-%doc LICENSE.txt
 %{python_sitelib}/*
 /usr/bin/mofcomp
 /usr/bin/pywbemcli
