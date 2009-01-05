@@ -1,7 +1,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name:           python-pywbem
-Version:        0.7
+Version:        0.7.0
 Release:        1%{?dist}
 Summary:        Python WBEM Client
 Patch0:		add-licence-txt.patch
@@ -45,7 +45,7 @@ rm -rf %{buildroot}
 %{python_sitelib}/*
 
 %changelog
-* Tue Oct 28 2008 Tim Potter <tpot@hp.com> - 0.7-1
+* Tue Jan 05 2009 Tim Potter <tpot@hp.com> - 0.7.0-1
 - New upstream version
 * Mon Mar 17 2008 Tim Potter <tpot@hp.com> - 0.6-1
 - New upstream version
