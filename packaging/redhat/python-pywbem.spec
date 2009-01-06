@@ -34,8 +34,9 @@ rm -rf %{buildroot}
 chmod +x %{buildroot}%{python_sitelib}/pywbem/wbemcli.py
 chmod +x %{buildroot}%{python_sitelib}/pywbem/mof_compiler.py
 install -d %{buildroot}/usr/bin
-ln -s %{python_sitelib}/pywbem/mof_compiler.py %{buildroot}/usr/bin/mofcomp
-ln -s %{python_sitelib}/pywbem/wbemcli.py %{buildroot}/usr/bin/pywbemcli
+cd %{buildroot}/usr/bin
+ln -s ../..%{python_sitelib}/pywbem/mof_compiler.py mofcomp
+ln -s ../..%{python_sitelib}/pywbem/wbemcli.py pywbemcli
 
 %clean
 rm -rf %{buildroot}
