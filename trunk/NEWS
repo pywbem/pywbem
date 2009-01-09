@@ -1,5 +1,10 @@
 pywbem-0.7.0 XXXX-XX-XX
 
+  BUG FIXES:
+
+    * Added parsing of InvokeMethod return value and output parameters
+      for Twisted Python client.  (Tim Potter)
+
   PACKAGING:
 
     * Added LICENSE.txt file to release.  (Tim Potter)

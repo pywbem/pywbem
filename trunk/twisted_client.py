@@ -28,7 +28,7 @@ twisted.protocols.http.HTTPClient base class.
 from twisted.internet import reactor, protocol, defer
 from twisted.web import http, client, error
 
-from pywbem import CIMClass, CIMClassName, CIMInstance, CIMInstanceName, CIMError, cim_types, cim_xml
+from pywbem import CIMClass, CIMClassName, CIMInstance, CIMInstanceName, CIMError, cim_types, cim_xml, cim_obj
 
 try:
     from elementtree.ElementTree import fromstring, tostring
@@ -705,3 +705,32 @@ class InvokeMethod(WBEMClientFactory):
             method = MethodName,
             object = obj, 
             payload = payload)
+
+    def parseResponse(self, xml):
+
+        # Return value of method
+
+        result_xml = pywbem.tupletree.xml_to_tupletree(
+            tostring(xml.find('.//RETURNVALUE')))
+
+        result_tt = pywbem.tupleparse.parse_any(result_xml)
+
+        result = cim_obj.tocimobj(result_tt[1]['PARAMTYPE'],
+                                  result_tt[2])
+
+        # Output parameters
+        
+        params_xml = [pywbem.tupletree.xml_to_tupletree(tostring(x))
+                      for x in xml.findall('.//PARAMVALUE')]
+
+        params_tt = [pywbem.tupleparse.parse_any(x) for x in params_xml]
+
+        params = {}
+
+        for p in params_tt:
+            if p[1] == 'reference':
+                params[p[0]] = p[2]
+            else:
+                params[p[0]] = cim_obj.tocimobj(p[1], p[2])
+
+        return (result, params)
