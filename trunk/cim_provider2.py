@@ -2117,6 +2117,11 @@ class ProviderProxy(object):
 
 ##############################################################################
     def MI_shutdown (self, env):
+        # shutdown may be called multiple times -- once per MI type 
+        # (instance/method/association/...)  We'll only do stuff on 
+        # the first time. 
+        if self.provmod is None:
+            return
         modname = self.provmod.__name__
         if hasattr(self.provmod, "shutdown"):
             self.provmod.shutdown(env)
@@ -2127,8 +2132,8 @@ class ProviderProxy(object):
 
 ##############################################################################
     def MI_canunload(self, env):
-        if hasattr(self.provmod, "canunload"):
-            return self.provmod.canunload
+        if hasattr(self.provmod, "can_unload"):
+            return self.provmod.can_unload(env)
         else:
             return True
 

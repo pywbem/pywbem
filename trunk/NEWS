@@ -5,6 +5,10 @@ pywbem-0.7.0 XXXX-XX-XX
     * Added parsing of InvokeMethod return value and output parameters
       for Twisted Python client.  (Tim Potter)
 
+    * Fixed cim_provider2.py to properly support shutdown() and can_unload()
+      (called from CMPI cleanup() functions).  Support was recently added 
+      to cmpi-bindings for this.  (Bart Whiteley)
+
   PACKAGING:
 
     * Added LICENSE.txt file to release.  (Tim Potter)
