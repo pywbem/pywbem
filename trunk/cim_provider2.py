@@ -1657,10 +1657,7 @@ class ProviderProxy(object):
             self.provregs = pywbem.NocaseDict(self.provmod.get_providers(env))
 
     def _load_provider_source (self):
-        # odd chars in a module name tend to break things
-        self.provider_module_name = 'pyprovider_'
-        for ch in self.provid:
-            self.provider_module_name+= ch.isalnum() and ch or '_'
+        self.provider_module_name = os.path.basename(self.provid)[:-3]
         # let providers import other providers in the same directory
         provdir = dirname(self.provid)
         if provdir not in sys.path:
@@ -1673,9 +1670,7 @@ class ProviderProxy(object):
             try: 
                 # use full path in module name for uniqueness. 
                 print 'Loading provider %s from source' % self.provid
-                path = os.path.dirname(self.provid)
-                basename = os.path.basename(self.provid)[:-3]
-                fn = imp.find_module(basename, [path])
+                fn = imp.find_module(self.provider_module_name, [provdir])
                 try:
                     g_mod_lock.acquire()
                     imp.acquire_lock()
