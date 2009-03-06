@@ -1108,6 +1108,22 @@ def codegen (cc):
             return '(Required)'
         return ''
     #################
+    def build_reverse_val_map(obj):
+        vm = obj.qualifiers['valuemap'].value
+        if 'values' in obj.qualifiers:
+            vals = obj.qualifiers['values'].value
+        else:
+            vals = vm
+        tmap = zip(vals,vm)
+        rv = {}
+        for val, vm in tmap:
+            try:
+                vmi = int(vm)
+            except ValueError:
+                continue
+            rv[vmi] = str(val) # we want normal strings, not unicode
+        return rv 
+    #################
     def build_val_map(obj):
         vm = obj.qualifiers['valuemap'].value
         if 'values' in obj.qualifiers:
@@ -1140,6 +1156,11 @@ def codegen (cc):
         return map
 
     valuemaps = {}
+    rvaluemaps = pywbem.NocaseDict()
+
+    for prop in cc.properties.values():
+        if 'valuemap' in prop.qualifiers and 'values' in prop.qualifiers:
+            rvaluemaps[prop.name] = build_reverse_val_map(prop)
 
     for obj in cc.properties.values() + cc.methods.values():
         if 'valuemap' in obj.qualifiers:
@@ -1453,6 +1474,9 @@ class %(classname)s(CIMProvider2):
                         value = value+'_'
                     code+= '''
             %s = %s''' % (value, vm)
+            if group in rvaluemaps:
+                code+= '''
+            _reverse_map = %s''' % repr(rvaluemaps[group])
             for pname, vms in maps.items():
                 if pname == '<vms>':
                     continue
