@@ -2,6 +2,9 @@ pywbem-0.7.0 XXXX-XX-XX
 
   BUG FIXES:
 
+    * Fix syntax error in CIM DTDVERSION error path.  Allow KEYVALUE
+      VALUETYPE attribute to be optional as specified in the DTD.  (Andreas Linke)
+
     * Added parsing of InvokeMethod return value and output parameters
       for Twisted Python client.  (Tim Potter)
 
