@@ -658,9 +658,13 @@ def parse_keyvalue(tt):
     
     check_node(tt, 'KEYVALUE', ['VALUETYPE'], ['TYPE'], [], True)
 
+    p = pcdata(tt)
+
+    if not attrs(tt).has_key('VALUETYPE'):
+        return p;
+
     vt = attrs(tt).get('VALUETYPE')
     
-    p = pcdata(tt)
     if vt == 'string':
         return p
     elif vt == 'boolean':
