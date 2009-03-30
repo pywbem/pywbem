@@ -286,7 +286,7 @@ def parse_cim(tt):
     
     if attrs(tt)['CIMVERSION'] <> '2.0':
         raise ParseError('CIMVERSION is %s, expected 2.0' %
-                         attrs(tt)[CIMVERSION])
+                         attrs(tt)['CIMVERSION'])
 
     child = one_child(tt, ['MESSAGE', 'DECLARATION'])
 
