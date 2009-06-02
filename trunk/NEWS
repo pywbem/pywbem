@@ -12,6 +12,9 @@ pywbem-0.7.0 XXXX-XX-XX
       (called from CMPI cleanup() functions).  Support was recently added 
       to cmpi-bindings for this.  (Bart Whiteley)
 
+    * Fixed XML parsing to accept SFCB-style embedded instance parameters.
+      (Mihai Ibanescu)
+
   PACKAGING:
 
     * Added LICENSE.txt file to release.  (Tim Potter)

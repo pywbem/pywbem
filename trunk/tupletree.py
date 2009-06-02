@@ -72,6 +72,8 @@ def dom_to_tupletree(node):
             assert isinstance(child.nodeValue, types.StringTypes), \
                    "text node %s is not a string" % `child`
             contents.append(child.nodeValue)
+        elif child.nodeType == child.CDATA_SECTION_NODE:
+            contents.append(child.nodeValue)
         else:
             raise RuntimeError("can't handle %s" % child)
 
