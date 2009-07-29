@@ -1,9 +1,10 @@
-pywbem-0.7.0 XXXX-XX-XX
+pywbem-0.7.1 XXXX-XX-XX
 
   BUG FIXES:
 
     * Fix syntax error in CIM DTDVERSION error path.  Allow KEYVALUE
-      VALUETYPE attribute to be optional as specified in the DTD.  (Andreas Linke)
+      VALUETYPE attribute to be optional as specified in the DTD.  
+      (Andreas Linke)
 
     * Added parsing of InvokeMethod return value and output parameters
       for Twisted Python client.  (Tim Potter)
@@ -17,7 +18,11 @@ pywbem-0.7.0 XXXX-XX-XX
 
   PACKAGING:
 
+    * Fix grammatical funkiness in the license text.  No change to
+      actual license - still LGPLv2.  (Tim Potter)
+
     * Added LICENSE.txt file to release.  (Tim Potter)
+
 
 pywbem-0.7  2008-12-12
 
