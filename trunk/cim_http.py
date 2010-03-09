@@ -28,7 +28,7 @@ being transferred is XML.  It is up to the caller to format the input
 data and interpret the result.
 '''
 
-import sys, string, re, os, socket, pwd
+import sys, string, re, os, socket, getpass
 from stat import S_ISSOCK
 import cim_obj
 from types import StringTypes
@@ -171,7 +171,7 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
     if local:
         uid = os.getuid()
         try:
-            locallogin = pwd.getpwuid(uid)[0]
+            locallogin = getpass.getuser()
         except KeyError:
             locallogin = None
     while numTries < tryLimit:

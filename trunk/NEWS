@@ -16,6 +16,9 @@ pywbem-0.7.1 XXXX-XX-XX
     * Fixed XML parsing to accept SFCB-style embedded instance parameters.
       (Mihai Ibanescu)
 
+    * Use getpass module instead of pwd to detect local user to fix Win32.
+      (Tim Potter)
+
   PACKAGING:
 
     * Fix grammatical funkiness in the license text.  No change to
