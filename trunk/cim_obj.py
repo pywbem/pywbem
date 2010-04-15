@@ -72,7 +72,10 @@ class NocaseDict(object):
         k = key
         if isinstance(key, (str, unicode)):
             k = key.lower()
-        return self.data[k][1]
+        try:
+            return self.data[k][1]
+        except KeyError, arg:
+            raise KeyError, key
 
     def __setitem__(self, key, value):
         if not isinstance(key, (str, unicode)):

@@ -19,6 +19,9 @@ pywbem-0.7.1 XXXX-XX-XX
     * Use getpass module instead of pwd to detect local user to fix Win32.
       (Tim Potter)
 
+    * Re-throw KeyError exceptions with capitalised key string instead
+      of lower cased version in NocaseDict.__getitem__().  (Tim Potter)
+
   PACKAGING:
 
     * Fix grammatical funkiness in the license text.  No change to
