@@ -34,7 +34,8 @@ try:
 except ImportError, arg:
     from xml.etree.ElementTree import fromstring, tostring
 
-import string
+import string, base64
+
 from types import StringTypes
 from datetime import datetime, timedelta
 
@@ -57,11 +58,11 @@ class WBEMClient(http.HTTPClient):
         self.sendHeader('Content-length', len(self.factory.payload))
         self.sendHeader('Content-type', 'application/xml')
 
-        import base64
-        auth = base64.encodestring('%s:%s' % (self.factory.creds[0],
-                                              self.factory.creds[1]))[:-1]
+        if self.factory.creds:
+            auth = base64.b64encode('%s:%s' % (self.factory.creds[0],
+                                               self.factory.creds[1]))
 
-        self.sendHeader('Authorization', 'Basic %s' % auth)
+            self.sendHeader('Authorization', 'Basic %s' % auth)
 
         self.sendHeader('CIMOperation', str(self.factory.operation))
         self.sendHeader('CIMMethod', str(self.factory.method))

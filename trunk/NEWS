@@ -22,6 +22,9 @@ pywbem-0.7.1 XXXX-XX-XX
     * Re-throw KeyError exceptions with capitalised key string instead
       of lower cased version in NocaseDict.__getitem__().  (Tim Potter)
 
+    * Use base64.b64encode() instead of base64.encodestring() in Twisted
+      client. (Mihai Ibanescu)
+
   PACKAGING:
 
     * Fix grammatical funkiness in the license text.  No change to
