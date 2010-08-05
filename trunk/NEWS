@@ -25,6 +25,8 @@ pywbem-0.7.1 XXXX-XX-XX
     * Use base64.b64encode() instead of base64.encodestring() in Twisted
       client. (Mihai Ibanescu)
 
+    * Fix missing CIMDateTime import in Twisted client.  (Mihai Ibanescu)
+
   PACKAGING:
 
     * Fix grammatical funkiness in the license text.  No change to

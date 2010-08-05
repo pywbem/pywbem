@@ -27,7 +27,7 @@ twisted.protocols.http.HTTPClient base class.
 from twisted.internet import reactor, protocol, defer
 from twisted.web import http, client, error
 
-from pywbem import CIMClass, CIMClassName, CIMInstance, CIMInstanceName, CIMError, cim_types, cim_xml, cim_obj
+from pywbem import CIMClass, CIMClassName, CIMInstance, CIMInstanceName, CIMError, CIMDateTime, cim_types, cim_xml, cim_obj
 
 try:
     from elementtree.ElementTree import fromstring, tostring
