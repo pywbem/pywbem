@@ -770,10 +770,8 @@ class CIMProvider2(object):
         model.path = pywbem.CIMInstanceName(classname=resultClassName, 
                                             namespace=objectName.namespace)
         if role:
-            if role not in model.properties:
-                raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                                      "** this shouldn't happen")
-            model[role] = objectName
+            if role in model.properties:
+                model[role] = objectName
 
         gen = self.references(env=env, 
                                     object_name=objectName, 
@@ -816,10 +814,8 @@ class CIMProvider2(object):
         model.path = pywbem.CIMInstanceName(classname=resultClassName, 
                                             namespace=objectName.namespace)
         if role:
-            if role not in model.properties:
-                raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                                      "** this shouldn't happen")
-            model[role] = objectName
+            if role in model.properties:
+                model[role] = objectName
         gen = self.references(env=env, 
                                     object_name=objectName, 
                                     model=model,
