@@ -503,8 +503,11 @@ class CIMInstanceName(object):
 
             s +='%s=' % key
 
-            if type(value) == int or type(value) == long:
+            if isinstance(value, (int, long, bool, float)):
                 s += str(value)
+            elif isinstance(value, CIMInstanceName):
+                s += '"%s"' % str(value).replace(
+                        '\\','\\\\').replace('"','\\"')
             else:
                 s += '"%s"' % value
 
