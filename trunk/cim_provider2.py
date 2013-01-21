@@ -444,6 +444,8 @@ class CIMProvider2(object):
                    result_class_name, role, result_role, keys_only):
 
         gen = self.enum_instances(env, model, keys_only)
+        if role:
+            role = role.lower()
         for inst in gen:
             for prop in inst.properties.values():
                 if prop.type != 'reference':
