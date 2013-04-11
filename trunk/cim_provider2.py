@@ -1667,7 +1667,7 @@ class ProviderProxy(object):
             logger = env.get_logger()
             logger.log_debug('Loading python provider at %s' %provid)
             self.provid = provid
-            self._load_provider_source()
+            self._load_provider_source(logger)
         self._init_provider(env)
 
     def _init_provider (self, env):
@@ -1677,7 +1677,7 @@ class ProviderProxy(object):
         if hasattr(self.provmod, 'get_providers'):
             self.provregs = pywbem.NocaseDict(self.provmod.get_providers(env))
 
-    def _load_provider_source (self):
+    def _load_provider_source (self, logger):
         self.provider_module_name = os.path.basename(self.provid)[:-3]
         # let providers import other providers in the same directory
         provdir = dirname(self.provid)
@@ -1685,12 +1685,12 @@ class ProviderProxy(object):
             sys.path.append(provdir)
         try:
             self.provmod = sys.modules[self.provider_module_name]
-            print 'Provider %s already loaded, found in sys.modules' \
-                    % self.provmod
+            logger.log_debug('Provider %s already loaded, found in sys.modules' \
+                    % self.provmod)
         except KeyError:
             try: 
                 # use full path in module name for uniqueness. 
-                print 'Loading provider %s from source' % self.provid
+                logger.log_debug('Loading provider %s from source' % self.provid)
                 fn = imp.find_module(self.provider_module_name, [provdir])
                 try:
                     g_mod_lock.acquire()
@@ -1740,7 +1740,8 @@ class ProviderProxy(object):
             mod = None
         if (mod is None or \
                 mod.provmod_timestamp != os.path.getmtime(self.provid)):
-            print "Need to reload provider at %s" %self.provid
+            logger = env.get_logger()
+            logger.log_debug("Need to reload provider at %s" % self.provid)
 
             #first unload the module
             if self.provmod and hasattr(self.provmod, "shutdown"):
@@ -1751,7 +1752,7 @@ class ProviderProxy(object):
             except KeyError:
                 pass
             try: 
-                self._load_provider_source()
+                self._load_provider_source(logger)
                 self._init_provider(env)
             except IOError, arg:
                 raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
