@@ -349,7 +349,7 @@ def parse_value_object(tt):
 
     check_node(tt, 'VALUE.OBJECT')
 
-    child = one_child(tt, ['CLASS', 'INSTANCE'])
+    child = one_child(tt, ['CLASS', 'INSTANCE', 'QUALIFIER.DECLARATION'])
 
     return (name(tt), attrs(tt), child)
 
