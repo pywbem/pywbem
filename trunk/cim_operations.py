@@ -27,7 +27,7 @@ import sys, string
 from types import StringTypes
 from xml.dom import minidom
 import cim_obj, cim_xml, cim_http, cim_types
-from cim_obj import CIMClassName, CIMInstanceName, CIMInstance, CIMClass
+from cim_obj import CIMClassName, CIMInstanceName, CIMInstance, CIMClass, NocaseDict
 from datetime import datetime, timedelta
 from tupletree import dom_to_tupletree, xml_to_tupletree
 from tupleparse import parse_cim
@@ -811,7 +811,7 @@ class WBEMConnection(object):
 
         # Convert zero or more PARAMVALUE elements into dictionary
 
-        output_params = {}
+        output_params = NocaseDict()
 
         for p in result:
             if p[1] == 'reference':
