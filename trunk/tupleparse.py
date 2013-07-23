@@ -282,9 +282,9 @@ def parse_cim(tt):
     """
 
     check_node(tt, 'CIM', ['CIMVERSION', 'DTDVERSION'])
-    
-    if attrs(tt)['CIMVERSION'] <> '2.0':
-        raise ParseError('CIMVERSION is %s, expected 2.0' %
+
+    if not attrs(tt)['CIMVERSION'].startswith('2.'):
+        raise ParseError('CIMVERSION is %s, expected 2.x.y' %
                          attrs(tt)['CIMVERSION'])
 
     child = one_child(tt, ['MESSAGE', 'DECLARATION'])
