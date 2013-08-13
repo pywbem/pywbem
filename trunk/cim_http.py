@@ -124,6 +124,7 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
                 from OpenSSL import SSL
                 ctx = SSL.Context(SSL.SSLv3_METHOD)
                 ctx.set_verify(SSL.VERIFY_PEER, verify_callback)
+                ctx.set_default_verify_paths()
                 # Add the key and certificate to the session
                 if cert_file is not None and key_file is not None:
                   ctx.use_certificate_file(cert_file)
