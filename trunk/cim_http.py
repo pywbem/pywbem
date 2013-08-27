@@ -58,6 +58,15 @@ def parse_url(url):
     if m:
         host = url[len(m.group(0)):]
 
+    # IPv6 with/without port
+    m = re.match("^\[?([0-9A-Fa-f:]*)\]?(:([0-9]*))?$", host)
+    if m:
+        host = m.group(1)
+        port_tmp = m.group(3)
+        if port_tmp:
+            port = int(port_tmp)
+        return host, port, ssl
+
     s = string.split(host, ":")         # Set port number
     if len(s) != 1:
         host = s[0]
@@ -120,25 +129,41 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
             key_file = x509.get('key_file')
 
         if verify_callback is not None:
-            try:
-                from OpenSSL import SSL
-                ctx = SSL.Context(SSL.SSLv3_METHOD)
-                ctx.set_verify(SSL.VERIFY_PEER, verify_callback)
-                ctx.set_default_verify_paths()
-                # Add the key and certificate to the session
-                if cert_file is not None and key_file is not None:
-                  ctx.use_certificate_file(cert_file)
-                  ctx.use_privatekey_file(key_file)
-                s = SSL.Connection(ctx, socket.socket(socket.AF_INET,
-                                                      socket.SOCK_STREAM))
-                s.connect((host, port))
-                s.do_handshake()
-                s.shutdown()
-                s.close()
-            except socket.error, arg:
-                raise Error("Socket error: %s" % (arg,))
-            except socket.sslerror, arg:
-                raise Error("SSL error: %s" % (arg,))
+            addr_ind = 0
+            # Temporary exception store
+            addr_exc = None
+            # Get a list of arguments for socket().
+            addr_list = socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM)
+            for addr_ind in xrange(len(addr_list)):
+                family, socktype, proto, canonname, sockaddr = addr_list[addr_ind]
+                try:
+                    from OpenSSL import SSL
+                    ctx = SSL.Context(SSL.SSLv3_METHOD)
+                    ctx.set_verify(SSL.VERIFY_PEER, verify_callback)
+                    ctx.set_default_verify_paths()
+                    # Add the key and certificate to the session
+                    if cert_file is not None and key_file is not None:
+                      ctx.use_certificate_file(cert_file)
+                      ctx.use_privatekey_file(key_file)
+                    s = SSL.Connection(ctx, socket.socket(family, socktype, proto))
+                    s.connect((host, port))
+                    s.do_handshake()
+                    s.shutdown()
+                    s.close()
+                    addr_exc = None
+                    break
+                except (socket.gaierror, socket.error), arg:
+                    # Could not perform connect() call, store the exception object for
+                    # later use.
+                    addr_exc = arg
+                    continue
+                except socket.sslerror, arg:
+                    raise Error("SSL error: %s" % (arg,))
+
+            # Did we try all the addresses from getaddrinfo() and no successful
+            # connection performed?
+            if addr_exc:
+                raise Error("Socket error: %s" % (addr_exc),)
 
     numTries = 0
     localAuthHeader = None
@@ -167,7 +192,7 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
                 raise Error('Invalid URL')
 
     locallogin = None
-    if host in ('localhost', '127.0.0.1'):
+    if host in ('localhost', 'localhost6', '127.0.0.1', '::1'):
         local = True
     if local:
         uid = os.getuid()
