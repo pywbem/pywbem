@@ -1680,6 +1680,9 @@ if __name__ == '__main__':
     oparser.add_option('-p', '--password', 
             dest='password', metavar='Password',
             help='Specify the password')
+    oparser.add_option('-d', '--dry-run',
+            dest='dry_run', default=False, action='store_true',
+            help="Don't actually modify the repository, just check mof file syntax. Connection to CIMOM is still required to check qualifiers.")
 
     (options, args) = oparser.parse_args()
     search = options.search
@@ -1695,7 +1698,7 @@ if __name__ == '__main__':
         conn = WBEMConnection(options.url, (options.username, passwd))
     else:
         conn = WBEMConnection(options.url)
-    if options.remove:
+    if options.remove or options.dry_run:
         conn = MOFWBEMConnection(conn=conn)
     #conn.debug = True
     conn.default_namespace = options.ns
@@ -1728,7 +1731,5 @@ if __name__ == '__main__':
     except CIMError, ce:
         sys.exit(1)
 
-    if options.remove:
+    if options.remove and not options.dry_run:
         conn.rollback(verbose=options.verbose)
-
-
