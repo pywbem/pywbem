@@ -27,7 +27,7 @@ import sys, string
 from types import StringTypes
 from xml.dom import minidom
 import cim_obj, cim_xml, cim_http, cim_types
-from cim_obj import CIMClassName, CIMInstanceName, CIMInstance, CIMClass, NocaseDict
+from cim_obj import CIMClassName, CIMInstanceName, CIMInstance, CIMClass
 from datetime import datetime, timedelta
 from tupletree import dom_to_tupletree, xml_to_tupletree
 from tupleparse import parse_cim
@@ -78,12 +78,12 @@ class WBEMConnection(object):
     the request before it is sent, and the reply before it is
     unpacked.
 
-    verify_callback is used to verify the server certificate.  
-    It is passed to OpenSSL.SSL.set_verify, and is called during the SSL
-    handshake.  verify_callback should take five arguments: A Connection 
-    object, an X509 object, and three integer variables, which are in turn 
-    potential error number, error depth and return code. verify_callback 
-    should return True if verification passes and False otherwise.
+    verify_callback is used to verify the server certificate.  It is passed to
+    M2Crypto.SSL.Context.set_verify, and is called during the SSL handshake.
+    verify_callback should take five arguments: An SSL Context object, an X509
+    object, and three integer variables, which are in turn potential error
+    number, error depth and return code. verify_callback should return True if
+    verification passes and False otherwise.
 
     The value of the x509 argument is used only when the url contains
     'https'. x509 must be a dictionary containing the keys 'cert_file' 
@@ -91,14 +91,27 @@ class WBEMConnection(object):
     filename of an certificate and the value of 'key_file' must consist 
     of a filename containing the private key belonging to the public key 
     that is part of the certificate in cert_file. 
+
+    ca_certs specifies where CA certificates for verification purposes are
+    located. These are trusted certificates. Note that the certificates have to
+    be in PEM format. Either it is a directory prepared using the c_rehash tool
+    included with OpenSSL or an pemfile. If None, default system path will be
+    used.
+
+    no_verification allows to disable peer's verification. This is insecure and
+    should be avoided. If True, peer's certificate is not verified and ca_certs
+    argument is ignored.
     """
     
     def __init__(self, url, creds = None, default_namespace = DEFAULT_NAMESPACE,
-                 x509 = None, verify_callback = None):
+                 x509 = None, verify_callback = None, ca_certs = None,
+                 no_verification = False):
         self.url = url
         self.creds = creds
         self.x509 = x509
         self.verify_callback = verify_callback
+        self.ca_certs = ca_certs
+        self.no_verification = no_verification
         self.last_request = self.last_reply = ''
         self.default_namespace = default_namespace
         self.debug = False
@@ -164,7 +177,9 @@ class WBEMConnection(object):
             resp_xml = cim_http.wbem_request(self.url, req_xml.toxml(),
                                              self.creds, headers,
                                              x509 = self.x509,
-                                             verify_callback = self.verify_callback)
+                                             verify_callback = self.verify_callback,
+                                             ca_certs = self.ca_certs,
+                                             no_verification = self.no_verification)
         except cim_http.AuthError:
             raise
         except cim_http.Error, arg:
@@ -321,7 +336,9 @@ class WBEMConnection(object):
             resp_xml = cim_http.wbem_request(self.url, req_xml.toxml(),
                                              self.creds, headers,
                                              x509 = self.x509,
-                                             verify_callback = self.verify_callback)
+                                             verify_callback = self.verify_callback,
+                                             ca_certs = self.ca_certs,
+                                             no_verification = self.no_verification)
         except cim_http.Error, arg:
             # Convert cim_http exceptions to CIMError exceptions
             raise CIMError(0, str(arg))
@@ -811,7 +828,7 @@ class WBEMConnection(object):
 
         # Convert zero or more PARAMVALUE elements into dictionary
 
-        output_params = NocaseDict()
+        output_params = {}
 
         for p in result:
             if p[1] == 'reference':

@@ -28,6 +28,7 @@ being transferred is XML.  It is up to the caller to format the input
 data and interpret the result.
 '''
 
+from M2Crypto import SSL, Err
 import sys, string, re, os, socket, getpass
 from stat import S_ISSOCK
 import cim_obj
@@ -74,8 +75,26 @@ def parse_url(url):
 
     return host, port, ssl
 
+def get_default_ca_certs():
+    """
+    Try to find out system path with ca certificates. This path is cached and
+    returned. If no path is found out, None is returned.
+    """
+    if not hasattr(get_default_ca_certs, '_path'):
+        for path in (
+                '/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt',
+                '/etc/ssl/certs',
+                '/etc/ssl/certificates'):
+            if os.path.exists(path):
+                get_default_ca_certs._path = path
+                break
+        else:
+            get_default_ca_certs._path = None
+    return get_default_ca_certs._path
+
 def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
-                 verify_callback = None):
+                 verify_callback = None, ca_certs = None,
+                 no_verification = False):
     """Send XML data over HTTP to the specified url. Return the
     response in XML.  Uses Python's build-in httplib.  x509 may be a
     dictionary containing the location of the SSL certificate and key
@@ -105,10 +124,49 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
     
     class HTTPSConnection(HTTPBaseConnection, httplib.HTTPSConnection):
         def __init__(self, host, port=None, key_file=None, cert_file=None, 
-                     strict=None):
+                     strict=None, ca_certs=None, verify_callback=None):
             httplib.HTTPSConnection.__init__(self, host, port, key_file, 
                                              cert_file, strict)
-    
+            self.ca_certs = ca_certs
+            self.verify_callback = verify_callback
+
+        def connect(self):
+            "Connect to a host on a given (SSL) port."
+            self.sock = socket.create_connection((self.host, self.port),
+                                            self.timeout, self.source_address)
+            if self._tunnel_host:
+                self.sock = sock
+                self._tunnel()
+            ctx = SSL.Context('sslv23')
+            if self.cert_file:
+                ctx.load_cert(self.cert_file, keyfile=self.key_file)
+            if self.ca_certs:
+                ctx.set_verify(SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
+                    depth=9, callback=verify_callback)
+                if os.path.isdir(self.ca_certs):
+                    ctx.load_verify_locations(capath=self.ca_certs)
+                else:
+                    ctx.load_verify_locations(cafile=self.ca_certs)
+            try:
+                self.sock = SSL.Connection(ctx, self.sock)
+                # Below is a body of SSL.Connection.connect() method
+                # except for the first line (socket connection). We want to preserve
+                # tunneling ability.
+                self.sock.addr = (self.host, self.port)
+                self.sock.setup_ssl()
+                self.sock.set_connect_state()
+                ret = self.sock.connect_ssl()
+                if self.ca_certs:
+                    check = getattr(self.sock, 'postConnectionCheck',
+                             self.sock.clientPostConnectionCheck)
+                    if check is not None:
+                        if not check(self.sock.get_peer_cert(), self.host):
+                            raise Error('SSL error: post connection check failed')
+                return ret
+            except ( Err.SSLError, SSL.SSLError, SSL.SSLTimeoutError
+                   , SSL.Checker.WrongHost), arg:
+                raise Error("SSL error: %s" % arg)
+
     class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
         def __init__(self, uds_path):
             httplib.HTTPConnection.__init__(self, 'localhost')
@@ -117,64 +175,36 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self.sock.connect(self.uds_path)
 
-    host, port, ssl = parse_url(url)
+    host, port, use_ssl = parse_url(url)
 
     key_file = None
     cert_file = None
 
-    if ssl:
-
-        if x509 is not None:
-            cert_file = x509.get('cert_file')
-            key_file = x509.get('key_file')
-
-        if verify_callback is not None:
-            addr_ind = 0
-            # Temporary exception store
-            addr_exc = None
-            # Get a list of arguments for socket().
-            addr_list = socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM)
-            for addr_ind in xrange(len(addr_list)):
-                family, socktype, proto, canonname, sockaddr = addr_list[addr_ind]
-                try:
-                    from OpenSSL import SSL
-                    ctx = SSL.Context(SSL.SSLv3_METHOD)
-                    ctx.set_verify(SSL.VERIFY_PEER, verify_callback)
-                    ctx.set_default_verify_paths()
-                    # Add the key and certificate to the session
-                    if cert_file is not None and key_file is not None:
-                      ctx.use_certificate_file(cert_file)
-                      ctx.use_privatekey_file(key_file)
-                    s = SSL.Connection(ctx, socket.socket(family, socktype, proto))
-                    s.connect((host, port))
-                    s.do_handshake()
-                    s.shutdown()
-                    s.close()
-                    addr_exc = None
-                    break
-                except (socket.gaierror, socket.error), arg:
-                    # Could not perform connect() call, store the exception object for
-                    # later use.
-                    addr_exc = arg
-                    continue
-                except socket.sslerror, arg:
-                    raise Error("SSL error: %s" % (arg,))
-
-            # Did we try all the addresses from getaddrinfo() and no successful
-            # connection performed?
-            if addr_exc:
-                raise Error("Socket error: %s" % (addr_exc),)
+    if use_ssl and x509 is not None:
+        cert_file = x509.get('cert_file')
+        key_file = x509.get('key_file')
 
     numTries = 0
     localAuthHeader = None
     tryLimit = 5
 
+    if isinstance(data, unicode):
+        data = data.encode('utf-8')
     data = '<?xml version="1.0" encoding="utf-8" ?>\n' + data
 
+    if not no_verification and ca_certs is None:
+        ca_certs = get_default_ca_certs()
+    elif no_verification:
+        ca_certs = None
+
     local = False
-    if ssl:
-        h = HTTPSConnection(host, port = port, key_file = key_file,
-                                            cert_file = cert_file)
+    if use_ssl:
+        h = HTTPSConnection(host,
+                port = port,
+                key_file = key_file,
+                cert_file = cert_file,
+                ca_certs = ca_certs,
+                verify_callback = verify_callback)
     else:
         if url.startswith('http'):
             h = HTTPConnection(host, port = port)
@@ -216,6 +246,8 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
             h.putheader('PegasusAuthorization', 'Local "%s"' % locallogin)
 
         for hdr in headers:
+            if isinstance(hdr, unicode):
+                hdr = hdr.encode('utf-8')
             s = map(lambda x: string.strip(x), string.split(hdr, ":", 1))
             h.putheader(urllib.quote(s[0]), urllib.quote(s[1]))
 
