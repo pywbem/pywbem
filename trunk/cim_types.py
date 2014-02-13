@@ -258,5 +258,5 @@ def atomic_to_cim_xml(obj):
     elif cimtype(obj) == 'real64':
         return u'%.16E' % obj
     else:
-        return unicode(obj)
+        return obj.decode('utf-8') if isinstance(obj, str) else unicode(obj)
 

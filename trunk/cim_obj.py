@@ -391,7 +391,7 @@ class CIMProperty(object):
             if value is not None:
                 if value:
                     if self.embedded_object is not None:
-                        value = [v.tocimxml().toxml() for v in value]
+                        value = [v.tocimxml().toxml(encoding='utf-8') for v in value]
                 value = VALUE_ARRAY([VALUE(atomic_to_cim_xml(v)) for v in value])
 
             return PROPERTY_ARRAY(
@@ -422,7 +422,7 @@ class CIMProperty(object):
             value = self.value
             if value is not None:
                 if self.embedded_object is not None:
-                    value = value.tocimxml().toxml()
+                    value = value.tocimxml().toxml(encoding='utf-8')
                 else:
                     value = atomic_to_cim_xml(value)
                 value = VALUE(value)
@@ -599,9 +599,9 @@ class CIMInstanceName(object):
                     # long or float
                     _type = 'numeric'
                     value = str(kb[1])
-                elif type(kb[1]) == str or type(kb[1]) == unicode:
+                elif isinstance(kb[1], basestring):
                     _type = 'string'
-                    value = kb[1]
+                    value = kb[1].decode('utf-8') if isinstance(kb[1], str) else kb[1]
                 else:
                     raise TypeError(
                         'Invalid keybinding type for keybinding ' '%s: %s' % (kb[0],`type(kb[1])`))
@@ -1341,7 +1341,8 @@ def tocimxml(value):
 
     if isinstance(value, cim_types.CIMType) or \
            type(value) in (str, unicode, int):
-        return cim_xml.VALUE(unicode(value))
+        value = value.decode('utf-8') if isinstance(value, str) else unicode(value)
+        return cim_xml.VALUE(value)
 
     if isinstance(value, bool):
         if value:
