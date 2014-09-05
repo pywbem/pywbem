@@ -1091,11 +1091,9 @@ def p_scope(p):
     """scope : ',' SCOPE '(' metaElementList ')'"""
     slist = p[4]
     scopes = {}
-    for i in ('SCHEMA',
-              'CLASS',
+    for i in ('CLASS',
               'ASSOCIATION',
               'INDICATION',
-              'QUALIFIER',
               'PROPERTY',
               'REFERENCE',
               'METHOD',
