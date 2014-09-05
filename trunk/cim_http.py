@@ -236,7 +236,7 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
         h.putrequest('POST', '/cimom')
 
         h.putheader('Content-type', 'application/xml; charset="utf-8"')
-        h.putheader('Content-length', len(data))
+        h.putheader('Content-length', str(len(data)))
         if localAuthHeader is not None:
             h.putheader(*localAuthHeader)
         elif creds is not None: 
