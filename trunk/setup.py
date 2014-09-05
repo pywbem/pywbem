@@ -27,6 +27,11 @@ import shutil
 import mof_compiler
 mof_compiler._build()
 
+# Get package version from __init__.py 
+init_py = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]),
+                                                       '__init__.py'))
+execfile(init_py) # defines __version__
+
 args = {'name': 'pywbem',
         'author': 'Tim Potter',
         'author_email': 'tpot@hp.com',
@@ -34,7 +39,7 @@ args = {'name': 'pywbem',
         'long_description': __doc__,
         'platforms': ['any'],
         'url': 'http://pywbem.sf.net/',
-        'version': '0.7.0',
+        'version': __version__,
         'license': 'LGPLv2',
         'packages': ['pywbem'],
         # Make packages in root dir appear in pywbem module
