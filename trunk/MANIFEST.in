@@ -1,3 +1,5 @@
 include LICENSE.txt
 include *.py
 include README
+include NEWS
+include INSTALL
