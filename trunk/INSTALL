@@ -1,22 +1,18 @@
 Installation
 
-PyWBEM can be installed quite easily using the standard Python
-distutils that is part of the Python distribution. PyWBEM is built
-using the following shell command. Since PyWBEM is a pure-Python
-module, there isn't much that is done during the build process.
+PyWBEM can be installed quite easily using the standard Python distutils that
+is part of the Python distribution. The source for the installation can be
+a copy of the SVN code repository (for example, if you want to get the latest
+level of code in development), or a downloaded and unpacked distribution
+archive.
 
-  $ python setup.py build
-  running build
-  running build_py
-  creating build
-  creating build/lib
-  creating build/lib/pywbem
-  copying cim_xml.py -> build/lib/pywbem
-  [...]
-
-PyWBEM is installed, as root, with the following shell command. This
-copies the PyWBEM source to the Python site-packages directory where
-it can be loaded by the interpreter.
+From the pywbem/trunk directory of the copy of the SVN code repository, or
+from the unpack directory of the downloaded distribution archive, PyWBEM is
+installed with the following shell command. The command syntax is shown for
+Linux, but this works the same way on Windows and on other operating systems
+supported by Python. This copies the PyWBEM source to the Python
+site-packages directory where it can be loaded by the interpreter. On Linux,
+you need to have root rights:
 
   # python setup.py install
   running install
@@ -27,7 +23,7 @@ it can be loaded by the interpreter.
   [...]
 
 If you do not have root access, or would like to install PyWBEM in a
-different directory, use the --install-lib option when installing.
+different directory, use the --install-lib option when installing:
 
   $ python setup.py install --install-lib $HOME/python/lib
   running install
@@ -39,8 +35,8 @@ different directory, use the --install-lib option when installing.
   copying build/lib/pywbem/cim_xml.py -> /home/tpot/python/lib/pywbem
   [...]
 
-To test that PyWBEM is sucessfully installed, start up a Python
-interpreter and try to import the pywbem module.
+To test that PyWBEM is sucessfully installed, start up a Python interpreter and
+try to import the pywbem module:
 
   $ python
   Python 2.3.5 (#2, Mar 26 2005, 17:32:32)
