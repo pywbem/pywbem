@@ -140,6 +140,11 @@ class NocaseDict(object):
         for item in self.data.iteritems():
             yield item[1]
 
+    # Support 'for' and 'in' directly
+
+    def __iter__(self):
+        return self.iterkeys()
+
     # Other stuff
 
     def __repr__(self):
