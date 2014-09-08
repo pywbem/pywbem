@@ -1,16 +1,40 @@
-pywbem-0.7.1 XXXX-XX-XX
+pywbem-0.x.x-dev (last updated: 2014-09-08, includes commits up to r642)
+
+  ENHANCEMENTS:
+
+    * Verify certificates against platform provided CA trust store in
+      /etc/pki/tls/certs. Linux only.  (Peter Hatina)
+
+    * Added '-d' option to MOF compiler that causes the compiler to perform a
+      dry-run and just check the MOF file syntax. This allows to more easily
+      detect included MOF files when used together with the '-v' option.
+      (Jan Safranek)
+
+    * Added support for non-ASCII characters.  (Michal Minar)
+
+    * Improved information in the message text of some exceptions (TypeError and
+      KeyError in cim_obj.py, ValueError in cim_obj.py, and ParseError in
+      tupleparse.py).  (Andreas Maier)
+
+    * Moved the definition of the pywbem version from setup.py to __init__.py,
+      in order to make it available to programs using pywbem as
+      pywbem.__version__.  (Andreas Maier)
+
+    * Added support for direct iteration over NocaseDict objects using 'for' and
+      'in' by adding __iter__(), e.g. for use with CIMInstance.properties.
+      (Andreas Maier)
 
   BUG FIXES:
 
     * Fix syntax error in CIM DTDVERSION error path.  Allow KEYVALUE
-      VALUETYPE attribute to be optional as specified in the DTD.  
+      VALUETYPE attribute to be optional as specified in the DTD.
       (Andreas Linke)
 
     * Added parsing of InvokeMethod return value and output parameters
       for Twisted Python client.  (Tim Potter)
 
     * Fixed cim_provider2.py to properly support shutdown() and can_unload()
-      (called from CMPI cleanup() functions).  Support was recently added 
+      (called from CMPI cleanup() functions).  Support was recently added
       to cmpi-bindings for this.  (Bart Whiteley)
 
     * Fixed XML parsing to accept SFCB-style embedded instance parameters.
@@ -27,12 +51,70 @@ pywbem-0.7.1 XXXX-XX-XX
 
     * Fix missing CIMDateTime import in Twisted client.  (Mihai Ibanescu)
 
+    * Fixed CIMInstanceName rendering to string. It is now possible to pass the
+      rendered string value as an instance path argument of a CIM method.
+      (Jan Safranek, Michal Minar)
+
+    * For Python providers, fixed the comparsion of the Role parameter in
+      association operations to be case insensitive, and removed an erroneous
+      test that raised an exception when the property specified in the Role
+      parameter was not also in the property list specified by the Properties
+      parameter.  (Jan Safranek)
+
+    * For Python providers, converted debug 'print' statements to trace
+      messages that end up in the system log.  (Jan Safranek)
+
+    * The CIM-XML parser no longer throws an exception when parsing a
+      qualifier declaration.  (Jan Safranek)
+
+      Note: The CIM-XML supported by this fix does not conform to DSP0201 so
+      far. Further fixes are pending.
+
+    * Fixed parsing errors for connection URLs with IPv6 addresses.
+      (Peter Hatina)
+
+      Note: The parsing support does not address all issues with IPv6 addresses,
+      and it does not support zone indexes (aka scope IDs). Further fixes are
+      pending.
+
+    * Fixed the hard coded socket addressing family used for HTTPS that was
+      incorrect in some IPv6 cases, by determining it dynamically.
+      (Peter Hatina)
+
+    * Fixed the list of output parameters of extrinsic method calls to be
+      returned as a case insensitive dictionary (using cim_obj.NocaseDict).
+      (Jan Safranek)
+
+    * Fixed the checking of CIMVERSION attributes in CIM-XML to only verify the
+      major version, consistent with DSP0201 (see subclause 5.2.1, in DSP0201
+      version 2.3.1).  (Jan Safranek)
+
+    * Fixed error in cim_http.py related to stronger type checking of Python
+      2.7. (Eduardo de Barros Lima)
+
+    * Removed erroneous qualifier scopes SCHEMA and QUALIFIER from the MOF
+      compiler (see DSP0004).  (Andreas Maier)
+
+    * Fixed debug logging of CIM-XML payload (that is, conn.last_*request/reply
+      attributes) for extrinsic method calls, to now be consistent with
+      intrinsic method calls.  (Andreas Maier)
+
+    * Fixed TOCTOU (time-of-check-time-of-use) error when validating peer's
+      certificate.  (Michal Minar)
+
   PACKAGING:
 
-    * Fix grammatical funkiness in the license text.  No change to
-      actual license - still LGPLv2.  (Tim Potter)
+    * Fix grammatical funkiness in the license text.  No change to actual
+      license - still LGPLv2.  (Tim Potter)
 
     * Added LICENSE.txt file to release.  (Tim Potter)
+
+    * Added NEWS, README and INSTALL files to distribution archive.
+      (Andreas Maier)
+
+    * Removed confusing section about build from INSTALL file, to scope it just
+      to the topic of installation.
+      (Andreas Maier)
 
 
 pywbem-0.7  2008-12-12
@@ -55,7 +137,7 @@ pywbem-0.7  2008-12-12
     * Fixed Array parameters with no elements.  (Bart Whiteley)
 
     * Fixed precision for real32 and real64 types.  (Bart Whiteley)
- 
+
     * Fixed Array properties where is_array isn't set in __init__.
       (Bart Whiteley)
 
@@ -64,9 +146,9 @@ pywbem-0.7  2008-12-12
     * Fixed WBEMConnection.__repr__ for anonymous connections. (Tim Potter)
 
     * Fixed XML encoding of CIMQualifierDeclarations.  (Bart Whiteley)
-    
+
     * Fixed EnumerateQualifiers if there are no qualifiers.  (Bart Whiteley)
-    
+
     * Fixed InvokeMethod to only send a LOCALCLASSPATH or LOCALINSTANCEPATH,
       not a CLASSPATH or INSTANCEPATH.  (Bart Whiteley)
 
@@ -80,10 +162,10 @@ pywbem-0.7  2008-12-12
 
   ENHANCEMENTS:
 
-    * Added support for generating Pegasus provider registration MOF in 
+    * Added support for generating Pegasus provider registration MOF in
       cim_provider.codegen(). (Bart Whiteley)
 
-	* Implemented methods to parse indication export requests.
+    * Implemented methods to parse indication export requests.
       (Bart Whiteley)
 
     * Python provider code generation enhancements.  (Bart Whiteley)
@@ -92,7 +174,7 @@ pywbem-0.7  2008-12-12
 
     * Support for Pegasus and OpenWBEM Unix Domain Socket.  (Tim and Bart)
 
-    * Added support for Pegasus non-compliant EMBEDDEDOBJECT XML attribute. 
+    * Added support for Pegasus non-compliant EMBEDDEDOBJECT XML attribute.
       (Bart Whiteley)
 
     * Added CIMQualifierDeclaration.tomof().  (Bart Whiteley)
@@ -105,19 +187,19 @@ pywbem-0.7  2008-12-12
 
     * Rigged CIMInstance to automagically update CIMInstance.path.keybindings
       as key properties are set.  (Bart Whiteley)
-	
-    * Added cim_provider2.py: A new provider interface.  Python providers 
+
+    * Added cim_provider2.py: A new provider interface.  Python providers
       using this interface can use the cmpi-bindings project within OMC
-      (http://omc-project.org/) to run under any CIMOM supporting the 
+      (http://omc-project.org/) to run under any CIMOM supporting the
       CMPI interface.  This is prefered to the old cim_provider.py interface
       that was used with the Python Provider Managers for OpenWBEM and Pegasus.
 
-    * Changed __init__.py to not import anything from cim_provider.py (or 
+    * Changed __init__.py to not import anything from cim_provider.py (or
       cim_provider2.py) into the pywbem namespace.  Existing providers based
       on cim_provider.py can still work with a minor adjustment involving
       importing CIMProvider from pywbem.cim_provider.  The codegen funtion
       can now be obtained with 'from pywbem.cim_provider import codegen', or
-      'from pywbem.cim_provider2 import codegen' or similar. 
+      'from pywbem.cim_provider2 import codegen' or similar.
 
     * Added wbemcli.py command line utility.  (Tim Potter)
 
@@ -128,27 +210,27 @@ pywbem-0.7  2008-12-12
 pywbem-0.6  2007-10-26
 
   LICENSING:
- 
+
     * Relicensed from the GNU GPLv2 to the GNU LGPLv2.
 
   API CHANGES:
 
     * Add a type keyword arg and attribute to CIMQualifier, similar to
       the CIMProperty object, to allow the creation of null qualifiers.
-      (Tim Potter) 
+      (Tim Potter)
 
     * Remove the toxml() method from CIM object classes.  Use
       tocimxml().toxml() instead which specifies the CIM-XML
       representation of the object. (Tim Potter)
 
-    * CIMDateTime class should now be used instead of datetime.datetime 
-      and datetime.timedelta. 
+    * CIMDateTime class should now be used instead of datetime.datetime
+      and datetime.timedelta.
 
-    * Added a new method, CIMInstance.update_existing().  This behaves 
+    * Added a new method, CIMInstance.update_existing().  This behaves
       like update() on a dict, but only assigns new values to existing
       properties.  It skips values for properties not already present
       in the instance.  This is useful for honoring PropertyList within
-      python providers. 
+      python providers.
 
   BUG FIXES:
 
@@ -171,13 +253,13 @@ pywbem-0.6  2007-10-26
 
     * Fix http client to monitor the connection more closely (RFC 2616
       section 8.2.2).  Previously, a large request could cause a socket
-      exception with no ability to read the response and respond to 
-      an authentication challenge. 
+      exception with no ability to read the response and respond to
+      an authentication challenge.
 
     * Fix NULL qualifiers to have a (required) type. (Martin Mrazik)
 
     * Fix initialising CIMInstanceName keys from a NocaseDict. (Bart
-      Whiteley) 
+      Whiteley)
 
     * Return correct namespace in path for return value from
       GetInstance. (Tim Potter)
@@ -191,7 +273,7 @@ pywbem-0.6  2007-10-26
 
   ENHANCEMENTS:
 
-    * Support for OpenWBEM password-less local authentication. 
+    * Support for OpenWBEM password-less local authentication.
       (Bart Whiteley)
 
     * Support for embedded objects is described in DSP0201-2.2.0
@@ -219,12 +301,12 @@ pywbem-0.5  2006-11-21
         all instance classes with CIMInstance.  CIMInstanceName now
         has "host" and "namespace" attributes to fully name a
         reference to an instance.  The CIMInstance class now has a
-        "path" attribute which is of type CIMInstanceName.  
+        "path" attribute which is of type CIMInstanceName.
 
       - EnumerateInstances() now returns a list of CIMInstance objects
         (with path attribute set) instead of a list of
         CIMNamedInstance or tuples of (CIMInstanceName, CIMInstance).
- 
+
       - All representations of properties can now be represented with
         the CIMProperty class.
 
@@ -232,7 +314,7 @@ pywbem-0.5  2006-11-21
       the object.  PyWBEM makes extensive use of dictionary objects
       which are passed by reference in Python.  Use the copy() method
       to create and manipulate objects without modifying them by
-      accident. 
+      accident.
 
   BUG FIXES:
 
@@ -246,10 +328,10 @@ pywbem-0.5  2006-11-21
     * Handle extrinsic method calls that don't return a value or any
       output parameters. (Tim Potter)
 
-    * Fixed parsing of PARAMETER.ARRAY and PARAMETER.REFARRAY to 
+    * Fixed parsing of PARAMETER.ARRAY and PARAMETER.REFARRAY to
       not require optional attrs. (Bart Whiteley)
 
-    * Atomic_to_cim_xml string generation for a datetime - was missing 
+    * Atomic_to_cim_xml string generation for a datetime - was missing
       a >> '.' in the string. (Norm Paxton)
 
     * InvokeMethod did not provide for 'None' in output parameters.
@@ -279,13 +361,13 @@ pywbem-0.5  2006-11-21
     * Allow extrinsic method calls that take parameters. (Tim Potter)
 
     * Added cim_http.AuthError exception class.  This is raised if the
-      CIMOM returns a 401 (Unauthorized).  Now the client can 
-      distinguish this condition, and (re)prompt for credentials. 
+      CIMOM returns a 401 (Unauthorized).  Now the client can
+      distinguish this condition, and (re)prompt for credentials.
       (Bart Whiteley)
 
-    * Created cim_obj.CIMParameter class.  Added return type, 
-      class origin, propagated to CIMMethod.  CIMParameter object 
-      now allows parameter types and qualifiers to be obtained. 
+    * Created cim_obj.CIMParameter class.  Added return type,
+      class origin, propagated to CIMMethod.  CIMParameter object
+      now allows parameter types and qualifiers to be obtained.
       (Bart Whiteley)
 
     * Implemented case-insensitive keys for property and qualifier
@@ -311,7 +393,7 @@ pywbem-0.4  2005-11-15
       PyWBEM in Twisted Python. (Tim Potter)
 
     * Add parameter type checking for object location classes. (Tim
-      Potter) 
+      Potter)
 
     * Allow caller to pass in a dictionary containing the location of
       the SSL certificate and key files as per the httplib.HTTPSConnection()
@@ -327,7 +409,7 @@ pywbem-0.4  2005-11-15
       string. (Tim Potter)
 
   PORTABILITY:
- 
+
     * Don't use UserDict.DictMixin base class as it only exists in
       Python 2.3 and higher. (Tim Potter)
 
