@@ -182,15 +182,17 @@ def one_child(tt, acceptable):
     k = kids(tt)
 
     if len(k) <> 1:
-        raise ParseError('expecting just one %s, got %s' %
-                         (acceptable, [t[0] for t in k]))
+        raise ParseError('In element %s with attributes %s, expected just '\
+                'one child element %s, but got child elements %s' %\
+                (name(tt), attrs(tt), acceptable, [t[0] for t in k]))
 
     child = k[0]
 
     if name(child) not in acceptable:
-        raise ParseError('expecting one of %s, got %s under %s' %
-                         (acceptable, name(child), name(tt)))
-    
+        raise ParseError('In element %s with attributes %s, expected one '\
+                'child element %s, but got child element %s' %\
+                (name(tt), attrs(tt), acceptable, name(child)))
+
     return parse_any(child)
 
 
@@ -201,8 +203,9 @@ def optional_child(tt, allowed):
     k = kids(tt)
 
     if len(k) > 1:
-        raise ParseError('expecting zero or one of %s under %s' %
-                         (allowed, tt))
+        raise ParseError('In element %s with attributes %s, expected zero or '\
+                'one child element %s, but got child elements %s' %\
+                (name(tt), attrs(tt), allowed, [t[0] for t in k]))
     elif len(k) == 1:
         return one_child(tt, allowed)
     else:
@@ -219,8 +222,9 @@ def list_of_various(tt, acceptable):
 
     for child in kids(tt):
         if name(child) not in acceptable:
-            raise ParseError('expected one of %s under %s, got %s' % 
-                             (acceptable, name(tt), `name(child)`))
+            raise ParseError('In element %s with attributes %s, expected zero '\
+                    'or more child elements %s, but got child element %s' %\
+                    (name(tt), attrs(tt), acceptable, name(child)))
         r.append(parse_any(child))
 
     return r
@@ -254,13 +258,15 @@ def list_of_same(tt, acceptable):
     
     w = name(k[0])
     if w not in acceptable:
-        raise ParseError('expected one of %s under %s, got %s' % 
-                             (acceptable, name(tt), `w`))
+        raise ParseError('In element %s with attributes %s, expected child '\
+                'elements %s, but got child element %s' %\
+                (name(tt), attrs(tt), acceptable, w))
     r = []
     for child in k:
         if name(child) <> w:
-            raise ParseError('expected list of %s under %s, but found %s' %
-                             (w, name(child), name(tt)))
+            raise ParseError('In element %s with attributes %s, expected '\
+                    'sequence of only child elements %s, but got child '\
+                    'element %s' % (name(tt), attrs(tt), w, name(child)))
         r.append(parse_any(child))
 
     return r
