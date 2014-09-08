@@ -75,11 +75,12 @@ class NocaseDict(object):
         try:
             return self.data[k][1]
         except KeyError, arg:
-            raise KeyError, key
+            raise KeyError('Key %s not found in %s' % (key, repr(self)))
 
     def __setitem__(self, key, value):
         if not isinstance(key, (str, unicode)):
-            raise KeyError, 'Key must be string type'
+            raise KeyError('NocaseDict key %s must be string type, but is %s'%\
+                    (key, type(key)))
         k = key.lower()
         self.data[k] = (key, value)
 
@@ -87,7 +88,10 @@ class NocaseDict(object):
         k = key
         if isinstance(key, (str, unicode)):
             k = key.lower()
-        del self.data[k]
+        try:
+            del self.data[k]
+        except KeyError, arg:
+            raise KeyError('Key %s not found in %s' % (key, repr(self)))
 
     def __len__(self):
         return len(self.data)
