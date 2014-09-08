@@ -49,7 +49,7 @@ class CIMDateTime(CIMType) :
 
         Arguments:
         dtarg -- Can be a string in CIM datetime format, a datetime.datetime, 
-            or a datetime.timedelta. 
+            a datetime.timedelta, or a CIMDateTime.
 
         """
 
@@ -64,22 +64,30 @@ class CIMDateTime(CIMType) :
                 offset = int(g[8])
                 if g[7] == '-':
                     offset = -offset
-                self.__datetime = datetime(int(g[0]), int(g[1]), 
-                                           int(g[2]), int(g[3]), 
-                                           int(g[4]), int(g[5]), 
-                                           int(g[6]), MinutesFromUTC(offset))
+                try:
+                    self.__datetime = datetime(int(g[0]), int(g[1]),
+                                               int(g[2]), int(g[3]),
+                                               int(g[4]), int(g[5]),
+                                               int(g[6]), MinutesFromUTC(offset))
+                except ValueError as exc:
+                    raise ValueError('dtarg argument "%s" has invalid field '\
+                                     'values for CIM datetime timestamp '\
+                                     'format: %s' % (dtarg, exc))
             else:
                 tv_pattern = re.compile(r'^(\d{8})(\d{2})(\d{2})(\d{2})\.(\d{6})(:)(000)')
                 s = tv_pattern.search(dtarg)
-                if s is None:
-                    raise ValueError('Invalid Datetime format "%s"' % dtarg)
-                else:
+                if s is not None:
                     g = s.groups()
+                    # Because the input values are limited by the matched pattern,
+                    # timedelta() never throws any exception.
                     self.__timedelta =  timedelta(days=int(g[0]),
                                                   hours=int(g[1]),
                                                   minutes=int(g[2]),
                                                   seconds=int(g[3]),
                                                   microseconds=int(g[4]))
+                else:
+                    raise ValueError('dtarg argument "%s" has an invalid CIM '\
+                                     'datetime format' % dtarg)
         elif isinstance(dtarg, datetime):
             self.__datetime = dtarg; 
         elif isinstance(dtarg, timedelta):
@@ -88,7 +96,9 @@ class CIMDateTime(CIMType) :
             self.__datetime = dtarg.__datetime
             self.__timedelta = dtarg.__timedelta
         else:
-            raise ValueError('Expected datetime, timedelta, or string')
+            raise TypeError('dtarg argument "%s" has an invalid type: %s '\
+                            '(expected datetime, timedelta, string, or '\
+                            'CIMDateTime)' % (dtarg, type(dtarg)))
 
     @property
     def minutes_from_utc(self):

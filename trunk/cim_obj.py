@@ -212,7 +212,8 @@ class CIMClassName(object):
     def __init__(self, classname, host = None, namespace = None):
 
         if not isinstance(classname, StringTypes):
-            raise TypeError('classname argument must be a string')
+            raise TypeError('classname argument has an invalid type: %s '\
+                    '(expected string)' % type(classname))
 
         # TODO: There are some odd restrictions on what a CIM
         # classname can look like (i.e must start with a
@@ -608,8 +609,8 @@ class CIMInstanceName(object):
                     _type = 'string'
                     value = kb[1].decode('utf-8') if isinstance(kb[1], str) else kb[1]
                 else:
-                    raise TypeError(
-                        'Invalid keybinding type for keybinding ' '%s: %s' % (kb[0],`type(kb[1])`))
+                    raise TypeError('Invalid keybinding type for keybinding '\
+                            '%s: %s' % (kb[0], type(kb[1])))
 
                 kbs.append(cim_xml.KEYBINDING(
                     kb[0],
@@ -802,7 +803,8 @@ class CIMInstance(object):
         # a subclass from the cim_type module.
 
         if type(value) == int or type(value) == float or type(value) == long:
-            raise TypeError('Must use a CIM type assigning numeric values.')
+            raise TypeError('Type of numeric value must be a CIM type but is '\
+                    '%s' % type(value))
 
         if self.property_list is not None and key.lower() not in \
                 self.property_list:
@@ -1151,8 +1153,8 @@ class CIMQualifier(object):
                 # Determine type for list value
 
                 if len(value) == 0:
-                    raise TypeError(
-                        'Empty qualifier array "%s" must have a type' % name)
+                    raise TypeError('Empty qualifier array "%s" must have a '\
+                            'type' % name)
                     
                 self.type = cim_types.cimtype(value[0])
                 
@@ -1354,15 +1356,14 @@ def tocimxml(value):
             return cim_xml.VALUE('TRUE')
         else:
             return cim_xml.VALUE('FALSE')
-        raise TypeError('Invalid boolean type: %s' % value)
+        # Previous versions raised TypeError here, but this cannot be reached.
 
     # List of values
 
     if type(value) == list:
         return cim_xml.VALUE_ARRAY(map(tocimxml, value))
 
-    raise ValueError("Can't convert %s (%s) to CIM XML" %
-                     (`value`, type(value)))
+    raise ValueError("Can't convert %s (%s) to CIM XML" % (value, type(value)))
 
 
 def tocimobj(_type, value):
@@ -1390,7 +1391,7 @@ def tocimobj(_type, value):
                 return True
             elif value.lower() == 'false':
                 return False
-        raise ValueError('Invalid boolean value "%s"' % value)
+        raise ValueError('Invalid boolean value: "%s"' % value)
 
     # String type
 
@@ -1520,9 +1521,9 @@ def tocimobj(_type, value):
             return CIMInstanceName(classname, host=host, namespace=ns, 
                     keybindings=kb)
         else:
-            raise ValueError('Invalid reference value')
+            raise ValueError('Invalid reference value: "%s"' % value)
 
-    raise ValueError('Invalid CIM type "%s"' % _type)
+    raise ValueError('Invalid CIM type: "%s"' % _type)
 
 
 def byname(nlist):
