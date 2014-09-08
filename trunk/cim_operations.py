@@ -329,6 +329,10 @@ class WBEMConnection(object):
 
         if self.debug:
             self.last_request = req_xml.toprettyxml(indent='  ', encoding='utf-8')
+            self.last_raw_request = req_xml.toxml()
+            # Reset replies in case we fail before they are set
+            self.last_reply = None
+            self.last_raw_reply = None
 
         # Get XML response
 
@@ -344,7 +348,9 @@ class WBEMConnection(object):
             raise CIMError(0, str(arg))
 
         if self.debug:
-            self.last_reply = resp_xml
+            self.last_raw_reply = resp_xml
+            resp_dom = minidom.parseString(resp_xml)
+            self.last_reply = resp_dom.toprettyxml(indent='  ')
 
         tt = parse_cim(xml_to_tupletree(resp_xml))
 
