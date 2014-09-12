@@ -32,7 +32,7 @@ applications.
 """
 
 # Version of the pywbem package
-__version__ = '0.7.0'
+__version__ = '0.8.0~dev'
 
 # There are submodules, but clients shouldn't need to know about them.
 # Importing just this module is enough.
