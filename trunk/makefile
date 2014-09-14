@@ -42,6 +42,9 @@ doc_html_files := \
 # Options for pdoc command, used to generate API documentation
 pdoc_opts := --overwrite --html
 
+# PyLint config file
+pylint_rc_file := ../../pylint.rc
+
 # Files to be put into distribution archive.
 # Keep in sync with dist_dependent_files.
 # This is used for 'include' statements in MANIFEST.in. The wildcards are used
@@ -78,6 +81,9 @@ build: $(dist_file)
 buildwin: $(win64_dist_file)
 	@echo '$@ done; created: $(win64_dist_file)'
 
+check: pylint_report.html
+	@echo '$@ done; for results see pylint_report.html'
+
 test:   install
 	sh -c "cd testsuite; ./runtests.sh >runtests.log 2>&1"
 	@echo '$@ done; for results see testsuite/runtests.log'
@@ -100,6 +106,7 @@ help:
 	@echo 'Valid targets are:'
 	@echo '  build   - (default) Build the distribution archive: $(dist_file)'
 #	@echo '  buildwin - (On 64-bit Windows) Build the Windows installable: $(win64_dist_file)'
+	@echo '  check   - Run PyLint on sources.'
 	@echo '  test    - Run unit tests.'
 	@echo '  install - Build and install the distribution archive on your system as a site package.'
 	@echo '  clean   - Remove any temporary files.'
@@ -130,3 +137,7 @@ $(doc_out_dir)/$(package_name)/index.html: $(package_name)/*.py
 ## Documentation for scripts
 #$(doc_out_dir)/%.m.html: %.py
 #	pdoc $(pdoc_opts) --html-dir $(doc_out_dir) $<
+
+# PyLint report
+pylint_report.html: $(pylint_rc_file) setup.py $(package_name)/*.py testsuite/*.py
+	-pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py --output-format=html setup.py $(package_name) testsuite/*.py >$@
