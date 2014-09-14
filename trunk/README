@@ -1,7 +1,14 @@
-PyWBEM is a pure-Python library for performing operations using the WBEM
-management protocol.  Please see our web site at http://pywbem.sf.net for
+PyWBEM provides a WBEM client library and some related utilities, written in
+pure Python.
+
+The WBEM client library allows issuing operations to a WBEM server, using
+the CIM operations over HTTP (CIM-XML) protocol defined in the DMTF standards
+DSP0200 and DSP0201. See http://www.dmtf.org/standards/wbem for information
+about WBEM.
+
+Please see the PyWBEM project at http://sourceforge.net/projects/pywbem/ for
 more details.
 
-It is licensed under the GNU LGPL v2 (see the pywbem/LICENSE.txt file).
+It is licensed under the GNU LGPL v2.
 
 For installation instructions, see the INSTALL file.
