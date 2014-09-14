@@ -17,7 +17,6 @@ DTD_FILE = 'CIM_DTD_V22.dtd'
 
 def validate_xml(data, dtd_directory = None):
     
-    import sys, posix
     from subprocess import Popen, PIPE
 
     # Run xmllint to validate file
@@ -36,7 +35,7 @@ def validate_xml(data, dtd_directory = None):
 
     status = p.wait()
 
-    if posix.WIFSIGNALED(status) or posix.WEXITSTATUS(status) != 0:
+    if status != 0:
         return False
 
     return True    

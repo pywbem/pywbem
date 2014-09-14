@@ -21,7 +21,7 @@
 
 # Author: Tim Potter <tpot@hp.com>
 
-import sys, os, posix, string
+import sys, os, string
 from subprocess import Popen, PIPE
 
 DTD_FILE = 'CIM_DTD_V22.dtd'
@@ -44,7 +44,7 @@ def validate_xml(data, dtd_directory = None):
 
     status = p.wait()
 
-    if posix.WIFSIGNALED(status) or posix.WEXITSTATUS(status) != 0:
+    if status != 0:
         return False
 
     return True    

@@ -32,6 +32,7 @@ from M2Crypto import SSL, Err
 import sys, string, re, os, socket, getpass
 from stat import S_ISSOCK
 from types import StringTypes
+import platform
 
 from pywbem import cim_obj
 
@@ -173,7 +174,12 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
             httplib.HTTPConnection.__init__(self, 'localhost')
             self.uds_path = uds_path
         def connect(self):
-            self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            try:
+                socket_af = socket.AF_UNIX
+            except AttributeError:
+                raise Error('file URL not supported on %s platform due '\
+                        'to missing AF_UNIX support' % platform.system())
+            self.sock = socket.socket(socket_af, socket.SOCK_STREAM)
             self.sock.connect(self.uds_path)
 
     host, port, use_ssl = parse_url(url)
@@ -226,10 +232,9 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
     if host in ('localhost', 'localhost6', '127.0.0.1', '::1'):
         local = True
     if local:
-        uid = os.getuid()
         try:
             locallogin = getpass.getuser()
-        except KeyError:
+        except (KeyError, ImportError):
             locallogin = None
     while numTries < tryLimit:
         numTries = numTries + 1
@@ -284,6 +289,13 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
                     authChal = response.getheader('WWW-Authenticate', '')
                     if 'openwbem' in response.getheader('Server', ''):
                         if 'OWLocal' not in authChal:
+                            try:
+                                uid = os.getuid()
+                            except AttributeError:
+                                raise Error("OWLocal authorization for "\
+                                        "openwbem server not supported on %s "\
+                                        "platform due to missing os.getuid()"%\
+                                        platform.system())
                             localAuthHeader = ('Authorization', 
                                     'OWLocal uid="%d"' % uid)
                             continue
