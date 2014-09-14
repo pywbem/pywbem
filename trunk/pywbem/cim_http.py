@@ -100,7 +100,10 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
     """Send XML data over HTTP to the specified url. Return the
     response in XML.  Uses Python's build-in httplib.  x509 may be a
     dictionary containing the location of the SSL certificate and key
-    files."""
+    files.
+
+    The data argument must be a unicode object or a UTF-8 encoded str object.
+    """
 
     import httplib, base64, urllib
 
@@ -195,8 +198,13 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
     localAuthHeader = None
     tryLimit = 5
 
+    # Make sure the data argument is converted to a UTF-8 encoded str object.
+    # This is important because according to RFC2616, the Content-Length HTTP
+    # header must be measured in Bytes (and the Content-Type header will
+    # indicate UTF-8).
     if isinstance(data, unicode):
         data = data.encode('utf-8')
+
     data = '<?xml version="1.0" encoding="utf-8" ?>\n' + data
 
     if not no_verification and ca_certs is None:

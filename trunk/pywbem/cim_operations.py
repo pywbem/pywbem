@@ -166,16 +166,16 @@ class WBEMConnection(object):
             '2.0', '2.0')
 
         if self.debug:
-            self.last_raw_request = req_xml.toxml(encoding='utf-8')
-            self.last_request = req_xml.toprettyxml(indent='  ', encoding='utf-8')
-
+            self.last_raw_request = req_xml.toxml()
+            self.last_request = req_xml.toprettyxml(indent='  ')
+            # Reset replies in case we fail before they are set
             self.last_reply = None
             self.last_raw_reply = None
         
         # Get XML response
 
         try:
-            resp_xml = cim_http.wbem_request(self.url, req_xml.toxml(encoding='utf-8'),
+            resp_xml = cim_http.wbem_request(self.url, req_xml.toxml(),
                                              self.creds, headers,
                                              x509 = self.x509,
                                              verify_callback = self.verify_callback,
@@ -193,7 +193,7 @@ class WBEMConnection(object):
         reply_dom = minidom.parseString(resp_xml)
 
         if self.debug:
-            self.last_reply = reply_dom.toprettyxml(indent='  ', encoding='utf-8')
+            self.last_reply = reply_dom.toprettyxml(indent='  ')
             self.last_raw_reply = resp_xml
 
         # Parse response
@@ -293,7 +293,7 @@ class WBEMConnection(object):
             if isinstance(obj, (CIMClassName, CIMInstanceName)):
                 return cim_xml.VALUE_REFERENCE(obj.tocimxml())
             if isinstance(obj, (CIMClass, CIMInstance)):
-                return cim_xml.VALUE(obj.tocimxml().toxml(encoding='utf-8'))
+                return cim_xml.VALUE(obj.tocimxml().toxml())
             if isinstance(obj, list):
                 if obj and isinstance(obj[0], (CIMClassName, CIMInstanceName)):
                     return cim_xml.VALUE_REFARRAY([paramvalue(x) for x in obj])
@@ -329,7 +329,7 @@ class WBEMConnection(object):
             '2.0', '2.0')
 
         if self.debug:
-            self.last_request = req_xml.toprettyxml(indent='  ', encoding='utf-8')
+            self.last_request = req_xml.toprettyxml(indent='  ')
             self.last_raw_request = req_xml.toxml()
             # Reset replies in case we fail before they are set
             self.last_reply = None
@@ -338,7 +338,7 @@ class WBEMConnection(object):
         # Get XML response
 
         try:
-            resp_xml = cim_http.wbem_request(self.url, req_xml.toxml(encoding='utf-8'),
+            resp_xml = cim_http.wbem_request(self.url, req_xml.toxml(),
                                              self.creds, headers,
                                              x509 = self.x509,
                                              verify_callback = self.verify_callback,

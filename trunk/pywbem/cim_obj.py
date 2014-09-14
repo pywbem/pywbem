@@ -401,7 +401,7 @@ class CIMProperty(object):
             if value is not None:
                 if value:
                     if self.embedded_object is not None:
-                        value = [v.tocimxml().toxml(encoding='utf-8') for v in value]
+                        value = [v.tocimxml().toxml() for v in value]
                 value = cim_xml.VALUE_ARRAY([cim_xml.VALUE(atomic_to_cim_xml(v)) for v in value])
 
             return cim_xml.PROPERTY_ARRAY(
@@ -432,7 +432,7 @@ class CIMProperty(object):
             value = self.value
             if value is not None:
                 if self.embedded_object is not None:
-                    value = value.tocimxml().toxml(encoding='utf-8')
+                    value = value.tocimxml().toxml()
                 else:
                     value = atomic_to_cim_xml(value)
                 value = cim_xml.VALUE(value)
@@ -1350,17 +1350,17 @@ def tocimxml(value):
 
     # CIMType or builtin type
 
-    if isinstance(value, cim_types.CIMType) or \
-           type(value) in (str, unicode, int):
-        value = value.decode('utf-8') if isinstance(value, str) else unicode(value)
-        return cim_xml.VALUE(value)
+    if isinstance(value, (cim_types.CIMType, unicode, int)):
+        return cim_xml.VALUE(unicode(value))
+
+    if isinstance(value, str):
+        return cim_xml.VALUE(value.decode('utf-8'))
 
     if isinstance(value, bool):
         if value:
             return cim_xml.VALUE('TRUE')
         else:
             return cim_xml.VALUE('FALSE')
-        # Previous versions raised TypeError here, but this cannot be reached.
 
     # List of values
 
