@@ -74,10 +74,11 @@ representation of CIM in XML by having the following properties:
 # .qualifiers property.
 
 import string, types
-import cim_obj
-from cim_obj import CIMProperty, byname
 from types import StringTypes
-from tupletree import xml_to_tupletree
+
+from pywbem import cim_obj
+from pywbem.cim_obj import CIMProperty, byname
+from pywbem.tupletree import xml_to_tupletree
 
 class ParseError(Exception):
     """This exception is raised when there is a validation error detected

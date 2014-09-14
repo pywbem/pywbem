@@ -20,18 +20,19 @@
 
 import sys
 import os
-import lex
-import yacc
-from lex import TOKEN
-from cim_operations import CIMError, WBEMConnection
-from cim_obj import *
-from cim_constants import *
 from getpass import getpass
+
+from pywbem import lex
+from pywbem import yacc
+from pywbem.lex import TOKEN
+from pywbem.cim_operations import CIMError, WBEMConnection
+from pywbem.cim_obj import *
+from pywbem.cim_constants import *
 
 _optimize = 1
 _tabmodule='mofparsetab'
 _lextab='moflextab'
-
+_outputdir='pywbem'
 
 reserved = {
     'any':'ANY',
@@ -1650,8 +1651,8 @@ class MOFCompiler(object):
         self.handle.rollback(verbose=verbose)
 
 def _build():
-    yacc.yacc(optimize=_optimize, tabmodule=_tabmodule)
-    lex.lex(optimize=_optimize, lextab=_lextab)
+    yacc.yacc(optimize=_optimize, tabmodule=_tabmodule, outputdir=_outputdir)
+    lex.lex(optimize=_optimize, lextab=_lextab, outputdir=_outputdir)
 
 
 if __name__ == '__main__':

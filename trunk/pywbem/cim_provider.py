@@ -189,9 +189,10 @@ CodeGen
 
 import sys 
 from os.path import dirname
-import pywbem
 from imp import load_source
 import types
+
+import pywbem
 
 __all__ = ['CIMProvider']
 

@@ -39,9 +39,9 @@ __version__ = '0.8.0~dev'
 
 # These are explicitly safe for 'import *'
 
-from cim_types import *
-from cim_constants import *
-from cim_operations import *
-from cim_obj import *
-from tupleparse import ParseError
+from pywbem.cim_types import *
+from pywbem.cim_constants import *
+from pywbem.cim_operations import *
+from pywbem.cim_obj import *
+from pywbem.tupleparse import ParseError
 

@@ -26,11 +26,12 @@
 import sys, string
 from types import StringTypes
 from xml.dom import minidom
-import cim_obj, cim_xml, cim_http, cim_types
-from cim_obj import CIMClassName, CIMInstanceName, CIMInstance, CIMClass, NocaseDict
 from datetime import datetime, timedelta
-from tupletree import dom_to_tupletree, xml_to_tupletree
-from tupleparse import parse_cim
+
+from pywbem import cim_obj, cim_xml, cim_http, cim_types
+from pywbem.cim_obj import CIMClassName, CIMInstanceName, CIMInstance, CIMClass, NocaseDict
+from pywbem.tupletree import dom_to_tupletree, xml_to_tupletree
+from pywbem.tupleparse import parse_cim
 
 """CIM-XML/HTTP operations.
 

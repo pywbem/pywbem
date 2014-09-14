@@ -24,28 +24,37 @@ from distutils.core import setup, Extension
 import sys, string, os
 import shutil
 
-import mof_compiler
+# Build the lex/yacc table .py files
+from pywbem import mof_compiler
 mof_compiler._build()
 
 # Get package version from __init__.py 
-init_py = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]),
-                                                       '__init__.py'))
-execfile(init_py) # defines __version__
+init_py = os.path.abspath(os.path.join(
+        os.path.dirname(sys.argv[0]), 'pywbem/__init__.py'))
+init_globals = {}
+execfile(init_py, init_globals) # defines __version__
 
-args = {'name': 'pywbem',
-        'author': 'Tim Potter',
-        'author_email': 'tpot@hp.com',
-        'description': 'Python WBEM client library',
-        'long_description': __doc__,
-        'platforms': ['any'],
-        'url': 'http://pywbem.sf.net/',
-        'version': __version__,
-        'license': 'LGPLv2',
-        'packages': ['pywbem'],
-        # Make packages in root dir appear in pywbem module
-        'package_dir': {'pywbem': ''}, 
-        # Make extensions in root dir appear in pywbem module
-        'ext_package': 'pywbem',
-        }
+args = {
+    'name': 'pywbem',
+    'author': 'Tim Potter',
+    'author_email': 'tpot@hp.com',
+    'description': 'Python WBEM client library',
+    'long_description': __doc__,
+    'platforms': ['any'],
+    'url': 'http://pywbem.sf.net/',
+    'version': init_globals['__version__'],
+    'license': 'LGPLv2',
+    'packages': ['pywbem'],
+    'package_data': {
+        'pywbem': [
+            'NEWS',
+            'LICENSE.txt',
+        ]
+    },
+    'scripts': [
+        'pywbem/wbemcli.py',
+        'pywbem/mof_compiler.py',
+    ],
+}
 
 setup(**args)

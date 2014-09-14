@@ -21,11 +21,11 @@
 #         Bart Whiteley <bwhiteley@suse.de>
 
 import string, re
-import cim_xml, cim_types
 from types import StringTypes
-from cim_types import atomic_to_cim_xml, CIMDateTime
-from cim_xml import *
 from datetime import datetime, timedelta
+
+from pywbem import cim_xml, cim_types
+from pywbem.cim_types import atomic_to_cim_xml, CIMDateTime
 
 """
 Representations of CIM Objects.
@@ -402,9 +402,9 @@ class CIMProperty(object):
                 if value:
                     if self.embedded_object is not None:
                         value = [v.tocimxml().toxml(encoding='utf-8') for v in value]
-                value = VALUE_ARRAY([VALUE(atomic_to_cim_xml(v)) for v in value])
+                value = cim_xml.VALUE_ARRAY([cim_xml.VALUE(atomic_to_cim_xml(v)) for v in value])
 
-            return PROPERTY_ARRAY(
+            return cim_xml.PROPERTY_ARRAY(
                 self.name,
                 self.type,
                 value,
@@ -418,9 +418,9 @@ class CIMProperty(object):
 
             value_reference = None
             if self.value is not None:
-                value_reference = VALUE_REFERENCE(self.value.tocimxml())
+                value_reference = cim_xml.VALUE_REFERENCE(self.value.tocimxml())
 
-            return PROPERTY_REFERENCE(
+            return cim_xml.PROPERTY_REFERENCE(
                 self.name,
                 value_reference,
                 reference_class = self.reference_class,
@@ -435,9 +435,9 @@ class CIMProperty(object):
                     value = value.tocimxml().toxml(encoding='utf-8')
                 else:
                     value = atomic_to_cim_xml(value)
-                value = VALUE(value)
+                value = cim_xml.VALUE(value)
 
-            return PROPERTY(
+            return cim_xml.PROPERTY(
                 self.name,
                 self.type,
                 value,
@@ -1212,11 +1212,11 @@ class CIMQualifier(object):
         value = None
 
         if type(self.value) == list:
-            value = VALUE_ARRAY([VALUE(v) for v in self.value])
+            value = cim_xml.VALUE_ARRAY([cim_xml.VALUE(v) for v in self.value])
         elif self.value is not None:
-            value = VALUE(self.value)
+            value = cim_xml.VALUE(self.value)
 
-        return QUALIFIER(self.name,
+        return cim_xml.QUALIFIER(self.name,
                          self.type,
                          value,
                          propagated = self.propagated,
@@ -1295,7 +1295,7 @@ class CIMQualifierDeclaration(object):
 
     def tocimxml(self):
         
-        return QUALIFIER_DECLARATION(self.name,
+        return cim_xml.QUALIFIER_DECLARATION(self.name,
                                      self.type,
                                      self.value,
                                      is_array = self.is_array,

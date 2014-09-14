@@ -31,8 +31,9 @@ data and interpret the result.
 from M2Crypto import SSL, Err
 import sys, string, re, os, socket, getpass
 from stat import S_ISSOCK
-import cim_obj
 from types import StringTypes
+
+from pywbem import cim_obj
 
 class Error(Exception):
     """This exception is raised when a transport error occurs."""

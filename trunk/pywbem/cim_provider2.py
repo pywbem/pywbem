@@ -193,13 +193,13 @@ CodeGen
 
 import sys 
 from os.path import dirname
-import pywbem
 import types
-
 import sys # for sys.modules
 import os
 import imp
 import threading
+
+import pywbem
 
 g_mod_lock = threading.RLock()
 
