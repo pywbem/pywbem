@@ -4,12 +4,12 @@
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; version 2 of the License.
-#   
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Lesser General Public License for more details.
-#   
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -27,7 +27,8 @@ twisted.protocols.http.HTTPClient base class.
 from twisted.internet import reactor, protocol, defer
 from twisted.web import http, client, error
 
-from pywbem import CIMClass, CIMClassName, CIMInstance, CIMInstanceName, CIMError, CIMDateTime, cim_types, cim_xml, cim_obj
+from pywbem import CIMClass, CIMClassName, CIMInstance, CIMInstanceName, \
+                   CIMError, CIMDateTime, cim_types, cim_xml, cim_obj
 
 try:
     from elementtree.ElementTree import fromstring, tostring
@@ -69,16 +70,16 @@ class WBEMClient(http.HTTPClient):
         self.sendHeader('CIMObject', str(self.factory.object))
 
         self.endHeaders()
-        
+
         # TODO: Figure out why twisted doesn't support unicode.  An
         # exception should be thrown by the str() call if the payload
         # can't be converted to the current codepage.
 
         self.transport.write(str(self.factory.payload))
-        
+
     def handleResponse(self, data):
         """Called when all response data has been received."""
-        
+
         self.factory.response_xml = data
 
         if self.status == '200':
@@ -120,7 +121,7 @@ class WBEMClient(http.HTTPClient):
 
                 self.factory.deferred.errback(
                     CIMError(0, '%s: %s' % (cimerror, errordetail)))
-        
+
 class WBEMClientFactory(protocol.ClientFactory):
     """Create instances of the WBEMClient class."""
 
@@ -147,7 +148,7 @@ class WBEMClientFactory(protocol.ClientFactory):
 
     def imethodcallPayload(self, methodname, localnsp, **kwargs):
         """Generate the XML payload for an intrinsic methodcall."""
-        
+
         param_list = [pywbem.IPARAMVALUE(x[0], pywbem.tocimxml(x[1]))
                       for x in kwargs.items()]
 
@@ -171,7 +172,7 @@ class WBEMClientFactory(protocol.ClientFactory):
         if isinstance(obj, CIMInstanceName):
 
             path = obj.copy()
-            
+
             path.host = None
             path.namespace = None
 
@@ -235,7 +236,7 @@ class WBEMClientFactory(protocol.ClientFactory):
                                       param_list)),
                 '1001', '1.0'),
             '2.0', '2.0')
-                   
+
         return self.xml_header + payload.toxml()
 
     def parseErrorAndResponse(self, data):
@@ -269,8 +270,8 @@ import pywbem.tupletree
 
 class EnumerateInstances(WBEMClientFactory):
     """Factory to produce EnumerateInstances WBEM clients."""
-    
-    def __init__(self, creds, classname, namespace = 'root/cimv2', **kwargs):
+
+    def __init__(self, creds, classname, namespace='root/cimv2', **kwargs):
 
         self.classname = classname
         self.namespace = namespace
@@ -278,16 +279,16 @@ class EnumerateInstances(WBEMClientFactory):
         payload = self.imethodcallPayload(
             'EnumerateInstances',
             namespace,
-            ClassName = CIMClassName(classname),
+            ClassName=CIMClassName(classname),
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = 'EnumerateInstances',
-            object = namespace, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method='EnumerateInstances',
+            object=namespace,
+            payload=payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
@@ -297,13 +298,13 @@ class EnumerateInstances(WBEMClientFactory):
 
         tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
               for x in xml.findall('.//VALUE.NAMEDINSTANCE')]
-        
+
         return [pywbem.tupleparse.parse_value_namedinstance(x) for x in tt]
 
 class EnumerateInstanceNames(WBEMClientFactory):
     """Factory to produce EnumerateInstanceNames WBEM clients."""
-    
-    def __init__(self, creds, classname, namespace = 'root/cimv2', **kwargs):
+
+    def __init__(self, creds, classname, namespace='root/cimv2', **kwargs):
 
         self.classname = classname
         self.namespace = namespace
@@ -311,16 +312,16 @@ class EnumerateInstanceNames(WBEMClientFactory):
         payload = self.imethodcallPayload(
             'EnumerateInstanceNames',
             namespace,
-            ClassName = CIMClassName(classname),
+            ClassName=CIMClassName(classname),
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = 'EnumerateInstanceNames',
-            object = namespace, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method='EnumerateInstanceNames',
+            object=namespace,
+            payload=payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
@@ -330,7 +331,7 @@ class EnumerateInstanceNames(WBEMClientFactory):
 
         tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
               for x in xml.findall('.//INSTANCENAME')]
-        
+
         names = [pywbem.tupleparse.parse_instancename(x) for x in tt]
 
         [setattr(n, 'namespace', self.namespace) for n in names]
@@ -339,8 +340,8 @@ class EnumerateInstanceNames(WBEMClientFactory):
 
 class GetInstance(WBEMClientFactory):
     """Factory to produce GetInstance WBEM clients."""
-    
-    def __init__(self, creds, instancename, namespace = 'root/cimv2', **kwargs):
+
+    def __init__(self, creds, instancename, namespace='root/cimv2', **kwargs):
 
         self.instancename = instancename
         self.namespace = namespace
@@ -348,16 +349,16 @@ class GetInstance(WBEMClientFactory):
         payload = self.imethodcallPayload(
             'GetInstance',
             namespace,
-            InstanceName = instancename,
+            InstanceName=instancename,
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = 'GetInstance',
-            object = namespace, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method='GetInstance',
+            object=namespace,
+            payload=payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
@@ -372,8 +373,8 @@ class GetInstance(WBEMClientFactory):
 
 class DeleteInstance(WBEMClientFactory):
     """Factory to produce DeleteInstance WBEM clients."""
-    
-    def __init__(self, creds, instancename, namespace = 'root/cimv2', **kwargs):
+
+    def __init__(self, creds, instancename, namespace='root/cimv2', **kwargs):
 
         self.instancename = instancename
         self.namespace = namespace
@@ -381,16 +382,16 @@ class DeleteInstance(WBEMClientFactory):
         payload = self.imethodcallPayload(
             'DeleteInstance',
             namespace,
-            InstanceName = instancename,
+            InstanceName=instancename,
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = 'DeleteInstance',
-            object = namespace, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method='DeleteInstance',
+            object=namespace,
+            payload=payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
@@ -398,24 +399,24 @@ class DeleteInstance(WBEMClientFactory):
 
 class CreateInstance(WBEMClientFactory):
     """Factory to produce CreateInstance WBEM clients."""
-    
+
     # TODO: Implement __repr__ method
 
-    def __init__(self, creds, instance, namespace = 'root/cimv2', **kwargs):
+    def __init__(self, creds, instance, namespace='root/cimv2', **kwargs):
 
         payload = self.imethodcallPayload(
             'CreateInstance',
             namespace,
-            NewInstance = instance,
+            NewInstance=instance,
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = 'CreateInstance',
-            object = namespace, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method='CreateInstance',
+            object=namespace,
+            payload=payload)
 
     def parseResponse(self, xml):
 
@@ -426,10 +427,10 @@ class CreateInstance(WBEMClientFactory):
 
 class ModifyInstance(WBEMClientFactory):
     """Factory to produce ModifyInstance WBEM clients."""
-    
+
     # TODO: Implement __repr__ method
 
-    def __init__(self, creds, instancename, instance, namespace = 'root/cimv2', 
+    def __init__(self, creds, instancename, instance, namespace='root/cimv2',
                  **kwargs):
 
         wrapped_instance = CIMNamedInstance(instancename, instance)
@@ -437,21 +438,21 @@ class ModifyInstance(WBEMClientFactory):
         payload = self.imethodcallPayload(
             'ModifyInstance',
             namespace,
-            ModifiedInstance = wrapped_instance,
+            ModifiedInstance=wrapped_instance,
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = 'ModifyInstance',
-            object = namespace, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method='ModifyInstance',
+            object=namespace,
+            payload=payload)
 
 class EnumerateClassNames(WBEMClientFactory):
     """Factory to produce EnumerateClassNames WBEM clients."""
-    
-    def __init__(self, creds, namespace = 'root/cimv2', **kwargs):
+
+    def __init__(self, creds, namespace='root/cimv2', **kwargs):
 
         self.localnsp = LocalNamespacePath
 
@@ -461,12 +462,12 @@ class EnumerateClassNames(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = 'EnumerateClassNames',
-            object = LocalNamespacePath, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method='EnumerateClassNames',
+            object=LocalNamespacePath,
+            payload=payload)
 
     def __repr__(self):
         return '<%s(/%s) at 0x%x>' % \
@@ -476,13 +477,13 @@ class EnumerateClassNames(WBEMClientFactory):
 
         tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
               for x in xml.findall('.//CLASSNAME')]
-        
-        return [pywbem.tupleparse.parse_classname(x) for x in tt]        
+
+        return [pywbem.tupleparse.parse_classname(x) for x in tt]
 
 class EnumerateClasses(WBEMClientFactory):
     """Factory to produce EnumerateClasses WBEM clients."""
-    
-    def __init__(self, creds, namespace = 'root/cimv2', **kwargs):
+
+    def __init__(self, creds, namespace='root/cimv2', **kwargs):
 
         self.localnsp = LocalNamespacePath
 
@@ -492,12 +493,12 @@ class EnumerateClasses(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = 'EnumerateClasses',
-            object = namespace, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method='EnumerateClasses',
+            object=namespace,
+            payload=payload)
 
     def __repr__(self):
         return '<%s(/%s) at 0x%x>' % \
@@ -507,13 +508,13 @@ class EnumerateClasses(WBEMClientFactory):
 
         tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
               for x in xml.findall('.//CLASS')]
-        
-        return [pywbem.tupleparse.parse_class(x) for x in tt]        
+
+        return [pywbem.tupleparse.parse_class(x) for x in tt]
 
 class GetClass(WBEMClientFactory):
     """Factory to produce GetClass WBEM clients."""
-    
-    def __init__(self, creds, classname, namespace = 'root/cimv2', **kwargs):
+
+    def __init__(self, creds, classname, namespace='root/cimv2', **kwargs):
 
         self.classname = classname
         self.namespace = namespace
@@ -521,16 +522,16 @@ class GetClass(WBEMClientFactory):
         payload = self.imethodcallPayload(
             'GetClass',
             namespace,
-            ClassName = CIMClassName(classname),
+            ClassName=CIMClassName(classname),
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = 'GetClass',
-            object = namespace, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method='GetClass',
+            object=namespace,
+            payload=payload)
 
     def __repr__(self):
         return '<%s(/%s:%s) at 0x%x>' % \
@@ -545,10 +546,10 @@ class GetClass(WBEMClientFactory):
 
 class Associators(WBEMClientFactory):
     """Factory to produce Associators WBEM clients."""
-    
+
     # TODO: Implement __repr__ method
 
-    def __init__(self, creds, obj, namespace = 'root/cimv2', **kwargs):
+    def __init__(self, creds, obj, namespace='root/cimv2', **kwargs):
 
         if isinstance(obj, CIMInstanceName):
             kwargs['ObjectName'] = obj
@@ -561,19 +562,19 @@ class Associators(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = 'Associators',
-            object = namespace, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method='Associators',
+            object=namespace,
+            payload=payload)
 
 class AssociatorNames(WBEMClientFactory):
     """Factory to produce AssociatorNames WBEM clients."""
-    
+
     # TODO: Implement __repr__ method
 
-    def __init__(self, creds, obj, namespace = 'root/cimv2', **kwargs):
+    def __init__(self, creds, obj, namespace='root/cimv2', **kwargs):
 
         if isinstance(obj, CIMInstanceName):
             kwargs['ObjectName'] = obj
@@ -586,12 +587,12 @@ class AssociatorNames(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = 'AssociatorNames',
-            object = namespace, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method='AssociatorNames',
+            object=namespace,
+            payload=payload)
 
     def parseResponse(self, xml):
 
@@ -601,18 +602,18 @@ class AssociatorNames(WBEMClientFactory):
                   for x in xml.findall('.//INSTANCENAME')]
 
             return [pywbem.tupleparse.parse_instancename(x) for x in tt]
-        
+
         else:
-            
+
             tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
                   for x in xml.findall('.//OBJECTPATH')]
-            
+
             return [pywbem.tupleparse.parse_objectpath(x)[2] for x in tt]
 
 class References(WBEMClientFactory):
     """Factory to produce References WBEM clients."""
-    
-    def __init__(self, creds, obj, namespace = 'root/cimv2', **kwargs):
+
+    def __init__(self, creds, obj, namespace='root/cimv2', **kwargs):
 
         if isinstance(obj, CIMInstanceName):
             kwargs['ObjectName'] = obj
@@ -625,19 +626,19 @@ class References(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = 'References',
-            object = namespace, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method='References',
+            object=namespace,
+            payload=payload)
 
 class ReferenceNames(WBEMClientFactory):
     """Factory to produce ReferenceNames WBEM clients."""
-    
+
     # TODO: Implement __repr__ method
 
-    def __init__(self, creds, obj, namespace = 'root/cimv2', **kwargs):
+    def __init__(self, creds, obj, namespace='root/cimv2', **kwargs):
 
         if isinstance(obj, CIMInstanceName):
             kwargs['ObjectName'] = obj
@@ -650,12 +651,12 @@ class ReferenceNames(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = 'ReferenceNames',
-            object = namespace, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method='ReferenceNames',
+            object=namespace,
+            payload=payload)
 
     def parseResponse(self, xml):
 
@@ -665,18 +666,18 @@ class ReferenceNames(WBEMClientFactory):
                   for x in xml.findall('.//INSTANCENAME')]
 
             return [pywbem.tupleparse.parse_instancename(x) for x in tt]
-        
+
         else:
-            
+
             tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
                   for x in xml.findall('.//OBJECTPATH')]
-            
+
             return [pywbem.tupleparse.parse_objectpath(x)[2] for x in tt]
 
 class InvokeMethod(WBEMClientFactory):
     """Factory to produce InvokeMethod WBEM clients."""
 
-    def __init__(self, creds, MethodName, ObjectName, namespace = 'root/cimv2',
+    def __init__(self, creds, MethodName, ObjectName, namespace='root/cimv2',
                  **kwargs):
 
         # Convert string to CIMClassName
@@ -684,7 +685,7 @@ class InvokeMethod(WBEMClientFactory):
         obj = ObjectName
 
         if isinstance(obj, StringTypes):
-            obj = CIMClassName(obj, namespace = namespace)
+            obj = CIMClassName(obj, namespace=namespace)
 
         if isinstance(obj, CIMInstanceName) and obj.namespace is None:
             obj = ObjectName.copy()
@@ -699,12 +700,12 @@ class InvokeMethod(WBEMClientFactory):
             **kwargs)
 
         WBEMClientFactory.__init__(
-            self, 
-            creds, 
-            operation = 'MethodCall', 
-            method = MethodName,
-            object = obj, 
-            payload = payload)
+            self,
+            creds,
+            operation='MethodCall',
+            method=MethodName,
+            object=obj,
+            payload=payload)
 
     def parseResponse(self, xml):
 
@@ -719,7 +720,7 @@ class InvokeMethod(WBEMClientFactory):
                                   result_tt[2])
 
         # Output parameters
-        
+
         params_xml = [pywbem.tupletree.xml_to_tupletree(tostring(x))
                       for x in xml.findall('.//PARAMVALUE')]
 

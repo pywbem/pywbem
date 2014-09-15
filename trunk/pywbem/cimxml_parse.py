@@ -4,12 +4,12 @@
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; version 2 of the License.
-#   
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-#   
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -22,7 +22,7 @@ from pywbem import *
 
 class ParseError(Exception):
     """This exception is raised when there is a validation error detected
-    by the parser."""    
+    by the parser."""
     pass
 
 #
@@ -31,7 +31,7 @@ class ParseError(Exception):
 
 def get_required_attribute(node, attr):
     """Return an attribute by name.  Throw an exception if not present."""
-    
+
     if not node.hasAttribute(attr):
         raise ParseError(
             'Expecting %s attribute in element %s' % (attr, node.tagName))
@@ -40,7 +40,7 @@ def get_required_attribute(node, attr):
 
 def get_attribute(node, attr):
     """Return an attribute by name, or None if not present."""
-    
+
     if node.hasAttribute(attr):
         return node.getAttribute(attr)
 
@@ -69,8 +69,8 @@ def is_end(event, node, tagName):
 
 # <!ELEMENT CIM (MESSAGE | DECLARATION)>
 # <!ATTLIST CIM
-# 	CIMVERSION CDATA #REQUIRED
-# 	DTDVERSION CDATA #REQUIRED
+#       CIMVERSION CDATA #REQUIRED
+#       DTDVERSION CDATA #REQUIRED
 # >
 
 # <!-- ************************************************** -->
@@ -78,25 +78,29 @@ def is_end(event, node, tagName):
 # <!-- ************************************************** -->
 
 # <!ELEMENT DECLARATION (DECLGROUP | DECLGROUP.WITHNAME | DECLGROUP.WITHPATH)+>
-# <!ELEMENT DECLGROUP ((LOCALNAMESPACEPATH | NAMESPACEPATH)?, QUALIFIER.DECLARATION*, VALUE.OBJECT*)>
-# <!ELEMENT DECLGROUP.WITHNAME ((LOCALNAMESPACEPATH | NAMESPACEPATH)?, QUALIFIER.DECLARATION*, VALUE.NAMEDOBJECT*)>
-# <!ELEMENT DECLGROUP.WITHPATH (VALUE.OBJECTWITHPATH | VALUE.OBJECTWITHLOCALPATH)*>
+# <!ELEMENT DECLGROUP ((LOCALNAMESPACEPATH | NAMESPACEPATH)?,
+#                      QUALIFIER.DECLARATION*, VALUE.OBJECT*)>
+# <!ELEMENT DECLGROUP.WITHNAME ((LOCALNAMESPACEPATH | NAMESPACEPATH)?,
+#                               QUALIFIER.DECLARATION*, VALUE.NAMEDOBJECT*)>
+# <!ELEMENT DECLGROUP.WITHPATH (VALUE.OBJECTWITHPATH |
+#                               VALUE.OBJECTWITHLOCALPATH)*>
 # <!ELEMENT QUALIFIER.DECLARATION (SCOPE?, (VALUE | VALUE.ARRAY)?)>
-# <!ATTLIST QUALIFIER.DECLARATION 
-#          %CIMName;               
-#          %CIMType;               #REQUIRED
-#          ISARRAY    (true|false) #IMPLIED
-#          %ArraySize;
-#          %QualifierFlavor;>
+# <!ATTLIST QUALIFIER.DECLARATION
+#       %CIMName;
+#       %CIMType;                #REQUIRED
+#       ISARRAY     (true|false) #IMPLIED
+#       %ArraySize;
+#       %QualifierFlavor;
+# >
 # <!ELEMENT SCOPE EMPTY>
 # <!ATTLIST SCOPE
-# 	CLASS (true | false) "false"
-# 	ASSOCIATION (true | false) "false"
-# 	REFERENCE (true | false) "false"
-# 	PROPERTY (true | false) "false"
-# 	METHOD (true | false) "false"
-# 	PARAMETER (true | false) "false"
-# 	INDICATION (true | false) "false"
+#       CLASS       (true | false) "false"
+#       ASSOCIATION (true | false) "false"
+#       REFERENCE   (true | false) "false"
+#       PROPERTY    (true | false) "false"
+#       METHOD      (true | false) "false"
+#       PARAMETER   (true | false) "false"
+#       INDICATION  (true | false) "false"
 # >
 
 # <!-- ************************************************** -->
@@ -111,15 +115,15 @@ def parse_value(parser, event, node):
 
     (next_event, next_node) = parser.next()
 
-    if next_event == CHARACTERS:        
+    if next_event == CHARACTERS:
 
         value = next_node.nodeValue
 
         (next_event, next_node) = parser.next()
-        
+
     if not is_end(next_event, next_node, 'VALUE'):
         raise ParseError('Expecting end VALUE')
-        
+
     return value
 
 # <!ELEMENT VALUE.ARRAY (VALUE*)>
@@ -172,11 +176,11 @@ def parse_value_reference(parser, event, node):
 
     elif is_start(next_event, next_node, 'INSTANCENAME'):
         result = parse_instancename(parser, next_event, next_node)
-        
+
     else:
         raise ParseError('Expecting (CLASSPATH | LOCALCLASSPATH | CLASSNAME '
                          '| INSTANCEPATH | LOCALINSTANCEPATH | INSTANCENAME)')
-                         
+
     get_end_event(parser, 'VALUE.REFERENCE')
 
     return result
@@ -185,10 +189,12 @@ def parse_value_reference(parser, event, node):
 # <!ELEMENT VALUE.OBJECT (CLASS | INSTANCE)>
 # <!ELEMENT VALUE.NAMEDINSTANCE (INSTANCENAME, INSTANCE)>
 # <!ELEMENT VALUE.NAMEDOBJECT (CLASS | (INSTANCENAME, INSTANCE))>
-# <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH, CLASS) | (LOCALINSTANCEPATH, INSTANCE))>
-# <!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH, CLASS) | (INSTANCEPATH, INSTANCE))>
+# <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH, CLASS) |
+#                                      (LOCALINSTANCEPATH, INSTANCE))>
+# <!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH, CLASS) |
+#                                 (INSTANCEPATH, INSTANCE))>
 # <!ELEMENT VALUE.NULL EMPTY>
- 
+
 # <!-- ************************************************** -->
 # <!-- Object naming and locating elements                -->
 # <!-- ************************************************** -->
@@ -196,19 +202,19 @@ def parse_value_reference(parser, event, node):
 # <!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)>
 
 def parse_namespacepath(parser, event, node):
-    
+
     (next_event, next_node) = parser.next()
 
     if not is_start(next_event, next_node, 'HOST'):
         raise ParseError('Expecting HOST')
-    
+
     host = parse_host(parser, next_event, next_node)
 
     (next_event, next_node) = parser.next()
 
     if not is_start(next_event, next_node, 'LOCALNAMESPACEPATH'):
         raise ParseError('Expecting LOCALNAMESPACEPATH')
-    
+
     namespacepath = parse_localnamespacepath(parser, next_event, next_node)
 
     (next_event, next_node) = parser.next()
@@ -254,20 +260,20 @@ def parse_host(parser, event, node):
 
     (next_event, next_node) = parser.next()
 
-    if next_event == CHARACTERS:        
+    if next_event == CHARACTERS:
 
         host = next_node.nodeValue
 
         (next_event, next_node) = parser.next()
-        
+
     if not is_end(next_event, next_node, 'HOST'):
         raise ParseError('Expecting end HOST')
-        
+
     return host
 
 # <!ELEMENT NAMESPACE EMPTY>
 # <!ATTLIST NAMESPACE
-# 	%CIMName; 
+#       %CIMName;
 # >
 
 def parse_namespace(parser, event, node):
@@ -287,7 +293,7 @@ def parse_namespace(parser, event, node):
 
 # <!ELEMENT CLASSNAME EMPTY>
 # <!ATTLIST CLASSNAME
-# 	%CIMName; 
+#       %CIMName;
 # >
 
 # <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
@@ -298,7 +304,7 @@ def parse_instancepath(parser, event, node):
 
     if not is_start(next_event, next_node, 'NAMESPACEPATH'):
         raise ParseError('Expecting NAMESPACEPATH')
-    
+
     host, namespacepath = parse_namespacepath(parser, next_event, next_node)
 
     (next_event, next_node) = parser.next()
@@ -322,7 +328,7 @@ def parse_localinstancepath(parser, event, node):
 
     if not is_start(next_event, next_node, 'LOCALNAMESPACEPATH'):
         raise ParseError('Expecting LOCALNAMESPACEPATH')
-    
+
     namespacepath = parse_localnamespacepath(parser, next_event, next_node)
 
     (next_event, next_node) = parser.next()
@@ -338,14 +344,14 @@ def parse_localinstancepath(parser, event, node):
 
 # <!ELEMENT INSTANCENAME (KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?)>
 # <!ATTLIST INSTANCENAME
-# 	%ClassName; 
+#       %ClassName;
 # >
 
 def parse_instancename(parser, event, node):
-    
+
     classname = get_required_attribute(node, 'CLASSNAME')
     keybindings = []
-    
+
     (next_event, next_node) = parser.next()
 
     if is_start(next_event, next_node, 'KEYBINDING'):
@@ -364,17 +370,17 @@ def parse_instancename(parser, event, node):
                     parse_keybinding(parser, next_event, next_node))
             else:
                 raise ParseError('Expecting KEYBINDING element')
-            
+
     if is_end(next_event, next_node, 'INSTANCENAME'):
         pass
-            
+
     elif is_start(next_event, next_node, 'KEYVALUE'):
         keybindings.append(('', parse_keyvalue(parser, next_event, next_node)))
-        
-    elif is_start(next_event, next_node, 'VALUE.REFERENCE'):        
+
+    elif is_start(next_event, next_node, 'VALUE.REFERENCE'):
         keybindings.append(
             parse_value_reference(parser, next_event, next_node))
-        
+
     else:
         raise ParseError(
             'Expecting KEYBINDING* | KEYVALUE? | VALUE.REFERENCE')
@@ -385,7 +391,7 @@ def parse_instancename(parser, event, node):
 
 # <!ELEMENT KEYBINDING (KEYVALUE | VALUE.REFERENCE)>
 # <!ATTLIST KEYBINDING
-# 	%CIMName; 
+#       %CIMName;
 # >
 
 def parse_keybinding(parser, event, node):
@@ -411,8 +417,9 @@ def parse_keybinding(parser, event, node):
 
 # <!ELEMENT KEYVALUE (#PCDATA)>
 # <!ATTLIST KEYVALUE
-# 	VALUETYPE (string | boolean | numeric) "string"
-#         %CIMType;              #IMPLIED>
+#       VALUETYPE (string | boolean | numeric) "string"
+#       %CIMType;              #IMPLIED
+# >
 
 def parse_keyvalue(parser, event, node):
 
@@ -423,7 +430,7 @@ def parse_keyvalue(parser, event, node):
 
     if next_event != CHARACTERS:
         raise ParseError('Expecting character data')
-        
+
     value = next_node.nodeValue
 
     if valuetype == 'string':
@@ -446,7 +453,7 @@ def parse_keyvalue(parser, event, node):
 
     elif valuetype == 'numeric':
 
-        try: 
+        try:
 
             # XXX: Use TYPE attribute to create named CIM type.
             # if attrs(tt).has_key('TYPE'):
@@ -472,17 +479,18 @@ def parse_keyvalue(parser, event, node):
 # <!-- Object definition elements                         -->
 # <!-- ************************************************** -->
 
-# <!ELEMENT CLASS (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY | PROPERTY.REFERENCE)*, METHOD*)>
+# <!ELEMENT CLASS (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
+#                  PROPERTY.REFERENCE)*, METHOD*)>
 # <!ATTLIST CLASS
-# 	%CIMName; 
-# 	%SuperClass; 
+#       %CIMName;
+#       %SuperClass;
 # >
 
 # <!ELEMENT INSTANCE (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
 #                     PROPERTY.REFERENCE)*)>
 # <!ATTLIST INSTANCE
-# 	%ClassName;
-#         xml:lang   NMTOKEN      #IMPLIED 
+#       %ClassName;
+#       xml:lang   NMTOKEN      #IMPLIED
 # >
 
 def parse_instance(parser, event, node):
@@ -507,7 +515,7 @@ def parse_instance(parser, event, node):
                is_start(next_event, next_node, 'PROPERTY.REFERENCE') or \
                is_end(next_event, next_node, 'INSTANCE'):
                 break
-        
+
             if is_start(next_event, next_node, 'QUALIFIER'):
                 qualifiers.append(
                     parse_qualifier(parser, next_event, next_node))
@@ -539,17 +547,16 @@ def parse_instance(parser, event, node):
         raise ParseError('Expecting end INSTANCE')
 
     return CIMInstance(classname,
-                       properties = dict([(x.name,  x) for x in properties]),
-                       qualifiers = dict([(x.name, x) for x in qualifiers]))
-                       
-        
+                       properties=dict([(x.name, x) for x in properties]),
+                       qualifiers=dict([(x.name, x) for x in qualifiers]))
+
 # <!ELEMENT QUALIFIER ((VALUE | VALUE.ARRAY)?)>
-# <!ATTLIST QUALIFIER 
-#          %CIMName;
-#          %CIMType;              #REQUIRED
-#          %Propagated;
-#          %QualifierFlavor;
-#          xml:lang   NMTOKEN     #IMPLIED 
+# <!ATTLIST QUALIFIER
+#       %CIMName;
+#       %CIMType;              #REQUIRED
+#       %Propagated;
+#       %QualifierFlavor;
+#       xml:lang   NMTOKEN     #IMPLIED
 # >
 
 def parse_qualifier(parser, event, node):
@@ -561,7 +568,7 @@ def parse_qualifier(parser, event, node):
     (next_event, next_node) = parser.next()
 
     if is_end(next_event, next_node, 'QUALIFIER'):
-        return CIMQualifier(name, None, type = type)
+        return CIMQualifier(name, None, type=type)
 
     if is_start(next_event, next_node, 'VALUE'):
         value = parse_value(parser, next_event, next_node)
@@ -577,16 +584,16 @@ def parse_qualifier(parser, event, node):
     return result
 
 # <!ELEMENT PROPERTY (QUALIFIER*, VALUE?)>
-# <!ATTLIST PROPERTY 
-#          %CIMName;
-#          %ClassOrigin;
-#          %Propagated;
-#          %CIMType;              #REQUIRED
-#          xml:lang   NMTOKEN     #IMPLIED 
+# <!ATTLIST PROPERTY
+#       %CIMName;
+#       %ClassOrigin;
+#       %Propagated;
+#       %CIMType;              #REQUIRED
+#       xml:lang   NMTOKEN     #IMPLIED
 # >
 
 def parse_property(parser, event, node):
- 
+
     name = get_required_attribute(node, 'NAME')
     type = get_required_attribute(node, 'TYPE')
 
@@ -625,23 +632,23 @@ def parse_property(parser, event, node):
 
     return CIMProperty(name,
                        tocimobj(type, value),
-                       type = type,
-                       class_origin = class_origin,
-                       propagated = propagated,
-                       qualifiers = dict([(x.name, x) for x in qualifiers]))
+                       type=type,
+                       class_origin=class_origin,
+                       propagated=propagated,
+                       qualifiers=dict([(x.name, x) for x in qualifiers]))
 
 # <!ELEMENT PROPERTY.ARRAY (QUALIFIER*, VALUE.ARRAY?)>
-# <!ATTLIST PROPERTY.ARRAY 
-#          %CIMName;
-#          %CIMType;              #REQUIRED
-#          %ArraySize;
-#          %ClassOrigin;
-#          %Propagated;
-#          xml:lang   NMTOKEN     #IMPLIED 
+# <!ATTLIST PROPERTY.ARRAY
+#       %CIMName;
+#       %CIMType;              #REQUIRED
+#       %ArraySize;
+#       %ClassOrigin;
+#       %Propagated;
+#       xml:lang   NMTOKEN     #IMPLIED
 # >
 
 def parse_property_array(parser, event, node):
- 
+
     name = get_required_attribute(node, 'NAME')
     type = get_required_attribute(node, 'TYPE')
 
@@ -681,18 +688,18 @@ def parse_property_array(parser, event, node):
 
     return CIMProperty(name,
                        tocimobj(type, value),
-                       type = type,
-                       class_origin = class_origin,
-                       propagated = propagated,
-                       is_array = True,
-                       qualifiers = dict([(x.name, x) for x in qualifiers]))
-    
+                       type=type,
+                       class_origin=class_origin,
+                       propagated=propagated,
+                       is_array=True,
+                       qualifiers=dict([(x.name, x) for x in qualifiers]))
+
 # <!ELEMENT PROPERTY.REFERENCE (QUALIFIER*, (VALUE.REFERENCE)?)>
 # <!ATTLIST PROPERTY.REFERENCE
-# 	%CIMName; 
-# 	%ReferenceClass; 
-# 	%ClassOrigin; 
-# 	%Propagated; 
+#       %CIMName;
+#       %ReferenceClass;
+#       %ClassOrigin;
+#       %Propagated;
 # >
 
 def parse_property_reference(parser, event, node):
@@ -735,77 +742,81 @@ def parse_property_reference(parser, event, node):
 
     return CIMProperty(name,
                        value,
-                       class_origin = class_origin,
-                       propagated = propagated,
-                       type = 'reference',
-                       qualifiers = dict([(x.name, x) for x in qualifiers]))
+                       class_origin=class_origin,
+                       propagated=propagated,
+                       type='reference',
+                       qualifiers=dict([(x.name, x) for x in qualifiers]))
 
-# <!ELEMENT METHOD (QUALIFIER*, (PARAMETER | PARAMETER.REFERENCE | PARAMETER.ARRAY | PARAMETER.REFARRAY)*)>
-# <!ATTLIST METHOD 
-#          %CIMName;
-#          %CIMType;              #IMPLIED
-#          %ClassOrigin;
-#          %Propagated;>
+# <!ELEMENT METHOD (QUALIFIER*, (PARAMETER | PARAMETER.REFERENCE |
+#                   PARAMETER.ARRAY | PARAMETER.REFARRAY)*)>
+# <!ATTLIST METHOD
+#       %CIMName;
+#       %CIMType;              #IMPLIED
+#       %ClassOrigin;
+#       %Propagated;>
+
 # <!ELEMENT PARAMETER (QUALIFIER*)>
-# <!ATTLIST PARAMETER 
-#          %CIMName;
-#          %CIMType;              #REQUIRED>
+# <!ATTLIST PARAMETER
+#       %CIMName;
+#       %CIMType;              #REQUIRED>
 
 # <!ELEMENT PARAMETER.REFERENCE (QUALIFIER*)>
 # <!ATTLIST PARAMETER.REFERENCE
-# 	%CIMName; 
-# 	%ReferenceClass; 
+#       %CIMName;
+#       %ReferenceClass;
 # >
 
 # <!ELEMENT PARAMETER.ARRAY (QUALIFIER*)>
-# <!ATTLIST PARAMETER.ARRAY 
-#          %CIMName;
-#          %CIMType;              #REQUIRED
-#          %ArraySize;>
+# <!ATTLIST PARAMETER.ARRAY
+#       %CIMName;
+#       %CIMType;              #REQUIRED
+#       %ArraySize;>
 
 # <!ELEMENT PARAMETER.REFARRAY (QUALIFIER*)>
 # <!ATTLIST PARAMETER.REFARRAY
-# 	%CIMName; 
-# 	%ReferenceClass; 
-# 	%ArraySize; 
+#       %CIMName;
+#       %ReferenceClass;
+#       %ArraySize;
 # >
 
-# <!ELEMENT TABLECELL.DECLARATION EMPTY> 
+# <!ELEMENT TABLECELL.DECLARATION EMPTY>
 # <!ATTLIST TABLECELL.DECLARATION
-#      %CIMName;
-#      %CIMType;   	#REQUIRED
-#      ISARRAY           (true|false) "false"
-#      %ArraySize;
-#      CELLPOS  		CDATA       #REQUIRED
-#      SORTPOS     	CDATA       #IMPLIED
-#      SORTDIR            (ASC|DESC)  #IMPLIED
+#       %CIMName;
+#       %CIMType;                               #REQUIRED
+#       ISARRAY         (true|false) "false"
+#       %ArraySize;
+#       CELLPOS         CDATA                   #REQUIRED
+#       SORTPOS         CDATA                   #IMPLIED
+#       SORTDIR         (ASC|DESC)              #IMPLIED
 # >
 
-# <!ELEMENT TABLECELL.REFERENCE EMPTY> 
+# <!ELEMENT TABLECELL.REFERENCE EMPTY>
 # <!ATTLIST TABLECELL.REFERENCE
-#      %CIMName;
-#      %ReferenceClass;	
-#      ISARRAY        (true|false) "false"
-#      %ArraySize; 
-#      CELLPOS          CDATA       #REQUIRED
-#      SORTPOS          CDATA       #IMPLIED
-#      SORTDIR         (ASC|DESC)   #IMPLIED
+#       %CIMName;
+#       %ReferenceClass;
+#       ISARRAY         (true|false) "false"
+#       %ArraySize;
+#       CELLPOS         CDATA                   #REQUIRED
+#       SORTPOS         CDATA                   #IMPLIED
+#       SORTDIR         (ASC|DESC)              #IMPLIED
 # >
 
-# <!ELEMENT TABLEROW.DECLARATION ( TABLECELL.DECLARATION | TABLECELL.REFERENCE)*>
+# <!ELEMENT TABLEROW.DECLARATION (TABLECELL.DECLARATION | TABLECELL.REFERENCE)*>
 
 # <!ELEMENT TABLE (TABLEROW.DECLARATION,(TABLEROW)*)>
 
-# <!ELEMENT TABLEROW ( VALUE | VALUE.ARRAY | VALUE.REFERENCE | VALUE.REFARRAY | VALUE.NULL)*>
- 
+# <!ELEMENT TABLEROW (VALUE | VALUE.ARRAY | VALUE.REFERENCE | VALUE.REFARRAY |
+#                     VALUE.NULL)*>
+
 # <!-- ************************************************** -->
 # <!-- Message elements                                   -->
 # <!-- ************************************************** -->
 
-# <!ELEMENT MESSAGE (SIMPLEREQ | MULTIREQ | SIMPLERSP | MULTIRSP | SIMPLEEXPREQ | MULTIEXPREQ | SIMPLEEXPRSP | MULTIEXPRSP)>
+# <!ELEMENT MESSAGE (SIMPLEREQ | MULTIREQ | SIMPLERSP | MULTIRSP |
+#                    SIMPLEEXPREQ | MULTIEXPREQ | SIMPLEEXPRSP | MULTIEXPRSP)>
 # <!ATTLIST MESSAGE
-# 	ID CDATA #REQUIRED
-# 	PROTOCOLVERSION CDATA #REQUIRED
+#       ID              CDATA #REQUIRED
+#       PROTOCOLVERSION CDATA #REQUIRED
 # >
 
 # <!ELEMENT MULTIREQ (SIMPLEREQ, SIMPLEREQ+)>
@@ -816,35 +827,41 @@ def parse_property_reference(parser, event, node):
 
 # <!ELEMENT SIMPLEEXPREQ (EXPMETHODCALL)>
 
-# <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*, RESPONSEDESTINATION?)>
+# <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*,
+#                        RESPONSEDESTINATION?)>
 # <!ATTLIST IMETHODCALL
-# 	%CIMName; 
+#       %CIMName;
 # >
 
-# <!ELEMENT METHODCALL ((LOCALINSTANCEPATH | LOCALCLASSPATH), PARAMVALUE*, RESPONSEDESTINATION?)>
+# <!ELEMENT METHODCALL ((LOCALINSTANCEPATH | LOCALCLASSPATH), PARAMVALUE*,
+#                       RESPONSEDESTINATION?)>
 # <!ATTLIST METHODCALL
-# 	%CIMName; 
+#       %CIMName;
 # >
 
 # <!ELEMENT EXPMETHODCALL (EXPPARAMVALUE*)>
 # <!ATTLIST EXPMETHODCALL
-# 	%CIMName; 
+#       %CIMName;
 # >
 
-# <!ELEMENT PARAMVALUE (VALUE | VALUE.REFERENCE | VALUE.ARRAY | VALUE.REFARRAY)?>
+# <!ELEMENT PARAMVALUE (VALUE | VALUE.REFERENCE | VALUE.ARRAY |
+#                       VALUE.REFARRAY)?>
 # <!ATTLIST PARAMVALUE
-# 	%CIMName; 
-#         %ParamType;  #IMPLIED
+#       %CIMName;
+#       %ParamType;  #IMPLIED
 # >
 
-# <!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE | INSTANCENAME | CLASSNAME | QUALIFIER.DECLARATION | CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
+# <!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE | INSTANCENAME |
+#                        CLASSNAME | QUALIFIER.DECLARATION | CLASS | INSTANCE |
+#                        VALUE.NAMEDINSTANCE)?>
 # <!ATTLIST IPARAMVALUE
-# 	%CIMName; 
+#       %CIMName;
 # >
 
-# <!ELEMENT EXPPARAMVALUE (INSTANCE?|VALUE?|METHODRESPONSE?|IMETHODRESPONSE?)>
+# <!ELEMENT EXPPARAMVALUE (INSTANCE? | VALUE? | METHODRESPONSE? |
+#                          IMETHODRESPONSE?)>
 # <!ATTLIST EXPPARAMVALUE
-# 	%CIMName; 
+#       %CIMName;
 # >
 
 # <!ELEMENT MULTIRSP (SIMPLERSP, SIMPLERSP+)>
@@ -855,58 +872,62 @@ def parse_property_reference(parser, event, node):
 
 # <!ELEMENT SIMPLEEXPRSP (EXPMETHODRESPONSE)>
 
-# <!ELEMENT METHODRESPONSE (ERROR|(RETURNVALUE?,PARAMVALUE*))>
+# <!ELEMENT METHODRESPONSE (ERROR | (RETURNVALUE?, PARAMVALUE*))>
 # <!ATTLIST METHODRESPONSE
-# 	%CIMName; 
+#       %CIMName;
 # >
 
-# <!ELEMENT EXPMETHODRESPONSE (ERROR|IRETURNVALUE?)>
+# <!ELEMENT EXPMETHODRESPONSE (ERROR | IRETURNVALUE?)>
 # <!ATTLIST EXPMETHODRESPONSE
-# 	%CIMName; 
+#       %CIMName;
 # >
 
-# <!ELEMENT IMETHODRESPONSE (ERROR|IRETURNVALUE?)>
+# <!ELEMENT IMETHODRESPONSE (ERROR | IRETURNVALUE?)>
 # <!ATTLIST IMETHODRESPONSE
-# 	%CIMName; 
+#       %CIMName;
 # >
 
 # <!ELEMENT ERROR (INSTANCE*)>
 # <!ATTLIST ERROR
-# 	CODE CDATA #REQUIRED
-# 	DESCRIPTION CDATA #IMPLIED
+#       CODE        CDATA #REQUIRED
+#       DESCRIPTION CDATA #IMPLIED
 # >
 
 # <!ELEMENT RETURNVALUE (VALUE | VALUE.REFERENCE)>
 # <!ATTLIST RETURNVALUE
-# 	%ParamType;       #IMPLIED 
+#       %ParamType;       #IMPLIED
 # >
 
-# <!ELEMENT IRETURNVALUE (CLASSNAME* | INSTANCENAME* | VALUE* | VALUE.OBJECTWITHPATH* | VALUE.OBJECTWITHLOCALPATH* | VALUE.OBJECT* | OBJECTPATH* | QUALIFIER.DECLARATION* | VALUE.ARRAY? | VALUE.REFERENCE? | CLASS* | INSTANCE* | VALUE.NAMEDINSTANCE*)>
+# <!ELEMENT IRETURNVALUE (CLASSNAME* | INSTANCENAME* | VALUE* |
+#                         VALUE.OBJECTWITHPATH* | VALUE.OBJECTWITHLOCALPATH* |
+#                         VALUE.OBJECT* | OBJECTPATH* | QUALIFIER.DECLARATION* |
+#                         VALUE.ARRAY? | VALUE.REFERENCE? | CLASS* | INSTANCE* |
+#                         VALUE.NAMEDINSTANCE*)>
 
-# <!ELEMENT RESPONSEDESTINATION (INSTANCE)> 
+# <!ELEMENT RESPONSEDESTINATION (INSTANCE)>
 
-# <!ELEMENT SIMPLEREQACK (ERROR?)> 
-# <!ATTLIST SIMPLEREQACK  
-#          INSTANCEID CDATA     #REQUIRED
-# > 
+# <!ELEMENT SIMPLEREQACK (ERROR?)>
+# <!ATTLIST SIMPLEREQACK
+#       INSTANCEID CDATA     #REQUIRED
+# >
 
 def make_parser(stream_or_string):
     """Create a xml.dom.pulldom parser."""
-    
+
     if type(stream_or_string) == str or type(stream_or_string) == unicode:
 
         # XXX: the pulldom.parseString() function doesn't seem to
         # like operating on unicode strings!
-        
+
         return parseString(str(stream_or_string))
-        
+
     else:
 
         return parse(stream_or_string)
 
 def parse_any(stream_or_string):
     """Parse any XML string or stream."""
-    
+
     parser = make_parser(stream_or_string)
 
     (event, node) = parser.next()
@@ -923,7 +944,7 @@ def parse_any(stream_or_string):
     fn = globals().get(fn_name)
     if fn is None:
         raise ParseError('No parser for element %s' % node.tagName)
-    
+
     return fn(parser, event, node)
 
 # Test harness

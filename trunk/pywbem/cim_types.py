@@ -1,16 +1,16 @@
 #
 # (C) Copyright 2003, 2004 Hewlett-Packard Development Company, L.P.
-# (C) Copyright 2006, 2007 Novell, Inc. 
+# (C) Copyright 2006, 2007 Novell, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; version 2 of the License.
-#   
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-#   
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -32,7 +32,7 @@ import re
 class MinutesFromUTC(tzinfo):
     """Fixed offset in minutes from UTC."""
     def __init__(self, offset):
-        self.__offset = timedelta(minutes = offset)
+        self.__offset = timedelta(minutes=offset)
     def utcoffset(self, dt):
         return self.__offset
     def dst(self, dt):
@@ -40,15 +40,15 @@ class MinutesFromUTC(tzinfo):
 
 class CIMType(object):
     """Base type for all CIM types."""
-    
-class CIMDateTime(CIMType) :
+
+class CIMDateTime(CIMType):
     """A CIM DateTime."""
 
     def __init__(self, dtarg):
         """Construct a new CIMDateTime
 
         Arguments:
-        dtarg -- Can be a string in CIM datetime format, a datetime.datetime, 
+        dtarg -- Can be a string in CIM datetime format, a datetime.datetime,
             a datetime.timedelta, or a CIMDateTime.
 
         """
@@ -57,7 +57,9 @@ class CIMDateTime(CIMType) :
         self.__timedelta = None
         self.__datetime = None
         if isinstance(dtarg, basestring):
-            date_pattern = re.compile(r'^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.(\d{6})([+|-])(\d{3})')
+            date_pattern = re.compile(
+                r'^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.' \
+                '(\d{6})([+|-])(\d{3})')
             s = date_pattern.search(dtarg)
             if s is not None:
                 g = s.groups()
@@ -68,28 +70,30 @@ class CIMDateTime(CIMType) :
                     self.__datetime = datetime(int(g[0]), int(g[1]),
                                                int(g[2]), int(g[3]),
                                                int(g[4]), int(g[5]),
-                                               int(g[6]), MinutesFromUTC(offset))
+                                               int(g[6]),
+                                               MinutesFromUTC(offset))
                 except ValueError as exc:
                     raise ValueError('dtarg argument "%s" has invalid field '\
                                      'values for CIM datetime timestamp '\
                                      'format: %s' % (dtarg, exc))
             else:
-                tv_pattern = re.compile(r'^(\d{8})(\d{2})(\d{2})(\d{2})\.(\d{6})(:)(000)')
+                tv_pattern = re.compile(
+                    r'^(\d{8})(\d{2})(\d{2})(\d{2})\.(\d{6})(:)(000)')
                 s = tv_pattern.search(dtarg)
                 if s is not None:
                     g = s.groups()
-                    # Because the input values are limited by the matched pattern,
-                    # timedelta() never throws any exception.
-                    self.__timedelta =  timedelta(days=int(g[0]),
-                                                  hours=int(g[1]),
-                                                  minutes=int(g[2]),
-                                                  seconds=int(g[3]),
-                                                  microseconds=int(g[4]))
+                    # Because the input values are limited by the matched
+                    # pattern, timedelta() never throws any exception.
+                    self.__timedelta = timedelta(days=int(g[0]),
+                                                 hours=int(g[1]),
+                                                 minutes=int(g[2]),
+                                                 seconds=int(g[3]),
+                                                 microseconds=int(g[4]))
                 else:
                     raise ValueError('dtarg argument "%s" has an invalid CIM '\
                                      'datetime format' % dtarg)
         elif isinstance(dtarg, datetime):
-            self.__datetime = dtarg; 
+            self.__datetime = dtarg;
         elif isinstance(dtarg, timedelta):
             self.__timedelta = dtarg
         elif isinstance(dtarg, CIMDateTime):
@@ -145,14 +149,14 @@ class CIMDateTime(CIMType) :
             tzi = MinutesFromUTC(cls.get_local_utcoffset())
         return cls(datetime.fromtimestamp(ts, tzi))
 
-    def __str__ (self):
+    def __str__(self):
         if self.is_interval:
             hour = self.__timedelta.seconds / 3600
             minute = (self.__timedelta.seconds - hour * 3600) / 60
             second = self.__timedelta.seconds - hour * 3600 - minute * 60
             return '%08d%02d%02d%02d.%06d:000' % \
-                    (self.__timedelta.days, hour, minute, second, 
-                            self.__timedelta.microseconds)
+                    (self.__timedelta.days, hour, minute, second,
+                     self.__timedelta.microseconds)
         else:
             offset = self.minutes_from_utc
             sign = '+'
@@ -160,12 +164,12 @@ class CIMDateTime(CIMType) :
                 sign = '-'
                 offset = -offset
             return '%d%02d%02d%02d%02d%02d.%06d%s%03d' % \
-                   (self.__datetime.year, self.__datetime.month, 
+                   (self.__datetime.year, self.__datetime.month,
                     self.__datetime.day, self.__datetime.hour,
-                    self.__datetime.minute, self.__datetime.second, 
+                    self.__datetime.minute, self.__datetime.second,
                     self.__datetime.microsecond, sign, offset)
 
-    def __repr__ (self):
+    def __repr__(self):
         return '%s(%s)'%(self.__class__.__name__, `str(self)`)
 
     def __getstate__(self):
@@ -179,7 +183,7 @@ class CIMDateTime(CIMType) :
             return 0
         elif not isinstance(other, CIMDateTime):
             return 1
-        return (cmp(self.__datetime, other.__datetime) or 
+        return (cmp(self.__datetime, other.__datetime) or
                 cmp(self.__timedelta, other.__timedelta))
 
 
@@ -227,7 +231,7 @@ def cimtype(obj):
     """Return the CIM type name of an object as a string.  For a list, the
     type is the type of the first element as CIM arrays must be
     homogeneous."""
-    
+
     if isinstance(obj, CIMType):
         return obj.cimtype
 

@@ -1,16 +1,16 @@
 #
 # (C) Copyright 2003-2005 Hewlett-Packard Development Company, L.P.
-# (C) Copyright 2006-2007 Novell, Inc. 
+# (C) Copyright 2006-2007 Novell, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; version 2 of the License.
-#   
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-#   
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -94,9 +94,9 @@ def get_default_ca_certs():
             get_default_ca_certs._path = None
     return get_default_ca_certs._path
 
-def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
-                 verify_callback = None, ca_certs = None,
-                 no_verification = False):
+def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
+                 verify_callback=None, ca_certs=None,
+                 no_verification=False):
     """Send XML data over HTTP to the specified url. Return the
     response in XML.  Uses Python's build-in httplib.  x509 may be a
     dictionary containing the location of the SSL certificate and key
@@ -109,9 +109,9 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
 
     class HTTPBaseConnection:
         def send(self, str):
-            """ Same as httplib.HTTPConnection.send(), except we don't 
-            check for sigpipe and close the connection.  If the connection 
-            gets closed, getresponse() fails. 
+            """ Same as httplib.HTTPConnection.send(), except we don't
+            check for sigpipe and close the connection.  If the connection
+            gets closed, getresponse() fails.
             """
 
             if self.sock is None:
@@ -126,11 +126,11 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
     class HTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
         def __init__(self, host, port=None, strict=None):
             httplib.HTTPConnection.__init__(self, host, port, strict)
-    
+
     class HTTPSConnection(HTTPBaseConnection, httplib.HTTPSConnection):
-        def __init__(self, host, port=None, key_file=None, cert_file=None, 
+        def __init__(self, host, port=None, key_file=None, cert_file=None,
                      strict=None, ca_certs=None, verify_callback=None):
-            httplib.HTTPSConnection.__init__(self, host, port, key_file, 
+            httplib.HTTPSConnection.__init__(self, host, port, key_file,
                                              cert_file, strict)
             self.ca_certs = ca_certs
             self.verify_callback = verify_callback
@@ -138,7 +138,8 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
         def connect(self):
             "Connect to a host on a given (SSL) port."
             self.sock = socket.create_connection((self.host, self.port),
-                                            self.timeout, self.source_address)
+                                                 self.timeout,
+                                                 self.source_address)
             if self._tunnel_host:
                 self.sock = sock
                 self._tunnel()
@@ -146,7 +147,8 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
             if self.cert_file:
                 ctx.load_cert(self.cert_file, keyfile=self.key_file)
             if self.ca_certs:
-                ctx.set_verify(SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
+                ctx.set_verify(
+                    SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
                     depth=9, callback=verify_callback)
                 if os.path.isdir(self.ca_certs):
                     ctx.load_verify_locations(capath=self.ca_certs)
@@ -155,27 +157,30 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
             try:
                 self.sock = SSL.Connection(ctx, self.sock)
                 # Below is a body of SSL.Connection.connect() method
-                # except for the first line (socket connection). We want to preserve
-                # tunneling ability.
+                # except for the first line (socket connection). We want to
+                # preserve tunneling ability.
                 self.sock.addr = (self.host, self.port)
                 self.sock.setup_ssl()
                 self.sock.set_connect_state()
                 ret = self.sock.connect_ssl()
                 if self.ca_certs:
                     check = getattr(self.sock, 'postConnectionCheck',
-                             self.sock.clientPostConnectionCheck)
+                                    self.sock.clientPostConnectionCheck)
                     if check is not None:
                         if not check(self.sock.get_peer_cert(), self.host):
-                            raise Error('SSL error: post connection check failed')
+                            raise Error('SSL error: post connection check '\
+                                        'failed')
                 return ret
-            except ( Err.SSLError, SSL.SSLError, SSL.SSLTimeoutError
-                   , SSL.Checker.WrongHost), arg:
+            except (Err.SSLError, SSL.SSLError, SSL.SSLTimeoutError,
+                    SSL.Checker.WrongHost), arg:
                 raise Error("SSL error: %s" % arg)
 
     class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
+
         def __init__(self, uds_path):
             httplib.HTTPConnection.__init__(self, 'localhost')
             self.uds_path = uds_path
+
         def connect(self):
             try:
                 socket_af = socket.AF_UNIX
@@ -215,14 +220,14 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
     local = False
     if use_ssl:
         h = HTTPSConnection(host,
-                port = port,
-                key_file = key_file,
-                cert_file = cert_file,
-                ca_certs = ca_certs,
-                verify_callback = verify_callback)
+                            port=port,
+                            key_file=key_file,
+                            cert_file=cert_file,
+                            ca_certs=ca_certs,
+                            verify_callback=verify_callback)
     else:
         if url.startswith('http'):
-            h = HTTPConnection(host, port = port)
+            h = HTTPConnection(host, port=port)
         else:
             if url.startswith('file:'):
                 url = url[5:]
@@ -253,9 +258,11 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
         h.putheader('Content-length', str(len(data)))
         if localAuthHeader is not None:
             h.putheader(*localAuthHeader)
-        elif creds is not None: 
+        elif creds is not None:
             h.putheader('Authorization', 'Basic %s' %
-                    base64.encodestring('%s:%s' % (creds[0], creds[1])).replace('\n',''))
+                        base64.encodestring(
+                            '%s:%s' %
+                            (creds[0], creds[1])).replace('\n', ''))
         elif locallogin is not None:
             h.putheader('PegasusAuthorization', 'Local "%s"' % locallogin)
 
@@ -267,17 +274,17 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
 
         try:
             # See RFC 2616 section 8.2.2
-            # An http server is allowed to send back an error (presumably 
+            # An http server is allowed to send back an error (presumably
             # a 401), and close the connection without reading the entire
             # request.  A server may do this to protect itself from a DoS
-            # attack.  
-            # 
-            # If the server closes the connection during our h.send(), we 
-            # will either get a socket exception 104 (TCP RESET), or a 
+            # attack.
+            #
+            # If the server closes the connection during our h.send(), we
+            # will either get a socket exception 104 (TCP RESET), or a
             # socket exception 32 (broken pipe).  In either case, thanks
-            # to our fixed HTTPConnection classes, we'll still be able to 
-            # retrieve the response so that we can read and respond to the 
-            # authentication challenge. 
+            # to our fixed HTTPConnection classes, we'll still be able to
+            # retrieve the response so that we can read and respond to the
+            # authentication challenge.
             h.endheaders()
             try:
                 h.send(data)
@@ -287,7 +294,7 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
 
             response = h.getresponse()
             body = response.read()
-    
+
             if response.status != 200:
                 if response.status == 401:
                     if numTries >= tryLimit:
@@ -304,8 +311,8 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
                                         "openwbem server not supported on %s "\
                                         "platform due to missing os.getuid()"%\
                                         platform.system())
-                            localAuthHeader = ('Authorization', 
-                                    'OWLocal uid="%d"' % uid)
+                            localAuthHeader = ('Authorization',
+                                               'OWLocal uid="%d"' % uid)
                             continue
                         else:
                             try:
@@ -320,9 +327,10 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
                                 f = open(cookieFile, 'r')
                                 cookie = f.read().strip()
                                 f.close()
-                                localAuthHeader = ('Authorization',
-                                        'OWLocal nonce="%s", cookie="%s"' % \
-                                                (nonce, cookie))
+                                localAuthHeader = (
+                                    'Authorization',
+                                    'OWLocal nonce="%s", cookie="%s"' % \
+                                    (nonce, cookie))
                                 continue
                             except:
                                 localAuthHeader = None
@@ -336,9 +344,10 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
                                 fo = open(file, 'r')
                                 cookie = fo.read().strip()
                                 fo.close()
-                                localAuthHeader = ('PegasusAuthorization',
+                                localAuthHeader = (
+                                    'PegasusAuthorization',
                                     'Local "%s:%s:%s"' % \
-                                            (locallogin, file, cookie))
+                                    (locallogin, file, cookie))
                                 continue
                         except ValueError:
                             pass
@@ -352,7 +361,7 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
                         (response.getheader('CIMError'),
                          urllib.unquote(response.getheader('PGErrorDetail'))))
                 raise Error('HTTP error: %s' % response.reason)
-    
+
         except httplib.BadStatusLine, arg:
             raise Error("The web server returned a bad status line: '%s'" % arg)
         except socket.error, arg:

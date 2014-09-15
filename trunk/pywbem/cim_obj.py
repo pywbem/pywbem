@@ -1,16 +1,16 @@
 #
 # (C) Copyright 2003-2007 Hewlett-Packard Development Company, L.P.
-# (C) Copyright 2006-2007 Novell, Inc. 
+# (C) Copyright 2006-2007 Novell, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; version 2 of the License.
-#   
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-#   
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -108,7 +108,7 @@ class NocaseDict(object):
             k = key.lower()
         return k in self.data
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         try:
             return self[key]
         except KeyError:
@@ -213,7 +213,7 @@ def cmpname(name1, name2):
 
 class CIMClassName(object):
 
-    def __init__(self, classname, host = None, namespace = None):
+    def __init__(self, classname, host=None, namespace=None):
 
         if not isinstance(classname, StringTypes):
             raise TypeError('classname argument has an invalid type: %s '\
@@ -226,10 +226,10 @@ class CIMClassName(object):
         self.classname = classname
         self.host = host
         self.namespace = namespace
-        
+
     def copy(self):
-        return CIMClassName(self.classname, host = self.host,
-                            namespace = self.namespace)
+        return CIMClassName(self.classname, host=self.host,
+                            namespace=self.namespace)
 
     def __cmp__(self, other):
 
@@ -243,7 +243,7 @@ class CIMClassName(object):
                 cmpname(self.namespace, other.namespace))
 
     def __str__(self):
-        
+
         s = ''
 
         if self.host is not None:
@@ -289,11 +289,11 @@ class CIMClassName(object):
                     classname)
 
             # Classname + namespace = LOCALCLASSPATH
-                                          
+
             return cim_xml.LOCALCLASSPATH(localnsp, classname)
 
         # Just classname = CLASSNAME
-        
+
         return cim_xml.CLASSNAME(self.classname)
 
 class CIMProperty(object):
@@ -305,11 +305,11 @@ class CIMProperty(object):
 
     The property may hold an array value, in which case it is encoded
     in XML to PROPERTY.ARRAY containing VALUE.ARRAY."""
-    
-    def __init__(self, name, value, type = None, 
-                 class_origin = None, array_size = None, propagated = None,
-                 is_array = False, reference_class = None, qualifiers = {},
-                 embedded_object = None):
+
+    def __init__(self, name, value, type=None,
+                 class_origin=None, array_size=None, propagated=None,
+                 is_array=False, reference_class=None, qualifiers={},
+                 embedded_object=None):
 
         # Initialise members
 
@@ -323,7 +323,7 @@ class CIMProperty(object):
         self.is_array = is_array
         self.reference_class = reference_class
         self.embedded_object = embedded_object
-        
+
         if isinstance(value, (datetime, timedelta)):
             value = CIMDateTime(value)
 
@@ -339,7 +339,7 @@ class CIMProperty(object):
 
             if value is None:
                 raise TypeError('Null property "%s" must have a type' % name)
-        
+
             if self.is_array:
 
                 # Determine type for list value
@@ -347,7 +347,7 @@ class CIMProperty(object):
                 if len(value) == 0:
                     raise TypeError(
                         'Empty property array "%s" must have a type' % name)
-                    
+
                 elif isinstance(value[0], CIMInstance):
                     self.type = 'string'
                     self.embedded_object = 'instance'
@@ -368,24 +368,24 @@ class CIMProperty(object):
             elif isinstance(value, CIMClass):
                 self.type = 'string'
                 self.embedded_object = 'object'
-                
+
             else:
 
                 # Determine type for regular value
-                
+
                 self.type = cim_types.cimtype(value)
 
     def copy(self):
 
         return CIMProperty(self.name,
                            self.value,
-                           type = self.type,
-                           class_origin = self.class_origin,
-                           array_size = self.array_size,
-                           propagated = self.propagated,
-                           is_array = self.is_array,
-                           reference_class = self.reference_class,
-                           qualifiers = self.qualifiers.copy())
+                           type=self.type,
+                           class_origin=self.class_origin,
+                           array_size=self.array_size,
+                           propagated=self.propagated,
+                           is_array=self.is_array,
+                           reference_class=self.reference_class,
+                           qualifiers=self.qualifiers.copy())
 
     def __repr__(self):
 
@@ -402,7 +402,8 @@ class CIMProperty(object):
                 if value:
                     if self.embedded_object is not None:
                         value = [v.tocimxml().toxml() for v in value]
-                value = cim_xml.VALUE_ARRAY([cim_xml.VALUE(atomic_to_cim_xml(v)) for v in value])
+                value = cim_xml.VALUE_ARRAY(
+                    [cim_xml.VALUE(atomic_to_cim_xml(v)) for v in value])
 
             return cim_xml.PROPERTY_ARRAY(
                 self.name,
@@ -411,8 +412,8 @@ class CIMProperty(object):
                 self.array_size,
                 self.class_origin,
                 self.propagated,
-                qualifiers = [q.tocimxml() for q in self.qualifiers.values()],
-                embedded_object = self.embedded_object)
+                qualifiers=[q.tocimxml() for q in self.qualifiers.values()],
+                embedded_object=self.embedded_object)
 
         elif self.type == 'reference':
 
@@ -423,10 +424,10 @@ class CIMProperty(object):
             return cim_xml.PROPERTY_REFERENCE(
                 self.name,
                 value_reference,
-                reference_class = self.reference_class,
-                class_origin = self.class_origin,
-                propagated = self.propagated,
-                qualifiers = [q.tocimxml() for q in self.qualifiers.values()])
+                reference_class=self.reference_class,
+                class_origin=self.class_origin,
+                propagated=self.propagated,
+                qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
         else:
             value = self.value
@@ -441,10 +442,10 @@ class CIMProperty(object):
                 self.name,
                 self.type,
                 value,
-                class_origin = self.class_origin,
-                propagated = self.propagated,
-                qualifiers = [q.tocimxml() for q in self.qualifiers.values()],
-                embedded_object = self.embedded_object)
+                class_origin=self.class_origin,
+                propagated=self.propagated,
+                qualifiers=[q.tocimxml() for q in self.qualifiers.values()],
+                embedded_object=self.embedded_object)
 
     def __cmp__(self, other):
 
@@ -468,8 +469,8 @@ class CIMInstanceName(object):
 
     This may be treated as a dictionary to retrieve the keys."""
 
-    def __init__(self, classname, keybindings = {}, host = None,
-                 namespace = None):
+    def __init__(self, classname, keybindings={}, host=None,
+                 namespace=None):
 
         self.classname = classname
         self.keybindings = NocaseDict(keybindings)
@@ -482,7 +483,7 @@ class CIMInstanceName(object):
         result.keybindings = self.keybindings.copy()
         result.host = self.host
         result.namespace = self.namespace
-        
+
         return result
 
     def __cmp__(self, other):
@@ -511,18 +512,18 @@ class CIMInstanceName(object):
 
         for key, value in self.keybindings.items():
 
-            s +='%s=' % key
+            s += '%s=' % key
 
             if isinstance(value, (int, long, bool, float)):
                 s += str(value)
             elif isinstance(value, CIMInstanceName):
-                s += '"%s"' % str(value).replace(
-                        '\\','\\\\').replace('"','\\"')
+                s += '"%s"' % str(value).replace('\\', '\\\\').replace(
+                    '"', '\\"')
             else:
                 s += '"%s"' % value
 
             s += ','
-            
+
         return s[:-1]
 
     def __repr__(self):
@@ -541,7 +542,7 @@ class CIMInstanceName(object):
         r += ')'
 
         return r
-        
+
     # A whole bunch of dictionary methods that map to the equivalent
     # operation on self.keybindings.
 
@@ -567,15 +568,15 @@ class CIMInstanceName(object):
         if type(self.keybindings) == str:
 
             # Class with single key string property
-        
+
             instancename_xml = cim_xml.INSTANCENAME(
                 self.classname,
                 cim_xml.KEYVALUE(self.keybindings, 'string'))
 
-        elif isinstance(self.keybindings, (long, float, int)): 
+        elif isinstance(self.keybindings, (long, float, int)):
 
             # Class with single key numeric property
-        
+
             instancename_xml = cim_xml.INSTANCENAME(
                 self.classname,
                 cim_xml.KEYVALUE(str(self.keybindings), 'numeric'))
@@ -583,35 +584,36 @@ class CIMInstanceName(object):
         elif isinstance(self.keybindings, (dict, NocaseDict)):
 
             # Dictionary of keybindings
-            # NOCASE_TODO should remove dict below. 
+            # NOCASE_TODO should remove dict below.
 
             kbs = []
 
             for kb in self.keybindings.items():
 
                 # Keybindings can be integers, booleans, strings or
-                # value references.                
+                # value references.
 
                 if hasattr(kb[1], 'tocimxml'):
                     kbs.append(cim_xml.KEYBINDING(
                         kb[0],
                         cim_xml.VALUE_REFERENCE(kb[1].tocimxml())))
                     continue
-                               
+
                 if type(kb[1]) == bool:
                     _type = 'boolean'
                     if kb[1]:
                         value = 'TRUE'
                     else:
                         value = 'FALSE'
-                elif isinstance(kb[1], (long, float, int)): 
-                    # pywbem.cim_type.{Sint32, Real64, ... } derive from 
+                elif isinstance(kb[1], (long, float, int)):
+                    # pywbem.cim_type.{Sint32, Real64, ... } derive from
                     # long or float
                     _type = 'numeric'
                     value = str(kb[1])
                 elif isinstance(kb[1], basestring):
                     _type = 'string'
-                    value = kb[1].decode('utf-8') if isinstance(kb[1], str) else kb[1]
+                    value = kb[1].decode('utf-8') if isinstance(kb[1], str) \
+                                                  else kb[1]
                 else:
                     raise TypeError('Invalid keybinding type for keybinding '\
                             '%s: %s' % (kb[0], type(kb[1])))
@@ -662,8 +664,8 @@ class CIMInstance(object):
     The properties is indexed by name and points to CIMProperty
     instances."""
 
-    def __init__(self, classname, properties = {}, qualifiers = {},
-                 path = None, property_list = None):
+    def __init__(self, classname, properties={}, qualifiers={},
+                 path=None, property_list=None):
         """Create CIMInstance.
 
         bindings is a concise way to initialize property values;
@@ -672,7 +674,7 @@ class CIMInstance(object):
         properties parameter.
 
         properties is a list of full CIMProperty objects. """
-        
+
         self.classname = classname
         self.qualifiers = NocaseDict(qualifiers)
         self.path = path
@@ -688,10 +690,10 @@ class CIMInstance(object):
         [self.__setitem__(k, v) for k, v in properties.items()]
 
     def update(self, *args, **kwargs):
-        """D.update(E, **F) -> None.  
-        
+        """D.update(E, **F) -> None.
+
         Update D from E and F: for k in E: D[k] = E[k]
-        (if E has keys else: for (k, v) in E: D[k] = v) 
+        (if E has keys else: for (k, v) in E: D[k] = v)
         then: for k in F: D[k] = F[k] """
 
         for mapping in args:
@@ -706,12 +708,12 @@ class CIMInstance(object):
 
     def update_existing(self, *args, **kwargs):
         """Update property values iff the property previously exists.
-        
+
         Update D from E and F: for k in E: D[k] = E[k]
-        (if E has keys else: for (k, v) in E: D[k] = v) 
-        then: for k in F: D[k] = F[k] 
-        
-        Like update, but properties that are not already present in the 
+        (if E has keys else: for (k, v) in E: D[k] = v)
+        then: for k in F: D[k] = F[k]
+
+        Like update, but properties that are not already present in the
         instance are skipped. """
 
         for mapping in args:
@@ -741,7 +743,8 @@ class CIMInstance(object):
         result = CIMInstance(self.classname)
         result.properties = self.properties.copy()
         result.qualifiers = self.qualifiers.copy()
-        result.path = (self.path is not None and [self.path.copy()] or [None])[0]
+        result.path = (self.path is not None and \
+                       [self.path.copy()] or [None])[0]
 
         return result
 
@@ -771,36 +774,36 @@ class CIMInstance(object):
 
     def __getitem__(self, key):
         return self.properties[key].value
-    
+
     def __delitem__(self, key):
         del self.properties[key]
-        
+
     def __len__(self):
         return len(self.properties)
-    
+
     def has_key(self, key):
         return self.properties.has_key(key)
-    
+
     def keys(self):
         return self.properties.keys()
-    
+
     def values(self):
         return [v.value for v in self.properties.values()]
-    
+
     def items(self):
         return [(k, v.value) for k, v in self.properties.items()]
-    
+
     def iterkeys(self):
         return self.properties.iterkeys()
-    
+
     def itervalues(self):
         for k, v in self.properties.iteritems():
             yield v.value
-    
+
     def iteritems(self):
         for k, v in self.properties.iteritems():
             yield (k, v.value)
-    
+
     def __setitem__(self, key, value):
 
         # Don't let anyone set integer or float values.  You must use
@@ -824,13 +827,13 @@ class CIMInstance(object):
         self.properties[key] = v
         if self.path is not None and key in self.path.keybindings:
             self.path[key] = v.value
-        
+
     def tocimxml(self):
 
         props = []
 
         for key, value in self.properties.items():
-            
+
             # Value has already been converted into a CIM object
             # property type (e.g for creating null property values).
 
@@ -842,8 +845,8 @@ class CIMInstance(object):
 
         instance_xml = cim_xml.INSTANCE(
             self.classname,
-            properties = [p.tocimxml() for p in props],
-            qualifiers = [q.tocimxml() for q in self.qualifiers.values()])
+            properties=[p.tocimxml() for p in props],
+            qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
         if self.path is None:
             return instance_xml
@@ -858,7 +861,7 @@ class CIMInstance(object):
                 val = 'NULL'
             elif isinstance(value, list):
                 val = '{'
-                for i,x in enumerate(value):
+                for i, x in enumerate(value):
                     if i > 0:
                         val += ', '
                     val += _prop2mof(_type, x)
@@ -871,8 +874,8 @@ class CIMInstance(object):
 
         s = 'instance of %s {\n' % self.classname
         for p in self.properties.values():
-            s+= '\t%s = %s;\n' % (p.name, _prop2mof(p.type, p.value))
-        s+= '};\n'
+            s += '\t%s = %s;\n' % (p.name, _prop2mof(p.type, p.value))
+        s += '};\n'
 
         return s
 
@@ -880,8 +883,8 @@ class CIMInstance(object):
 
 class CIMClass(object):
 
-    def __init__(self, classname, properties = {}, methods = {},
-                 superclass = None, qualifiers = {}):
+    def __init__(self, classname, properties={}, methods={},
+                 superclass=None, qualifiers={}):
 
         self.classname = classname
         self.properties = NocaseDict(properties)
@@ -914,14 +917,14 @@ class CIMClass(object):
                 or cmp(self.properties, other.properties)
                 or cmp(self.qualifiers, other.qualifiers)
                 or cmp(self.methods, other.methods))
-    
+
     def tocimxml(self):
         return cim_xml.CLASS(
             self.classname,
-            properties = [p.tocimxml() for p in self.properties.values()],
-            methods = [m.tocimxml() for m in self.methods.values()],
-            qualifiers = [q.tocimxml() for q in self.qualifiers.values()],
-            superclass = self.superclass)
+            properties=[p.tocimxml() for p in self.properties.values()],
+            methods=[m.tocimxml() for m in self.methods.values()],
+            qualifiers=[q.tocimxml() for q in self.qualifiers.values()],
+            superclass=self.superclass)
 
     def tomof(self):
 
@@ -930,8 +933,9 @@ class CIMClass(object):
 
             if len(qualifiers) == 0:
                 return ''
-            
-            return '[%s]' % ',\n '.ljust(indent+2).join([q.tomof() for q in qualifiers.values()])
+
+            return '[%s]' % ',\n '.ljust(indent+2).join(
+                [q.tomof() for q in qualifiers.values()])
 
         # Class definition
 
@@ -959,13 +963,13 @@ class CIMClass(object):
             s += '   %s\n' % m.tomof()
 
         s += '};\n'
-        
+
         return s
 
 class CIMMethod(object):
 
-    def __init__(self, methodname, return_type = None, parameters = {}, 
-                 class_origin = None, propagated = False, qualifiers = {}):
+    def __init__(self, methodname, return_type=None, parameters={},
+                 class_origin=None, propagated=False, qualifiers={}):
 
         self.name = methodname
         self.return_type = return_type
@@ -977,9 +981,9 @@ class CIMMethod(object):
     def copy(self):
 
         result = CIMMethod(self.name,
-                           return_type = self.return_type,
-                           class_origin = self.class_origin,
-                           propagated = self.propagated)
+                           return_type=self.return_type,
+                           class_origin=self.class_origin,
+                           propagated=self.propagated)
 
         result.parameters = self.parameters.copy()
         result.qualifiers = self.qualifiers.copy()
@@ -989,11 +993,11 @@ class CIMMethod(object):
     def tocimxml(self):
         return cim_xml.METHOD(
             self.name,
-            parameters = [p.tocimxml() for p in self.parameters.values()],
-            return_type = self.return_type,
-            class_origin = self.class_origin,
-            propagated = self.propagated,
-            qualifiers = [q.tocimxml() for q in self.qualifiers.values()])
+            parameters=[p.tocimxml() for p in self.parameters.values()],
+            return_type=self.return_type,
+            class_origin=self.class_origin,
+            propagated=self.propagated,
+            qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
     def __repr__(self):
         return '%s(name=%s, return_type=%s...)' % \
@@ -1025,11 +1029,11 @@ class CIMMethod(object):
               string.join([p.tomof() for p in self.parameters.values()], ', '))
 
         return s
-    
+
 class CIMParameter(object):
 
-    def __init__(self, name, type, reference_class = None, is_array = None,
-                 array_size = None, qualifiers = {}, value = None):
+    def __init__(self, name, type, reference_class=None, is_array=None,
+                 array_size=None, qualifiers={}, value=None):
 
         self.name = name
         self.type = type
@@ -1043,10 +1047,10 @@ class CIMParameter(object):
 
         result = CIMParameter(self.name,
                               self.type,
-                              reference_class = self.reference_class,
-                              is_array = self.is_array,
-                              array_size = self.array_size,
-                              value = self.value)
+                              reference_class=self.reference_class,
+                              is_array=self.is_array,
+                              array_size=self.array_size,
+                              value=self.value)
 
         result.qualifiers = self.qualifiers.copy()
 
@@ -1088,19 +1092,19 @@ class CIMParameter(object):
                     self.name,
                     self.reference_class,
                     array_size,
-                    qualifiers = [q.tocimxml()
-                                  for q in self.qualifiers.values()])
+                    qualifiers=[q.tocimxml()
+                                for q in self.qualifiers.values()])
 
             else:
 
                 return cim_xml.PARAMETER_REFERENCE(
                     self.name,
                     self.reference_class,
-                    qualifiers = [q.tocimxml()
-                                  for q in self.qualifiers.values()])
+                    qualifiers=[q.tocimxml()
+                                for q in self.qualifiers.values()])
 
         elif self.is_array:
-            
+
             array_size = None
 
             if self.array_size is not None:
@@ -1110,14 +1114,14 @@ class CIMParameter(object):
                 self.name,
                 self.type,
                 array_size,
-                qualifiers = [q.tocimxml() for q in self.qualifiers.values()])
+                qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
         else:
 
             return cim_xml.PARAMETER(
                 self.name,
                 self.type,
-                qualifiers = [q.tocimxml() for q in self.qualifiers.values()])
+                qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
     def tomof(self):
         return '%s %s' % (self.type, self.name)
@@ -1127,10 +1131,10 @@ class CIMQualifier(object):
 
     Includes information such as a documentation string and whether a property
     is a key."""
-    
-    def __init__(self, name, value, type = None, propagated = None,
-                 overridable = None, tosubclass = None, toinstance = None,
-                 translatable = None):
+
+    def __init__(self, name, value, type=None, propagated=None,
+                 overridable=None, tosubclass=None, toinstance=None,
+                 translatable=None):
 
         self.name = name
         self.type = type
@@ -1143,7 +1147,7 @@ class CIMQualifier(object):
         # Determine type of value if not specified
 
         import __builtin__
-            
+
         if type is None:
 
             # Can't work out what is going on if type and value are
@@ -1151,7 +1155,7 @@ class CIMQualifier(object):
 
             if value is None:
                 raise TypeError('Null qualifier "%s" must have a type' % name)
-        
+
             if __builtin__.type(value) == list:
 
                 # Determine type for list value
@@ -1159,13 +1163,13 @@ class CIMQualifier(object):
                 if len(value) == 0:
                     raise TypeError('Empty qualifier array "%s" must have a '\
                             'type' % name)
-                    
+
                 self.type = cim_types.cimtype(value[0])
-                
+
             else:
 
                 # Determine type for regular value
-                
+
                 self.type = cim_types.cimtype(value)
 
         # Don't let anyone set integer or float values.  You must use
@@ -1180,13 +1184,13 @@ class CIMQualifier(object):
 
         return CIMQualifier(self.name,
                             self.value,
-                            type = self.type,
-                            propagated = self.propagated,
-                            overridable = self.overridable,
-                            tosubclass = self.tosubclass,
-                            toinstance = self.toinstance,
-                            translatable = self.translatable)
-        
+                            type=self.type,
+                            propagated=self.propagated,
+                            overridable=self.overridable,
+                            tosubclass=self.tosubclass,
+                            toinstance=self.toinstance,
+                            translatable=self.translatable)
+
     def __repr__(self):
         return "%s(%s, %s)" % \
                (self.__class__.__name__, `self.name`, `self.value`)
@@ -1217,14 +1221,14 @@ class CIMQualifier(object):
             value = cim_xml.VALUE(self.value)
 
         return cim_xml.QUALIFIER(self.name,
-                         self.type,
-                         value,
-                         propagated = self.propagated,
-                         overridable = self.overridable,
-                         tosubclass = self.tosubclass,
-                         toinstance = self.toinstance,
-                         translatable = self.translatable)
-    
+                                 self.type,
+                                 value,
+                                 propagated=self.propagated,
+                                 overridable=self.overridable,
+                                 tosubclass=self.tosubclass,
+                                 toinstance=self.toinstance,
+                                 translatable=self.translatable)
+
     def tomof(self):
 
         def valstr(v):
@@ -1242,11 +1246,11 @@ class CIMQualifierDeclaration(object):
     """Represents the declaration of a qualifier."""
 
     # TODO: Scope and qualifier flavors
-    
-    def __init__(self, name, type, value = None, is_array = False,
-                 array_size = None, scopes = {}, 
-                 overridable = None, tosubclass = None, toinstance = None,
-                 translatable = None):
+
+    def __init__(self, name, type, value=None, is_array=False,
+                 array_size=None, scopes={},
+                 overridable=None, tosubclass=None, toinstance=None,
+                 translatable=None):
 
         self.name = name
         self.type = type
@@ -1271,7 +1275,7 @@ class CIMQualifierDeclaration(object):
                                        tosubclass=self.tosubclass,
                                        toinstance=self.toinstance,
                                        translatable=self.translatable)
-                                       
+
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, `self.name`)
 
@@ -1294,49 +1298,50 @@ class CIMQualifierDeclaration(object):
                 cmp(self.translatable, other.translatable))
 
     def tocimxml(self):
-        
+
         return cim_xml.QUALIFIER_DECLARATION(self.name,
-                                     self.type,
-                                     self.value,
-                                     is_array = self.is_array,
-                                     array_size = self.array_size,
-                                     qualifier_scopes = self.scopes,
-                                     overridable=self.overridable,
-                                     tosubclass=self.tosubclass, 
-                                     toinstance=self.toinstance,
-                                     translatable=self.translatable)
+                                             self.type,
+                                             self.value,
+                                             is_array=self.is_array,
+                                             array_size=self.array_size,
+                                             qualifier_scopes=self.scopes,
+                                             overridable=self.overridable,
+                                             tosubclass=self.tosubclass,
+                                             toinstance=self.toinstance,
+                                             translatable=self.translatable)
 
     def tomof(self):
         mof = 'Qualifier %s : %s' % (self.name, self.type)
         if self.is_array:
-            mof+= '['
+            mof += '['
             if self.array_size is not None:
-                mof+= str(self.array_size)
-            mof+= ']'
+                mof += str(self.array_size)
+            mof += ']'
         if self.value is not None:
             if isinstance(self.value, list):
-                mof+= '{'
-                mof+= ', '.join([atomic_to_cim_xml(tocimobj(self.type, x)) \
+                mof += '{'
+                mof += ', '.join([atomic_to_cim_xml(tocimobj(self.type, x)) \
                         for x in self.value])
-                mof+= '}'
+                mof += '}'
             else:
-                mof+= ' = %s' % atomic_to_cim_xml(tocimobj(self.type,self.value))
-        mof+= ',\n    '
-        mof+= 'Scope('
-        mof+= ', '.join([x.lower() for x, y in self.scopes.items() if y]) + ')'
+                mof += ' = %s' % atomic_to_cim_xml(tocimobj(self.type,
+                                                            self.value))
+        mof += ',\n    '
+        mof += 'Scope('
+        mof += ', '.join([x.lower() for x, y in self.scopes.items() if y]) + ')'
         if not self.overridable and not self.tosubclass \
                 and not self.toinstance and not self.translatable:
-            mof+= ';'
+            mof += ';'
             return mof
-        mof+= ',\n    Flavor('
-        mof+= self.overridable and 'EnableOverride' or 'DisableOverride'
-        mof+= ', '
-        mof+= self.tosubclass and 'ToSubclass' or 'Restricted'
+        mof += ',\n    Flavor('
+        mof += self.overridable and 'EnableOverride' or 'DisableOverride'
+        mof += ', '
+        mof += self.tosubclass and 'ToSubclass' or 'Restricted'
         if self.toinstance:
-            mof+= ', ToInstance'
+            mof += ', ToInstance'
         if self.translatable:
-            mof+= ', Translatable'
-        mof+= ');'
+            mof += ', Translatable'
+        mof += ');'
         return mof
 
 def tocimxml(value):
@@ -1386,7 +1391,7 @@ def tocimobj(_type, value):
         return map(lambda x: tocimobj(_type, x), value)
 
     # Boolean type
-    
+
     if _type == 'boolean':
         if isinstance(value, bool):
             return value
@@ -1465,7 +1470,9 @@ def tocimobj(_type, value):
 
     if _type == 'reference':
         # TODO doesn't handle double-quoting, as in refs to refs.  Example:
-        # r'ex_composedof.composer="ex_sampleClass.label1=9921,label2=\"SampleLabel\"",component="ex_sampleClass.label1=0121,label2=\"Component\""')
+        # r'ex_composedof.composer="ex_sampleClass.label1=9921,' +
+        #  'label2=\"SampleLabel\"",component="ex_sampleClass.label1=0121,' +
+        #  'label2=\"Component\""')
         if isinstance(value, (CIMInstanceName, CIMClassName)):
             return value
         elif isinstance(value, basestring):
@@ -1490,23 +1497,23 @@ def tocimobj(_type, value):
             while tail:
                 head, sep, tail = partition(tail, ',')
                 if head.count('"') == 1: # quoted string contains comma
-                    tmp, sep, tail = partition(tail,'"')
+                    tmp, sep, tail = partition(tail, '"')
                     head = '%s,%s' % (head, tmp)
-                    tail = partition(tail,',')[2]
+                    tail = partition(tail, ',')[2]
                 head = head.strip()
-                key, sep, val = partition(head,'=')
+                key, sep, val = partition(head, '=')
                 if sep:
                     cn, s, k = partition(key, '.')
                     if s:
                         if cn != classname:
                             raise ValueError('Invalid object path: "%s"' % \
-                                    value)
+                                             value)
                         key = k
                     val = val.strip()
                     if val[0] == '"' and val[-1] == '"':
                         val = val.strip('"')
                     else:
-                        if val.lower() in ('true','false'):
+                        if val.lower() in ('true', 'false'):
                             val = val.lower() == 'true'
                         elif val.isdigit():
                             val = int(val)
@@ -1519,11 +1526,11 @@ def tocimobj(_type, value):
                                 except ValueError:
                                     raise ValueError('Invalid key binding: %s'\
                                             % val)
-                                
+
 
                     kb[key] = val
-            return CIMInstanceName(classname, host=host, namespace=ns, 
-                    keybindings=kb)
+            return CIMInstanceName(classname, host=host, namespace=ns,
+                                   keybindings=kb)
         else:
             raise ValueError('Invalid reference value: "%s"' % value)
 

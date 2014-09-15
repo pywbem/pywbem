@@ -5,12 +5,12 @@
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; version 2 of the License.
-   
+
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-   
+
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -21,7 +21,7 @@
 # A small utility to wrap up a PyWBEM session in a Python interactive
 # console.
 #
-# Usage: 
+# Usage:
 #
 #   wbemcli.py HOSTNAME [-u USERNAME -p PASSWORD] [-n namespace] [--no-ssl] \
 #       [--port PORT]
@@ -68,33 +68,33 @@ except ImportError, arg:
 #
 
 optparser = OptionParser(
-    usage = '%prog HOSTNAME [-u USER -p PASS] [-n NAMESPACE] [--no-ssl]')
+    usage='%prog HOSTNAME [-u USER -p PASS] [-n NAMESPACE] [--no-ssl]')
 
 # Username and password
 
-optparser.add_option('-u', '--user', dest = 'user',
-                     action = 'store', type = 'string',
-                     help = 'user to connect as')
+optparser.add_option('-u', '--user', dest='user',
+                     action='store', type='string',
+                     help='user to connect as')
 
-optparser.add_option('-p', '--password', dest = 'password',
-                     action = 'store', type = 'string',
-                     help = 'password to connect user as')
+optparser.add_option('-p', '--password', dest='password',
+                     action='store', type='string',
+                     help='password to connect user as')
 
 # Change the default namespace used
 
-optparser.add_option('-n', '--namespace', dest = 'namespace',
-                     action = 'store', type = 'string', default = 'root/cimv2',
-                     help = 'default namespace to use')
+optparser.add_option('-n', '--namespace', dest='namespace',
+                     action='store', type='string', default='root/cimv2',
+                     help='default namespace to use')
 
 # Don't use SSL for remote connections
 
-optparser.add_option('--no-ssl', dest = 'no_ssl', action = 'store_true',
-                     help = 'don\'t use SSL')
+optparser.add_option('--no-ssl', dest='no_ssl', action='store_true',
+                     help='don\'t use SSL')
 
 # Specify non-standard port
 
-optparser.add_option('--port', dest = 'port', action = 'store', type = 'int',
-                     help = 'port to connect as', default = None)
+optparser.add_option('--port', dest='port', action='store', type='int',
+                     help='port to connect as', default=None)
 
 # Check usage
 
@@ -132,7 +132,7 @@ def remote_connection():
     if opts.user is not None or opts.password is not None:
         creds = (opts.user, opts.password)
 
-    cli = WBEMConnection(url, creds, default_namespace = opts.namespace)
+    cli = WBEMConnection(url, creds, default_namespace=opts.namespace)
 
     cli.debug = True
 
@@ -144,34 +144,34 @@ cli = remote_connection()
 # Create some convenient global functions to reduce typing
 #
 
-def EnumerateInstanceNames(classname, namespace = None):
+def EnumerateInstanceNames(classname, namespace=None):
     """Enumerate the names of the instances of a CIM Class (including the
     names of any subclasses) in the target namespace."""
 
-    return cli.EnumerateInstanceNames(classname, namespace = namespace)
+    return cli.EnumerateInstanceNames(classname, namespace=namespace)
 
-def EnumerateInstances(classname, namespace = None, LocalOnly = True,
-                       DeepInheritance = True, IncludeQualifiers = False,
-                       IncludeClassOrigin = False):
+def EnumerateInstances(classname, namespace=None, LocalOnly=True,
+                       DeepInheritance=True, IncludeQualifiers=False,
+                       IncludeClassOrigin=False):
     """Enumerate instances of a CIM Class (includeing the instances of
     any subclasses in the target namespace."""
 
-    return cli.EnumerateInstances(classname, 
-                                  namespace = namespace,
-                                  DeepInheritance = DeepInheritance,
-                                  IncludeQualifiers = IncludeQualifiers,
-                                  IncludeClassOrigin = IncludeClassOrigin)
+    return cli.EnumerateInstances(classname,
+                                  namespace=namespace,
+                                  DeepInheritance=DeepInheritance,
+                                  IncludeQualifiers=IncludeQualifiers,
+                                  IncludeClassOrigin=IncludeClassOrigin)
 
 
-def GetInstance(instancename, LocalOnly = True, IncludeQualifiers = False,
-                IncludeClassOrigin = False):
+def GetInstance(instancename, LocalOnly=True, IncludeQualifiers=False,
+                IncludeClassOrigin=False):
     """Return a single CIM instance corresponding to the instance name
     given."""
 
-    return cli.GetInstance(instancename, 
-                           LocalOnly = LocalOnly, 
-                           IncludeQualifiers = IncludeQualifiers,
-                           IncludeClassOrigin = IncludeClassOrigin)
+    return cli.GetInstance(instancename,
+                           LocalOnly=LocalOnly,
+                           IncludeQualifiers=IncludeQualifiers,
+                           IncludeClassOrigin=IncludeClassOrigin)
 
 def DeleteInstance(instancename):
     """Delete a single CIM instance."""
@@ -262,7 +262,7 @@ dq = DeleteQualifier
 #
 
 def get_banner():
-    
+
     result = ''
 
     # Note how we are connected
@@ -272,7 +272,7 @@ def get_banner():
         result += ' as %s' % cli.creds[0]
 
     return result
-        
+
 # Read previous command line history
 
 histfile = '%s/.wbemcli_history' % os.environ['HOME']

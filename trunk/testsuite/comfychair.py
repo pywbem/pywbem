@@ -1,17 +1,17 @@
 #! /usr/bin/env python
 
 # Copyright (C) 2002, 2003 by Martin Pool <mbp@samba.org>
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
 # published by the Free Software Foundation; either version 2 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -53,7 +53,7 @@ class TestCase(object):
         self.basedir = os.getcwd()
         self.add_cleanup(self._restore_directory)
         self.rundir = os.path.join(self.basedir,
-                                   'testtmp', 
+                                   'testtmp',
                                    self.__class__.__name__)
         self.tmpdir = os.path.join(self.rundir, 'tmp')
         os.system("rm -fr %s" % self.rundir)
@@ -77,7 +77,7 @@ class TestCase(object):
         os.environ.clear()
         os.environ.update(self._saved_environ)
 
-    
+
     def setup(self):
         """Set up test fixture."""
         pass
@@ -94,7 +94,7 @@ class TestCase(object):
     def add_cleanup(self, c):
         """Queue a cleanup to be run when the test is complete."""
         self._cleanups.append(c)
-        
+
 
     def fail(self, reason = ""):
         """Say the test failed."""
@@ -128,7 +128,7 @@ why."""
     def assert_equal(self, a, b):
         if not a == b:
             raise AssertionError("assertEquals failed: %s" % `(a, b)`)
-            
+
     def assert_notequal(self, a, b):
         if a == b:
             raise AssertionError("assertNotEqual failed: %s" % `(a, b)`)
@@ -210,7 +210,7 @@ stderr:
         pid = os.fork()
         if pid == 0:
             # child
-            try: 
+            try:
                 pid = os.getpid()
                 openmode = os.O_WRONLY|os.O_CREAT|os.O_TRUNC
 
@@ -256,7 +256,7 @@ stderr:
             # tell the difference.
             raise NotRunError, "could not execute %s" % `cmd`
         return rc, stdout, stderr
-    
+
 
     def explain_failure(self, exc_info = None):
         print "test_log:"
@@ -352,7 +352,7 @@ def runtests(test_list, verbose = 0, debugger = None, quiet = 0):
         # Display log file if we're verbose
         if ret == 0 and verbose:
             obj.explain_failure()
-            
+
     return ret
 
 

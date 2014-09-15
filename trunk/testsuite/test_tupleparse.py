@@ -28,7 +28,7 @@ class TupleTest(TestCase):
         self.log('after:  %s' % result.tocimxml().toxml())
 
         # Assert that the before and after objects should be equal
-        
+
         self.assert_equal(obj, result)
 
 class RawXMLTest(TestCase):
@@ -46,7 +46,7 @@ class RawXMLTest(TestCase):
 
 class ParseCIMInstanceName(TupleTest):
     """Test parsing of CIMInstanceName objects."""
-           
+
     def runtest(self):
 
         self.test(CIMInstanceName('CIM_Foo'))
@@ -63,82 +63,90 @@ class ParseCIMInstanceName(TupleTest):
 
         self.test(
             CIMInstanceName('CIM_Foo', {'Name': 'Foo'},
-                            namespace = 'root/cimv2'))
+                            namespace='root/cimv2'))
 
         self.test(
             CIMInstanceName('CIM_Foo', {'Name': 'Foo'},
-                            host = 'woot.com',
-                            namespace = 'root/cimv2'))
+                            host='woot.com',
+                            namespace='root/cimv2'))
 
 class ParseCIMInstance(TupleTest):
     """Test parsing of CIMInstance objects."""
-    
+
     def runtest(self):
 
         self.test(CIMInstance('CIM_Foo'))
 
         self.test(
             CIMInstance(
-            'CIM_Foo',
-            {'string': 'string',
-             'uint8': Uint8(0),
-             'uint8array': [Uint8(1), Uint8(2)],
-             'ref': CIMInstanceName('CIM_Bar')}))
+                'CIM_Foo',
+                {'string': 'string',
+                 'uint8': Uint8(0),
+                 'uint8array': [Uint8(1), Uint8(2)],
+                 'ref': CIMInstanceName('CIM_Bar')}))
 
         self.test(
             CIMInstance('CIM_Foo',
                         {'InstanceID': '1234'},
-                        path = CIMInstanceName('CIM_Foo',
-                                               {'InstanceID': '1234'})))
-        
+                        path=CIMInstanceName('CIM_Foo',
+                                             {'InstanceID': '1234'})))
+
 class ParseCIMClass(TupleTest):
     """Test parsing of CIMClass objects."""
 
     def runtest(self):
 
         self.test(CIMClass('CIM_Foo'))
-        self.test(CIMClass('CIM_Foo', superclass = 'CIM_bar'))
+        self.test(CIMClass('CIM_Foo', superclass='CIM_bar'))
 
         self.test(CIMClass(
             'CIM_CollectionInSystem',
-            qualifiers = {'ASSOCIATION':
-                          CIMQualifier('ASSOCIATION', True,
-                                       overridable = False),
+            qualifiers={'ASSOCIATION':
+                        CIMQualifier('ASSOCIATION', True,
+                                     overridable=False),
 
-                          'Aggregation':
-                          CIMQualifier('Aggregation', True,
-                                       overridable = False),
-                          'Version':
-                          CIMQualifier('Version', '2.6.0',
-                                       tosubclass = False,
-                                       translatable = False),
-                          'Description':
-                          CIMQualifier('Description',
-                                       'CIM_CollectionInSystem is an association used to establish a parent-child relationship between a collection and an \'owning\' System such as an AdminDomain or ComputerSystem. A single collection should not have both a CollectionInOrganization and a CollectionInSystem association.',
-                                       translatable = True)},
-            properties = {'Parent':
-                          CIMProperty(
-                            'Parent', None, type = 'reference',
-                            reference_class = 'CIM_System',
-                            qualifiers = {'Key':
-                                          CIMQualifier('Key', True,
-                                                       overridable = False),
-                                          'Aggregate':
-                                          CIMQualifier('Aggregate', True,
-                                                       overridable = False),
-                                          'Max':
-                                          CIMQualifier('Max', Uint32(1))}),
-                          'Child':
-                          CIMProperty(
-                              'Child', None, type = 'reference',
-                              reference_class = 'CIM_Collection',
-                              qualifiers = {'Key':
-                                            CIMQualifier('Key', True,
-                                                         overridable = False)}
-                              )
-                          }
+                        'Aggregation':
+                        CIMQualifier('Aggregation', True,
+                                     overridable=False),
+                        'Version':
+                        CIMQualifier('Version', '2.6.0',
+                                     tosubclass=False,
+                                     translatable=False),
+                        'Description':
+                        CIMQualifier('Description',
+                                     'CIM_CollectionInSystem is an ' \
+                                     'association used to establish a ' \
+                                     'parent-child relationship between a ' \
+                                     'collection and an \'owning\' System ' \
+                                     'such as an AdminDomain or '\
+                                     'ComputerSystem. A single collection '\
+                                     'should not have both a ' \
+                                     'CollectionInOrganization and a ' \
+                                     'CollectionInSystem association.',
+                                     translatable=True)},
+            properties={'Parent':
+                        CIMProperty(
+                            'Parent', None, type='reference',
+                            reference_class='CIM_System',
+                            qualifiers={'Key':
+                                        CIMQualifier('Key', True,
+                                                     overridable=False),
+                                        'Aggregate':
+                                        CIMQualifier('Aggregate', True,
+                                                     overridable=False),
+                                        'Max':
+                                        CIMQualifier('Max', Uint32(1))}),
+                        'Child':
+                        CIMProperty(
+                            'Child', None, type='reference',
+                            reference_class='CIM_Collection',
+                            qualifiers={'Key':
+                                        CIMQualifier('Key', True,
+                                                     overridable=False)}
+                            )
+                       }
             ))
-         
+
 class ParseCIMProperty(TupleTest):
     """Test parsing of CIMProperty objects."""
 
@@ -148,33 +156,33 @@ class ParseCIMProperty(TupleTest):
 
         self.test(CIMProperty('Spotty', 'Foot'))
         self.test(CIMProperty('Age', Uint16(32)))
-        self.test(CIMProperty('Foo', '', type = 'string'))
-        self.test(CIMProperty('Foo', None, type = 'string'))
-        self.test(CIMProperty('Age', None, type = 'uint16',
-                              qualifiers = {'Key': CIMQualifier('Key', True)}))
+        self.test(CIMProperty('Foo', '', type='string'))
+        self.test(CIMProperty('Foo', None, type='string'))
+        self.test(CIMProperty('Age', None, type='uint16',
+                              qualifiers={'Key': CIMQualifier('Key', True)}))
 
         # Property arrays
 
         self.test(CIMProperty('Foo', ['a', 'b', 'c']))
-        self.test(CIMProperty('Foo', None, type = 'string', is_array = True))
+        self.test(CIMProperty('Foo', None, type='string', is_array=True))
         self.test(CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]],
-                              qualifiers = {'Key': CIMQualifier('Key', True)}))
+                              qualifiers={'Key': CIMQualifier('Key', True)}))
 
         # Reference properties
-                              
-        self.test(CIMProperty('Foo', None, type = 'reference'))
+
+        self.test(CIMProperty('Foo', None, type='reference'))
         self.test(CIMProperty('Foo', CIMInstanceName('CIM_Foo')))
         self.test(CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
-                              qualifiers = {'Key': CIMQualifier('Key', True)}))
+                              qualifiers={'Key': CIMQualifier('Key', True)}))
 
         # EmbeddedObject properties
 
-	inst = CIMInstance('Foo_Class', 
-                     {'one':Uint8(1), 'two':Uint8(2)})
-	self.test(CIMProperty('Foo', inst))
-	self.test(CIMProperty('Foo', [inst]))
-                              
-        
+        inst = CIMInstance('Foo_Class',
+                           {'one': Uint8(1), 'two': Uint8(2)})
+        self.test(CIMProperty('Foo', inst))
+        self.test(CIMProperty('Foo', [inst]))
+
+
 class ParseCIMParameter(TupleTest):
     """Test parsing of CIMParameter objects."""
 
@@ -185,51 +193,47 @@ class ParseCIMParameter(TupleTest):
         self.test(CIMParameter('Param', 'string'))
 
         self.test(CIMParameter('Param', 'string',
-                               qualifiers =
-                               {'Key': CIMQualifier('Key', True)}))
+                               qualifiers={'Key': CIMQualifier('Key', True)}))
 
         # Reference parameters
 
         self.test(CIMParameter('RefParam', 'reference'))
 
         self.test(CIMParameter('RefParam', 'reference',
-                               reference_class = 'CIM_Foo'))
+                               reference_class='CIM_Foo'))
 
         self.test(CIMParameter('RefParam', 'reference',
-                               reference_class = 'CIM_Foo',
-                               qualifiers =
-                               {'Key': CIMQualifier('Key', True)}))
+                               reference_class='CIM_Foo',
+                               qualifiers={'Key': CIMQualifier('Key', True)}))
 
         # Array parameters
 
-        self.test(CIMParameter('Array', 'string', is_array = True))
+        self.test(CIMParameter('Array', 'string', is_array=True))
 
-        self.test(CIMParameter('Array', 'string', is_array = True,
-                               array_size = 10))
+        self.test(CIMParameter('Array', 'string', is_array=True,
+                               array_size=10))
 
-        self.test(CIMParameter('Array', 'string', is_array = True,
-                               array_size = 10,
-                               qualifiers =
-                               {'Key': CIMQualifier('Key', True)}))
+        self.test(CIMParameter('Array', 'string', is_array=True,
+                               array_size=10,
+                               qualifiers={'Key': CIMQualifier('Key', True)}))
 
         # Reference array parameters
 
-        self.test(CIMParameter('RefArray', 'reference', is_array = True))
+        self.test(CIMParameter('RefArray', 'reference', is_array=True))
 
-        self.test(CIMParameter('RefArray', 'reference', is_array = True,
-                               reference_class = 'CIM_Foo'))
+        self.test(CIMParameter('RefArray', 'reference', is_array=True,
+                               reference_class='CIM_Foo'))
 
-        self.test(CIMParameter('RefArray', 'reference', is_array = True,
-                               reference_class = 'CIM_Foo',
-                               array_size = 10))
-        
-        self.test(CIMParameter('RefArray', 'reference', is_array = True,
-                               reference_class = 'CIM_Foo',
-                               array_size = 10,
-                               qualifiers =
-                               {'Key': CIMQualifier('Key', True)}))
+        self.test(CIMParameter('RefArray', 'reference', is_array=True,
+                               reference_class='CIM_Foo',
+                               array_size=10))
 
-        
+        self.test(CIMParameter('RefArray', 'reference', is_array=True,
+                               reference_class='CIM_Foo',
+                               array_size=10,
+                               qualifiers={'Key': CIMQualifier('Key', True)}))
+
+
 class ParseXMLKeyValue(RawXMLTest):
 
     def runtest(self):
@@ -259,7 +263,7 @@ tests = [
     # Parse specific bits of XML
 
     ParseXMLKeyValue,
-    
+
     ]
 
 if __name__ == '__main__':

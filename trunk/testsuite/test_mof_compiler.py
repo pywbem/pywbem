@@ -19,7 +19,8 @@ ns = 'root/test'
 cwd = os.getcwd()
 
 # Change the mofurl when new schema is released.
-mofurl = 'http://www.dmtf.org/standards/cim/cim_schema_v220/cim_schema_2.20.0Experimental-MOFs.zip'
+mofurl = 'http://www.dmtf.org/standards/cim/cim_schema_v220/' \
+         'cim_schema_2.20.0Experimental-MOFs.zip'
 
 class MOFTest(TestCase):
     """A base class that creates a MOF compiler instance"""
@@ -32,9 +33,10 @@ class MOFTest(TestCase):
 
         self.logfile = open('moflog.txt', 'w')
 
-        self.mofcomp = MOFCompiler(MOFWBEMConnection(), 
-                search_paths=['schema'], verbose=False,
-                log_func=moflog)
+        self.mofcomp = MOFCompiler(
+            MOFWBEMConnection(),
+            search_paths=['schema'], verbose=False,
+            log_func=moflog)
         os.chdir(cwd)
 
 
@@ -46,41 +48,48 @@ class TestFullSchema(MOFTest):
         print 'elapsed: %f  ' % (time() - t),
         self.assert_equal(len(self.mofcomp.handle.qualifiers[ns]), 71)
         self.assert_equal(len(self.mofcomp.handle.classes[ns]), 1644)
-        #print self.mofcomp.handle.classes[ns]['CIM_UnsignedCredential'].properties['OtherPublicKeyEncoding'].qualifiers['Description']
+        #print self.mofcomp.handle.classes[ns]['CIM_UnsignedCredential'].\
+        #    properties['OtherPublicKeyEncoding'].qualifiers['Description']
 
 class TestAliases(MOFTest):
-    
+
     def runtest(self):
         self.mofcomp.compile_file('test.mof', ns)
 
 class TestSchemaError(MOFTest):
-    
+
     def runtest(self):
         self.mofcomp.parser.search_paths = []
         try:
-            self.mofcomp.compile_file('schema/System/CIM_ComputerSystem.mof', ns)
+            self.mofcomp.compile_file(
+                'schema/System/CIM_ComputerSystem.mof', ns)
         except CIMError, ce:
             self.assert_equal(ce.args[0], CIM_ERR_FAILED)
-            self.assert_equal(ce.file_line[0], 'schema/System/CIM_ComputerSystem.mof')
+            self.assert_equal(ce.file_line[0],
+                              'schema/System/CIM_ComputerSystem.mof')
             self.assert_equal(ce.file_line[1], 21)
 
         self.mofcomp.compile_file('schema/qualifiers.mof', ns)
         try:
-            self.mofcomp.compile_file('schema/System/CIM_ComputerSystem.mof', ns)
+            self.mofcomp.compile_file(
+                'schema/System/CIM_ComputerSystem.mof', ns)
         except CIMError, ce:
             self.assert_equal(ce.args[0], CIM_ERR_INVALID_SUPERCLASS)
-            self.assert_equal(ce.file_line[0], 'schema/System/CIM_ComputerSystem.mof')
+            self.assert_equal(ce.file_line[0],
+                              'schema/System/CIM_ComputerSystem.mof')
             self.assert_equal(ce.file_line[1], 177)
 
 class TestSchemaSearch(MOFTest):
     def runtest(self):
         self.mofcomp.compile_file('schema/System/CIM_ComputerSystem.mof', ns)
-        ccs = self.mofcomp.handle.GetClass('CIM_ComputerSystem', 
-                LocalOnly=False, IncludeQualifiers=True)
+        ccs = self.mofcomp.handle.GetClass(
+            'CIM_ComputerSystem',
+            LocalOnly=False, IncludeQualifiers=True)
         self.assert_equal(ccs.properties['RequestedState'].type, 'uint16')
         self.assert_equal(ccs.properties['Dedicated'].type, 'uint16')
-        cele = self.mofcomp.handle.GetClass('CIM_EnabledLogicalElement', 
-                LocalOnly=False, IncludeQualifiers=True)
+        cele = self.mofcomp.handle.GetClass(
+            'CIM_EnabledLogicalElement',
+            LocalOnly=False, IncludeQualifiers=True)
         self.assert_equal(cele.properties['RequestedState'].type, 'uint16')
 
 
@@ -131,8 +140,8 @@ tests = [
     TestAliases,
     TestRefs,
     TestSchemaError,
-    TestSchemaSearch, 
-    TestParseError, 
+    TestSchemaSearch,
+    TestParseError,
     TestFullSchema,
     ]
 
@@ -149,7 +158,7 @@ if __name__ == '__main__':
         offset = 0
         ppct = -1
         for data in ufo:
-            offset+= len(data)
+            offset += len(data)
             pct = 100*offset/clen
             if pct > ppct:
                 ppct = pct
@@ -163,7 +172,7 @@ if __name__ == '__main__':
         nlist = zf.namelist()
         for i in xrange(0, len(nlist)):
             sys.stdout.write('\rUnpacking %s: %d%% ' % (mofbname,
-                100*(i+1)/len(nlist)))
+                                                        100*(i+1)/len(nlist)))
             sys.stdout.flush()
             file = nlist[i]
             dfile = 'schema/%s' % file

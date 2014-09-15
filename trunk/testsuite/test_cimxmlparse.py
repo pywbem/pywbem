@@ -27,7 +27,7 @@ class RoundTripTest(TestCase):
         self.log('after:  %s' % p.tocimxml().toxml())
 
         # Assert that the before and after objects should be equal
-        
+
         self.assert_equal(obj, p)
 
 class RawXMLTest(TestCase):
@@ -90,8 +90,8 @@ class ParseXMLInstancename(RawXMLTest):
             '1234</KEYVALUE></KEYBINDING></INSTANCENAME></VALUE.REFERENCE>'
             '</KEYBINDING></INSTANCENAME>',
             CIMInstanceName(
-            'CIM_Foo',
-            {'Ref': CIMInstanceName('CIM_Bar', {'InstanceID': '1234'})}))
+                'CIM_Foo',
+                {'Ref': CIMInstanceName('CIM_Bar', {'InstanceID': '1234'})}))
 
 class ParseXMLValue(RawXMLTest):
 
@@ -140,7 +140,7 @@ class ParseXMLProperty(RawXMLTest):
 
         self.test(
             '<PROPERTY NAME="Foo" TYPE="uint32"></PROPERTY>',
-            CIMProperty('Foo', None, type = 'uint32'))
+            CIMProperty('Foo', None, type='uint32'))
 
         self.test(
             '<PROPERTY NAME="Foo" TYPE="uint32"><VALUE>1234</VALUE>'
@@ -153,9 +153,9 @@ class ParseXMLProperty(RawXMLTest):
             '<VALUE>TRUE</VALUE></QUALIFIER><VALUE>1234</VALUE></PROPERTY>',
             CIMProperty(
                 'Foo',
-                 Uint32(1234),
-                qualifiers = {'ASSOCIATION':
-                              CIMQualifier('ASSOCIATION', True)}))
+                Uint32(1234),
+                qualifiers={'ASSOCIATION':
+                            CIMQualifier('ASSOCIATION', True)}))
 
 class ParseRoundtripInstance(RoundTripTest):
 
@@ -180,9 +180,9 @@ tests = [
     ParseXMLProperty,
 
     # Round trip tests
-    
+
     ParseRoundtripInstance,
-    
+
     ]
 
 if __name__ == '__main__':

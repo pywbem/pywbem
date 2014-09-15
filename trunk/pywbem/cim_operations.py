@@ -1,16 +1,16 @@
 #
 # (C) Copyright 2003-2007 Hewlett-Packard Development Company, L.P.
-# (C) Copyright 2006-2007 Novell, Inc. 
+# (C) Copyright 2006-2007 Novell, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; version 2 of the License.
-#   
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-#   
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -29,7 +29,8 @@ from xml.dom import minidom
 from datetime import datetime, timedelta
 
 from pywbem import cim_obj, cim_xml, cim_http, cim_types
-from pywbem.cim_obj import CIMClassName, CIMInstanceName, CIMInstance, CIMClass, NocaseDict
+from pywbem.cim_obj import CIMClassName, CIMInstanceName, CIMInstance, \
+                           CIMClass, NocaseDict
 from pywbem.tupletree import dom_to_tupletree, xml_to_tupletree
 from pywbem.tupleparse import parse_cim
 
@@ -58,7 +59,7 @@ class CIMError(Exception):
 
 class WBEMConnection(object):
     """Class representing a client's connection to a WBEM server.
-    
+
     At the moment there is no persistent TCP connection; the
     connectedness is only conceptual.
 
@@ -87,11 +88,11 @@ class WBEMConnection(object):
     verification passes and False otherwise.
 
     The value of the x509 argument is used only when the url contains
-    'https'. x509 must be a dictionary containing the keys 'cert_file' 
+    'https'. x509 must be a dictionary containing the keys 'cert_file'
     and 'key_file'. The value of 'cert_file' must consist of the
-    filename of an certificate and the value of 'key_file' must consist 
-    of a filename containing the private key belonging to the public key 
-    that is part of the certificate in cert_file. 
+    filename of an certificate and the value of 'key_file' must consist
+    of a filename containing the private key belonging to the public key
+    that is part of the certificate in cert_file.
 
     ca_certs specifies where CA certificates for verification purposes are
     located. These are trusted certificates. Note that the certificates have to
@@ -103,10 +104,10 @@ class WBEMConnection(object):
     should be avoided. If True, peer's certificate is not verified and ca_certs
     argument is ignored.
     """
-    
-    def __init__(self, url, creds = None, default_namespace = DEFAULT_NAMESPACE,
-                 x509 = None, verify_callback = None, ca_certs = None,
-                 no_verification = False):
+
+    def __init__(self, url, creds=None, default_namespace=DEFAULT_NAMESPACE,
+                 x509=None, verify_callback=None, ca_certs=None,
+                 no_verification=False):
         self.url = url
         self.creds = creds
         self.x509 = x509
@@ -122,8 +123,9 @@ class WBEMConnection(object):
             user = 'anonymous'
         else:
             user = 'user=%s' % `self.creds[0]`
-        return "%s(%s, %s, namespace=%s)" % (self.__class__.__name__, `self.url`,
-                                             user, `self.default_namespace`)
+        return "%s(%s, %s, namespace=%s)" % \
+            (self.__class__.__name__, `self.url`, user,
+             `self.default_namespace`)
 
     def imethodcall(self, methodname, namespace, **params):
         """Make an intrinsic method call.
@@ -150,7 +152,7 @@ class WBEMConnection(object):
         plist = map(lambda x:
                     cim_xml.IPARAMVALUE(x[0], cim_obj.tocimxml(x[1])),
                     params.items())
-        
+
         # Build XML request
 
         req_xml = cim_xml.CIM(
@@ -171,16 +173,16 @@ class WBEMConnection(object):
             # Reset replies in case we fail before they are set
             self.last_reply = None
             self.last_raw_reply = None
-        
+
         # Get XML response
 
         try:
-            resp_xml = cim_http.wbem_request(self.url, req_xml.toxml(),
-                                             self.creds, headers,
-                                             x509 = self.x509,
-                                             verify_callback = self.verify_callback,
-                                             ca_certs = self.ca_certs,
-                                             no_verification = self.no_verification)
+            resp_xml = cim_http.wbem_request(
+                self.url, req_xml.toxml(), self.creds, headers,
+                x509=self.x509,
+                verify_callback=self.verify_callback,
+                ca_certs=self.ca_certs,
+                no_verification=self.no_verification)
         except cim_http.AuthError:
             raise
         except cim_http.Error, arg:
@@ -203,7 +205,7 @@ class WBEMConnection(object):
         if tt[0] != 'CIM':
             raise CIMError(0, 'Expecting CIM element, got %s' % tt[0])
         tt = tt[2]
-        
+
         if tt[0] != 'MESSAGE':
             raise CIMError(0, 'Expecting MESSAGE element, got %s' % tt[0])
         tt = tt[2]
@@ -211,7 +213,7 @@ class WBEMConnection(object):
         if len(tt) != 1 or tt[0][0] != 'SIMPLERSP':
             raise CIMError(0, 'Expecting one SIMPLERSP element')
         tt = tt[0][2]
-        
+
         if tt[0] != 'IMETHODRESPONSE':
             raise CIMError(
                 0, 'Expecting IMETHODRESPONSE element, got %s' % tt[0])
@@ -249,7 +251,7 @@ class WBEMConnection(object):
         The parameters are automatically converted to the right
         CIM_XML objects."""
 
-        # METHODCALL only takes a LOCALCLASSPATH or LOCALINSTANCEPATH 
+        # METHODCALL only takes a LOCALCLASSPATH or LOCALINSTANCEPATH
         if hasattr(localobject, 'host') and localobject.host is not None:
             localobject = localobject.copy()
             localobject.host = None
@@ -259,7 +261,7 @@ class WBEMConnection(object):
         headers = ['CIMOperation: MethodCall',
                    'CIMMethod: %s' % methodname,
                    cim_http.get_object_header(localobject)]
-            
+
         # Create parameter list
 
         def paramtype(obj):
@@ -302,7 +304,7 @@ class WBEMConnection(object):
 
         def is_embedded(obj):
             """Determine if an object requires an EmbeddedObject attribute"""
-            if isinstance(obj,list) and obj:
+            if isinstance(obj, list) and obj:
                 return is_embedded(obj[0])
             elif isinstance(obj, CIMClass):
                 return 'object'
@@ -310,8 +312,8 @@ class WBEMConnection(object):
                 return 'instance'
             return None
 
-        plist = [cim_xml.PARAMVALUE(x[0], 
-                                    paramvalue(x[1]), 
+        plist = [cim_xml.PARAMVALUE(x[0],
+                                    paramvalue(x[1]),
                                     paramtype(x[1]),
                                     embedded_object=is_embedded(x[1]))
                  for x in params.items()]
@@ -338,12 +340,12 @@ class WBEMConnection(object):
         # Get XML response
 
         try:
-            resp_xml = cim_http.wbem_request(self.url, req_xml.toxml(),
-                                             self.creds, headers,
-                                             x509 = self.x509,
-                                             verify_callback = self.verify_callback,
-                                             ca_certs = self.ca_certs,
-                                             no_verification = self.no_verification)
+            resp_xml = cim_http.wbem_request(
+                self.url, req_xml.toxml(), self.creds, headers,
+                x509=self.x509,
+                verify_callback=self.verify_callback,
+                ca_certs=self.ca_certs,
+                no_verification=self.no_verification)
         except cim_http.Error, arg:
             # Convert cim_http exceptions to CIMError exceptions
             raise CIMError(0, str(arg))
@@ -358,7 +360,7 @@ class WBEMConnection(object):
         if tt[0] != 'CIM':
             raise CIMError(0, 'Expecting CIM element, got %s' % tt[0])
         tt = tt[2]
-        
+
         if tt[0] != 'MESSAGE':
             raise CIMError(0, 'Expecting MESSAGE element, got %s' % tt[0])
         tt = tt[2]
@@ -366,7 +368,7 @@ class WBEMConnection(object):
         if len(tt) != 1 or tt[0][0] != 'SIMPLERSP':
             raise CIMError(0, 'Expecting one SIMPLERSP element')
         tt = tt[0][2]
-        
+
         if tt[0] != 'METHODRESPONSE':
             raise CIMError(
                 0, 'Expecting METHODRESPONSE element, got %s' % tt[0])
@@ -389,19 +391,19 @@ class WBEMConnection(object):
 
     #
     # Instance provider API
-    # 
+    #
 
-    def EnumerateInstanceNames(self, ClassName, namespace = None, **params):
+    def EnumerateInstanceNames(self, ClassName, namespace=None, **params):
         """Enumerate instance names of a given classname.  Returns a
         list of CIMInstanceName objects."""
-        
+
         if namespace is None:
             namespace = self.default_namespace
 
         result = self.imethodcall(
             'EnumerateInstanceNames',
             namespace,
-            ClassName = CIMClassName(ClassName),
+            ClassName=CIMClassName(ClassName),
             **params)
 
         names = []
@@ -413,7 +415,7 @@ class WBEMConnection(object):
 
         return names
 
-    def EnumerateInstances(self, ClassName, namespace = None, **params):
+    def EnumerateInstances(self, ClassName, namespace=None, **params):
         """Enumerate instances of a given classname.  Returns a list
         of CIMInstance objects with paths."""
 
@@ -423,7 +425,7 @@ class WBEMConnection(object):
         result = self.imethodcall(
             'EnumerateInstances',
             namespace,
-            ClassName = CIMClassName(ClassName),
+            ClassName=CIMClassName(ClassName),
             **params)
 
         instances = []
@@ -440,7 +442,7 @@ class WBEMConnection(object):
         CIMInstance object."""
 
         # Strip off host and namespace to make this a "local" object
-        
+
         iname = InstanceName.copy()
         iname.host = None
         iname.namespace = None
@@ -453,7 +455,7 @@ class WBEMConnection(object):
         result = self.imethodcall(
             'GetInstance',
             namespace,
-            InstanceName = iname,
+            InstanceName=iname,
             **params)
 
         instance = result[2][0]
@@ -469,7 +471,7 @@ class WBEMConnection(object):
 
         iname = InstanceName.copy()
         iname.host = None
-        iname.namespace = None        
+        iname.namespace = None
 
         if InstanceName.namespace is None:
             namespace = self.default_namespace
@@ -479,7 +481,7 @@ class WBEMConnection(object):
         self.imethodcall(
             'DeleteInstance',
             namespace,
-            InstanceName = iname,
+            InstanceName=iname,
             **params)
 
     def CreateInstance(self, NewInstance, **params):
@@ -502,7 +504,7 @@ class WBEMConnection(object):
         result = self.imethodcall(
             'CreateInstance',
             namespace,
-            NewInstance = instance,
+            NewInstance=instance,
             **params)
 
         name = result[2][0]
@@ -524,7 +526,7 @@ class WBEMConnection(object):
         if ModifiedInstance.path.namespace is None:
             namespace = self.default_namespace
         else:
-            namespace = ModifiedInstance.path.namespace        
+            namespace = ModifiedInstance.path.namespace
 
         instance = ModifiedInstance.copy()
         instance.path.namespace = None
@@ -532,17 +534,17 @@ class WBEMConnection(object):
         self.imethodcall(
             'ModifyInstance',
             namespace,
-            ModifiedInstance = instance,
+            ModifiedInstance=instance,
             **params)
 
-    def ExecQuery(self, QueryLanguage, Query, namespace = None):
+    def ExecQuery(self, QueryLanguage, Query, namespace=None):
         if namespace is None:
             namespace = self.default_namespace
         result = self.imethodcall(
             'ExecQuery',
-            namespace, 
-            QueryLanguage = QueryLanguage,
-            Query = Query)
+            namespace,
+            QueryLanguage=QueryLanguage,
+            Query=Query)
 
         instances = []
 
@@ -566,9 +568,9 @@ class WBEMConnection(object):
 
         return params
 
-    def EnumerateClassNames(self, namespace = None, **params):
+    def EnumerateClassNames(self, namespace=None, **params):
         """Return a list of CIM class names. Names are returned as strings."""
-        
+
         params = self._map_classname_param(params)
 
         if namespace is None:
@@ -583,8 +585,8 @@ class WBEMConnection(object):
             return []
         else:
             return map(lambda x: x.classname, result[2])
-        
-    def EnumerateClasses(self, namespace = None, **params):
+
+    def EnumerateClasses(self, namespace=None, **params):
         """Return a list of CIM class objects."""
 
         params = self._map_classname_param(params)
@@ -599,10 +601,10 @@ class WBEMConnection(object):
 
         if result is None:
             return []
-        
+
         return result[2]
 
-    def GetClass(self, ClassName, namespace = None, **params):
+    def GetClass(self, ClassName, namespace=None, **params):
         """Return a CIMClass representing the named class."""
 
         params = self._map_classname_param(params)
@@ -613,12 +615,12 @@ class WBEMConnection(object):
         result = self.imethodcall(
             'GetClass',
             namespace,
-            ClassName = CIMClassName(ClassName),
+            ClassName=CIMClassName(ClassName),
             **params)
 
         return result[2][0]
 
-    def DeleteClass(self, ClassName, namespace = None, **params):
+    def DeleteClass(self, ClassName, namespace=None, **params):
         """Delete a class by class name."""
 
         # UNSUPPORTED (but actually works)
@@ -631,10 +633,10 @@ class WBEMConnection(object):
         self.imethodcall(
             'DeleteClass',
             namespace,
-            ClassName = CIMClassName(ClassName),
-            **params)            
+            ClassName=CIMClassName(ClassName),
+            **params)
 
-    def ModifyClass(self, ModifiedClass, namespace = None, **params):
+    def ModifyClass(self, ModifiedClass, namespace=None, **params):
         """Modify a CIM class."""
 
         # UNSUPPORTED
@@ -645,10 +647,10 @@ class WBEMConnection(object):
         self.imethodcall(
             'ModifyClass',
             namespace,
-            ModifiedClass = ModifiedClass,
+            ModifiedClass=ModifiedClass,
             **params)
 
-    def CreateClass(self, NewClass, namespace = None, **params):
+    def CreateClass(self, NewClass, namespace=None, **params):
         """Create a CIM class."""
 
         # UNSUPPORTED
@@ -659,12 +661,12 @@ class WBEMConnection(object):
         self.imethodcall(
             'CreateClass',
             namespace,
-            NewClass = NewClass,
+            NewClass=NewClass,
             **params)
 
     #
     # Association provider API
-    # 
+    #
 
     def _add_objectname_param(self, params, object):
         """Add an object name (either a class name or an instance
@@ -706,9 +708,9 @@ class WBEMConnection(object):
 
         params = self._map_association_params(params)
         params = self._add_objectname_param(params, ObjectName)
-        
+
         namespace = self.default_namespace
-        
+
         if isinstance(ObjectName, CIMInstanceName) and \
            ObjectName.namespace is not None:
             namespace = ObjectName.namespace
@@ -735,7 +737,7 @@ class WBEMConnection(object):
         params = self._add_objectname_param(params, ObjectName)
 
         namespace = self.default_namespace
-        
+
         if isinstance(ObjectName, CIMInstanceName) and \
            ObjectName.namespace is not None:
             namespace = ObjectName.namespace
@@ -761,7 +763,7 @@ class WBEMConnection(object):
         params = self._add_objectname_param(params, ObjectName)
 
         namespace = self.default_namespace
-        
+
         if isinstance(ObjectName, CIMInstanceName) and \
            ObjectName.namespace is not None:
             namespace = ObjectName.namespace
@@ -785,9 +787,9 @@ class WBEMConnection(object):
 
         params = self._map_association_params(params)
         params = self._add_objectname_param(params, ObjectName)
- 
+
         namespace = self.default_namespace
-        
+
         if isinstance(ObjectName, CIMInstanceName) and \
            ObjectName.namespace is not None:
             namespace = ObjectName.namespace
@@ -813,7 +815,7 @@ class WBEMConnection(object):
         obj = ObjectName
 
         if isinstance(obj, StringTypes):
-            obj = CIMClassName(obj, namespace = self.default_namespace)
+            obj = CIMClassName(obj, namespace=self.default_namespace)
 
         if isinstance(obj, CIMInstanceName) and obj.namespace is None:
             obj = ObjectName.copy()
@@ -849,7 +851,7 @@ class WBEMConnection(object):
     # Qualifiers API
     #
 
-    def EnumerateQualifiers(self, namespace = None, **params):
+    def EnumerateQualifiers(self, namespace=None, **params):
         """Enumerate qualifier declarations.  Returns a list of
         CIMQualifier objects."""
 
@@ -870,7 +872,7 @@ class WBEMConnection(object):
 
         return names
 
-    def GetQualifier(self, QualifierName, namespace = None, **params):
+    def GetQualifier(self, QualifierName, namespace=None, **params):
         """Retrieve a qualifier by name.  Returns a CIMQualifier
         object."""
 
@@ -880,7 +882,7 @@ class WBEMConnection(object):
         result = self.imethodcall(
             'GetQualifier',
             namespace,
-            QualifierName = QualifierName,
+            QualifierName=QualifierName,
             **params)
 
         if result is not None:
@@ -888,8 +890,7 @@ class WBEMConnection(object):
 
         return names
 
-    def SetQualifier(self, QualifierDeclaration, namespace = None,
-                     **params):
+    def SetQualifier(self, QualifierDeclaration, namespace=None, **params):
         """Set a qualifier."""
 
         if namespace is None:
@@ -898,11 +899,10 @@ class WBEMConnection(object):
         result = self.imethodcall(
             'SetQualifier',
             namespace,
-            QualifierDeclaration = QualifierDeclaration,
+            QualifierDeclaration=QualifierDeclaration,
             **params)
 
-    def DeleteQualifier(self, QualifierName, namespace = None,
-                        **params):
+    def DeleteQualifier(self, QualifierName, namespace=None, **params):
         """Delete a qualifier by name."""
 
         if namespace is None:
@@ -911,14 +911,14 @@ class WBEMConnection(object):
         result = self.imethodcall(
             'DeleteQualifier',
             namespace,
-            QualifierName = QualifierName,
+            QualifierName=QualifierName,
             **params)
 
 def is_subclass(ch, ns, super, sub):
     """Determine if one class is a subclass of another
 
     Keyword Arguments:
-    ch -- A CIMOMHandle.  Either a pycimmb.CIMOMHandle or a 
+    ch -- A CIMOMHandle.  Either a pycimmb.CIMOMHandle or a
         pywbem.WBEMConnection.
     ns -- Namespace.
     super -- A string containing the super class name.
@@ -938,7 +938,7 @@ def is_subclass(ch, ns, super, sub):
     if subclass is None:
         subclass = ch.GetClass(subname,
                                ns,
-                               LocalOnly=True, 
+                               LocalOnly=True,
                                IncludeQualifiers=False,
                                PropertyList=[],
                                IncludeClassOrigin=False)
@@ -947,18 +947,18 @@ def is_subclass(ch, ns, super, sub):
             return True
         subclass = ch.GetClass(subclass.superclass,
                                ns,
-                               LocalOnly=True, 
+                               LocalOnly=True,
                                IncludeQualifiers=False,
                                PropertyList=[],
                                IncludeClassOrigin=False)
     return False
 
-def PegasusUDSConnection(creds = None, **kwargs):
+def PegasusUDSConnection(creds=None, **kwargs):
     return WBEMConnection('/var/run/tog-pegasus/cimxml.socket', creds, **kwargs)
 
-def SFCBUDSConnection(creds = None, **kwargs):
+def SFCBUDSConnection(creds=None, **kwargs):
     return WBEMConnection('/tmp/sfcbHttpSocket', creds, **kwargs)
 
-def OpenWBEMUDSConnection(creds = None, **kwargs):
-    return WBEMConnection('/tmp/OW@LCL@APIIPC_72859_Xq47Bf_P9r761-5_J-7_Q', 
+def OpenWBEMUDSConnection(creds=None, **kwargs):
+    return WBEMConnection('/tmp/OW@LCL@APIIPC_72859_Xq47Bf_P9r761-5_J-7_Q',
                           creds, **kwargs)

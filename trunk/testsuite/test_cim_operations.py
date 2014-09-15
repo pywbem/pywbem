@@ -17,7 +17,7 @@ class ClientTest(TestCase):
 
     def setup(self):
         """Create a connection."""
-        
+
         # Use globals url, username and password
 
         self.system_url = url
@@ -28,7 +28,7 @@ class ClientTest(TestCase):
 
     def cimcall(self, fn, *args, **kw):
         """Make a PyWBEM call and log the request and response XML."""
-        
+
         try:
             result = fn(*args, **kw)
         except:
@@ -59,15 +59,14 @@ class EnumerateInstanceNames(ClientTest):
 
         [self.assert_(isinstance(n, CIMInstanceName)) for n in names]
         [self.assert_(len(n.namespace) > 0) for n in names]
-        
+
         # Call with optional namespace path
 
         try:
 
-            self.cimcall(
-                self.conn.EnumerateInstanceNames,
-                'PyWBEM_Person',
-                namespace = 'root/pywbem')
+            self.cimcall(self.conn.EnumerateInstanceNames,
+                         'PyWBEM_Person',
+                         namespace='root/pywbem')
 
         except CIMError, arg:
             if arg[0] != CIM_ERR_INVALID_NAMESPACE:
@@ -93,10 +92,9 @@ class EnumerateInstances(ClientTest):
 
         try:
 
-            self.cimcall(
-                self.conn.EnumerateInstances,
-                'PyWBEM_Person',
-                namespace = 'root/pywbem')
+            self.cimcall(self.conn.EnumerateInstances,
+                         'PyWBEM_Person',
+                         namespace='root/pywbem')
 
         except CIMError, arg:
             if arg[0] != CIM_ERR_INVALID_NAMESPACE:
@@ -109,24 +107,24 @@ class ExecQuery(ClientTest):
 
         try:
             instances = self.cimcall(
-                self.conn.ExecQuery, 
+                self.conn.ExecQuery,
                 'wql',
                 'Select * from PyWBEM_Person')
 
             self.assert_(len(instances) == 3)
 
             [self.assert_(isinstance(i, CIMInstance)) for i in instances]
-            [self.assert_(isinstance(i.path, CIMInstanceName)) for i in instances]
+            [self.assert_(isinstance(i.path, CIMInstanceName)) \
+             for i in instances]
             [self.assert_(len(i.path.namespace) > 0) for i in instances]
 
         # Call with optional namespace path
             try:
 
-                self.cimcall(
-                    self.conn.ExecQuery, 
-                    'wql',
-                    'Select * from PyWBEM_Person',
-                    namespace = 'root/pywbem')
+                self.cimcall(self.conn.ExecQuery,
+                             'wql',
+                             'Select * from PyWBEM_Person',
+                             namespace='root/pywbem')
 
             except CIMError, arg:
                 if arg[0] != CIM_ERR_INVALID_NAMESPACE:
@@ -179,10 +177,10 @@ class CreateInstance(ClientTest):
             'PyWBEM_Person',
             {'CreationClassName': 'PyWBEM_Person',
              'Name': 'Test'},
-            path = CIMInstanceName('PyWBEM_Person',
-                                   {'CreationClassName': 'PyWBEM_Person',
-                                    'Name': 'Test'}))
-                                                      
+            path=CIMInstanceName('PyWBEM_Person',
+                                 {'CreationClassName': 'PyWBEM_Person',
+                                  'Name': 'Test'}))
+
         # Delete if already exists
 
         try:
@@ -197,7 +195,7 @@ class CreateInstance(ClientTest):
 
         self.assert_(isinstance(result, CIMInstanceName))
         self.assert_(len(result.namespace) > 0)
-        
+
         result = self.cimcall(self.conn.DeleteInstance, instance.path)
 
         self.assert_(result == None)
@@ -230,9 +228,9 @@ class ModifyInstance(ClientTest):
             'PyWBEM_Person',
             {'CreationClassName': 'PyWBEM_Person',
              'Name': 'Test'},
-            path = CIMInstanceName('PyWBEM_Person',
-                                   {'CreationClassName': 'PyWBEM_Person',
-                                    'Name': 'Test'}))
+            path=CIMInstanceName('PyWBEM_Person',
+                                 {'CreationClassName': 'PyWBEM_Person',
+                                  'Name': 'Test'}))
 
         # Delete if already exists
 
@@ -258,8 +256,8 @@ class ModifyInstance(ClientTest):
         # Clean up
 
         self.cimcall(self.conn.DeleteInstance, instance.path)
-        
-            
+
+
 #################################################################
 # Method provider interface tests
 #################################################################
@@ -309,7 +307,7 @@ class InvokeMethod(ClientTest):
 
         except CIMError, arg:
             if arg[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
-                raise        
+                raise
 
         # Call with all possible parameter types
 
@@ -317,20 +315,20 @@ class InvokeMethod(ClientTest):
             self.cimcall(self.conn.InvokeMethod,
                          'FooMethod',
                          'CIM_Process',
-                         String = 'Spotty',
-                         Uint8  = Uint8(1),
-                         Sint8  = Sint8(2),
-                         Uint16 = Uint16(3),
-                         Uint32 = Uint32(4),
-                         Sint32 = Sint32(5),
-                         Uint64 = Uint64(6),
-                         Sint64 = Sint64(7),
-                         Real32 = Real32(8),
-                         Real64 = Real64(9),
-                         Bool   = True,
-                         Date1  = CIMDateTime.now(),
-                         Date2  = timedelta(60),
-                         Ref = name)
+                         String='Spotty',
+                         Uint8=Uint8(1),
+                         Sint8=Sint8(2),
+                         Uint16=Uint16(3),
+                         Uint32=Uint32(4),
+                         Sint32=Sint32(5),
+                         Uint64=Uint64(6),
+                         Sint64=Sint64(7),
+                         Real32=Real32(8),
+                         Real64=Real64(9),
+                         Bool=True,
+                         Date1=CIMDateTime.now(),
+                         Date2=timedelta(60),
+                         Ref=name)
         except CIMError, arg:
             if arg[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
                 raise
@@ -342,20 +340,20 @@ class InvokeMethod(ClientTest):
             self.cimcall(self.conn.InvokeMethod,
                          'FooMethod',
                          'CIM_Process',
-                         StringArray = 'Spotty',
-                         Uint8Array  = [Uint8(1)],
-                         Sint8Array  = [Sint8(2)],
-                         Uint16Array = [Uint16(3)],
-                         Uint32Array = [Uint32(4)],
-                         Sint32Array = [Sint32(5)],
-                         Uint64Array = [Uint64(6)],
-                         Sint64Array = [Sint64(7)],
-                         Real32Array = [Real32(8)],
-                         Real64Array = [Real64(9)],
-                         BoolArray   = [False, True],
-                         Date1Array  = [CIMDateTime.now(), CIMDateTime.now()],
-                         Date2Array  = [timedelta(0), timedelta(60)],
-                         RefArray = [name, name])
+                         StringArray='Spotty',
+                         Uint8Array=[Uint8(1)],
+                         Sint8Array=[Sint8(2)],
+                         Uint16Array=[Uint16(3)],
+                         Uint32Array=[Uint32(4)],
+                         Sint32Array=[Sint32(5)],
+                         Uint64Array=[Uint64(6)],
+                         Sint64Array=[Sint64(7)],
+                         Real32Array=[Real32(8)],
+                         Real64Array=[Real64(9)],
+                         BoolArray=[False, True],
+                         Date1Array=[CIMDateTime.now(), CIMDateTime.now()],
+                         Date2Array=[timedelta(0), timedelta(60)],
+                         RefArray=[name, name])
 
         except CIMError, arg:
             if arg[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
@@ -396,7 +394,7 @@ class Associators(ClientTest):
             self.conn.Associators, 'PyWBEM_PersonCollection')
 
         # TODO: check return values
-    
+
 class AssociatorNames(ClientTest):
 
     def runtest(self):
@@ -421,7 +419,7 @@ class AssociatorNames(ClientTest):
             self.conn.AssociatorNames, 'PyWBEM_PersonCollection')
 
         # TODO: check return values
-        
+
 class References(ClientTest):
 
     def runtest(self):
@@ -481,14 +479,14 @@ class ReferenceNames(ClientTest):
 
 class ClassVerifier(object):
     """Base class for testing CIMClass instances."""
-    
+
     def verify_property(self, p):
         self.assert_(isinstance(p, CIMProperty))
 
     def verify_qualifier(self, q):
         self.assert_(q.name)
         self.assert_(q.value)
-        
+
     def verify_method(self, m):
         # TODO: verify method
         pass
@@ -520,7 +518,7 @@ class EnumerateClassNames(ClientTest):
         # Enumerate with classname arg
 
         names = self.cimcall(self.conn.EnumerateClassNames,
-                             ClassName = 'CIM_ManagedElement')
+                             ClassName='CIM_ManagedElement')
 
         [self.assert_(isinstance(n, StringTypes)) for n in names]
 
@@ -537,7 +535,7 @@ class EnumerateClasses(ClientTest, ClassVerifier):
         # Enumerate with classname arg
 
         classes = self.cimcall(self.conn.EnumerateClasses,
-                               ClassName = 'CIM_ManagedElement')
+                               ClassName='CIM_ManagedElement')
         [self.assert_(isinstance(c, CIMClass)) for c in classes]
         [self.verify_class(c) for c in classes]
 

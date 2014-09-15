@@ -1,16 +1,16 @@
 #
 # (C) Copyright 2003, 2004 Hewlett-Packard Development Company, L.P.
-# (C) Copyright 2006-2007 Novell, Inc. 
+# (C) Copyright 2006-2007 Novell, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; version 2 of the License.
-#   
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-#   
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -23,7 +23,7 @@
 '''Tuple parser for the XML schema representing CIM messages.
 
 This framework is meant to add some value to the tuple-tree
-representation of CIM in XML by having the following properties: 
+representation of CIM in XML by having the following properties:
 
   - Silently ignoring whitespace text elements
 
@@ -82,7 +82,7 @@ from pywbem.tupletree import xml_to_tupletree
 
 class ParseError(Exception):
     """This exception is raised when there is a validation error detected
-    by the parser."""    
+    by the parser."""
     pass
 
 
@@ -121,9 +121,9 @@ def kids(tt):
     return filter_tuples(tt[2])
 
 
-def check_node(tt, nodename, required_attrs = [], optional_attrs = [],
-               allowed_children = None,
-               allow_pcdata = False):
+def check_node(tt, nodename, required_attrs=[], optional_attrs=[],
+               allowed_children=None,
+               allow_pcdata=False):
     """Check static local constraints on a single node.
 
     The node must have the given name.  The required attrs must be
@@ -137,7 +137,7 @@ def check_node(tt, nodename, required_attrs = [], optional_attrs = [],
     If allow_pcdata is true, then non-whitespace text children are allowed.
     (Whitespace text nodes are always allowed.)
     """
-    
+
     if name(tt) <> nodename:
         raise ParseError('expected node type %s, not %s' %
                          (nodename, name(tt)))
@@ -150,7 +150,7 @@ def check_node(tt, nodename, required_attrs = [], optional_attrs = [],
     for attr in required_attrs:
         if not tt_attrs.has_key(attr):
             raise ParseError('expected %s attribute on %s node, but only '
-                             'have %s' % (attr, name(tt),attrs(tt).keys()))
+                             'have %s' % (attr, name(tt), attrs(tt).keys()))
         del tt_attrs[attr]
 
     for attr in optional_attrs:
@@ -173,7 +173,7 @@ def check_node(tt, nodename, required_attrs = [], optional_attrs = [],
                     raise ParseError('unexpected non-blank pcdata node %s '
                                      'under %s' % (`c`, name(tt)))
 
-    
+
 def one_child(tt, acceptable):
     """Parse children of a node with exactly one child node.
 
@@ -256,7 +256,7 @@ def list_of_same(tt, acceptable):
     k = kids(tt)
     if not k:                   # empty list, consistent with list_of_various
         return []
-    
+
     w = name(k[0])
     if w not in acceptable:
         raise ParseError('In element %s with attributes %s, expected child '\
@@ -275,7 +275,7 @@ def list_of_same(tt, acceptable):
 
 def notimplemented(tt):
     raise ParseError('parser for %s not implemented' % name(tt))
-    
+
 #
 # Root element
 #
@@ -316,7 +316,7 @@ def parse_value_array(tt):
     check_node(tt, 'VALUE.ARRAY', [], [], ['VALUE'])
 
     return list_of_same(tt, ['VALUE'])
-        
+
 
 def parse_value_reference(tt):
     """
@@ -331,7 +331,7 @@ def parse_value_reference(tt):
                       ['CLASSPATH', 'LOCALCLASSPATH', 'CLASSNAME',
                        'INSTANCEPATH', 'LOCALINSTANCEPATH',
                        'INSTANCENAME'])
-                      
+
     # The VALUE.REFERENCE wrapper element is discarded
     return child
 
@@ -340,7 +340,7 @@ def parse_value_refarray(tt):
     """
     <!ELEMENT VALUE.REFARRAY (VALUE.REFERENCE*)>
     """
-    
+
     check_node(tt, 'VALUE.REFARRAY')
 
     children = list_of_various(tt, ['VALUE.REFERENCE'])
@@ -373,7 +373,7 @@ def parse_value_namedinstance(tt):
         raise ParseError('expecting (INSTANCENAME, INSTANCE), got %s' % `k`)
 
     instancename = parse_instancename(k[0])
-    instance = parse_instance(k[1])        
+    instance = parse_instance(k[1])
 
     instance.path = instancename
 
@@ -401,7 +401,7 @@ def parse_value_namedobject(tt):
 
     return (name(tt), attrs(tt), object)
 
-    
+
 def parse_value_objectwithlocalpath(tt):
     """
     <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH, CLASS) |
@@ -424,7 +424,7 @@ def parse_value_objectwithlocalpath(tt):
         object.path = path
 
     return (name(tt), attrs(tt), object)
-            
+
 def parse_value_objectwithpath(tt):
     """
     <!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH, CLASS) |
@@ -457,7 +457,7 @@ def parse_namespacepath(tt):
     """
     <!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)>
     """
-    
+
     check_node(tt, 'NAMESPACEPATH')
 
     if len(kids(tt)) != 2:
@@ -522,7 +522,7 @@ def parse_classpath(tt):
     classname = parse_classname(kids(tt)[1])
 
     return cim_obj.CIMClassName(classname.classname,
-                                host = nspath[0], namespace = nspath[1])
+                                host=nspath[0], namespace=nspath[1])
 
 
 def parse_localclasspath(tt):
@@ -539,7 +539,7 @@ def parse_localclasspath(tt):
     localnspath = parse_localnamespacepath(kids(tt)[0])
     classname = parse_classname(kids(tt)[1])
 
-    return cim_obj.CIMClassName(classname.classname, namespace = localnspath)
+    return cim_obj.CIMClassName(classname.classname, namespace=localnspath)
 
 def parse_classname(tt):
     """
@@ -569,7 +569,7 @@ def parse_instancepath(tt):
     instancename.namespace = nspath[1]
 
     return instancename
-    
+
 def parse_localinstancepath(tt):
     """
     <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
@@ -590,7 +590,7 @@ def parse_localinstancepath(tt):
 
 def parse_instancename(tt):
     """Parse XML INSTANCENAME into CIMInstanceName object."""
-    
+
     ## <!ELEMENT INSTANCENAME (KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?)>
     ## <!ATTLIST INSTANCENAME %ClassName;>
 
@@ -612,7 +612,7 @@ def parse_instancename(tt):
         if len(kids(tt)) != 1:
             raise ParseError('expected only one %s under %s' %
                              w, name(tt))
-        
+
         # FIXME: This is probably not the best representation of these forms...
         val = parse_any(k0)
         return CIMInstanceName(classname, {None: val})
@@ -620,7 +620,7 @@ def parse_instancename(tt):
         kbs = {}
         for kb in list_of_various(tt, ['KEYBINDING']):
             kbs.update(kb)
-        return CIMInstanceName(classname, kbs)        
+        return CIMInstanceName(classname, kbs)
     else:
         raise ParseError('unexpected node %s under %s' %
                          (name(kids(tt)[0]), name(tt)))
@@ -633,7 +633,7 @@ def parse_objectpath(tt):
 
     check_node(tt, 'OBJECTPATH')
 
-    child  = one_child(tt, ['INSTANCEPATH', 'CLASSPATH'])
+    child = one_child(tt, ['INSTANCEPATH', 'CLASSPATH'])
 
     return (name(tt), attrs(tt), child)
 
@@ -645,7 +645,7 @@ def parse_keybinding(tt):
     ##	%CIMName;>
 
     """Returns one-item dictionary from name to Python value."""
-    
+
     check_node(tt, 'KEYBINDING', ['NAME'])
 
     child = one_child(tt, ['KEYVALUE', 'VALUE.REFERENCE'])
@@ -661,7 +661,7 @@ def parse_keyvalue(tt):
 
 
     """Parse VALUETYPE into Python primitive value"""
-    
+
     check_node(tt, 'KEYVALUE', ['VALUETYPE'], ['TYPE'], [], True)
 
     p = pcdata(tt)
@@ -670,14 +670,14 @@ def parse_keyvalue(tt):
         return p;
 
     vt = attrs(tt).get('VALUETYPE')
-    
+
     if vt == 'string':
         return p
     elif vt == 'boolean':
         return unpack_boolean(p)
     elif vt == 'numeric':
 
-        try: 
+        try:
             # XXX: Use TYPE attribute to create named CIM type.
             # if attrs(tt).has_key('TYPE'):
             #    return cim_obj.tocimobj(attrs(tt)['TYPE'], p.strip())
@@ -691,7 +691,7 @@ def parse_keyvalue(tt):
     else:
         raise ParseError('invalid VALUETYPE %s in %s',
                          vt, name(tt))
-    
+
 
 #
 # Object definition elements
@@ -701,7 +701,7 @@ def parse_class(tt):
     ## <!ELEMENT CLASS (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
     ##                               PROPERTY.REFERENCE)*, METHOD*)>
     ## <!ATTLIST CLASS
-    ##     %CIMName; 
+    ##     %CIMName;
     ##     %SuperClass;>
 
     # This doesn't check the ordering of elements, but it's not very important
@@ -713,15 +713,16 @@ def parse_class(tt):
 
     # TODO: Return these as maps, not lists
     properties = byname(list_of_matching(tt, ['PROPERTY', 'PROPERTY.REFERENCE',
-                                                  'PROPERTY.ARRAY']))
+                                              'PROPERTY.ARRAY']))
 
     qualifiers = byname(list_of_matching(tt, ['QUALIFIER']))
     methods = byname(list_of_matching(tt, ['METHOD']))
 
-    return cim_obj.CIMClass(attrs(tt)['NAME'], superclass=superclass, 
-                                                  properties=properties, 
-                                                  qualifiers=qualifiers, 
-                                                  methods=methods)
+    return cim_obj.CIMClass(attrs(tt)['NAME'],
+                            superclass=superclass,
+                            properties=properties,
+                            qualifiers=qualifiers,
+                            methods=methods)
 
 
 def parse_instance(tt):
@@ -729,12 +730,12 @@ def parse_instance(tt):
 
     The instance contains the properties, qualifiers and classname for
     the instance"""
-    
+
     ##<!ELEMENT INSTANCE (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
     ##                                 PROPERTY.REFERENCE)*)>
     ##<!ATTLIST INSTANCE
     ##	%ClassName;>
-    
+
     check_node(tt, 'INSTANCE', ['CLASSNAME'],
                ['QUALIFIER', 'PROPERTY', 'PROPERTY.ARRAY',
                 'PROPERTY.REFERENCE'])
@@ -746,10 +747,11 @@ def parse_instance(tt):
 
     ## TODO: Parse instance qualifiers
     qualifiers = {}
-    props = list_of_matching(tt, ['PROPERTY.REFERENCE', 'PROPERTY', 'PROPERTY.ARRAY'])
+    props = list_of_matching(tt, ['PROPERTY.REFERENCE', 'PROPERTY',
+                                  'PROPERTY.ARRAY'])
 
     obj = cim_obj.CIMInstance(attrs(tt)['CLASSNAME'],
-                              qualifiers = qualifiers)
+                              qualifiers=qualifiers)
 
     [obj.__setitem__(p.name, p) for p in props]
 
@@ -765,15 +767,15 @@ def parse_scope(tt):
     #   METHOD (true | false) "false"
     #   PARAMETER (true | false) "false"
     #   INDICATION (true | false) "false"
-    check_node(tt, 'SCOPE', [], 
-        ['CLASS', 'ASSOCIATION', 'REFERENCE', 'PROPERTY', 'METHOD', 
-            'PARAMETER', 'INDICATION'], [])
-    return dict([(k,v.lower() == 'true') for k,v in attrs(tt).items()])
+    check_node(tt, 'SCOPE', [],
+               ['CLASS', 'ASSOCIATION', 'REFERENCE', 'PROPERTY', 'METHOD',
+                'PARAMETER', 'INDICATION'], [])
+    return dict([(k, v.lower() == 'true') for k, v in attrs(tt).items()])
 
 def parse_qualifier_declaration(tt):
     ## <!ELEMENT QUALIFIER.DECLARATION (SCOPE?, (VALUE | VALUE.ARRAY)?)>
-    ## <!ATTLIST QUALIFIER.DECLARATION 
-    ##     %CIMName;               
+    ## <!ATTLIST QUALIFIER.DECLARATION
+    ##     %CIMName;
     ##     %CIMType;               #REQUIRED
     ##     ISARRAY    (true|false) #IMPLIED
     ##     %ArraySize;
@@ -815,9 +817,9 @@ def parse_qualifier_declaration(tt):
             if value is not None:
                 raise ParseError("Multiple VALUE/VALUE.ARRAY tags encountered")
             value = cim_obj.tocimobj(type, parse_any(child))
-            
+
     return cim_obj.CIMQualifierDeclaration(qname, type, value, is_array,
-                 array_size, scopes, **flavors)
+                                           array_size, scopes, **flavors)
 
 
 def parse_qualifier(tt):
@@ -847,7 +849,7 @@ def parse_qualifier(tt):
             rv = True
         elif rv == 'false':
             rv = False
-            
+
         setattr(q, i.lower(), rv)
 
     return q
@@ -857,7 +859,7 @@ def parse_property(tt):
     """Parse PROPERTY into a CIMProperty object.
 
     VAL is just the pcdata of the enclosed VALUE node."""
-    
+
     ## <!ELEMENT PROPERTY (QUALIFIER*, VALUE?)>
     ## <!ATTLIST PROPERTY %CIMName;
     ##      %ClassOrigin;
@@ -866,7 +868,7 @@ def parse_property(tt):
 
     ## TODO: Parse this into NAME, VALUE, where the value contains
     ## magic fields for the qualifiers and the propagated flag.
-    
+
     check_node(tt, 'PROPERTY', ['TYPE', 'NAME'],
                ['NAME', 'CLASSORIGIN', 'PROPAGATED', 'EmbeddedObject',
                 'EMBEDDEDOBJECT'],
@@ -878,7 +880,7 @@ def parse_property(tt):
 
     val = unpack_value(tt)
     a = attrs(tt)
-    embedded_object=None
+    embedded_object = None
     if 'EmbeddedObject' in a or 'EMBEDDEDOBJECT' in a:
         try:
             embedded_object = a['EmbeddedObject']
@@ -909,8 +911,8 @@ def parse_property_array(tt):
     from cim_obj import tocimobj
 
     check_node(tt, 'PROPERTY.ARRAY', ['NAME', 'TYPE'],
-                    ['REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED',
-                     'ARRAYSIZE', 'EmbeddedObject', 'EMBEDDEDOBJECT'],
+               ['REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED',
+                'ARRAYSIZE', 'EmbeddedObject', 'EMBEDDEDOBJECT'],
                ['QUALIFIER', 'VALUE.ARRAY'])
 
     quals = {}
@@ -931,7 +933,7 @@ def parse_property_array(tt):
 
     obj = CIMProperty(a['NAME'],
                       values,
-                      a['TYPE'], 
+                      a['TYPE'],
                       class_origin=a.get('CLASSORIGIN'),
                       qualifiers=quals,
                       is_array=True,
@@ -945,14 +947,14 @@ def parse_property_reference(tt):
     """
     <!ELEMENT PROPERTY.REFERENCE (QUALIFIER*, (VALUE.REFERENCE)?)>
     <!ATTLIST PROPERTY.REFERENCE
-	%CIMName; 
-	%ReferenceClass; 
-	%ClassOrigin; 
+	%CIMName;
+	%ReferenceClass;
+	%ClassOrigin;
 	%Propagated;>
     """
-    
+
     check_node(tt, 'PROPERTY.REFERENCE', ['NAME'],
-                    ['REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED'])
+               ['REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED'])
 
     value = list_of_matching(tt, ['VALUE.REFERENCE'])
 
@@ -962,9 +964,9 @@ def parse_property_reference(tt):
         value = value[0]
     else:
         raise ParseError('Too many VALUE.REFERENCE elements.')
-    
+
     attributes = attrs(tt)
-    pref = cim_obj.CIMProperty(attributes['NAME'], value, type = 'reference')
+    pref = cim_obj.CIMProperty(attributes['NAME'], value, type='reference')
 
     for q in list_of_matching(tt, ['QUALIFIER']):
         pref.qualifiers[q.name] = q
@@ -999,15 +1001,15 @@ def parse_method(tt):
     qualifiers = byname(list_of_matching(tt, ['QUALIFIER']))
 
     parameters = byname(list_of_matching(tt, ['PARAMETER',
-                                                      'PARAMETER.REFERENCE',
-                                                      'PARAMETER.ARRAY',
-                                                      'PARAMETER.REFARRAY',]))
+                                              'PARAMETER.REFERENCE',
+                                              'PARAMETER.ARRAY',
+                                              'PARAMETER.REFARRAY',]))
 
     a = attrs(tt)
 
-    return cim_obj.CIMMethod(a['NAME'], 
+    return cim_obj.CIMMethod(a['NAME'],
                              return_type=a.get('TYPE'),
-                             parameters=parameters, 
+                             parameters=parameters,
                              qualifiers=qualifiers,
                              class_origin=a.get('CLASSORIGIN'),
                              propagated=unpack_boolean(a.get('PROPAGATED')))
@@ -1016,11 +1018,11 @@ def parse_method(tt):
 def parse_parameter(tt):
     """
     <!ELEMENT PARAMETER (QUALIFIER*)>
-    <!ATTLIST PARAMETER 
+    <!ATTLIST PARAMETER
          %CIMName;
          %CIMType;              #REQUIRED>
     """
-    
+
     check_node(tt, 'PARAMETER', ['NAME', 'TYPE'], [])
 
     quals = {}
@@ -1035,7 +1037,7 @@ def parse_parameter_reference(tt):
     """
     <!ELEMENT PARAMETER.REFERENCE (QUALIFIER*)>
     <!ATTLIST PARAMETER.REFERENCE
-	%CIMName; 
+	%CIMName;
 	%ReferenceClass;>
     """
 
@@ -1048,22 +1050,22 @@ def parse_parameter_reference(tt):
     a = attrs(tt)
 
     return cim_obj.CIMParameter(a['NAME'],
-                        type='reference',
-                        reference_class=a.get('REFERENCECLASS'),
-                        qualifiers=quals)
+                                type='reference',
+                                reference_class=a.get('REFERENCECLASS'),
+                                qualifiers=quals)
 
 
 def parse_parameter_array(tt):
     """
     <!ELEMENT PARAMETER.ARRAY (QUALIFIER*)>
-    <!ATTLIST PARAMETER.ARRAY 
+    <!ATTLIST PARAMETER.ARRAY
          %CIMName;
          %CIMType;              #REQUIRED
          %ArraySize;>
     """
 
-    check_node(tt, 'PARAMETER.ARRAY', ['NAME', 'TYPE'], 
-                ['ARRAYSIZE'])
+    check_node(tt, 'PARAMETER.ARRAY', ['NAME', 'TYPE'],
+               ['ARRAYSIZE'])
 
     quals = {}
     for q in list_of_matching(tt, ['QUALIFIER']):
@@ -1075,19 +1077,19 @@ def parse_parameter_array(tt):
     if array_size is not None:
         array_size = int(array_size)
 
-    return cim_obj.CIMParameter(a['NAME'], 
-                        type=a['TYPE'],
-                        is_array = True,
-                        array_size=array_size,
-                        qualifiers=quals)
+    return cim_obj.CIMParameter(a['NAME'],
+                                type=a['TYPE'],
+                                is_array=True,
+                                array_size=array_size,
+                                qualifiers=quals)
 
 
 def parse_parameter_refarray(tt):
     """
     <!ELEMENT PARAMETER.REFARRAY (QUALIFIER*)>
     <!ATTLIST PARAMETER.REFARRAY
-	%CIMName; 
-	%ReferenceClass; 
+	%CIMName;
+	%ReferenceClass;
 	%ArraySize;>
     """
 
@@ -1104,10 +1106,11 @@ def parse_parameter_refarray(tt):
     if array_size is not None:
         array_size = int(array_size)
 
-    return cim_obj.CIMParameter(a['NAME'], 'reference', is_array = True,
-                        reference_class=a.get('REFERENCECLASS'),
-                        array_size=array_size,
-                        qualifiers=quals)
+    return cim_obj.CIMParameter(a['NAME'], 'reference',
+                                is_array=True,
+                                reference_class=a.get('REFERENCECLASS'),
+                                array_size=array_size,
+                                qualifiers=quals)
 
 
 #
@@ -1126,7 +1129,7 @@ def parse_message(tt):
 
     messages = one_child(
         tt, ['SIMPLEREQ', 'MULTIREQ', 'SIMPLERSP', 'MULTIRSP', 'SIMPLEEXPREQ'])
-    
+
     if type(messages) is not list:
         # make single and multi forms consistent
         messages = [messages]
@@ -1191,9 +1194,10 @@ def parse_methodcall(tt):
 
     check_node(tt, 'METHODCALL', ['NAME'], [],
                ['LOCALCLASSPATH', 'LOCALINSTANCEPATH', 'PARAMVALUE'])
-    path = list_of_matching(tt, ['LOCALCLASSPATH','LOCALINSTANCEPATH'])
+    path = list_of_matching(tt, ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
     if len(path) != 1:
-        raise ParseError('Expecting one of LOCALCLASSPATH or LOCALINSTANCEPATH, got %s' % `path`)
+        raise ParseError('Expecting one of LOCALCLASSPATH or ' \
+                         'LOCALINSTANCEPATH, got %s' % `path`)
     path = path[0]
     params = list_of_matching(tt, ['PARAMVALUE'])
     return (name(tt), attrs(tt), path, params)
@@ -1202,7 +1206,7 @@ def parse_methodcall(tt):
 def parse_expmethodcall(tt):
     """
     <!ELEMENT EXPMETHODCALL (EXPPARAMVALUE*)>
-    <!ATTLIST EXPMETHODCALL 
+    <!ATTLIST EXPMETHODCALL
         %CIMName;>
     """
 
@@ -1226,12 +1230,12 @@ def parse_paramvalue(tt):
     ## is present in version 2.2.  Make it optional to be backwards
     ## compatible.
 
-    check_node(tt, 'PARAMVALUE', ['NAME'], ['PARAMTYPE','EmbeddedObject', 
-                                            'EMBEDDEDOBJECT'])
+    check_node(tt, 'PARAMVALUE', ['NAME'],
+               ['PARAMTYPE', 'EmbeddedObject', 'EMBEDDEDOBJECT'])
 
     child = optional_child(tt,
-                        ['VALUE', 'VALUE.REFERENCE', 'VALUE.ARRAY',
-                         'VALUE.REFARRAY',])
+                           ['VALUE', 'VALUE.REFERENCE', 'VALUE.ARRAY',
+                            'VALUE.REFARRAY',])
 
     if attrs(tt).has_key('PARAMTYPE'):
         paramtype = attrs(tt)['PARAMTYPE']
@@ -1240,7 +1244,7 @@ def parse_paramvalue(tt):
 
     if 'EmbeddedObject' in attrs(tt) or 'EMBEDDEDOBJECT' in attrs(tt):
         child = parse_embeddedObject(child)
-        
+
     return attrs(tt)['NAME'], paramtype, child
 
 
@@ -1251,10 +1255,10 @@ def parse_iparamvalue(tt):
     ## <!ATTLIST IPARAMVALUE %CIMName;>
 
     """Returns NAME, VALUE pair."""
-    
+
     check_node(tt, 'IPARAMVALUE', ['NAME'], [])
 
-    child = optional_child(tt, 
+    child = optional_child(tt,
                            ['VALUE', 'VALUE.ARRAY', 'VALUE.REFERENCE',
                             'INSTANCENAME', 'CLASSNAME',
                             'QUALIFIER.DECLARATION', 'CLASS', 'INSTANCE',
@@ -1262,18 +1266,18 @@ def parse_iparamvalue(tt):
 
     name = attrs(tt)['NAME']
     if isinstance(child, basestring) and \
-            name.lower() in ['deepinheritance', 'localonly', 
+            name.lower() in ['deepinheritance', 'localonly',
                              'includequalifiers', 'includeclassorigin']:
         if child.lower() in ['true', 'false']:
             child = child.lower() == 'true'
 
-    return name,  child
+    return name, child
 
-          
+
 def parse_expparamvalue(tt):
     """
     <!ELEMENT EXPPARAMVALUE (INSTANCE?)>
-    <!ATTLIST EXPPARAMVALUE 
+    <!ATTLIST EXPPARAMVALUE
         %CIMName;>
     """
 
@@ -1282,7 +1286,7 @@ def parse_expparamvalue(tt):
     child = optional_child(tt, ['INSTANCE'])
 
     name = attrs(tt)['NAME']
-    return name,  child
+    return name, child
 
 
 def parse_multirsp(tt):
@@ -1315,7 +1319,7 @@ def parse_methodresponse(tt):
 
     return name(tt), attrs(tt), list_of_various(tt, ['ERROR', 'RETURNVALUE',
                                                      'PARAMVALUE'])
-    
+
 
 def parse_expmethodresponse(tt):
     raise ParseError('EXPMETHODRESPONSE parser not implemented')
@@ -1428,10 +1432,11 @@ def unpack_value(tt):
     if len(raw_val) == 0:
         return None
     elif len(raw_val) > 1:
-        raise ParseError('more than one VALUE or VALUE.ARRAY under %s' % name(tt))
+        raise ParseError('more than one VALUE or VALUE.ARRAY under %s' % \
+                         name(tt))
 
     raw_val = raw_val[0]
-    
+
     if isinstance(raw_val, list):
         return [cim_obj.tocimobj(valtype, x) for x in raw_val]
     elif len(raw_val) == 0 and valtype != 'string':
@@ -1447,7 +1452,7 @@ def unpack_boolean(p):
 
     ## CIM-XML says "These values MUST be treated as case-insensitive"
     ## (even though the XML definition requires them to be lowercase.)
-    
+
     p = p.strip().lower()                   # ignore space
     if p == 'true':
         return True

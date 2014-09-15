@@ -7,12 +7,12 @@ management protocol.'''
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; version 2 of the License.
-#   
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-#   
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -28,7 +28,7 @@ import shutil
 from pywbem import mof_compiler
 mof_compiler._build()
 
-# Get package version from __init__.py 
+# Get package version from __init__.py
 init_py = os.path.abspath(os.path.join(
         os.path.dirname(sys.argv[0]), 'pywbem/__init__.py'))
 init_globals = {}

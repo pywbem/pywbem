@@ -4,12 +4,12 @@
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; version 2 of the License.
-#   
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-#   
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -21,65 +21,65 @@
 
 r"""Python CIM Providers (aka "nirvana")
 
-This module is an abstraction and utility layer between a CIMOM and 
-Python providers.  The CIMOM uses this module to load Python providers, 
-and route requests to those providers.  
+This module is an abstraction and utility layer between a CIMOM and
+Python providers.  The CIMOM uses this module to load Python providers,
+and route requests to those providers.
 
 Python Provider Modules
 
     Python Providers are implemented as Python modules.  By convention
-    these modules are installed into /usr/lib/pycim.  However, they can 
-    be anywhere.  These modules are loaded on demand using load_source() 
-    from the imp module.  The CIMOM's pycim interface stores the timestamp 
-    of the provider modules.  If the modules change, the CIMOM reloads the 
-    modules.  This is very useful while developing providers, since the 
-    latest code will always be loaded and used. 
+    these modules are installed into /usr/lib/pycim.  However, they can
+    be anywhere.  These modules are loaded on demand using load_source()
+    from the imp module.  The CIMOM's pycim interface stores the timestamp
+    of the provider modules.  If the modules change, the CIMOM reloads the
+    modules.  This is very useful while developing providers, since the
+    latest code will always be loaded and used.
 
-    A Python Provider Module will contain functions, attributes, and 
-    instances that will be accessed and manipulated by this module.  
+    A Python Provider Module will contain functions, attributes, and
+    instances that will be accessed and manipulated by this module.
 
     Providers are often classified in the following catagories:
-        Instance -- Instrument the retrieval, creation, modification, 
-            and deletion of CIM instances. 
+        Instance -- Instrument the retrieval, creation, modification,
+            and deletion of CIM instances.
         Association -- Instrument CIM associations (CIM classes with the
-            Association qualifier). 
+            Association qualifier).
         Method -- Instrument methods as defined on CIM instances or CIM
-            classes. 
-        Indication -- Generates indications based on indication 
-            subscriptions. 
-        Indication Consumer -- "Consumes" (or "Handles") an indication, 
-            possibly delivering it through some other means, such as email. 
-        Polled -- A polled provider is allowed to run periodically (by 
+            classes.
+        Indication -- Generates indications based on indication
+            subscriptions.
+        Indication Consumer -- "Consumes" (or "Handles") an indication,
+            possibly delivering it through some other means, such as email.
+        Polled -- A polled provider is allowed to run periodically (by
             calling its poll function).  This allows a provider to do some
-            periodic work, without the need to create its own thread.  
+            periodic work, without the need to create its own thread.
 
     An Instance, Association, and/or Method provider is created by defining
     one or more subclasses of CIMProvider within the provider module, and
-    registering instances of the subclass(es) with CIM class names by way 
-    of the get_providers function (described below).  Refer to 
-    the documentation for CIMProvider in this module. 
+    registering instances of the subclass(es) with CIM class names by way
+    of the get_providers function (described below).  Refer to
+    the documentation for CIMProvider in this module.
 
-    Indication, Indication Consumer, and Polled providers are defined by 
-    implementing some functions within the provider module. 
+    Indication, Indication Consumer, and Polled providers are defined by
+    implementing some functions within the provider module.
 
-    Provider module functions: 
+    Provider module functions:
         init(env):
-            This module function is optional.  It is called immediately 
-            after the provider module is imported.  
+            This module function is optional.  It is called immediately
+            after the provider module is imported.
 
             Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
 
         get_providers(env):
-            Return a dict that maps CIM class names to instances of 
-            CIMProvider subclasses.  Note that multiple classes can be 
-            instrumented by the same instance of a CIMProvider subclass.  
+            Return a dict that maps CIM class names to instances of
+            CIMProvider subclasses.  Note that multiple classes can be
+            instrumented by the same instance of a CIMProvider subclass.
             The CIM class names are case-insensitive, since this dict is
-            converted to a NocaseDict. 
+            converted to a NocaseDict.
 
             Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
-           
+
             For example, a Python Provider Module may contain the following:
 
                 class Py_FooBarProvider(CIMProvider):
@@ -94,20 +94,20 @@ Python Provider Modules
 
             If this method returns zero, then the poll method is never called.
 
-            Arguments: 
+            Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
 
         poll(env):
             Do some work, and return the number of seconds until the next poll.
 
-            A polled provider's poll function will be called periodically by 
-            the CIMOM.  The polled provider can use this opportunity to do 
+            A polled provider's poll function will be called periodically by
+            the CIMOM.  The polled provider can use this opportunity to do
             some work, such as checking on some conditions, and generating
-            indications.  The poll function returns the number of seconds the 
+            indications.  The poll function returns the number of seconds the
             CIMOM should wait before calling poll again.  A return value of -1
-            indicates to the CIMOM that the previous poll value should be used. 
+            indicates to the CIMOM that the previous poll value should be used.
             A return value of 0 indicates that the poll function should never
-            be called again. 
+            be called again.
 
             Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
@@ -116,8 +116,8 @@ Python Provider Modules
             Return True if the provider can be unloaded.
 
             The CIMOM may try to unload a provider after a period of inactivity.
-            Before unloading a provider, the CIMOM asks the provider if it can 
-            be unloaded.  
+            Before unloading a provider, the CIMOM asks the provider if it can
+            be unloaded.
 
             Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
@@ -128,7 +128,7 @@ Python Provider Modules
             The provider will shortly be unloaded, and is given an opportunity
             to perform any needed cleanup.  The provider may be unloaded after
             a period of inactivity (see the documentation for can_unload), or
-            because the CIMOM is shutting down. 
+            because the CIMOM is shutting down.
 
             Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
@@ -139,33 +139,33 @@ Python Provider Modules
             Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
             ns -- The namespace where the even occurred
-            handler_instance -- 
+            handler_instance --
             indication_instance -- The indication
 
-        activate_filter (env, filter, ns, classes, 
+        activate_filter (env, filter, ns, classes,
                          first_activation):
             Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
             filter --
-            namespace -- 
-            classes -- 
+            namespace --
+            classes --
             first_activation --
 
-        deactivate_filter(env, filter, ns, classes, 
+        deactivate_filter(env, filter, ns, classes,
                           last_activation):
             Arguments:
             env -- Provider Environment (pycimmb.ProviderEnvironment)
             filter --
-            ns -- 
-            classes -- 
+            ns --
+            classes --
             last_activation --
 
 Provider Environment
-    
-    A pycimmb.ProviderEnvironment is passed to many functions.  This is 
+
+    A pycimmb.ProviderEnvironment is passed to many functions.  This is
     a handle back into the CIMOM.  You can use it for logging and for
-    making "up-calls" to the CIMOM.  For example: 
-        
+    making "up-calls" to the CIMOM.  For example:
+
         logger = env.get_logger()
         logger.log_debug('Debug Info')
 
@@ -174,20 +174,20 @@ Provider Environment
                                     IncludeQualifiers=False,
                                     IncludeClassOrigin=False)
 
-    The API of the pycimmb.CIMOMHandle resembles that of 
-    pywbem.WBEMConnection.  
+    The API of the pycimmb.CIMOMHandle resembles that of
+    pywbem.WBEMConnection.
 
     For more information on the ProviderEnvironments, and other features
-    provided by pycimmb, refer to the pycimmb documentation. 
+    provided by pycimmb, refer to the pycimmb documentation.
 
 CodeGen
 
-    The codegen function can be used to generate provider stub code for a 
-    given CIM class.  This is a quick way to get started writing a provider. 
+    The codegen function can be used to generate provider stub code for a
+    given CIM class.  This is a quick way to get started writing a provider.
 
 """
 
-import sys 
+import sys
 from os.path import dirname
 from imp import load_source
 import types
@@ -214,79 +214,79 @@ def _path_equals_ignore_host(lhs, rhs):
 
 
 class CIMProvider(object):
-    """Base class for CIM Providers.  
+    """Base class for CIM Providers.
 
-    A derived class might normally override the following: 
+    A derived class might normally override the following:
     - enum_instances
     - get_instance
     - set_instance
     - delete_instance
     - references
 
-    If the provider is a "read-only" instance provider, set_instance and 
-    delete_instance need not be overridden. 
+    If the provider is a "read-only" instance provider, set_instance and
+    delete_instance need not be overridden.
 
-    Only association providers need to override references. 
+    Only association providers need to override references.
 
     A method provider should implement a method of the form:
         def cim_method_<method_name>(self, env, object_name, method,
                                      param_<input_param_1>,
                                      param_<input_param_2>,
                                      ...):
-        Where <method_name> is the name of the method from the CIM schema.  
-        <method_name> needs to be all lowercase, regardless of the case of 
-        the method name in the CIM schema (CIM method names are case 
-        insensitive). 
+        Where <method_name> is the name of the method from the CIM schema.
+        <method_name> needs to be all lowercase, regardless of the case of
+        the method name in the CIM schema (CIM method names are case
+        insensitive).
 
         Keyword arguments:
         env -- Provider Environment (pycimmb.ProviderEnvironment)
-        object_name -- A pywbem.CIMInstanceName or pywbem.CIMClassname 
-            specifying the object on which the method is to be invoked. 
-        method -- A pywbem.CIMMethod, representing the method to execute. 
-        param_<param_name> -- Corresponds to the input parameter <param_name> 
-            from the CIM schema.  <param_name> needs to be all lowercase, 
+        object_name -- A pywbem.CIMInstanceName or pywbem.CIMClassname
+            specifying the object on which the method is to be invoked.
+        method -- A pywbem.CIMMethod, representing the method to execute.
+        param_<param_name> -- Corresponds to the input parameter <param_name>
+            from the CIM schema.  <param_name> needs to be all lowercase,
             regardless of the case of the parameter name in the CIM schema
-            (CIM parameter names are case insensitive). 
+            (CIM parameter names are case insensitive).
 
-        The method returns a two-tuple containing the return value of the 
-        method, and a dictionary containing the output parameters. 
+        The method returns a two-tuple containing the return value of the
+        method, and a dictionary containing the output parameters.
 
     Example:
         def cim_method_requeststatechange(self, env, object_name, method,
                                           param_requestedstate,
                                           param_timeoutperiod):
-            # do stuff. 
+            # do stuff.
             out_params = {'job': pywbem.CIMInstanceName(...)}
             rval = pywbem.Uint32(0)
             return (rval, out_params)
 
-    The methods prefixed with "MI_" correspond to the WBEM operations 
+    The methods prefixed with "MI_" correspond to the WBEM operations
     from http://www.dmtf.org/standards/published_documents/DSP200.html
-    The default implementations of these methods call the methods 
-    described above.  These will not normally be overridden or extended 
-    by a subclass. 
+    The default implementations of these methods call the methods
+    described above.  These will not normally be overridden or extended
+    by a subclass.
 
     """
 
-    def get_instance (self, env, model, cim_class):
+    def get_instance(self, env, model, cim_class):
         """Return an instance.
 
         Keyword arguments:
         env -- Provider Environment (pycimmb.ProviderEnvironment)
-        model -- A template of the pywbem.CIMInstance to be returned.  The 
-            key properties are set on this instance to correspond to the 
+        model -- A template of the pywbem.CIMInstance to be returned.  The
+            key properties are set on this instance to correspond to the
             instanceName that was requested.  The properties of the model
-            are already filtered according to the PropertyList from the 
+            are already filtered according to the PropertyList from the
             request.  Only properties present in the model need to be
-            given values.  If you prefer, you can set all of the 
-            values, and the instance will be filtered for you. 
+            given values.  If you prefer, you can set all of the
+            values, and the instance will be filtered for you.
         cim_class -- The pywbem.CIMClass
 
         Possible Errors:
         CIM_ERR_ACCESS_DENIED
-        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized 
+        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized
             or otherwise incorrect parameters)
-        CIM_ERR_NOT_FOUND (the CIM Class does exist, but the requested CIM 
+        CIM_ERR_NOT_FOUND (the CIM Class does exist, but the requested CIM
             Instance does not exist in the specified namespace)
         CIM_ERR_FAILED (some other unspecified error occurred)
 
@@ -297,17 +297,17 @@ class CIMProvider(object):
         """Enumerate instances.
 
         The WBEM operations EnumerateInstances and EnumerateInstanceNames
-        are both mapped to this method. 
+        are both mapped to this method.
         This method is a python generator
 
         Keyword arguments:
         env -- Provider Environment (pycimmb.ProviderEnvironment)
-        model -- A template of the pywbem.CIMInstances to be generated.  
-            The properties of the model are already filtered according to 
-            the PropertyList from the request.  Only properties present in 
-            the model need to be given values.  If you prefer, you can 
-            always set all of the values, and the instance will be filtered 
-            for you. 
+        model -- A template of the pywbem.CIMInstances to be generated.
+            The properties of the model are already filtered according to
+            the PropertyList from the request.  Only properties present in
+            the model need to be given values.  If you prefer, you can
+            always set all of the values, and the instance will be filtered
+            for you.
         cim_class -- The pywbem.CIMClass
         keys_only -- A boolean.  True if only the key properties should be
             set on the generated instances.
@@ -323,24 +323,24 @@ class CIMProvider(object):
 
         Keyword arguments:
         env -- Provider Environment (pycimmb.ProviderEnvironment)
-        instance -- The new pywbem.CIMInstance.  If modifying an existing 
-            instance, the properties on this instance have been filtered by 
+        instance -- The new pywbem.CIMInstance.  If modifying an existing
+            instance, the properties on this instance have been filtered by
             the PropertyList from the request.
-        previous_instance -- The previous pywbem.CIMInstance if modifying 
-            an existing instance.  None if creating a new instance. 
+        previous_instance -- The previous pywbem.CIMInstance if modifying
+            an existing instance.  None if creating a new instance.
         cim_class -- The pywbem.CIMClass
 
-        Return the new instance.  The keys must be set on the new instance. 
+        Return the new instance.  The keys must be set on the new instance.
 
         Possible Errors:
         CIM_ERR_ACCESS_DENIED
         CIM_ERR_NOT_SUPPORTED
-        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized 
+        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized
             or otherwise incorrect parameters)
-        CIM_ERR_ALREADY_EXISTS (the CIM Instance already exists -- only 
+        CIM_ERR_ALREADY_EXISTS (the CIM Instance already exists -- only
             valid if previous_instance is None, indicating that the operation
             was CreateInstance)
-        CIM_ERR_NOT_FOUND (the CIM Instance does not exist -- only valid 
+        CIM_ERR_NOT_FOUND (the CIM Instance does not exist -- only valid
             if previous_instance is not None, indicating that the operation
             was ModifyInstance)
         CIM_ERR_FAILED (some other unspecified error occurred)
@@ -353,61 +353,61 @@ class CIMProvider(object):
 
         Keyword arguments:
         env -- Provider Environment (pycimmb.ProviderEnvironment)
-        instance_name -- A pywbem.CIMInstanceName specifying the instance 
+        instance_name -- A pywbem.CIMInstanceName specifying the instance
             to delete.
 
         Possible Errors:
         CIM_ERR_ACCESS_DENIED
         CIM_ERR_NOT_SUPPORTED
         CIM_ERR_INVALID_NAMESPACE
-        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized 
+        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized
             or otherwise incorrect parameters)
-        CIM_ERR_INVALID_CLASS (the CIM Class does not exist in the specified 
+        CIM_ERR_INVALID_CLASS (the CIM Class does not exist in the specified
             namespace)
-        CIM_ERR_NOT_FOUND (the CIM Class does exist, but the requested CIM 
+        CIM_ERR_NOT_FOUND (the CIM Class does exist, but the requested CIM
             Instance does not exist in the specified namespace)
         CIM_ERR_FAILED (some other unspecified error occurred)
 
-        """ 
+        """
         raise pywbem.CIMError(pywbem.CIM_ERR_NOT_SUPPORTED, "")
 
-    def references(self, env, object_name, model, assoc_class, 
+    def references(self, env, object_name, model, assoc_class,
                    result_class_name, role, result_role, keys_only):
         """Instrument Associations.
 
-        All four association-related operations (Associators, AssociatorNames, 
-        References, ReferenceNames) are mapped to this method. 
+        All four association-related operations (Associators, AssociatorNames,
+        References, ReferenceNames) are mapped to this method.
         This method is a python generator
 
         Keyword arguments:
         env -- Provider Environment (pycimmb.ProviderEnvironment)
-        object_name -- A pywbem.CIMInstanceName that defines the source 
+        object_name -- A pywbem.CIMInstanceName that defines the source
             CIM Object whose associated Objects are to be returned.
         model -- A template pywbem.CIMInstance to serve as a model
             of the objects to be returned.  Only properties present on this
-            model need to be set. 
+            model need to be set.
         assoc_class -- The pywbem.CIMClass.
-        result_class_name -- If not empty, this string acts as a filter on 
-            the returned set of Instances by mandating that each returned 
-            Instances MUST represent an association between object_name 
+        result_class_name -- If not empty, this string acts as a filter on
+            the returned set of Instances by mandating that each returned
+            Instances MUST represent an association between object_name
             and an Instance of a Class whose name matches this parameter
-            or a subclass. 
-        role -- If not empty, MUST be a valid Property name. It acts as a 
-            filter on the returned set of Instances by mandating that each 
-            returned Instance MUST refer to object_name via a Property 
+            or a subclass.
+        role -- If not empty, MUST be a valid Property name. It acts as a
+            filter on the returned set of Instances by mandating that each
+            returned Instance MUST refer to object_name via a Property
             whose name matches the value of this parameter.
-        result_role -- If not empty, MUST be a valid Property name. It acts 
-            as a filter on the returned set of Instances by mandating that 
-            each returned Instance MUST represent associations of 
-            object_name to other Instances, where the other Instances play 
-            the specified result_role in the association (i.e. the 
-            name of the Property in the Association Class that refers to 
-            the Object related to object_name MUST match the value of this 
+        result_role -- If not empty, MUST be a valid Property name. It acts
+            as a filter on the returned set of Instances by mandating that
+            each returned Instance MUST represent associations of
+            object_name to other Instances, where the other Instances play
+            the specified result_role in the association (i.e. the
+            name of the Property in the Association Class that refers to
+            the Object related to object_name MUST match the value of this
             parameter).
         keys_only -- A boolean.  True if only the key properties should be
             set on the generated instances.
 
-        The following diagram may be helpful in understanding the role, 
+        The following diagram may be helpful in understanding the role,
         result_role, and result_class_name parameters.
         +------------------------+                    +-------------------+
         | object_name.classname  |                    | result_class_name |
@@ -425,7 +425,7 @@ class CIMProvider(object):
         CIM_ERR_ACCESS_DENIED
         CIM_ERR_NOT_SUPPORTED
         CIM_ERR_INVALID_NAMESPACE
-        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized 
+        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized
             or otherwise incorrect parameters)
         CIM_ERR_FAILED (some other unspecified error occurred)
 
@@ -438,29 +438,30 @@ class CIMProvider(object):
         if hasattr(self, '_filter_results'):
             return self._filter_results
         return True
-    filter_results = property(_get_filter_results, 
-                              _set_filter_results,
-                              None,
+    filter_results = property(
+        _get_filter_results,
+        _set_filter_results,
+        None,
         """Determines if the CIMProvider base class should filter results
 
         If True, the subclass of CIMProvider in the provider module
-        does not need to filter returned results based on property_list, 
-        and in the case of association providers, role, result_role, and 
-        result_class_name.  The results will be filtered by the 
-        CIMProvider base class. 
+        does not need to filter returned results based on property_list,
+        and in the case of association providers, role, result_role, and
+        result_class_name.  The results will be filtered by the
+        CIMProvider base class.
 
-        If False, the CIMProvider base class will do no filtering. 
+        If False, the CIMProvider base class will do no filtering.
         Therefore the subclass of CIMProvider in the provider module will
-        have to filter based on property_list, and in the case of 
+        have to filter based on property_list, and in the case of
         association providers, role, result_role, and result_class_name.""")
 
-    def MI_enumInstanceNames(self, 
-                             env, 
-                             ns, 
+    def MI_enumInstanceNames(self,
+                             env,
+                             ns,
                              cimClass):
         """Return instance names of a given CIM class
 
-        Implements the WBEM operation EnumerateInstanceNames in terms 
+        Implements the WBEM operation EnumerateInstanceNames in terms
         of the enum_instances method.  A derived class will not normally
         override this method.
 
@@ -470,19 +471,19 @@ class CIMProvider(object):
         logger.log_debug('CIMProvider MI_enumInstanceNames called...')
         provClass = False
         keys = pywbem.NocaseDict()
-        [keys.__setitem__(p.name, p) for p in cimClass.properties.values()\
+        [keys.__setitem__(p.name, p) for p in cimClass.properties.values() \
                 if 'key' in p.qualifiers]
-        
+
         _strip_quals(keys)
-        path = pywbem.CIMInstanceName(classname=cimClass.classname, 
-                                            namespace=ns)
-        model = pywbem.CIMInstance(classname=cimClass.classname, 
+        path = pywbem.CIMInstanceName(classname=cimClass.classname,
+                                      namespace=ns)
+        model = pywbem.CIMInstance(classname=cimClass.classname,
                                    properties=keys,
                                    path=path)
         gen = self.enum_instances(env=env,
-                                       model=model,
-                                       cim_class=cimClass,
-                                       keys_only=True)
+                                  model=model,
+                                  cim_class=cimClass,
+                                  keys_only=True)
         try:
             iter(gen)
         except TypeError:
@@ -493,18 +494,18 @@ class CIMProvider(object):
             rval = build_instance_name(inst)
             yield rval
         logger.log_debug('CIMProvider MI_enumInstanceNames returning')
-    
-    def MI_enumInstances(self, 
-                         env, 
-                         ns, 
-                         propertyList, 
-                         requestedCimClass, 
+
+    def MI_enumInstances(self,
+                         env,
+                         ns,
+                         propertyList,
+                         requestedCimClass,
                          cimClass):
         """Return instances of a given CIM class
 
-        Implements the WBEM operation EnumerateInstances in terms 
+        Implements the WBEM operation EnumerateInstances in terms
         of the enum_instances method.  A derived class will not normally
-        override this method. 
+        override this method.
 
         """
         logger = env.get_logger()
@@ -516,19 +517,19 @@ class CIMProvider(object):
             props = pywbem.NocaseDict()
             plist = [s.lower() for s in propertyList]
             pklist = plist + lkns
-            [props.__setitem__(p.name, p) for p in cimClass.properties.values() 
-                    if p.name.lower() in pklist]
+            [props.__setitem__(p.name, p) for p in cimClass.properties.values()
+             if p.name.lower() in pklist]
         else:
             props = cimClass.properties
         _strip_quals(props)
-        path = pywbem.CIMInstanceName(classname=cimClass.classname, 
-                                            namespace=ns)
-        model = pywbem.CIMInstance(classname=cimClass.classname, properties=props,
-                                   path=path)
+        path = pywbem.CIMInstanceName(classname=cimClass.classname,
+                                      namespace=ns)
+        model = pywbem.CIMInstance(classname=cimClass.classname,
+                                   properties=props, path=path)
         gen = self.enum_instances(env=env,
-                                       model=model,
-                                       cim_class=cimClass,
-                                       keys_only=False)
+                                  model=model,
+                                  cim_class=cimClass,
+                                  keys_only=False)
         try:
             iter(gen)
         except TypeError:
@@ -542,14 +543,14 @@ class CIMProvider(object):
             yield inst
         logger.log_debug('CIMProvider MI_enumInstances returning')
 
-    def MI_getInstance(self, 
-                       env, 
-                       instanceName, 
-                       propertyList, 
+    def MI_getInstance(self,
+                       env,
+                       instanceName,
+                       propertyList,
                        cimClass):
         """Return a specific CIM instance
 
-        Implements the WBEM operation GetInstance in terms 
+        Implements the WBEM operation GetInstance in terms
         of the get_instance method.  A derived class will not normally
         override this method.
 
@@ -564,12 +565,12 @@ class CIMProvider(object):
             props = pywbem.NocaseDict()
             plist = [s.lower() for s in propertyList]
             pklist = plist + lkns
-            [props.__setitem__(p.name, p) for p in cimClass.properties.values() 
-                    if p.name.lower() in pklist]
+            [props.__setitem__(p.name, p) for p in cimClass.properties.values()
+             if p.name.lower() in pklist]
         else:
             props = cimClass.properties
         _strip_quals(props)
-        model = pywbem.CIMInstance(classname=instanceName.classname, 
+        model = pywbem.CIMInstance(classname=instanceName.classname,
                                    properties=props,
                                    path=instanceName)
         for k, v in instanceName.keybindings.items():
@@ -577,12 +578,12 @@ class CIMProvider(object):
 
             if type != 'reference':
                 v = val = pywbem.tocimobj(type, v)
-            model.__setitem__(k, pywbem.CIMProperty(name=k, type=type, 
-                                    value=v))
+            model.__setitem__(k, pywbem.CIMProperty(name=k, type=type,
+                                                    value=v))
 
         rval = self.get_instance(env=env,
-                                       model=model,
-                                       cim_class=cimClass)
+                                 model=model,
+                                 cim_class=cimClass)
         if self.filter_results:
             filter_instance(rval, plist)
         logger.log_debug('CIMProvider MI_getInstance returning')
@@ -590,12 +591,12 @@ class CIMProvider(object):
             raise pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND, "")
         return rval
 
-    def MI_createInstance(self, 
-                          env, 
+    def MI_createInstance(self,
+                          env,
                           instance):
         """Create a CIM instance, and return its instance name
 
-        Implements the WBEM operation CreateInstance in terms 
+        Implements the WBEM operation CreateInstance in terms
         of the set_instance method.  A derived class will not normally
         override this method.
 
@@ -605,29 +606,29 @@ class CIMProvider(object):
         logger.log_debug('CIMProvider MI_createInstance called...')
         rval = None
         ch = env.get_cimom_handle()
-        cimClass = ch.GetClass(instance.classname, 
-                                 instance.path.namespace, 
-                                 LocalOnly=False, 
-                                 IncludeQualifiers=True)
-        # CIMOM has already filled in default property values for 
-        # props with default values, if values not supplied by client. 
+        cimClass = ch.GetClass(instance.classname,
+                               instance.path.namespace,
+                               LocalOnly=False,
+                               IncludeQualifiers=True)
+        # CIMOM has already filled in default property values for
+        # props with default values, if values not supplied by client.
         rval = self.set_instance(env=env,
-                              instance=instance,
-                              previous_instance=None,
-                              cim_class=cimClass)
+                                 instance=instance,
+                                 previous_instance=None,
+                                 cim_class=cimClass)
         rval = build_instance_name(rval, cimClass)
         logger.log_debug('CIMProvider MI_createInstance returning')
         return rval
 
-    def MI_modifyInstance(self, 
-                          env, 
-                          modifiedInstance, 
-                          previousInstance, 
-                          propertyList, 
+    def MI_modifyInstance(self,
+                          env,
+                          modifiedInstance,
+                          previousInstance,
+                          propertyList,
                           cimClass):
         """Modify a CIM instance
 
-        Implements the WBEM operation ModifyInstance in terms 
+        Implements the WBEM operation ModifyInstance in terms
         of the set_instance method.  A derived class will not normally
         override this method.
 
@@ -640,17 +641,17 @@ class CIMProvider(object):
             filter_instance(modifiedInstance, plist)
             modifiedInstance.update(modifiedInstance.path)
         self.set_instance(env=env,
-                              instance=modifiedInstance,
-                              previous_instance=previousInstance,
-                              cim_class=cimClass)
+                          instance=modifiedInstance,
+                          previous_instance=previousInstance,
+                          cim_class=cimClass)
         logger.log_debug('CIMProvider MI_modifyInstance returning')
-    
-    def MI_deleteInstance(self, 
-                          env, 
+
+    def MI_deleteInstance(self,
+                          env,
                           instanceName):
         """Delete a CIM instance
 
-        Implements the WBEM operation DeleteInstance in terms 
+        Implements the WBEM operation DeleteInstance in terms
         of the delete_instance method.  A derived class will not normally
         override this method.
 
@@ -662,47 +663,49 @@ class CIMProvider(object):
         logger.log_debug('CIMProvider MI_deleteInstance returning')
 
 
-    def MI_associators(self, 
-                       env, 
-                       objectName, 
-                       assocClassName, 
-                       resultClassName, 
-                       role, 
-                       resultRole, 
+    def MI_associators(self,
+                       env,
+                       objectName,
+                       assocClassName,
+                       resultClassName,
+                       role,
+                       resultRole,
                        propertyList):
         """Return instances associated to a given object.
 
-        Implements the WBEM operation Associators in terms 
+        Implements the WBEM operation Associators in terms
         of the references method.  A derived class will not normally
         override this method.
 
         """
 
-        # NOTE: This should honor the parameters resultClassName, role, resultRole, 
-        #       and propertyList
+        # NOTE: This should honor the parameters resultClassName, role,
+        #       resultRole, and propertyList
         logger = env.get_logger()
-        logger.log_debug('CIMProvider MI_associators called. assocClass: %s' % (assocClassName))
+        logger.log_debug('CIMProvider MI_associators called. ' \
+                         'assocClass: %s' % (assocClassName))
         ch = env.get_cimom_handle()
         if not assocClassName:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "Empty assocClassName passed to Associators")
-        assocClass = ch.GetClass(assocClassName, objectName.namespace, 
-                                 LocalOnly=False, 
+            raise pywbem.CIMError(
+                pywbem.CIM_ERR_FAILED,
+                "Empty assocClassName passed to Associators")
+        assocClass = ch.GetClass(assocClassName, objectName.namespace,
+                                 LocalOnly=False,
                                  IncludeQualifiers=True)
         plist = pywbem.NocaseDict()
-        [plist.__setitem__(p.name, p) for p in assocClass.properties.values() 
-                if 'key' in p.qualifiers or p.type == 'reference']
+        [plist.__setitem__(p.name, p) for p in assocClass.properties.values()
+         if 'key' in p.qualifiers or p.type == 'reference']
         _strip_quals(plist)
-        model = pywbem.CIMInstance(classname=assocClass.classname, 
+        model = pywbem.CIMInstance(classname=assocClass.classname,
                                    properties=plist)
-        model.path = pywbem.CIMInstanceName(classname=assocClass.classname, 
+        model.path = pywbem.CIMInstanceName(classname=assocClass.classname,
                                             namespace=objectName.namespace)
-        for inst in self.references(env=env, 
-                                    object_name=objectName, 
+        for inst in self.references(env=env,
+                                    object_name=objectName,
                                     model=model,
                                     assoc_class=assocClass,
-                                    result_class_name=resultClassName, 
-                                    role=role, 
+                                    result_class_name=resultClassName,
+                                    role=role,
                                     result_role=None,
                                     keys_only=False):
             for prop in inst.properties.values():
@@ -716,14 +719,14 @@ class CIMProvider(object):
                 if _path_equals_ignore_host(prop.value, objectName):
                     continue
                 if resultClassName and self.filter_results and \
-                        not pywbem.is_subclass(ch, objectName.namespace, 
-                                        sub=prop.value.classname, 
-                                        super=resultClassName):
+                    not pywbem.is_subclass(ch, objectName.namespace,
+                                           sub=prop.value.classname,
+                                           super=resultClassName):
                     continue
                 try:
                     if prop.value.namespace is None:
                         prop.value.namespace = objectName.namespace
-                    inst = ch.GetInstance(prop.value, 
+                    inst = ch.GetInstance(prop.value,
                                           IncludeQualifiers=True,
                                           IncludeClassOrigin=True,
                                           PropertyList=propertyList)
@@ -737,44 +740,46 @@ class CIMProvider(object):
                 yield inst
         logger.log_debug('CIMProvider MI_associators returning')
 
-    def MI_associatorNames(self, 
-                           env, 
-                           objectName, 
-                           assocClassName, 
-                           resultClassName, 
-                           role, 
+    def MI_associatorNames(self,
+                           env,
+                           objectName,
+                           assocClassName,
+                           resultClassName,
+                           role,
                            resultRole):
         """Return instances names associated to a given object.
 
-        Implements the WBEM operation AssociatorNames in terms 
+        Implements the WBEM operation AssociatorNames in terms
         of the references method.  A derived class will not normally
         override this method.
 
         """
 
         logger = env.get_logger()
-        logger.log_debug('CIMProvider MI_associatorNames called. assocClass: %s' % (assocClassName))
+        logger.log_debug('CIMProvider MI_associatorNames called. ' \
+                         'assocClass: %s' % (assocClassName))
         ch = env.get_cimom_handle()
         if not assocClassName:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "Empty assocClassName passed to AssociatorNames")
-        assocClass = ch.GetClass(assocClassName, objectName.namespace, 
-                                 LocalOnly=False, 
+            raise pywbem.CIMError(
+                pywbem.CIM_ERR_FAILED,
+                "Empty assocClassName passed to AssociatorNames")
+        assocClass = ch.GetClass(assocClassName, objectName.namespace,
+                                 LocalOnly=False,
                                  IncludeQualifiers=True)
         keys = pywbem.NocaseDict()
-        [keys.__setitem__(p.name, p) for p in assocClass.properties.values() 
-                if 'key' in p.qualifiers or p.type == 'reference' ]
+        [keys.__setitem__(p.name, p) for p in assocClass.properties.values()
+         if 'key' in p.qualifiers or p.type == 'reference']
         _strip_quals(keys)
-        model = pywbem.CIMInstance(classname=assocClass.classname, 
+        model = pywbem.CIMInstance(classname=assocClass.classname,
                                    properties=keys)
-        model.path = pywbem.CIMInstanceName(classname=assocClass.classname, 
+        model.path = pywbem.CIMInstanceName(classname=assocClass.classname,
                                             namespace=objectName.namespace)
-        for inst in self.references(env=env, 
-                                    object_name=objectName, 
+        for inst in self.references(env=env,
+                                    object_name=objectName,
                                     model=model,
                                     assoc_class=assocClass,
-                                    result_class_name=resultClassName, 
-                                    role=role, 
+                                    result_class_name=resultClassName,
+                                    role=role,
                                     result_role=None,
                                     keys_only=False):
             for prop in inst.properties.values():
@@ -788,44 +793,46 @@ class CIMProvider(object):
                 if _path_equals_ignore_host(prop.value, objectName):
                     continue
                 if resultClassName and self.filter_results and \
-                        not pywbem.is_subclass(ch, objectName.namespace, 
-                                        sub=prop.value.classname, 
-                                        super=resultClassName):
+                    not pywbem.is_subclass(ch, objectName.namespace,
+                                           sub=prop.value.classname,
+                                           super=resultClassName):
                     continue
                 if prop.value.namespace is None:
                     prop.value.namespace = objectName.namespace
                 yield prop.value
         logger.log_debug('CIMProvider MI_associatorNames returning')
 
-    def MI_references(self, 
-                      env, 
-                      objectName, 
-                      resultClassName, 
-                      role, 
+    def MI_references(self,
+                      env,
+                      objectName,
+                      resultClassName,
+                      role,
                       propertyList):
         """Return instances of an association class.
 
-        Implements the WBEM operation References in terms 
+        Implements the WBEM operation References in terms
         of the references method.  A derived class will not normally
         override this method.
 
         """
 
         logger = env.get_logger()
-        logger.log_debug('CIMProvider MI_references called. resultClass: %s' % (resultClassName))
+        logger.log_debug('CIMProvider MI_references called. resultClass: %s' % \
+                         (resultClassName))
         ch = env.get_cimom_handle()
         if not resultClassName:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "Empty resultClassName passed to References")
-        assocClass = ch.GetClass(resultClassName, objectName.namespace, 
-                                 LocalOnly=False, 
+            raise pywbem.CIMError(
+                pywbem.CIM_ERR_FAILED,
+                "Empty resultClassName passed to References")
+        assocClass = ch.GetClass(resultClassName, objectName.namespace,
+                                 LocalOnly=False,
                                  IncludeQualifiers=True)
         keyNames = get_keys_from_class(assocClass)
         plist = None
         if propertyList is not None:
             lkns = [kn.lower() for kn in keyNames]
             props = pywbem.NocaseDict()
-            plist = [s.lower() for s in propertyList] 
+            plist = [s.lower() for s in propertyList]
             pklist = plist + lkns
             [props.__setitem__(p.name, p) for p in \
                     assocClass.properties.values() \
@@ -833,25 +840,25 @@ class CIMProvider(object):
         else:
             props = assocClass.properties
         _strip_quals(props)
-        model = pywbem.CIMInstance(classname=assocClass.classname, 
+        model = pywbem.CIMInstance(classname=assocClass.classname,
                                    properties=props)
-        model.path = pywbem.CIMInstanceName(classname=assocClass.classname, 
+        model.path = pywbem.CIMInstanceName(classname=assocClass.classname,
                                             namespace=objectName.namespace)
         #if role is None:
-        #    raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+        #    raise pywbem.CIMError(pywbem.CIM_ERR_FAILED,
         #                          "** this shouldn't happen")
         if role:
             if role not in model.properties:
-                raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+                raise pywbem.CIMError(pywbem.CIM_ERR_FAILED,
                                       "** this shouldn't happen")
             model[role] = objectName
 
-        for inst in self.references(env=env, 
-                                    object_name=objectName, 
+        for inst in self.references(env=env,
+                                    object_name=objectName,
                                     model=model,
                                     assoc_class=assocClass,
-                                    result_class_name='', 
-                                    role=role, 
+                                    result_class_name='',
+                                    role=role,
                                     result_role=None,
                                     keys_only=False):
             inst.path = build_instance_name(inst, keyNames)
@@ -859,33 +866,36 @@ class CIMProvider(object):
                 inst = inst.copy()
                 filter_instance(inst, plist)
             for prop in inst.properties.values():
-                if hasattr(prop.value, 'namespace') and prop.value.namespace is None:
+                if hasattr(prop.value, 'namespace') and \
+                   prop.value.namespace is None:
                     prop.value.namespace = objectName.namespace
             yield inst
         logger.log_debug('CIMProvider MI_references returning')
 
-    def MI_referenceNames(self, 
-                          env, 
-                          objectName, 
-                          resultClassName, 
+    def MI_referenceNames(self,
+                          env,
+                          objectName,
+                          resultClassName,
                           role):
         """Return instance names of an association class.
 
-        Implements the WBEM operation ReferenceNames in terms 
+        Implements the WBEM operation ReferenceNames in terms
         of the references method.  A derived class will not normally
         override this method.
 
         """
 
         logger = env.get_logger()
-        logger.log_debug('CIMProvider MI_referenceNames <2> called. resultClass: %s' % (resultClassName))
+        logger.log_debug('CIMProvider MI_referenceNames <2> called. ' \
+                         'resultClass: %s' % (resultClassName))
         ch = env.get_cimom_handle()
         if not resultClassName:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "Empty resultClassName passed to ReferenceNames")
+            raise pywbem.CIMError(
+                pywbem.CIM_ERR_FAILED,
+                "Empty resultClassName passed to ReferenceNames")
 
-        assocClass = ch.GetClass(resultClassName, objectName.namespace, 
-                                 LocalOnly=False, 
+        assocClass = ch.GetClass(resultClassName, objectName.namespace,
+                                 LocalOnly=False,
                                  IncludeQualifiers=True)
         keys = pywbem.NocaseDict()
         keyNames = [p.name for p in assocClass.properties.values()
@@ -894,28 +904,29 @@ class CIMProvider(object):
             p = assocClass.properties[keyName]
             keys.__setitem__(p.name, p)
         _strip_quals(keys)
-        model = pywbem.CIMInstance(classname=assocClass.classname, 
+        model = pywbem.CIMInstance(classname=assocClass.classname,
                                    properties=keys)
-        model.path = pywbem.CIMInstanceName(classname=assocClass.classname, 
+        model.path = pywbem.CIMInstanceName(classname=assocClass.classname,
                                             namespace=objectName.namespace)
         #if role is None:
-        #    raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+        #    raise pywbem.CIMError(pywbem.CIM_ERR_FAILED,
         #                          "** this shouldn't happen")
         if role:
             if role not in model.properties:
-                raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+                raise pywbem.CIMError(pywbem.CIM_ERR_FAILED,
                                       "** this shouldn't happen")
             model[role] = objectName
-        for inst in self.references(env=env, 
-                                    object_name=objectName, 
+        for inst in self.references(env=env,
+                                    object_name=objectName,
                                     model=model,
                                     assoc_class=assocClass,
-                                    result_class_name='', 
-                                    role=role, 
+                                    result_class_name='',
+                                    role=role,
                                     result_role=None,
                                     keys_only=True):
             for prop in inst.properties.values():
-                if hasattr(prop.value, 'namespace') and prop.value.namespace is None:
+                if hasattr(prop.value, 'namespace') and \
+                   prop.value.namespace is None:
                     prop.value.namespace = objectName.namespace
             yield build_instance_name(inst, keyNames)
         logger.log_debug('CIMProvider MI_referenceNames returning')
@@ -923,42 +934,42 @@ class CIMProvider(object):
     def MI_invokeMethod(self, env, objectName, metaMethod, inputParams):
         """Invoke an extrinsic method.
 
-        Implements the InvokeMethod WBEM operation by calling the 
-        method on a derived class called cim_method_<method_name>, 
-        where <method_name> is the name of the CIM method, in all 
-        lower case.  
-        
+        Implements the InvokeMethod WBEM operation by calling the
+        method on a derived class called cim_method_<method_name>,
+        where <method_name> is the name of the CIM method, in all
+        lower case.
+
         Arguments:
         env -- Provider Environment (pycimmb.ProviderEnvironment)
-        objectName -- The InstanceName or ClassName of the object on 
+        objectName -- The InstanceName or ClassName of the object on
         which the method is invoked.
-        metaMethod -- The CIMMethod representing the method to be 
-            invoked. 
+        metaMethod -- The CIMMethod representing the method to be
+            invoked.
         inputParams -- A Dictionary where the key is the parameter name
             and the value is the parameter value.
 
-        The return value for invokeMethod must be a tuple of size 2 
-        where: 
-        element 0 is a tuple of size 2 where element 0 is the return 
+        The return value for invokeMethod must be a tuple of size 2
+        where:
+        element 0 is a tuple of size 2 where element 0 is the return
             data type name and element 1 is the actual data value.
-        element 1 is a dictionary where the key is the output 
-            parameter name and the value is a tuple of size 2 where 
-            element 0 is the data type name for the output parameter 
+        element 1 is a dictionary where the key is the output
+            parameter name and the value is a tuple of size 2 where
+            element 0 is the data type name for the output parameter
             and element 1 is the actual value of the output parameter.
 
-        A derived class will not normally override this method. 
+        A derived class will not normally override this method.
 
         """
 
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_invokeMethod called. method: %s:%s' \
-                % (objectName.classname,metaMethod.name))
+                % (objectName.classname, metaMethod.name))
         lmethName = "cim_method_%s" % metaMethod.name.lower()
-        if hasattr(self, lmethName) :
+        if hasattr(self, lmethName):
             method = getattr(self, lmethName)
             new_inputs = dict([('param_%s' % k.lower(), v) \
-                            for k, v in inputParams.items()])
-            (rval, outs) = method(env=env, object_name=objectName, 
+                               for k, v in inputParams.items()])
+            (rval, outs) = method(env=env, object_name=objectName,
                                   method=metaMethod, **new_inputs)
 
             def add_type(v, _tp):
@@ -984,18 +995,19 @@ class CIMProvider(object):
             rval = add_type(rval, metaMethod.return_type)
             rval = (rval, outs)
         else:
-            raise pywbem.CIMError(pywbem.CIM_ERR_METHOD_NOT_FOUND, 
-                              "%s:%s"%(objectName.classname, metaMethod.name))
+            raise pywbem.CIMError(
+                pywbem.CIM_ERR_METHOD_NOT_FOUND,
+                "%s:%s"%(objectName.classname, metaMethod.name))
         logger.log_debug('CIMProvider MI_invokeMethod returning')
         return rval
 
 def filter_instance(inst, plist):
     """Remove properties from an instance that aren't in the PropertyList
-    
+
     inst -- The CIMInstance
-    plist -- The property List, or None.  The list items must be all 
+    plist -- The property List, or None.  The list items must be all
         lowercase.
-        
+
     """
 
     if plist is not None:
@@ -1019,11 +1031,11 @@ def build_instance_name(inst, obj=None):
     keys = {}
     for _ in obj:
         if _ not in inst.properties:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
+            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED,
                                   "Instance of %s is missing key property %s" \
                                   %(inst.classname, _))
         keys[_] = inst[_]
-    inst.path = pywbem.CIMInstanceName(classname=inst.classname, 
+    inst.path = pywbem.CIMInstanceName(classname=inst.classname,
                                        keybindings=keys,
                                        namespace=inst.path.namespace,
                                        host=inst.path.host)
@@ -1033,26 +1045,26 @@ def build_instance_name(inst, obj=None):
 def _strip_quals(props):
     for prop in props.values(): # remove all but key quals
         try:
-            prop.qualifiers = pywbem.NocaseDict({'KEY': 
-                    prop.qualifiers['KEY']})
+            prop.qualifiers = pywbem.NocaseDict({'KEY':
+                                                 prop.qualifiers['KEY']})
         except KeyError:
             prop.qualifiers = pywbem.NocaseDict()
 
 
-def codegen (cc):
-    """Generate a Python Provider template. 
+def codegen(cc):
+    """Generate a Python Provider template.
 
-    Parameters: 
-    cc - A CIMClass to generate code for. 
+    Parameters:
+    cc - A CIMClass to generate code for.
 
-    Returns a two-tuple containing the Python provider code stubs, and 
+    Returns a two-tuple containing the Python provider code stubs, and
         the provider registration MOF.
 
     """
 
     import inspect
 
-    def format_desc (obj, indent):
+    def format_desc(obj, indent):
         linelen = 75 - indent
         if isinstance(obj, basestring):
             raw = obj
@@ -1073,10 +1085,10 @@ def codegen (cc):
                 end = end-1
             if beg == end: # a long URL
                 while end < len(raw) and not raw[end].isspace():
-                    end+= 1
+                    end += 1
             line = raw[beg:end]
-            line = line.replace('\n',' ')
-            line = line.replace('\r','')
+            line = line.replace('\n', ' ')
+            line = line.replace('\r', '')
             txt += '\n%s%s'% (''.ljust(indent), line)
         return txt
 
@@ -1094,13 +1106,13 @@ def codegen (cc):
             tmp = d[str(val)]
             rv = ''
             for ch in tmp:
-                rv+= ch.isalnum() and ch or '_'
+                rv += ch.isalnum() and ch or '_'
         except KeyError:
             pass
         return rv
-            
+
     #################
-    def type_hint (obj, method_name=None):
+    def type_hint(obj, method_name=None):
         if hasattr(obj, 'type'):
             tx = obj.type
             if 'embeddedinstance' in obj.qualifiers:
@@ -1131,12 +1143,12 @@ def codegen (cc):
                 defval = '<VAL>'
             tx = 'self.Values.%s%s.%s' % \
                     (method_name and '%s.'%method_name or '',
-                            obj.name, defval)
+                     obj.name, defval)
         if hasattr(obj, 'is_array') and obj.is_array:
             tx = '[%s,]' % tx
         return tx
     #################
-    def type_str (obj, method_name=None):
+    def type_str(obj, method_name=None):
         if hasattr(obj, 'type'):
             tx = obj.type
             if 'embeddedinstance' in obj.qualifiers:
@@ -1158,11 +1170,11 @@ def codegen (cc):
         if hasattr(obj, 'is_array') and obj.is_array:
             tx = '[%s,]' % tx
         if 'valuemap' in obj.qualifiers:
-            tx+= ' self.Values.%s%s' % \
-                    (method_name and '%s.'%method_name or '',obj.name)
+            tx += ' self.Values.%s%s' % \
+                    (method_name and '%s.' % method_name or '', obj.name)
         return tx
     #################
-    def is_required (obj):
+    def is_required(obj):
         if 'required' in obj.qualifiers and obj.qualifiers['required'].value:
             return '(Required)'
         return ''
@@ -1173,15 +1185,15 @@ def codegen (cc):
             vals = obj.qualifiers['values'].value
         else:
             vals = vm
-        tmap = zip(vals,vm)
+        tmap = zip(vals, vm)
         map = []
         for t in tmap:
             nname = ''
             for ch in t[0]:
                 if ch.isalnum():
-                    nname+= ch
+                    nname += ch
                 else:
-                    nname+= '_'
+                    nname += '_'
             if hasattr(obj, 'return_type'):
                 tp = obj.return_type
             else:
@@ -1195,7 +1207,7 @@ def codegen (cc):
                 except ValueError:
                     val = t[1]
                     nname = "# "+nname
-            map.append((nname,val))
+            map.append((nname, val))
         return map
 
     valuemaps = {}
@@ -1225,41 +1237,41 @@ import pywbem
 
 class %(classname)sProvider(pywbem.CIMProvider):
     """Instrument the CIM class %(classname)s \n''' % mappings
-    code+= format_desc(cc, 4)
-    code+= '''
+    code += format_desc(cc, 4)
+    code += '''
     """'''
 
 
     args = inspect.getargspec(CIMProvider.get_instance)[0]
     args = ', '.join(args)
-    code+= '''
+    code += '''
 
     def __init__ (self, env):
         logger = env.get_logger()
         logger.log_debug('Initializing provider %%s from %%s' \\
                 %% (self.__class__.__name__, __file__))
-        # If you will be filtering instances yourself according to 
-        # property_list, role, result_role, and result_class_name 
+        # If you will be filtering instances yourself according to
+        # property_list, role, result_role, and result_class_name
         # parameters, set self.filter_results to False
         # self.filter_results = False
 
     def get_instance(%s):
         """%s"""
-        
+
         logger = env.get_logger()
         logger.log_debug('Entering %%s.get_instance()' \\
                 %% self.__class__.__name__)
-        ''' % (args, CIMProvider.get_instance.__doc__ )
+        ''' % (args, CIMProvider.get_instance.__doc__)
     keyProps = [p for p in cc.properties.values() \
                 if 'key' in p.qualifiers]
-    code+= '''
+    code += '''
         ux = model.update_existing
 
         # TODO fetch system resource matching the following keys:'''
     for kp in keyProps:
-        code+= '''
+        code += '''
         #   model['%s']''' % kp.name
-    code+= '\n'
+    code += '\n'
     props = cc.properties.values()
     props.sort()
     for prop in props:
@@ -1269,12 +1281,12 @@ class %(classname)sProvider(pywbem.CIMProvider):
         #        (prop.name, type_hint(prop), type_str(prop), is_required(prop))
         line = "#ux(%s=%s) # TODO %s" % \
                 (prop.name, type_hint(prop), is_required(prop))
-        code+= '''
+        code += '''
         %s''' % line
 
     args = inspect.getargspec(CIMProvider.enum_instances)[0]
     args = ', '.join(args)
-    code+= '''
+    code += '''
         return model
 
     def enum_instances(%s):
@@ -1293,22 +1305,22 @@ class %(classname)sProvider(pywbem.CIMProvider):
         else:
             line = "#model['%s'] = # TODO (type = %s)" % \
                     (kp.name, type_str(kp))
-        code+='''    
+        code += '''
             %s''' % line
-    code+='''
+    code += '''
             if keys_only:
                 yield model
             else:
                 try:
                     yield self.get_instance(env, model, cim_class)
                 except pywbem.CIMError, (num, msg):
-                    if num not in (pywbem.CIM_ERR_NOT_FOUND, 
+                    if num not in (pywbem.CIM_ERR_NOT_FOUND,
                                    pywbem.CIM_ERR_ACCESS_DENIED):
                         raise\n'''
 
     args = inspect.getargspec(CIMProvider.set_instance)[0]
     args = ', '.join(args)
-    code+= '''
+    code += '''
     def set_instance(%s):
         """%s"""
 
@@ -1321,10 +1333,10 @@ class %(classname)sProvider(pywbem.CIMProvider):
 
     args = inspect.getargspec(CIMProvider.delete_instance)[0]
     args = ', '.join(args)
-    code+= '''
+    code += '''
 
     def delete_instance(%s):
-        """%s""" 
+        """%s"""
 
         logger = env.get_logger()
         logger.log_debug('Entering %%s.delete_instance()' \\
@@ -1333,38 +1345,38 @@ class %(classname)sProvider(pywbem.CIMProvider):
         # TODO delete the resource
         raise pywbem.CIMError(pywbem.CIM_ERR_NOT_SUPPORTED) # Remove to implement
         ''' % (args, CIMProvider.delete_instance.__doc__)
-                
+
     for method in cc.methods.values():
-        inParms = [ p for p in method.parameters.values() if \
-                    'in' in p.qualifiers and p.qualifiers['in'].value ]
-        outParms = [ p for p in method.parameters.values() if \
-                    'out' in p.qualifiers and p.qualifiers['out'].value ]
-        code+= '''
+        inParms = [p for p in method.parameters.values() if \
+                    'in' in p.qualifiers and p.qualifiers['in'].value]
+        outParms = [p for p in method.parameters.values() if \
+                    'out' in p.qualifiers and p.qualifiers['out'].value]
+        code += '''
     def cim_method_%s(self, env, object_name, method''' % method.name.lower()
         for p in inParms:
-            code+= ''',\n%sparam_%s''' % (''.rjust(len(method.name)+20),
-                                                    p.name.lower())
-        code+= '''):
+            code += ''',\n%sparam_%s''' % (''.rjust(len(method.name)+20),
+                                           p.name.lower())
+        code += '''):
         """Implements %s.%s()\n''' % (cc.classname, method.name)
-        code+= format_desc(method, 8)
+        code += format_desc(method, 8)
 
-        code+= '''
+        code += '''
         Keyword arguments:
         env -- Provider Environment (pycimmb.ProviderEnvironment)
-        object_name -- A pywbem.CIMInstanceName or pywbem.CIMCLassName 
-            specifying the object on which the method %s() 
+        object_name -- A pywbem.CIMInstanceName or pywbem.CIMCLassName
+            specifying the object on which the method %s()
             should be invoked.
-        method -- A pywbem.CIMMethod representing the method meta-data'''\
+        method -- A pywbem.CIMMethod representing the method meta-data''' \
                 % method.name
 
         for p in inParms:
-            code+= '''
+            code += '''
         param_%s --  The input parameter %s (type %s) %s''' \
-                    % (p.name.lower(), p.name, type_str(p, method.name), 
+                    % (p.name.lower(), p.name, type_str(p, method.name),
                        is_required(p))
-            code+= format_desc(p, 12)
+            code += format_desc(p, 12)
 
-        code+='''
+        code += '''
 
         Returns a two-tuple containing the return value (type %s)
         and a dictionary with the out-parameters
@@ -1372,23 +1384,23 @@ class %(classname)sProvider(pywbem.CIMProvider):
         Output parameters:''' % type_str(method)
 
         if not outParms:
-            code+= ' none'
+            code += ' none'
         else:
             for p in outParms:
-                code+='''
-        %s -- (type %s) %s''' % (p.name, type_str(p, method.name), 
+                code += '''
+        %s -- (type %s) %s''' % (p.name, type_str(p, method.name),
                                  is_required(p))
-                code+= format_desc(p, 12)
+                code += format_desc(p, 12)
 
-        code+='''
+        code += '''
 
         Possible Errors:
         CIM_ERR_ACCESS_DENIED
-        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, 
+        CIM_ERR_INVALID_PARAMETER (including missing, duplicate,
             unrecognized or otherwise incorrect parameters)
-        CIM_ERR_NOT_FOUND (the target CIM Class or instance does not 
+        CIM_ERR_NOT_FOUND (the target CIM Class or instance does not
             exist in the specified namespace)
-        CIM_ERR_METHOD_NOT_AVAILABLE (the CIM Server is unable to honor 
+        CIM_ERR_METHOD_NOT_AVAILABLE (the CIM Server is unable to honor
             the invocation request)
         CIM_ERR_FAILED (some other unspecified error occurred)
 
@@ -1403,11 +1415,11 @@ class %(classname)sProvider(pywbem.CIMProvider):
         out_params = {}''' % method.name.lower()
 
         for p in outParms:
-            code+='''
-        #out_params['%s'] = %s # TODO''' % (p.name.lower(), 
-                type_hint(p, method.name))
+            code += '''
+        #out_params['%s'] = %s # TODO''' % \
+                (p.name.lower(), type_hint(p, method.name))
 
-        code+='''
+        code += '''
         rval = None # TODO (type %s)
         return (rval, out_params)
         ''' % type_str(method)
@@ -1415,7 +1427,7 @@ class %(classname)sProvider(pywbem.CIMProvider):
     if isAssoc:
         args = inspect.getargspec(CIMProvider.references)[0]
         args = format_desc(', '.join(args), 19).strip()
-        code+= '''
+        code += '''
     def references(%s):
         """%s"""
 
@@ -1430,73 +1442,73 @@ class %(classname)sProvider(pywbem.CIMProvider):
             if prop.reference_class is not None:
                 refprops.append((prop.name, prop.reference_class))
         for refprop in refprops:
-            code+= '''
+            code += '''
         if (not role or role.lower() == '%(refpropnamel)s') and \\
-           pywbem.is_subclass(ch, object_name.namespace, 
-                       sub=object_name.classname, 
+           pywbem.is_subclass(ch, object_name.namespace,
+                       sub=object_name.classname,
                        super='%(rolecname)s'):
             model['%(refpropname)s'] = object_name
-            yield model # TODO: Add other REF properties. 
-                        # Yield association instances where 
+            yield model # TODO: Add other REF properties.
+                        # Yield association instances where
                         # object_name is %(refpropnamel)s.
-                        # Only appropriate if object_name.classname 
+                        # Only appropriate if object_name.classname
                         # is '%(rolecname)s' or a subclass.\n''' \
                                % {'refpropname':refprop[0],
                                   'refpropnamel':refprop[0].lower(),
                                   'rolecname':refprop[1]}
 
     if valuemaps:
-        code+= '''
+        code += '''
     class Values(object):'''
         for group, maps in valuemaps.items():
-            code+= '''
+            code += '''
         class %s(object):''' % group
             if '<vms>' in maps:
                 for value, vm in maps['<vms>']:
                     if value in maps:
                         value = value+'_'
-                    code+= '''
+                    code += '''
             %s = %s''' % (value, vm)
             for pname, vms in maps.items():
                 if pname == '<vms>':
                     continue
-                code+= '''
+                code += '''
             class %s(object):''' % pname
                 for value, vm in vms:
-                    code+= '''
+                    code += '''
                 %s = %s''' % (value, vm)
-            code+= '\n'
+            code += '\n'
 
-    code+= '''
+    code += '''
 ## end of class %(classname)sProvider
 
-def get_providers(env): 
-    %(classname_l)s_prov = %(classname)sProvider(env)  
-    return {'%(classname)s': %(classname_l)s_prov} 
+def get_providers(env):
+    %(classname_l)s_prov = %(classname)sProvider(env)
+    return {'%(classname)s': %(classname_l)s_prov}
 ''' % mappings
 
     owtypes = ['1', 'Instance']
     pegtypes = ['2', 'Instance']
     if isAssoc:
-        owtypes[0]+= ',3'
-        owtypes[1]+= ', Associator'
-        pegtypes[0]+= ',3'
-        pegtypes[1]+= ', Associator'
+        owtypes[0] += ',3'
+        owtypes[1] += ', Associator'
+        pegtypes[0] += ',3'
+        pegtypes[1] += ', Associator'
     if cc.methods:
-        owtypes[0]+= ',6'
-        owtypes[1]+= ', Method'
-        pegtypes[0]+= ',5'
-        pegtypes[1]+= ', Method'
-    mof ='''
+        owtypes[0] += ',6'
+        owtypes[1] += ', Method'
+        pegtypes[0] += ',5'
+        pegtypes[1] += ', Method'
+    mof = '''
 // OpenWBEM Provider registration for %(classname)s
 instance of OpenWBEM_PyProviderRegistration
 {
     InstanceID = "<org:product:%(classname)s:unique_id>"; // TODO
     NamespaceNames = {"root/cimv2"}; // TODO
-    ClassName = "%(classname)s"; 
+    ClassName = "%(classname)s";
     ProviderTypes = {%(owtypeNums)s};  // %(owtypeStrs)s
     ModulePath = "/usr/lib/pycim/%(classname)sProvider.py";  // TODO
-}; 
+};
 
 // Pegasus Provider registration for %(classname)s
 instance of PG_ProviderModule
@@ -1508,12 +1520,12 @@ instance of PG_ProviderModule
     UserContext = 2; // Requestor
     Vendor = "TODO"; // TODO
     Version = "1.0";
-}; 
+};
 instance of PG_Provider
 {
-    Name = "%(classname)s"; 
-    ProviderModuleName = "/usr/lib/pycim/%(classname)sProvider.py"; 
-}; 
+    Name = "%(classname)s";
+    ProviderModuleName = "/usr/lib/pycim/%(classname)sProvider.py";
+};
 instance of PG_ProviderCapabilities
 {
     CapabilityID = "%(classname)s";
@@ -1522,19 +1534,19 @@ instance of PG_ProviderCapabilities
     ClassName = "%(classname)s";
     Namespaces = {"root/cimv2"}; // TODO
     ProviderType = {%(pegtypeNum)s}; // %(pegtypeStr)s
-};\n''' % {'classname': cc.classname, 
-            'owtypeNums': owtypes[0], 
-            'owtypeStrs': owtypes[1],
-            'pegtypeNum': pegtypes[0], 
-            'pegtypeStr': pegtypes[1]}
+};\n''' % {'classname': cc.classname,
+           'owtypeNums': owtypes[0],
+           'owtypeStrs': owtypes[1],
+           'pegtypeNum': pegtypes[0],
+           'pegtypeStr': pegtypes[1]}
 
-                
+
     return code, mof
 
 class ProviderProxy(object):
     """Wraps a provider module, and routes requests into the module """
 
-    def __init__ (self, env, provid):
+    def __init__(self, env, provid):
         if isinstance(provid, types.ModuleType):
             self.provmod = provid
             self.provid = provid.__name__
@@ -1544,17 +1556,18 @@ class ProviderProxy(object):
             # odd chars in a module name tend to break things
             provider_name = 'pyprovider_'
             for ch in provid:
-                provider_name+= ch.isalnum() and ch or '_'
+                provider_name += ch.isalnum() and ch or '_'
             # let providers import other providers in the same directory
             provdir = dirname(provid)
             if provdir not in sys.path:
                 sys.path.append(provdir)
-            # use full path in module name for uniqueness. 
-            try: 
+            # use full path in module name for uniqueness.
+            try:
                 self.provmod = load_source(provider_name, provid)
             except IOError, arg:
-                raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                        "Error loading provider %s: %s" % (provid, arg))
+                raise pywbem.CIMError(
+                    pywbem.CIM_ERR_FAILED,
+                    "Error loading provider %s: %s" % (provid, arg))
             self.filename = self.provmod.__file__
         self.provregs = {}
         if hasattr(self.provmod, 'init'):
@@ -1562,10 +1575,10 @@ class ProviderProxy(object):
         if hasattr(self.provmod, 'get_providers'):
             self.provregs = pywbem.NocaseDict(self.provmod.get_providers(env))
 
-    def _get_callable (self, classname, cname):
+    def _get_callable(self, classname, cname):
         """Return a function or method object appropriate to fulfill a request
 
-        classname -- The CIM class name associated with the request. 
+        classname -- The CIM class name associated with the request.
         cname -- The function or method name to look for.
 
         """
@@ -1578,22 +1591,22 @@ class ProviderProxy(object):
         elif hasattr(self.provmod, cname):
             callable = getattr(self.provmod, cname)
         if callable is None:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "No callable for %s:%s on provider %s"%(classname,
-                                                            cname, 
-                                                            self.provid))
+            raise pywbem.CIMError(
+                pywbem.CIM_ERR_FAILED,
+                "No callable for %s:%s on provider %s" % \
+                (classname, cname, self.provid))
         return callable
 
 ##############################################################################
 # enumInstanceNames
 ##############################################################################
-    def MI_enumInstanceNames (self, 
-                              env,
-                              ns,
-                              cimClass):
+    def MI_enumInstanceNames(self,
+                             env,
+                             ns,
+                             cimClass):
         logger = env.get_logger()
         logger.log_debug('ProviderProxy MI_enumInstanceNames called...')
-        for i in self._get_callable(cimClass.classname, 
+        for i in self._get_callable(cimClass.classname,
                                     'MI_enumInstanceNames') \
                                             (env, ns, cimClass):
             yield i
@@ -1602,37 +1615,37 @@ class ProviderProxy(object):
 ##############################################################################
 # enumInstances
 ##############################################################################
-    def MI_enumInstances(self, 
-                         env, 
-                         ns, 
-                         propertyList, 
-                         requestedCimClass, 
+    def MI_enumInstances(self,
+                         env,
+                         ns,
+                         propertyList,
+                         requestedCimClass,
                          cimClass):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_enumInstances called...')
         for i in self._get_callable(cimClass.classname, 'MI_enumInstances') \
-                           (env, 
-                            ns, 
-                            propertyList, 
-                            requestedCimClass, 
+                           (env,
+                            ns,
+                            propertyList,
+                            requestedCimClass,
                             cimClass):
-            yield i 
+            yield i
         logger.log_debug('CIMProvider MI_enumInstances returning')
 
 ##############################################################################
 # getInstance
 ##############################################################################
-    def MI_getInstance(self, 
-                       env, 
-                       instanceName, 
-                       propertyList, 
+    def MI_getInstance(self,
+                       env,
+                       instanceName,
+                       propertyList,
                        cimClass):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_getInstance called...')
         rval = self._get_callable(cimClass.classname, 'MI_getInstance')  \
-               (env, 
-                instanceName, 
-                propertyList, 
+               (env,
+                instanceName,
+                propertyList,
                 cimClass)
         logger.log_debug('CIMProvider MI_getInstance returning')
         return rval
@@ -1640,8 +1653,8 @@ class ProviderProxy(object):
 ##############################################################################
 # createInstance
 ##############################################################################
-    def MI_createInstance(self, 
-                          env, 
+    def MI_createInstance(self,
+                          env,
                           instance):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_createInstance called...')
@@ -1653,11 +1666,11 @@ class ProviderProxy(object):
 ##############################################################################
 # modifyInstance
 ##############################################################################
-    def MI_modifyInstance(self, 
-                          env, 
-                          modifiedInstance, 
-                          previousInstance, 
-                          propertyList, 
+    def MI_modifyInstance(self,
+                          env,
+                          modifiedInstance,
+                          previousInstance,
+                          propertyList,
                           cimClass):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_modifyInstance called...')
@@ -1665,12 +1678,12 @@ class ProviderProxy(object):
                 (env, modifiedInstance, previousInstance,
                  propertyList, cimClass)
         logger.log_debug('CIMProvider MI_modifyInstance returning')
-    
+
 ##############################################################################
 # deleteInstance
 ##############################################################################
-    def MI_deleteInstance(self, 
-                          env, 
+    def MI_deleteInstance(self,
+                          env,
                           instanceName):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_deleteInstance called...')
@@ -1682,86 +1695,90 @@ class ProviderProxy(object):
 ##############################################################################
 # associators
 ##############################################################################
-    def MI_associators(self, 
-                       env, 
-                       objectName, 
-                       assocClassName, 
-                       resultClassName, 
-                       role, 
-                       resultRole, 
+    def MI_associators(self,
+                       env,
+                       objectName,
+                       assocClassName,
+                       resultClassName,
+                       role,
+                       resultRole,
                        propertyList):
-        # NOTE: This should honor the parameters resultClassName, role, resultRole, 
-        #       and propertyList
+        # NOTE: This should honor the parameters resultClassName, role,
+        #       resultRole, and propertyList
         logger = env.get_logger()
-        logger.log_debug('CIMProvider MI_associators called. assocClass: %s' % (assocClassName))
+        logger.log_debug('CIMProvider MI_associators called. assocClass: %s' % \
+                         (assocClassName))
         cname = assocClassName
-        for i in self._get_callable(cname, 'MI_associators')  \
-                (env, objectName, assocClassName, resultClassName, 
-                        role, resultRole, propertyList):
-            yield i 
+        for i in self._get_callable(cname, 'MI_associators') \
+                (env, objectName, assocClassName, resultClassName,
+                 role, resultRole, propertyList):
+            yield i
         logger.log_debug('CIMProvider MI_associators returning')
 
 ##############################################################################
 # associatorNames
 ##############################################################################
-    def MI_associatorNames(self, 
-                           env, 
-                           objectName, 
-                           assocClassName, 
-                           resultClassName, 
-                           role, 
+    def MI_associatorNames(self,
+                           env,
+                           objectName,
+                           assocClassName,
+                           resultClassName,
+                           role,
                            resultRole):
         logger = env.get_logger()
-        logger.log_debug('CIMProvider MI_associatorNames called. assocClass: %s' % (assocClassName))
+        logger.log_debug('CIMProvider MI_associatorNames called. ' \
+                         'assocClass: %s' % (assocClassName))
         cname = assocClassName
-        for i in self._get_callable(cname, 'MI_associatorNames')  \
-                (env, objectName, assocClassName, resultClassName, 
-                        role, resultRole):
-            yield i 
+        for i in self._get_callable(cname, 'MI_associatorNames') \
+                (env, objectName, assocClassName, resultClassName,
+                 role, resultRole):
+            yield i
         logger.log_debug('CIMProvider MI_associatorNames returning')
 
 ##############################################################################
 # references
 ##############################################################################
-    def MI_references(self, 
-                      env, 
-                      objectName, 
-                      resultClassName, 
-                      role, 
+    def MI_references(self,
+                      env,
+                      objectName,
+                      resultClassName,
+                      role,
                       propertyList):
         logger = env.get_logger()
-        logger.log_debug('CIMProvider MI_references called. resultClass: %s' % (resultClassName))
+        logger.log_debug('CIMProvider MI_references called. resultClass: %s' % \
+                         (resultClassName))
         cname = resultClassName
         if not cname:
             return
-        for i in self._get_callable(cname, 'MI_references')  \
-                           (env, 
-                            objectName, 
-                            resultClassName, 
-                            role, 
+        for i in self._get_callable(cname, 'MI_references') \
+                           (env,
+                            objectName,
+                            resultClassName,
+                            role,
                             propertyList):
-            yield i 
+            yield i
         logger.log_debug('CIMProvider MI_references returning')
 
 ##############################################################################
 # referenceNames
 ##############################################################################
-    def MI_referenceNames(self, 
-                          env, 
-                          objectName, 
-                          resultClassName, 
+    def MI_referenceNames(self,
+                          env,
+                          objectName,
+                          resultClassName,
                           role):
         logger = env.get_logger()
-        logger.log_debug('CIMProvider MI_referenceNames <1> called. resultClass: %s' % (resultClassName))
+        logger.log_debug('CIMProvider MI_referenceNames <1> called. ' \
+                         'resultClass: %s' % (resultClassName))
         cname = resultClassName
         if not cname:
             return
-        for i in self._get_callable(cname, 'MI_referenceNames')  \
-               (env, 
-                objectName, 
-                resultClassName, 
+        for i in self._get_callable(cname, 'MI_referenceNames') \
+               (env,
+                objectName,
+                resultClassName,
                 role):
-            yield i 
+            yield i
         logger.log_debug('CIMProvider MI_referenceNames returning')
 
 ##############################################################################
@@ -1773,20 +1790,20 @@ class ProviderProxy(object):
 #       and element 1 is the actual data value
 # element 1 is a dictionary where the key is the output parameter name
 #       and the value is a tuple of size 2 where element 0 is the data type name
-#       for the output parameter and element 1 is the actual value of the 
+#       for the output parameter and element 1 is the actual value of the
 #       output parameter.
 ##############################################################################
     def MI_invokeMethod(self, env, objectName, metaMethod, inputParams):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_invokeMethod called. method: %s:%s' \
-                % (objectName.classname,metaMethod.name))
+                % (objectName.classname, metaMethod.name))
         rval = self._get_callable(objectName.classname, 'MI_invokeMethod')  \
                 (env, objectName, metaMethod, inputParams)
         logger.log_debug('CIMProvider MI_invokeMethod returning')
         return rval
-            
+
 ##############################################################################
-    def MI_poll (self, env):
+    def MI_poll(self, env):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_poll called')
         if hasattr(self.provmod, 'poll'):
@@ -1794,13 +1811,14 @@ class ProviderProxy(object):
         elif hasattr(self.provmod, 'MI_poll'):
             rval = self.provmod.MI_poll(env)
         else:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                     "Provider %s has no support for polling"%self.provid)
+            raise pywbem.CIMError(
+                pywbem.CIM_ERR_FAILED,
+                "Provider %s has no support for polling" % self.provid)
         logger.log_debug('CIMProvider MI_poll returning %s' % str(rval))
         return rval
 
 ##############################################################################
-    def MI_getInitialPollingInterval (self, env):
+    def MI_getInitialPollingInterval(self, env):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_poll called')
         if hasattr(self.provmod, 'get_initial_polling_interval'):
@@ -1808,32 +1826,35 @@ class ProviderProxy(object):
         elif hasattr(self.provmod, 'MI_getInitialPollingInterval'):
             rval = self.provmod.MI_getInitialPollingInterval(env)
         else:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                     "Provider %s has no support for polling"%self.provid)
+            raise pywbem.CIMError(
+                pywbem.CIM_ERR_FAILED,
+                "Provider %s has no support for polling" % self.provid)
         logger.log_debug('CIMProvider MI_poll returning %s' % str(rval))
         return rval
 
 ##############################################################################
-    def MI_activateFilter (self, 
-                           env, 
-                           filter,
-                           namespace,
-                           classes,
-                           firstActivation):
+    def MI_activateFilter(self,
+                          env,
+                          filter,
+                          namespace,
+                          classes,
+                          firstActivation):
         logger = env.get_logger()
         logger.log_debug('CIMProvider MI_activateFilter called')
         if hasattr(self.provmod, 'activate_filter'):
             self.provmod.activate_filter(env, filter, namespace,
-                    classes, firstActivation)
+                                         classes, firstActivation)
         elif hasattr(self.provmod, 'MI_activateFilter'):
             self.provmod.MI_activateFilter(env, filter, namespace,
-                    classes, firstActivation)
+                                           classes, firstActivation)
         else:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "Provider %s has no support for activate filter"%self.provid)
+            raise pywbem.CIMError(
+                pywbem.CIM_ERR_FAILED,
+                "Provider %s has no support for activate filter" % \
+                self.provid)
         logger.log_debug('CIMProvider MI_activateFilter returning')
 
-                    
+
 ##############################################################################
     def MI_deActivateFilter(self,
                             env,
@@ -1845,18 +1866,20 @@ class ProviderProxy(object):
         logger.log_debug('CIMProvider MI_deActivateFilter called')
         if hasattr(self.provmod, 'deactivate_filter'):
             self.provmod.deactivate_filter(env, filter, namespace, classes,
-                    lastActivation)
+                                           lastActivation)
         elif hasattr(self.provmod, 'MI_deActivateFilter'):
             self.provmod.MI_deActivateFilter(env, filter, namespace, classes,
-                    lastActivation)
+                                             lastActivation)
         else:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "Provider %s has no support for deactivate filter"%self.provid)
+            raise pywbem.CIMError(
+                pywbem.CIM_ERR_FAILED,
+                "Provider %s has no support for deactivate filter" % \
+                self.provid)
         logger.log_debug('CIMProvider MI_deActivateFilter returning')
 
 
 ##############################################################################
-    def MI_shutdown (self, env):
+    def MI_shutdown(self, env):
         modname = self.provmod.__name__
         if hasattr(self.provmod, "shutdown"):
             self.provmod.shutdown(env)
@@ -1873,23 +1896,21 @@ class ProviderProxy(object):
             return True
 
 ##############################################################################
-    def MI_consumeIndication(self,
-                            env,
-                            destinationPath,
-                            indicationInstance):
+    def MI_consumeIndication(self, env, destinationPath, indicationInstance):
 
         logger = env.get_logger()
         logger.log_debug('ProviderProxy MI_consumeIndication called')
         if hasattr(self.provmod, 'consume_indication'):
-            self.provmod.consume_indication(env, destinationPath, 
-                    indicationInstance)
+            self.provmod.consume_indication(env, destinationPath,
+                                            indicationInstance)
         elif hasattr(self.provmod, 'MI_consumeIndication'):
             self.provmod.MI_consumeIndication(env, destinationPath,
-                    indicationInstance)
+                                              indicationInstance)
         else:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "Provider %s has no support for consume indication" % \
-                        self.provid)
+            raise pywbem.CIMError(
+                pywbem.CIM_ERR_FAILED,
+                "Provider %s has no support for consume indication" % \
+                self.provid)
         logger.log_debug('ProviderProxy MI_consumeIndication returning')
 
 
@@ -1904,12 +1925,14 @@ class ProviderProxy(object):
         logger.log_debug('ProviderProxy MI_handleIndication called')
         if hasattr(self.provmod, 'handle_indication'):
             self.provmod.handle_indication(env, ns, handlerInstance,
-                    indicationInstance)
+                                           indicationInstance)
         elif hasattr(self.provmod, 'MI_handleIndication'):
             self.provmod.MI_handleIndication(env, ns, handlerInstance,
-                    indicationInstance)
+                                             indicationInstance)
         else:
-            raise pywbem.CIMError(pywbem.CIM_ERR_FAILED, 
-                    "Provider %s has no support for handle indication"%self.provid)
+            raise pywbem.CIMError(
+                pywbem.CIM_ERR_FAILED,
+                "Provider %s has no support for handle indication" % \
+                self.provid)
         logger.log_debug('ProviderProxy MI_handleIndication returning')
- 
+

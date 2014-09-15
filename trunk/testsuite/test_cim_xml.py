@@ -15,8 +15,8 @@ from pywbem import cim_xml
 
 DTD_FILE = 'CIM_DTD_V22.dtd'
 
-def validate_xml(data, dtd_directory = None):
-    
+def validate_xml(data, dtd_directory=None):
+
     from subprocess import Popen, PIPE
 
     # Run xmllint to validate file
@@ -25,8 +25,8 @@ def validate_xml(data, dtd_directory = None):
     if dtd_directory is not None:
         dtd_file = '%s/%s' % (dtd_directory, DTD_FILE)
 
-    p = Popen('xmllint --dtdvalid %s --noout -' % dtd_file, stdout=PIPE, 
-                    stdin=PIPE, stderr=PIPE, shell=True)
+    p = Popen('xmllint --dtdvalid %s --noout -' % dtd_file, stdout=PIPE,
+              stdin=PIPE, stderr=PIPE, shell=True)
 
     p.stdin.write(data)
     p.stdin.close()
@@ -38,7 +38,7 @@ def validate_xml(data, dtd_directory = None):
     if status != 0:
         return False
 
-    return True    
+    return True
 
 # Test data to save typing
 
@@ -66,8 +66,8 @@ class CIMXMLTest(comfychair.TestCase):
 
     xml = []                            # Test data
 
-    def validate(self, xml, expectedResult = 0):
-        validate_xml(xml, dtd_directory = '../..')
+    def validate(self, xml, expectedResult=0):
+        validate_xml(xml, dtd_directory='../..')
 
     def runtest(self):
 
@@ -133,11 +133,11 @@ class DeclGroupWithPath(UnimplementedTest):
                                    VALUE.OBJECTWITHLOCALPATH)*>
     """
 
-class QualifierDeclaration(UnimplementedTest): 
+class QualifierDeclaration(UnimplementedTest):
     """
     <!ELEMENT QUALIFIER.DECLARATION (SCOPE?, (VALUE | VALUE.ARRAY)?)>
     <!ATTLIST QUALIFIER.DECLARATION
-        %CIMName;               
+        %CIMName;
         %CIMType;               #REQUIRED
         ISARRAY    (true|false) #IMPLIED
         %ArraySize;
@@ -146,8 +146,8 @@ class QualifierDeclaration(UnimplementedTest):
 
 class Scope(CIMXMLTest):
     """
-    <!ELEMENT SCOPE EMPTY> 
-    <!ATTLIST SCOPE 
+    <!ELEMENT SCOPE EMPTY>
+    <!ATTLIST SCOPE
          CLASS        (true|false)      'false'
          ASSOCIATION  (true|false)      'false'
          REFERENCE    (true|false)      'false'
@@ -156,7 +156,7 @@ class Scope(CIMXMLTest):
          PARAMETER    (true|false)      'false'
          INDICATION   (true|false)      'false'>
     """
-    
+
     def setup(self):
         self.xml.append(cim_xml.SCOPE())
 
@@ -179,7 +179,7 @@ class Value(CIMXMLTest):
     """
     <!ELEMENT VALUE (#PCDATA)>
     """
-    
+
     def setup(self):
 
         self.xml.append(cim_xml.VALUE('dog'))
@@ -190,7 +190,7 @@ class ValueArray(CIMXMLTest):
     """
     <!ELEMENT VALUE.ARRAY (VALUE*)>
     """
-    
+
     def setup(self):
 
         self.xml.append(cim_xml.VALUE_ARRAY([]))
@@ -203,7 +203,7 @@ class ValueReference(CIMXMLTest):
     <!ELEMENT VALUE.REFERENCE (CLASSPATH|LOCALCLASSPATH|CLASSNAME|
                                INSTANCEPATH|LOCALINSTANCEPATH|INSTANCENAME)>
     """
-    
+
     def setup(self):
 
         # CLASSPATH
@@ -212,10 +212,10 @@ class ValueReference(CIMXMLTest):
             cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME())))
 
         # LOCALCLASSPATH
-                              
+
         self.xml.append(cim_xml.VALUE_REFERENCE(
             cim_xml.LOCALCLASSPATH(LOCALNAMESPACEPATH(), CLASSNAME())))
-        
+
         # CLASSNAME
 
         self.xml.append(cim_xml.VALUE_REFERENCE(CLASSNAME()))
@@ -225,13 +225,13 @@ class ValueReference(CIMXMLTest):
         self.xml.append(cim_xml.VALUE_REFERENCE(
             cim_xml.INSTANCEPATH(
                 NAMESPACEPATH(), INSTANCENAME())))
-        
+
         # LOCALINSTANCEPATH
 
         self.xml.append(cim_xml.VALUE_REFERENCE(
             cim_xml.LOCALINSTANCEPATH(
                 LOCALNAMESPACEPATH(), INSTANCENAME())))
-        
+
         # INSTANCENAME
 
         self.xml.append(cim_xml.VALUE_REFERENCE(INSTANCENAME()))
@@ -258,7 +258,7 @@ class ValueObject(CIMXMLTest):
     """
     <!ELEMENT VALUE.OBJECT (CLASS|INSTANCE)>
     """
-    
+
     def setup(self):
 
         # CLASS
@@ -268,7 +268,7 @@ class ValueObject(CIMXMLTest):
         # INSTANCE
 
         self.xml.append(cim_xml.VALUE_OBJECT(cim_xml.INSTANCE('CIM_Pet', [])))
-        
+
 class ValueNamedInstance(CIMXMLTest):
     """
     <!ELEMENT VALUE.NAMEDINSTANCE (INSTANCENAME,INSTANCE)>
@@ -284,14 +284,14 @@ class ValueNamedObject(CIMXMLTest):
     """
     <!ELEMENT VALUE.NAMEDOBJECT (CLASS|(INSTANCENAME,INSTANCE))>
     """
-    
+
     def setup(self):
 
         # CLASS
 
         self.xml.append(cim_xml.VALUE_NAMEDOBJECT(
             cim_xml.CLASS('CIM_Foo')))
-        
+
         # INSTANCENAME, INSTANCE
 
         self.xml.append(cim_xml.VALUE_NAMEDOBJECT(
@@ -303,7 +303,7 @@ class ValueObjectWithPath(CIMXMLTest):
     <!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH,CLASS)|
                                     (INSTANCEPATH,INSTANCE))>
     """
-    
+
     def setup(self):
 
         # (CLASSPATH, CLASS)
@@ -324,7 +324,7 @@ class ValueObjectWithLocalPath(CIMXMLTest):
     <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH,CLASS)|
                                          (LOCALINSTANCEPATH,INSTANCE))>
     """
-    
+
     def setup(self):
 
         # (LOCALCLASSPATH, CLASS)
@@ -366,35 +366,35 @@ class ValueNull(UnimplementedTest):
 
 class NamespacePath(CIMXMLTest):
     """
-    <!ELEMENT NAMESPACEPATH (HOST,LOCALNAMESPACEPATH)> 
+    <!ELEMENT NAMESPACEPATH (HOST,LOCALNAMESPACEPATH)>
     """
-    
+
     def setup(self):
         self.xml.append(NAMESPACEPATH())
-        
+
 class LocalNamespacePath(CIMXMLTest):
     """
-    <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)> 
+    <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
     """
-    
+
     def setup(self):
         self.xml.append(LOCALNAMESPACEPATH())
 
 class Host(CIMXMLTest):
     """
-    <!ELEMENT HOST (#PCDATA)> 
+    <!ELEMENT HOST (#PCDATA)>
     """
-    
+
     def setup(self):
         self.xml.append(cim_xml.HOST('leonardo'))
 
 class Namespace(CIMXMLTest):
     """
-    <!ELEMENT NAMESPACE EMPTY> 
+    <!ELEMENT NAMESPACE EMPTY>
     <!ATTLIST NAMESPACE
         %CIMName;>
     """
-    
+
     def setup(self):
         self.xml.append(cim_xml.NAMESPACE('root'))
 
@@ -402,15 +402,15 @@ class ClassPath(CIMXMLTest):
     """
     <!ELEMENT CLASSPATH (NAMESPACEPATH,CLASSNAME)>
     """
-    
+
     def setup(self):
         self.xml.append(cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()))
-        
+
 class LocalClassPath(CIMXMLTest):
     """
     <!ELEMENT LOCALCLASSPATH (LOCALNAMESPACEPATH, CLASSNAME)>
     """
-    
+
     def setup(self):
         self.xml.append(cim_xml.LOCALCLASSPATH(
             LOCALNAMESPACEPATH(), CLASSNAME()))
@@ -421,7 +421,7 @@ class ClassName(CIMXMLTest):
     <!ATTLIST CLASSNAME
         %CIMName;>
     """
-    
+
     def setup(self):
         self.xml.append(CLASSNAME())
 
@@ -429,7 +429,7 @@ class InstancePath(CIMXMLTest):
     """
     <!ELEMENT INSTANCEPATH (NAMESPACEPATH,INSTANCENAME)>
     """
-    
+
     def setup(self):
         self.xml.append(cim_xml.INSTANCEPATH(
             NAMESPACEPATH(), INSTANCENAME()))
@@ -438,7 +438,7 @@ class LocalInstancePath(CIMXMLTest):
     """
     <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH,INSTANCENAME)>
     """
-    
+
     def setup(self):
         self.xml.append(cim_xml.LOCALINSTANCEPATH(
             LOCALNAMESPACEPATH(), INSTANCENAME()))
@@ -449,13 +449,13 @@ class InstanceName(CIMXMLTest):
     <!ATTLIST INSTANCENAME
         %ClassName;>
     """
-    
+
     def setup(self):
 
         # Empty
 
         self.xml.append(cim_xml.INSTANCENAME('CIM_Pet', None))
-                                        
+
         # KEYBINDING
 
         self.xml.append(INSTANCENAME())
@@ -475,7 +475,7 @@ class ObjectPath(CIMXMLTest):
     """
     <!ELEMENT OBJECTPATH (INSTANCEPATH|CLASSPATH)>
     """
-    
+
     def setup(self):
 
         self.xml.append(cim_xml.OBJECTPATH(
@@ -491,7 +491,7 @@ class KeyBinding(CIMXMLTest):
     <!ATTLIST KEYBINDING
         %CIMName;>
     """
-    
+
     def setup(self):
 
         self.xml.append(cim_xml.KEYBINDING(
@@ -509,7 +509,7 @@ class KeyValue(CIMXMLTest):
         VALUETYPE    (string|boolean|numeric)  'string'
         %CIMType;    #IMPLIED>
     """
-    
+
     def setup(self):
 
         self.xml.append(cim_xml.KEYVALUE('dog', 'string'))
@@ -517,7 +517,7 @@ class KeyValue(CIMXMLTest):
         self.xml.append(cim_xml.KEYVALUE('FALSE', 'boolean'))
         self.xml.append(cim_xml.KEYVALUE('2', 'numeric', 'uint16'))
         self.xml.append(cim_xml.KEYVALUE(None))
-        
+
 #################################################################
 #     3.2.5. Object Definition Elements
 #################################################################
@@ -543,11 +543,11 @@ class Class(CIMXMLTest):
     """
     <!ELEMENT CLASS (QUALIFIER*,(PROPERTY|PROPERTY.ARRAY|PROPERTY.REFERENCE)*,
                      METHOD*)>
-    <!ATTLIST CLASS 
+    <!ATTLIST CLASS
         %CIMName;
         %SuperClass;>
     """
-    
+
     def setup(self):
 
         # Empty
@@ -556,32 +556,37 @@ class Class(CIMXMLTest):
 
         # PROPERTY
 
-        self.xml.append(cim_xml.CLASS('CIM_Foo',
-            properties =
-               [cim_xml.PROPERTY('Dog', 'string', cim_xml.VALUE('Spotty'))]))
+        self.xml.append(cim_xml.CLASS(
+            'CIM_Foo',
+            properties=[cim_xml.PROPERTY('Dog', 'string',
+                                         cim_xml.VALUE('Spotty'))]))
 
         # QUALIFIER + PROPERTY
 
-        self.xml.append(cim_xml.CLASS('CIM_Foo',
-            properties =
-               [cim_xml.PROPERTY('Dog', 'string', cim_xml.VALUE('Spotty'))],
-            qualifiers =
-               [cim_xml.QUALIFIER('IMPISH', 'string', cim_xml.VALUE('true'))]))
+        self.xml.append(cim_xml.CLASS(
+            'CIM_Foo',
+            properties=[cim_xml.PROPERTY('Dog', 'string',
+                                         cim_xml.VALUE('Spotty'))],
+            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
+                                          cim_xml.VALUE('true'))]))
 
         # PROPERTY.ARRAY
 
-        self.xml.append(cim_xml.CLASS('CIM_Foo',
-            properties = [cim_xml.PROPERTY_ARRAY('Dogs', 'string', None)]))
+        self.xml.append(cim_xml.CLASS(
+            'CIM_Foo',
+            properties=[cim_xml.PROPERTY_ARRAY('Dogs', 'string', None)]))
 
         # PROPERTY.REFERENCE
 
-        self.xml.append(cim_xml.CLASS('CIM_Foo',
-            properties = [cim_xml.PROPERTY_REFERENCE('Dogs', None)]))
+        self.xml.append(cim_xml.CLASS(
+            'CIM_Foo',
+            properties=[cim_xml.PROPERTY_REFERENCE('Dogs', None)]))
 
         # METHOD
 
-        self.xml.append(cim_xml.CLASS('CIM_Foo',
-            methods = [cim_xml.METHOD('FooMethod')]))
+        self.xml.append(cim_xml.CLASS(
+            'CIM_Foo',
+            methods=[cim_xml.METHOD('FooMethod')]))
 
 class Instance(CIMXMLTest):
     """
@@ -591,7 +596,7 @@ class Instance(CIMXMLTest):
          %ClassName;
          xml:lang   NMTOKEN  #IMPLIED>
     """
-    
+
     def setup(self):
 
         # Empty
@@ -609,11 +614,12 @@ class Instance(CIMXMLTest):
 
         self.xml.append(cim_xml.INSTANCE(
             'CIM_Foo',
-            properties = 
-                [cim_xml.PROPERTY('Dog', 'string', cim_xml.VALUE('Spotty')),
-                 cim_xml.PROPERTY('Cat', 'string', cim_xml.VALUE('Bella'))],
-            qualifiers =
-               [cim_xml.QUALIFIER('IMPISH', 'string', cim_xml.VALUE('true'))]))
+            properties=[cim_xml.PROPERTY('Dog', 'string',
+                                         cim_xml.VALUE('Spotty')),
+                        cim_xml.PROPERTY('Cat', 'string',
+                                         cim_xml.VALUE('Bella'))],
+            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
+                                          cim_xml.VALUE('true'))]))
 
         # PROPERTY.ARRAY
 
@@ -625,10 +631,10 @@ class Instance(CIMXMLTest):
                 cim_xml.VALUE_ARRAY([cim_xml.VALUE('Spotty'),
                                      cim_xml.VALUE('Bronte')])),
              cim_xml.PROPERTY_ARRAY(
-                'Cats',
-                'string',
-                cim_xml.VALUE_ARRAY([cim_xml.VALUE('Bella'),
-                                     cim_xml.VALUE('Faux Lily')]))]))
+                 'Cats',
+                 'string',
+                 cim_xml.VALUE_ARRAY([cim_xml.VALUE('Bella'),
+                                      cim_xml.VALUE('Faux Lily')]))]))
 
         # PROPERTY.REFERENCE
 
@@ -638,9 +644,9 @@ class Instance(CIMXMLTest):
                 'Dog',
                 cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Dog'))),
              cim_xml.PROPERTY_REFERENCE(
-                'Cat',
-                cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Cat')))]))
-             
+                 'Cat',
+                 cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Cat')))]))
+
 class Qualifier(CIMXMLTest):
     """
     <!ELEMENT QUALIFIER (VALUE | VALUE.ARRAY)>
@@ -651,7 +657,7 @@ class Qualifier(CIMXMLTest):
         %QualifierFlavor;
         xml:lang   NMTOKEN  #IMPLIED>
     """
-    
+
     def setup(self):
 
         # Note: DTD 2.2 allows qualifier to be empty
@@ -665,15 +671,15 @@ class Qualifier(CIMXMLTest):
 
         self.xml.append(cim_xml.QUALIFIER(
             'Key', 'string', cim_xml.VALUE('true'),
-            overridable = 'true'))
+            overridable='true'))
 
         self.xml.append(cim_xml.QUALIFIER(
             'Description', 'string', cim_xml.VALUE('blahblah'),
-            translatable = 'true'))
+            translatable='true'))
 
         self.xml.append(cim_xml.QUALIFIER(
             'Version', 'string', cim_xml.VALUE('foorble'),
-            tosubclass = 'false', translatable = 'true'))
+            tosubclass='false', translatable='true'))
 
         # VALUE.ARRAY
 
@@ -681,18 +687,18 @@ class Qualifier(CIMXMLTest):
             'LUCKYNUMBERS', 'uint32',
             cim_xml.VALUE_ARRAY([cim_xml.VALUE('1'), cim_xml.VALUE('2')])))
 
-        
+
 class Property(CIMXMLTest):
     """
     <!ELEMENT PROPERTY (QUALIFIER*,VALUE?)>
-    <!ATTLIST PROPERTY 
+    <!ATTLIST PROPERTY
         %CIMName;
-        %CIMType;           #REQUIRED 
+        %CIMType;           #REQUIRED
         %ClassOrigin;
         %Propagated;
         xml:lang   NMTOKEN  #IMPLIED>
     """
-    
+
     def setup(self):
 
         # Empty
@@ -712,7 +718,7 @@ class Property(CIMXMLTest):
             'PropertyName',
             'string',
             cim_xml.VALUE('dog'),
-            propagated = 'true', class_origin = 'CIM_Pets'))
+            propagated='true', class_origin='CIM_Pets'))
 
         # PROPERTY + QUALIFIER
 
@@ -720,22 +726,22 @@ class Property(CIMXMLTest):
             'PropertyName',
             'string',
             cim_xml.VALUE('dog'),
-            qualifiers =
-               [cim_xml.QUALIFIER('IMPISH', 'string', cim_xml.VALUE('true'))]))
+            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
+                                          cim_xml.VALUE('true'))]))
 
 class PropertyArray(CIMXMLTest):
     """
     <!ELEMENT PROPERTY.ARRAY (QUALIFIER*,VALUE.ARRAY?)>
-    <!ATTLIST PROPERTY.ARRAY 
+    <!ATTLIST PROPERTY.ARRAY
        %CIMName;
-       %CIMType;           #REQUIRED 
+       %CIMType;           #REQUIRED
        %ArraySize;
        %ClassOrigin;
        %Propagated;
        xml:lang   NMTOKEN  #IMPLIED>
 
     """
-    
+
     def setup(self):
 
         # Empty
@@ -757,7 +763,7 @@ class PropertyArray(CIMXMLTest):
             'string',
             cim_xml.VALUE_ARRAY([cim_xml.VALUE('Spotty'),
                                  cim_xml.VALUE('Bronte')]),
-            array_size = '2', class_origin = 'CIM_Dog'))
+            array_size='2', class_origin='CIM_Dog'))
 
         self.xml.append(cim_xml.PROPERTY_ARRAY('Dogs', 'string', None))
 
@@ -768,8 +774,8 @@ class PropertyArray(CIMXMLTest):
             'string',
             cim_xml.VALUE_ARRAY([cim_xml.VALUE('Spotty'),
                                  cim_xml.VALUE('Bronte')]),
-            qualifiers = [cim_xml.QUALIFIER('IMPISH', 'string',
-                                            cim_xml.VALUE('true'))]))
+            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
+                                          cim_xml.VALUE('true'))]))
 
 class PropertyReference(CIMXMLTest):
     """
@@ -780,7 +786,7 @@ class PropertyReference(CIMXMLTest):
         %ClassOrigin;
         %Propagated;>
     """
-    
+
     def setup(self):
 
         # Empty
@@ -798,28 +804,28 @@ class PropertyReference(CIMXMLTest):
         self.xml.append(cim_xml.PROPERTY_REFERENCE(
             'Dogs',
             cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Dog')),
-            reference_class = 'CIM_Dog', class_origin = 'CIM_Dog',
-            propagated = 'true'))
+            reference_class='CIM_Dog', class_origin='CIM_Dog',
+            propagated='true'))
 
         # QUALIFIER + VALUE.REFERENCE
 
         self.xml.append(cim_xml.PROPERTY_REFERENCE(
             'Dogs',
             cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Dog')),
-            qualifiers =
-               [cim_xml.QUALIFIER('IMPISH', 'string', cim_xml.VALUE('true'))]))
+            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
+                                          cim_xml.VALUE('true'))]))
 
 class Method(CIMXMLTest):
     """
     <!ELEMENT METHOD (QUALIFIER*,(PARAMETER|PARAMETER.REFERENCE|
                                   PARAMETER.ARRAY|PARAMETER.REFARRAY)*)>
-    <!ATTLIST METHOD 
+    <!ATTLIST METHOD
         %CIMName;
-        %CIMType;          #IMPLIED 
+        %CIMType;          #IMPLIED
         %ClassOrigin;
         %Propagated;>
     """
-    
+
     def setup(self):
 
         # Empty
@@ -855,27 +861,27 @@ class Method(CIMXMLTest):
         self.xml.append(cim_xml.METHOD(
             'FooMethod',
             [cim_xml.PARAMETER('arg', 'string')],
-            return_type = 'uint32',
-            class_origin = 'CIM_Foo',
-            propagated = 'true'))
+            return_type='uint32',
+            class_origin='CIM_Foo',
+            propagated='true'))
 
         # QUALIFIER + PARAMETER
 
         self.xml.append(cim_xml.METHOD(
             'FooMethod',
             [cim_xml.PARAMETER('arg', 'string')],
-            qualifiers = [cim_xml.QUALIFIER('IMPISH', 'string',
-                                            cim_xml.VALUE('true'))]))
-            
+            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
+                                          cim_xml.VALUE('true'))]))
+
 
 class Parameter(CIMXMLTest):
     """
     <!ELEMENT PARAMETER (QUALIFIER*)>
-    <!ATTLIST PARAMETER 
+    <!ATTLIST PARAMETER
         %CIMName;
         %CIMType;      #REQUIRED>
     """
-    
+
     def setup(self):
 
         # Empty
@@ -887,8 +893,8 @@ class Parameter(CIMXMLTest):
         self.xml.append(cim_xml.PARAMETER(
             'arg',
             'string',
-            qualifiers =
-               [cim_xml.QUALIFIER('IMPISH', 'string', cim_xml.VALUE('true'))]))
+            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
+                                          cim_xml.VALUE('true'))]))
 
 class ParameterReference(CIMXMLTest):
     """
@@ -899,7 +905,7 @@ class ParameterReference(CIMXMLTest):
     """
 
     def setup(self):
-        
+
         # Empty
 
         self.xml.append(cim_xml.PARAMETER_REFERENCE('arg'))
@@ -908,10 +914,10 @@ class ParameterReference(CIMXMLTest):
 
         self.xml.append(cim_xml.PARAMETER_REFERENCE(
             'arg',
-            reference_class = 'CIM_Foo',           
-            qualifiers =
-               [cim_xml.QUALIFIER('IMPISH', 'string', cim_xml.VALUE('true'))]))
-        
+            reference_class='CIM_Foo',
+            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
+                                          cim_xml.VALUE('true'))]))
+
 class ParameterArray(CIMXMLTest):
     """
     <!ELEMENT PARAMETER.ARRAY (QUALIFIER*)>
@@ -920,7 +926,7 @@ class ParameterArray(CIMXMLTest):
         %CIMType;           #REQUIRED
         %ArraySize;>
     """
-    
+
     def setup(self):
 
         # Empty
@@ -932,9 +938,9 @@ class ParameterArray(CIMXMLTest):
         self.xml.append(cim_xml.PARAMETER_ARRAY(
             'arg',
             'string',
-            array_size = '0',
-            qualifiers =
-               [cim_xml.QUALIFIER('IMPISH', 'string', cim_xml.VALUE('true'))]))
+            array_size='0',
+            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
+                                          cim_xml.VALUE('true'))]))
 
 class ParameterReferenceArray(CIMXMLTest):
     """
@@ -944,7 +950,7 @@ class ParameterReferenceArray(CIMXMLTest):
         %ReferenceClass;
         %ArraySize;>
     """
-    
+
     def setup(self):
 
         # Empty
@@ -955,10 +961,10 @@ class ParameterReferenceArray(CIMXMLTest):
 
         self.xml.append(cim_xml.PARAMETER_REFARRAY(
             'arg',
-            reference_class = 'CIM_Foo',
-            array_size = '0',
-            qualifiers =
-               [cim_xml.QUALIFIER('IMPISH', 'string', cim_xml.VALUE('true'))]))
+            reference_class='CIM_Foo',
+            array_size='0',
+            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
+                                          cim_xml.VALUE('true'))]))
 
 # New in v2.2 of the DTD
 
@@ -1002,8 +1008,8 @@ class Message(CIMXMLTest):
                        SIMPLEEXPREQ | MULTIEXPREQ | SIMPLEEXPRSP |
                        MULTIEXPRSP)>
     <!ATTLIST MESSAGE
-	ID CDATA #REQUIRED
-	PROTOCOLVERSION CDATA #REQUIRED>
+        ID CDATA #REQUIRED
+        PROTOCOLVERSION CDATA #REQUIRED>
     """
 
     def setup(self):
@@ -1015,19 +1021,17 @@ class Message(CIMXMLTest):
                 cim_xml.IMETHODCALL(
                     'FooMethod',
                     LOCALNAMESPACEPATH())),
-                '1001', '1.0'))
+            '1001', '1.0'))
 
         # MULTIREQ
 
         self.xml.append(cim_xml.MESSAGE(
             cim_xml.MULTIREQ(
-            [cim_xml.SIMPLEREQ(cim_xml.IMETHODCALL(
-                                   'FooMethod',
-                                   LOCALNAMESPACEPATH())),
-             cim_xml.SIMPLEREQ(cim_xml.IMETHODCALL(
-                                   'FooMethod',
-                                   LOCALNAMESPACEPATH()))]),
-               '1001', '1.0'))
+                [cim_xml.SIMPLEREQ(cim_xml.IMETHODCALL('FooMethod',
+                                                       LOCALNAMESPACEPATH())),
+                 cim_xml.SIMPLEREQ(cim_xml.IMETHODCALL('FooMethod',
+                                                       LOCALNAMESPACEPATH()))]),
+            '1001', '1.0'))
 
         # SIMPLERSP
 
@@ -1040,31 +1044,29 @@ class Message(CIMXMLTest):
 
         self.xml.append(cim_xml.MESSAGE(
             cim_xml.MULTIRSP(
-            [cim_xml.SIMPLERSP(cim_xml.IMETHODRESPONSE('FooMethod')),
-             cim_xml.SIMPLERSP(cim_xml.IMETHODRESPONSE('FooMethod'))]),
+                [cim_xml.SIMPLERSP(cim_xml.IMETHODRESPONSE('FooMethod')),
+                 cim_xml.SIMPLERSP(cim_xml.IMETHODRESPONSE('FooMethod'))]),
             '1001', '1.0'))
-        
+
         # TODO:
 
         # SIMPLEEXPREQ
         # MULTIEXPREQ
         # SIMPLEEXPRSP
-        # MULTIEXPRSP        
+        # MULTIEXPRSP
 
 class MultiReq(CIMXMLTest):
     """
     <!ELEMENT MULTIREQ (SIMPLEREQ, SIMPLEREQ+)>
     """
-    
+
     def setup(self):
 
         self.xml.append(cim_xml.MULTIREQ(
-            [cim_xml.SIMPLEREQ(cim_xml.IMETHODCALL(
-                                   'FooMethod',
-                                   LOCALNAMESPACEPATH())),
-             cim_xml.SIMPLEREQ(cim_xml.IMETHODCALL(
-                                   'FooMethod',
-                                   LOCALNAMESPACEPATH()))]))
+            [cim_xml.SIMPLEREQ(cim_xml.IMETHODCALL('FooMethod',
+                                                   LOCALNAMESPACEPATH())),
+             cim_xml.SIMPLEREQ(cim_xml.IMETHODCALL('FooMethod',
+                                                   LOCALNAMESPACEPATH()))]))
 
 class MultiExpReq(CIMXMLTest):
     """
@@ -1083,7 +1085,7 @@ class SimpleReq(CIMXMLTest):
     """
 
     def setup(self):
-        
+
         # IMETHODCALL
 
         self.xml.append(cim_xml.SIMPLEREQ(
@@ -1110,7 +1112,7 @@ class IMethodCall(CIMXMLTest):
     <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*,
                            RESPONSEDESTINATION?)>
     <!ATTLIST IMETHODCALL
-	%CIMName;>
+        %CIMName;>
     """
 
     def setup(self):
@@ -1129,24 +1131,27 @@ class MethodCall(CIMXMLTest):
     <!ELEMENT METHODCALL ((LOCALINSTANCEPATH | LOCALCLASSPATH), PARAMVALUE*,
                           RESPONSEDESTINATION?>
     <!ATTLIST METHODCALL
-	%CIMName;>
+        %CIMName;>
     """
 
     def setup(self):
 
         # LOCALINSTANCEPATH
 
-        self.xml.append(cim_xml.METHODCALL('FooMethod',
+        self.xml.append(cim_xml.METHODCALL(
+            'FooMethod',
             cim_xml.LOCALINSTANCEPATH(LOCALNAMESPACEPATH(), INSTANCENAME())))
 
         # LOCALCLASSPATH
 
-        self.xml.append(cim_xml.METHODCALL('FooMethod',
+        self.xml.append(cim_xml.METHODCALL(
+            'FooMethod',
             cim_xml.LOCALCLASSPATH(LOCALNAMESPACEPATH(), CLASSNAME())))
 
         # PARAMVALUEs
 
-        self.xml.append(cim_xml.METHODCALL('FooMethod',
+        self.xml.append(cim_xml.METHODCALL(
+            'FooMethod',
             cim_xml.LOCALINSTANCEPATH(LOCALNAMESPACEPATH(), INSTANCENAME()),
             [cim_xml.PARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot'))]))
 
@@ -1156,7 +1161,7 @@ class ExpMethodCall(CIMXMLTest):
     """
     <!ELEMENT EXPMETHODCALL (EXPPARAMVALUE*)>
     <!ATTLIST EXPMETHODCALL
-	%CIMName;>
+        %CIMName;>
     """
 
     def setup(self):
@@ -1166,14 +1171,14 @@ class ExpMethodCall(CIMXMLTest):
         self.xml.append(cim_xml.EXPMETHODCALL(
             'FooMethod',
             [cim_xml.EXPPARAMVALUE('Dog')]))
-                                   
+
 
 class ParamValue(CIMXMLTest):
     """
     <!ELEMENT PARAMVALUE (VALUE | VALUE.REFERENCE | VALUE.ARRAY |
                           VALUE.REFARRAY)?>
     <!ATTLIST PARAMVALUE
-	%CIMName;
+        %CIMName;
         %ParamType;  #IMPLIED>
     """
 
@@ -1198,7 +1203,7 @@ class ParamValue(CIMXMLTest):
                                                       CLASSNAME()))))
 
         # VALUE.ARRAY
- 
+
         self.xml.append(cim_xml.PARAMVALUE(
             'Pet',
             cim_xml.VALUE_ARRAY([])))
@@ -1216,7 +1221,7 @@ class IParamValue(CIMXMLTest):
                            INSTANCENAME | CLASSNAME | QUALIFIER.DECLARATION |
                            CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
     <!ATTLIST IPARAMVALUE
-	%CIMName;>
+        %CIMName;>
     """
 
     def setup(self):
@@ -1271,7 +1276,7 @@ class IParamValue(CIMXMLTest):
             cim_xml.INSTANCE('CIM_Pet', [])))
 
         # VALUE.NAMEDINSTANCE
-        
+
         self.xml.append(cim_xml.IPARAMVALUE(
             'Pet',
             cim_xml.VALUE_NAMEDINSTANCE(
@@ -1284,7 +1289,7 @@ class ExpParamValue(CIMXMLTest):
     <!ELEMENT EXPPARAMVALUE (INSTANCE? | VALUE? | METHODRESPONSE? |
                              IMETHODRESPONSE?)>
     <!ATTLIST EXPPARAMVALUE
-	%CIMName;
+        %CIMName;
         %ParamType;  #IMPLIED>
     """
 
@@ -1295,7 +1300,7 @@ class ExpParamValue(CIMXMLTest):
         self.xml.append(cim_xml.EXPPARAMVALUE(
             'FooParam',
             cim_xml.INSTANCE('CIM_Pet', [])))
-    
+
 
 class MultiRsp(CIMXMLTest):
     """
@@ -1306,10 +1311,8 @@ class MultiRsp(CIMXMLTest):
 
         self.xml.append(
             cim_xml.MULTIRSP(
-                [cim_xml.SIMPLERSP(
-                     cim_xml.IMETHODRESPONSE('FooMethod')),
-                 cim_xml.SIMPLERSP(
-                     cim_xml.IMETHODRESPONSE('FooMethod'))]))
+                [cim_xml.SIMPLERSP(cim_xml.IMETHODRESPONSE('FooMethod')),
+                 cim_xml.SIMPLERSP(cim_xml.IMETHODRESPONSE('FooMethod'))]))
 
 
 class MultiExpRsp(CIMXMLTest):
@@ -1321,8 +1324,8 @@ class MultiExpRsp(CIMXMLTest):
 
         self.xml.append(
             cim_xml.MULTIEXPRSP(
-               [cim_xml.SIMPLEEXPRSP(cim_xml.EXPMETHODRESPONSE('FooMethod')),
-                cim_xml.SIMPLEEXPRSP(cim_xml.EXPMETHODRESPONSE('FooMethod'))]))
+                [cim_xml.SIMPLEEXPRSP(cim_xml.EXPMETHODRESPONSE('FooMethod')),
+                 cim_xml.SIMPLEEXPRSP(cim_xml.EXPMETHODRESPONSE('FooMethod'))]))
 
 class SimpleRsp(CIMXMLTest):
     """
@@ -1357,7 +1360,7 @@ class MethodResponse(CIMXMLTest):
     """
     <!ELEMENT METHODRESPONSE (ERROR | (RETURNVALUE?, PARAMVALUE*))>
     <!ATTLIST METHODRESPONSE
-	%CIMName;>
+        %CIMName;>
     """
 
     def setup(self):
@@ -1379,7 +1382,7 @@ class MethodResponse(CIMXMLTest):
             cim_xml.METHODRESPONSE(
                 'FooMethod',
                 cim_xml.PARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot'))))
-        
+
         # PARAMVALUE
 
         self.xml.append(
@@ -1399,7 +1402,7 @@ class ExpMethodResponse(CIMXMLTest):
     """
     <!ELEMENT EXPMETHODRESPONSE (ERROR | IRETURNVALUE?)>
     <!ATTLIST EXPMETHODRESPONSE
-	%CIMName;>
+        %CIMName;>
     """
 
     def setup(self):
@@ -1424,7 +1427,7 @@ class IMethodResponse(CIMXMLTest):
     """
     <!ELEMENT IMETHODRESPONSE (ERROR | IRETURNVALUE?)>
     <!ATTLIST IMETHODRESPONSE
-	%CIMName;>
+        %CIMName;>
     """
 
     def setup(self):
@@ -1449,8 +1452,8 @@ class Error(CIMXMLTest):
     """
     <!ELEMENT ERROR (INSTANCE*)>
     <!ATTLIST ERROR
-	CODE CDATA #REQUIRED
-	DESCRIPTION CDATA #IMPLIED>
+        CODE CDATA #REQUIRED
+        DESCRIPTION CDATA #IMPLIED>
     """
 
     def setup(self):
@@ -1503,68 +1506,67 @@ class IReturnValue(CIMXMLTest):
 
         self.xml.append(cim_xml.IRETURNVALUE(
             INSTANCENAME()))
-            
+
         # VALUE
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.VALUE('Dog')))
-            
+
         # VALUE.OBJECTWITHPATH
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.VALUE_OBJECTWITHPATH(
-            cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()),
-            cim_xml.CLASS('CIM_Foo'))))
-        
+                cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()),
+                cim_xml.CLASS('CIM_Foo'))))
+
         # VALUE.OBJECTWITHLOCALPATH
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.VALUE_OBJECTWITHLOCALPATH(
-            cim_xml.LOCALCLASSPATH(LOCALNAMESPACEPATH(), CLASSNAME()),
-            cim_xml.CLASS('CIM_Foo'))))
-        
+                cim_xml.LOCALCLASSPATH(LOCALNAMESPACEPATH(), CLASSNAME()),
+                cim_xml.CLASS('CIM_Foo'))))
+
         # VALUE.OBJECT
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.VALUE_OBJECT(cim_xml.INSTANCE('CIM_Pet', []))))
-        
+
         # OBJECTPATH
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.OBJECTPATH(
-            cim_xml.INSTANCEPATH(
-                NAMESPACEPATH(), INSTANCENAME()))))
-        
+                cim_xml.INSTANCEPATH(NAMESPACEPATH(), INSTANCENAME()))))
+
         # TODO: QUALIFIER.DECLARATION
-            
+
         # VALUE.ARRAY
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.VALUE_ARRAY([])))
-            
+
         # VALUE.REFERENCE
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.VALUE_REFERENCE(
-            cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()))))
-        
+                cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()))))
+
         # CLASS
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.CLASS('CIM_Foo')))
-        
+
         # INSTANCE
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.INSTANCE('CIM_Pet', [])))
-        
+
         # VALUE.NAMEDINSTANCE
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.VALUE_NAMEDINSTANCE(
-            INSTANCENAME(),
-            cim_xml.INSTANCE('CIM_Pet', []))))
-        
+                INSTANCENAME(),
+                cim_xml.INSTANCE('CIM_Pet', []))))
+
 class ResponseDestination(UnimplementedTest):
     """
     The RESPONSEDESTINATION element contains an instance that
@@ -1582,7 +1584,7 @@ class SimpleReqAck(UnimplementedTest):
     request from being initiated.
 
     <!ELEMENT SIMPLEREQACK (ERROR?)>
-    <!ATTLIST SIMPLEREQACK 
+    <!ATTLIST SIMPLEREQACK
         INSTANCEID CDATA     #REQUIRED>
     """
 
@@ -1638,9 +1640,9 @@ tests = [
     ObjectPath,                         # OBJECTPATH
     KeyBinding,                         # KEYBINDING
     KeyValue,                           # KEYVALUE
-    
+
     # Object definition elements
-    
+
     Class,                              # CLASS
     Instance,                           # INSTANCE
     Qualifier,                          # QUALIFIER

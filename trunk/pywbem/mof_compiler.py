@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 #
-# (C) Copyright 2006-2007 Novell, Inc. 
+# (C) Copyright 2006-2007 Novell, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; version 2 of the License.
-#   
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-#   
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -30,9 +30,9 @@ from pywbem.cim_obj import *
 from pywbem.cim_constants import *
 
 _optimize = 1
-_tabmodule='mofparsetab'
-_lextab='moflextab'
-_outputdir='pywbem'
+_tabmodule = 'mofparsetab'
+_lextab = 'moflextab'
+_outputdir = 'pywbem'
 
 reserved = {
     'any':'ANY',
@@ -77,15 +77,15 @@ reserved = {
     }
 
 tokens = reserved.values() + [
-        'IDENTIFIER',
-        'stringValue',
-        'floatValue',
-        'charValue',
-        'binaryValue',
-        'octalValue',
-        'decimalValue',
-        'hexValue',
-    ]
+    'IDENTIFIER',
+    'stringValue',
+    'floatValue',
+    'charValue',
+    'binaryValue',
+    'octalValue',
+    'decimalValue',
+    'hexValue',
+]
 
 literals = '#(){};[],$:='
 
@@ -111,8 +111,9 @@ utf8_4_1 = r'\xF0[\x90-\xBF][\x80-\xBF][\x80-\xBF]'
 utf8_4_2 = r'[\xF1-\xF3][\x80-\xBF][\x80-\xBF][\x80-\xBF]'
 utf8_4_3 = r'\xF4[\x80-\x8F][\x80-\xBF][\x80-\xBF]'
 
-utf8Char = r'(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)' % (utf8_2, utf8_3_1,
-        utf8_3_2, utf8_3_3, utf8_3_4, utf8_4_1, utf8_4_2, utf8_4_3)
+utf8Char = r'(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)' % \
+           (utf8_2, utf8_3_1, utf8_3_2, utf8_3_3, utf8_3_4, utf8_4_1,
+            utf8_4_2, utf8_4_3)
 
 def t_COMMENT(t):
     r'//.*'
@@ -142,7 +143,8 @@ identifier_re = r'([a-zA-Z_]|(%s))([0-9a-zA-Z_]|(%s))*' % (utf8Char, utf8Char)
 
 @TOKEN(identifier_re)
 def t_IDENTIFIER(t):
-    t.type = reserved.get(t.value.lower(),'IDENTIFIER') # check for reserved word
+    # check for reserved word
+    t.type = reserved.get(t.value.lower(), 'IDENTIFIER')
     return t
 
 # Define a rule so we can track line numbers
@@ -156,7 +158,7 @@ t_ignore = ' \r\t'
 # Error handling rule
 def t_error(t):
     msg = "Illegal character '%s' " % t.value[0]
-    msg+= "Line %d, col %d" % (t.lineno, _find_column(t.lexer.parser.mof, t))
+    msg += "Line %d, col %d" % (t.lineno, _find_column(t.lexer.parser.mof, t))
     t.lexer.parser.log(msg)
     t.lexer.skip(1)
 
@@ -206,8 +208,8 @@ def _create_ns(p, handle, ns):
             raise
     if not cimom_type:
         try:
-            inames = handle.EnumerateInstanceNames('CIM_Namespace', 
-                    namespace='Interop')
+            inames = handle.EnumerateInstanceNames('CIM_Namespace',
+                                                   namespace='Interop')
             inames = [x['name'] for x in inames]
             cimom_type = 'proper'
         except CIMError, ce:
@@ -215,19 +217,19 @@ def _create_ns(p, handle, ns):
             raise
 
     if not cimom_type:
-        ce = CIMError(CIM_ERR_FAILED, 
-                'Unable to determine CIMOM type')
+        ce = CIMError(CIM_ERR_FAILED,
+                      'Unable to determine CIMOM type')
         ce.file_line = (p.parser.file, p.lexer.lineno)
         raise ce
     if cimom_type == 'pegasus':
-        # To create a namespace in Pegasus, create an instance of 
-        # __Namespace with  __Namespace.Name = '', and create it in 
-        # the target namespace to be created. 
-        inst = CIMInstance('__Namespace', 
-                properties={'Name':''},
-                path=CIMInstanceName('__Namespace', 
-                    keybindings={'Name':''},
-                    namespace=ns))
+        # To create a namespace in Pegasus, create an instance of
+        # __Namespace with  __Namespace.Name = '', and create it in
+        # the target namespace to be created.
+        inst = CIMInstance('__Namespace',
+                           properties={'Name':''},
+                           path=CIMInstanceName('__Namespace',
+                                                keybindings={'Name':''},
+                                                namespace=ns))
         try:
             handle.CreateInstance(inst)
         except CIMError, ce:
@@ -236,11 +238,11 @@ def _create_ns(p, handle, ns):
                 raise
 
     elif cimom_type == 'proper':
-        inst = CIMInstance('CIM_Namespace', 
-                properties={'Name': ns},
-                path=CIMInstanceName('CIM_Namespace',
-                    namespace='root',
-                    keybindings={'Name':ns}))
+        inst = CIMInstance('CIM_Namespace',
+                           properties={'Name': ns},
+                           path=CIMInstanceName('CIM_Namespace',
+                                                namespace='root',
+                                                keybindings={'Name':ns}))
         handle.CreateInstance(inst)
 
 
@@ -261,7 +263,7 @@ def p_mp_createClass(p):
                     p.parser.log('Creating class %s:%s' % (ns, cc.classname))
                 p.parser.handle.CreateClass(cc)
                 if p.parser.verbose:
-                    p.parser.log('Created class %s:%s' % (ns,cc.classname))
+                    p.parser.log('Created class %s:%s' % (ns, cc.classname))
                 p.parser.classnames[ns].append(cc.classname.lower())
                 break
             except CIMError, ce:
@@ -294,16 +296,16 @@ def p_mp_createClass(p):
                         for fname in ['qualifiers', 'qualifiers_optional']:
                             qualfile = p.parser.mofcomp.find_mof(fname)
                             if qualfile:
-                                p.parser.mofcomp.compile_file(qualfile,ns)
+                                p.parser.mofcomp.compile_file(qualfile, ns)
                     if not p.parser.qualcache[ns]:
                         # can't find qualifiers
                         raise
                     objects = cc.properties.values()
                     for meth in cc.methods.values():
-                        objects+= meth.parameters.values()
+                        objects += meth.parameters.values()
                     dep_classes = []
                     for obj in objects:
-                        if obj.type not in ['reference','string']:
+                        if obj.type not in ['reference', 'string']:
                             continue
                         if obj.type == 'reference':
                             if obj.reference_class.lower() not in dep_classes:
@@ -311,7 +313,7 @@ def p_mp_createClass(p):
                             continue
                         # else obj.type is 'string'
                         try:
-                            embedded_inst= obj.qualifiers['embeddedinstance']
+                            embedded_inst = obj.qualifiers['embeddedinstance']
                         except KeyError:
                             continue
                         embedded_inst = embedded_inst.value.lower()
@@ -322,14 +324,14 @@ def p_mp_createClass(p):
                         if klass in p.parser.classnames[ns]:
                             continue
                         try:
-                            # don't limit it with LocalOnly=True, 
+                            # don't limit it with LocalOnly=True,
                             # PropertyList, IncludeQualifiers=False, ...
                             # because of caching in case we're using the
-                            # special WBEMConnection subclass used for 
+                            # special WBEMConnection subclass used for
                             # removing schema elements
                             p.parser.handle.GetClass(klass,
-                                    LocalOnly=False, 
-                                    IncludeQualifiers=True)
+                                                     LocalOnly=False,
+                                                     IncludeQualifiers=True)
                             p.parser.classnames[ns].append(klass)
                         except CIMError:
                             moffile = p.parser.mofcomp.find_mof(klass)
@@ -340,7 +342,7 @@ def p_mp_createClass(p):
                     fixedRefs = True
                 else:
                     raise
-    
+
     except CIMError, ce:
         ce.file_line = (p.parser.file, p.lexer.lineno)
         if ce.args[0] != CIM_ERR_ALREADY_EXISTS:
@@ -350,8 +352,8 @@ def p_mp_createClass(p):
         try:
             p.parser.handle.ModifyClass(cc, ns)
         except CIMError, ce:
-            p.parser.log('Error Modifying class %s: %s, %s' 
-                    % (cc.classname, ce.args[0], ce.args[1]))
+            p.parser.log('Error Modifying class %s: %s, %s' % \
+                         (cc.classname, ce.args[0], ce.args[1]))
 
 def p_mp_createInstance(p):
     """mp_createInstance : instanceDeclaration"""
@@ -363,16 +365,20 @@ def p_mp_createInstance(p):
     except CIMError, ce:
         if ce.args[0] == CIM_ERR_ALREADY_EXISTS:
             if p.parser.verbose:
-                p.parser.log('Instance of class %s already exist.  Modifying...'  % inst.classname)
+                p.parser.log('Instance of class %s already exist.  ' \
+                             'Modifying...' % inst.classname)
             try:
                 p.parser.handle.ModifyInstance(inst)
             except CIMError, ce:
                 if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
                     if p.parser.verbose:
-                        p.parser.log('ModifyInstance not supported.  Deleting instance of %s: %s' % (inst.classname, inst.path))
+                        p.parser.log('ModifyInstance not supported.  ' \
+                                     'Deleting instance of %s: %s' % \
+                                     (inst.classname, inst.path))
                     p.parser.handle.DeleteInstance(inst.path)
                     if p.parser.verbose:
-                        p.parser.log('Creating instance of %s.' % inst.classname)
+                        p.parser.log('Creating instance of %s.' % \
+                                     inst.classname)
                     p.parser.handle.CreateInstance(inst)
         else:
             ce.file_line = (p.parser.file, p.lexer.lineno)
@@ -396,8 +402,8 @@ def p_mp_setQualifier(p):
             p.parser.handle.SetQualifier(qualdecl)
         elif ce.args[0] == CIM_ERR_NOT_SUPPORTED:
             if p.parser.verbose:
-                p.parser.log('Qualifier %s already exists.  Deleting...' 
-                            % qualdecl.name)
+                p.parser.log('Qualifier %s already exists.  Deleting...' % \
+                             qualdecl.name)
             p.parser.handle.DeleteQualifier(qualdecl.name)
             if p.parser.verbose:
                 p.parser.log('Setting qualifier %s' % qualdecl.name)
@@ -407,7 +413,7 @@ def p_mp_setQualifier(p):
             raise
     p.parser.qualcache[ns][qualdecl.name] = qualdecl
 
-def p_compilerDirective(p): 
+def p_compilerDirective(p):
     """compilerDirective : '#' PRAGMA pragmaName '(' pragmaParameter ')'"""
     directive = p[3].lower()
     param = p[5]
@@ -420,7 +426,7 @@ def p_compilerDirective(p):
         p.parser.handle.default_namespace = param
         if param not in p.parser.qualcache:
             p.parser.qualcache[param] = NocaseDict()
-    
+
     p[0] = None
 
 def p_pragmaName(p):
@@ -432,15 +438,17 @@ def p_pragmaParameter(p):
     p[0] = _fixStringValue(p[1])
 
 def p_classDeclaration(p):
-    """classDeclaration : CLASS className '{' classFeatureList '}' ';'
-                        | CLASS className superClass '{' classFeatureList '}' ';'
-                        | CLASS className alias '{' classFeatureList '}' ';'
-                        | CLASS className alias superClass '{' classFeatureList '}' ';'
-                        | qualifierList CLASS className '{' classFeatureList '}' ';'
-                        | qualifierList CLASS className superClass '{' classFeatureList '}' ';'
-                        | qualifierList CLASS className alias '{' classFeatureList '}' ';'
-                        | qualifierList CLASS className alias superClass '{' classFeatureList '}' ';'
-                        """
+    """classDeclaration :
+          CLASS className '{' classFeatureList '}' ';'
+        | CLASS className superClass '{' classFeatureList '}' ';'
+        | CLASS className alias '{' classFeatureList '}' ';'
+        | CLASS className alias superClass '{' classFeatureList '}' ';'
+        | qualifierList CLASS className '{' classFeatureList '}' ';'
+        | qualifierList CLASS className superClass '{' classFeatureList '}' ';'
+        | qualifierList CLASS className alias '{' classFeatureList '}' ';'
+        | qualifierList CLASS className alias superClass '{'
+                                              classFeatureList '}' ';'
+    """
     superclass = None
     alias = None
     quals = []
@@ -484,8 +492,8 @@ def p_classDeclaration(p):
             methods[item.name] = item
         else:
             props[item.name] = item
-    p[0] = CIMClass(cname, properties=props, methods=methods, 
-            superclass=superclass, qualifiers=quals)
+    p[0] = CIMClass(cname, properties=props, methods=methods,
+                    superclass=superclass, qualifiers=quals)
     if alias:
         p.parser.aliases[alias] = p[0]
 
@@ -499,24 +507,34 @@ def p_classFeatureList(p):
         p[0] = p[1] + [p[2]]
 
 def p_assocDeclaration(p):
-    """assocDeclaration : '[' ASSOCIATION qualifierListEmpty ']' CLASS className '{' associationFeatureList '}' ';'
-                        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className superClass '{' associationFeatureList '}' ';'
-                        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias '{' associationFeatureList '}' ';'
-                        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias superClass '{' associationFeatureList '}' ';'
-                        """
+    """assocDeclaration :
+          '[' ASSOCIATION qualifierListEmpty ']' CLASS className '{'
+                associationFeatureList '}' ';'
+        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className superClass '{'
+                associationFeatureList '}' ';'
+        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias '{'
+                associationFeatureList '}' ';'
+        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias
+                superClass '{' associationFeatureList '}' ';'
+    """
     aqual = CIMQualifier('ASSOCIATION', True, type='boolean')
-    # TODO flavor trash. 
+    # TODO flavor trash.
     quals = [aqual] + p[3]
     p[0] = _assoc_or_indic_decl(quals, p)
-    
+
 def p_indicDeclaration(p):
-    """indicDeclaration : '[' INDICATION qualifierListEmpty ']' CLASS className '{' classFeatureList '}' ';'
-                        | '[' INDICATION qualifierListEmpty ']' CLASS className superClass '{' classFeatureList '}' ';'
-                        | '[' INDICATION qualifierListEmpty ']' CLASS className alias '{' classFeatureList '}' ';'
-                        | '[' INDICATION qualifierListEmpty ']' CLASS className alias superClass '{' classFeatureList '}' ';'
-                        """
+    """indicDeclaration :
+          '[' INDICATION qualifierListEmpty ']' CLASS className '{'
+                classFeatureList '}' ';'
+        | '[' INDICATION qualifierListEmpty ']' CLASS className superClass '{'
+                classFeatureList '}' ';'
+        | '[' INDICATION qualifierListEmpty ']' CLASS className alias '{'
+                classFeatureList '}' ';'
+        | '[' INDICATION qualifierListEmpty ']' CLASS className alias
+                superClass '{' classFeatureList '}' ';'
+    """
     iqual = CIMQualifier('INDICATION', True, type='boolean')
-    # TODO flavor trash. 
+    # TODO flavor trash.
     quals = [iqual] + p[3]
     p[0] = _assoc_or_indic_decl(quals, p)
 
@@ -546,8 +564,8 @@ def _assoc_or_indic_decl(quals, p):
         else:
             props[item.name] = item
     quals = dict([(x.name, x) for x in quals])
-    cc = CIMClass(cname, properties=props, methods=methods, 
-            superclass=superclass, qualifiers=quals)
+    cc = CIMClass(cname, properties=props, methods=methods,
+                  superclass=superclass, qualifiers=quals)
     if alias:
         p.parser.aliases[alias] = cc
     return cc
@@ -562,7 +580,7 @@ def p_qualifierListEmpty(p):
         p[0] = p[1] + [p[3]]
 
 def p_associationFeatureList(p):
-    """associationFeatureList : empty 
+    """associationFeatureList : empty
                               | associationFeatureList associationFeature
                               """
     if len(p) == 2:
@@ -601,7 +619,7 @@ def p_qualifierList(p):
     """qualifierList : '[' qualifier qualifierListEmpty ']'"""
     p[0] = [p[2]] + p[3]
 
-def p_qualifier(p): 
+def p_qualifier(p):
     """qualifier : qualifierName
                  | qualifierName ':' flavorList
                  | qualifierName qualifierParameter
@@ -644,9 +662,9 @@ def p_qualifier(p):
         ce = CIMError(CIM_ERR_FAILED, 'Unknown Qualifier: %s' % qname)
         ce.file_line = (p.parser.file, p.lexer.lineno)
         raise ce
-        
+
     flavors = _build_flavors(flavorlist, qualdecl)
-    if qval is None: 
+    if qval is None:
         if qualdecl.type == 'boolean':
             qval = True
         else:
@@ -654,7 +672,7 @@ def p_qualifier(p):
     else:
         qval = tocimobj(qualdecl.type, qval)
     p[0] = CIMQualifier(qname, qval, type=qualdecl.type, **flavors)
-    # TODO propagated? 
+    # TODO propagated?
 
 def p_flavorList(p):
     """flavorList : flavor
@@ -705,13 +723,13 @@ def p_propertyDeclaration_2(p):
 
 def p_propertyDeclaration_3(p):
     """propertyDeclaration_3 : dataType propertyName array ';'"""
-    p[0] = CIMProperty(p[2], None, type=p[1], is_array=True, 
-            array_size=p[3])
+    p[0] = CIMProperty(p[2], None, type=p[1], is_array=True,
+                       array_size=p[3])
 
 def p_propertyDeclaration_4(p):
     """propertyDeclaration_4 : dataType propertyName array defaultValue ';'"""
-    p[0] = CIMProperty(p[2], p[4], type=p[1], is_array=True, 
-            array_size=p[3])
+    p[0] = CIMProperty(p[2], p[4], type=p[1], is_array=True,
+                       array_size=p[3])
 
 def p_propertyDeclaration_5(p):
     """propertyDeclaration_5 : qualifierList dataType propertyName ';'"""
@@ -719,29 +737,33 @@ def p_propertyDeclaration_5(p):
     p[0] = CIMProperty(p[3], None, type=p[2], qualifiers=quals)
 
 def p_propertyDeclaration_6(p):
-    """propertyDeclaration_6 : qualifierList dataType propertyName defaultValue ';'"""
+    """propertyDeclaration_6 : qualifierList dataType propertyName
+                               defaultValue ';'"""
     quals = dict([(x.name, x) for x in p[1]])
-    p[0] = CIMProperty(p[3], tocimobj(p[2], p[4]), 
-            type=p[2], qualifiers=quals)
+    p[0] = CIMProperty(p[3], tocimobj(p[2], p[4]),
+                       type=p[2], qualifiers=quals)
 
 def p_propertyDeclaration_7(p):
     """propertyDeclaration_7 : qualifierList dataType propertyName array ';'"""
     quals = dict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], None, type=p[2], qualifiers=quals,
-            is_array=True, array_size=p[4])
+                       is_array=True, array_size=p[4])
 
 def p_propertyDeclaration_8(p):
-    """propertyDeclaration_8 : qualifierList dataType propertyName array defaultValue ';'"""
+    """propertyDeclaration_8 : qualifierList dataType propertyName array
+                               defaultValue ';'"""
     quals = dict([(x.name, x) for x in p[1]])
-    p[0] = CIMProperty(p[3], tocimobj(p[2], p[5]), 
-            type=p[2], qualifiers=quals, is_array=True, array_size=p[4])
+    p[0] = CIMProperty(p[3], tocimobj(p[2], p[5]),
+                       type=p[2], qualifiers=quals, is_array=True,
+                       array_size=p[4])
 
 def p_referenceDeclaration(p):
-    """referenceDeclaration : objectRef referenceName ';'
-                            | objectRef referenceName defaultValue ';'
-                            | qualifierList objectRef referenceName ';'
-                            | qualifierList objectRef referenceName defaultValue ';'
-                            """
+    """referenceDeclaration :
+          objectRef referenceName ';'
+        | objectRef referenceName defaultValue ';'
+        | qualifierList objectRef referenceName ';'
+        | qualifierList objectRef referenceName defaultValue ';'
+    """
     quals = []
     dv = None
     if isinstance(p[1], list): # qualifiers
@@ -756,15 +778,16 @@ def p_referenceDeclaration(p):
         if len(p) == 5:
             dv = p[3]
     quals = dict([(x.name, x) for x in quals])
-    p[0] = CIMProperty(pname, dv, type='reference', 
-            reference_class=cname, qualifiers=quals)
+    p[0] = CIMProperty(pname, dv, type='reference',
+                       reference_class=cname, qualifiers=quals)
 
 def p_methodDeclaration(p):
-    """methodDeclaration : dataType methodName '(' ')' ';'
-                         | dataType methodName '(' parameterList ')' ';'
-                         | qualifierList dataType methodName '(' ')' ';'
-                         | qualifierList dataType methodName '(' parameterList ')' ';'
-                         """
+    """methodDeclaration :
+          dataType methodName '(' ')' ';'
+        | dataType methodName '(' parameterList ')' ';'
+        | qualifierList dataType methodName '(' ')' ';'
+        | qualifierList dataType methodName '(' parameterList ')' ';'
+    """
     paramlist = []
     quals = []
     if isinstance(p[1], basestring): # no quals
@@ -780,10 +803,10 @@ def p_methodDeclaration(p):
             paramlist = p[5]
     params = dict([(param.name, param) for param in paramlist])
     quals = dict([(q.name, q) for q in quals])
-    p[0] = CIMMethod(mname, return_type=dt, parameters=params, 
-            qualifiers=quals)
-    # note: class_origin is set when adding method to class. 
-    # TODO what to do with propagated? 
+    p[0] = CIMMethod(mname, return_type=dt, parameters=params,
+                     qualifiers=quals)
+    # note: class_origin is set when adding method to class.
+    # TODO what to do with propagated?
 
 def p_propertyName(p):
     """propertyName : identifier"""
@@ -876,8 +899,8 @@ def p_parameter_4(p):
         args['is_array'] = True
         args['array_size'] = p[4]
     quals = dict([(x.name, x) for x in p[1]])
-    p[0] = CIMParameter(p[3], 'reference', qualifiers=quals, 
-                reference_class=p[2], **args)
+    p[0] = CIMParameter(p[3], 'reference', qualifiers=quals,
+                        reference_class=p[2], **args)
 
 def p_parameterName(p):
     """parameterName : identifier"""
@@ -925,30 +948,30 @@ def _fixStringValue(s):
     s = s[1:-1]
     rv = ''
     esc = False
-    i = -1 
+    i = -1
     while i < len(s) -1:
-        i+= 1
+        i += 1
         ch = s[i]
         if ch == '\\' and not esc:
             esc = True
             continue
         if not esc:
-            rv+= ch
+            rv += ch
             continue
 
-        if ch == '"'   : rv+= '"'
-        elif ch == 'n' : rv+= '\n'
-        elif ch == 't' : rv+= '\t'
-        elif ch == 'b' : rv+= '\b'
-        elif ch == 'f' : rv+= '\f'
-        elif ch == 'r' : rv+= '\r'
-        elif ch == '\\': rv+= '\\'
-        elif ch in ['x','X']:
+        if ch == '"': rv += '"'
+        elif ch == 'n': rv += '\n'
+        elif ch == 't': rv += '\t'
+        elif ch == 'b': rv += '\b'
+        elif ch == 'f': rv += '\f'
+        elif ch == 'r': rv += '\r'
+        elif ch == '\\': rv += '\\'
+        elif ch in ['x', 'X']:
             hexc = 0
             j = 0
-            i+= 1
+            i += 1
             while j < 4:
-                c = s[i+j]; 
+                c = s[i+j];
                 c = c.upper()
                 if not c.isdigit() and not c in 'ABCDEF':
                     break;
@@ -957,9 +980,9 @@ def _fixStringValue(s):
                     hexc |= ord(c) - ord('0')
                 else:
                     hexc |= ord(c) - ord('A') + 0XA
-                j+= 1
-            rv+= chr(hexc)
-            i+= j-1
+                j += 1
+            rv += chr(hexc)
+            i += j-1
 
         esc = False
 
@@ -994,7 +1017,7 @@ def p_integerValue(p):
                     | hexValue
                     """
     p[0] = int(p[1])
-    # TODO deal with non-decimal values. 
+    # TODO deal with non-decimal values.
 
 def p_referenceInitializer(p):
     """referenceInitializer : objectHandle
@@ -1004,8 +1027,8 @@ def p_referenceInitializer(p):
         try:
             p[0] = p.parser.aliases[p[1]]
         except KeyError:
-            ce = CIMError(CIM_ERR_FAILED, 
-                    'Unknown alias: ' + p[0])
+            ce = CIMError(CIM_ERR_FAILED,
+                          'Unknown alias: ' + p[0])
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
     else:
@@ -1016,9 +1039,10 @@ def p_objectHandle(p):
     p[0] = p[1]
 
 def p_qualifierDeclaration(p):
-    """qualifierDeclaration : QUALIFIER qualifierName qualifierType scope ';'
-                            | QUALIFIER qualifierName qualifierType scope defaultFlavor ';'
-                            """
+    """qualifierDeclaration :
+          QUALIFIER qualifierName qualifierType scope ';'
+        | QUALIFIER qualifierName qualifierType scope defaultFlavor ';'
+    """
     qualtype = p[3]
     dt, is_array, array_size, value = qualtype
     qualname = p[2]
@@ -1029,9 +1053,9 @@ def p_qualifierDeclaration(p):
         flist = p[5]
     flavors = _build_flavors(flist)
 
-    p[0] = CIMQualifierDeclaration(qualname, dt, value=value, 
-                    is_array=is_array, array_size=array_size, 
-                    scopes=scopes, **flavors)
+    p[0] = CIMQualifierDeclaration(qualname, dt, value=value,
+                                   is_array=is_array, array_size=array_size,
+                                   scopes=scopes, **flavors)
 
 def _build_flavors(flist, qualdecl=None):
     flavors = {}
@@ -1080,7 +1104,7 @@ def p_qualifierType_1(p):
     p[0] = (p[2], True, p[3], dv)
 
 def p_qualifierType_2(p):
-    """qualifierType_2 : ':' dataType 
+    """qualifierType_2 : ':' dataType
                        | ':' dataType defaultValue
                        """
     dv = None
@@ -1149,11 +1173,13 @@ def p_flavorListWithComma(p):
         p[0] = p[1] + [p[3]]
 
 def p_instanceDeclaration(p):
-    """instanceDeclaration : INSTANCE OF className '{' valueInitializerList '}' ';'
-                           | INSTANCE OF className alias '{' valueInitializerList '}' ';'
-                           | qualifierList INSTANCE OF className '{' valueInitializerList '}' ';'
-                           | qualifierList INSTANCE OF className alias '{' valueInitializerList '}' ';'
-                           """
+    """instanceDeclaration :
+          INSTANCE OF className '{' valueInitializerList '}' ';'
+        | INSTANCE OF className alias '{' valueInitializerList '}' ';'
+        | qualifierList INSTANCE OF className '{' valueInitializerList '}' ';'
+        | qualifierList INSTANCE OF className alias '{'
+                valueInitializerList '}' ';'
+    """
     alias = None
     quals = {}
     ns = p.parser.handle.default_namespace
@@ -1166,7 +1192,7 @@ def p_instanceDeclaration(p):
             alias = p[4]
     else:
         cname = p[4]
-        #quals = p[1] # qualifiers on instances are deprecated -- rightly so. 
+        #quals = p[1] # qualifiers on instances are deprecated -- rightly so.
         if p[5] == '{':
             props = p[6]
         else:
@@ -1174,8 +1200,8 @@ def p_instanceDeclaration(p):
             alias = p[5]
 
     try:
-        cc = p.parser.handle.GetClass(cname,
-                LocalOnly=False, IncludeQualifiers=True)
+        cc = p.parser.handle.GetClass(cname, LocalOnly=False,
+                                      IncludeQualifiers=True)
         p.parser.classnames[ns].append(cc.classname.lower())
     except CIMError, ce:
         ce.file_line = (p.parser.file, p.lexer.lineno)
@@ -1185,8 +1211,8 @@ def p_instanceDeclaration(p):
                 p.parser.log('Class %s does not exist' % cname)
             if file_:
                 p.parser.mofcomp.compile_file(file_, ns)
-                cc = p.parser.handle.GetClass(cname, LocalOnly=False, 
-                        IncludeQualifiers=True)
+                cc = p.parser.handle.GetClass(cname, LocalOnly=False,
+                                              IncludeQualifiers=True)
             else:
                 if p.parser.verbose:
                     p.parser.log("Can't find file to satisfy class")
@@ -1196,38 +1222,39 @@ def p_instanceDeclaration(p):
         else:
             raise
     path = CIMInstanceName(cname, namespace=ns)
-    inst = CIMInstance(cname, properties=cc.properties, 
-            qualifiers=quals, path=path)
-    for prop in props: 
+    inst = CIMInstance(cname, properties=cc.properties,
+                       qualifiers=quals, path=path)
+    for prop in props:
         pname = prop[1]
         pval = prop[2]
         try:
             cprop = inst.properties[pname]
             cprop.value = tocimobj(cprop.type, pval)
         except KeyError:
-            ce = CIMError(CIM_ERR_INVALID_PARAMETER, 
-                    'Invalid property: %s' % pname)
+            ce = CIMError(CIM_ERR_INVALID_PARAMETER,
+                          'Invalid property: %s' % pname)
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
         except ValueError, ve:
-            ce = CIMError(CIM_ERR_INVALID_PARAMETER, 
-                    'Invalid value for property: %s: %s' % (pname,ve.message))
+            ce = CIMError(CIM_ERR_INVALID_PARAMETER,
+                          'Invalid value for property: %s: %s' % \
+                          (pname, ve.message))
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
 
     for prop in inst.properties.values():
         if 'key' not in prop.qualifiers or not prop.qualifiers['key']:
             continue
-        if prop.value is None: 
-            ce = CIMError(CIM_ERR_FAILED, 
-                    'Key property %s.%s is not set' % (cname, prop.name))
+        if prop.value is None:
+            ce = CIMError(CIM_ERR_FAILED,
+                          'Key property %s.%s is not set' % (cname, prop.name))
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
         inst.path.keybindings[prop.name] = prop.value
 
     if alias:
         p.parser.aliases[alias] = inst.path
-    p[0] = inst 
+    p[0] = inst
 
 def p_valueInitializerList(p):
     """valueInitializerList : valueInitializer
@@ -1237,7 +1264,7 @@ def p_valueInitializerList(p):
         p[0] = [p[1]]
     else:
         p[0] = p[1] + [p[2]]
-    
+
 
 def p_valueInitializer(p):
     """valueInitializer : identifier defaultValue ';'
@@ -1269,7 +1296,7 @@ def p_identifier(p):
                   | AS
                   | CLASS
                   | DISABLEOVERRIDE
-                  | dataType 
+                  | dataType
                   | ENABLEOVERRIDE
                   | FLAVOR
                   | INSTANCE
@@ -1299,7 +1326,7 @@ def _find_column(input, token):
     while i > 0:
         if input[i] == '\n':
             break
-        i-= 1
+        i -= 1
     column = (token.lexpos - i)+1
     return column
 
@@ -1309,7 +1336,7 @@ def _get_error_context(input, token):
     except ValueError:
         line = input[token.lexpos:]
     i = input.rfind('\n', 0, token.lexpos)
-    if i < 0: 
+    if i < 0:
         i = 0
     line = input[i:token.lexpos] + line
     lines = [line.strip('\r\n')]
@@ -1322,16 +1349,16 @@ def _get_error_context(input, token):
         lines.insert(0, input[i:end].strip('\r\n'))
     pointer = ''
     for ch in token.value:
-        pointer+= '^'
+        pointer += '^'
     pointline = ''
     i = 0
     while i < col -1:
         if lines[-1][i].isspace():
-            pointline+= lines[-1][i]
+            pointline += lines[-1][i]
             # otherwise, tabs complicate the alignment
         else:
-            pointline+= ' '
-        i+= 1
+            pointline += ' '
+        i += 1
     lines.append(pointline + pointer)
     return lines
 
@@ -1361,8 +1388,8 @@ class MOFWBEMConnection(object):
         else:
             return self.__default_namespace
 
-    default_namespace = property(getns, setns, None, 
-            "default_namespace property")
+    default_namespace = property(getns, setns, None,
+                                 "default_namespace property")
 
     def GetClass(self, *args, **kwargs):
         cname = len(args) > 0 and args[0] or kwargs['ClassName']
@@ -1399,8 +1426,8 @@ class MOFWBEMConnection(object):
         cc = len(args) > 0 and args[0] or kwargs['NewClass']
         if cc.superclass:
             try:
-                super_ = self.GetClass(cc.superclass, LocalOnly=True, 
-                        IncludeQualifiers=False)
+                super_ = self.GetClass(cc.superclass, LocalOnly=True,
+                                       IncludeQualifiers=False)
             except CIMError, ce:
                 if ce.args[0] == CIM_ERR_NOT_FOUND:
                     ce.args = (CIM_ERR_INVALID_SUPERCLASS, cc.superclass)
@@ -1414,21 +1441,21 @@ class MOFWBEMConnection(object):
             self.classes[self.default_namespace] = \
                         NocaseDict({cc.classname:cc})
 
-        # TODO: should we see if it exists first with 
+        # TODO: should we see if it exists first with
         # self.conn.GetClass()?  Do we want to create a class
-        # that already existed? 
+        # that already existed?
         try:
             self.class_names[self.default_namespace].append(cc.classname)
         except KeyError:
             self.class_names[self.default_namespace] = [cc.classname]
 
     def ModifyClass(self, *args, **kwargs):
-        raise CIMError(CIM_ERR_FAILED, 
-                'This should not happen!')
+        raise CIMError(CIM_ERR_FAILED,
+                       'This should not happen!')
 
     def ModifyInstance(self, *args, **kwargs):
-        raise CIMError(CIM_ERR_FAILED, 
-                'This should not happen!')
+        raise CIMError(CIM_ERR_FAILED,
+                       'This should not happen!')
 
     def GetQualifier(self, *args, **kwargs):
         qualname = len(args) > 0 and args[0] or kwargs['QualifierName']
@@ -1450,12 +1477,11 @@ class MOFWBEMConnection(object):
 
     def EnumerateQualifiers(self, *args, **kwargs):
         if self.conn is not None:
-            rv = self.conn.EnumerateQualifiers(*args, 
-                    **kwargs)
+            rv = self.conn.EnumerateQualifiers(*args, **kwargs)
         else:
             rv = []
         try:
-            rv+= self.qualifiers[self.default_namespace].values()
+            rv += self.qualifiers[self.default_namespace].values()
         except KeyError:
             pass
         return rv
@@ -1491,7 +1517,7 @@ class MOFWBEMConnection(object):
                 except CIMError, ce:
                     print 'Error deleting class %s:%s' % (ns, cname)
                     print '    ', '%s %s' % (ce.args[0], ce.args[1])
-        # TODO: do we want to do anything with qualifiers? 
+        # TODO: do we want to do anything with qualifiers?
 
 
 def _errcode2string(code):
@@ -1526,9 +1552,9 @@ class MOFCompiler(object):
         """Initialize the compiler.
 
         Keyword arguments:
-        handle -- A WBEMConnection or similar object.  The following 
-            attributes and methods need to be present, corresponding to the 
-            the attributes and methods on pywbem.WBEMConnection having 
+        handle -- A WBEMConnection or similar object.  The following
+            attributes and methods need to be present, corresponding to the
+            the attributes and methods on pywbem.WBEMConnection having
             the same names:
             - default_namespace
             - EnumerateInstanceNames()
@@ -1541,11 +1567,11 @@ class MOFCompiler(object):
             - DeleteQualifier()
             - EnumerateQualifiers()
             - SetQualifier()
-        search_paths -- A list of file system paths specifying where 
-            missing schema elements should be looked for. 
-        verbose -- True if extra messages should be printed. 
-        log_func -- A callable that takes a single string argument.  
-            The default logger prints to stdout. 
+        search_paths -- A list of file system paths specifying where
+            missing schema elements should be looked for.
+        verbose -- True if extra messages should be printed.
+        log_func -- A callable that takes a single string argument.
+            The default logger prints to stdout.
         """
 
         self.parser = yacc.yacc(tabmodule=_tabmodule, optimize=_optimize)
@@ -1569,7 +1595,7 @@ class MOFCompiler(object):
         ns -- The CIM namespace
 
         Keyword arguments:
-        filename -- The name of the file that the MOF was read from.  This 
+        filename -- The name of the file that the MOF was read from.  This
             is used in status and error messages.
         """
 
@@ -1606,12 +1632,12 @@ class MOFCompiler(object):
             raise
         except CIMError, ce:
             if hasattr(ce, 'file_line'):
-                self.parser.log('Fatal Error: %s:%s' % (ce.file_line[0], 
+                self.parser.log('Fatal Error: %s:%s' % (ce.file_line[0],
                                                         ce.file_line[1]))
             else:
                 self.parser.log('Fatal Error:')
-            self.parser.log('%s%s' % (_errcode2string(ce.args[0]), 
-                    ce.args[1] and ': '+ce.args[1] or ''))
+            self.parser.log('%s%s' % (_errcode2string(ce.args[0]),
+                                      ce.args[1] and ': '+ce.args[1] or ''))
             raise
 
     def compile_file(self, filename, ns):
@@ -1659,35 +1685,39 @@ if __name__ == '__main__':
     from optparse import OptionParser
     usage = 'usage: %prog -n <namespace> [options] <MOF file> ...'
     oparser = OptionParser(usage=usage)
-    oparser.add_option('-s', '--search', dest='search', 
-            help='Search path to find missing schema elements.  This option can be present multiple times.', 
-            metavar='Path', action='append')
-    oparser.add_option('-n', '--namespace', dest='ns', 
-            help='Specify the namespace', metavar='Namespace')
-    oparser.add_option('-u', '--url', dest='url', 
-            help='URL to the CIM Server', metavar='URL', 
-            default='/var/run/tog-pegasus/cimxml.socket')
+    oparser.add_option('-s', '--search', dest='search',
+                       help='Search path to find missing schema elements.  ' \
+                            'This option can be present multiple times.',
+                       metavar='Path', action='append')
+    oparser.add_option('-n', '--namespace', dest='ns',
+                       help='Specify the namespace', metavar='Namespace')
+    oparser.add_option('-u', '--url', dest='url',
+                       help='URL to the CIM Server', metavar='URL',
+                       default='/var/run/tog-pegasus/cimxml.socket')
     oparser.add_option('-v', '--verbose',
-            action='store_true', dest='verbose', default=False,
-            help='Print more messages to stdout')
+                       action='store_true', dest='verbose', default=False,
+                       help='Print more messages to stdout')
     oparser.add_option('-r', '--remove',
-            action='store_true', dest='remove', default=False,
-            help='Remove elements found in MOF, instead of create them')
+                       action='store_true', dest='remove', default=False,
+                       help='Remove elements found in MOF, instead of ' \
+                            'create them')
     oparser.add_option('-l', '--username',
-            dest='username', metavar='Username',
-            help='Specify the username')
-    oparser.add_option('-p', '--password', 
-            dest='password', metavar='Password',
-            help='Specify the password')
+                       dest='username', metavar='Username',
+                       help='Specify the username')
+    oparser.add_option('-p', '--password',
+                       dest='password', metavar='Password',
+                       help='Specify the password')
     oparser.add_option('-d', '--dry-run',
-            dest='dry_run', default=False, action='store_true',
-            help="Don't actually modify the repository, just check mof file syntax. Connection to CIMOM is still required to check qualifiers.")
+                       dest='dry_run', default=False, action='store_true',
+                       help="Don't actually modify the repository, just " \
+                            "check mof file syntax. Connection to CIMOM is " \
+                            "still required to check qualifiers.")
 
     (options, args) = oparser.parse_args()
     search = options.search
     if not args:
         oparser.error('No input files given for parsing')
-    if options.ns is None: 
+    if options.ns is None:
         oparser.error('No namespace given')
 
     passwd = options.password
@@ -1714,11 +1744,11 @@ if __name__ == '__main__':
             search.append(path)
 
     # if removing, we'll be verbose later when we actually remove stuff.
-    # We don't want MOFCompiler to be verbose, as that would be confusing. 
+    # We don't want MOFCompiler to be verbose, as that would be confusing.
     verbose = options.verbose and not options.remove
 
-    mofcomp = MOFCompiler(handle=conn, search_paths=search, 
-            verbose=verbose)
+    mofcomp = MOFCompiler(handle=conn, search_paths=search,
+                          verbose=verbose)
 
     try:
         for fname in args:

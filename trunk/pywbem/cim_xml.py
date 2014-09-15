@@ -1,16 +1,16 @@
 #
 # (C) Copyright 2003-2006 Hewlett-Packard Development Company, L.P.
-# (C) Copyright 2006-2007 Novell, Inc. 
+# (C) Copyright 2006-2007 Novell, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; version 2 of the License.
-#   
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-#   
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -55,12 +55,12 @@ def Text(data):
     """Grr.  The API for the minidom text node function has changed in
     Python 2.3.  This function allows the code to run under older
     versions of the intepreter."""
-    
+
     if sys.version_info[0] == 2 and sys.version_info[1] >= 3:
         t = xml.dom.minidom.Text()
         t.data = data
         return t
-    
+
     return xml.dom.minidom.Text(data)
 
 class CIMElement(Element):
@@ -89,13 +89,13 @@ class CIMElement(Element):
 class CIM(CIMElement):
     """
     The CIM element is the root element of every XML Document that is
-    valid with respect to this schema. 
+    valid with respect to this schema.
 
     Each document takes one of two forms; it either contains a single
     MESSAGE element defining a CIM message (to be used in the HTTP
     mapping), or it contains a DECLARATION element used to declare a
     set of CIM objects.
- 
+
     <!ELEMENT CIM (MESSAGE | DECLARATION)>
     <!ATTLIST CIM
         CIMVERSION CDATA #REQUIRED
@@ -114,8 +114,8 @@ class DECLARATION(CIMElement):
     """
     The DECLARATION element defines a set of one or more declarations
     of CIM objects.  These are partitioned into logical declaration
-    subsets. 
- 
+    subsets.
+
     <!ELEMENT DECLARATION (DECLGROUP | DECLGROUP.WITHNAME |
                            DECLGROUP.WITHPATH)+>
     """
@@ -131,7 +131,7 @@ class DECLGROUP(CIMElement):
     NAMESPACEPATH or LOCALNAMESPACEPATH element which, if present,
     defines the common namespace in which all objects within the group
     are declared.
-    
+
     <!ELEMENT DECLGROUP ((LOCALNAMESPACEPATH | NAMESPACEPATH)?,
                          QUALIFIER.DECLARATION*, VALUE.OBJECT*)>
     """
@@ -177,17 +177,18 @@ class QUALIFIER_DECLARATION(CIMElement):
 
     <!ELEMENT QUALIFIER.DECLARATION (SCOPE?, (VALUE | VALUE.ARRAY)?)>
     <!ATTLIST QUALIFIER.DECLARATION
-         %CIMName;               
+         %CIMName;
          %CIMType;               #REQUIRED
          ISARRAY    (true|false) #IMPLIED
          %ArraySize;
          %QualifierFlavor;>
     """
 
-    def __init__(self, name, type, value, is_array = None,
-                 array_size = None, qualifier_scopes = {},
-                 overridable = None, tosubclass = None, 
-                 toinstance = None, translatable = None):
+    def __init__(self, name, type, value, is_array=None,
+                 array_size=None, qualifier_scopes={},
+                 overridable=None, tosubclass=None,
+                 toinstance=None, translatable=None):
+
         Element.__init__(self, 'QUALIFIER.DECLARATION')
         self.setName(name)
         self.setAttribute('TYPE', type)
@@ -203,7 +204,7 @@ class QUALIFIER_DECLARATION(CIMElement):
             self.setAttribute('TOINSTANCE', str(toinstance).lower())
         if translatable is not None:
             self.setAttribute('TRANSLATABLE', str(translatable).lower())
-            
+
         if qualifier_scopes:
             scope = SCOPE(qualifier_scopes)
             self.appendOptionalChild(scope)
@@ -221,7 +222,7 @@ class SCOPE(CIMElement):
     declaration.
 
     <!ELEMENT SCOPE EMPTY>
-    <!ATTLIST SCOPE 
+    <!ATTLIST SCOPE
          CLASS        (true|false)      'false'
          ASSOCIATION  (true|false)      'false'
          REFERENCE    (true|false)      'false'
@@ -230,7 +231,7 @@ class SCOPE(CIMElement):
          PARAMETER    (true|false)      'false'
          INDICATION   (true|false)      'false'>
     """
-    
+
     def __init__(self, scopes={}):
         Element.__init__(self, 'SCOPE')
         if 'any' in scopes and scopes['any']:
@@ -293,7 +294,7 @@ class VALUE_REFARRAY(CIMElement):
 
     <!ELEMENT VALUE.REFARRAY (VALUE.REFERENCE*)>
     """
-    
+
     def __init__(self, data):
         Element.__init__(self, 'VALUE.REFARRAY')
         self.appendChildren(data)
@@ -302,7 +303,7 @@ class VALUE_OBJECT(CIMElement):
     """
     The VALUE.OBJECT element is used to define a value which is
     comprised of a single CIM Class or Instance definition.
-    
+
     <!ELEMENT VALUE.OBJECT (CLASS | INSTANCE)>
     """
 
@@ -314,7 +315,7 @@ class VALUE_NAMEDINSTANCE(CIMElement):
     """
     The VALUE.NAMEDINSTANCE element is used to define a value which
     is comprised of a single named CIM Instance definition.
-    
+
     <!ELEMENT VALUE.NAMEDINSTANCE (INSTANCENAME, INSTANCE)>
     """
 
@@ -326,11 +327,11 @@ class VALUE_NAMEDINSTANCE(CIMElement):
 class VALUE_NAMEDOBJECT(CIMElement):
     """
     The VALUE.NAMEDOBJECT element is used to define a value which
-    is comprised of a single named CIM Class or Instance definition. 
+    is comprised of a single named CIM Class or Instance definition.
 
     <!ELEMENT VALUE.NAMEDOBJECT (CLASS | (INSTANCENAME, INSTANCE))>
     """
-    
+
     def __init__(self, data):
         Element.__init__(self, 'VALUE.NAMEDOBJECT')
         if type(data) == tuple or type(data) == list:
@@ -343,7 +344,7 @@ class VALUE_OBJECTWITHLOCALPATH(CIMElement):
     The VALUE.OBJECTWITHLOCALPATH element is used to define a value
     which is comprised of a single CIM Object (Class or Instance)
     definition with additional information that defines the local path
-    to that Object.    
+    to that Object.
 
     <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH, CLASS) |
                                          (LOCALINSTANCEPATH, INSTANCE))>
@@ -364,7 +365,7 @@ class VALUE_OBJECTWITHPATH(CIMElement):
     <!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH, CLASS) |
                                     (INSTANCEPATH, INSTANCE))>
     """
-    
+
     def __init__(self, data1, data2):
         Element.__init__(self, 'VALUE.OBJECTWITHPATH')
         self.appendChild(data1)
@@ -374,7 +375,7 @@ class VALUE_NULL(CIMElement):
     """
     The VALUE.NULL element is used to represent a TABLECELL that has
     no assigned value.
-    
+
     <!ELEMENT VALUE.NULL EMPTY>
     """
 
@@ -388,7 +389,7 @@ class NAMESPACEPATH(CIMElement):
     The NAMESPACEPATH element is used to define a Namespace Path. It
     consists of a HOST element and a LOCALNAMESPACE element.
 
-    <!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)> 
+    <!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)>
     """
 
     def __init__(self, host, localnamespacepath):
@@ -400,11 +401,11 @@ class LOCALNAMESPACEPATH(CIMElement):
     """
     The LOCALNAMESPACEPATH element is used to define a local Namespace
     path (one without a Host component). It consists of one or more
-    NAMESPACE elements (one for each namespace in the path). 
- 
-    <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)> 
+    NAMESPACE elements (one for each namespace in the path).
+
+    <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
     """
-    
+
     def __init__(self, namespaces):
         Element.__init__(self, 'LOCALNAMESPACEPATH')
         self.appendChildren(namespaces)
@@ -414,10 +415,10 @@ class HOST(CIMElement):
     The HOST element is used to define a single Host. The element
     content MUST specify a legal value for a hostname in accordance
     with the CIM specification.
- 
-    <!ELEMENT HOST (#PCDATA)> 
+
+    <!ELEMENT HOST (#PCDATA)>
     """
-    
+
     def __init__(self, pcdata):
         Element.__init__(self, 'HOST')
         self.appendChild(Text(pcdata))
@@ -426,24 +427,24 @@ class NAMESPACE(CIMElement):
     """
     The NAMESPACE element is used to define a single Namespace
     component of a Namespace path.
- 
-    <!ELEMENT NAMESPACE EMPTY> 
+
+    <!ELEMENT NAMESPACE EMPTY>
     <!ATTLIST NAMESPACE
         %CIMName;>
     """
-    
+
     def __init__(self, name):
         Element.__init__(self, 'NAMESPACE')
         self.setName(name)
-        
+
 class CLASSPATH(CIMElement):
     """
     The CLASSPATH element defines the absolute path to a CIM Class. It
-    is formed from a namespace path and Class name. 
- 
+    is formed from a namespace path and Class name.
+
     <!ELEMENT CLASSPATH (NAMESPACEPATH, CLASSNAME)>
     """
-    
+
     def __init__(self, namespacepath, classname):
         Element.__init__(self, 'CLASSPATH')
         self.appendChild(namespacepath)
@@ -453,11 +454,11 @@ class CLASSPATH(CIMElement):
 class LOCALCLASSPATH(CIMElement):
     """
     The LOCALCLASSPATH element defines the a local path to a CIM
-    Class. It is formed from a local namespace path and Class name. 
- 
+    Class. It is formed from a local namespace path and Class name.
+
     <!ELEMENT LOCALCLASSPATH (LOCALNAMESPACEPATH, CLASSNAME)>
     """
-    
+
     def __init__(self, localnamespacepath, classname):
         Element.__init__(self, 'LOCALCLASSPATH')
         self.appendChild(localnamespacepath)
@@ -466,12 +467,12 @@ class LOCALCLASSPATH(CIMElement):
 class CLASSNAME(CIMElement):
     """
     The CLASSNAME element defines the qualifying name of a CIM Class.
- 
+
     <!ELEMENT CLASSNAME EMPTY>
     <!ATTLIST CLASSNAME
         %CIMName;>
     """
-    
+
     def __init__(self, classname):
         Element.__init__(self, 'CLASSNAME')
         self.setName(classname)
@@ -480,11 +481,11 @@ class INSTANCEPATH(CIMElement):
     """
     The INSTANCEPATH element defines the absolute path to a CIM
     Instance. It is comprised of a Namespace path and an Instance Name
-    (model path). 
- 
+    (model path).
+
     <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
     """
-    
+
     def __init__(self, namespacepath, instancename):
         Element.__init__(self, 'INSTANCEPATH')
         self.appendChild(namespacepath)
@@ -494,11 +495,11 @@ class LOCALINSTANCEPATH(CIMElement):
     """
     The LOCALINSTANCEPATH element defines the local path to a CIM
     Instance. It is comprised of a local Namespace path and an
-    Instance Name (model path). 
- 
+    Instance Name (model path).
+
     <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
     """
-    
+
     def __init__(self, localpath, instancename):
         Element.__init__(self, 'LOCALINSTANCEPATH')
         self.appendChild(localpath)
@@ -509,24 +510,24 @@ class INSTANCENAME(CIMElement):
     The INSTANCENAME element defines the location of a CIM Instance
     within a Namespace (it is referred to in the CIM Specification
     as a Model Path). It is comprised of a class name and a key
-    binding information. 
+    binding information.
 
     If the Class has a single key property, then a single KEYVALUE or
     VALUE.REFERENCE subelement may be used to describe the
     (necessarily) unique key value without a key name. Alternatively a
-    single KEYBINDING subelement may be used instead. 
+    single KEYBINDING subelement may be used instead.
 
     If the Class has more than one key property, then a KEYBINDING
-    subelement MUST appear for each key. 
+    subelement MUST appear for each key.
 
     If there are no key-bindings specified, the instance is assumed to
-    be a singleton instance of a keyless Class. 
- 
+    be a singleton instance of a keyless Class.
+
     <!ELEMENT INSTANCENAME (KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?)>
     <!ATTLIST INSTANCENAME
         %ClassName;>
     """
-    
+
     def __init__(self, classname, data):
         Element.__init__(self, 'INSTANCENAME')
         self.setAttribute('CLASSNAME', classname)
@@ -539,11 +540,11 @@ class INSTANCENAME(CIMElement):
 class OBJECTPATH(CIMElement):
     """
     The OBJECTPATH element is used to define a full path to a single
-    CIM Object (Class or Instance). 
- 
+    CIM Object (Class or Instance).
+
     <!ELEMENT OBJECTPATH (INSTANCEPATH | CLASSPATH)>
     """
-    
+
     def __init__(self, data):
         Element.__init__(self, 'OBJECTPATH')
         self.appendChild(data)
@@ -551,12 +552,12 @@ class OBJECTPATH(CIMElement):
 class KEYBINDING(CIMElement):
     """
     The KEYBINDING element defines a single key property value binding.
- 
+
     <!ELEMENT KEYBINDING (KEYVALUE | VALUE.REFERENCE)>
     <!ATTLIST KEYBINDING
         %CIMName;>
     """
-    
+
     def __init__(self, name, data):
         Element.__init__(self, 'KEYBINDING')
         self.setName(name)
@@ -565,15 +566,15 @@ class KEYBINDING(CIMElement):
 class KEYVALUE(CIMElement):
     """
     The KEYVALUE element defines a single property key value when the
-    key property is a non-reference type. 
- 
+    key property is a non-reference type.
+
     <!ELEMENT KEYVALUE (#PCDATA)>
     <!ATTLIST KEYVALUE
         VALUETYPE    (string|boolean|numeric)  'string'
         %CIMType;    #IMPLIED>
     """
 
-    def __init__(self, data, value_type = None, cim_type = None):
+    def __init__(self, data, value_type=None, cim_type=None):
 
         Element.__init__(self, 'KEYVALUE')
 
@@ -588,20 +589,20 @@ class KEYVALUE(CIMElement):
             self.appendChild(Text(data))
 
 # Object definition elements
-    
+
 class CLASS(CIMElement):
     """
     The CLASS element defines a single CIM Class.
- 
+
     <!ELEMENT CLASS (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
                      PROPERTY.REFERENCE)*, METHOD*)>
-    <!ATTLIST CLASS 
+    <!ATTLIST CLASS
         %CIMName;
         %SuperClass;>
     """
 
-    def __init__(self, classname, properties = [], methods = [],
-                 qualifiers = [], superclass = None):
+    def __init__(self, classname, properties=[], methods=[],
+                 qualifiers=[], superclass=None):
         Element.__init__(self, 'CLASS')
         self.setName(classname)
         self.setOptionalAttribute('SUPERCLASS', superclass)
@@ -610,15 +611,15 @@ class CLASS(CIMElement):
 class INSTANCE(CIMElement):
     """
     The INSTANCE element defines a single CIM Instance of a CIM Class.
- 
+
     <!ELEMENT INSTANCE (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
                                      PROPERTY.REFERENCE)*)>
     <!ATTLIST INSTANCE
          %ClassName;
          xml:lang   NMTOKEN  #IMPLIED>
     """
-    def __init__(self, classname, properties = [], qualifiers = [],
-                 xml_lang = None):
+    def __init__(self, classname, properties=[], qualifiers=[],
+                 xml_lang=None):
         Element.__init__(self, 'INSTANCE')
         self.setAttribute('CLASSNAME', classname)
         self.setOptionalAttribute('xml:lang', xml_lang)
@@ -633,26 +634,26 @@ class QUALIFIER(CIMElement):
     the value.
 
     If the Qualifier has no assigned value then the VALUE element MUST
-    be absent. 
- 
+    be absent.
+
     <!ELEMENT QUALIFIER ((VALUE | VALUE.ARRAY)?)>
-    <!ATTLIST QUALIFIER 
+    <!ATTLIST QUALIFIER
         %CIMName;
-        %CIMType;               #REQUIRED 
+        %CIMType;               #REQUIRED
         %Propagated;
         %QualifierFlavor;
         xml:lang  NMTOKEN  #IMPLIED>
     """
-    
-    def __init__(self, name, type, value = None, propagated = None,
-                 overridable = None, tosubclass = None, toinstance = None,
-                 translatable = None, xml_lang = None):
+
+    def __init__(self, name, type, value=None, propagated=None,
+                 overridable=None, tosubclass=None, toinstance=None,
+                 translatable=None, xml_lang=None):
 
         Element.__init__(self, 'QUALIFIER')
 
         self.setName(name)
         self.setAttribute('TYPE', type)
-        
+
         if propagated is not None:
             self.setAttribute('PROPAGATED', str(propagated).lower())
 
@@ -673,32 +674,32 @@ class PROPERTY(CIMElement):
     """
     The PROPERTY element defines a single (non-array) CIM Property
     that is not a reference. It contains a single VALUE element
-    representing the value of the Property. 
+    representing the value of the Property.
 
     If the Property has no assigned value then the VALUE element MUST be
     absent.
 
     CIM Reference Properties are described using the
     PROPERTY.REFERENCE element.
- 
+
     <!ELEMENT PROPERTY (QUALIFIER*, VALUE?)>
-    <!ATTLIST PROPERTY 
+    <!ATTLIST PROPERTY
         %CIMName;
         %ClassOrigin;
         %Propagated;
-        %CIMType;           #REQUIRED 
+        %CIMType;           #REQUIRED
         xml:lang   NMTOKEN  #IMPLIED>
     """
 
-    def __init__(self, name, type, value = None, class_origin = None,
-                 propagated = None, qualifiers = [], xml_lang = None,
-                 embedded_object = None):
+    def __init__(self, name, type, value=None, class_origin=None,
+                 propagated=None, qualifiers=[], xml_lang=None,
+                 embedded_object=None):
 
         Element.__init__(self, 'PROPERTY')
 
         self.setName(name)
         self.setAttribute('TYPE', type)
-        
+
         self.setOptionalAttribute('CLASSORIGIN', class_origin)
 
         if propagated is not None:
@@ -714,27 +715,27 @@ class PROPERTY_ARRAY(CIMElement):
     """
     The PROPERTY.ARRAY element defines a single CIM Property with an
     array type. It contains a single VALUE.ARRAY element  representing
-    the value of the Property. 
+    the value of the Property.
 
     If the Property has no assigned value then the VALUE.ARRAY element
-    MUST be absent. 
+    MUST be absent.
 
     There is no element to model a Property that contains an array of
-    references as this is not a valid Property type according to CIM. 
- 
+    references as this is not a valid Property type according to CIM.
+
     <!ELEMENT PROPERTY.ARRAY (QUALIFIER*, VALUE.ARRAY?)>
-    <!ATTLIST PROPERTY.ARRAY 
+    <!ATTLIST PROPERTY.ARRAY
        %CIMName;
-       %CIMType;           #REQUIRED 
+       %CIMType;           #REQUIRED
        %ArraySize;
        %ClassOrigin;
        %Propagated;
        xml:lang   NMTOKEN  #IMPLIED>
     """
-    
-    def __init__(self, name, type, value_array = None, array_size = None,
-                 class_origin = None, propagated = None, qualifiers = [],
-                 xml_lang = None, embedded_object = None):
+
+    def __init__(self, name, type, value_array=None, array_size=None,
+                 class_origin=None, propagated=None, qualifiers=[],
+                 xml_lang=None, embedded_object=None):
 
         Element.__init__(self, 'PROPERTY.ARRAY')
 
@@ -748,7 +749,7 @@ class PROPERTY_ARRAY(CIMElement):
 
         if propagated is not None:
             self.setAttribute('PROPAGATED', str(propagated).lower())
-            
+
         self.setOptionalAttribute('xml:lang', xml_lang)
 
         self.appendChildren(qualifiers)
@@ -760,8 +761,8 @@ class PROPERTY_REFERENCE(CIMElement):
     reference semantics. In future the features of XML Linking may
     be used to identify linking elements within the XML Document; as
     XML Linking is currently only at Working Draft status no explicit
-    dependencies have been made at this point. 
- 
+    dependencies have been made at this point.
+
     <!ELEMENT PROPERTY.REFERENCE (QUALIFIER*, VALUE.REFERENCE?)>
     <!ATTLIST PROPERTY.REFERENCE
         %CIMName;
@@ -769,9 +770,9 @@ class PROPERTY_REFERENCE(CIMElement):
         %ClassOrigin;
         %Propagated;>
     """
-    
-    def __init__(self, name, value_reference = None, reference_class = None,
-                 class_origin = None, propagated = None, qualifiers = []):
+
+    def __init__(self, name, value_reference=None, reference_class=None,
+                 class_origin=None, propagated=None, qualifiers=[]):
 
         Element.__init__(self, 'PROPERTY.REFERENCE')
 
@@ -782,29 +783,29 @@ class PROPERTY_REFERENCE(CIMElement):
 
         if propagated is not None:
             self.setAttribute('PROPAGATED', str(propagated).lower());
-            
+
         self.appendChildren(qualifiers)
         self.appendOptionalChild(value_reference)
 
 class METHOD(CIMElement):
     """
     The METHOD element defines a single CIM Method. It may have
-    Qualifiers, and zero or more parameters. 
+    Qualifiers, and zero or more parameters.
 
     The order of the PARAMETER, PARAMETER.REFERENCE, PARAMETER.ARRAY
-    and PARAMETER.REFARRAY subelements is not significant. 
- 
+    and PARAMETER.REFARRAY subelements is not significant.
+
     <!ELEMENT METHOD (QUALIFIER*, (PARAMETER | PARAMETER.REFERENCE |
                                    PARAMETER.ARRAY | PARAMETER.REFARRAY)*)>
-    <!ATTLIST METHOD 
+    <!ATTLIST METHOD
         %CIMName;
-        %CIMType;          #IMPLIED 
+        %CIMType;          #IMPLIED
         %ClassOrigin;
         %Propagated;>
     """
-    
-    def __init__(self, name, parameters = [], return_type = None,
-                 class_origin = None, propagated = None, qualifiers = []):
+
+    def __init__(self, name, parameters=[], return_type=None,
+                 class_origin=None, propagated=None, qualifiers=[]):
 
         Element.__init__(self, 'METHOD')
 
@@ -815,22 +816,22 @@ class METHOD(CIMElement):
 
         if propagated is not None:
             self.setAttribute('PROPAGATED', str(propagated).lower())
-            
+
         self.appendChildren(qualifiers + parameters)
 
 class PARAMETER(CIMElement):
     """
     The PARAMETER element defines a single (non-array, non-reference)
     Parameter to a CIM Method. The parameter MAY have zero or more
-    Qualifiers. 
- 
+    Qualifiers.
+
     <!ELEMENT PARAMETER (QUALIFIER*)>
-    <!ATTLIST PARAMETER 
+    <!ATTLIST PARAMETER
         %CIMName;
         %CIMType;      #REQUIRED>
     """
-    
-    def __init__(self, name, type, qualifiers = []):
+
+    def __init__(self, name, type, qualifiers=[]):
         Element.__init__(self, 'PARAMETER')
         self.setName(name)
         self.setAttribute('TYPE', type)
@@ -841,14 +842,14 @@ class PARAMETER_REFERENCE(CIMElement):
     The PARAMETER.REFERENCE element defines a single reference
     Parameter to a CIM Method. The parameter MAY have zero or more
     Qualifiers.
- 
+
     <!ELEMENT PARAMETER.REFERENCE (QUALIFIER*)>
     <!ATTLIST PARAMETER.REFERENCE
         %CIMName;
         %ReferenceClass;>
     """
-    
-    def __init__(self, name, reference_class = None, qualifiers = []):
+
+    def __init__(self, name, reference_class=None, qualifiers=[]):
         Element.__init__(self, 'PARAMETER.REFERENCE')
         self.setName(name)
         self.setOptionalAttribute('REFERENCECLASS', reference_class)
@@ -859,15 +860,15 @@ class PARAMETER_ARRAY(CIMElement):
     The PARAMETER.ARRAY element defines a single Parameter to a CIM
     Method that has an array type. The parameter MAY have zero or more
     Qualifiers.
- 
+
     <!ELEMENT PARAMETER.ARRAY (QUALIFIER*)>
     <!ATTLIST PARAMETER.ARRAY
         %CIMName;
         %CIMType;           #REQUIRED
         %ArraySize;>
     """
-    
-    def __init__(self, name, type, array_size = None, qualifiers = []):
+
+    def __init__(self, name, type, array_size=None, qualifiers=[]):
         Element.__init__(self, 'PARAMETER.ARRAY')
         self.setName(name)
         self.setAttribute('TYPE', type)
@@ -879,17 +880,17 @@ class PARAMETER_REFARRAY(CIMElement):
     """
     The PARAMETER.REFARRAY element defines a single Parameter to a CIM
     Method that has an array of references type. The parameter MAY
-    have zero or more Qualifiers. 
- 
+    have zero or more Qualifiers.
+
     <!ELEMENT PARAMETER.REFARRAY (QUALIFIER*)>
     <!ATTLIST PARAMETER.REFARRAY
         %CIMName;
         %ReferenceClass;
         %ArraySize;>
     """
-    
-    def __init__(self, name, reference_class = None, array_size = None,
-                 qualifiers = []):
+
+    def __init__(self, name, reference_class=None, array_size=None,
+                 qualifiers=[]):
         Element.__init__(self, 'PARAMETER.REFARRAY')
         self.setName(name)
         self.setOptionalAttribute('REFERENCECLASS', reference_class)
@@ -902,7 +903,7 @@ class TABLECELL_DECLARATION(CIMElement):
     The TABLECELL.DECLARATION element describes a TABLECELL that is
     not a reference or an array of references.
 
-    
+
     <!ELEMENT TABLECELL.DECLARATION EMPTY>
     <!ATTLIST TABLECELL.DECLARATION
         %CIMName;
@@ -940,7 +941,7 @@ class TABLEROW_DECLARATION(CIMElement):
     <!ELEMENT TABLEROW.DECLARATION (TABLECELL.DECLARATION
                                     | TABLECELL.REFERENCE)*>
     """
-    
+
 class TABLE(CIMElement):
     """
     The TABLE element defines the result of a CIM Query.  A TABLE
@@ -976,7 +977,7 @@ class MESSAGE(CIMElement):
 	ID CDATA #REQUIRED
 	PROTOCOLVERSION CDATA #REQUIRED>
     """
-    
+
     def __init__(self, data, message_id, protocol_version):
         Element.__init__(self, 'MESSAGE')
         self.setAttribute('ID', message_id)
@@ -991,7 +992,7 @@ class MULTIREQ(CIMElement):
 
     <!ELEMENT MULTIREQ (SIMPLEREQ, SIMPLEREQ+)>
     """
-    
+
     def __init__(self, data):
         Element.__init__(self, 'MULTIREQ')
         self.appendChildren(data)
@@ -1000,11 +1001,11 @@ class MULTIEXPREQ(CIMElement):
     """
     The MULTIEXPREQ element defines a Multiple CIM Export request.  It
     contains two or more subelements defining the SIMPLEEXPREQ
-    elements that make up this multiple request. 
-    
+    elements that make up this multiple request.
+
     <!ELEMENT MULTIEXPREQ (SIMPLEEXPREQ, SIMPLEEXPREQ+)>
     """
-    
+
     def __init__(self, data):
         Element.__init__(self, 'MULTIEXPREQ')
         self.appendChildren(data)
@@ -1013,11 +1014,11 @@ class SIMPLEREQ(CIMElement):
     """
     The SIMPLEREQ element defines a Simple CIM Operation request.  It
     contains either a METHODCALL (extrinsic method) element or an
-    IMETHODCALL (intrinsic method) element. 
- 
+    IMETHODCALL (intrinsic method) element.
+
     <!ELEMENT SIMPLEREQ (IMETHODCALL | METHODCALL)>
     """
-    
+
     def __init__(self, data):
         Element.__init__(self, 'SIMPLEREQ')
         self.appendChild(data)
@@ -1025,11 +1026,11 @@ class SIMPLEREQ(CIMElement):
 class SIMPLEEXPREQ(CIMElement):
     """
     The SIMPLEEXPREQ element defines a Simple CIM Export request.  It
-    contains an EXPMETHODCALL (export method). 
-    
+    contains an EXPMETHODCALL (export method).
+
     <!ELEMENT SIMPLEEXPREQ (EXPMETHODCALL)>
     """
-    
+
     def __init__(self, data):
         Element.__init__(self, 'SIMPLEEXPREQ')
         self.appendChild(data)
@@ -1041,19 +1042,19 @@ class IMETHODCALL(CIMElement):
     zero or more IPARAMVALUE subelements as the parameter values to be
     passed to the method. If the RESPONSEDESTINATION element is
     specified, the intrinsic method call MUST be interpreted as an
-    asynchronous method call. 
-    
+    asynchronous method call.
+
     <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*,
                            RESPONSEDESTINATION?)>
     <!ATTLIST IMETHODCALL
 	%CIMName;>
     """
-    
-    def __init__(self, name, localnamespacepath, iparamvalues = [],
-        responsedestination = None):
+
+    def __init__(self, name, localnamespacepath, iparamvalues=[],
+                 responsedestination=None):
         Element.__init__(self, 'IMETHODCALL')
         self.setName(name)
-        self.appendChild(localnamespacepath)        
+        self.appendChild(localnamespacepath)
         self.appendChildren(iparamvalues)
         self.appendOptionalChild(responsedestination)
 
@@ -1064,16 +1065,16 @@ class METHODCALL(CIMElement):
     Class or Instance, followed by zero or more PARAMVALUE subelements
     as the parameter values to be passed to the method. If the
     RESPONSEDESTINATION element is specified, the method call MUST be
-    interpreted as an asynchronous method call. 
+    interpreted as an asynchronous method call.
 
     <!ELEMENT METHODCALL ((LOCALINSTANCEPATH | LOCALCLASSPATH), PARAMVALUE*,
                           RESPONSEDESTINATION?)>
     <!ATTLIST METHODCALL
 	%CIMName;>
     """
-    
-    def __init__(self, name, localpath, paramvalues = [],
-                 responsedestination = None):
+
+    def __init__(self, name, localpath, paramvalues=[],
+                 responsedestination=None):
         Element.__init__(self, 'METHODCALL')
         self.setName(name)
         self.appendChild(localpath)
@@ -1084,14 +1085,14 @@ class EXPMETHODCALL(CIMElement):
     """
     The EXPMETHODCALL element defines a single export method
     invocation.  It specifies zero or more  <EXPPARAMVALUE>
-    subelements as the parameter values to be passed to the method. 
-    
+    subelements as the parameter values to be passed to the method.
+
     <!ELEMENT EXPMETHODCALL (EXPPARAMVALUE*)>
     <!ATTLIST EXPMETHODCALL
 	%CIMName;>
     """
-    
-    def __init__(self, name, params = []):
+
+    def __init__(self, name, params=[]):
         Element.__init__(self, 'EXPMETHODCALL')
         self.setName(name)
         self.appendChildren(params)
@@ -1101,16 +1102,16 @@ class PARAMVALUE(CIMElement):
     The PARAMVALUE element defines a single extrinsic method named
     parameter value. If no subelement is present this indicates that
     no value has been supplied for this parameter.
-    
+
     <!ELEMENT PARAMVALUE (VALUE | VALUE.REFERENCE | VALUE.ARRAY |
                           VALUE.REFARRAY)?>
     <!ATTLIST PARAMVALUE
 	%CIMName;
-        %ParamType;    #IMPLIED>        
+        %ParamType;    #IMPLIED>
     """
-    
-    def __init__(self, name, data = None, paramtype = None, 
-                 embedded_object = None):
+
+    def __init__(self, name, data=None, paramtype=None,
+                 embedded_object=None):
         Element.__init__(self, 'PARAMVALUE')
         self.setName(name)
         self.setOptionalAttribute('PARAMTYPE', paramtype)
@@ -1121,7 +1122,7 @@ class IPARAMVALUE(CIMElement):
     """
     The IPARAMVALUE element defines a single intrinsic method named
     parameter value. If no subelement is present this indicates that
-    no value has been supplied for this parameter. 
+    no value has been supplied for this parameter.
 
     <!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
                            INSTANCENAME | CLASSNAME | QUALIFIER.DECLARATION |
@@ -1129,8 +1130,8 @@ class IPARAMVALUE(CIMElement):
     <!ATTLIST IPARAMVALUE
 	%CIMName;>
     """
-    
-    def __init__(self, name, data = None):
+
+    def __init__(self, name, data=None):
         Element.__init__(self, 'IPARAMVALUE')
         self.setName(name)
         self.appendOptionalChild(data)
@@ -1139,16 +1140,16 @@ class EXPPARAMVALUE(CIMElement):
     """
     The EXPPARAMVALUE element defines a single export method named
     parameter value.  If no subelement is present this indicates that
-    no value has been supplied for this parameter. 
-    
+    no value has been supplied for this parameter.
+
     <!ELEMENT EXPPARAMVALUE (INSTANCE? | VALUE? | METHODRESPONSE? |
                              IMETHODRESPONSE?)>
     <!ATTLIST EXPPARAMVALUE
 	%CIMName;
         %ParamType;  #IMPLIED>
     """
-    
-    def __init__(self, name, data = None, param_type = None):
+
+    def __init__(self, name, data=None, param_type=None):
         Element.__init__(self, 'EXPPARAMVALUE')
         self.setName(name)
         self.setOptionalAttribute('PARAMTYPE', param_type)
@@ -1158,11 +1159,11 @@ class MULTIRSP(CIMElement):
     """
     The MULTIRSP element defines a Multiple CIM Operation response.
     It contains two or more subelements defining the SIMPLERSP
-    elements that make up this multiple response. 
-    
+    elements that make up this multiple response.
+
     <!ELEMENT MULTIRSP (SIMPLERSP, SIMPLERSP+)>
     """
-    
+
     def __init__(self, data):
         Element.__init__(self, 'MULTIRSP')
         self.appendChildren(data)
@@ -1172,7 +1173,7 @@ class MULTIEXPRSP(CIMElement):
     The MULTIEXPRSP element defines a Multiple CIM Export response.
     It contains two or more subelements defining the SIMPLEEXPRSP
     elements that make up this multiple response.
-    
+
     <!ELEMENT MULTIEXPRSP (SIMPLEEXPRSP, SIMPLEEXPRSP+)>
     """
 
@@ -1185,11 +1186,11 @@ class SIMPLERSP(CIMElement):
     The SIMPLERSP element defines a Simple CIM Operation response.  It
     contains either a METHODRESPONSE (for extrinsic methods),
     IMETHODRESPONSE (for intrinsic methods) or a SIMPLEREQACK
-    subelement.  
-    
+    subelement.
+
     <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE | SIMPLEREQACK)>
     """
-    
+
     def __init__(self, data):
         Element.__init__(self, 'SIMPLERSP')
         self.appendChild(data)
@@ -1198,11 +1199,11 @@ class SIMPLEEXPRSP(CIMElement):
     """
     The SIMPLEEXPRSP element defines a Simple CIM Export response.  It
     contains either a EXPMETHODRESPONSE (for export methods)
-    subelement. 
-    
+    subelement.
+
     <!ELEMENT SIMPLEEXPRSP (EXPMETHODRESPONSE)>
     """
-    
+
     def __init__(self, data):
         Element.__init__(self, 'SIMPLEEXPRSP')
         self.appendChild(data)
@@ -1213,14 +1214,14 @@ class METHODRESPONSE(CIMElement):
     method invocation.  It contains either an ERROR subelement (to
     report a fundamental error which prevented the method from
     executing), or a combination of an optional return value and zero
-    or more out parameter values.  
-    
+    or more out parameter values.
+
     <!ELEMENT METHODRESPONSE (ERROR | (RETURNVALUE?, PARAMVALUE*))>
     <!ATTLIST METHODRESPONSE
 	%CIMName;>
     """
-    
-    def __init__(self, name, data = None):
+
+    def __init__(self, name, data=None):
         Element.__init__(self, 'METHODRESPONSE')
         self.setName(name)
         if data is not None:
@@ -1228,20 +1229,20 @@ class METHODRESPONSE(CIMElement):
                 self.appendChildren(data)
             else:
                 self.appendChild(data)
-            
+
 class EXPMETHODRESPONSE(CIMElement):
     """
     The EXPMETHODRESPONSE defines the response to a single export
     method invocation.  It contains either an ERROR subelement (to
     report a fundamental error which prevented the method from
-    executing), or an optional return value. 
-    
+    executing), or an optional return value.
+
     <!ELEMENT EXPMETHODRESPONSE (ERROR | IRETURNVALUE?)>
     <!ATTLIST EXPMETHODRESPONSE
 	%CIMName;>
     """
-    
-    def __init__(self, name, data = None):
+
+    def __init__(self, name, data=None):
         Element.__init__(self, 'EXPMETHODRESPONSE')
         self.setName(name)
         self.appendOptionalChild(data)
@@ -1251,14 +1252,14 @@ class IMETHODRESPONSE(CIMElement):
     The IMETHODRESPONSE defines the response to a single intrinsic CIM
     method invocation.  It contains either an ERROR subelement (to
     report a fundamental error which prevented the method from
-    executing), or an optional return value.  
-    
+    executing), or an optional return value.
+
     <!ELEMENT IMETHODRESPONSE (ERROR | IRETURNVALUE?)>
     <!ATTLIST IMETHODRESPONSE
 	%CIMName;>
     """
-    
-    def __init__(self, name, data = None):
+
+    def __init__(self, name, data=None):
         Element.__init__(self, 'IMETHODRESPONSE')
         self.setName(name)
         self.appendOptionalChild(data)
@@ -1268,15 +1269,15 @@ class ERROR(CIMElement):
     The ERROR element is used to define a fundamental error which
     prevented a method from executing normally. It consists of a
     status code, an optional description and zero or more instances
-    containing detailed information about the error. 
-    
+    containing detailed information about the error.
+
     <!ELEMENT ERROR (INSTANCE*)>
     <!ATTLIST ERROR
 	CODE CDATA #REQUIRED
 	DESCRIPTION CDATA #IMPLIED>
     """
-    
-    def __init__(self, code, description = None, instances = []):
+
+    def __init__(self, code, description=None, instances=[]):
         Element.__init__(self, 'ERROR')
         self.setAttribute('CODE', code)
         self.setOptionalAttribute('DESCRIPTION', description)
@@ -1285,14 +1286,14 @@ class ERROR(CIMElement):
 class RETURNVALUE(CIMElement):
     """
     The RETURNVALUE element specifies the value returned from an
-    extrinsic method call. 
-    
+    extrinsic method call.
+
     <!ELEMENT RETURNVALUE (VALUE | VALUE.REFERENCE)>
     <!ATTLIST RETURNVALUE
-        %ParamType;     #IMPLIED>                           
+        %ParamType;     #IMPLIED>
     """
-    
-    def __init__(self, data, param_type = None):
+
+    def __init__(self, data, param_type=None):
         Element.__init__(self, 'RETURNVALUE')
         self.setOptionalAttribute('PARAMTYPE', param_type)
         self.appendChild(data)
@@ -1300,8 +1301,8 @@ class RETURNVALUE(CIMElement):
 class IRETURNVALUE(CIMElement):
     """
     The IRETURNVALUE element specifies the value returned from an
-    intrinsic method call. 
-    
+    intrinsic method call.
+
     <!ELEMENT IRETURNVALUE (CLASSNAME* | INSTANCENAME* | VALUE* |
                             VALUE.OBJECTWITHPATH* |
                             VALUE.OBJECTWITHLOCALPATH* | VALUE.OBJECT* |
@@ -1309,7 +1310,7 @@ class IRETURNVALUE(CIMElement):
                             VALUE.ARRAY? | VALUE.REFERENCE? | CLASS* |
                             INSTANCE* | VALUE.NAMEDINSTANCE*)>
     """
-    
+
     def __init__(self, data):
         Element.__init__(self, 'IRETURNVALUE')
         self.appendOptionalChild(data)
@@ -1334,7 +1335,7 @@ class SIMPLEREQACK(CIMElement):
     request from being initiated.
 
     <!ELEMENT SIMPLEREQACK (ERROR?)>
-    <!ATTLIST SIMPLEREQACK 
+    <!ATTLIST SIMPLEREQACK
         INSTANCEID CDATA     #REQUIRED>
     """
 

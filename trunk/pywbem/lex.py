@@ -63,8 +63,8 @@ class LexToken(object):
     def __repr__(self):
         return str(self)
 
-# This object is a stand-in for a logging object created by the 
-# logging module.  
+# This object is a stand-in for a logging object created by the
+# logging module.
 
 class PlyLogger(object):
     def __init__(self,f):
@@ -422,7 +422,7 @@ def get_caller_module_dict(levels):
         e,b,t = sys.exc_info()
         f = t.tb_frame
         while levels > 0:
-            f = f.f_back                   
+            f = f.f_back
             levels -= 1
         ldict = f.f_globals.copy()
         if f.f_globals != f.f_locals:
@@ -491,7 +491,7 @@ def _form_master_re(relist,reflags,ldict,toknames):
                     lexindexfunc[i] = (None,None)
                 else:
                     lexindexfunc[i] = (None, toknames[f])
-        
+
         return [(lexre,lexindexfunc)],[regex],[lexindexnames]
     except Exception:
         m = int(len(relist)/2)
@@ -553,7 +553,7 @@ class LexerReflect(object):
         self.get_literals()
         self.get_states()
         self.get_rules()
-        
+
     # Validate all of the information
     def validate_all(self):
         self.validate_tokens()
@@ -573,7 +573,7 @@ class LexerReflect(object):
             self.log.error("tokens must be a list or tuple")
             self.error = 1
             return
-        
+
         if not tokens:
             self.log.error("tokens is empty")
             self.error = 1
@@ -675,7 +675,7 @@ class LexerReflect(object):
                     self.log.error("%s:%d: Rule '%s' must be defined as a string",file,line,t.__name__)
                     self.error = 1
                 else:
-                    for s in states: 
+                    for s in states:
                         self.funcsym[s].append((f,t))
             elif isinstance(t, StringTypes):
                 if tokname == 'ignore':
@@ -688,7 +688,7 @@ class LexerReflect(object):
                     self.log.error("Rule '%s' must be defined as a function", f)
                     self.error = 1
                 else:
-                    for s in states: 
+                    for s in states:
                         self.strsym[s].append((f,t))
             else:
                 self.log.error("%s not defined as a function or string", f)
@@ -710,12 +710,12 @@ class LexerReflect(object):
                 # Python 3.0
                 s.sort(key=lambda x: len(x[1]),reverse=True)
 
-    # Validate all of the t_rules collected 
+    # Validate all of the t_rules collected
     def validate_rules(self):
         for state in self.stateinfo:
             # Validate all rules defined by functions
 
-            
+
 
             for fname, f in self.funcsym[state]:
                 line = func_code(f).co_firstlineno
@@ -814,7 +814,7 @@ class LexerReflect(object):
     #
     # This checks to see if there are duplicated t_rulename() functions or strings
     # in the parser input file.  This is done using a simple regular expression
-    # match on each line in the given file.  
+    # match on each line in the given file.
     # -----------------------------------------------------------------------------
 
     def validate_file(self,filename):
@@ -847,7 +847,7 @@ class LexerReflect(object):
                     self.log.error("%s:%d: Rule %s redefined. Previously defined on line %d",filename,linen,name,prev)
                     self.error = 1
             linen += 1
-            
+
 # -----------------------------------------------------------------------------
 # lex(module)
 #
