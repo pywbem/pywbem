@@ -20,26 +20,23 @@
 #         Martin Pool <mbp@hp.com>
 #         Bart Whiteley <bwhiteley@suse.de>
 
-# This is meant to be safe for import *; ie the only global names
-# should be ones that all clients can see.
-
-import sys, string
-from types import StringTypes
-from xml.dom import minidom
-from datetime import datetime, timedelta
-
-from pywbem import cim_obj, cim_xml, cim_http, cim_types
-from pywbem.cim_obj import CIMClassName, CIMInstanceName, CIMInstance, \
-                           CIMClass, NocaseDict
-from pywbem.tupletree import dom_to_tupletree, xml_to_tupletree
-from pywbem.tupleparse import parse_cim
-
 """CIM-XML/HTTP operations.
 
 The WBEMConnection class opens a connection to a remote WBEM server.
 Across this you can run various CIM operations.  Each method of this
 object corresponds fairly directly to a single CIM method call.
 """
+
+# This module is meant to be safe for 'import *'.
+
+import string
+from types import StringTypes
+from xml.dom import minidom
+from datetime import datetime, timedelta
+
+from pywbem import cim_obj, cim_xml, cim_http, cim_types, tupletree, tupleparse
+from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
+                           CIMClassName, NocaseDict
 
 DEFAULT_NAMESPACE = 'root/cimv2'
 
@@ -200,7 +197,7 @@ class WBEMConnection(object):
 
         # Parse response
 
-        tt = parse_cim(dom_to_tupletree(reply_dom))
+        tt = tupleparse.parse_cim(tupletree.dom_to_tupletree(reply_dom))
 
         if tt[0] != 'CIM':
             raise CIMError(0, 'Expecting CIM element, got %s' % tt[0])
@@ -355,7 +352,7 @@ class WBEMConnection(object):
             resp_dom = minidom.parseString(resp_xml)
             self.last_reply = resp_dom.toprettyxml(indent='  ')
 
-        tt = parse_cim(xml_to_tupletree(resp_xml))
+        tt = tupleparse.parse_cim(tupletree.xml_to_tupletree(resp_xml))
 
         if tt[0] != 'CIM':
             raise CIMError(0, 'Expecting CIM element, got %s' % tt[0])
@@ -394,6 +391,7 @@ class WBEMConnection(object):
     #
 
     def EnumerateInstanceNames(self, ClassName, namespace=None, **params):
+        # pylint: disable=invalid-name
         """Enumerate instance names of a given classname.  Returns a
         list of CIMInstanceName objects."""
 
@@ -416,6 +414,7 @@ class WBEMConnection(object):
         return names
 
     def EnumerateInstances(self, ClassName, namespace=None, **params):
+        # pylint: disable=invalid-name
         """Enumerate instances of a given classname.  Returns a list
         of CIMInstance objects with paths."""
 
@@ -438,6 +437,7 @@ class WBEMConnection(object):
         return instances
 
     def GetInstance(self, InstanceName, **params):
+        # pylint: disable=invalid-name
         """Fetch an instance given by instancename.  Returns a
         CIMInstance object."""
 
@@ -465,6 +465,7 @@ class WBEMConnection(object):
         return instance
 
     def DeleteInstance(self, InstanceName, **params):
+        # pylint: disable=invalid-name
         """Delete the instance given by instancename."""
 
         # Strip off host and namespace to make this a "local" object
@@ -485,6 +486,7 @@ class WBEMConnection(object):
             **params)
 
     def CreateInstance(self, NewInstance, **params):
+        # pylint: disable=invalid-name
         """Create an instance.  Returns the name for the instance."""
 
         # Take namespace path from object parameter
@@ -513,6 +515,7 @@ class WBEMConnection(object):
         return name
 
     def ModifyInstance(self, ModifiedInstance, **params):
+        # pylint: disable=invalid-name
         """Modify properties of a named instance."""
 
         # Must pass a named CIMInstance here (i.e path attribute set)
@@ -538,6 +541,7 @@ class WBEMConnection(object):
             **params)
 
     def ExecQuery(self, QueryLanguage, Query, namespace=None):
+        # pylint: disable=invalid-name
         if namespace is None:
             namespace = self.default_namespace
         result = self.imethodcall(
@@ -564,11 +568,12 @@ class WBEMConnection(object):
 
         if params.has_key('ClassName') and \
            isinstance(params['ClassName'], StringTypes):
-            params['ClassName'] = cim_obj.CIMClassName(params['ClassName'])
+            params['ClassName'] = CIMClassName(params['ClassName'])
 
         return params
 
     def EnumerateClassNames(self, namespace=None, **params):
+        # pylint: disable=invalid-name
         """Return a list of CIM class names. Names are returned as strings."""
 
         params = self._map_classname_param(params)
@@ -587,6 +592,7 @@ class WBEMConnection(object):
             return map(lambda x: x.classname, result[2])
 
     def EnumerateClasses(self, namespace=None, **params):
+        # pylint: disable=invalid-name
         """Return a list of CIM class objects."""
 
         params = self._map_classname_param(params)
@@ -605,6 +611,7 @@ class WBEMConnection(object):
         return result[2]
 
     def GetClass(self, ClassName, namespace=None, **params):
+        # pylint: disable=invalid-name
         """Return a CIMClass representing the named class."""
 
         params = self._map_classname_param(params)
@@ -621,6 +628,7 @@ class WBEMConnection(object):
         return result[2][0]
 
     def DeleteClass(self, ClassName, namespace=None, **params):
+        # pylint: disable=invalid-name
         """Delete a class by class name."""
 
         # UNSUPPORTED (but actually works)
@@ -637,6 +645,7 @@ class WBEMConnection(object):
             **params)
 
     def ModifyClass(self, ModifiedClass, namespace=None, **params):
+        # pylint: disable=invalid-name
         """Modify a CIM class."""
 
         # UNSUPPORTED
@@ -651,6 +660,7 @@ class WBEMConnection(object):
             **params)
 
     def CreateClass(self, NewClass, namespace=None, **params):
+        # pylint: disable=invalid-name
         """Create a CIM class."""
 
         # UNSUPPORTED
@@ -692,15 +702,16 @@ class WBEMConnection(object):
 
         if params.has_key('ResultClass') and \
            isinstance(params['ResultClass'], StringTypes):
-            params['ResultClass'] = cim_obj.CIMClassName(params['ResultClass'])
+            params['ResultClass'] = CIMClassName(params['ResultClass'])
 
         if params.has_key('AssocClass') and \
            isinstance(params['AssocClass'], StringTypes):
-            params['AssocClass'] = cim_obj.CIMClassName(params['AssocClass'])
+            params['AssocClass'] = CIMClassName(params['AssocClass'])
 
         return params
 
     def Associators(self, ObjectName, **params):
+        # pylint: disable=invalid-name
         """Enumerate CIM classes or instances that are associated to a
         particular source CIM Object.  Pass a keyword parameter of
         'ClassName' to return associators for a CIM class, pass
@@ -726,6 +737,7 @@ class WBEMConnection(object):
         return map(lambda x: x[2], result[2])
 
     def AssociatorNames(self, ObjectName, **params):
+        # pylint: disable=invalid-name
         """Enumerate the names of CIM classes or instances names that are
         associated to a particular source CIM Object.  Pass a keyword
         parameter of 'ClassName' to return associator names for a CIM
@@ -753,6 +765,7 @@ class WBEMConnection(object):
         return map(lambda x: x[2], result[2])
 
     def References(self, ObjectName, **params):
+        # pylint: disable=invalid-name
         """Enumerate the association objects that refer to a
         particular target CIM class or instance.  Pass a keyword
         parameter of 'ClassName' to return associators for a CIM
@@ -779,6 +792,7 @@ class WBEMConnection(object):
         return map(lambda x: x[2], result[2])
 
     def ReferenceNames(self, ObjectName, **params):
+        # pylint: disable=invalid-name
         """Enumerate the name of association objects that refer to a
         particular target CIM class or instance.  Pass a keyword
         parameter of 'ClassName' to return associators for a CIM
@@ -809,6 +823,7 @@ class WBEMConnection(object):
     #
 
     def InvokeMethod(self, MethodName, ObjectName, **params):
+        # pylint: disable=invalid-name
 
         # Convert string to CIMClassName
 
@@ -852,6 +867,7 @@ class WBEMConnection(object):
     #
 
     def EnumerateQualifiers(self, namespace=None, **params):
+        # pylint: disable=invalid-name
         """Enumerate qualifier declarations.  Returns a list of
         CIMQualifier objects."""
 
@@ -873,6 +889,7 @@ class WBEMConnection(object):
         return names
 
     def GetQualifier(self, QualifierName, namespace=None, **params):
+        # pylint: disable=invalid-name
         """Retrieve a qualifier by name.  Returns a CIMQualifier
         object."""
 
@@ -891,6 +908,7 @@ class WBEMConnection(object):
         return names
 
     def SetQualifier(self, QualifierDeclaration, namespace=None, **params):
+        # pylint: disable=invalid-name
         """Set a qualifier."""
 
         if namespace is None:
@@ -903,6 +921,7 @@ class WBEMConnection(object):
             **params)
 
     def DeleteQualifier(self, QualifierName, namespace=None, **params):
+        # pylint: disable=invalid-name
         """Delete a qualifier by name."""
 
         if namespace is None:
@@ -954,11 +973,14 @@ def is_subclass(ch, ns, super, sub):
     return False
 
 def PegasusUDSConnection(creds=None, **kwargs):
+    # pylint: disable=invalid-name
     return WBEMConnection('/var/run/tog-pegasus/cimxml.socket', creds, **kwargs)
 
 def SFCBUDSConnection(creds=None, **kwargs):
+    # pylint: disable=invalid-name
     return WBEMConnection('/tmp/sfcbHttpSocket', creds, **kwargs)
 
 def OpenWBEMUDSConnection(creds=None, **kwargs):
+    # pylint: disable=invalid-name
     return WBEMConnection('/tmp/OW@LCL@APIIPC_72859_Xq47Bf_P9r761-5_J-7_Q',
                           creds, **kwargs)

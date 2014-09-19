@@ -7,11 +7,12 @@
 # produce an object that is identical to the one we started with.
 #
 
-from comfychair import main, TestCase
-from pywbem import *
+from pywbem import tupletree, tupleparse
+from pywbem import CIMInstance, CIMInstanceName, CIMClass, \
+                   CIMProperty, CIMParameter, CIMQualifier, \
+                   Uint8, Uint16, Uint32
 
-from pywbem.tupletree import xml_to_tupletree
-from pywbem.tupleparse import parse_any
+from comfychair import main, TestCase
 
 class TupleTest(TestCase):
 
@@ -24,7 +25,7 @@ class TupleTest(TestCase):
 
         # Parse back to an object
 
-        result = parse_any(xml_to_tupletree(xml))
+        result = tupleparse.parse_any(tupletree.xml_to_tupletree(xml))
         self.log('after:  %s' % result.tocimxml().toxml())
 
         # Assert that the before and after objects should be equal
@@ -37,7 +38,7 @@ class RawXMLTest(TestCase):
 
         # Parse raw XML to an object
 
-        result = parse_any(xml_to_tupletree(xml))
+        result = tupleparse.parse_any(tupletree.xml_to_tupletree(xml))
         self.log('parsed XML: %s' % result)
 
         # Assert XML parses to particular Python object

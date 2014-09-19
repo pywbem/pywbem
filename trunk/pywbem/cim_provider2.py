@@ -191,10 +191,8 @@ CodeGen
 
 """
 
-import sys
 from os.path import dirname
-import types
-import sys # for sys.modules
+from types import ModuleType
 import os
 import imp
 import threading
@@ -476,6 +474,7 @@ class CIMProvider2(object):
     def MI_enumInstanceNames(self,
                              env,
                              objPath):
+        # pylint: disable=invalid-name
         """Return instance names of a given CIM class
 
         Implements the WBEM operation EnumerateInstanceNames in terms
@@ -505,6 +504,7 @@ class CIMProvider2(object):
                          env,
                          objPath,
                          propertyList):
+        # pylint: disable=invalid-name
         """Return instances of a given CIM class
 
         Implements the WBEM operation EnumerateInstances in terms
@@ -531,6 +531,7 @@ class CIMProvider2(object):
                        env,
                        instanceName,
                        propertyList):
+        # pylint: disable=invalid-name
         """Return a specific CIM instance
 
         Implements the WBEM operation GetInstance in terms
@@ -558,6 +559,7 @@ class CIMProvider2(object):
     def MI_createInstance(self,
                           env,
                           instance):
+        # pylint: disable=invalid-name
         """Create a CIM instance, and return its instance name
 
         Implements the WBEM operation CreateInstance in terms
@@ -588,6 +590,7 @@ class CIMProvider2(object):
                           env,
                           modifiedInstance,
                           propertyList):
+        # pylint: disable=invalid-name
         """Modify a CIM instance
 
         Implements the WBEM operation ModifyInstance in terms
@@ -614,6 +617,7 @@ class CIMProvider2(object):
     def MI_deleteInstance(self,
                           env,
                           instanceName):
+        # pylint: disable=invalid-name
         """Delete a CIM instance
 
         Implements the WBEM operation DeleteInstance in terms
@@ -636,6 +640,7 @@ class CIMProvider2(object):
                        role,
                        resultRole,
                        propertyList):
+        # pylint: disable=invalid-name
         """Return instances associated to a given object.
 
         Implements the WBEM operation Associators in terms
@@ -702,6 +707,7 @@ class CIMProvider2(object):
                            resultClassName,
                            role,
                            resultRole):
+        # pylint: disable=invalid-name
         """Return instances names associated to a given object.
 
         Implements the WBEM operation AssociatorNames in terms
@@ -756,6 +762,7 @@ class CIMProvider2(object):
                       resultClassName,
                       role,
                       propertyList):
+        # pylint: disable=invalid-name
         """Return instances of an association class.
 
         Implements the WBEM operation References in terms
@@ -806,6 +813,7 @@ class CIMProvider2(object):
                           objectName,
                           resultClassName,
                           role):
+        # pylint: disable=invalid-name
         """Return instance names of an association class.
 
         Implements the WBEM operation ReferenceNames in terms
@@ -848,6 +856,7 @@ class CIMProvider2(object):
         logger.log_debug('CIMProvider2 MI_referenceNames returning')
 
     def MI_invokeMethod(self, env, objectName, methodName, inputParams):
+        # pylint: disable=invalid-name
         """Invoke an extrinsic method.
 
         Implements the InvokeMethod WBEM operation by calling the
@@ -1671,7 +1680,7 @@ class ProviderProxy(object):
 
     def __init__(self, env, provid):
         self.env = env
-        if isinstance(provid, types.ModuleType):
+        if isinstance(provid, ModuleType):
             self.provmod = provid
             self.provid = provid.__name__
             self.filename = provid.__file__
@@ -1780,6 +1789,7 @@ class ProviderProxy(object):
     def MI_enumInstanceNames(self,
                              env,
                              objPath):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('ProviderProxy MI_enumInstanceNames called...')
         self._reload_if_necessary(env)
@@ -1793,6 +1803,7 @@ class ProviderProxy(object):
                          env,
                          objPath,
                          propertyList):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_enumInstances called...')
         self._reload_if_necessary(env)
@@ -1808,6 +1819,7 @@ class ProviderProxy(object):
                        env,
                        instanceName,
                        propertyList):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_getInstance called...')
         self._reload_if_necessary(env)
@@ -1824,6 +1836,7 @@ class ProviderProxy(object):
     def MI_createInstance(self,
                           env,
                           instance):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_createInstance called...')
         self._reload_if_necessary(env)
@@ -1839,6 +1852,7 @@ class ProviderProxy(object):
                           env,
                           modifiedInstance,
                           propertyList):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_modifyInstance called...')
         self._reload_if_necessary(env)
@@ -1852,6 +1866,7 @@ class ProviderProxy(object):
     def MI_deleteInstance(self,
                           env,
                           instanceName):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_deleteInstance called...')
         self._reload_if_necessary(env)
@@ -1871,6 +1886,7 @@ class ProviderProxy(object):
                        role,
                        resultRole,
                        propertyList):
+        # pylint: disable=invalid-name
         # NOTE: This should honor the parameters resultClassName, role,
         #       resultRole, and propertyList
         logger = env.get_logger()
@@ -1918,6 +1934,7 @@ class ProviderProxy(object):
                            resultClassName,
                            role,
                            resultRole):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_associatorNames called. ' \
                          'assocClass: %s' % (assocClassName))
@@ -1960,6 +1977,7 @@ class ProviderProxy(object):
                       resultClassName,
                       role,
                       propertyList):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_references called. ' \
                          'resultClass: %s' % (resultClassName))
@@ -1997,6 +2015,7 @@ class ProviderProxy(object):
                           objectName,
                           resultClassName,
                           role):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_referenceNames <1> called. ' \
                          'resultClass: %s' % (resultClassName))
@@ -2038,6 +2057,7 @@ class ProviderProxy(object):
 #       output parameter.
 ##############################################################################
     def MI_invokeMethod(self, env, objectName, methodName, inputParams):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_invokeMethod called. ' \
                          'method: %s:%s' % (objectName.classname, methodName))
@@ -2054,6 +2074,7 @@ class ProviderProxy(object):
                            classname,
                            classPath,
                            owner):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_authorizeFilter called')
         self._reload_if_necessary(env)
@@ -2078,6 +2099,7 @@ class ProviderProxy(object):
                           namespace,
                           classes,
                           firstActivation):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_activateFilter called')
         self._reload_if_necessary(env)
@@ -2102,6 +2124,7 @@ class ProviderProxy(object):
                             namespace,
                             classes,
                             lastActivation):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_deActivateFilter called')
         self._reload_if_necessary(env)
@@ -2121,6 +2144,7 @@ class ProviderProxy(object):
 
 ##############################################################################
     def MI_enableIndications(self, env):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_enableIndications called')
         self._reload_if_necessary(env)
@@ -2139,6 +2163,7 @@ class ProviderProxy(object):
 ##############################################################################
     def MI_disableIndications(self,
                               env):
+        # pylint: disable=invalid-name
         logger = env.get_logger()
         logger.log_debug('CIMProvider2 MI_disableIndications called')
         self._reload_if_necessary(env)
@@ -2156,6 +2181,7 @@ class ProviderProxy(object):
 
 ##############################################################################
     def MI_shutdown(self, env):
+        # pylint: disable=invalid-name
         # shutdown may be called multiple times -- once per MI type
         # (instance/method/association/...)  We'll only do stuff on
         # the first time.
@@ -2171,6 +2197,7 @@ class ProviderProxy(object):
 
 ##############################################################################
     def MI_canunload(self, env):
+        # pylint: disable=invalid-name
         if hasattr(self.provmod, "can_unload"):
             return self.provmod.can_unload(env)
         else:
@@ -2178,6 +2205,7 @@ class ProviderProxy(object):
 
 ##############################################################################
     def MI_consumeIndication(self, env, destinationPath, indicationInstance):
+        # pylint: disable=invalid-name
 
         logger = env.get_logger()
         logger.log_debug('ProviderProxy MI_consumeIndication called')
@@ -2202,6 +2230,7 @@ class ProviderProxy(object):
                             ns,
                             handlerInstance,
                             indicationInstance):
+        # pylint: disable=invalid-name
 
         logger = env.get_logger()
         logger.log_debug('ProviderProxy MI_handleIndication called')

@@ -7,10 +7,11 @@
 # produce an object that is identical to the one we started with.
 #
 
-from comfychair import main, TestCase
-from pywbem import *
+from pywbem import cimxml_parse
+from pywbem import CIMInstance, CIMInstanceName, CIMProperty, CIMQualifier, \
+                   Uint8, Uint32
 
-from pywbem.cimxml_parse import parse_any
+from comfychair import main, TestCase
 
 class RoundTripTest(TestCase):
 
@@ -23,7 +24,7 @@ class RoundTripTest(TestCase):
 
         # Parse back to an object
 
-        p = parse_any(xml)
+        p = cimxml_parse.parse_any(xml)
         self.log('after:  %s' % p.tocimxml().toxml())
 
         # Assert that the before and after objects should be equal
@@ -37,7 +38,7 @@ class RawXMLTest(TestCase):
         # Parse raw XML to an object
 
         self.log('before: %s' % xml)
-        p = parse_any(xml)
+        p = cimxml_parse.parse_any(xml)
         self.log('after: %s' % p)
 
         # Assert XML parses to particular Python object

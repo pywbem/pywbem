@@ -4,10 +4,18 @@
 # be specific to OpenPegasus.
 #
 
+import sys
 from datetime import timedelta
 from types import StringTypes
+
+from pywbem.cim_constants import *
+from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
+                   WBEMConnection, CIMError, \
+                   Uint8, Uint16, Uint32, Uint64, \
+                   Sint8, Sint16, Sint32, Sint64,\
+                   Real32, Real64, CIMDateTime
+
 from comfychair import main, TestCase, NotRunError
-from pywbem import *
 
 # Test classes
 
@@ -318,7 +326,7 @@ class InvokeMethod(ClientTest):
                          String='Spotty',
                          Uint8=Uint8(1),
                          Sint8=Sint8(2),
-                         Uint16=Uint16(3),
+                         Uint16=Uint16(3), # TODO: Add Sint16
                          Uint32=Uint32(4),
                          Sint32=Sint32(5),
                          Uint64=Uint64(6),
@@ -343,7 +351,7 @@ class InvokeMethod(ClientTest):
                          StringArray='Spotty',
                          Uint8Array=[Uint8(1)],
                          Sint8Array=[Sint8(2)],
-                         Uint16Array=[Uint16(3)],
+                         Uint16Array=[Uint16(3)], # TODO: Add Sint16Array
                          Uint32Array=[Uint32(4)],
                          Sint32Array=[Sint32(5)],
                          Uint64Array=[Uint64(6)],

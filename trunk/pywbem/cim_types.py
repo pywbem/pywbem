@@ -26,6 +26,8 @@ uint8, uint16, uint32 etc, while still being able to treat it as a
 integer.
 """
 
+# This module is meant to be safe for 'import *'.
+
 from datetime import tzinfo, datetime, timedelta
 import re
 

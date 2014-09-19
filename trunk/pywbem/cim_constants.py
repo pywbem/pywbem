@@ -19,6 +19,8 @@
 
 """Useful CIM constants."""
 
+# This module is meant to be safe for 'import *'.
+
 # CIMError error code constants
 
 CIM_ERR_FAILED                       = 1  # A general error occurred

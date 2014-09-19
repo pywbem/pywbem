@@ -17,8 +17,12 @@
 
 # Author: Tim Potter <tpot@hp.com>
 
-from xml.dom.pulldom import *
-from pywbem import *
+import string
+from xml.dom import pulldom
+
+from pywbem import cim_obj
+from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMQualifier, \
+                           CIMProperty
 
 class ParseError(Exception):
     """This exception is raised when there is a validation error detected
@@ -51,17 +55,17 @@ def get_end_event(parser, tagName):
 
     (event, node) = parser.next()
 
-    if event != END_ELEMENT or node.tagName != tagName:
+    if event != pulldom.END_ELEMENT or node.tagName != tagName:
         raise ParseError(
             'Expecting %s end tag, got %s %s' % (tagName, event, node.tagName))
 
 def is_start(event, node, tagName):
     """Return true if (event, node) is a start event for tagname."""
-    return event == START_ELEMENT and node.tagName == tagName
+    return event == pulldom.START_ELEMENT and node.tagName == tagName
 
 def is_end(event, node, tagName):
     """Return true if (event, node) is an end event for tagname."""
-    return event == END_ELEMENT and node.tagName == tagName
+    return event == pulldom.END_ELEMENT and node.tagName == tagName
 
 # <!-- ************************************************** -->
 # <!-- Root element                                       -->
@@ -115,7 +119,7 @@ def parse_value(parser, event, node):
 
     (next_event, next_node) = parser.next()
 
-    if next_event == CHARACTERS:
+    if next_event == pulldom.CHARACTERS:
 
         value = next_node.nodeValue
 
@@ -260,7 +264,7 @@ def parse_host(parser, event, node):
 
     (next_event, next_node) = parser.next()
 
-    if next_event == CHARACTERS:
+    if next_event == pulldom.CHARACTERS:
 
         host = next_node.nodeValue
 
@@ -428,7 +432,7 @@ def parse_keyvalue(parser, event, node):
 
     (next_event, next_node) = parser.next()
 
-    if next_event != CHARACTERS:
+    if next_event != pulldom.CHARACTERS:
         raise ParseError('Expecting character data')
 
     value = next_node.nodeValue
@@ -546,9 +550,10 @@ def parse_instance(parser, event, node):
     if not is_end(next_event, next_node, 'INSTANCE'):
         raise ParseError('Expecting end INSTANCE')
 
-    return CIMInstance(classname,
-                       properties=dict([(x.name, x) for x in properties]),
-                       qualifiers=dict([(x.name, x) for x in qualifiers]))
+    return CIMInstance(
+        classname,
+        properties=dict([(x.name, x) for x in properties]),
+        qualifiers=dict([(x.name, x) for x in qualifiers]))
 
 # <!ELEMENT QUALIFIER ((VALUE | VALUE.ARRAY)?)>
 # <!ATTLIST QUALIFIER
@@ -577,7 +582,7 @@ def parse_qualifier(parser, event, node):
     else:
         raise ParseError('Expecting (VALUE | VALUE.ARRAY)')
 
-    result = CIMQualifier(name, tocimobj(type, value))
+    result = CIMQualifier(name, cim_obj.tocimobj(type, value))
 
     get_end_event(parser, 'QUALIFIER')
 
@@ -630,12 +635,13 @@ def parse_property(parser, event, node):
     if not is_end(next_event, next_node, 'PROPERTY'):
         raise ParseError('Expecting end PROPERTY')
 
-    return CIMProperty(name,
-                       tocimobj(type, value),
-                       type=type,
-                       class_origin=class_origin,
-                       propagated=propagated,
-                       qualifiers=dict([(x.name, x) for x in qualifiers]))
+    return CIMProperty(
+        name,
+        cim_obj.tocimobj(type, value),
+        type=type,
+        class_origin=class_origin,
+        propagated=propagated,
+        qualifiers=dict([(x.name, x) for x in qualifiers]))
 
 # <!ELEMENT PROPERTY.ARRAY (QUALIFIER*, VALUE.ARRAY?)>
 # <!ATTLIST PROPERTY.ARRAY
@@ -686,13 +692,14 @@ def parse_property_array(parser, event, node):
     if not is_end(next_event, next_node, 'PROPERTY.ARRAY'):
         raise ParseError('Expecting end PROPERTY.ARRAY')
 
-    return CIMProperty(name,
-                       tocimobj(type, value),
-                       type=type,
-                       class_origin=class_origin,
-                       propagated=propagated,
-                       is_array=True,
-                       qualifiers=dict([(x.name, x) for x in qualifiers]))
+    return CIMProperty(
+        name,
+        cim_obj.tocimobj(type, value),
+        type=type,
+        class_origin=class_origin,
+        propagated=propagated,
+        is_array=True,
+        qualifiers=dict([(x.name, x) for x in qualifiers]))
 
 # <!ELEMENT PROPERTY.REFERENCE (QUALIFIER*, (VALUE.REFERENCE)?)>
 # <!ATTLIST PROPERTY.REFERENCE
@@ -740,12 +747,13 @@ def parse_property_reference(parser, event, node):
     if not is_end(next_event, next_node, 'PROPERTY.REFERENCE'):
         raise ParseError('Expecting end PROPERTY.REFERENCE')
 
-    return CIMProperty(name,
-                       value,
-                       class_origin=class_origin,
-                       propagated=propagated,
-                       type='reference',
-                       qualifiers=dict([(x.name, x) for x in qualifiers]))
+    return CIMProperty(
+        name,
+        value,
+        class_origin=class_origin,
+        propagated=propagated,
+        type='reference',
+        qualifiers=dict([(x.name, x) for x in qualifiers]))
 
 # <!ELEMENT METHOD (QUALIFIER*, (PARAMETER | PARAMETER.REFERENCE |
 #                   PARAMETER.ARRAY | PARAMETER.REFARRAY)*)>
@@ -919,11 +927,11 @@ def make_parser(stream_or_string):
         # XXX: the pulldom.parseString() function doesn't seem to
         # like operating on unicode strings!
 
-        return parseString(str(stream_or_string))
+        return pulldom.parseString(str(stream_or_string))
 
     else:
 
-        return parse(stream_or_string)
+        return pulldom.parse(stream_or_string)
 
 def parse_any(stream_or_string):
     """Parse any XML string or stream."""
@@ -932,12 +940,12 @@ def parse_any(stream_or_string):
 
     (event, node) = parser.next()
 
-    if event != START_DOCUMENT:
+    if event != pulldom.START_DOCUMENT:
         raise ParseError('Expecting document start')
 
     (event, node) = parser.next()
 
-    if event != START_ELEMENT:
+    if event != pulldom.START_ELEMENT:
         raise ParseError('Expecting element start')
 
     fn_name = 'parse_%s' % node.tagName.lower().replace('.', '_')

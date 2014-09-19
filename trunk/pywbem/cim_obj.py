@@ -20,13 +20,6 @@
 #         Martin Pool <mbp@hp.com>
 #         Bart Whiteley <bwhiteley@suse.de>
 
-import string, re
-from types import StringTypes
-from datetime import datetime, timedelta
-
-from pywbem import cim_xml, cim_types
-from pywbem.cim_types import atomic_to_cim_xml, CIMDateTime
-
 """
 Representations of CIM Objects.
 
@@ -38,6 +31,14 @@ represented as a special Python object.
 These objects can also be mapped back into XML, by the toxml() method
 which returns a string.
 """
+
+# This module is meant to be safe for 'import *'.
+
+import string
+from types import StringTypes
+from datetime import datetime, timedelta
+
+from pywbem import cim_xml, cim_types
 
 class NocaseDict(object):
     """Yet another implementation of a case-insensitive dictionary."""
@@ -325,7 +326,7 @@ class CIMProperty(object):
         self.embedded_object = embedded_object
 
         if isinstance(value, (datetime, timedelta)):
-            value = CIMDateTime(value)
+            value = cim_types.CIMDateTime(value)
 
         import __builtin__
         if __builtin__.type(value) == list:
@@ -403,7 +404,8 @@ class CIMProperty(object):
                     if self.embedded_object is not None:
                         value = [v.tocimxml().toxml() for v in value]
                 value = cim_xml.VALUE_ARRAY(
-                    [cim_xml.VALUE(atomic_to_cim_xml(v)) for v in value])
+                    [cim_xml.VALUE(
+                        cim_types.atomic_to_cim_xml(v)) for v in value])
 
             return cim_xml.PROPERTY_ARRAY(
                 self.name,
@@ -435,7 +437,7 @@ class CIMProperty(object):
                 if self.embedded_object is not None:
                     value = value.tocimxml().toxml()
                 else:
-                    value = atomic_to_cim_xml(value)
+                    value = cim_types.atomic_to_cim_xml(value)
                 value = cim_xml.VALUE(value)
 
             return cim_xml.PROPERTY(
@@ -1320,12 +1322,12 @@ class CIMQualifierDeclaration(object):
         if self.value is not None:
             if isinstance(self.value, list):
                 mof += '{'
-                mof += ', '.join([atomic_to_cim_xml(tocimobj(self.type, x)) \
-                        for x in self.value])
+                mof += ', '.join([cim_types.atomic_to_cim_xml(
+                    tocimobj(self.type, x)) for x in self.value])
                 mof += '}'
             else:
-                mof += ' = %s' % atomic_to_cim_xml(tocimobj(self.type,
-                                                            self.value))
+                mof += ' = %s' % cim_types.atomic_to_cim_xml(
+                    tocimobj(self.type, self.value))
         mof += ',\n    '
         mof += 'Scope('
         mof += ', '.join([x.lower() for x, y in self.scopes.items() if y]) + ')'
@@ -1449,7 +1451,7 @@ def tocimobj(_type, value):
     # Datetime
 
     if _type == 'datetime':
-        return CIMDateTime(value)
+        return cim_types.CIMDateTime(value)
 
     # REF
     def partition(s, seq):
@@ -1522,7 +1524,7 @@ def tocimobj(_type, value):
                                 val = float(val)
                             except ValueError:
                                 try:
-                                    val = CIMDateTime(val)
+                                    val = cim_types.CIMDateTime(val)
                                 except ValueError:
                                     raise ValueError('Invalid key binding: %s'\
                                             % val)

@@ -48,10 +48,12 @@ always passes through all non-markup whitespace.
 
 """
 
-import sys, xml.dom.minidom
-from xml.dom.minidom import Document, Element
+import sys
+import xml.dom.minidom
+from xml.dom.minidom import Element
 
 def Text(data):
+    # pylint: disable=invalid-name
     """Grr.  The API for the minidom text node function has changed in
     Python 2.3.  This function allows the code to run under older
     versions of the intepreter."""
@@ -141,6 +143,7 @@ class DECLGROUP(CIMElement):
         self.appendChildren(data)
 
 class DECLGROUP_WITHNAME(CIMElement):
+    # pylint: disable=invalid-name
     """
     The DECLGROUP.WITHNAME element defines a logical set of CIM Class,
     Instance and Qualifier declarations.  It MAY optionally include a
@@ -157,6 +160,7 @@ class DECLGROUP_WITHNAME(CIMElement):
         self.appendChildren(data)
 
 class DECLGROUP_WITHPATH(CIMElement):
+    # pylint: disable=invalid-name
     """
     The DECLGROUP.WITHPATH element defines a logical set of CIM Class
     and Instance declarations.  Each object is declared with its own
@@ -171,6 +175,7 @@ class DECLGROUP_WITHPATH(CIMElement):
         self.appendChildren(data)
 
 class QUALIFIER_DECLARATION(CIMElement):
+    # pylint: disable=invalid-name
     """
     The QUALIFIER.DECLARATION element defines a single CIM Qualifier
     declaration.
@@ -262,6 +267,7 @@ class VALUE(CIMElement):
             self.appendChild(Text(pcdata))
 
 class VALUE_ARRAY(CIMElement):
+    # pylint: disable=invalid-name
     """
     The VALUE.ARRAY element is used to represent the value of a CIM
     Property or Qualifier that has an array type.
@@ -274,6 +280,7 @@ class VALUE_ARRAY(CIMElement):
         self.appendChildren(values)
 
 class VALUE_REFERENCE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The VALUE.REFERENCE element is used to define a single CIM
     reference Property value.
@@ -288,6 +295,7 @@ class VALUE_REFERENCE(CIMElement):
         self.appendChild(data)
 
 class VALUE_REFARRAY(CIMElement):
+    # pylint: disable=invalid-name
     """
     The VALUE.REFARRAY element is used to represent the value of an
     array of CIM references.
@@ -300,6 +308,7 @@ class VALUE_REFARRAY(CIMElement):
         self.appendChildren(data)
 
 class VALUE_OBJECT(CIMElement):
+    # pylint: disable=invalid-name
     """
     The VALUE.OBJECT element is used to define a value which is
     comprised of a single CIM Class or Instance definition.
@@ -312,6 +321,7 @@ class VALUE_OBJECT(CIMElement):
         self.appendChild(data)
 
 class VALUE_NAMEDINSTANCE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The VALUE.NAMEDINSTANCE element is used to define a value which
     is comprised of a single named CIM Instance definition.
@@ -325,6 +335,7 @@ class VALUE_NAMEDINSTANCE(CIMElement):
         self.appendChild(instance)
 
 class VALUE_NAMEDOBJECT(CIMElement):
+    # pylint: disable=invalid-name
     """
     The VALUE.NAMEDOBJECT element is used to define a value which
     is comprised of a single named CIM Class or Instance definition.
@@ -340,6 +351,7 @@ class VALUE_NAMEDOBJECT(CIMElement):
             self.appendChild(data)
 
 class VALUE_OBJECTWITHLOCALPATH(CIMElement):
+    # pylint: disable=invalid-name
     """
     The VALUE.OBJECTWITHLOCALPATH element is used to define a value
     which is comprised of a single CIM Object (Class or Instance)
@@ -356,6 +368,7 @@ class VALUE_OBJECTWITHLOCALPATH(CIMElement):
         self.appendChild(data2)
 
 class VALUE_OBJECTWITHPATH(CIMElement):
+    # pylint: disable=invalid-name
     """
     The VALUE.OBJECTWITHPATH element is used to define a value
     which is comprised of a single CIM Object (Class or Instance)
@@ -372,6 +385,7 @@ class VALUE_OBJECTWITHPATH(CIMElement):
         self.appendChild(data2)
 
 class VALUE_NULL(CIMElement):
+    # pylint: disable=invalid-name
     """
     The VALUE.NULL element is used to represent a TABLECELL that has
     no assigned value.
@@ -385,6 +399,7 @@ class VALUE_NULL(CIMElement):
 # Object naming and location elements
 
 class NAMESPACEPATH(CIMElement):
+    # pylint: disable=invalid-name
     """
     The NAMESPACEPATH element is used to define a Namespace Path. It
     consists of a HOST element and a LOCALNAMESPACE element.
@@ -398,6 +413,7 @@ class NAMESPACEPATH(CIMElement):
         self.appendChild(localnamespacepath)
 
 class LOCALNAMESPACEPATH(CIMElement):
+    # pylint: disable=invalid-name
     """
     The LOCALNAMESPACEPATH element is used to define a local Namespace
     path (one without a Host component). It consists of one or more
@@ -411,6 +427,7 @@ class LOCALNAMESPACEPATH(CIMElement):
         self.appendChildren(namespaces)
 
 class HOST(CIMElement):
+    # pylint: disable=invalid-name
     """
     The HOST element is used to define a single Host. The element
     content MUST specify a legal value for a hostname in accordance
@@ -424,6 +441,7 @@ class HOST(CIMElement):
         self.appendChild(Text(pcdata))
 
 class NAMESPACE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The NAMESPACE element is used to define a single Namespace
     component of a Namespace path.
@@ -438,6 +456,7 @@ class NAMESPACE(CIMElement):
         self.setName(name)
 
 class CLASSPATH(CIMElement):
+    # pylint: disable=invalid-name
     """
     The CLASSPATH element defines the absolute path to a CIM Class. It
     is formed from a namespace path and Class name.
@@ -452,6 +471,7 @@ class CLASSPATH(CIMElement):
 
 
 class LOCALCLASSPATH(CIMElement):
+    # pylint: disable=invalid-name
     """
     The LOCALCLASSPATH element defines the a local path to a CIM
     Class. It is formed from a local namespace path and Class name.
@@ -465,6 +485,7 @@ class LOCALCLASSPATH(CIMElement):
         self.appendChild(classname)
 
 class CLASSNAME(CIMElement):
+    # pylint: disable=invalid-name
     """
     The CLASSNAME element defines the qualifying name of a CIM Class.
 
@@ -478,6 +499,7 @@ class CLASSNAME(CIMElement):
         self.setName(classname)
 
 class INSTANCEPATH(CIMElement):
+    # pylint: disable=invalid-name
     """
     The INSTANCEPATH element defines the absolute path to a CIM
     Instance. It is comprised of a Namespace path and an Instance Name
@@ -492,6 +514,7 @@ class INSTANCEPATH(CIMElement):
         self.appendChild(instancename)
 
 class LOCALINSTANCEPATH(CIMElement):
+    # pylint: disable=invalid-name
     """
     The LOCALINSTANCEPATH element defines the local path to a CIM
     Instance. It is comprised of a local Namespace path and an
@@ -506,6 +529,7 @@ class LOCALINSTANCEPATH(CIMElement):
         self.appendChild(instancename)
 
 class INSTANCENAME(CIMElement):
+    # pylint: disable=invalid-name
     """
     The INSTANCENAME element defines the location of a CIM Instance
     within a Namespace (it is referred to in the CIM Specification
@@ -538,6 +562,7 @@ class INSTANCENAME(CIMElement):
                 self.appendChild(data)
 
 class OBJECTPATH(CIMElement):
+    # pylint: disable=invalid-name
     """
     The OBJECTPATH element is used to define a full path to a single
     CIM Object (Class or Instance).
@@ -550,6 +575,7 @@ class OBJECTPATH(CIMElement):
         self.appendChild(data)
 
 class KEYBINDING(CIMElement):
+    # pylint: disable=invalid-name
     """
     The KEYBINDING element defines a single key property value binding.
 
@@ -564,6 +590,7 @@ class KEYBINDING(CIMElement):
         self.appendChild(data)
 
 class KEYVALUE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The KEYVALUE element defines a single property key value when the
     key property is a non-reference type.
@@ -591,6 +618,7 @@ class KEYVALUE(CIMElement):
 # Object definition elements
 
 class CLASS(CIMElement):
+    # pylint: disable=invalid-name
     """
     The CLASS element defines a single CIM Class.
 
@@ -609,6 +637,7 @@ class CLASS(CIMElement):
         self.appendChildren(qualifiers + properties + methods)
 
 class INSTANCE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The INSTANCE element defines a single CIM Instance of a CIM Class.
 
@@ -626,6 +655,7 @@ class INSTANCE(CIMElement):
         self.appendChildren(qualifiers + properties)
 
 class QUALIFIER(CIMElement):
+    # pylint: disable=invalid-name
     """
     The QUALIFIER element defines a single CIM Qualifier. If the
     Qualifier has a non-array type, it contains a single VALUE element
@@ -671,6 +701,7 @@ class QUALIFIER(CIMElement):
         self.appendOptionalChild(value)
 
 class PROPERTY(CIMElement):
+    # pylint: disable=invalid-name
     """
     The PROPERTY element defines a single (non-array) CIM Property
     that is not a reference. It contains a single VALUE element
@@ -712,6 +743,7 @@ class PROPERTY(CIMElement):
         self.appendOptionalChild(value)
 
 class PROPERTY_ARRAY(CIMElement):
+    # pylint: disable=invalid-name
     """
     The PROPERTY.ARRAY element defines a single CIM Property with an
     array type. It contains a single VALUE.ARRAY element  representing
@@ -756,6 +788,7 @@ class PROPERTY_ARRAY(CIMElement):
         self.appendOptionalChild(value_array)
 
 class PROPERTY_REFERENCE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The PROPERTY.REFERENCE element models a single CIM Property with
     reference semantics. In future the features of XML Linking may
@@ -788,6 +821,7 @@ class PROPERTY_REFERENCE(CIMElement):
         self.appendOptionalChild(value_reference)
 
 class METHOD(CIMElement):
+    # pylint: disable=invalid-name
     """
     The METHOD element defines a single CIM Method. It may have
     Qualifiers, and zero or more parameters.
@@ -820,6 +854,7 @@ class METHOD(CIMElement):
         self.appendChildren(qualifiers + parameters)
 
 class PARAMETER(CIMElement):
+    # pylint: disable=invalid-name
     """
     The PARAMETER element defines a single (non-array, non-reference)
     Parameter to a CIM Method. The parameter MAY have zero or more
@@ -838,6 +873,7 @@ class PARAMETER(CIMElement):
         self.appendChildren(qualifiers)
 
 class PARAMETER_REFERENCE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The PARAMETER.REFERENCE element defines a single reference
     Parameter to a CIM Method. The parameter MAY have zero or more
@@ -856,6 +892,7 @@ class PARAMETER_REFERENCE(CIMElement):
         self.appendChildren(qualifiers)
 
 class PARAMETER_ARRAY(CIMElement):
+    # pylint: disable=invalid-name
     """
     The PARAMETER.ARRAY element defines a single Parameter to a CIM
     Method that has an array type. The parameter MAY have zero or more
@@ -877,6 +914,7 @@ class PARAMETER_ARRAY(CIMElement):
         self.appendChildren(qualifiers)
 
 class PARAMETER_REFARRAY(CIMElement):
+    # pylint: disable=invalid-name
     """
     The PARAMETER.REFARRAY element defines a single Parameter to a CIM
     Method that has an array of references type. The parameter MAY
@@ -899,6 +937,7 @@ class PARAMETER_REFARRAY(CIMElement):
         self.appendChildren(qualifiers)
 
 class TABLECELL_DECLARATION(CIMElement):
+    # pylint: disable=invalid-name
     """
     The TABLECELL.DECLARATION element describes a TABLECELL that is
     not a reference or an array of references.
@@ -916,6 +955,7 @@ class TABLECELL_DECLARATION(CIMElement):
     """
 
 class TABLECELL_REFERENCE(CIMElement):
+    # pylint: disable=invalid-name
     """
 
     The TABLECELL.REFERENCE element defines a TABLECELL that contains
@@ -933,6 +973,7 @@ class TABLECELL_REFERENCE(CIMElement):
      """
 
 class TABLEROW_DECLARATION(CIMElement):
+    # pylint: disable=invalid-name
     """
 
     The TABLEROW.DECLARATION element contains a definition for each
@@ -943,6 +984,7 @@ class TABLEROW_DECLARATION(CIMElement):
     """
 
 class TABLE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The TABLE element defines the result of a CIM Query.  A TABLE
     element consists of a TABLEROW.DECLARATION followed by 0 or more
@@ -952,6 +994,7 @@ class TABLE(CIMElement):
     """
 
 class TABLEROW(CIMElement):
+    # pylint: disable=invalid-name
     """
 
     The TABLEROW element defines the values for a single row of a
@@ -965,6 +1008,7 @@ class TABLEROW(CIMElement):
 # Message elements
 
 class MESSAGE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The MESSAGE element models a single CIM message.  This element is
     used as the basis for CIM Operation Messages and CIM Export
@@ -985,6 +1029,7 @@ class MESSAGE(CIMElement):
         self.appendChild(data)
 
 class MULTIREQ(CIMElement):
+    # pylint: disable=invalid-name
     """
     The MULTIREQ element defines a Multiple CIM Operation request.  It
     contains two or more subelements defining the SIMPLEREQ elements
@@ -998,6 +1043,7 @@ class MULTIREQ(CIMElement):
         self.appendChildren(data)
 
 class MULTIEXPREQ(CIMElement):
+    # pylint: disable=invalid-name
     """
     The MULTIEXPREQ element defines a Multiple CIM Export request.  It
     contains two or more subelements defining the SIMPLEEXPREQ
@@ -1011,6 +1057,7 @@ class MULTIEXPREQ(CIMElement):
         self.appendChildren(data)
 
 class SIMPLEREQ(CIMElement):
+    # pylint: disable=invalid-name
     """
     The SIMPLEREQ element defines a Simple CIM Operation request.  It
     contains either a METHODCALL (extrinsic method) element or an
@@ -1024,6 +1071,7 @@ class SIMPLEREQ(CIMElement):
         self.appendChild(data)
 
 class SIMPLEEXPREQ(CIMElement):
+    # pylint: disable=invalid-name
     """
     The SIMPLEEXPREQ element defines a Simple CIM Export request.  It
     contains an EXPMETHODCALL (export method).
@@ -1036,6 +1084,7 @@ class SIMPLEEXPREQ(CIMElement):
         self.appendChild(data)
 
 class IMETHODCALL(CIMElement):
+    # pylint: disable=invalid-name
     """
     The IMETHODCALL element defines a single intrinsic method
     invocation.  It specifies the target local namespace, followed by
@@ -1059,6 +1108,7 @@ class IMETHODCALL(CIMElement):
         self.appendOptionalChild(responsedestination)
 
 class METHODCALL(CIMElement):
+    # pylint: disable=invalid-name
     """
     The METHODCALL element defines a single method invocation on a
     Class or Instance.  It specifies the local path of the target
@@ -1082,6 +1132,7 @@ class METHODCALL(CIMElement):
         self.appendOptionalChild(responsedestination)
 
 class EXPMETHODCALL(CIMElement):
+    # pylint: disable=invalid-name
     """
     The EXPMETHODCALL element defines a single export method
     invocation.  It specifies zero or more  <EXPPARAMVALUE>
@@ -1098,6 +1149,7 @@ class EXPMETHODCALL(CIMElement):
         self.appendChildren(params)
 
 class PARAMVALUE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The PARAMVALUE element defines a single extrinsic method named
     parameter value. If no subelement is present this indicates that
@@ -1119,6 +1171,7 @@ class PARAMVALUE(CIMElement):
         self.appendOptionalChild(data)
 
 class IPARAMVALUE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The IPARAMVALUE element defines a single intrinsic method named
     parameter value. If no subelement is present this indicates that
@@ -1137,6 +1190,7 @@ class IPARAMVALUE(CIMElement):
         self.appendOptionalChild(data)
 
 class EXPPARAMVALUE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The EXPPARAMVALUE element defines a single export method named
     parameter value.  If no subelement is present this indicates that
@@ -1156,6 +1210,7 @@ class EXPPARAMVALUE(CIMElement):
         self.appendOptionalChild(data)
 
 class MULTIRSP(CIMElement):
+    # pylint: disable=invalid-name
     """
     The MULTIRSP element defines a Multiple CIM Operation response.
     It contains two or more subelements defining the SIMPLERSP
@@ -1169,6 +1224,7 @@ class MULTIRSP(CIMElement):
         self.appendChildren(data)
 
 class MULTIEXPRSP(CIMElement):
+    # pylint: disable=invalid-name
     """
     The MULTIEXPRSP element defines a Multiple CIM Export response.
     It contains two or more subelements defining the SIMPLEEXPRSP
@@ -1182,6 +1238,7 @@ class MULTIEXPRSP(CIMElement):
         self.appendChildren(data)
 
 class SIMPLERSP(CIMElement):
+    # pylint: disable=invalid-name
     """
     The SIMPLERSP element defines a Simple CIM Operation response.  It
     contains either a METHODRESPONSE (for extrinsic methods),
@@ -1196,6 +1253,7 @@ class SIMPLERSP(CIMElement):
         self.appendChild(data)
 
 class SIMPLEEXPRSP(CIMElement):
+    # pylint: disable=invalid-name
     """
     The SIMPLEEXPRSP element defines a Simple CIM Export response.  It
     contains either a EXPMETHODRESPONSE (for export methods)
@@ -1209,6 +1267,7 @@ class SIMPLEEXPRSP(CIMElement):
         self.appendChild(data)
 
 class METHODRESPONSE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The METHODRESPONSE defines the response to a single CIM extrinsic
     method invocation.  It contains either an ERROR subelement (to
@@ -1231,6 +1290,7 @@ class METHODRESPONSE(CIMElement):
                 self.appendChild(data)
 
 class EXPMETHODRESPONSE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The EXPMETHODRESPONSE defines the response to a single export
     method invocation.  It contains either an ERROR subelement (to
@@ -1248,6 +1308,7 @@ class EXPMETHODRESPONSE(CIMElement):
         self.appendOptionalChild(data)
 
 class IMETHODRESPONSE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The IMETHODRESPONSE defines the response to a single intrinsic CIM
     method invocation.  It contains either an ERROR subelement (to
@@ -1265,6 +1326,7 @@ class IMETHODRESPONSE(CIMElement):
         self.appendOptionalChild(data)
 
 class ERROR(CIMElement):
+    # pylint: disable=invalid-name
     """
     The ERROR element is used to define a fundamental error which
     prevented a method from executing normally. It consists of a
@@ -1284,6 +1346,7 @@ class ERROR(CIMElement):
         self.appendChildren(instances)
 
 class RETURNVALUE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The RETURNVALUE element specifies the value returned from an
     extrinsic method call.
@@ -1299,6 +1362,7 @@ class RETURNVALUE(CIMElement):
         self.appendChild(data)
 
 class IRETURNVALUE(CIMElement):
+    # pylint: disable=invalid-name
     """
     The IRETURNVALUE element specifies the value returned from an
     intrinsic method call.
@@ -1316,6 +1380,7 @@ class IRETURNVALUE(CIMElement):
         self.appendOptionalChild(data)
 
 class RESPONSEDESTINATION(CIMElement):
+    # pylint: disable=invalid-name
     """
     The RESPONSEDESTINATION element contains an instance that
     describes the desired destination for the response.
@@ -1328,6 +1393,7 @@ class RESPONSEDESTINATION(CIMElement):
         self.appendChild(data);
 
 class SIMPLEREQACK(CIMElement):
+    # pylint: disable=invalid-name
     """
     The SIMPLEREQACK defines the acknowledgement response to a Simple
     CIM Operation asynchronous request. The ERROR subelement is used

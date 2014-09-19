@@ -46,6 +46,9 @@ The CONTENTS is a list of child elements.
 The fourth element is reserved.
 """
 
+from types import StringTypes
+import xml.dom.minidom
+
 def dom_to_tupletree(node):
     """Convert a DOM object to a pyRXP-style tuple tree.
 
@@ -53,7 +56,6 @@ def dom_to_tupletree(node):
 
     Very nice for processing complex nested trees.
     """
-    import types
 
     if node.nodeType == node.DOCUMENT_NODE:
         # boring; pop down one level
@@ -68,7 +70,7 @@ def dom_to_tupletree(node):
         if child.nodeType == child.ELEMENT_NODE:
             contents.append(dom_to_tupletree(child))
         elif child.nodeType == child.TEXT_NODE:
-            assert isinstance(child.nodeValue, types.StringTypes), \
+            assert isinstance(child.nodeValue, StringTypes), \
                    "text node %s is not a string" % `child`
             contents.append(child.nodeValue)
         elif child.nodeType == child.CDATA_SECTION_NODE:
@@ -89,6 +91,5 @@ def dom_to_tupletree(node):
 
 def xml_to_tupletree(xml_string):
     """Parse XML straight into tupletree."""
-    import xml.dom.minidom
     dom_xml = xml.dom.minidom.parseString(xml_string)
     return dom_to_tupletree(dom_xml)

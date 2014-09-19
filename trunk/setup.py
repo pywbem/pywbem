@@ -20,9 +20,9 @@ management protocol.'''
 
 # Author: Tim Potter <tpot@hp.com>
 
-from distutils.core import setup, Extension
-import sys, string, os
-import shutil
+import sys
+import os
+from distutils.core import setup
 
 # Build the lex/yacc table .py files
 from pywbem import mof_compiler

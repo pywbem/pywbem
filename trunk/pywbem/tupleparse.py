@@ -73,12 +73,15 @@ representation of CIM in XML by having the following properties:
 # TODO: Implement qualifiers by making subclasses of CIM types with a
 # .qualifiers property.
 
-import string, types
+# This module is meant to be safe for 'import *'.
+
+import string
 from types import StringTypes
 
-from pywbem import cim_obj
-from pywbem.cim_obj import CIMProperty, byname
-from pywbem.tupletree import xml_to_tupletree
+from pywbem import cim_obj, tupletree
+from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
+                           CIMClassName, CIMProperty, CIMMethod, \
+                           CIMParameter, CIMQualifier, CIMQualifierDeclaration
 
 class ParseError(Exception):
     """This exception is raised when there is a validation error detected
@@ -102,9 +105,8 @@ def pcdata(tt):
     """Return the concatenated character data within a tt.
 
     The tt must not have non-character children."""
-    import types
     for x in tt[2]:
-        if not isinstance(x, types.StringTypes):
+        if not isinstance(x, StringTypes):
             raise ParseError, 'unexpected node %s under %s' % (`x`, `tt`)
     return ''.join(tt[2])
 
@@ -168,7 +170,7 @@ def check_node(tt, nodename, required_attrs=[], optional_attrs=[],
 
     if not allow_pcdata:
         for c in tt[2]:
-            if isinstance(c, types.StringTypes):
+            if isinstance(c, StringTypes):
                 if c.lstrip(' \t\n') <> '':
                     raise ParseError('unexpected non-blank pcdata node %s '
                                      'under %s' % (`c`, name(tt)))
@@ -521,7 +523,7 @@ def parse_classpath(tt):
     nspath = parse_namespacepath(kids(tt)[0])
     classname = parse_classname(kids(tt)[1])
 
-    return cim_obj.CIMClassName(classname.classname,
+    return CIMClassName(classname.classname,
                                 host=nspath[0], namespace=nspath[1])
 
 
@@ -539,7 +541,7 @@ def parse_localclasspath(tt):
     localnspath = parse_localnamespacepath(kids(tt)[0])
     classname = parse_classname(kids(tt)[1])
 
-    return cim_obj.CIMClassName(classname.classname, namespace=localnspath)
+    return CIMClassName(classname.classname, namespace=localnspath)
 
 def parse_classname(tt):
     """
@@ -548,7 +550,7 @@ def parse_classname(tt):
 	%CIMName;>
     """
     check_node(tt, 'CLASSNAME', ['NAME'], [], [])
-    return cim_obj.CIMClassName(attrs(tt)['NAME'])
+    return CIMClassName(attrs(tt)['NAME'])
 
 
 def parse_instancepath(tt):
@@ -593,8 +595,6 @@ def parse_instancename(tt):
 
     ## <!ELEMENT INSTANCENAME (KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?)>
     ## <!ATTLIST INSTANCENAME %ClassName;>
-
-    from cim_obj import CIMInstanceName
 
     check_node(tt, 'INSTANCENAME', ['CLASSNAME'])
 
@@ -712,13 +712,14 @@ def parse_class(tt):
     superclass = attrs(tt).get('SUPERCLASS')
 
     # TODO: Return these as maps, not lists
-    properties = byname(list_of_matching(tt, ['PROPERTY', 'PROPERTY.REFERENCE',
-                                              'PROPERTY.ARRAY']))
+    properties = cim_obj.byname(list_of_matching(tt, ['PROPERTY',
+                                                      'PROPERTY.REFERENCE',
+                                                      'PROPERTY.ARRAY']))
 
-    qualifiers = byname(list_of_matching(tt, ['QUALIFIER']))
-    methods = byname(list_of_matching(tt, ['METHOD']))
+    qualifiers = cim_obj.byname(list_of_matching(tt, ['QUALIFIER']))
+    methods = cim_obj.byname(list_of_matching(tt, ['METHOD']))
 
-    return cim_obj.CIMClass(attrs(tt)['NAME'],
+    return CIMClass(attrs(tt)['NAME'],
                             superclass=superclass,
                             properties=properties,
                             qualifiers=qualifiers,
@@ -750,7 +751,7 @@ def parse_instance(tt):
     props = list_of_matching(tt, ['PROPERTY.REFERENCE', 'PROPERTY',
                                   'PROPERTY.ARRAY'])
 
-    obj = cim_obj.CIMInstance(attrs(tt)['CLASSNAME'],
+    obj = CIMInstance(attrs(tt)['CLASSNAME'],
                               qualifiers=qualifiers)
 
     [obj.__setitem__(p.name, p) for p in props]
@@ -818,7 +819,7 @@ def parse_qualifier_declaration(tt):
                 raise ParseError("Multiple VALUE/VALUE.ARRAY tags encountered")
             value = cim_obj.tocimobj(type, parse_any(child))
 
-    return cim_obj.CIMQualifierDeclaration(qname, type, value, is_array,
+    return CIMQualifierDeclaration(qname, type, value, is_array,
                                            array_size, scopes, **flavors)
 
 
@@ -836,7 +837,7 @@ def parse_qualifier(tt):
 
     a = attrs(tt)
 
-    q = cim_obj.CIMQualifier(a['NAME'], unpack_value(tt), type=a['TYPE'])
+    q = CIMQualifier(a['NAME'], unpack_value(tt), type=a['TYPE'])
 
     ## TODO: Lift this out?
     for i in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE',
@@ -890,12 +891,12 @@ def parse_property(tt):
         val = parse_embeddedObject(val)
 
     return CIMProperty(a['NAME'],
-                       val,
-                       a['TYPE'],
-                       class_origin=a.get('CLASSORIGIN'),
-                       propagated=unpack_boolean(a.get('PROPAGATED')),
-                       qualifiers=quals,
-                       embedded_object=embedded_object)
+                               val,
+                               a['TYPE'],
+                               class_origin=a.get('CLASSORIGIN'),
+                               propagated=unpack_boolean(a.get('PROPAGATED')),
+                               qualifiers=quals,
+                               embedded_object=embedded_object)
 
 
 def parse_property_array(tt):
@@ -907,8 +908,6 @@ def parse_property_array(tt):
          %ClassOrigin;
          %Propagated;>
     """
-
-    from cim_obj import tocimobj
 
     check_node(tt, 'PROPERTY.ARRAY', ['NAME', 'TYPE'],
                ['REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED',
@@ -932,12 +931,12 @@ def parse_property_array(tt):
         values = parse_embeddedObject(values)
 
     obj = CIMProperty(a['NAME'],
-                      values,
-                      a['TYPE'],
-                      class_origin=a.get('CLASSORIGIN'),
-                      qualifiers=quals,
-                      is_array=True,
-                      embedded_object=embedded_object)
+                              values,
+                              a['TYPE'],
+                              class_origin=a.get('CLASSORIGIN'),
+                              qualifiers=quals,
+                              is_array=True,
+                              embedded_object=embedded_object)
 
     ## TODO: qualifiers, other attributes
     return obj
@@ -966,7 +965,7 @@ def parse_property_reference(tt):
         raise ParseError('Too many VALUE.REFERENCE elements.')
 
     attributes = attrs(tt)
-    pref = cim_obj.CIMProperty(attributes['NAME'], value, type='reference')
+    pref = CIMProperty(attributes['NAME'], value, type='reference')
 
     for q in list_of_matching(tt, ['QUALIFIER']):
         pref.qualifiers[q.name] = q
@@ -998,16 +997,16 @@ def parse_method(tt):
                ['QUALIFIER', 'PARAMETER', 'PARAMETER.REFERENCE',
                 'PARAMETER.ARRAY', 'PARAMETER.REFARRAY'])
 
-    qualifiers = byname(list_of_matching(tt, ['QUALIFIER']))
+    qualifiers = cim_obj.byname(list_of_matching(tt, ['QUALIFIER']))
 
-    parameters = byname(list_of_matching(tt, ['PARAMETER',
-                                              'PARAMETER.REFERENCE',
-                                              'PARAMETER.ARRAY',
-                                              'PARAMETER.REFARRAY',]))
+    parameters = cim_obj.byname(list_of_matching(tt, ['PARAMETER',
+                                                      'PARAMETER.REFERENCE',
+                                                      'PARAMETER.ARRAY',
+                                                      'PARAMETER.REFARRAY',]))
 
     a = attrs(tt)
 
-    return cim_obj.CIMMethod(a['NAME'],
+    return CIMMethod(a['NAME'],
                              return_type=a.get('TYPE'),
                              parameters=parameters,
                              qualifiers=qualifiers,
@@ -1031,7 +1030,7 @@ def parse_parameter(tt):
 
     a = attrs(tt)
 
-    return cim_obj.CIMParameter(a['NAME'], type=a['TYPE'], qualifiers=quals)
+    return CIMParameter(a['NAME'], type=a['TYPE'], qualifiers=quals)
 
 def parse_parameter_reference(tt):
     """
@@ -1049,7 +1048,7 @@ def parse_parameter_reference(tt):
 
     a = attrs(tt)
 
-    return cim_obj.CIMParameter(a['NAME'],
+    return CIMParameter(a['NAME'],
                                 type='reference',
                                 reference_class=a.get('REFERENCECLASS'),
                                 qualifiers=quals)
@@ -1077,7 +1076,7 @@ def parse_parameter_array(tt):
     if array_size is not None:
         array_size = int(array_size)
 
-    return cim_obj.CIMParameter(a['NAME'],
+    return CIMParameter(a['NAME'],
                                 type=a['TYPE'],
                                 is_array=True,
                                 array_size=array_size,
@@ -1106,7 +1105,7 @@ def parse_parameter_refarray(tt):
     if array_size is not None:
         array_size = int(array_size)
 
-    return cim_obj.CIMParameter(a['NAME'], 'reference',
+    return CIMParameter(a['NAME'], 'reference',
                                 is_array=True,
                                 reference_class=a.get('REFERENCECLASS'),
                                 array_size=array_size,
@@ -1409,7 +1408,7 @@ def parse_embeddedObject(val):
         return [parse_embeddedObject(obj) for obj in val]
     if val is None:
         return None
-    tt = xml_to_tupletree(val)
+    tt = tupletree.xml_to_tupletree(val)
     if tt[0] == 'INSTANCE':
         return parse_instance(tt)
     elif tt[0] == 'CLASS':

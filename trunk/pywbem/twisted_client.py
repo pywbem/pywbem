@@ -24,21 +24,25 @@ that perform WBEM requests over HTTP using the
 twisted.protocols.http.HTTPClient base class.
 """
 
-from twisted.internet import reactor, protocol, defer
-from twisted.web import http, client, error
-
-from pywbem import CIMClass, CIMClassName, CIMInstance, CIMInstanceName, \
-                   CIMError, CIMDateTime, cim_types, cim_xml, cim_obj
-
+import string
+import base64
+from types import StringTypes
+from datetime import datetime, timedelta
+import urllib
 try:
     from elementtree.ElementTree import fromstring, tostring
 except ImportError, arg:
     from xml.etree.ElementTree import fromstring, tostring
 
-import string, base64
+from twisted.internet import reactor, protocol, defer
+from twisted.web import http #, client, error
 
-from types import StringTypes
-from datetime import datetime, timedelta
+# TODO: Eww - we should get rid of the tupletree, tupleparse modules
+# and replace with elementtree based code.
+from pywbem import cim_types, cim_xml, cim_obj, tupleparse, tupletree
+from pywbem.cim_obj import CIMClass, CIMClassName, CIMInstance, CIMInstanceName
+from pywbem.cim_operations import CIMError
+from pywbem.cim_types import CIMDateTime
 
 class WBEMClient(http.HTTPClient):
     """A HTTPClient subclass that handles WBEM requests."""
@@ -98,7 +102,6 @@ class WBEMClient(http.HTTPClient):
     def handleHeader(self, key, value):
         """Handle header values."""
 
-        import urllib
         if key == 'CIMError':
             self.CIMError = urllib.unquote(value)
         if key == 'PGErrorDetail':
@@ -152,13 +155,13 @@ class WBEMClientFactory(protocol.ClientFactory):
         param_list = [pywbem.IPARAMVALUE(x[0], pywbem.tocimxml(x[1]))
                       for x in kwargs.items()]
 
-        payload = pywbem.CIM(
-            pywbem.MESSAGE(
-                pywbem.SIMPLEREQ(
-                    pywbem.IMETHODCALL(
+        payload = cim_xml.CIM(
+            cim_xml.MESSAGE(
+                cim_xml.SIMPLEREQ(
+                    cim_xml.IMETHODCALL(
                         methodname,
-                        pywbem.LOCALNAMESPACEPATH(
-                            [pywbem.NAMESPACE(ns)
+                        cim_xml.LOCALNAMESPACEPATH(
+                            [cim_xml.NAMESPACE(ns)
                              for ns in string.split(localnsp, '/')]),
                         param_list)),
                 '1001', '1.0'),
@@ -176,15 +179,15 @@ class WBEMClientFactory(protocol.ClientFactory):
             path.host = None
             path.namespace = None
 
-            localpath = pywbem.LOCALINSTANCEPATH(
-                pywbem.LOCALNAMESPACEPATH(
-                    [pywbem.NAMESPACE(ns)
+            localpath = cim_xml.LOCALINSTANCEPATH(
+                cim_xml.LOCALNAMESPACEPATH(
+                    [cim_xml.NAMESPACE(ns)
                      for ns in string.split(namespace, '/')]),
                 path.tocimxml())
         else:
-            localpath = pywbem.LOCALCLASSPATH(
-                pywbem.LOCALNAMESPACEPATH(
-                    [pywbem.NAMESPACE(ns)
+            localpath = cim_xml.LOCALCLASSPATH(
+                cim_xml.LOCALNAMESPACEPATH(
+                    [cim_xml.NAMESPACE(ns)
                      for ns in string.split(namespace, '/')]),
                 obj)
 
@@ -223,15 +226,15 @@ class WBEMClientFactory(protocol.ClientFactory):
                 return cim_xml.VALUE_ARRAY([paramvalue(x) for x in obj])
             raise TypeError('Unsupported parameter type "%s"' % type(obj))
 
-        param_list = [pywbem.PARAMVALUE(x[0],
+        param_list = [cim_xml.PARAMVALUE(x[0],
                                         paramvalue(x[1]),
                                         paramtype(x[1]))
                       for x in kwargs.items()]
 
-        payload = pywbem.CIM(
-            pywbem.MESSAGE(
-                pywbem.SIMPLEREQ(
-                    pywbem.METHODCALL(methodname,
+        payload = cim_xml.CIM(
+            cim_xml.MESSAGE(
+                cim_xml.SIMPLEREQ(
+                    cim_xml.METHODCALL(methodname,
                                       localpath,
                                       param_list)),
                 '1001', '1.0'),
@@ -263,11 +266,6 @@ class WBEMClientFactory(protocol.ClientFactory):
 
         pass
 
-# TODO: Eww - we should get rid of the tupletree, tupleparse modules
-# and replace with elementtree based code.
-
-import pywbem.tupletree
-
 class EnumerateInstances(WBEMClientFactory):
     """Factory to produce EnumerateInstances WBEM clients."""
 
@@ -296,10 +294,10 @@ class EnumerateInstances(WBEMClientFactory):
 
     def parseResponse(self, xml):
 
-        tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
+        tt = [tupletree.xml_to_tupletree(tostring(x))
               for x in xml.findall('.//VALUE.NAMEDINSTANCE')]
 
-        return [pywbem.tupleparse.parse_value_namedinstance(x) for x in tt]
+        return [tupleparse.parse_value_namedinstance(x) for x in tt]
 
 class EnumerateInstanceNames(WBEMClientFactory):
     """Factory to produce EnumerateInstanceNames WBEM clients."""
@@ -329,10 +327,10 @@ class EnumerateInstanceNames(WBEMClientFactory):
 
     def parseResponse(self, xml):
 
-        tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
+        tt = [tupletree.xml_to_tupletree(tostring(x))
               for x in xml.findall('.//INSTANCENAME')]
 
-        names = [pywbem.tupleparse.parse_instancename(x) for x in tt]
+        names = [tupleparse.parse_instancename(x) for x in tt]
 
         [setattr(n, 'namespace', self.namespace) for n in names]
 
@@ -366,10 +364,10 @@ class GetInstance(WBEMClientFactory):
 
     def parseResponse(self, xml):
 
-        tt = pywbem.tupletree.xml_to_tupletree(
+        tt = tupletree.xml_to_tupletree(
             tostring(xml.find('.//INSTANCE')))
 
-        return pywbem.tupleparse.parse_instance(tt)
+        return tupleparse.parse_instance(tt)
 
 class DeleteInstance(WBEMClientFactory):
     """Factory to produce DeleteInstance WBEM clients."""
@@ -420,10 +418,10 @@ class CreateInstance(WBEMClientFactory):
 
     def parseResponse(self, xml):
 
-        tt = pywbem.tupletree.xml_to_tupletree(
+        tt = tupletree.xml_to_tupletree(
             tostring(xml.find('.//INSTANCENAME')))
 
-        return pywbem.tupleparse.parse_instancename(tt)
+        return tupleparse.parse_instancename(tt)
 
 class ModifyInstance(WBEMClientFactory):
     """Factory to produce ModifyInstance WBEM clients."""
@@ -475,10 +473,10 @@ class EnumerateClassNames(WBEMClientFactory):
 
     def parseResponse(self, xml):
 
-        tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
+        tt = [tupletree.xml_to_tupletree(tostring(x))
               for x in xml.findall('.//CLASSNAME')]
 
-        return [pywbem.tupleparse.parse_classname(x) for x in tt]
+        return [tupleparse.parse_classname(x) for x in tt]
 
 class EnumerateClasses(WBEMClientFactory):
     """Factory to produce EnumerateClasses WBEM clients."""
@@ -506,10 +504,10 @@ class EnumerateClasses(WBEMClientFactory):
 
     def parseResponse(self, xml):
 
-        tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
+        tt = [tupletree.xml_to_tupletree(tostring(x))
               for x in xml.findall('.//CLASS')]
 
-        return [pywbem.tupleparse.parse_class(x) for x in tt]
+        return [tupleparse.parse_class(x) for x in tt]
 
 class GetClass(WBEMClientFactory):
     """Factory to produce GetClass WBEM clients."""
@@ -539,10 +537,10 @@ class GetClass(WBEMClientFactory):
 
     def parseResponse(self, xml):
 
-        tt = pywbem.tupletree.xml_to_tupletree(
+        tt = tupletree.xml_to_tupletree(
             tostring(xml.find('.//CLASS')))
 
-        return pywbem.tupleparse.parse_class(tt)
+        return tupleparse.parse_class(tt)
 
 class Associators(WBEMClientFactory):
     """Factory to produce Associators WBEM clients."""
@@ -598,17 +596,17 @@ class AssociatorNames(WBEMClientFactory):
 
         if len(xml.findall('.//INSTANCENAME')) > 0:
 
-            tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
+            tt = [tupletree.xml_to_tupletree(tostring(x))
                   for x in xml.findall('.//INSTANCENAME')]
 
-            return [pywbem.tupleparse.parse_instancename(x) for x in tt]
+            return [tupleparse.parse_instancename(x) for x in tt]
 
         else:
 
-            tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
+            tt = [tupletree.xml_to_tupletree(tostring(x))
                   for x in xml.findall('.//OBJECTPATH')]
 
-            return [pywbem.tupleparse.parse_objectpath(x)[2] for x in tt]
+            return [tupleparse.parse_objectpath(x)[2] for x in tt]
 
 class References(WBEMClientFactory):
     """Factory to produce References WBEM clients."""
@@ -662,17 +660,17 @@ class ReferenceNames(WBEMClientFactory):
 
         if len(xml.findall('.//INSTANCENAME')) > 0:
 
-            tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
+            tt = [tupletree.xml_to_tupletree(tostring(x))
                   for x in xml.findall('.//INSTANCENAME')]
 
-            return [pywbem.tupleparse.parse_instancename(x) for x in tt]
+            return [tupleparse.parse_instancename(x) for x in tt]
 
         else:
 
-            tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
+            tt = [tupletree.xml_to_tupletree(tostring(x))
                   for x in xml.findall('.//OBJECTPATH')]
 
-            return [pywbem.tupleparse.parse_objectpath(x)[2] for x in tt]
+            return [tupleparse.parse_objectpath(x)[2] for x in tt]
 
 class InvokeMethod(WBEMClientFactory):
     """Factory to produce InvokeMethod WBEM clients."""
@@ -711,20 +709,20 @@ class InvokeMethod(WBEMClientFactory):
 
         # Return value of method
 
-        result_xml = pywbem.tupletree.xml_to_tupletree(
+        result_xml = tupletree.xml_to_tupletree(
             tostring(xml.find('.//RETURNVALUE')))
 
-        result_tt = pywbem.tupleparse.parse_any(result_xml)
+        result_tt = tupleparse.parse_any(result_xml)
 
         result = cim_obj.tocimobj(result_tt[1]['PARAMTYPE'],
                                   result_tt[2])
 
         # Output parameters
 
-        params_xml = [pywbem.tupletree.xml_to_tupletree(tostring(x))
+        params_xml = [tupletree.xml_to_tupletree(tostring(x))
                       for x in xml.findall('.//PARAMVALUE')]
 
-        params_tt = [pywbem.tupleparse.parse_any(x) for x in params_xml]
+        params_tt = [tupleparse.parse_any(x) for x in params_xml]
 
         params = {}
 

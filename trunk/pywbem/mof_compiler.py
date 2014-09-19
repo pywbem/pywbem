@@ -22,11 +22,11 @@ import sys
 import os
 from getpass import getpass
 
-from pywbem import lex
-from pywbem import yacc
-from pywbem.lex import TOKEN
+from pywbem import lex, yacc, cim_obj
+from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
+                           CIMProperty, CIMMethod, CIMParameter, \
+                           CIMQualifier, CIMQualifierDeclaration, NocaseDict
 from pywbem.cim_operations import CIMError, WBEMConnection
-from pywbem.cim_obj import *
 from pywbem.cim_constants import *
 
 _optimize = 1
@@ -141,7 +141,7 @@ t_stringValue = r'"(%s)*"' % sChar
 
 identifier_re = r'([a-zA-Z_]|(%s))([0-9a-zA-Z_]|(%s))*' % (utf8Char, utf8Char)
 
-@TOKEN(identifier_re)
+@lex.TOKEN(identifier_re)
 def t_IDENTIFIER(t):
     # check for reserved word
     t.type = reserved.get(t.value.lower(), 'IDENTIFIER')
@@ -225,11 +225,13 @@ def _create_ns(p, handle, ns):
         # To create a namespace in Pegasus, create an instance of
         # __Namespace with  __Namespace.Name = '', and create it in
         # the target namespace to be created.
-        inst = CIMInstance('__Namespace',
-                           properties={'Name':''},
-                           path=CIMInstanceName('__Namespace',
-                                                keybindings={'Name':''},
-                                                namespace=ns))
+        inst = CIMInstance(
+            '__Namespace',
+            properties={'Name':''},
+            path=CIMInstanceName(
+                '__Namespace',
+                keybindings={'Name':''},
+                namespace=ns))
         try:
             handle.CreateInstance(inst)
         except CIMError, ce:
@@ -238,11 +240,13 @@ def _create_ns(p, handle, ns):
                 raise
 
     elif cimom_type == 'proper':
-        inst = CIMInstance('CIM_Namespace',
-                           properties={'Name': ns},
-                           path=CIMInstanceName('CIM_Namespace',
-                                                namespace='root',
-                                                keybindings={'Name':ns}))
+        inst = CIMInstance(
+            'CIM_Namespace',
+            properties={'Name': ns},
+            path=CIMInstanceName(
+                'CIM_Namespace',
+                namespace='root',
+                keybindings={'Name':ns}))
         handle.CreateInstance(inst)
 
 
@@ -493,7 +497,7 @@ def p_classDeclaration(p):
         else:
             props[item.name] = item
     p[0] = CIMClass(cname, properties=props, methods=methods,
-                    superclass=superclass, qualifiers=quals)
+                            superclass=superclass, qualifiers=quals)
     if alias:
         p.parser.aliases[alias] = p[0]
 
@@ -565,7 +569,7 @@ def _assoc_or_indic_decl(quals, p):
             props[item.name] = item
     quals = dict([(x.name, x) for x in quals])
     cc = CIMClass(cname, properties=props, methods=methods,
-                  superclass=superclass, qualifiers=quals)
+                          superclass=superclass, qualifiers=quals)
     if alias:
         p.parser.aliases[alias] = cc
     return cc
@@ -670,7 +674,7 @@ def p_qualifier(p):
         else:
             qval = qualdecl.value # default value
     else:
-        qval = tocimobj(qualdecl.type, qval)
+        qval = cim_obj.tocimobj(qualdecl.type, qval)
     p[0] = CIMQualifier(qname, qval, type=qualdecl.type, **flavors)
     # TODO propagated?
 
@@ -724,12 +728,12 @@ def p_propertyDeclaration_2(p):
 def p_propertyDeclaration_3(p):
     """propertyDeclaration_3 : dataType propertyName array ';'"""
     p[0] = CIMProperty(p[2], None, type=p[1], is_array=True,
-                       array_size=p[3])
+                               array_size=p[3])
 
 def p_propertyDeclaration_4(p):
     """propertyDeclaration_4 : dataType propertyName array defaultValue ';'"""
     p[0] = CIMProperty(p[2], p[4], type=p[1], is_array=True,
-                       array_size=p[3])
+                               array_size=p[3])
 
 def p_propertyDeclaration_5(p):
     """propertyDeclaration_5 : qualifierList dataType propertyName ';'"""
@@ -740,22 +744,22 @@ def p_propertyDeclaration_6(p):
     """propertyDeclaration_6 : qualifierList dataType propertyName
                                defaultValue ';'"""
     quals = dict([(x.name, x) for x in p[1]])
-    p[0] = CIMProperty(p[3], tocimobj(p[2], p[4]),
-                       type=p[2], qualifiers=quals)
+    p[0] = CIMProperty(p[3], cim_obj.tocimobj(p[2], p[4]),
+                               type=p[2], qualifiers=quals)
 
 def p_propertyDeclaration_7(p):
     """propertyDeclaration_7 : qualifierList dataType propertyName array ';'"""
     quals = dict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], None, type=p[2], qualifiers=quals,
-                       is_array=True, array_size=p[4])
+                               is_array=True, array_size=p[4])
 
 def p_propertyDeclaration_8(p):
     """propertyDeclaration_8 : qualifierList dataType propertyName array
                                defaultValue ';'"""
     quals = dict([(x.name, x) for x in p[1]])
-    p[0] = CIMProperty(p[3], tocimobj(p[2], p[5]),
-                       type=p[2], qualifiers=quals, is_array=True,
-                       array_size=p[4])
+    p[0] = CIMProperty(p[3], cim_obj.tocimobj(p[2], p[5]),
+                               type=p[2], qualifiers=quals, is_array=True,
+                               array_size=p[4])
 
 def p_referenceDeclaration(p):
     """referenceDeclaration :
@@ -779,7 +783,7 @@ def p_referenceDeclaration(p):
             dv = p[3]
     quals = dict([(x.name, x) for x in quals])
     p[0] = CIMProperty(pname, dv, type='reference',
-                       reference_class=cname, qualifiers=quals)
+                               reference_class=cname, qualifiers=quals)
 
 def p_methodDeclaration(p):
     """methodDeclaration :
@@ -804,7 +808,7 @@ def p_methodDeclaration(p):
     params = dict([(param.name, param) for param in paramlist])
     quals = dict([(q.name, q) for q in quals])
     p[0] = CIMMethod(mname, return_type=dt, parameters=params,
-                     qualifiers=quals)
+                             qualifiers=quals)
     # note: class_origin is set when adding method to class.
     # TODO what to do with propagated?
 
@@ -888,7 +892,8 @@ def p_parameter_3(p):
     if len(p) == 4:
         args['is_array'] = True
         args['array_size'] = p[3]
-    p[0] = CIMParameter(p[2], 'reference', reference_class=p[1], **args)
+    p[0] = CIMParameter(p[2], 'reference', reference_class=p[1],
+                                **args)
 
 def p_parameter_4(p):
     """parameter_4 : qualifierList objectRef parameterName
@@ -900,7 +905,7 @@ def p_parameter_4(p):
         args['array_size'] = p[4]
     quals = dict([(x.name, x) for x in p[1]])
     p[0] = CIMParameter(p[3], 'reference', qualifiers=quals,
-                        reference_class=p[2], **args)
+                                reference_class=p[2], **args)
 
 def p_parameterName(p):
     """parameterName : identifier"""
@@ -1053,9 +1058,9 @@ def p_qualifierDeclaration(p):
         flist = p[5]
     flavors = _build_flavors(flist)
 
-    p[0] = CIMQualifierDeclaration(qualname, dt, value=value,
-                                   is_array=is_array, array_size=array_size,
-                                   scopes=scopes, **flavors)
+    p[0] = CIMQualifierDeclaration(
+        qualname, dt, value=value, is_array=is_array, array_size=array_size,
+        scopes=scopes, **flavors)
 
 def _build_flavors(flist, qualdecl=None):
     flavors = {}
@@ -1229,7 +1234,7 @@ def p_instanceDeclaration(p):
         pval = prop[2]
         try:
             cprop = inst.properties[pname]
-            cprop.value = tocimobj(cprop.type, pval)
+            cprop.value = cim_obj.tocimobj(cprop.type, pval)
         except KeyError:
             ce = CIMError(CIM_ERR_INVALID_PARAMETER,
                           'Invalid property: %s' % pname)
@@ -1439,7 +1444,7 @@ class MOFWBEMConnection(object):
             self.classes[self.default_namespace][cc.classname] = cc
         except KeyError:
             self.classes[self.default_namespace] = \
-                        NocaseDict({cc.classname:cc})
+                    NocaseDict({cc.classname:cc})
 
         # TODO: should we see if it exists first with
         # self.conn.GetClass()?  Do we want to create a class
@@ -1580,8 +1585,8 @@ class MOFCompiler(object):
         self.parser.handle = handle
         self.lexer = lex.lex(lextab=_lextab, optimize=_optimize)
         self.lexer.parser = self.parser
-        self.parser.qualcache = {handle.default_namespace:NocaseDict()}
-        self.parser.classnames = {handle.default_namespace:[]}
+        self.parser.qualcache = {handle.default_namespace: NocaseDict()}
+        self.parser.classnames = {handle.default_namespace: []}
         self.parser.mofcomp = self
         self.parser.verbose = verbose
         self.parser.log = log_func

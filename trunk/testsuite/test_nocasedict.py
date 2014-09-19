@@ -3,8 +3,9 @@
 # Test case-insensitive dictionary implementation.
 #
 
+from pywbem.cim_obj import NocaseDict
+
 import comfychair
-from pywbem import cim_obj
 
 class TestInit(comfychair.TestCase):
 
@@ -12,31 +13,31 @@ class TestInit(comfychair.TestCase):
 
         # Basic init
 
-        d = cim_obj.NocaseDict()
+        d = NocaseDict()
         self.assert_(len(d) == 0)
 
         # Initialise from sequence object
 
-        d = cim_obj.NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')])
+        d = NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')])
         self.assert_(len(d) == 2)
         self.assert_(d['Dog'] == 'Cat' and d['Budgie'] == 'Fish')
 
         # Initialise from mapping object
 
-        d = cim_obj.NocaseDict({'Dog': 'Cat', 'Budgie': 'Fish'})
+        d = NocaseDict({'Dog': 'Cat', 'Budgie': 'Fish'})
         self.assert_(len(d) == 2)
         self.assert_(d['Dog'] == 'Cat' and d['Budgie'] == 'Fish')
 
         # Initialise from kwargs
 
-        d = cim_obj.NocaseDict(Dog='Cat', Budgie='Fish')
+        d = NocaseDict(Dog='Cat', Budgie='Fish')
         self.assert_(len(d) == 2)
         self.assert_(d['Dog'] == 'Cat' and d['Budgie'] == 'Fish')
 
 class BaseTest(comfychair.TestCase):
 
     def setup(self):
-        self.d = cim_obj.NocaseDict()
+        self.d = NocaseDict()
         self.d['Dog'] = 'Cat'
         self.d['Budgie'] = 'Fish'
 
@@ -150,7 +151,7 @@ class TestCopy(BaseTest):
     def runtest(self):
         c = self.d.copy()
         self.assert_equal(c, self.d)
-        self.assert_(isinstance(c, cim_obj.NocaseDict))
+        self.assert_(isinstance(c, NocaseDict))
         c['Dog'] = 'Kitten'
         self.assert_(self.d['Dog'] == 'Cat')
         self.assert_(c['Dog'] == 'Kitten')
@@ -178,7 +179,7 @@ class TestPopItem(BaseTest):
 class TestEqual(BaseTest):
 
     def runtest(self):
-        c = cim_obj.NocaseDict({'dog': 'Cat', 'Budgie': 'Fish'})
+        c = NocaseDict({'dog': 'Cat', 'Budgie': 'Fish'})
         self.assert_(self.d == c)
         c['Budgie'] = 'fish'
         self.assert_(self.d != c)

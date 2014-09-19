@@ -28,11 +28,19 @@ being transferred is XML.  It is up to the caller to format the input
 data and interpret the result.
 '''
 
-from M2Crypto import SSL, Err
-import sys, string, re, os, socket, getpass
+import string
+import re
+import os
+import socket
+import getpass
 from stat import S_ISSOCK
 from types import StringTypes
 import platform
+import httplib
+import base64
+import urllib
+
+from M2Crypto import SSL, Err
 
 from pywbem import cim_obj
 
@@ -104,8 +112,6 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
 
     The data argument must be a unicode object or a UTF-8 encoded str object.
     """
-
-    import httplib, base64, urllib
 
     class HTTPBaseConnection:
         def send(self, str):
@@ -355,7 +361,6 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                     raise AuthError(response.reason)
                 if response.getheader('CIMError', None) is not None and \
                    response.getheader('PGErrorDetail', None) is not None:
-                    import urllib
                     raise Error(
                         'CIMError: %s: %s' %
                         (response.getheader('CIMError'),

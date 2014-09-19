@@ -21,7 +21,8 @@
 
 # Author: Tim Potter <tpot@hp.com>
 
-import sys, os, string
+import sys
+import string
 from subprocess import Popen, PIPE
 
 DTD_FILE = 'CIM_DTD_V22.dtd'

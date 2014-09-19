@@ -11,8 +11,14 @@
 
 from datetime import timedelta
 
+from pywbem import cim_obj
+from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
+                   CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
+                   Uint8, Uint16, Uint32, Uint64, \
+                   Sint8, Sint16, Sint32, Sint64,\
+                   Real32, Real64, CIMDateTime, NocaseDict
+
 from comfychair import main, TestCase, NotRunError
-from pywbem import *
 from validate import validate_xml
 
 class ValidateTest(TestCase):
@@ -242,14 +248,12 @@ class CIMInstanceNameEquality(TestCase):
         obj1 = CIMInstanceName('CIM_Foo', {'Name': 'Foo',
                                            'Number': 42,
                                            'Boolean': False,
-                                           'Ref':
-                                           CIMInstanceName('CIM_Bar')})
+                                           'Ref': CIMInstanceName('CIM_Bar')})
 
         obj2 = CIMInstanceName('CIM_Foo', {'Name': 'Foo',
                                            'Number': 42,
                                            'Boolean': False,
-                                           'Ref':
-                                           CIMInstanceName('CIM_Bar')})
+                                           'Ref': CIMInstanceName('CIM_Bar')})
 
         self.assert_equal(obj1, obj2)
 
@@ -337,11 +341,11 @@ class CIMInstanceNameToXML(ValidateTest):
 
         self.validate(CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}))
 
-        self.validate(CIMInstanceName(
-            'CIM_Foo', {'Name': 'Foo',
-                        'Number': 42,
-                        'Boolean': False,
-                        'Ref': CIMInstanceName('CIM_Bar')}))
+        self.validate(CIMInstanceName('CIM_Foo',
+                                      {'Name': 'Foo',
+                                       'Number': 42,
+                                       'Boolean': False,
+                                       'Ref': CIMInstanceName('CIM_Bar')}))
 
         self.validate(CIMInstanceName('CIM_Foo', namespace='root/cimv2'))
 
@@ -439,8 +443,7 @@ class CIMInstanceAttrs(TestCase):
 
         obj = CIMInstance('CIM_Foo', props,
                           qualifiers={'Key': CIMQualifier('Key', True)},
-                          path=CIMInstanceName('CIM_Foo',
-                                               {'Chicken': 'Ham'}))
+                          path=CIMInstanceName('CIM_Foo', {'Chicken': 'Ham'}))
 
         self.assert_(obj.classname == 'CIM_Foo')
 
@@ -594,8 +597,9 @@ class CIMInstanceToXML(ValidateTest):
 
         # Multiple properties and qualifiers
 
-        self.validate(CIMInstance('CIM_Foo', {'Spotty': 'Foot',
-                                              'Age': Uint32(42)},
+        self.validate(CIMInstance('CIM_Foo',
+                                  {'Spotty': 'Foot',
+                                   'Age': Uint32(42)},
                                   qualifiers={'Key':
                                               CIMQualifier('Key', True)}))
 
@@ -610,6 +614,7 @@ class CIMInstanceToXML(ValidateTest):
         self.validate(CIMInstance('CIM_Foo', {'Value': False}))
 
         self.validate(CIMInstance('CIM_Foo', {'Now': CIMDateTime.now()}))
+
         self.validate(CIMInstance('CIM_Foo', {'Now': timedelta(60)}))
 
         self.validate(CIMInstance('CIM_Foo',
@@ -628,7 +633,8 @@ class CIMInstanceToXML(ValidateTest):
                                            CIMDateTime.now()]}))
 
         self.validate(CIMInstance('CIM_Foo',
-                                  {'Then': [timedelta(60), timedelta(61)]}))
+                                  {'Then': [timedelta(60),
+                                            timedelta(61)]}))
 
         # Null properties.  Can't have a NULL property reference.
 
@@ -668,12 +674,11 @@ class CIMInstanceToMOF(TestCase):
 
     def runtest(self):
 
-        i = CIMInstance(
-            'CIM_Foo',
-            {'string': 'string',
-             'uint8': Uint8(0),
-             'uint8array': [Uint8(1), Uint8(2)],
-             'ref': CIMInstanceName('CIM_Bar')})
+        i = CIMInstance('CIM_Foo',
+                        {'string': 'string',
+                         'uint8': Uint8(0),
+                         'uint8array': [Uint8(1), Uint8(2)],
+                         'ref': CIMInstanceName('CIM_Bar')})
 
         i.tomof()
 
@@ -749,8 +754,8 @@ class CIMInstanceUpdateExisting(TestCase):
         self.assert_('foo' not in i)
         self.assert_(i['uint8array'] == [3, 4, 5])
         self.assert_(isinstance(i['uint8array'][0], Uint8))
-        name = CIMInstanceName('CIM_Foo', keybindings={'string':'STRING',
-                                                       'one':'1'})
+        name = CIMInstanceName('CIM_Foo',
+                               keybindings={'string':'STRING', 'one':'1'})
         i.update_existing(name)
         self.assert_('one' not in i)
         self.assert_(i['string'] == 'STRING')
@@ -1631,9 +1636,11 @@ class CIMQualifierDeclarationAttrs(TestCase):
     pass
 
 class CIMQualifierDeclarationEquality(TestCase):
+    # pylint: disable=invalid-name
     pass
 
 class CIMQualifierDeclarationCompare(TestCase):
+    # pylint: disable=invalid-name
     pass
 
 class CIMQualifierDeclarationSort(TestCase):
@@ -1652,8 +1659,9 @@ class CIMQualifierDeclarationToXML(TestCase):
 class ToCIMObj(TestCase):
 
     def runtest(self):
-        path = tocimobj('reference',
-                        "Acme_OS.Name=\"acmeunit\",SystemName=\"UnixHost\"")
+        path = cim_obj.tocimobj(
+            'reference',
+            "Acme_OS.Name=\"acmeunit\",SystemName=\"UnixHost\"")
         self.assert_(isinstance(path, CIMInstanceName))
         self.assert_equal(path.classname, 'Acme_OS')
         self.assert_equal(path['Name'], 'acmeunit')
@@ -1662,9 +1670,10 @@ class ToCIMObj(TestCase):
         self.assert_(path.namespace is None)
         self.assert_(path.host is None)
 
-        path = tocimobj('reference',
-                        "Acme_User.uid=33,OSName=\"acmeunit\"," \
-                        "SystemName=\"UnixHost\"")
+        path = cim_obj.tocimobj(
+            'reference',
+            "Acme_User.uid=33,OSName=\"acmeunit\"," \
+            "SystemName=\"UnixHost\"")
         self.assert_(isinstance(path, CIMInstanceName))
         self.assert_(path.namespace is None)
         self.assert_(path.host is None)
@@ -1674,8 +1683,9 @@ class ToCIMObj(TestCase):
         self.assert_equal(path['SystemName'], 'UnixHost')
         self.assert_equal(len(path.keybindings), 3)
 
-        path = tocimobj('reference',
-                        'HTTP://CIMOM_host/root/CIMV2:CIM_Disk.key1="value1"')
+        path = cim_obj.tocimobj(
+            'reference',
+            'HTTP://CIMOM_host/root/CIMV2:CIM_Disk.key1="value1"')
         self.assert_(isinstance(path, CIMInstanceName))
         self.assert_equal(path.namespace, 'root/CIMV2')
         self.assert_equal(path.host, 'CIMOM_host')
@@ -1683,8 +1693,9 @@ class ToCIMObj(TestCase):
         self.assert_equal(path['key1'], 'value1')
         self.assert_equal(len(path.keybindings), 1)
 
-        path = tocimobj('reference',
-                        "ex_sampleClass.label1=9921,label2=8821")
+        path = cim_obj.tocimobj(
+            'reference',
+            "ex_sampleClass.label1=9921,label2=8821")
         self.assert_(isinstance(path, CIMInstanceName))
         self.assert_(path.namespace is None)
         self.assert_(path.host is None)
@@ -1693,15 +1704,16 @@ class ToCIMObj(TestCase):
         self.assert_equal(path['label2'], 8821)
         self.assert_equal(len(path.keybindings), 2)
 
-        path = tocimobj('reference', "ex_sampleClass")
+        path = cim_obj.tocimobj('reference', "ex_sampleClass")
         self.assert_(isinstance(path, CIMClassName))
         self.assert_(path.namespace is None)
         self.assert_(path.host is None)
         self.assert_equal(path.classname, 'ex_sampleClass')
 
-        path = tocimobj('reference',
-                        '//./root/default:LogicalDisk.SystemName="acme",' \
-                        'LogicalDisk.Drive="C"')
+        path = cim_obj.tocimobj(
+            'reference',
+            '//./root/default:LogicalDisk.SystemName="acme",' \
+            'LogicalDisk.Drive="C"')
         self.assert_(isinstance(path, CIMInstanceName))
         self.assert_equal(path.namespace, 'root/default')
         self.assert_equal(path.host, '.')
@@ -1710,8 +1722,9 @@ class ToCIMObj(TestCase):
         self.assert_equal(path['Drive'], 'C')
         self.assert_equal(len(path.keybindings), 2)
 
-        path = tocimobj('reference',
-                        "X.key1=\"John Smith\",key2=33.3")
+        path = cim_obj.tocimobj(
+            'reference',
+            "X.key1=\"John Smith\",key2=33.3")
         self.assert_(isinstance(path, CIMInstanceName))
         self.assert_(path.namespace is None)
         self.assert_(path.host is None)
@@ -1720,8 +1733,9 @@ class ToCIMObj(TestCase):
         self.assert_equal(path['key2'], 33.3)
 
 
-        path = tocimobj('reference',
-                        "//./root/default:NetworkCard=2")
+        path = cim_obj.tocimobj(
+            'reference',
+            "//./root/default:NetworkCard=2")
         # TODO: how should pywbem deal with a single, unnamed, keybinding?
         #self.assert_(isinstance(path, CIMInstanceName))
         #self.assert_equal(path.namespace, 'root/default')

@@ -47,21 +47,22 @@
 #   ...
 #
 
-import os, stat, sys, string, getpass, errno
-from pywbem import *
+import os
+import sys
+import getpass
+import errno
 from code import InteractiveConsole
 from optparse import OptionParser
-from pprint import pprint as pp
 
 # Conditional support of readline module
-
 have_readline = False
-
 try:
     import readline
     have_readline = True
 except ImportError, arg:
     pass
+
+import pywbem
 
 #
 # Parse command line args
@@ -132,7 +133,7 @@ def remote_connection():
     if opts.user is not None or opts.password is not None:
         creds = (opts.user, opts.password)
 
-    cli = WBEMConnection(url, creds, default_namespace=opts.namespace)
+    cli = pywbem.WBEMConnection(url, creds, default_namespace=opts.namespace)
 
     cli.debug = True
 

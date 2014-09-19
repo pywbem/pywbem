@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 #
 
-from comfychair import main, TestCase, NotRunError
-from pywbem import *
-
-from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
-
-from urllib import urlretrieve, urlopen
-from time import time
-
-import os
 import sys
+import os
+from time import time
+from urllib import urlopen
 from zipfile import ZipFile
 from tempfile import TemporaryFile
+
+from comfychair import main, TestCase
+
+from pywbem.cim_operations import CIMError
+from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
+from pywbem.cim_constants import *
 
 ns = 'root/test'
 

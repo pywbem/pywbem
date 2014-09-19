@@ -10,8 +10,11 @@
 # schema that PyWBEM doesn't use right now.
 #
 
-import sys, os, string, comfychair
+import sys
+
 from pywbem import cim_xml
+
+import comfychair
 
 DTD_FILE = 'CIM_DTD_V22.dtd'
 
