@@ -7,7 +7,7 @@
 # Prerequisite commands:
 #   make (GNU make)
 #   sh - used to make sure some commands are executed in unix shell on Windows
-#   rm, test, find, unzip, sed, xargs
+#   rm, test, find, unzip, sed, xargs, tee
 #   Note: On Windows, use CygWin to get these commands.
 #   pdoc - part of pdoc Python package.
 #
@@ -85,7 +85,7 @@ check: pylint_report.html
 	@echo '$@ done; for results see pylint_report.html'
 
 test:   install
-	sh -c "cd testsuite; ./runtests.sh >runtests.log 2>&1"
+	-sh -c "cd testsuite; ./runtests.sh 2>&1 |tee runtests.log"
 	@echo '$@ done; for results see testsuite/runtests.log'
 
 install: build
