@@ -17,31 +17,57 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-# Validate XML input on stdin against the CIM DTD.
-
 # Author: Tim Potter <tpot@hp.com>
+
+"""
+Validate XML instance data against the CIM-XML DTD.
+
+Can also be invoked as a script for testing purposes, and then validates
+XML data specified in standard input.
+"""
 
 import sys
 import string
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, STDOUT
 
 DTD_FILE = 'CIM_DTD_V22.dtd'
 
-def validate_xml(data, dtd_directory=None):
+def validate_xml(data, dtd_directory=None, root_elem=None):
+    """
+    Validate the provided XML instance data against a CIM-XML DTD, optionally
+    requiring a particular XML root element.
 
-    # Run xmllint to validate file
+    Arguments:
+
+      * `data`: XML instance data to be validated.
+      * `dtd_directory`: Directory with the DTD file (see `DTD_FILE` for name).
+      * `root_elem`: Name of XML element that is expected as the root element
+        in the XML instance data to be validated. None means no checking for
+        a particular root element is performed.
+    """
 
     dtd_file = DTD_FILE
     if dtd_directory is not None:
         dtd_file = '%s/%s' % (dtd_directory, DTD_FILE)
 
-    p = Popen('xmllint --dtdvalid %s --noout -' % dtd_file, stdout=PIPE,
-              stderr=PIPE, stdin=PIPE, shell=True)
+    # Make sure the XML data requires the specified root element, if any
+    if root_elem is not None:
+        data = '<!DOCTYPE %s SYSTEM "%s">\n' % (root_elem, dtd_file) + data
+        xmllint_cmd = 'xmllint --valid --noout -'
+    else:
+        xmllint_cmd = 'xmllint --dtdvalid %s --noout -' % dtd_file
+
+    p = Popen(xmllint_cmd, stdout=PIPE, stderr=STDOUT, stdin=PIPE, shell=True)
 
     p.stdin.write(data)
     p.stdin.close()
 
-    [sys.stdout.write(x) for x in p.stdout.readlines()]
+    first_time = True
+    for x in p.stdout.readlines():
+        if first_time:
+            first_time = False
+            print "\nOutput from xmllint:"
+        sys.stdout.write(x)
 
     status = p.wait()
 
@@ -52,5 +78,5 @@ def validate_xml(data, dtd_directory=None):
 
 if __name__ == '__main__':
 
-    data = string.join(sys.stdin.readlines(), '')
-    sys.exit(validate_xml(data))
+    data_ = string.join(sys.stdin.readlines(), '')
+    sys.exit(validate_xml(data_))
