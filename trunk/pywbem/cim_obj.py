@@ -21,15 +21,15 @@
 #         Bart Whiteley <bwhiteley@suse.de>
 
 """
-Representations of CIM Objects.
+Representations of CIM objects, and a case-insensitive dictionary.
 
 In general we try to map CIM objects directly into Python primitives,
 except when that is not possible or would be ambiguous.  For example,
-CIM Class names are simply Python strings, but a ClassPath is
+CIM class names are simply Python strings, but a class path is
 represented as a special Python object.
 
-These objects can also be mapped back into XML, by the toxml() method
-which returns a string.
+These objects can also be mapped back into CIM-XML, by their `tocimxml()`
+method which returns a CIM-XML string.
 """
 
 # This module is meant to be safe for 'import *'.
@@ -41,81 +41,199 @@ from datetime import datetime, timedelta
 from pywbem import cim_xml, cim_types
 
 class NocaseDict(object):
-    """Yet another implementation of a case-insensitive dictionary."""
+    """
+    Yet another implementation of a case-insensitive dictionary.
+
+    Whenever keys are looked up, that is done case-insensitively. Whenever
+    keys are returned, they are returned with the lexical case that was
+    originally specified.
+
+    In addition to the methods listed, the dictionary supports:
+
+      * Retrieval of values based on key: `val = d[key]`
+
+      * Assigning values for a key: `d[key] = val`
+
+      * Deleting a key/value pair: `del d[key]`
+
+      * Equality comparison (`==`, `!=`)
+
+      * Ordering comparison (`<`, `<=`, `>=`, `>`)
+
+      * Containment test: `key in d`
+
+      * For loops: `for key in d`
+
+      * Determining length: `len(d)`
+    """
 
     def __init__(self, *args, **kwargs):
+        """
+        Initialize the new dictionary from at most one positional argument and
+        optionally from additional keyword arguments.
 
-        self.data = {}
+        Initialization happens in two steps, first from the positional
+        argument:
 
-        # Initialise from sequence object
+          * If no positional argument is provided, or if one argument with the
+            value None is provided, the new dictionary will be left empty in
+            this step.
 
-        if len(args) == 1 and type(args[0]) == list:
-            for item in args[0]:
-                self[item[0]] = item[1]
+          * If one positional argument of sequence type is provided, the items
+            in that sequence must be tuples of key and value, respectively.
+            The key/value pairs will be put into the new dictionary (without
+            copying them).
 
-        # Initialise from mapping object
+          * If one positional argument of dictionary (mapping) or `NocaseDict`
+            type is provided, its key/value pairs are put into the new
+            dictionary (without copying them).
 
-        if len(args) == 1 and type(args[0]) == dict:
-            self.update(args[0])
+          * Otherwise, `TypeError` is raised.
 
-        # Initialise from NocaseDict
+        After that, any provided keyword arguments are put into the so
+        initialized dictionary as key/value pairs (without copying them).
+        """
 
-        if len(args) == 1 and isinstance(args[0], NocaseDict):
-            self.data = args[0].data.copy()
+        self._data = {}
 
-        # Initialise from keyword args
+        # Step 1: Initialize from at most one positional argument
+        if len(args) == 1:
+            if isinstance(args[0], list):
+                # Initialize from sequence object
+                for item in args[0]:
+                    self[item[0]] = item[1]
+            elif isinstance(args[0], dict):
+                # Initialize from mapping object
+                self.update(args[0])
+            elif isinstance(args[0], NocaseDict):
+                # Initialize from another NocaseDict object
+                self._data = args[0]._data.copy() # pylint: disable=protected-access
+            elif args[0] is None:
+                # Leave empty
+                pass
+            else:
+                raise TypeError("Invalid type for NocaseDict " \
+                                "initialization: %s" % repr(args[0]))
+        elif len(args) > 1:
+            raise TypeError("Too many positional arguments for NocaseDict " \
+                                "initialization: %s" % repr(args))
 
+        # Step 2: Add any keyword arguments
         self.update(kwargs)
+
+    @staticmethod
+    def _lower_key(key):
+        """
+        Return the lower-cased key.
+
+        Raises `TypeError` if the key is not a string type.
+        """
+        if not isinstance(key, (str, unicode)):
+            raise TypeError('NocaseDict key %s must be string type, ' \
+                            'but is %s' %  (key, type(key)))
+        return key.lower()
 
     # Basic accessor and settor methods
 
     def __getitem__(self, key):
-        k = key
-        if isinstance(key, (str, unicode)):
-            k = key.lower()
+        """
+        Invoked when retrieving the value for a key, using `val = d[key]`.
+
+        The key is looked up case-insensitively. Raises `KeyError` if the
+        specified key does not exist.
+
+        Raises `TypeError` if the key is not a string type.
+        """
+        k = NocaseDict._lower_key(key)
         try:
-            return self.data[k][1]
-        except KeyError, arg:
+            return self._data[k][1]
+        except KeyError:
             raise KeyError('Key %s not found in %s' % (key, repr(self)))
 
     def __setitem__(self, key, value):
-        if not isinstance(key, (str, unicode)):
-            raise KeyError('NocaseDict key %s must be string type, but is %s'%\
-                    (key, type(key)))
-        k = key.lower()
-        self.data[k] = (key, value)
+        """
+        Invoked when assigning a value for a key using `d[key] = val`.
+
+        The key is looked up case-insensitively. If the key does not exist,
+        it is added with the new value. Otherwise, its value is overwritten
+        with the new value.
+
+        Raises `TypeError` if the specified key does not have string type.
+        """
+        k = NocaseDict._lower_key(key)
+        self._data[k] = (key, value)
 
     def __delitem__(self, key):
-        k = key
-        if isinstance(key, (str, unicode)):
-            k = key.lower()
+        """
+        Invoked when deleting a key/value pair using `del d[key]`.
+
+        The key is looked up case-insensitively. Raises `KeyError` if the
+        specified key does not exist.
+
+        Raises `TypeError` if the key is not a string type.
+        """
+        k = NocaseDict._lower_key(key)
         try:
-            del self.data[k]
-        except KeyError, arg:
+            del self._data[k]
+        except KeyError:
             raise KeyError('Key %s not found in %s' % (key, repr(self)))
 
     def __len__(self):
-        return len(self.data)
+        """
+        Invoked when determining the number of key/value pairs in the
+        dictionary using `len(d)`.
+        """
+        return len(self._data)
 
     def has_key(self, key):
-        k = key
-        if isinstance(key, (str, unicode)):
-            k = key.lower()
-        return self.data.has_key(k)
+        """
+        Return a boolean indicating whether a specific key is in the
+        dictionary.
+
+        The key is looked up case-insensitively.
+
+        Raises `TypeError` if the key is not a string type.
+
+        This method is deprecated in favor of using `key in d`.
+        """
+        k = NocaseDict._lower_key(key)
+        return self._data.has_key(k)
 
     def __contains__(self, key):
-        k = key
-        if isinstance(key, (str, unicode)):
-            k = key.lower()
-        return k in self.data
+        """
+        Invoked when determining whether a specific key is in the dictionary
+        using `key in d`.
+
+        The key is looked up case-insensitively.
+
+        Raises `TypeError` if the key is not a string type.
+        """
+        k = NocaseDict._lower_key(key)
+        return k in self._data
 
     def get(self, key, default=None):
+        """
+        Get the value for a specific key, or the specified default value if
+        the key does not exist.
+
+        The key is looked up case-insensitively.
+
+        Raises `TypeError` if the key is not a string type.
+        """
         try:
             return self[key]
         except KeyError:
             return default
 
     def setdefault(self, key, default):
+        """
+        Assign the specified default value for a specific key if the key did
+        not exist and return the value for the key.
+
+        The key is looked up case-insensitively.
+
+        Raises `TypeError` if the key is not a string type.
+        """
         if not self.has_key(key):
             self[key] = default
         return self[key]
@@ -123,71 +241,154 @@ class NocaseDict(object):
     # Other accessor expressed in terms of iterators
 
     def keys(self):
+        """
+        Return a copied list of the dictionary keys, in their original case.
+        """
         return list(self.iterkeys())
 
     def values(self):
+        """
+        Return a copied list of the dictionary values.
+        """
         return list(self.itervalues())
 
     def items(self):
+        """
+        Return a copied list of the dictionary items, where each item is a
+        tuple of its original key and its value.
+        """
         return list(self.iteritems())
 
     # Iterators
 
     def iterkeys(self):
-        for item in self.data.iteritems():
+        """
+        Return an iterator through the dictionary keys in their original
+        case.
+        """
+        for item in self._data.iteritems():
             yield item[1][0]
 
     def itervalues(self):
-        for item in self.data.iteritems():
+        """
+        Return an iterator through the dictionary values.
+        """
+        for item in self._data.iteritems():
             yield item[1][1]
 
     def iteritems(self):
-        for item in self.data.iteritems():
+        """
+        Return an iterator through the dictionary items, where each item is a
+        tuple of its original key and its value.
+        """
+        for item in self._data.iteritems():
             yield item[1]
 
-    # Support 'for' and 'in' directly
-
     def __iter__(self):
+        """
+        Invoked when iterating through the dictionary using `for key in d`.
+
+        The returned keys have their original case.
+        """
         return self.iterkeys()
 
     # Other stuff
 
     def __repr__(self):
+        """
+        Invoked when using `repr(d)`.
+
+        The representation hides the implementation data structures and shows
+        a dictionary that can be used for the constructor.
+        """
         items = ', '.join([('%r: %r' % (key, value))
-                           for key, value in self.items()])
+                           for key, value in self.iteritems()])
         return 'NocaseDict({%s})' % items
 
     def update(self, *args, **kwargs):
+        """
+        Update the dictionary from sequences of key/value pairs provided in any
+        positional arguments, and from key/value pairs provided in any keyword
+        arguments. The key/value pairs are not copied.
+
+        Each positional argument can be:
+
+          * an object with a method `items()` that returns an iterable of
+            tuples containing key and value.
+
+          * an object without such a method, that is an iterable of tuples
+            containing key and value.
+
+        Each keyword argument is a key/value pair.
+        """
         for mapping in args:
             if hasattr(mapping, 'items'):
                 for k, v in mapping.items():
                     self[k] = v
             else:
-                for (k, v) in mapping:
+                for k, v in mapping:
                     self[k] = v
         for k, v in kwargs.items():
             self[k] = v
 
     def clear(self):
-        self.data.clear()
+        """
+        Remove all items from the dictionary.
+        """
+        self._data.clear()
 
     def popitem(self):
+        """
+        This function does nothing.
+
+        In a standard mapping implementation, it would remove and return an
+        arbitrary item from the dictionary.
+
+        TODO: Why does popitem() do nothing; was it simply not implemented?
+        """
         pass
 
     def copy(self):
+        """
+        Return a shallow copy of the dictionary (i.e. the keys and values are
+        not copied).
+        """
         result = NocaseDict()
-        result.data = self.data.copy()
+        result._data = self._data.copy() # pylint: disable=protected-access
         return result
 
     def __eq__(self, other):
+        """
+        Invoked when two dictionaries are compared for equality or inequality.
+
+        The keys are looked up case-insensitively.
+
+        The comparison is delegated to equality comparison of matching
+        key/value pairs.
+        """
         for key, value in self.iteritems():
-            if not (key in other) or not (other[key] == value):
+            if not key in other or not other[key] == value:
                 return 0
         return len(self) == len(other)
 
     def __cmp__(self, other):
+        """
+        Invoked when two dictionaries are compared for equality, inequality,
+        and greater-than/less-than comparisons.
+
+        The keys are looked up case-insensitively.
+
+        `Self` is less than `other`, if:
+
+          * a key in `self` is not in `other`, or
+
+          * the value for a key in `self` is less than the value for that key
+            in `other`, or
+
+          * `self` has less key/value pairs than `other`.
+        """
         for key, value in self.iteritems():
-            if not (key in other):
+            if not key in other:
                 return -1
             rv = cmp(value, other[key])
             if rv != 0:
@@ -195,8 +396,10 @@ class NocaseDict(object):
         return len(self) - len(other)
 
 def cmpname(name1, name2):
-    """Compare to CIM names.  The comparison is done
-    case-insensitvely, and one or both of the names may be None."""
+    """
+    Compare two CIM names.  The comparison is done
+    case-insensitively, and one or both of the names may be `None`.
+    """
 
     if name1 is None and name2 is None:
         return 0
@@ -259,13 +462,13 @@ class CIMClassName(object):
 
     def __repr__(self):
 
-        r = '%s(classname=%s' % (self.__class__.__name__, `self.classname`)
+        r = '%s(classname=%r' % (self.__class__.__name__, self.classname)
 
         if self.host is not None:
-            r += ', host=%s' % `self.host`
+            r += ', host=%r' % self.host
 
         if self.namespace is not None:
-            r += ', namespace=%s' % `self.namespace`
+            r += ', namespace=%r' % self.namespace
 
         r += ')'
 
@@ -390,9 +593,10 @@ class CIMProperty(object):
 
     def __repr__(self):
 
-        return '%s(name=%s, type=%s, value=%s, is_array=%s)' % \
-               (self.__class__.__name__, `self.name`, `self.type`,
-                `self.value`, `self.is_array`)
+        return '%s(name=%r, type=%r, reference_class=%r, is_array=%r, ' \
+               'value=%r, ...)' % \
+               (self.__class__.__name__, self.name, self.type,
+                self.reference_class, self.is_array, self.value)
 
     def tocimxml(self):
 
@@ -467,12 +671,16 @@ class CIMProperty(object):
                 or cmpname(self.reference_class, other.reference_class))
 
 class CIMInstanceName(object):
-    """Name (keys) identifying an instance.
+    """
+    A CIM instance path (aka 'instance name').
+    
+    Consists of host (optional), namespace (optional), class name, and key
+    bindings (= key properties), identifying a CIM instance.
 
-    This may be treated as a dictionary to retrieve the keys."""
+    This object can be used like a dictionary to retrieve the key bindings.
+    """
 
-    def __init__(self, classname, keybindings={}, host=None,
-                 namespace=None):
+    def __init__(self, classname, keybindings=None, host=None, namespace=None):
 
         self.classname = classname
         self.keybindings = NocaseDict(keybindings)
@@ -530,16 +738,14 @@ class CIMInstanceName(object):
 
     def __repr__(self):
 
-        r = '%s(classname=%s, keybindings=%s' % \
-            (self.__class__.__name__,
-             `self.classname`,
-             `self.keybindings`)
+        r = '%s(classname=%r, keybindings=%r' % \
+            (self.__class__.__name__, self.classname, self.keybindings)
 
         if self.host is not None:
-            r += ', host=%s' % `self.host`
+            r += ', host=%r' % self.host
 
         if self.namespace is not None:
-            r += ', namespace=%s' % `self.namespace`
+            r += ', namespace=%r' % self.namespace
 
         r += ')'
 
@@ -563,13 +769,17 @@ class CIMInstanceName(object):
     def update(self, *args, **kwargs): self.keybindings.update(*args, **kwargs)
 
     def tocimxml(self):
-
-        # Generate an XML representation of the instance classname and
-        # keybindings.
+        """Generate a CIM-XML representation of the instance name (class name
+        and key bindings)."""
 
         if type(self.keybindings) == str:
 
             # Class with single key string property
+
+            # This cannot happen; self.keybindings is always a NocaseDict:
+            # TODO: Remove this if clause after verifying that it works.
+            raise TypeError("Unexpected: keybindings has string type: %s" % \
+                            repr(self.keybindings))
 
             instancename_xml = cim_xml.INSTANCENAME(
                 self.classname,
@@ -579,14 +789,16 @@ class CIMInstanceName(object):
 
             # Class with single key numeric property
 
+            # This cannot happen; self.keybindings is always a NocaseDict:
+            # TODO: Remove this if clause after verifying that it works.
+            raise TypeError("Unexpected: keybindings has numeric type: %s" % \
+                            repr(self.keybindings))
+
             instancename_xml = cim_xml.INSTANCENAME(
                 self.classname,
                 cim_xml.KEYVALUE(str(self.keybindings), 'numeric'))
 
-        elif isinstance(self.keybindings, (dict, NocaseDict)):
-
-            # Dictionary of keybindings
-            # NOCASE_TODO should remove dict below.
+        elif isinstance(self.keybindings, NocaseDict):
 
             kbs = []
 
@@ -629,6 +841,11 @@ class CIMInstanceName(object):
         else:
 
             # Value reference
+
+            # This cannot happen; self.keybindings is always a NocaseDict:
+            # TODO: Remove this if clause after verifying that it works.
+            raise TypeError("Unexpected: keybindings has type: %s" % \
+                            repr(self.keybindings))
 
             instancename_xml = cim_xml.INSTANCENAME(
                 self.classname,
@@ -679,6 +896,7 @@ class CIMInstance(object):
 
         self.classname = classname
         self.qualifiers = NocaseDict(qualifiers)
+        # TODO: Add support for accepting qualifiers as plain dict
         self.path = path
         if property_list is not None:
             self.property_list = [x.lower() for x in property_list]
@@ -765,8 +983,8 @@ class CIMInstance(object):
     def __repr__(self):
         # Don't show all the properties and qualifiers because they're
         # just too big
-        return '%s(classname=%s, ...)' % (self.__class__.__name__,
-                                          `self.classname`)
+        return '%s(classname=%r, path=%r, ...)' % \
+            (self.__class__.__name__, self.classname, self.path)
 
     # A whole bunch of dictionary methods that map to the equivalent
     # operation on self.properties.
@@ -905,7 +1123,8 @@ class CIMClass(object):
         return result
 
     def __repr__(self):
-        return "%s(%s, ...)" % (self.__class__.__name__, `self.classname`)
+        return "%s(classname=%r, ...)" % (self.__class__.__name__,
+                                          self.classname)
 
     def __cmp__(self, other):
 
@@ -1002,8 +1221,8 @@ class CIMMethod(object):
             qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
     def __repr__(self):
-        return '%s(name=%s, return_type=%s...)' % \
-               (self.__class__.__name__, `self.name`, `self.return_type`)
+        return '%s(name=%r, return_type=%r, ...)' % \
+               (self.__class__.__name__, self.name, self.return_type)
 
     def __cmp__(self, other):
 
@@ -1060,9 +1279,9 @@ class CIMParameter(object):
 
     def __repr__(self):
 
-        return '%s(name=%s, type=%s, is_array=%s)' % \
-               (self.__class__.__name__, `self.name`, `self.type`,
-                `self.is_array`)
+        return '%s(name=%r, type=%r, reference_class=%r, is_array=%r, ...)' % \
+               (self.__class__.__name__, self.name, self.type,
+                self.reference_class, self.is_array)
 
     def __cmp__(self, other):
 
@@ -1194,8 +1413,8 @@ class CIMQualifier(object):
                             translatable=self.translatable)
 
     def __repr__(self):
-        return "%s(%s, %s)" % \
-               (self.__class__.__name__, `self.name`, `self.value`)
+        return "%s(name=%r, value=%r, type=%r, ...)" % \
+               (self.__class__.__name__, self.name, self.value, self.type)
 
     def __cmp__(self, other):
 
@@ -1279,7 +1498,8 @@ class CIMQualifierDeclaration(object):
                                        translatable=self.translatable)
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, `self.name`)
+        return "%s(name=%r, type=%r, is_array=%r, ...)" % \
+            (self.__class__.__name__, self.name, self.type, self.is_array)
 
     def __cmp__(self, other):
 
