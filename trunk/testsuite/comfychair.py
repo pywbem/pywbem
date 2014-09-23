@@ -71,8 +71,6 @@ class TestCase(object):
 
     def _restore_directory(self):
         os.chdir(self.basedir)
-        if os.path.isdir(self.rundir):
-            shutil.rmtree(self.rundir)
 
     # --------------------------------------------------
     # Save and restore environment
@@ -133,11 +131,15 @@ why."""
 
     def assert_equal(self, a, b):
         if not a == b:
-            raise AssertionError("assertEquals failed: %s" % `(a, b)`)
+            raise AssertionError("Values are not equal:\n"
+                                 "    left value: %s\n"
+                                 "    right value: %s" % (a, b))
 
     def assert_notequal(self, a, b):
         if a == b:
-            raise AssertionError("assertNotEqual failed: %s" % `(a, b)`)
+            raise AssertionError("Values are equal:\n"
+                                 "    left value: %s\n"
+                                 "    right value: %s" % (a, b))
 
     def assert_re_match(self, pattern, s):
         """Assert that a string matches a particular pattern
@@ -150,9 +152,9 @@ why."""
           AssertionError if not matched
           """
         if not re.match(pattern, s):
-            raise AssertionError("string does not match regexp\n"
+            raise AssertionError("String does not match regexp\n"
                                  "    string: %s\n"
-                                 "    re: %s" % (`s`, `pattern`))
+                                 "    regexp: %s" % (`s`, `pattern`))
 
     def assert_re_search(self, pattern, s):
         """Assert that a string *contains* a particular pattern
@@ -165,9 +167,9 @@ why."""
           AssertionError if not matched
           """
         if not re.search(pattern, s):
-            raise AssertionError("string does not contain regexp\n"
+            raise AssertionError("String does not contain regexp\n"
                                  "    string: %s\n"
-                                 "    re: %s" % (`s`, `pattern`))
+                                 "    regexp: %s" % (`s`, `pattern`))
 
 
     def assert_no_file(self, filename):
