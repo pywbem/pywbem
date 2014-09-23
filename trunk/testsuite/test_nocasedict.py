@@ -65,10 +65,10 @@ class TestSetitem(BaseTest):
 
         try:
             self.d[1234] = '1234'
-        except KeyError:
+        except TypeError:
             pass
         else:
-            self.fail('KeyError expected')
+            self.fail('TypeError expected')
 
 class TestDelitem(BaseTest):
 

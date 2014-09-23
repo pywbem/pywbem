@@ -121,18 +121,6 @@ class NocaseDict(object):
         # Step 2: Add any keyword arguments
         self.update(kwargs)
 
-    @staticmethod
-    def _lower_key(key):
-        """
-        Return the lower-cased key.
-
-        Raises `TypeError` if the key is not a string type.
-        """
-        if not isinstance(key, (str, unicode)):
-            raise TypeError('NocaseDict key %s must be string type, ' \
-                            'but is %s' %  (key, type(key)))
-        return key.lower()
-
     # Basic accessor and settor methods
 
     def __getitem__(self, key):
@@ -140,15 +128,17 @@ class NocaseDict(object):
         Invoked when retrieving the value for a key, using `val = d[key]`.
 
         The key is looked up case-insensitively. Raises `KeyError` if the
-        specified key does not exist.
-
-        Raises `TypeError` if the key is not a string type.
+        specified key does not exist. Note that __setitem__() ensures that
+        only string typed keys will exist, so the key type is not tested here
+        and specifying non-string typed keys will simply lead to a KeyError.
         """
-        k = NocaseDict._lower_key(key)
+        k = key
+        if isinstance(key, (str, unicode)):
+            k = k.lower()
         try:
             return self._data[k][1]
         except KeyError:
-            raise KeyError('Key %s not found in %s' % (key, repr(self)))
+            raise KeyError('Key %s not found in %r' % (key, self))
 
     def __setitem__(self, key, value):
         """
@@ -160,7 +150,10 @@ class NocaseDict(object):
 
         Raises `TypeError` if the specified key does not have string type.
         """
-        k = NocaseDict._lower_key(key)
+        if not isinstance(key, (str, unicode)):
+            raise TypeError('NocaseDict key %s must be string type, ' \
+                            'but is %s' %  (key, type(key)))
+        k = key.lower()
         self._data[k] = (key, value)
 
     def __delitem__(self, key):
@@ -168,15 +161,17 @@ class NocaseDict(object):
         Invoked when deleting a key/value pair using `del d[key]`.
 
         The key is looked up case-insensitively. Raises `KeyError` if the
-        specified key does not exist.
-
-        Raises `TypeError` if the key is not a string type.
+        specified key does not exist. Note that __setitem__() ensures that
+        only string typed keys will exist, so the key type is not tested here
+        and specifying non-string typed keys will simply lead to a KeyError.
         """
-        k = NocaseDict._lower_key(key)
+        k = key
+        if isinstance(key, (str, unicode)):
+            k = k.lower()
         try:
             del self._data[k]
         except KeyError:
-            raise KeyError('Key %s not found in %s' % (key, repr(self)))
+            raise KeyError('Key %s not found in %r' % (key, self))
 
     def __len__(self):
         """
@@ -192,12 +187,9 @@ class NocaseDict(object):
 
         The key is looked up case-insensitively.
 
-        Raises `TypeError` if the key is not a string type.
-
         This method is deprecated in favor of using `key in d`.
         """
-        k = NocaseDict._lower_key(key)
-        return self._data.has_key(k)
+        return key in self # delegate to __contains__()
 
     def __contains__(self, key):
         """
@@ -205,10 +197,10 @@ class NocaseDict(object):
         using `key in d`.
 
         The key is looked up case-insensitively.
-
-        Raises `TypeError` if the key is not a string type.
         """
-        k = NocaseDict._lower_key(key)
+        k = key
+        if isinstance(key, (str, unicode)):
+            k = k.lower()
         return k in self._data
 
     def get(self, key, default=None):
@@ -217,8 +209,6 @@ class NocaseDict(object):
         the key does not exist.
 
         The key is looked up case-insensitively.
-
-        Raises `TypeError` if the key is not a string type.
         """
         try:
             return self[key]
@@ -231,8 +221,6 @@ class NocaseDict(object):
         not exist and return the value for the key.
 
         The key is looked up case-insensitively.
-
-        Raises `TypeError` if the key is not a string type.
         """
         if not self.has_key(key):
             self[key] = default
