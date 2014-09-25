@@ -8,12 +8,16 @@ CIM objects.  If a particular data structure or Python property is
 not implemented here, then it is not officially supported by PyWBEM.
 Any breaking of backwards compatibility of new development should be
 picked up here.
+
+Note that class `NocaseDict` is tested in test_nocasedict.py.
 """
 
 import re
+import inspect
+import os.path
 from datetime import timedelta, datetime
 
-from pywbem import cim_obj
+from pywbem import cim_obj, cim_types
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
                    CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
                    Uint8, Uint16, Uint32, Uint64, \
@@ -25,7 +29,7 @@ from validate import validate_xml
 
 class ValidateTest(TestCase):
     """
-    A base class for testcases that need validation against CIM-XML.
+    A base class for test cases that need validation against CIM-XML.
     """
 
     def validate(self, obj, root_elem=None):
@@ -41,18 +45,18 @@ class ValidateTest(TestCase):
             representing the CIM object. `None` means that no test for an
             expected XML root element will happen.
         """
-
+        global _MODULE_PATH # pylint: disable=global-variable-not-assigned
         xml = obj.tocimxml().toxml()
         self.log('Required XML root element: %s\nGenerated CIM-XML: %s' % \
                  (root_elem, xml))
         self.assert_(validate_xml(xml,
-                                  dtd_directory='../..',
+                                  dtd_directory=os.path.relpath(_MODULE_PATH),
                                   root_elem=root_elem),
                      'XML validation failed')
 
 class DictTest(TestCase):
     """
-    A base class for testcases that need to run a test against a dictionary
+    A base class for test cases that need to run a test against a dictionary
     interface, such as class `CIMInstance` that provides a dictionary interface
     for its properties.
 
@@ -82,7 +86,7 @@ class DictTest(TestCase):
         self.assert_equal(obj['beanS'], 42)
 
         try:
-            val = obj['Cheepy']
+            dummy_val = obj['Cheepy']
         except KeyError:
             pass
         else:
@@ -1272,86 +1276,485 @@ class CIMInstanceUpdateExisting(TestCase):
 ###############################################################################
 
 class InitCIMProperty(TestCase):
+    """
+    Test the initialization of `CIMProperty` objects, and that their instance
+    attributes have the expected values.
+
+    On qualifiers: The full range of input variations is not tested, because
+    we know that the input argument is just turned into a `NocaseDict` and
+    otherwise left unchanged, so the full range testing is expected to be done
+    in the test cases for `CIMQualifier`.
+    """
+
+    _INT_TYPES = ['uint8', 'uint16', 'uint32', 'uint64',
+                  'sint8', 'sint16', 'sint32', 'sint64']
+    _REAL_TYPES = ['real32', 'real64']
+
+    def _assert_obj(self, obj, name, value, type=None,
+                    class_origin=None, array_size=None, propagated=None,
+                    is_array=False, reference_class=None, qualifiers=None,
+                    embedded_object=None):
+        """
+        Verify the attributes of the CIMProperty object in `obj` against
+        expected values passed as the remaining arguments.
+        """
+        self.assert_equal(obj.name, name)
+        self.assert_equal(obj.value, value)
+        self.assert_equal(obj.type, type)
+        self.assert_equal(obj.class_origin, class_origin)
+        self.assert_equal(obj.array_size, array_size)
+        self.assert_equal(obj.propagated, propagated)
+        self.assert_equal(obj.is_array, is_array)
+        self.assert_equal(obj.reference_class, reference_class)
+        self.assert_equal(obj.qualifiers, NocaseDict(qualifiers))
+        self.assert_equal(obj.embedded_object, embedded_object)
 
     def runtest(self):
 
-        # Basic CIMProperty initialisations
+        quals = {'Key': CIMQualifier('Key', True)}
 
-        CIMProperty('Spotty', 'Foot', type='string')
-        CIMProperty('Spotty', None, type='string')
-        CIMProperty(u'Name', u'Brad')
-        CIMProperty('Age', Uint16(32))
-        CIMProperty('Age', None, 'uint16')
+        # Initialization to CIM string type
 
-        # Must specify a type when value is None
+        p = CIMProperty('Spotty', 'Foot')
+        self._assert_obj(p, 'Spotty', 'Foot', 'string')
+
+        p = CIMProperty(name='Spotty', value='Foot')
+        self._assert_obj(p, 'Spotty', 'Foot', 'string')
+
+        p = CIMProperty('Spotty', 'Foot', 'string')
+        self._assert_obj(p, 'Spotty', 'Foot', 'string')
+
+        p = CIMProperty('Spotty', 'Foot', type='string')
+        self._assert_obj(p, 'Spotty', 'Foot', 'string')
+
+        p = CIMProperty('Spotty', None, type='string')
+        self._assert_obj(p, 'Spotty', None, 'string')
+
+        p = CIMProperty(u'Name', u'Brad')
+        self._assert_obj(p, u'Name', u'Brad', 'string')
+
+        p = CIMProperty('Spotty', 'Foot', qualifiers=quals)
+        self._assert_obj(p, 'Spotty', 'Foot', 'string', qualifiers=quals)
+
+        p = CIMProperty('Spotty', None, 'string', qualifiers=quals)
+        self._assert_obj(p, 'Spotty', None, 'string', qualifiers=quals)
+
+        # Initialization to CIM integer and real types
+
+        p = CIMProperty('Age', Uint16(32))
+        self._assert_obj(p, 'Age', 32, 'uint16')
+
+        p = CIMProperty('Age', Uint16(32), 'uint16')
+        self._assert_obj(p, 'Age', 32, 'uint16')
+
+        p = CIMProperty('Age', Real32(32.0))
+        self._assert_obj(p, 'Age', 32.0, 'real32')
+
+        p = CIMProperty('Age', Real32(32.0), 'real32')
+        self._assert_obj(p, 'Age', 32.0, 'real32')
+
+        for type_ in InitCIMProperty._INT_TYPES + InitCIMProperty._REAL_TYPES:
+
+            p = CIMProperty('Age', 32, type_)
+            self._assert_obj(p, 'Age', 32, type_)
+
+            p = CIMProperty('Age', None, type_)
+            self._assert_obj(p, 'Age', None, type_)
+
+        for type_ in InitCIMProperty._REAL_TYPES:
+
+            p = CIMProperty('Age', 32.0, type_)
+            self._assert_obj(p, 'Age', 32.0, type_)
+
+        # Initialization to CIM boolean type
+
+        p = CIMProperty('Aged', True)
+        self._assert_obj(p, 'Aged', True, 'boolean')
+
+        p = CIMProperty('Aged', True, 'boolean')
+        self._assert_obj(p, 'Aged', True, 'boolean')
+
+        p = CIMProperty('Aged', False)
+        self._assert_obj(p, 'Aged', False, 'boolean')
+
+        p = CIMProperty('Aged', False, 'boolean')
+        self._assert_obj(p, 'Aged', False, 'boolean')
+
+        p = CIMProperty('Aged', None, 'boolean')
+        self._assert_obj(p, 'Aged', None, 'boolean')
+
+        # Initialization to CIM datetime type
+
+        timedelta_1 = timedelta(days=12345678, hours=22, minutes=44,
+                                seconds=55, microseconds=654321)
+        cim_datetime_1 = '12345678224455.654321:000'
+
+        p = CIMProperty('Age', timedelta_1)
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+
+        p = CIMProperty('Age', timedelta_1, 'datetime')
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+
+        p = CIMProperty('Age', CIMDateTime(timedelta_1))
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+
+        p = CIMProperty('Age', CIMDateTime(timedelta_1), 'datetime')
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+
+        p = CIMProperty('Age', cim_datetime_1, 'datetime')
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+
+        p = CIMProperty('Age', CIMDateTime(cim_datetime_1))
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+
+        p = CIMProperty('Age', CIMDateTime(cim_datetime_1), 'datetime')
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+
+        datetime_2 = datetime(year=2014, month=9, day=24, hour=19, minute=30,
+                              second=40, microsecond=654321,
+                              tzinfo=cim_types.MinutesFromUTC(120))
+        cim_datetime_2 = '20140924193040.654321+120'
+
+        p = CIMProperty('Age', datetime_2)
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+
+        p = CIMProperty('Age', datetime_2, 'datetime')
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+
+        p = CIMProperty('Age', CIMDateTime(datetime_2))
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+
+        p = CIMProperty('Age', CIMDateTime(datetime_2), 'datetime')
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+
+        p = CIMProperty('Age', cim_datetime_2, 'datetime')
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+
+        p = CIMProperty('Age', CIMDateTime(cim_datetime_2))
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+
+        p = CIMProperty('Age', CIMDateTime(cim_datetime_2), 'datetime')
+        self._assert_obj(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+
+        # Reference properties
+
+        p = CIMProperty('Foo', None, 'reference')
+        self._assert_obj(p, 'Foo', None, 'reference', reference_class=None)
+
+        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'))
+        self._assert_obj(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
+                         reference_class='CIM_Foo')
+
+        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference')
+        self._assert_obj(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
+                         reference_class='CIM_Foo')
+
+        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
+                        qualifiers=quals)
+        self._assert_obj(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
+                         reference_class='CIM_Foo', qualifiers=quals)
+
+        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference',
+                        qualifiers=quals)
+        self._assert_obj(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
+                         reference_class='CIM_Foo', qualifiers=quals)
+
+        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
+                        reference_class='CIM_Foo')
+        self._assert_obj(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
+                         reference_class='CIM_Foo')
+
+        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference',
+                        reference_class='CIM_Foo')
+        self._assert_obj(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
+                         reference_class='CIM_Foo')
+
+        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
+                        reference_class='CIM_Foo', qualifiers=quals)
+        self._assert_obj(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
+                         reference_class='CIM_Foo', qualifiers=quals)
+
+        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference',
+                        reference_class='CIM_Foo', qualifiers=quals)
+        self._assert_obj(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
+                         reference_class='CIM_Foo', qualifiers=quals)
+
+        # Initialization to CIM embedded object / instance
+
+        p = CIMProperty('Bar', None, embedded_object='object')
+        self._assert_obj(p, 'Bar', None, 'string', embedded_object='object')
+
+        p = CIMProperty('Bar', None, 'string', embedded_object='object')
+        self._assert_obj(p, 'Bar', None, 'string', embedded_object='object')
+
+        ec = CIMClass('CIM_Bar')
+
+        p = CIMProperty('Bar', ec)
+        self._assert_obj(p, 'Bar', ec, 'string', embedded_object='object')
+
+        p = CIMProperty('Bar', ec, 'string')
+        self._assert_obj(p, 'Bar', ec, 'string', embedded_object='object')
+
+        p = CIMProperty('Bar', ec, embedded_object='object')
+        self._assert_obj(p, 'Bar', ec, 'string', embedded_object='object')
+
+        p = CIMProperty('Bar', ec, 'string', embedded_object='object')
+        self._assert_obj(p, 'Bar', ec, 'string', embedded_object='object')
+
+        ei = CIMInstance('CIM_Bar')
+
+        p = CIMProperty('Bar', ei, embedded_object='object')
+        self._assert_obj(p, 'Bar', ei, 'string', embedded_object='object')
+
+        p = CIMProperty('Bar', ei, 'string', embedded_object='object')
+        self._assert_obj(p, 'Bar', ei, 'string', embedded_object='object')
+
+        p = CIMProperty('Bar', ei)
+        self._assert_obj(p, 'Bar', ei, 'string', embedded_object='instance')
+
+        p = CIMProperty('Bar', ei, 'string')
+        self._assert_obj(p, 'Bar', ei, 'string', embedded_object='instance')
+
+        p = CIMProperty('Bar', ei, embedded_object='instance')
+        self._assert_obj(p, 'Bar', ei, 'string', embedded_object='instance')
+
+        p = CIMProperty('Bar', ei, 'string', embedded_object='instance')
+        self._assert_obj(p, 'Bar', ei, 'string', embedded_object='instance')
+
+        # Check that initialization with Null without specifying a type is
+        # rejected
 
         try:
             CIMProperty('Spotty', None)
-        except TypeError:
+        except (ValueError, TypeError):
             pass
         else:
-            self.fail('TypeError not raised')
+            self.fail('ValueError or TypeError not raised')
 
         # Check that initialization with Python integer and floating point
-        # values is rejected
+        # values without specifying a type is rejected
 
-        try:
-            CIMProperty('Age', 42)
-        except TypeError:
-            pass
-        else:
-            self.fail('TypeError not raised')
+        for val in [42, 42L, 42.0]:
+            try:
+                CIMProperty('Age', val)
+            except TypeError:
+                pass
+            else:
+                self.fail('TypeError not raised')
 
-        try:
-            CIMProperty('Age', 42L)
-        except TypeError:
-            pass
-        else:
-            self.fail('TypeError not raised')
+        # Arrays of CIM string and numeric types
 
-        try:
-            CIMProperty('Age', 42.0)
-        except TypeError:
-            pass
-        else:
-            self.fail('TypeError not raised')
+        p = CIMProperty('Foo', None, 'string', is_array=True)
+        self._assert_obj(p, 'Foo', None, 'string', is_array=True)
 
-        # Qualifiers
+        p = CIMProperty('Foo', [], 'string')
+        self._assert_obj(p, 'Foo', [], 'string', is_array=True)
 
-        CIMProperty('Spotty', 'Foot',
-                    qualifiers={'Key': CIMQualifier('Key', True)})
+        p = CIMProperty('Foo', [], 'string', is_array=True)
+        self._assert_obj(p, 'Foo', [], 'string', is_array=True)
 
-        # Simple arrays
+        p = CIMProperty('Foo', [None], 'string')
+        self._assert_obj(p, 'Foo', [None], 'string', is_array=True)
 
-        CIMProperty('Foo', None, 'string')
-        CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]])
-        CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]],
-                    qualifiers={'Key': CIMQualifier('Key', True)})
+        p = CIMProperty('Foo', [None], 'string', is_array=True)
+        self._assert_obj(p, 'Foo', [None], 'string', is_array=True)
 
-        # Must specify type for empty property array
+        p = CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]])
+        self._assert_obj(p, 'Foo', [Uint8(x) for x in [1, 2, 3]],
+                         'uint8', is_array=True)
 
-        try:
-            CIMProperty('Foo', [])
-        except TypeError:
-            pass
-        else:
-            self.fail('TypeError not raised')
+        p = CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]], is_array=True)
+        self._assert_obj(p, 'Foo', [Uint8(x) for x in [1, 2, 3]],
+                         'uint8', is_array=True)
 
-        # Numeric property value arrays must be a CIM type
+        p = CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]], type='uint8')
+        self._assert_obj(p, 'Foo', [Uint8(x) for x in [1, 2, 3]],
+                         'uint8', is_array=True)
 
-        try:
-            CIMProperty('Foo', [1, 2, 3])
-        except TypeError:
-            pass
-        else:
-            self.fail('TypeError not raised')
+        p = CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]], qualifiers=quals)
+        self._assert_obj(p, 'Foo', [Uint8(x) for x in [1, 2, 3]],
+                         'uint8', is_array=True, qualifiers=quals)
 
-        # Property references
+        # Arrays of CIM boolean type
 
-        CIMProperty('Foo', None, type='reference')
-        CIMProperty('Foo', CIMInstanceName('CIM_Foo'))
-        CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
-                    qualifiers={'Key': CIMQualifier('Key', True)})
+        p = CIMProperty('Aged', [True])
+        self._assert_obj(p, 'Aged', [True], 'boolean', is_array=True)
+
+        p = CIMProperty('Aged', [False, True], 'boolean')
+        self._assert_obj(p, 'Aged', [False, True], 'boolean', is_array=True)
+
+        p = CIMProperty('Aged', [None], 'boolean')
+        self._assert_obj(p, 'Aged', [None], 'boolean', is_array=True)
+
+        p = CIMProperty('Aged', [], 'boolean')
+        self._assert_obj(p, 'Aged', [], 'boolean', is_array=True)
+
+        # Arrays of CIM datetime type
+
+        timedelta_1 = timedelta(days=12345678, hours=22, minutes=44,
+                                seconds=55, microseconds=654321)
+        cim_datetime_1 = '12345678224455.654321:000'
+
+        p = CIMProperty('Age', [timedelta_1])
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
+                         is_array=True)
+
+        p = CIMProperty('Age', [timedelta_1], 'datetime')
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
+                         is_array=True)
+
+        p = CIMProperty('Age', [CIMDateTime(timedelta_1)])
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
+                         is_array=True)
+
+        p = CIMProperty('Age', [CIMDateTime(timedelta_1)], 'datetime')
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
+                         is_array=True)
+
+        p = CIMProperty('Age', [cim_datetime_1], 'datetime')
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
+                         is_array=True)
+
+        p = CIMProperty('Age', [CIMDateTime(cim_datetime_1)])
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
+                         is_array=True)
+
+        p = CIMProperty('Age', [CIMDateTime(cim_datetime_1)], 'datetime')
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
+                         is_array=True)
+
+        p = CIMProperty('Age', [None], 'datetime')
+        self._assert_obj(p, 'Age', [None], 'datetime', is_array=True)
+
+        datetime_2 = datetime(year=2014, month=9, day=24, hour=19, minute=30,
+                              second=40, microsecond=654321,
+                              tzinfo=cim_types.MinutesFromUTC(120))
+        cim_datetime_2 = '20140924193040.654321+120'
+
+        p = CIMProperty('Age', [datetime_2])
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
+                         is_array=True)
+
+        p = CIMProperty('Age', [datetime_2], 'datetime')
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
+                         is_array=True)
+
+        p = CIMProperty('Age', [CIMDateTime(datetime_2)])
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
+                         is_array=True)
+
+        p = CIMProperty('Age', [CIMDateTime(datetime_2)], 'datetime')
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
+                         is_array=True)
+
+        p = CIMProperty('Age', [cim_datetime_2], 'datetime')
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
+                         is_array=True)
+
+        p = CIMProperty('Age', [CIMDateTime(cim_datetime_2)])
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
+                         is_array=True)
+
+        p = CIMProperty('Age', [CIMDateTime(cim_datetime_2)], 'datetime')
+        self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
+                         is_array=True)
+
+        # Arrays of reference properties are not allowed in CIM v2.
+
+        # Arrays of CIM embedded objects / instances
+
+        p = CIMProperty('Bar', [None], embedded_object='object')
+        self._assert_obj(p, 'Bar', [None], 'string', embedded_object='object',
+                         is_array=True)
+
+        p = CIMProperty('Bar', [None], 'string', embedded_object='object')
+        self._assert_obj(p, 'Bar', [None], 'string', embedded_object='object',
+                         is_array=True)
+
+        p = CIMProperty('Bar', [], embedded_object='object')
+        self._assert_obj(p, 'Bar', [], 'string', embedded_object='object',
+                         is_array=True)
+
+        p = CIMProperty('Bar', [], 'string', embedded_object='object')
+        self._assert_obj(p, 'Bar', [], 'string', embedded_object='object',
+                         is_array=True)
+
+        ec = CIMClass('CIM_Bar')
+
+        p = CIMProperty('Bar', [ec])
+        self._assert_obj(p, 'Bar', [ec], 'string', embedded_object='object',
+                         is_array=True)
+
+        p = CIMProperty('Bar', [ec], 'string')
+        self._assert_obj(p, 'Bar', [ec], 'string', embedded_object='object',
+                         is_array=True)
+
+        p = CIMProperty('Bar', [ec], embedded_object='object')
+        self._assert_obj(p, 'Bar', [ec], 'string', embedded_object='object',
+                         is_array=True)
+
+        p = CIMProperty('Bar', [ec], 'string', embedded_object='object')
+        self._assert_obj(p, 'Bar', [ec], 'string', embedded_object='object',
+                         is_array=True)
+
+        ei = CIMInstance('CIM_Bar')
+
+        p = CIMProperty('Bar', [ei], embedded_object='object')
+        self._assert_obj(p, 'Bar', [ei], 'string', embedded_object='object',
+                         is_array=True)
+
+        p = CIMProperty('Bar', [ei], 'string', embedded_object='object')
+        self._assert_obj(p, 'Bar', [ei], 'string', embedded_object='object',
+                         is_array=True)
+
+        p = CIMProperty('Bar', [ei])
+        self._assert_obj(p, 'Bar', [ei], 'string', embedded_object='instance',
+                         is_array=True)
+
+        p = CIMProperty('Bar', [ei], 'string')
+        self._assert_obj(p, 'Bar', [ei], 'string', embedded_object='instance',
+                         is_array=True)
+
+        p = CIMProperty('Bar', [ei], embedded_object='instance')
+        self._assert_obj(p, 'Bar', [ei], 'string', embedded_object='instance',
+                         is_array=True)
+
+        p = CIMProperty('Bar', [ei], 'string', embedded_object='instance')
+        self._assert_obj(p, 'Bar', [ei], 'string', embedded_object='instance',
+                         is_array=True)
+
+        # Check that initialization with array being Null, array being empty,
+        # or first array element being Null without specifying a type is
+        # rejected
+
+        for val in [None, [], [None], [None, "abc"]]:
+
+            try:
+                CIMProperty('Foo', val, is_array=True)
+            except (ValueError, TypeError):
+                pass
+            else:
+                self.fail('ValueError or TypeError not raised')
+
+        for val in [[], [None], [None, "abc"]]:
+
+            try:
+                CIMProperty('Foo', val)
+            except (ValueError, TypeError):
+                pass
+            else:
+                self.fail('ValueError or TypeError not raised')
+
+        # Check that initialization of array elements with Python integer and
+        # floating point values without specifying a type is rejected
+
+        for val in [[1, 2, 3], [1.0, 2.0]]:
+            try:
+                CIMProperty('Foo', val)
+            except (ValueError, TypeError):
+                pass
+            else:
+                self.fail('ValueError or TypeError not raised')
 
 class CopyCIMProperty(TestCase):
 
@@ -1655,7 +2058,7 @@ class CIMQualifierToXML(ValidateTest):
 ###############################################################################
 
 # TODO Add testcases for CIMClassName
- 
+
 ###############################################################################
 # CIMClass
 ###############################################################################
@@ -2443,6 +2846,10 @@ tests = [ # pylint: disable=invalid-name
     ToCIMObj,
 
     ]
+
+# Determine the directory where this module is located. This must be done
+# before comfychair gets control, because it changes directories.
+_MODULE_PATH = os.path.abspath(os.path.dirname(inspect.getfile(ValidateTest)))
 
 if __name__ == '__main__':
     main(tests)

@@ -27,6 +27,8 @@ XML data specified in standard input.
 """
 
 import sys
+import os
+import os.path
 import string
 from subprocess import Popen, PIPE, STDOUT
 
@@ -48,7 +50,7 @@ def validate_xml(data, dtd_directory=None, root_elem=None):
 
     dtd_file = DTD_FILE
     if dtd_directory is not None:
-        dtd_file = '%s/%s' % (dtd_directory, DTD_FILE)
+        dtd_file = os.path.join(dtd_directory, DTD_FILE).replace('\\','/')
 
     # Make sure the XML data requires the specified root element, if any
     if root_elem is not None:

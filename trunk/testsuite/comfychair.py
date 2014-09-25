@@ -132,14 +132,16 @@ why."""
     def assert_equal(self, a, b):
         if not a == b:
             raise AssertionError("Values are not equal:\n"
-                                 "    left value: %s\n"
-                                 "    right value: %s" % (a, b))
+                                 "    left  value: %r (%s)\n"
+                                 "    right value: %r (%s)" % \
+                                 (a, type(a), b, type(b)))
 
     def assert_notequal(self, a, b):
         if a == b:
             raise AssertionError("Values are equal:\n"
-                                 "    left value: %s\n"
-                                 "    right value: %s" % (a, b))
+                                 "    left  value: %r (%s)\n"
+                                 "    right value: %r (%s)" % \
+                                 (a, type(a), b, type(b)))
 
     def assert_re_match(self, pattern, s):
         """Assert that a string matches a particular pattern
@@ -153,8 +155,8 @@ why."""
           """
         if not re.match(pattern, s):
             raise AssertionError("String does not match regexp\n"
-                                 "    string: %s\n"
-                                 "    regexp: %s" % (`s`, `pattern`))
+                                 "    string: %r\n"
+                                 "    regexp: %r" % (s, pattern))
 
     def assert_re_search(self, pattern, s):
         """Assert that a string *contains* a particular pattern
@@ -168,8 +170,8 @@ why."""
           """
         if not re.search(pattern, s):
             raise AssertionError("String does not contain regexp\n"
-                                 "    string: %s\n"
-                                 "    regexp: %s" % (`s`, `pattern`))
+                                 "    string: %r\n"
+                                 "    regexp: %r" % (s, pattern))
 
 
     def assert_no_file(self, filename):
