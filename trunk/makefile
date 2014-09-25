@@ -97,8 +97,10 @@ install: build
 clean:
 	rm -f MANIFEST parser.out
 	sh -c "find . -name \"*.pyc\" | xargs -r rm"
-	sh -c "find . -name \"*.m.html\" | xargs -r rm"
-	rm -Rf build tmp_install
+	rm -Rf build tmp_install testtmp testsuite/testtmp
+	@echo '$@ done.'
+
+all: build check test install clean
 	@echo '$@ done.'
 
 help:
@@ -110,6 +112,7 @@ help:
 	@echo '  test    - Run unit tests.'
 	@echo '  install - Build and install the distribution archive on your system as a site package.'
 	@echo '  clean   - Remove any temporary files.'
+	@echo '  all     - build, check, test, install, clean'
 
 # Note: distutils depends on the right files specified in MANIFEST.in, even when
 # they are already specified e.g. in 'package_data' in setup.py.
@@ -132,12 +135,12 @@ $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 
 # Documentation for package (generates more .html files than just this target)
 $(doc_out_dir)/$(package_name)/index.html: $(package_name)/*.py
-	pdoc $(pdoc_opts) --html-dir $(doc_out_dir) $(package_name)
+	sh -c "PYTHONPATH=. pdoc $(pdoc_opts) --html-dir $(doc_out_dir) $(package_name)"
 
 ## Documentation for scripts
 #$(doc_out_dir)/%.m.html: %.py
-#	pdoc $(pdoc_opts) --html-dir $(doc_out_dir) $<
+#	sh -c "PYTHONPATH=. pdoc $(pdoc_opts) --html-dir $(doc_out_dir) $<"
 
 # PyLint report
 pylint_report.html: $(pylint_rc_file) setup.py $(package_name)/*.py testsuite/*.py
-	-pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py --output-format=html setup.py $(package_name) testsuite/*.py >$@
+	-sh -c "PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py --output-format=html setup.py $(package_name) testsuite/*.py >$@"
