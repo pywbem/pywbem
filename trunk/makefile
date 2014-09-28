@@ -9,11 +9,12 @@
 #   sh - used to make sure some commands are executed in unix shell on Windows
 #   rm, test, find, unzip, sed, xargs, tee
 #   Note: On Windows, use CygWin to get these commands.
-#   pdoc - part of pdoc Python package.
 #
 # Python related prerequisites for this makefile:
 #   Python 2.6 or 2.7
-#   Packages: pdoc
+#   Packages:
+#     epydoc 3.0.1 plus patches
+#     docutils 0.12
 # ------------------------------------------------------------------------------
 
 # Name of this Python package
@@ -39,8 +40,10 @@ doc_html_files := \
     $(doc_out_dir)/$(package_name)/index.html \
 #    $(doc_out_dir)/wbemcli.m.html \
 
-# Options for pdoc command, used to generate API documentation
-pdoc_opts := --overwrite --html
+# Documentation generator commands
+pdoc_cmd := pdoc --overwrite --html --html-dir $(doc_out_dir) $(package_name)
+epydoc_cmd := epydoc --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_out_dir) $(package_name)
+doc_cmd := $(epydoc_cmd)
 
 # PyLint config file
 pylint_rc_file := ../../pylint.rc
@@ -135,11 +138,7 @@ $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 
 # Documentation for package (generates more .html files than just this target)
 $(doc_out_dir)/$(package_name)/index.html: $(package_name)/*.py
-	sh -c "PYTHONPATH=. pdoc $(pdoc_opts) --html-dir $(doc_out_dir) $(package_name)"
-
-## Documentation for scripts
-#$(doc_out_dir)/%.m.html: %.py
-#	sh -c "PYTHONPATH=. pdoc $(pdoc_opts) --html-dir $(doc_out_dir) $<"
+	sh -c "PYTHONPATH=. $(doc_cmd)"
 
 # PyLint report
 pylint_report.html: $(pylint_rc_file) setup.py $(package_name)/*.py testsuite/*.py

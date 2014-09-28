@@ -48,7 +48,7 @@ The WBEM-related utilities included in this package are:
   * `pywbem.twisted_client` : An experimental alternative WBEM client library
     that uses the Python `twisted` package.
 
-  * [`wbemcli.py`](../wbemcli.m.html) :  Script providing a WBEM client CLI
+  * `pywbem.wbemcli` :  Script providing a WBEM client CLI
     as an interactive shell.
 
 Importing the `pywbem` package causes a subset of symbols from its sub-modules
@@ -57,15 +57,21 @@ to be folded into the target namespace.
 The use of these folded symbols is shown for the example of class
 `pywbem.cim_operations.WBEMConnection`:
 
+.. code:: python
+
     import pywbem
     conn = pywbem.WBEMConnection(...)
 
 or:
 
+.. code:: python
+
     from pywbem import WBEMConnection
     conn = WBEMConnection(...)
 
 or (less preferred):
+
+.. code:: python
 
     from pywbem import *
     conn = WBEMConnection(...)
@@ -80,15 +86,21 @@ package need to import the respective sub-modules explicitly.
 The use of such sub-modules is shown for the example of class
 `pywbem.cim_provider.CIMProvider`:
 
+.. code:: python
+
     from pywbem import cim_provider
     provider = cim_provider.CIMProvider(...)
 
 or:
 
+.. code:: python
+
     from pywbem.cim_provider import CIMProvider
     provider = CIMProvider(...)
 
 or:
+
+.. code:: python
 
     import pywbem.cim_provider
     provider = pywbem.cim_provider.CIMProvider(...)
