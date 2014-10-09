@@ -129,49 +129,77 @@ why."""
         if not expr:
             raise AssertionError(reason)
 
-    def assert_equal(self, a, b):
+    def assert_equal(self, a, b, entity=None):
+        """Assert that two values (of any type) are equal
+
+        Inputs:
+          a            any type: left value
+          b            any type: right value
+          entity       string: name of entity whose value is compared
+
+        Raises:
+          AssertionError if not equal
+        """
         if not a == b:
-            raise AssertionError("Values are not equal:\n"
+            raise AssertionError("Values %sare not equal:\n"
                                  "    left  value: %r (%s)\n"
                                  "    right value: %r (%s)" % \
-                                 (a, type(a), b, type(b)))
+                                 ("of %s " % entity if entity is not None
+                                  else "", a, type(a), b, type(b)))
 
-    def assert_notequal(self, a, b):
+    def assert_notequal(self, a, b, entity=None):
+        """Assert that two values (of any type) are not equal
+
+        Inputs:
+          a            any type: left value
+          b            any type: right value
+          entity       string: name of entity whose value is compared
+
+        Raises:
+          AssertionError if equal
+        """
         if a == b:
-            raise AssertionError("Values are equal:\n"
+            raise AssertionError("Values %sare equal:\n"
                                  "    left  value: %r (%s)\n"
                                  "    right value: %r (%s)" % \
-                                 (a, type(a), b, type(b)))
+                                 ("of %s " % entity if entity is not None
+                                  else "", a, type(a), b, type(b)))
 
-    def assert_re_match(self, pattern, s):
-        """Assert that a string matches a particular pattern
+    def assert_re_match(self, pattern, s, entity=None):
+        """Assert that a string value matches a particular pattern
 
         Inputs:
           pattern      string: regular expression
-          s            string: to be matched
+          s            string: string value to be matched
+          entity       string: name of entity whose value is compared
 
         Raises:
           AssertionError if not matched
-          """
+        """
         if not re.match(pattern, s):
-            raise AssertionError("String does not match regexp\n"
-                                 "    string: %r\n"
-                                 "    regexp: %r" % (s, pattern))
+            raise AssertionError("String value %sdoes not match regexp\n"
+                                 "     value: %r\n"
+                                 "    regexp: %r" % \
+                                 ("of %s " % entity if entity is not None
+                                  else "", s, pattern))
 
-    def assert_re_search(self, pattern, s):
-        """Assert that a string *contains* a particular pattern
+    def assert_re_search(self, pattern, s, entity=None):
+        """Assert that a string value *contains* a particular pattern
 
         Inputs:
           pattern      string: regular expression
-          s            string: to be searched
+          s            string: string value to be searched
+          entity       string: name of entity whose value is compared
 
         Raises:
           AssertionError if not matched
           """
         if not re.search(pattern, s):
-            raise AssertionError("String does not contain regexp\n"
+            raise AssertionError("String value %sdoes not contain regexp\n"
                                  "    string: %r\n"
-                                 "    regexp: %r" % (s, pattern))
+                                 "    regexp: %r" % \
+                                 ("of %s " % entity if entity is not None
+                                  else "", s, pattern))
 
 
     def assert_no_file(self, filename):
