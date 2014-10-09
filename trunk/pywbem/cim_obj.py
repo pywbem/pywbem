@@ -383,6 +383,41 @@ class NocaseDict(object):
                 return rv
         return len(self) - len(other)
 
+def _intended_value(intended, unspecified, actual, name, msg):
+    """
+    Return the intended value if the actual value is unspecified or has
+    the intended value already, and otherwise raise a ValueError with the
+    specified error message.
+
+    Arguments:
+
+      * `intended`: The intended value, or sequence of values. The first
+        item in the sequence will act as the intended value, the others
+        are also valid values.
+      * `unspecified`: A value indicating 'unspecified' (usually `None`).
+      * `actual`: The actual value.
+      * `name`: The name of the attribute that this is about, for use in the
+        exception message.
+      * `msg`: A context setting message, for use in the exception message.
+    """
+
+    if isinstance(intended, (tuple, list)):
+        if actual == unspecified:
+            return intended[0] # the default
+        elif actual in intended:
+            return actual
+        else:
+            raise ValueError(msg + ", but specifies %s=%r (must be one of %r)"\
+                             % (name, actual, intended))
+    else:
+        if actual == unspecified:
+            return intended
+        elif actual == intended:
+            return actual
+        else:
+            raise ValueError(msg + ", but specifies %s=%r (must be %r)"\
+                             % (name, actual, intended))
+
 def cmpname(name1, name2):
     """
     Compare two CIM names.  The comparison is done
@@ -489,83 +524,357 @@ class CIMClassName(object):
         return cim_xml.CLASSNAME(self.classname)
 
 class CIMProperty(object):
-    """A property of a CIMInstance.
+    """
+    A CIM property.
 
-    Property objects represent both properties on particular instances,
-    and the property defined in a class.  In the first case, the property
-    will have a Value and in the second it will not.
+    The property can be used in a CIM instance (as part of a `CIMInstance`
+    object) or in a CIM class (as part of a `CIMClass` object).
 
-    The property may hold an array value, in which case it is encoded
-    in XML to PROPERTY.ARRAY containing VALUE.ARRAY."""
+    For properties in CIM instances:
+
+      * The `value` instance variable is the actual value of the property.
+      * Qualifiers are not allowed.
+
+    For properties in CIM classes:
+
+      * The `value` instance variable is the default value for the property.
+      * Qualifiers are allowed.
+
+    Scalar (=non-array) properties may have a value of Null (=`None`), any
+    primitive CIM type, reference type, and string type with embedded instance
+    or embedded object.
+
+    Array properties may be Null or may have elements with a value of Null, any
+    primitive CIM type, and string type with embedded instance or embedded
+    object. Reference types are not allowed in property arrays in CIM, as per
+    DMTF DSP0004.
+    """
 
     def __init__(self, name, value, type=None,
                  class_origin=None, array_size=None, propagated=None,
-                 is_array=False, reference_class=None, qualifiers={},
+                 is_array=None, reference_class=None, qualifiers=None,
                  embedded_object=None):
+        """
+        Initialize the `CIMProperty` object.
 
-        # Initialise members
+        This function infers optional arguments that are not specified (for
+        example, it infers `type` from the Python type of `value` and other
+        information). If the specified arguments are inconsistent, an
+        exception is raised. If an optional argument is needed for some reason,
+        an exception is raised.
 
+        :Parameters:
+
+          name : `str` or `unicode`
+            Name of the property. Must not be `None`.
+
+          value : type for CIM values
+            Value of the property (interpreted as actual value when the
+            property object is used in an instance, and as default value when
+            it is used in a class).
+            For valid types for CIM values, see `cim_types`.
+
+          type : `str` or `unicode`
+            Name of the CIM type of the property (e.g. `'uint8'`).
+            `None` means that the argument is unspecified, causing the
+            corresponding instance variable to be inferred. An exception is
+            raised if it cannot be inferred.
+
+          class_origin : `str` or `unicode`
+            The CIM class origin of the property (the name
+            of the most derived class that defines or overrides the property in
+            the class hierarchy of the class owning the property).
+            `None` means that class origin information is not available.
+
+          array_size : `int`
+            The size of the array property, for fixed-size arrays.
+            `None` means that the array property has variable size.
+
+          propagated : `str` or `unicode`
+            The CIM *propagated* attribute of the property (the effective value
+            of the `Propagated` qualifier of the property, which is a string
+            that specifies the name of the source property from which the
+            property value should be propagated).
+            `None` means that propagation information is not available.
+
+          is_array : `bool`
+            A boolean indicating whether the property is an array (`True`) or a
+            scalar (`False`).
+            `None` means that the argument is unspecified, causing the
+            corresponding instance variable to be inferred from the `value`
+            parameter, and if that is `None` it defaults to `False` (scalar).
+
+          reference_class : `str` or `unicode`
+            The name of the referenced class, for reference properties.
+            `None` means that the argument is unspecified, causing the
+            corresponding instance variable  to be inferred. An exception is
+            raised if it cannot be inferred.
+
+          qualifiers : `dict` or `NocaseDict`
+            A dictionary specifying CIM qualifier values.
+            The dictionary keys must be the qualifier names. The dictionary
+            values must be `CIMQualifier` objects specifying the qualifier
+            values.
+            `None` means that there are no qualifier values. In all cases,
+            the `qualifiers` instance variable will be a `NocaseDict` object.
+
+          embedded_object : `str` or `unicode`
+            A string value indicating the kind of
+            embedded object represented by the property value. The following
+            values are defined for this argument:
+            `'instance'`: The property is declared with the
+            `EmbeddedInstance` qualifier, indicating that the property
+            value is an embedded instance of a known class name.
+            `'object'`: The property is declared with the
+            `EmbeddedObject` qualifier, indicating that the property
+            value is an embedded object (instance or class) of which the
+            class name is not known.
+            `None` means that the argument is unspecified, causing the
+            corresponding instance variable to be inferred. An exception is
+            raised if it cannot be inferred.
+
+        :Raises:
+          :raise TypeError:
+          :raise ValueError:
+
+        Examples:
+
+          * `CIMProperty("MyString", "abc")`
+            -> a string property
+          * `CIMProperty("MyNum", 42, "uint8")`
+            -> a uint8 property
+          * `CIMProperty("MyNum", Uint8(42))`
+            -> a uint8 property
+          * `CIMProperty("MyNumArray", [1,2,3], "uint8")`
+            -> a uint8 array property
+          * `CIMProperty("MyRef", CIMInstanceName(...))`
+            -> a reference property
+          * `CIMProperty("MyEmbObj", CIMClass(...))`
+            -> an embedded object property containing a class
+          * `CIMProperty("MyEmbObj", CIMInstance(...),
+            embedded_object='object')`
+            -> an embedded object property containing an instance
+          * `CIMProperty("MyEmbInst", CIMInstance(...))`
+            -> an embedded instance property
+          * `CIMProperty("MyString", None, "string")`
+            -> a string property that is Null
+          * `CIMProperty("MyNum", None, "uint8")`
+            -> a uint8 property that is Null
+          * `CIMProperty("MyRef", None, reference_class="MyClass")`
+            -> a reference property that is Null
+          * `CIMProperty("MyEmbObj", None, embedded_object='object')`
+            -> an embedded object property that is Null
+          * `CIMProperty("MyEmbInst", None, embedded_object='instance')`
+            -> an embedded instance property that is Null
+        """
+
+        from __builtin__ import type as __type
+
+        # Check `name`
+
+        if name is None:
+            raise ValueError('Property must have a name')
+
+        # General checks:
+
+        if embedded_object not in (None, 'instance', 'object'):
+            raise ValueError('Property %r specifies an invalid ' \
+                             'embedded_object=%r' % (name, embedded_object))
+
+        if is_array not in (None, True, False):
+            raise ValueError('Property %r specifies an invalid ' \
+                             'is_array=%r' % (name, is_array))
+
+        # Set up is_array
+
+        if isinstance(value, (list, tuple)):
+            is_array = _intended_value(True,
+                    None, is_array, 'is_array',
+                    'Property %r has a value that is an array (%s)' % \
+                    (name, __type(value)))
+        elif value is not None: # Scalar value
+            is_array = _intended_value(False,
+                    None, is_array, 'is_array',
+                    'Property %r has a value that is a scalar (%s)' % \
+                    (name, __type(value)))
+        else: # Null value
+            if is_array is None:
+                is_array = False # For compatibility with old default
+
+        if not is_array and array_size is not None:
+            raise ValueError('Scalar property %r specifies array_size=%r ' \
+                             '(must be None)' % (name, array_size))
+
+        # Determine type, embedded_object, and reference_class attributes.
+        # Make sure value is CIM-typed.
+
+        if is_array: # Array property
+            if reference_class is not None:
+                raise ValueError(
+                    'Array property %r cannot specify reference_class' % name)
+            elif value is None or len(value) == 0 or value[0] is None:
+                # Cannot infer from value, look at embedded_object and type
+                if embedded_object == 'instance':
+                    raise ValueError(
+                            'Limitation: Array property %r that is Null, ' \
+                            'empty, or has Null as its first element cannot ' \
+                            'have embedded instances (class cannot be ' \
+                            'specified)' % name)
+                elif embedded_object == 'object':
+                    type = _intended_value('string',
+                            None, type, 'type',
+                            'Array property %r contains embedded objects' % \
+                            name)
+                elif type is not None:
+                    # Leave type as specified, but check it for validity
+                    dummy_type_obj = cim_types.type_from_name(type)
+                else:
+                    raise ValueError(
+                            'Cannot infer type of array property %r that is ' \
+                            'Null, empty, or has Null as its first element' % \
+                            name)
+            elif isinstance(value[0], CIMInstance):
+                msg = 'Array property %r contains CIMInstance values' % name
+                type = _intended_value('string',
+                        None, type, 'type', msg)
+                embedded_object = _intended_value(('instance', 'object'),
+                        None, embedded_object, 'embedded_object', msg)
+            elif isinstance(value[0], CIMClass):
+                msg = 'Array property %r contains CIMClass values' % name
+                type = _intended_value('string',
+                        None, type, 'type', msg)
+                embedded_object = _intended_value('object',
+                        None, embedded_object, 'embedded_object', msg)
+            elif isinstance(value[0], (datetime, timedelta)):
+                value = [cim_types.CIMDateTime(val) if val is not None
+                         else val for val in value]
+                msg = 'Array property %r contains datetime or timedelta ' \
+                        'values' % name
+                type = _intended_value('datetime',
+                        None, type, 'type', msg)
+                embedded_object = _intended_value(None,
+                        None, embedded_object, 'embedded_object', msg)
+            elif type == 'datetime':
+                value = [cim_types.CIMDateTime(val) if val is not None
+                         and not isinstance(val, cim_types.CIMDateTime)
+                         else val for val in value]
+                msg = 'Array property %r specifies CIM type %r' % (name, type)
+                embedded_object = _intended_value(None,
+                       None, embedded_object, 'embedded_object', msg)
+            elif type is None:
+                # Determine simple type from (non-Null) value
+                type = cim_types.cimtype(value[0])
+                msg = 'Array property %r contains simple typed values ' \
+                        'with no CIM type specified' % name
+                embedded_object = _intended_value(None,
+                        None, embedded_object, 'embedded_object', msg)
+            else: # type is specified and value (= entire array) is not Null
+                # Make sure the array elements are of the corresponding Python
+                # type.
+                value = [cim_types.type_from_name(type)(val) if val is not None
+                         else val for val in value]
+                msg = 'Array property %r contains simple typed values ' \
+                        'and specifies CIM type %r' % (name, type)
+                embedded_object = _intended_value(None,
+                        None, embedded_object, 'embedded_object', msg)
+        else: # Scalar property
+            if value is None:
+                # Try to infer from embedded_object, reference_class, and type
+                if embedded_object == 'instance':
+                    raise ValueError('Limitation: Simple property %r that ' \
+                            'is Null cannot have embedded instances '\
+                            '(class cannot be specified)' % name)
+                elif embedded_object == 'object':
+                    msg = 'Property %r contains embedded object' % name
+                    type = _intended_value('string',
+                            None, type, 'type', msg)
+                    reference_class = _intended_value(None,
+                            None, reference_class, 'reference_class', msg)
+                elif reference_class is not None:
+                    msg = 'Property %r is a reference' % name
+                    embedded_object = _intended_value(None,
+                            None, embedded_object, 'embedded_object', msg)
+                    type = _intended_value('reference',
+                            None, type, 'type', msg)
+                elif type is not None:
+                    # Leave type as specified, but check it for validity
+                    dummy_type_obj = cim_types.type_from_name(type)
+                else:
+                    raise ValueError('Cannot infer type of simple ' \
+                                     'property %r that is Null' % name)
+            elif isinstance(value, CIMInstanceName):
+                msg = 'Property %r has a CIMInstanceName value with ' \
+                        'classname=%r' % (name, value.classname)
+                reference_class = _intended_value(value.classname,
+                        None, reference_class, 'reference_class', msg)
+                type = _intended_value('reference',
+                        None, type, 'type', msg)
+                embedded_object = _intended_value(None,
+                        None, embedded_object, 'embedded_object', msg)
+            elif isinstance(value, CIMInstance):
+                msg = 'Property %r has a CIMInstance value' % name
+                type = _intended_value('string',
+                        None, type, 'type', msg)
+                embedded_object = _intended_value(('instance', 'object'),
+                        None, embedded_object, 'embedded_object', msg)
+                reference_class = _intended_value(None,
+                        None, reference_class, 'reference_class', msg)
+            elif isinstance(value, CIMClass):
+                msg = 'Property %r has a CIMClass value' % name
+                type = _intended_value('string',
+                        None, type, 'type', msg)
+                embedded_object = _intended_value('object',
+                        None, embedded_object, 'embedded_object', msg)
+                reference_class = _intended_value(None,
+                        None, reference_class, 'reference_class', msg)
+            elif isinstance(value, (datetime, timedelta)):
+                value = cim_types.CIMDateTime(value)
+                msg = 'Property %r has a datetime or timedelta value' % name
+                type = _intended_value('datetime',
+                        None, type, 'type', msg)
+                embedded_object = _intended_value(None,
+                        None, embedded_object, 'embedded_object', msg)
+                reference_class = _intended_value(None,
+                        None, reference_class, 'reference_class', msg)
+            elif type == 'datetime':
+                if not isinstance(value, cim_types.CIMDateTime):
+                    value = cim_types.CIMDateTime(value)
+                msg = 'Property %r specifies CIM type %r' % (name, type)
+                embedded_object = _intended_value(None,
+                        None, embedded_object, 'embedded_object', msg)
+                reference_class = _intended_value(None,
+                        None, reference_class, 'reference_class', msg)
+            elif type is None:
+                # Determine simple type from (non-Null) value
+                type = cim_types.cimtype(value)
+                msg = 'Property %r has a simple typed value ' \
+                        'with no CIM type specified' % name
+                embedded_object = _intended_value(None,
+                        None, embedded_object, 'embedded_object', msg)
+                reference_class = _intended_value(None,
+                        None, reference_class, 'reference_class', msg)
+            else: # type is specified and value is not Null
+                # Make sure the value is of the corresponding Python type.
+                _type_obj = cim_types.type_from_name(type)
+                value = _type_obj(value)
+                msg = 'Property %r has a simple typed value ' \
+                        'and specifies CIM type %r' % (name, type)
+                embedded_object = _intended_value(None,
+                        None, embedded_object, 'embedded_object', msg)
+                reference_class = _intended_value(None,
+                        None, reference_class, 'reference_class', msg)
+
+        # Initialize members
         self.name = name
         self.value = value
         self.type = type
         self.class_origin = class_origin
         self.array_size = array_size
         self.propagated = propagated
-        self.qualifiers = NocaseDict(qualifiers)
         self.is_array = is_array
         self.reference_class = reference_class
+        self.qualifiers = NocaseDict(qualifiers)
         self.embedded_object = embedded_object
-
-        if isinstance(value, (datetime, timedelta)):
-            value = cim_types.CIMDateTime(value)
-
-        import __builtin__
-        if __builtin__.type(value) == list:
-            self.is_array = True
-        # Determine type of value if not specified
-
-        if type is None:
-
-            # Can't work out what is going on if type and value are
-            # both not set.
-
-            if value is None:
-                raise TypeError('Null property "%s" must have a type' % name)
-
-            if self.is_array:
-
-                # Determine type for list value
-
-                if len(value) == 0:
-                    raise TypeError(
-                        'Empty property array "%s" must have a type' % name)
-
-                elif isinstance(value[0], CIMInstance):
-                    self.type = 'string'
-                    self.embedded_object = 'instance'
-                elif isinstance(value[0], CIMClass):
-                    self.type = 'string'
-                    self.embedded_object = 'object'
-                else:
-                    self.type = cim_types.cimtype(value[0])
-
-            elif isinstance(value, CIMInstanceName):
-
-                self.type = 'reference'
-
-            elif isinstance(value, CIMInstance):
-                self.type = 'string'
-                self.embedded_object = 'instance'
-
-            elif isinstance(value, CIMClass):
-                self.type = 'string'
-                self.embedded_object = 'object'
-
-            else:
-
-                # Determine type for regular value
-
-                self.type = cim_types.cimtype(value)
 
     def copy(self):
 
@@ -581,10 +890,13 @@ class CIMProperty(object):
 
     def __repr__(self):
 
-        return '%s(name=%r, type=%r, reference_class=%r, is_array=%r, ' \
-               'value=%r, ...)' % \
-               (self.__class__.__name__, self.name, self.type,
-                self.reference_class, self.is_array, self.value)
+        return '%s(name=%r, value=%r, type=%r, class_origin=%r, ' \
+               'array_size=%r, propagated=%r, is_array=%r, ' \
+               'reference_class=%r, qualifiers=%r, embedded_object=%r)' % \
+               (self.__class__.__name__, self.name, self.value, self.type,
+                self.class_origin, self.array_size, self.propagated,
+                self.is_array, self.reference_class, self.qualifiers,
+                self.embedded_object)
 
     def tocimxml(self):
 
@@ -661,7 +973,7 @@ class CIMProperty(object):
 class CIMInstanceName(object):
     """
     A CIM instance path (aka 'instance name').
-    
+
     Consists of host (optional), namespace (optional), class name, and key
     bindings (= key properties), identifying a CIM instance.
 
@@ -669,6 +981,9 @@ class CIMInstanceName(object):
     """
 
     def __init__(self, classname, keybindings=None, host=None, namespace=None):
+
+        if classname is None:
+            raise ValueError('Instance path must have a class name')
 
         self.classname = classname
         self.keybindings = NocaseDict(keybindings)
