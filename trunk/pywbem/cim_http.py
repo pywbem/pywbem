@@ -21,11 +21,12 @@
 # Author: Bart Whiteley <bwhiteley@suse.de>
 
 '''
-This module implements CIM operations over HTTP.
+Functions to send a CIM operations request to a WBEM server and wait for the
+response to come back.
 
-This module should not know anything about the fact that the data
-being transferred is XML.  It is up to the caller to format the input
-data and interpret the result.
+This module does not know anything about the fact that the data being
+transferred in request and response is CIM-XML.  It is up to the caller to
+provide CIM-XML formatted input data and interpret the result data as CIM-XML.
 '''
 
 import string
@@ -105,12 +106,55 @@ def get_default_ca_certs():
 def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                  verify_callback=None, ca_certs=None,
                  no_verification=False):
-    """Send XML data over HTTP to the specified url. Return the
-    response in XML.  Uses Python's build-in httplib.  x509 may be a
-    dictionary containing the location of the SSL certificate and key
-    files.
+    """
+    Send a CIM operations request using HTTP or HTTPS to a WBEM server and
+    return the response.
 
-    The data argument must be a unicode object or a UTF-8 encoded str object.
+    This function uses Python's built-in `httplib` module.
+
+    :Parameters:
+
+      url : `unicode` or UTF-8 encoded `str`
+        URL of the WBEM server (e.g. ``"https://10.11.12.13:6988"``).
+        Must not be `None`.
+        For details, see the ``url`` parameter of
+        `pywbem.cim_operations.WBEMConnection.__init__`.
+
+      data : `unicode` or UTF-8 encoded `str`
+        The CIM-XML formatted data to be sent as a request.
+
+      creds
+        Credentials for authenticating with the WBEM server.
+        For details, see the ``creds`` parameter of
+        `pywbem.cim_operations.WBEMConnection.__init__`.
+
+      headers : list of `unicode` or UTF-8 encoded `str`
+        List of HTTP header fields to be added to the request, in addition to
+        the standard header fields such as ``Content-type``,
+        ``Content-length``, and ``Authorization``.
+
+      debug : ``bool``
+        Boolean indicating whether to create debug information.
+        Not currently used.
+
+      x509
+        Used for HTTPS with certificates, otherwise None.
+        For details, see the ``x509`` parameter of
+        `pywbem.cim_operations.WBEMConnection.__init__`.
+
+      verify_callback
+        Used for HTTPS with certificates, otherwise None.
+        For details, see the ``verify_callback`` parameter of
+        `pywbem.cim_operations.WBEMConnection.__init__`.
+
+      ca_certs
+        Used for HTTPS with certificates, otherwise None.
+        For details, see the ``ca_certs`` parameter of
+        `pywbem.cim_operations.WBEMConnection.__init__`.
+
+      no_verification : TBD
+        TBD
+
     """
 
     class HTTPBaseConnection:
