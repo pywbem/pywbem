@@ -21,12 +21,12 @@
 # Author: Bart Whiteley <bwhiteley@suse.de>
 
 '''
-Functions to send a CIM operations request to a WBEM server and wait for the
-response to come back.
+Send HTTP/HTTPS requests to a WBEM server.
 
 This module does not know anything about the fact that the data being
-transferred in request and response is CIM-XML.  It is up to the caller to
-provide CIM-XML formatted input data and interpret the result data as CIM-XML.
+transferred in the HTTP request and response is CIM-XML.  It is up to the
+caller to provide CIM-XML formatted input data and interpret the result data
+as CIM-XML.
 '''
 
 import string
@@ -107,8 +107,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                  verify_callback=None, ca_certs=None,
                  no_verification=False):
     """
-    Send a CIM operations request using HTTP or HTTPS to a WBEM server and
-    return the response.
+    Send an HTTP or HTTPS request to a WBEM server and return the response.
 
     This function uses Python's built-in `httplib` module.
 
@@ -121,7 +120,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
         `pywbem.cim_operations.WBEMConnection.__init__`.
 
       data : `unicode` or UTF-8 encoded `str`
-        The CIM-XML formatted data to be sent as a request.
+        The CIM-XML formatted data to be sent as a request to the WBEM server.
 
       creds
         Credentials for authenticating with the WBEM server.
@@ -155,6 +154,12 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
       no_verification : TBD
         TBD
 
+    :Returns:
+      The CIM-XML formatted response data from the WBEM server.
+
+    :Raises:
+      :raise Error:
+      :raise AuthError:
     """
 
     class HTTPBaseConnection:
