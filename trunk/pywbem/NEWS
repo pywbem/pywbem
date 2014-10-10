@@ -1,4 +1,4 @@
-pywbem-0.8.0~dev (last updated: 2014-09-11, includes commits up to r642)
+pywbem-0.8.0~dev (last updated: 2014-10-10, includes commits up to r672)
 
   ENHANCEMENTS:
 
@@ -10,19 +10,39 @@ pywbem-0.8.0~dev (last updated: 2014-09-11, includes commits up to r642)
       detect included MOF files when used together with the '-v' option.
       (Jan Safranek)
 
-    * Added support for non-ASCII characters.  (Michal Minar)
-
-    * Improved information in the message text of some exceptions (TypeError and
-      KeyError in cim_obj.py, ValueError in cim_obj.py, and ParseError in
+    * Added support for non-ASCII (Unicode) characters.  (Michal Minar, Andreas
+      Maier)
+      
+    * Improved information in the message text of some exceptions (TypeError
+      and KeyError in cim_obj.py, ValueError in cim_obj.py, and ParseError in
       tupleparse.py).  (Andreas Maier)
 
     * Moved the definition of the pywbem version from setup.py to __init__.py,
       in order to make it available to programs using pywbem as
       pywbem.__version__.  (Andreas Maier)
 
-    * Added support for direct iteration over NocaseDict objects using 'for' and
-      'in' by adding __iter__(), e.g. for use with CIMInstance.properties.
+    * Added support for direct iteration over NocaseDict objects using 'for'
+      and 'in' by adding __iter__(), e.g. for use with CIMInstance.properties.
       (Andreas Maier)
+
+    * Added more instance attributes to be shown in repr() on CIMProperty and
+      other classes in cim_obj.  (Andreas Maier)
+
+    * Added and improved docstring-based documentation in the pywbem modules
+      cim_operations, cim_http, cim_obj, cim_types, and the pywbem module.
+      (Andreas Maier)
+
+    * Improved the way missing file:// URL support on Windows is handled, by
+      now issuing a proper error message instead of stumbling across the
+      missing socket.AF_UNIX constant.  (Andreas Maier)
+
+    * Improved the way missing OWLocal authorization with the OpenWBEM server
+      is handled on Windows, by now issuing a proper error message instead of
+      stumbling across the missing os.getuid() function.  (Andreas Maier)
+      
+    * Improved Windows portability by no longer attempting to import 'pwd' in
+      case the userid is not set in the environment variables that are checked
+      when the WBEM server is local.  (Andreas Maier)
 
   BUG FIXES:
 
@@ -30,8 +50,8 @@ pywbem-0.8.0~dev (last updated: 2014-09-11, includes commits up to r642)
       VALUETYPE attribute to be optional as specified in the DTD.
       (Andreas Linke)
 
-    * Added parsing of InvokeMethod return value and output parameters
-      for Twisted Python client.  (Tim Potter)
+    * Added parsing of InvokeMethod return value and output parameters for
+      Twisted Python client.  (Tim Potter)
 
     * Fixed cim_provider2.py to properly support shutdown() and can_unload()
       (called from CMPI cleanup() functions).  Support was recently added
@@ -65,17 +85,14 @@ pywbem-0.8.0~dev (last updated: 2014-09-11, includes commits up to r642)
       messages that end up in the system log.  (Jan Safranek)
 
     * The CIM-XML parser no longer throws an exception when parsing a
-      qualifier declaration.  (Jan Safranek)
-
+      qualifier declaration.
       Note: The CIM-XML supported by this fix does not conform to DSP0201 so
-      far. Further fixes are pending.
+      far. Further fixes are pending.  (Jan Safranek)
 
     * Fixed parsing errors for connection URLs with IPv6 addresses.
-      (Peter Hatina)
-
       Note: The parsing support does not address all issues with IPv6 addresses,
       and it does not support zone indexes (aka scope IDs). Further fixes are
-      pending.
+      pending.  (Peter Hatina)
 
     * Fixed the hard coded socket addressing family used for HTTPS that was
       incorrect in some IPv6 cases, by determining it dynamically.
@@ -102,19 +119,143 @@ pywbem-0.8.0~dev (last updated: 2014-09-11, includes commits up to r642)
     * Fixed TOCTOU (time-of-check-time-of-use) error when validating peer's
       certificate.  (Michal Minar)
 
-  PACKAGING:
+    * Added a check in the CIMInstanceName constructor that the 'classname'
+      argument is not None.  (Andreas Maier)
 
-    * Fix grammatical funkiness in the license text.  No change to actual
+    * Fixed the issue in the CIMProperty constructor that specifying a tuple
+      for the 'value' argument was incorrectly detected to be a scalar (and not
+      an array).  (Andreas Maier)
+    
+    * Fixed the issue in the CIMProperty constructor that specifying a
+      datetime or timedelta typed value resulted in storing the provided object
+      in the 'value' attribute, instead of converting it to a CIMDateTime
+      object.  (Andreas Maier)
+    
+    * Fixed the issue in the CIMProperty constructor that specifying a datetime
+      formatted string typed 'value' argument along with type='datetime'
+      resulted in storing the provided string object in the 'value' attribute,
+      instead of converting it to a CIMDateTime object.  (Andreas Maier)
+    
+    * Fixed several cases in the CIMProperty constructor of unnecessarily
+      requiring the optional arguments 'type', 'is_array', 'embedded_object',
+      or 'reference_class'. These optional arguments are now only necessary to
+      be provided if they cannot be implied from provided arguments (mainly
+      from 'value').  (Andreas Maier)
+    
+    * Fixed the issue in the CIMProperty constructor that an 'embedded_object'
+      argument value of 'object' was changed to 'instance' when a CIMInstance
+      typed 'value' argument was also provided.  (Andreas Maier)
+
+    * Fixed the issue in the CIMProperty constructor that the first array
+      element was used for defaulting the 'type' attribute, without checking
+      that for None, causing an exception to be raised in this case.
+      (Andreas Maier)
+    
+    * Added a check in the CIMProperty constructor that the 'name' argument is
+      not None.  (Andreas Maier)
+
+    * Fixed the issue that the CIMProperty constructor raised only TypeError
+      even when the issue was not about types; it now raises in addition
+      ValueError.  (Andreas Maier)
+
+    * Changed the exception that is raised in NocaseDict.__setitem__() for
+      invalid key types, to be TypeError in instead of KeyError. Updated the
+      testcases accordingly.  (Andreas Maier)
+
+    * Added checks for more than one argument and for unsupported argument
+      types to the constructor of NocaseDict.  (Andreas Maier)
+
+  TESTING:
+
+    * Added support for running the unit test cases without having to be in the
+      testsuite directory. This was done by setting up the DTD_FILE path
+      correctly for any XML tests.  (Andreas Maier)
+
+    * Improved the quality of assertion messages issued when testcases fail, to
+      include context information and types.  (Andreas Maier)
+
+    * Added docstrings to test cases.  (Andreas Maier)
+
+    * Added testcases for CIMProperty.__init__() to be comprehensive.
+      (Andreas Maier)
+
+    * In XML validation tests, added the expected XML root element.
+      (Andreas Maier)
+
+    * Added a header to any error messages issued by xmllint.  (Andreas Maier)
+
+    * Fix: Merged stderr into stdout for the xmllint invocation, xmllint error
+      messages go to stderr and had been dropped before.  (Andreas Maier)
+
+    * Fix: The "mkdir -p ..:" command in the comfychair testcase constructor
+      created subdirectories named "-p" when running on Windows; replaced that
+      command with os.makedirs().  (Andreas Maier)
+
+    * Fix: Replaced the "rm -fr ..." command in the comfychair testcase
+      constructor with shutil.rmtree(), in order to better run on Windows.
+      (Andreas Maier)
+  
+    * Fix: In comfychair._enter_rundir(), moved registration of cleanup
+      function _restore_directory() to the end, so cleanup happens only if no
+      errors happened.  (Andreas Maier)
+
+    * Fixed a bug in pywbem/trunk/testsuite/test_tupleparse.py in function
+      ParseCIMProperty.runtest(), where the use of real tab characters caused
+      a few lines to be incorrectly indented, and as a result, ignored for the
+      test.  (Andreas Maier)
+
+    * Improved Windows portability in testsuite: Moved from using the Unix-only
+      functions posix.WIFSIGNALED() and posix.WEXITSTATUS() for testing the
+      success of subprocess.wait(), to simply testing for 0.
+
+  CLEAN CODE:
+    
+    * Removed dangerous default parameter '{}' from CIMProperty and
+      CIMInstanceName, and replaced it with 'None'. To support that, added
+      support for initializing an empty NocaseDict object from 'None'.
+
+    * In cim_obj, changed the use of the deprecated backticks to using %r in
+      the format string (which produces the same result).
+
+    * In the constructor of CIMInstanceName, added assertions to some paths
+      that cannot possibly be taken based on the fact that the keybindings
+      attribute is always a NocaseDict. They should be removed at some point.
+
+    * Addressed PyLint issues:
+      - Consolidated imports at the top of the module (after module docstring),
+        consistent with the PEP-8 recommendation.
+      - Ensured order of imports: standard, non-standard, pywbem, local (on a
+        subset of modules only).
+      - Replaced wildcard imports with specific imports, as much as possible.
+      - Removed unused imports.
+      - Addressed PyLint issues that are related to whitespace, continuation
+        indentation, and line length.
+      - Replaced all real tab characters with spaces.
+
+  PACKAGING / BUILD:
+
+    * Fixed grammatical funkiness in the license text.  No change to actual
       license - still LGPLv2.  (Tim Potter)
 
     * Added LICENSE.txt file to release.  (Tim Potter)
 
-    * Added NEWS, README and INSTALL files to distribution archive.
-      (Andreas Maier)
+    * Added LICENSE.txt, NEWS, README and INSTALL files to distribution
+      archive.  (Andreas Maier)
 
     * Removed confusing section about build from INSTALL file, to scope it just
-      to the topic of installation.
+      to the topic of installation.  (Andreas Maier)
+
+    * Restructured pywbem/trunk subtree to move pywbem package files into a
+      pywbem subdirectory.  (Andreas Maier)
+
+    * Added a makefile (invoke 'make help' for valid targets).  (Andreas Maier)
+
+    * Added support for checking the Python source code using PyLint.
       (Andreas Maier)
+
+    * Added support for generating HTML documentation using epydoc, and
+      included the documentation into the distribution archive. The syntax
+      used in Python docstrings is reStructuredText markdown.   (Andreas Maier)
 
 
 pywbem-0.7  2008-12-12
