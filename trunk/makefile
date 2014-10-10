@@ -37,8 +37,7 @@ doc_out_dir := $(package_name)/docs
 
 # Generated API documentation files, used as dependents
 doc_html_files := \
-    $(doc_out_dir)/$(package_name)/index.html \
-#    $(doc_out_dir)/wbemcli.m.html \
+    $(doc_out_dir)/index.html \
 
 # Documentation generator commands
 pdoc_cmd := pdoc --overwrite --html --html-dir $(doc_out_dir) $(package_name)
@@ -59,8 +58,7 @@ dist_manifest_in_files := \
     *.py \
     $(package_name)/*.py \
     $(package_name)/NEWS \
-    $(doc_out_dir)/$(package_name)/*.html \
-#    $(doc_out_dir)/*.html \
+    $(doc_out_dir)/*.html \
 
 # Files that are dependents of the distribution archive.
 # Keep in sync with dist_manifest_in_files.
@@ -137,7 +135,7 @@ $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 	python setup.py build bdist_wininst -d $(dist_dir) -o -t "PyWBEM v$(package_version)" 
 
 # Documentation for package (generates more .html files than just this target)
-$(doc_out_dir)/$(package_name)/index.html: $(package_name)/*.py
+$(doc_out_dir)/index.html: $(package_name)/*.py
 	sh -c "PYTHONPATH=. $(doc_cmd)"
 
 # PyLint report
