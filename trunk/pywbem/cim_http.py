@@ -115,9 +115,8 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
 
       url : `unicode` or UTF-8 encoded `str`
         URL of the WBEM server (e.g. ``"https://10.11.12.13:6988"``).
-        Must not be `None`.
         For details, see the ``url`` parameter of
-        `pywbem.cim_operations.WBEMConnection.__init__`.
+        `WBEMConnection.__init__`.
 
       data : `unicode` or UTF-8 encoded `str`
         The CIM-XML formatted data to be sent as a request to the WBEM server.
@@ -125,7 +124,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
       creds
         Credentials for authenticating with the WBEM server.
         For details, see the ``creds`` parameter of
-        `pywbem.cim_operations.WBEMConnection.__init__`.
+        `WBEMConnection.__init__`.
 
       headers : list of `unicode` or UTF-8 encoded `str`
         List of HTTP header fields to be added to the request, in addition to
@@ -137,25 +136,28 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
         Not currently used.
 
       x509
-        Used for HTTPS with certificates, otherwise None.
+        Used for HTTPS with certificates.
         For details, see the ``x509`` parameter of
-        `pywbem.cim_operations.WBEMConnection.__init__`.
+        `WBEMConnection.__init__`.
 
       verify_callback
-        Used for HTTPS with certificates, otherwise None.
+        Used for HTTPS with certificates.
         For details, see the ``verify_callback`` parameter of
-        `pywbem.cim_operations.WBEMConnection.__init__`.
+        `WBEMConnection.__init__`.
 
       ca_certs
-        Used for HTTPS with certificates, otherwise None.
+        Used for HTTPS with certificates.
         For details, see the ``ca_certs`` parameter of
-        `pywbem.cim_operations.WBEMConnection.__init__`.
+        `WBEMConnection.__init__`.
 
-      no_verification : TBD
-        TBD
+      no_verification
+        Used for HTTPS with certificates.
+        For details, see the ``no_verification`` parameter of
+        `WBEMConnection.__init__`.
 
     :Returns:
-      The CIM-XML formatted response data from the WBEM server.
+      The CIM-XML formatted response data from the WBEM server, as a `unicode`
+      object.
 
     :Raises:
       :raise Error:
