@@ -439,8 +439,47 @@ def cmpname(name1, name2):
     return cmp(lower_name1, lower_name2)
 
 class CIMClassName(object):
+    """
+    A CIM class path.
+
+    A CIM class path references a CIM class in a namespace in a WBEM server.
+    Namespace and WBEM server may be unknown.
+
+    :Ivariables:
+
+      ...
+        All parameters of `__init__` are set as instance variables.
+    """
 
     def __init__(self, classname, host=None, namespace=None):
+        """
+        Initialize the `CIMClassName` object.
+
+        :Parameters:
+
+          classname : `unicode` or UTF-8 encoded `str`
+            Name of the referenced class.
+
+          host : `unicode` or UTF-8 encoded `str`
+            Optional: URL of the WBEM server that contains the CIM namespace
+            of this class path.
+
+            If `None`, the class path will not specify a WBEM server.
+
+            Default: `None`.
+
+          namespace : `unicode` or UTF-8 encoded `str`
+            Optional: Name of the CIM namespace that contains the referenced
+            class.
+
+            If `None`, the class path will not specify a CIM namespace.
+
+            Default: `None`.
+
+        :Raises:
+          :raise TypeError:
+          :raise ValueError:
+        """
 
         if not isinstance(classname, StringTypes):
             raise TypeError('classname argument has an invalid type: %s '\
@@ -540,14 +579,19 @@ class CIMProperty(object):
       * The `value` instance variable is the default value for the property.
       * Qualifiers are allowed.
 
-    Scalar (=non-array) properties may have a value of Null (=`None`), any
+    Scalar (=non-array) properties may have a value of NULL (= `None`), any
     primitive CIM type, reference type, and string type with embedded instance
     or embedded object.
 
-    Array properties may be Null or may have elements with a value of Null, any
+    Array properties may be Null or may have elements with a value of NULL, any
     primitive CIM type, and string type with embedded instance or embedded
     object. Reference types are not allowed in property arrays in CIM, as per
     DMTF DSP0004.
+
+    :Ivariables:
+
+      ...
+        All parameters of `__init__` are set as instance variables.
     """
 
     def __init__(self, name, value, type=None,
@@ -565,22 +609,22 @@ class CIMProperty(object):
 
         :Parameters:
 
-          name : `str` or `unicode`
+          name : `unicode` or UTF-8 encoded `str` 
             Name of the property. Must not be `None`.
 
-          value : type for CIM values
+          value
             Value of the property (interpreted as actual value when the
             property object is used in an instance, and as default value when
             it is used in a class).
             For valid types for CIM values, see `cim_types`.
 
-          type : `str` or `unicode`
+          type : string
             Name of the CIM type of the property (e.g. `'uint8'`).
             `None` means that the argument is unspecified, causing the
             corresponding instance variable to be inferred. An exception is
             raised if it cannot be inferred.
 
-          class_origin : `str` or `unicode`
+          class_origin : `unicode` or UTF-8 encoded `str`
             The CIM class origin of the property (the name
             of the most derived class that defines or overrides the property in
             the class hierarchy of the class owning the property).
@@ -590,7 +634,7 @@ class CIMProperty(object):
             The size of the array property, for fixed-size arrays.
             `None` means that the array property has variable size.
 
-          propagated : `str` or `unicode`
+          propagated : `unicode` or UTF-8 encoded `str`
             The CIM *propagated* attribute of the property (the effective value
             of the `Propagated` qualifier of the property, which is a string
             that specifies the name of the source property from which the
@@ -604,7 +648,7 @@ class CIMProperty(object):
             corresponding instance variable to be inferred from the `value`
             parameter, and if that is `None` it defaults to `False` (scalar).
 
-          reference_class : `str` or `unicode`
+          reference_class : `unicode` or UTF-8 encoded `str`
             The name of the referenced class, for reference properties.
             `None` means that the argument is unspecified, causing the
             corresponding instance variable  to be inferred. An exception is
@@ -618,7 +662,7 @@ class CIMProperty(object):
             `None` means that there are no qualifier values. In all cases,
             the `qualifiers` instance variable will be a `NocaseDict` object.
 
-          embedded_object : `str` or `unicode`
+          embedded_object : string
             A string value indicating the kind of
             embedded object represented by the property value. The following
             values are defined for this argument:
@@ -632,10 +676,6 @@ class CIMProperty(object):
             `None` means that the argument is unspecified, causing the
             corresponding instance variable to be inferred. An exception is
             raised if it cannot be inferred.
-
-        :Raises:
-          :raise TypeError:
-          :raise ValueError:
 
         Examples:
 
@@ -666,6 +706,10 @@ class CIMProperty(object):
             -> an embedded object property that is Null
           * `CIMProperty("MyEmbInst", None, embedded_object='instance')`
             -> an embedded instance property that is Null
+
+        :Raises:
+          :raise TypeError:
+          :raise ValueError:
         """
 
         from __builtin__ import type as __type
@@ -972,15 +1016,62 @@ class CIMProperty(object):
 
 class CIMInstanceName(object):
     """
-    A CIM instance path (aka 'instance name').
+    A CIM instance path (aka *instance name*).
 
-    Consists of host (optional), namespace (optional), class name, and key
-    bindings (= key properties), identifying a CIM instance.
+    A CIM instance path references a CIM instance in a namespace in a WBEM
+    server.
+    Namespace and WBEM server may be unknown.
 
     This object can be used like a dictionary to retrieve the key bindings.
+
+    :Ivariables:
+
+      ...
+        All parameters of `__init__` are set as instance variables.
     """
 
     def __init__(self, classname, keybindings=None, host=None, namespace=None):
+        """
+        Initialize the `CIMInstanceName` object.
+
+        :Parameters:
+
+          classname : `unicode` or UTF-8 encoded `str`
+            Name of the creation class of the referenced instance.
+
+          keybindings : `dict` or `NocaseDict`
+            Optional: Dictionary of key bindings, specifying key properties
+            that identify the referenced instance.
+            The dictionary must contain one item for each key property, where:
+
+            - its key is the property name.
+            - its value is the property value, as a CIM typed value as
+              described in `cim_types`.
+
+            If `None`, an empty dictionary of key bindings will be created.
+
+            Default: `None`.
+
+          host : `unicode` or UTF-8 encoded `str`
+            Optional: URL of the WBEM server that contains the CIM namespace
+            of this instance path.
+
+            If `None`, the instance path will not specify a WBEM server.
+
+            Default: `None`.
+
+          namespace : `unicode` or UTF-8 encoded `str`
+            Optional: Name of the CIM namespace that contains the referenced
+            instance.
+
+            If `None`, the instance path will not specify a CIM namespace.
+
+            Default: `None`.
+
+        :Raises:
+          :raise TypeError:
+          :raise ValueError:
+        """
 
         if classname is None:
             raise ValueError('Instance path must have a class name')
@@ -1179,23 +1270,57 @@ class CIMInstanceName(object):
         return instancename_xml
 
 class CIMInstance(object):
-    """Instance of a CIM Object.
+    """
+    A CIM instance, optionally including its instance path.
 
-    Has a classname (string), and named arrays of properties and qualifiers.
+    This object can be used like a dictionary to retrieve the property values.
 
-    The properties is indexed by name and points to CIMProperty
-    instances."""
+    :Ivariables:
+
+      ...
+        All parameters of `__init__` are set as instance variables.
+    """
 
     def __init__(self, classname, properties={}, qualifiers={},
                  path=None, property_list=None):
-        """Create CIMInstance.
+        """
+        Initialize the `CIMInstance` object.
 
-        bindings is a concise way to initialize property values;
-        it is a dictionary from property name to value.  This is
-        merely a convenience and gets the same result as the
-        properties parameter.
+        :Parameters:
 
-        properties is a list of full CIMProperty objects. """
+          classname : `unicode` or UTF-8 encoded `str`
+            Name of the creation class of the instance.
+
+          properties : `dict` or `NocaseDict`
+            Optional: Dictionary of properties, specifying property values of
+            the instance.
+            The dictionary must contain one item for each property, where:
+
+            - its key is the property name.
+            - its value is a `CIMProperty` object representing the property
+              value.
+
+          qualifiers : `dict` or `NocaseDict`
+            Optional: Dictionary of qualifier values of the instance.
+            Note that CIM-XML has deprecated the presence of qualifier values
+            on CIM instances.
+
+          path : `CIMInstanceName`
+            Optional: Instance path of the instance.
+
+            If `None`, the instance is not addressable or the instance path is
+            unknown or not needed.
+
+            Default: `None`.
+
+          property_list : list of strings
+            Optional: List of property names for use by some operations on this
+            object.
+
+        :Raises:
+          :raise TypeError:
+          :raise ValueError:
+        """
 
         self.classname = classname
         self.qualifiers = NocaseDict(qualifiers)
@@ -1403,12 +1528,23 @@ class CIMInstance(object):
         return s
 
 
-
 class CIMClass(object):
+    """
+    A CIM class.
+
+    :Ivariables:
+
+      ...
+        All parameters of `__init__` are set as instance variables.
+    """
 
     def __init__(self, classname, properties={}, methods={},
                  superclass=None, qualifiers={}):
+        """
+        Initialize the `CIMClass` object.
 
+        TODO: add description
+        """
         self.classname = classname
         self.properties = NocaseDict(properties)
         self.qualifiers = NocaseDict(qualifiers)
@@ -1491,10 +1627,22 @@ class CIMClass(object):
         return s
 
 class CIMMethod(object):
+    """
+    A CIM method.
+
+    :Ivariables:
+
+      ...
+        All parameters of `__init__` are set as instance variables.
+    """
 
     def __init__(self, methodname, return_type=None, parameters={},
                  class_origin=None, propagated=False, qualifiers={}):
+        """
+        Initialize the `CIMMethod` object.
 
+        TODO: add description
+        """
         self.name = methodname
         self.return_type = return_type
         self.parameters = NocaseDict(parameters)
@@ -1555,10 +1703,22 @@ class CIMMethod(object):
         return s
 
 class CIMParameter(object):
+    """
+    A CIM parameter.
+
+    :Ivariables:
+
+      ...
+        All parameters of `__init__` are set as instance variables.
+    """
 
     def __init__(self, name, type, reference_class=None, is_array=None,
                  array_size=None, qualifiers={}, value=None):
+        """
+        Initialize the `CIMParameter` object.
 
+        TODO: add description
+        """
         self.name = name
         self.type = type
         self.reference_class = reference_class
@@ -1651,15 +1811,27 @@ class CIMParameter(object):
         return '%s %s' % (self.type, self.name)
 
 class CIMQualifier(object):
-    """Represents static annotations of a class, method, property, etc.
+    """
+    A CIM qualifier value.
 
-    Includes information such as a documentation string and whether a property
-    is a key."""
+    A qualifier represents metadata on a class, method, property, etc., and
+    specifies information such as a documentation string or whether a property
+    is a key.
+
+    :Ivariables:
+
+      ...
+        All parameters of `__init__` are set as instance variables.
+    """
 
     def __init__(self, name, value, type=None, propagated=None,
                  overridable=None, tosubclass=None, toinstance=None,
                  translatable=None):
+        """
+        Initialize the `CIMQualifier` object.
 
+        TODO: add description
+        """
         self.name = name
         self.type = type
         self.propagated = propagated
@@ -1767,7 +1939,16 @@ class CIMQualifier(object):
         return '%s (%s)' % (self.name, valstr(self.value))
 
 class CIMQualifierDeclaration(object):
-    """Represents the declaration of a qualifier."""
+    """
+    A CIM qualifier type.
+
+    A qualifier type is the declaration of a qualifier.
+
+    :Ivariables:
+
+      ...
+        All parameters of `__init__` are set as instance variables.
+    """
 
     # TODO: Scope and qualifier flavors
 
@@ -1775,7 +1956,11 @@ class CIMQualifierDeclaration(object):
                  array_size=None, scopes={},
                  overridable=None, tosubclass=None, toinstance=None,
                  translatable=None):
+        """
+        Initialize the `CIMQualifierDeclaration` object.
 
+        TODO: add description
+        """
         self.name = name
         self.type = type
         self.value = value
