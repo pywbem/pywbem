@@ -734,3 +734,34 @@ class InvokeMethod(WBEMClientFactory):
                 params[p[0]] = cim_obj.tocimobj(p[1], p[2])
 
         return (result, params)
+
+class ExecQuery(WBEMClientFactory):
+
+    def __init__(self, creds, QueryLanguage, Query, namespace='root/cimv2'):
+
+        self.QueryLanguage = QueryLanguage
+        self.Query = Query
+        self.namespace = namespace
+
+        payload = self.imethodcallPayload(
+            'ExecQuery',
+            namespace,
+            QueryLanguage = QueryLanguage,
+            Query = Query)
+
+        WBEMClientFactory.__init__(
+            self,
+            creds,
+            operation='MethodCall',
+            method='ExecQuery',
+            object=namespace,
+            payload=payload)
+
+    def __repr__(self):
+        return '<%s(/%s:%s) at 0x%x>' % \
+               (self.__class__, self.namespace, self.Query, id(self))
+
+    def parseResponse(self, xml):
+        tt = [pywbem.tupletree.xml_to_tupletree(tostring(x))
+              for x in xml.findall('.//INSTANCE')]
+        return [pywbem.tupleparse.parse_instance(x) for x in tt]

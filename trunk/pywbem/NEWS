@@ -1,4 +1,4 @@
-pywbem-0.8.0~dev (last updated: 2014-10-11, includes commits up to r673)
+pywbem-0.8.0~dev (last updated: 2014-10-11, includes commits up to r677)
 
   ENHANCEMENTS:
 
@@ -44,6 +44,8 @@ pywbem-0.8.0~dev (last updated: 2014-10-11, includes commits up to r673)
       case the userid is not set in the environment variables that are checked
       when the WBEM server is local.  (Andreas Maier)
 
+    * Added support for ExecQuery operation to twisted client.  (Robert Booth)
+    
   BUG FIXES:
 
     * Fix syntax error in CIM DTDVERSION error path.  Allow KEYVALUE
