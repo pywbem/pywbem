@@ -1,4 +1,4 @@
-pywbem-0.8.0~dev (last updated: 2014-10-10, includes commits up to r672)
+pywbem-0.8.0~dev (last updated: 2014-10-11, includes commits up to r673)
 
   ENHANCEMENTS:
 
@@ -164,6 +164,9 @@ pywbem-0.8.0~dev (last updated: 2014-10-10, includes commits up to r672)
 
     * Added checks for more than one argument and for unsupported argument
       types to the constructor of NocaseDict.  (Andreas Maier)
+
+    * Fixed incorrectly labeled namespace variables in twisted client.
+      (Robert Booth)
 
   TESTING:
 

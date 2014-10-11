@@ -452,7 +452,7 @@ class EnumerateClassNames(WBEMClientFactory):
 
     def __init__(self, creds, namespace='root/cimv2', **kwargs):
 
-        self.localnsp = LocalNamespacePath
+        self.localnsp = namespace
 
         payload = self.imethodcallPayload(
             'EnumerateClassNames',
@@ -464,7 +464,7 @@ class EnumerateClassNames(WBEMClientFactory):
             creds,
             operation='MethodCall',
             method='EnumerateClassNames',
-            object=LocalNamespacePath,
+            object=namespace,
             payload=payload)
 
     def __repr__(self):
@@ -483,7 +483,8 @@ class EnumerateClasses(WBEMClientFactory):
 
     def __init__(self, creds, namespace='root/cimv2', **kwargs):
 
-        self.localnsp = LocalNamespacePath
+        self.localnsp = namespace
+        self.namespace = namespace
 
         payload = self.imethodcallPayload(
             'EnumerateClasses',
