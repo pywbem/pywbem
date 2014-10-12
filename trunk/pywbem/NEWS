@@ -170,6 +170,9 @@ pywbem-0.8.0~dev (last updated: 2014-10-12, includes commits up to r678)
     * Fixed incorrectly labeled namespace variables in twisted client.
       (Robert Booth)
 
+    * Fixed that WBEMConnection.last_raw_reply was not set to the current reply
+      in case of parsing errors in the reply.  (Andreas Maier)
+
   TESTING:
 
     * Added support for running the unit test cases without having to be in the

@@ -166,19 +166,25 @@ class WBEMConnection(object):
 
       last_request : `unicode`
         CIM-XML data of the last request sent to the WBEM server
-        on this connection, formatted as prettified XML.
+        on this connection, formatted as prettified XML. Prior to sending the
+        very first request on this connection object, it is `None`.
 
       last_raw_request : `unicode`
         CIM-XML data of the last request sent to the WBEM server
-        on this connection, formatted as it was sent.
+        on this connection, formatted as it was sent. Prior to sending the
+        very first request on this connection object, it is `None`.
 
       last_reply : `unicode`
         CIM-XML data of the last response received from the WBEM server
-        on this connection, formatted as prettified XML.
+        on this connection, formatted as prettified XML. Prior to sending the
+        very first request on this connection object, while waiting for any
+        response, it is `None`.
 
       last_raw_reply : `unicode`
         CIM-XML data of the last response received from the WBEM server
-        on this connection, formatted as it was received.
+        on this connection, formatted as it was received. Prior to sending the
+        very first request on this connection object, while waiting for any
+        response, it is `None`.
     """
 
     def __init__(self, url, creds=None, default_namespace=DEFAULT_NAMESPACE,
@@ -308,9 +314,13 @@ class WBEMConnection(object):
         self.verify_callback = verify_callback
         self.ca_certs = ca_certs
         self.no_verification = no_verification
-        self.last_request = self.last_reply = ''
         self.default_namespace = default_namespace
+
         self.debug = False
+        self.last_raw_request = None
+        self.last_raw_reply = None
+        self.last_request = None
+        self.last_reply = None
 
     def __repr__(self):
         """
@@ -379,8 +389,8 @@ class WBEMConnection(object):
             self.last_raw_request = req_xml.toxml()
             self.last_request = req_xml.toprettyxml(indent='  ')
             # Reset replies in case we fail before they are set
-            self.last_reply = None
             self.last_raw_reply = None
+            self.last_reply = None
 
         # Get XML response
 
@@ -400,11 +410,14 @@ class WBEMConnection(object):
         ## TODO: Perhaps only compute this if it's required?  Should not be
         ## all that expensive.
 
+        # Set the raw response before parsing (which can fail)
+        if self.debug:
+            self.last_raw_reply = resp_xml
+
         reply_dom = minidom.parseString(resp_xml)
 
         if self.debug:
             self.last_reply = reply_dom.toprettyxml(indent='  ')
-            self.last_raw_reply = resp_xml
 
         # Parse response
 
@@ -550,11 +563,11 @@ class WBEMConnection(object):
             '2.0', '2.0')
 
         if self.debug:
-            self.last_request = req_xml.toprettyxml(indent='  ')
             self.last_raw_request = req_xml.toxml()
+            self.last_request = req_xml.toprettyxml(indent='  ')
             # Reset replies in case we fail before they are set
-            self.last_reply = None
             self.last_raw_reply = None
+            self.last_reply = None
 
         # Get XML response
 
@@ -570,6 +583,7 @@ class WBEMConnection(object):
             raise CIMError(0, str(arg))
 
         if self.debug:
+            # Set the raw response before parsing (which can fail)
             self.last_raw_reply = resp_xml
             resp_dom = minidom.parseString(resp_xml)
             self.last_reply = resp_dom.toprettyxml(indent='  ')
