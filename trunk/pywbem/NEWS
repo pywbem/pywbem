@@ -1,4 +1,4 @@
-pywbem-0.8.0~dev (last updated: 2014-10-11, includes commits up to r677)
+pywbem-0.8.0~dev (last updated: 2014-10-12, includes commits up to r678)
 
   ENHANCEMENTS:
 
@@ -246,6 +246,10 @@ pywbem-0.8.0~dev (last updated: 2014-10-11, includes commits up to r677)
 
     * Added LICENSE.txt, NEWS, README and INSTALL files to distribution
       archive.  (Andreas Maier)
+
+    * Fixed inconsistencies in license text in file headers to consistently
+      say LGPL 2.1 or higher (The LICENSE.txt file has always been LGPL 2.1).
+      (Andreas Maier)
 
     * Removed confusing section about build from INSTALL file, to scope it just
       to the topic of installation.  (Andreas Maier)
