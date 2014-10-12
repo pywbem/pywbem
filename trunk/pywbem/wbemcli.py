@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 # (C) Copyright 2008 Hewlett-Packard Development Company, L.P.
 #

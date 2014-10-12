@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 """
 Test CIM objects (e.g. `CIMInstance`).

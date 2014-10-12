@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 # Exercise routines in cim_xml by creating xml document fragments and
 # passing them through a validator.

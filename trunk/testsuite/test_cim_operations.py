@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 # Test CIM operations function interface.  The return codes here may
 # be specific to OpenPegasus.
