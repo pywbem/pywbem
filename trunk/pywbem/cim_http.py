@@ -2,9 +2,10 @@
 # (C) Copyright 2003-2005 Hewlett-Packard Development Company, L.P.
 # (C) Copyright 2006-2007 Novell, Inc.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as
-# published by the Free Software Foundation; version 2 of the License.
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,10 +16,10 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
-
 # Author: Tim Potter <tpot@hp.com>
 # Author: Martin Pool <mbp@hp.com>
 # Author: Bart Whiteley <bwhiteley@suse.de>
+#
 
 '''
 Send HTTP/HTTPS requests to a WBEM server.
@@ -194,12 +195,10 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
 
         def connect(self):
             "Connect to a host on a given (SSL) port."
-            self.sock = socket.create_connection((self.host, self.port),
-                                                 self.timeout,
-                                                 self.source_address)
-            if self._tunnel_host:
-                self.sock = sock
-                self._tunnel()
+
+            # httplib still uses old style classes, so we call it in old style
+            httplib.HTTPSConnection.connect(self)
+
             ctx = SSL.Context('sslv23')
             if self.cert_file:
                 ctx.load_cert(self.cert_file, keyfile=self.key_file)

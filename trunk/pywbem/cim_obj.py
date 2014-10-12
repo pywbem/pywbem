@@ -2,9 +2,10 @@
 # (C) Copyright 2003-2007 Hewlett-Packard Development Company, L.P.
 # (C) Copyright 2006-2007 Novell, Inc.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as
-# published by the Free Software Foundation; version 2 of the License.
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,13 +16,12 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
-
 # Author: Tim Potter <tpot@hp.com>
-#         Martin Pool <mbp@hp.com>
-#         Bart Whiteley <bwhiteley@suse.de>
+# Author: Martin Pool <mbp@hp.com>
+# Author: Bart Whiteley <bwhiteley@suse.de>
+#
 
-"""
-Representations of CIM objects, and a case-insensitive dictionary.
+"""Representations of CIM objects, and a case-insensitive dictionary.
 
 In general we try to map CIM objects directly into Python primitives,
 except when that is not possible or would be ambiguous.  For example,
@@ -609,7 +609,7 @@ class CIMProperty(object):
 
         :Parameters:
 
-          name : `unicode` or UTF-8 encoded `str` 
+          name : `unicode` or UTF-8 encoded `str`
             Name of the property. Must not be `None`.
 
           value
