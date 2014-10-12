@@ -1,8 +1,11 @@
 #!/usr/bin/env python
-#
-# Test CIM operations function interface.  The return codes here may
-# be specific to OpenPegasus.
-#
+
+"""
+Test CIM operations against a real WBEM server that is specified on the
+command line.
+
+The return codes here may be specific to OpenPegasus.
+"""
 
 import sys
 from datetime import timedelta
@@ -12,7 +15,7 @@ from pywbem.cim_constants import *
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
                    WBEMConnection, CIMError, \
                    Uint8, Uint16, Uint32, Uint64, \
-                   Sint8, Sint16, Sint32, Sint64,\
+                   Sint8, Sint16, Sint32, Sint64, \
                    Real32, Real64, CIMDateTime
 
 from comfychair import main, TestCase, NotRunError
@@ -39,13 +42,19 @@ class ClientTest(TestCase):
 
         try:
             result = fn(*args, **kw)
-        except:
-            self.log('Failed Request:\n\n%s\n' % self.conn.last_request)
-            self.log('Failed Reply:\n\n%s\n' % self.conn.last_reply)
+        except Exception as exc:
+            self.log('Operation %s failed with %s: %s\n' % \
+                     (fn.__name__, exc.__class__.__name__, str(exc)))
+            last_request = self.conn.last_request or self.conn.last_raw_request
+            self.log('Failed Request:\n\n%s\n' % last_request)
+            last_reply = self.conn.last_reply or self.conn.last_raw_reply
+            self.log('Failed Reply:\n\n%s\n' % last_reply)
             raise
 
-        self.log('Request:\n\n%s\n' % self.conn.last_request)
-        self.log('Reply:\n\n%s\n' % self.conn.last_reply)
+        last_request = self.conn.last_request or self.conn.last_raw_request
+        self.log('Request:\n\n%s\n' % last_request)
+        last_reply = self.conn.last_reply or self.conn.last_raw_reply
+        self.log('Reply:\n\n%s\n' % last_reply)
 
         return result
 
@@ -326,7 +335,8 @@ class InvokeMethod(ClientTest):
                          String='Spotty',
                          Uint8=Uint8(1),
                          Sint8=Sint8(2),
-                         Uint16=Uint16(3), # TODO: Add Sint16
+                         Uint16=Uint16(3),
+                         Sint16=Sint16(3),
                          Uint32=Uint32(4),
                          Sint32=Sint32(5),
                          Uint64=Uint64(6),
@@ -351,7 +361,8 @@ class InvokeMethod(ClientTest):
                          StringArray='Spotty',
                          Uint8Array=[Uint8(1)],
                          Sint8Array=[Sint8(2)],
-                         Uint16Array=[Uint16(3)], # TODO: Add Sint16Array
+                         Uint16Array=[Uint16(3)],
+                         Sint16Array=[Sint16(3)],
                          Uint32Array=[Uint32(4)],
                          Sint32Array=[Sint32(5)],
                          Uint64Array=[Uint64(6)],
@@ -665,11 +676,12 @@ tests = [
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
-        print 'Usage: test_cim_operations.py URL [USERNAME%PASSWORD]'
+        print 'Usage: %s URL [USERNAME%%PASSWORD ' \
+              '[COMFYCHAIRARGS]]' % sys.argv[0]
         sys.exit(0)
 
     url = sys.argv[1]
-    if len(sys.argv) == 3:
+    if len(sys.argv) >= 3:
         username, password = sys.argv[2].split('%')
     else:
         from getpass import getpass
@@ -677,6 +689,11 @@ if __name__ == '__main__':
         username = sys.stdin.readline().strip()
         password = getpass()
 
-    sys.argv = sys.argv[2:]
+    if len(sys.argv) >= 4:
+        comfychair_args = sys.argv[3:]
+    else:
+        comfychair_args = []
+
+    sys.argv = sys.argv[0:1] + comfychair_args
 
     main(tests)

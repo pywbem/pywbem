@@ -1,4 +1,4 @@
-pywbem-0.8.0~dev (last updated: 2014-10-12, includes commits up to r678)
+pywbem-0.8.0~dev (last updated: 2014-10-12, includes commits up to r682)
 
   ENHANCEMENTS:
 
@@ -214,20 +214,26 @@ pywbem-0.8.0~dev (last updated: 2014-10-12, includes commits up to r678)
 
     * Improved Windows portability in testsuite: Moved from using the Unix-only
       functions posix.WIFSIGNALED() and posix.WEXITSTATUS() for testing the
-      success of subprocess.wait(), to simply testing for 0.
+      success of subprocess.wait(), to simply testing for 0.  (Andreas Maier)
+
+    * Added ability to invoke test_cim_operations.py with comfychair arguments,
+      and added printing of exception information if an operation fails.
+      (Andreas Maier)
 
   CLEAN CODE:
     
     * Removed dangerous default parameter '{}' from CIMProperty and
       CIMInstanceName, and replaced it with 'None'. To support that, added
       support for initializing an empty NocaseDict object from 'None'.
+      (Andreas Maier)
 
     * In cim_obj, changed the use of the deprecated backticks to using %r in
-      the format string (which produces the same result).
+      the format string (which produces the same result).  (Andreas Maier)
 
     * In the constructor of CIMInstanceName, added assertions to some paths
       that cannot possibly be taken based on the fact that the keybindings
       attribute is always a NocaseDict. They should be removed at some point.
+      (Andreas Maier)
 
     * Addressed PyLint issues:
       - Consolidated imports at the top of the module (after module docstring),
@@ -239,6 +245,7 @@ pywbem-0.8.0~dev (last updated: 2014-10-12, includes commits up to r678)
       - Addressed PyLint issues that are related to whitespace, continuation
         indentation, and line length.
       - Replaced all real tab characters with spaces.
+      (Andreas Maier)
 
   PACKAGING / BUILD:
 
