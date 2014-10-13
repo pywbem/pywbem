@@ -227,9 +227,9 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                             raise Error('SSL error: post connection check '\
                                         'failed')
                 return ret
-            except (Err.SSLError, SSL.SSLError, SSL.SSLTimeoutError,
-                    SSL.Checker.WrongHost), arg:
-                raise Error("SSL error: %s" % arg)
+            except (Err.SSLError, SSL.SSLError, SSL.Checker.WrongHost), arg:
+                # This will include SSLTimeoutError (it subclasses SSLError)
+                raise Error("SSL error %s: %s" % (str(arg.__class__), arg))
 
     class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
 
