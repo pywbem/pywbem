@@ -33,6 +33,7 @@ as CIM-XML.
 import string
 import re
 import os
+import sys
 import socket
 import getpass
 from stat import S_ISSOCK
@@ -196,8 +197,19 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
         def connect(self):
             "Connect to a host on a given (SSL) port."
 
-            # httplib still uses old style classes, so we call it in old style
-            httplib.HTTPSConnection.connect(self)
+            # Calling httplib.HTTPSConnection.connect(self) does not work
+            # because of its ssl.wrap_socket() call. So we copy the code of
+            # that connect() method modulo the ssl.wrap_socket() call:
+            if sys.version_info[0:2] == [2, 7]:
+                self.sock = socket.create_connection((self.host, self.port),
+                                                     self.timeout,
+                                                     self.source_address)
+            else: # 2.6
+                self.sock = socket.create_connection((self.host, self.port),
+                                                     self.timeout)
+            if self._tunnel_host:
+                self._tunnel()
+            # End of code from httplib.HTTPSConnection.connect(self).
 
             ctx = SSL.Context('sslv23')
             if self.cert_file:
