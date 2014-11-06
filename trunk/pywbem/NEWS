@@ -1,4 +1,4 @@
-pywbem-0.8.0~dev (last updated: 2014-10-12, includes commits up to r682)
+pywbem-0.8.0~dev (last updated: 2014-11-06, includes commits up to r686)
 
   ENHANCEMENTS:
 
@@ -172,6 +172,14 @@ pywbem-0.8.0~dev (last updated: 2014-10-12, includes commits up to r682)
 
     * Fixed that WBEMConnection.last_raw_reply was not set to the current reply
       in case of parsing errors in the reply.  (Andreas Maier)
+
+    * Reintroduced Python 2.6 support in cim_http.HTTPSConnection.connect()
+      that disappeared in early drafts of this version:
+      - Removed SSLTimeoutError from except list; being a subclass of SSLError,
+        it is catched via SSLError.
+      - Invoked socket.create_connection() without source_address, if running
+        on Python 2.6.
+      (Andreas Maier)
 
   TESTING:
 
