@@ -1162,6 +1162,13 @@ class CIMInstanceName(object):
     def iteritems(self): return self.keybindings.iteritems()
     def update(self, *args, **kwargs): self.keybindings.update(*args, **kwargs)
 
+    def get(self, key, default=None):
+        """
+        Get the value of a specific key property, or the specified default
+        value if a key binding with that name does not exist.
+        """
+        return self.keybindings.get(key, default)
+
     def tocimxml(self):
         """Generate a CIM-XML representation of the instance name (class name
         and key bindings)."""
@@ -1475,6 +1482,14 @@ class CIMInstance(object):
         self.properties[key] = v
         if self.path is not None and key in self.path.keybindings:
             self.path[key] = v.value
+
+    def get(self, key, default=None):
+        """
+        Get the value of a specific property, or the specified default
+        value if a property with that name does not exist.
+        """
+        prop = self.properties.get(key, None)
+        return default if prop is None else prop.value
 
     def tocimxml(self):
 

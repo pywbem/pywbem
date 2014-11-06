@@ -1,4 +1,4 @@
-pywbem-0.8.0~dev (last updated: 2014-11-06, includes commits up to r686)
+pywbem-0.8.0~dev (last updated: 2014-11-06, includes commits up to r687)
 
   ENHANCEMENTS:
 
@@ -46,6 +46,10 @@ pywbem-0.8.0~dev (last updated: 2014-11-06, includes commits up to r686)
 
     * Added support for ExecQuery operation to twisted client.  (Robert Booth)
     
+    * Added get() methods on CIMInstance and CIMInstanceName to step up to the
+      statement that they behave like dictionaries w.r.t. properties and key
+      bindings.  (Andreas Maier)
+
   BUG FIXES:
 
     * Fix syntax error in CIM DTDVERSION error path.  Allow KEYVALUE

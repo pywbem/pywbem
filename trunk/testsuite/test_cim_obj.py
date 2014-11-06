@@ -154,6 +154,25 @@ class DictTest(TestCase):
 
         self.assert_('Chicken' in obj and 'Beans' in obj)
 
+        # Test get
+
+        self.assert_equal(obj.get('Chicken'), 'Ham')
+        self.assert_equal(obj.get('Beans'), 42)
+
+        self.assert_equal(obj.get('chickeN'), 'Ham')
+        self.assert_equal(obj.get('beanS'), 42)
+
+        try:
+            default_value = 'NoValue'
+            invalid_propname = 'Cheepy'
+            self.assert_equal(obj.get(invalid_propname, default_value),
+                              default_value)
+        except Exception as exc:
+            self.log("Object: %r" % obj)
+            self.fail('%s thrown in exception-free get() when accessing '
+                      'undefined key %s' % \
+                      (exc.__class__.__name__, invalid_propname))
+
         # Test update
 
         obj.update({'One':'1', 'Two': '2'})
