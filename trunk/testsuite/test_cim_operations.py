@@ -676,11 +676,46 @@ tests = [
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
-        print 'Usage: %s URL [USERNAME%%PASSWORD ' \
-              '[COMFYCHAIRARGS]]' % sys.argv[0]
+        print 'Usage: %s [OPTS] URL [USERNAME%%PASSWORD [COMFYOPTS] '\
+              '[COMFYTESTS]]' % sys.argv[0]
+        sys.exit(0)
+    elif sys.argv[1] == '--help' or sys.argv[1] == '-h':
+        print ''
+        print 'Test program for CIM operations.'
+        print ''
+        print 'Usage:'
+        print '    %s [OPTS] URL [USERNAME%%PASSWORD [COMFYOPTS] '\
+              '[COMFYTESTS]]' % sys.argv[0]
+        print ''
+        print 'Where:'
+        print '    OPTS                See general options section, below.'
+        print '    URL                 The URL of the WBEM server to run '\
+              'against.'
+        print '    USERNAME            Userid to be used for logging on to '\
+              'WBEM server.'
+        print '    PASSWORD            Password to be used for logging on to '\
+              'WBEM server.'
+        print '    COMFYOPTS           Comfychair options, see options '\
+              'section in Comfychair help, below.'
+        print '    COMFYTESTS          List of Comfychair testcase names. '\
+              'Default: All testcases.'
+        print ''
+        print 'General options:'
+        print '    --help, -h          Display this help text.'
+        print ''
+        print 'Comfychair help:'
+        print ''
+        sys.argv = sys.argv[0:1] + ['--help']
+        main(tests)
+        print ''
+        print 'Examples:'
+        print '    %s x u%%p --list' % sys.argv[0]
+        print '    %s https://9.10.11.12 username%%password -q '\
+              'EnumerateInstances GetInstance ' % sys.argv[0]
         sys.exit(0)
 
     url = sys.argv[1]
+
     if len(sys.argv) >= 3:
         username, password = sys.argv[2].split('%')
     else:
