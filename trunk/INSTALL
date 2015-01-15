@@ -35,6 +35,14 @@ different directory, use the --install-lib option when installing:
   copying build/lib/pywbem/cim_xml.py -> /home/tpot/python/lib/pywbem
   [...]
 
+Install Python packages PyWBEM depends upon:
+
+* M2Crypto 0.21 or higher, at https://pypi.python.org/pypi/M2Crypto
+
+using your preferred package installationapproach, e.g.:
+
+  # pip install M2Crypto
+
 To test that PyWBEM is sucessfully installed, start up a Python interpreter and
 try to import the pywbem module:
 
@@ -45,5 +53,6 @@ try to import the pywbem module:
   >>> import pywbem
   >>>
 
-If you do not see any text after the import command, PyWBEM has been
+If you do not see any error messages after the import command, PyWBEM has been
 sucessfully installed.
+
