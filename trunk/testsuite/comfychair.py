@@ -409,6 +409,7 @@ options:
     --help              show usage message
     --list              list available tests
     --verbose, -v       show more information while running tests
+    --quiet, -q         show less information while running tests
     --post-mortem, -p   enter Python debugger on error
 """ % sys.argv[0]
 
