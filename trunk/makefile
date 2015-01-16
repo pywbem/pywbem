@@ -24,13 +24,19 @@ package_name := pywbem
 package_version := $(shell python -B setup.py --version)
 package_final_version := $(shell sh -c "echo $(package_version) | sed s/-.*//")
 
+# Latest commit level of this Python package
+last_commit := $(strip $(shell sh -c "svn log .. -l 1 -q |grep -E ^r[0-9]+ |cut -d ' ' -f 1"))
+
 # Directory for the generated distribution files
 dist_dir := ../dist/$(package_name)-$(package_final_version)
 
 # Generated distribution files (used as dependent).
-# Must be what setup.py creates in its build
-dist_file := $(dist_dir)/$(package_name)-$(package_version).zip
-win64_dist_file := $(dist_dir)/$(package_name)-$(package_version).win-amd64.exe
+# dist_build_file must be what setup.py creates in its build.
+# It will then be renamed to dist_file.
+dist_build_file := $(dist_dir)/$(package_name)-$(package_version).zip
+dist_file := $(dist_dir)/$(package_name)-$(package_version).$(last_commit).zip
+
+win64_dist_file := $(dist_dir)/$(package_name)-$(package_version).$(last_commit).win-amd64.exe
 
 # Directory for generated API documentation
 doc_out_dir := $(package_name)/docs
@@ -129,6 +135,7 @@ MANIFEST.in: makefile
 $(dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 	rm -f MANIFEST
 	python setup.py build sdist -d $(dist_dir)
+	mv $(dist_build_file) $(dist_file)
 
 $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 	rm -f MANIFEST
