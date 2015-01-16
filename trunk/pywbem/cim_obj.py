@@ -668,11 +668,11 @@ class CIMProperty(object):
             values are defined for this argument:
             `'instance'`: The property is declared with the
             `EmbeddedInstance` qualifier, indicating that the property
-            value is an embedded instance of a known class name.
+            value is an embedded instance of a known class name (or Null).
             `'object'`: The property is declared with the
             `EmbeddedObject` qualifier, indicating that the property
             value is an embedded object (instance or class) of which the
-            class name is not known.
+            class name is not known (or Null).
             `None` means that the argument is unspecified, causing the
             corresponding instance variable to be inferred. An exception is
             raised if it cannot be inferred.
@@ -759,16 +759,13 @@ class CIMProperty(object):
             elif value is None or len(value) == 0 or value[0] is None:
                 # Cannot infer from value, look at embedded_object and type
                 if embedded_object == 'instance':
-                    raise ValueError(
-                            'Limitation: Array property %r that is Null, ' \
-                            'empty, or has Null as its first element cannot ' \
-                            'have embedded instances (class cannot be ' \
-                            'specified)' % name)
-                elif embedded_object == 'object':
+                    msg = 'Array property %r contains embedded instances' % name
                     type = _intended_value('string',
-                            None, type, 'type',
-                            'Array property %r contains embedded objects' % \
-                            name)
+                            None, type, 'type', msg)
+                elif embedded_object == 'object':
+                    msg = 'Array property %r contains embedded objects' % name
+                    type = _intended_value('string',
+                            None, type, 'type', msg)
                 elif type is not None:
                     # Leave type as specified, but check it for validity
                     dummy_type_obj = cim_types.type_from_name(type)
@@ -825,9 +822,11 @@ class CIMProperty(object):
             if value is None:
                 # Try to infer from embedded_object, reference_class, and type
                 if embedded_object == 'instance':
-                    raise ValueError('Limitation: Simple property %r that ' \
-                            'is Null cannot have embedded instances '\
-                            '(class cannot be specified)' % name)
+                    msg = 'Property %r contains embedded instance' % name
+                    type = _intended_value('string',
+                            None, type, 'type', msg)
+                    reference_class = _intended_value(None,
+                            None, reference_class, 'reference_class', msg)
                 elif embedded_object == 'object':
                     msg = 'Property %r contains embedded object' % name
                     type = _intended_value('string',
