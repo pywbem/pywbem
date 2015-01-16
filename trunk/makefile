@@ -22,7 +22,7 @@ package_name := pywbem
 
 # Version of this Python package
 package_version := $(shell python -B setup.py --version)
-package_final_version := $(shell sh -c "echo $(package_version) | sed s/~.*//")
+package_final_version := $(shell sh -c "echo $(package_version) | sed s/-.*//")
 
 # Directory for the generated distribution files
 dist_dir := ../dist/$(package_name)-$(package_final_version)

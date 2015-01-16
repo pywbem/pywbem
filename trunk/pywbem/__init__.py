@@ -107,16 +107,20 @@ or:
 Version
 -------
 
-This version of PyWBEM is 0.8.0~dev.
+This version of PyWBEM is 0.8.0-dev.
 
-The version number follows these conventions:
+The version number follows the conventions of semantic versioning (see
+http://semver.org/):
 
-* M.N.U~dev : During development of the future M.N.U version.
-* M.N.U~rc1 : For release candidate 1 (etc.) of the future M.N.U version.
-* M.N.U     : For the final (=released) M.N.U version.
+* M.N.U-dev  : Preliminary version during development of the future M.N.U
+  release.
+* M.N.U-rc.1 : Preliminary version for release candidate 1 of the future M.N.U
+  release.
+* M.N.U      : Final version for the M.N.U release.
 
-The use of the tilde (~) causes RPM to correctly treat the preliminary versions
-to be younger than the final version.
+When creating correspondingly versioned RPM packages, the hyphen (-) after
+the M.N.U version needs to be replaced by a tilde (~) to cause RPM to correctly
+treat the preliminary versions to be younger than the final version.
 
 Changes
 -------
@@ -144,7 +148,7 @@ See the `LICENSE.txt <../LICENSE.txt>`_ file.
 
 # Version of the pywbem package
 # !!! Keep in sync with version stated in module docstring, above !!!
-__version__ = '0.8.0~dev'
+__version__ = '0.8.0-dev'
 
 # There are submodules, but clients shouldn't need to know about them.
 # Importing just this module is enough.
