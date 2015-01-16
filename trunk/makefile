@@ -80,12 +80,12 @@ dist_dependent_files := \
 # No built-in rules needed:
 .SUFFIXES:
 
-.PHONY: build buildwin test install clean help
+.PHONY: build buildwin test install clean help showstatus
 
-build: _showrepo $(dist_file)
+build: showstatus $(dist_file)
 	@echo '$@ done; created: $(dist_file)'
 
-buildwin: _showrepo $(win64_dist_file)
+buildwin: showstatus $(win64_dist_file)
 	@echo '$@ done; created: $(win64_dist_file)'
 
 check: pylint_report.html
@@ -110,7 +110,7 @@ clean:
 all: build check test install clean
 	@echo '$@ done.'
 
-_showrepo:
+showstatus:
 	@echo 'SVN status:'
 	@svn status -u
 
