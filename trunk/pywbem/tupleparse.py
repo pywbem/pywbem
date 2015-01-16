@@ -301,6 +301,42 @@ def parse_cim(tt):
 
     return name(tt), attrs(tt), child
 
+
+#
+# Declaration elements
+#
+
+def parse_declaration(tt):
+    """
+    <!ELEMENT DECLARATION ( DECLGROUP | DECLGROUP.WITHNAME |
+                            DECLGROUP.WITHPATH )+>
+
+    Note: We only support the DECLGROUP child, at this point.
+    """
+
+    check_node(tt, 'DECLARATION')
+
+    child = one_child(tt, ['DECLGROUP'])
+
+    return name(tt), attrs(tt), child
+
+
+def parse_declgroup(tt):
+    """
+    <!ELEMENT DECLGROUP ( (LOCALNAMESPACEPATH|NAMESPACEPATH)?,
+                          QUALIFIER.DECLARATION*, VALUE.OBJECT* )>
+
+    Note: We only support the QUALIFIER.DECLARATION and VALUE.OBJECT
+          children, and with a multiplicity of 1, at this point.
+    """
+
+    check_node(tt, 'DECLGROUP')
+
+    child = one_child(tt, ['QUALIFIER.DECLARATION', 'VALUE.OBJECT'])
+
+    return name(tt), attrs(tt), child
+
+
 #
 # Object value elements
 #
@@ -359,7 +395,7 @@ def parse_value_object(tt):
 
     check_node(tt, 'VALUE.OBJECT')
 
-    child = one_child(tt, ['CLASS', 'INSTANCE', 'QUALIFIER.DECLARATION'])
+    child = one_child(tt, ['CLASS', 'INSTANCE'])
 
     return (name(tt), attrs(tt), child)
 

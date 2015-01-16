@@ -1,4 +1,4 @@
-pywbem-0.8.0-dev.r696 (last updated: 2015-01-16, includes commits up to r696)
+pywbem-0.8.0-dev.r698 (last updated: 2015-01-16, includes commits up to r698)
 
   ENHANCEMENTS:
 
@@ -190,6 +190,9 @@ pywbem-0.8.0-dev.r696 (last updated: 2015-01-16, includes commits up to r696)
 
      * Fixed bug where HTTP body was attempted ot be read when CIMError header
        is set, causing a hang.  (Andreas Maier)
+
+     * Added CIM-XML declaration support for alternative PyWBEM client based
+       on twisted.  (Andreas Maier)
  
   TESTING:
 
