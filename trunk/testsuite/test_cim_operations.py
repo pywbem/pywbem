@@ -19,6 +19,10 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
                    Real32, Real64, CIMDateTime
 
 from comfychair import main, TestCase, NotRunError
+from pywbem.cim_operations import DEFAULT_NAMESPACE
+
+# A class that should be implemented and is used for testing
+TEST_CLASS = 'CIM_ComputerSystem'
 
 # Test classes
 
@@ -34,7 +38,8 @@ class ClientTest(TestCase):
         self.system_url = url
         self.conn = WBEMConnection(
             self.system_url,
-            (username, password))
+            (username, password),
+            namespace)
         self.conn.debug = True
 
     def cimcall(self, fn, *args, **kw):
@@ -46,11 +51,12 @@ class ClientTest(TestCase):
             self.log('Operation %s failed with %s: %s\n' % \
                      (fn.__name__, exc.__class__.__name__, str(exc)))
             last_request = self.conn.last_request or self.conn.last_raw_request
-            self.log('Failed Request:\n\n%s\n' % last_request)
+            self.log('Request:\n\n%s\n' % last_request)
             last_reply = self.conn.last_reply or self.conn.last_raw_reply
-            self.log('Failed Reply:\n\n%s\n' % last_reply)
+            self.log('Reply:\n\n%s\n' % last_reply)
             raise
 
+        self.log('Operation %s succeeded\n' % fn.__name__)
         last_request = self.conn.last_request or self.conn.last_raw_request
         self.log('Request:\n\n%s\n' % last_request)
         last_reply = self.conn.last_reply or self.conn.last_raw_reply
@@ -68,22 +74,27 @@ class EnumerateInstanceNames(ClientTest):
 
         # Single arg call
 
-        names = self.cimcall(
-            self.conn.EnumerateInstanceNames,
-            'PyWBEM_Person')
+        names = self.cimcall(self.conn.EnumerateInstanceNames,
+                             TEST_CLASS)
 
-        self.assert_(len(names) == 3)
+        self.assert_(len(names) >= 1)
 
         [self.assert_(isinstance(n, CIMInstanceName)) for n in names]
         [self.assert_(len(n.namespace) > 0) for n in names]
 
-        # Call with optional namespace path
+        # Call with explicit CIM namespace that exists
+
+        self.cimcall(self.conn.EnumerateInstanceNames,
+                     TEST_CLASS,
+                     namespace=self.conn.default_namespace)
+
+        # Call with explicit CIM namespace that does not exist
 
         try:
 
             self.cimcall(self.conn.EnumerateInstanceNames,
-                         'PyWBEM_Person',
-                         namespace='root/pywbem')
+                         TEST_CLASS,
+                         namespace='root/blah')
 
         except CIMError, arg:
             if arg[0] != CIM_ERR_INVALID_NAMESPACE:
@@ -95,23 +106,28 @@ class EnumerateInstances(ClientTest):
 
         # Simplest invocation
 
-        instances = self.cimcall(
-            self.conn.EnumerateInstances,
-            'PyWBEM_Person')
+        instances = self.cimcall(self.conn.EnumerateInstances,
+                                 TEST_CLASS)
 
-        self.assert_(len(instances) == 3)
+        self.assert_(len(instances) >= 1)
 
         [self.assert_(isinstance(i, CIMInstance)) for i in instances]
         [self.assert_(isinstance(i.path, CIMInstanceName)) for i in instances]
         [self.assert_(len(i.path.namespace) > 0) for i in instances]
 
-        # Call with optional namespace path
+        # Call with explicit CIM namespace that exists
+
+        self.cimcall(self.conn.EnumerateInstances,
+                     TEST_CLASS,
+                     namespace=self.conn.default_namespace)
+
+        # Call with explicit CIM namespace that does not exist
 
         try:
 
             self.cimcall(self.conn.EnumerateInstances,
-                         'PyWBEM_Person',
-                         namespace='root/pywbem')
+                         TEST_CLASS,
+                         namespace='root/blah')
 
         except CIMError, arg:
             if arg[0] != CIM_ERR_INVALID_NAMESPACE:
@@ -123,25 +139,28 @@ class ExecQuery(ClientTest):
     def runtest(self):
 
         try:
-            instances = self.cimcall(
-                self.conn.ExecQuery,
-                'wql',
-                'Select * from PyWBEM_Person')
 
-            self.assert_(len(instances) == 3)
+            # Simplest invocation
+
+            instances = self.cimcall(self.conn.ExecQuery,
+                                     'wql',
+                                     'Select * from %s' % TEST_CLASS)
+
+            self.assert_(len(instances) >= 1)
 
             [self.assert_(isinstance(i, CIMInstance)) for i in instances]
             [self.assert_(isinstance(i.path, CIMInstanceName)) \
              for i in instances]
             [self.assert_(len(i.path.namespace) > 0) for i in instances]
 
-        # Call with optional namespace path
+            # Call with explicit CIM namespace that does not exist
+
             try:
 
                 self.cimcall(self.conn.ExecQuery,
                              'wql',
-                             'Select * from PyWBEM_Person',
-                             namespace='root/pywbem')
+                             'Select * from %s' % TEST_CLASS,
+                             namespace='root/blah')
 
             except CIMError, arg:
                 if arg[0] != CIM_ERR_INVALID_NAMESPACE:
@@ -149,7 +168,9 @@ class ExecQuery(ClientTest):
 
         except CIMError, arg:
             if arg[0] == CIM_ERR_NOT_SUPPORTED:
-                raise NotRunError, "CIMOM doesn't support ExecQuery"
+                raise NotRunError, "The WBEM server doesn't support ExecQuery"
+            if arg[0] == CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
+                raise NotRunError, "The WBEM server doesn't support WQL for ExecQuery"
             else:
                 raise
 
@@ -158,13 +179,14 @@ class GetInstance(ClientTest):
 
     def runtest(self):
 
-        name = self.cimcall(
-            self.conn.EnumerateInstanceNames,
-            'PyWBEM_Person')[0]
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
+        self.assert_(len(inst_names) >= 1)
+        name = inst_names[0] # Pick the first returned instance
 
         # Simplest invocation
 
-        obj = self.cimcall(self.conn.GetInstance, name)
+        obj = self.cimcall(self.conn.GetInstance,
+                           name)
 
         self.assert_(isinstance(obj, CIMInstance))
         self.assert_(isinstance(obj.path, CIMInstanceName))
@@ -176,9 +198,8 @@ class GetInstance(ClientTest):
 
         try:
 
-            self.cimcall(
-                self.conn.GetInstance,
-                invalid_name)
+            self.cimcall(self.conn.GetInstance,
+                         invalid_name)
 
         except CIMError, arg:
             if arg[0] != CIM_ERR_INVALID_NAMESPACE:
@@ -208,32 +229,25 @@ class CreateInstance(ClientTest):
 
         # Simple create and delete
 
-        result = self.cimcall(self.conn.CreateInstance, instance)
+        try:
+            result = self.cimcall(self.conn.CreateInstance, instance)
+        except CIMError, arg:
+            if arg == CIM_ERR_INVALID_CLASS:
+                # does not support creation
+                pass
+        else:
+            self.assert_(isinstance(result, CIMInstanceName))
+            self.assert_(len(result.namespace) > 0)
 
-        self.assert_(isinstance(result, CIMInstanceName))
-        self.assert_(len(result.namespace) > 0)
+            result = self.cimcall(self.conn.DeleteInstance, instance.path)
 
-        result = self.cimcall(self.conn.DeleteInstance, instance.path)
-
-        self.assert_(result == None)
+            self.assert_(result == None)
 
         try:
             self.cimcall(self.conn.GetInstance(instance.path))
         except CIMError, arg:
             if arg == CIM_ERR_NOT_FOUND:
                 pass
-
-        # Arg plus namespace
-
-        try:
-
-            self.cimcall(
-                self.conn.CreateInstance,
-                instance)
-
-        except CIMError, arg:
-            if arg[0] != CIM_ERR_INVALID_NAMESPACE:
-                raise
 
 class ModifyInstance(ClientTest):
 
@@ -259,20 +273,26 @@ class ModifyInstance(ClientTest):
 
         # Create instance
 
-        self.cimcall(self.conn.CreateInstance, instance)
+        try:
+            self.cimcall(self.conn.CreateInstance, instance)
+        except CIMError, arg:
+            if arg == CIM_ERR_INVALID_CLASS:
+                # does not support creation
+                pass
+        else:
 
-        # Modify instance
-
-        instance['Title'] = 'Sir'
-
-        instance.path.namespace = 'root/cimv2'
-        result = self.cimcall(self.conn.ModifyInstance, instance)
-
-        self.assert_(result is None)
-
-        # Clean up
-
-        self.cimcall(self.conn.DeleteInstance, instance.path)
+            # Modify instance
+    
+            instance['Title'] = 'Sir'
+    
+            instance.path.namespace = 'root/cimv2'
+            result = self.cimcall(self.conn.ModifyInstance, instance)
+    
+            self.assert_(result is None)
+    
+            # Clean up
+    
+            self.cimcall(self.conn.DeleteInstance, instance.path)
 
 
 #################################################################
@@ -290,7 +310,7 @@ class InvokeMethod(ClientTest):
             self.cimcall(
                 self.conn.InvokeMethod,
                 'FooMethod',
-                'CIM_Process')
+                TEST_CLASS)
 
         except CIMError, arg:
             if arg[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
@@ -298,7 +318,9 @@ class InvokeMethod(ClientTest):
 
         # Invoke on an InstanceName
 
-        name = self.cimcall(self.conn.EnumerateInstanceNames, 'CIM_Process')[0]
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
+        self.assert_(len(inst_names) >= 1)
+        name = inst_names[0] # Pick the first returned instance
 
         try:
 
@@ -307,7 +329,7 @@ class InvokeMethod(ClientTest):
                          name)
 
         except CIMError, arg:
-            if arg[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
+            if arg[0] not in (CIM_ERR_METHOD_NOT_AVAILABLE, CIM_ERR_METHOD_NOT_FOUND):
                 raise
 
         # Test remote instance name
@@ -323,7 +345,7 @@ class InvokeMethod(ClientTest):
                          name)
 
         except CIMError, arg:
-            if arg[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
+            if arg[0] not in (CIM_ERR_METHOD_NOT_AVAILABLE, CIM_ERR_METHOD_NOT_FOUND):
                 raise
 
         # Call with all possible parameter types
@@ -331,7 +353,7 @@ class InvokeMethod(ClientTest):
         try:
             self.cimcall(self.conn.InvokeMethod,
                          'FooMethod',
-                         'CIM_Process',
+                         TEST_CLASS,
                          String='Spotty',
                          Uint8=Uint8(1),
                          Sint8=Sint8(2),
@@ -357,7 +379,7 @@ class InvokeMethod(ClientTest):
 
             self.cimcall(self.conn.InvokeMethod,
                          'FooMethod',
-                         'CIM_Process',
+                         TEST_CLASS,
                          StringArray='Spotty',
                          Uint8Array=[Uint8(1)],
                          Sint8Array=[Sint8(2)],
@@ -378,6 +400,19 @@ class InvokeMethod(ClientTest):
             if arg[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
                 raise
 
+        # Call with new Params arg
+
+        try:
+            self.cimcall(self.conn.InvokeMethod,
+                         'FooMethod',
+                         TEST_CLASS,
+                         [('Spam',Uint16(1)),('Ham',Uint16(2))], # Params
+                         Drink=Uint16(3), # begin of **params
+                         Beer=Uint16(4))
+        except CIMError, arg:
+            if arg[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
+                raise
+
         # TODO: Call with empty arrays
 
         # TODO: Call with weird VALUE.REFERENCE child types:
@@ -394,23 +429,24 @@ class Associators(ClientTest):
 
         # Call on named instance
 
-        collection = self.cimcall(
-            self.conn.EnumerateInstanceNames, 'PyWBEM_PersonCollection')[0]
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
+        self.assert_(len(inst_names) >= 1)
+        inst_name = inst_names[0] # Pick the first returned instance
 
-        instances = self.cimcall(self.conn.Associators, collection)
+        instances = self.cimcall(self.conn.Associators, inst_name)
 
         [self.assert_(isinstance(i, CIMInstance)) for i in instances]
         [self.assert_(isinstance(i.path, CIMInstanceName)) for i in instances]
 
-        [self.assert_(i.classname == 'PyWBEM_Person') for i in instances]
+        # TODO: For now, disabled test for class name of associated instances.
+        # [self.assert_(i.classname == 'TBD') for i in instances]
 
         [self.assert_(i.path.namespace is not None) for i in instances]
         [self.assert_(i.path.host is not None) for i in instances]
 
         # Call on class name
 
-        classes = self.cimcall(
-            self.conn.Associators, 'PyWBEM_PersonCollection')
+        classes = self.cimcall(self.conn.Associators, TEST_CLASS)
 
         # TODO: check return values
 
@@ -418,24 +454,25 @@ class AssociatorNames(ClientTest):
 
     def runtest(self):
 
-        # Call on instance name
+        # Call on named instance
 
-        collection = self.cimcall(
-            self.conn.EnumerateInstanceNames, 'PyWBEM_PersonCollection')[0]
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
+        self.assert_(len(inst_names) >= 1)
+        inst_name = inst_names[0] # Pick the first returned instance
 
-        names = self.cimcall(self.conn.AssociatorNames, collection)
+        names = self.cimcall(self.conn.AssociatorNames, inst_name)
 
         [self.assert_(isinstance(n, CIMInstanceName)) for n in names]
 
-        [self.assert_(n.classname == 'PyWBEM_Person') for n in names]
+        # TODO: For now, disabled test for class name of associated instances.
+        # [self.assert_(n.classname == 'TBD') for n in names]
 
         [self.assert_(n.namespace is not None) for n in names]
         [self.assert_(n.host is not None) for n in names]
 
         # Call on class name
 
-        classes = self.cimcall(
-            self.conn.AssociatorNames, 'PyWBEM_PersonCollection')
+        classes = self.cimcall(self.conn.AssociatorNames, TEST_CLASS)
 
         # TODO: check return values
 
@@ -445,24 +482,25 @@ class References(ClientTest):
 
         # Call on named instance
 
-        collection = self.cimcall(
-            self.conn.EnumerateInstanceNames, 'PyWBEM_PersonCollection')[0]
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
+        self.assert_(len(inst_names) >= 1)
+        inst_name = inst_names[0] # Pick the first returned instance
 
-        instances = self.cimcall(self.conn.References, collection)
+        instances = self.cimcall(self.conn.References, inst_name)
 
         [self.assert_(isinstance(i, CIMInstance)) for i in instances]
         [self.assert_(isinstance(i.path, CIMInstanceName)) for i in instances]
 
-        [self.assert_(i.classname == 'PyWBEM_MemberOfPersonCollection')
-         for i in instances]
+        # TODO: For now, disabled test for class name of referencing instances.
+        #[self.assert_(i.classname == 'TBD')
+        # for i in instances]
 
         [self.assert_(i.path.namespace is not None) for i in instances]
         [self.assert_(i.path.host is not None) for i in instances]
 
         # Call on class name
 
-        classes = self.cimcall(
-            self.conn.References, 'PyWBEM_PersonCollection')
+        classes = self.cimcall(self.conn.References, TEST_CLASS)
 
         # TODO: check return values
 
@@ -472,23 +510,24 @@ class ReferenceNames(ClientTest):
 
         # Call on instance name
 
-        collection = self.cimcall(
-            self.conn.EnumerateInstanceNames, 'PyWBEM_PersonCollection')[0]
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
+        self.assert_(len(inst_names) >= 1)
+        inst_name = inst_names[0] # Pick the first returned instance
 
-        names = self.cimcall(self.conn.ReferenceNames, collection)
+        names = self.cimcall(self.conn.ReferenceNames, inst_name)
 
         [self.assert_(isinstance(n, CIMInstanceName)) for n in names]
 
-        [self.assert_(n.classname == 'PyWBEM_MemberOfPersonCollection')
-         for n in names]
+        # TODO: For now, disabled test for class name of referencing instances.
+        #[self.assert_(n.classname == 'TBD')
+        # for n in names]
 
         [self.assert_(n.namespace is not None) for n in names]
         [self.assert_(n.host is not None) for n in names]
 
         # Call on class name
 
-        classes = self.cimcall(
-            self.conn.ReferenceNames, 'PyWBEM_PersonCollection')
+        classes = self.cimcall(self.conn.ReferenceNames, TEST_CLASS)
 
         # TODO: check return values
 
@@ -702,6 +741,8 @@ if __name__ == '__main__':
         print ''
         print 'General options:'
         print '    --help, -h          Display this help text.'
+        print '    -n NAMESPACE        Use this CIM namespace instead of '\
+              'default: %s' % DEFAULT_NAMESPACE
         print ''
         print 'Comfychair help:'
         print ''
@@ -713,6 +754,14 @@ if __name__ == '__main__':
         print '    %s https://9.10.11.12 username%%password -q '\
               'EnumerateInstances GetInstance ' % sys.argv[0]
         sys.exit(0)
+
+    namespace = DEFAULT_NAMESPACE
+    while (True):
+        if sys.argv[1][0] != '-':
+            break
+        if sys.argv[1] == '-n':
+            namespace = sys.argv[2]
+            del sys.argv[1:3]
 
     url = sys.argv[1]
 
