@@ -56,35 +56,81 @@ class AuthError(Error):
     pass
 
 def parse_url(url):
-    """Return a tuple of (host, port, ssl) from the URL parameter.
-    The returned port defaults to 5988 if not specified.  SSL supports
-    defaults to False if not specified."""
+    """Return a tuple of ``(host, port, ssl)`` from the URL specified in the
+    ``url`` parameter.
 
-    host = url                          # Defaults
-    port = 5988
-    ssl = False
+    The returned ``ssl`` item is a boolean indicating the use of SSL, and is
+    recognized from the URL scheme (http vs. https). If none of these schemes
+    is specified in the URL, the returned value defaults to False
+    (non-SSL/http).
 
-    if re.match("https", url):          # Set SSL if specified
-        ssl = True
-        port = 5989
+    The returned ``port`` item is the port number, as an integer. If there is
+    no port number specified in the URL, the returned value defaults to 5988
+    for non-SSL/http, and to 5989 for SSL/https.
 
-    m = re.search("^https?://", url)    # Eat protocol name
+    The returned ``host`` item is the host portion of the URL, as a string.
+    The host portion may be specified in the URL as a short or long host name,
+    dotted IPv4 address, or bracketed IPv6 address with or without zone index
+    (aka scope ID). An IPv6 address is converted from the RFC6874 URI syntax
+    to the RFC4007 text representation syntax before being returned, by
+    removing the brackets and converting the zone index (if present) from
+    "-eth0" to "%eth0".
+
+    Examples for valid URLs can be found in the test program
+    `testsuite/test_cim_http.py`.
+    """
+
+    default_port_http  = 5988       # default port for http
+    default_port_https = 5989       # default port for https
+    default_ssl        = False      # default SSL use (for no or unknown scheme)
+
+    # Look for scheme.
+    m = re.match(r"^(https?)://(.*)$", url, re.I)
     if m:
-        host = url[len(m.group(0)):]
+        _scheme = m.group(1).lower()
+        hostport = m.group(2)
+        if _scheme == 'https':
+            ssl = True
+        else: # will be 'http'
+            ssl = False
+    else:
+        # The URL specified no scheme (or a scheme other than the expected
+        # schemes, but we don't check)
+        ssl = default_ssl
+        hostport = url
 
-    # IPv6 with/without port
-    m = re.match("^\[?([0-9A-Fa-f:]*)\]?(:([0-9]*))?$", host)
+    # Remove trailing path segments, if any.
+    # Having URL components other than just slashes (e.g. '#' or '?') is not
+    # allowed (but we don't check).
+    m = hostport.find("/")
+    if m >= 0:
+        hostport = hostport[0:m]
+
+    # Look for port.
+    # This regexp also works for (colon-separated) IPv6 addresses, because they
+    # must be bracketed in a URL.
+    m = re.search(r":([0-9]+)$", hostport)
     if m:
+        host = hostport[0:m.start(0)]
+        port = int(m.group(1))
+    else:
+        host = hostport
+        port = default_port_https if ssl else default_port_http
+
+    # Reformat IPv6 addresses from RFC6874 URI syntax to RFC4007 text
+    # representation syntax:
+    #   - Remove the brackets.
+    #   - Convert the zone index (aka scope ID) from "-eth0" to "%eth0".
+    # Note on the regexp below: The first group needs the '?' after '.+' to
+    # become non-greedy; in greedy mode, the optional second group would never
+    # be matched.
+    m = re.match(r"^\[(.+?)(?:-(.+))?\]$", host)
+    if m:
+        # It is an IPv6 address
         host = m.group(1)
-        port_tmp = m.group(3)
-        if port_tmp:
-            port = int(port_tmp)
-        return host, port, ssl
-
-    s = string.split(host, ":")         # Set port number
-    if len(s) != 1:
-        host = s[0]
-        port = int(s[1])
+        if m.group(2) != None:
+            # The zone index is present
+            host += "%" + m.group(2)
 
     return host, port, ssl
 

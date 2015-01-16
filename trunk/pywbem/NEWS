@@ -1,4 +1,4 @@
-pywbem-0.8.0-dev.r704
+pywbem-0.8.0-dev.r707
 
   ENHANCEMENTS:
 
@@ -105,10 +105,8 @@ pywbem-0.8.0-dev.r704
       Note: The CIM-XML supported by this fix does not conform to DSP0201 so
       far. Further fixes are pending.  (Jan Safranek)
 
-    * Fixed parsing errors for connection URLs with IPv6 addresses.
-      Note: The parsing support does not address all issues with IPv6 addresses,
-      and it does not support zone indexes (aka scope IDs). Further fixes are
-      pending.  (Peter Hatina)
+    * Fixed parsing errors for connection URLs with IPv6 addresses, including
+      zone indexes (aka scope IDs).  (Peter Hatina, Andreas Maier)
 
     * Fixed the hard coded socket addressing family used for HTTPS that was
       incorrect in some IPv6 cases, by determining it dynamically.
