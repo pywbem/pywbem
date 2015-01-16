@@ -82,10 +82,10 @@ dist_dependent_files := \
 
 .PHONY: build buildwin test install clean help
 
-build: $(dist_file)
+build: _showrepo $(dist_file)
 	@echo '$@ done; created: $(dist_file)'
 
-buildwin: $(win64_dist_file)
+buildwin: _showrepo $(win64_dist_file)
 	@echo '$@ done; created: $(win64_dist_file)'
 
 check: pylint_report.html
@@ -109,6 +109,10 @@ clean:
 
 all: build check test install clean
 	@echo '$@ done.'
+
+_showrepo:
+	@echo 'SVN status:'
+	@svn status -u
 
 help:
 	@echo 'makefile for $(package_name) $(package_version)'
