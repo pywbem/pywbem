@@ -1,4 +1,4 @@
-pywbem-0.8.0-dev.r698 (last updated: 2015-01-16, includes commits up to r698)
+pywbem-0.8.0-dev.r704
 
   ENHANCEMENTS:
 
@@ -52,6 +52,13 @@ pywbem-0.8.0-dev.r698 (last updated: 2015-01-16, includes commits up to r698)
 
     * Improved help text of test_cim_operations.py test program.
       (Andreas Maier)
+
+    * Added an optional Params argument to InvokeMethod(), that is an ordered
+      list of CIM input parameters, that preserves its order in the CIM-XML
+      request message. This is to accomodate deficient WBEM servers that do
+      not tolerate arbitrary order of method input parameters as required by
+      the standard. The new argument is optional, making this a backwards
+      compatible change of InvokeMethod().  (Andreas Maier)
 
   BUG FIXES:
 
