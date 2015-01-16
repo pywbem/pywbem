@@ -1,4 +1,4 @@
-pywbem-0.8.0-dev.r694 (last updated: 2015-01-16, includes commits up to r694)
+pywbem-0.8.0-dev.r696 (last updated: 2015-01-16, includes commits up to r696)
 
   ENHANCEMENTS:
 
@@ -188,6 +188,9 @@ pywbem-0.8.0-dev.r694 (last updated: 2015-01-16, includes commits up to r694)
         on Python 2.6.
       (Andreas Maier)
 
+     * Fixed bug where HTTP body was attempted ot be read when CIMError header
+       is set, causing a hang.  (Andreas Maier)
+ 
   TESTING:
 
     * Added support for running the unit test cases without having to be in the

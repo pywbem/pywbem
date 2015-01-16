@@ -361,7 +361,6 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                     raise
 
             response = h.getresponse()
-            body = response.read()
 
             if response.status != 200:
                 if response.status == 401:
@@ -428,6 +427,8 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                         (response.getheader('CIMError'),
                          urllib.unquote(response.getheader('PGErrorDetail'))))
                 raise Error('HTTP error: %s' % response.reason)
+
+            body = response.read()
 
         except httplib.BadStatusLine, arg:
             raise Error("The web server returned a bad status line: '%s'" % arg)
