@@ -462,7 +462,7 @@ class WBEMConnection(object):
 
         return tt
 
-    def methodcall(self, methodname, localobject, **params):
+    def methodcall(self, methodname, localobject, Params=None, **params):
         """
         Perform an extrinsic method call (= CIM method invocation).
 
@@ -470,8 +470,8 @@ class WBEMConnection(object):
         method of this class. In general, clients should use 'InvokeMethod'
         instead of this function.
 
-        The parameters are automatically converted to the right CIM-XML
-        elements.
+        The Python method parameters are automatically converted to the right
+        CIM-XML elements. See `InvokeMethod` for details.
 
         :Returns:
 
@@ -544,7 +544,14 @@ class WBEMConnection(object):
                 return 'instance'
             return None
 
+        if Params is None:
+            Params = []
         plist = [cim_xml.PARAMVALUE(x[0],
+                                    paramvalue(x[1]),
+                                    paramtype(x[1]),
+                                    embedded_object=is_embedded(x[1]))
+                 for x in Params]
+        plist += [cim_xml.PARAMVALUE(x[0],
                                     paramvalue(x[1]),
                                     paramtype(x[1]),
                                     embedded_object=is_embedded(x[1]))
@@ -1804,7 +1811,7 @@ class WBEMConnection(object):
     # Method provider API
     #
 
-    def InvokeMethod(self, MethodName, ObjectName, **params):
+    def InvokeMethod(self, MethodName, ObjectName, Params=None, **params):
         # pylint: disable=invalid-name
         """
         Invoke a method on a target instance or on a target class.
@@ -1817,6 +1824,10 @@ class WBEMConnection(object):
         This method performs the InvokeMethod CIM-XML operation.
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
+
+        Input parameters for the CIM method can be specified in a
+        order-preserving way using the ``Params`` parameter, and in a
+        order-agnostic way using the ``**params`` keyword parameters.
 
         :Parameters:
 
@@ -1838,13 +1849,29 @@ class WBEMConnection(object):
             specify a namespace, the default namespace of the connection is
             used.
 
-          {paramname}
-            An input parameter for the CIM method. This Python method parameter
-            must be provided for each CIM method input parameter (there is no
-            concept of optional method parameters in CIM). The name of this
-            Python method parameter must be the name of the CIM method
-            parameter. The value of this Python method parameter must be a CIM
-            typed value as described in `cim_types`.
+          Params
+            A list of input parameters for the CIM method.
+
+            Each list item represents a single input parameter for the CIM
+            method and must be a ``tuple(name,value)``, where ``name`` is the
+            parameter name in any lexical case, and ``value`` is the parameter
+            value as a CIM typed value as described in `cim_types`.
+
+          **params
+            Keyword parameters for the input parameters for the CIM method.
+
+            Each keyword parameter represents a single input parameter for the
+            CIM method, where the key is the parameter name in any lexical
+            case, and the value is the parameter value as a CIM typed value as
+            described in `cim_types`.
+
+            The overall list of input parameters represented in the CIM-XML
+            request message that is sent to the WBEM server is formed from
+            the list of parameters specified in ``Params`` preserving its
+            order, followed by the set of parameters specified in ``**params``
+            in any order. There is no checking for duplicate parameter names
+            in the PyWBEM client.
+
 
         :Returns:
 
@@ -1878,7 +1905,7 @@ class WBEMConnection(object):
 
         # Make the method call
 
-        result = self.methodcall(MethodName, obj, **params)
+        result = self.methodcall(MethodName, obj, Params, **params)
 
         # Convert optional RETURNVALUE into a Python object
 
