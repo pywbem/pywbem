@@ -1,4 +1,4 @@
-pywbem-0.8.0~dev (last updated: 2014-11-06, includes commits up to r687)
+pywbem-0.8.0-dev.r694 (last updated: 2015-01-16, includes commits up to r694)
 
   ENHANCEMENTS:
 
@@ -49,6 +49,9 @@ pywbem-0.8.0~dev (last updated: 2014-11-06, includes commits up to r687)
     * Added get() methods on CIMInstance and CIMInstanceName to step up to the
       statement that they behave like dictionaries w.r.t. properties and key
       bindings.  (Andreas Maier)
+
+    * Improved help text of test_cim_operations.py test program.
+      (Andreas Maier)
 
   BUG FIXES:
 
