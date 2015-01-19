@@ -40,6 +40,10 @@ from pywbem import cim_obj, cim_xml, cim_http, cim_types, tupletree, tupleparse
 from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                            CIMClassName, NocaseDict
 
+__all__ = ['DEFAULT_NAMESPACE', 'CIMError', 'WBEMConnection', 'is_subclass',
+           'PegasusUDSConnection', 'SFCBUDSConnection',
+           'OpenWBEMUDSConnection']
+
 DEFAULT_NAMESPACE = 'root/cimv2'
 
 

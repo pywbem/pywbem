@@ -45,6 +45,12 @@ from pywbem.cim_obj import CIMClass, CIMClassName, CIMInstance, CIMInstanceName
 from pywbem.cim_operations import CIMError
 from pywbem.cim_types import CIMDateTime
 
+__all__ = ['WBEMClient', 'WBEMClientFactory', 'EnumerateInstances',
+           'EnumerateInstanceNames', 'GetInstance', 'DeleteInstance',
+           'CreateInstance', 'ModifyInstance', 'EnumerateClassNames',
+           'EnumerateClasses', 'GetClass', 'Associators', 'AssociatorNames',   
+           'References', 'ReferenceNames', 'InvokeMethod', 'ExecQuery']
+
 class WBEMClient(http.HTTPClient):
     """A HTTPClient subclass that handles WBEM requests."""
 

@@ -84,6 +84,8 @@ from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                            CIMClassName, CIMProperty, CIMMethod, \
                            CIMParameter, CIMQualifier, CIMQualifierDeclaration
 
+__all__ = ['ParseError', 'parse_cim', 'parse_any']
+
 class ParseError(Exception):
     """This exception is raised when there is a validation error detected
     by the parser."""

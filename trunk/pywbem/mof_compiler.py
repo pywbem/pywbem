@@ -30,6 +30,8 @@ from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
 from pywbem.cim_operations import CIMError, WBEMConnection
 from pywbem.cim_constants import *
 
+__all__ = ['MOFParseError', 'MOFWBEMConnection', 'MOFCompiler']
+
 _optimize = 1
 _tabmodule = 'mofparsetab'
 _lextab = 'moflextab'

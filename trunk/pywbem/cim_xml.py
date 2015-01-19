@@ -53,8 +53,28 @@ import sys
 import xml.dom.minidom
 from xml.dom.minidom import Element
 
-def Text(data):
-    # pylint: disable=invalid-name
+__all__ = ['CIMElement', 'CIM', 'DECLARATION', 'DECLGROUP',
+           'DECLGROUP_WITHNAME', 'DECLGROUP_WITHPATH', 'QUALIFIER_DECLARATION',
+           'SCOPE', 'VALUE', 'VALUE_ARRAY', 'VALUE_REFERENCE',
+           'VALUE_REFARRAY', 'VALUE_OBJECT', 'VALUE_NAMEDINSTANCE',
+           'VALUE_NAMEDOBJECT', 'VALUE_OBJECTWITHLOCALPATH',
+           'VALUE_OBJECTWITHPATH', 'VALUE_NULL', 'NAMESPACEPATH',
+           'LOCALNAMESPACEPATH', 'HOST', 'NAMESPACE', 'CLASSPATH',
+           'LOCALCLASSPATH', 'CLASSNAME', 'INSTANCEPATH', 'LOCALINSTANCEPATH',
+           'INSTANCENAME', 'OBJECTPATH', 'KEYBINDING', 'KEYVALUE', 'CLASS',
+           'INSTANCE', 'QUALIFIER', 'PROPERTY', 'PROPERTY_ARRAY',
+           'PROPERTY_REFERENCE', 'METHOD', 'PARAMETER', 'PARAMETER_REFERENCE',
+           'PARAMETER_ARRAY', 'PARAMETER_REFARRAY',
+           'TABLECELL_DECLARATION', 'TABLECELL_REFERENCE',
+           'TABLEROW_DECLARATION', 'TABLE','TABLEROW',
+           'MESSAGE', 'MULTIREQ', 'MULTIEXPREQ', 'SIMPLEREQ', 'SIMPLEEXPREQ',
+           'IMETHODCALL', 'METHODCALL', 'EXPMETHODCALL', 'PARAMVALUE',
+           'IPARAMVALUE', 'EXPPARAMVALUE', 'MULTIRSP', 'MULTIEXPRSP',
+           'SIMPLERSP', 'SIMPLEEXPRSP', 'METHODRESPONSE', 'EXPMETHODRESPONSE',
+           'IMETHODRESPONSE', 'ERROR', 'RETURNVALUE', 'IRETURNVALUE',
+           'RESPONSEDESTINATION', 'SIMPLEREQACK']
+
+def _text(data):
     """Grr.  The API for the minidom text node function has changed in
     Python 2.3.  This function allows the code to run under older
     versions of the intepreter."""
@@ -265,7 +285,7 @@ class VALUE(CIMElement):
     def __init__(self, pcdata):
         Element.__init__(self, 'VALUE')
         if pcdata is not None:
-            self.appendChild(Text(pcdata))
+            self.appendChild(_text(pcdata))
 
 class VALUE_ARRAY(CIMElement):
     # pylint: disable=invalid-name
@@ -439,7 +459,7 @@ class HOST(CIMElement):
 
     def __init__(self, pcdata):
         Element.__init__(self, 'HOST')
-        self.appendChild(Text(pcdata))
+        self.appendChild(_text(pcdata))
 
 class NAMESPACE(CIMElement):
     # pylint: disable=invalid-name
@@ -614,7 +634,7 @@ class KEYVALUE(CIMElement):
         self.setOptionalAttribute('TYPE', cim_type)
 
         if data != None:
-            self.appendChild(Text(data))
+            self.appendChild(_text(data))
 
 # Object definition elements
 

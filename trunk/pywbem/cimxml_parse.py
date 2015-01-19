@@ -25,6 +25,8 @@ from pywbem import cim_obj
 from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMQualifier, \
                            CIMProperty
 
+__all__ = ['ParseError', 'make_parser', 'parse_any']
+
 class ParseError(Exception):
     """This exception is raised when there is a validation error detected
     by the parser."""
@@ -34,7 +36,7 @@ class ParseError(Exception):
 # Helper functions
 #
 
-def get_required_attribute(node, attr):
+def _get_required_attribute(node, attr):
     """Return an attribute by name.  Throw an exception if not present."""
 
     if not node.hasAttribute(attr):
@@ -43,7 +45,7 @@ def get_required_attribute(node, attr):
 
     return node.getAttribute(attr)
 
-def get_attribute(node, attr):
+def _get_attribute(node, attr):
     """Return an attribute by name, or None if not present."""
 
     if node.hasAttribute(attr):
@@ -51,7 +53,7 @@ def get_attribute(node, attr):
 
     return None
 
-def get_end_event(parser, tagName):
+def _get_end_event(parser, tagName):
     """Check that the next event is the end of a particular tag."""
 
     (event, node) = parser.next()
@@ -60,11 +62,11 @@ def get_end_event(parser, tagName):
         raise ParseError(
             'Expecting %s end tag, got %s %s' % (tagName, event, node.tagName))
 
-def is_start(event, node, tagName):
+def _is_start(event, node, tagName):
     """Return true if (event, node) is a start event for tagname."""
     return event == pulldom.START_ELEMENT and node.tagName == tagName
 
-def is_end(event, node, tagName):
+def _is_end(event, node, tagName):
     """Return true if (event, node) is an end event for tagname."""
     return event == pulldom.END_ELEMENT and node.tagName == tagName
 
@@ -126,7 +128,7 @@ def parse_value(parser, event, node):
 
         (next_event, next_node) = parser.next()
 
-    if not is_end(next_event, next_node, 'VALUE'):
+    if not _is_end(next_event, next_node, 'VALUE'):
         raise ParseError('Expecting end VALUE')
 
     return value
@@ -139,7 +141,7 @@ def parse_value_array(parser, event, node):
 
     (next_event, next_node) = parser.next()
 
-    if is_start(next_event, next_node, 'VALUE'):
+    if _is_start(next_event, next_node, 'VALUE'):
 
         value_array.append(parse_value(parser, next_event, next_node))
 
@@ -147,10 +149,10 @@ def parse_value_array(parser, event, node):
 
             (next_event, next_node) = parser.next()
 
-            if is_end(next_event, next_node, 'VALUE.ARRAY'):
+            if _is_end(next_event, next_node, 'VALUE.ARRAY'):
                 break
 
-            if is_start(next_event, next_node, 'VALUE'):
+            if _is_start(next_event, next_node, 'VALUE'):
                 value_array.append(parse_value(parser, next_event, next_node))
             else:
                 raise ParseError('Expecting VALUE element')
@@ -164,29 +166,29 @@ def parse_value_reference(parser, event, node):
 
     (next_event, next_node) = parser.next()
 
-    if is_start(next_event, next_node, 'CLASSPATH'):
+    if _is_start(next_event, next_node, 'CLASSPATH'):
         result = parse_classpath(parser, next_event, next_node)
 
-    elif is_start(next_event, next_node, 'LOCALCLASSPATH'):
+    elif _is_start(next_event, next_node, 'LOCALCLASSPATH'):
         result = parse_localclasspath(parser, next_event, next_node)
 
-    elif is_start(next_event, next_node, 'CLASSNAME'):
+    elif _is_start(next_event, next_node, 'CLASSNAME'):
         result = parse_classname(parser, next_event, next_node)
 
-    elif is_start(next_event, next_node, 'INSTANCEPATH'):
+    elif _is_start(next_event, next_node, 'INSTANCEPATH'):
         result = parse_instancepath(parser, next_event, next_node)
 
-    elif is_start(next_event, next_node, 'LOCALINSTANCEPATH'):
+    elif _is_start(next_event, next_node, 'LOCALINSTANCEPATH'):
         result = parse_localinstancepath(parser, next_event, next_node)
 
-    elif is_start(next_event, next_node, 'INSTANCENAME'):
+    elif _is_start(next_event, next_node, 'INSTANCENAME'):
         result = parse_instancename(parser, next_event, next_node)
 
     else:
         raise ParseError('Expecting (CLASSPATH | LOCALCLASSPATH | CLASSNAME '
                          '| INSTANCEPATH | LOCALINSTANCEPATH | INSTANCENAME)')
 
-    get_end_event(parser, 'VALUE.REFERENCE')
+    _get_end_event(parser, 'VALUE.REFERENCE')
 
     return result
 
@@ -210,21 +212,21 @@ def parse_namespacepath(parser, event, node):
 
     (next_event, next_node) = parser.next()
 
-    if not is_start(next_event, next_node, 'HOST'):
+    if not _is_start(next_event, next_node, 'HOST'):
         raise ParseError('Expecting HOST')
 
     host = parse_host(parser, next_event, next_node)
 
     (next_event, next_node) = parser.next()
 
-    if not is_start(next_event, next_node, 'LOCALNAMESPACEPATH'):
+    if not _is_start(next_event, next_node, 'LOCALNAMESPACEPATH'):
         raise ParseError('Expecting LOCALNAMESPACEPATH')
 
     namespacepath = parse_localnamespacepath(parser, next_event, next_node)
 
     (next_event, next_node) = parser.next()
 
-    if not is_end(next_event, next_node, 'NAMESPACEPATH'):
+    if not _is_end(next_event, next_node, 'NAMESPACEPATH'):
         raise ParseError('Expecting end NAMESPACEPATH')
 
     return (host, namespacepath)
@@ -237,7 +239,7 @@ def parse_localnamespacepath(parser, event, node):
 
     namespaces = []
 
-    if not is_start(next_event, next_node, 'NAMESPACE'):
+    if not _is_start(next_event, next_node, 'NAMESPACE'):
         print next_event, next_node
         raise ParseError('Expecting NAMESPACE')
 
@@ -247,10 +249,10 @@ def parse_localnamespacepath(parser, event, node):
 
         (next_event, next_node) = parser.next()
 
-        if is_end(next_event, next_node, 'LOCALNAMESPACEPATH'):
+        if _is_end(next_event, next_node, 'LOCALNAMESPACEPATH'):
             break
 
-        if is_start(next_event, next_node, 'NAMESPACE'):
+        if _is_start(next_event, next_node, 'NAMESPACE'):
             namespaces.append(parse_namespace(parser, next_event, next_node))
         else:
             raise ParseError('Expecting NAMESPACE')
@@ -271,7 +273,7 @@ def parse_host(parser, event, node):
 
         (next_event, next_node) = parser.next()
 
-    if not is_end(next_event, next_node, 'HOST'):
+    if not _is_end(next_event, next_node, 'HOST'):
         raise ParseError('Expecting end HOST')
 
     return host
@@ -283,11 +285,11 @@ def parse_host(parser, event, node):
 
 def parse_namespace(parser, event, node):
 
-    name = get_required_attribute(node, 'NAME')
+    name = _get_required_attribute(node, 'NAME')
 
     (next_event, next_node) = parser.next()
 
-    if not is_end(next_event, next_node, 'NAMESPACE'):
+    if not _is_end(next_event, next_node, 'NAMESPACE'):
         raise ParseError('Expecting end NAMESPACE')
 
     return name
@@ -307,14 +309,14 @@ def parse_instancepath(parser, event, node):
 
     (next_event, next_node) = parser.next()
 
-    if not is_start(next_event, next_node, 'NAMESPACEPATH'):
+    if not _is_start(next_event, next_node, 'NAMESPACEPATH'):
         raise ParseError('Expecting NAMESPACEPATH')
 
     host, namespacepath = parse_namespacepath(parser, next_event, next_node)
 
     (next_event, next_node) = parser.next()
 
-    if not is_start(next_event, next_node, 'INSTANCENAME'):
+    if not _is_start(next_event, next_node, 'INSTANCENAME'):
         print next_event, next_node
         raise ParseError('Expecting INSTANCENAME')
 
@@ -331,14 +333,14 @@ def parse_localinstancepath(parser, event, node):
 
     (next_event, next_node) = parser.next()
 
-    if not is_start(next_event, next_node, 'LOCALNAMESPACEPATH'):
+    if not _is_start(next_event, next_node, 'LOCALNAMESPACEPATH'):
         raise ParseError('Expecting LOCALNAMESPACEPATH')
 
     namespacepath = parse_localnamespacepath(parser, next_event, next_node)
 
     (next_event, next_node) = parser.next()
 
-    if not is_start(next_event, next_node, 'INSTANCENAME'):
+    if not _is_start(next_event, next_node, 'INSTANCENAME'):
         raise ParseError('Expecting INSTANCENAME')
 
     instancename = parse_instancename(parser, next_event, next_node)
@@ -354,12 +356,12 @@ def parse_localinstancepath(parser, event, node):
 
 def parse_instancename(parser, event, node):
 
-    classname = get_required_attribute(node, 'CLASSNAME')
+    classname = _get_required_attribute(node, 'CLASSNAME')
     keybindings = []
 
     (next_event, next_node) = parser.next()
 
-    if is_start(next_event, next_node, 'KEYBINDING'):
+    if _is_start(next_event, next_node, 'KEYBINDING'):
 
         keybindings.append(parse_keybinding(parser, next_event, next_node))
 
@@ -367,22 +369,22 @@ def parse_instancename(parser, event, node):
 
             (next_event, next_node) = parser.next()
 
-            if is_end(next_event, next_node, 'INSTANCENAME'):
+            if _is_end(next_event, next_node, 'INSTANCENAME'):
                 break
 
-            if is_start(next_event, next_node, 'KEYBINDING'):
+            if _is_start(next_event, next_node, 'KEYBINDING'):
                 keybindings.append(
                     parse_keybinding(parser, next_event, next_node))
             else:
                 raise ParseError('Expecting KEYBINDING element')
 
-    if is_end(next_event, next_node, 'INSTANCENAME'):
+    if _is_end(next_event, next_node, 'INSTANCENAME'):
         pass
 
-    elif is_start(next_event, next_node, 'KEYVALUE'):
+    elif _is_start(next_event, next_node, 'KEYVALUE'):
         keybindings.append(('', parse_keyvalue(parser, next_event, next_node)))
 
-    elif is_start(next_event, next_node, 'VALUE.REFERENCE'):
+    elif _is_start(next_event, next_node, 'VALUE.REFERENCE'):
         keybindings.append(
             parse_value_reference(parser, next_event, next_node))
 
@@ -401,22 +403,22 @@ def parse_instancename(parser, event, node):
 
 def parse_keybinding(parser, event, node):
 
-    name = get_required_attribute(node, 'NAME')
+    name = _get_required_attribute(node, 'NAME')
 
     (next_event, next_node) = parser.next()
 
-    if is_start(next_event, next_node, 'KEYVALUE'):
+    if _is_start(next_event, next_node, 'KEYVALUE'):
         keyvalue = parse_keyvalue(parser, next_event, next_node)
         result = (name, keyvalue)
 
-    elif is_start(next_event, next_node, 'VALUE.REFERENCE'):
+    elif _is_start(next_event, next_node, 'VALUE.REFERENCE'):
         value_reference = parse_value_reference(parser, next_event, next_node)
         result = (name, value_reference)
 
     else:
         raise ParseError('Expecting KEYVALUE or VALUE.REFERENCE element')
 
-    get_end_event(parser, 'KEYBINDING')
+    _get_end_event(parser, 'KEYBINDING')
 
     return result
 
@@ -428,8 +430,8 @@ def parse_keybinding(parser, event, node):
 
 def parse_keyvalue(parser, event, node):
 
-    valuetype = get_required_attribute(node, 'VALUETYPE')
-    type = get_attribute(node, 'TYPE')
+    valuetype = _get_required_attribute(node, 'VALUETYPE')
+    type = _get_attribute(node, 'TYPE')
 
     (next_event, next_node) = parser.next()
 
@@ -476,7 +478,7 @@ def parse_keyvalue(parser, event, node):
     else:
         raise ParseError('Invalid VALUETYPE')
 
-    get_end_event(parser, 'KEYVALUE')
+    _get_end_event(parser, 'KEYVALUE')
 
     return value
 
@@ -500,14 +502,14 @@ def parse_keyvalue(parser, event, node):
 
 def parse_instance(parser, event, node):
 
-    classname = get_required_attribute(node, 'CLASSNAME')
+    classname = _get_required_attribute(node, 'CLASSNAME')
 
     properties = []
     qualifiers = []
 
     (next_event, next_node) = parser.next()
 
-    if is_start(next_event, next_node, 'QUALIFIER'):
+    if _is_start(next_event, next_node, 'QUALIFIER'):
 
         qualifiers.append(parse_qualifier(parser, next_event, next_node))
 
@@ -515,13 +517,13 @@ def parse_instance(parser, event, node):
 
             (next_event, next_node) = parser.next()
 
-            if is_start(next_event, next_node, 'PROPERTY') or \
-               is_start(next_event, next_node, 'PROPERTY.ARRAY') or \
-               is_start(next_event, next_node, 'PROPERTY.REFERENCE') or \
-               is_end(next_event, next_node, 'INSTANCE'):
+            if _is_start(next_event, next_node, 'PROPERTY') or \
+               _is_start(next_event, next_node, 'PROPERTY.ARRAY') or \
+               _is_start(next_event, next_node, 'PROPERTY.REFERENCE') or \
+               _is_end(next_event, next_node, 'INSTANCE'):
                 break
 
-            if is_start(next_event, next_node, 'QUALIFIER'):
+            if _is_start(next_event, next_node, 'QUALIFIER'):
                 qualifiers.append(
                     parse_qualifier(parser, next_event, next_node))
             else:
@@ -529,17 +531,17 @@ def parse_instance(parser, event, node):
 
     while 1:
 
-        if is_end(next_event, next_node, 'INSTANCE'):
+        if _is_end(next_event, next_node, 'INSTANCE'):
             break
 
-        if is_start(next_event, next_node, 'PROPERTY'):
+        if _is_start(next_event, next_node, 'PROPERTY'):
             properties.append(parse_property(parser, next_event, next_node))
 
-        elif is_start(next_event, next_node, 'PROPERTY.ARRAY'):
+        elif _is_start(next_event, next_node, 'PROPERTY.ARRAY'):
             properties.append(
                 parse_property_array(parser, next_event, next_node))
 
-        elif is_start(next_event, next_node, 'PROPERTY.REFERENCE'):
+        elif _is_start(next_event, next_node, 'PROPERTY.REFERENCE'):
             properties.append(
                 parse_property_reference(parser, next_event, next_node))
         else:
@@ -548,7 +550,7 @@ def parse_instance(parser, event, node):
 
         (next_event, next_node) = parser.next()
 
-    if not is_end(next_event, next_node, 'INSTANCE'):
+    if not _is_end(next_event, next_node, 'INSTANCE'):
         raise ParseError('Expecting end INSTANCE')
 
     return CIMInstance(
@@ -567,25 +569,25 @@ def parse_instance(parser, event, node):
 
 def parse_qualifier(parser, event, node):
 
-    name = get_required_attribute(node, 'NAME')
-    type = get_required_attribute(node, 'TYPE')
-    propagated = get_attribute(node, 'PROPAGATED')
+    name = _get_required_attribute(node, 'NAME')
+    type = _get_required_attribute(node, 'TYPE')
+    propagated = _get_attribute(node, 'PROPAGATED')
 
     (next_event, next_node) = parser.next()
 
-    if is_end(next_event, next_node, 'QUALIFIER'):
+    if _is_end(next_event, next_node, 'QUALIFIER'):
         return CIMQualifier(name, None, type=type)
 
-    if is_start(next_event, next_node, 'VALUE'):
+    if _is_start(next_event, next_node, 'VALUE'):
         value = parse_value(parser, next_event, next_node)
-    elif is_start(next_event, next_node, 'VALUE.ARRAY'):
+    elif _is_start(next_event, next_node, 'VALUE.ARRAY'):
         value = parse_value_array(parser, next_event, next_node)
     else:
         raise ParseError('Expecting (VALUE | VALUE.ARRAY)')
 
     result = CIMQualifier(name, cim_obj.tocimobj(type, value))
 
-    get_end_event(parser, 'QUALIFIER')
+    _get_end_event(parser, 'QUALIFIER')
 
     return result
 
@@ -600,18 +602,18 @@ def parse_qualifier(parser, event, node):
 
 def parse_property(parser, event, node):
 
-    name = get_required_attribute(node, 'NAME')
-    type = get_required_attribute(node, 'TYPE')
+    name = _get_required_attribute(node, 'NAME')
+    type = _get_required_attribute(node, 'TYPE')
 
-    class_origin = get_attribute(node, 'CLASSORIGIN')
-    propagated = get_attribute(node, 'PROPAGATED')
+    class_origin = _get_attribute(node, 'CLASSORIGIN')
+    propagated = _get_attribute(node, 'PROPAGATED')
 
     qualifiers = []
     value = None
 
     (next_event, next_node) = parser.next()
 
-    if is_start(next_event, next_node, 'QUALIFIER'):
+    if _is_start(next_event, next_node, 'QUALIFIER'):
 
         qualifiers.append(parse_qualifier(parser, next_event, next_node))
 
@@ -619,21 +621,21 @@ def parse_property(parser, event, node):
 
             (next_event, next_node) = parser.next()
 
-            if is_start(next_event, next_node, 'VALUE'):
+            if _is_start(next_event, next_node, 'VALUE'):
                 break
 
-            if is_start(next_event, next_node, 'QUALIFIER'):
+            if _is_start(next_event, next_node, 'QUALIFIER'):
                 qualifiers.append(
                     parse_qualifier(parser, next_event, next_node))
             else:
                 raise ParseError('Expecting QUALIFIER')
 
-    if is_start(next_event, next_node, 'VALUE'):
+    if _is_start(next_event, next_node, 'VALUE'):
 
         value = parse_value(parser, next_event, next_node)
         (next_event, next_node) = parser.next()
 
-    if not is_end(next_event, next_node, 'PROPERTY'):
+    if not _is_end(next_event, next_node, 'PROPERTY'):
         raise ParseError('Expecting end PROPERTY')
 
     return CIMProperty(
@@ -656,19 +658,19 @@ def parse_property(parser, event, node):
 
 def parse_property_array(parser, event, node):
 
-    name = get_required_attribute(node, 'NAME')
-    type = get_required_attribute(node, 'TYPE')
+    name = _get_required_attribute(node, 'NAME')
+    type = _get_required_attribute(node, 'TYPE')
 
-    array_size = get_attribute(node, 'ARRAYSIZE')
-    class_origin = get_attribute(node, 'CLASSORIGIN')
-    propagated = get_attribute(node, 'PROPAGATED')
+    array_size = _get_attribute(node, 'ARRAYSIZE')
+    class_origin = _get_attribute(node, 'CLASSORIGIN')
+    propagated = _get_attribute(node, 'PROPAGATED')
 
     qualifiers = []
     value = None
 
     (next_event, next_node) = parser.next()
 
-    if is_start(next_event, next_node, 'QUALIFIER'):
+    if _is_start(next_event, next_node, 'QUALIFIER'):
 
         qualifiers.append(parse_qualifier(parser, next_event, next_node))
 
@@ -676,21 +678,21 @@ def parse_property_array(parser, event, node):
 
             (next_event, next_node) = parser.next()
 
-            if is_start(next_event, next_node, 'VALUE.ARRAY'):
+            if _is_start(next_event, next_node, 'VALUE.ARRAY'):
                 break
 
-            if is_start(next_event, next_node, 'QUALIFIER'):
+            if _is_start(next_event, next_node, 'QUALIFIER'):
                 qualifiers.append(
                     parse_qualifier(parser, next_event, next_node))
             else:
                 raise ParseError('Expecting QUALIFIER')
 
-    if is_start(next_event, next_node, 'VALUE.ARRAY'):
+    if _is_start(next_event, next_node, 'VALUE.ARRAY'):
 
         value = parse_value_array(parser, next_event, next_node)
         (next_event, next_node) = parser.next()
 
-    if not is_end(next_event, next_node, 'PROPERTY.ARRAY'):
+    if not _is_end(next_event, next_node, 'PROPERTY.ARRAY'):
         raise ParseError('Expecting end PROPERTY.ARRAY')
 
     return CIMProperty(
@@ -712,17 +714,17 @@ def parse_property_array(parser, event, node):
 
 def parse_property_reference(parser, event, node):
 
-    name = get_required_attribute(node, 'NAME')
+    name = _get_required_attribute(node, 'NAME')
 
-    class_origin = get_attribute(node, 'CLASSORIGIN')
-    propagated = get_attribute(node, 'PROPAGATED')
+    class_origin = _get_attribute(node, 'CLASSORIGIN')
+    propagated = _get_attribute(node, 'PROPAGATED')
 
     qualifiers = []
     value = None
 
     (next_event, next_node) = parser.next()
 
-    if is_start(next_event, next_node, 'QUALIFIER'):
+    if _is_start(next_event, next_node, 'QUALIFIER'):
 
         qualifiers.append(parse_qualifier(parser, next_event, next_node))
 
@@ -730,22 +732,22 @@ def parse_property_reference(parser, event, node):
 
             (next_event, next_node) = parser.next()
 
-            if is_start(next_event, next_node, 'VALUE.REFERENCE'):
+            if _is_start(next_event, next_node, 'VALUE.REFERENCE'):
                 break
 
-            if is_start(next_event, next_node, 'QUALIFIER'):
+            if _is_start(next_event, next_node, 'QUALIFIER'):
                 qualifiers.append(
                     parse_qualifier(parser, next_event, next_node))
 
             else:
                 raise ParseError('Expecting QUALIFIER')
 
-    if is_start(next_event, next_node, 'VALUE.REFERENCE'):
+    if _is_start(next_event, next_node, 'VALUE.REFERENCE'):
 
         value = parse_value_reference(parser, next_event, next_node)
         (next_event, next_node) = parser.next()
 
-    if not is_end(next_event, next_node, 'PROPERTY.REFERENCE'):
+    if not _is_end(next_event, next_node, 'PROPERTY.REFERENCE'):
         raise ParseError('Expecting end PROPERTY.REFERENCE')
 
     return CIMProperty(

@@ -50,6 +50,8 @@ The fourth element is reserved.
 from types import StringTypes
 import xml.dom.minidom
 
+__all__ = ['dom_to_tupletree', 'xml_to_tupletree']
+
 def dom_to_tupletree(node):
     """Convert a DOM object to a pyRXP-style tuple tree.
 

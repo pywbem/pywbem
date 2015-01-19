@@ -40,6 +40,11 @@ from datetime import datetime, timedelta
 
 from pywbem import cim_xml, cim_types
 
+__all__ = ['NocaseDict', 'cmpname', 'CIMClassName', 'CIMProperty',
+           'CIMInstanceName', 'CIMInstance', 'CIMClass', 'CIMMethod',
+           'CIMParameter', 'CIMQualifier', 'CIMQualifierDeclaration',
+           'tocimxml', 'tocimobj', 'byname']
+
 class NocaseDict(object):
     """
     Yet another implementation of a case-insensitive dictionary.

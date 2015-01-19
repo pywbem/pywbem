@@ -47,6 +47,8 @@ from M2Crypto import SSL, Err
 
 from pywbem import cim_obj
 
+__all__ = ['Error', 'AuthError', 'wbem_request', 'get_object_header']
+
 class Error(Exception):
     """This exception is raised when a transport error occurs."""
     pass

@@ -1,4 +1,4 @@
-pywbem-0.8.0-dev.r707
+pywbem-0.8.0-dev.r708
 
   ENHANCEMENTS:
 
@@ -59,6 +59,19 @@ pywbem-0.8.0-dev.r707
       not tolerate arbitrary order of method input parameters as required by
       the standard. The new argument is optional, making this a backwards
       compatible change of InvokeMethod().  (Andreas Maier)
+
+    * Cleaned up the public symbols of each module by making symbols private
+      that are used only internally. Specifically, the following symbols have
+      been made private: In cimxml_parse: _get_required_attribute,
+      _get_attribute, _get_end_event, _is_start, _is_end. In cim_xml: _text
+      (was: Text).  (Andreas Maier)
+
+    * Cleaned up symbols imported by wildcard import by defining __all__ in
+      each module with only the public symbols defined in that module (removing
+      any symbols imported into the module), except for the following modules
+      which define less than the complete set of public symbols in their
+      __all__: mof_compiler, twisted_client, tupleparse, cimxml_parse,
+      cim_http.  (Andreas Maier)
 
   BUG FIXES:
 

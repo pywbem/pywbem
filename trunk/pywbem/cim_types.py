@@ -62,6 +62,11 @@ may support Python types in addition to those shown above. For example, the
 from datetime import tzinfo, datetime, timedelta
 import re
 
+__all__ = ['MinutesFromUTC', 'CIMType', 'CIMDateTime', 'CIMInt', 'Uint8',
+           'Sint8', 'Uint16', 'Sint16', 'Uint32', 'Sint32', 'Uint64', 'Sint64',
+           'CIMFloat', 'Real32', 'Real64', 'cimtype', 'type_from_name',
+           'atomic_to_cim_xml']
+
 class MinutesFromUTC(tzinfo):
 
     """
