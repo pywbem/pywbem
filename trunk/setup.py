@@ -59,6 +59,19 @@ args = {
         'pywbem/wbemcli.py',
         'pywbem/mof_compiler.py',
     ],
+    'classifiers' : [
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: Microsoft :: Windows',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: Software Development',
+        'Topic :: System :: Systems Administration',
+    ],
 }
 
 setup(**args)
