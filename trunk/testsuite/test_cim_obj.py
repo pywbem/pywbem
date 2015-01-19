@@ -2764,6 +2764,72 @@ class ToCIMObj(TestCase):
         #self.assert_equal(path.host, '.')
         #self.assert_equal(path.classname, 'NetworkCard')
 
+#################################################################
+# MofStr - test cases for mofstr()
+#################################################################
+
+class MofStr(TestCase):
+
+    def runtest_single(self, in_value, exp_value):    
+        '''
+        Test function for single invocation of mofstr()
+        '''
+
+        ret_value = cim_obj.mofstr(in_value)
+
+        self.assert_equal(ret_value, exp_value)
+
+    def runtest(self):
+        '''
+        Run all tests for mofstr().
+        '''
+
+        self.runtest_single('',       '""')
+        self.runtest_single('\\',     '"\\\\"')
+        self.runtest_single('"',      '"\\""')
+        self.runtest_single('a"b',    '"a\\"b"')
+        # TODO: Enable the following test, once "" is supported.
+        #self.runtest_single('a""b',   '"a\\"\\"b"')
+        self.runtest_single("'",      '"\'"')
+        self.runtest_single("a'b",    '"a\'b"')
+        self.runtest_single("a''b",   '"a\'\'b"')
+        self.runtest_single("\\'",    '"\\\'"')
+        self.runtest_single('\\"',    '"\\""')
+        self.runtest_single('\r\n\t\b\f', '"\\r\\n\\t\\b\\f"')
+        self.runtest_single('\\r\\n\\t\\b\\f', '"\\r\\n\\t\\b\\f"')
+        self.runtest_single('\\_\\+\\v\\h\\j', '"\\_\\+\\v\\h\\j"')
+        self.runtest_single('a',      '"a"')
+        self.runtest_single('a b',    '"a b"')
+        self.runtest_single(' b',     '" b"')
+        self.runtest_single('a ',     '"a "')
+        self.runtest_single(' ',      '" "')
+
+        #                    |0                                                                     |71
+        self.runtest_single('the big brown fox jumps over a big brown fox jumps over a big brown f jumps over a big brown fox',\
+                           '"the big brown fox jumps over a big brown fox jumps over a big brown f "\n       '+\
+                           '"jumps over a big brown fox"')
+        self.runtest_single('the big brown fox jumps over a big brown fox jumps over a big brown fo jumps over a big brown fox',\
+                           '"the big brown fox jumps over a big brown fox jumps over a big brown fo "\n       '+\
+                           '"jumps over a big brown fox"')
+        self.runtest_single('the big brown fox jumps over a big brown fox jumps over a big brown fox jumps over a big brown fox',\
+                           '"the big brown fox jumps over a big brown fox jumps over a big brown "\n       '+\
+                           '"fox jumps over a big brown fox"')
+        self.runtest_single('the big brown fox jumps over a big brown fox jumps over a big brown foxx jumps over a big brown fox',\
+                           '"the big brown fox jumps over a big brown fox jumps over a big brown "\n       '+\
+                           '"foxx jumps over a big brown fox"')
+        self.runtest_single('the big brown fox jumps over a big brown fox jumps over a big brown foxxx jumps over a big brown fox',\
+                           '"the big brown fox jumps over a big brown fox jumps over a big brown "\n       '+\
+                           '"foxxx jumps over a big brown fox"')
+        self.runtest_single('the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over a big brown fox',\
+                           '"the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big_brown_fox"\n       '+\
+                           '"_jumps_over a big brown fox"')
+        self.runtest_single('the big brown fox jumps over a big brown fox jumps over a big brown fox_jumps_over_a_big_brown_fox',\
+                           '"the big brown fox jumps over a big brown fox jumps over a big brown "\n       '+\
+                           '"fox_jumps_over_a_big_brown_fox"')
+
+        return 0
+
+
 ###############################################################################
 # Main function
 ###############################################################################
@@ -2879,9 +2945,9 @@ tests = [ # pylint: disable=invalid-name
     CIMQualifierDeclarationString,
     CIMQualifierDeclarationToXML,
 
-    # tocimobj
-
+    # Others
     ToCIMObj,
+    MofStr,
 
     ]
 

@@ -1,4 +1,4 @@
-pywbem-0.8.0-dev.r710
+pywbem-0.8.0-dev.r712
 
   ENHANCEMENTS:
 
@@ -216,6 +216,22 @@ pywbem-0.8.0-dev.r710
        environment variable optional, and adding HOMEPATH environment variable.
        Also, cleaned up the global namespace of wbemcli.py and made it
        importable as a module.  (Andreas Maier)
+
+     * Fixed errors in generated MOF (e.g. in any tomof() methods):
+       - Missing backslash escaping within string literals for \n, \r, \t, \".
+       - Representation of REF types was incorrect.
+       - '=' in array-typed qualifier declarations was missing.
+       - Fixed size indicator was missing in array elements.
+       - Qualifiers of method parameters were missing.
+       Improvements in generated MOF:
+       - Changed order of qualifiers to be sorted by qualifier name.
+       - Added empty line before each property and method in the class for
+         better readability.
+       - Method parameters are now placed on separate lines.
+       - Moved generation of method qualifiers from class into method. This
+         changes the behavior of CIMMethod.tomof() to now generate the method
+         qualifiers.
+       (Andreas Maier)
 
   TESTING:
 

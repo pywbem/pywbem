@@ -35,6 +35,7 @@ method which returns a CIM-XML string.
 # This module is meant to be safe for 'import *'.
 
 import string
+import re
 from types import StringTypes
 from datetime import datetime, timedelta
 
@@ -442,6 +443,83 @@ def cmpname(name1, name2):
     lower_name2 = name2.lower()
 
     return cmp(lower_name1, lower_name2)
+
+def _makequalifiers(qualifiers, indent):
+    """Return a MOF fragment for a NocaseDict of qualifiers."""
+
+    if len(qualifiers) == 0:
+        return ''
+
+    return '[%s]' % ',\n '.ljust(indent+2).\
+        join([q.tomof(indent) for q in sorted(qualifiers.values())])
+
+def mofstr(strvalue, indent=7, maxline=80):
+    """Converts the input string value to a MOF literal string value, including
+    the surrounding double quotes.
+
+    In doing so, all characters that have MOF escape characters (except for
+    single quotes) are escaped by adding a leading backslash (\), if not yet
+    present. This conditional behavior is needed for WBEM servers that return
+    the MOF escape sequences in their CIM-XML representation of any strings,
+    instead of converting them to the binary characters as required by the CIM
+    standards.
+
+    Single quotes do not need to be escaped because the returned literal
+    string uses double quotes.
+
+    After escaping, the string is broken into multiple lines, for better
+    readability. The maximum line size is specified via the ``maxline``
+    argument. The indentation for any spilled over lines (i.e. not the first
+    line) is specified via the ``indent`` argument.
+    """
+
+    # escape \n, \r, \t, \f, \b
+    escaped_str = strvalue.replace("\n","\\n").replace("\r","\\r").\
+                  replace("\t","\\t").replace("\f","\\f").replace("\b","\\b")
+
+    # escape double quote (") if not already escaped.
+    # TODO: Add support for two consecutive double quotes ("").
+    escaped_str = re.sub(r'([^\\])"', r'\1\\"', escaped_str)
+
+    # escape special case of a single double quote (")
+    escaped_str = re.sub(r'^"$', r'\"', escaped_str)
+
+    # escape backslash (\) not followed by any of: nrtfb"'
+    escaped_str = re.sub(r'\\([^nrtfb"\'])', r'\\\1', escaped_str)
+
+    # escape special case of a single backslash (\)
+    escaped_str = re.sub(r'^\\$', r'\\\\', escaped_str)
+
+    # Break into multiple strings for better readability
+    blankfind = maxline - indent - 2
+    indent_str = ' '.ljust(indent, ' ')
+    ret_str_list = list()
+    if escaped_str == '':
+        ret_str_list.append('""')
+    else:
+        while escaped_str != '':
+            if len(escaped_str) <= blankfind:
+                ret_str_list.append('"' + escaped_str + '"')
+                escaped_str = ''
+            else:
+                splitpos = escaped_str.rfind(' ',0,blankfind)
+                if splitpos < 0:
+                    splitpos = blankfind-1
+                ret_str_list.append('"' + escaped_str[0:splitpos+1] + '"')
+                escaped_str = escaped_str[splitpos+1:]
+
+    ret_str = ('\n'+indent_str).join(ret_str_list)
+    return ret_str
+
+def moftype(cimtype, refclass):
+    """Converts a CIM type name to MOF syntax."""
+
+    if cimtype == 'reference':
+        _moftype = refclass + " REF"
+    else:
+        _moftype = cimtype
+
+    return _moftype
 
 class CIMClassName(object):
     """
@@ -1534,7 +1612,7 @@ class CIMInstance(object):
                     val += _prop2mof(_type, x)
                 val += '}'
             elif _type == 'string':
-                val = '"' + value + '"'
+                val = mofstr(value)
             else:
                 val = str(value)
             return val
@@ -1607,15 +1685,6 @@ class CIMClass(object):
 
     def tomof(self):
 
-        def _makequalifiers(qualifiers, indent):
-            """Return a mof fragment for a NocaseDict of qualifiers."""
-
-            if len(qualifiers) == 0:
-                return ''
-
-            return '[%s]' % ',\n '.ljust(indent+2).join(
-                [q.tomof() for q in qualifiers.values()])
-
         # Class definition
 
         s = '   %s\n' % _makequalifiers(self.qualifiers, 4)
@@ -1632,13 +1701,19 @@ class CIMClass(object):
         # Properties
 
         for p in self.properties.values():
+            if p.is_array and p.array_size is not None:
+                array_str = "[%s]" % p.array_size
+            else:
+                array_str = ''
+            s += '\n'
             s += '      %s\n' % (_makequalifiers(p.qualifiers, 7))
-            s += '   %s %s;\n' % (p.type, p.name)
+            s += '   %s %s%s;\n' % (moftype(p.type, p.reference_class),
+                                    p.name, array_str)
 
         # Methods
 
         for m in self.methods.values():
-            s += '      %s\n' % (_makequalifiers(m.qualifiers, 7))
+            s += '\n'
             s += '   %s\n' % m.tomof()
 
         s += '};\n'
@@ -1712,12 +1787,17 @@ class CIMMethod(object):
 
         s = ''
 
-        if self.return_type is not None:
-            s += '%s ' % self.return_type
+        s += '      %s\n' % (_makequalifiers(self.qualifiers, 7))
 
-        s += '%s(%s);' % \
-             (self.name,
-              string.join([p.tomof() for p in self.parameters.values()], ', '))
+        if self.return_type is not None:
+            s += '%s ' % moftype(self.return_type, None)
+            # CIM-XML does not support methods returning reference types
+            # (the CIM architecture does).
+
+        s += '%s(\n' % (self.name)
+        s += string.join(
+            ['       '+p.tomof() for p in self.parameters.values()], ',\n')
+        s += ');\n'
 
         return s
 
@@ -1827,7 +1907,15 @@ class CIMParameter(object):
                 qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
     def tomof(self):
-        return '%s %s' % (self.type, self.name)
+        if self.is_array and self.array_size is not None:
+            array_str = "[%s]" % self.array_size
+        else:
+            array_str = ''
+        s = '\n'
+        s += '         %s\n' % (_makequalifiers(self.qualifiers, 10))
+        s += '      %s %s%s' % (moftype(self.type, self.reference_class),
+                                self.name, array_str)
+        return s
 
 class CIMQualifier(object):
     """
@@ -1944,11 +2032,11 @@ class CIMQualifier(object):
                                  toinstance=self.toinstance,
                                  translatable=self.translatable)
 
-    def tomof(self):
+    def tomof(self, indent=7):
 
         def valstr(v):
             if isinstance(v, basestring):
-                return '"%s"' % v
+                return mofstr(v, indent)
             return str(v)
 
         if type(self.value) == list:
@@ -2048,7 +2136,7 @@ class CIMQualifierDeclaration(object):
             mof += ']'
         if self.value is not None:
             if isinstance(self.value, list):
-                mof += '{'
+                mof += ' = {'
                 mof += ', '.join([cim_types.atomic_to_cim_xml(
                     tocimobj(self.type, x)) for x in self.value])
                 mof += '}'
