@@ -19,100 +19,62 @@
 # Author: Tim Potter <tpot@hp.com>
 #
 
-#
-# A small utility to wrap up a PyWBEM session in a Python interactive
-# console.
-#
-# Usage:
-#
-#   wbemcli.py HOSTNAME [-u USERNAME -p PASSWORD] [-n namespace] [--no-ssl] \
-#       [--port PORT]
-#
-# CIM operations can be executed by using the PyWBEM connection object
-# called 'cli' in the global scope.  There are two sets of aliases
-# available for usage in the interpreter. For example the following
-# three commands are equivalent:
-#
-#   >>> cli.EnumerateInstanceNames('SMX_ComputerSystem')
-#   >>> EnumerateInstanceNames('SMX_ComputerSystem')
-#   >>> ein('SMX_ComputerSystem')
-#
-# Pretty-printing of results is also available using the 'pp'
-# function. For example:
-#
-#   >>> cs = ei('SMX_ComputerSystem')[0]
-#   >>> pp(cs.items())
-#   [(u'RequestedState', 12L),
-#    (u'Dedicated', [1L]),
-#    (u'StatusDescriptions', [u'System is Functional']),
-#    (u'IdentifyingNumber', u'6F880AA1-F4F5-11D5-8C45-C0116FBAE02A'),
-#   ...
-#
+"""A small utility to wrap up a PyWBEM session in a Python interactive
+console.
+
+Usage:
+  wbemcli.py HOSTNAME [-u USERNAME -p PASSWORD] [-n namespace] [--no-ssl] \
+      [--port PORT]
+
+The utility creates a ``pywbem.WBEMConnection`` object for the specified
+WBEM server location. Subsequent operatoins then use that connection.
+
+There are two sets of aliases available for usage in the interpreter. For
+example, the following two commands are equivalent:
+
+  >>> EnumerateInstanceNames('SMX_ComputerSystem')
+  >>> ein('SMX_ComputerSystem')
+
+Pretty-printing of results is also available using the 'pp'
+function. For example:
+
+  >>> cs = ei('SMX_ComputerSystem')[0]
+  >>> pp(cs.items())
+  [(u'RequestedState', 12L),
+   (u'Dedicated', [1L]),
+   (u'StatusDescriptions', [u'System is Functional']),
+   (u'IdentifyingNumber', u'6F880AA1-F4F5-11D5-8C45-C0116FBAE02A'),
+  ...
+"""
 
 import os
 import sys
 import getpass
 import errno
-from code import InteractiveConsole
-from optparse import OptionParser
+import code
+import optparse
 
 # Conditional support of readline module
-have_readline = False
+_HAVE_READLINE = False
 try:
     import readline
-    have_readline = True
+    _HAVE_READLINE = True
 except ImportError, arg:
     pass
 
 import pywbem
 
-#
-# Parse command line args
-#
+# Additional symbols for use in the interactive session
+from pprint import pprint as pp
 
-optparser = OptionParser(
-    usage='%prog HOSTNAME [-u USER -p PASS] [-n NAMESPACE] [--no-ssl]')
+__all__ = []
 
-# Username and password
+_CONN = None
 
-optparser.add_option('-u', '--user', dest='user',
-                     action='store', type='string',
-                     help='user to connect as')
-
-optparser.add_option('-p', '--password', dest='password',
-                     action='store', type='string',
-                     help='password to connect user as')
-
-# Change the default namespace used
-
-optparser.add_option('-n', '--namespace', dest='namespace',
-                     action='store', type='string', default='root/cimv2',
-                     help='default namespace to use')
-
-# Don't use SSL for remote connections
-
-optparser.add_option('--no-ssl', dest='no_ssl', action='store_true',
-                     help='don\'t use SSL')
-
-# Specify non-standard port
-
-optparser.add_option('--port', dest='port', action='store', type='int',
-                     help='port to connect as', default=None)
-
-# Check usage
-
-(opts, argv) = optparser.parse_args()
-
-if len(argv) != 1:
-    optparser.print_usage()
-    sys.exit(1)
-
-#
-# Set up a client connection
-#
-
-def remote_connection():
+def remote_connection(argv, opts):
     """Initiate a remote connection, via PyWBEM."""
+
+    global _CONN
 
     if argv[0][0] == '/':
         url = argv[0]
@@ -135,13 +97,11 @@ def remote_connection():
     if opts.user is not None or opts.password is not None:
         creds = (opts.user, opts.password)
 
-    cli = pywbem.WBEMConnection(url, creds, default_namespace=opts.namespace)
+    _CONN = pywbem.WBEMConnection(url, creds, default_namespace=opts.namespace)
 
-    cli.debug = True
+    _CONN.debug = True
 
-    return cli
-
-cli = remote_connection()
+    return _CONN
 
 #
 # Create some convenient global functions to reduce typing
@@ -151,7 +111,9 @@ def EnumerateInstanceNames(classname, namespace=None):
     """Enumerate the names of the instances of a CIM Class (including the
     names of any subclasses) in the target namespace."""
 
-    return cli.EnumerateInstanceNames(classname, namespace=namespace)
+    global _CONN
+
+    return _CONN.EnumerateInstanceNames(classname, namespace=namespace)
 
 def EnumerateInstances(classname, namespace=None, LocalOnly=True,
                        DeepInheritance=True, IncludeQualifiers=False,
@@ -159,7 +121,9 @@ def EnumerateInstances(classname, namespace=None, LocalOnly=True,
     """Enumerate instances of a CIM Class (includeing the instances of
     any subclasses in the target namespace."""
 
-    return cli.EnumerateInstances(classname,
+    global _CONN
+
+    return _CONN.EnumerateInstances(classname,
                                   namespace=namespace,
                                   DeepInheritance=DeepInheritance,
                                   IncludeQualifiers=IncludeQualifiers,
@@ -171,7 +135,9 @@ def GetInstance(instancename, LocalOnly=True, IncludeQualifiers=False,
     """Return a single CIM instance corresponding to the instance name
     given."""
 
-    return cli.GetInstance(instancename,
+    global _CONN
+
+    return _CONN.GetInstance(instancename,
                            LocalOnly=LocalOnly,
                            IncludeQualifiers=IncludeQualifiers,
                            IncludeClassOrigin=IncludeClassOrigin)
@@ -179,58 +145,77 @@ def GetInstance(instancename, LocalOnly=True, IncludeQualifiers=False,
 def DeleteInstance(instancename):
     """Delete a single CIM instance."""
 
-    return cli.DeleteInstance(instancename)
+    global _CONN
+
+    return _CONN.DeleteInstance(instancename)
 
 def ModifyInstance(*args, **kwargs):
-    return cli.ModifyInstance(*args, **kwargs)
+    global _CONN
+    return _CONN.ModifyInstance(*args, **kwargs)
 
 def CreateInstance(*args, **kwargs):
-    return cli.CreateInstance(*args, **kwargs)
+    global _CONN
+    return _CONN.CreateInstance(*args, **kwargs)
 
 def InvokeMethod(*args, **kwargs):
-    return cli.InvokeMethod(*args, **kwargs)
+    global _CONN
+    return _CONN.InvokeMethod(*args, **kwargs)
 
 def AssociatorNames(*args, **kwargs):
-    return cli.AssociatorNames(*args, **kwargs)
+    global _CONN
+    return _CONN.AssociatorNames(*args, **kwargs)
 
 def Associators(*args, **kwargs):
-    return cli.Associators(*args, **kwargs)
+    global _CONN
+    return _CONN.Associators(*args, **kwargs)
 
 def ReferenceNames(*args, **kwargs):
-    return cli.ReferenceNames(*args, **kwargs)
+    global _CONN
+    return _CONN.ReferenceNames(*args, **kwargs)
 
 def References(*args, **kwargs):
-    return cli.References(*args, **kwargs)
+    global _CONN
+    return _CONN.References(*args, **kwargs)
 
 def EnumerateClassNames(*args, **kwargs):
-    return cli.EnumerateClassNames(*args, **kwargs)
+    global _CONN
+    return _CONN.EnumerateClassNames(*args, **kwargs)
 
 def EnumerateClasses(*args, **kwargs):
-    return cli.EnumerateClasses(*args, **kwargs)
+    global _CONN
+    return _CONN.EnumerateClasses(*args, **kwargs)
 
 def GetClass(*args, **kwargs):
-    return cli.GetClass(*args, **kwargs)
+    global _CONN
+    return _CONN.GetClass(*args, **kwargs)
 
 def DeleteClass(*args, **kwargs):
-    return cli.DeleteClass(*args, **kwargs)
+    global _CONN
+    return _CONN.DeleteClass(*args, **kwargs)
 
 def ModifyClass(*args, **kwargs):
-    return cli.ModifyClass(*args, **kwargs)
+    global _CONN
+    return _CONN.ModifyClass(*args, **kwargs)
 
 def CreateClass(*args, **kwargs):
-    return cli.CreateClass(*args, **kwargs)
+    global _CONN
+    return _CONN.CreateClass(*args, **kwargs)
 
 def EnumerateQualifiers(*args, **kwargs):
-    return cli.EnumerateQualifiers(*args, **kwargs)
+    global _CONN
+    return _CONN.EnumerateQualifiers(*args, **kwargs)
 
 def GetQualifier(*args, **kwargs):
-    return cli.GetQualifier(*args, **kwargs)
+    global _CONN
+    return _CONN.GetQualifier(*args, **kwargs)
 
 def SetQualifier(*args, **kwargs):
-    return cli.SetQualifier(*args, **kwargs)
+    global _CONN
+    return _CONN.SetQualifier(*args, **kwargs)
 
 def DeleteQualifier(*args, **kwargs):
-    return cli.DeleteQualifier(*args, **kwargs)
+    global _CONN
+    return _CONN.DeleteQualifier(*args, **kwargs)
 
 # Aliases for global functions above
 
@@ -260,39 +245,92 @@ gq = GetQualifier
 sq = SetQualifier
 dq = DeleteQualifier
 
-#
-# Enter interactive console
-#
 
 def get_banner():
+    """Return a banner message for the interactive console."""
+
+    global _CONN
 
     result = ''
 
     # Note how we are connected
+    result += 'Connected to %s' % _CONN.url
+    if _CONN.creds is not None:
+        result += ' as %s' % _CONN.creds[0]
 
-    result += 'Connected to %s' % cli.url
-    if cli.creds is not None:
-        result += ' as %s' % cli.creds[0]
+    # Give hint about exiting. Most people exit with 'quit()' which will
+    # not return from the interact() method, and thus will not write
+    # the history.
+    result += '\nPress Ctrl-D to exit'
 
     return result
 
-# Read previous command line history
 
-histfile = '%s/.wbemcli_history' % os.environ['HOME']
+def main():
+    """Main routine, when called as a script."""
 
-try:
-    if have_readline:
-        readline.read_history_file(histfile)
-except IOError, arg:
-    if arg[0] != errno.ENOENT:
-        raise
+    global _CONN
 
-# Interact
+    # Parse command line args
+    optparser = optparse.OptionParser(
+        usage='%prog HOSTNAME [-u USER -p PASS] [-n NAMESPACE] [--no-ssl]')
 
-i = InteractiveConsole(globals())
-i.interact(get_banner())
+    # Username and password
+    optparser.add_option('-u', '--user', dest='user',
+                         action='store', type='string',
+                         help='user to connect as')
+    optparser.add_option('-p', '--password', dest='password',
+                         action='store', type='string',
+                         help='password to connect user as')
 
-# Save command line history
+    # Change the default namespace used
+    optparser.add_option('-n', '--namespace', dest='namespace',
+                         action='store', type='string', default='root/cimv2',
+                         help='default namespace to use')
 
-if have_readline:
-    readline.write_history_file(histfile)
+    # Don't use SSL for remote connections
+    optparser.add_option('--no-ssl', dest='no_ssl', action='store_true',
+                         help='don\'t use SSL')
+
+    # Specify non-standard port
+    optparser.add_option('--port', dest='port', action='store', type='int',
+                         help='port to connect as', default=None)
+
+    # Check usage
+    (opts, argv) = optparser.parse_args()
+
+    if len(argv) != 1:
+        optparser.print_usage()
+        sys.exit(1)
+
+    # Set up a client connection
+    _CONN = remote_connection(argv, opts)
+
+    # Determine file path of history file
+    home_dir = '.'
+    if 'HOME' in os.environ:
+        home_dir = os.environ['HOME'] # Linux
+    elif 'HOMEPATH' in os.environ:
+        home_dir = os.environ['HOMEPATH'] # Windows
+    histfile = '%s/.wbemcli_history' % home_dir
+
+    # Read previous command line history
+    if _HAVE_READLINE:
+        try:
+            readline.read_history_file(histfile)
+        except IOError, arg:
+            if arg[0] != errno.ENOENT:
+                raise
+
+    # Interact
+    i = code.InteractiveConsole(globals())
+    i.interact(get_banner())
+
+    # Save command line history
+    if _HAVE_READLINE:
+        readline.write_history_file(histfile)
+
+    return 0
+
+if __name__ == '__main__':
+    exit(main())

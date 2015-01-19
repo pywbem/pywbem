@@ -212,6 +212,11 @@ pywbem-0.8.0-dev.r708
      * Added CIM-XML declaration support for alternative PyWBEM client based
        on twisted.  (Andreas Maier)
  
+     * Added support for Windows to wbemcli.py, by making dependency on HOME
+       environment variable optional, and adding HOMEPATH environment variable.
+       Also, cleaned up the global namespace of wbemcli.py and made it
+       importable as a module.  (Andreas Maier)
+
   TESTING:
 
     * Added support for running the unit test cases without having to be in the
