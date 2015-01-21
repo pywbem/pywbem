@@ -618,7 +618,9 @@ class WBEMConnection(object):
             check_utf8_xml_chars(reply_xml, "CIM-XML response")
 
         if self.debug:
-            self.last_reply = reply_dom.toprettyxml(indent='  ')
+            pretty_reply = reply_dom.toprettyxml(indent='  ')
+            self.last_reply = re.sub(r'>( *[\r\n]+)+( *)<', r'>\n\2<',
+                                     pretty_reply) # remove extra empty lines
 
         # Parse response
 
@@ -809,7 +811,9 @@ class WBEMConnection(object):
             check_utf8_xml_chars(reply_xml, "CIM-XML response")
 
         if self.debug:
-            self.last_reply = reply_dom.toprettyxml(indent='  ')
+            pretty_reply = reply_dom.toprettyxml(indent='  ')
+            self.last_reply = re.sub(r'>( *[\r\n]+)+( *)<', r'>\n\2<',
+                                     pretty_reply) # remove extra empty lines
 
         # Parse response
 
