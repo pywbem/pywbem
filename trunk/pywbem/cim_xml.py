@@ -853,7 +853,23 @@ class PROPERTY(CIMElement):
             self.setAttribute('PROPAGATED', str(propagated).lower())
 
         self.setOptionalAttribute('xml:lang', xml_lang)
+
         self.setOptionalAttribute('EmbeddedObject', embedded_object)
+        # Note on EmbeddedObject:
+        # The CIM-XML standard requires the mixed case form, 'EmbeddedObject'.
+        # Given that all other attributes are in upper case, this is an
+        # inconsistency in the standard that cannot be fixed for backwards
+        # compatibility reasons.
+        # OpenPegasus 2.6 supported only the upper case form 'EMBEDDEDOBJECT'.
+        # Later OpenPegasus versions fixed that by using 'EmbeddedObject' in
+        # any responses and by accepting both 'EMBEDDEDOBJECT' and
+        # 'EmbeddedObject' in any requests.
+        # Adding the 'EMBEDDEDOBJECT' attribute to any requests (that is, in
+        # this code here) in order to support the old OpenPegasus 2.6 does not
+        # work unfortunately, because SFCB supports either form but not both
+        # attributes in the same request.
+        # As a result, the best choice is to use only the standards-conforming
+        # mixed case form in any requests sent by PyWBEM.
 
         self.appendChildren(qualifiers)
         self.appendOptionalChild(value)
@@ -894,6 +910,7 @@ class PROPERTY_ARRAY(CIMElement):
             self.setAttribute('ARRAYSIZE', str(array_size))
         self.setOptionalAttribute('CLASSORIGIN', class_origin)
         self.setOptionalAttribute('EmbeddedObject', embedded_object)
+        # See the note on EmbeddedObject in PROPERTY().
 
         if propagated is not None:
             self.setAttribute('PROPAGATED', str(propagated).lower())
@@ -1284,6 +1301,7 @@ class PARAMVALUE(CIMElement):
         self.setName(name)
         self.setOptionalAttribute('PARAMTYPE', paramtype)
         self.setOptionalAttribute('EmbeddedObject', embedded_object)
+        # See the note on EmbeddedObject in PROPERTY().
         self.appendOptionalChild(data)
 
 class IPARAMVALUE(CIMElement):
