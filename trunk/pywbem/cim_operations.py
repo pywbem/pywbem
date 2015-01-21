@@ -36,12 +36,13 @@ import re
 from types import StringTypes
 from xml.dom import minidom
 from datetime import datetime, timedelta
+from xml.parsers.expat import ExpatError
 
 from pywbem import cim_obj, cim_xml, cim_http, cim_types, tupletree, tupleparse
 from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                            CIMClassName, NocaseDict
 
-__all__ = ['DEFAULT_NAMESPACE', 'CharError', 'check_utf8_xml_chars',
+__all__ = ['DEFAULT_NAMESPACE', 'check_utf8_xml_chars',
            'CIMError', 'WBEMConnection', 'is_subclass',
            'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
@@ -70,21 +71,12 @@ def _check_classname(val):
     if not isinstance(val, StringTypes):
         raise ValueError("string expected for classname, not %s" % `val`)
 
-class CharError(Exception):
-    """Raised when the `check_utf8_xml_chars()` function finds an invalid UTF-8
-    Byte sequence, or a valid Unicode character that cannot be represented in
-    XML.
-
-    The value is a string describing the error.
-    """
-
-    pass
-
 def check_utf8_xml_chars(utf8_xml, meaning):
     """
-    Examine a UTF-8 encoded XML string and raise a `CharError` exception if
-    the response contains Bytes that are invalid UTF-8 sequences (incorrectly
-    encoded or ill-formed) or that are invalid XML characters.
+    Examine a UTF-8 encoded XML string and raise a `pywbem.ParseError`
+    exception if the response contains Bytes that are invalid UTF-8
+    sequences (incorrectly encoded or ill-formed) or that are invalid XML
+    characters.
 
     This function works in both "wide" and "narrow" Unicode builds of Python
     and supports the full range of Unicode characters from U+0000 to U+10FFFF.
@@ -92,7 +84,7 @@ def check_utf8_xml_chars(utf8_xml, meaning):
     This function is just a workaround for the bad error handling of Python's
     `xml.dom.minidom` package. It replaces the not very informative
     `ExpatError` "not well-formed (invalid token): line: x, column: y" with a
-    `CharError` providing more useful information.
+    `pywbem.ParseError` providing more useful information.
 
     :Parameters:
 
@@ -104,10 +96,9 @@ def check_utf8_xml_chars(utf8_xml, meaning):
 
     :Exceptions:
 
-      `TypeError`, if invoked with incorrect Python object type for
-      `utf8_xml`.
+      `TypeError`, if invoked with incorrect Python object type for `utf8_xml`.
 
-      `CharError`, if `utf8_xml` contains Bytes that are invalid UTF-8
+      `pywbem.ParseError`, if `utf8_xml` contains Bytes that are invalid UTF-8
       sequences (incorrectly encoded or ill-formed) or invalid XML characters.
 
     Notes on Unicode support in Python:
@@ -137,9 +128,9 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         code points is ill-formed, but it is technically possible that such a
         sequence is in a UTF-8 encoded XML string.
 
-    (3) The Python escapes \\u and \\U used in literal strings can represent
-        the surrogate code points (as well as all other code points, regardless
-        of whether they are assigned to Unicode characters).
+    (3) The Python escapes ``\\u`` and ``\\U`` used in literal strings can
+        represent the surrogate code points (as well as all other code points,
+        regardless of whether they are assigned to Unicode characters).
 
     (4) The Python `str.encode()` and `str.decode()` functions successfully
         translate the surrogate code points back and forth for encoding UTF-8.
@@ -190,18 +181,16 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         ic_seq = m.group(1)
         ic_list.append((ic_pos,ic_seq))
     if len(ic_list) > 0:
-        exc_txt = "Ill-formed UTF-8 Byte sequences found in %s:" % meaning
+        exc_txt = "Ill-formed (surrogate) UTF-8 Byte sequences found in %s:" %\
+                  meaning
         for (ic_pos,ic_seq) in ic_list:
             exc_txt += "\n  At offset %d:" % ic_pos
             for c in ic_seq:
                 exc_txt += " 0x%02X" % ord(c)
             cpos1 = max(ic_pos-context_before,0)
             cpos2 = min(ic_pos+context_after,len(utf8_xml))
-            context = utf8_xml[cpos1:cpos2]
-            exc_txt += ", context(-%d,+%d): %s" % (context_before,
-                                                   context_after,
-                                                   repr(context))
-        raise CharError(exc_txt)
+            exc_txt += ", CIM-XML snippet: %r" % utf8_xml[cpos1:cpos2]
+        raise tupleparse.ParseError(exc_txt)
 
     # Check for incorrectly encoded UTF-8 sequences.
     # @ibm.13@ Simplified logic (removed loop).
@@ -215,17 +204,15 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         # information about the first one is returned in the exception object.
         # Also, the stated reason (in _msg) is not always correct.
         _codec, _str, _p1, _p2, _msg = exc.args
-        exc_txt = "Invalid UTF-8 Byte sequences found in %s" % meaning
+        exc_txt = "Incorrectly encoded UTF-8 Byte sequences found in %s" %\
+                  meaning
         exc_txt += "\n  At offset %d:" % _p1
         for c in utf8_xml[_p1:_p2+1]:
             exc_txt += " 0x%02X" % ord(c)
         cpos1 = max(_p1-context_before,0)
         cpos2 = min(_p2+context_after,len(utf8_xml))
-        context = utf8_xml[cpos1:cpos2]
-        exc_txt += ", context(-%d,+%d): %s" % (context_before,
-                                               context_after,
-                                               repr(context))
-        raise CharError(exc_txt)
+        exc_txt += ", CIM-XML snippet: %r" % utf8_xml[cpos1:cpos2]
+        raise tupleparse.ParseError(exc_txt)
 
     # Now we know the Unicode characters are valid.
     # Check for Unicode characters that cannot legally be represented as XML
@@ -243,11 +230,9 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         for (ic_pos,ic_char) in ic_list:
             cpos1 = max(ic_pos-context_before,0)
             cpos2 = min(ic_pos+context_after,len(utf8_xml_u))
-            context_u = utf8_xml_u[cpos1:cpos2]
-            exc_txt += "\n  At offset %d: U+%04X, context(-%d,+%d): %s" % \
-                (ic_pos, ord(ic_char), context_before, context_after,
-                 repr(context_u))
-        raise CharError(exc_txt)
+            exc_txt += "\n  At offset %d: U+%04X, CIM-XML snippet: %r" % \
+                (ic_pos, ord(ic_char), utf8_xml_u[cpos1:cpos2])
+        raise tupleparse.ParseError(exc_txt)
 
     return utf8_xml
 
@@ -334,11 +319,16 @@ class WBEMConnection(object):
         For the possible CIM errors that can be returned by each operation, see
         DMTF DSP0200.
 
-      - `pywbem.ParseError` - CIM-XML validation problem in the response from
-        the WBEM server.
+      - `pywbem.ParseError` - CIM-XML parsing problem in the response from
+        the WBEM server. The exception message provides details.
+        Possible reasons are:
 
-      - `xml.parsers.expat.ExpatError` - XML error in the response from the
-        WBEM server, such as ill-formed XML or illegal XML characters.
+        * Response contains ill-formed UTF-8 Byte sequences (uses surrogates).
+        * Response contains incorrectly encoded UTF-8 Byte sequences.
+        * Response contains invalid XML characters (e.g. ``\\x00`` or
+          ``&#0;``).
+        * Response is not well-formed XML.
+        * Response does not validate against the CIM-XML DTD/schema.
 
     * Exceptions indicating programming errors in PyWBEM or layers below:
 
@@ -594,7 +584,7 @@ class WBEMConnection(object):
         # Get XML response
 
         try:
-            resp_xml = cim_http.wbem_request(
+            reply_xml = cim_http.wbem_request(
                 self.url, req_xml.toxml(), self.creds, headers,
                 x509=self.x509,
                 verify_callback=self.verify_callback,
@@ -609,13 +599,23 @@ class WBEMConnection(object):
         ## TODO: Perhaps only compute this if it's required?  Should not be
         ## all that expensive.
 
-        # Set the raw response before parsing and checking (which can fail)
+        # Set the raw response before parsing (which can fail)
         if self.debug:
-            self.last_raw_reply = resp_xml
+            self.last_raw_reply = reply_xml
 
-        check_utf8_xml_chars(resp_xml, "CIM-XML response")
+        try:
+            reply_dom = minidom.parseString(reply_xml)
+        except ExpatError:
+            parsing_error = True
+        else:
+            parsing_error = False
 
-        reply_dom = minidom.parseString(resp_xml)
+        if parsing_error or self.debug:
+            # Here we just improve the quality of the exception information,
+            # so we do this only if it already has failed. Because the check
+            # function we invoke catches more errors than minidom.parseString,
+            # we call it also when debug is turned on.
+            check_utf8_xml_chars(reply_xml, "CIM-XML response")
 
         if self.debug:
             self.last_reply = reply_dom.toprettyxml(indent='  ')
@@ -780,7 +780,7 @@ class WBEMConnection(object):
         # Get XML response
 
         try:
-            resp_xml = cim_http.wbem_request(
+            reply_xml = cim_http.wbem_request(
                 self.url, req_xml.toxml(), self.creds, headers,
                 x509=self.x509,
                 verify_callback=self.verify_callback,
@@ -792,15 +792,28 @@ class WBEMConnection(object):
 
         # Set the raw response before parsing and checking (which can fail)
         if self.debug:
-            self.last_raw_reply = resp_xml
+            self.last_raw_reply = reply_xml
 
-        check_utf8_xml_chars(resp_xml, "CIM-XML response")
+        try:
+            reply_dom = minidom.parseString(reply_xml)
+        except ExpatError:
+            parsing_error = True
+        else:
+            parsing_error = False
+
+        if parsing_error or self.debug:
+            # Here we just improve the quality of the exception information,
+            # so we do this only if it already has failed. Because the check
+            # function we invoke catches more errors than minidom.parseString,
+            # we call it also when debug is turned on.
+            check_utf8_xml_chars(reply_xml, "CIM-XML response")
 
         if self.debug:
-            resp_dom = minidom.parseString(resp_xml)
-            self.last_reply = resp_dom.toprettyxml(indent='  ')
+            self.last_reply = reply_dom.toprettyxml(indent='  ')
 
-        tt = tupleparse.parse_cim(tupletree.xml_to_tupletree(resp_xml))
+        # Parse response
+
+        tt = tupleparse.parse_cim(tupletree.dom_to_tupletree(reply_dom))
 
         if tt[0] != 'CIM':
             raise CIMError(0, 'Expecting CIM element, got %s' % tt[0])

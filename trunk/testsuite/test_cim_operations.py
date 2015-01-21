@@ -16,11 +16,10 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
                    WBEMConnection, CIMError, \
                    Uint8, Uint16, Uint32, Uint64, \
                    Sint8, Sint16, Sint32, Sint64, \
-                   Real32, Real64, CIMDateTime
+                   Real32, Real64, CIMDateTime, ParseError
+from pywbem.cim_operations import DEFAULT_NAMESPACE, check_utf8_xml_chars
 
 from comfychair import main, TestCase, NotRunError
-from pywbem.cim_operations import DEFAULT_NAMESPACE, check_utf8_xml_chars, \
-                                  CharError
 
 # A class that should be implemented and is used for testing
 TEST_CLASS = 'CIM_ComputerSystem'
@@ -673,15 +672,15 @@ class Test_check_utf8_xml_chars(TestCase):
 
         try:
             check_utf8_xml_chars(utf8_xml, "Test XML")
-        except CharError as exc:
+        except ParseError as exc:
             if self.verbose:
-                print "Verify manually: Input XML: %r, CharError: %s" %\
+                print "Verify manually: Input XML: %r, ParseError: %s" %\
                       (utf8_xml, exc)
             self.assert_(expected_ok == False,
-                         "CharError unexpectedly raised: %s" % exc)
+                         "ParseError unexpectedly raised: %s" % exc)
         else:
             self.assert_(expected_ok == True,
-                         "CharError unexpectedly not raised.")
+                         "ParseError unexpectedly not raised.")
         
     def runtest(self):
 
@@ -695,7 +694,7 @@ class Test_check_utf8_xml_chars(TestCase):
 
         # invalid XML characters
         if self.verbose:
-            print "From here on, the only expected exception is CharError "\
+            print "From here on, the only expected exception is ParseError "\
                   "for invalid XML characters..."
         self.runone('<V>a\bb</V>', False)
         self.runone('<V>a\x08b</V>', False)
@@ -706,7 +705,7 @@ class Test_check_utf8_xml_chars(TestCase):
 
         # correctly encoded but ill-formed UTF-8
         if self.verbose:
-            print "From here on, the only expected exception is CharError "\
+            print "From here on, the only expected exception is ParseError "\
                   "for ill-formed UTF-8 Byte sequences..."
         # combo of U+D800,U+DD22:
         self.runone('<V>a\xED\xA0\x80\xED\xB4\xA2b</V>', False)
@@ -716,7 +715,7 @@ class Test_check_utf8_xml_chars(TestCase):
 
         # incorrectly encoded UTF-8
         if self.verbose:
-            print "From here on, the only expected exception is CharError "\
+            print "From here on, the only expected exception is ParseError "\
                   "for invalid UTF-8 Byte sequences..."
         # incorrect 1-byte sequence:
         self.runone('<V>a\x80b</V>', False)
