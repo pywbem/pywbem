@@ -32,6 +32,7 @@ operation.
 # This module is meant to be safe for 'import *'.
 
 import string
+import re
 from types import StringTypes
 from xml.dom import minidom
 from datetime import datetime, timedelta
@@ -40,11 +41,24 @@ from pywbem import cim_obj, cim_xml, cim_http, cim_types, tupletree, tupleparse
 from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                            CIMClassName, NocaseDict
 
-__all__ = ['DEFAULT_NAMESPACE', 'CIMError', 'WBEMConnection', 'is_subclass',
+__all__ = ['DEFAULT_NAMESPACE', 'CharError', 'check_utf8_xml_chars',
+           'CIMError', 'WBEMConnection', 'is_subclass',
            'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
 
 DEFAULT_NAMESPACE = 'root/cimv2'
+
+if len(u'\U00010122') == 2:
+    # This is a "narrow" Unicode build of Python (the normal case).
+    _ILLEGAL_XML_CHARS_RE = re.compile(
+        u'([\u0000-\u0008\u000B-\u000C\u000E-\u001F\uFFFE\uFFFF])')
+else:
+    # This is a "wide" Unicode build of Python.
+    _ILLEGAL_XML_CHARS_RE = re.compile(
+        u'([\u0000-\u0008\u000B-\u000C\u000E-\u001F\uD800-\uDFFF\uFFFE\uFFFF])')
+
+_ILL_FORMED_UTF8_RE = re.compile(
+    '(\xED[\xA0-\xBF][\x80-\xBF])')    # U+D800...U+DFFF
 
 
 def _check_classname(val):
@@ -55,6 +69,187 @@ def _check_classname(val):
     """
     if not isinstance(val, StringTypes):
         raise ValueError("string expected for classname, not %s" % `val`)
+
+class CharError(Exception):
+    """Raised when the `check_utf8_xml_chars()` function finds an invalid UTF-8
+    Byte sequence, or a valid Unicode character that cannot be represented in
+    XML.
+
+    The value is a string describing the error.
+    """
+
+    pass
+
+def check_utf8_xml_chars(utf8_xml, meaning):
+    """
+    Examine a UTF-8 encoded XML string and raise a `CharError` exception if
+    the response contains Bytes that are invalid UTF-8 sequences (incorrectly
+    encoded or ill-formed) or that are invalid XML characters.
+
+    This function works in both "wide" and "narrow" Unicode builds of Python
+    and supports the full range of Unicode characters from U+0000 to U+10FFFF.
+
+    This function is just a workaround for the bad error handling of Python's
+    `xml.dom.minidom` package. It replaces the not very informative
+    `ExpatError` "not well-formed (invalid token): line: x, column: y" with a
+    `CharError` providing more useful information.
+
+    :Parameters:
+
+      utf8_xml : string
+        The UTF-8 encoded XML string to be examined.
+
+      meaning : string
+        Short text with meaning of the XML string, for messages in exceptions.
+
+    :Exceptions:
+
+      `TypeError`, if invoked with incorrect Python object type for
+      `utf8_xml`.
+
+      `CharError`, if `utf8_xml` contains Bytes that are invalid UTF-8
+      sequences (incorrectly encoded or ill-formed) or invalid XML characters.
+
+    Notes on Unicode support in Python:
+
+    (1) For internally representing Unicode characters in the unicode type, a
+        "wide" Unicode build of Python uses UTF-32, while a "narrow" Unicode
+        build uses UTF-16. The difference is visible to Python programs for
+        Unicode characters assigned to code points above U+FFFF: The "narrow"
+        build uses 2 characters (a surrogate pair) for them, while the "wide"
+        build uses just 1 character. This affects all position- and
+        length-oriented functions, such as `len()` or string slicing.
+
+    (2) In a "wide" Unicode build of Python, the Unicode characters assigned to
+        code points U+10000 to U+10FFFF are represented directly (using code
+        points U+10000 to U+10FFFF) and the surrogate code points
+        U+D800...U+DFFF are never used; in a "narrow" Unicode build of Python,
+        the Unicode characters assigned to code points U+10000 to U+10FFFF are
+        represented using pairs of the surrogate code points U+D800...U+DFFF.
+
+    Notes on the Unicode code points U+D800...U+DFFF ("surrogate code points"):
+
+    (1) These code points have no corresponding Unicode characters assigned,
+        because they are reserved for surrogates in the UTF-16 encoding.
+
+    (2) The UTF-8 encoding can technically represent the surrogate code points.
+        ISO/IEC 10646 defines that a UTF-8 sequence containing the surrogate
+        code points is ill-formed, but it is technically possible that such a
+        sequence is in a UTF-8 encoded XML string.
+
+    (3) The Python escapes \\u and \\U used in literal strings can represent
+        the surrogate code points (as well as all other code points, regardless
+        of whether they are assigned to Unicode characters).
+
+    (4) The Python `str.encode()` and `str.decode()` functions successfully
+        translate the surrogate code points back and forth for encoding UTF-8.
+
+        For example, ``'\\xed\\xb0\\x80'.decode("utf-8") = u'\\udc00'``.
+
+    (5) Because Python supports the encoding and decoding of UTF-8 sequences
+        also for the surrogate code points, the "narrow" Unicode build of
+        Python can be (mis-)used to transport each surrogate unit separately
+        encoded in (ill-formed) UTF-8.
+
+        For example, code point U+10122 can be (illegally) created from a
+        sequence of code points U+D800,U+DD22 represented in UTF-8:
+
+          ``'\\xED\\xA0\\x80\\xED\\xB4\\xA2'.decode("utf-8") = u'\\U00010122'``
+
+        while the correct UTF-8 sequence for this code point is:
+
+          ``u'\\U00010122'.encode("utf-8") = '\\xf0\\x90\\x84\\xa2'``
+
+    Notes on XML characters:
+
+    (1) The legal XML characters are defined in W3C XML 1.0 (Fith Edition):
+
+        ::
+
+          Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] |
+                   [#x10000-#x10FFFF]
+
+        These are the code points of Unicode characters using a non-surrogate
+        representation.
+    """
+
+    context_before = 16    # number of chars to print before any bad chars
+    context_after  = 16    # number of chars to print after any bad chars
+
+    if not isinstance(utf8_xml, str):
+        raise TypeError("utf8_xml argument does not have str type, but %s" % \
+                        type(utf8_xml))
+
+    # Check for ill-formed UTF-8 sequences. This needs to be done
+    # before the str type gets decoded to unicode, because afterwards
+    # surrogates produced from ill-formed UTF-8 cannot be distinguished from
+    # legally produced surrogates (for code points above U+FFFF).
+    ic_list = list()
+    for m in _ILL_FORMED_UTF8_RE.finditer(utf8_xml):
+        ic_pos = m.start(1)
+        ic_seq = m.group(1)
+        ic_list.append((ic_pos,ic_seq))
+    if len(ic_list) > 0:
+        exc_txt = "Ill-formed UTF-8 Byte sequences found in %s:" % meaning
+        for (ic_pos,ic_seq) in ic_list:
+            exc_txt += "\n  At offset %d:" % ic_pos
+            for c in ic_seq:
+                exc_txt += " 0x%02X" % ord(c)
+            cpos1 = max(ic_pos-context_before,0)
+            cpos2 = min(ic_pos+context_after,len(utf8_xml))
+            context = utf8_xml[cpos1:cpos2]
+            exc_txt += ", context(-%d,+%d): %s" % (context_before,
+                                                   context_after,
+                                                   repr(context))
+        raise CharError(exc_txt)
+
+    # Check for incorrectly encoded UTF-8 sequences.
+    # @ibm.13@ Simplified logic (removed loop).
+    try:
+        utf8_xml_u = utf8_xml.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        # Only raised for incorrectly encoded UTF-8 sequences; technically
+        # correct sequences that are ill-formed (e.g. representing surrogates)
+        # do not cause this exception to be raised.
+        # If more than one incorrectly encoded sequence is present, only
+        # information about the first one is returned in the exception object.
+        # Also, the stated reason (in _msg) is not always correct.
+        _codec, _str, _p1, _p2, _msg = exc.args
+        exc_txt = "Invalid UTF-8 Byte sequences found in %s" % meaning
+        exc_txt += "\n  At offset %d:" % _p1
+        for c in utf8_xml[_p1:_p2+1]:
+            exc_txt += " 0x%02X" % ord(c)
+        cpos1 = max(_p1-context_before,0)
+        cpos2 = min(_p2+context_after,len(utf8_xml))
+        context = utf8_xml[cpos1:cpos2]
+        exc_txt += ", context(-%d,+%d): %s" % (context_before,
+                                               context_after,
+                                               repr(context))
+        raise CharError(exc_txt)
+
+    # Now we know the Unicode characters are valid.
+    # Check for Unicode characters that cannot legally be represented as XML
+    # characters.
+    ic_list = list()
+    last_ic_pos = -2
+    for m in _ILLEGAL_XML_CHARS_RE.finditer(utf8_xml_u):
+        ic_pos = m.start(1)
+        ic_char = m.group(1)
+        if ic_pos > last_ic_pos + 1:
+            ic_list.append((ic_pos,ic_char))
+        last_ic_pos = ic_pos
+    if len(ic_list) > 0:
+        exc_txt = "Invalid XML characters found in %s:" % meaning
+        for (ic_pos,ic_char) in ic_list:
+            cpos1 = max(ic_pos-context_before,0)
+            cpos2 = min(ic_pos+context_after,len(utf8_xml_u))
+            context_u = utf8_xml_u[cpos1:cpos2]
+            exc_txt += "\n  At offset %d: U+%04X, context(-%d,+%d): %s" % \
+                (ic_pos, ord(ic_char), context_before, context_after,
+                 repr(context_u))
+        raise CharError(exc_txt)
+
+    return utf8_xml
 
 
 class CIMError(Exception):
@@ -414,9 +609,11 @@ class WBEMConnection(object):
         ## TODO: Perhaps only compute this if it's required?  Should not be
         ## all that expensive.
 
-        # Set the raw response before parsing (which can fail)
+        # Set the raw response before parsing and checking (which can fail)
         if self.debug:
             self.last_raw_reply = resp_xml
+
+        check_utf8_xml_chars(resp_xml, "CIM-XML response")
 
         reply_dom = minidom.parseString(resp_xml)
 
@@ -593,9 +790,13 @@ class WBEMConnection(object):
             # Convert cim_http exceptions to CIMError exceptions
             raise CIMError(0, str(arg))
 
+        # Set the raw response before parsing and checking (which can fail)
         if self.debug:
-            # Set the raw response before parsing (which can fail)
             self.last_raw_reply = resp_xml
+
+        check_utf8_xml_chars(resp_xml, "CIM-XML response")
+
+        if self.debug:
             resp_dom = minidom.parseString(resp_xml)
             self.last_reply = resp_dom.toprettyxml(indent='  ')
 

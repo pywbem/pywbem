@@ -19,7 +19,8 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
                    Real32, Real64, CIMDateTime
 
 from comfychair import main, TestCase, NotRunError
-from pywbem.cim_operations import DEFAULT_NAMESPACE
+from pywbem.cim_operations import DEFAULT_NAMESPACE, check_utf8_xml_chars, \
+                                  CharError
 
 # A class that should be implemented and is used for testing
 TEST_CLASS = 'CIM_ComputerSystem'
@@ -660,6 +661,78 @@ class ExecuteQuery(ClientTest):
         raise(NotRunError);
 
 #################################################################
+# Internal functions
+#################################################################
+
+class Test_check_utf8_xml_chars(TestCase):
+
+    verbose = False  # Set to True during development of tests for manually
+                     # verifying the expected results.
+
+    def runone(self, utf8_xml, expected_ok):
+
+        try:
+            check_utf8_xml_chars(utf8_xml, "Test XML")
+        except CharError as exc:
+            if self.verbose:
+                print "Verify manually: Input XML: %r, CharError: %s" %\
+                      (utf8_xml, exc)
+            self.assert_(expected_ok == False,
+                         "CharError unexpectedly raised: %s" % exc)
+        else:
+            self.assert_(expected_ok == True,
+                         "CharError unexpectedly not raised.")
+        
+    def runtest(self):
+
+        # good cases
+        self.runone('<V>a</V>', True)
+        self.runone('<V>a\tb\nc\rd</V>', True)
+        self.runone('<V>a\x09b\x0Ac\x0Dd</V>', True)
+        self.runone('<V>a\xCD\x90b</V>', True)             # U+350
+        self.runone('<V>a\xE2\x80\x93b</V>', True)         # U+2013
+        self.runone('<V>a\xF0\x90\x84\xA2b</V>', True)     # U+10122
+
+        # invalid XML characters
+        if self.verbose:
+            print "From here on, the only expected exception is CharError "\
+                  "for invalid XML characters..."
+        self.runone('<V>a\bb</V>', False)
+        self.runone('<V>a\x08b</V>', False)
+        self.runone('<V>a\x00b</V>', False)
+        self.runone('<V>a\x01b</V>', False)
+        self.runone('<V>a\x1Ab</V>', False)
+        self.runone('<V>a\x1Ab\x1Fc</V>', False)
+
+        # correctly encoded but ill-formed UTF-8
+        if self.verbose:
+            print "From here on, the only expected exception is CharError "\
+                  "for ill-formed UTF-8 Byte sequences..."
+        # combo of U+D800,U+DD22:
+        self.runone('<V>a\xED\xA0\x80\xED\xB4\xA2b</V>', False)
+        # combo of U+D800,U+DD22 and combo of U+D800,U+DD23:
+        self.runone('<V>a\xED\xA0\x80\xED\xB4\xA2b\xED\xA0\x80\xED\xB4\xA3</V>',
+                    False)
+
+        # incorrectly encoded UTF-8
+        if self.verbose:
+            print "From here on, the only expected exception is CharError "\
+                  "for invalid UTF-8 Byte sequences..."
+        # incorrect 1-byte sequence:
+        self.runone('<V>a\x80b</V>', False)
+        # 2-byte sequence with missing second byte:
+        self.runone('<V>a\xC0', False)
+        # 2-byte sequence with incorrect 2nd byte
+        self.runone('<V>a\xC0b</V>', False)
+        # 4-byte sequence with incorrect 3rd byte:
+        self.runone('<V>a\xF1\x80abc</V>', False)
+        # 4-byte sequence with incorrect 3rd byte that is an incorr. new start:
+        self.runone('<V>a\xF1\x80\xFFbc</V>', False)
+        # 4-byte sequence with incorrect 3rd byte that is an correct new start:
+        self.runone('<V>a\xF1\x80\xC2\x81c</V>', False)
+
+
+#################################################################
 # Main function
 #################################################################
 
@@ -712,12 +785,18 @@ tests = [
 
     ]
 
+tests_internal = [
+    Test_check_utf8_xml_chars,
+]
+
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
-        print 'Usage: %s [OPTS] URL [USERNAME%%PASSWORD [COMFYOPTS] '\
+        print 'Usage for manual external tests:\n  %s [OPTS] URL [USERNAME%%PASSWORD [COMFYOPTS] '\
               '[COMFYTESTS]]' % sys.argv[0]
-        sys.exit(0)
+        print 'Invoke with -h or --help for full help text.'
+        print 'Running internal tests...'
+        main(tests_internal)
     elif sys.argv[1] == '--help' or sys.argv[1] == '-h':
         print ''
         print 'Test program for CIM operations.'
