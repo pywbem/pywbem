@@ -36,7 +36,7 @@ failed=0
 for test in test_*.py; do
     for python in $PYTHON; do
 	echo ====================
-	echo $python $test
+	echo $python $test "$@"
 	echo ====================
 	$python $test "$@"
 	if [ $? != 0 ]; then

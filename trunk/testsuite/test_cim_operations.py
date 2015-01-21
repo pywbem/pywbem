@@ -758,10 +758,14 @@ if __name__ == '__main__':
     namespace = DEFAULT_NAMESPACE
     while (True):
         if sys.argv[1][0] != '-':
+            # Stop at first non-option
             break
         if sys.argv[1] == '-n':
             namespace = sys.argv[2]
             del sys.argv[1:3]
+        else:
+            print "Error: Unknown option: %s" % sys.argv[1]
+            sys.exit(1)
 
     url = sys.argv[1]
 
