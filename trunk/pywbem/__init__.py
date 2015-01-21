@@ -160,3 +160,8 @@ from pywbem.cim_constants import *
 from pywbem.cim_operations import *
 from pywbem.cim_obj import *
 from pywbem.tupleparse import ParseError
+
+# TODO: Check if we can bump the minimum Python version to 2.6.
+import sys
+if sys.version_info < (2,3,0):
+    raise RuntimeError('PyWBEM requires Python 2.3.0 or higher')

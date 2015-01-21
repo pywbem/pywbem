@@ -75,16 +75,111 @@ __all__ = ['CIMElement', 'CIM', 'DECLARATION', 'DECLGROUP',
            'RESPONSEDESTINATION', 'SIMPLEREQACK']
 
 def _text(data):
-    """Grr.  The API for the minidom text node function has changed in
-    Python 2.3.  This function allows the code to run under older
-    versions of the intepreter."""
+    """Return a minidom text node with the specified data string.
 
-    if sys.version_info[0] == 2 and sys.version_info[1] >= 3:
-        t = xml.dom.minidom.Text()
-        t.data = data
-        return t
+    When converting that node to an XML string using ``toxml()``, XML-escaping
+    will be applied if needed (for example, ``_text('&').toxml() = '&amp;'``).
 
-    return xml.dom.minidom.Text(data)
+    Note: The API for the minidom text node function has changed in
+    Python 2.3.  The code for older Python versions has been removed from this
+    function in PyWBEM 0.8.0; the Python version check is now done in
+    __init__.py.
+    """
+
+    # The following initialization approach requires Python 2.3 or higher.
+    t = xml.dom.minidom.Text()
+    t.data = data
+
+    return t
+
+# Switch controlling whether the escaping of special XML characters in any
+# request messages sent to the WBEM server will be done using CDATA
+# sections (if True), or using XML entity references (e.g. &amp;) (if
+# False).
+# Using XML-based escaping generates a simpler CIM-XML payload.
+# Standards-conforming WBEM servers need to support both ways.
+# You only need to set this to True if the WBEM server has no support for
+# XML-based escaping, but does have support for CDATA-based escaping.
+_CDATA_ESCAPING = False
+
+def _pcdata_nodes(pcdata):
+    """Return a list of minidom nodes with the properly escaped ``pcdata``
+    inside.
+
+    The following special XML characters are escaped:
+      * left angle bracket (<)
+      * Right angle bracket (>)
+      * Ampersand (&)
+
+    By default, XML-based escaping is used for these characters. XML-based
+    escaping will cause the corresponding XML entity references to be used
+    (for example, the ampersand character ``&`` will be represented as
+    ``&amp;``, and the returned list contains one text node with the escaped
+    pcdata string.
+
+    Nesting of escaped pcdata is naturally supported with XML-based escaping.
+    For example, if the pcdata string is ``a&amp;b``, the XML-escaped string
+    will be ``a&amp;amp;b``.
+
+    If the ``cim_xml._CDATA_ESCAPING`` switch is set to True, CDATA-based
+    escaping is used instead. CDATA-based escaping will cause a CDATA section
+    to be used for the entire string, or consecutive CDATA sequences (see
+    discussion of nesting, below). The returned node list contains only CDATA
+    section nodes. Example: The pcdata string ``a<b>c`` will become
+    ``<![CDATA[a<b>]]>``, allowing the special XML characters to be used
+    unchanged inside of the CDATA section.
+
+    Nesting of escaped pcdata is supported with CDATA-based escaping, by using
+    the following approach: If the input pcdata string already contains CDATA
+    sections, they are split into separate strings, splitting the CDATA end
+    token string in the middle, and these part strings are CDATA-escaped
+    separately. See http://en.wikipedia.org/wiki/CDATA#Nesting for details.
+
+    Escaping of already escaped pcdata is needed in support of nested embedded
+    instances. That requires that each level of escaping can lateron be
+    unescaped, one at a time.
+    """
+
+    nodelist = []
+
+    if _CDATA_ESCAPING and type(pcdata) in (str,unicode) and \
+       (pcdata.find("<") >= 0 or \
+        pcdata.find(">") >= 0 or \
+        pcdata.find("&") >= 0):
+
+        # In order to support nesting of CDATA sections, we represent pcdata
+        # that already contains CDATA sections by multiple new CDATA sections
+        # whose boundaries split the end marker of the already existing CDATA
+        # sections.
+
+        pcdata_part_list = pcdata.split("]]>")
+        # ']]>' is the complete CDATA section end marker
+
+        i = 0
+        for pcdata_part in pcdata_part_list:
+            i += 1
+
+            left = "" if i == 1 else "]>"
+            # ']>' is right part of CDATA section end marker
+
+            right = "" if i == len(pcdata_part_list) else "]"
+            # "]" is left part of CDATA section end marker
+
+            # The following initialization approach requires Python 2.3 or
+            # higher.
+            node = xml.dom.minidom.CDATASection()
+            node.data = left + pcdata_part + right
+
+            nodelist.append(node)
+
+    else:
+
+        # The following automatically uses XML entity references for escaping.
+        node = _text(pcdata)
+
+        nodelist.append(node)
+
+    return nodelist
 
 class CIMElement(Element):
     """A base class that has a few bonus helper methods."""
@@ -285,7 +380,7 @@ class VALUE(CIMElement):
     def __init__(self, pcdata):
         Element.__init__(self, 'VALUE')
         if pcdata is not None:
-            self.appendChild(_text(pcdata))
+            self.appendChildren(_pcdata_nodes(pcdata))
 
 class VALUE_ARRAY(CIMElement):
     # pylint: disable=invalid-name

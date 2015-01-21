@@ -67,17 +67,38 @@ def INSTANCENAME():
 class CIMXMLTest(comfychair.TestCase):
     """Run validate.py script against an xml document fragment."""
 
-    xml = []                            # Test data
+    def __init__(self):
+        super(CIMXMLTest, self).__init__()
+
+        self.xml = []       # List of test cases, each list item being an
+                            # xml.dom.minidom node representing some element
+                            # from the CIM-XML payload.
+
+        self.xml_str = []   # List of expected XML strings resulting from each
+                            # test case.
 
     def validate(self, xml, expectedResult=0):
+        """xml is a string with the CIM-XML."""
         validate_xml(xml, dtd_directory='../..')
 
     def runtest(self):
 
-        # Test xml fragments pass validation
+        for i in range(0, len(self.xml)):
 
-        for x in [x.toxml() for x in self.xml]:
-            self.validate(x)
+            xml_node = self.xml[i]
+            act_xml_str = xml_node.toxml()
+
+            self.log("CIM-XML fragment to be tested: %r" % act_xml_str)
+
+            # Test that the XML fragments pass validation against CIM-XML DTD
+            self.validate(act_xml_str)
+
+            if i < len(self.xml_str):
+                # Test XML fragments for expected string representation
+                exp_xml_str = self.xml_str[i]
+                if exp_xml_str is not None:
+                    self.assert_equal(act_xml_str, exp_xml_str)
+
 
 class UnimplementedTest(CIMXMLTest):
     def runtest(self):
@@ -185,9 +206,64 @@ class Value(CIMXMLTest):
 
     def setup(self):
 
+        # The VALUE element depends on whether XML-based or CDATA-based
+        # escaping is used. Therefore, we modify the module-level switch that
+        # controls that and run each test twice (wth different expected XML
+        # strings).
+
+        cim_xml._CDATA_ESCAPING = True
+
         self.xml.append(cim_xml.VALUE('dog'))
-        self.xml.append(cim_xml.VALUE(None))
+        self.xml_str.append('<VALUE>dog</VALUE>')
+
+        # self.xml.append(cim_xml.VALUE(None))
+        # Note: This is illegal, Value.Null should be used instead.
+
         self.xml.append(cim_xml.VALUE(''))
+        self.xml_str.append('<VALUE></VALUE>') # Assuming not folded to <VALUE/>
+
+        # Some control characters
+        self.xml.append(cim_xml.VALUE('a\nb\rc\td'))
+        self.xml_str.append('<VALUE>a\nb\rc\td</VALUE>') # Assuming XML 1.1
+
+        # Some XML special characters
+        self.xml.append(cim_xml.VALUE('a&b<c>d'))
+        self.xml_str.append('<VALUE><![CDATA[a&b<c>d]]></VALUE>')
+
+        # Some XML special characters, already XML-escaped
+        self.xml.append(cim_xml.VALUE('a&amp;b&lt;c&gt;d'))
+        self.xml_str.append('<VALUE><![CDATA[a&amp;b&lt;c&gt;d]]></VALUE>')
+
+        # Some XML special characters, already CDATA-escaped
+        self.xml.append(cim_xml.VALUE('<![CDATA[a&b<c>d]]>'))
+        self.xml_str.append('<VALUE><![CDATA[<![CDATA[a&b<c>d]]]><![CDATA[]>]]></VALUE>')
+
+        cim_xml._CDATA_ESCAPING = False # Back to its default
+
+        self.xml.append(cim_xml.VALUE('dog'))
+        self.xml_str.append('<VALUE>dog</VALUE>')
+
+        # self.xml.append(cim_xml.VALUE(None))
+        # Note: This is illegal, Value.Null is used instead.
+
+        self.xml.append(cim_xml.VALUE(''))
+        self.xml_str.append('<VALUE></VALUE>') # Assuming not folded to <VALUE/>
+
+        # Some control characters
+        self.xml.append(cim_xml.VALUE('a\nb\rc\td'))
+        self.xml_str.append('<VALUE>a\nb\rc\td</VALUE>') # Assuming XML 1.1
+
+        # Some XML special characters
+        self.xml.append(cim_xml.VALUE('a&b<c>d'))
+        self.xml_str.append('<VALUE>a&amp;b&lt;c&gt;d</VALUE>')
+
+        # Some XML special characters, already XML-escaped
+        self.xml.append(cim_xml.VALUE('a&amp;b&lt;c&gt;d'))
+        self.xml_str.append('<VALUE>a&amp;amp;b&amp;lt;c&amp;gt;d</VALUE>')
+
+        # Some XML special characters, already CDATA-escaped
+        self.xml.append(cim_xml.VALUE('<![CDATA[a&b<c>d]]>'))
+        self.xml_str.append('<VALUE>&lt;![CDATA[a&amp;b&lt;c&gt;d]]&gt;</VALUE>')
 
 class ValueArray(CIMXMLTest):
     """
@@ -348,6 +424,8 @@ class ValueNull(UnimplementedTest):
     """
     <!ELEMENT VALUE.NULL EMPTY>
     """
+    # TODO: Implement ValueNull test
+
 
 #################################################################
 #     3.2.4. Naming and Location Elements

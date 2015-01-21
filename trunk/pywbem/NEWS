@@ -1,4 +1,4 @@
-pywbem-0.8.0-dev.r712
+pywbem-0.8.0-dev.r715
 
   ENHANCEMENTS:
 
@@ -72,6 +72,12 @@ pywbem-0.8.0-dev.r712
       which define less than the complete set of public symbols in their
       __all__: mof_compiler, twisted_client, tupleparse, cimxml_parse,
       cim_http.  (Andreas Maier)
+
+    * Added support for using CDATA section based escaping in any requests sent
+      to the WBEM server. The default is still XML entity reference based
+      escaping, the CDATA based escaping can be turned on by setting the switch
+      _CDATA_ESCAPING accordingly, which is a global variable in the cim_xml
+      module.  (Andreas Maier)
 
   BUG FIXES:
 
