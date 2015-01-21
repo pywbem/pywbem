@@ -57,6 +57,15 @@ class AuthError(Error):
     """This exception is raised when an authentication error (401) occurs."""
     pass
 
+class ConnectionError(Error):
+    """This exception is raised when a connection-related problem occurs,
+    where a retry might make sense."""
+    pass
+
+class TimeoutError(Error):
+    """This exception is raised when the client timeout is exceeded."""
+    pass
+
 def parse_url(url):
     """Return a tuple of ``(host, port, ssl)`` from the URL specified in the
     ``url`` parameter.
@@ -353,9 +362,9 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                     h = FileHTTPConnection(url)
                     local = True
                 else:
-                    raise Error('Invalid URL')
+                    raise Error('Invalid URL: %s' % url)
             except OSError:
-                raise Error('Invalid URL')
+                raise Error('Invalid URL: %s' % url)
 
     locallogin = None
     if host in ('localhost', 'localhost6', '127.0.0.1', '::1'):
@@ -479,11 +488,30 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
             body = response.read()
 
         except httplib.BadStatusLine, arg:
-            raise Error("The web server returned a bad status line: '%s'" % arg)
+            # Background: BadStatusLine is documented to be raised only when
+            # strict=True is used (that is not the case here). However, httplib
+            # currently raises BadStatusLine also independent of strict when a
+            # keep-alive connection times out (e.g. because the server went
+            # down). See http://bugs.python.org/issue8450.
+            # On how to detect this: A connection timeout definitely causes
+            # arg==None, but it is not clear whether other situations could
+            # also cause arg==None.
+            if arg.line.strip().strip("'") == '':
+                raise ConnectionError("Connection error: The CIM server "\
+                                      "closed the connection without "\
+                                      "returning any data, or the client "\
+                                      "timed out")
+            else:
+                raise Error("HTTP error: The CIM server returned a bad HTTP "\
+                            "status line: '%s'" % arg.line)
+        except httplib.IncompleteRead, arg:
+            raise ConnectionError("Connection error: HTTP incomplete read: %s" % arg)
+        except httplib.NotConnected, arg:
+            raise ConnectionError("Connection error: HTTP not connected: %s" % arg)
         except socket.error, arg:
-            raise Error("Socket error: %s" % (arg,))
+            raise ConnectionError("Connection error: Socket error %s" % arg)
         except socket.sslerror, arg:
-            raise Error("SSL error: %s" % (arg,))
+            raise ConnectionError("Connection error: SSL error %s" % arg)
 
         break
 

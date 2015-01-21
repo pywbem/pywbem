@@ -1,4 +1,4 @@
-pywbem-0.8.0-dev.r715
+pywbem-0.8.0-dev.r721
 
   ENHANCEMENTS:
 
@@ -78,6 +78,10 @@ pywbem-0.8.0-dev.r715
       escaping, the CDATA based escaping can be turned on by setting the switch
       _CDATA_ESCAPING accordingly, which is a global variable in the cim_xml
       module.  (Andreas Maier)
+
+    * Simplified the exceptions that can be raised by WBEMConnection methods,
+      and improved the information in the exception messages. See description
+      of WBEMConnection class for details.  (Andreas Maier)
 
   BUG FIXES:
 

@@ -918,8 +918,14 @@ def parse_property(tt):
     for q in list_of_matching(tt, ['QUALIFIER']):
         quals[q.name] = q
 
-    val = unpack_value(tt)
     a = attrs(tt)
+    try:
+        val = unpack_value(tt)
+    except ValueError as exc:
+        msg = str(exc)
+        raise ParseError('Cannot parse value for property "%s": %s' %\
+                         (a['NAME'], msg))
+
     embedded_object = None
     if 'EmbeddedObject' in a or 'EMBEDDEDOBJECT' in a:
         try:
