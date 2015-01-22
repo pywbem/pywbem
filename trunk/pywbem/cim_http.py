@@ -42,6 +42,8 @@ import platform
 import httplib
 import base64
 import urllib
+import threading
+from datetime import timedelta, datetime
 
 from M2Crypto import SSL, Err
 
@@ -65,6 +67,85 @@ class ConnectionError(Error):
 class TimeoutError(Error):
     """This exception is raised when the client timeout is exceeded."""
     pass
+
+class HTTPTimeout (object):
+    """HTTP timeout class that is a context manager (for use by 'with'
+    statement).
+
+    Usage:
+      ::
+        with HTTPTimeout(timeout, http_conn):
+            ... operations using http_conn ...
+
+    If the timeout expires, the socket of the HTTP connection is shut down.
+    Once the http operations return as a result of that or for other reasons,
+    the exit handler of this class raises a `cim_http.Error` exception in the
+    thread that executed the ``with`` statement.
+    """
+
+    def __init__(self, timeout, http_conn):
+        """Initialize the HTTPTimeout object.
+
+        :Parameters:
+
+          timeout : number
+            Timeout in seconds, ``None`` means no timeout.
+
+          http_conn : `httplib.HTTPBaseConnection` (or subclass)
+            The connection that is to be stopped when the timeout expires.
+        """
+
+        self._timeout = timeout
+        self._http_conn = http_conn
+        self._retrytime = 10    # time in seconds after which a retry of the
+                                # socket shutdown is scheduled if the socket
+                                # is not yet on the connection when the
+                                # timeout expires initially.
+        self._timer = None
+        self._ts1 = None
+        self._expired = None
+        return
+
+    def __enter__(self):
+        if self._timeout != None:
+            self._timer = threading.Timer(self._timeout,
+                                          HTTPTimeout.timer_expired, [self])
+            self._timer.start()
+            self._ts1 = datetime.now()
+        self._expired = False
+        return
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self._timeout != None:
+            self._timer.cancel()
+            if self._expired:
+                ts2 = datetime.now()
+                duration = ts2 - self._ts1
+                duration_sec = float(duration.microseconds)/1000000 +\
+                               duration.seconds + duration.days*24*3600
+                raise TimeoutError("Timeout error: Client timed out after "\
+                                   "%.0fs." % duration_sec)
+        return False # re-raise any other exceptions
+
+    def timer_expired(self):
+        """
+        This method is invoked in context of the timer thread, so we cannot
+        directly throw exceptions (we can, but they would be in the wrong
+        thread), so instead we cause the socket of the connection to shut down.
+        """
+        self._expired = True
+        if self._http_conn.sock != None:
+            # Timer expired, shutting down socket of HTTP connection.
+            self._http_conn.sock.shutdown(socket.SHUT_RDWR)
+        else:
+            # Timer expired, no socket yet on HTTP connection to shut down,
+            # so we retry. This should only happen with very short timeouts,
+            # so retrying should not hurt, timewise.
+            self._timer.cancel()
+            self._timer = threading.Timer(self._retrytime,
+                                          HTTPTimeout.timer_expired, [self])
+            self._timer.start()
+        return
 
 def parse_url(url):
     """Return a tuple of ``(host, port, ssl)`` from the URL specified in the
@@ -164,7 +245,7 @@ def get_default_ca_certs():
 
 def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                  verify_callback=None, ca_certs=None,
-                 no_verification=False):
+                 no_verification=False, timeout=None):
     """
     Send an HTTP or HTTPS request to a WBEM server and return the response.
 
@@ -214,6 +295,14 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
         For details, see the ``no_verification`` parameter of
         `WBEMConnection.__init__`.
 
+      timeout : number
+        Timeout in seconds, for requests sent to the server. If the server did
+        not respond within the timeout duration, the socket for the connection
+        will be closed, causing a `TimeoutError` to be raised.
+        A value of ``None`` means there is no timeout.
+        A value of ``0`` means the timeout is very short, and does not really
+        make any sense.
+
     :Returns:
       The CIM-XML formatted response data from the WBEM server, as a `unicode`
       object.
@@ -241,13 +330,13 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
 
     class HTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
         def __init__(self, host, port=None, strict=None):
-            httplib.HTTPConnection.__init__(self, host, port, strict)
+            httplib.HTTPConnection.__init__(self, host, port, strict, timeout)
 
     class HTTPSConnection(HTTPBaseConnection, httplib.HTTPSConnection):
         def __init__(self, host, port=None, key_file=None, cert_file=None,
                      strict=None, ca_certs=None, verify_callback=None):
             httplib.HTTPSConnection.__init__(self, host, port, key_file,
-                                             cert_file, strict)
+                                             cert_file, strict, timeout)
             self.ca_certs = ca_certs
             self.verify_callback = verify_callback
 
@@ -349,10 +438,13 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                             key_file=key_file,
                             cert_file=cert_file,
                             ca_certs=ca_certs,
-                            verify_callback=verify_callback)
+                            verify_callback=verify_callback,
+                            timeout=timeout)
     else:
         if url.startswith('http'):
-            h = HTTPConnection(host, port=port)
+            h = HTTPConnection(host,
+                               port=port,
+                               timeout=timeout)
         else:
             if url.startswith('file:'):
                 url = url[5:]
@@ -374,146 +466,153 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
             locallogin = getpass.getuser()
         except (KeyError, ImportError):
             locallogin = None
-    while numTries < tryLimit:
-        numTries = numTries + 1
 
-        h.putrequest('POST', '/cimom')
+    with HTTPTimeout(timeout, h):
 
-        h.putheader('Content-type', 'application/xml; charset="utf-8"')
-        h.putheader('Content-length', str(len(data)))
-        if localAuthHeader is not None:
-            h.putheader(*localAuthHeader)
-        elif creds is not None:
-            h.putheader('Authorization', 'Basic %s' %
-                        base64.encodestring(
-                            '%s:%s' %
-                            (creds[0], creds[1])).replace('\n', ''))
-        elif locallogin is not None:
-            h.putheader('PegasusAuthorization', 'Local "%s"' % locallogin)
+        while numTries < tryLimit:
+            numTries = numTries + 1
 
-        for hdr in headers:
-            if isinstance(hdr, unicode):
-                hdr = hdr.encode('utf-8')
-            s = map(lambda x: string.strip(x), string.split(hdr, ":", 1))
-            h.putheader(urllib.quote(s[0]), urllib.quote(s[1]))
+            h.putrequest('POST', '/cimom')
 
-        try:
-            # See RFC 2616 section 8.2.2
-            # An http server is allowed to send back an error (presumably
-            # a 401), and close the connection without reading the entire
-            # request.  A server may do this to protect itself from a DoS
-            # attack.
-            #
-            # If the server closes the connection during our h.send(), we
-            # will either get a socket exception 104 (TCP RESET), or a
-            # socket exception 32 (broken pipe).  In either case, thanks
-            # to our fixed HTTPConnection classes, we'll still be able to
-            # retrieve the response so that we can read and respond to the
-            # authentication challenge.
-            h.endheaders()
+            h.putheader('Content-type', 'application/xml; charset="utf-8"')
+            h.putheader('Content-length', str(len(data)))
+            if localAuthHeader is not None:
+                h.putheader(*localAuthHeader)
+            elif creds is not None:
+                h.putheader('Authorization', 'Basic %s' %
+                            base64.encodestring(
+                                '%s:%s' %
+                                (creds[0], creds[1])).replace('\n', ''))
+            elif locallogin is not None:
+                h.putheader('PegasusAuthorization', 'Local "%s"' % locallogin)
+
+            for hdr in headers:
+                if isinstance(hdr, unicode):
+                    hdr = hdr.encode('utf-8')
+                s = map(lambda x: string.strip(x), string.split(hdr, ":", 1))
+                h.putheader(urllib.quote(s[0]), urllib.quote(s[1]))
+
             try:
-                h.send(data)
+                # See RFC 2616 section 8.2.2
+                # An http server is allowed to send back an error (presumably
+                # a 401), and close the connection without reading the entire
+                # request.  A server may do this to protect itself from a DoS
+                # attack.
+                #
+                # If the server closes the connection during our h.send(), we
+                # will either get a socket exception 104 (TCP RESET), or a
+                # socket exception 32 (broken pipe).  In either case, thanks
+                # to our fixed HTTPConnection classes, we'll still be able to
+                # retrieve the response so that we can read and respond to the
+                # authentication challenge.
+                h.endheaders()
+                try:
+                    h.send(data)
+                except socket.error, arg:
+                    if arg[0] != 104 and arg[0] != 32:
+                        raise
+
+                response = h.getresponse()
+
+                if response.status != 200:
+                    if response.status == 401:
+                        if numTries >= tryLimit:
+                            raise AuthError(response.reason)
+                        if not local:
+                            raise AuthError(response.reason)
+                        authChal = response.getheader('WWW-Authenticate', '')
+                        if 'openwbem' in response.getheader('Server', ''):
+                            if 'OWLocal' not in authChal:
+                                try:
+                                    uid = os.getuid()
+                                except AttributeError:
+                                    raise Error("OWLocal authorization for "\
+                                            "openwbem server not supported "\
+                                            "on %s platform due to missing "\
+                                            "os.getuid()" % platform.system())
+                                localAuthHeader = ('Authorization',
+                                                   'OWLocal uid="%d"' % uid)
+                                continue
+                            else:
+                                try:
+                                    nonceIdx = authChal.index('nonce=')
+                                    nonceBegin = authChal.index('"', nonceIdx)
+                                    nonceEnd = authChal.index('"', nonceBegin+1)
+                                    nonce = authChal[nonceBegin+1:nonceEnd]
+                                    cookieIdx = authChal.index('cookiefile=')
+                                    cookieBegin = authChal.index('"', cookieIdx)
+                                    cookieEnd = authChal.index('"', cookieBegin+1)
+                                    cookieFile = authChal[cookieBegin+1:cookieEnd]
+                                    f = open(cookieFile, 'r')
+                                    cookie = f.read().strip()
+                                    f.close()
+                                    localAuthHeader = (
+                                        'Authorization',
+                                        'OWLocal nonce="%s", cookie="%s"' % \
+                                        (nonce, cookie))
+                                    continue
+                                except:
+                                    localAuthHeader = None
+                                    continue
+                        elif 'Local' in authChal:
+                            try:
+                                beg = authChal.index('"') + 1
+                                end = authChal.rindex('"')
+                                if end > beg:
+                                    file = authChal[beg:end]
+                                    fo = open(file, 'r')
+                                    cookie = fo.read().strip()
+                                    fo.close()
+                                    localAuthHeader = (
+                                        'PegasusAuthorization',
+                                        'Local "%s:%s:%s"' % \
+                                        (locallogin, file, cookie))
+                                    continue
+                            except ValueError:
+                                pass
+
+                        raise AuthError(response.reason)
+                    if response.getheader('CIMError', None) is not None and \
+                       response.getheader('PGErrorDetail', None) is not None:
+                        raise Error(
+                            'CIMError: %s: %s' %
+                            (response.getheader('CIMError'),
+                             urllib.unquote(response.getheader(
+                                                            'PGErrorDetail'))))
+                    raise Error('HTTP error: %s' % response.reason)
+
+                body = response.read()
+
+            except httplib.BadStatusLine, arg:
+                # Background: BadStatusLine is documented to be raised only
+                # when strict=True is used (that is not the case here).
+                # However, httplib currently raises BadStatusLine also
+                # independent of strict when a keep-alive connection times out
+                # (e.g. because the server went down).
+                # See http://bugs.python.org/issue8450.
+                # On how to detect this: A connection timeout definitely causes
+                # arg==None, but it is not clear whether other situations could
+                # also cause arg==None.
+                if arg.line.strip().strip("'") == '':
+                    raise ConnectionError("Connection error: The CIM server "\
+                                          "closed the connection without "\
+                                          "returning any data, or the client "\
+                                          "timed out")
+                else:
+                    raise Error("HTTP error: The CIM server returned a bad "\
+                                "HTTP status line: '%s'" % arg.line)
+            except httplib.IncompleteRead, arg:
+                raise ConnectionError("Connection error: HTTP incomplete "\
+                                      "read: %s" % arg)
+            except httplib.NotConnected, arg:
+                raise ConnectionError("Connection error: HTTP not "\
+                                      "connected: %s" % arg)
             except socket.error, arg:
-                if arg[0] != 104 and arg[0] != 32:
-                    raise
+                raise ConnectionError("Connection error: Socket error %s" %arg)
+            except socket.sslerror, arg:
+                raise ConnectionError("Connection error: SSL error %s" % arg)
 
-            response = h.getresponse()
-
-            if response.status != 200:
-                if response.status == 401:
-                    if numTries >= tryLimit:
-                        raise AuthError(response.reason)
-                    if not local:
-                        raise AuthError(response.reason)
-                    authChal = response.getheader('WWW-Authenticate', '')
-                    if 'openwbem' in response.getheader('Server', ''):
-                        if 'OWLocal' not in authChal:
-                            try:
-                                uid = os.getuid()
-                            except AttributeError:
-                                raise Error("OWLocal authorization for "\
-                                        "openwbem server not supported on %s "\
-                                        "platform due to missing os.getuid()"%\
-                                        platform.system())
-                            localAuthHeader = ('Authorization',
-                                               'OWLocal uid="%d"' % uid)
-                            continue
-                        else:
-                            try:
-                                nonceIdx = authChal.index('nonce=')
-                                nonceBegin = authChal.index('"', nonceIdx)
-                                nonceEnd = authChal.index('"', nonceBegin+1)
-                                nonce = authChal[nonceBegin+1:nonceEnd]
-                                cookieIdx = authChal.index('cookiefile=')
-                                cookieBegin = authChal.index('"', cookieIdx)
-                                cookieEnd = authChal.index('"', cookieBegin+1)
-                                cookieFile = authChal[cookieBegin+1:cookieEnd]
-                                f = open(cookieFile, 'r')
-                                cookie = f.read().strip()
-                                f.close()
-                                localAuthHeader = (
-                                    'Authorization',
-                                    'OWLocal nonce="%s", cookie="%s"' % \
-                                    (nonce, cookie))
-                                continue
-                            except:
-                                localAuthHeader = None
-                                continue
-                    elif 'Local' in authChal:
-                        try:
-                            beg = authChal.index('"') + 1
-                            end = authChal.rindex('"')
-                            if end > beg:
-                                file = authChal[beg:end]
-                                fo = open(file, 'r')
-                                cookie = fo.read().strip()
-                                fo.close()
-                                localAuthHeader = (
-                                    'PegasusAuthorization',
-                                    'Local "%s:%s:%s"' % \
-                                    (locallogin, file, cookie))
-                                continue
-                        except ValueError:
-                            pass
-
-                    raise AuthError(response.reason)
-                if response.getheader('CIMError', None) is not None and \
-                   response.getheader('PGErrorDetail', None) is not None:
-                    raise Error(
-                        'CIMError: %s: %s' %
-                        (response.getheader('CIMError'),
-                         urllib.unquote(response.getheader('PGErrorDetail'))))
-                raise Error('HTTP error: %s' % response.reason)
-
-            body = response.read()
-
-        except httplib.BadStatusLine, arg:
-            # Background: BadStatusLine is documented to be raised only when
-            # strict=True is used (that is not the case here). However, httplib
-            # currently raises BadStatusLine also independent of strict when a
-            # keep-alive connection times out (e.g. because the server went
-            # down). See http://bugs.python.org/issue8450.
-            # On how to detect this: A connection timeout definitely causes
-            # arg==None, but it is not clear whether other situations could
-            # also cause arg==None.
-            if arg.line.strip().strip("'") == '':
-                raise ConnectionError("Connection error: The CIM server "\
-                                      "closed the connection without "\
-                                      "returning any data, or the client "\
-                                      "timed out")
-            else:
-                raise Error("HTTP error: The CIM server returned a bad HTTP "\
-                            "status line: '%s'" % arg.line)
-        except httplib.IncompleteRead, arg:
-            raise ConnectionError("Connection error: HTTP incomplete read: %s" % arg)
-        except httplib.NotConnected, arg:
-            raise ConnectionError("Connection error: HTTP not connected: %s" % arg)
-        except socket.error, arg:
-            raise ConnectionError("Connection error: Socket error %s" % arg)
-        except socket.sslerror, arg:
-            raise ConnectionError("Connection error: SSL error %s" % arg)
-
-        break
+            break
 
     return body
 

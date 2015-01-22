@@ -398,7 +398,7 @@ class WBEMConnection(object):
 
     def __init__(self, url, creds=None, default_namespace=DEFAULT_NAMESPACE,
                  x509=None, verify_callback=None, ca_certs=None,
-                 no_verification=False):
+                 no_verification=False, timeout=None):
         """
         Initialize the `WBEMConnection` object.
 
@@ -512,6 +512,14 @@ class WBEMConnection(object):
 
             Default: `False`.
 
+          timeout : number
+            Timeout in seconds, for requests sent to the server. If the server
+            did not respond within the timeout duration, the socket for the
+            connection will be closed, causing a `TimeoutError` to be raised.
+            A value of ``None`` means there is no timeout.
+            A value of ``0`` means the timeout is very short, and does not
+            really make any sense.
+
         :Exceptions:
 
             See the list of exceptions described in `WBEMConnection`.
@@ -524,6 +532,7 @@ class WBEMConnection(object):
         self.ca_certs = ca_certs
         self.no_verification = no_verification
         self.default_namespace = default_namespace
+        self.timeout = timeout
 
         self.debug = False
         self.last_raw_request = None
@@ -609,7 +618,8 @@ class WBEMConnection(object):
                 x509=self.x509,
                 verify_callback=self.verify_callback,
                 ca_certs=self.ca_certs,
-                no_verification=self.no_verification)
+                no_verification=self.no_verification,
+                timeout=self.timeout)
         except (cim_http.AuthError, cim_http.ConnectionError,
                 cim_http.TimeoutError, cim_http.Error) as exc:
             raise CIMError(0, str(exc), exc)
@@ -825,7 +835,8 @@ class WBEMConnection(object):
                 x509=self.x509,
                 verify_callback=self.verify_callback,
                 ca_certs=self.ca_certs,
-                no_verification=self.no_verification)
+                no_verification=self.no_verification,
+                timeout=self.timeout)
         except (cim_http.AuthError, cim_http.ConnectionError,
                 cim_http.TimeoutError, cim_http.Error) as exc:
             raise CIMError(0, str(exc), exc)

@@ -1,4 +1,4 @@
-pywbem-0.8.0-dev.r721
+pywbem-0.8.0-dev.r727
 
   ENHANCEMENTS:
 
@@ -82,6 +82,9 @@ pywbem-0.8.0-dev.r721
     * Simplified the exceptions that can be raised by WBEMConnection methods,
       and improved the information in the exception messages. See description
       of WBEMConnection class for details.  (Andreas Maier)
+
+    * Added support for timeouts to WBEMConnection, via a new timeout argument,
+      that defaults to no timeout.  (Andreas Maier)
 
   BUG FIXES:
 
