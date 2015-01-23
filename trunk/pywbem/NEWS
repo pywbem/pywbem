@@ -1,4 +1,4 @@
-pywbem-0.8.0-dev.r727
+pywbem-0.8.0-dev.r728
 
   ENHANCEMENTS:
 
@@ -84,7 +84,8 @@ pywbem-0.8.0-dev.r727
       of WBEMConnection class for details.  (Andreas Maier)
 
     * Added support for timeouts to WBEMConnection, via a new timeout argument,
-      that defaults to no timeout.  (Andreas Maier)
+      that defaults to no timeout.  (This finally increased the minimum version
+      of Python to 2.6.  (Andreas Maier)
 
   BUG FIXES:
 

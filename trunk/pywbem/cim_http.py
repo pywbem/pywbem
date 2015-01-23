@@ -49,23 +49,24 @@ from M2Crypto import SSL, Err
 
 from pywbem import cim_obj
 
-__all__ = ['Error', 'AuthError', 'wbem_request', 'get_object_header']
+__all__ = ['Error', 'ConnectionError', 'AuthError', 'TimeoutError',
+           'HTTPTimeout', 'wbem_request', 'get_object_header']
 
 class Error(Exception):
-    """This exception is raised when a transport error occurs."""
+    """Exception base class for catching any HTTP transport related errors."""
+    pass
+
+class ConnectionError(Error):
+    """This exception is raised when there is a problem with the connection
+    to the server. A retry may or may not succeed."""
     pass
 
 class AuthError(Error):
     """This exception is raised when an authentication error (401) occurs."""
     pass
 
-class ConnectionError(Error):
-    """This exception is raised when a connection-related problem occurs,
-    where a retry might make sense."""
-    pass
-
 class TimeoutError(Error):
-    """This exception is raised when the client timeout is exceeded."""
+    """This exception is raised when the client times out."""
     pass
 
 class HTTPTimeout (object):
@@ -97,13 +98,14 @@ class HTTPTimeout (object):
 
         self._timeout = timeout
         self._http_conn = http_conn
-        self._retrytime = 10    # time in seconds after which a retry of the
+        self._retrytime = 5     # time in seconds after which a retry of the
                                 # socket shutdown is scheduled if the socket
                                 # is not yet on the connection when the
                                 # timeout expires initially.
-        self._timer = None
-        self._ts1 = None
-        self._expired = None
+        self._timer = None      # the timer object
+        self._ts1 = None        # timestamp when timer was started
+        self._shutdown = None   # flag indicating that the timer handler has
+                                # shut down the socket
         return
 
     def __enter__(self):
@@ -112,40 +114,44 @@ class HTTPTimeout (object):
                                           HTTPTimeout.timer_expired, [self])
             self._timer.start()
             self._ts1 = datetime.now()
-        self._expired = False
+        self._shutdown = False
         return
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self._timeout != None:
             self._timer.cancel()
-            if self._expired:
+            if self._shutdown:
+                # If the timer handler has shut down the socket, we
+                # want to make that known, and override any other
+                # exceptions that may be pending.
                 ts2 = datetime.now()
                 duration = ts2 - self._ts1
                 duration_sec = float(duration.microseconds)/1000000 +\
                                duration.seconds + duration.days*24*3600
-                raise TimeoutError("Timeout error: Client timed out after "\
-                                   "%.0fs." % duration_sec)
+                raise TimeoutError("The client timed out and closed the "\
+                                   "socket after %.0fs." % duration_sec)
         return False # re-raise any other exceptions
 
     def timer_expired(self):
         """
         This method is invoked in context of the timer thread, so we cannot
         directly throw exceptions (we can, but they would be in the wrong
-        thread), so instead we cause the socket of the connection to shut down.
+        thread), so instead we shut down the socket of the connection.
+        When the timeout happens in early phases of the connection setup,
+        there is no socket object on the HTTP connection yet, in that case
+        we retry after the retry duration, indefinitely.
+        So we do not guarantee in all cases that the overall operation times
+        out after the specified timeout.
         """
-        self._expired = True
         if self._http_conn.sock != None:
-            # Timer expired, shutting down socket of HTTP connection.
+            self._shutdown = True
             self._http_conn.sock.shutdown(socket.SHUT_RDWR)
         else:
-            # Timer expired, no socket yet on HTTP connection to shut down,
-            # so we retry. This should only happen with very short timeouts,
-            # so retrying should not hurt, timewise.
+            # Retry after the retry duration
             self._timer.cancel()
             self._timer = threading.Timer(self._retrytime,
                                           HTTPTimeout.timer_expired, [self])
             self._timer.start()
-        return
 
 def parse_url(url):
     """Return a tuple of ``(host, port, ssl)`` from the URL specified in the
@@ -302,14 +308,17 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
         A value of ``None`` means there is no timeout.
         A value of ``0`` means the timeout is very short, and does not really
         make any sense.
+        Note that not all situations can be handled within this timeout, so
+        for some issues, this method may take longer to raise an exception.
 
     :Returns:
       The CIM-XML formatted response data from the WBEM server, as a `unicode`
       object.
 
     :Raises:
-      :raise Error:
       :raise AuthError:
+      :raise ConnectionError:
+      :raise TimeoutError:
     """
 
     class HTTPBaseConnection:
@@ -329,12 +338,13 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
             self.sock.sendall(str)
 
     class HTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
-        def __init__(self, host, port=None, strict=None):
+        def __init__(self, host, port=None, strict=None, timeout=None):
             httplib.HTTPConnection.__init__(self, host, port, strict, timeout)
 
     class HTTPSConnection(HTTPBaseConnection, httplib.HTTPSConnection):
         def __init__(self, host, port=None, key_file=None, cert_file=None,
-                     strict=None, ca_certs=None, verify_callback=None):
+                     strict=None, ca_certs=None, verify_callback=None,
+                     timeout=None):
             httplib.HTTPSConnection.__init__(self, host, port, key_file,
                                              cert_file, strict, timeout)
             self.ca_certs = ca_certs
@@ -345,14 +355,18 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
 
             # Calling httplib.HTTPSConnection.connect(self) does not work
             # because of its ssl.wrap_socket() call. So we copy the code of
-            # that connect() method modulo the ssl.wrap_socket() call:
-            if sys.version_info[0:2] == [2, 7]:
-                self.sock = socket.create_connection((self.host, self.port),
-                                                     self.timeout,
-                                                     self.source_address)
-            else: # 2.6
-                self.sock = socket.create_connection((self.host, self.port),
-                                                     self.timeout)
+            # that connect() method modulo the ssl.wrap_socket() call.
+            #
+            # Another change is that we do not pass the timeout value
+            # on to the socket call, because that does not work with M2Crypto.
+            if sys.version_info[0:2] >= (2, 7):
+                # the source_address argument was added in 2.7
+                self.sock = socket.create_connection(
+                            (self.host, self.port), None, self.source_address)
+            else:
+                self.sock = socket.create_connection(
+                            (self.host, self.port), None)
+
             if self._tunnel_host:
                 self._tunnel()
             # End of code from httplib.HTTPSConnection.connect(self).
@@ -373,6 +387,20 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                 # Below is a body of SSL.Connection.connect() method
                 # except for the first line (socket connection). We want to
                 # preserve tunneling ability.
+
+                # Setting the timeout on the input socket does not work
+                # with M2Crypto, with such a timeout set it calls a different
+                # low level function (nbio instead of bio) that does not work.
+                # the symptom is that reading the response returns None.
+                # Therefore, we set the timeout at the level of the outer
+                # M2Crypto socket object.
+                if False: # Currently disabled
+                    if self.timeout is not None:
+                        self.sock.set_socket_read_timeout(
+                                                    SSL.timeout(self.timeout))
+                        self.sock.set_socket_write_timeout(
+                                                    SSL.timeout(self.timeout))
+
                 self.sock.addr = (self.host, self.port)
                 self.sock.setup_ssl()
                 self.sock.set_connect_state()
@@ -382,12 +410,13 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                                     self.sock.clientPostConnectionCheck)
                     if check is not None:
                         if not check(self.sock.get_peer_cert(), self.host):
-                            raise Error('SSL error: post connection check '\
-                                        'failed')
+                            raise ConnectionError(
+                                'SSL error: post connection check failed')
                 return ret
             except (Err.SSLError, SSL.SSLError, SSL.Checker.WrongHost), arg:
                 # This will include SSLTimeoutError (it subclasses SSLError)
-                raise Error("SSL error %s: %s" % (str(arg.__class__), arg))
+                raise ConnectionError(
+                    "SSL error %s: %s" % (str(arg.__class__), arg))
 
     class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
 
@@ -399,8 +428,9 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
             try:
                 socket_af = socket.AF_UNIX
             except AttributeError:
-                raise Error('file URL not supported on %s platform due '\
-                        'to missing AF_UNIX support' % platform.system())
+                raise ConnectionError(
+                    'file URLs not supported on %s platform due '\
+                    'to missing AF_UNIX support' % platform.system())
             self.sock = socket.socket(socket_af, socket.SOCK_STREAM)
             self.sock.connect(self.uds_path)
 
@@ -447,16 +477,16 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                                timeout=timeout)
         else:
             if url.startswith('file:'):
-                url = url[5:]
+                url_ = url[5:]
             try:
-                s = os.stat(url)
+                s = os.stat(url_)
                 if S_ISSOCK(s.st_mode):
-                    h = FileHTTPConnection(url)
+                    h = FileHTTPConnection(url_)
                     local = True
                 else:
-                    raise Error('Invalid URL: %s' % url)
-            except OSError:
-                raise Error('Invalid URL: %s' % url)
+                    raise ConnectionError('File URL is not a socket: %s' % url)
+            except OSError as exc:
+                raise ConnectionError('Error with file URL %s: %s' % (url, exc))
 
     locallogin = None
     if host in ('localhost', 'localhost6', '127.0.0.1', '::1'):
@@ -505,12 +535,16 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                 # to our fixed HTTPConnection classes, we'll still be able to
                 # retrieve the response so that we can read and respond to the
                 # authentication challenge.
-                h.endheaders()
+
                 try:
+                    # endheaders() is the first method in this sequence that
+                    # actually sends something to the server.
+                    h.endheaders()
                     h.send(data)
-                except socket.error, arg:
-                    if arg[0] != 104 and arg[0] != 32:
-                        raise
+                except socket.error as exc:
+                    # TODO: Verify these errno numbers on Windows vs. Linux
+                    if exc[0] != 104 and exc[0] != 32:
+                        raise ConnectionError("Socket error: %s" % exc)
 
                 response = h.getresponse()
 
@@ -526,10 +560,11 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                                 try:
                                     uid = os.getuid()
                                 except AttributeError:
-                                    raise Error("OWLocal authorization for "\
-                                            "openwbem server not supported "\
-                                            "on %s platform due to missing "\
-                                            "os.getuid()" % platform.system())
+                                    raise ConnectionError(
+                                        "OWLocal authorization for OpenWbem "\
+                                        "server not supported on %s platform "\
+                                        "due to missing os.getuid()" %\
+                                        platform.system())
                                 localAuthHeader = ('Authorization',
                                                    'OWLocal uid="%d"' % uid)
                                 continue
@@ -570,47 +605,45 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                                     continue
                             except ValueError:
                                 pass
-
                         raise AuthError(response.reason)
-                    if response.getheader('CIMError', None) is not None and \
-                       response.getheader('PGErrorDetail', None) is not None:
-                        raise Error(
-                            'CIMError: %s: %s' %
-                            (response.getheader('CIMError'),
-                             urllib.unquote(response.getheader(
-                                                            'PGErrorDetail'))))
-                    raise Error('HTTP error: %s' % response.reason)
+
+                    cimerror_hdr = response.getheader('CIMError', None)
+                    if cimerror_hdr is not None:
+                        exc_str = 'CIMError: %s' % cimerror_hdr
+                        pgerrordetail_hdr = response.getheader('PGErrorDetail',
+                                                               None)
+                        if pgerrordetail_hdr is not None:
+                            exc_str += ', PGErrorDetail: %s' %\
+                                urllib.unquote(pgerrordetail_hdr)
+                        raise ConnectionError(exc_str)
+
+                    raise ConnectionError('HTTP error: %s' % response.reason)
 
                 body = response.read()
 
-            except httplib.BadStatusLine, arg:
+            except httplib.BadStatusLine as exc:
                 # Background: BadStatusLine is documented to be raised only
                 # when strict=True is used (that is not the case here).
                 # However, httplib currently raises BadStatusLine also
                 # independent of strict when a keep-alive connection times out
                 # (e.g. because the server went down).
                 # See http://bugs.python.org/issue8450.
-                # On how to detect this: A connection timeout definitely causes
-                # arg==None, but it is not clear whether other situations could
-                # also cause arg==None.
-                if arg.line.strip().strip("'") == '':
-                    raise ConnectionError("Connection error: The CIM server "\
-                                          "closed the connection without "\
-                                          "returning any data, or the client "\
-                                          "timed out")
+                if exc.line is None or exc.line.strip().strip("'") in \
+                                       ('', 'None'):
+                    raise ConnectionError("The server closed the "\
+                        "connection without returning any data, or the "\
+                        "client timed out")
                 else:
-                    raise Error("HTTP error: The CIM server returned a bad "\
-                                "HTTP status line: '%s'" % arg.line)
-            except httplib.IncompleteRead, arg:
-                raise ConnectionError("Connection error: HTTP incomplete "\
-                                      "read: %s" % arg)
-            except httplib.NotConnected, arg:
-                raise ConnectionError("Connection error: HTTP not "\
-                                      "connected: %s" % arg)
-            except socket.error, arg:
-                raise ConnectionError("Connection error: Socket error %s" %arg)
-            except socket.sslerror, arg:
-                raise ConnectionError("Connection error: SSL error %s" % arg)
+                    raise ConnectionError("The server returned a bad "\
+                        "HTTP status line: %r" % exc.line)
+            except httplib.IncompleteRead as exc:
+                raise ConnectionError("HTTP incomplete read: %s" % exc)
+            except httplib.NotConnected as exc:
+                raise ConnectionError("HTTP not connected: %s" % exc)
+            except socket.error as exc:
+                raise ConnectionError("Socket error: %s" % exc)
+            except socket.sslerror as exc:
+                raise ConnectionError("SSL error: %s" % exc)
 
             break
 

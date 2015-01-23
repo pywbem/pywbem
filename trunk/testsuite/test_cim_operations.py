@@ -32,14 +32,14 @@ class ClientTest(TestCase):
 
     def setup(self):
         """Create a connection."""
-
-        # Use globals url, username and password
+        global url, username, password, namespace, timeout
 
         self.system_url = url
         self.conn = WBEMConnection(
             self.system_url,
             (username, password),
-            namespace)
+            namespace,
+            timeout=timeout)
         self.conn.debug = True
 
     def cimcall(self, fn, *args, **kw):
@@ -791,7 +791,8 @@ tests_internal = [
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
-        print 'Usage for manual external tests:\n  %s [OPTS] URL [USERNAME%%PASSWORD [COMFYOPTS] '\
+        print 'Usage for manual external tests:\n'\
+              '  %s [OPTS] URL [USERNAME%%PASSWORD [COMFYOPTS] '\
               '[COMFYTESTS]]' % sys.argv[0]
         print 'Invoke with -h or --help for full help text.'
         print 'Running internal tests...'
@@ -821,6 +822,8 @@ if __name__ == '__main__':
         print '    --help, -h          Display this help text.'
         print '    -n NAMESPACE        Use this CIM namespace instead of '\
               'default: %s' % DEFAULT_NAMESPACE
+        print '    -t TIMEOUT          Use this timeout (in seconds) instead '\
+              'of no timeout'
         print ''
         print 'Comfychair help:'
         print ''
@@ -834,12 +837,16 @@ if __name__ == '__main__':
         sys.exit(0)
 
     namespace = DEFAULT_NAMESPACE
+    timeout = None
     while (True):
         if sys.argv[1][0] != '-':
             # Stop at first non-option
             break
         if sys.argv[1] == '-n':
             namespace = sys.argv[2]
+            del sys.argv[1:3]
+        elif sys.argv[1] == '-t':
+            timeout = int(sys.argv[2])
             del sys.argv[1:3]
         else:
             print "Error: Unknown option: %s" % sys.argv[1]

@@ -191,7 +191,7 @@ def check_utf8_xml_chars(utf8_xml, meaning):
             cpos1 = max(ic_pos-context_before,0)
             cpos2 = min(ic_pos+context_after,len(utf8_xml))
             exc_txt += ", CIM-XML snippet: %r" % utf8_xml[cpos1:cpos2]
-        raise tupleparse.ParseError(exc_txt)
+        raise ParseError(exc_txt)
 
     # Check for incorrectly encoded UTF-8 sequences.
     # @ibm.13@ Simplified logic (removed loop).
@@ -213,7 +213,7 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         cpos1 = max(_p1-context_before,0)
         cpos2 = min(_p2+context_after,len(utf8_xml))
         exc_txt += ", CIM-XML snippet: %r" % utf8_xml[cpos1:cpos2]
-        raise tupleparse.ParseError(exc_txt)
+        raise ParseError(exc_txt)
 
     # Now we know the Unicode characters are valid.
     # Check for Unicode characters that cannot legally be represented as XML
@@ -233,52 +233,30 @@ def check_utf8_xml_chars(utf8_xml, meaning):
             cpos2 = min(ic_pos+context_after,len(utf8_xml_u))
             exc_txt += "\n  At offset %d: U+%04X, CIM-XML snippet: %r" % \
                 (ic_pos, ord(ic_char), utf8_xml_u[cpos1:cpos2])
-        raise tupleparse.ParseError(exc_txt)
+        raise ParseError(exc_txt)
 
     return utf8_xml
 
 
-class CIMError(Exception):
+class CIMError(cim_http.Error):
     """
-    Exception indicating that either the WBEM server has returned an error or
-    the response from the WBEM server has some issue.
+    Exception indicating that the WBEM server has returned an error response
+    with a CIM status code.
 
     The exception value is a tuple of
     ``(error_code, description, exception_obj)``, where:
 
-      * ``error_code``: a numeric error code. See below for details.
+      * ``error_code``: the numeric CIM status code. See `cim_constants` for
+        constants defining CIM status code values.
 
       * ``description``: a string (`unicode` or UTF-8 encoded `str`)
-        representing a human readable message describing the error. See below
-        for details.
+        that is the CIM status description text returned by the server,
+        representing a human readable message describing the error.
 
       * ``exception_obj``: the underlying exception object that caused this
-        exception to be raised. See below for details.
-
-    An ``error_code`` value other than 0 indicates that the WBEM server has
-    returned an error response, and ``error_code`` is the CIM status code of
-    the error response. See `cim_constants` for constants defining CIM status
-    code values. In this case, ``description`` is the CIM status description
-    text returned by the server, and ``exception_obj`` is ``None``.
-
-    An ``error_code`` value of 0 indicates an error detected in the PyWBEM
-    client after receiving the response returned by the WBEM server (for
-    example, an XML parsing error). In this case, ``exception_obj`` is another
-    exception object describing the error, and ``description`` is the
-    string representation of the error message of that other exception object.
-    The following other exception objects are used:
-
-      * `cim_http.AuthError`:  Authentication error (HTTP status 401).
-      * `cim_http.ConnectionError`:  Problem with the connection to the server,
-        a retry sometimes later would make sense.
-      * `cim_http.TimeoutError`:  Client timeout occurred.
-      * `tupleparse.ParseError`:  CIM-XML parsing issue.
-      * `cim_http.Error`:  Other low level error (e.g. HTTP error, CIMError
-        HTTP header). This exception is a base class for `cim_http.AuthError`,
-        `cim_http.ConnectionError`, and `cim_http.TimeoutError` and thus must
-        be handled at the end.
+        exception to be raised, or ``None``. Will always be ``None``.
     """
-
+    pass
 
 class WBEMConnection(object):
     """
@@ -321,36 +299,22 @@ class WBEMConnection(object):
 
     * Exceptions indicating processing errors:
 
-      - `pywbem.Error` - HTTP transport error.
+      - `pywbem.ConnectionError` - A connection with the WBEM server could not
+        be established or broke down.
 
       - `pywbem.AuthError` - Authentication failed with the WBEM server.
 
-      - `pywbem.CIMError` - CIM error.
+      - `pywbem.ParseError` - The response from the WBEM server cannot be
+        parsed (for example, invalid characters or UTF-8 sequences, ill-formed
+        XML, or invalid CIM-XML).
 
-        With an ``error_code`` value of 0, the reason is one of:
+      - `pywbem.CIMError` - The WBEM server returned an error response with a
+        CIM status code.
 
-        * Error in the arguments of a method.
-        * Connection problem with the WBEM server.
-        * HTTP-level errors reported by the WBEM server (except for HTTP
-          transport errors and authentication failures).
+      - `pywbem.TimeoutError` - The WBEM server did not respond in time and the
+        client timed out.
 
-        With other ``error_code`` values, the reason is always that the
-        operation invoked on the WBEM server failed and returned a CIM error.
-        For the possible CIM errors that can be returned by each operation, see
-        DMTF DSP0200.
-
-      - `pywbem.ParseError` - CIM-XML parsing problem in the response from
-        the WBEM server. The exception message provides details.
-        Possible reasons are:
-
-        * Response contains ill-formed UTF-8 Byte sequences (uses surrogates).
-        * Response contains incorrectly encoded UTF-8 Byte sequences.
-        * Response contains invalid XML characters (e.g. ``\\x00`` or
-          ``&#0;``).
-        * Response is not well-formed XML.
-        * Response does not validate against the CIM-XML DTD/schema.
-
-    * Exceptions indicating programming errors in PyWBEM or layers below:
+    * Exceptions indicating programming errors:
 
       - `TypeError`
       - `KeyError`
@@ -358,7 +322,7 @@ class WBEMConnection(object):
       - ... possibly others ...
 
       Exceptions indicating programming errors should not happen and should be
-      reported as bugs.
+      reported as bugs, unless caused by the code using this class.
 
     :Ivariables:
 
@@ -516,9 +480,15 @@ class WBEMConnection(object):
             Timeout in seconds, for requests sent to the server. If the server
             did not respond within the timeout duration, the socket for the
             connection will be closed, causing a `TimeoutError` to be raised.
+
             A value of ``None`` means there is no timeout.
+
             A value of ``0`` means the timeout is very short, and does not
             really make any sense.
+
+            Note that not all situations can be handled within this timeout, so
+            for some issues, operations may take longer before raising an
+            exception.
 
         :Exceptions:
 
@@ -621,8 +591,8 @@ class WBEMConnection(object):
                 no_verification=self.no_verification,
                 timeout=self.timeout)
         except (cim_http.AuthError, cim_http.ConnectionError,
-                cim_http.TimeoutError, cim_http.Error) as exc:
-            raise CIMError(0, str(exc), exc)
+                cim_http.TimeoutError, cim_http.Error):
+            raise
 
         # Set the raw response before parsing (which can fail)
         if self.debug:
@@ -651,13 +621,13 @@ class WBEMConnection(object):
             # we call it also when debug is turned on.
             try:
                 check_utf8_xml_chars(reply_xml, "CIM-XML response")
-            except ParseError as exc2:
-                raise CIMError(0, str(exc2), exc2)
+            except ParseError:
+                raise
             else:
                 if parsing_error:
                     # We did not catch it in the check function, but
                     # minidom.parseString() failed.
-                    raise CIMError(0, msg, exc) # data from previous exception
+                    raise ParseError(msg) # data from previous exception
 
         if self.debug:
             pretty_reply = reply_dom.toprettyxml(indent='  ')
@@ -669,29 +639,24 @@ class WBEMConnection(object):
         tt = tupleparse.parse_cim(tupletree.dom_to_tupletree(reply_dom))
 
         if tt[0] != 'CIM':
-            exc = ParseError('Expecting CIM element, got %s' % tt[0])
-            raise CIMError(0, str(exc), exc)
+            raise ParseError('Expecting CIM element, got %s' % tt[0])
         tt = tt[2]
 
         if tt[0] != 'MESSAGE':
-            exc = ParseError('Expecting MESSAGE element, got %s' % tt[0])
-            raise CIMError(0, str(exc), exc)
+            raise ParseError('Expecting MESSAGE element, got %s' % tt[0])
         tt = tt[2]
 
         if len(tt) != 1 or tt[0][0] != 'SIMPLERSP':
-            exc = ParseError('Expecting one SIMPLERSP element')
-            raise CIMError(0, str(exc), exc)
+            raise ParseError('Expecting one SIMPLERSP element')
         tt = tt[0][2]
 
         if tt[0] != 'IMETHODRESPONSE':
-            exc = ParseError('Expecting IMETHODRESPONSE element, got %s' %\
+            raise ParseError('Expecting IMETHODRESPONSE element, got %s' %\
                              tt[0])
-            raise CIMError(0, str(exc), exc)
 
         if tt[1]['NAME'] != methodname:
-            exc = ParseError('Expecting attribute NAME=%s, got %s' %\
+            raise ParseError('Expecting attribute NAME=%s, got %s' %\
                              (methodname, tt[1]['NAME']))
-            raise CIMError(0, str(exc), exc)
         tt = tt[2]
 
         # At this point we either have a IRETURNVALUE, ERROR element
@@ -708,8 +673,7 @@ class WBEMConnection(object):
             raise CIMError(code, 'Error code %s' % tt[1]['CODE'])
 
         if tt[0] != 'IRETURNVALUE':
-            exc = ParseError('Expecting IRETURNVALUE element, got %s' % tt[0])
-            raise CIMError(0, str(exc), exc)
+            raise ParseError('Expecting IRETURNVALUE element, got %s' % tt[0])
 
         return tt
 
@@ -838,8 +802,8 @@ class WBEMConnection(object):
                 no_verification=self.no_verification,
                 timeout=self.timeout)
         except (cim_http.AuthError, cim_http.ConnectionError,
-                cim_http.TimeoutError, cim_http.Error) as exc:
-            raise CIMError(0, str(exc), exc)
+                cim_http.TimeoutError, cim_http.Error):
+            raise
 
         # Set the raw response before parsing and checking (which can fail)
         if self.debug:
@@ -868,13 +832,13 @@ class WBEMConnection(object):
             # we call it also when debug is turned on.
             try:
                 check_utf8_xml_chars(reply_xml, "CIM-XML response")
-            except ParseError as exc2:
-                raise CIMError(0, str(exc2), exc2)
+            except ParseError:
+                raise
             else:
                 if parsing_error:
                     # We did not catch it in the check function, but
                     # minidom.parseString() failed.
-                    raise CIMError(0, msg, exc) # data from previous exception
+                    raise ParseError(msg) # data from previous exception
 
         if self.debug:
             pretty_reply = reply_dom.toprettyxml(indent='  ')
@@ -886,29 +850,24 @@ class WBEMConnection(object):
         tt = tupleparse.parse_cim(tupletree.dom_to_tupletree(reply_dom))
 
         if tt[0] != 'CIM':
-            exc = ParseError('Expecting CIM element, got %s' % tt[0])
-            raise CIMError(0, str(exc), exc)
+            raise ParseError('Expecting CIM element, got %s' % tt[0])
         tt = tt[2]
 
         if tt[0] != 'MESSAGE':
-            exc = ParseError('Expecting MESSAGE element, got %s' % tt[0])
-            raise CIMError(0, str(exc), exc)
+            raise ParseError('Expecting MESSAGE element, got %s' % tt[0])
         tt = tt[2]
 
         if len(tt) != 1 or tt[0][0] != 'SIMPLERSP':
-            exc = ParseError('Expecting one SIMPLERSP element')
-            raise CIMError(0, str(exc), exc)
+            raise ParseError('Expecting one SIMPLERSP element')
         tt = tt[0][2]
 
         if tt[0] != 'METHODRESPONSE':
-            exc = ParseError('Expecting METHODRESPONSE element, got %s' %\
+            raise ParseError('Expecting METHODRESPONSE element, got %s' %\
                              tt[0])
-            raise CIMError(0, str(exc), exc)
 
         if tt[1]['NAME'] != methodname:
-            exc = ParseError('Expecting attribute NAME=%s, got %s' %\
+            raise ParseError('Expecting attribute NAME=%s, got %s' %\
                              (methodname, tt[1]['NAME']))
-            raise CIMError(0, str(exc), exc)
         tt = tt[2]
 
         # At this point we have an optional RETURNVALUE and zero or

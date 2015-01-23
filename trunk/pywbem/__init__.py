@@ -133,6 +133,10 @@ Compatibility
 PyWBEM has been tested with Python 2.7 on Windows and Linux, and with Python
 2.6 on Linux (due to a restriction of the `M2Crypto` package on Windows).
 
+Python 2.6 is the minimum version of Python that is supported.
+
+Python 3 is not yet supported.
+
 Contributing
 ------------
 
@@ -160,8 +164,8 @@ from pywbem.cim_constants import *
 from pywbem.cim_operations import *
 from pywbem.cim_obj import *
 from pywbem.tupleparse import ParseError
+from pywbem.cim_http import Error, ConnectionError, AuthError, TimeoutError
 
-# TODO: Check if we can bump the minimum Python version to 2.6.
 import sys
-if sys.version_info < (2,3,0):
-    raise RuntimeError('PyWBEM requires Python 2.3.0 or higher')
+if sys.version_info < (2,6,0):
+    raise RuntimeError('PyWBEM requires Python 2.6.0 or higher')
