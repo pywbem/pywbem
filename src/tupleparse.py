@@ -17,6 +17,7 @@
 #
 
 # Author: Martin Pool <mbp@hp.com>
+# Author: Tim Potter <tpot@hp.com>
 
 '''Tuple parser for the XML schema representing CIM messages.
 
@@ -364,7 +365,9 @@ def parse_value_namedinstance(tt):
     instancename = parse_instancename(k[0])
     instance = parse_instance(k[1])        
 
-    return (name(tt), attrs(tt), (instancename, instance))
+    instance.path = instancename
+
+    return instance
 
 
 def parse_value_namedobject(tt):
@@ -378,8 +381,10 @@ def parse_value_namedobject(tt):
     if len(k) == 1:
         object = parse_class(k[0])
     elif len(k) == 2:
-        object = (parse_instancename(kids(tt)[0]),
-                  parse_instance(kids(tt)[1]))
+        path = parse_instancename(kids(tt)[0])
+        object = parse_instance(kids(tt)[1])
+
+        object.path = path
     else:
         raise ParseError('Expecting one or two elements, got %s' %
                          `kids(tt)`)
@@ -403,13 +408,13 @@ def parse_value_objectwithlocalpath(tt):
         object = (parse_localclasspath(kids(tt)[0]),
                   parse_class(kids(tt)[1]))
     else:
-        object = (parse_localinstancepath(kids(tt)[0]),
-                  parse_instance(kids(tt)[1]))
+        path = parse_localinstancepath(kids(tt)[0])
+        object = parse_instance(kids(tt)[1])
+
+        object.path = path
 
     return (name(tt), attrs(tt), object)
             
-
-
 def parse_value_objectwithpath(tt):
     """
     <!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH, CLASS) |
@@ -427,8 +432,10 @@ def parse_value_objectwithpath(tt):
         object = (parse_classpath(k[0]),
                   parse_class(k[1]))
     else:
-        object = (parse_instancepath(k[0]),
-                  parse_instance(k[1]))
+        path = parse_instancepath(k[0])
+        object = parse_instance(k[1])
+
+        object.path = path
 
     return (name(tt), attrs(tt), object)
 
@@ -450,7 +457,7 @@ def parse_namespacepath(tt):
     host = parse_host(kids(tt)[0])
     localnspath = parse_localnamespacepath(kids(tt)[1])
 
-    return cim_obj.CIMNamespacePath(host, localnspath)
+    return (host, localnspath)
 
 
 def parse_localnamespacepath(tt):
@@ -504,8 +511,8 @@ def parse_classpath(tt):
     nspath = parse_namespacepath(kids(tt)[0])
     classname = parse_classname(kids(tt)[1])
 
-    return cim_obj.CIMClassPath(nspath.host, nspath.localnamespacepath,
-                                classname.classname)
+    return cim_obj.CIMClassName(classname.classname,
+                                host = nspath[0], namespace = nspath[1])
 
 
 def parse_localclasspath(tt):
@@ -522,7 +529,7 @@ def parse_localclasspath(tt):
     localnspath = parse_localnamespacepath(kids(tt)[0])
     classname = parse_classname(kids(tt)[1])
 
-    return cim_obj.CIMLocalClassPath(localnspath, classname.classname)
+    return cim_obj.CIMClassName(classname.classname, namespace = localnspath)
 
 def parse_classname(tt):
     """
@@ -548,9 +555,10 @@ def parse_instancepath(tt):
     nspath = parse_namespacepath(kids(tt)[0])
     instancename = parse_instancename(kids(tt)[1])
 
-    return cim_obj.CIMInstancePath(nspath.host, nspath.localnamespacepath,
-                                   instancename)
+    instancename.host = nspath[0]
+    instancename.namespace = nspath[1]
 
+    return instancename
     
 def parse_localinstancepath(tt):
     """
@@ -566,8 +574,9 @@ def parse_localinstancepath(tt):
     localnspath = parse_localnamespacepath(kids(tt)[0])
     instancename = parse_instancename(kids(tt)[1])
 
-    return cim_obj.CIMLocalInstancePath(localnspath, instancename)
+    instancename.namespace = localnspath
 
+    return instancename
 
 def parse_instancename(tt):
     """Parse XML INSTANCENAME into CIMInstanceName object."""
@@ -678,17 +687,19 @@ def parse_class(tt):
                ['QUALIFIER', 'PROPERTY', 'PROPERTY.REFERENCE',
                 'PROPERTY.ARRAY', 'METHOD'])
 
-    obj = cim_obj.CIMClass(attrs(tt)['NAME'])
-    obj.superclass = attrs(tt).get('SUPERCLASS')
+    superclass = attrs(tt).get('SUPERCLASS')
 
     # TODO: Return these as maps, not lists
-    obj.properties = byname(list_of_matching(tt, ['PROPERTY', 'PROPERTY.REFERENCE',
+    properties = byname(list_of_matching(tt, ['PROPERTY', 'PROPERTY.REFERENCE',
                                                   'PROPERTY.ARRAY']))
 
-    obj.qualifiers = byname(list_of_matching(tt, ['QUALIFIER']))
-#     obj.methods = list_of_matching(tt, ['METHOD'])
+    qualifiers = byname(list_of_matching(tt, ['QUALIFIER']))
+    methods = byname(list_of_matching(tt, ['METHOD']))
 
-    return obj
+    return cim_obj.CIMClass(attrs(tt)['NAME'], superclass=superclass, 
+                                                  properties=properties, 
+                                                  qualifiers=qualifiers, 
+                                                  methods=methods)
 
 
 def parse_instance(tt):
@@ -715,9 +726,12 @@ def parse_instance(tt):
     qualifiers = {}
     props = list_of_matching(tt, ['PROPERTY.REFERENCE', 'PROPERTY', 'PROPERTY.ARRAY'])
 
-    return cim_obj.CIMInstance(attrs(tt)['CLASSNAME'],
-                               properties = props,
-                               qualifiers = qualifiers)
+    obj = cim_obj.CIMInstance(attrs(tt)['CLASSNAME'],
+                              qualifiers = qualifiers)
+
+    [obj.__setitem__(p.name, p) for p in props]
+
+    return obj
 
 
 def parse_qualifier(tt):
@@ -778,10 +792,11 @@ def parse_property(tt):
     val = unpack_value(tt)
     a = attrs(tt)
 
-    return CIMProperty(a['NAME'], a['TYPE'],
-                       a.get('CLASSORIGIN'),
-                       unpack_boolean(a.get('PROPAGATED')),
+    return CIMProperty(a['NAME'],
                        val,
+                       a['TYPE'],
+                       class_origin=a.get('CLASSORIGIN'),
+                       propagated=unpack_boolean(a.get('PROPAGATED')),
                        qualifiers=quals)
 
 
@@ -802,15 +817,19 @@ def parse_property_array(tt):
                      'ARRAYSIZE'],
                ['QUALIFIER', 'VALUE.ARRAY'])
 
-    qualifiers = list_of_matching(tt, ['QUALIFIER'])
+    quals = {}
+    for q in list_of_matching(tt, ['QUALIFIER']):
+        quals[q.name] = q
 
     values = unpack_value(tt)
     a = attrs(tt)
 
-    obj = CIMProperty(a['NAME'], a['TYPE'], 
+    obj = CIMProperty(a['NAME'],
+                      values,
+                      a['TYPE'], 
                       class_origin=a.get('CLASSORIGIN'),
-                      value = values,
-                      is_array = True)
+                      qualifiers=quals,
+                      is_array=True)
 
     ## TODO: qualifiers, other attributes
     return obj
@@ -839,7 +858,7 @@ def parse_property_reference(tt):
         raise ParseError('Too many VALUE.REFERENCE elements.')
     
     attributes = attrs(tt)
-    pref = cim_obj.CIMPropertyReference(attributes['NAME'], value)
+    pref = cim_obj.CIMProperty(attributes['NAME'], value, type = 'reference')
 
     for q in list_of_matching(tt, ['QUALIFIER']):
         pref.qualifiers[q.name] = q
@@ -871,31 +890,118 @@ def parse_method(tt):
                ['QUALIFIER', 'PARAMETER', 'PARAMETER.REFERENCE',
                 'PARAMETER.ARRAY', 'PARAMETER.REFARRAY'])
 
-    qualifiers = list_of_matching(tt, ['QUALIFIER'])
+    qualifiers = byname(list_of_matching(tt, ['QUALIFIER']))
 
-    children = list_of_matching(tt, 
-                                ['PARAMETER',
-                                 'PARAMETER.REFERENCE',
-                                 'PARAMETER.ARRAY',
-                                 'PARAMETER.REFARRAY',])
+    parameters = byname(list_of_matching(tt, ['PARAMETER',
+                                                      'PARAMETER.REFERENCE',
+                                                      'PARAMETER.ARRAY',
+                                                      'PARAMETER.REFARRAY',]))
 
-    return (name(tt), attrs(tt), (children, qualifiers))
+    a = attrs(tt)
+
+    return cim_obj.CIMMethod(a['NAME'], 
+                             return_type=a.get('TYPE'),
+                             parameters=parameters, 
+                             qualifiers=qualifiers,
+                             class_origin=a.get('CLASSORIGIN'),
+                             propagated=unpack_boolean(a.get('PROPAGATED')))
 
 
 def parse_parameter(tt):
-    raise ParseError('PARAMETER parser not implemented')
+    """
+    <!ELEMENT PARAMETER (QUALIFIER*)>
+    <!ATTLIST PARAMETER 
+         %CIMName;
+         %CIMType;              #REQUIRED>
+    """
+    
+    check_node(tt, 'PARAMETER', ['NAME', 'TYPE'], [])
 
+    quals = {}
+    for q in list_of_matching(tt, ['QUALIFIER']):
+        quals[q.name] = q
+
+    a = attrs(tt)
+
+    return cim_obj.CIMParameter(a['NAME'], type=a['TYPE'], qualifiers=quals)
 
 def parse_parameter_reference(tt):
-    raise ParseError('PARAMETER.REFERENCE parser not implemented')
+    """
+    <!ELEMENT PARAMETER.REFERENCE (QUALIFIER*)>
+    <!ATTLIST PARAMETER.REFERENCE
+	%CIMName; 
+	%ReferenceClass;>
+    """
+
+    check_node(tt, 'PARAMETER.REFERENCE', ['NAME'], ['REFERENCECLASS'])
+
+    quals = {}
+    for q in list_of_matching(tt, ['QUALIFIER']):
+        quals[q.name] = q
+
+    a = attrs(tt)
+
+    return cim_obj.CIMParameter(a['NAME'],
+                        type='reference',
+                        reference_class=a.get('REFERENCECLASS'),
+                        qualifiers=quals)
 
 
 def parse_parameter_array(tt):
-    raise ParseError('PARAMETER.ARRAY parser not implemented')
+    """
+    <!ELEMENT PARAMETER.ARRAY (QUALIFIER*)>
+    <!ATTLIST PARAMETER.ARRAY 
+         %CIMName;
+         %CIMType;              #REQUIRED
+         %ArraySize;>
+    """
+
+    check_node(tt, 'PARAMETER.ARRAY', ['NAME', 'TYPE'], 
+                ['ARRAYSIZE'])
+
+    quals = {}
+    for q in list_of_matching(tt, ['QUALIFIER']):
+        quals[q.name] = q
+
+    a = attrs(tt)
+
+    array_size = a.get('ARRAYSIZE')
+    if array_size is not None:
+        array_size = int(array_size)
+
+    return cim_obj.CIMParameter(a['NAME'], 
+                        type=a['TYPE'],
+                        is_array = True,
+                        array_size=array_size,
+                        qualifiers=quals)
 
 
 def parse_parameter_refarray(tt):
-    raise ParseError('PARAMETER.REFARRAY parser not implemented')
+    """
+    <!ELEMENT PARAMETER.REFARRAY (QUALIFIER*)>
+    <!ATTLIST PARAMETER.REFARRAY
+	%CIMName; 
+	%ReferenceClass; 
+	%ArraySize;>
+    """
+
+    check_node(tt, 'PARAMETER.REFARRAY', ['NAME'],
+               ['REFERENCECLASS', 'ARRAYSIZE'])
+
+    quals = {}
+    for q in list_of_matching(tt, ['QUALIFIER']):
+        quals[q.name] = q
+
+    a = attrs(tt)
+
+    array_size = a.get('ARRAYSIZE')
+    if array_size is not None:
+        array_size = int(array_size)
+
+    return cim_obj.CIMParameter(a['NAME'], 'reference', is_array = True,
+                        reference_class=a.get('REFERENCECLASS'),
+                        array_size=array_size,
+                        qualifiers=quals)
 
 
 #
@@ -1147,8 +1253,6 @@ def unpack_value(tt):
     Looks at the TYPE of the node to work out how to decode it.
     Handles nodes with no value (e.g. in CLASS.)
     """
-    val = list_of_matching(tt, ['VALUE', 'VALUE.ARRAY'])
-
     ## TODO: Handle VALUE.REFERENCE, VALUE.REFARRAY
 
     valtype = attrs(tt)['TYPE']
@@ -1163,6 +1267,8 @@ def unpack_value(tt):
     
     if isinstance(raw_val, list):
         return [cim_obj.tocimobj(valtype, x) for x in raw_val]
+    elif len(raw_val) == 0 and valtype != 'string':
+        return None
     else:
         return cim_obj.tocimobj(valtype, raw_val)
 

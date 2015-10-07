@@ -1,5 +1,4 @@
-'''A pure-Python library for performing operations using the WBEM
-management protocol.'''
+# Package init file for pywbem.twisted
 
 #
 # (C) Copyright 2004 Hewlett-Packard Development Company, L.P.
@@ -21,23 +20,6 @@ management protocol.'''
 
 # Author: Tim Potter <tpot@hp.com>
 
-from distutils.core import setup, Extension
-import sys, string, os
+"""pywbem.twisted - WBEM client bindings for Twisted Python."""
 
-args = {'name': 'pywbem',
-        'author': 'Tim Potter',
-        'author_email': 'tpot@hp.com',
-        'description': 'Python WBEM client library',
-        'long_description': __doc__,
-        'platforms': ['any'],
-        'url': 'http://pywbem.sf.net/',
-        'version': '0.5',
-        'license': 'GPL',
-        'packages': ['pywbem'],
-        # Make packages in root dir appear in pywbem module
-        'package_dir': {'pywbem': ''}, 
-        # Make extensions in root dir appear in pywbem module
-        'ext_package': 'pywbem',
-        }
-
-setup(**args)
+from client_factories import *

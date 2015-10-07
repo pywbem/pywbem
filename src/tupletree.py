@@ -1,4 +1,3 @@
-#! /usr/bin/python
 #
 # (C) Copyright 2003, 2004 Hewlett-Packard Development Company, L.P.
 #
@@ -113,56 +112,3 @@ def xml_to_tupletree(xml_string):
     import xml.dom.minidom
     dom_xml = xml.dom.minidom.parseString(xml_string)
     return dom_to_tupletree(dom_xml)
-
-
-if __name__ == '__main__':
-    import xml.dom.minidom
-    from pprint import pprint
-
-    input = """<?xml version="1.0" encoding="utf-8" ?>
-<CIM CIMVERSION="2.0" DTDVERSION="2.0">
-<MESSAGE ID="1001" PROTOCOLVERSION="1.0">
-<SIMPLERSP>
-<IMETHODRESPONSE NAME="EnumerateInstanceNames">
-<IRETURNVALUE>
-<INSTANCENAME CLASSNAME="HP_Processor">
-<KEYBINDING NAME="CreationClassName">
-<KEYVALUE VALUETYPE="string">HP_Processor</KEYVALUE>
-</KEYBINDING>
-<KEYBINDING NAME="DeviceID">
-<KEYVALUE VALUETYPE="string">Processor 0</KEYVALUE>
-</KEYBINDING>
-<KEYBINDING NAME="SystemName">
-<KEYVALUE VALUETYPE="string">deckchair</KEYVALUE>
-</KEYBINDING>
-</INSTANCENAME>
-<INSTANCENAME CLASSNAME="HP_Processor">
-<KEYBINDING NAME="CreationClassName">
-<KEYVALUE VALUETYPE="string">HP_Processor</KEYVALUE>
-</KEYBINDING>
-<KEYBINDING NAME="DeviceID">
-<KEYVALUE VALUETYPE="string">Processor 1</KEYVALUE>
-</KEYBINDING>
-<KEYBINDING NAME="SystemName">
-<KEYVALUE VALUETYPE="string">deckchair</KEYVALUE>
-</KEYBINDING>
-</INSTANCENAME>
-</IRETURNVALUE>
-</IMETHODRESPONSE>
-</SIMPLERSP>
-</MESSAGE>
-</CIM>
-"""
-    # to make this cleaner; strip newlines
-    input = input.replace('\n', '')
-
-    xmldoc = xml.dom.minidom.parseString(input)
-    titty = dom_to_tupletree(xmldoc)
-
-    pprint(titty)
-
-    newdoc = xml.dom.minidom.getDOMImplementation().createDocument(None, None, None)
-    tupletree_to_dom(newdoc, titty)
-    print newdoc.toxml()
-    
-    print input

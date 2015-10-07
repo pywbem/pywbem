@@ -1,5 +1,3 @@
-#! /usr/bin/python
-
 #
 # (C) Copyright 2003, 2004 Hewlett-Packard Development Company, L.P.
 #
@@ -106,7 +104,7 @@ def cimtype(obj):
     if isinstance(obj, (datetime, timedelta)):
         return 'datetime'
 
-    raise TypeError("Invalid CIM type for %s" % obj)
+    raise TypeError("Invalid CIM type for %s" % str(obj))
 
 
 def atomic_to_cim_xml(obj):
@@ -121,7 +119,7 @@ def atomic_to_cim_xml(obj):
 
         # TODO: Figure out UTC offset stuff
 
-        return '%d%02d%02d%02d%02d%02d%06d+000' % \
+        return '%d%02d%02d%02d%02d%02d.%06d+000' % \
                (obj.year, obj.month, obj.day, obj.hour,
                 obj.minute, obj.second, obj.microsecond)
 
@@ -136,6 +134,7 @@ def atomic_to_cim_xml(obj):
         return '%08d%02d%02d%02d.%06d:000' % \
                (obj.days, hour, minute, second, obj.microseconds)
 
+    elif obj is None:
+        return obj
     else:
         return unicode(obj)
-    

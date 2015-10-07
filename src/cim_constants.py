@@ -1,4 +1,3 @@
-#! /usr/bin/python
 #
 # (C) Copyright 2003, 2004 Hewlett-Packard Development Company, L.P.
 #

@@ -1,4 +1,3 @@
-#! /usr/bin/python
 #
 # (C) Copyright 2003-2005 Hewlett-Packard Development Company, L.P.
 #
@@ -36,6 +35,10 @@ class Error(Exception):
     """This exception is raised when a transport error occurs."""
     pass
 
+class AuthError(Error):
+    """This exception is raised when an authentication error (401) occurs."""
+    pass
+
 def parse_url(url):
     """Return a tuple of (host, port, ssl) from the URL parameter.
     The returned port defaults to 5988 if not specified.  SSL supports
@@ -60,7 +63,8 @@ def parse_url(url):
 
     return host, port, ssl
 
-def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None):
+def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None,
+                 verify_callback = None):
     """Send XML data over HTTP to the specified url. Return the
     response in XML.  Uses Python's build-in httplib.  x509 may be a
     dictionary containing the location of the SSL certificate and key
@@ -79,6 +83,21 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None):
             cert_file = None
             key_file = None
 
+        if verify_callback is not None:
+            try:
+                from OpenSSL import SSL
+                ctx = SSL.Context(SSL.SSLv3_METHOD)
+                ctx.set_verify(SSL.VERIFY_PEER, verify_callback)
+                s = SSL.Connection(ctx, socket.socket(socket.AF_INET,
+                                                      socket.SOCK_STREAM))
+                s.connect((host, port))
+                s.do_handshake()
+                s.shutdown()
+                s.close()
+            except socket.error, arg:
+                raise Error("Socket error: %s" % (arg,))
+            except socket.sslerror, arg:
+                raise Error("SSL error: %s" % (arg,))
         h = httplib.HTTPSConnection(host, port = port, key_file = key_file,
                                     cert_file = cert_file)
     else:
@@ -104,6 +123,8 @@ def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None):
         response = h.getresponse()
 
         if response.status != 200:
+            if response.status == 401:
+                raise AuthError(response.reason)
             if response.getheader('CIMError', None) is not None and \
                response.getheader('PGErrorDetail', None) is not None:
                 import urllib
@@ -135,13 +156,12 @@ def get_object_header(obj):
 
     # CIMLocalClassPath
 
-    if isinstance(obj, cim_obj.CIMLocalClassPath):
-        return 'CIMObject: %s:%s' % (obj.localnamespacepath, obj.classname)
+    if isinstance(obj, cim_obj.CIMClassName):
+        return 'CIMObject: %s:%s' % (obj.namespace, obj.classname)
 
-    # CIMInstanceName
+    # CIMInstanceName with namespace
 
-    if isinstance(obj, cim_obj.CIMLocalInstancePath):
-        hdr = 'CIMObject: %s:%s' % (obj.localnamespacepath, obj.instancename)
-        return hdr
+    if isinstance(obj, cim_obj.CIMInstanceName) and obj.namespace is not None:
+        return 'CIMObject: %s' % obj
 
     raise TypeError('Don\'t know how to generate HTTP headers for %s' % obj)

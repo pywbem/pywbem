@@ -46,17 +46,9 @@ objects to and from the CIM-XML format used on the network.
 
 The following CIM types have corresponding Python classes:
 
-    CIMObjectPath
     CIMClassName
-    CIMNamespacePath
-    CIMLocalClassPath
-    CIMClassPath
-    CIMLocalInstancePath
-    CIMInstancePath
-    CIMPropertyReference
     CIMInstanceName
     CIMInstance
-    CIMNamedInstance
     CIMClass
     CIMMethod
     Qualifier
