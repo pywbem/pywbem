@@ -31,7 +31,7 @@ args = {'name': 'pywbem',
         'long_description': __doc__,
         'platforms': ['any'],
         'url': 'http://pywbem.sf.net/',
-        'version': '0.3',
+        'version': '0.4',
         'license': 'GPL',
         'packages': ['pywbem'],
         # Make packages in root dir appear in pywbem module

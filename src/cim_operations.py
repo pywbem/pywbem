@@ -1,6 +1,6 @@
 #! /usr/bin/python
 #
-# (C) Copyright 2003, 2004 Hewlett-Packard Development Company, L.P.
+# (C) Copyright 2003, 2004, 2005 Hewlett-Packard Development Company, L.P.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,9 +24,11 @@
 # should be ones that all clients can see.
 
 import sys, string
+from types import StringTypes
 from xml.dom import minidom
 import cim_obj, cim_xml, cim_http
-from cim_obj import CIMClassName, CIMNamedInstance
+from cim_obj import CIMClassName, CIMNamedInstance, CIMInstanceName, \
+     CIMLocalInstancePath
 
 from tupletree import dom_to_tupletree, xml_to_tupletree
 from tupleparse import parse_cim
@@ -45,8 +47,7 @@ DEFAULT_NAMESPACE = 'root/cimv2'
 # helper functions for validating arguments
 
 def _check_classname(val):
-    import types
-    if not isinstance(val, types.StringTypes):
+    if not isinstance(val, StringTypes):
         raise ValueError("string expected for classname, not %s" % `val`)
 
 
@@ -79,9 +80,11 @@ class WBEMConnection:
     unpacked.
     """
     
-    def __init__(self, url, creds, default_namespace = DEFAULT_NAMESPACE):
+    def __init__(self, url, creds, default_namespace = DEFAULT_NAMESPACE,
+                 x509 = None):
         self.url = url
         self.creds = creds
+        self.x509 = x509
         self.last_request = self.last_reply = ''
         self.default_namespace = default_namespace
 
@@ -108,12 +111,6 @@ class WBEMConnection:
         if localnamespacepath == None:
             localnamespacepath = self.default_namespace
 
-        # Convert a string localnamespace path to a cim_obj
-
-        if type(localnamespacepath) == str:
-            localnamespacepath = \
-                cim_obj.CIMLocalNamespacePath(localnamespacepath)
-
         # Create HTTP headers
 
         headers = ['CIMOperation: MethodCall',
@@ -133,7 +130,9 @@ class WBEMConnection:
                 cim_xml.SIMPLEREQ(
                     cim_xml.IMETHODCALL(
                         methodname,
-                        localnamespacepath.tocimxml(),
+                        cim_xml.LOCALNAMESPACEPATH(
+                            [cim_xml.NAMESPACE(ns)
+                             for ns in string.split(localnamespacepath, '/')]),
                         plist)),
                 1001, '1.0'),
             '2.0', '2.0')
@@ -145,7 +144,8 @@ class WBEMConnection:
 
         try:
             resp_xml = cim_http.wbem_request(self.url, req_xml.toxml(),
-                                             self.creds, headers)
+                                             self.creds, headers,
+                                             x509 = self.x509)
         except cim_http.Error, arg:
             # Convert cim_http exceptions to CIMError exceptions
             raise CIMError(0, str(arg))
@@ -155,8 +155,8 @@ class WBEMConnection:
 
         reply_dom = minidom.parseString(resp_xml)
 
-        ## we want to not insert any newline characters, because they're already present and
-        ## we don't want them duplicated.
+        ## We want to not insert any newline characters, because
+        ## they're already present and we don't want them duplicated.
         self.last_reply = reply_dom.toprettyxml(indent='  ', newl='')
         self.last_raw_reply = resp_xml
 
@@ -289,6 +289,10 @@ class WBEMConnection:
 
         return tt
 
+    #
+    # Instance provider API
+    # 
+
     def EnumerateInstanceNames(self, ClassName, LocalNamespacePath = None,
                                **params):
         """Enumerate instance names of a given classname.  Returns a
@@ -309,6 +313,11 @@ class WBEMConnection:
                            **params):
         """Enumerate instances of a given classname.  Returns a list
         of cim_obj.Instance objects."""
+
+        # NOTE: EnumerateInstances actually returns the instance names
+        # as well as the instance objects.  In this interface we
+        # discard the names which may not necessarily be such a clever
+        # thing to do.
 
         result = self.imethodcall(
             'EnumerateInstances',
@@ -377,6 +386,10 @@ class WBEMConnection:
             ModifiedInstance = wrapped_instance,
             **params)
         
+    #
+    # Schema management API
+    #
+
     def EnumerateClassNames(self, LocalNamespacePath = None, **params):
         """Return a list of CIM class names. Names are returned as strings."""
         
@@ -412,31 +425,51 @@ class WBEMConnection:
 
         return result[2][0]
 
-    def imethodcall_withobjectname(self, methodname, LocalNamespacePath = None,
-                                   **params):
-        """Make an imethodcall that takes an object name (either a
-        classname or an instance name).  Convert ClassName or
-        InstanceName keyword parameters in to an appropriate
-        ObjectName parameter."""
+    #
+    # Association provider API
+    # 
 
-        if params.has_key('ClassName'):
-            params['ObjectName'] = CIMClassName(params['ClassName'])
-            del(params['ClassName'])
-        elif params.has_key('InstanceName'):
-            params['ObjectName'] = params['InstanceName']
-            del(params['InstanceName'])
+    def _add_objectname_param(self, params, object):
+        """Add an object name (either a class name or an instance
+        name) to a dictionary of parameter names."""
+
+        if isinstance(object, (CIMClassName, CIMInstanceName)):
+            params['ObjectName'] = object
+        elif isinstance(object, StringTypes):
+            params['ObjectName'] = CIMClassName(object)
         else:
-            raise ValueError('Expecting ClassName or InstanceName parameter')
+            raise ValueError('Expecting a classname, CIMClassName or '
+                             'CIMInstanceName object')
 
-        return self.imethodcall(methodname, LocalNamespacePath, **params)
+        return params
 
-    def Associators(self, LocalNamespacePath = None, **params):
+    def _map_association_params(self, params):
+        """Convert various convenience parameters and types into their
+        correct form for passing to the imethodcall() function."""
+
+        # ResultClass and Role parameters that are strings should be
+        # mapped to CIMClassName objects.
+
+        if params.has_key('ResultClass') and \
+           isinstance(params['ResultClass'], StringTypes):
+            params['ResultClass'] = cim_obj.CIMClassName(params['ResultClass'])
+
+        if params.has_key('AssocClass') and \
+           isinstance(params['AssocClass'], StringTypes):
+            params['AssocClass'] = cim_obj.CIMClassName(params['AssocClass'])
+
+        return params
+
+    def Associators(self, object, LocalNamespacePath = None, **params):
         """Enumerate CIM classes or instances that are associated to a
         particular source CIM Object.  Pass a keyword parameter of
         'ClassName' to return associators for a CIM class, pass
         'InstanceName' to return the associators for a CIM instance."""
 
-        result = self.imethodcall_withobjectname(
+        params = self._map_association_params(params)
+        params = self._add_objectname_param(params, object)
+        
+        result = self.imethodcall(
             'Associators',
             LocalNamespacePath,
             **params)
@@ -446,14 +479,18 @@ class WBEMConnection:
 
         return map(lambda x: x[2], result[2])
 
-    def AssociatorNames(self, LocalNamespacePath = None, **params):
+    def AssociatorNames(self, object, LocalNamespacePath = None, **params):
         """Enumerate the names of CIM classes or instances that are
         associated to a particular source CIM Object.  Pass a keyword
         parameter of 'ClassName' to return associators for a CIM
         class, pass 'InstanceName' to return the associators for a CIM
-        instance."""
+        instance.  Returns a list of CIMInstancePath objects (i.e a
+        CIMInstanceName plus a namespacepath)."""
 
-        result = self.imethodcall_withobjectname(
+        params = self._map_association_params(params)
+        params = self._add_objectname_param(params, object)
+
+        result = self.imethodcall(
             'AssociatorNames',
             LocalNamespacePath,
             **params)
@@ -463,14 +500,17 @@ class WBEMConnection:
 
         return map(lambda x: x[2], result[2])
 
-    def References(self, LocalNamespacePath = None, **params):
+    def References(self, object, LocalNamespacePath = None, **params):
         """Enumerate the association objects that refer to a
         particular target CIM class or instance.  Pass a keyword
         parameter of 'ClassName' to return associators for a CIM
         class, pass 'InstanceName' to return the associators for a CIM
         instance."""
 
-        result = self.imethodcall_withobjectname(
+        params = self._map_association_params(params)
+        params = self._add_objectname_param(params, object)
+
+        result = self.imethodcall(
             'References',
             LocalNamespacePath,
             **params)
@@ -480,14 +520,17 @@ class WBEMConnection:
 
         return map(lambda x: x[2], result[2])
 
-    def ReferenceNames(self, LocalNamespacePath = None, **params):
+    def ReferenceNames(self, object, LocalNamespacePath = None, **params):
         """Enumerate the name of association objects that refer to a
         particular target CIM class or instance.  Pass a keyword
         parameter of 'ClassName' to return associators for a CIM
         class, pass 'InstanceName' to return the associators for a CIM
         instance."""
 
-        result = self.imethodcall_withobjectname(
+        params = self._map_association_params(params)
+        params = self._add_objectname_param(params, object)
+
+        result = self.imethodcall(
             'ReferenceNames',
             LocalNamespacePath,
             **params)
@@ -497,14 +540,18 @@ class WBEMConnection:
 
         return map(lambda x: x[2], result[2])
 
+    #
+    # Method provider API
+    #
+
     def InvokeMethod(self, methodname, localobject, **params):
 
         # A CIMInstanceName is the obvious object to pass when making a
         # "dynamic" method call but the schema requies a
         # CIMLocalObject.  Do a conversion if necessary.
 
-        if isinstance(localobject, cim_obj.CIMInstanceName):
-            localobject = cim_obj.CIMLocalInstancePath(
+        if isinstance(localobject, CIMInstanceName):
+            localobject = CIMLocalInstancePath(
                 self.default_namespace, localobject)
 
         result = self.methodcall(methodname, localobject, **params)

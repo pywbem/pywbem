@@ -1,6 +1,6 @@
 #! /usr/bin/python
 #
-# (C) Copyright 2003, 2004 Hewlett-Packard Development Company, L.P.
+# (C) Copyright 2003-2005 Hewlett-Packard Development Company, L.P.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,13 +20,15 @@
 # Author: Tim Potter <tpot@hp.com>
 #         Martin Pool <mbp@hp.com>
 
-import string, UserDict
+import string, re
+from datetime import datetime, timedelta
 import cim_xml, cim_types
 from types import StringTypes
 from cim_types import atomic_to_cim_xml
 from cim_xml import *
 
-"""Representations of CIM Objects.
+"""
+Representations of CIM Objects.
 
 In general we try to map CIM objects directly into Python primitives,
 except when that is not possible or would be ambiguous.  For example,
@@ -47,25 +49,6 @@ class XMLObject:
     def toxml(self):
         """Return the XML string representation of ourselves."""
         return self.tocimxml().toxml()
-
-
-class DictObject(UserDict.UserDict):
-    """Base class for objects that have a dictionary of key/value pairs.
-    """
-
-    def __cmp__(self, other):
-        # The default is to compare only the dictionaries, but that is too
-        # loose for our purposes.  So instead default to a very strict
-        # comparison, which can be overridden in subclasses.
-        if self is other:
-            return 0
-        else:
-            return NotImplemented
-
-
-    def toxml(self):
-        return self.tocimxml().toxml()
-
 
 #
 # Object location classes
@@ -89,20 +72,23 @@ class DictObject(UserDict.UserDict):
 # These guys also have string representations similar to the output
 # produced by the Pegasus::CIMObjectPath.toString() method:
 #
-# CLASSNAME               CIM_Foo
-# LOCALNAMESPACEPATH      root/cimv2:
-# NAMESPACEPATH           //leonardo/root/cimv2:
-# LOCALCLASSPATH          root/cimv2:CIM_Foo
-# CLASSPATH               //leonardo/root/cimv2:CIM_Foo
-# INSTANCENAME            CIM_Foo.Count=42,Foo="Bar"
-# LOCALINSTANCEPATH       root/cimv2:CIM_Foo.Count=42,Foo="Bar"
-# INSTANCEPATH            //leonardo/root/cimv2:CIM_Foo.Count=42,Foo="Bar"
+# Element Name        Python Class           String representation
+# ---------------------------------------------------------------------------
+# CLASSNAME           CIMClassName           CIM_Foo
+# LOCALNAMESPACEPATH  String                 root/cimv2:
+# NAMESPACEPATH       CIMNamespacePath       //leo/root/cimv2:
+# LOCALCLASSPATH      CIMLocalClassPath      root/cimv2:CIM_Foo
+# CLASSPATH           CIMClassPath           //leo/root/cimv2:CIM_Foo
+# INSTANCENAME        CIMInstanceName        CIM_Foo.Foo="Bar"
+# LOCALINSTANCEPATH   CIMLocalInstancePath   root/cimv2:CIM_Foo.Foo="Bar"
+# INSTANCEPATH        CIMInstancePath        //leo/root/cimv2:CIM_Foo.Foo="Bar"
 #
 
 class CIMObjectLocation(XMLObject):
     """A base class that can name any CIM object."""
 
-    def __init__(self, host, localnamespacepath, classname, instancename):
+    def __init__(self, host = None, localnamespacepath = None,
+                 classname = None, instancename = None):
         self.host = host
         self.localnamespacepath = localnamespacepath
         self.classname = classname
@@ -133,10 +119,18 @@ class CIMObjectLocation(XMLObject):
                 cmp(self.classname, other.classname) or
                 cmp(self.instancename, other.instancename))
 
+
 class CIMClassName(CIMObjectLocation):
     def __init__(self, classname):
-        assert isinstance(classname, StringTypes)
-        CIMObjectLocation.__init__(self, None, None, classname, None)
+
+        if not isinstance(classname, StringTypes):
+            raise TypeError('classname argument must be a string')
+
+        # TODO: There are some odd restrictions on what a CIM
+        # classname can look like (i.e must start with a
+        # non-underscore and only one underscore per classname).
+
+        CIMObjectLocation.__init__(self, classname = classname)
 
     def tocimxml(self):
         return self.CLASSNAME()
@@ -148,26 +142,18 @@ class CIMClassName(CIMObjectLocation):
         return self.classname
 
 
-class CIMLocalNamespacePath(CIMObjectLocation):
-
-    def __init__(self, localnamespacepath):
-        CIMObjectLocation.__init__(self, None, localnamespacepath, None, None)
-
-    def tocimxml(self):
-        return self.LOCALNAMESPACEPATH()
-
-    def __repr__(self):
-        return '%s(localnamespacepath=%s)' % \
-               (self.__class__.__name__, `self.localnamespacepath`)
-
-    def __str__(self):
-        return self.localnamespacepath
-
-
 class CIMNamespacePath(CIMObjectLocation):
 
     def __init__(self, host, localnamespacepath):
-        CIMObjectLocation.__init__(self, host, localnamespacepath, None, None)
+
+        if not isinstance(host, StringTypes):
+            raise TypeError('host argument must be a string')
+
+        if not isinstance(localnamespacepath, StringTypes):
+            raise TypeError('localnamespacepath argument must be a string')
+
+        CIMObjectLocation.__init__(self, host = host,
+                                   localnamespacepath = localnamespacepath)
 
     def tocimxml(self):
         return self.NAMESPACEPATH()
@@ -184,8 +170,16 @@ class CIMNamespacePath(CIMObjectLocation):
 class CIMLocalClassPath(CIMObjectLocation):
 
     def __init__(self, localnamespacepath, classname):
-        CIMObjectLocation.__init__(self, None, localnamespacepath, classname,
-                                   None)
+
+        if not isinstance(localnamespacepath, StringTypes):
+            raise TypeError('localnamespacepath argument must be a string')
+
+        if not isinstance(classname, StringTypes):
+            raise TypeError('classname argument must be a string')
+
+        CIMObjectLocation.__init__(self,
+                                   localnamespacepath = localnamespacepath,
+                                   classname = classname)
 
     def tocimxml(self):
         return cim_xml.LOCALCLASSPATH(self.LOCALNAMESPACEPATH(),
@@ -203,8 +197,19 @@ class CIMLocalClassPath(CIMObjectLocation):
 class CIMClassPath(CIMObjectLocation):
 
     def __init__(self, host, localnamespacepath, classname):
-        CIMObjectLocation.__init__(self, host, localnamespacepath, classname,
-                                   None)
+
+        if not isinstance(host, StringTypes):
+            raise TypeError('host argument must be a string')
+
+        if not isinstance(localnamespacepath, StringTypes):
+            raise TypeError('localnamespacepath argument must be a string')
+
+        if not isinstance(classname, StringTypes):
+            raise TypeError('classname argument must be a string')
+
+        CIMObjectLocation.__init__(self, host = host,
+                                   localnamespacepath = localnamespacepath,
+                                   classname = classname)
 
     def tocimxml(self):
         return cim_xml.CLASSPATH(self.NAMESPACEPATH(), self.CLASSNAME())
@@ -222,8 +227,16 @@ class CIMClassPath(CIMObjectLocation):
 class CIMLocalInstancePath(CIMObjectLocation):
 
     def __init__(self, localnamespacepath, instancename):
-        CIMObjectLocation.__init__(self, None, localnamespacepath, None,
-                                   instancename)
+
+        if not isinstance(localnamespacepath, StringTypes):
+            raise TypeError('localnamespacepath argument must be a string')
+
+        if not isinstance(instancename, CIMInstanceName):
+            raise TypeError('instancename argument must be a CIMInstanceName')
+
+        CIMObjectLocation.__init__(self,
+                                   localnamespacepath = localnamespacepath,
+                                   instancename = instancename)
 
     def tocimxml(self):
         return cim_xml.LOCALINSTANCEPATH(self.LOCALNAMESPACEPATH(),
@@ -241,8 +254,19 @@ class CIMLocalInstancePath(CIMObjectLocation):
 class CIMInstancePath(CIMObjectLocation):
 
     def __init__(self, host, localnamespacepath, instancename):
-        CIMObjectLocation.__init__(self, host, localnamespacepath, None,
-                                   instancename)
+
+        if not isinstance(host, StringTypes):
+            raise TypeError('host argument must be a string')
+
+        if not isinstance(localnamespacepath, StringTypes):
+            raise TypeError('localnamespacepath argument must be a string')
+
+        if not isinstance(instancename, CIMInstanceName):
+            raise TypeError('instancename argument must be a CIMInstanceName')
+
+        CIMObjectLocation.__init__(self, host = host,
+                                   localnamespacepath = localnamespacepath,
+                                   instancename = instancename)
 
     def tocimxml(self):
         return cim_xml.INSTANCEPATH(self.NAMESPACEPATH(),
@@ -257,6 +281,7 @@ class CIMInstancePath(CIMObjectLocation):
         return '//%s/%s:%s' % (self.host, self.localnamespacepath,
                                str(self.instancename))
 
+# Object value elements
 
 class CIMProperty(XMLObject):
     """A property of a CIMInstance.
@@ -419,14 +444,14 @@ class CIMPropertyReference(XMLObject):
 # Object definition classes
 #
 
-class CIMInstanceName(DictObject):
+class CIMInstanceName(XMLObject):
     """Name (keys) identifying an instance.
 
     This may be treated as a dictionary to retrieve the keys."""
 
     def __init__(self, classname, bindings = {}):
         self.classname = classname
-        self.data = bindings
+        self.bindings = bindings
         self.qualifiers = {}
 
     def __cmp__(self, other):
@@ -436,48 +461,68 @@ class CIMInstanceName(DictObject):
             return 1
 
         return cmp(self.classname, other.classname) or \
-               cmp(self.data, other.data) or \
+               cmp(self.bindings, other.bindings) or \
                cmp(self.qualifiers, other.qualifiers)
 
     def __str__(self):
         s = '%s.' % self.classname
 
-        for key, value in self.data.items():
+        for key, value in self.bindings.items():
+
             s = s + '%s=' % key
+
             if type(value) == int:
                 s = s + str(value)
             else:
-                s = s + '"%s",' % value
+                s = s + '"%s"' % value
+
+            s = s + ','
+            
         return s[:-1]
 
     def __repr__(self):
         return "%s(%s, %s)" % (self.__class__.__name__,
                                `self.classname`,
-                               `self.data`)
+                               `self.bindings`)
         
+    # A whole bunch of dictionary methods that map to the equivalent
+    # operation on self.bindings.
+
+    def __getitem__(self, key): return self.bindings[key]
+    def __delitem__(self, key): del self.bindings[key]
+    def __setitem__(self, key, value): self.bindings[key] = value
+    def __len__(self): return len(self.bindings)
+    def has_key(self, key): return self.bindings.has_key(key)
+    def keys(self): return self.bindings.keys()
+    def values(self): return self.bindings.values()
+    def items(self): return self.bindings.items()
+    def iterkeys(self): return self.bindings.iterkeys()
+    def itervalues(self): return self.bindings.itervalues()
+    def iteritems(self): return self.bindings.iteritems()
+
     def tocimxml(self):
 
         # Class with single key string property
         
-        if type(self.data) == str:
+        if type(self.bindings) == str:
             return cim_xml.INSTANCENAME(
                 self.classname,
-                cim_xml.KEYVALUE(self.data, 'string'))
+                cim_xml.KEYVALUE(self.bindings, 'string'))
 
         # Class with single key numeric property
         
-        if type(self.data) == int:
+        if type(self.bindings) == int:
             return cim_xml.INSTANCENAME(
                 self.classname,
-                cim_xml.KEYVALUE(str(self.data), 'numeric'))
+                cim_xml.KEYVALUE(str(self.bindings), 'numeric'))
 
         # Dictionary of keybindings
 
-        if type(self.data) == dict:
+        if type(self.bindings) == dict:
 
             kbs = []
 
-            for kb in self.data.items():
+            for kb in self.bindings.items():
 
                 # Keybindings can be integers, booleans, strings or
                 # value references.                
@@ -513,10 +558,10 @@ class CIMInstanceName(DictObject):
         # Value reference
 
         return cim_xml.INSTANCENAME(
-            self.classname, cim_xml.VALUE_REFERENCE(self.data.tocimxml()))
+            self.classname, cim_xml.VALUE_REFERENCE(self.bindings.tocimxml()))
 
 
-class CIMInstance(UserDict.DictMixin):
+class CIMInstance(XMLObject):
     """Instance of a CIM Object.
 
     Has a classname (string), and named arrays of properties and qualifiers.
@@ -527,11 +572,11 @@ class CIMInstance(UserDict.DictMixin):
     ## TODO: Distinguish array from regular properties, perhaps by an
     ## is_array member.
 
-    def __init__(self, classname, prop_bindings = {}, qualifiers = {},
+    def __init__(self, classname, bindings = {}, qualifiers = {},
                  properties = []):
         """Create CIMInstance.
 
-        prop_bindings is a concise way to initialize property values;
+        bindings is a concise way to initialize property values;
         it is a dictionary from property name to value.  This is
         merely a convenience and gets the same result as the
         properties parameter.
@@ -545,14 +590,13 @@ class CIMInstance(UserDict.DictMixin):
         for prop in properties:
             self.properties[prop.name] = prop
         
-        for n, v in prop_bindings.items():
+        for n, v in bindings.items():
             if isinstance(v, CIMPropertyReference):
                 self.properties[n] = v
             else:
                 self.properties[n] = CIMProperty(n, value=v)
 
         self.qualifiers = qualifiers
-
 
     def __cmp__(self, other):
         if self is other:
@@ -570,15 +614,20 @@ class CIMInstance(UserDict.DictMixin):
         return '%s(classname=%s, ...)' % (self.__class__.__name__,
                                           `self.classname`)
 
-    def __getitem__(self, key):
-        return self.properties[key].value
+    # A whole bunch of dictionary methods that map to the equivalent
+    # operation on self.properties.
 
-    def __delitem__(self, key):
-        del self.properties[key]
-
-    def keys(self):
-        return self.properties.keys()
-
+    def __getitem__(self, key): return self.properties[key].value
+    def __delitem__(self, key): del self.properties[key]
+    def __len__(self): return len(self.properties)
+    def has_key(self, key): return self.properties.has_key(key)
+    def keys(self): return self.properties.keys()
+    def values(self): return self.properties.values()
+    def items(self): return self.properties.items()
+    def iterkeys(self): return self.properties.iterkeys()
+    def itervalues(self): return self.properties.itervalues()
+    def iteritems(self): return self.properties.iteritems()
+    
     def __setitem__(self, key, value):
 
         # Don't let anyone set integer or float values.  You must use
@@ -656,7 +705,11 @@ class CIMClass(XMLObject):
         return cim_xml.CLASS()
 
 
-class CIMMethod(DictObject):
+# TODO: Get rid of UserDict class here
+
+from UserDict import UserDict
+
+class CIMMethod(UserDict):
 
     def __init__(self, methodname, parameters = {}, qualifiers = {}):
         self.name = methodname
@@ -806,18 +859,20 @@ def tocimobj(_type, value):
         if value is None:
             return None
 
-        # TODO: The following regex only matches absolute CIM datetime
-        # values, not intervals.
-
-        import re
-        if not re.match('[0-9]{14,}\.[0-9]{6,}[+-][0-9]{3,}', value):
-            raise ValueError('Invalid Datetime format "%s"' % value)
-
-        # TODO: We can probably convert the datetime value into
-        # something more Pythonic like a time-tuple from the time
-        # module, or a class datetime from the datetime module
-        # available in Python 2.3.
-
+	tv_pattern = re.compile(r'^(\d{8})(\d{2})(\d{2})(\d{2})\.(\d{6})(:)(\d{3})')
+	date_pattern = re.compile(r'^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.(\d{6})([+|-])(\d{3})')
+	s = tv_pattern.search(value)
+	if s is None:
+		s = date_pattern.search(value)
+		if s is None:
+			raise ValueError('Invalid Datetime format "%s"' % value)
+		else:
+			g = s.groups()
+			return datetime(int(g[0]),int(g[1]),int(g[2]),int(g[3]),int(g[4]),int(g[5]),int(g[6]))
+	else:
+		g = s.groups()
+		return timedelta(days=int(g[0]),hours=int(g[1]),minutes=int(g[2]),seconds=int(g[3]),microseconds=int(g[4]))
+		
         return value
 
     raise ValueError('Invalid CIM type "%s"' % _type)

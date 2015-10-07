@@ -1,6 +1,6 @@
 #! /usr/bin/python
 #
-# (C) Copyright 2003, 2004 Hewlett-Packard Development Company, L.P.
+# (C) Copyright 2003-2005 Hewlett-Packard Development Company, L.P.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ data and interpret the result.
 
 import sys, string, re, os, socket
 import cim_obj
+from types import StringTypes
 
 class Error(Exception):
     """This exception is raised when a transport error occurs."""
@@ -59,18 +60,31 @@ def parse_url(url):
 
     return host, port, ssl
 
-def wbem_request(url, data, creds, headers = [], debug = 0):
+def wbem_request(url, data, creds, headers = [], debug = 0, x509 = None):
     """Send XML data over HTTP to the specified url. Return the
-    response in XML.  Uses Python's build-in httplib."""
+    response in XML.  Uses Python's build-in httplib.  x509 may be a
+    dictionary containing the location of the SSL certificate and key
+    files."""
 
     import httplib, base64, urllib
 
     host, port, ssl = parse_url(url)
 
     if ssl:
-        h = httplib.HTTPSConnection(host, port = port)
+
+        if x509 is not None:
+            cert_file = x509.get('cert_file')
+            key_file = x509.get('key_file', cert_file)
+        else:
+            cert_file = None
+            key_file = None
+
+        h = httplib.HTTPSConnection(host, port = port, key_file = key_file,
+                                    cert_file = cert_file)
     else:
         h = httplib.HTTPConnection(host, port = port)
+
+    data = '<?xml version="1.0" encoding="utf-8" ?>\n' + data
 
     h.putrequest('POST', '/cimom')
 
@@ -85,7 +99,6 @@ def wbem_request(url, data, creds, headers = [], debug = 0):
 
     try:
         h.endheaders()
-        h.send('<?xml version="1.0" encoding="utf-8" ?>\n')
         h.send(data)
 
         response = h.getresponse()
@@ -103,9 +116,9 @@ def wbem_request(url, data, creds, headers = [], debug = 0):
     except httplib.BadStatusLine, arg:
         raise Error("The web server returned a bad status line: '%s'" % arg)
     except socket.error, arg:
-        raise Error("Socket error: %s" % arg[1])
+        raise Error("Socket error: %s" % (arg,))
     except socket.sslerror, arg:
-        raise Error("SSL error: %s" % arg[1])
+        raise Error("SSL error: %s" % (arg,))
 
     return response.read()
 
@@ -115,10 +128,10 @@ def get_object_header(obj):
     using the given object.  Return None if the object does not need
     to have a header."""
 
-    # CIMLocalNamespacePath
+    # Local namespacepath
 
-    if isinstance(obj, cim_obj.CIMLocalNamespacePath):
-        return 'CIMObject: %s' % obj.localnamespacepath
+    if isinstance(obj, StringTypes):
+        return 'CIMObject: %s' % obj
 
     # CIMLocalClassPath
 

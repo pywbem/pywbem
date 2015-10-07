@@ -450,7 +450,7 @@ def parse_namespacepath(tt):
     host = parse_host(kids(tt)[0])
     localnspath = parse_localnamespacepath(kids(tt)[1])
 
-    return cim_obj.CIMNamespacePath(host, localnspath.localnamespacepath)
+    return cim_obj.CIMNamespacePath(host, localnspath)
 
 
 def parse_localnamespacepath(tt):
@@ -465,7 +465,7 @@ def parse_localnamespacepath(tt):
 
     ns_list = list_of_various(tt, ['NAMESPACE'])
 
-    return cim_obj.CIMLocalNamespacePath(string.join(ns_list, '/'))
+    return string.join(ns_list, '/')
 
 
 def parse_host(tt):
@@ -522,8 +522,7 @@ def parse_localclasspath(tt):
     localnspath = parse_localnamespacepath(kids(tt)[0])
     classname = parse_classname(kids(tt)[1])
 
-    return cim_obj.CIMLocalClassPath(localnspath.localnamespacepath,
-                                     classname.classname)
+    return cim_obj.CIMLocalClassPath(localnspath, classname.classname)
 
 def parse_classname(tt):
     """
@@ -567,8 +566,7 @@ def parse_localinstancepath(tt):
     localnspath = parse_localnamespacepath(kids(tt)[0])
     instancename = parse_instancename(kids(tt)[1])
 
-    return cim_obj.CIMLocalInstancePath(
-        localnspath.localnamespacepath, instancename)
+    return cim_obj.CIMLocalInstancePath(localnspath, instancename)
 
 
 def parse_instancename(tt):

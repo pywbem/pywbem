@@ -27,6 +27,8 @@ uint8, uint16, uint32 etc, while still being able to treat it as a
 integer.
 """
 
+from datetime import datetime, timedelta
+
 class CIMType:
     """Base type for all CIM types."""
 
@@ -101,6 +103,9 @@ def cimtype(obj):
     if isinstance(obj, list):
         return cimtype(obj[0])
 
+    if isinstance(obj, (datetime, timedelta)):
+        return 'datetime'
+
     raise TypeError("Invalid CIM type for %s" % obj)
 
 
@@ -111,6 +116,26 @@ def atomic_to_cim_xml(obj):
             return "true"
         else:
             return "false"
+
+    elif isinstance(obj, datetime):
+
+        # TODO: Figure out UTC offset stuff
+
+        return '%d%02d%02d%02d%02d%02d%06d+000' % \
+               (obj.year, obj.month, obj.day, obj.hour,
+                obj.minute, obj.second, obj.microsecond)
+
+    elif isinstance(obj, timedelta):
+
+        # Turn seconds into hours, minutes and seconds
+        
+        hour = obj.seconds / 3600
+        minute = (obj.seconds - hour * 3600) / 60
+        second = obj.seconds - hour * 3600 - minute * 60
+        
+        return '%08d%02d%02d%02d.%06d:000' % \
+               (obj.days, hour, minute, second, obj.microseconds)
+
     else:
         return unicode(obj)
     

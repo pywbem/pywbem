@@ -48,7 +48,6 @@ The following CIM types have corresponding Python classes:
 
     CIMObjectPath
     CIMClassName
-    CIMLocalNamespacePath
     CIMNamespacePath
     CIMLocalClassPath
     CIMClassPath
