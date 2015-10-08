@@ -1,4 +1,4 @@
-pywbem-0.8.0-dev.r728
+pywbem-0.8.0-dev  2015-10-08
 
   ENHANCEMENTS:
 
@@ -12,7 +12,7 @@ pywbem-0.8.0-dev.r728
 
     * Added support for non-ASCII (Unicode) characters.  (Michal Minar, Andreas
       Maier)
-      
+
     * Improved information in the message text of some exceptions (TypeError
       and KeyError in cim_obj.py, ValueError in cim_obj.py, and ParseError in
       tupleparse.py).  (Andreas Maier)
@@ -39,13 +39,13 @@ pywbem-0.8.0-dev.r728
     * Improved the way missing OWLocal authorization with the OpenWBEM server
       is handled on Windows, by now issuing a proper error message instead of
       stumbling across the missing os.getuid() function.  (Andreas Maier)
-      
+
     * Improved Windows portability by no longer attempting to import 'pwd' in
       case the userid is not set in the environment variables that are checked
       when the WBEM server is local.  (Andreas Maier)
 
     * Added support for ExecQuery operation to twisted client.  (Robert Booth)
-    
+
     * Added get() methods on CIMInstance and CIMInstanceName to step up to the
       statement that they behave like dictionaries w.r.t. properties and key
       bindings.  (Andreas Maier)
@@ -166,23 +166,23 @@ pywbem-0.8.0-dev.r728
     * Fixed the issue in the CIMProperty constructor that specifying a tuple
       for the 'value' argument was incorrectly detected to be a scalar (and not
       an array).  (Andreas Maier)
-    
+
     * Fixed the issue in the CIMProperty constructor that specifying a
       datetime or timedelta typed value resulted in storing the provided object
       in the 'value' attribute, instead of converting it to a CIMDateTime
       object.  (Andreas Maier)
-    
+
     * Fixed the issue in the CIMProperty constructor that specifying a datetime
       formatted string typed 'value' argument along with type='datetime'
       resulted in storing the provided string object in the 'value' attribute,
       instead of converting it to a CIMDateTime object.  (Andreas Maier)
-    
+
     * Fixed several cases in the CIMProperty constructor of unnecessarily
       requiring the optional arguments 'type', 'is_array', 'embedded_object',
       or 'reference_class'. These optional arguments are now only necessary to
       be provided if they cannot be implied from provided arguments (mainly
       from 'value').  (Andreas Maier)
-    
+
     * Fixed the issue in the CIMProperty constructor that an 'embedded_object'
       argument value of 'object' was changed to 'instance' when a CIMInstance
       typed 'value' argument was also provided.  (Andreas Maier)
@@ -191,7 +191,7 @@ pywbem-0.8.0-dev.r728
       element was used for defaulting the 'type' attribute, without checking
       that for None, causing an exception to be raised in this case.
       (Andreas Maier)
-    
+
     * Added a check in the CIMProperty constructor that the 'name' argument is
       not None.  (Andreas Maier)
 
@@ -225,7 +225,7 @@ pywbem-0.8.0-dev.r728
 
      * Added CIM-XML declaration support for alternative PyWBEM client based
        on twisted.  (Andreas Maier)
- 
+
      * Added support for Windows to wbemcli.py, by making dependency on HOME
        environment variable optional, and adding HOMEPATH environment variable.
        Also, cleaned up the global namespace of wbemcli.py and made it
@@ -246,6 +246,13 @@ pywbem-0.8.0-dev.r728
          changes the behavior of CIMMethod.tomof() to now generate the method
          qualifiers.
        (Andreas Maier)
+
+     * Fixed error where invoking mof_compiler.py with a file based URL that
+       did not start with 'file:' failed with an undefined variable url_ in
+       cim_http.py. Issue #1 on GitHub.  (Klaus Kaempf, Andreas Maier)
+
+     * Fixed build error that raised a YaccError in mof_compiler.py:
+       "Syntax error. Expected ':'". Issue #2 on GitHub.  (Andreas Maier)
 
   TESTING:
 
@@ -276,7 +283,7 @@ pywbem-0.8.0-dev.r728
     * Fix: Replaced the "rm -fr ..." command in the comfychair testcase
       constructor with shutil.rmtree(), in order to better run on Windows.
       (Andreas Maier)
-  
+
     * Fix: In comfychair._enter_rundir(), moved registration of cleanup
       function _restore_directory() to the end, so cleanup happens only if no
       errors happened.  (Andreas Maier)
@@ -295,7 +302,7 @@ pywbem-0.8.0-dev.r728
       (Andreas Maier)
 
   CLEAN CODE:
-    
+
     * Removed dangerous default parameter '{}' from CIMProperty and
       CIMInstanceName, and replaced it with 'None'. To support that, added
       support for initializing an empty NocaseDict object from 'None'.
