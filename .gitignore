@@ -1,5 +1,9 @@
 .project
 .settings/
+*.pyc
+src/MANIFEST
+src/MANIFEST.in
 src/parser.out
+src/pywbem/docs/
 src/pywbem/moflextab.py
 src/pywbem/mofparsetab.py
