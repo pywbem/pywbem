@@ -1,42 +1,51 @@
 # ------------------------------------------------------------------------------
-# Development makefile for PyWBEM
+# Makefile for pywbem
 #
-# Supported platforms for this makefile:
-#   Windows and Linux
+# Supported platforms:
+#   Windows
+#   Linux
 #
-# Prerequisite commands:
-#   make (GNU make)
-#   sh - used to make sure some commands are executed in unix shell on Windows
-#   rm, test, find, unzip, sed, xargs, tee
-#   Note: On Windows, use CygWin to get these commands.
+# Prerequisites for usage:
+#   Python >=2.6.9, >=2.7.6
+#   For Python packages, see requirements.txt
 #
-# Python related prerequisites for this makefile:
-#   Python 2.6 or 2.7
-#   Packages:
-#     epydoc 3.0.1 plus patches
-#     docutils 0.12
+# Additional prerequisites for development:
+#   Commands (On Windows, use CygWin to get these commands):
+#     make (GNU make)
+#     sh - makes sure commands are executed in a Unix shell when on Windows
+#     rm, test, find, unzip, sed, xargs, tee, grep
+#     pylint >=1.1.0
+#   For Python packages, see build-requirements.txt
+#     - for epydoc, the following patches are needed on top of its v3.0.1:
+#       http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/packages/epydoc/
 # ------------------------------------------------------------------------------
 
 # Name of this Python package
 package_name := pywbem
 
 # Version of this Python package
-package_version := $(shell python -B setup.py --version)
+#package_version := $(shell python -B setup.py --version)
+package_initpy_version := $(shell sh -c "grep __version__ pywbem/__init__.py | sed -r 's/__version__ *= *\x27(.*)\x27.*/\1/'")
+# The package_initpy_version can have these formats:
+#   M.N.U-dev  : During development of future M.N.U release
+#   M.N.U-rc.1 : Release candidate 1 of future M.N.U release
+#   M.N.U      : The final M.N.U release
+# If the format is the development format, we append the current date:
+package_version := $(if $(findstring -dev,$(package_initpy_version)),$(shell sh -c "date +$(package_initpy_version).%Y%m%d"),$(package_initpy_version))
 package_final_version := $(shell sh -c "echo $(package_version) | sed s/-.*//")
-
-# Latest commit level of this Python package
-last_commit := $(strip $(shell sh -c "svn log .. -l 1 -q |grep -E ^r[0-9]+ |cut -d ' ' -f 1"))
 
 # Directory for the generated distribution files
 dist_dir := ../dist/$(package_name)-$(package_final_version)
 
-# Generated distribution files (used as dependent).
-# dist_build_file must be what setup.py creates in its build.
-# It will then be renamed to dist_file.
-dist_build_file := $(dist_dir)/$(package_name)-$(package_version).zip
-dist_file := $(dist_dir)/$(package_name)-$(package_version).$(last_commit).zip
-
-win64_dist_file := $(dist_dir)/$(package_name)-$(package_version).$(last_commit).win-amd64.exe
+# Generated distribution files:
+# File created by setup.py sdist
+dist_built_file := $(dist_dir)/$(package_name)-$(package_initpy_version).zip
+# Final file
+dist_file := $(dist_dir)/$(package_name)-$(package_version).zip
+# File created by setup.py bdist_wininst
+win64_dist_built_file := $(dist_dir)/$(package_name)-$(package_initpy_version).win-amd64.exe
+# Final file
+win64_dist_file := $(dist_dir)/$(package_name)-$(package_version).win-amd64.exe
 
 # Directory for generated API documentation
 doc_out_dir := $(package_name)/docs
@@ -45,13 +54,11 @@ doc_out_dir := $(package_name)/docs
 doc_html_files := \
     $(doc_out_dir)/index.html \
 
-# Documentation generator commands
-pdoc_cmd := pdoc --overwrite --html --html-dir $(doc_out_dir) $(package_name)
-epydoc_cmd := epydoc --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_out_dir) $(package_name)
-doc_cmd := $(epydoc_cmd)
+# Documentation generator command
+doc_cmd := epydoc --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_out_dir) $(package_name)
 
 # PyLint config file
-pylint_rc_file := ../../pylint.rc
+pylint_rc_file := pylint.rc
 
 # Files to be put into distribution archive.
 # Keep in sync with dist_dependent_files.
@@ -64,7 +71,7 @@ dist_manifest_in_files := \
     *.py \
     $(package_name)/*.py \
     $(package_name)/NEWS \
-    $(doc_out_dir)/*.html \
+    $(doc_out_dir)/* \
 
 # Files that are dependents of the distribution archive.
 # Keep in sync with dist_manifest_in_files.
@@ -80,18 +87,18 @@ dist_dependent_files := \
 # No built-in rules needed:
 .SUFFIXES:
 
-.PHONY: build buildwin test install clean help showstatus
+.PHONY: build buildwin test install clean clobber all help
 
-build: showstatus $(dist_file)
+build: $(dist_file)
 	@echo '$@ done; created: $(dist_file)'
 
-buildwin: showstatus $(win64_dist_file)
+buildwin: $(win64_dist_file)
 	@echo '$@ done; created: $(win64_dist_file)'
 
 check: pylint_report.html
 	@echo '$@ done; for results see pylint_report.html'
 
-test:   install
+test: install
 	-sh -c "cd testsuite; ./runtests.sh 2>&1 |tee runtests.log"
 	@echo '$@ done; for results see testsuite/runtests.log'
 
@@ -101,29 +108,31 @@ install: build
 	rm -Rf tmp_install
 	@echo '$@ done.'
 
+clobber: clean
+	rm -f MANIFEST.in pywbem/mofparsetab.py pywbem/moflextab.py pylint_report.html
+	@echo '$@ done.'
+
 clean:
 	rm -f MANIFEST parser.out
 	sh -c "find . -name \"*.pyc\" | xargs -r rm"
 	rm -Rf build tmp_install testtmp testsuite/testtmp
 	@echo '$@ done.'
 
-all: build check test install clean
+all: build check test clean
 	@echo '$@ done.'
 
-showstatus:
-	@echo 'SVN status:'
-	@svn status -u
-
 help:
-	@echo 'makefile for $(package_name) $(package_version)'
+	@echo 'makefile for $(package_name)'
+	@echo 'Package version will be: $(package_version)'
 	@echo 'Valid targets are:'
-	@echo '  build   - (default) Build the distribution archive: $(dist_file)'
-#	@echo '  buildwin - (On 64-bit Windows) Build the Windows installable: $(win64_dist_file)'
-	@echo '  check   - Run PyLint on sources.'
-	@echo '  test    - Run unit tests.'
-	@echo '  install - Build and install the distribution archive on your system as a site package.'
-	@echo '  clean   - Remove any temporary files.'
-	@echo '  all     - build, check, test, install, clean'
+	@echo '  build    - (default) Build the distribution archive: $(dist_file)'
+	@echo '  buildwin - (On 64-bit Windows) Build the Windows installable: $(win64_dist_file)'
+	@echo '  check    - Run PyLint on sources'
+	@echo '  install  - build + install the distribution archive on your system as a site package'
+	@echo '  test     - install + run unit tests'
+	@echo '  clean    - Remove any temporary files'
+	@echo '  clobber  - clean + remove any build products'
+	@echo '  all      - build + check + test + clean'
 
 # Note: distutils depends on the right files specified in MANIFEST.in, even when
 # they are already specified e.g. in 'package_data' in setup.py.
@@ -138,12 +147,13 @@ MANIFEST.in: makefile
 # regenerate MANIFEST. Otherwise, changes in MANIFEST.in will not be used.
 $(dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 	rm -f MANIFEST
-	python setup.py build sdist -d $(dist_dir)
-	mv $(dist_build_file) $(dist_file)
+	python setup.py sdist -d $(dist_dir) --formats=zip
+	mv $(dist_built_file) $(dist_file)
 
 $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 	rm -f MANIFEST
-	python setup.py build bdist_wininst -d $(dist_dir) -o -t "PyWBEM v$(package_version)" 
+	python setup.py bdist_wininst -d $(dist_dir) -o -t "PyWBEM v$(package_version)" 
+	mv $(win64_dist_built_file) $(win64_dist_file)
 
 # Documentation for package (generates more .html files than just this target)
 $(doc_out_dir)/index.html: $(package_name)/*.py
