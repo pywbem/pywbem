@@ -1,0 +1,5 @@
+.project
+.settings/
+src/parser.out
+src/pywbem/moflextab.py
+src/pywbem/mofparsetab.py
