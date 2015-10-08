@@ -19,6 +19,11 @@
 # Author: Bart Whiteley <bwhiteley suse.de>
 #
 
+# Note: This module contains yacc rules in docstrings of its functions.
+# The version of yacc that is used (yacc 2.3) requires each choice of such a
+# rule to be on a single line, and the first choice to be on the same line as
+# the rule name.
+
 import sys
 import os
 from getpass import getpass
@@ -179,14 +184,14 @@ def p_error(p):
     ex.context = _get_error_context(p.lexer.parser.mof, p)
     raise ex
 
-
+# First function with a yacc rule in its docstring.
 def p_mofSpecification(p):
     """mofSpecification : mofProductionList"""
 
 def p_mofProductionList(p):
     """mofProductionList : empty
                          | mofProductionList mofProduction
-                           """
+                         """
 
 def p_mofProduction(p):
     """mofProduction : compilerDirective
@@ -445,17 +450,15 @@ def p_pragmaParameter(p):
     p[0] = _fixStringValue(p[1])
 
 def p_classDeclaration(p):
-    """classDeclaration :
-          CLASS className '{' classFeatureList '}' ';'
-        | CLASS className superClass '{' classFeatureList '}' ';'
-        | CLASS className alias '{' classFeatureList '}' ';'
-        | CLASS className alias superClass '{' classFeatureList '}' ';'
-        | qualifierList CLASS className '{' classFeatureList '}' ';'
-        | qualifierList CLASS className superClass '{' classFeatureList '}' ';'
-        | qualifierList CLASS className alias '{' classFeatureList '}' ';'
-        | qualifierList CLASS className alias superClass '{'
-                                              classFeatureList '}' ';'
-    """
+    """classDeclaration : CLASS className '{' classFeatureList '}' ';'
+                        | CLASS className superClass '{' classFeatureList '}' ';'
+                        | CLASS className alias '{' classFeatureList '}' ';'
+                        | CLASS className alias superClass '{' classFeatureList '}' ';'
+                        | qualifierList CLASS className '{' classFeatureList '}' ';'
+                        | qualifierList CLASS className superClass '{' classFeatureList '}' ';'
+                        | qualifierList CLASS className alias '{' classFeatureList '}' ';'
+                        | qualifierList CLASS className alias superClass '{' classFeatureList '}' ';'
+                        """
     superclass = None
     alias = None
     quals = []
@@ -514,32 +517,22 @@ def p_classFeatureList(p):
         p[0] = p[1] + [p[2]]
 
 def p_assocDeclaration(p):
-    """assocDeclaration :
-          '[' ASSOCIATION qualifierListEmpty ']' CLASS className '{'
-                associationFeatureList '}' ';'
-        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className superClass '{'
-                associationFeatureList '}' ';'
-        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias '{'
-                associationFeatureList '}' ';'
-        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias
-                superClass '{' associationFeatureList '}' ';'
-    """
+    """assocDeclaration : '[' ASSOCIATION qualifierListEmpty ']' CLASS className '{' associationFeatureList '}' ';'
+                        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className superClass '{' associationFeatureList '}' ';'
+                        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias '{' associationFeatureList '}' ';'
+                        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias superClass '{' associationFeatureList '}' ';'
+                        """
     aqual = CIMQualifier('ASSOCIATION', True, type='boolean')
     # TODO flavor trash.
     quals = [aqual] + p[3]
     p[0] = _assoc_or_indic_decl(quals, p)
 
 def p_indicDeclaration(p):
-    """indicDeclaration :
-          '[' INDICATION qualifierListEmpty ']' CLASS className '{'
-                classFeatureList '}' ';'
-        | '[' INDICATION qualifierListEmpty ']' CLASS className superClass '{'
-                classFeatureList '}' ';'
-        | '[' INDICATION qualifierListEmpty ']' CLASS className alias '{'
-                classFeatureList '}' ';'
-        | '[' INDICATION qualifierListEmpty ']' CLASS className alias
-                superClass '{' classFeatureList '}' ';'
-    """
+    """indicDeclaration : '[' INDICATION qualifierListEmpty ']' CLASS className '{' classFeatureList '}' ';'
+                        | '[' INDICATION qualifierListEmpty ']' CLASS className superClass '{' classFeatureList '}' ';'
+                        | '[' INDICATION qualifierListEmpty ']' CLASS className alias '{' classFeatureList '}' ';'
+                        | '[' INDICATION qualifierListEmpty ']' CLASS className alias superClass '{' classFeatureList '}' ';'
+                        """
     iqual = CIMQualifier('INDICATION', True, type='boolean')
     # TODO flavor trash.
     quals = [iqual] + p[3]
@@ -744,8 +737,7 @@ def p_propertyDeclaration_5(p):
     p[0] = CIMProperty(p[3], None, type=p[2], qualifiers=quals)
 
 def p_propertyDeclaration_6(p):
-    """propertyDeclaration_6 : qualifierList dataType propertyName
-                               defaultValue ';'"""
+    """propertyDeclaration_6 : qualifierList dataType propertyName defaultValue ';'"""
     quals = dict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], cim_obj.tocimobj(p[2], p[4]),
                                type=p[2], qualifiers=quals)
@@ -757,20 +749,18 @@ def p_propertyDeclaration_7(p):
                                is_array=True, array_size=p[4])
 
 def p_propertyDeclaration_8(p):
-    """propertyDeclaration_8 : qualifierList dataType propertyName array
-                               defaultValue ';'"""
+    """propertyDeclaration_8 : qualifierList dataType propertyName array defaultValue ';'"""
     quals = dict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], cim_obj.tocimobj(p[2], p[5]),
                                type=p[2], qualifiers=quals, is_array=True,
                                array_size=p[4])
 
 def p_referenceDeclaration(p):
-    """referenceDeclaration :
-          objectRef referenceName ';'
-        | objectRef referenceName defaultValue ';'
-        | qualifierList objectRef referenceName ';'
-        | qualifierList objectRef referenceName defaultValue ';'
-    """
+    """referenceDeclaration : objectRef referenceName ';'
+                            | objectRef referenceName defaultValue ';'
+                            | qualifierList objectRef referenceName ';'
+                            | qualifierList objectRef referenceName defaultValue ';'
+                            """
     quals = []
     dv = None
     if isinstance(p[1], list): # qualifiers
@@ -789,12 +779,11 @@ def p_referenceDeclaration(p):
                                reference_class=cname, qualifiers=quals)
 
 def p_methodDeclaration(p):
-    """methodDeclaration :
-          dataType methodName '(' ')' ';'
-        | dataType methodName '(' parameterList ')' ';'
-        | qualifierList dataType methodName '(' ')' ';'
-        | qualifierList dataType methodName '(' parameterList ')' ';'
-    """
+    """methodDeclaration : dataType methodName '(' ')' ';'
+                         | dataType methodName '(' parameterList ')' ';'
+                         | qualifierList dataType methodName '(' ')' ';'
+                         | qualifierList dataType methodName '(' parameterList ')' ';'
+                         """
     paramlist = []
     quals = []
     if isinstance(p[1], basestring): # no quals
@@ -1047,10 +1036,9 @@ def p_objectHandle(p):
     p[0] = p[1]
 
 def p_qualifierDeclaration(p):
-    """qualifierDeclaration :
-          QUALIFIER qualifierName qualifierType scope ';'
-        | QUALIFIER qualifierName qualifierType scope defaultFlavor ';'
-    """
+    """qualifierDeclaration : QUALIFIER qualifierName qualifierType scope ';'
+                            | QUALIFIER qualifierName qualifierType scope defaultFlavor ';'
+                            """
     qualtype = p[3]
     dt, is_array, array_size, value = qualtype
     qualname = p[2]
@@ -1181,13 +1169,11 @@ def p_flavorListWithComma(p):
         p[0] = p[1] + [p[3]]
 
 def p_instanceDeclaration(p):
-    """instanceDeclaration :
-          INSTANCE OF className '{' valueInitializerList '}' ';'
-        | INSTANCE OF className alias '{' valueInitializerList '}' ';'
-        | qualifierList INSTANCE OF className '{' valueInitializerList '}' ';'
-        | qualifierList INSTANCE OF className alias '{'
-                valueInitializerList '}' ';'
-    """
+    """instanceDeclaration : INSTANCE OF className '{' valueInitializerList '}' ';'
+                           | INSTANCE OF className alias '{' valueInitializerList '}' ';'
+                           | qualifierList INSTANCE OF className '{' valueInitializerList '}' ';'
+                           | qualifierList INSTANCE OF className alias '{' valueInitializerList '}' ';'
+                           """
     alias = None
     quals = {}
     ns = p.parser.handle.default_namespace
