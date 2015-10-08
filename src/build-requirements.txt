@@ -1,0 +1,5 @@
+# Python package requirements for pywbem usage.
+# Pip processes the packages in order of appearance.
+
+epydoc>=3.0.1
+docutils>=0.12
