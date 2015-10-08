@@ -478,6 +478,8 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
         else:
             if url.startswith('file:'):
                 url_ = url[5:]
+            else:
+                url_ = url
             try:
                 s = os.stat(url_)
                 if S_ISSOCK(s.st_mode):
