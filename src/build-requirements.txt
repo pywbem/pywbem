@@ -3,3 +3,6 @@
 
 epydoc>=3.0.1
 docutils>=0.12
+httpretty
+lxml
+# lxml requires these linux packages before installing it: libxml2-dev libxslt1-dev
