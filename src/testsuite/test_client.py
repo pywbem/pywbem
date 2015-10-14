@@ -118,7 +118,7 @@ class ClientTest(TestCase):
         ns1 = etree.tostring(x1)
         x2 = etree.XML(s2, parser=parser)
         ns2 = etree.tostring(x2)
-        
+
         return self.assert_equal(ns1, ns2)
 
     def runtest(self):
@@ -210,7 +210,7 @@ class ClientTest(TestCase):
         # Validate HTTP request produced by PyWBEM
 
         http_request = httpretty.last_request()
-        exp_verb = tc_getattr(tc_name, exp_http_request, "verb", "POST")
+        exp_verb = tc_getattr(tc_name, exp_http_request, "verb")
         self.assert_equal(http_request.method, exp_verb)
         exp_headers = tc_getattr(tc_name, exp_http_request, "headers", {})
         for header_name in exp_headers:
