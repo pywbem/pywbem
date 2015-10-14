@@ -107,27 +107,27 @@ Top-level elements
 
 The top-level elements in the test case YAML are:
 
-* `name`
+* `name`:
   A name for the test case that is used in error messages.
 
-* `description`
+* `description`:
   A short description of the testcase.
 
-* `pywbem_request`
+* `pywbem_request`:
   A specification of the PyWBEM client function to test, and the input
   arguments for its invocation.
 
-* `pywbem_response`
+* `pywbem_response`:
   A specification of the expected result of the PyWBEM client function that is
   being tested. It is possible to specify expected CIM status codes, other
   Python exceptions, or the resulting object in case of success.
 
-* `http_request`
+* `http_request`:
   A specification of the expected HTTP request the PyWBEM client produced
   for the client function that is being tested. This includes the first line
   of the HTTP request, any HTTP headers, and the CIM body data (the CIM-XML)
 
-* `http_response`
+* `http_response`:
   The HTTP response for the PyWBEM client function that will be handed back
   to the client function that is being tested.
   It is possible to specify successful eresponses, error responses, and even
@@ -209,13 +209,13 @@ Elements in `http_request` element
   Note that this is the url specified as an argument to pywbem.WBEMConnection,
   appended with "/cimom".
 
-* `headers:
+* `headers`:
   The expected HTTP header fields in the HTTP request. Only the onese specified
   here are verified, others may be present and will not be verified.
 
   The name of the element is the header field name, and its value is the
   header field value. Header field names are treated case insensitively.
-  
+
 * `data`:
   The expected CIM-XML payload of the request. When comparing the actual CIM-XML
   to the expected CIM-XML, whitespace in between XML elements (tags) and
@@ -228,7 +228,7 @@ Elements in `http_response` element
   The numerical HTTP status in the HTTP response handed back to the PyWBEM
   client (e.g. 200).
 
-* `headers:
+* `headers`:
   The HTTP header fields in the HTTP response handed back to the PyWBEM
   client.
 
@@ -236,7 +236,7 @@ Elements in `http_response` element
 
   The name of the element is the header field name, and its value is the
   header field value. Header field names are treated case insensitively.
-  
+
 * `data`:
   The CIM-XML payload in the HTTP response handed back to the PyWBEM
   client. The CIm-XML is handed back as resulting from the specified
