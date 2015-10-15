@@ -80,7 +80,7 @@ The following YAML is an example for one testcase in such a file:
         http_response:
             status: 200
             headers:
-                Content-Type: application/xml
+                CIMOperation: MethodResponse
             data: >
                 <?xml version="1.0" encoding="utf-8" ?>
                 <CIM CIMVERSION="2.0" DTDVERSION="2.0">

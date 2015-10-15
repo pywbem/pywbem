@@ -106,7 +106,7 @@ def tc_hasattr(dict_, key):
 class ClientTest(TestCase):
     """Test case for PyWBEM client testing."""
 
-    def assert_xml_equal(self, s1, s2):
+    def assert_xml_equal(self, s1, s2, entity=None):
         """s1 and s2 are string representations of XML.
         This function asserts that the two XML strings are equal,
         tolerating the usual XML variations:
@@ -119,7 +119,7 @@ class ClientTest(TestCase):
         x2 = etree.XML(s2, parser=parser)
         ns2 = etree.tostring(x2)
 
-        return self.assert_equal(ns1, ns2)
+        return self.assert_equal(ns1, ns2, entity)
 
     def runtest(self):
         """This method is called by comfychair when running this test.
@@ -211,16 +211,13 @@ class ClientTest(TestCase):
 
         http_request = httpretty.last_request()
         exp_verb = tc_getattr(tc_name, exp_http_request, "verb")
-        self.assert_equal(http_request.method, exp_verb)
+        self.assert_equal(http_request.method, exp_verb, "verb in HTTP request")
         exp_headers = tc_getattr(tc_name, exp_http_request, "headers", {})
         for header_name in exp_headers:
             self.assert_equal(http_request.headers[header_name],
-                              exp_headers[header_name])
-        # TBD: Add support for tolerating differences in CIM-XML:
-        # - Order of sibling elements of same name
-        # - Whitespace between elements
+                              exp_headers[header_name], "headers in HTTP request")
         exp_data = tc_getattr(tc_name, exp_http_request, "data", None)
-        self.assert_xml_equal(http_request.body, exp_data)
+        self.assert_xml_equal(http_request.body, exp_data, "data in HTTP request")
 
         # Validate PyWBEM result
 
@@ -242,22 +239,26 @@ class ClientTest(TestCase):
                                   tc_name)
 
         if exp_exception is not None:
-            self.assert_notequal(raised_exception, None)
+            self.assert_notequal(raised_exception, None, "PyWBEM exception object")
             raised_exception_name = raised_exception.__class__.__name__
-            self.assert_equal(raised_exception_name, exp_exception)
+            self.assert_equal(raised_exception_name, exp_exception, "PyWBEM exception name")
+        elif exp_cim_status != 0:
+            self.assert_notequal(raised_exception, None, "PyWBEM exception object")
+            raised_exception_name = raised_exception.__class__.__name__
+            self.assert_equal(raised_exception_name, "CIMError", "PyWBEM exception name")
         else:
-            self.assert_equal(raised_exception, None)
+            self.assert_equal(raised_exception, None, "PyWBEM exception object")
 
         if isinstance(raised_exception, pywbem.CIMError):
-            cim_status, cim_description, _ = raised_exception
+            cim_status = raised_exception[0]
         else:
             cim_status = 0
-        self.assert_equal(cim_status, exp_cim_status)
+        self.assert_equal(cim_status, exp_cim_status, "PyWBEM CIM status")
 
         if exp_result is not None:
-            self.assert_equal(result, obj(exp_result, tc_name))
+            self.assert_equal(result, obj(exp_result, tc_name), "PyWBEM CIM result")
         else:
-            self.assert_equal(result, None)
+            self.assert_equal(result, None, "PyWBEM CIM result")
 
 
 tests = [ # pylint: disable=invalid-name
