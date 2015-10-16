@@ -1,5 +1,6 @@
 .project
 .settings/
+.pydevproject
 *.pyc
 *.log
 src/MANIFEST
