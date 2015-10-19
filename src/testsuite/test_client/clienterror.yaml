@@ -1,0 +1,19 @@
+-
+    name: IncorrectArgType
+    description: GetInstance raises AttributeError before sending because of incorrect type for InstanceName argument
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstance
+                classname: PyWBEM_Person
+            LocalOnly: false
+    pywbem_response:
+        exception: AttributeError
