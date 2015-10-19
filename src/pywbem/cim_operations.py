@@ -319,6 +319,7 @@ class WBEMConnection(object):
       - `TypeError`
       - `KeyError`
       - `ValueError`
+      - `AttributeError`
       - ... possibly others ...
 
       Exceptions indicating programming errors should not happen and should be
