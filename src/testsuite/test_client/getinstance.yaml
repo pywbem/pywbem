@@ -1,6 +1,6 @@
 -
     name: GetInstance1
-    description: Successful GetInstance
+    description: GetInstance succeeds
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -87,7 +87,74 @@
             </CIM>
 -
     name: GetInstance2
-    description: GetInstance fails with namespace not found
+    description: GetInstance fails with CIM_ERR_ACCESS_DENIED
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                    Name: Fritz
+            LocalOnly: false
+    pywbem_response:
+        cim_status: 2
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>False</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetInstance">
+                    <ERROR CODE="2" DESCRIPTION="CIM_ERR_ACCESS_DENIED: Access denied"/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: GetInstance3
+    description: GetInstance fails with CIM_ERR_INVALID_NAMESPACE (and input params swapped)
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -123,6 +190,278 @@
                       <NAMESPACE NAME="root"/>
                       <NAMESPACE NAME="bad"/>
                     </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>False</VALUE>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetInstance">
+                    <ERROR CODE="3" DESCRIPTION="CIM_ERR_INVALID_NAMESPACE: Namespace root/bad not found"/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: GetInstance4
+    description: GetInstance fails with CIM_ERR_INVALID_PARAMETER
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                    Name: Fritz
+            LocalOnly: false
+            BadParam: false
+    pywbem_response:
+        cim_status: 4
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>False</VALUE>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="BadParam">
+                      <VALUE>False</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetInstance">
+                    <ERROR CODE="4" DESCRIPTION="CIM_ERR_INVALID_PARAMETER: Parameter BadParam is invalid"/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: GetInstance5
+    description: GetInstance fails with CIM_ERR_INVALID_CLASS
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_PersonBad
+                keybindings:
+                    Name: Fritz
+            LocalOnly: false
+    pywbem_response:
+        cim_status: 5
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_PersonBad">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>False</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetInstance">
+                    <ERROR CODE="5" DESCRIPTION="CIM_ERR_INVALID_CLASS: Class PyWBEM_PersonBad not found"/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: GetInstance6
+    description: GetInstance fails with CIM_ERR_NOT_FOUND
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                    Name: bad
+            LocalOnly: false
+    pywbem_response:
+        cim_status: 6
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">bad</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>False</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetInstance">
+                    <ERROR CODE="6" DESCRIPTION="CIM_ERR_NOT_FOUND: Instance with Name=bad not found"/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: GetInstance7
+    description: GetInstance fails with CIM_ERR_FAILED
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                    Name: Fritz
+            LocalOnly: false
+    pywbem_response:
+        cim_status: 1
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
@@ -147,7 +486,7 @@
               <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
                 <SIMPLERSP>
                   <IMETHODRESPONSE NAME="GetInstance">
-                    <ERROR CODE="3" DESCRIPTION="Namespace root/bad not found"/>
+                    <ERROR CODE="1" DESCRIPTION="CIM_ERR_FAILED: Internal server error"/>
                   </IMETHODRESPONSE>
                 </SIMPLERSP>
               </MESSAGE>
