@@ -224,6 +224,25 @@ Elements in `http_request` element
 Elements in `http_response` element
 -------------------------------------
 
+* `exception`:
+  The specification of an expected exception at the socket level, during sending
+  of the HTTP request, by specifying the name of the static method of the
+  `test_client.CallBack` class.
+
+  This is optional; if not specified, it defaults to None (=no exception is
+  raised). If specified, the other elements will be ignored.
+
+  The following method names can be specified:
+
+  * `socket_ssl`
+    A `socket.sslerror` exception with arbitrary error code.
+
+  * `socket_104`
+    A `socket.error` exception with error code 104.
+
+  * `socket_32`
+    A `socket.error` exception with error code 32.
+
 * `status`:
   The numerical HTTP status in the HTTP response handed back to the PyWBEM
   client (e.g. 200).
