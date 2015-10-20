@@ -6,4 +6,5 @@ the "-dev" suffix in the version string).
 
 The NEWS file in the download archive describes the changes up to now.
 
-Please report any issues using the PyWBEM bug tracker on SourceForge.
+Please report any issues using the
+[PyWBEM issue tracker on GitHub](https://github.com/pywbem/pywbem/issues).
