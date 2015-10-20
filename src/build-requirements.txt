@@ -2,8 +2,17 @@
 # Pip processes the packages in order of appearance.
 
 epydoc>=3.0.1
+# Notes on epydoc:
+# - These 3 patches are needed on top of epydoc 3.0.1:
+#   http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/packages/epydoc/
 docutils>=0.12
 httpretty
 lxml
-# lxml requires these linux packages before installing it: libxml2-dev libxslt1-dev
+# Notes on lxml:
+# - On Windows, install lxml from its binaries at:
+#   http://www.lfd.uci.edu/~gohlke/pythonlibs/#lxml
+# - lxml on Linux requires these OS level packages before its pip installation
+#   will succeed:
+#   - On Ubuntu: libxml2-dev libxslt1-dev
+#   - On RHEL: libxml2-devel libxslt-devel
 pyyaml

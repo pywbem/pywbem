@@ -16,8 +16,6 @@
 #     rm, test, find, unzip, sed, xargs, tee, grep
 #     pylint >=1.1.0
 #   For Python packages, see build-requirements.txt
-#     - for epydoc, the following patches are needed on top of its v3.0.1:
-#       http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/packages/epydoc/
 # ------------------------------------------------------------------------------
 
 # Name of this Python package
