@@ -138,7 +138,7 @@ Python 3 is not yet supported.
 Contributing
 ------------
 
-PyWBEM is on SourceForge (http://sourceforge.net/projects/pywbem/). Bug
+PyWBEM is on GitHub (https://github.com/pywbem/pywbem). Bug
 reports and discussion on the mailing list are welcome.
 
 License
