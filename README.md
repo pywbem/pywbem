@@ -13,3 +13,9 @@ archives in the `dist` directory tree and read the `INSTALL` file.
 
 If you want to install the latest development level of code instead, read the
 `INSTALL` file in the `src` directory.
+
+For discussing the PyWBEM client, use the
+[pywbem-devel mailing list on SourceForge](http://sourceforge.net/p/pywbem/mailman/pywbem-devel/)
+
+For reporting any issues or for raising feature requests, use the
+[PyWBEM issue tracker on GitHub](https://github.com/pywbem/pywbem/issues).
