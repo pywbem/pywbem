@@ -44,7 +44,7 @@ args = {
     'description': 'Python WBEM client library',
     'long_description': __doc__,
     'platforms': ['any'],
-    'url': 'http://sourceforge.net/projects/pywbem/',
+    'url': 'https://github.com/pywbem/pywbem',
     'version': init_globals['__version__'],
     'license': 'LGPLv2',
     'packages': ['pywbem'],
