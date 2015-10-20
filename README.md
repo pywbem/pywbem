@@ -8,5 +8,8 @@ about WBEM.
 
 It is licensed under the GNU LGPL v2.
 
-For installation instructions, see the INSTALL file in the distribution archive
-or in the src directory.
+To install the PyWBEM client, download and unpack one of the distribution
+archives in the `dist` directory tree and read the `INSTALL` file.
+
+If you want to install the latest development level of code instead, read the
+`INSTALL` file in the `src` directory.
