@@ -1,20 +1,15 @@
 This directory contains the tests for PyWBEM.  You should try and run
 them if you are doing development on the code.  (-:
 
-A neat trick for running the tests against a development branch is to
-check out a copy of the PyWBEM source as a subdirectory of the
-testsuite, like this:
+The tests are run by executing:
 
-$ cd pywbem/testsuite
-$ svn co https://svn.sourceforge.net/svnroot/pywbem/trunk pywbem
-[hack on pywbem code or testsuite]
-$ ./runtests
+    # ./runtests.sh
 
 To run the CIM operations test, the test.mof file must be loaded in to
 the repository.  Under Pegasus, this done by setting the 
 repositoryIsDefaultProvider configuration variable to true.
 
-# cimconfig -s repositoryIsDefaultInstanceProvider=true -p
-# cimmof < test.mof
+    # cimconfig -s repositoryIsDefaultInstanceProvider=true -p
+    # cimmof < test.mof
 
 Pegasus must be restarted in order for the change to take effect.
