@@ -6,7 +6,7 @@ the CIM operations over HTTP (CIM-XML) protocol defined in the DMTF standards
 DSP0200 and DSP0201. See http://www.dmtf.org/standards/wbem for information
 about WBEM.
 
-Please see the PyWBEM project at http://sourceforge.net/projects/pywbem/ for
+Please see the PyWBEM project at https://github.com/pywbem/pywbem for
 more details.
 
 It is licensed under the GNU LGPL v2.
