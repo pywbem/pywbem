@@ -2,17 +2,17 @@ Installation
 
 PyWBEM can be installed quite easily using the standard Python distutils that
 is part of the Python distribution. The source for the installation can be
-a copy of the SVN code repository (for example, if you want to get the latest
+a copy of the Git repository (for example, if you want to get the latest
 level of code in development), or a downloaded and unpacked distribution
 archive.
 
-From the pywbem/trunk directory of the copy of the SVN code repository, or
-from the unpack directory of the downloaded distribution archive, PyWBEM is
-installed with the following shell command. The command syntax is shown for
-Linux, but this works the same way on Windows and on other operating systems
-supported by Python. This copies the PyWBEM source to the Python
-site-packages directory where it can be loaded by the interpreter. On Linux,
-you need to have root rights:
+From the src directory of your local Git repository clone, or from the unpack
+directory of the downloaded distribution archive, PyWBEM is installed with the
+following shell command. The command syntax is shown for Linux, but this works
+the same way on Windows and on other operating systems supported by Python.
+This copies the PyWBEM source to the Python site-packages directory where it can
+be loaded by the interpreter. On Linux, you need to have root rights, or be
+in a virtual Python environment (see virtualenvwrapper Python package):
 
   # python setup.py install
   running install
@@ -37,11 +37,16 @@ different directory, use the --install-lib option when installing:
 
 Install Python packages PyWBEM depends upon:
 
-* M2Crypto 0.21 or higher, at https://pypi.python.org/pypi/M2Crypto
+* M2Crypto 0.21 or higher
 
-using your preferred package installationapproach, e.g.:
+  - On Windows, install M2Crypto from https://github.com/dsoprea/M2CryptoWindows
 
-  # pip install M2Crypto
+  - On Linux, use pip: 
+
+    # pip install M2Crypto
+
+  - If the pip based install on Linux fails (e.g. because swig is too old, like
+    on RHEL 6.x), install the OS-level package named "m2crypto".
 
 To test that PyWBEM is sucessfully installed, start up a Python interpreter and
 try to import the pywbem module:
@@ -55,4 +60,3 @@ try to import the pywbem module:
 
 If you do not see any error messages after the import command, PyWBEM has been
 sucessfully installed.
-
