@@ -259,6 +259,8 @@ class ClientTest(TestCase):
                                          "namespace"),
             timeout=tc_getattr(tc_name, pywbem_request, "timeout"))
 
+        conn.debug = tc_getattr(tc_name, pywbem_request, "debug", False)
+
         op = tc_getattr(tc_name, pywbem_request, "operation")
         # Example:
         #  "operation": {
@@ -330,19 +332,26 @@ class ClientTest(TestCase):
                                   tc_name)
 
         if exp_exception is not None:
-            self.assert_notequal(raised_exception, None,
-                                 "PyWBEM exception object")
-            raised_exception_name = raised_exception.__class__.__name__
-            self.assert_equal(raised_exception_name, exp_exception,
-                              "PyWBEM exception name")
+            if raised_exception is None:
+                raise AssertionError("%s exception was expected to be raised, "\
+                                     "but no exception was actually raised." %\
+                                     exp_exception)
+            self.assert_equal(raised_exception.__class__.__name__,
+                              exp_exception, "expected PyWBEM exception name")
         elif exp_cim_status != 0:
-            self.assert_notequal(raised_exception, None,
-                                 "PyWBEM exception object")
-            raised_exception_name = raised_exception.__class__.__name__
-            self.assert_equal(raised_exception_name, "CIMError",
-                              "PyWBEM exception name")
+            if raised_exception is None:
+                raise AssertionError("CIMError exception was expected to be "\
+                                     "raised, but no exception was actually "
+                                     "raised.")
+            self.assert_equal(raised_exception.__class__.__name__, "CIMError",
+                              "expected PyWBEM exception name")
         else:
-            self.assert_equal(raised_exception, None, "PyWBEM exception object")
+            if raised_exception is not None:
+                raise AssertionError("No exception was expected to be raised, "\
+                                     "but %s exception was actually raised: "\
+                                     "%s" %\
+                                     (raised_exception.__class__.__name__,
+                                     raised_exception))
 
         if isinstance(raised_exception, pywbem.CIMError):
             cim_status = raised_exception[0]
@@ -351,8 +360,20 @@ class ClientTest(TestCase):
         self.assert_equal(cim_status, exp_cim_status, "PyWBEM CIM status")
 
         if exp_result is not None:
-            self.assert_equal(result, obj(exp_result, tc_name),
-                              "PyWBEM CIM result")
+            exp_result_obj = obj(exp_result, tc_name)
+            if result != exp_result_obj:
+                print "Details for the following assertion error:"
+                print "- Expected result:"
+                print "  Returned object: %r" % exp_result_obj
+                if hasattr(exp_result_obj, "properties"):
+                    print "  Its properties: %r" % exp_result_obj.properties
+                print "- Actual result:"
+                print "  Returned object: %r" % result
+                if hasattr(result, "properties"):
+                    print "  Its properties: %r" % result.properties
+                if conn.debug:
+                    print "  HTTP response data: %r" % conn.last_raw_reply
+                raise AssertionError("PyWBEM CIM result is not as expected.")
         else:
             self.assert_equal(result, None, "PyWBEM CIM result")
 
