@@ -3,13 +3,12 @@
 .pydevproject
 *.pyc
 *.log
+src/pywbem.egg-info
 src/MANIFEST
 src/MANIFEST.in
 src/parser.out
 src/pylint_report.html
 src/pywbem/docs/
-src/pywbem/moflextab.py
-src/pywbem/mofparsetab.py
 src/build/
 src/testsuite/runtests.log
 src/testsuite/testtmp/

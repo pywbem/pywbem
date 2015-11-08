@@ -1,9 +1,0 @@
-# Python package requirements for pywbem usage.
-# Pip processes the packages in order of appearance.
-
-M2Crypto>=0.21
-# Notes on M2Crypto:
-# - On Windows, the pip based install fails. Install M2Crypto from:
-#   https://github.com/dsoprea/M2CryptoWindows
-# - On RHEL 6.x, the pip based install fails. Install the OS level package
-#   named "m2crypto".

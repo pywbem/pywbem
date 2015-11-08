@@ -23,19 +23,19 @@ A pure-Python library for performing operations using the WBEM
 management protocol.
 """
 
+# Package version - Keep in sync with pywbem/__init__.py!
+_version = '0.8.0-dev'
+
 import sys
 import os
-from distutils.core import setup
-
-# Build the lex/yacc table .py files
-from pywbem import mof_compiler
-mof_compiler._build()
-
-# Get package version from __init__.py
-init_py = os.path.abspath(os.path.join(
-        os.path.dirname(sys.argv[0]), 'pywbem/__init__.py'))
-init_globals = {}
-execfile(init_py, init_globals) # defines __version__
+# We use setuptools and make sure it is there:
+try:
+    import setuptools    
+except ImportError:
+    import ez_setup
+    ez_setup.use_setuptools() # Download and install latest version from PyPI
+    import setuptools    
+from setuptools import setup
 
 args = {
     'name': 'pywbem',
@@ -45,7 +45,7 @@ args = {
     'long_description': __doc__,
     'platforms': ['any'],
     'url': 'https://github.com/pywbem/pywbem',
-    'version': init_globals['__version__'],
+    'version': _version,
     'license': 'LGPLv2',
     'packages': ['pywbem'],
     'package_data': {
@@ -58,6 +58,19 @@ args = {
     'scripts': [
         'pywbem/wbemcli.py',
         'pywbem/mof_compiler.py',
+    ],
+    'install_requires': [
+        # These dependencies will be installed as a site package.
+        # They are not useable by this setup script, if they are eggs (because
+        # their path is added to a .pth file which is parsed only at Python
+        # startup time).
+        #'M2Crypto>=0.22.6',
+        'M2Crypto',
+    ],
+    # Temporary fix: Use our own fork of M2Crypto with fixes for installation issues.
+    # This only seems to work if no version is specified in its install_requires entry.
+    'dependency_links': [
+        "git+https://github.com/pywbem/m2crypto@amfix2#egg=M2Crypto"
     ],
     'classifiers' : [
         'Development Status :: 4 - Beta',
@@ -73,5 +86,5 @@ args = {
         'Topic :: System :: Systems Administration',
     ],
 }
-
 setup(**args)
+

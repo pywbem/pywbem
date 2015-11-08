@@ -26,24 +26,28 @@ package_name := pywbem
 package_initpy_version := $(shell sh -c "grep __version__ pywbem/__init__.py | sed -r 's/__version__ *= *\x27(.*)\x27.*/\1/'")
 # The package_initpy_version can have these formats:
 #   M.N.U-dev  : During development of future M.N.U release
-#   M.N.U-rc.1 : Release candidate 1 of future M.N.U release
+#   M.N.U-rc1  : Release candidate 1 of future M.N.U release
 #   M.N.U      : The final M.N.U release
 # If the format is the development format, we append the current date:
 package_version := $(if $(findstring -dev,$(package_initpy_version)),$(shell sh -c "date +$(package_initpy_version).%Y%m%d"),$(package_initpy_version))
-package_final_version := $(shell sh -c "echo $(package_version) | sed s/-.*//")
+package_built_version := $(if $(findstring -dev,$(package_initpy_version)),$(shell sh -c "echo $(package_initpy_version) |sed s/-dev/\.dev0/"),$(if $(findstring -rc,$(package_initpy_version)),$(shell sh -c "echo $(package_initpy_version) |sed s/-rc/\.rc/"),$(package_initpy_version)))
+package_final_version := $(shell sh -c "echo $(package_initpy_version) | sed s/-.*//")
 
 # Directory for the generated distribution files
 dist_dir := ../dist/$(package_name)-$(package_final_version)
 
 # Generated distribution files:
 # File created by setup.py sdist
-dist_built_file := $(dist_dir)/$(package_name)-$(package_initpy_version).zip
+dist_built_file := $(dist_dir)/$(package_name)-$(package_built_version).zip
 # Final file
 dist_file := $(dist_dir)/$(package_name)-$(package_version).zip
 # File created by setup.py bdist_wininst
-win64_dist_built_file := $(dist_dir)/$(package_name)-$(package_initpy_version).win-amd64.exe
+win64_dist_built_file := $(dist_dir)/$(package_name)-$(package_built_version).win-amd64.exe
 # Final file
 win64_dist_file := $(dist_dir)/$(package_name)-$(package_version).win-amd64.exe
+
+# Lex/Yacc table files, generated from and by mof_compiler.py
+moftab_files := $(package_name)/mofparsetab.py $(package_name)/moflextab.py
 
 # Directory for generated API documentation
 doc_out_dir := $(package_name)/docs
@@ -53,7 +57,7 @@ doc_html_files := \
     $(doc_out_dir)/index.html \
 
 # Documentation generator command
-doc_cmd := epydoc --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_out_dir) $(package_name)
+doc_cmd := epydoc --verbose --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_out_dir) $(package_name)
 
 # PyLint config file
 pylint_rc_file := pylint.rc
@@ -87,6 +91,19 @@ dist_dependent_files := \
 
 .PHONY: build buildwin test install clean clobber all help
 
+help:
+	@echo 'makefile for $(package_name)'
+	@echo 'Package version will be: $(package_version)'
+	@echo 'Valid targets are:'
+	@echo '  build    - Build the distribution archive: $(dist_file)'
+	@echo '  buildwin - (On 64-bit Windows) Build the Windows installable: $(win64_dist_file)'
+	@echo '  check    - Run PyLint on sources'
+	@echo '  install  - build + install the distribution archive using "python setup.py install"'
+	@echo '  test     - install + run unit tests'
+	@echo '  clean    - Remove any temporary files'
+	@echo '  clobber  - clean + remove any build products'
+	@echo '  all      - build + check + test + install + clean'
+
 build: $(dist_file)
 	@echo '$@ done; created: $(dist_file)'
 
@@ -102,12 +119,13 @@ test: install
 
 install: build
 	unzip -q -o -d tmp_install $(dist_file)
-	sh -c "cd tmp_install/$(package_name)-$(package_version); python setup.py install"
+	sh -c "cd tmp_install/$(package_name)-$(package_built_version) && python setup.py install"
 	rm -Rf tmp_install
 	@echo '$@ done.'
 
 clobber: clean
-	rm -f MANIFEST.in pywbem/mofparsetab.py pywbem/moflextab.py pylint_report.html
+	rm -f MANIFEST.in pylint_report.html
+	rm -Rf $(package_name).egg-info $(doc_out_dir)
 	@echo '$@ done.'
 
 clean:
@@ -116,21 +134,8 @@ clean:
 	rm -Rf build tmp_install testtmp testsuite/testtmp
 	@echo '$@ done.'
 
-all: build check test clean
+all: build check test install clean
 	@echo '$@ done.'
-
-help:
-	@echo 'makefile for $(package_name)'
-	@echo 'Package version will be: $(package_version)'
-	@echo 'Valid targets are:'
-	@echo '  build    - (default) Build the distribution archive: $(dist_file)'
-	@echo '  buildwin - (On 64-bit Windows) Build the Windows installable: $(win64_dist_file)'
-	@echo '  check    - Run PyLint on sources'
-	@echo '  install  - build + install the distribution archive on your system as a site package'
-	@echo '  test     - install + run unit tests'
-	@echo '  clean    - Remove any temporary files'
-	@echo '  clobber  - clean + remove any build products'
-	@echo '  all      - build + check + test + clean'
 
 # Note: distutils depends on the right files specified in MANIFEST.in, even when
 # they are already specified e.g. in 'package_data' in setup.py.
@@ -143,15 +148,19 @@ MANIFEST.in: makefile
 # Distribution archives.
 # Note: Deleting MANIFEST causes distutils (setup.py) to read MANIFEST.in and to
 # regenerate MANIFEST. Otherwise, changes in MANIFEST.in will not be used.
-$(dist_file): setup.py MANIFEST.in $(dist_dependent_files)
+$(dist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	rm -f MANIFEST
 	python setup.py sdist -d $(dist_dir) --formats=zip
+	mkdir -p $(dist_dir)
 	mv $(dist_built_file) $(dist_file)
 
 $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 	rm -f MANIFEST
 	python setup.py bdist_wininst -d $(dist_dir) -o -t "PyWBEM v$(package_version)" 
 	mv $(win64_dist_built_file) $(win64_dist_file)
+
+$(moftab_files): $(package_name)/mof_compiler.py
+	python -c "from pywbem import mof_compiler; mof_compiler._build()"
 
 # Documentation for package (generates more .html files than just this target)
 $(doc_out_dir)/index.html: $(package_name)/*.py
