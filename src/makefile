@@ -160,6 +160,7 @@ $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 	mv $(win64_dist_built_file) $(win64_dist_file)
 
 $(moftab_files): $(package_name)/mof_compiler.py
+	rm -f $(package_name)/mofparsetab.py* $(package_name)/moflextab.py*
 	python -c "from pywbem import mof_compiler; mof_compiler._build()"
 
 # Documentation for package (generates more .html files than just this target)
