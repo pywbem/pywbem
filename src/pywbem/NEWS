@@ -1,4 +1,4 @@
-pywbem-0.8.0-dev  2015-10-20
+pywbem-0.8.0-dev  2015-11-09
 
   ENHANCEMENTS:
 
@@ -220,39 +220,45 @@ pywbem-0.8.0-dev  2015-10-20
         on Python 2.6.
       (Andreas Maier)
 
-     * Fixed bug where HTTP body was attempted ot be read when CIMError header
-       is set, causing a hang.  (Andreas Maier)
+    * Fixed bug where HTTP body was attempted ot be read when CIMError header
+      is set, causing a hang.  (Andreas Maier)
 
-     * Added CIM-XML declaration support for alternative PyWBEM client based
-       on twisted.  (Andreas Maier)
+    * Added CIM-XML declaration support for alternative PyWBEM client based
+      on twisted.  (Andreas Maier)
 
-     * Added support for Windows to wbemcli.py, by making dependency on HOME
-       environment variable optional, and adding HOMEPATH environment variable.
-       Also, cleaned up the global namespace of wbemcli.py and made it
-       importable as a module.  (Andreas Maier)
+    * Added support for Windows to wbemcli.py, by making dependency on HOME
+      environment variable optional, and adding HOMEPATH environment variable.
+      Also, cleaned up the global namespace of wbemcli.py and made it
+      importable as a module.  (Andreas Maier)
 
-     * Fixed errors in generated MOF (e.g. in any tomof() methods):
-       - Missing backslash escaping within string literals for \n, \r, \t, \".
-       - Representation of REF types was incorrect.
-       - '=' in array-typed qualifier declarations was missing.
-       - Fixed size indicator was missing in array elements.
-       - Qualifiers of method parameters were missing.
-       Improvements in generated MOF:
-       - Changed order of qualifiers to be sorted by qualifier name.
-       - Added empty line before each property and method in the class for
-         better readability.
-       - Method parameters are now placed on separate lines.
-       - Moved generation of method qualifiers from class into method. This
-         changes the behavior of CIMMethod.tomof() to now generate the method
-         qualifiers.
-       (Andreas Maier)
+    * Fixed errors in generated MOF (e.g. in any tomof() methods):
+      - Missing backslash escaping within string literals for \n, \r, \t, \".
+      - Representation of REF types was incorrect.
+      - '=' in array-typed qualifier declarations was missing.
+      - Fixed size indicator was missing in array elements.
+      - Qualifiers of method parameters were missing.
+      Improvements in generated MOF:
+      - Changed order of qualifiers to be sorted by qualifier name.
+      - Added empty line before each property and method in the class for
+        better readability.
+      - Method parameters are now placed on separate lines.
+      - Moved generation of method qualifiers from class into method. This
+        changes the behavior of CIMMethod.tomof() to now generate the method
+        qualifiers.
+      (Andreas Maier)
 
-     * Fixed error where invoking mof_compiler.py with a file based URL that
-       did not start with 'file:' failed with an undefined variable url_ in
-       cim_http.py. Issue #1 on GitHub.  (Klaus Kaempf, Andreas Maier)
+    * Fixed error where invoking mof_compiler.py with a file based URL that
+      did not start with 'file:' failed with an undefined variable url_ in
+      cim_http.py. Issue #1 on GitHub.  (Klaus Kaempf, Andreas Maier)
 
-     * Fixed build error that raised a YaccError in mof_compiler.py:
-       "Syntax error. Expected ':'". Issue #2 on GitHub.  (Andreas Maier)
+    * Fixed build error that raised a YaccError in mof_compiler.py:
+      "Syntax error. Expected ':'". Issue #2 on GitHub.  (Andreas Maier)
+
+    * Improved installation process of PyWBEM, particularly related to
+      M2Crypto.  (Andreas Maier)
+
+    * Fixed issue where MOF compiler did not find include files with
+      a path specified. Issue #4 on GitHub.  (Karl Schopmeyer)
 
   TESTING:
 
