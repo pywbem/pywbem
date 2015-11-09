@@ -89,7 +89,7 @@ dist_dependent_files := \
 # No built-in rules needed:
 .SUFFIXES:
 
-.PHONY: build buildwin test install clean clobber all help
+.PHONY: build buildwin test install develop clean clobber all help
 
 help:
 	@echo 'makefile for $(package_name)'
@@ -99,6 +99,7 @@ help:
 	@echo '  buildwin - (On 64-bit Windows) Build the Windows installable: $(win64_dist_file)'
 	@echo '  check    - Run PyLint on sources'
 	@echo '  install  - build + install the distribution archive using "python setup.py install"'
+	@echo '  develop  - prepare the development environment by installing prerequisites'
 	@echo '  test     - install + run unit tests'
 	@echo '  clean    - Remove any temporary files'
 	@echo '  clobber  - clean + remove any build products'
@@ -123,6 +124,10 @@ install: build
 	rm -Rf tmp_install
 	@echo '$@ done.'
 
+develop:
+	python setup.py develop
+	@echo '$@ done.'
+
 clobber: clean
 	rm -f MANIFEST.in pylint_report.html
 	rm -Rf $(package_name).egg-info $(doc_out_dir)
@@ -134,7 +139,7 @@ clean:
 	rm -Rf build tmp_install testtmp testsuite/testtmp
 	@echo '$@ done.'
 
-all: build check test install clean
+all: build check test install develop clean
 	@echo '$@ done.'
 
 # Note: distutils depends on the right files specified in MANIFEST.in, even when

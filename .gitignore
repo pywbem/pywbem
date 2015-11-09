@@ -14,3 +14,6 @@ src/dist/
 src/testsuite/runtests.log
 src/testsuite/testtmp/
 src/testsuite/schema/
+src/epydoc-3.0.1-patches/
+src/swig-2.0*.tar.gz
+src/swig-2.0*/

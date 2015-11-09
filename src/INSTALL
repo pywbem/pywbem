@@ -2,11 +2,20 @@ Installation of PyWBEM
 ======================
 
 PyWBEM can be installed quite easily by running its standard Python setup
-script (`setup.py`) with the `install` command, or by using `pip install`.
-As of v0.8.0, it automatically installs its dependencies (e.g. M2Crypto).
+script (`setup.py`) with the `install` command, or by using `pip install` (which
+also invokes the setup script).
 
-The installation is supported into the default system Python, and into virtual
-Python environments (see `virtualenvwrapper` package).
+As of PyWBEM v0.8.0, the setup script automatically installs its dependencies.
+This includes installing the M2Crypto package, installing OS-level packages
+that are prerequisites for installing M2Crypto, or building and installing
+Swig if needed.
+
+The installation of Swig and of OS-level packages is performed using the
+`sudo` command, so your userid needs to be authorized accordingly.
+
+Installation of PyWBEM is supported into the default system Python, and
+(preferrable) into
+[virtual Python environments](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
 
 Examples
 --------
@@ -45,8 +54,8 @@ Examples
 The command syntax above is shown for Linux, but this works the same way on
 Windows and on other operating systems supported by Python.
 
-Test of installation
---------------------
+Test of the installation
+------------------------
 
 To test that PyWBEM is sucessfully installed, start up a Python interpreter and
 try to import the pywbem module:
@@ -55,47 +64,3 @@ try to import the pywbem module:
 
 If you do not see any error messages after the import command, PyWBEM has been
 sucessfully installed and its dependencies are available.
-
-Troubleshooting
----------------
-
-* `swig error : Unrecognized option -builtin`
-
-  Root cause: This error occurs when M2Crypto is installed as part of the PyWBEM
-  installation, and the version of `swig` is not sufficient. The M2Crypto
-  installation requires at least Swig version 2.0.
-
-  Solution: Update your version of Swig to at least 2.0. If your operating
-  system does not provide for such a version, download and build Swig as
-  described in "Building Swig".
-
-Building Swig
--------------
-
-To build Swig, perform the following commands in a new subdirectory. The
-installation command used is `yum`, replace it as needed for your operating
-system:
-
-    # Install prerequisite development packages
-    sudo yum install pcre-devel
-
-    # Download latest version of Swig and unpack it
-    wget -q -O swig.tar.gz http://sourceforge.net/projects/swig/files/latest/download?source=files
-    tar -xf swig.tar.gz
-    rm swig.tar.gz
-
-    # Build Swig and install it to the system
-    cd swig-*
-    make clean dist-clean
-    ./configure --prefix=/usr
-    make swig
-    sudo make install
-    cd ..
-
-Note that installing PyWBEM to the system Python invokes the M2Crypto build
-also under root permissions, so the new Swig version needs to be available
-via the PATH of root, in this case.
-Verify that the new version is available both for your userid and for root:
-
-    swig -version
-    sudo swig -version
