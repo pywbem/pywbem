@@ -431,8 +431,8 @@ def p_compilerDirective(p):
     param = p[5]
     if directive == 'include':
         fname = param
-        #if p.parser.file:
-        fname = os.path.dirname(p.parser.file) + '/' + fname
+        if len(os.path.dirname(p.parser.file)) != 0:
+            fname = os.path.dirname(p.parser.file) + '/' + fname
         p.parser.mofcomp.compile_file(fname, p.parser.handle.default_namespace)
     elif directive == 'namespace':
         p.parser.handle.default_namespace = param
