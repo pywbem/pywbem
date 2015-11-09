@@ -1,62 +1,101 @@
-Installation
+Installation of PyWBEM
+======================
 
-PyWBEM can be installed quite easily using the standard Python distutils that
-is part of the Python distribution. The source for the installation can be
-a copy of the Git repository (for example, if you want to get the latest
-level of code in development), or a downloaded and unpacked distribution
-archive.
+PyWBEM can be installed quite easily by running its standard Python setup
+script (`setup.py`) with the `install` command, or by using `pip install`.
+As of v0.8.0, it automatically installs its dependencies (e.g. M2Crypto).
 
-From the src directory of your local Git repository clone, or from the unpack
-directory of the downloaded distribution archive, PyWBEM is installed with the
-following shell command. The command syntax is shown for Linux, but this works
-the same way on Windows and on other operating systems supported by Python.
-This copies the PyWBEM source to the Python site-packages directory where it can
-be loaded by the interpreter. On Linux, you need to have root rights, or be
-in a virtual Python environment (see virtualenvwrapper Python package):
+The installation is supported into the default system Python, and into virtual
+Python environments (see `virtualenvwrapper` package).
 
-  # python setup.py install
-  running install
-  running build
-  running build_py
-  running install_lib
-  copying build/lib/pywbem/cim_xml.py -> /usr/lib/python [...]
-  [...]
+Examples
+--------
 
-If you do not have root access, or would like to install PyWBEM in a
-different directory, use the --install-lib option when installing:
+* Install latest version from PyPI into default system Python:
 
-  $ python setup.py install --install-lib $HOME/python/lib
-  running install
-  running build
-  running build_py
-  running install_lib
-  creating /home/tpot/python/lib
-  creating /home/tpot/python/lib/pywbem
-  copying build/lib/pywbem/cim_xml.py -> /home/tpot/python/lib/pywbem
-  [...]
+      sudo pip install pywbem
 
-Install Python packages PyWBEM depends upon:
+* Install latest version from PyPI into new Python 2.7 virtual environment:
 
-* M2Crypto 0.21 or higher
+      mkvirtualenv -p python2.7 pywbem27
+      pip install pywbem
 
-  - On Windows, install M2Crypto from https://github.com/dsoprea/M2CryptoWindows
+* Install from master branch on GitHub into default system Python:
 
-  - On Linux, use pip: 
+      git clone git@github.com:pywbem/pywbem.git pywbem
+      cd pywbem/src
+      sudo python setup.py install
 
-    # pip install M2Crypto
+* Install from master branch on GitHub into new Python 2.7 virtual environment:
 
-  - If the pip based install on Linux fails (e.g. because swig is too old, like
-    on RHEL 6.x), install the OS-level package named "m2crypto".
+      git clone git@github.com:pywbem/pywbem.git pywbem
+      cd pywbem/src
+      mkvirtualenv -p python2.7 pywbem27
+      python setup.py install
+
+* Install from a particular distribution archive on GitHub into new Python 2.7
+  virtual environment:
+
+      wget https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.8.0/pywbem-0.8.0-dev.20151108.zip
+      unzip pywbem-0.8.0-dev.20151108.zip
+      cd pywbem-0.8.0.dev0/src
+      mkvirtualenv -p python2.7 pywbem27
+      python setup.py install
+
+The command syntax above is shown for Linux, but this works the same way on
+Windows and on other operating systems supported by Python.
+
+Test of installation
+--------------------
 
 To test that PyWBEM is sucessfully installed, start up a Python interpreter and
 try to import the pywbem module:
 
-  $ python
-  Python 2.3.5 (#2, Mar 26 2005, 17:32:32)
-  [GCC 3.3.5 (Debian 1:3.3.5-12)] on linux2
-  Type "help", "copyright", "credits" or "license" for more information.
-  >>> import pywbem
-  >>>
+    python -c "import pywbem"
 
 If you do not see any error messages after the import command, PyWBEM has been
-sucessfully installed.
+sucessfully installed and its dependencies are available.
+
+Troubleshooting
+---------------
+
+* `swig error : Unrecognized option -builtin`
+
+  Root cause: This error occurs when M2Crypto is installed as part of the PyWBEM
+  installation, and the version of `swig` is not sufficient. The M2Crypto
+  installation requires at least Swig version 2.0.
+
+  Solution: Update your version of Swig to at least 2.0. If your operating
+  system does not provide for such a version, download and build Swig as
+  described in "Building Swig".
+
+Building Swig
+-------------
+
+To build Swig, perform the following commands in a new subdirectory. The
+installation command used is `yum`, replace it as needed for your operating
+system:
+
+    # Install prerequisite development packages
+    sudo yum install pcre-devel
+
+    # Download latest version of Swig and unpack it
+    wget -q -O swig.tar.gz http://sourceforge.net/projects/swig/files/latest/download?source=files
+    tar -xf swig.tar.gz
+    rm swig.tar.gz
+
+    # Build Swig and install it to the system
+    cd swig-*
+    make clean dist-clean
+    ./configure --prefix=/usr
+    make swig
+    sudo make install
+    cd ..
+
+Note that installing PyWBEM to the system Python invokes the M2Crypto build
+also under root permissions, so the new Swig version needs to be available
+via the PATH of root, in this case.
+Verify that the new version is available both for your userid and for root:
+
+    swig -version
+    sudo swig -version
