@@ -26,15 +26,44 @@ management protocol.
 # Package version - Keep in sync with pywbem/__init__.py!
 _version = '0.8.0-dev'
 
+def import_setuptools(min_version="17.0"):
+    """Import the `setuptools` package.
+
+    If it is not previously installed, or if it is installed but does not have
+    the at least the specified minimum version, it is downloaded from PyPI
+    and installed into the current Python environment (system or virtual
+    environment), replacing a possibly existing version.
+
+    This function requires ez_setup.py to be in the current directory or ini
+    the Python module path.
+
+    As of 10/2014, this article is a good overview on the various distribution
+    packages for Python: http://stackoverflow.com/a/14753678.
+
+    Parameters:
+    * min_version: (string) The minimum required version of `setuptools`,
+      e.g. "17.0".
+    """
+
+    install_setuptools = False
+    try:
+        import setuptools    
+    except ImportError:
+        install_setuptools = True
+    else:
+        if setuptools.__version__.split(".") < min_version.split("."):
+            install_setuptools = True
+
+    if install_setuptools:
+        # Download and install from PyPI
+        import ez_setup
+        ez_setup.use_setuptools(version=min_version)
+
+    import setuptools    
+
 import sys
 import os
-# We use setuptools and make sure it is there:
-try:
-    import setuptools    
-except ImportError:
-    import ez_setup
-    ez_setup.use_setuptools() # Download and install latest version from PyPI
-    import setuptools    
+import_setuptools()
 from setuptools import setup
 
 args = {
