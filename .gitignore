@@ -10,6 +10,7 @@ src/parser.out
 src/pylint_report.html
 src/pywbem/docs/
 src/build/
+src/dist/
 src/testsuite/runtests.log
 src/testsuite/testtmp/
 src/testsuite/schema/
