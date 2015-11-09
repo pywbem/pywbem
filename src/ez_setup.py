@@ -130,6 +130,29 @@ def _do_download(version, download_base, to_dir, download_delay):
     import setuptools
     setuptools.bootstrap_install_from = egg
 
+# @amfix@ FIxed version of pkg_resources._override_setuptools() for RHEL 6.
+def _override_setuptools(req):
+    """Return True when distribute wants to override a setuptools dependency.
+
+    The 0.6<x> versions of setuptools had this function, in order to indicate
+    that a requirement for the setuptools package was to be changed into
+    a requirtement for the `distribute` package.
+    The logic to decide about that in the original function had an error
+    that was not relevant until after setuptools version 0.7, and then
+    lead to incorrectly replacing a requirement for a setuptools version
+    higher than 0.7 with distribute, even though a comment explained that
+    that was desired only for setuptools versions of the 0.6 series.
+
+    This function disappeared in setuptools 0.7, but there are still
+    operating system distributions around that choose to include setuptools
+    version 0.6<x> (e.g. RHEl 6). 
+
+    Because `distribute` is abandoned these days, fixed that by never
+    overriding setuptools with distribute.
+
+    This function is monkey-patched before its use.
+    """
+    return False
 
 def use_setuptools(
         version=DEFAULT_VERSION, download_base=DEFAULT_URL,
@@ -149,6 +172,11 @@ def use_setuptools(
 
     try:
         import pkg_resources
+
+        # @amfix@ Monkey-patch our version of _override_setuptools().
+        if hasattr(pkg_resources, "_override_setuptools"):
+            pkg_resources._override_setuptools = _override_setuptools
+
         pkg_resources.require("setuptools>=" + version)
         # a suitable version is already installed
         return
@@ -179,7 +207,7 @@ def _conflict_bail(VC_err, version):
         The required version of setuptools (>={version}) is not available,
         and can't be installed while this script is running. Please
         install a more recent version first, using
-        'easy_install -U setuptools'.
+        'pip install --upgrade setuptools>={version}'.
 
         (Currently using {VC_err.args[0]!r})
         """)
