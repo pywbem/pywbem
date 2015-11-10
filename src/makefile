@@ -21,29 +21,31 @@
 # Name of this Python package
 package_name := pywbem
 
-# Version of this Python package
-#package_version := $(shell python -B setup.py --version)
-package_initpy_version := $(shell sh -c "grep __version__ pywbem/__init__.py | sed -r 's/__version__ *= *\x27(.*)\x27.*/\1/'")
-# The package_initpy_version can have these formats:
+# Version of this Python package; it will have one of these formats:
 #   M.N.U-dev  : During development of future M.N.U release
 #   M.N.U-rc1  : Release candidate 1 of future M.N.U release
 #   M.N.U      : The final M.N.U release
-# If the format is the development format, we append the current date:
-package_version := $(if $(findstring -dev,$(package_initpy_version)),$(shell sh -c "date +$(package_initpy_version).%Y%m%d"),$(package_initpy_version))
-package_built_version := $(if $(findstring -dev,$(package_initpy_version)),$(shell sh -c "echo $(package_initpy_version) |sed s/-dev/\.dev0/"),$(if $(findstring -rc,$(package_initpy_version)),$(shell sh -c "echo $(package_initpy_version) |sed s/-rc/\.rc/"),$(package_initpy_version)))
-package_final_version := $(shell sh -c "echo $(package_initpy_version) | sed s/-.*//")
+package_version := $(shell sh -c "grep __version__ pywbem/__init__.py | sed -r 's/__version__ *= *\x27(.*)\x27.*/\1/'")
+
+# Package version as built by the setup script (it normalizes some elements)
+package_built_version := $(if $(findstring -dev,$(package_version)),$(shell sh -c "echo $(package_version) |sed s/-dev/\.dev0/"),$(if $(findstring -rc,$(package_version)),$(shell sh -c "echo $(package_version) |sed s/-rc/\.rc/"),$(package_version)))
+
+# Final version of this package (M.N.U)
+package_final_version := $(shell sh -c "echo $(package_version) | sed s/-.*//")
 
 # Directory for the generated distribution files
 dist_dir := ../dist/$(package_name)-$(package_final_version)
 
-# Generated distribution files:
-# File created by setup.py sdist
+# Distribution archive as created by setup script
 dist_built_file := $(dist_dir)/$(package_name)-$(package_built_version).zip
-# Final file
+
+# Distribution archive as finally kept in distribution directory
 dist_file := $(dist_dir)/$(package_name)-$(package_version).zip
-# File created by setup.py bdist_wininst
+
+# Windows installable as created by setup script
 win64_dist_built_file := $(dist_dir)/$(package_name)-$(package_built_version).win-amd64.exe
-# Final file
+
+# Windows installable as finally kept in distribution directory
 win64_dist_file := $(dist_dir)/$(package_name)-$(package_version).win-amd64.exe
 
 # Lex/Yacc table files, generated from and by mof_compiler.py
@@ -89,7 +91,7 @@ dist_dependent_files := \
 # No built-in rules needed:
 .SUFFIXES:
 
-.PHONY: build buildwin test install develop clean clobber all help
+.PHONY: build buildwin test install develop upload clean clobber all help
 
 help:
 	@echo 'makefile for $(package_name)'
@@ -101,9 +103,10 @@ help:
 	@echo '  install  - build + install the distribution archive using "python setup.py install"'
 	@echo '  develop  - prepare the development environment by installing prerequisites'
 	@echo '  test     - install + run unit tests'
+	@echo '  upload   - build + upload the distribution archive to PyPI'
 	@echo '  clean    - Remove any temporary files'
 	@echo '  clobber  - clean + remove any build products'
-	@echo '  all      - build + check + test + install + clean'
+	@echo '  all      - build + check + test + install + clean (that is, no upload!)'
 
 build: $(dist_file)
 	@echo '$@ done; created: $(dist_file)'
@@ -126,6 +129,19 @@ install: build
 
 develop:
 	python setup.py develop
+	@echo '$@ done.'
+
+upload: build
+	@sh -c "\
+if [[ $(package_version) =~ .*-dev ]]; \
+then \
+  echo Error: Development versions should not be uploaded to PyPI: $(package_version); \
+  false; \
+else \
+  echo No Development version; \
+fi \
+"
+	python setup.py upload
 	@echo '$@ done.'
 
 clobber: clean

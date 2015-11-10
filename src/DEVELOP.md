@@ -5,7 +5,7 @@ This document provides some hints when you want to participate in the
 development of PyWBEM. You can ignore it when you just want to use the PyWBEM
 client package and program against it.
 
-First, create a local clone of the PyWBEm Git repository:
+First, create a local clone of the PyWBEM Git repository:
 
     git clone git@github.com:pywbem/pywbem.git
     cd pywbem
@@ -37,17 +37,18 @@ the possible make targets:
     make
 
     makefile for pywbem
-    Package version will be: 0.8.0-dev.20151109
+    Package version will be: 0.8.0-dev
     Valid targets are:
-      build    - Build the distribution archive: ../dist/pywbem-0.8.0/pywbem-0.8.0-dev.20151109.zip
-      buildwin - (On 64-bit Windows) Build the Windows installable: ../dist/pywbem-0.8.0/pywbem-0.8.0-dev.20151109.win-amd64.exe
+      build    - Build the distribution archive: ../dist/pywbem-0.8.0/pywbem-0.8.0-dev.zip
+      buildwin - (On 64-bit Windows) Build the Windows installable: ../dist/pywbem-0.8.0/pywbem-0.8.0-dev.win-amd64.exe
       check    - Run PyLint on sources
       install  - build + install the distribution archive using "python setup.py install"
       develop  - prepare the development environment by installing prerequisites
       test     - install + run unit tests
+      upload   - build + upload the distribution archive to PyPI
       clean    - Remove any temporary files
       clobber  - clean + remove any build products
-      all      - build + check + test + install + clean
+      all      - build + check + test + install + clean (that is, no upload!)
 
 Testing PyWBEM
 --------------

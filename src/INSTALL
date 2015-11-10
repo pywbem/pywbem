@@ -45,8 +45,8 @@ Examples
 * Install from a particular distribution archive on GitHub into new Python 2.7
   virtual environment:
 
-      wget https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.8.0/pywbem-0.8.0-dev.20151108.zip
-      unzip pywbem-0.8.0-dev.20151108.zip
+      wget https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.8.0/pywbem-0.8.0-dev.zip
+      unzip pywbem-0.8.0-dev.zip
       cd pywbem-0.8.0.dev0/src
       mkvirtualenv -p python2.7 pywbem27
       python setup.py install
