@@ -1,21 +1,40 @@
-PyWBEM provides a WBEM client library and some related utilities, written in
-pure Python.
+[![Build Status](https://travis-ci.org/pywbem/pywbem.svg)](https://travis-ci.org/pywbem/pywbem)
 
-The WBEM client library allows issuing operations to a WBEM server, using
-the CIM operations over HTTP (CIM-XML) protocol defined in the DMTF standards
+PyWBEM provides a pure Python package named 'pywbem' that contains a WBEM client
+and some related utilities.
+
+A WBEM client allows issuing operations to a WBEM server, using the CIM
+operations over HTTP (CIM-XML) protocol defined in the DMTF standards
 DSP0200 and DSP0201. See http://www.dmtf.org/standards/wbem for information
-about WBEM.
+about WBEM. This is used for all kinds of systems management tasks that are
+supported by the system running the WBEM server.
 
-It is licensed under the GNU LGPL v2.
+The WBEM client in PyWBEM provides a pythonic API. The API documentation is
+currently part of the installed Python package, open the file
+'pywbem/docs/index.html'. We are working to provide an online version of
+the API.
+ 
+Download
+--------
 
-To install the PyWBEM client, download and unpack one of the distribution
-archives in the `dist` directory tree and read the `INSTALL` file.
+To use PyWBEM, download one of its distribution archives, unpack it and
+follow the instructions in the INSTALL file:
 
-If you want to install the latest development level of code instead, read the
-`INSTALL` file in the `src` directory.
+* Latest development version: [0.8.0-dev](https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.8.0/pywbem-0.8.0-dev.zip?raw=true)
+* Latest stable version: [0.7.0](https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.7/pywbem-0.7.0.tar.gz?raw=true)
+* [All versions](https://github.com/pywbem/pywbem/tree/master/dist)
+
+Discussion & Issues
+-------------------
 
 For discussing the PyWBEM client, use the
 [pywbem-devel mailing list on SourceForge](http://sourceforge.net/p/pywbem/mailman/pywbem-devel/)
 
 For reporting any issues or for raising feature requests, use the
 [PyWBEM issue tracker on GitHub](https://github.com/pywbem/pywbem/issues).
+
+License
+-------
+
+PyWBEM is licensed under the GNU LGPL v2.
+
