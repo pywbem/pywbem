@@ -1,10 +1,13 @@
 language: python
 python:
   - "2.6"
-  - "2.7"
+#  - "2.7"
 # command to install dependencies
 install:
+  - which python
+  - ls -l /home/travis/virtualenv/python2.6.9/lib/python2.6/site-packages
   - pip list
+  - pip install --upgrade setuptools>=17.0
   - cd src; python setup.py develop
 # command to run tests
 script: make test
