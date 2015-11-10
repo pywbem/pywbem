@@ -59,7 +59,7 @@ doc_html_files := \
     $(doc_out_dir)/index.html \
 
 # Documentation generator command
-doc_cmd := epydoc --verbose --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_out_dir) $(package_name)
+doc_cmd := epydoc --verbose --simple-term --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_out_dir) $(package_name)
 
 # PyLint config file
 pylint_rc_file := pylint.rc
