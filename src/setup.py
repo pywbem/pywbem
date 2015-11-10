@@ -166,36 +166,42 @@ PACKAGE_NAMES = {
         "openssl-devel": "openssl-devel",
         "libxml2-devel": "libxml2-devel",
         "libxslt-devel": "libxslt-devel",
+        "pylint": "pylint",
     },
     "fedora": {
         "pcre-devel": "pcre-devel",
         "openssl-devel": "openssl-devel",
         "libxml2-devel": "libxml2-devel",
         "libxslt-devel": "libxslt-devel",
+        "pylint": "pylint",
     },
     "centos": {
         "pcre-devel": "pcre-devel",
         "openssl-devel": "openssl-devel",
         "libxml2-devel": "libxml2-devel",
         "libxslt-devel": "libxslt-devel",
+        "pylint": "pylint",
     },
     "debian": {
         "pcre-devel": "libpcre3 libpcre3-dev",
         "openssl-devel": "libssl-dev",
         "libxml2-devel": "libxml2-dev",
         "libxslt-devel": "libxslt1-dev",
+        "pylint": "pylint",
     },
     "ubuntu": {
         "pcre-devel": "libpcre3 libpcre3-dev",
         "openssl-devel": "libssl-dev",
         "libxml2-devel": "libxml2-dev",
         "libxslt-devel": "libxslt1-dev",
+        "pylint": "pylint",
     },
     "suse": {
         "pcre-devel": "pcre-devel",
         "openssl-devel": "openssl-devel",
         "libxml2-devel": "libxml2-devel",
         "libxslt-devel": "libxslt-devel",
+        "pylint": "pylint",
     },
 }
 
@@ -367,6 +373,12 @@ def patch_epydoc():
                 (epydoc_patch_dir, epydoc_patch_dir, epydoc_target_dir),
                 display=True, exp_rc=(0,1))
 
+def install_pylint():
+    """Install the PyLint package."""
+
+    print "Installing prerequisite OS-level packages for PyLint..."
+    install_os_package("pylint")
+
 class color:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -394,6 +406,7 @@ def main():
             install_xmlxslt() # probably needed for some installations of lxml
             install_build_requirements()
             patch_epydoc()
+            install_pylint()
 
     except SetupError as exc:
         print "%sError: %s%s" % (color.FAIL, exc, color.ENDC)
