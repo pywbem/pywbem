@@ -4,11 +4,11 @@ python:
 #  - "2.7"
 # command to install dependencies
 install:
-  - which python
-  - ls -l /home/travis/virtualenv/python2.6.9/lib/python2.6/site-packages
   - pip list
-  - pip install --upgrade setuptools>=17.0
+  - pip install --upgrade pip
+  - pip install --upgrade setuptools>=12.0
   - cd src; python setup.py develop
+  - pip list
 # command to run tests
 script: make test
 sudo: required
