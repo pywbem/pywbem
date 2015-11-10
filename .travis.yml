@@ -6,7 +6,7 @@ python:
 install:
   - pip list
   - pip install --upgrade pip
-  - pip install --upgrade "setuptools>=12.0,<13.0"
+  - pip install --upgrade "setuptools>=12.0,<12.1"
   - cd src; python setup.py develop
   - pip list
 # command to run tests
