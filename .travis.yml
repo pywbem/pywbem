@@ -4,6 +4,8 @@ python:
   - "2.7"
 # command to install dependencies
 install:
+  - pip list
   - cd src; python setup.py develop
 # command to run tests
 script: make test
+sudo: required
