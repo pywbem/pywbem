@@ -121,7 +121,7 @@ def shell_check(command, display=False, exp_rc=0):
                 print err
     return out
 
-def import_setuptools(min_version="17.0"):
+def import_setuptools(min_version="12.0"):
     """Import the `setuptools` package.
 
     If it is not previously installed, or if it is installed but does not have
@@ -180,7 +180,13 @@ PACKAGE_NAMES = {
         "libxslt-devel": "libxslt-devel",
     },
     "debian": {
-        "pcre-devel": "pcre-devel",
+        "pcre-devel": "libpcre3 libpcre3-dev",
+        "openssl-devel": "libssl-dev",
+        "libxml2-devel": "libxml2-dev",
+        "libxslt-devel": "libxslt1-dev",
+    },
+    "ubuntu": {
+        "pcre-devel": "libpcre3 libpcre3-dev",
         "openssl-devel": "libssl-dev",
         "libxml2-devel": "libxml2-dev",
         "libxslt-devel": "libxslt1-dev",
@@ -224,7 +230,7 @@ def install_os_package(pkg_name):
     pkg_name = _pkg_name(pkg_name, dist_name)
     if dist_name in ("redhat", "fedora", "centos"):
         _install(pkg_name, "sudo yum install -y %s" % pkg_name)
-    elif dist_name in ("debian",):
+    elif dist_name in ("debian", "ubuntu"):
         _install(pkg_name, "sudo apt-get install -y %s" % pkg_name)
     elif dist_name in ("suse",):
         _install(pkg_name, "sudo zypper install -y %s" % pkg_name)
@@ -252,7 +258,7 @@ def install_swig():
         if m is None:
             raise SetupError("Cannot determine Swig version from output "
                 "of 'swig -version':\n%s" % out)
-        swig_version = m.group(0)
+        swig_version = m.group(1)
         if swig_version.split(".")[0:2] < [2,0]:
             print "Installed Swig version %s is too old; updating Swig" % swig_version
             build_swig = True
