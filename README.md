@@ -20,8 +20,8 @@ Download
 To use PyWBEM, download one of its distribution archives, unpack it and
 follow the instructions in the INSTALL file:
 
-* Latest development version: [0.8.0-dev](https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.8.0/pywbem-0.8.0-dev.zip?raw=true)
-* Latest stable version: [0.7.0](https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.7/pywbem-0.7.0.tar.gz?raw=true)
+* Latest development version: [0.8.0-dev](https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.8.0/pywbem-0.8.0-dev.zip?raw=true) (soon to be available on PyPI)
+* Latest stable version: [0.7.0](https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.7/pywbem-0.7.0.tar.gz?raw=true) (latest version on PyPI)
 * [All versions](https://github.com/pywbem/pywbem/tree/master/dist)
 
 Discussion & Issues
