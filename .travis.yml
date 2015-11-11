@@ -11,5 +11,5 @@ install:
   - cd src; python setup.py develop
   - pip list
 # command to run tests
-script: make test
+script: make all
 sudo: required
