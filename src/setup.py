@@ -19,8 +19,13 @@
 #
 
 """
-A pure-Python library for performing operations using the WBEM
-management protocol.
+PyWBEM is a WBEM client and some related utilities, written in pure Python.
+
+A WBEM client allows issuing operations to a WBEM server, using the CIM
+operations over HTTP (CIM-XML) protocol defined in the DMTF standards DSP0200
+and DSP0201. See http://www.dmtf.org/standards/wbem for information about
+WBEM. This is used for all kinds of systems management tasks that are
+supported by the system running the WBEM server.
 """
 
 # Package version - Keep in sync with pywbem/__init__.py!
@@ -416,12 +421,14 @@ def main():
         'name': 'pywbem',
         'author': 'Tim Potter',
         'author_email': 'tpot@hp.com',
-        'description': 'Python WBEM client library',
+        'maintainer': 'Andreas Maier',
+        'maintainer_email': 'andreas.r.maier@gmx.de',
+        'description': 'A WBEM client and related utilities',
         'long_description': __doc__,
         'platforms': ['any'],
-        'url': 'https://github.com/pywbem/pywbem',
+        'url': 'https://github.com/pywbem/pywbem/wiki',
         'version': _version,
-        'license': 'LGPLv2',
+        'license': 'LGPL version 2.1, or (at your option) any later version',
         'packages': ['pywbem'],
         'package_data': {
             'pywbem': [
@@ -448,16 +455,14 @@ def main():
             "git+https://github.com/pywbem/m2crypto@amfix2#egg=M2Crypto"
         ],
         'classifiers' : [
-            'Development Status :: 4 - Beta',
+            'Development Status :: 6 - Mature',
             'Intended Audience :: Developers',
             'Intended Audience :: System Administrators',
             'License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)',
-            'Operating System :: POSIX :: Linux',
-            'Operating System :: Microsoft :: Windows',
-            'Programming Language :: Python',
+            'Operating System :: OS Independent',
             'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
-            'Topic :: Software Development',
+            'Topic :: Software Development :: Libraries :: Python Modules',
             'Topic :: System :: Systems Administration',
         ],
     }
