@@ -36,5 +36,7 @@ For reporting any issues or for raising feature requests, use the
 License
 -------
 
-PyWBEM is licensed under the GNU LGPL v2.
+PyWBEM is provided under the
+[src/pywbem/LICENSE.txt](GNU Lesser General Public License \(LGPL\) version 2.1),
+or (at your option) any later version.
 
