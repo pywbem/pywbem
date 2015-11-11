@@ -432,7 +432,6 @@ def main():
         'packages': ['pywbem'],
         'package_data': {
             'pywbem': [
-                'docs/*',
                 'NEWS',
                 'LICENSE.txt',
             ]

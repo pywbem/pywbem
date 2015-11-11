@@ -7,9 +7,9 @@ src/pywbem.egg-info
 src/MANIFEST
 src/MANIFEST.in
 src/parser.out
-src/pylint_report.html
-src/pywbem/docs/
+src/pylint_done
 src/build/
+src/build_doc/
 src/dist/
 src/testsuite/runtests.log
 src/testsuite/testtmp/

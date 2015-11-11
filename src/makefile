@@ -52,14 +52,13 @@ win64_dist_file := $(dist_dir)/$(package_name)-$(package_version).win-amd64.exe
 moftab_files := $(package_name)/mofparsetab.py $(package_name)/moflextab.py
 
 # Directory for generated API documentation
-doc_out_dir := $(package_name)/docs
-
-# Generated API documentation files, used as dependents
-doc_html_files := \
-    $(doc_out_dir)/index.html \
+doc_build_dir := build_doc
 
 # Documentation generator command
-doc_cmd := epydoc --verbose --simple-term --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_out_dir) $(package_name)
+doc_cmd := epydoc --verbose --simple-term --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_build_dir) $(package_name)
+
+# Directory for documentation publishing
+doc_publish_dir := ../../pywbem.github.io/pywbem/doc/$(package_final_version)/doc
 
 # PyLint config file
 pylint_rc_file := pylint.rc
@@ -75,7 +74,6 @@ dist_manifest_in_files := \
     *.py \
     $(package_name)/*.py \
     $(package_name)/NEWS \
-    $(doc_out_dir)/* \
 
 # Files that are dependents of the distribution archive.
 # Keep in sync with dist_manifest_in_files.
@@ -86,7 +84,6 @@ dist_dependent_files := \
     $(wildcard *.py) \
     $(wildcard $(package_name)/*.py) \
     $(package_name)/NEWS \
-    $(doc_html_files) \
 
 # No built-in rules needed:
 .SUFFIXES:
@@ -97,16 +94,22 @@ help:
 	@echo 'makefile for $(package_name)'
 	@echo 'Package version will be: $(package_version)'
 	@echo 'Valid targets are:'
-	@echo '  build    - Build the distribution archive: $(dist_file)'
-	@echo '  buildwin - (On 64-bit Windows) Build the Windows installable: $(win64_dist_file)'
-	@echo '  check    - Run PyLint on sources'
-	@echo '  install  - build + install the distribution archive using "python setup.py install"'
-	@echo '  develop  - prepare the development environment by installing prerequisites'
-	@echo '  test     - install + run unit tests'
-	@echo '  upload   - build + upload the distribution archive to PyPI'
-	@echo '  clean    - Remove any temporary files'
-	@echo '  clobber  - clean + remove any build products'
-	@echo '  all      - build + check + test + install + clean (that is, no upload!)'
+	@echo '  develop    - Prepare the development environment by installing prerequisites'
+	@echo '  build      - Build the distribution archive: $(dist_file)'
+	@echo '  buildwin   - Build the Windows installable: $(win64_dist_file) (on Win 64-bit)'
+	@echo '  builddoc   - Build documentation in: $(doc_build_dir)'
+	@echo '  check      - Run PyLint on sources and save results in: pylint.log'
+	@echo '  install    - build + install the distribution archive using "python setup.py install"'
+	@echo '  test       - install + run unit tests on installed copy and save results in: test.log''
+	@echo '  clean      - Remove any temporary files'
+	@echo '  all        - build + check + install + test + builddoc + clean'
+	@echo '  upload     - build + upload the distribution archive to PyPI'
+	@echo '  publish    - builddoc + publish documentation to: $(doc_publish_dir)'
+	@echo '  clobber    - clean + remove any build products'
+
+develop:
+	python setup.py develop
+	@echo '$@ done.'
 
 build: $(dist_file)
 	@echo '$@ done; created: $(dist_file)'
@@ -114,12 +117,11 @@ build: $(dist_file)
 buildwin: $(win64_dist_file)
 	@echo '$@ done; created: $(win64_dist_file)'
 
-check: pylint_report.html
-	@echo '$@ done; for results see pylint_report.html'
+builddoc: $(doc_build_dir)/index.html
+	@echo '$@ done; created documentation in: $(doc_build_dir)'
 
-test: install
-	-sh -c "cd testsuite; ./runtests.sh 2>&1 |tee runtests.log"
-	@echo '$@ done; for results see testsuite/runtests.log'
+check: pylint.log
+	@echo '$@ done; results are in pylint.log'
 
 install: build
 	unzip -q -o -d tmp_install $(dist_file)
@@ -127,8 +129,21 @@ install: build
 	rm -Rf tmp_install
 	@echo '$@ done.'
 
-develop:
-	python setup.py develop
+test: test.log
+	@echo '$@ done; results are in test.log'
+
+clobber: clean
+	rm -f MANIFEST.in pylint_done
+	rm -Rf $(package_name).egg-info $(doc_build_dir)
+	@echo '$@ done.'
+
+clean:
+	rm -f MANIFEST parser.out
+	sh -c "find . -name \"*.pyc\" | xargs -r rm"
+	rm -Rf build tmp_install testtmp testsuite/testtmp
+	@echo '$@ done.'
+
+all: build check install test builddoc clean
 	@echo '$@ done.'
 
 upload: build
@@ -142,21 +157,13 @@ else \
 fi \
 "
 	python setup.py upload
-	@echo '$@ done.'
+	@echo '$@ done; uploaded package to PyPI.'
 
-clobber: clean
-	rm -f MANIFEST.in pylint_report.html
-	rm -Rf $(package_name).egg-info $(doc_out_dir)
-	@echo '$@ done.'
-
-clean:
-	rm -f MANIFEST parser.out
-	sh -c "find . -name \"*.pyc\" | xargs -r rm"
-	rm -Rf build tmp_install testtmp testsuite/testtmp
-	@echo '$@ done.'
-
-all: build check test install develop clean
-	@echo '$@ done.'
+publish: builddoc
+	rm -Rf $(doc_publish_dir)
+	mkdir -p $(doc_publish_dir)
+	cp -rp $(doc_build_dir)/* $(doc_publish_dir)/
+	@echo '$@ done; published documentation to: $(doc_publish_dir)'
 
 # Note: distutils depends on the right files specified in MANIFEST.in, even when
 # they are already specified e.g. in 'package_data' in setup.py.
@@ -185,9 +192,13 @@ $(moftab_files): $(package_name)/mof_compiler.py
 	python -c "from pywbem import mof_compiler; mof_compiler._build()"
 
 # Documentation for package (generates more .html files than just this target)
-$(doc_out_dir)/index.html: $(package_name)/*.py
+$(doc_build_dir)/index.html: $(package_name)/*.py
+	rm -Rf $(doc_build_dir)
+	mkdir -p $(doc_build_dir)
 	sh -c "PYTHONPATH=. $(doc_cmd)"
 
-# PyLint report
-pylint_report.html: $(pylint_rc_file) setup.py $(package_name)/*.py testsuite/*.py
-	-sh -c "PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py --output-format=html setup.py $(package_name) testsuite/*.py >$@"
+pylint.log: $(pylint_rc_file) setup.py $(package_name)/*.py testsuite/*.py
+	-sh -c "PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py --output-format=text setup.py $(package_name) testsuite/*.py |tee pylint.log"
+
+test.log: install testsuite/*.py
+	-sh -c "cd testsuite; ./runtests.sh 2>&1 |tee ../test.log"
