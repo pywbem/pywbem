@@ -426,7 +426,7 @@ def main():
         'description': 'A WBEM client and related utilities',
         'long_description': __doc__,
         'platforms': ['any'],
-        'url': 'https://github.com/pywbem/pywbem/wiki',
+        'url': 'http://pywbem.github.io/pywbem/',
         'version': _version,
         'license': 'LGPL version 2.1, or (at your option) any later version',
         'packages': ['pywbem'],
