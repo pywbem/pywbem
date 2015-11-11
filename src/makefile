@@ -28,7 +28,7 @@ package_name := pywbem
 package_version := $(shell sh -c "grep __version__ pywbem/__init__.py | sed -r 's/__version__ *= *\x27(.*)\x27.*/\1/'")
 
 # Package version as built by the setup script (it normalizes some elements)
-package_built_version := $(if $(findstring -dev,$(package_version)),$(shell sh -c "echo $(package_version) |sed s/-dev/\.dev0/"),$(if $(findstring -rc,$(package_version)),$(shell sh -c "echo $(package_version) |sed s/-rc/\.rc/"),$(package_version)))
+package_built_version := $(if $(findstring -dev,$(package_version)),$(shell sh -c "echo $(package_version) |sed s/-dev/\.dev0/"),$(if $(findstring -rc,$(package_version)),$(shell sh -c "echo $(package_version) |sed s/-rc/rc/"),$(package_version)))
 
 # Final version of this package (M.N.U)
 package_final_version := $(shell sh -c "echo $(package_version) | sed s/-.*//")
@@ -184,7 +184,7 @@ $(dist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 
 $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 	rm -f MANIFEST
-	python setup.py bdist_wininst -d $(dist_dir) -o -t "PyWBEM v$(package_version)" 
+	python setup.py bdist_wininst -d $(dist_dir) -o -t "PyWBEM v$(package_version)"
 	mv $(win64_dist_built_file) $(win64_dist_file)
 
 $(moftab_files): $(package_name)/mof_compiler.py

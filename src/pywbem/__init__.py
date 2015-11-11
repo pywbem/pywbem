@@ -20,8 +20,8 @@
 #
 
 """
-PyWBEM provides a WBEM client library and some related utilities, written in
-pure Python.
+The PyWBEM Client project provides a WBEM client library and some related
+utilities, written in pure Python.
 
 The WBEM client library allows issuing operations to a WBEM server, using
 the CIM operations over HTTP (CIM-XML) protocol defined in the DMTF standards
@@ -107,7 +107,7 @@ or:
 Version
 -------
 
-This version of PyWBEM is 0.8.0-dev.
+This version of the PyWBEM Client is 0.8.0-rc1.
 
 The version number follows the conventions of semantic versioning (see
 http://semver.org/):
@@ -135,17 +135,11 @@ Python 2.6 is the minimum version of Python that is supported.
 
 Python 3 is not yet supported.
 
-Contributing
-------------
-
-PyWBEM is on GitHub (https://github.com/pywbem/pywbem). Bug
-reports and discussion on the mailing list are welcome.
-
 License
 -------
 
-PyWBEM is licensed with GNU LGPL v2.
-See the `LICENSE.txt <../LICENSE.txt>`_ file.
+PyWBEM is provided under the [GNU Lesser General Public License (LGPL) version 2.1](../LICENSE.txt),
+or (at your option) any later version.
 """
 
 # Version of the pywbem package
@@ -154,7 +148,7 @@ See the `LICENSE.txt <../LICENSE.txt>`_ file.
 #   M.N.U-dev  : During development of future M.N.U release
 #   M.N.U-rc.1 : Release candidate 1 of future M.N.U release
 #   M.N.U      : The final M.N.U release
-__version__ = '0.8.0-dev'
+__version__ = '0.8.0-rc1'
 
 # There are submodules, but clients shouldn't need to know about them.
 # Importing just this module is enough.
