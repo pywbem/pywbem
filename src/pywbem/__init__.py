@@ -54,23 +54,17 @@ Importing the `pywbem` package causes a subset of symbols from its sub-modules
 to be folded into the target namespace.
 
 The use of these folded symbols is shown for the example of class
-`WBEMConnection`:
-
-.. code:: python
+`WBEMConnection`::
 
     import pywbem
     conn = pywbem.WBEMConnection(...)
 
-or:
-
-.. code:: python
+or::
 
     from pywbem import WBEMConnection
     conn = WBEMConnection(...)
 
-or (less preferred):
-
-.. code:: python
+or (less preferred)::
 
     from pywbem import *
     conn = WBEMConnection(...)
@@ -83,23 +77,17 @@ specific symbols that are not folded into the target namespace of the `pywbem`
 package need to import the respective sub-modules explicitly.
 
 The use of such sub-modules is shown for the example of class
-`cim_provider.CIMProvider`:
-
-.. code:: python
+`cim_provider.CIMProvider`::
 
     from pywbem import cim_provider
     provider = cim_provider.CIMProvider(...)
 
-or:
-
-.. code:: python
+or::
 
     from pywbem.cim_provider import CIMProvider
     provider = CIMProvider(...)
 
-or:
-
-.. code:: python
+or::
 
     import pywbem.cim_provider
     provider = pywbem.cim_provider.CIMProvider(...)
@@ -107,23 +95,12 @@ or:
 Version
 -------
 
-This version of the PyWBEM Client is 0.8.0-rc1.
-
-The version number follows the conventions of semantic versioning (see
-http://semver.org/):
-
- * M.N.U-dev  : During development of future M.N.U release
- * M.N.U-rc.1 : Release candidate 1 of future M.N.U release
- * M.N.U      : The final M.N.U release
-
-When creating correspondingly versioned RPM packages, the hyphen (-) after
-the M.N.U version needs to be replaced by a tilde (~) to cause RPM to correctly
-treat the preliminary versions to be younger than the final version.
+This version of the PyWBEM Client is 0.8.0-rc1 (release candidate #1).
 
 Changes
 -------
 
-The change log is in the `NEWS <../NEWS>`_ file.
+The change log is in the `NEWS <NEWS>`_ file.
 
 Compatibility
 -------------
@@ -134,12 +111,6 @@ PyWBEM has been tested with Python 2.7 on Windows and Linux, and with Python
 Python 2.6 is the minimum version of Python that is supported.
 
 Python 3 is not yet supported.
-
-License
--------
-
-PyWBEM is provided under the [GNU Lesser General Public License (LGPL) version 2.1](../LICENSE.txt),
-or (at your option) any later version.
 """
 
 # Version of the pywbem package

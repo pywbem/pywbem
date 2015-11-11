@@ -100,7 +100,7 @@ help:
 	@echo '  builddoc   - Build documentation in: $(doc_build_dir)'
 	@echo '  check      - Run PyLint on sources and save results in: pylint.log'
 	@echo '  install    - build + install the distribution archive using "python setup.py install"'
-	@echo '  test       - install + run unit tests on installed copy and save results in: test.log''
+	@echo '  test       - install + run unit tests on installed copy and save results in: test.log'
 	@echo '  clean      - Remove any temporary files'
 	@echo '  all        - build + check + install + test + builddoc + clean'
 	@echo '  upload     - build + upload the distribution archive to PyPI'
@@ -196,6 +196,7 @@ $(doc_build_dir)/index.html: $(package_name)/*.py
 	rm -Rf $(doc_build_dir)
 	mkdir -p $(doc_build_dir)
 	sh -c "PYTHONPATH=. $(doc_cmd)"
+	cp -p $(package_name)/NEWS $(doc_build_dir)/
 
 pylint.log: $(pylint_rc_file) setup.py $(package_name)/*.py testsuite/*.py
 	-sh -c "PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py --output-format=text setup.py $(package_name) testsuite/*.py |tee pylint.log"
