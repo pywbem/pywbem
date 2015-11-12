@@ -23,7 +23,7 @@
 The PyWBEM Client project provides a WBEM client library and some related
 utilities, written in pure Python.
 
-The WBEM client library allows issuing operations to a WBEM server, using
+A WBEM client library allows issuing operations to a WBEM server, using
 the CIM operations over HTTP (CIM-XML) protocol defined in the DMTF standards
 DSP0200 and DSP0201. See http://www.dmtf.org/standards/wbem for information
 about WBEM.
