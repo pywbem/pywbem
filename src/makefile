@@ -192,7 +192,7 @@ $(moftab_files): $(package_name)/mof_compiler.py
 	python -c "from pywbem import mof_compiler; mof_compiler._build()"
 
 # Documentation for package (generates more .html files than just this target)
-$(doc_build_dir)/index.html: $(package_name)/*.py
+$(doc_build_dir)/index.html: $(package_name)/*.py $(package_name)/NEWS
 	rm -Rf $(doc_build_dir)
 	mkdir -p $(doc_build_dir)
 	sh -c "PYTHONPATH=. $(doc_cmd)"
