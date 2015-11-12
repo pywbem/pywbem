@@ -14,7 +14,7 @@ Usage
 
 For information on how to use the PyWBEM Client for your own development
 projects, or how to contribute to it, go to the
-[PyWBEM Client page](http://pywbem.github.io)
+[PyWBEM Client page](http://pywbem.github.io/pywbem/)
 
 License
 -------
