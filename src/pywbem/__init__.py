@@ -100,7 +100,7 @@ This version of the PyWBEM Client is 0.8.0-rc1 (release candidate #1).
 Changes
 -------
 
-The change log is in the `NEWS <NEWS>`_ file.
+The change log is in the `NEWS <NEWS.txt>`_ file.
 
 Compatibility
 -------------
