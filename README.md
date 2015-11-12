@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/pywbem/pywbem.svg)](https://travis-ci.org/pywbem/pywbem)
 
-PyWBEM Client repository
-------------------------
+PyWBEM Client
+-------------
 
 The PyWBEM Client project provides a WBEM client library and some related
 utilities, written in pure Python.
