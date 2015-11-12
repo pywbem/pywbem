@@ -196,7 +196,7 @@ $(doc_build_dir)/index.html: $(package_name)/*.py
 	rm -Rf $(doc_build_dir)
 	mkdir -p $(doc_build_dir)
 	sh -c "PYTHONPATH=. $(doc_cmd)"
-	cp -p $(package_name)/NEWS $(doc_build_dir)/
+	cp -p $(package_name)/NEWS $(doc_build_dir)/NEWS.txt
 
 pylint.log: $(pylint_rc_file) setup.py $(package_name)/*.py testsuite/*.py
 	-sh -c "PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py --output-format=text setup.py $(package_name) testsuite/*.py |tee pylint.log"
