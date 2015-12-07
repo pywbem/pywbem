@@ -29,7 +29,7 @@ supported by the system running the WBEM server.
 """
 
 # Package version - Keep in sync with pywbem/__init__.py!
-_version = '0.8.0-rc1'
+_version = '0.8.0-rc2'
 
 # Control printing of debug messages
 DEBUG = False
