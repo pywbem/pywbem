@@ -245,18 +245,19 @@ class OSInstaller(object):
             authorized = True
         return authorized
         
-    def platform_pkg_name(self, pkg_name):
+    def platform_pkg_name(self, generic_pkg_name):
         """Return the platform-specific package name, given the
-        platform-independent package name."""
+        generic package name."""
         try:
-            platform_pkg_name = self.__class__.PLATFORM_PACKAGES[pkg_name]
+            platform_pkg_name = \
+                self.__class__.PLATFORM_PACKAGES[generic_pkg_name]
         except KeyError:
             raise SetupError("Internal Error: No information about OS-level "\
                 "package %s for operating system platform %s" %\
-                (pkg_name, self.platform()))
+                (generic_pkg_name, self.platform()))
         return platform_pkg_name
 
-    def do_install(self, pkg_name, min_version=None, pkg_brief=None):
+    def do_install(self, platform_pkg_name, min_version=None, pkg_brief=None):
         """Install an OS-level package with a specific minimum version.
         None for `min_version` will install the latest available version."""
         # The real code is in the subclass. If this code gets control, there
@@ -267,7 +268,7 @@ class OSInstaller(object):
                        "pre-requisites." % self.platform()
         self._manual_packages.append(pkg_brief)
 
-    def is_installed(self, pkg_name, min_version=None):
+    def is_installed(self, platform_pkg_name, min_version=None):
         """Test whether an OS-level package is installed and has a specific
         minimum version.
         None for `min_version` will test just for being installed, but not for a
@@ -276,7 +277,7 @@ class OSInstaller(object):
         # do_install() will be called.
         return False
 
-    def is_available(self, pkg_name, min_version=None):
+    def is_available(self, platform_pkg_name, min_version=None):
         """Test whether an OS-level package is available in the repos, with a
         specific minimum version. It does not matter for this function whether
         the package is already installed.
@@ -284,19 +285,21 @@ class OSInstaller(object):
         particular version."""
         raise NotImplemented
 
-    def install(self, pkg_name, min_version=None, pkg_brief=None):
+    def install(self, generic_pkg_name, min_version=None, pkg_brief=None):
         """Ensure that an OS-level package is installed with a specific minimum
         version."""
         print "Testing for availability of %s..." %  pkg_brief
-        if not self.is_installed(pkg_name, min_version):
-            self.do_install(pkg_name, min_version, pkg_brief)
+        platform_pkg_names = self.platform_pkg_name(generic_pkg_name).split()
+        for platform_pkg_name in platform_pkg_names:
+            if not self.is_installed(platform_pkg_name, min_version):
+                self.do_install(platform_pkg_name, min_version, pkg_brief)
 
 class RedhatInstaller(OSInstaller):
     """Installer for Redhat-based distributions (e.g. RHEL, CentOS, Fedora).
     It uses the new dnf installer for Fedora>=22."""
 
-    # The platform-specific package names (may be one or more) for each
-    # platform-independent package name.
+    # The platform-specific package names (may be one or more, in a
+    # blank-separated string) for each generic package name.
     PLATFORM_PACKAGES = {
         "pcre-devel": "pcre-devel",
         "openssl-devel": "openssl-devel",
@@ -305,7 +308,7 @@ class RedhatInstaller(OSInstaller):
         "libyaml-devel": "libyaml-devel",
         "pylint": "pylint",
         "swig": "swig",
-        "gcc": "gcc",
+        "g++": "gcc-c++",
     }
 
     def _installer_cmd(self):
@@ -316,38 +319,37 @@ class RedhatInstaller(OSInstaller):
         else:
             return "yum"
            
-    def do_install(self, pkg_name, min_version=None, pkg_brief=None):
+    def do_install(self, platform_pkg_name, min_version=None, pkg_brief=None):
         """Install an OS-level package with a specific minimum version.
         None for `min_version` will install the latest available version."""
-        pkg_str = self.platform_pkg_name(pkg_name)
         if min_version is not None:
-            pkg_str += "-%s*" % min_version
+            platform_pkg_name += "-%s*" % min_version
         if not self.authorized():
             self._failed = True
             self._reason = "This userid is not authorized to install OS-level "\
                            "packages."
             self._manual_packages.append(pkg_brief)
         else:
-            cmd = "sudo %s install -y %s" % (self._installer_cmd(), pkg_str)
+            cmd = "sudo %s install -y %s" %\
+                 (self._installer_cmd(), platform_pkg_name)
             if DRY_RUN:
                 print "Dry-running: %s" % cmd
             else:
                 print "Running: %s" % cmd
                 shell_check(cmd, display=True)
 
-    def is_installed(self, pkg_name, min_version=None):
+    def is_installed(self, platform_pkg_name, min_version=None):
         """Test whether an OS-level package is installed and has a specific
         minimum version.
         None for `min_version` will test just for being installed, but not for a
         particular version."""
-        pkg_str = self.platform_pkg_name(pkg_name)
-        cmd = "%s list installed %s" % (self._installer_cmd(), pkg_str)
+        cmd = "%s list installed %s" % (self._installer_cmd(), platform_pkg_name)
         rc, out, err = shell(cmd)
         if rc != 0:
-            print "Package is not installed: %s" % pkg_str
+            print "Package is not installed: %s" % platform_pkg_name
             return False
         info = out.splitlines()[-1].strip("\n").split()
-        if not info[0].startswith(pkg_str+"."):
+        if not info[0].startswith(platform_pkg_name+"."):
             raise SetupError("Unexpected output from command '%s':\n%s%s" %\
                 (cmd, out, err))
         version = info[1].split("-")[0]
@@ -356,28 +358,31 @@ class RedhatInstaller(OSInstaller):
             min_version_list = min_version.split(".")
             version_sufficient = (version_list >= min_version_list)
             if version_sufficient:
-                print "Installed package version is sufficient: %s %s" % (pkg_str, version)
+                print "Installed package version is sufficient: "\
+                    "%s %s" % (platform_pkg_name, version)
             else:
-                print "Installed package version is not sufficient: %s %s" % (pkg_str, version)
+                print "Installed package version is not sufficient: "\
+                    "%s %s" % (platform_pkg_name, version)
             return version_sufficient
         else:
-            print "Package is installed (no minimum version was required): %s %s" % (pkg_str, version)
+            print "Package is installed (no minimum version was required): "\
+                "%s %s" % (platform_pkg_name, version)
             return True
 
-    def is_available(self, pkg_name, min_version=None):
+    def is_available(self, platform_pkg_name, min_version=None):
         """Test whether an OS-level package is available in the repos, with a
         specific minimum version. It does not matter for this function whether
         the package is already installed.
         None for `min_version` will test just for being available, but not for a
         particular version."""
-        pkg_str = self.platform_pkg_name(pkg_name)
-        cmd = "%s list %s" % (self._installer_cmd(), pkg_str)
+        cmd = "%s list %s" % (self._installer_cmd(), platform_pkg_name)
         rc, out, err = shell(cmd)
         if rc != 0:
-            print "Package is not available in repositories: %s" % pkg_str
+            print "Package is not available in repositories: %s" %\
+                platform_pkg_name
             return False
         info = out.splitlines()[-1].strip("\n").split()
-        if not info[0].startswith(pkg_str+"."):
+        if not info[0].startswith(platform_pkg_name+"."):
             raise SetupError("Unexpected output from command '%s':\n%s%s" %\
                 (cmd, out, err))
         version = info[1].split("-")[0]
@@ -386,19 +391,22 @@ class RedhatInstaller(OSInstaller):
             min_version_list = min_version.split(".")
             version_sufficient = (version_list >= min_version_list)
             if version_sufficient:
-                print "Package version in repositories is sufficient: %s %s" % (pkg_str, version)
+                print "Package version in repositories is sufficient: "\
+                    "%s %s" % (platform_pkg_name, version)
             else:
-                print "Package version in repositories is not sufficient: %s %s" % (pkg_str, version)
+                print "Package version in repositories is not sufficient: "\
+                    "%s %s" % (platform_pkg_name, version)
             return version_sufficient
         else:
-            print "Package is available in repositories (no minimum version was required): %s %s" % (pkg_str, version)
+            print "Package is available in repositories (no minimum version "\
+                "was required): %s %s" % (platform_pkg_name, version)
             return True
 
 class DebianInstaller(OSInstaller):
     """Installer for Debian-based distributions (e.g. Debian, Ubuntu)."""
 
-    # The platform-specific package names (may be one or more) for each
-    # platform-independent package name.
+    # The platform-specific package names (may be one or more, in a
+    # blank-separated string) for each generic package name.
     PLATFORM_PACKAGES = {
         "pcre-devel": "libpcre3 libpcre3-dev",
         "openssl-devel": "libssl-dev",
@@ -407,45 +415,49 @@ class DebianInstaller(OSInstaller):
         "libyaml-devel": "libyaml-dev",
         "pylint": "pylint",
         "swig": "swig2.0",
-        "gcc": "gcc",
+        "g++": "g++",
     }
 
-    def do_install(self, pkg_name, min_version=None, pkg_brief=None):
+    def do_install(self, platform_pkg_name, min_version=None, pkg_brief=None):
         """Install an OS-level package with a specific minimum version.
         None for `min_version` will install the latest available version."""
-        pkg_str = self.platform_pkg_name(pkg_name)
         if min_version is not None:
-            pkg_str += "-%s*" % min_version
+            # apt has no syntax for installing minimum version or later; it
+            # only allows for installing the latest sub-version of the latest
+            # available version, but if the specified minimum version is older
+            # than the latest available version, the package is not going to
+            # be available. So all we can do is to assume that the latest
+            # version will be sufficient.
+            pass
         if not self.authorized():
             self._failed = True
             self._reason = "This userid is not authorized to install OS-level "\
                            "packages."
             self._manual_packages.append(pkg_brief)
         else:
-            cmd = "sudo apt-get install -y %s" % pkg_str
+            cmd = "sudo apt-get install -y %s" % platform_pkg_name
             if DRY_RUN:
                 print "Dry-running: %s" % cmd
             else:
                 print "Running: %s" % cmd
                 shell_check(cmd, display=True)
 
-    def is_installed(self, pkg_name, min_version=None):
+    def is_installed(self, platform_pkg_name, min_version=None):
         """Test whether an OS-level package is installed and has a specific
         minimum version.
         None for `min_version` will test just for being installed, but not for a
         particular version."""
-        pkg_str = self.platform_pkg_name(pkg_name)
-        cmd = "dpkg -s %s" % pkg_str
+        cmd = "dpkg -s %s" % platform_pkg_name
         rc, out, err = shell(cmd)
         if rc != 0:
-            print "Package is not installed: %s" % pkg_str
+            print "Package is not installed: %s" % platform_pkg_name
             return False
         lines = out.splitlines()
         status_line = [line for line in lines if line.startswith("Status:")][0]
         version_line = [line for line in lines if line.startswith("Version:")][0]
         if status_line != "Status: install ok installed":
-            raise SetupError("Unexpected status output from command '%s':\n%s%s" %\
-                (cmd, out, err))
+            raise SetupError("Unexpected status output from command '%s':\n"\
+                "%s%s" % (cmd, out, err))
         version = version_line.split()[1].split("-")[0]
         if ":" in version:
             version = version.split(":")[1]
@@ -454,25 +466,28 @@ class DebianInstaller(OSInstaller):
             min_version_list = min_version.split(".")
             version_sufficient = (version_list >= min_version_list)
             if version_sufficient:
-                print "Installed package version is sufficient: %s %s" % (pkg_str, version)
+                print "Installed package version is sufficient: "\
+                    "%s %s" % (platform_pkg_name, version)
             else:
-                print "Installed package version is not sufficient: %s %s" % (pkg_str, version)
+                print "Installed package version is not sufficient: "\
+                    "%s %s" % (platform_pkg_name, version)
             return version_sufficient
         else:
-            print "Package is installed (no minimum version was required): %s %s" % (pkg_str, version)
+            print "Package is installed (no minimum version was required): "\
+                "%s %s" % (platform_pkg_name, version)
             return True
 
-    def is_available(self, pkg_name, min_version=None):
+    def is_available(self, platform_pkg_name, min_version=None):
         """Test whether an OS-level package is available in the repos, with a
         specific minimum version. It does not matter for this function whether
         the package is already installed.
         None for `min_version` will test just for being available, but not for a
         particular version."""
-        pkg_str = self.platform_pkg_name(pkg_name)
-        cmd = "apt show %s" % pkg_str
+        cmd = "apt show %s" % platform_pkg_name
         rc, out, err = shell(cmd)
         if rc != 0:
-            print "Package is not available in repositories: %s" % pkg_str
+            print "Package is not available in repositories: %s" %\
+                platform_pkg_name
             return False
         lines = out.splitlines()
         version_line = [line for line in lines if line.startswith("Version:")][0]
@@ -482,19 +497,22 @@ class DebianInstaller(OSInstaller):
             min_version_list = min_version.split(".")
             version_sufficient = (version_list >= min_version_list)
             if version_sufficient:
-                print "Package version in repositories is sufficient: %s %s" % (pkg_str, version)
+                print "Package version in repositories is sufficient: "\
+                    "%s %s" % (platform_pkg_name, version)
             else:
-                print "Package version in repositories is not sufficient: %s %s" % (pkg_str, version)
+                print "Package version in repositories is not sufficient: "\
+                    "%s %s" % (platform_pkg_name, version)
             return version_sufficient
         else:
-            print "Package is available in repositories (no minimum version was required): %s %s" % (pkg_str, version)
+            print "Package is available in repositories (no minimum version "\
+                "was required): %s %s" % (platform_pkg_name, version)
             return True
 
 class SuseInstaller(OSInstaller):
     """Installer for Suse-based distributions (e.g. SLES, openSUSE)."""
 
-    # The platform-specific package names (may be one or more) for each
-    # platform-independent package name.
+    # The platform-specific package names (may be one or more, in a
+    # blank-separated string) for each generic package name.
     PLATFORM_PACKAGES = {
         "pcre-devel": "pcre-devel",
         "openssl-devel": "openssl-devel",
@@ -503,72 +521,76 @@ class SuseInstaller(OSInstaller):
         "libyaml-devel": "libyaml-devel",
         "pylint": "pylint",
         "swig": "swig",
-        "gcc": "gcc",
+        "g++": "gcc-c++",
     }
 
-    def do_install(self, pkg_name, min_version=None, pkg_brief=None):
+    def do_install(self, platform_pkg_name, min_version=None, pkg_brief=None):
         """Install an OS-level package with a specific minimum version.
         None for `min_version` will install the latest available version."""
-        pkg_str = self.platform_pkg_name(pkg_name)
         if min_version is not None:
-            pkg_str += "-%s*" % min_version
+            # Zypper has no syntax for installing minimum version or later.
+            # So all we can do is to assume that the latest version will be
+            # sufficient.
+            pass
         if not self.authorized():
             self._failed = True
             self._reason = "This userid is not authorized to install OS-level "\
                            "packages."
             self._manual_packages.append(pkg_brief)
         else:
-            cmd = "sudo yum zypper -y %s" % pkg_str
+            cmd = "sudo yum zypper -y %s" % platform_pkg_name
             if DRY_RUN:
                 print "Dry-running: %s" % cmd
             else:
                 print "Running: %s" % cmd
                 shell_check(cmd, display=True)
 
-    def is_installed(self, pkg_name, min_version=None):
+    def is_installed(self, platform_pkg_name, min_version=None):
         """Test whether an OS-level package is installed and has a specific
         minimum version.
         None for `min_version` will test just for being installed, but not for a
         particular version."""
-        pkg_str = self.platform_pkg_name(pkg_name)
-        cmd = "zypper info %s" % pkg_str
+        cmd = "zypper info %s" % platform_pkg_name
         rc, out, err = shell(cmd)
         if rc != 0:
-            print "Package is not installed: %s" % pkg_str
+            print "Package is not installed: %s" % platform_pkg_name
             return False
         info = out.splitlines()[-1].strip("\n").split()
-        if not info[0].startswith(pkg_str+"."):
+        if not info[0].startswith(platform_pkg_name+"."):
             raise SetupError("Unexpected output from command '%s':\n%s%s" %\
                 (cmd, out, err))
         version = info[1].split("-")[0]
-        print "Package already installed: %s %s" % (pkg_str, version)
+        print "Package already installed: %s %s" % (platform_pkg_name, version)
         if min_version is not None:
             version_list = version.split(".")
             min_version_list = min_version.split(".")
             version_sufficient = (version_list >= min_version_list)
             if version_sufficient:
-                print "Installed package version is sufficient: %s %s" % (pkg_str, version)
+                print "Installed package version is sufficient: "\
+                    "%s %s" % (platform_pkg_name, version)
             else:
-                print "Installed package version is not sufficient: %s %s" % (pkg_str, version)
+                print "Installed package version is not sufficient: "\
+                    "%s %s" % (platform_pkg_name, version)
             return version_sufficient
         else:
-            print "Package is installed (no minimum version was required): %s %s" % (pkg_str, version)
+            print "Package is installed (no minimum version was required): "\
+                "%s %s" % (platform_pkg_name, version)
             return True
 
-    def is_available(self, pkg_name, min_version=None):
+    def is_available(self, platform_pkg_name, min_version=None):
         """Test whether an OS-level package is available in the repos, with a
         specific minimum version. It does not matter for this function whether
         the package is already installed.
         None for `min_version` will test just for being available, but not for a
         particular version."""
-        pkg_str = self.platform_pkg_name(pkg_name)
-        cmd = "zypper info %s" % pkg_str
+        cmd = "zypper info %s" % platform_pkg_name
         rc, out, err = shell(cmd)
         # zypper always returns 0, and writes everything to stdout.
         lines = out.splitlines()
         version_lines = [line for line in lines if line.startswith("Version:")]
         if len(version_lines) == 0:
-            print "Package is not available in repositories: %s" % pkg_str
+            print "Package is not available in repositories: %s" %\
+                platform_pkg_name
             return False
         version_line = version_lines[0]
         version = version_line.split()[1].split("-")[0]
@@ -577,25 +599,29 @@ class SuseInstaller(OSInstaller):
             min_version_list = min_version.split(".")
             version_sufficient = (version_list >= min_version_list)
             if version_sufficient:
-                print "Package version in repositories is sufficient: %s %s" % (pkg_str, version)
+                print "Package version in repositories is sufficient: "\
+                    "%s %s" % (platform_pkg_name, version)
             else:
-                print "Package version in repositories is not sufficient: %s %s" % (pkg_str, version)
+                print "Package version in repositories is not sufficient: "\
+                    "%s %s" % (platform_pkg_name, version)
             return version_sufficient
         else:
-            print "Package is available in repositories (no minimum version was required): %s %s" % (pkg_str, version)
+            print "Package is available in repositories (no minimum version "\
+                "was required): %s %s" % (platform_pkg_name, version)
             return True
 
 def install_swig(inst):
 
-    inst.install("gcc", "4.4", "GCC compiler")
+    inst.install("g++", "4.4", "GCC C/C++ compiler")
 
-    print "Testing for availability of Swig..."
+    print "Testing for availability of Swig in PATH..."
     get_swig = False
     rc, out, err = shell("which swig")
     if rc != 0:
         print "Swig is not available in PATH; need to get Swig"
         get_swig = True
     else:
+        print "Swig is available in PATH; testing its version..."
         out = shell_check("swig -version")
         m = re.search(r"^SWIG Version ([0-9\.]+)$", out, re.MULTILINE)
         if m is None:
@@ -603,10 +629,11 @@ def install_swig(inst):
                 "of 'swig -version':\n%s" % out)
         swig_version = m.group(1)
         if swig_version.split(".")[0:2] < [2,0]:
-            print "Installed Swig version %s is too old; need to get Swig" % swig_version
+            print "Installed Swig version is too old: %s; need to get Swig" %\
+                swig_version
             get_swig = True
         else:
-            print "Installed Swig version %s is sufficient" % swig_version
+            print "Installed Swig version is sufficient: %s" % swig_version
 
     if get_swig:
 
@@ -623,34 +650,45 @@ def install_swig(inst):
             swig_tar_file = "swig-%s.tar.gz" % swig_version
             swig_install_root = "/usr"
             
-            print "Building Swig from sources, and installing to %s tree..." % swig_install_root
+            print "Building Swig from sources, and installing to %s tree..." %\
+                swig_install_root
 
-            print "Installing prerequisite OS-level packages for building Swig..."
-            inst.install("pcre-devel", None, "PCRE (Perl Compatible Regular Expressions) development")
+            print "Installing prerequisite OS-level packages for building "\
+                "Swig..."
+            inst.install("pcre-devel", None,
+                "PCRE (Perl Compatible Regular Expressions) development")
 
-            print "Downloading, building and installing Swig version %s..." % swig_version
+            print "Downloading, building and installing Swig version %s..." %\
+                swig_version
 
             if os.path.exists(swig_dir):
-                print "Removing previously downloaded Swig directory: %s" % swig_dir
+                print "Removing previously downloaded Swig directory: %s" %\
+                    swig_dir
                 shutil.rmtree(swig_dir)
 
             print "Downloading Swig source archive: %s" % swig_tar_file
             shell_check("wget -q -O %s "
-                "http://sourceforge.net/projects/swig/files/swig/%s/%s/download" %\
-                (swig_tar_file, swig_dir, swig_tar_file), display=True)
+              "http://sourceforge.net/projects/swig/files/swig/%s/%s/download"%\
+              (swig_tar_file, swig_dir, swig_tar_file), display=True)
             print "Unpacking Swig source archive: %s" % swig_tar_file
             shell_check("tar -xf %s" % swig_tar_file, display=True)
 
-            print "Configuring Swig build process for installing to %s tree..." % swig_install_root
-            shell_check(["sh", "-c", "cd %s; ./configure --prefix=%s" % (swig_dir, swig_install_root)], display=True)
+            print "Configuring Swig build process for installing to %s "\
+                "tree..." % swig_install_root
+            shell_check(["sh", "-c", "cd %s; ./configure --prefix=%s" %\
+                (swig_dir, swig_install_root)],
+                display=True)
 
             print "Building Swig..."
-            shell_check(["sh", "-c", "cd %s; make swig" % swig_dir], display=True)
+            shell_check(["sh", "-c", "cd %s; make swig" % swig_dir],
+                display=True)
 
             print "Installing Swig to %s tree..." % swig_install_root
-            shell_check(["sh", "-c", "cd %s; sudo make install" % swig_dir], display=True)
+            shell_check(["sh", "-c", "cd %s; sudo make install" % swig_dir],
+                display=True)
 
-            print "Done downloading, building and installing Swig version %s" % swig_version
+            print "Done downloading, building and installing Swig version %s" %\
+                swig_version
 
 def install_openssl(inst):
     inst.install("openssl-devel", "1.0.1", "OpenSSL development")
@@ -674,7 +712,8 @@ def patch_epydoc():
 
     if os.path.exists(epydoc_patch_dir):
 
-        print "Epydoc patch directory exists, assuming Epydoc is already patched..."
+        print "Epydoc patch directory exists, assuming Epydoc is already "\
+            "patched..."
 
     else:
 
@@ -683,7 +722,8 @@ def patch_epydoc():
         print "Creating Epydoc patch directory %s" % epydoc_patch_dir
         shell_check("mkdir -p %s" % epydoc_patch_dir)
 
-        print "Downloading Epydoc patches into patch directory %s" % epydoc_patch_dir
+        print "Downloading Epydoc patches into patch directory %s" %\
+            epydoc_patch_dir
         shell_check("wget -q -O %s/epydoc-rst.patch "
                     "http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/packages/epydoc/epydoc-rst.patch?revision=1.1&view=co" %\
                     epydoc_patch_dir, display=True)
@@ -737,32 +777,31 @@ def main():
 
             if inst._failed:
                 raise SetupError(
-                    "Cannot install pre-requisites for the 'install' command.\n"\
-                    "Reason: %s\n"\
-                    "Please install the following packages manually, and "\
-                    "retry:\n"\
-                    "\n"\
-                    "    %s" % (inst._reason,
-                                "\n    ".join(inst._manual_packages)))
+                  "Cannot install pre-requisites for the 'install' command.\n"\
+                  "Reason: %s\n"\
+                  "Please install the following packages manually, and "\
+                  "retry:\n"\
+                  "\n"\
+                  "    %s" % (inst._reason,
+                              "\n    ".join(inst._manual_packages)))
 
         if "develop" in sys.argv:
 
             install_swig(inst)
             install_openssl(inst)
-            install_xmlxslt(inst) # probably needed for some installations of lxml
+            install_xmlxslt(inst)
             install_pylint(inst)
 
             if inst._failed:
                 raise SetupError(
-                    "Cannot install pre-requisites for the 'develop' command.\n"\
-                    "Reason: %s\n"\
-                    "Please install the following packages manually, and "\
-                    "retry:\n"\
-                    "\n"\
-                    "    %s" % (inst._reason,
-                                "\n    ".join(inst._manual_packages)))
-
-            # The following have dependencies on the OS-level packages
+                  "Cannot install pre-requisites for the 'develop' command.\n"\
+                  "Reason: %s\n"\
+                  "Please install the following packages manually, and "\
+                  "retry:\n"\
+                  "\n"\
+                  "    %s" % (inst._reason,
+                              "\n    ".join(inst._manual_packages)))
+             # The following have dependencies on the OS-level packages
             # installed further up.
             install_build_requirements()
             patch_epydoc()
@@ -796,14 +835,15 @@ def main():
         ],
         'install_requires': [
             # These dependencies will be installed as a site package.
-            # They are not useable by this setup script, if they are eggs (because
-            # their path is added to a .pth file which is parsed only at Python
-            # startup time).
+            # They are not useable by this setup script, if they are eggs
+            # (because their path is added to a .pth file which is parsed only
+            # at Python startup time).
             #'M2Crypto>=0.22.6',
             'M2Crypto',
         ],
-        # Temporary fix: Use our own fork of M2Crypto with fixes for installation issues.
-        # This only seems to work if no version is specified in its install_requires entry.
+        # Temporary fix: Use our own fork of M2Crypto with fixes for
+        # installation issues. This only seems to work if no version is
+        # specified in its install_requires entry.
         'dependency_links': [
             "git+https://github.com/pywbem/m2crypto@amfix2#egg=M2Crypto"
         ],
