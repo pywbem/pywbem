@@ -699,7 +699,11 @@ def install_xmlxslt(inst):
     inst.install("libyaml-devel", None, "YAML development")
 
 def install_pylint(inst):
-    inst.install("pylint", None, "PyLint")
+    if inst.is_available("pylint"):
+        inst.install("pylint", None, "PyLint")
+    else:
+        print "PyLint is not available in the repositories; Skipping "\
+            "installation of PyLint..."
 
 def install_build_requirements():
     print "Installing Python packages for PyWBEM development..."
