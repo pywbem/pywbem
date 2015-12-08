@@ -699,11 +699,11 @@ def install_xmlxslt(inst):
     inst.install("libyaml-devel", None, "YAML development")
 
 def install_pylint(inst):
+    print "Testing for availability of PyLint in repositories..."
     if inst.is_available("pylint"):
         inst.install("pylint", None, "PyLint")
     else:
-        print "PyLint is not available in the repositories; Skipping "\
-            "installation of PyLint..."
+        print "Skipping installation of PyLint..."
 
 def install_build_requirements():
     print "Installing Python packages for PyWBEM development..."
@@ -805,7 +805,7 @@ def main():
                   "\n"\
                   "    %s" % (inst._reason,
                               "\n    ".join(inst._manual_packages)))
-             # The following have dependencies on the OS-level packages
+            # The following have dependencies on the OS-level packages
             # installed further up.
             install_build_requirements()
             patch_epydoc()
@@ -813,6 +813,8 @@ def main():
     except SetupError as exc:
         print "%sError: %s%s" % (color.FAIL, exc, color.ENDC)
         return 1
+
+    print "Installing PyWBEM and its Python package prerequisites..."
 
     args = {
         'name': 'pywbem',
