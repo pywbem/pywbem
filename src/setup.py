@@ -344,20 +344,24 @@ class RedhatInstaller(OSInstaller):
         cmd = "%s list installed %s" % (self._installer_cmd(), pkg_str)
         rc, out, err = shell(cmd)
         if rc != 0:
-            # Package is not installed
+            print "Package is not installed: %s" % pkg_str
             return False
         info = out.splitlines()[-1].strip("\n").split()
         if not info[0].startswith(pkg_str+"."):
             raise SetupError("Unexpected output from command '%s':\n%s%s" %\
                 (cmd, out, err))
         version = info[1].split("-")[0]
-        print "Package already installed: %s %s" % (pkg_str, version)
         if min_version is not None:
             version_list = version.split(".")
             min_version_list = min_version.split(".")
-            return version_list >= min_version_list
+            version_sufficient = (version_list >= min_version_list)
+            if version_sufficient:
+                print "Installed package version is sufficient: %s %s" % (pkg_str, version)
+            else:
+                print "Installed package version is not sufficient: %s %s" % (pkg_str, version)
+            return version_sufficient
         else:
-            # Any version is fine
+            print "Package is installed (no minimum version was required): %s %s" % (pkg_str, version)
             return True
 
     def is_available(self, pkg_name, min_version=None):
@@ -370,7 +374,7 @@ class RedhatInstaller(OSInstaller):
         cmd = "%s list %s" % (self._installer_cmd(), pkg_str)
         rc, out, err = shell(cmd)
         if rc != 0:
-            # Package is not available
+            print "Package is not available in repositories: %s" % pkg_str
             return False
         info = out.splitlines()[-1].strip("\n").split()
         if not info[0].startswith(pkg_str+"."):
@@ -380,9 +384,14 @@ class RedhatInstaller(OSInstaller):
         if min_version is not None:
             version_list = version.split(".")
             min_version_list = min_version.split(".")
-            return version_list >= min_version_list
+            version_sufficient = (version_list >= min_version_list)
+            if version_sufficient:
+                print "Package version in repositories is sufficient: %s %s" % (pkg_str, version)
+            else:
+                print "Package version in repositories is not sufficient: %s %s" % (pkg_str, version)
+            return version_sufficient
         else:
-            # Any version is fine
+            print "Package is available in repositories (no minimum version was required): %s %s" % (pkg_str, version)
             return True
 
 class DebianInstaller(OSInstaller):
@@ -429,7 +438,7 @@ class DebianInstaller(OSInstaller):
         cmd = "dpkg -s %s" % pkg_str
         rc, out, err = shell(cmd)
         if rc != 0:
-            # Package is not installed
+            print "Package is not installed: %s" % pkg_str
             return False
         lines = out.splitlines()
         status_line = [line for line in lines if line.startswith("Status:")][0]
@@ -440,13 +449,17 @@ class DebianInstaller(OSInstaller):
         version = version_line.split()[1].split("-")[0]
         if ":" in version:
             version = version.split(":")[1]
-        print "Package already installed: %s %s" % (pkg_str, version)
         if min_version is not None:
             version_list = version.split(".")
             min_version_list = min_version.split(".")
-            return version_list >= min_version_list
+            version_sufficient = (version_list >= min_version_list)
+            if version_sufficient:
+                print "Installed package version is sufficient: %s %s" % (pkg_str, version)
+            else:
+                print "Installed package version is not sufficient: %s %s" % (pkg_str, version)
+            return version_sufficient
         else:
-            # Any version is fine
+            print "Package is installed (no minimum version was required): %s %s" % (pkg_str, version)
             return True
 
     def is_available(self, pkg_name, min_version=None):
@@ -459,7 +472,7 @@ class DebianInstaller(OSInstaller):
         cmd = "apt show %s" % pkg_str
         rc, out, err = shell(cmd)
         if rc != 0:
-            # Package is not installed
+            print "Package is not available in repositories: %s" % pkg_str
             return False
         lines = out.splitlines()
         version_line = [line for line in lines if line.startswith("Version:")][0]
@@ -467,9 +480,14 @@ class DebianInstaller(OSInstaller):
         if min_version is not None:
             version_list = version.split(".")
             min_version_list = min_version.split(".")
-            return version_list >= min_version_list
+            version_sufficient = (version_list >= min_version_list)
+            if version_sufficient:
+                print "Package version in repositories is sufficient: %s %s" % (pkg_str, version)
+            else:
+                print "Package version in repositories is not sufficient: %s %s" % (pkg_str, version)
+            return version_sufficient
         else:
-            # Any version is fine
+            print "Package is available in repositories (no minimum version was required): %s %s" % (pkg_str, version)
             return True
 
 class SuseInstaller(OSInstaller):
@@ -516,7 +534,7 @@ class SuseInstaller(OSInstaller):
         cmd = "zypper info %s" % pkg_str
         rc, out, err = shell(cmd)
         if rc != 0:
-            # Package is not installed
+            print "Package is not installed: %s" % pkg_str
             return False
         info = out.splitlines()[-1].strip("\n").split()
         if not info[0].startswith(pkg_str+"."):
@@ -527,9 +545,14 @@ class SuseInstaller(OSInstaller):
         if min_version is not None:
             version_list = version.split(".")
             min_version_list = min_version.split(".")
-            return version_list >= min_version_list
+            version_sufficient = (version_list >= min_version_list)
+            if version_sufficient:
+                print "Installed package version is sufficient: %s %s" % (pkg_str, version)
+            else:
+                print "Installed package version is not sufficient: %s %s" % (pkg_str, version)
+            return version_sufficient
         else:
-            # Any version is fine
+            print "Package is installed (no minimum version was required): %s %s" % (pkg_str, version)
             return True
 
     def is_available(self, pkg_name, min_version=None):
@@ -545,16 +568,21 @@ class SuseInstaller(OSInstaller):
         lines = out.splitlines()
         version_lines = [line for line in lines if line.startswith("Version:")]
         if len(version_lines) == 0:
-            # Package is not installed
+            print "Package is not available in repositories: %s" % pkg_str
             return False
         version_line = version_lines[0]
         version = version_line.split()[1].split("-")[0]
         if min_version is not None:
             version_list = version.split(".")
             min_version_list = min_version.split(".")
-            return version_list >= min_version_list
+            version_sufficient = (version_list >= min_version_list)
+            if version_sufficient:
+                print "Package version in repositories is sufficient: %s %s" % (pkg_str, version)
+            else:
+                print "Package version in repositories is not sufficient: %s %s" % (pkg_str, version)
+            return version_sufficient
         else:
-            # Any version is fine
+            print "Package is available in repositories (no minimum version was required): %s %s" % (pkg_str, version)
             return True
 
 def install_swig(inst):
