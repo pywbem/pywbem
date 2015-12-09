@@ -264,10 +264,10 @@ class OSInstaller(object):
         # is no subclass that handles this platform.
         if not self.supported():
             self._failed = True
+            self._continue = True # we try anyway
             self._reason = "This operating system platform (%s) is not "\
                            "supported for automatic installation of "\
                            "pre-requisites." % self.platform()
-            self._continue = True
             self._manual_packages.append(platform_pkg_name)
             return
         raise NotImplemented
@@ -279,6 +279,7 @@ class OSInstaller(object):
         particular version."""
         if not self.supported():
             self._failed = True
+            self._continue = True # we try anyway
             self._reason = "This operating system platform (%s) is not "\
                            "supported for automatic installation of "\
                            "pre-requisites." % self.platform()
@@ -294,6 +295,7 @@ class OSInstaller(object):
         particular version."""
         if not self.supported():
             self._failed = True
+            self._continue = True # we try anyway
             self._reason = "This operating system platform (%s) is not "\
                            "supported for automatic installation of "\
                            "pre-requisites." % self.platform()
@@ -306,6 +308,7 @@ class OSInstaller(object):
         version."""
         if not self.supported():
             self._failed = True
+            self._continue = True # we try anyway
             self._reason = "This operating system platform (%s) is not "\
                            "supported for automatic installation of "\
                            "pre-requisites." % self.platform()
