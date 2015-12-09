@@ -235,7 +235,7 @@ class OSInstaller(object):
         """Determine whether this operating system platform is supported for
         installation of OS-level packages."""
         return self._platform in self._installers
-        
+
     def authorized(self):
         """Determine whether the current userid is authorized to install
         OS-level packages."""
@@ -245,13 +245,12 @@ class OSInstaller(object):
         else:
             authorized = True
         return authorized
-        
+
     def platform_pkg_name(self, generic_pkg_name):
         """Return the platform-specific package name, given the
         generic package name."""
         try:
-            platform_pkg_name = \
-                self.__class__.PLATFORM_PACKAGES[generic_pkg_name]
+            platform_pkg_name = self.PLATFORM_PACKAGES[generic_pkg_name]
         except KeyError:
             raise SetupError("Internal Error: No information about OS-level "\
                 "package %s for operating system platform %s" %\
@@ -263,21 +262,29 @@ class OSInstaller(object):
         None for `min_version` will install the latest available version."""
         # The real code is in the subclass. If this code gets control, there
         # is no subclass that handles this platform.
-        self._failed = True
-        self._reason = "This operating system platform (%s) is not "\
-                       "supported for automatic installation of "\
-                       "pre-requisites." % self.platform()
-        self._continue = True
-        self._manual_packages.append(pkg_brief)
+        if not self.supported():
+            self._failed = True
+            self._reason = "This operating system platform (%s) is not "\
+                           "supported for automatic installation of "\
+                           "pre-requisites." % self.platform()
+            self._continue = True
+            self._manual_packages.append(platform_pkg_name)
+            return
+        raise NotImplemented
 
     def is_installed(self, platform_pkg_name, min_version=None):
         """Test whether an OS-level package is installed and has a specific
         minimum version.
         None for `min_version` will test just for being installed, but not for a
         particular version."""
-        # The real code is in the subclass. Here, we just ensure that our
-        # do_install() will be called.
-        return False
+        if not self.supported():
+            self._failed = True
+            self._reason = "This operating system platform (%s) is not "\
+                           "supported for automatic installation of "\
+                           "pre-requisites." % self.platform()
+            self._manual_packages.append(platform_pkg_name)
+            return
+        raise NotImplemented
 
     def is_available(self, platform_pkg_name, min_version=None):
         """Test whether an OS-level package is available in the repos, with a
@@ -285,11 +292,25 @@ class OSInstaller(object):
         the package is already installed.
         None for `min_version` will test just for being available, but not for a
         particular version."""
+        if not self.supported():
+            self._failed = True
+            self._reason = "This operating system platform (%s) is not "\
+                           "supported for automatic installation of "\
+                           "pre-requisites." % self.platform()
+            self._manual_packages.append(platform_pkg_name)
+            return
         raise NotImplemented
 
     def install(self, generic_pkg_name, min_version=None, pkg_brief=None):
         """Ensure that an OS-level package is installed with a specific minimum
         version."""
+        if not self.supported():
+            self._failed = True
+            self._reason = "This operating system platform (%s) is not "\
+                           "supported for automatic installation of "\
+                           "pre-requisites." % self.platform()
+            self._manual_packages.append(pkg_brief)
+            return
         print "Testing for availability of %s..." %  pkg_brief
         platform_pkg_names = self.platform_pkg_name(generic_pkg_name).split()
         for platform_pkg_name in platform_pkg_names:
@@ -311,6 +332,7 @@ class RedhatInstaller(OSInstaller):
         "pylint": "pylint",
         "swig": "swig",
         "g++": "gcc-c++",
+        "git": "git",
     }
 
     def _installer_cmd(self):
@@ -320,7 +342,7 @@ class RedhatInstaller(OSInstaller):
             return "dnf"
         else:
             return "yum"
-           
+
     def do_install(self, platform_pkg_name, min_version=None, pkg_brief=None):
         """Install an OS-level package with a specific minimum version.
         None for `min_version` will install the latest available version."""
@@ -419,6 +441,7 @@ class DebianInstaller(OSInstaller):
         "pylint": "pylint",
         "swig": "swig2.0",
         "g++": "g++",
+        "git": "git",
     }
 
     def do_install(self, platform_pkg_name, min_version=None, pkg_brief=None):
@@ -526,6 +549,7 @@ class SuseInstaller(OSInstaller):
         "pylint": "pylint",
         "swig": "swig",
         "g++": "gcc-c++",
+        "git": "git",
     }
 
     def do_install(self, platform_pkg_name, min_version=None, pkg_brief=None):
@@ -619,7 +643,8 @@ def install_swig(inst):
 
     inst.install("g++", "4.4", "GCC C/C++ compiler")
 
-    print "Testing for availability of Swig in PATH..."
+    swig_min_version = "2.0"
+    print "Testing for availability of Swig >=%s in PATH..." % swig_min_version
     get_swig = False
     rc, out, err = shell("which swig")
     if rc != 0:
@@ -633,7 +658,7 @@ def install_swig(inst):
             raise SetupError("Cannot determine Swig version from output "
                 "of 'swig -version':\n%s" % out)
         swig_version = m.group(1)
-        if swig_version.split(".")[0:2] < [2,0]:
+        if swig_version.split(".") < swig_min_version.split("."):
             print "Installed Swig version is too old: %s; need to get Swig" %\
                 swig_version
             get_swig = True
@@ -642,19 +667,19 @@ def install_swig(inst):
 
     if get_swig:
 
-        swig_version = "2.0"
-        print "Testing for availability of Swig in repositories..."
-        if inst.is_available("swig", swig_version):
+        print "Testing for availability of Swig >=%s in repositories..." %\
+            swig_min_version
+        if inst.is_available("swig", swig_min_version):
 
-            inst.do_install("swig", swig_version, "Swig")
+            inst.do_install("swig", swig_min_version, "Swig")
 
         else:
 
-            swig_version = "2.0.12"
-            swig_dir = "swig-%s" % swig_version
-            swig_tar_file = "swig-%s.tar.gz" % swig_version
+            swig_build_version = "2.0.12"
+            swig_dir = "swig-%s" % swig_build_version
+            swig_tar_file = "swig-%s.tar.gz" % swig_build_version
             swig_install_root = "/usr"
-            
+
             print "Building Swig from sources, and installing to %s tree..." %\
                 swig_install_root
 
@@ -664,7 +689,7 @@ def install_swig(inst):
                 "PCRE (Perl Compatible Regular Expressions) development")
 
             print "Downloading, building and installing Swig version %s..." %\
-                swig_version
+                swig_build_version
 
             if os.path.exists(swig_dir):
                 print "Removing previously downloaded Swig directory: %s" %\
@@ -693,10 +718,13 @@ def install_swig(inst):
                 display=True)
 
             print "Done downloading, building and installing Swig version %s" %\
-                swig_version
+                swig_build_version
 
 def install_openssl(inst):
     inst.install("openssl-devel", "1.0.1", "OpenSSL development")
+
+def install_git(inst):
+    inst.install("git", "1.7", "Git")
 
 def install_xmlxslt(inst):
     inst.install("libxml2-devel", None, "XML development")
@@ -783,6 +811,7 @@ def main():
 
             install_swig(inst)
             install_openssl(inst)
+            install_git(inst)
 
             if inst._failed:
                 if inst._continue:
@@ -804,6 +833,7 @@ def main():
 
             install_swig(inst)
             install_openssl(inst)
+            install_git(inst)
             install_xmlxslt(inst)
             install_pylint(inst)
 
