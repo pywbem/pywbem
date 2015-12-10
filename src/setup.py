@@ -336,6 +336,7 @@ class RedhatInstaller(OSInstaller):
         "swig": "swig",
         "g++": "gcc-c++",
         "git": "git",
+        "pythondev": "libpython2.7-devel",
     }
 
     def _installer_cmd(self):
@@ -445,6 +446,7 @@ class DebianInstaller(OSInstaller):
         "swig": "swig2.0",
         "g++": "g++",
         "git": "git",
+        "pythondev": "libpython2.7-dev",
     }
 
     def do_install(self, platform_pkg_name, min_version=None, pkg_brief=None):
@@ -553,6 +555,7 @@ class SuseInstaller(OSInstaller):
         "swig": "swig",
         "g++": "gcc-c++",
         "git": "git",
+        "pythondev": "libpython2.7-devel",
     }
 
     def do_install(self, platform_pkg_name, min_version=None, pkg_brief=None):
@@ -734,6 +737,9 @@ def install_xmlxslt(inst):
     inst.install("libxslt-devel", None, "XSLT development")
     inst.install("libyaml-devel", None, "YAML development")
 
+def install_pythondev(inst):
+    inst.install("pythondev", None, "Python C/C++ development")
+
 def install_pylint(inst):
     print "Testing for availability of PyLint in repositories..."
     if inst.is_available("pylint"):
@@ -812,9 +818,9 @@ def main():
 
         if "install" in sys.argv:
 
-            install_swig(inst)
-            install_openssl(inst)
-            install_git(inst)
+            install_swig(inst)      # for building M2Crypto during its Python install
+            install_openssl(inst)   # for building M2Crypto during its Python install
+            install_git(inst)       # temporary, for obtaining the fixed M2Crypto
 
             if inst._failed:
                 if inst._continue:
@@ -834,10 +840,13 @@ def main():
 
         if "develop" in sys.argv:
 
-            install_swig(inst)
-            install_openssl(inst)
-            install_git(inst)
-            install_xmlxslt(inst)
+            install_swig(inst)      # for building M2Crypto during its Python install
+            install_openssl(inst)   # for building M2Crypto during its Python install
+            install_git(inst)       # temporary, for obtaining the fixed M2Crypto
+
+            install_xmlxslt(inst)   # for building lxml during its Python install
+            install_pythondev(inst) # for building lxml during its Python install
+
             install_pylint(inst)
 
             if inst._failed:
