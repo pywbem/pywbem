@@ -204,6 +204,7 @@ class OSInstaller(object):
         # Failure indicators
         self._failed = False
         self._reason = None
+        self._continue = False
 
         # List of OS-level packages to be installed manually, if
         # automatic installation is not possible.
@@ -266,6 +267,7 @@ class OSInstaller(object):
         self._reason = "This operating system platform (%s) is not "\
                        "supported for automatic installation of "\
                        "pre-requisites." % self.platform()
+        self._continue = True
         self._manual_packages.append(pkg_brief)
 
     def is_installed(self, platform_pkg_name, min_version=None):
@@ -326,6 +328,7 @@ class RedhatInstaller(OSInstaller):
             platform_pkg_name += "-%s*" % min_version
         if not self.authorized():
             self._failed = True
+            self._continue = False # we know that some packages are missing
             self._reason = "This userid is not authorized to install OS-level "\
                            "packages."
             self._manual_packages.append(pkg_brief)
@@ -431,6 +434,7 @@ class DebianInstaller(OSInstaller):
             pass
         if not self.authorized():
             self._failed = True
+            self._continue = False # we know that some packages are missing
             self._reason = "This userid is not authorized to install OS-level "\
                            "packages."
             self._manual_packages.append(pkg_brief)
@@ -534,6 +538,7 @@ class SuseInstaller(OSInstaller):
             pass
         if not self.authorized():
             self._failed = True
+            self._continue = False # we know that some packages are missing
             self._reason = "This userid is not authorized to install OS-level "\
                            "packages."
             self._manual_packages.append(pkg_brief)
@@ -780,14 +785,20 @@ def main():
             install_openssl(inst)
 
             if inst._failed:
-                raise SetupError(
-                  "Cannot install pre-requisites for the 'install' command.\n"\
-                  "Reason: %s\n"\
-                  "Please install the following packages manually, and "\
-                  "retry:\n"\
-                  "\n"\
-                  "    %s" % (inst._reason,
-                              "\n    ".join(inst._manual_packages)))
+                if inst._continue:
+                    print \
+                      "Cannot install pre-requisites for the 'install' command.\n"\
+                      "Reason: %s\n"\
+                      "Continuing anyway..." % inst._reason
+                else:
+                    raise SetupError(
+                      "Cannot install pre-requisites for the 'install' command.\n"\
+                      "Reason: %s\n"\
+                      "Please install the following packages manually, and "\
+                      "retry:\n"\
+                      "\n"\
+                      "    %s" % (inst._reason,
+                                  "\n    ".join(inst._manual_packages)))
 
         if "develop" in sys.argv:
 
@@ -797,14 +808,20 @@ def main():
             install_pylint(inst)
 
             if inst._failed:
-                raise SetupError(
-                  "Cannot install pre-requisites for the 'develop' command.\n"\
-                  "Reason: %s\n"\
-                  "Please install the following packages manually, and "\
-                  "retry:\n"\
-                  "\n"\
-                  "    %s" % (inst._reason,
-                              "\n    ".join(inst._manual_packages)))
+                if inst._continue:
+                    print \
+                      "Cannot install pre-requisites for the 'develop' command.\n"\
+                      "Reason: %s\n"\
+                      "Continuing anyway..." % inst._reason
+                else:
+                    raise SetupError(
+                      "Cannot install pre-requisites for the 'develop' command.\n"\
+                      "Reason: %s\n"\
+                      "Please install the following packages manually, and "\
+                      "retry:\n"\
+                      "\n"\
+                      "    %s" % (inst._reason,
+                                  "\n    ".join(inst._manual_packages)))
             # The following have dependencies on the OS-level packages
             # installed further up.
             install_build_requirements()
