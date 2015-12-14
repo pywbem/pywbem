@@ -201,5 +201,5 @@ $(doc_build_dir)/index.html: $(package_name)/*.py $(package_name)/NEWS
 pylint.log: $(pylint_rc_file) setup.py $(package_name)/*.py testsuite/*.py
 	-sh -c "PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py --output-format=text setup.py $(package_name) testsuite/*.py |tee pylint.log"
 
-test.log: develop testsuite/*.py
+test.log: develop install testsuite/*.py
 	-sh -c "cd testsuite; ./runtests.sh 2>&1 |tee ../test.log"

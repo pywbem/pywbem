@@ -336,7 +336,11 @@ class RedhatInstaller(OSInstaller):
         "swig": "swig",
         "g++": "gcc-c++",
         "git": "git",
-        "pythondev": "libpython2.7-devel",
+        "pythondev": "python-devel",
+        "make": "make",
+        "zip": "zip",
+        "unzip": "unzip",
+        "patch": "patch",
     }
 
     def _installer_cmd(self):
@@ -351,7 +355,13 @@ class RedhatInstaller(OSInstaller):
         """Install an OS-level package with a specific minimum version.
         None for `min_version` will install the latest available version."""
         if min_version is not None:
-            platform_pkg_name += "-%s*" % min_version
+            # TODO: Add support for minimum version.
+            # Note: Apt has no syntax for installing minimum version or later;
+            # it only allows for installing the latest sub-version of the latest
+            # available version, but if the specified minimum version is older
+            # than the latest available version, the package is not going to
+            # be available.
+            pass
         if not self.authorized():
             self._failed = True
             self._continue = False # we know that some packages are missing
@@ -447,18 +457,22 @@ class DebianInstaller(OSInstaller):
         "g++": "g++",
         "git": "git",
         "pythondev": "libpython2.7-dev",
+        "make": "make",
+        "zip": "zip",
+        "unzip": "unzip",
+        "patch": "patch",
     }
 
     def do_install(self, platform_pkg_name, min_version=None, pkg_brief=None):
         """Install an OS-level package with a specific minimum version.
         None for `min_version` will install the latest available version."""
         if min_version is not None:
-            # apt has no syntax for installing minimum version or later; it
-            # only allows for installing the latest sub-version of the latest
+            # TODO: Add support for minimum version.
+            # Note: Apt has no syntax for installing minimum version or later;
+            # it only allows for installing the latest sub-version of the latest
             # available version, but if the specified minimum version is older
             # than the latest available version, the package is not going to
-            # be available. So all we can do is to assume that the latest
-            # version will be sufficient.
+            # be available.
             pass
         if not self.authorized():
             self._failed = True
@@ -556,15 +570,18 @@ class SuseInstaller(OSInstaller):
         "g++": "gcc-c++",
         "git": "git",
         "pythondev": "libpython2.7-devel",
+        "make": "make",
+        "zip": "zip",
+        "unzip": "unzip",
+        "patch": "patch",
     }
 
     def do_install(self, platform_pkg_name, min_version=None, pkg_brief=None):
         """Install an OS-level package with a specific minimum version.
         None for `min_version` will install the latest available version."""
         if min_version is not None:
-            # Zypper has no syntax for installing minimum version or later.
-            # So all we can do is to assume that the latest version will be
-            # sufficient.
+            # TODO: Add support for minimum version.
+            # Note:Zypper has no syntax for installing minimum version or later.
             pass
         if not self.authorized():
             self._failed = True
@@ -727,21 +744,29 @@ def install_swig(inst):
                 swig_build_version
 
 def install_openssl(inst):
-    inst.install("openssl-devel", "1.0.1", "OpenSSL development")
+    inst.install("openssl-devel", "1.0.1", "OpenSSL development (for M2Crypto installation)")
 
 def install_git(inst):
-    inst.install("git", "1.7", "Git")
-
-def install_xmlxslt(inst):
-    inst.install("libxml2-devel", None, "XML development")
-    inst.install("libxslt-devel", None, "XSLT development")
-    inst.install("libyaml-devel", None, "YAML development")
+    inst.install("git", "1.7", "Git (for retrieving fixed M2Crypto version)")
 
 def install_pythondev(inst):
-    inst.install("pythondev", None, "Python C/C++ development")
+    inst.install("pythondev", None, "Python C/C++ development (for running Swig during M2Crypto installation)")
 
-def install_pylint(inst):
-    print "Testing for availability of PyLint in repositories..."
+def install_devtools(inst):
+    print "Installing PyWBEWM development tools..."
+    
+    inst.install("make", None, "Make (Used by PyWBEM makefile)")
+    inst.install("zip", None, "Zip (Used by PyWBEM makefile)")
+    inst.install("unzip", None, "Unzip (Used by PyWBEM makefile)")
+    # find, sed, grep, are assumed to be installed
+
+    inst.install("libxml2-devel", None, "XML development (for installing Python lxml package)")
+    inst.install("libxslt-devel", None, "XSLT development (for installing Python lxml package)")
+
+    inst.install("libyaml-devel", None, "YAML development (for installing Python pyyaml package)")
+
+    inst.install("patch", None, "Patch (for patching Epydoc)")
+
     if inst.is_available("pylint"):
         inst.install("pylint", None, "PyLint")
     else:
@@ -818,9 +843,10 @@ def main():
 
         if "install" in sys.argv:
 
-            install_swig(inst)      # for building M2Crypto during its Python install
-            install_openssl(inst)   # for building M2Crypto during its Python install
-            install_git(inst)       # temporary, for obtaining the fixed M2Crypto
+            install_swig(inst)
+            install_openssl(inst)
+            install_git(inst)
+            install_pythondev(inst)
 
             if inst._failed:
                 if inst._continue:
@@ -840,14 +866,12 @@ def main():
 
         if "develop" in sys.argv:
 
-            install_swig(inst)      # for building M2Crypto during its Python install
-            install_openssl(inst)   # for building M2Crypto during its Python install
-            install_git(inst)       # temporary, for obtaining the fixed M2Crypto
+            install_swig(inst)
+            install_openssl(inst)
+            install_git(inst)
+            install_pythondev(inst)
 
-            install_xmlxslt(inst)   # for building lxml during its Python install
-            install_pythondev(inst) # for building lxml during its Python install
-
-            install_pylint(inst)
+            install_devtools(inst)
 
             if inst._failed:
                 if inst._continue:
@@ -864,6 +888,7 @@ def main():
                       "\n"\
                       "    %s" % (inst._reason,
                                   "\n    ".join(inst._manual_packages)))
+
             # The following have dependencies on the OS-level packages
             # installed further up.
             install_build_requirements()
