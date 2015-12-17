@@ -87,19 +87,18 @@ def install_swig(command):
                 'suse': "swig",
             },
         }
-        swig_pkg = "swig" # default if no system/distro specific name is found
+        swig_pkg_name = "swig" # default if no system/distro specific name is found
         if system in swig_pkg_dict:
             distro_dict = swig_pkg_dict[system]
             if distro in distro_dict:
-                swig_pkg = distro_dict[distro]
+                swig_pkg_name = distro_dict[distro]
 
-        print "Testing for availability of %s>=%s in repositories..." %\
-            (swig_pkg, swig_min_version)
-
-        if inst.is_available(swig_pkg, swig_min_version):
+        swig_version_req = ">=%s" % swig_min_version
+        
+        if inst.is_available(swig_pkg_name, swig_version_req):
 
             # Install Swig as a package
-            inst.do_install(swig_pkg, swig_min_version, "Swig", dry_run)
+            inst.install(swig_pkg_name, swig_version_req, dry_run)
 
         else:
 
@@ -126,15 +125,13 @@ def install_swig(command):
                         'suse': [ "pcre-devel" ],
                     },
                 }
-                swig_pkg = "swig" # default if no system/distro specific name is found
-                if system in swig_pkg_dict:
-                    distro_dict = swig_pkg_dict[system]
+                pcre_pkg_names = ["pcre-devel"] # default if no system/distro specific name is found
+                if system in pcre_pkg_dict:
+                    distro_dict = pcre_pkg_dict[system]
                     if distro in distro_dict:
-                        swig_pkg = distro_dict[distro]
-
-                inst.install("pcre-devel", None,
-                    "PCRE (Perl Compatible Regular Expressions) development",
-                    dry_run)
+                        pcre_pkg_names = distro_dict[distro]
+                for pcre_pkg_name in pcre_pkg_names:
+                    inst.ensure_installed(pcre_pkg_name, None, dry_run)
 
                 print "Downloading, building and installing Swig version %s..." %\
                     swig_build_version
