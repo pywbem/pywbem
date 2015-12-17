@@ -17,3 +17,6 @@ src/testsuite/schema/
 src/epydoc-3.0.1-patches/
 src/swig-2.0*.tar.gz
 src/swig-2.0*/
+src/setupswig-2.0*/
+src/setuptools-*.egg
+src/setuptools-*.zip
