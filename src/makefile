@@ -111,7 +111,7 @@ buildwin: $(win64_dist_file)
 	@echo '$@ done; created: $(win64_dist_file)'
 
 builddoc: $(doc_build_dir)/index.html
-	@echo '$@ done; created documentation in: $(doc_build_dir)'
+	@echo '$@ done; created documentation in: $(doc_build_dir); build output is in epydoc.log'
 
 check: pylint.log
 	@echo '$@ done; results are in pylint.log'
@@ -185,7 +185,7 @@ $(moftab_files): $(package_name)/mof_compiler.py
 $(doc_build_dir)/index.html: $(package_name)/*.py $(package_name)/NEWS
 	rm -Rf $(doc_build_dir)
 	mkdir -p $(doc_build_dir)
-	sh -c "PYTHONPATH=. $(doc_cmd)"
+	sh -c "PYTHONPATH=. $(doc_cmd) |tee epydoc.log"
 	cp -p $(package_name)/NEWS $(doc_build_dir)/NEWS.txt
 
 pylint.log: $(pylint_rc_file) setup.py $(package_name)/*.py testsuite/*.py
