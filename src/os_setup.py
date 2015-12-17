@@ -56,7 +56,7 @@ Syntax for the new attributes of the `setup()` function:
       install_os_requires = {
           'Linux': {                        # system name
               'redhat': [                   # distribution name
-                  "python-devel",           # a package without version requirement
+                  "python-devel",           # a package without version req.
                   "openssl-devel>=1.0.1",   # a package with version requirement
                   install_swig,             # a custom function
                   . . .
@@ -993,7 +993,8 @@ class DebianInstaller (OSInstaller):
             return False
         lines = out.splitlines()
         status_line = [line for line in lines if line.startswith("Status:")][0]
-        version_line = [line for line in lines if line.startswith("Version:")][0]
+        version_line = [line for line in lines
+                        if line.startswith("Version:")][0]
         if status_line != "Status: install ok installed":
             raise DistutilsSetupError(
                 "Unexpected status output from command '%s':\n"\
@@ -1041,7 +1042,8 @@ class DebianInstaller (OSInstaller):
                     pkg_name
             return False
         lines = out.splitlines()
-        version_line = [line for line in lines if line.startswith("Version:")][0]
+        version_line = [line for line in lines
+                        if line.startswith("Version:")][0]
         version = version_line.split()[1].split("-")[0]
         if version_req is not None:
             version_sufficient = self.version_matches_req(

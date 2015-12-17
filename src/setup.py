@@ -88,7 +88,8 @@ def install_swig(command):
                 'suse': "swig",
             },
         }
-        swig_pkg_name = "swig" # default if no system/distro specific name is found
+        # default if no system/distro specific name is found:
+        swig_pkg_name = "swig"
         if system in swig_pkg_dict:
             distro_dict = swig_pkg_dict[system]
             if distro in distro_dict:
@@ -110,11 +111,11 @@ def install_swig(command):
             swig_install_root = "/usr"
 
             if dry_run:
-                print "Dry-running: Building Swig from sources, and installing to %s tree" %\
-                    swig_install_root
+                print "Dry-running: Building Swig from sources, and "\
+                    "installing to %s tree" % swig_install_root
             else:
-                print "Building Swig from sources, and installing to %s tree..." %\
-                    swig_install_root
+                print "Building Swig from sources, and installing to %s "\
+                    "tree..." % swig_install_root
 
                 print "Installing prerequisite OS-level packages for building "\
                     "Swig..."
@@ -127,7 +128,8 @@ def install_swig(command):
                         'suse': [ "pcre-devel" ],
                     },
                 }
-                pcre_pkg_names = ["pcre-devel"] # default if no system/distro specific name is found
+                # default if no system/distro specific name is found:
+                pcre_pkg_names = ["pcre-devel"]
                 if system in pcre_pkg_dict:
                     distro_dict = pcre_pkg_dict[system]
                     if distro in distro_dict:
@@ -135,8 +137,8 @@ def install_swig(command):
                 for pcre_pkg_name in pcre_pkg_names:
                     inst.ensure_installed(pcre_pkg_name, None, dry_run)
 
-                print "Downloading, building and installing Swig version %s..." %\
-                    swig_build_version
+                print "Downloading, building and installing Swig version "\
+                    "%s..." % swig_build_version
 
                 if os.path.exists(swig_dir):
                     print "Removing previously downloaded Swig directory: %s" %\
@@ -144,9 +146,10 @@ def install_swig(command):
                     shutil.rmtree(swig_dir)
 
                 print "Downloading Swig source archive: %s" % swig_tar_file
-                shell_check("wget -q -O %s "
-                  "http://sourceforge.net/projects/swig/files/swig/%s/%s/download"%\
-                  (swig_tar_file, swig_dir, swig_tar_file), display=True)
+                shell_check(
+                    "wget -q -O %s http://sourceforge.net/projects/swig/files"\
+                    "/swig/%s/%s/download" %\
+                    (swig_tar_file, swig_dir, swig_tar_file), display=True)
                 print "Unpacking Swig source archive: %s" % swig_tar_file
                 shell_check("tar -xf %s" % swig_tar_file, display=True)
 
@@ -164,8 +167,8 @@ def install_swig(command):
                 shell_check(["sh", "-c", "cd %s; sudo make install" % swig_dir],
                     display=True)
 
-                print "Done downloading, building and installing Swig version %s" %\
-                    swig_build_version
+                print "Done downloading, building and installing Swig "\
+                    "version %s" % swig_build_version
 
 def patch_epydoc(command):
     """
@@ -196,17 +199,20 @@ def patch_epydoc(command):
             print "Downloading Epydoc patches into patch directory: %s" %\
                 epydoc_patch_dir
             shell_check("mkdir -p %s" % epydoc_patch_dir)
-            shell_check("wget -q -O %s/epydoc-rst.patch "
-                        "http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/packages/epydoc/epydoc-rst.patch?revision=1.1&view=co" %\
-                        epydoc_patch_dir, display=True)
-            shell_check("wget -q -O %s/epydoc-cons_fields_stripping.patch "
-                        "http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/packages/epydoc/epydoc-cons_fields_stripping.patch?view=co" %\
-                        epydoc_patch_dir, display=True)
-            shell_check("wget -q -O %s/epydoc-__package__.patch "
-                        "http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/packages/epydoc/epydoc-__package__.patch?revision=1.1&view=co" %\
-                        epydoc_patch_dir, display=True)
-            print "Applying Epydoc patches to Epydoc installation directory: %s" %\
-                 epydoc_target_dir
+            shell_check("wget -q -O %s/epydoc-rst.patch "\
+                        "http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/"\
+                        "packages/epydoc/epydoc-rst.patch?revision=1.1&"\
+                        "view=co" % epydoc_patch_dir, display=True)
+            shell_check("wget -q -O %s/epydoc-cons_fields_stripping.patch "\
+                        "http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/"\
+                        "packages/epydoc/epydoc-cons_fields_stripping.patch?"\
+                        "view=co" % epydoc_patch_dir, display=True)
+            shell_check("wget -q -O %s/epydoc-__package__.patch "\
+                        "http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/"\
+                        "packages/epydoc/epydoc-__package__.patch?"\
+                        "revision=1.1&view=co" % epydoc_patch_dir, display=True)
+            print "Applying Epydoc patches to Epydoc installation directory: "\
+                "%s" % epydoc_target_dir
             shell_check("patch -N -r %s/epydoc-rst.patch.rej "
                         "-i %s/epydoc-rst.patch "
                         "%s/markup/restructuredtext.py" %\
@@ -286,10 +292,10 @@ def main():
             'Linux': {
                 'redhat': [
                     "openssl-devel>=1.0.1", # for M2Crypto installation
-                    install_swig,           # for running Swig during M2Crypto installation
+                    install_swig,           # for running Swig in M2Crypto inst.
                     "gcc-c++>=4.4",         # used by Swig
                     "python-devel",         # to get Python.h for Swig run
-                    "git>=1.7",             # for retrieving fixed M2Crypto version
+                    "git>=1.7",             # for retrieving fixed M2Crypto
                 ],
                 'ubuntu': [
                     "libssl-dev>=1.0.1",
@@ -321,13 +327,13 @@ def main():
             'Linux': {
                 'redhat': [
                     "pcre-devel",           # for building Swig
-                    "libxml2-devel",        # for installing Python lxml package
-                    "libxslt-devel",        # for installing Python lxml package
-                    "libyaml-devel",        # for installing Python pyyaml package
+                    "libxml2-devel",        # for installing Python lxml pkg
+                    "libxslt-devel",        # for installing Python lxml pkg
+                    "libyaml-devel",        # for installing Python pyyaml pkg
                     "pylint",
                     "make",                 # PyWBEM has a makefile
-                    "zip",                  # for building distribution archive (used in makefile)
-                    "unzip",                # for installing distribution archive (used in makefile)
+                    "zip",                  # for building distribution archive
+                    "unzip",                # for installing distrib. archive
                     "patch",                # for patching Epydoc
                 ],
                 'ubuntu': [
@@ -372,7 +378,8 @@ def main():
             'Development Status :: 6 - Mature',
             'Intended Audience :: Developers',
             'Intended Audience :: System Administrators',
-            'License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)',
+            'License :: OSI Approved :: '\
+                'GNU Lesser General Public License v2 or later (LGPLv2+)',
             'Operating System :: OS Independent',
             'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
