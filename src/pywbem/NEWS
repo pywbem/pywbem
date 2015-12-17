@@ -1,4 +1,4 @@
-pywbem-0.8.0-rc2  2015-12-06
+pywbem-0.8.0-rc2  2015-12-17
 
   ENHANCEMENTS:
 
@@ -362,6 +362,13 @@ pywbem-0.8.0-rc2  2015-12-06
     * Added support for generating HTML documentation using epydoc, and
       included the documentation into the distribution archive. The syntax
       used in Python docstrings is reStructuredText markdown.   (Andreas Maier)
+
+    * Added support for installing OS-level prerequisites via the new setup.py
+      script commands 'install_os' and 'develop_os'.  (Andreas Maier)
+
+    * Added support for installing Python-level prerequisites when installing
+      in development mode using the setup.py script command 'develop'.
+      (Andreas Maier)
 
 
 pywbem-0.7  2008-12-12
