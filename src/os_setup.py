@@ -952,12 +952,13 @@ class DebianInstaller (OSInstaller):
         Raises:
         * If installation fails, raises a DistutilsSetupError exception.
         """
+        pkg_req = pkg_name + (version_req or "")
         if not self.authorized():
             self._failed = True
             self._continue = False # we know that some packages are missing
             self._reason = "This userid is not authorized to install OS-level "\
                            "packages."
-            self._manual_packages.append(pkg_brief)
+            self._manual_packages.append(pkg_req)
         elif not self.is_available(pkg_name, version_req, display=False):
             self._failed = True
             self._continue = True
@@ -1073,12 +1074,13 @@ class SuseInstaller (OSInstaller):
         Raises:
         * If installation fails, raises a DistutilsSetupError exception.
         """
+        pkg_req = pkg_name + (version_req or "")
         if not self.authorized():
             self._failed = True
             self._continue = False # we know that some packages are missing
             self._reason = "This userid is not authorized to install OS-level "\
                            "packages."
-            self._manual_packages.append(pkg_brief)
+            self._manual_packages.append(pkg_req)
         elif not self.is_available(pkg_name, version_req, display=False):
             self._failed = True
             self._continue = True
