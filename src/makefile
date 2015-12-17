@@ -15,7 +15,9 @@
 #     sh - makes sure commands are executed in a Unix shell when on Windows
 #     rm, test, find, unzip, sed, xargs, tee, grep
 #     pylint >=1.1.0
-#   For Python packages, see build-requirements.txt
+#   These commands as well as any Python packages for development, can be
+#   installed using the 'develop_os' and 'develop' commands of the setup.py
+#   script.
 # ------------------------------------------------------------------------------
 
 # Name of this Python package
@@ -108,7 +110,7 @@ help:
 	@echo '  clobber    - clean + remove any build products'
 
 develop:
-	python setup.py develop
+	python setup.py develop_os develop
 	@echo '$@ done.'
 
 build: $(dist_file)
@@ -125,7 +127,7 @@ check: pylint.log
 
 install: build
 	unzip -q -o -d tmp_install $(dist_file)
-	sh -c "cd tmp_install/$(package_name)-$(package_built_version) && python setup.py install"
+	sh -c "cd tmp_install/$(package_name)-$(package_built_version) && python setup.py install_os install"
 	rm -Rf tmp_install
 	@echo '$@ done.'
 
