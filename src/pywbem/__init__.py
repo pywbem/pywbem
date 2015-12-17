@@ -95,7 +95,7 @@ or::
 Version
 -------
 
-This version of the PyWBEM Client is 0.8.0-rc4 (release candidate #4).
+This version of the PyWBEM Client is 0.8.0rc4 (release candidate #4).
 
 Changes
 -------
@@ -117,10 +117,10 @@ Python 3 is not yet supported.
 # !!! Keep in sync with version stated in module docstring, above !!!
 # !!! Keep in sync with version in ../setup.py !!!
 # Possible formats are:
-#   M.N.U-dev  : During development of future M.N.U release
-#   M.N.U-rc1  : Release candidate 1 of future M.N.U release
+#   M.N.Udev   : During development of future M.N.U release
+#   M.N.UrcX   : Release candidate X of future M.N.U release
 #   M.N.U      : The final M.N.U release
-__version__ = '0.8.0-rc4'
+__version__ = '0.8.0rc4'
 
 # There are submodules, but clients shouldn't need to know about them.
 # Importing just this module is enough.

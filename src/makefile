@@ -23,31 +23,22 @@
 # Name of this Python package
 package_name := pywbem
 
-# Version of this Python package; it will have one of these formats:
-#   M.N.U-dev  : During development of future M.N.U release
-#   M.N.U-rc1  : Release candidate 1 of future M.N.U release
-#   M.N.U      : The final M.N.U release
-package_version := $(shell sh -c "grep __version__ pywbem/__init__.py | sed -r 's/__version__ *= *\x27(.*)\x27.*/\1/'")
+# Package version as specified in pywbem/__init__.py
+package_specified_version := $(shell sh -c "grep __version__ pywbem/__init__.py |sed -r 's/__version__ *= *\x27(.*)\x27.*/\1/'")
 
-# Package version as built by the setup script (it normalizes some elements)
-package_built_version := $(if $(findstring -dev,$(package_version)),$(shell sh -c "echo $(package_version) |sed s/-dev/\.dev0/"),$(if $(findstring -rc,$(package_version)),$(shell sh -c "echo $(package_version) |sed s/-rc/rc/"),$(package_version)))
+# Normalized package version (as normalized by setup.py during building)
+package_version := $(shell sh -c "echo $(package_specified_version) |sed 's/[.-]\?\(rc[0-9]\+\)$$/\1/' |sed 's/[.]\?dev[0-9]\*$$/\.dev0/'")
 
 # Final version of this package (M.N.U)
-package_final_version := $(shell sh -c "echo $(package_version) | sed s/-.*//")
+package_final_version := $(shell sh -c "echo $(package_version) |sed 's/rc[0-9]\+$$//' |sed 's/\.dev0$$//'")
 
 # Directory for the generated distribution files
 dist_dir := ../dist/$(package_name)-$(package_final_version)
 
-# Distribution archive as created by setup script
-dist_built_file := $(dist_dir)/$(package_name)-$(package_built_version).zip
-
-# Distribution archive as finally kept in distribution directory
+# Distribution archive (as built by setup.py)
 dist_file := $(dist_dir)/$(package_name)-$(package_version).zip
 
-# Windows installable as created by setup script
-win64_dist_built_file := $(dist_dir)/$(package_name)-$(package_built_version).win-amd64.exe
-
-# Windows installable as finally kept in distribution directory
+# Windows installable (as built by setup.py)
 win64_dist_file := $(dist_dir)/$(package_name)-$(package_version).win-amd64.exe
 
 # Lex/Yacc table files, generated from and by mof_compiler.py
@@ -101,13 +92,13 @@ help:
 	@echo '  buildwin   - Build the Windows installable: $(win64_dist_file) (on Win 64-bit)'
 	@echo '  builddoc   - Build documentation in: $(doc_build_dir)'
 	@echo '  check      - Run PyLint on sources and save results in: pylint.log'
-	@echo '  install    - build + install the distribution archive using "python setup.py install"'
-	@echo '  test       - develop + run unit tests on installed copy and save results in: test.log'
+	@echo '  install    - Install distribution archive to active Python environment'
+	@echo '  test       - Run unit tests and save results in: test.log'
 	@echo '  clean      - Remove any temporary files'
-	@echo '  all        - build + check + install + test + builddoc + clean'
-	@echo '  upload     - build + upload the distribution archive to PyPI'
-	@echo '  publish    - builddoc + publish documentation to: $(doc_publish_dir)'
-	@echo '  clobber    - clean + remove any build products'
+	@echo '  all        - Do everything locally (except publish/upload)'
+	@echo '  upload     - Upload the distribution archive to PyPI'
+	@echo '  publish    - Publish documentation to: $(doc_publish_dir)'
+	@echo '  clobber    - Remove any build products'
 
 develop:
 	python setup.py develop_os develop
@@ -127,7 +118,7 @@ check: pylint.log
 
 install: build
 	unzip -q -o -d tmp_install $(dist_file)
-	sh -c "cd tmp_install/$(package_name)-$(package_built_version) && python setup.py install_os install"
+	sh -c "cd tmp_install/$(package_name)-$(package_version) && python setup.py install_os install"
 	rm -Rf tmp_install
 	@echo '$@ done.'
 
@@ -181,13 +172,10 @@ MANIFEST.in: makefile
 $(dist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	rm -f MANIFEST
 	python setup.py sdist -d $(dist_dir) --formats=zip
-	mkdir -p $(dist_dir)
-	mv $(dist_built_file) $(dist_file)
 
 $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 	rm -f MANIFEST
 	python setup.py bdist_wininst -d $(dist_dir) -o -t "PyWBEM v$(package_version)"
-	mv $(win64_dist_built_file) $(win64_dist_file)
 
 $(moftab_files): $(package_name)/mof_compiler.py
 	rm -f $(package_name)/mofparsetab.py* $(package_name)/moflextab.py*
@@ -203,5 +191,5 @@ $(doc_build_dir)/index.html: $(package_name)/*.py $(package_name)/NEWS
 pylint.log: $(pylint_rc_file) setup.py $(package_name)/*.py testsuite/*.py
 	-sh -c "PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py --output-format=text setup.py $(package_name) testsuite/*.py |tee pylint.log"
 
-test.log: develop install testsuite/*.py
+test.log: install testsuite/runtests.sh testsuite/*.py
 	-sh -c "cd testsuite; ./runtests.sh 2>&1 |tee ../test.log"
