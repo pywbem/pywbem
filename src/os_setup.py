@@ -1,4 +1,6 @@
 #
+# (C) Copyright 2015 IBM Corp. 
+#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
@@ -13,7 +15,7 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
-# Author: Andreas Maier <andreas.r.maier@gmx.de>
+# Author: Andreas Maier <maiera@de.ibm.com>
 #
 
 """Extensions to `setuptools` for installation of OS-level packages and
@@ -1294,6 +1296,6 @@ def import_setuptools(min_version="12.0"):
 installed while this script is running. Please install the required version
 first, using:
 
-    pip install --upgrade setuptools>=%s
+    pip install --upgrade 'setuptools>=%s'
 """ % (min_version, min_version))
 
