@@ -29,7 +29,7 @@ supported by the system running the WBEM server.
 """
 
 # Package version - Keep in sync with pywbem/__init__.py!
-_version = '0.8.0-rc3'
+_version = '0.8.0-rc4'
 
 import re
 import sys

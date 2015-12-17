@@ -1,11 +1,11 @@
-Installation of PyWBEM
-======================
+Installation of PyWBEM Client
+=============================
 
-PyWBEM can be installed quite easily by running its standard Python setup
-script (`setup.py`) with the `install` command, or by using `pip install` (which
-also invokes the setup script).
+The PyWBEM Client can be installed quite easily by running its standard Python
+setup script (`setup.py`) with the `install` command, or by using `pip install`
+(which also invokes the setup script).
 
-As of PyWBEM v0.8.0, the setup script has support for installing its
+As of PyWBEM Client v0.8.0, the setup script has support for installing its
 prerequisites. This includes installing the M2Crypto Python package, installing
 any prerequisite OS-level packages, and installing or building Swig, if needed.
 For details, see the examples, below.
@@ -16,8 +16,8 @@ distributions. For other Linux distributions, these commands display the
 OS-level packages that are needed. On Linux, these commands use 'sudo', so 
 your userid needs to be authorized accordingly.
 
-Installation of PyWBEM is supported into the default system Python, and
-(preferrable) into
+Installation of the PyWBEM Client is supported into the default system Python,
+and (preferrable) into
 [virtual Python environments](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
 For details, see the examples, below.
 
@@ -46,9 +46,9 @@ Examples
 * Install from a particular distribution archive on GitHub into new Python 2.7
   virtual environment, installing OS-level prerequisites as needed:
 
-      wget https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.8.0/pywbem-0.8.0-dev.zip
-      unzip pywbem-0.8.0-dev.zip
-      cd pywbem-0.8.0.dev0/src
+      wget https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.8.0/pywbem-0.8.0.zip
+      unzip pywbem-0.8.0.zip
+      cd pywbem-0.8.0/src
       mkvirtualenv -p python2.7 pywbem27
       python setup.py install_os install
 
