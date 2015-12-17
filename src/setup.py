@@ -84,6 +84,7 @@ def install_swig(command):
             'Linux': {
                 'redhat': "swig",
                 'ubuntu': "swig",
+                'debian': "swig",
                 'suse': "swig",
             },
         }
@@ -122,6 +123,7 @@ def install_swig(command):
                     'Linux': {
                         'redhat': [ "pcre-devel" ],
                         'ubuntu': [ "libpcre3", "libpcre3-dev" ],
+                        'debian': [ "libpcre3", "libpcre3-dev" ],
                         'suse': [ "pcre-devel" ],
                     },
                 }
@@ -296,6 +298,13 @@ def main():
                     "libpython2.7-dev",
                     "git>=1.7",
                 ],
+                'debian': [
+                    "libssl-dev>=1.0.1",
+                    install_swig,
+                    "g++>=4.4",
+                    "libpython2.7-dev",
+                    "git>=1.7",
+                ],
                 'suse': [
                     "openssl-devel>=1.0.1",
                     install_swig,
@@ -322,6 +331,17 @@ def main():
                     "patch",                # for patching Epydoc
                 ],
                 'ubuntu': [
+                    "libpcre3", "libpcre3-dev",
+                    "libxml2-dev",
+                    "libxslt1-dev",
+                    "libyaml-dev",
+                    "pylint",
+                    "make",
+                    "zip",
+                    "unzip",
+                    "patch",
+                ],
+                'debian': [
                     "libpcre3", "libpcre3-dev",
                     "libxml2-dev",
                     "libxslt1-dev",
