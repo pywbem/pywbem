@@ -8,7 +8,7 @@ python:
 install:
   - pip list
   - pip install --upgrade pip
-  - cd src; python setup.py develop
+  - cd src; python setup.py develop_os develop
   - pip list
 # command to run tests
 script: make all
