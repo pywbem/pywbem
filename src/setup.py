@@ -83,7 +83,7 @@ def install_swig(command):
         swig_pkg_dict = {
             'Linux': {
                 'redhat': "swig",
-                'ubuntu': "swig2.0",
+                'ubuntu': "swig",
                 'suse': "swig",
             },
         }
