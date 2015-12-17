@@ -26,7 +26,7 @@ done
 shift `expr $OPTIND - 1`
 
 if [ "$1" = "all" ]; then
-    PYTHON="python2.3 python2.4"
+    PYTHON="python2.6 python2.7"
 fi
 
 # Run tests
