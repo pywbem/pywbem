@@ -188,8 +188,8 @@ $(doc_build_dir)/index.html: $(package_name)/*.py $(package_name)/NEWS
 	sh -c "PYTHONPATH=. $(doc_cmd) |tee epydoc.log"
 	cp -p $(package_name)/NEWS $(doc_build_dir)/NEWS.txt
 
-pylint.log: $(pylint_rc_file) setup.py $(package_name)/*.py testsuite/*.py
-	-sh -c "PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py --output-format=text setup.py $(package_name) testsuite/*.py |tee pylint.log"
+pylint.log: $(pylint_rc_file) setup.py os_setup.py $(package_name)/*.py testsuite/*.py
+	-sh -c "PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py --output-format=text setup.py os_setup.py $(package_name) testsuite/*.py |tee pylint.log"
 
 test.log: install testsuite/runtests.sh testsuite/*.py
 	-sh -c "cd testsuite; ./runtests.sh 2>&1 |tee ../test.log"
