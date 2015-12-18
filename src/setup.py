@@ -190,7 +190,7 @@ def patch_epydoc(command):
 
         import epydoc
         epydoc_target_dir = os.path.dirname(epydoc.__file__)
-        epydoc_patch_dir = epydoc_target_dir+"/.epydoc-3.0.1-patches"
+        epydoc_patch_dir = epydoc_target_dir+"/epydoc-3.0.1-patches"
 
         print "Epydoc patch directory: %s" % epydoc_patch_dir
 
