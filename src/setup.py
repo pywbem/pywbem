@@ -34,8 +34,6 @@ _version = '0.8.0rc4'
 import re
 import sys
 import os
-import subprocess
-import platform
 import shutil
 
 import os_setup
@@ -49,7 +47,7 @@ def install_swig(command):
     * command: setuptools.Command object for the command in whose context
       this function is called.
     """
-    inst = command.osinstaller
+    inst = command.installer
     dry_run = command.dry_run
 
     swig_min_version = "2.0"
@@ -96,7 +94,7 @@ def install_swig(command):
                 swig_pkg_name = distro_dict[distro]
 
         swig_version_req = ">=%s" % swig_min_version
-        
+
         if inst.is_available(swig_pkg_name, swig_version_req):
 
             # Install Swig as a package
