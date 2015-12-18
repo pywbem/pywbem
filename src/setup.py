@@ -81,8 +81,10 @@ def install_swig(command):
         swig_pkg_dict = {
             'Linux': {
                 'redhat': "swig",
-                'ubuntu': "swig",
+                'centos': "swig",
+                'fedora': "swig",
                 'debian': "swig",
+                'ubuntu': "swig",
                 'suse': "swig",
             },
         }
@@ -121,8 +123,10 @@ def install_swig(command):
                 pcre_pkg_dict = {
                     'Linux': {
                         'redhat': [ "pcre-devel" ],
-                        'ubuntu': [ "libpcre3", "libpcre3-dev" ],
+                        'centos': [ "pcre-devel" ],
+                        'fedora': [ "pcre-devel" ],
                         'debian': [ "libpcre3", "libpcre3-dev" ],
+                        'ubuntu': [ "libpcre3", "libpcre3-dev" ],
                         'suse': [ "pcre-devel" ],
                     },
                 }
@@ -295,13 +299,8 @@ def main():
                     "python-devel",         # to get Python.h for Swig run
                     "git>=1.7",             # for retrieving fixed M2Crypto
                 ],
-                'ubuntu': [
-                    "libssl-dev>=1.0.1",
-                    install_swig,
-                    "g++>=4.4",
-                    "libpython2.7-dev",
-                    "git>=1.7",
-                ],
+                'centos': 'redhat',
+                'fedora': 'redhat',
                 'debian': [
                     "libssl-dev>=1.0.1",
                     install_swig,
@@ -309,6 +308,7 @@ def main():
                     "libpython2.7-dev",
                     "git>=1.7",
                 ],
+                'ubuntu': 'debian',
                 'suse': [
                     "openssl-devel>=1.0.1",
                     install_swig,
@@ -334,17 +334,8 @@ def main():
                     "unzip",                # for installing distrib. archive
                     "patch",                # for patching Epydoc
                 ],
-                'ubuntu': [
-                    "libpcre3", "libpcre3-dev",
-                    "libxml2-dev",
-                    "libxslt1-dev",
-                    "libyaml-dev",
-                    "pylint",
-                    "make",
-                    "zip",
-                    "unzip",
-                    "patch",
-                ],
+                'centos': 'redhat',
+                'fedora': 'redhat',
                 'debian': [
                     "libpcre3", "libpcre3-dev",
                     "libxml2-dev",
@@ -356,6 +347,7 @@ def main():
                     "unzip",
                     "patch",
                 ],
+                'ubuntu': 'debian',
                 'suse': [
                     "pcre-devel",
                     "libxml2-devel",

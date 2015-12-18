@@ -141,7 +141,7 @@ class OsDistribution (Distribution):
             self.develop_requires = attrs.pop('develop_requires', {})
         elif not hasattr(self, "develop_requires"):
             self.develop_requires = {}
-        _assert_requires(self, 'develop_requires',
+        _assert_req_list(self, 'develop_requires',
                          self.develop_requires)
 
         # Get 'install_os_requires' attribute
@@ -149,7 +149,7 @@ class OsDistribution (Distribution):
             self.install_os_requires = attrs.pop('install_os_requires', {})
         elif not hasattr(self, "install_os_requires"):
             self.install_os_requires = {}
-        _assert_os_requires(self, 'install_os_requires',
+        _assert_system_dict(self, 'install_os_requires',
                             self.install_os_requires)
 
         # Get 'develop_os_requires' attribute
@@ -157,40 +157,13 @@ class OsDistribution (Distribution):
             self.develop_os_requires = attrs.pop('develop_os_requires', {})
         elif not hasattr(self, "develop_os_requires"):
             self.develop_os_requires = {}
-        _assert_os_requires(self, 'develop_os_requires',
+        _assert_system_dict(self, 'develop_os_requires',
                             self.develop_os_requires)
 
         # Distribution is an old-style class in Python 2.6:
         Distribution.__init__(self, attrs)
 
-def _assert_requires(dist, attr, value):
-    """Validate the value of the 'develop_requires' attribute.
-
-    The interface of this function is suitable for the newer setuptools
-    'entry_points' concept; see
-    https://pythonhosted.org/setuptools/setuptools.html#adding-setup-arguments
-
-    Parameters:
-    * dist: Distribution object
-    * attr: Attribute name
-    * value: Attribute value to be validated
-    """
-    req_list = value
-    if not isinstance(req_list, list):
-        raise DistutilsSetupError(
-            "'%s' attribute: Value must be a list "\
-            "(got type %s)" %\
-            (attr, type(req_list))
-        )
-    for req in req_list:
-        if not isinstance(req, (basestring, types.FunctionType)):
-            raise DistutilsSetupError(
-                "'%s' attribute: Requirement must be a string or a function "\
-                "(got requirement %r of type %s)"%\
-                (attr, req, type(req))
-            )
-
-def _assert_os_requires(dist, attr, value):
+def _assert_system_dict(dist, attr, value):
     """Validate the value of the 'install_os_requires' and
     'develop_os_requires' attributes.
 
@@ -209,47 +182,81 @@ def _assert_os_requires(dist, attr, value):
             "'%s' attribute: Value must be a dictionary of systems "\
             "(got type %s)" % (attr, type(system_dict))
         )
-    for systemname in system_dict:
-        if not isinstance(systemname, basestring):
+    for system in system_dict:
+        if not isinstance(system, basestring):
             raise DistutilsSetupError(
-                "'%s' attribute: Key in system dictionary must be "\
-                "a string "\
+                "'%s' attribute: Key in system dictionary must be a string "\
                 "(got key %r of type %s)" %\
-                (attr, systemname, type(systemname))
+                (attr, system, type(system))
             )
-        distro_dict = system_dict[systemname]
-        if not isinstance(distro_dict, dict):
+        system_item = system_dict[system]
+        if isinstance(system_item, dict):
+            # The packages are specified by distro (e.g. Linux)
+            distro_dict = system_item
+            for distro in distro_dict:
+                if not isinstance(distro, basestring):
+                    raise DistutilsSetupError(
+                        "'%s' attribute: Key in distribution dictionary must "\
+                        "be a string "\
+                        "(for system '%s', got key %r of type %s)" %\
+                        (attr, system, distro, type(distro))
+                    )
+                distro_item = distro_dict[distro]
+                if isinstance(distro_item, list):
+                    # Normal case: the distro specifies a package list
+                    req_list = distro_item
+                    _assert_req_list(dist, attr, req_list)
+                elif isinstance(distro_item, basestring):
+                    # The distro refers to another distro
+                    referenced_distro = distro_item
+                    if not referenced_distro in distro_dict:
+                        raise DistutilsSetupError(
+                            "'%s' attribute: Referenced distribution does not "\
+                            "exist in distribution dictionary "\
+                            "(for system '%s' distro '%s', got "\
+                            "referenced distro '%s')" %\
+                            (attr, system, distro, referenced_distro)
+                        )
+                else:
+                    raise DistutilsSetupError(
+                        "Invalid type %s for value in distribution dictionary "\
+                        ": %r" %\
+                        (type(distro_item), distro_item)
+                    )
+        elif isinstance(system_item, list):
+            # The packages are specified at system level (e.g. Windows)
+            req_list = system_item
+            _assert_req_list(dist, attr, req_list)
+        else:
             raise DistutilsSetupError(
                 "'%s' attribute: Value in system dictionary must be "\
-                "a dictionary of distributions "\
-                "(for system %s, got type %s)" %\
-                (attr, systemname, type(distro_dict))
+                "a dictionary of distributions or a list "\
+                "(for system '%s', got type %s)" %\
+                (attr, system, type(system_item))
             )
-        for distroname in distro_dict:
-            if not isinstance(distroname, basestring):
-                raise DistutilsSetupError(
-                    "'%s' attribute: Key in distribution dictionary must be "\
-                    "a string "\
-                    "(for system %s, got key %r of type %s)" %\
-                    (attr, systemname, distroname, type(distroname))
-                )
-            req_list = distro_dict[distroname]
-            if not isinstance(req_list, list):
-                raise DistutilsSetupError(
-                    "'%s' attribute: Value in distribution dictionary must be "\
-                    "a list "\
-                    "(for system %s, distro %s, got type %s)" %\
-                    (attr, systemname, distroname, type(req_list))
-                )
-            for req in req_list:
-                if not isinstance(req, (basestring, types.FunctionType)):
-                    raise DistutilsSetupError(
-                        "'%s' attribute: Requirement must be "\
-                        "a string or a function "\
-                        "(for system %s, distro %s, got requirement %r "\
-                        "of type %s)"%\
-                        (attr, systemname, distroname, req, type(req))
-                    )
+
+def _assert_req_list(dist, attr, value):
+    """Validate the value of a requirements list (e.g. the 'develop_requires'
+    attribute, or the requirement lists for a distro or system in the
+    'install_os_requires' attribute).
+
+    The interface of this function is suitable for the newer setuptools
+    'entry_points' concept; see
+    https://pythonhosted.org/setuptools/setuptools.html#adding-setup-arguments
+
+    Parameters:
+    * dist: Distribution object
+    * attr: Attribute name
+    * value: Attribute value to be validated
+    """
+    req_list = value
+    for req in req_list:
+        if not isinstance(req, (basestring, types.FunctionType)):
+            raise DistutilsSetupError(
+                "'%s' attribute: Requirement must be a string or a function "\
+                "(got requirement %r of type %s)"%\
+                (attr, req, type(req))
+            )
 
 class BaseOsCommand (Command):
     """Setuptools/distutils command class; a base class for installing
@@ -275,40 +282,65 @@ class BaseOsCommand (Command):
         """
         if system_dict is not None:
 
-            print "Installing prerequisite OS-level packages for "\
-                  "platform %s" % self.installer.platform
-
             system = self.installer.system
             distro = self.installer.distro
 
             if system in system_dict:
-                distro_dict = system_dict[system]
-                if distro in distro_dict:
-                    req_list = distro_dict[distro]
-                    if req_list is not None:
-                        self._run_os_req_list(req_list)
-
-    def _run_os_req_list(self, req_list):
-        for req in req_list:
-            if isinstance(req, types.FunctionType):
-                req(self)
-            else: # requirements string
-                req = req.strip()
-                print "Processing OS-level package requirement: %s" % req
-                m = re.match(
-                    r'^([a-zA-Z0-9_\.\-\+]+)'\
-                    '( *(<|<=|=|>|>=) *([0-9a-zA-Z_\.\-\+]+))?$',
-                    req)
-                if m is not None:
-                    pkg_name = m.group(1)
-                    version_req = m.group(2)
-                    self.installer.ensure_installed(pkg_name, version_req,
-                                                    self.dry_run)
+                system_item = system_dict[system]
+                if isinstance(system_item, dict):
+                    # The packages are specified by distro (e.g. Linux)
+                    distro_dict = system_item
+                    self._run_os_distro(distro, distro_dict)
+                elif isinstance(system_item, list):
+                    # The packages are specified at system level (e.g. Windows)
+                    req_list = system_item
+                    self._run_os_req_list(req_list)
                 else:
                     raise DistutilsSetupError(
-                        "OS-level package requirement for platform %s has "\
-                        "invalid syntax: %r" % (self.installer.platform, req)
+                        "Invalid type %s for system entry: %r" %\
+                        (type(system_item), system_item)
                     )
+
+    def _run_os_distro(self, distro, distro_dict):
+        if distro in distro_dict:
+            distro_item = distro_dict[distro]
+            if isinstance(distro_item, list):
+                # Normal case: the distro specifies a package list
+                req_list = distro_item
+                self._run_os_req_list(req_list)
+            elif isinstance(distro_item, basestring):
+                # The distro refers to another distro
+                distro = distro_item
+                self._run_os_distro(distro, distro_dict)
+            else:
+                raise DistutilsSetupError(
+                    "Invalid type %s for distro entry: %r" %\
+                    (type(distro_item), distro_item)
+                )
+                
+    def _run_os_req_list(self, req_list):
+        if req_list is not None:
+            for req in req_list:
+                if isinstance(req, types.FunctionType):
+                    req(self)
+                else: # requirements string
+                    req = req.strip()
+                    print "Processing OS-level package requirement: %s" % req
+                    m = re.match(
+                        r'^([a-zA-Z0-9_\.\-\+]+)'\
+                        '( *(<|<=|=|>|>=) *([0-9a-zA-Z_\.\-\+]+))?$',
+                        req)
+                    if m is not None:
+                        pkg_name = m.group(1)
+                        version_req = m.group(2)
+                        self.installer.ensure_installed(pkg_name, version_req,
+                                                        self.dry_run)
+                    else:
+                        raise DistutilsSetupError(
+                            "OS-level package requirement for platform '%s' "\
+                            "has invalid syntax: %r" %\
+                            (self.installer.platform, req)
+                        )
 
 class install_os (BaseOsCommand):
     """Setuptools/distutils command class for installing OS-level packages
@@ -329,6 +361,10 @@ class install_os (BaseOsCommand):
         This function is invoked when the user specifies the 'install_os'
         command.
         """
+
+        print "install_os: Installing prerequisite OS-level packages for "\
+              "platform '%s'" % self.installer.platform
+
         self.run_os(self.distribution.install_os_requires)
 
         if len(self.installer.errors) > 0:
@@ -357,6 +393,10 @@ class develop_os (BaseOsCommand):
         This function is invoked when the user specifies the 'develop_os'
         command.
         """
+
+        print "develop_os: Installing prerequisite OS-level packages for "\
+              "platform '%s'" % self.installer.platform
+
         self.run_os(self.distribution.install_os_requires)
         self.run_os(self.distribution.develop_os_requires)
 
@@ -384,6 +424,8 @@ class develop (_develop):
         """
 
         _develop.run(self)
+
+        print "develop: Installing prerequisite Python packages"
 
         req_list = self.distribution.develop_requires
         for req in req_list:
