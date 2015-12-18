@@ -127,6 +127,7 @@ import subprocess
 import platform
 import pip
 import optparse
+import getpass
 
 from setuptools import Command, Distribution
 from setuptools.command.develop import develop as _develop
@@ -268,31 +269,39 @@ class BaseOsCommand (Command):
     def finalize_options(self):
         pass
 
-    def run_os_system_dict(self, system_dict):
+    def run_os(self, system_dict):
+        """Install the OS-level packages specified in a system dictionary.
+
+        Parameters:
+        * system_dict: System dictionary, with a structure as described for the
+          `install_os_requires` attribute of the setup() function.
+        """
         if system_dict is not None:
+
             system = self.osinstaller.system()
             distro = self.osinstaller.distro()
+
             print "Installing prerequisite OS-level packages for "\
                   "system %s, distro %s" % (system, distro)
+
             if system in system_dict:
                 distro_dict = system_dict[system]
                 if distro in distro_dict:
                     req_list = distro_dict[distro]
                     if req_list is not None:
-                        self.run_os_req_list(req_list)
+                        self._run_os_req_list(req_list)
 
-    def run_os_req_list(self, req_list):
+    def _run_os_req_list(self, req_list):
         for req in req_list:
             if isinstance(req, types.FunctionType):
                 req(self)
             else: # requirements string
                 req = req.strip()
-                print "Processing OS-level package "\
-                      "requirement: %s" % req
+                print "Processing OS-level package requirement: %s" % req
                 m = re.match(
-                  r'^([a-zA-Z0-9_\.\-\+]+)'\
-                  '( *(<|<=|=|>|>=) *([0-9a-zA-Z_\.\-\+]+))?$',
-                  req)
+                    r'^([a-zA-Z0-9_\.\-\+]+)'\
+                    '( *(<|<=|=|>|>=) *([0-9a-zA-Z_\.\-\+]+))?$',
+                    req)
                 if m is not None:
                     pkg_name = m.group(1)
                     version_req = m.group(2)
@@ -306,23 +315,18 @@ class BaseOsCommand (Command):
                         (system, distro, req)
                     )
         if self.osinstaller._failed:
-            if self.osinstaller._continue:
-                print \
-                  "Cannot install prerequisite OS-level "\
-                  "packages: %s\n"\
-                  "Continuing anyway..." %\
-                  self.osinstaller._reason
-            else:
-                raise DistutilsSetupError(
-                  "Cannot install prerequisite OS-level "\
-                  "packages: %s\n"\
-                  "Please install the following packages "\
-                  "manually, and retry:\n"\
+            msg = "Cannot install prerequisite OS-level packages.\n"\
+                  "Reason: %s\n"\
+                  "Please install the following packages manually:\n"\
                   "\n"\
                   "    %s" %\
                   (self.osinstaller._reason,
-                   "\n    ".join(
-                     self.osinstaller._manual_packages)))
+                   "\n    ".join(self.osinstaller._manual_packages)))
+            if self.osinstaller._continue:
+                print msg
+                print "Continuing anyway..."
+            else:
+                raise DistutilsSetupError(msg)
 
 class install_os (BaseOsCommand):
     """Setuptools/distutils command class for installing OS-level packages
@@ -399,6 +403,52 @@ class develop (_develop):
 
 class BaseInstaller (object):
     """Base class for installing OS-level packages and Python packages."""
+
+    MSG_PLATFORM_NOT_SUPPORTED = 1
+    MSG_USER_NOT_AUTHORIZED = 2
+    MSG_PKG_NOT_IN_REPOS = 3
+
+    def __init__(self):
+        """
+        Instance attributes:
+
+        * errors (dict): The errors collected during the processing of package
+          requirements, that cause the program to raise an exception at the end.
+          Key (string): Message id (using the class attributes MSG_*).
+          Value (string): A list of package requirements (e.g. "abc>=12.0").
+
+        * infos (dict): The informations collected during the processing of
+          package requirements, that cause the program to print a message at the
+          end, without causing any bad return code or exception.
+          Key (string): Message id (using the class attributes MSG_*).
+          Value (string): A list of package requirements (e.g. "abc>=12.0").
+          
+        * system (string): The name of this operating system (e.g. Windows,
+          Linux).
+
+        * distro (string): The name of this Linux distribution (using the short
+          names returned by `platform.linux_distribution()`), or None if this
+          is not a Linux system.
+
+        * platform (string): A human readable name of this operating system
+          platform, that is unique for the combination of system and distro.
+
+        * userid (string): The current userid (the name, not a numeric uid).
+        """
+
+        self.errors = list()
+        self.infos = list()
+
+        self.system = platform.system()
+        if self.system == "Linux":
+            self.distro = platform.linux_distribution(
+                full_distribution_name=False)[0].lower()
+            self.platform = self.distro
+        else:
+            self.distro = None
+            self.platform = self.system
+
+        self.userid = getpass.getuser()
 
     def install(self, pkg_name, version_req=None, dry_run=False):
         """Interface definition: Install an OS-level or Python package,
@@ -530,8 +580,58 @@ class BaseInstaller (object):
         else:
             return True # no requirement -> version always matches
 
+    def record_error(self, pgk_name, version_req, msg_id):
+        """Record an error. Errors will be queued and at the end will cause
+        a DistutilsSetupError to be raised.
+        """
+        if msg_id not in self.errors:
+            self.errors[msg_id] = list()
+        pkg_req = pkg_name + (version_req or "")
+        self.errors[msg_id].append(pgk_req)
+
+    def record_info(self, pgk_name, version_req, msg_id):
+        """Record an info. Infos will be queued and at the end will cause
+        a list of messages to be printed, without causing any bad return code
+        or exception.
+        """
+        if msg_id not in self.infos:
+            self.infos[msg_id] = list()
+        pkg_req = pkg_name + (version_req or "")
+        self.infos[msg_id].append(pgk_req)
+
+    def print_messages(self, msg_dict):
+        for msg_id in msg_dict:
+            pkg_reqs = msg_dict[msg_id]
+            if msg_id == self.MSG_PLATFORM_NOT_SUPPORTED:
+                msg = "This platform (%s) is not supported for installation "\
+                      "of OS-level packages.\n" % self.platform
+                msg += "The following OS-level packages need to be verified "\
+                       "and installed manually, if missing:\n"\
+                       "\n"\
+                       "    %s" % "\n    ".join(pkg_reqs)
+            elif msg_id == self.MSG_USER_NOT_AUTHORIZED:
+                msg = "This user (%s) is not authorized for installation of "\
+                      "OS-level packages.\n" % self.userid
+                msg += "The following OS-level packages are missing and need "\
+                       "to be installed manually:\n"\
+                       "\n"\
+                       "    %s" % "\n    ".join(pkg_reqs)
+            elif msg_id == self.MSG_PKG_NOT_IN_REPOS:
+                msg = "The following OS-level packages are not in the "\
+                      "repositories and need to be obtained otherwise:\n"\
+                       "\n"\
+                       "    %s" % "\n    ".join(pkg_reqs)
+            else:
+                raise DistutilsSetupError(
+                    "Internal Error: Unexpected message ID: %s" % msg_id
+                )
+
+
 class PythonInstaller (BaseInstaller):
     """Support for installing Python packages."""
+
+    def __init__(self):
+        BaseInstaller.__init__(self)
 
     def install(self, pkg_name, version_req=None, dry_run=False):
         """Install a Python package, optionally applying  a version
@@ -626,22 +726,9 @@ class OSInstaller (BaseInstaller):
 
     def __init__(self):
         """Initialize this installer with information about the current
-        operating system platform."""
-
-        # Operating system name (e.g. "Windows", "Linux")
-        self._system = platform.system()
-
-        # Linux distribution name, using the short names returned by
-        # platform.linux_distribution()
-        self._distro = None
-
-        # Name of operating system platform (_system or _distro)
-        self._platform = self._system
-
-        if self._system == "Linux":
-            self._distro = platform.linux_distribution(
-                               full_distribution_name=False)[0].lower()
-            self._platform = self._distro
+        operating system platform.
+        """
+        BaseInstaller.__init__(self)
 
         # Supported installers, by operating system platform
         self._installers = {
@@ -653,15 +740,6 @@ class OSInstaller (BaseInstaller):
             "suse": SuseInstaller,
         }
 
-        # Failure indicators
-        self._failed = False
-        self._reason = None
-        self._continue = False
-
-        # List of OS-level packages to be installed manually, if
-        # automatic installation is not possible.
-        self._manual_packages = []
-
     def platform_installer(self):
         """Create and return an installer for this operating system platform."""
         try:
@@ -670,28 +748,15 @@ class OSInstaller (BaseInstaller):
         except KeyError:
             return self # limited function, i.e. it cannot install
 
-    def platform(self):
-        """Return the name of this operating system platform."""
-        return self._platform
-
-    def system(self):
-        """Return the name of this operating system (e.g. Windows, Linux)."""
-        return self._system
-
-    def distro(self):
-        """Return the name of this Linux distribution, or None if this is not a
-        Linux operating system."""
-        return self._distro
-
     def supported(self):
         """Determine whether this operating system platform is supported for
         installation of OS-level packages."""
-        return self._platform in self._installers
+        return self.platform in self._installers
 
     def authorized(self):
         """Determine whether the current userid is authorized to install
         OS-level packages."""
-        if self._system == "Linux":
+        if self.system == "Linux":
             rc, _, _ = shell("sudo -v") # this may ask for a password
             authorized = (rc == 0)
         else:
@@ -711,19 +776,9 @@ class OSInstaller (BaseInstaller):
         Raises:
         * If installation fails, raises a DistutilsSetupError exception.
         """
-
-        # The real code is in the subclass. If this code gets control, there
-        # is no subclass that handles this platform.
-        pkg_req = pkg_name + (version_req or "")
-        if not self.supported():
-            self._failed = True
-            self._continue = True # we try anyway
-            self._reason = "This operating system platform (%s) is not "\
-                           "supported for automatic installation of "\
-                           "OS-level pre-requisites." % self.platform()
-            self._manual_packages.append(pkg_req)
-            return
-        raise NotImplemented
+        # The real code is in the subclass. If this code gets control, this
+        # platform is not supported.
+        self.record_error(pgk_name, version_req, self.MSG_PLATFORM_NOT_SUPPORTED)
 
     def is_installed(self, pkg_name, version_req=None):
         """Test whether an OS-level package is installed, and optionally
@@ -737,19 +792,11 @@ class OSInstaller (BaseInstaller):
         Returns:
         * Boolean indicating whether the package is installed.
         """
-
         # The real code is in the subclass. If this code gets control, there
         # is no subclass that handles this platform.
-        pkg_req = pkg_name + (version_req or "")
-        if not self.supported():
-            self._failed = True
-            self._continue = True # we try anyway
-            self._reason = "This operating system platform (%s) is not "\
-                           "supported for automatic installation of "\
-                           "OS-level pre-requisites." % self.platform()
-            self._manual_packages.append(pkg_req)
-            return
-        raise NotImplemented
+        self.record_error(pgk_name, version_req,
+                          self.MSG_PLATFORM_NOT_SUPPORTED)
+        return False
 
     def is_available(self, pkg_name, version_req=None):
         """Test whether an OS-level package is available in the repos, and
@@ -766,19 +813,11 @@ class OSInstaller (BaseInstaller):
         * If a package version that satisfies the requirement is available, its
           version is returned as a string. Otherwise, False is returned.
         """
-
         # The real code is in the subclass. If this code gets control, there
         # is no subclass that handles this platform.
-        pkg_req = pkg_name + (version_req or "")
-        if not self.supported():
-            self._failed = True
-            self._continue = True # we try anyway
-            self._reason = "This operating system platform (%s) is not "\
-                           "supported for automatic installation of "\
-                           "OS-level pre-requisites." % self.platform()
-            self._manual_packages.append(pkg_req)
-            return
-        raise NotImplemented
+        self.record_error(pgk_name, version_req,
+                          self.MSG_PLATFORM_NOT_SUPPORTED)
+        return False
 
     def ensure_installed(self, pkg_name, version_req=None, dry_run=False):
         """Ensure that an OS-level package is installed, and optionally
@@ -793,17 +832,9 @@ class OSInstaller (BaseInstaller):
         Raises:
         * If installation fails, raises a DistutilsSetupError exception.
         """
-
-        # The real code is in the subclass. If this code gets control, there
-        # is no subclass that handles this platform.
-        pkg_req = pkg_name + (version_req or "")
         if not self.supported():
-            self._failed = True
-            self._continue = True # we try anyway
-            self._reason = "This operating system platform (%s) is not "\
-                           "supported for automatic installation of "\
-                           "OS-level pre-requisites." % self.platform()
-            self._manual_packages.append(pkg_req)
+            self.record_error(pgk_name, version_req,
+                              self.MSG_PLATFORM_NOT_SUPPORTED)
             return
         if not self.is_installed(pkg_name, version_req):
             self.install(pkg_name, version_req, dry_run)
@@ -812,9 +843,12 @@ class RedhatInstaller (OSInstaller):
     """Installer for Redhat-based distributions (e.g. RHEL, CentOS, Fedora).
     It uses the new dnf installer for Fedora>=22."""
 
+    def __init__(self):
+        OSInstaller.__init__(self)
+
     def _installer_cmd(self):
         """Return the installer command."""
-        if self._distro == "fedora" and \
+        if self.distro == "fedora" and \
             int(platform.linux_distribution()[1]) >= 22:
             return "dnf"
         else:
@@ -835,16 +869,11 @@ class RedhatInstaller (OSInstaller):
         """
         pkg_req = pkg_name + (version_req or "")
         if not self.authorized():
-            self._failed = True
-            self._continue = False # we know that some packages are missing
-            self._reason = "This userid is not authorized to install OS-level "\
-                           "packages."
-            self._manual_packages.append(pkg_req)
+            self.record_error(pgk_name, version_req,
+                              self.MSG_USER_NOT_AUTHORIZED)
         elif not self.is_available(pkg_name, version_req, display=False):
-            self._failed = True
-            self._continue = True
-            self._reason = "OS-level package not available in repositories"
-            self._manual_packages.append(pkg_req)
+            self.record_error(pgk_name, version_req,
+                              self.MSG_PKG_NOT_IN_REPOS)
         else:
             cmd = "sudo %s install -y %s" %\
                  (self._installer_cmd(), pkg_name)
@@ -941,6 +970,9 @@ class RedhatInstaller (OSInstaller):
 class DebianInstaller (OSInstaller):
     """Installer for Debian-based distributions (e.g. Debian, Ubuntu)."""
 
+    def __init__(self):
+        OSInstaller.__init__(self)
+
     def install(self, pkg_name, version_req=None, dry_run=False):
         """Install an OS-level package, optionally applying a version
         requirement.
@@ -956,16 +988,11 @@ class DebianInstaller (OSInstaller):
         """
         pkg_req = pkg_name + (version_req or "")
         if not self.authorized():
-            self._failed = True
-            self._continue = False # we know that some packages are missing
-            self._reason = "This userid is not authorized to install OS-level "\
-                           "packages."
-            self._manual_packages.append(pkg_req)
+            self.record_error(pgk_name, version_req,
+                              self.MSG_USER_NOT_AUTHORIZED)
         elif not self.is_available(pkg_name, version_req, display=False):
-            self._failed = True
-            self._continue = True
-            self._reason = "OS-level package not available in repositories"
-            self._manual_packages.append(pkg_req)
+            self.record_error(pgk_name, version_req,
+                              self.MSG_PKG_NOT_IN_REPOS)
         else:
             cmd = "sudo apt-get install -y %s" % pkg_name
             if dry_run:
@@ -1065,6 +1092,9 @@ class DebianInstaller (OSInstaller):
 class SuseInstaller (OSInstaller):
     """Installer for Suse-based distributions (e.g. SLES, openSUSE)."""
 
+    def __init__(self):
+        OSInstaller.__init__(self)
+
     def install(self, pkg_name, version_req=None, dry_run=False):
         """Install an OS-level package, optionally applying a version
         requirement.
@@ -1080,16 +1110,9 @@ class SuseInstaller (OSInstaller):
         """
         pkg_req = pkg_name + (version_req or "")
         if not self.authorized():
-            self._failed = True
-            self._continue = False # we know that some packages are missing
-            self._reason = "This userid is not authorized to install OS-level "\
-                           "packages."
-            self._manual_packages.append(pkg_req)
+            self.record_error(pgk_name, version_req, self.MSG_USER_NOT_AUTHORIZED)
         elif not self.is_available(pkg_name, version_req, display=False):
-            self._failed = True
-            self._continue = True
-            self._reason = "OS-level package not available in repositories"
-            self._manual_packages.append(pkg_req)
+            self.record_error(pgk_name, version_req, self.MSG_PKG_NOT_IN_REPOS)
         else:
             cmd = "sudo yum zypper -y %s" % pkg_name
             if dry_run:
