@@ -48,7 +48,8 @@ Syntax for the new attributes of the `setup()` function:
   as returned by `platform.system()`, and in case of the 'Linux' system, on
   the Linux distribution as returned by `platform.linux_distribution()` (as a
   short name). These attributes can also specify custom functions for handling
-  more complex cases.
+  more complex cases. At the distribution level, it is possible to refer to the
+  definitions for another distribution, in order to avoid repetition.
 
   The syntax is the same for both attributes. The following example shows the
   syntax:
@@ -61,6 +62,7 @@ Syntax for the new attributes of the `setup()` function:
                   install_swig,             # a custom function
                   . . .
               ],
+              'centos': 'redhat',           # refer to another distribution
               . . .
           },
           . . .
