@@ -319,7 +319,7 @@ class BaseOsCommand (Command):
                     "Invalid type %s for distro entry: %r" %\
                     (type(distro_item), distro_item)
                 )
-                
+
     def _run_os_req_list(self, req_list):
         if req_list is not None:
             for req in req_list:
@@ -518,7 +518,7 @@ class BaseInstaller (object):
         """
         raise NotImplemented
 
-    def is_available(self, pkg_name, version_req=None):
+    def is_available(self, pkg_name, version_req=None, display=True):
         """Interface definition: Test whether an OS-level or Python package
         is available in the repos (for OS-level packages) or on Pypi (for
         Python packages), and optionally satisfies a version requirement.
@@ -529,10 +529,10 @@ class BaseInstaller (object):
         * pkg_name (string): Name of the Python package.
         * version_req (string): Version requirement for the package
           (e.g. '>=3.0').
+        * display (boolean): Print messages.
 
         Returns:
-        * If a package version that satisfies the requirement is available, its
-          version is returned as a string. Otherwise, False is returned.
+        * Boolean indicating whether the package is available for installation.
         """
         raise NotImplemented
 
@@ -694,16 +694,33 @@ class PythonInstaller (BaseInstaller):
           (e.g. '>=3.0').
 
         Returns:
-        * If a package version that satisfies the requirement is installed, its
-          version is returned as a string. Otherwise, False is returned.
+        * Boolean indicating whether the package is installed.
         """
-        info = list(pip.commands.show.search_packages_info([pkg_name]))
-        # TODO: Implement support for version requirement
-        installed = len(info) > 0
-        # TODO: Return installed version, or False
-        return installed
+        cmd = "pip show %s" % pkg_name
+        rc, out, err = shell(cmd)
+        if rc != 0:
+            print "Package is not installed: %s" % pkg_name
+            return False
+        lines = out.splitlines()
+        version_line = [line for line in lines
+                        if line.startswith("Version:")][0]
+        version = version_line.split()[1]
+        if version_req is not None:
+            version_sufficient = self.version_matches_req(
+                version, version_req)
+            if version_sufficient:
+                print "Installed package version is sufficient: "\
+                    "%s %s" % (pkg_name, version)
+            else:
+                print "Installed package version is not sufficient: "\
+                    "%s %s" % (pkg_name, version)
+            return version_sufficient
+        else:
+            print "Installed package version is sufficient: "\
+                "%s %s" % (pkg_name, version)
+            return True
 
-    def is_available(self, pkg_name, version_req=None):
+    def is_available(self, pkg_name, version_req=None, display=True):
         """Test whether a Python package is available on Pypi, and optionally
         satisfies a version requirement.
         It does not matter for this function whether the package is already
@@ -713,20 +730,41 @@ class PythonInstaller (BaseInstaller):
         * pkg_name (string): Name of the package.
         * version_req (string): Version requirement for the package
           (e.g. '>=3.0').
+        * display (boolean): Print messages.
 
         Returns:
-        * If a package version that satisfies the requirement is available, its
-          version is returned as a string. Otherwise, False is returned.
+        * Boolean indicating whether the package is available for installation.
         """
+        # We use the internal functions of the pip module, because the pip
+        # command line does not return version information from Pypi.
+        # TODO: This is not supported on older pip versions (e.g. 1.4).
         search_command = pip.commands.search.SearchCommand()
         options, args = search_command.parse_args([pkg_name])
         pypi_hits = search_command.search(pkg_name, options)
         hits = pip.commands.search.transform_hits(pypi_hits)
         for hit in hits:
             if hit['name'] == pkg_name:
-                for available_version in hit['versions']:
-                    if self.version_matches_req(available_version, version_req):
-                        return available_version
+                if version_req is None:
+                    if display:
+                        print "Package version available in Pypi is "\
+                            "sufficient: %s %s" % (pkg_name, version)
+                    return True
+                else:
+                    for version in hit['versions']:
+                        version_sufficient = self.version_matches_req(
+                            version, version_req)
+                        if version_sufficient:
+                            break
+                    if display:
+                        if version_sufficient:
+                            print "Package version available in Pypi is "\
+                                "sufficient: %s %s" % (pkg_name, version)
+                        else:
+                            print "Package version available in Pypi is "\
+                                "not sufficient: %s %s" % (pkg_name, version)
+                    return version_sufficient
+        if display:
+            print "Package is not available in Pypi: %s" % pkg_name
         return False
 
     def ensure_installed(self, pkg_name, version_req=None, dry_run=False):
@@ -824,7 +862,7 @@ class OSInstaller (BaseInstaller):
                           self.MSG_PLATFORM_NOT_SUPPORTED)
         return False
 
-    def is_available(self, pkg_name, version_req=None):
+    def is_available(self, pkg_name, version_req=None, display=True):
         """Test whether an OS-level package is available in the repos, and
         optionally satisfies a version requirement.
         It does not matter for this function whether the package is already
@@ -834,10 +872,10 @@ class OSInstaller (BaseInstaller):
         * pkg_name (string): Name of the package.
         * version_req (string): Version requirement for the package
           (e.g. '>=3.0').
+        * display (boolean): Print messages.
 
         Returns:
-        * If a package version that satisfies the requirement is available, its
-          version is returned as a string. Otherwise, False is returned.
+        * Boolean indicating whether the package is available for installation.
         """
         # The real code is in the subclass. If this code gets control, there
         # is no subclass that handles this platform.
@@ -957,8 +995,7 @@ class YumInstaller (OSInstaller):
         * display (boolean): Print messages.
 
         Returns:
-        * If a package version that satisfies the requirement is available, its
-          version is returned as a string. Otherwise, False is returned.
+        * Boolean indicating whether the package is available for installation.
         """
         cmd = "%s list %s" % (self.installer_cmd, pkg_name)
         rc, out, err = shell(cmd)
@@ -1081,8 +1118,7 @@ class AptInstaller (OSInstaller):
         * display (boolean): Print messages.
 
         Returns:
-        * If a package version that satisfies the requirement is available, its
-          version is returned as a string. Otherwise, False is returned.
+        * Boolean indicating whether the package is available for installation.
         """
         cmd = "apt show %s" % pkg_name
         rc, out, err = shell(cmd)
@@ -1197,8 +1233,7 @@ class ZypperInstaller (OSInstaller):
         * display (boolean): Print messages.
 
         Returns:
-        * If a package version that satisfies the requirement is available, its
-          version is returned as a string. Otherwise, False is returned.
+        * Boolean indicating whether the package is available for installation.
         """
         cmd = "zypper info %s" % pkg_name
         rc, out, err = shell(cmd)
