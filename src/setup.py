@@ -75,8 +75,8 @@ def install_swig(command):
 
     if get_swig:
 
-        system = inst.system()
-        distro = inst.distro()
+        system = inst.system
+        distro = inst.distro
 
         swig_pkg_dict = {
             'Linux': {
