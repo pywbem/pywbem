@@ -152,11 +152,11 @@ def install_swig(command):
 
             if dry_run:
                 print "Dry-running: Building Swig version %s from "\
-                    "downloaded source, and installing to %s tree" %i\
+                    "downloaded source, and installing to %s tree" %\
                     (swig_build_version, swig_install_root)
             else:
                 print "Building Swig version %s from "\
-                    "downloaded source, and installing to %s tree" %i\
+                    "downloaded source, and installing to %s tree" %\
                     (swig_build_version, swig_install_root)
 
                 if os.path.exists(swig_dir):
@@ -326,7 +326,7 @@ def main():
                     "python2.7-dev",
                     "git>=1.7",
                 ],
-                'ubuntu': [                 
+                'ubuntu': [
                     "libssl-dev>=1.0.1",
                     "g++>=4.4",
                     install_swig,
