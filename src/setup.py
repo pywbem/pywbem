@@ -287,7 +287,6 @@ def main():
             "httpretty",
             "lxml",
             "pyyaml",
-            "pylint>=1.3",
         ],
         'install_os_requires': {
             # OS-level prereqs for 'install_os' command. Handled by os_setup
@@ -299,6 +298,7 @@ def main():
                     "gcc-c++>=4.4",         # used by Swig
                     "python-devel",         # to get Python.h for Swig run
                     "git>=1.7",             # for retrieving fixed M2Crypto
+                    "pylint>=1.3",
                 ],
                 'centos': 'redhat',
                 'fedora': 'redhat',
@@ -306,24 +306,18 @@ def main():
                     "libssl-dev>=1.0.1",
                     install_swig,
                     "g++>=4.4",
-                    "libpython2.7",
-                    "libpython2.7-dev",
+                    "python2.7-dev",
                     "git>=1.7",
+                    "pylint>=1.1",
                 ],
-                'ubuntu': [
-                    "libssl-dev>=1.0.1",
-                    install_swig,
-                    "g++>=4.4",
-                    "libpython2.7",
-                    "libpython2.7-dev",
-                    "git>=1.7",
-                ],
+                'ubuntu': 'debian',
                 'suse': [
                     "openssl-devel>=1.0.1",
                     install_swig,
                     "gcc-c++>=4.4",
                     "libpython2.7-devel",
                     "git>=1.7",
+                    "pylint>=1.3",
                 ],
             },
             # TODO: Add support for Windows.
