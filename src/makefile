@@ -101,7 +101,8 @@ help:
 	@echo '  clobber    - Remove any build products'
 
 develop:
-	python setup.py develop_os develop
+	sudo python setup.py develop_os
+	python setup.py develop
 	@echo '$@ done.'
 
 build: $(dist_file)
@@ -118,7 +119,7 @@ check: pylint.log
 
 install: build
 	unzip -q -o -d tmp_install $(dist_file)
-	sh -c "cd tmp_install/$(package_name)-$(package_version) && python setup.py install_os install"
+	sh -c "cd tmp_install/$(package_name)-$(package_version) && sudo python setup.py install_os && python setup.py install"
 	rm -Rf tmp_install
 	@echo '$@ done.'
 
