@@ -186,7 +186,7 @@ $(moftab_files): $(package_name)/mof_compiler.py
 $(doc_build_dir)/index.html: $(package_name)/*.py $(package_name)/NEWS
 	rm -Rf $(doc_build_dir)
 	mkdir -p $(doc_build_dir)
-	sh -c "PYTHONPATH=. $(doc_cmd) |tee epydoc.log"
+	sh -c "PYTHONPATH=. $(doc_cmd) >epydoc.log"
 	cp -p $(package_name)/NEWS $(doc_build_dir)/NEWS.txt
 
 pylint.log: $(pylint_rc_file) setup.py os_setup.py $(package_name)/*.py testsuite/*.py
