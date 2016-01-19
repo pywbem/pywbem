@@ -287,6 +287,7 @@ def main():
             "httpretty",
             "lxml",
             "pyyaml",
+            "pylint>=1.3",
         ],
         'install_os_requires': {
             # OS-level prereqs for 'install_os' command. Handled by os_setup
@@ -305,6 +306,7 @@ def main():
                     "libssl-dev>=1.0.1",
                     install_swig,
                     "g++>=4.4",
+                    "libpython2.7",
                     "libpython2.7-dev",
                     "git>=1.7",
                 ],
@@ -313,6 +315,7 @@ def main():
                     install_swig,
                     "g++>=4.4",
                     "libpython2.7",
+                    "libpython2.7-dev",
                     "git>=1.7",
                 ],
                 'suse': [
@@ -334,7 +337,6 @@ def main():
                     "libxml2-devel",        # for installing Python lxml pkg
                     "libxslt-devel",        # for installing Python lxml pkg
                     "libyaml-devel",        # for installing Python pyyaml pkg
-                    "pylint",
                     "make",                 # PyWBEM has a makefile
                     "zip",                  # for building distribution archive
                     "unzip",                # for installing distrib. archive
@@ -347,7 +349,6 @@ def main():
                     "libxml2-dev",
                     "libxslt1-dev",
                     "libyaml-dev",
-                    "pylint",
                     "make",
                     "zip",
                     "unzip",
@@ -359,7 +360,6 @@ def main():
                     "libxml2-devel",
                     "libxslt-devel",
                     "libyaml-devel",
-                    "pylint",
                     "make",
                     "zip",
                     "unzip",
