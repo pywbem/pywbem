@@ -310,7 +310,15 @@ def main():
                     "git>=1.7",
                     "pylint>=1.1",
                 ],
-                'ubuntu': 'debian',
+                'ubuntu': [                 # TODO: Distinguish Ubuntu 12i
+                                            # (pylint>=0.25) and 14 (pylint>=1.1)
+                    "libssl-dev>=1.0.1",
+                    install_swig,
+                    "g++>=4.4",
+                    "python2.7-dev",
+                    "git>=1.7",
+                    "pylint>=0.25",
+                ],
                 'suse': [
                     "openssl-devel>=1.0.1",
                     install_swig,
