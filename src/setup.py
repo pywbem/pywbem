@@ -110,37 +110,54 @@ def install_swig(command):
             swig_tar_file = "swig-%s.tar.gz" % swig_build_version
             swig_install_root = "/usr"
 
+            print "Installing prerequisite OS-level packages for building "\
+                "Swig..."
+
+            swig_prereq_pkg_dict = {
+                'Linux': {
+                    'redhat': [
+                        "pcre-devel",
+                    ],
+                    'centos': [
+                        "pcre-devel",
+                    ],
+                    'fedora': [
+                        "pcre-devel",
+                    ],
+                    'debian': [
+                        "libpcre3",
+                        "libpcre3-dev",
+                    ],
+                    'ubuntu': [
+                        "libpcre3",
+                        "libpcre3-dev",
+                    ],
+                    'suse': [
+                        "pcre-devel",
+                    ],
+                },
+            }
+            # default if no system/distro specific name is found:
+            swig_prereq_pkg_default = [
+                "pcre-devel",
+            ]
+
+            swig_prereq_pkg_names = swig_prereq_pkg_default
+            if system in swig_prereq_pkg_dict:
+                distro_dict = swig_prereq_pkg_dict[system]
+                if distro in distro_dict:
+                    swig_prereq_pkg_names = distro_dict[distro]
+            for swig_prereq_pkg_name in swig_prereq_pkg_names:
+                inst.ensure_installed(swig_prereq_pkg_name, None, dry_run)
+
             if dry_run:
-                print "Dry-running: Building Swig from sources, and "\
-                    "installing to %s tree" % swig_install_root
+                print "Dry-running: Building Swig version %s from "\
+                    "downloaded source, and installing to %s tree" %i\
+                    (swig_build_version, swig_install_root)
             else:
-                print "Building Swig from sources, and installing to %s "\
-                    "tree..." % swig_install_root
-
-                print "Installing prerequisite OS-level packages for building "\
-                    "Swig..."
-
-                pcre_pkg_dict = {
-                    'Linux': {
-                        'redhat': [ "pcre-devel" ],
-                        'centos': [ "pcre-devel" ],
-                        'fedora': [ "pcre-devel" ],
-                        'debian': [ "libpcre3", "libpcre3-dev" ],
-                        'ubuntu': [ "libpcre3", "libpcre3-dev" ],
-                        'suse': [ "pcre-devel" ],
-                    },
-                }
-                # default if no system/distro specific name is found:
-                pcre_pkg_names = ["pcre-devel"]
-                if system in pcre_pkg_dict:
-                    distro_dict = pcre_pkg_dict[system]
-                    if distro in distro_dict:
-                        pcre_pkg_names = distro_dict[distro]
-                for pcre_pkg_name in pcre_pkg_names:
-                    inst.ensure_installed(pcre_pkg_name, None, dry_run)
-
-                print "Downloading, building and installing Swig version "\
-                    "%s..." % swig_build_version
+                print "Building Swig version %s from "\
+                    "downloaded source, and installing to %s tree" %i\
+                    (swig_build_version, swig_install_root)
 
                 if os.path.exists(swig_dir):
                     print "Removing previously downloaded Swig directory: %s" %\
@@ -294,38 +311,34 @@ def main():
             'Linux': {
                 'redhat': [
                     "openssl-devel>=1.0.1", # for M2Crypto installation
+                    "gcc-c++>=4.4",         # for building Swig and for running
+                                            #   Swig in M2Crypto install
                     install_swig,           # for running Swig in M2Crypto inst.
-                    "gcc-c++>=4.4",         # used by Swig
                     "python-devel",         # to get Python.h for Swig run
                     "git>=1.7",             # for retrieving fixed M2Crypto
-                    "pylint>=1.3",
                 ],
                 'centos': 'redhat',
                 'fedora': 'redhat',
                 'debian': [
                     "libssl-dev>=1.0.1",
-                    install_swig,
                     "g++>=4.4",
+                    install_swig,
                     "python2.7-dev",
                     "git>=1.7",
-                    "pylint>=1.1",
                 ],
-                'ubuntu': [                 # TODO: Distinguish Ubuntu 12i
-                                            # (pylint>=0.25) and 14 (pylint>=1.1)
+                'ubuntu': [                 
                     "libssl-dev>=1.0.1",
-                    install_swig,
                     "g++>=4.4",
+                    install_swig,
                     "python2.7-dev",
                     "git>=1.7",
-                    "pylint>=0.25",
                 ],
                 'suse': [
                     "openssl-devel>=1.0.1",
-                    install_swig,
                     "gcc-c++>=4.4",
+                    install_swig,
                     "libpython2.7-devel",
                     "git>=1.7",
-                    "pylint>=1.3",
                 ],
             },
             # TODO: Add support for Windows.
@@ -335,7 +348,6 @@ def main():
             # defined in 'install_os_requires'. Handled by os_setup module.
             'Linux': {
                 'redhat': [
-                    "pcre-devel",           # for building Swig
                     "libxml2-devel",        # for installing Python lxml pkg
                     "libxslt-devel",        # for installing Python lxml pkg
                     "libyaml-devel",        # for installing Python pyyaml pkg
@@ -343,11 +355,11 @@ def main():
                     "zip",                  # for building distribution archive
                     "unzip",                # for installing distrib. archive
                     "patch",                # for patching Epydoc
+                    "pylint>=1.3",          # for make check
                 ],
                 'centos': 'redhat',
                 'fedora': 'redhat',
                 'debian': [
-                    "libpcre3", "libpcre3-dev",
                     "libxml2-dev",
                     "libxslt1-dev",
                     "libyaml-dev",
@@ -355,10 +367,23 @@ def main():
                     "zip",
                     "unzip",
                     "patch",
+                    "pylint>=1.1",          # TODO: This is a compromise; more
+                                            # ideally, the Python pylint
+                                            # package would be used.
                 ],
-                'ubuntu': 'debian',
+                'ubuntu': [
+                    "libxml2-dev",
+                    "libxslt1-dev",
+                    "libyaml-dev",
+                    "make",
+                    "zip",
+                    "unzip",
+                    "patch",
+                    "pylint>=0.25",         # TODO: This is a compromise; more
+                                            # ideally, the Python pylint
+                                            # package would be used.
+                ],
                 'suse': [
-                    "pcre-devel",
                     "libxml2-devel",
                     "libxslt-devel",
                     "libyaml-devel",
@@ -366,6 +391,7 @@ def main():
                     "zip",
                     "unzip",
                     "patch",
+                    "pylint>=1.3",
                 ],
             },
             # TODO: Add support for Windows. Some notes:
