@@ -452,12 +452,21 @@ def _linux_distribution():
     """
     rc, out, _ = shell("grep \"^ID=\" /etc/os-release")
     if rc == 0 and out.startswith("ID="):
-        distro = out[3:]
-    else:
-        distro, _, _ = platform.linux_distribution(
-            full_distribution_name=False
-        )
-    return distro.strip(" \t\n").lower()
+        distro = out[3:].strip(" \t\n").lower()
+        return distro
+
+    rc, out, _ = shell("lsb_release -i -s")
+    if rc == 0:
+        distro = out.strip(" \t\n").lower()
+        # Fix a few special cases:
+        if distro == "redhatenterpriseworkstation":
+            distro = "redhat"
+        return distro
+
+    distro, _, _ = platform.linux_distribution(
+        full_distribution_name=False
+    )
+    return distro
 
 class BaseInstaller(object):
     """Base class for installing OS-level packages and Python packages."""
