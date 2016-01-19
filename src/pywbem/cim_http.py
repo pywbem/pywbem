@@ -43,7 +43,7 @@ import httplib
 import base64
 import urllib
 import threading
-from datetime import timedelta, datetime
+from datetime import datetime
 
 from M2Crypto import SSL, Err
 
@@ -69,7 +69,7 @@ class TimeoutError(Error):
     """This exception is raised when the client times out."""
     pass
 
-class HTTPTimeout (object):
+class HTTPTimeout(object):
     """HTTP timeout class that is a context manager (for use by 'with'
     statement).
 
@@ -178,19 +178,16 @@ def parse_url(url):
     `testsuite/test_cim_http.py`.
     """
 
-    default_port_http  = 5988       # default port for http
+    default_port_http = 5988        # default port for http
     default_port_https = 5989       # default port for https
-    default_ssl        = False      # default SSL use (for no or unknown scheme)
+    default_ssl = False             # default SSL use (for no or unknown scheme)
 
     # Look for scheme.
     m = re.match(r"^(https?)://(.*)$", url, re.I)
     if m:
         _scheme = m.group(1).lower()
         hostport = m.group(2)
-        if _scheme == 'https':
-            ssl = True
-        else: # will be 'http'
-            ssl = False
+        ssl = (_scheme == 'https')
     else:
         # The URL specified no scheme (or a scheme other than the expected
         # schemes, but we don't check)
@@ -322,6 +319,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
     """
 
     class HTTPBaseConnection:
+        # pylint: disable=old-style-class
         def send(self, str):
             """ Same as httplib.HTTPConnection.send(), except we don't
             check for sigpipe and close the connection.  If the connection
@@ -362,10 +360,10 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
             if sys.version_info[0:2] >= (2, 7):
                 # the source_address argument was added in 2.7
                 self.sock = socket.create_connection(
-                            (self.host, self.port), None, self.source_address)
+                    (self.host, self.port), None, self.source_address)
             else:
                 self.sock = socket.create_connection(
-                            (self.host, self.port), None)
+                    (self.host, self.port), None)
 
             if self._tunnel_host:
                 self._tunnel()
@@ -394,12 +392,12 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                 # the symptom is that reading the response returns None.
                 # Therefore, we set the timeout at the level of the outer
                 # M2Crypto socket object.
-                if False: # Currently disabled
+                if False: # TODO: Currently disabled, figure out how to reenable
                     if self.timeout is not None:
                         self.sock.set_socket_read_timeout(
-                                                    SSL.timeout(self.timeout))
+                            SSL.timeout(self.timeout))
                         self.sock.set_socket_write_timeout(
-                                                    SSL.timeout(self.timeout))
+                            SSL.timeout(self.timeout))
 
                 self.sock.addr = (self.host, self.port)
                 self.sock.setup_ssl()
@@ -578,8 +576,10 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                                     nonce = authChal[nonceBegin+1:nonceEnd]
                                     cookieIdx = authChal.index('cookiefile=')
                                     cookieBegin = authChal.index('"', cookieIdx)
-                                    cookieEnd = authChal.index('"', cookieBegin+1)
-                                    cookieFile = authChal[cookieBegin+1:cookieEnd]
+                                    cookieEnd = authChal.index(
+                                        '"', cookieBegin+1)
+                                    cookieFile = authChal[
+                                        cookieBegin+1:cookieEnd]
                                     f = open(cookieFile, 'r')
                                     cookie = f.read().strip()
                                     f.close()
@@ -596,14 +596,14 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                                 beg = authChal.index('"') + 1
                                 end = authChal.rindex('"')
                                 if end > beg:
-                                    file = authChal[beg:end]
-                                    fo = open(file, 'r')
+                                    _file = authChal[beg:end]
+                                    fo = open(_file, 'r')
                                     cookie = fo.read().strip()
                                     fo.close()
                                     localAuthHeader = (
                                         'PegasusAuthorization',
                                         'Local "%s:%s:%s"' % \
-                                        (locallogin, file, cookie))
+                                        (locallogin, _file, cookie))
                                     continue
                             except ValueError:
                                 pass

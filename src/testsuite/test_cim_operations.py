@@ -79,8 +79,9 @@ class EnumerateInstanceNames(ClientTest):
 
         self.assert_(len(names) >= 1)
 
-        [self.assert_(isinstance(n, CIMInstanceName)) for n in names]
-        [self.assert_(len(n.namespace) > 0) for n in names]
+        for n in names:
+            self.assert_(isinstance(n, CIMInstanceName))
+            self.assert_(len(n.namespace) > 0)
 
         # Call with explicit CIM namespace that exists
 
@@ -111,9 +112,10 @@ class EnumerateInstances(ClientTest):
 
         self.assert_(len(instances) >= 1)
 
-        [self.assert_(isinstance(i, CIMInstance)) for i in instances]
-        [self.assert_(isinstance(i.path, CIMInstanceName)) for i in instances]
-        [self.assert_(len(i.path.namespace) > 0) for i in instances]
+        for i in instances:
+            self.assert_(isinstance(i, CIMInstance))
+            self.assert_(isinstance(i.path, CIMInstanceName))
+            self.assert_(len(i.path.namespace) > 0)
 
         # Call with explicit CIM namespace that exists
 
@@ -148,10 +150,10 @@ class ExecQuery(ClientTest):
 
             self.assert_(len(instances) >= 1)
 
-            [self.assert_(isinstance(i, CIMInstance)) for i in instances]
-            [self.assert_(isinstance(i.path, CIMInstanceName)) \
-             for i in instances]
-            [self.assert_(len(i.path.namespace) > 0) for i in instances]
+            for i in instances:
+                self.assert_(isinstance(i, CIMInstance))
+                self.assert_(isinstance(i.path, CIMInstanceName))
+                self.assert_(len(i.path.namespace) > 0)
 
             # Call with explicit CIM namespace that does not exist
 
@@ -168,9 +170,10 @@ class ExecQuery(ClientTest):
 
         except CIMError, arg:
             if arg[0] == CIM_ERR_NOT_SUPPORTED:
-                raise NotRunError, "The WBEM server doesn't support ExecQuery"
+                raise NotRunError("The WBEM server doesn't support ExecQuery")
             if arg[0] == CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
-                raise NotRunError, "The WBEM server doesn't support WQL for ExecQuery"
+                raise NotRunError(
+                    "The WBEM server doesn't support WQL for ExecQuery")
             else:
                 raise
 
@@ -241,11 +244,11 @@ class CreateInstance(ClientTest):
 
             result = self.cimcall(self.conn.DeleteInstance, instance.path)
 
-            self.assert_(result == None)
+            self.assert_(result is None)
 
         try:
             self.cimcall(self.conn.GetInstance(instance.path))
-        except CIMError, arg:
+        except CIMError as arg:
             if arg == CIM_ERR_NOT_FOUND:
                 pass
 
@@ -282,16 +285,16 @@ class ModifyInstance(ClientTest):
         else:
 
             # Modify instance
-    
+
             instance['Title'] = 'Sir'
-    
+
             instance.path.namespace = 'root/cimv2'
             result = self.cimcall(self.conn.ModifyInstance, instance)
-    
+
             self.assert_(result is None)
-    
+
             # Clean up
-    
+
             self.cimcall(self.conn.DeleteInstance, instance.path)
 
 
@@ -329,7 +332,8 @@ class InvokeMethod(ClientTest):
                          name)
 
         except CIMError, arg:
-            if arg[0] not in (CIM_ERR_METHOD_NOT_AVAILABLE, CIM_ERR_METHOD_NOT_FOUND):
+            if arg[0] not in (CIM_ERR_METHOD_NOT_AVAILABLE,
+                              CIM_ERR_METHOD_NOT_FOUND):
                 raise
 
         # Test remote instance name
@@ -345,7 +349,8 @@ class InvokeMethod(ClientTest):
                          name)
 
         except CIMError, arg:
-            if arg[0] not in (CIM_ERR_METHOD_NOT_AVAILABLE, CIM_ERR_METHOD_NOT_FOUND):
+            if arg[0] not in (CIM_ERR_METHOD_NOT_AVAILABLE,
+                              CIM_ERR_METHOD_NOT_FOUND):
                 raise
 
         # Call with all possible parameter types
@@ -406,7 +411,7 @@ class InvokeMethod(ClientTest):
             self.cimcall(self.conn.InvokeMethod,
                          'FooMethod',
                          TEST_CLASS,
-                         [('Spam',Uint16(1)),('Ham',Uint16(2))], # Params
+                         [('Spam', Uint16(1)), ('Ham', Uint16(2))], # Params
                          Drink=Uint16(3), # begin of **params
                          Beer=Uint16(4))
         except CIMError, arg:
@@ -435,14 +440,15 @@ class Associators(ClientTest):
 
         instances = self.cimcall(self.conn.Associators, inst_name)
 
-        [self.assert_(isinstance(i, CIMInstance)) for i in instances]
-        [self.assert_(isinstance(i.path, CIMInstanceName)) for i in instances]
+        for i in instances:
+            self.assert_(isinstance(i, CIMInstance))
+            self.assert_(isinstance(i.path, CIMInstanceName))
 
-        # TODO: For now, disabled test for class name of associated instances.
-        # [self.assert_(i.classname == 'TBD') for i in instances]
+            # TODO: For now, disabled test for class name of associated insts.
+            # self.assert_(i.classname == 'TBD')
 
-        [self.assert_(i.path.namespace is not None) for i in instances]
-        [self.assert_(i.path.host is not None) for i in instances]
+            self.assert_(i.path.namespace is not None)
+            self.assert_(i.path.host is not None)
 
         # Call on class name
 
@@ -462,13 +468,14 @@ class AssociatorNames(ClientTest):
 
         names = self.cimcall(self.conn.AssociatorNames, inst_name)
 
-        [self.assert_(isinstance(n, CIMInstanceName)) for n in names]
+        for n in names:
+            self.assert_(isinstance(n, CIMInstanceName))
 
-        # TODO: For now, disabled test for class name of associated instances.
-        # [self.assert_(n.classname == 'TBD') for n in names]
+            # TODO: For now, disabled test for class name of associated insts.
+            # self.assert_(n.classname == 'TBD')
 
-        [self.assert_(n.namespace is not None) for n in names]
-        [self.assert_(n.host is not None) for n in names]
+            self.assert_(n.namespace is not None)
+            self.assert_(n.host is not None)
 
         # Call on class name
 
@@ -488,15 +495,15 @@ class References(ClientTest):
 
         instances = self.cimcall(self.conn.References, inst_name)
 
-        [self.assert_(isinstance(i, CIMInstance)) for i in instances]
-        [self.assert_(isinstance(i.path, CIMInstanceName)) for i in instances]
+        for i in instances:
+            self.assert_(isinstance(i, CIMInstance))
+            self.assert_(isinstance(i.path, CIMInstanceName))
 
-        # TODO: For now, disabled test for class name of referencing instances.
-        #[self.assert_(i.classname == 'TBD')
-        # for i in instances]
+            # TODO: For now, disabled test for class name of referencing insts.
+            # self.assert_(i.classname == 'TBD')
 
-        [self.assert_(i.path.namespace is not None) for i in instances]
-        [self.assert_(i.path.host is not None) for i in instances]
+            self.assert_(i.path.namespace is not None)
+            self.assert_(i.path.host is not None)
 
         # Call on class name
 
@@ -516,14 +523,14 @@ class ReferenceNames(ClientTest):
 
         names = self.cimcall(self.conn.ReferenceNames, inst_name)
 
-        [self.assert_(isinstance(n, CIMInstanceName)) for n in names]
+        for n in names:
+            self.assert_(isinstance(n, CIMInstanceName))
 
-        # TODO: For now, disabled test for class name of referencing instances.
-        #[self.assert_(n.classname == 'TBD')
-        # for n in names]
+            # TODO: For now, disabled test for class name of referencing insts.
+            # self.assert_(n.classname == 'TBD')
 
-        [self.assert_(n.namespace is not None) for n in names]
-        [self.assert_(n.host is not None) for n in names]
+            self.assert_(n.namespace is not None)
+            self.assert_(n.host is not None)
 
         # Call on class name
 
@@ -536,7 +543,7 @@ class ReferenceNames(ClientTest):
 #################################################################
 
 class ClassVerifier(object):
-    """Base class for testing CIMClass instances."""
+    """Mixin class for testing CIMClass instances."""
 
     def verify_property(self, p):
         self.assert_(isinstance(p, CIMProperty))
@@ -560,9 +567,12 @@ class ClassVerifier(object):
 
         # Verify properties, qualifiers and methods
 
-        [self.verify_property(p) for p in cl.properties.values()]
-        [self.verify_qualifier(q) for q in cl.qualifiers.values()]
-        [self.verify_method(m) for m in cl.methods.values()]
+        for p in cl.properties.values():
+            self.verify_property(p)
+        for q in cl.qualifiers.values():
+            self.verify_qualifier(q)
+        for m in cl.methods.values():
+            self.verify_method(m)
 
 class EnumerateClassNames(ClientTest):
 
@@ -571,14 +581,17 @@ class EnumerateClassNames(ClientTest):
         # Enumerate all classes
 
         names = self.cimcall(self.conn.EnumerateClassNames)
-        [self.assert_(isinstance(n, StringTypes)) for n in names]
+
+        for n in names:
+            self.assert_(isinstance(n, StringTypes))
 
         # Enumerate with classname arg
 
         names = self.cimcall(self.conn.EnumerateClassNames,
                              ClassName='CIM_ManagedElement')
 
-        [self.assert_(isinstance(n, StringTypes)) for n in names]
+        for n in names:
+            self.assert_(isinstance(n, StringTypes))
 
 class EnumerateClasses(ClientTest, ClassVerifier):
 
@@ -587,15 +600,19 @@ class EnumerateClasses(ClientTest, ClassVerifier):
         # Enumerate all classes
 
         classes = self.cimcall(self.conn.EnumerateClasses)
-        [self.assert_(isinstance(c, CIMClass)) for c in classes]
-        [self.verify_class(c) for c in classes]
+
+        for c in classes:
+            self.assert_(isinstance(c, CIMClass))
+            self.verify_class(c)
 
         # Enumerate with classname arg
 
         classes = self.cimcall(self.conn.EnumerateClasses,
                                ClassName='CIM_ManagedElement')
-        [self.assert_(isinstance(c, CIMClass)) for c in classes]
-        [self.verify_class(c) for c in classes]
+
+        for c in classes:
+            self.assert_(isinstance(c, CIMClass))
+            self.verify_class(c)
 
 class GetClass(ClientTest, ClassVerifier):
 
@@ -607,17 +624,17 @@ class GetClass(ClientTest, ClassVerifier):
 class CreateClass(ClientTest):
 
     def runtest(self):
-        raise(NotRunError);
+        raise NotRunError
 
 class DeleteClass(ClientTest):
 
     def runtest(self):
-        raise(NotRunError);
+        raise NotRunError
 
 class ModifyClass(ClientTest):
 
     def runtest(self):
-        raise(NotRunError);
+        raise NotRunError
 
 #################################################################
 # Property provider interface tests
@@ -625,11 +642,11 @@ class ModifyClass(ClientTest):
 
 class GetProperty(ClientTest):
     def runtest(self):
-        raise(NotRunError);
+        raise NotRunError
 
 class SetProperty(ClientTest):
     def runtest(self):
-        raise(NotRunError);
+        raise NotRunError
 
 #################################################################
 # Qualifier provider interface tests
@@ -637,19 +654,19 @@ class SetProperty(ClientTest):
 
 class EnumerateQualifiers(ClientTest):
     def runtest(self):
-        raise(NotRunError);
+        raise NotRunError
 
 class GetQualifier(ClientTest):
     def runtest(self):
-        raise(NotRunError);
+        raise NotRunError
 
 class SetQualifier(ClientTest):
     def runtest(self):
-        raise(NotRunError);
+        raise NotRunError
 
 class DeleteQualifier(ClientTest):
     def runtest(self):
-        raise(NotRunError);
+        raise NotRunError
 
 #################################################################
 # Query provider interface
@@ -657,7 +674,7 @@ class DeleteQualifier(ClientTest):
 
 class ExecuteQuery(ClientTest):
     def runtest(self):
-        raise(NotRunError);
+        raise NotRunError
 
 #################################################################
 # Internal functions
@@ -676,12 +693,12 @@ class Test_check_utf8_xml_chars(TestCase):
             if self.verbose:
                 print "Verify manually: Input XML: %r, ParseError: %s" %\
                       (utf8_xml, exc)
-            self.assert_(expected_ok == False,
+            self.assert_(not expected_ok,
                          "ParseError unexpectedly raised: %s" % exc)
         else:
-            self.assert_(expected_ok == True,
+            self.assert_(expected_ok,
                          "ParseError unexpectedly not raised.")
-        
+
     def runtest(self):
 
         # good cases
@@ -838,7 +855,7 @@ if __name__ == '__main__':
 
     namespace = DEFAULT_NAMESPACE
     timeout = None
-    while (True):
+    while True:
         if sys.argv[1][0] != '-':
             # Stop at first non-option
             break

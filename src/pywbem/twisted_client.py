@@ -48,7 +48,7 @@ from pywbem.cim_types import CIMDateTime
 __all__ = ['WBEMClient', 'WBEMClientFactory', 'EnumerateInstances',
            'EnumerateInstanceNames', 'GetInstance', 'DeleteInstance',
            'CreateInstance', 'ModifyInstance', 'EnumerateClassNames',
-           'EnumerateClasses', 'GetClass', 'Associators', 'AssociatorNames',   
+           'EnumerateClasses', 'GetClass', 'Associators', 'AssociatorNames',
            'References', 'ReferenceNames', 'InvokeMethod', 'ExecQuery']
 
 class WBEMClient(http.HTTPClient):
@@ -234,16 +234,16 @@ class WBEMClientFactory(protocol.ClientFactory):
             raise TypeError('Unsupported parameter type "%s"' % type(obj))
 
         param_list = [cim_xml.PARAMVALUE(x[0],
-                                        paramvalue(x[1]),
-                                        paramtype(x[1]))
+                                         paramvalue(x[1]),
+                                         paramtype(x[1]))
                       for x in kwargs.items()]
 
         payload = cim_xml.CIM(
             cim_xml.MESSAGE(
                 cim_xml.SIMPLEREQ(
                     cim_xml.METHODCALL(methodname,
-                                      localpath,
-                                      param_list)),
+                                       localpath,
+                                       param_list)),
                 '1001', '1.0'),
             '2.0', '2.0')
 
@@ -753,8 +753,8 @@ class ExecQuery(WBEMClientFactory):
         payload = self.imethodcallPayload(
             'ExecQuery',
             namespace,
-            QueryLanguage = QueryLanguage,
-            Query = Query)
+            QueryLanguage=QueryLanguage,
+            Query=Query)
 
         WBEMClientFactory.__init__(
             self,

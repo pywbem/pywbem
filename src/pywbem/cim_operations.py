@@ -166,7 +166,7 @@ def check_utf8_xml_chars(utf8_xml, meaning):
     """
 
     context_before = 16    # number of chars to print before any bad chars
-    context_after  = 16    # number of chars to print after any bad chars
+    context_after = 16     # number of chars to print after any bad chars
 
     if not isinstance(utf8_xml, str):
         raise TypeError("utf8_xml argument does not have str type, but %s" % \
@@ -180,16 +180,16 @@ def check_utf8_xml_chars(utf8_xml, meaning):
     for m in _ILL_FORMED_UTF8_RE.finditer(utf8_xml):
         ic_pos = m.start(1)
         ic_seq = m.group(1)
-        ic_list.append((ic_pos,ic_seq))
+        ic_list.append((ic_pos, ic_seq))
     if len(ic_list) > 0:
         exc_txt = "Ill-formed (surrogate) UTF-8 Byte sequences found in %s:" %\
                   meaning
-        for (ic_pos,ic_seq) in ic_list:
+        for (ic_pos, ic_seq) in ic_list:
             exc_txt += "\n  At offset %d:" % ic_pos
             for c in ic_seq:
                 exc_txt += " 0x%02X" % ord(c)
-            cpos1 = max(ic_pos-context_before,0)
-            cpos2 = min(ic_pos+context_after,len(utf8_xml))
+            cpos1 = max(ic_pos-context_before, 0)
+            cpos2 = min(ic_pos+context_after, len(utf8_xml))
             exc_txt += ", CIM-XML snippet: %r" % utf8_xml[cpos1:cpos2]
         raise ParseError(exc_txt)
 
@@ -204,14 +204,14 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         # If more than one incorrectly encoded sequence is present, only
         # information about the first one is returned in the exception object.
         # Also, the stated reason (in _msg) is not always correct.
-        _codec, _str, _p1, _p2, _msg = exc.args
+        unused_codec, unused_str, _p1, _p2, unused_msg = exc.args
         exc_txt = "Incorrectly encoded UTF-8 Byte sequences found in %s" %\
                   meaning
         exc_txt += "\n  At offset %d:" % _p1
         for c in utf8_xml[_p1:_p2+1]:
             exc_txt += " 0x%02X" % ord(c)
-        cpos1 = max(_p1-context_before,0)
-        cpos2 = min(_p2+context_after,len(utf8_xml))
+        cpos1 = max(_p1-context_before, 0)
+        cpos2 = min(_p2+context_after, len(utf8_xml))
         exc_txt += ", CIM-XML snippet: %r" % utf8_xml[cpos1:cpos2]
         raise ParseError(exc_txt)
 
@@ -224,13 +224,13 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         ic_pos = m.start(1)
         ic_char = m.group(1)
         if ic_pos > last_ic_pos + 1:
-            ic_list.append((ic_pos,ic_char))
+            ic_list.append((ic_pos, ic_char))
         last_ic_pos = ic_pos
     if len(ic_list) > 0:
         exc_txt = "Invalid XML characters found in %s:" % meaning
-        for (ic_pos,ic_char) in ic_list:
-            cpos1 = max(ic_pos-context_before,0)
-            cpos2 = min(ic_pos+context_after,len(utf8_xml_u))
+        for (ic_pos, ic_char) in ic_list:
+            cpos1 = max(ic_pos-context_before, 0)
+            cpos2 = min(ic_pos+context_after, len(utf8_xml_u))
             exc_txt += "\n  At offset %d: U+%04X, CIM-XML snippet: %r" % \
                 (ic_pos, ord(ic_char), utf8_xml_u[cpos1:cpos2])
         raise ParseError(exc_txt)
@@ -716,7 +716,7 @@ class WBEMConnection(object):
             """Return a string to be used as the CIMTYPE for a parameter."""
             if isinstance(obj, cim_types.CIMType):
                 return obj.cimtype
-            elif type(obj) == bool:
+            elif isinstance(obj, bool):
                 return 'boolean'
             elif isinstance(obj, StringTypes):
                 return 'string'
@@ -768,10 +768,10 @@ class WBEMConnection(object):
                                     embedded_object=is_embedded(x[1]))
                  for x in Params]
         plist += [cim_xml.PARAMVALUE(x[0],
-                                    paramvalue(x[1]),
-                                    paramtype(x[1]),
-                                    embedded_object=is_embedded(x[1]))
-                 for x in params.items()]
+                                     paramvalue(x[1]),
+                                     paramtype(x[1]),
+                                     embedded_object=is_embedded(x[1]))
+                  for x in params.items()]
 
         # Build XML request
 
@@ -931,7 +931,8 @@ class WBEMConnection(object):
         if result is not None:
             names = result[2]
 
-        [setattr(n, 'namespace', namespace) for n in names]
+        for n in names:
+            setattr(n, 'namespace', namespace)
 
         return names
 
@@ -1023,7 +1024,8 @@ class WBEMConnection(object):
         if result is not None:
             instances = result[2]
 
-        [setattr(i.path, 'namespace', namespace) for i in instances]
+        for i in instances:
+            setattr(i.path, 'namespace', namespace)
 
         return instances
 
@@ -1321,7 +1323,8 @@ class WBEMConnection(object):
         if result is not None:
             instances = [tt[2] for tt in result[2]]
 
-        [setattr(i.path, 'namespace', namespace) for i in instances]
+        for i in instances:
+            setattr(i.path, 'namespace', namespace)
 
         return instances
 
@@ -1670,15 +1673,15 @@ class WBEMConnection(object):
     # Association provider API
     #
 
-    def _add_objectname_param(self, params, object):
+    def _add_objectname_param(self, params, object_):
         """Add an object name (either a class name or an instance
         name) to a dictionary of parameter names."""
 
-        if isinstance(object, (CIMClassName, CIMInstanceName)):
-            params['ObjectName'] = object.copy()
+        if isinstance(object_, (CIMClassName, CIMInstanceName)):
+            params['ObjectName'] = object_.copy()
             params['ObjectName'].namespace = None
-        elif isinstance(object, StringTypes):
-            params['ObjectName'] = CIMClassName(object)
+        elif isinstance(object_, StringTypes):
+            params['ObjectName'] = CIMClassName(object_)
         else:
             raise ValueError('Expecting a classname, CIMClassName or '
                              'CIMInstanceName object')

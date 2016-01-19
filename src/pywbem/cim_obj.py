@@ -38,6 +38,7 @@ import string
 import re
 from types import StringTypes
 from datetime import datetime, timedelta
+from __builtin__ import type as builtin_type
 
 from pywbem import cim_xml, cim_types
 
@@ -118,11 +119,13 @@ class NocaseDict(object):
                 # Leave empty
                 pass
             else:
-                raise TypeError("Invalid type for NocaseDict " \
-                                "initialization: %s" % repr(args[0]))
+                raise TypeError(
+                    "Invalid type for NocaseDict initialization: %s" %\
+                    repr(args[0]))
         elif len(args) > 1:
-            raise TypeError("Too many positional arguments for NocaseDict " \
-                                "initialization: %s" % repr(args))
+            raise TypeError(
+                "Too many positional arguments for NocaseDict initialization: "\
+                "%s" % repr(args))
 
         # Step 2: Add any keyword arguments
         self.update(kwargs)
@@ -158,7 +161,7 @@ class NocaseDict(object):
         """
         if not isinstance(key, (str, unicode)):
             raise TypeError('NocaseDict key %s must be string type, ' \
-                            'but is %s' %  (key, type(key)))
+                            'but is %s' %  (key, builtin_type(key)))
         k = key.lower()
         self._data[k] = (key, value)
 
@@ -458,7 +461,7 @@ def mofstr(strvalue, indent=7, maxline=80):
     the surrounding double quotes.
 
     In doing so, all characters that have MOF escape characters (except for
-    single quotes) are escaped by adding a leading backslash (\), if not yet
+    single quotes) are escaped by adding a leading backslash (\\), if not yet
     present. This conditional behavior is needed for WBEM servers that return
     the MOF escape sequences in their CIM-XML representation of any strings,
     instead of converting them to the binary characters as required by the CIM
@@ -474,8 +477,8 @@ def mofstr(strvalue, indent=7, maxline=80):
     """
 
     # escape \n, \r, \t, \f, \b
-    escaped_str = strvalue.replace("\n","\\n").replace("\r","\\r").\
-                  replace("\t","\\t").replace("\f","\\f").replace("\b","\\b")
+    escaped_str = strvalue.replace("\n", "\\n").replace("\r", "\\r").\
+                  replace("\t", "\\t").replace("\f", "\\f").replace("\b", "\\b")
 
     # escape double quote (") if not already escaped.
     # TODO: Add support for two consecutive double quotes ("").
@@ -502,7 +505,7 @@ def mofstr(strvalue, indent=7, maxline=80):
                 ret_str_list.append('"' + escaped_str + '"')
                 escaped_str = ''
             else:
-                splitpos = escaped_str.rfind(' ',0,blankfind)
+                splitpos = escaped_str.rfind(' ', 0, blankfind)
                 if splitpos < 0:
                     splitpos = blankfind-1
                 ret_str_list.append('"' + escaped_str[0:splitpos+1] + '"')
@@ -565,8 +568,9 @@ class CIMClassName(object):
         """
 
         if not isinstance(classname, StringTypes):
-            raise TypeError('classname argument has an invalid type: %s '\
-                    '(expected string)' % type(classname))
+            raise TypeError(
+                "classname argument has an invalid type: %s "\
+                "(expected string)" % builtin_type(classname))
 
         # TODO: There are some odd restrictions on what a CIM
         # classname can look like (i.e must start with a
@@ -681,6 +685,7 @@ class CIMProperty(object):
                  class_origin=None, array_size=None, propagated=None,
                  is_array=None, reference_class=None, qualifiers=None,
                  embedded_object=None):
+        # pylint: disable=redefined-builtin,too-many-arguments
         """
         Initialize the `CIMProperty` object.
 
@@ -795,8 +800,6 @@ class CIMProperty(object):
           :raise ValueError:
         """
 
-        from __builtin__ import type as __type
-
         # Check `name`
 
         if name is None:
@@ -815,15 +818,15 @@ class CIMProperty(object):
         # Set up is_array
 
         if isinstance(value, (list, tuple)):
-            is_array = _intended_value(True,
-                    None, is_array, 'is_array',
-                    'Property %r has a value that is an array (%s)' % \
-                    (name, __type(value)))
+            is_array = _intended_value(
+                True, None, is_array, 'is_array',
+                'Property %r has a value that is an array (%s)' % \
+                (name, builtin_type(value)))
         elif value is not None: # Scalar value
-            is_array = _intended_value(False,
-                    None, is_array, 'is_array',
-                    'Property %r has a value that is a scalar (%s)' % \
-                    (name, __type(value)))
+            is_array = _intended_value(
+                False, None, is_array, 'is_array',
+                'Property %r has a value that is a scalar (%s)' % \
+                (name, builtin_type(value)))
         else: # Null value
             if is_array is None:
                 is_array = False # For compatibility with old default
@@ -843,55 +846,51 @@ class CIMProperty(object):
                 # Cannot infer from value, look at embedded_object and type
                 if embedded_object == 'instance':
                     msg = 'Array property %r contains embedded instances' % name
-                    type = _intended_value('string',
-                            None, type, 'type', msg)
+                    type = _intended_value('string', None, type, 'type', msg)
                 elif embedded_object == 'object':
                     msg = 'Array property %r contains embedded objects' % name
-                    type = _intended_value('string',
-                            None, type, 'type', msg)
+                    type = _intended_value('string', None, type, 'type', msg)
                 elif type is not None:
                     # Leave type as specified, but check it for validity
                     dummy_type_obj = cim_types.type_from_name(type)
                 else:
                     raise ValueError(
-                            'Cannot infer type of array property %r that is ' \
-                            'Null, empty, or has Null as its first element' % \
-                            name)
+                        'Cannot infer type of array property %r that is ' \
+                        'Null, empty, or has Null as its first element' % \
+                        name)
             elif isinstance(value[0], CIMInstance):
                 msg = 'Array property %r contains CIMInstance values' % name
-                type = _intended_value('string',
-                        None, type, 'type', msg)
-                embedded_object = _intended_value(('instance', 'object'),
-                        None, embedded_object, 'embedded_object', msg)
+                type = _intended_value('string', None, type, 'type', msg)
+                embedded_object = _intended_value(
+                    ('instance', 'object'), None, embedded_object,
+                    'embedded_object', msg)
             elif isinstance(value[0], CIMClass):
                 msg = 'Array property %r contains CIMClass values' % name
-                type = _intended_value('string',
-                        None, type, 'type', msg)
-                embedded_object = _intended_value('object',
-                        None, embedded_object, 'embedded_object', msg)
+                type = _intended_value('string', None, type, 'type', msg)
+                embedded_object = _intended_value(
+                    'object', None, embedded_object, 'embedded_object', msg)
             elif isinstance(value[0], (datetime, timedelta)):
                 value = [cim_types.CIMDateTime(val) if val is not None
                          else val for val in value]
                 msg = 'Array property %r contains datetime or timedelta ' \
-                        'values' % name
-                type = _intended_value('datetime',
-                        None, type, 'type', msg)
-                embedded_object = _intended_value(None,
-                        None, embedded_object, 'embedded_object', msg)
+                      'values' % name
+                type = _intended_value('datetime', None, type, 'type', msg)
+                embedded_object = _intended_value(
+                    None, None, embedded_object, 'embedded_object', msg)
             elif type == 'datetime':
                 value = [cim_types.CIMDateTime(val) if val is not None
                          and not isinstance(val, cim_types.CIMDateTime)
                          else val for val in value]
                 msg = 'Array property %r specifies CIM type %r' % (name, type)
-                embedded_object = _intended_value(None,
-                       None, embedded_object, 'embedded_object', msg)
+                embedded_object = _intended_value(
+                    None, None, embedded_object, 'embedded_object', msg)
             elif type is None:
                 # Determine simple type from (non-Null) value
                 type = cim_types.cimtype(value[0])
                 msg = 'Array property %r contains simple typed values ' \
-                        'with no CIM type specified' % name
-                embedded_object = _intended_value(None,
-                        None, embedded_object, 'embedded_object', msg)
+                      'with no CIM type specified' % name
+                embedded_object = _intended_value(
+                    None, None, embedded_object, 'embedded_object', msg)
             else: # type is specified and value (= entire array) is not Null
                 # Make sure the array elements are of the corresponding Python
                 # type.
@@ -899,29 +898,27 @@ class CIMProperty(object):
                          else val for val in value]
                 msg = 'Array property %r contains simple typed values ' \
                         'and specifies CIM type %r' % (name, type)
-                embedded_object = _intended_value(None,
-                        None, embedded_object, 'embedded_object', msg)
+                embedded_object = _intended_value(
+                    None, None, embedded_object, 'embedded_object', msg)
         else: # Scalar property
             if value is None:
                 # Try to infer from embedded_object, reference_class, and type
                 if embedded_object == 'instance':
                     msg = 'Property %r contains embedded instance' % name
-                    type = _intended_value('string',
-                            None, type, 'type', msg)
-                    reference_class = _intended_value(None,
-                            None, reference_class, 'reference_class', msg)
+                    type = _intended_value('string', None, type, 'type', msg)
+                    reference_class = _intended_value(
+                        None, None, reference_class, 'reference_class', msg)
                 elif embedded_object == 'object':
                     msg = 'Property %r contains embedded object' % name
-                    type = _intended_value('string',
-                            None, type, 'type', msg)
-                    reference_class = _intended_value(None,
-                            None, reference_class, 'reference_class', msg)
+                    type = _intended_value('string', None, type, 'type', msg)
+                    reference_class = _intended_value(
+                        None, None, reference_class, 'reference_class', msg)
                 elif reference_class is not None:
                     msg = 'Property %r is a reference' % name
-                    embedded_object = _intended_value(None,
-                            None, embedded_object, 'embedded_object', msg)
-                    type = _intended_value('reference',
-                            None, type, 'type', msg)
+                    embedded_object = _intended_value(
+                        None, None, embedded_object, 'embedded_object', msg)
+                    type = _intended_value(
+                        'reference', None, type, 'type', msg)
                 elif type is not None:
                     # Leave type as specified, but check it for validity
                     dummy_type_obj = cim_types.type_from_name(type)
@@ -931,64 +928,62 @@ class CIMProperty(object):
             elif isinstance(value, CIMInstanceName):
                 msg = 'Property %r has a CIMInstanceName value with ' \
                         'classname=%r' % (name, value.classname)
-                reference_class = _intended_value(value.classname,
-                        None, reference_class, 'reference_class', msg)
-                type = _intended_value('reference',
-                        None, type, 'type', msg)
-                embedded_object = _intended_value(None,
-                        None, embedded_object, 'embedded_object', msg)
+                reference_class = _intended_value(
+                    value.classname, None, reference_class, 'reference_class',
+                    msg)
+                type = _intended_value('reference', None, type, 'type', msg)
+                embedded_object = _intended_value(
+                    None, None, embedded_object, 'embedded_object', msg)
             elif isinstance(value, CIMInstance):
                 msg = 'Property %r has a CIMInstance value' % name
-                type = _intended_value('string',
-                        None, type, 'type', msg)
-                embedded_object = _intended_value(('instance', 'object'),
-                        None, embedded_object, 'embedded_object', msg)
-                reference_class = _intended_value(None,
-                        None, reference_class, 'reference_class', msg)
+                type = _intended_value('string', None, type, 'type', msg)
+                embedded_object = _intended_value(
+                    ('instance', 'object'), None, embedded_object,
+                    'embedded_object', msg)
+                reference_class = _intended_value(
+                    None, None, reference_class, 'reference_class', msg)
             elif isinstance(value, CIMClass):
                 msg = 'Property %r has a CIMClass value' % name
-                type = _intended_value('string',
-                        None, type, 'type', msg)
-                embedded_object = _intended_value('object',
-                        None, embedded_object, 'embedded_object', msg)
-                reference_class = _intended_value(None,
-                        None, reference_class, 'reference_class', msg)
+                type = _intended_value('string', None, type, 'type', msg)
+                embedded_object = _intended_value(
+                    'object', None, embedded_object, 'embedded_object', msg)
+                reference_class = _intended_value(
+                    None, None, reference_class, 'reference_class', msg)
             elif isinstance(value, (datetime, timedelta)):
                 value = cim_types.CIMDateTime(value)
                 msg = 'Property %r has a datetime or timedelta value' % name
-                type = _intended_value('datetime',
-                        None, type, 'type', msg)
-                embedded_object = _intended_value(None,
-                        None, embedded_object, 'embedded_object', msg)
-                reference_class = _intended_value(None,
-                        None, reference_class, 'reference_class', msg)
+                type = _intended_value('datetime', None, type, 'type', msg)
+                embedded_object = _intended_value(
+                    None, None, embedded_object, 'embedded_object', msg)
+                reference_class = _intended_value(
+                    None, None, reference_class, 'reference_class', msg)
             elif type == 'datetime':
                 if not isinstance(value, cim_types.CIMDateTime):
                     value = cim_types.CIMDateTime(value)
                 msg = 'Property %r specifies CIM type %r' % (name, type)
-                embedded_object = _intended_value(None,
-                        None, embedded_object, 'embedded_object', msg)
-                reference_class = _intended_value(None,
-                        None, reference_class, 'reference_class', msg)
+                embedded_object = _intended_value(
+                    None, None, embedded_object, 'embedded_object', msg)
+                reference_class = _intended_value(
+                    None, None, reference_class, 'reference_class', msg)
             elif type is None:
                 # Determine simple type from (non-Null) value
                 type = cim_types.cimtype(value)
                 msg = 'Property %r has a simple typed value ' \
-                        'with no CIM type specified' % name
-                embedded_object = _intended_value(None,
-                        None, embedded_object, 'embedded_object', msg)
-                reference_class = _intended_value(None,
-                        None, reference_class, 'reference_class', msg)
+                      'with no CIM type specified' % name
+                embedded_object = _intended_value(
+                    None, None, embedded_object, 'embedded_object', msg)
+                reference_class = _intended_value(
+                    None, None, reference_class, 'reference_class', msg)
             else: # type is specified and value is not Null
                 # Make sure the value is of the corresponding Python type.
                 _type_obj = cim_types.type_from_name(type)
                 value = _type_obj(value)
                 msg = 'Property %r has a simple typed value ' \
                         'and specifies CIM type %r' % (name, type)
-                embedded_object = _intended_value(None,
-                        None, embedded_object, 'embedded_object', msg)
-                reference_class = _intended_value(None,
-                        None, reference_class, 'reference_class', msg)
+                embedded_object = _intended_value(
+                    None, None, embedded_object, 'embedded_object', msg)
+                reference_class = _intended_value(
+                    None, None, reference_class, 'reference_class', msg)
 
         # Initialize members
         self.name = name
@@ -1230,19 +1225,44 @@ class CIMInstanceName(object):
     # A whole bunch of dictionary methods that map to the equivalent
     # operation on self.keybindings.
 
-    def __getitem__(self, key): return self.keybindings[key]
-    def __contains__(self, key): return key in self.keybindings
-    def __delitem__(self, key): del self.keybindings[key]
-    def __setitem__(self, key, value): self.keybindings[key] = value
-    def __len__(self): return len(self.keybindings)
-    def has_key(self, key): return self.keybindings.has_key(key)
-    def keys(self): return self.keybindings.keys()
-    def values(self): return self.keybindings.values()
-    def items(self): return self.keybindings.items()
-    def iterkeys(self): return self.keybindings.iterkeys()
-    def itervalues(self): return self.keybindings.itervalues()
-    def iteritems(self): return self.keybindings.iteritems()
-    def update(self, *args, **kwargs): self.keybindings.update(*args, **kwargs)
+    def __getitem__(self, key):
+        return self.keybindings[key]
+
+    def __contains__(self, key):
+        return key in self.keybindings
+
+    def __delitem__(self, key):
+        del self.keybindings[key]
+
+    def __setitem__(self, key, value):
+        self.keybindings[key] = value
+
+    def __len__(self):
+        return len(self.keybindings)
+
+    def has_key(self, key):
+        return self.keybindings.has_key(key)
+
+    def keys(self):
+        return self.keybindings.keys()
+
+    def values(self):
+        return self.keybindings.values()
+
+    def items(self):
+        return self.keybindings.items()
+
+    def iterkeys(self):
+        return self.keybindings.iterkeys()
+
+    def itervalues(self):
+        return self.keybindings.itervalues()
+
+    def iteritems(self):
+        return self.keybindings.iteritems()
+
+    def update(self, *args, **kwargs):
+        self.keybindings.update(*args, **kwargs)
 
     def get(self, key, default=None):
         """
@@ -1255,31 +1275,31 @@ class CIMInstanceName(object):
         """Generate a CIM-XML representation of the instance name (class name
         and key bindings)."""
 
-        if type(self.keybindings) == str:
-
-            # Class with single key string property
+        if isinstance(self.keybindings, str):
 
             # This cannot happen; self.keybindings is always a NocaseDict:
-            # TODO: Remove this if clause after verifying that it works.
             raise TypeError("Unexpected: keybindings has string type: %s" % \
                             repr(self.keybindings))
 
-            instancename_xml = cim_xml.INSTANCENAME(
-                self.classname,
-                cim_xml.KEYVALUE(self.keybindings, 'string'))
+            # TODO: Remove this old code after verifying that it works.
+            # #Class with single key string property
+            # instancename_xml = cim_xml.INSTANCENAME(
+            #     self.classname,
+            #     cim_xml.KEYVALUE(self.keybindings, 'string'))
 
-        elif isinstance(self.keybindings, (long, float, int)):
-
-            # Class with single key numeric property
+        # Note: The CIM types are derived from the built-in types,
+        # so we cannot use isinstance() for this test.
+        elif builtin_type(self.keybindings) in (int, float, long): # pylint: disable=unidiomatic-typecheck
 
             # This cannot happen; self.keybindings is always a NocaseDict:
-            # TODO: Remove this if clause after verifying that it works.
             raise TypeError("Unexpected: keybindings has numeric type: %s" % \
                             repr(self.keybindings))
 
-            instancename_xml = cim_xml.INSTANCENAME(
-                self.classname,
-                cim_xml.KEYVALUE(str(self.keybindings), 'numeric'))
+            # TODO: Remove this old code after verifying that it works.
+            # # Class with single key numeric property
+            # instancename_xml = cim_xml.INSTANCENAME(
+            #     self.classname,
+            #     cim_xml.KEYVALUE(str(self.keybindings), 'numeric'))
 
         elif isinstance(self.keybindings, NocaseDict):
 
@@ -1296,15 +1316,17 @@ class CIMInstanceName(object):
                         cim_xml.VALUE_REFERENCE(kb[1].tocimxml())))
                     continue
 
-                if type(kb[1]) == bool:
+                if isinstance(kb[1], bool):
                     _type = 'boolean'
                     if kb[1]:
                         value = 'TRUE'
                     else:
                         value = 'FALSE'
-                elif isinstance(kb[1], (long, float, int)):
+                elif isinstance(kb[1], (int, float, long)):
                     # pywbem.cim_type.{Sint32, Real64, ... } derive from
                     # long or float
+                    # Note: int is a subtype of bool, but bool is already
+                    # tested further up.
                     _type = 'numeric'
                     value = str(kb[1])
                 elif isinstance(kb[1], basestring):
@@ -1313,7 +1335,7 @@ class CIMInstanceName(object):
                                                   else kb[1]
                 else:
                     raise TypeError('Invalid keybinding type for keybinding '\
-                            '%s: %s' % (kb[0], type(kb[1])))
+                            '%s: %s' % (kb[0], builtin_type(kb[1])))
 
                 kbs.append(cim_xml.KEYBINDING(
                     kb[0],
@@ -1323,16 +1345,15 @@ class CIMInstanceName(object):
 
         else:
 
-            # Value reference
-
             # This cannot happen; self.keybindings is always a NocaseDict:
-            # TODO: Remove this if clause after verifying that it works.
             raise TypeError("Unexpected: keybindings has type: %s" % \
                             repr(self.keybindings))
 
-            instancename_xml = cim_xml.INSTANCENAME(
-                self.classname,
-                cim_xml.VALUE_REFERENCE(self.keybindings.tocimxml()))
+            # TODO: Remove this old code after verifying that it works.
+            # # Value reference
+            # instancename_xml = cim_xml.INSTANCENAME(
+            #     self.classname,
+            #     cim_xml.VALUE_REFERENCE(self.keybindings.tocimxml()))
 
         # Instance name plus namespace = LOCALINSTANCEPATH
 
@@ -1424,7 +1445,8 @@ class CIMInstance(object):
         # __setitem__ to enforce CIM types for each property.
 
         self.properties = NocaseDict()
-        [self.__setitem__(k, v) for k, v in properties.items()]
+        for k, v in properties.items():
+            self.__setitem__(k, v)
 
     def update(self, *args, **kwargs):
         """D.update(E, **F) -> None.
@@ -1534,7 +1556,7 @@ class CIMInstance(object):
         return self.properties.iterkeys()
 
     def itervalues(self):
-        for k, v in self.properties.iteritems():
+        for _, v in self.properties.iteritems():
             yield v.value
 
     def iteritems(self):
@@ -1546,9 +1568,13 @@ class CIMInstance(object):
         # Don't let anyone set integer or float values.  You must use
         # a subclass from the cim_type module.
 
-        if type(value) == int or type(value) == float or type(value) == long:
-            raise TypeError('Type of numeric value must be a CIM type but is '\
-                    '%s' % type(value))
+        # Note: The CIM types are derived from the built-in types,
+        # so we cannot use isinstance() for this test.
+        # pylint: disable=unidiomatic-typecheck
+        if builtin_type(value) in (int, float, long):
+            raise TypeError(
+                "Type of numeric value for a property must be a CIM type, "\
+                "but is %s" % builtin_type(value))
 
         if self.property_list is not None and key.lower() not in \
                 self.property_list:
@@ -1601,7 +1627,7 @@ class CIMInstance(object):
 
     def tomof(self):
 
-        def _prop2mof(_type, value):
+        def _prop2mof(type_, value):
             if value is None:
                 val = 'NULL'
             elif isinstance(value, list):
@@ -1609,9 +1635,9 @@ class CIMInstance(object):
                 for i, x in enumerate(value):
                     if i > 0:
                         val += ', '
-                    val += _prop2mof(_type, x)
+                    val += _prop2mof(type_, x)
                 val += '}'
-            elif _type == 'string':
+            elif type_ == 'string':
                 val = mofstr(value)
             else:
                 val = str(value)
@@ -1813,6 +1839,7 @@ class CIMParameter(object):
 
     def __init__(self, name, type, reference_class=None, is_array=None,
                  array_size=None, qualifiers={}, value=None):
+        # pylint: disable=redefined-builtin
         """
         Initialize the `CIMParameter` object.
 
@@ -1934,6 +1961,7 @@ class CIMQualifier(object):
     def __init__(self, name, value, type=None, propagated=None,
                  overridable=None, tosubclass=None, toinstance=None,
                  translatable=None):
+        # pylint: disable=redefined-builtin
         """
         Initialize the `CIMQualifier` object.
 
@@ -1949,8 +1977,6 @@ class CIMQualifier(object):
 
         # Determine type of value if not specified
 
-        import __builtin__
-
         if type is None:
 
             # Can't work out what is going on if type and value are
@@ -1959,13 +1985,13 @@ class CIMQualifier(object):
             if value is None:
                 raise TypeError('Null qualifier "%s" must have a type' % name)
 
-            if __builtin__.type(value) == list:
+            if isinstance(value, list):
 
                 # Determine type for list value
 
                 if len(value) == 0:
-                    raise TypeError('Empty qualifier array "%s" must have a '\
-                            'type' % name)
+                    raise TypeError(
+                        'Empty qualifier array "%s" must have a type' % name)
 
                 self.type = cim_types.cimtype(value[0])
 
@@ -1978,8 +2004,13 @@ class CIMQualifier(object):
         # Don't let anyone set integer or float values.  You must use
         # a subclass from the cim_type module.
 
-        if __builtin__.type(value) in (int, float, long):
-            raise TypeError('Must use a CIM type for numeric qualifiers.')
+        # Note: The CIM types are derived from the built-in types,
+        # so we cannot use isinstance() for this test.
+        # pylint: disable=unidiomatic-typecheck
+        if builtin_type(value) in (int, float, long):
+            raise TypeError(
+                "Type of numeric value for a qualifier must be a CIM type, "\
+                "but is %s" % builtin_type(value))
 
         self.value = value
 
@@ -2018,7 +2049,7 @@ class CIMQualifier(object):
 
         value = None
 
-        if type(self.value) == list:
+        if isinstance(self.value, list):
             value = cim_xml.VALUE_ARRAY([cim_xml.VALUE(v) for v in self.value])
         elif self.value is not None:
             value = cim_xml.VALUE(self.value)
@@ -2039,7 +2070,7 @@ class CIMQualifier(object):
                 return mofstr(v, indent)
             return str(v)
 
-        if type(self.value) == list:
+        if isinstance(self.value, list):
             return '%s {' % self.name + \
                    ', '.join([valstr(v) for v in self.value]) + '}'
 
@@ -2063,6 +2094,7 @@ class CIMQualifierDeclaration(object):
                  array_size=None, scopes={},
                  overridable=None, tosubclass=None, toinstance=None,
                  translatable=None):
+        # pylint: disable=redefined-builtin
         """
         Initialize the `CIMQualifierDeclaration` object.
 
@@ -2186,30 +2218,31 @@ def tocimxml(value):
 
     # List of values
 
-    if type(value) == list:
+    if isinstance(value, list):
         return cim_xml.VALUE_ARRAY(map(tocimxml, value))
 
-    raise ValueError("Can't convert %s (%s) to CIM XML" % (value, type(value)))
+    raise ValueError("Can't convert %s (%s) to CIM XML" % \
+                     (value, builtin_type(value)))
 
 
-def tocimobj(_type, value):
+def tocimobj(type_, value):
     """Convert a CIM type and a string value into an appropriate
     builtin type."""
 
-    if value is None or _type is None:
+    if value is None or type_ is None:
         return None
 
-    if _type != 'string' and isinstance(value, basestring) and not value:
+    if type_ != 'string' and isinstance(value, basestring) and not value:
         return None
 
     # Lists of values
 
-    if type(value) == list:
-        return map(lambda x: tocimobj(_type, x), value)
+    if isinstance(value, list):
+        return map(lambda x: tocimobj(type_, x), value)
 
     # Boolean type
 
-    if _type == 'boolean':
+    if type_ == 'boolean':
         if isinstance(value, bool):
             return value
         elif isinstance(value, basestring):
@@ -2221,51 +2254,51 @@ def tocimobj(_type, value):
 
     # String type
 
-    if _type == 'string':
+    if type_ == 'string':
         return value
 
     # Integer types
 
-    if _type == 'uint8':
+    if type_ == 'uint8':
         return cim_types.Uint8(value)
 
-    if _type == 'sint8':
+    if type_ == 'sint8':
         return cim_types.Sint8(value)
 
-    if _type == 'uint16':
+    if type_ == 'uint16':
         return cim_types.Uint16(value)
 
-    if _type == 'sint16':
+    if type_ == 'sint16':
         return cim_types.Sint16(value)
 
-    if _type == 'uint32':
+    if type_ == 'uint32':
         return cim_types.Uint32(value)
 
-    if _type == 'sint32':
+    if type_ == 'sint32':
         return cim_types.Sint32(value)
 
-    if _type == 'uint64':
+    if type_ == 'uint64':
         return cim_types.Uint64(value)
 
-    if _type == 'sint64':
+    if type_ == 'sint64':
         return cim_types.Sint64(value)
 
     # Real types
 
-    if _type == 'real32':
+    if type_ == 'real32':
         return cim_types.Real32(value)
 
-    if _type == 'real64':
+    if type_ == 'real64':
         return cim_types.Real64(value)
 
     # Char16
 
-    if _type == 'char16':
+    if type_ == 'char16':
         raise ValueError('CIMType char16 not handled')
 
     # Datetime
 
-    if _type == 'datetime':
+    if type_ == 'datetime':
         return cim_types.CIMDateTime(value)
 
     # REF
@@ -2285,7 +2318,7 @@ def tocimobj(_type, value):
                 return (s, '', '')
             return (s[:idx], seq, s[idx+len(seq):])
 
-    if _type == 'reference':
+    if type_ == 'reference':
         # TODO doesn't handle double-quoting, as in refs to refs.  Example:
         # r'ex_composedof.composer="ex_sampleClass.label1=9921,' +
         #  'label2=\"SampleLabel\"",component="ex_sampleClass.label1=0121,' +
@@ -2351,7 +2384,7 @@ def tocimobj(_type, value):
         else:
             raise ValueError('Invalid reference value: "%s"' % value)
 
-    raise ValueError('Invalid CIM type: "%s"' % _type)
+    raise ValueError('Invalid CIM type: "%s"' % type_)
 
 
 def byname(nlist):

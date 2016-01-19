@@ -20,13 +20,14 @@ Approach:
   request, the CIM-XML produced by the PyWBEM client is verified based on that.
 """
 
-import httpretty
-import yaml
 import os
 import inspect
-from lxml import etree, doctestcompare
 import doctest
 import socket
+
+import yaml
+import httpretty
+from lxml import etree, doctestcompare
 
 import comfychair
 from comfychair import main, TestCase
@@ -75,7 +76,7 @@ def obj(value, tc_name):
         ctor_name = value["pywbem_object"]
         try:
             ctor_call = getattr(pywbem, ctor_name)
-        except AttributeError as exc:
+        except AttributeError:
             raise ClientTestError("Error in test case %s: Unknown type "\
                                   "specified in 'pywbem_object' attribute: %s"%\
                                   (tc_name, ctor_name))
@@ -93,7 +94,7 @@ def obj(value, tc_name):
 def tc_getattr(tc_name, dict_, key, default=-1):
     try:
         value = dict_[key]
-    except KeyError as exc:
+    except KeyError:
         if default != -1:
             return default
         raise ClientTestError("Error in test case %s: '%s' attribute missing"%\
@@ -144,7 +145,7 @@ class ClientTest(TestCase):
         x1 = etree.XML(s1, parser=parser)
         x2 = etree.XML(s2, parser=parser)
 
-        # Sort certain elements 
+        # Sort certain elements
 
         def sort_children(root, sort_elements):
             for tag, attr in sort_elements:
@@ -351,7 +352,7 @@ class ClientTest(TestCase):
                                      "but %s exception was actually raised: "\
                                      "%s" %\
                                      (raised_exception.__class__.__name__,
-                                     raised_exception))
+                                      raised_exception))
 
         if isinstance(raised_exception, pywbem.CIMError):
             cim_status = raised_exception[0]

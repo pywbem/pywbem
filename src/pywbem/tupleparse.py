@@ -92,16 +92,16 @@ class ParseError(Exception):
     pass
 
 
-def filter_tuples(l):
+def filter_tuples(list_):
     """Return only the tuples in a list.
 
     In a tupletree, tuples correspond to XML elements.  Useful for
     stripping out whitespace data in a child list."""
 
-    if l is None:
+    if list_ is None:
         return []
     else:
-        return [x for x in l if type(x) == tuple]
+        return [x for x in list_ if isinstance(x, tuple)]
 
 
 def pcdata(tt):
@@ -430,17 +430,17 @@ def parse_value_namedobject(tt):
 
     k = kids(tt)
     if len(k) == 1:
-        object = parse_class(k[0])
+        _object = parse_class(k[0])
     elif len(k) == 2:
         path = parse_instancename(kids(tt)[0])
-        object = parse_instance(kids(tt)[1])
+        _object = parse_instance(kids(tt)[1])
 
-        object.path = path
+        _object.path = path
     else:
         raise ParseError('Expecting one or two elements, got %s' %
                          `kids(tt)`)
 
-    return (name(tt), attrs(tt), object)
+    return (name(tt), attrs(tt), _object)
 
 
 def parse_value_objectwithlocalpath(tt):
@@ -453,18 +453,17 @@ def parse_value_objectwithlocalpath(tt):
 
     if len(kids(tt)) != 2:
         raise ParseError('Expecting two elements, got %s' %
-                         len(kids(tt)));
+                         len(kids(tt)))
 
     if kids(tt)[0][0] == 'LOCALCLASSPATH':
-        object = (parse_localclasspath(kids(tt)[0]),
-                  parse_class(kids(tt)[1]))
+        _object = (parse_localclasspath(kids(tt)[0]),
+                   parse_class(kids(tt)[1]))
     else:
         path = parse_localinstancepath(kids(tt)[0])
-        object = parse_instance(kids(tt)[1])
+        _object = parse_instance(kids(tt)[1])
+        _object.path = path
 
-        object.path = path
-
-    return (name(tt), attrs(tt), object)
+    return (name(tt), attrs(tt), _object)
 
 def parse_value_objectwithpath(tt):
     """
@@ -480,15 +479,14 @@ def parse_value_objectwithpath(tt):
         raise ParseError('Expecting two elements, got %s' % k)
 
     if name(k[0]) == 'CLASSPATH':
-        object = (parse_classpath(k[0]),
-                  parse_class(k[1]))
+        _object = (parse_classpath(k[0]),
+                   parse_class(k[1]))
     else:
         path = parse_instancepath(k[0])
-        object = parse_instance(k[1])
+        _object = parse_instance(k[1])
+        _object.path = path
 
-        object.path = path
-
-    return (name(tt), attrs(tt), object)
+    return (name(tt), attrs(tt), _object)
 
 #
 # Object naming and locating elements
@@ -563,7 +561,7 @@ def parse_classpath(tt):
     classname = parse_classname(kids(tt)[1])
 
     return CIMClassName(classname.classname,
-                                host=nspath[0], namespace=nspath[1])
+                        host=nspath[0], namespace=nspath[1])
 
 
 def parse_localclasspath(tt):
@@ -706,7 +704,7 @@ def parse_keyvalue(tt):
     p = pcdata(tt)
 
     if not attrs(tt).has_key('VALUETYPE'):
-        return p;
+        return p
 
     vt = attrs(tt).get('VALUETYPE')
 
@@ -724,12 +722,12 @@ def parse_keyvalue(tt):
             # XXX: Would like to use long() here, but that tends to cause
             # trouble when it's written back out as '2L'
             return int(p.strip())
-        except ValueError, e:
+        except ValueError:
             raise ParseError('invalid numeric %s under %s' %
                              (`p`, name(tt)))
     else:
-        raise ParseError('invalid VALUETYPE %s in %s',
-                         vt, name(tt))
+        raise ParseError('invalid VALUETYPE %s in %s' %
+                         (vt, name(tt)))
 
 
 #
@@ -759,10 +757,10 @@ def parse_class(tt):
     methods = cim_obj.byname(list_of_matching(tt, ['METHOD']))
 
     return CIMClass(attrs(tt)['NAME'],
-                            superclass=superclass,
-                            properties=properties,
-                            qualifiers=qualifiers,
-                            methods=methods)
+                    superclass=superclass,
+                    properties=properties,
+                    qualifiers=qualifiers,
+                    methods=methods)
 
 
 def parse_instance(tt):
@@ -790,10 +788,10 @@ def parse_instance(tt):
     props = list_of_matching(tt, ['PROPERTY.REFERENCE', 'PROPERTY',
                                   'PROPERTY.ARRAY'])
 
-    obj = CIMInstance(attrs(tt)['CLASSNAME'],
-                              qualifiers=qualifiers)
+    obj = CIMInstance(attrs(tt)['CLASSNAME'], qualifiers=qualifiers)
 
-    [obj.__setitem__(p.name, p) for p in props]
+    for p in props:
+        obj.__setitem__(p.name, p)
 
     return obj
 
@@ -829,7 +827,7 @@ def parse_qualifier_declaration(tt):
 
     a = attrs(tt)
     qname = a['NAME']
-    type = a['TYPE']
+    _type = a['TYPE']
     try:
         is_array = a['ISARRAY'].lower() == 'true'
     except KeyError:
@@ -856,10 +854,10 @@ def parse_qualifier_declaration(tt):
         else:
             if value is not None:
                 raise ParseError("Multiple VALUE/VALUE.ARRAY tags encountered")
-            value = cim_obj.tocimobj(type, parse_any(child))
+            value = cim_obj.tocimobj(_type, parse_any(child))
 
-    return CIMQualifierDeclaration(qname, type, value, is_array,
-                                           array_size, scopes, **flavors)
+    return CIMQualifierDeclaration(qname, _type, value, is_array,
+                                   array_size, scopes, **flavors)
 
 
 def parse_qualifier(tt):
@@ -936,12 +934,12 @@ def parse_property(tt):
         val = parse_embeddedObject(val)
 
     return CIMProperty(a['NAME'],
-                               val,
-                               a['TYPE'],
-                               class_origin=a.get('CLASSORIGIN'),
-                               propagated=unpack_boolean(a.get('PROPAGATED')),
-                               qualifiers=quals,
-                               embedded_object=embedded_object)
+                       val,
+                       a['TYPE'],
+                       class_origin=a.get('CLASSORIGIN'),
+                       propagated=unpack_boolean(a.get('PROPAGATED')),
+                       qualifiers=quals,
+                       embedded_object=embedded_object)
 
 
 def parse_property_array(tt):
@@ -976,12 +974,12 @@ def parse_property_array(tt):
         values = parse_embeddedObject(values)
 
     obj = CIMProperty(a['NAME'],
-                              values,
-                              a['TYPE'],
-                              class_origin=a.get('CLASSORIGIN'),
-                              qualifiers=quals,
-                              is_array=True,
-                              embedded_object=embedded_object)
+                      values,
+                      a['TYPE'],
+                      class_origin=a.get('CLASSORIGIN'),
+                      qualifiers=quals,
+                      is_array=True,
+                      embedded_object=embedded_object)
 
     ## TODO: qualifiers, other attributes
     return obj
@@ -1052,11 +1050,11 @@ def parse_method(tt):
     a = attrs(tt)
 
     return CIMMethod(a['NAME'],
-                             return_type=a.get('TYPE'),
-                             parameters=parameters,
-                             qualifiers=qualifiers,
-                             class_origin=a.get('CLASSORIGIN'),
-                             propagated=unpack_boolean(a.get('PROPAGATED')))
+                     return_type=a.get('TYPE'),
+                     parameters=parameters,
+                     qualifiers=qualifiers,
+                     class_origin=a.get('CLASSORIGIN'),
+                     propagated=unpack_boolean(a.get('PROPAGATED')))
 
 
 def parse_parameter(tt):
@@ -1094,9 +1092,9 @@ def parse_parameter_reference(tt):
     a = attrs(tt)
 
     return CIMParameter(a['NAME'],
-                                type='reference',
-                                reference_class=a.get('REFERENCECLASS'),
-                                qualifiers=quals)
+                        type='reference',
+                        reference_class=a.get('REFERENCECLASS'),
+                        qualifiers=quals)
 
 
 def parse_parameter_array(tt):
@@ -1122,10 +1120,10 @@ def parse_parameter_array(tt):
         array_size = int(array_size)
 
     return CIMParameter(a['NAME'],
-                                type=a['TYPE'],
-                                is_array=True,
-                                array_size=array_size,
-                                qualifiers=quals)
+                        type=a['TYPE'],
+                        is_array=True,
+                        array_size=array_size,
+                        qualifiers=quals)
 
 
 def parse_parameter_refarray(tt):
@@ -1151,10 +1149,10 @@ def parse_parameter_refarray(tt):
         array_size = int(array_size)
 
     return CIMParameter(a['NAME'], 'reference',
-                                is_array=True,
-                                reference_class=a.get('REFERENCECLASS'),
-                                array_size=array_size,
-                                qualifiers=quals)
+                        is_array=True,
+                        reference_class=a.get('REFERENCECLASS'),
+                        array_size=array_size,
+                        qualifiers=quals)
 
 
 #
@@ -1174,7 +1172,7 @@ def parse_message(tt):
     messages = one_child(
         tt, ['SIMPLEREQ', 'MULTIREQ', 'SIMPLERSP', 'MULTIRSP', 'SIMPLEEXPREQ'])
 
-    if type(messages) is not list:
+    if not isinstance(messages, list):
         # make single and multi forms consistent
         messages = [messages]
 
@@ -1182,10 +1180,12 @@ def parse_message(tt):
 
 
 def parse_multireq(tt):
+    # TODO: Implement MULTIREQ parser
     raise ParseError('MULTIREQ parser not implemented')
 
 
 def parse_multiexpreq(tt):
+    # TODO: Implement MULTIEXPREQ parser
     raise ParseError('MULTIEXPREQ parser not implemented')
 
 def parse_simpleexpreq(tt):
@@ -1308,14 +1308,14 @@ def parse_iparamvalue(tt):
                             'QUALIFIER.DECLARATION', 'CLASS', 'INSTANCE',
                             'VALUE.NAMEDINSTANCE'])
 
-    name = attrs(tt)['NAME']
+    _name = attrs(tt)['NAME']
     if isinstance(child, basestring) and \
-            name.lower() in ['deepinheritance', 'localonly',
-                             'includequalifiers', 'includeclassorigin']:
+            _name.lower() in ['deepinheritance', 'localonly',
+                              'includequalifiers', 'includeclassorigin']:
         if child.lower() in ['true', 'false']:
-            child = child.lower() == 'true'
+            child = (child.lower() == 'true')
 
-    return name, child
+    return _name, child
 
 
 def parse_expparamvalue(tt):
@@ -1329,15 +1329,17 @@ def parse_expparamvalue(tt):
 
     child = optional_child(tt, ['INSTANCE'])
 
-    name = attrs(tt)['NAME']
-    return name, child
+    _name = attrs(tt)['NAME']
+    return _name, child
 
 
 def parse_multirsp(tt):
+    # TODO: Implement MULTIRSP parser
     raise ParseError('MULTIRSP parser not implemented')
 
 
 def parse_multiexprsp(tt):
+    # TODO: Implement MULTIEXPRSP parser
     raise ParseError('MULTIEXPRSP parser not implemented')
 
 
@@ -1351,6 +1353,7 @@ def parse_simplersp(tt):
 
 
 def parse_simpleexprsp(tt):
+    # TODO: Implement SIMPLEEXPRSP parser
     raise ParseError('SIMPLEEXPRSP parser not implemented')
 
 
@@ -1366,6 +1369,7 @@ def parse_methodresponse(tt):
 
 
 def parse_expmethodresponse(tt):
+    # TODO: Implement EXPMETHODRESPONSE parser
     raise ParseError('EXPMETHODRESPONSE parser not implemented')
 
 

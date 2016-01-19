@@ -49,7 +49,6 @@ always passes through all non-markup whitespace.
 
 """
 
-import sys
 import xml.dom.minidom
 from xml.dom.minidom import Element
 
@@ -66,7 +65,7 @@ __all__ = ['CIMElement', 'CIM', 'DECLARATION', 'DECLGROUP',
            'PROPERTY_REFERENCE', 'METHOD', 'PARAMETER', 'PARAMETER_REFERENCE',
            'PARAMETER_ARRAY', 'PARAMETER_REFARRAY',
            'TABLECELL_DECLARATION', 'TABLECELL_REFERENCE',
-           'TABLEROW_DECLARATION', 'TABLE','TABLEROW',
+           'TABLEROW_DECLARATION', 'TABLE', 'TABLEROW',
            'MESSAGE', 'MULTIREQ', 'MULTIEXPREQ', 'SIMPLEREQ', 'SIMPLEEXPREQ',
            'IMETHODCALL', 'METHODCALL', 'EXPMETHODCALL', 'PARAMVALUE',
            'IPARAMVALUE', 'EXPPARAMVALUE', 'MULTIRSP', 'MULTIEXPRSP',
@@ -142,7 +141,7 @@ def _pcdata_nodes(pcdata):
 
     nodelist = []
 
-    if _CDATA_ESCAPING and type(pcdata) in (str,unicode) and \
+    if _CDATA_ESCAPING and isinstance(pcdata, (str, unicode)) and \
        (pcdata.find("<") >= 0 or \
         pcdata.find(">") >= 0 or \
         pcdata.find("&") >= 0):
@@ -200,7 +199,8 @@ class CIMElement(Element):
 
     def appendChildren(self, children):
         """Append a list or tuple of children."""
-        [self.appendChild(child) for child in children]
+        for child in children:
+            self.appendChild(child)
 
 # Root element
 
@@ -461,7 +461,7 @@ class VALUE_NAMEDOBJECT(CIMElement):
 
     def __init__(self, data):
         Element.__init__(self, 'VALUE.NAMEDOBJECT')
-        if type(data) == tuple or type(data) == list:
+        if isinstance(data, (tuple, list)):
             self.appendChildren(data)
         else:
             self.appendChild(data)
@@ -672,7 +672,7 @@ class INSTANCENAME(CIMElement):
         Element.__init__(self, 'INSTANCENAME')
         self.setAttribute('CLASSNAME', classname)
         if data is not None:
-            if type(data) == list:
+            if isinstance(data, list):
                 self.appendChildren(data)
             else:
                 self.appendChild(data)
@@ -948,7 +948,7 @@ class PROPERTY_REFERENCE(CIMElement):
         self.setOptionalAttribute('CLASSORIGIN', class_origin)
 
         if propagated is not None:
-            self.setAttribute('PROPAGATED', str(propagated).lower());
+            self.setAttribute('PROPAGATED', str(propagated).lower())
 
         self.appendChildren(qualifiers)
         self.appendOptionalChild(value_reference)
@@ -1418,7 +1418,7 @@ class METHODRESPONSE(CIMElement):
         Element.__init__(self, 'METHODRESPONSE')
         self.setName(name)
         if data is not None:
-            if type(data) == tuple or type(data) == list:
+            if isinstance(data, (tuple, list)):
                 self.appendChildren(data)
             else:
                 self.appendChild(data)
@@ -1524,7 +1524,7 @@ class RESPONSEDESTINATION(CIMElement):
 
     def __init__(self, data):
         Element.__init__(self, 'RESPONSEDESTINATON')
-        self.appendChild(data);
+        self.appendChild(data)
 
 class SIMPLEREQACK(CIMElement):
     # pylint: disable=invalid-name

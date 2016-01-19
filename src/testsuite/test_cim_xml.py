@@ -34,7 +34,8 @@ def validate_xml(data, dtd_directory=None):
     p.stdin.write(data)
     p.stdin.close()
 
-    [sys.stdout.write(x) for x in p.stdout.readlines()]
+    for x in p.stdout.readlines():
+        sys.stdout.write(x)
 
     status = p.wait()
 
@@ -236,7 +237,8 @@ class Value(CIMXMLTest):
 
         # Some XML special characters, already CDATA-escaped
         self.xml.append(cim_xml.VALUE('<![CDATA[a&b<c>d]]>'))
-        self.xml_str.append('<VALUE><![CDATA[<![CDATA[a&b<c>d]]]><![CDATA[]>]]></VALUE>')
+        self.xml_str.append(
+            '<VALUE><![CDATA[<![CDATA[a&b<c>d]]]><![CDATA[]>]]></VALUE>')
 
         cim_xml._CDATA_ESCAPING = False # Back to its default
 
@@ -263,7 +265,8 @@ class Value(CIMXMLTest):
 
         # Some XML special characters, already CDATA-escaped
         self.xml.append(cim_xml.VALUE('<![CDATA[a&b<c>d]]>'))
-        self.xml_str.append('<VALUE>&lt;![CDATA[a&amp;b&lt;c&gt;d]]&gt;</VALUE>')
+        self.xml_str.append(
+            '<VALUE>&lt;![CDATA[a&amp;b&lt;c&gt;d]]&gt;</VALUE>')
 
 class ValueArray(CIMXMLTest):
     """

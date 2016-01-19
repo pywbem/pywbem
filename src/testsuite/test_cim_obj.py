@@ -1265,7 +1265,7 @@ class CIMInstanceUpdateExisting(TestCase):
 class _CIMPropertyTestCase(TestCase):
     """Base class for CIMProperty test cases, adding assertion methods."""
 
-    def _assert_obj(self, obj, name, value, type=None,
+    def _assert_obj(self, obj, name, value, type_=None,
                     class_origin=None, array_size=None, propagated=None,
                     is_array=False, reference_class=None, qualifiers=None,
                     embedded_object=None):
@@ -1275,7 +1275,7 @@ class _CIMPropertyTestCase(TestCase):
         """
         self.assert_equal(obj.name, name, "name attribute")
         self.assert_equal(obj.value, value, "value attribute")
-        self.assert_equal(obj.type, type, "type attribute")
+        self.assert_equal(obj.type, type_, "type attribute")
         self.assert_equal(obj.class_origin, class_origin,
                           "class_origin attribute")
         self.assert_equal(obj.array_size, array_size, "array_size attribute")
@@ -1625,7 +1625,7 @@ class InitCIMProperty(_CIMPropertyTestCase):
         p = CIMProperty('Age', [timedelta_1])
         self._assert_obj(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
                          is_array=True)
-    
+
         # This test failed in the old constructor implementation, because the
         # timedelta object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', [timedelta_1], 'datetime')
@@ -1821,7 +1821,7 @@ class CopyCIMProperty(_CIMPropertyTestCase):
         c.value = '1234'
         c.qualifiers = {'Key': CIMQualifier('Value', True)}
 
-        self._assert_obj(p, 'Spotty', 'Foot', type='string', qualifiers={})
+        self._assert_obj(p, 'Spotty', 'Foot', type_='string', qualifiers={})
 
 class CIMPropertyAttrs(_CIMPropertyTestCase):
 
@@ -1830,13 +1830,13 @@ class CIMPropertyAttrs(_CIMPropertyTestCase):
         # Attributes for single-valued property
 
         obj = CIMProperty('Spotty', 'Foot')
-        self._assert_obj(obj, 'Spotty', 'Foot', type='string')
+        self._assert_obj(obj, 'Spotty', 'Foot', type_='string')
 
         # Attributes for array property
 
         v = [Uint8(x) for x in [1, 2, 3]]
         obj = CIMProperty('Foo', v)
-        self._assert_obj(obj, 'Foo', v, type='uint8', is_array=True)
+        self._assert_obj(obj, 'Foo', v, type_='uint8', is_array=True)
 
         # Attributes for property reference
 
@@ -1844,7 +1844,7 @@ class CIMPropertyAttrs(_CIMPropertyTestCase):
         # reference_class argument was required to be provided for references.
         v = CIMInstanceName('CIM_Bar')
         obj = CIMProperty('Foo', v)
-        self._assert_obj(obj, 'Foo', v, type='reference',
+        self._assert_obj(obj, 'Foo', v, type_='reference',
                          reference_class='CIM_Bar')
 
 class CIMPropertyEquality(TestCase):
@@ -2770,7 +2770,7 @@ class ToCIMObj(TestCase):
 
 class MofStr(TestCase):
 
-    def runtest_single(self, in_value, exp_value):    
+    def runtest_single(self, in_value, exp_value):
         '''
         Test function for single invocation of mofstr()
         '''
@@ -2784,45 +2784,53 @@ class MofStr(TestCase):
         Run all tests for mofstr().
         '''
 
-        self.runtest_single('',       '""')
-        self.runtest_single('\\',     '"\\\\"')
-        self.runtest_single('"',      '"\\""')
-        self.runtest_single('a"b',    '"a\\"b"')
+        self.runtest_single('', '""')
+        self.runtest_single('\\', '"\\\\"')
+        self.runtest_single('"', '"\\""')
+        self.runtest_single('a"b', '"a\\"b"')
         # TODO: Enable the following test, once "" is supported.
-        #self.runtest_single('a""b',   '"a\\"\\"b"')
-        self.runtest_single("'",      '"\'"')
-        self.runtest_single("a'b",    '"a\'b"')
-        self.runtest_single("a''b",   '"a\'\'b"')
-        self.runtest_single("\\'",    '"\\\'"')
-        self.runtest_single('\\"',    '"\\""')
+        #self.runtest_single('a""b', '"a\\"\\"b"')
+        self.runtest_single("'", '"\'"')
+        self.runtest_single("a'b", '"a\'b"')
+        self.runtest_single("a''b", '"a\'\'b"')
+        self.runtest_single("\\'", '"\\\'"')
+        self.runtest_single('\\"', '"\\""')
         self.runtest_single('\r\n\t\b\f', '"\\r\\n\\t\\b\\f"')
         self.runtest_single('\\r\\n\\t\\b\\f', '"\\r\\n\\t\\b\\f"')
         self.runtest_single('\\_\\+\\v\\h\\j', '"\\_\\+\\v\\h\\j"')
-        self.runtest_single('a',      '"a"')
-        self.runtest_single('a b',    '"a b"')
-        self.runtest_single(' b',     '" b"')
-        self.runtest_single('a ',     '"a "')
-        self.runtest_single(' ',      '" "')
+        self.runtest_single('a', '"a"')
+        self.runtest_single('a b', '"a b"')
+        self.runtest_single(' b', '" b"')
+        self.runtest_single('a ', '"a "')
+        self.runtest_single(' ', '" "')
 
+        # pylint: disable=line-too-long
         #                    |0                                                                     |71
+        # pylint: disable=line-too-long
         self.runtest_single('the big brown fox jumps over a big brown fox jumps over a big brown f jumps over a big brown fox',\
                            '"the big brown fox jumps over a big brown fox jumps over a big brown f "\n       '+\
                            '"jumps over a big brown fox"')
+        # pylint: disable=line-too-long
         self.runtest_single('the big brown fox jumps over a big brown fox jumps over a big brown fo jumps over a big brown fox',\
                            '"the big brown fox jumps over a big brown fox jumps over a big brown fo "\n       '+\
                            '"jumps over a big brown fox"')
+        # pylint: disable=line-too-long
         self.runtest_single('the big brown fox jumps over a big brown fox jumps over a big brown fox jumps over a big brown fox',\
                            '"the big brown fox jumps over a big brown fox jumps over a big brown "\n       '+\
                            '"fox jumps over a big brown fox"')
+        # pylint: disable=line-too-long
         self.runtest_single('the big brown fox jumps over a big brown fox jumps over a big brown foxx jumps over a big brown fox',\
                            '"the big brown fox jumps over a big brown fox jumps over a big brown "\n       '+\
                            '"foxx jumps over a big brown fox"')
+        # pylint: disable=line-too-long
         self.runtest_single('the big brown fox jumps over a big brown fox jumps over a big brown foxxx jumps over a big brown fox',\
                            '"the big brown fox jumps over a big brown fox jumps over a big brown "\n       '+\
                            '"foxxx jumps over a big brown fox"')
+        # pylint: disable=line-too-long
         self.runtest_single('the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over a big brown fox',\
                            '"the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big_brown_fox"\n       '+\
                            '"_jumps_over a big brown fox"')
+        # pylint: disable=line-too-long
         self.runtest_single('the big brown fox jumps over a big brown fox jumps over a big brown fox_jumps_over_a_big_brown_fox',\
                            '"the big brown fox jumps over a big brown fox jumps over a big brown "\n       '+\
                            '"fox_jumps_over_a_big_brown_fox"')

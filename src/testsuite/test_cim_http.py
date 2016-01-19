@@ -23,11 +23,14 @@ class Parse_url(comfychair.TestCase):
         host, port, ssl = cim_http.parse_url(url)
 
         self.assert_equal(host, exp_host,
-                          "Unexpected host: %r, expected: %r" % (host, exp_host))
+                          "Unexpected host: %r, expected: %r" %\
+                          (host, exp_host))
         self.assert_equal(port, exp_port,
-                          "Unexpected port: %r, expected: %r" % (port, exp_port))
+                          "Unexpected port: %r, expected: %r" %\
+                          (port, exp_port))
         self.assert_equal(ssl, exp_ssl,
-                          "Unexpected ssl: %r, expected: %r" % (ssl, exp_ssl))
+                          "Unexpected ssl: %r, expected: %r" %\
+                          (ssl, exp_ssl))
 
 
     def runtest(self):
@@ -36,7 +39,7 @@ class Parse_url(comfychair.TestCase):
         '''
 
         # Keep these defaults in sync with those in cim_http.parse_url()
-        default_port_http  = 5988
+        default_port_http = 5988
         default_port_https = 5989
         default_ssl = False
 

@@ -160,7 +160,7 @@ class TestGet(BaseTest):
 
     def runtest(self):
         self.assert_(self.d.get('Dog', 'Chicken') == 'Cat')
-        self.assert_(self.d.get('Ningaui') == None)
+        self.assert_(self.d.get('Ningaui') is None)
         self.assert_(self.d.get('Ningaui', 'Chicken') == 'Chicken')
 
 class TestSetDefault(BaseTest):
@@ -189,7 +189,7 @@ class TestContains(BaseTest):
     def runtest(self):
         self.assert_('dog' in self.d)
         self.assert_('Dog' in self.d)
-        self.assert_(not 'Cat' in self.d)
+        self.assert_('Cat' not in self.d)
 
 class TestIterkeys(BaseTest):
 

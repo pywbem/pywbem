@@ -95,36 +95,36 @@ class TestSchemaSearch(MOFTest):
 
 class TestParseError(MOFTest):
     def runtest(self):
-        file = 'testmofs/parse_error01.mof'
+        _file = 'testmofs/parse_error01.mof'
         try:
-            self.mofcomp.compile_file(file, ns)
+            self.mofcomp.compile_file(_file, ns)
         except MOFParseError, pe:
-            self.assert_equal(pe.file, file)
+            self.assert_equal(pe.file, _file)
             self.assert_equal(pe.lineno, 16)
             self.assert_equal(pe.context[5][1:5], '^^^^')
             self.assert_equal(pe.context[4][1:5], 'size')
 
-        file = 'testmofs/parse_error02.mof'
+        _file = 'testmofs/parse_error02.mof'
         try:
-            self.mofcomp.compile_file(file, ns)
+            self.mofcomp.compile_file(_file, ns)
         except MOFParseError, pe:
-            self.assert_equal(pe.file, file)
+            self.assert_equal(pe.file, _file)
             self.assert_equal(pe.lineno, 6)
             self.assert_equal(pe.context[5][7:13], '^^^^^^')
             self.assert_equal(pe.context[4][7:13], 'weight')
 
-        file = 'testmofs/parse_error03.mof'
+        _file = 'testmofs/parse_error03.mof'
         try:
-            self.mofcomp.compile_file(file, ns)
+            self.mofcomp.compile_file(_file, ns)
         except MOFParseError, pe:
-            self.assert_equal(pe.file, file)
+            self.assert_equal(pe.file, _file)
             self.assert_equal(pe.lineno, 24)
             self.assert_equal(pe.context[5][53], '^')
             self.assert_equal(pe.context[4][53], '}')
 
-        file = 'testmofs/parse_error04.mof'
+        _file = 'testmofs/parse_error04.mof'
         try:
-            self.mofcomp.compile_file(file, ns)
+            self.mofcomp.compile_file(_file, ns)
         except MOFParseError, pe:
             self.assert_equal(str(pe), 'Unexpected end of file')
 
@@ -174,14 +174,14 @@ if __name__ == '__main__':
             sys.stdout.write('\rUnpacking %s: %d%% ' % (mofbname,
                                                         100*(i+1)/len(nlist)))
             sys.stdout.flush()
-            file = nlist[i]
-            dfile = 'schema/%s' % file
+            file_ = nlist[i]
+            dfile = 'schema/%s' % file_
             if dfile[-1] == '/':
                 if not os.path.exists(dfile):
                     os.mkdir(dfile)
             else:
                 fo = open(dfile, 'w')
-                fo.write(zf.read(file))
+                fo.write(zf.read(file_))
                 fo.close()
         tfo.close()
         print ''

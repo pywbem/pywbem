@@ -54,18 +54,17 @@ import errno
 import code
 import optparse
 
+# Additional symbols for use in the interactive session
+from pprint import pprint as pp # pylint: disable=unused-import
+
 # Conditional support of readline module
-_HAVE_READLINE = False
 try:
     import readline
     _HAVE_READLINE = True
-except ImportError, arg:
-    pass
+except ImportError as arg:
+    _HAVE_READLINE = False
 
 import pywbem
-
-# Additional symbols for use in the interactive session
-from pprint import pprint as pp
 
 __all__ = []
 
@@ -74,7 +73,7 @@ _CONN = None
 def remote_connection(argv, opts):
     """Initiate a remote connection, via PyWBEM."""
 
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
 
     if argv[0][0] == '/':
         url = argv[0]
@@ -111,7 +110,7 @@ def EnumerateInstanceNames(classname, namespace=None):
     """Enumerate the names of the instances of a CIM Class (including the
     names of any subclasses) in the target namespace."""
 
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
 
     return _CONN.EnumerateInstanceNames(classname, namespace=namespace)
 
@@ -121,13 +120,13 @@ def EnumerateInstances(classname, namespace=None, LocalOnly=True,
     """Enumerate instances of a CIM Class (includeing the instances of
     any subclasses in the target namespace."""
 
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
 
     return _CONN.EnumerateInstances(classname,
-                                  namespace=namespace,
-                                  DeepInheritance=DeepInheritance,
-                                  IncludeQualifiers=IncludeQualifiers,
-                                  IncludeClassOrigin=IncludeClassOrigin)
+                                    namespace=namespace,
+                                    DeepInheritance=DeepInheritance,
+                                    IncludeQualifiers=IncludeQualifiers,
+                                    IncludeClassOrigin=IncludeClassOrigin)
 
 
 def GetInstance(instancename, LocalOnly=True, IncludeQualifiers=False,
@@ -135,86 +134,86 @@ def GetInstance(instancename, LocalOnly=True, IncludeQualifiers=False,
     """Return a single CIM instance corresponding to the instance name
     given."""
 
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
 
     return _CONN.GetInstance(instancename,
-                           LocalOnly=LocalOnly,
-                           IncludeQualifiers=IncludeQualifiers,
-                           IncludeClassOrigin=IncludeClassOrigin)
+                             LocalOnly=LocalOnly,
+                             IncludeQualifiers=IncludeQualifiers,
+                             IncludeClassOrigin=IncludeClassOrigin)
 
 def DeleteInstance(instancename):
     """Delete a single CIM instance."""
 
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
 
     return _CONN.DeleteInstance(instancename)
 
 def ModifyInstance(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.ModifyInstance(*args, **kwargs)
 
 def CreateInstance(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.CreateInstance(*args, **kwargs)
 
 def InvokeMethod(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.InvokeMethod(*args, **kwargs)
 
 def AssociatorNames(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.AssociatorNames(*args, **kwargs)
 
 def Associators(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.Associators(*args, **kwargs)
 
 def ReferenceNames(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.ReferenceNames(*args, **kwargs)
 
 def References(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.References(*args, **kwargs)
 
 def EnumerateClassNames(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.EnumerateClassNames(*args, **kwargs)
 
 def EnumerateClasses(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.EnumerateClasses(*args, **kwargs)
 
 def GetClass(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.GetClass(*args, **kwargs)
 
 def DeleteClass(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.DeleteClass(*args, **kwargs)
 
 def ModifyClass(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.ModifyClass(*args, **kwargs)
 
 def CreateClass(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.CreateClass(*args, **kwargs)
 
 def EnumerateQualifiers(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.EnumerateQualifiers(*args, **kwargs)
 
 def GetQualifier(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.GetQualifier(*args, **kwargs)
 
 def SetQualifier(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.SetQualifier(*args, **kwargs)
 
 def DeleteQualifier(*args, **kwargs):
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
     return _CONN.DeleteQualifier(*args, **kwargs)
 
 # Aliases for global functions above
@@ -249,7 +248,7 @@ dq = DeleteQualifier
 def get_banner():
     """Return a banner message for the interactive console."""
 
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
 
     result = ''
 
@@ -269,7 +268,7 @@ def get_banner():
 def main():
     """Main routine, when called as a script."""
 
-    global _CONN
+    global _CONN     # pylint: disable=global-statement
 
     # Parse command line args
     optparser = optparse.OptionParser(
@@ -318,7 +317,7 @@ def main():
     if _HAVE_READLINE:
         try:
             readline.read_history_file(histfile)
-        except IOError, arg:
+        except IOError as arg:
             if arg[0] != errno.ENOENT:
                 raise
 

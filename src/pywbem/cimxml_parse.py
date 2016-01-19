@@ -925,7 +925,7 @@ def parse_property_reference(parser, event, node):
 def make_parser(stream_or_string):
     """Create a xml.dom.pulldom parser."""
 
-    if type(stream_or_string) == str or type(stream_or_string) == unicode:
+    if isinstance(stream_or_string, (str, unicode)):
 
         # XXX: the pulldom.parseString() function doesn't seem to
         # like operating on unicode strings!

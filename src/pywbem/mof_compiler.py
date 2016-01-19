@@ -123,6 +123,7 @@ utf8Char = r'(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)' % \
            (utf8_2, utf8_3_1, utf8_3_2, utf8_3_3, utf8_3_4, utf8_4_1,
             utf8_4_2, utf8_4_3)
 
+# pylint: disable=unused-argument
 def t_COMMENT(t):
     r'//.*'
     pass
@@ -185,14 +186,17 @@ def p_error(p):
     raise ex
 
 # First function with a yacc rule in its docstring.
+# pylint: disable=unused-argument
 def p_mofSpecification(p):
     """mofSpecification : mofProductionList"""
 
+# pylint: disable=unused-argument
 def p_mofProductionList(p):
     """mofProductionList : empty
                          | mofProductionList mofProduction
                          """
 
+# pylint: disable=unused-argument
 def p_mofProduction(p):
     """mofProduction : compilerDirective
                      | mp_createClass
@@ -450,6 +454,7 @@ def p_pragmaParameter(p):
     p[0] = _fixStringValue(p[1])
 
 def p_classDeclaration(p):
+    # pylint: disable=line-too-long
     """classDeclaration : CLASS className '{' classFeatureList '}' ';'
                         | CLASS className superClass '{' classFeatureList '}' ';'
                         | CLASS className alias '{' classFeatureList '}' ';'
@@ -503,7 +508,7 @@ def p_classDeclaration(p):
         else:
             props[item.name] = item
     p[0] = CIMClass(cname, properties=props, methods=methods,
-                            superclass=superclass, qualifiers=quals)
+                    superclass=superclass, qualifiers=quals)
     if alias:
         p.parser.aliases[alias] = p[0]
 
@@ -517,6 +522,7 @@ def p_classFeatureList(p):
         p[0] = p[1] + [p[2]]
 
 def p_assocDeclaration(p):
+    # pylint: disable=line-too-long
     """assocDeclaration : '[' ASSOCIATION qualifierListEmpty ']' CLASS className '{' associationFeatureList '}' ';'
                         | '[' ASSOCIATION qualifierListEmpty ']' CLASS className superClass '{' associationFeatureList '}' ';'
                         | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias '{' associationFeatureList '}' ';'
@@ -528,6 +534,7 @@ def p_assocDeclaration(p):
     p[0] = _assoc_or_indic_decl(quals, p)
 
 def p_indicDeclaration(p):
+    # pylint: disable=line-too-long
     """indicDeclaration : '[' INDICATION qualifierListEmpty ']' CLASS className '{' classFeatureList '}' ';'
                         | '[' INDICATION qualifierListEmpty ']' CLASS className superClass '{' classFeatureList '}' ';'
                         | '[' INDICATION qualifierListEmpty ']' CLASS className alias '{' classFeatureList '}' ';'
@@ -565,7 +572,7 @@ def _assoc_or_indic_decl(quals, p):
             props[item.name] = item
     quals = dict([(x.name, x) for x in quals])
     cc = CIMClass(cname, properties=props, methods=methods,
-                          superclass=superclass, qualifiers=quals)
+                  superclass=superclass, qualifiers=quals)
     if alias:
         p.parser.aliases[alias] = cc
     return cc
@@ -724,12 +731,12 @@ def p_propertyDeclaration_2(p):
 def p_propertyDeclaration_3(p):
     """propertyDeclaration_3 : dataType propertyName array ';'"""
     p[0] = CIMProperty(p[2], None, type=p[1], is_array=True,
-                               array_size=p[3])
+                       array_size=p[3])
 
 def p_propertyDeclaration_4(p):
     """propertyDeclaration_4 : dataType propertyName array defaultValue ';'"""
     p[0] = CIMProperty(p[2], p[4], type=p[1], is_array=True,
-                               array_size=p[3])
+                       array_size=p[3])
 
 def p_propertyDeclaration_5(p):
     """propertyDeclaration_5 : qualifierList dataType propertyName ';'"""
@@ -737,25 +744,28 @@ def p_propertyDeclaration_5(p):
     p[0] = CIMProperty(p[3], None, type=p[2], qualifiers=quals)
 
 def p_propertyDeclaration_6(p):
+    # pylint: disable=line-too-long
     """propertyDeclaration_6 : qualifierList dataType propertyName defaultValue ';'"""
     quals = dict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], cim_obj.tocimobj(p[2], p[4]),
-                               type=p[2], qualifiers=quals)
+                       type=p[2], qualifiers=quals)
 
 def p_propertyDeclaration_7(p):
     """propertyDeclaration_7 : qualifierList dataType propertyName array ';'"""
     quals = dict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], None, type=p[2], qualifiers=quals,
-                               is_array=True, array_size=p[4])
+                       is_array=True, array_size=p[4])
 
 def p_propertyDeclaration_8(p):
+    # pylint: disable=line-too-long
     """propertyDeclaration_8 : qualifierList dataType propertyName array defaultValue ';'"""
     quals = dict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], cim_obj.tocimobj(p[2], p[5]),
-                               type=p[2], qualifiers=quals, is_array=True,
-                               array_size=p[4])
+                       type=p[2], qualifiers=quals, is_array=True,
+                       array_size=p[4])
 
 def p_referenceDeclaration(p):
+    # pylint: disable=line-too-long
     """referenceDeclaration : objectRef referenceName ';'
                             | objectRef referenceName defaultValue ';'
                             | qualifierList objectRef referenceName ';'
@@ -776,9 +786,10 @@ def p_referenceDeclaration(p):
             dv = p[3]
     quals = dict([(x.name, x) for x in quals])
     p[0] = CIMProperty(pname, dv, type='reference',
-                               reference_class=cname, qualifiers=quals)
+                       reference_class=cname, qualifiers=quals)
 
 def p_methodDeclaration(p):
+    # pylint: disable=line-too-long
     """methodDeclaration : dataType methodName '(' ')' ';'
                          | dataType methodName '(' parameterList ')' ';'
                          | qualifierList dataType methodName '(' ')' ';'
@@ -800,7 +811,7 @@ def p_methodDeclaration(p):
     params = dict([(param.name, param) for param in paramlist])
     quals = dict([(q.name, q) for q in quals])
     p[0] = CIMMethod(mname, return_type=dt, parameters=params,
-                             qualifiers=quals)
+                     qualifiers=quals)
     # note: class_origin is set when adding method to class.
     # TODO what to do with propagated?
 
@@ -884,8 +895,7 @@ def p_parameter_3(p):
     if len(p) == 4:
         args['is_array'] = True
         args['array_size'] = p[3]
-    p[0] = CIMParameter(p[2], 'reference', reference_class=p[1],
-                                **args)
+    p[0] = CIMParameter(p[2], 'reference', reference_class=p[1], **args)
 
 def p_parameter_4(p):
     """parameter_4 : qualifierList objectRef parameterName
@@ -897,7 +907,7 @@ def p_parameter_4(p):
         args['array_size'] = p[4]
     quals = dict([(x.name, x) for x in p[1]])
     p[0] = CIMParameter(p[3], 'reference', qualifiers=quals,
-                                reference_class=p[2], **args)
+                        reference_class=p[2], **args)
 
 def p_parameterName(p):
     """parameterName : identifier"""
@@ -956,22 +966,29 @@ def _fixStringValue(s):
             rv += ch
             continue
 
-        if ch == '"': rv += '"'
-        elif ch == 'n': rv += '\n'
-        elif ch == 't': rv += '\t'
-        elif ch == 'b': rv += '\b'
-        elif ch == 'f': rv += '\f'
-        elif ch == 'r': rv += '\r'
-        elif ch == '\\': rv += '\\'
+        if ch == '"':
+            rv += '"'
+        elif ch == 'n':
+            rv += '\n'
+        elif ch == 't':
+            rv += '\t'
+        elif ch == 'b':
+            rv += '\b'
+        elif ch == 'f':
+            rv += '\f'
+        elif ch == 'r':
+            rv += '\r'
+        elif ch == '\\':
+            rv += '\\'
         elif ch in ['x', 'X']:
             hexc = 0
             j = 0
             i += 1
             while j < 4:
-                c = s[i+j];
+                c = s[i+j]
                 c = c.upper()
                 if not c.isdigit() and not c in 'ABCDEF':
-                    break;
+                    break
                 hexc <<= 4
                 if c.isdigit():
                     hexc |= ord(c) - ord('0')
@@ -1036,6 +1053,7 @@ def p_objectHandle(p):
     p[0] = p[1]
 
 def p_qualifierDeclaration(p):
+    # pylint: disable=line-too-long
     """qualifierDeclaration : QUALIFIER qualifierName qualifierType scope ';'
                             | QUALIFIER qualifierName qualifierType scope defaultFlavor ';'
                             """
@@ -1169,6 +1187,7 @@ def p_flavorListWithComma(p):
         p[0] = p[1] + [p[3]]
 
 def p_instanceDeclaration(p):
+    # pylint: disable=line-too-long
     """instanceDeclaration : INSTANCE OF className '{' valueInitializerList '}' ';'
                            | INSTANCE OF className alias '{' valueInitializerList '}' ';'
                            | qualifierList INSTANCE OF className '{' valueInitializerList '}' ';'
@@ -1315,32 +1334,32 @@ def p_empty(p):
     'empty :'
     pass
 
-def _find_column(input, token):
+def _find_column(input_, token):
     i = token.lexpos
     while i > 0:
-        if input[i] == '\n':
+        if input_[i] == '\n':
             break
         i -= 1
     column = (token.lexpos - i)+1
     return column
 
-def _get_error_context(input, token):
+def _get_error_context(input_, token):
     try:
-        line = input[token.lexpos : input.index('\n', token.lexpos)]
+        line = input_[token.lexpos : input_.index('\n', token.lexpos)]
     except ValueError:
-        line = input[token.lexpos:]
-    i = input.rfind('\n', 0, token.lexpos)
+        line = input_[token.lexpos:]
+    i = input_.rfind('\n', 0, token.lexpos)
     if i < 0:
         i = 0
-    line = input[i:token.lexpos] + line
+    line = input_[i:token.lexpos] + line
     lines = [line.strip('\r\n')]
     col = token.lexpos - i
     while len(lines) < 5 and i > 0:
         end = i
-        i = input.rfind('\n', 0, i)
+        i = input_.rfind('\n', 0, i)
         if i < 0:
             i = 0
-        lines.insert(0, input[i:end].strip('\r\n'))
+        lines.insert(0, input_[i:end].strip('\r\n'))
     pointer = ''
     for ch in token.value:
         pointer += '^'
@@ -1356,8 +1375,8 @@ def _get_error_context(input, token):
     lines.append(pointline + pointer)
     return lines
 
-def _print_logger(str):
-    print str
+def _print_logger(str_):
+    print str_
 
 
 class MOFWBEMConnection(object):
@@ -1675,7 +1694,7 @@ def _build():
     lex.lex(optimize=_optimize, lextab=_lextab, outputdir=_outputdir)
 
 
-if __name__ == '__main__':
+def main():
     from optparse import OptionParser
     usage = 'usage: %prog -n <namespace> [options] <MOF file> ...'
     oparser = OptionParser(usage=usage)
@@ -1756,3 +1775,6 @@ if __name__ == '__main__':
 
     if options.remove and not options.dry_run:
         conn.rollback(verbose=options.verbose)
+
+if __name__ == '__main__':
+    main()
