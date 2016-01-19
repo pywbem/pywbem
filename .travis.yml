@@ -6,6 +6,8 @@ python:
   - "2.7"
 # command to install dependencies
 install:
+  - python -c "import platform; print('linux_distribution()=%s' % repr(platform.linux_distribution()))"
+  - python -c "import platform; print('dist()=%s' % repr(platform.dist()))"
   - pip list
   - pip install --upgrade pip
   - cd src; python setup.py develop_os develop
