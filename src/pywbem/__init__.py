@@ -113,6 +113,19 @@ Python 2.6 is the minimum version of Python that is supported.
 Python 3 is not yet supported.
 """
 
+# There are submodules, but clients shouldn't need to know about them.
+# Importing just this module is enough.
+# These are explicitly safe for 'import *'
+
+import sys
+
+from pywbem.cim_types import *
+from pywbem.cim_constants import *
+from pywbem.cim_operations import *
+from pywbem.cim_obj import *
+from pywbem.tupleparse import ParseError
+from pywbem.cim_http import Error, ConnectionError, AuthError, TimeoutError
+
 # Version of the pywbem package
 # !!! Keep in sync with version stated in module docstring, above !!!
 # !!! Keep in sync with version in ../setup.py !!!
@@ -122,18 +135,5 @@ Python 3 is not yet supported.
 #   M.N.U      : The final M.N.U release
 __version__ = '0.8.0rc4'
 
-# There are submodules, but clients shouldn't need to know about them.
-# Importing just this module is enough.
-
-# These are explicitly safe for 'import *'
-
-from pywbem.cim_types import *
-from pywbem.cim_constants import *
-from pywbem.cim_operations import *
-from pywbem.cim_obj import *
-from pywbem.tupleparse import ParseError
-from pywbem.cim_http import Error, ConnectionError, AuthError, TimeoutError
-
-import sys
-if sys.version_info < (2,6,0):
+if sys.version_info < (2, 6, 0):
     raise RuntimeError('PyWBEM requires Python 2.6.0 or higher')

@@ -28,16 +28,17 @@ WBEM. This is used for all kinds of systems management tasks that are
 supported by the system running the WBEM server.
 """
 
-# Package version - Keep in sync with pywbem/__init__.py!
-_version = '0.8.0rc4'
-
 import re
 import sys
 import os
 import shutil
+from distutils.errors import DistutilsSetupError
 
 import os_setup
 from os_setup import shell, shell_check, import_setuptools
+
+# Package version - Keep in sync with pywbem/__init__.py!
+_version = '0.8.0rc4'
 
 def install_swig(command):
     """Make sure Swig is installed, either by installing the corresponding
@@ -54,7 +55,7 @@ def install_swig(command):
 
     print "Testing for availability of Swig >=%s in PATH..." % swig_min_version
     get_swig = False
-    rc, out, err = shell("which swig")
+    rc, out, _ = shell("which swig")
     if rc != 0:
         print "Swig is not available in PATH; need to get Swig"
         get_swig = True
@@ -63,12 +64,12 @@ def install_swig(command):
         out = shell_check("swig -version")
         m = re.search(r"^SWIG Version ([0-9\.]+)$", out, re.MULTILINE)
         if m is None:
-            raise SetupError("Cannot determine Swig version from output "
-                "of 'swig -version':\n%s" % out)
+            raise DistutilsSetupError("Cannot determine Swig version from "
+                                      "output of 'swig -version':\n%s" % out)
         swig_version = m.group(1)
         if swig_version.split(".") < swig_min_version.split("."):
             print "Installed Swig version is too old: %s; need to get Swig" %\
-                swig_version
+                  swig_version
             get_swig = True
         else:
             print "Installed Swig version is sufficient: %s" % swig_version
@@ -111,7 +112,7 @@ def install_swig(command):
             swig_install_root = "/usr"
 
             print "Installing prerequisite OS-level packages for building "\
-                "Swig..."
+                  "Swig..."
 
             swig_prereq_pkg_dict = {
                 'Linux': {
@@ -152,16 +153,16 @@ def install_swig(command):
 
             if dry_run:
                 print "Dry-running: Building Swig version %s from "\
-                    "downloaded source, and installing to %s tree" %\
-                    (swig_build_version, swig_install_root)
+                      "downloaded source, and installing to %s tree" %\
+                      (swig_build_version, swig_install_root)
             else:
                 print "Building Swig version %s from "\
-                    "downloaded source, and installing to %s tree" %\
-                    (swig_build_version, swig_install_root)
+                      "downloaded source, and installing to %s tree" %\
+                      (swig_build_version, swig_install_root)
 
                 if os.path.exists(swig_dir):
                     print "Removing previously downloaded Swig directory: %s" %\
-                        swig_dir
+                          swig_dir
                     shutil.rmtree(swig_dir)
 
                 print "Downloading Swig source archive: %s" % swig_tar_file
@@ -173,21 +174,21 @@ def install_swig(command):
                 shell_check("tar -xf %s" % swig_tar_file, display=True)
 
                 print "Configuring Swig build process for installing to %s "\
-                    "tree..." % swig_install_root
+                      "tree..." % swig_install_root
                 shell_check(["sh", "-c", "cd %s; ./configure --prefix=%s" %\
-                    (swig_dir, swig_install_root)],
-                    display=True)
+                            (swig_dir, swig_install_root)],
+                            display=True)
 
                 print "Building Swig..."
                 shell_check(["sh", "-c", "cd %s; make swig" % swig_dir],
-                    display=True)
+                            display=True)
 
                 print "Installing Swig to %s tree..." % swig_install_root
                 shell_check(["sh", "-c", "cd %s; sudo make install" % swig_dir],
-                    display=True)
+                            display=True)
 
                 print "Done downloading, building and installing Swig "\
-                    "version %s" % swig_build_version
+                      "version %s" % swig_build_version
 
 def patch_epydoc(command):
     """
@@ -213,7 +214,7 @@ def patch_epydoc(command):
 
         if os.path.exists(epydoc_patch_dir):
             print "Assuming Epydoc patches have already been applied, because "\
-                "patch directory exists"
+                  "patch directory exists"
         else:
             print "Downloading Epydoc patches into patch directory: %s" %\
                 epydoc_patch_dir
@@ -231,24 +232,25 @@ def patch_epydoc(command):
                         "packages/epydoc/epydoc-__package__.patch?"\
                         "revision=1.1&view=co" % epydoc_patch_dir, display=True)
             print "Applying Epydoc patches to Epydoc installation directory: "\
-                "%s" % epydoc_target_dir
+                  "%s" % epydoc_target_dir
             shell_check("patch -N -r %s/epydoc-rst.patch.rej "
                         "-i %s/epydoc-rst.patch "
                         "%s/markup/restructuredtext.py" %\
                         (epydoc_patch_dir, epydoc_patch_dir, epydoc_target_dir),
-                        display=True, exp_rc=(0,1))
+                        display=True, exp_rc=(0, 1))
             shell_check("patch -N -r %s/epydoc-cons_fields_stripping.patch.rej "
                         "-i %s/epydoc-cons_fields_stripping.patch "
                         "%s/markup/restructuredtext.py" %\
                         (epydoc_patch_dir, epydoc_patch_dir, epydoc_target_dir),
-                        display=True, exp_rc=(0,1))
+                        display=True, exp_rc=(0, 1))
             shell_check("patch -N -r %s/epydoc-__package__.patch.rej "
                         "-i %s/epydoc-__package__.patch "
                         "%s/docintrospecter.py" %\
                         (epydoc_patch_dir, epydoc_patch_dir, epydoc_target_dir),
-                        display=True, exp_rc=(0,1))
+                        display=True, exp_rc=(0, 1))
 
 def main():
+    """Main function of this script."""
 
     import_setuptools()
     from setuptools import setup

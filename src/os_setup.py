@@ -119,21 +119,17 @@ Syntax for the new attributes of the `setup()` function:
   the same as for the `install_os_requires` attribute.
 """
 
-import sys
-import os
 import re
 import types
 import subprocess
 import platform
-import pip
-import optparse
 import getpass
-
+from distutils.errors import DistutilsSetupError
 from setuptools import Command, Distribution
 from setuptools.command.develop import develop as _develop
-from distutils.errors import DistutilsOptionError, DistutilsSetupError
+import pip
 
-class OsDistribution (Distribution):
+class OsDistribution(Distribution):
     """Setuptools/distutils distribution class for installing OS-level
     packages."""
 
@@ -238,7 +234,7 @@ def _assert_system_dict(dist, attr, value):
                 (attr, system, type(system_item))
             )
 
-def _assert_req_list(dist, attr, value):
+def _assert_req_list(dist, attr, value): # pylint: disable=unused-argument
     """Validate the value of a requirements list (e.g. the 'develop_requires'
     attribute, or the requirement lists for a distro or system in the
     'install_os_requires' attribute).
@@ -261,7 +257,7 @@ def _assert_req_list(dist, attr, value):
                 (attr, req, type(req))
             )
 
-class BaseOsCommand (Command):
+class BaseOsCommand(Command):
     """Setuptools/distutils command class; a base class for installing
     OS-level packages.
     """
@@ -329,10 +325,9 @@ class BaseOsCommand (Command):
                 else: # requirements string
                     req = req.strip()
                     print "Processing OS-level package requirement: %s" % req
-                    m = re.match(
-                        r'^([a-zA-Z0-9_\.\-\+]+)'\
-                        '( *(<|<=|=|>|>=) *([0-9a-zA-Z_\.\-\+]+))?$',
-                        req)
+                    r = r'^([a-zA-Z0-9_\.\-\+]+)( *(<|<=|=|>|>=) *'\
+                        r'([0-9a-zA-Z_\.\-\+]+))?$'
+                    m = re.match(r, req)
                     if m is not None:
                         pkg_name = m.group(1)
                         version_req = m.group(2)
@@ -345,7 +340,7 @@ class BaseOsCommand (Command):
                             (self.installer.platform, req)
                         )
 
-class install_os (BaseOsCommand):
+class install_os(BaseOsCommand): # pylint: disable=invalid-name
     """Setuptools/distutils command class for installing OS-level packages
     in 'normal mode', i.e. when the user specifies the 'install_os' command.
     """
@@ -376,7 +371,7 @@ class install_os (BaseOsCommand):
                 "Errors occurred (see previous messages)"
             )
 
-class develop_os (BaseOsCommand):
+class develop_os(BaseOsCommand): # pylint: disable=invalid-name
     """Setuptools/distutils command class for installing OS-level packages for
     'development mode', i.e. when the user specifies the 'develop_os' command.
     """
@@ -409,7 +404,7 @@ class develop_os (BaseOsCommand):
                 "Errors occurred (see previous messages)"
             )
 
-class develop (_develop):
+class develop(_develop): # pylint: disable=invalid-name
     """Setuptools/distutils command class extending the setuptools 'develop'
     command with the ability to process the 'develop_requires' attribute
     of the setup() function.
@@ -464,7 +459,7 @@ def _linux_distribution():
         )
     return distro.strip(" \t\n").lower()
 
-class BaseInstaller (object):
+class BaseInstaller(object):
     """Base class for installing OS-level packages and Python packages."""
 
     MSG_PLATFORM_NOT_SUPPORTED = 1
@@ -517,7 +512,7 @@ class BaseInstaller (object):
         Raises:
         * If installation fails, raises a DistutilsSetupError exception.
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def is_installed(self, pkg_name, version_req=None):
         """Interface definition: Test whether an OS-level or Python package
@@ -532,7 +527,7 @@ class BaseInstaller (object):
         * If a package version that satisfies the requirement is installed, its
           version is returned as a string. Otherwise, False is returned.
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def is_available(self, pkg_name, version_req=None, display=True):
         """Interface definition: Test whether an OS-level or Python package
@@ -550,7 +545,7 @@ class BaseInstaller (object):
         Returns:
         * Boolean indicating whether the package is available for installation.
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def ensure_installed(self, pkg_name, version_req=None, dry_run=False):
         """Interface definition: Ensure that an OS-level or Python package
@@ -565,7 +560,7 @@ class BaseInstaller (object):
         Raises:
         * If installation fails, raises a DistutilsSetupError exception.
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def parse_pkg_req(self, pkg_req):
         """Parse a package requirement string and return a tuple of package name
@@ -581,9 +576,9 @@ class BaseInstaller (object):
           - A string specifying the version requirement (e.g. '>=1.0'). Empty
             string, if no version requirement was specified.
         """
-        m = re.match(
-          r'^([0-9a-zA-Z_\.\-\+]+)( *(<|<=|=||>|>=) *([0-9a-zA-Z_\.\-\+]+))?$',
-          pkg_req)
+        r = r'^([0-9a-zA-Z_\.\-\+]+)( *(<|<=|=||>|>=) *'\
+            r'([0-9a-zA-Z_\.\-\+]+))?$'
+        m = re.match(r, pkg_req)
         if m is not None:
             pkg_name = m.group(1)
             pkg_version_req = m.group(2)
@@ -605,8 +600,8 @@ class BaseInstaller (object):
             version_info = version.split(".")
             version_req = version_req.strip()
             m = re.match(
-              r'^(<|<=|=||>|>=) *([0-9a-zA-Z_\.\-\+]+)$',
-              version_req)
+                r'^(<|<=|=||>|>=) *([0-9a-zA-Z_\.\-\+]+)$',
+                version_req)
             if m is not None:
                 req_op = m.group(1)
                 req_version = m.group(2)
@@ -668,7 +663,7 @@ class BaseInstaller (object):
                 )
             print msg
 
-class PythonInstaller (BaseInstaller):
+class PythonInstaller(BaseInstaller):
     """Support for installing Python packages."""
 
     def __init__(self):
@@ -713,7 +708,7 @@ class PythonInstaller (BaseInstaller):
         * Boolean indicating whether the package is installed.
         """
         cmd = "pip show %s" % pkg_name
-        rc, out, err = shell(cmd)
+        rc, out, _ = shell(cmd)
         if rc != 0:
             print "Package is not installed: %s" % pkg_name
             return False
@@ -755,29 +750,31 @@ class PythonInstaller (BaseInstaller):
         # command line does not return version information from Pypi.
         # TODO: This is not supported on older pip versions (e.g. 1.4).
         search_command = pip.commands.search.SearchCommand()
-        options, args = search_command.parse_args([pkg_name])
+        options, _ = search_command.parse_args([pkg_name])
         pypi_hits = search_command.search(pkg_name, options)
         hits = pip.commands.search.transform_hits(pypi_hits)
         for hit in hits:
             if hit['name'] == pkg_name:
                 if version_req is None:
                     if display:
-                        print "Package version available in Pypi is "\
-                            "sufficient: %s %s" % (pkg_name, version)
+                        print "Package version(s) available in Pypi are "\
+                              "sufficient: %s %s" %\
+                              (pkg_name, repr(hit['versions']))
                     return True
                 else:
-                    for version in hit['versions']:
+                    for _version in hit['versions']:
                         version_sufficient = self.version_matches_req(
-                            version, version_req)
+                            _version, version_req)
                         if version_sufficient:
+                            version = _version
                             break
                     if display:
                         if version_sufficient:
                             print "Package version available in Pypi is "\
-                                "sufficient: %s %s" % (pkg_name, version)
+                                  "sufficient: %s %s" % (pkg_name, version)
                         else:
                             print "Package version available in Pypi is "\
-                                "not sufficient: %s %s" % (pkg_name, version)
+                                  "not sufficient: %s %s" % (pkg_name, version)
                     return version_sufficient
         if display:
             print "Package is not available in Pypi: %s" % pkg_name
@@ -796,11 +793,10 @@ class PythonInstaller (BaseInstaller):
         Raises:
         * If installation fails, raises a DistutilsSetupError exception.
         """
-        pkg_req = pkg_name + (version_req or "")
         if not self.is_installed(pkg_name, version_req):
             self.install(pkg_name, version_req, dry_run)
 
-class OSInstaller (BaseInstaller):
+class OSInstaller(BaseInstaller):
     """Base class for installing OS-level packages."""
 
     def __init__(self):
@@ -919,7 +915,7 @@ class OSInstaller (BaseInstaller):
         if not self.is_installed(pkg_name, version_req):
             self.install(pkg_name, version_req, dry_run)
 
-class YumInstaller (OSInstaller):
+class YumInstaller(OSInstaller):
     """Installer for yum (or dnf) tool (e.g. RHEL, CentOS, Fedora).
     It uses the new dnf installer, if available in PATH (e.g. for Fedora 22)."""
 
@@ -944,7 +940,6 @@ class YumInstaller (OSInstaller):
         Raises:
         * If installation fails, raises a DistutilsSetupError exception.
         """
-        pkg_req = pkg_name + (version_req or "")
         if not self.authorized():
             self.record_error(pkg_name, version_req,
                               self.MSG_USER_NOT_AUTHORIZED)
@@ -1043,7 +1038,7 @@ class YumInstaller (OSInstaller):
                     "sufficient: %s %s" % (pkg_name, version)
             return True
 
-class AptInstaller (OSInstaller):
+class AptInstaller(OSInstaller):
     """Installer for apt tool (e.g. Debian, Ubuntu)."""
 
     def __init__(self):
@@ -1062,7 +1057,6 @@ class AptInstaller (OSInstaller):
         Raises:
         * If installation fails, raises a DistutilsSetupError exception.
         """
-        pkg_req = pkg_name + (version_req or "")
         if not self.authorized():
             self.record_error(pkg_name, version_req,
                               self.MSG_USER_NOT_AUTHORIZED)
@@ -1137,7 +1131,7 @@ class AptInstaller (OSInstaller):
         * Boolean indicating whether the package is available for installation.
         """
         cmd = "apt show %s" % pkg_name
-        rc, out, err = shell(cmd)
+        rc, out, _ = shell(cmd)
         if rc != 0:
             if display:
                 print "Package is not available in repositories: %s" %\
@@ -1164,7 +1158,7 @@ class AptInstaller (OSInstaller):
                     "sufficient: %s %s" % (pkg_name, version)
             return True
 
-class ZypperInstaller (OSInstaller):
+class ZypperInstaller(OSInstaller):
     """Installer for zypper tool (e.g. SLES, openSUSE)."""
 
     def __init__(self):
@@ -1183,7 +1177,6 @@ class ZypperInstaller (OSInstaller):
         Raises:
         * If installation fails, raises a DistutilsSetupError exception.
         """
-        pkg_req = pkg_name + (version_req or "")
         if not self.authorized():
             self.record_error(pkg_name, version_req,
                               self.MSG_USER_NOT_AUTHORIZED)
@@ -1252,7 +1245,7 @@ class ZypperInstaller (OSInstaller):
         * Boolean indicating whether the package is available for installation.
         """
         cmd = "zypper info %s" % pkg_name
-        rc, out, err = shell(cmd)
+        _, out, _ = shell(cmd)
         # zypper always returns 0, and writes everything to stdout.
         lines = out.splitlines()
         version_lines = [line for line in lines if line.startswith("Version:")]
@@ -1393,10 +1386,13 @@ def import_setuptools(min_version="12.0"):
     else:
         if setuptools.__version__.split(".") < min_version.split("."):
             raise DistutilsSetupError(
-"""The required version of setuptools (>=%s) is not available, and can't be
-installed while this script is running. Please install the required version
-first, using:
-
-    pip install --upgrade 'setuptools>=%s'
-""" % (min_version, min_version))
+                "The required version of setuptools (>=%s) is not available, "\
+                "and can't be\n"\
+                "installed while this script is running. Please install the "\
+                "required version\n"\
+                "first, using:\n"\
+                "\n"\
+                "    pip install --upgrade 'setuptools>=%s'\n" %\
+                (min_version, min_version)
+            )
 
