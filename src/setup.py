@@ -308,7 +308,13 @@ def main():
                     "libpython2.7-dev",
                     "git>=1.7",
                 ],
-                'ubuntu': 'debian',
+                'ubuntu': [
+                    "libssl-dev>=1.0.1",
+                    install_swig,
+                    "g++>=4.4",
+                    "libpython2.7",
+                    "git>=1.7",
+                ],
                 'suse': [
                     "openssl-devel>=1.0.1",
                     install_swig,
