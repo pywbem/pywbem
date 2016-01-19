@@ -46,10 +46,11 @@ Syntax for the new attributes of the `setup()` function:
   These attributes specify the OS-level package names and optionally a version
   requirement for each package. The package names are specific to the system
   as returned by `platform.system()`, and in case of the 'Linux' system, on
-  the Linux distribution as returned by `platform.linux_distribution()` (as a
-  short name). These attributes can also specify custom functions for handling
-  more complex cases. At the distribution level, it is possible to refer to the
-  definitions for another distribution, in order to avoid repetition.
+  the Linux distribution (see `_linux_distribution()`).
+
+  These attributes can also specify custom functions for handling more complex
+  cases. At the distribution level, it is possible to refer to the definitions
+  for another distribution, in order to avoid repetition.
 
   The syntax is the same for both attributes. The following example shows the
   syntax:
@@ -446,6 +447,23 @@ class develop (_develop):
                 "Errors occurred (see previous messages)"
             )
 
+def _linux_distribution():
+    """Return the ID of the Linux distribution.
+
+    The Linux distribution is determined by first looking at the ID parameter in
+    `/etc/os-release`, and then by looking at the result of
+    `platform.linux_distribution()` (which incorrectly returns "debian" on
+    Ubuntu 12.04, hence the other test).
+    """
+    rc, out, _ = shell("grep \"^ID=\" /etc/os-release")
+    if rc == 0 and out.startswith("ID="):
+        distro = out[3:]
+    else:
+        distro, _, _ = platform.linux_distribution(
+            full_distribution_name=False
+        )
+    return distro.strip(" \t\n").lower()
+
 class BaseInstaller (object):
     """Base class for installing OS-level packages and Python packages."""
 
@@ -465,9 +483,8 @@ class BaseInstaller (object):
         * system (string): The name of this operating system (e.g. Windows,
           Linux).
 
-        * distro (string): The name of this Linux distribution (using the short
-          names returned by `platform.linux_distribution()`), or None if this
-          is not a Linux system.
+        * distro (string): The name of this Linux distribution
+          (see `_linux_distribution()`), or None if this is not a Linux system.
 
         * platform (string): A human readable name of this operating system
           platform, that is unique for the combination of system and distro.
@@ -479,8 +496,7 @@ class BaseInstaller (object):
 
         self.system = platform.system()
         if self.system == "Linux":
-            self.distro = platform.linux_distribution(
-                full_distribution_name=False)[0].lower()
+            self.distro = _linux_distribution()
             self.platform = self.distro
         else:
             self.distro = None
