@@ -103,6 +103,7 @@ help:
 develop:
 	sudo python setup.py develop_os
 	python setup.py develop
+	pip install -r dev-requirements.txt
 	@echo '$@ done.'
 
 build: $(dist_file)

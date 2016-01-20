@@ -306,6 +306,8 @@ def main():
             "httpretty",
             "lxml",
             "pyyaml",
+            # TODO: Move pylint back into this section, once reqeuirements
+            #       syntax got extended to support: pylint >=1.1 <1.4
         ],
         'install_os_requires': {
             # OS-level prereqs for 'install_os' command. Handled by os_setup
@@ -357,7 +359,6 @@ def main():
                     "zip",                  # for building distribution archive
                     "unzip",                # for installing distrib. archive
                     "patch",                # for patching Epydoc
-                    "pylint>=1.3",          # for make check
                 ],
                 'centos': 'redhat',
                 'fedora': 'redhat',
@@ -369,9 +370,6 @@ def main():
                     "zip",
                     "unzip",
                     "patch",
-                    "pylint>=1.1",          # TODO: This is a compromise; more
-                                            # ideally, the Python pylint
-                                            # package would be used.
                 ],
                 'ubuntu': [
                     "libxml2-dev",
@@ -381,9 +379,6 @@ def main():
                     "zip",
                     "unzip",
                     "patch",
-                    "pylint>=0.25",         # TODO: This is a compromise; more
-                                            # ideally, the Python pylint
-                                            # package would be used.
                 ],
                 'suse': [
                     "libxml2-devel",
@@ -393,7 +388,6 @@ def main():
                     "zip",
                     "unzip",
                     "patch",
-                    "pylint>=1.3",
                 ],
             },
             # TODO: Add support for Windows. Some notes:
