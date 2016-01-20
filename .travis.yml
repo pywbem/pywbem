@@ -8,7 +8,7 @@ python:
 install:
   - python -c "import platform; print('linux_distribution()=%s' % repr(platform.linux_distribution()))"
   - which apt
-  - which apt-get
+  - apt --help
   - apt-cache policy
   - apt search pylint
   - pip list
