@@ -9,6 +9,7 @@ install:
   - python -c "import platform; print('linux_distribution()=%s' % repr(platform.linux_distribution()))"
   - pip install --upgrade pip
   - pip list
+  - cd src; make develop
 # command to run tests
-script: make all
+script: cd src; make test
 sudo: required
