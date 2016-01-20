@@ -117,67 +117,80 @@ required-attributes=
 # List of builtins function names that should not be used, separated by a comma
 bad-functions=map,filter,apply,input
 
-# Regular expression which should only match correct module names.
-# The intention is to allow: "lower_case_with_underscores"; leading underscores
+# Regular expression used to match module and package names.
+# The expression below allows "lower_case_with_underscores"; leading underscores
+# for privacy as well as double trailing underscores are allowed.
+# Names matching this expression are compatible with PEP-8.
+module-rgx=_{0,2}[a-z][a-z0-9_]{0,28}[a-z0-9](__){0,1}$
+
+# Regular expression used to match module level variable names (=constants).
+# The expression below allows "UPPER_CASE_WITH_UNDERSCORES"; leading underscores
 # for privacy are allowed.
-module-rgx=(__.+__|_{0,1}[a-z][a-z0-9_]{2,29})$
+# Names matching this expression are compatible with PEP-8.
+const-rgx=_{0,1}[A-Z][A-Z0-9_]{0,38}[A-Z0-9]$
 
-# Regular expression which should only match correct module level variable names.
-# The intention is to allow: "UPPER_CASE_WITH_UNDERSCORES" for constants, and
-# not to allow variables that change. Leading underscores for privacy are allowed.
-const-rgx=(__.+__|_{0,1}[A-Z][A-Z0-9_]{2,39})$
+# Regular expression used to match class names.
+# The expression below allows "CamelCaseWithoutUnderscores"; leading underscores
+# for privacy are allowed.
+# Names matching this expression are compatible with PEP-8, but PEP-8 also
+# allows that class names for callable classes can use function name syntax.
+# This is not reflected in this regexp; callable classes that follow that
+# convention should disable PyLint message C0103.
+class-rgx=_{0,1}[A-Z][a-zA-Z0-9]{1,29}$
 
-# Regular expression which should only match correct class names.
-# The intention is to allow: "CamelCaseWithoutUnderscores"; leading underscores
-# for privacy are allowed. Note that PEP 8 states that class names for callable
-# classes can also use function name syntax. This is not reflected in this
-# regexp; callable classes that follow that convention should disable PyLint
-# message C0103.
-class-rgx=_{0,1}[A-Z][a-zA-Z0-9]{2,29}$
-
-# Regular expression which should only match correct (non-method) function names.
-# The intention is to allow: "lower_case_with_underscores" and
-# "mixedCaseWithoutUnderscores"; leading underscores for privacy are allowed.
+# Regular expression used to match (non-method) function names.
+# The expression below allows "lower_case_with_underscores" and
+# "mixedCaseWithoutUnderscores"; leading underscores for privacy as well as
+# double trailing underscores are allowed.
+# Names matching this expression are compatible with PEP-8.
+function-rgx=_{0,2}([a-z][a-z0-9_]{0,28}[a-z0-9]|[a-z][a-zA-Z0-9]{1,29})(__){0,1}$
 # TODO: Verify whether two leading underscores are allowed / supported with name mangling.
-function-rgx=(__.+__|_{0,2}([a-z][a-z0-9_]{2,29}|[a-z][a-zA-Z0-9]{2,29}))$
 
-# Regular expression which should only match correct method names.
-# The intention is to allow: "lower_case_with_underscores" and
+# Regular expression used to match method names.
+# The expression below allows "lower_case_with_underscores" and
+# "mixedCaseWithoutUnderscores"; leading underscores for privacy as well as
+# double trailing underscores are allowed.
+# Names matching this expression are compatible with PEP-8.
+method-rgx=_{0,2}([a-z][a-z0-9_]{0,28}[a-z0-9]|[a-z][a-zA-Z0-9]{1,29})(__){0,1}$
+
+# Regular expression used to match instance variable (=attribute) names.
+# The expression below allows "lower_case_with_underscores" and
 # "mixedCaseWithoutUnderscores"; leading underscores for privacy are allowed.
-method-rgx=(__.+__|_{0,2}([a-z][a-z0-9_]{2,29}|[a-z][a-zA-Z0-9]{2,29}))$
+# Names matching this expression are compatible with PEP-8.
+attr-rgx=_{0,2}([a-z][a-z0-9_]{0,28}[a-z0-9]|[a-z][a-zA-Z0-9]{1,29})$
 
-# Regular expression which should only match correct instance variable (attribute) names.
-# The intention is to allow: "lower_case_with_underscores" and
-# "mixedCaseWithoutUnderscores"; leading underscores for privacy are allowed.
-attr-rgx=(__.+__|_{0,2}([a-z][a-z0-9_]{2,29}|[a-z][a-zA-Z0-9]{2,29}))$
+# Regular expression used to match instance variable (=attribute) names.
+# The expression below allows "lower_case_with_underscores" and
+# "mixedCaseWithoutUnderscores"; leading underscores are NOT allowed,
+# but one trailing underscore is allowed to avoid conflists with built-in
+# names.
+# Names matching this expression are compatible with PEP-8.
+argument-rgx=([a-z][a-z0-9_]{0,28}[a-z0-9]|[a-z][a-zA-Z0-9]{1,29})_{0,1}$
 
-# Regular expression which should only match correct argument names.
-# The intention is to allow: "lower_case_with_underscores" and
-# "mixedCaseWithoutUnderscores"; leading underscores are NOT allowed.
-argument-rgx=([a-z][a-z0-9_]{0,29}|[a-z][a-zA-Z0-9]{0,29})$
-
-# Regular expression which should only match correct local variable names.
-# The intention is to allow: "UPPER_CASE_WITH_UNDERSCORES" for constants,
+# Regular expression used to match variable names.
+# The expression below allows "UPPER_CASE_WITH_UNDERSCORES" for constants,
 # and "lower_case_with_underscores" and "mixedCaseWithoutUnderscores" for
-# changing variables; leading underscores for privacy are allowed.
-variable-rgx=_{0,1}([A-Z][A-Z0-9_]{0,39}|[a-z][a-z0-9_]{0,29}|[a-z][a-zA-Z0-9]{0,29})$
+# other variables; one leading underscore is allowed, and one trailing
+# underscore is allowed to avoid conflists with built-in names.
+# Names matching this expression are compatible with PEP-8.
+variable-rgx=_{0,1}([A-Z]([A-Z0-9_]{0,38}[A-Z0-9])?|[a-z]([a-z0-9_]{0,38}[a-z0-9])?|[a-z]([a-zA-Z0-9]{1,39})?)_{0,1}$
 
-# Regular expression which should only match correct attribute names in class
-# bodies.
-# The intention is to allow: "UPPER_CASE_WITH_UNDERSCORES" for constants,
+# Regular expression used to match attribute names in class bodies.
+# The expression below allows "UPPER_CASE_WITH_UNDERSCORES" for constants,
 # and "lower_case_with_underscores" and "mixedCaseWithoutUnderscores" for
-# changing variables; leading underscores for privacy are allowed.
-class-attribute-rgx=(__.+__|_{0,2}([A-Z][A-Z0-9_]{2,39}|[a-z][a-z0-9_]{2,29}|[a-z][a-zA-Z0-9]{2,29}))$
+# other variables; leading underscores for privacy are allowed.
+# Names matching this expression are compatible with PEP-8.
+class-attribute-rgx=_{0,2}([A-Z][A-Z0-9_]{0,38}[A-Z0-9]|[a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9]{0,39})$
 
-# Regular expression which should only match correct list comprehension /
+# Regular expression used to match list comprehension /
 # generator expression variable names.
-# The intention is to allow: "lower_case_with_underscores" and
+# The expression below allows "lower_case_with_underscores" and
 # "mixedCaseWithoutUnderscores"; leading underscores for privacy are allowed.
-inlinevar-rgx=_{0,1}([a-z][a-z0-9_]{0,29}|[a-z][a-zA-Z0-9]{0,29})$
+inlinevar-rgx=_{0,1}([a-z][a-z0-9_]{0,28}[a-z0-9]|[a-z][a-zA-Z0-9]{0,29})$
 
 # Good variable names which should always be accepted, separated by a comma
 # TODO: Move i,... to local var and inline var; move _ to arg and local var and inline var.
-good-names=_,f,i,j,k,m,n
+good-names=_,f,i,j,k,m,n,__all__,__name__,__version__
 
 # Bad variable names which should always be refused, separated by a comma
 bad-names=foo,bar,baz,toto,tutu,tata,l,O,I
