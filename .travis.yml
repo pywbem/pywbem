@@ -7,11 +7,7 @@ python:
 # command to install dependencies
 install:
   - python -c "import platform; print('linux_distribution()=%s' % repr(platform.linux_distribution()))"
-  - pip list
   - pip install --upgrade pip
-  - sudo apt-get install -y pylint
-  - cd src; sudo python setup.py develop_os
-  - cd src; python setup.py develop
   - pip list
 # command to run tests
 script: make all
