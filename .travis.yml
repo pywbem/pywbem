@@ -6,10 +6,13 @@ python:
   - "2.7"
 # command to install dependencies
 install:
+  - # The next command shows that Python's platform.linux_distribution() returns a incorrect distro:
   - python -c "import platform; print('linux_distribution()=%s' % repr(platform.linux_distribution()))"
-  - pip install --upgrade pip
   - pip list
-  - cd src; make develop
+  - pip install --upgrade pip
+  - cd src
+  - make develop
+  - pip list
 # command to run tests
-script: cd src; make test
+script: make test
 sudo: required
