@@ -50,17 +50,22 @@ def install_swig(command):
     """
     inst = command.installer
     dry_run = command.dry_run
+    verbose = command.verbose
 
     swig_min_version = "2.0"
 
-    print "Testing for availability of Swig >=%s in PATH..." % swig_min_version
+    if verbose:
+        print "Testing for availability of Swig >=%s in PATH..." %\
+              swig_min_version
     get_swig = False
     rc, out, _ = shell("which swig")
     if rc != 0:
-        print "Swig is not available in PATH; need to get Swig"
+        if verbose:
+            print "Swig is not available in PATH; need to get Swig"
         get_swig = True
     else:
-        print "Swig is available in PATH; testing its version..."
+        if verbose:
+            print "Swig is available in PATH; testing its version..."
         out = shell_check("swig -version")
         m = re.search(r"^SWIG Version ([0-9\.]+)$", out, re.MULTILINE)
         if m is None:
@@ -68,11 +73,13 @@ def install_swig(command):
                                       "output of 'swig -version':\n%s" % out)
         swig_version = m.group(1)
         if swig_version.split(".") < swig_min_version.split("."):
-            print "Installed Swig version is too old: %s; need to get Swig" %\
-                  swig_version
+            if verbose:
+                print "Installed Swig version is too old: %s; "\
+                      "need to get Swig" % swig_version
             get_swig = True
         else:
-            print "Installed Swig version is sufficient: %s" % swig_version
+            if verbose:
+                print "Installed Swig version is sufficient: %s" % swig_version
 
     if get_swig:
 
@@ -98,10 +105,10 @@ def install_swig(command):
 
         swig_version_req = ">=%s" % swig_min_version
 
-        if inst.is_available(swig_pkg_name, swig_version_req):
+        if inst.is_available(swig_pkg_name, swig_version_req, verbose):
 
             # Install Swig as a package
-            inst.install(swig_pkg_name, swig_version_req, dry_run)
+            inst.install(swig_pkg_name, swig_version_req, dry_run, verbose)
 
         else:
 
@@ -111,8 +118,9 @@ def install_swig(command):
             swig_tar_file = "swig-%s.tar.gz" % swig_build_version
             swig_install_root = "/usr"
 
-            print "Installing prerequisite OS-level packages for building "\
-                  "Swig..."
+            if verbose:
+                print "Installing prerequisite OS-level packages for building "\
+                      "Swig..."
 
             swig_prereq_pkg_dict = {
                 'Linux': {
@@ -149,46 +157,56 @@ def install_swig(command):
                 if distro in distro_dict:
                     swig_prereq_pkg_names = distro_dict[distro]
             for swig_prereq_pkg_name in swig_prereq_pkg_names:
-                inst.ensure_installed(swig_prereq_pkg_name, None, dry_run)
+                inst.ensure_installed(swig_prereq_pkg_name, None, dry_run,
+                                      verbose)
 
             if dry_run:
-                print "Dry-running: Building Swig version %s from "\
-                      "downloaded source, and installing to %s tree" %\
-                      (swig_build_version, swig_install_root)
+                if verbose:
+                    print "Dry-running: Building Swig version %s from "\
+                          "downloaded source, and installing to %s tree" %\
+                          (swig_build_version, swig_install_root)
             else:
-                print "Building Swig version %s from "\
-                      "downloaded source, and installing to %s tree" %\
-                      (swig_build_version, swig_install_root)
+                if verbose:
+                    print "Building Swig version %s from "\
+                          "downloaded source, and installing to %s tree" %\
+                          (swig_build_version, swig_install_root)
 
                 if os.path.exists(swig_dir):
-                    print "Removing previously downloaded Swig directory: %s" %\
-                          swig_dir
+                    if verbose:
+                        print "Removing previously downloaded Swig directory: "\
+                              "%s" % swig_dir
                     shutil.rmtree(swig_dir)
 
-                print "Downloading Swig source archive: %s" % swig_tar_file
+                if verbose:
+                    print "Downloading Swig source archive: %s" % swig_tar_file
                 shell_check(
                     "wget -q -O %s http://sourceforge.net/projects/swig/files"\
                     "/swig/%s/%s/download" %\
                     (swig_tar_file, swig_dir, swig_tar_file), display=True)
-                print "Unpacking Swig source archive: %s" % swig_tar_file
+                if verbose:
+                    print "Unpacking Swig source archive: %s" % swig_tar_file
                 shell_check("tar -xf %s" % swig_tar_file, display=True)
 
-                print "Configuring Swig build process for installing to %s "\
-                      "tree..." % swig_install_root
+                if verbose:
+                    print "Configuring Swig build process for installing to "\
+                          "%s tree..." % swig_install_root
                 shell_check(["sh", "-c", "cd %s; ./configure --prefix=%s" %\
                             (swig_dir, swig_install_root)],
                             display=True)
 
-                print "Building Swig..."
+                if verbose:
+                    print "Building Swig..."
                 shell_check(["sh", "-c", "cd %s; make swig" % swig_dir],
                             display=True)
 
-                print "Installing Swig to %s tree..." % swig_install_root
+                if verbose:
+                    print "Installing Swig to %s tree..." % swig_install_root
                 shell_check(["sh", "-c", "cd %s; sudo make install" % swig_dir],
                             display=True)
 
-                print "Done downloading, building and installing Swig "\
-                      "version %s" % swig_build_version
+                if verbose:
+                    print "Done downloading, building and installing Swig "\
+                          "version %s" % swig_build_version
 
 def patch_epydoc(command):
     """
@@ -201,24 +219,31 @@ def patch_epydoc(command):
     """
     # Find the active version of Epydoc
 
+    verbose = command.verbose
+
     if command.dry_run:
-        print "Dry-running: Patching Epydoc"
+        if verbose:
+            print "Dry-running: Patching Epydoc"
     else:
-        print "Patching Epydoc"
+        if verbose:
+            print "Patching Epydoc"
 
         import epydoc
         epydoc_target_dir = os.path.dirname(epydoc.__file__)
         epydoc_patch_dir = epydoc_target_dir+"/epydoc-3.0.1-patches"
 
-        print "Epydoc patch directory: %s" % epydoc_patch_dir
+        if verbose:
+            print "Epydoc patch directory: %s" % epydoc_patch_dir
 
         if os.path.exists(epydoc_patch_dir):
-            print "Assuming Epydoc patches have already been applied, because "\
-                  "patch directory exists"
+            if verbose:
+                print "Assuming Epydoc patches have already been applied, "\
+                      "because patch directory exists"
         else:
-            print "Downloading Epydoc patches into patch directory: %s" %\
-                epydoc_patch_dir
-            shell_check("mkdir -p %s" % epydoc_patch_dir)
+            if verbose:
+                print "Downloading Epydoc patches into patch directory: %s" %\
+                      epydoc_patch_dir
+            shell_check("mkdir -p %s" % epydoc_patch_dir, display=True)
             shell_check("wget -q -O %s/epydoc-rst.patch "\
                         "http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/"\
                         "packages/epydoc/epydoc-rst.patch?revision=1.1&"\
@@ -231,8 +256,9 @@ def patch_epydoc(command):
                         "http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/"\
                         "packages/epydoc/epydoc-__package__.patch?"\
                         "revision=1.1&view=co" % epydoc_patch_dir, display=True)
-            print "Applying Epydoc patches to Epydoc installation directory: "\
-                  "%s" % epydoc_target_dir
+            if verbose:
+                print "Applying Epydoc patches to Epydoc installation "\
+                      "directory: %s" % epydoc_target_dir
             shell_check("patch -N -r %s/epydoc-rst.patch.rej "
                         "-i %s/epydoc-rst.patch "
                         "%s/markup/restructuredtext.py" %\
@@ -306,8 +332,10 @@ def main():
             "httpretty",
             "lxml",
             "pyyaml",
-            # TODO: Move pylint back into this section, once reqeuirements
-            #       syntax got extended to support: pylint >=1.1 <1.4
+            "astroid>=1.2,<1.3",  # Used by Pylint. V1.3 and above no longer
+                                  # works with Python 2.6.
+            "pylint>=1.1,<1.4",   # V1.4 and above no longer works with
+                                  # Python 2.6.
         ],
         'install_os_requires': {
             # OS-level prereqs for 'install_os' command. Handled by os_setup
