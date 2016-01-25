@@ -10,7 +10,6 @@ install:
   - python -c "import platform; print('linux_distribution()=%s' % repr(platform.linux_distribution()))"
   - pip list
   - pip install --upgrade pip
-  - cd src
   - make develop
   - pip list
 # command to run tests
