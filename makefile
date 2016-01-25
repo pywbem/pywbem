@@ -33,7 +33,7 @@ package_version := $(shell sh -c "echo $(package_specified_version) |sed 's/[.-]
 package_final_version := $(shell sh -c "echo $(package_version) |sed 's/rc[0-9]\+$$//' |sed 's/\.dev0$$//'")
 
 # Directory for the generated distribution files
-dist_dir := ../dist/$(package_name)-$(package_final_version)
+dist_dir := dist/$(package_name)-$(package_final_version)
 
 # Distribution archive (as built by setup.py)
 dist_file := $(dist_dir)/$(package_name)-$(package_version).zip
@@ -51,7 +51,7 @@ doc_build_dir := build_doc
 doc_cmd := epydoc --verbose --simple-term --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_build_dir) $(package_name)
 
 # Directory for documentation publishing
-doc_publish_dir := ../../pywbem.github.io/pywbem/doc/$(package_final_version)/doc
+doc_publish_dir := ../pywbem.github.io/pywbem/doc/$(package_final_version)/doc
 
 # PyLint config file
 pylint_rc_file := pylint.rc
@@ -62,7 +62,7 @@ pylint_rc_file := pylint.rc
 # as specified, without being expanded.
 dist_manifest_in_files := \
     $(package_name)/LICENSE.txt \
-    README \
+    README.md \
     INSTALL \
     *.py \
     $(package_name)/*.py \
@@ -72,7 +72,7 @@ dist_manifest_in_files := \
 # Keep in sync with dist_manifest_in_files.
 dist_dependent_files := \
     $(package_name)/LICENSE.txt \
-    README \
+    README.md \
     INSTALL \
     $(wildcard *.py) \
     $(wildcard $(package_name)/*.py) \
