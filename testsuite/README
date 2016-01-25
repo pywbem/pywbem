@@ -1,15 +1,30 @@
 This directory contains the tests for PyWBEM.  You should try and run
-them if you are doing development on the code.  (-:
+them if you are doing development on the code.
 
-The tests are run by executing:
+There are two types of test:
 
-    # ./runtests.sh
+1. Automatic unit tests.
 
-To run the CIM operations test, the test.mof file must be loaded in to
-the repository.  Under Pegasus, this done by setting the 
-repositoryIsDefaultProvider configuration variable to true.
+   These tests are run by executing (one level up from here):
 
-    # cimconfig -s repositoryIsDefaultInstanceProvider=true -p
-    # cimmof < test.mof
+       $ make test
 
-Pegasus must be restarted in order for the change to take effect.
+   Or by executing (in this directory):
+
+       $ py.test
+
+2. Manual test: run_cim_operations.py.
+
+   To run the CIM operations tests against a real WBEM server, use the
+   run_cim_operations.py script. Invoke it with --help for usage.
+
+   The test.mof file must be loaded into the repository of the
+   WBEM server that is used for that test.  Under OpenPegasus, this done
+   by setting the repositoryIsDefaultProvider configuration variable to
+   true, and my loading the file, as follows:
+
+       $ cimconfig -s repositoryIsDefaultInstanceProvider=true -p
+       $ cimmof < test.mof
+
+   OpenPegasus must be restarted in order for the change to take effect.
+

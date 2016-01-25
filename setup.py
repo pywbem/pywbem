@@ -326,6 +326,7 @@ def main():
         ],
         'develop_requires' : [
             # Python prereqs for 'develop' command. Handled by os_setup module.
+            "pytest>=2.4",
             "epydoc>=3.0.1",
             patch_epydoc,
             "docutils>=0.12",

@@ -10,6 +10,7 @@ The return codes here may be specific to OpenPegasus.
 import sys
 from datetime import timedelta
 from types import StringTypes
+import unittest
 
 from pywbem.cim_constants import *
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
@@ -19,27 +20,25 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
                    Real32, Real64, CIMDateTime, ParseError
 from pywbem.cim_operations import DEFAULT_NAMESPACE, check_utf8_xml_chars
 
-from comfychair import main, TestCase, NotRunError
+unimplemented = unittest.skip("test not implemented")
 
 # A class that should be implemented and is used for testing
 TEST_CLASS = 'CIM_ComputerSystem'
 
-# Test classes
-
-class ClientTest(TestCase):
+class ClientTest(unittest.TestCase):
     """A base class that creates a pywbem.WBEMConnection for
     subclasses to use."""
 
-    def setup(self):
+    def setUp(self):
         """Create a connection."""
-        global url, username, password, namespace, timeout
+        global args
 
-        self.system_url = url
+        self.system_url = args['url']
         self.conn = WBEMConnection(
             self.system_url,
-            (username, password),
-            namespace,
-            timeout=timeout)
+            (args['username'], args['password']),
+            args['namespace'],
+            timeout=args['timeout'])
         self.conn.debug = True
 
     def cimcall(self, fn, *args, **kw):
@@ -48,19 +47,19 @@ class ClientTest(TestCase):
         try:
             result = fn(*args, **kw)
         except Exception as exc:
-            self.log('Operation %s failed with %s: %s\n' % \
-                     (fn.__name__, exc.__class__.__name__, str(exc)))
+            #self.log('Operation %s failed with %s: %s\n' % \
+            #         (fn.__name__, exc.__class__.__name__, str(exc)))
             last_request = self.conn.last_request or self.conn.last_raw_request
-            self.log('Request:\n\n%s\n' % last_request)
+            #self.log('Request:\n\n%s\n' % last_request)
             last_reply = self.conn.last_reply or self.conn.last_raw_reply
-            self.log('Reply:\n\n%s\n' % last_reply)
+            #self.log('Reply:\n\n%s\n' % last_reply)
             raise
 
-        self.log('Operation %s succeeded\n' % fn.__name__)
+        #self.log('Operation %s succeeded\n' % fn.__name__)
         last_request = self.conn.last_request or self.conn.last_raw_request
-        self.log('Request:\n\n%s\n' % last_request)
+        #self.log('Request:\n\n%s\n' % last_request)
         last_reply = self.conn.last_reply or self.conn.last_raw_reply
-        self.log('Reply:\n\n%s\n' % last_reply)
+        #self.log('Reply:\n\n%s\n' % last_reply)
 
         return result
 
@@ -70,18 +69,18 @@ class ClientTest(TestCase):
 
 class EnumerateInstanceNames(ClientTest):
 
-    def runtest(self):
+    def test_all(self):
 
         # Single arg call
 
         names = self.cimcall(self.conn.EnumerateInstanceNames,
                              TEST_CLASS)
 
-        self.assert_(len(names) >= 1)
+        self.assertTrue(len(names) >= 1)
 
         for n in names:
-            self.assert_(isinstance(n, CIMInstanceName))
-            self.assert_(len(n.namespace) > 0)
+            self.assertTrue(isinstance(n, CIMInstanceName))
+            self.assertTrue(len(n.namespace) > 0)
 
         # Call with explicit CIM namespace that exists
 
@@ -103,19 +102,19 @@ class EnumerateInstanceNames(ClientTest):
 
 class EnumerateInstances(ClientTest):
 
-    def runtest(self):
+    def test_all(self):
 
         # Simplest invocation
 
         instances = self.cimcall(self.conn.EnumerateInstances,
                                  TEST_CLASS)
 
-        self.assert_(len(instances) >= 1)
+        self.assertTrue(len(instances) >= 1)
 
         for i in instances:
-            self.assert_(isinstance(i, CIMInstance))
-            self.assert_(isinstance(i.path, CIMInstanceName))
-            self.assert_(len(i.path.namespace) > 0)
+            self.assertTrue(isinstance(i, CIMInstance))
+            self.assertTrue(isinstance(i.path, CIMInstanceName))
+            self.assertTrue(len(i.path.namespace) > 0)
 
         # Call with explicit CIM namespace that exists
 
@@ -138,7 +137,7 @@ class EnumerateInstances(ClientTest):
 
 class ExecQuery(ClientTest):
 
-    def runtest(self):
+    def test_all(self):
 
         try:
 
@@ -148,12 +147,12 @@ class ExecQuery(ClientTest):
                                      'wql',
                                      'Select * from %s' % TEST_CLASS)
 
-            self.assert_(len(instances) >= 1)
+            self.assertTrue(len(instances) >= 1)
 
             for i in instances:
-                self.assert_(isinstance(i, CIMInstance))
-                self.assert_(isinstance(i.path, CIMInstanceName))
-                self.assert_(len(i.path.namespace) > 0)
+                self.assertTrue(isinstance(i, CIMInstance))
+                self.assertTrue(isinstance(i.path, CIMInstanceName))
+                self.assertTrue(len(i.path.namespace) > 0)
 
             # Call with explicit CIM namespace that does not exist
 
@@ -170,9 +169,10 @@ class ExecQuery(ClientTest):
 
         except CIMError, arg:
             if arg[0] == CIM_ERR_NOT_SUPPORTED:
-                raise NotRunError("The WBEM server doesn't support ExecQuery")
+                raise AssertionError(
+                    "The WBEM server doesn't support ExecQuery")
             if arg[0] == CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
-                raise NotRunError(
+                raise AssertionError(
                     "The WBEM server doesn't support WQL for ExecQuery")
             else:
                 raise
@@ -180,10 +180,10 @@ class ExecQuery(ClientTest):
 
 class GetInstance(ClientTest):
 
-    def runtest(self):
+    def test_all(self):
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
-        self.assert_(len(inst_names) >= 1)
+        self.assertTrue(len(inst_names) >= 1)
         name = inst_names[0] # Pick the first returned instance
 
         # Simplest invocation
@@ -191,8 +191,8 @@ class GetInstance(ClientTest):
         obj = self.cimcall(self.conn.GetInstance,
                            name)
 
-        self.assert_(isinstance(obj, CIMInstance))
-        self.assert_(isinstance(obj.path, CIMInstanceName))
+        self.assertTrue(isinstance(obj, CIMInstance))
+        self.assertTrue(isinstance(obj.path, CIMInstanceName))
 
         # Call with invalid namespace path
 
@@ -210,7 +210,7 @@ class GetInstance(ClientTest):
 
 class CreateInstance(ClientTest):
 
-    def runtest(self):
+    def test_all(self):
 
         # Test instance
 
@@ -239,12 +239,12 @@ class CreateInstance(ClientTest):
                 # does not support creation
                 pass
         else:
-            self.assert_(isinstance(result, CIMInstanceName))
-            self.assert_(len(result.namespace) > 0)
+            self.assertTrue(isinstance(result, CIMInstanceName))
+            self.assertTrue(len(result.namespace) > 0)
 
             result = self.cimcall(self.conn.DeleteInstance, instance.path)
 
-            self.assert_(result is None)
+            self.assertTrue(result is None)
 
         try:
             self.cimcall(self.conn.GetInstance(instance.path))
@@ -254,7 +254,7 @@ class CreateInstance(ClientTest):
 
 class ModifyInstance(ClientTest):
 
-    def runtest(self):
+    def test_all(self):
 
         # Test instance
 
@@ -291,7 +291,7 @@ class ModifyInstance(ClientTest):
             instance.path.namespace = 'root/cimv2'
             result = self.cimcall(self.conn.ModifyInstance, instance)
 
-            self.assert_(result is None)
+            self.assertTrue(result is None)
 
             # Clean up
 
@@ -304,7 +304,7 @@ class ModifyInstance(ClientTest):
 
 class InvokeMethod(ClientTest):
 
-    def runtest(self):
+    def test_all(self):
 
         # Invoke on classname
 
@@ -322,7 +322,7 @@ class InvokeMethod(ClientTest):
         # Invoke on an InstanceName
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
-        self.assert_(len(inst_names) >= 1)
+        self.assertTrue(len(inst_names) >= 1)
         name = inst_names[0] # Pick the first returned instance
 
         try:
@@ -430,25 +430,25 @@ class InvokeMethod(ClientTest):
 
 class Associators(ClientTest):
 
-    def runtest(self):
+    def test_all(self):
 
         # Call on named instance
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
-        self.assert_(len(inst_names) >= 1)
+        self.assertTrue(len(inst_names) >= 1)
         inst_name = inst_names[0] # Pick the first returned instance
 
         instances = self.cimcall(self.conn.Associators, inst_name)
 
         for i in instances:
-            self.assert_(isinstance(i, CIMInstance))
-            self.assert_(isinstance(i.path, CIMInstanceName))
+            self.assertTrue(isinstance(i, CIMInstance))
+            self.assertTrue(isinstance(i.path, CIMInstanceName))
 
             # TODO: For now, disabled test for class name of associated insts.
-            # self.assert_(i.classname == 'TBD')
+            # self.assertTrue(i.classname == 'TBD')
 
-            self.assert_(i.path.namespace is not None)
-            self.assert_(i.path.host is not None)
+            self.assertTrue(i.path.namespace is not None)
+            self.assertTrue(i.path.host is not None)
 
         # Call on class name
 
@@ -458,24 +458,24 @@ class Associators(ClientTest):
 
 class AssociatorNames(ClientTest):
 
-    def runtest(self):
+    def test_all(self):
 
         # Call on named instance
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
-        self.assert_(len(inst_names) >= 1)
+        self.assertTrue(len(inst_names) >= 1)
         inst_name = inst_names[0] # Pick the first returned instance
 
         names = self.cimcall(self.conn.AssociatorNames, inst_name)
 
         for n in names:
-            self.assert_(isinstance(n, CIMInstanceName))
+            self.assertTrue(isinstance(n, CIMInstanceName))
 
             # TODO: For now, disabled test for class name of associated insts.
-            # self.assert_(n.classname == 'TBD')
+            # self.assertTrue(n.classname == 'TBD')
 
-            self.assert_(n.namespace is not None)
-            self.assert_(n.host is not None)
+            self.assertTrue(n.namespace is not None)
+            self.assertTrue(n.host is not None)
 
         # Call on class name
 
@@ -485,25 +485,25 @@ class AssociatorNames(ClientTest):
 
 class References(ClientTest):
 
-    def runtest(self):
+    def test_all(self):
 
         # Call on named instance
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
-        self.assert_(len(inst_names) >= 1)
+        self.assertTrue(len(inst_names) >= 1)
         inst_name = inst_names[0] # Pick the first returned instance
 
         instances = self.cimcall(self.conn.References, inst_name)
 
         for i in instances:
-            self.assert_(isinstance(i, CIMInstance))
-            self.assert_(isinstance(i.path, CIMInstanceName))
+            self.assertTrue(isinstance(i, CIMInstance))
+            self.assertTrue(isinstance(i.path, CIMInstanceName))
 
             # TODO: For now, disabled test for class name of referencing insts.
-            # self.assert_(i.classname == 'TBD')
+            # self.assertTrue(i.classname == 'TBD')
 
-            self.assert_(i.path.namespace is not None)
-            self.assert_(i.path.host is not None)
+            self.assertTrue(i.path.namespace is not None)
+            self.assertTrue(i.path.host is not None)
 
         # Call on class name
 
@@ -513,24 +513,24 @@ class References(ClientTest):
 
 class ReferenceNames(ClientTest):
 
-    def runtest(self):
+    def test_all(self):
 
         # Call on instance name
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
-        self.assert_(len(inst_names) >= 1)
+        self.assertTrue(len(inst_names) >= 1)
         inst_name = inst_names[0] # Pick the first returned instance
 
         names = self.cimcall(self.conn.ReferenceNames, inst_name)
 
         for n in names:
-            self.assert_(isinstance(n, CIMInstanceName))
+            self.assertTrue(isinstance(n, CIMInstanceName))
 
             # TODO: For now, disabled test for class name of referencing insts.
-            # self.assert_(n.classname == 'TBD')
+            # self.assertTrue(n.classname == 'TBD')
 
-            self.assert_(n.namespace is not None)
-            self.assert_(n.host is not None)
+            self.assertTrue(n.namespace is not None)
+            self.assertTrue(n.host is not None)
 
         # Call on class name
 
@@ -546,11 +546,11 @@ class ClassVerifier(object):
     """Mixin class for testing CIMClass instances."""
 
     def verify_property(self, p):
-        self.assert_(isinstance(p, CIMProperty))
+        self.assertTrue(isinstance(p, CIMProperty))
 
     def verify_qualifier(self, q):
-        self.assert_(q.name)
-        self.assert_(q.value)
+        self.assertTrue(q.name)
+        self.assertTrue(q.value)
 
     def verify_method(self, m):
         # TODO: verify method
@@ -560,10 +560,10 @@ class ClassVerifier(object):
 
         # Verify simple attributes
 
-        self.assert_(cl.classname)
+        self.assertTrue(cl.classname)
 
         if cl.superclass is not None:
-            self.assert_(cl.superclass)
+            self.assertTrue(cl.superclass)
 
         # Verify properties, qualifiers and methods
 
@@ -576,14 +576,14 @@ class ClassVerifier(object):
 
 class EnumerateClassNames(ClientTest):
 
-    def runtest(self):
+    def test_all(self):
 
         # Enumerate all classes
 
         names = self.cimcall(self.conn.EnumerateClassNames)
 
         for n in names:
-            self.assert_(isinstance(n, StringTypes))
+            self.assertTrue(isinstance(n, StringTypes))
 
         # Enumerate with classname arg
 
@@ -591,18 +591,18 @@ class EnumerateClassNames(ClientTest):
                              ClassName='CIM_ManagedElement')
 
         for n in names:
-            self.assert_(isinstance(n, StringTypes))
+            self.assertTrue(isinstance(n, StringTypes))
 
 class EnumerateClasses(ClientTest, ClassVerifier):
 
-    def runtest(self):
+    def test_all(self):
 
         # Enumerate all classes
 
         classes = self.cimcall(self.conn.EnumerateClasses)
 
         for c in classes:
-            self.assert_(isinstance(c, CIMClass))
+            self.assertTrue(isinstance(c, CIMClass))
             self.verify_class(c)
 
         # Enumerate with classname arg
@@ -611,81 +611,98 @@ class EnumerateClasses(ClientTest, ClassVerifier):
                                ClassName='CIM_ManagedElement')
 
         for c in classes:
-            self.assert_(isinstance(c, CIMClass))
+            self.assertTrue(isinstance(c, CIMClass))
             self.verify_class(c)
 
 class GetClass(ClientTest, ClassVerifier):
 
-    def runtest(self):
+    def test_all(self):
 
         name = self.cimcall(self.conn.EnumerateClassNames)[0]
         self.cimcall(self.conn.GetClass, name)
 
 class CreateClass(ClientTest):
 
-    def runtest(self):
-        raise NotRunError
+    @unimplemented
+    def test_all(self):
+        raise AssertionError("test not implemented")
 
 class DeleteClass(ClientTest):
 
-    def runtest(self):
-        raise NotRunError
+    @unimplemented
+    def test_all(self):
+        raise AssertionError("test not implemented")
 
 class ModifyClass(ClientTest):
 
-    def runtest(self):
-        raise NotRunError
+    @unimplemented
+    def test_all(self):
+        raise AssertionError("test not implemented")
 
 #################################################################
 # Property provider interface tests
 #################################################################
 
 class GetProperty(ClientTest):
-    def runtest(self):
-        raise NotRunError
+
+    @unimplemented
+    def test_all(self):
+        raise AssertionError("test not implemented")
 
 class SetProperty(ClientTest):
-    def runtest(self):
-        raise NotRunError
+
+    @unimplemented
+    def test_all(self):
+        raise AssertionError("test not implemented")
 
 #################################################################
 # Qualifier provider interface tests
 #################################################################
 
 class EnumerateQualifiers(ClientTest):
-    def runtest(self):
-        raise NotRunError
+
+    @unimplemented
+    def test_all(self):
+        raise AssertionError("test not implemented")
 
 class GetQualifier(ClientTest):
-    def runtest(self):
-        raise NotRunError
+
+    @unimplemented
+    def test_all(self):
+        raise AssertionError("test not implemented")
 
 class SetQualifier(ClientTest):
-    def runtest(self):
-        raise NotRunError
+
+    @unimplemented
+    def test_all(self):
+        raise AssertionError("test not implemented")
 
 class DeleteQualifier(ClientTest):
-    def runtest(self):
-        raise NotRunError
+
+    @unimplemented
+    def test_all(self):
+        raise AssertionError("test not implemented")
 
 #################################################################
 # Query provider interface
 #################################################################
 
 class ExecuteQuery(ClientTest):
-    def runtest(self):
-        raise NotRunError
+
+    @unimplemented
+    def test_all(self):
+        raise AssertionError("test not implemented")
 
 #################################################################
 # Internal functions
 #################################################################
 
-class Test_check_utf8_xml_chars(TestCase):
+class Test_check_utf8_xml_chars(unittest.TestCase):
 
     verbose = False  # Set to True during development of tests for manually
                      # verifying the expected results.
 
-    def runone(self, utf8_xml, expected_ok):
+    def _run_single(self, utf8_xml, expected_ok):
 
         try:
             check_utf8_xml_chars(utf8_xml, "Test XML")
@@ -693,41 +710,41 @@ class Test_check_utf8_xml_chars(TestCase):
             if self.verbose:
                 print "Verify manually: Input XML: %r, ParseError: %s" %\
                       (utf8_xml, exc)
-            self.assert_(not expected_ok,
+            self.assertTrue(not expected_ok,
                          "ParseError unexpectedly raised: %s" % exc)
         else:
-            self.assert_(expected_ok,
+            self.assertTrue(expected_ok,
                          "ParseError unexpectedly not raised.")
 
-    def runtest(self):
+    def test_all(self):
 
         # good cases
-        self.runone('<V>a</V>', True)
-        self.runone('<V>a\tb\nc\rd</V>', True)
-        self.runone('<V>a\x09b\x0Ac\x0Dd</V>', True)
-        self.runone('<V>a\xCD\x90b</V>', True)             # U+350
-        self.runone('<V>a\xE2\x80\x93b</V>', True)         # U+2013
-        self.runone('<V>a\xF0\x90\x84\xA2b</V>', True)     # U+10122
+        self._run_single('<V>a</V>', True)
+        self._run_single('<V>a\tb\nc\rd</V>', True)
+        self._run_single('<V>a\x09b\x0Ac\x0Dd</V>', True)
+        self._run_single('<V>a\xCD\x90b</V>', True)             # U+350
+        self._run_single('<V>a\xE2\x80\x93b</V>', True)         # U+2013
+        self._run_single('<V>a\xF0\x90\x84\xA2b</V>', True)     # U+10122
 
         # invalid XML characters
         if self.verbose:
             print "From here on, the only expected exception is ParseError "\
                   "for invalid XML characters..."
-        self.runone('<V>a\bb</V>', False)
-        self.runone('<V>a\x08b</V>', False)
-        self.runone('<V>a\x00b</V>', False)
-        self.runone('<V>a\x01b</V>', False)
-        self.runone('<V>a\x1Ab</V>', False)
-        self.runone('<V>a\x1Ab\x1Fc</V>', False)
+        self._run_single('<V>a\bb</V>', False)
+        self._run_single('<V>a\x08b</V>', False)
+        self._run_single('<V>a\x00b</V>', False)
+        self._run_single('<V>a\x01b</V>', False)
+        self._run_single('<V>a\x1Ab</V>', False)
+        self._run_single('<V>a\x1Ab\x1Fc</V>', False)
 
         # correctly encoded but ill-formed UTF-8
         if self.verbose:
             print "From here on, the only expected exception is ParseError "\
                   "for ill-formed UTF-8 Byte sequences..."
         # combo of U+D800,U+DD22:
-        self.runone('<V>a\xED\xA0\x80\xED\xB4\xA2b</V>', False)
+        self._run_single('<V>a\xED\xA0\x80\xED\xB4\xA2b</V>', False)
         # combo of U+D800,U+DD22 and combo of U+D800,U+DD23:
-        self.runone('<V>a\xED\xA0\x80\xED\xB4\xA2b\xED\xA0\x80\xED\xB4\xA3</V>',
+        self._run_single('<V>a\xED\xA0\x80\xED\xB4\xA2b\xED\xA0\x80\xED\xB4\xA3</V>',
                     False)
 
         # incorrectly encoded UTF-8
@@ -735,17 +752,17 @@ class Test_check_utf8_xml_chars(TestCase):
             print "From here on, the only expected exception is ParseError "\
                   "for invalid UTF-8 Byte sequences..."
         # incorrect 1-byte sequence:
-        self.runone('<V>a\x80b</V>', False)
+        self._run_single('<V>a\x80b</V>', False)
         # 2-byte sequence with missing second byte:
-        self.runone('<V>a\xC0', False)
+        self._run_single('<V>a\xC0', False)
         # 2-byte sequence with incorrect 2nd byte
-        self.runone('<V>a\xC0b</V>', False)
+        self._run_single('<V>a\xC0b</V>', False)
         # 4-byte sequence with incorrect 3rd byte:
-        self.runone('<V>a\xF1\x80abc</V>', False)
+        self._run_single('<V>a\xF1\x80abc</V>', False)
         # 4-byte sequence with incorrect 3rd byte that is an incorr. new start:
-        self.runone('<V>a\xF1\x80\xFFbc</V>', False)
+        self._run_single('<V>a\xF1\x80\xFFbc</V>', False)
         # 4-byte sequence with incorrect 3rd byte that is an correct new start:
-        self.runone('<V>a\xF1\x80\xC2\x81c</V>', False)
+        self._run_single('<V>a\xF1\x80\xC2\x81c</V>', False)
 
 
 #################################################################
@@ -805,35 +822,32 @@ tests_internal = [
     Test_check_utf8_xml_chars,
 ]
 
-if __name__ == '__main__':
+def parse_args(argv_):
 
-    if len(sys.argv) < 2:
-        print 'Usage for manual external tests:\n'\
-              '  %s [OPTS] URL [USERNAME%%PASSWORD [COMFYOPTS] '\
-              '[COMFYTESTS]]' % sys.argv[0]
-        print 'Invoke with -h or --help for full help text.'
-        print 'Running internal tests...'
-        main(tests_internal)
-    elif sys.argv[1] == '--help' or sys.argv[1] == '-h':
+    argv = list(argv_)
+
+    if len(argv) <= 1:
+        print 'Error: No arguments specified; Call with --help or -h for usage.'
+        sys.exit(2)
+    elif argv[1] == '--help' or argv[1] == '-h':
         print ''
         print 'Test program for CIM operations.'
         print ''
         print 'Usage:'
-        print '    %s [OPTS] URL [USERNAME%%PASSWORD [COMFYOPTS] '\
-              '[COMFYTESTS]]' % sys.argv[0]
+        print '    %s [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '\
+              '[UT_CLASS ...]]] ' % argv[0]
         print ''
         print 'Where:'
-        print '    OPTS                See general options section, below.'
+        print '    GEN_OPTS            General options (see below).'
         print '    URL                 The URL of the WBEM server to run '\
               'against.'
         print '    USERNAME            Userid to be used for logging on to '\
               'WBEM server.'
         print '    PASSWORD            Password to be used for logging on to '\
               'WBEM server.'
-        print '    COMFYOPTS           Comfychair options, see options '\
-              'section in Comfychair help, below.'
-        print '    COMFYTESTS          List of Comfychair testcase names. '\
-              'Default: All testcases.'
+        print '    UT_OPTS             Unittest options (see below).'
+        print '    UT_CLASS            Name of testcase class (e.g. '\
+              'EnumerateInstances).'
         print ''
         print 'General options:'
         print '    --help, -h          Display this help text.'
@@ -842,48 +856,51 @@ if __name__ == '__main__':
         print '    -t TIMEOUT          Use this timeout (in seconds) instead '\
               'of no timeout'
         print ''
-        print 'Comfychair help:'
-        print ''
-        sys.argv = sys.argv[0:1] + ['--help']
-        main(tests)
+        print 'Unittest arguments:'
+        sys.argv[1:] = ['--help']
+        unittest.main()
         print ''
         print 'Examples:'
-        print '    %s x u%%p --list' % sys.argv[0]
-        print '    %s https://9.10.11.12 username%%password -q '\
-              'EnumerateInstances GetInstance ' % sys.argv[0]
-        sys.exit(0)
+        print '    %s https://9.10.11.12 username%%password' % argv[0]
+        sys.exit(2)
 
-    namespace = DEFAULT_NAMESPACE
-    timeout = None
+    args = {}
+    args['namespace'] = DEFAULT_NAMESPACE
+    args['timeout'] = None
     while True:
-        if sys.argv[1][0] != '-':
+        if argv[1][0] != '-':
             # Stop at first non-option
             break
-        if sys.argv[1] == '-n':
-            namespace = sys.argv[2]
-            del sys.argv[1:3]
-        elif sys.argv[1] == '-t':
-            timeout = int(sys.argv[2])
-            del sys.argv[1:3]
+        if argv[1] == '-n':
+            args['namespace'] = argv[2]
+            del argv[1:3]
+        elif argv[1] == '-t':
+            args['timeout'] = int(argv[2])
+            del argv[1:3]
         else:
-            print "Error: Unknown option: %s" % sys.argv[1]
+            print "Error: Unknown option: %s" % argv[1]
             sys.exit(1)
 
-    url = sys.argv[1]
+    args['url'] = argv[1]
+    del argv[1:2]
 
-    if len(sys.argv) >= 3:
-        username, password = sys.argv[2].split('%')
+    if len(argv) >= 2:
+        args['username'], args['password'] = argv[1].split('%')
+        del argv[1:2]
     else:
         from getpass import getpass
         print 'Username: ',
-        username = sys.stdin.readline().strip()
-        password = getpass()
+        args['username'] = sys.stdin.readline().strip()
+        args['password'] = getpass()
 
-    if len(sys.argv) >= 4:
-        comfychair_args = sys.argv[3:]
-    else:
-        comfychair_args = []
+    return args, argv
 
-    sys.argv = sys.argv[0:1] + comfychair_args
-
-    main(tests)
+if __name__ == '__main__':
+    args, sys.argv = parse_args(sys.argv)
+    print "Using WBEM Server:"
+    print "  server url: %s" % args['url']
+    print "  default namespace: %s" % args['namespace']
+    print "  username: %s" % args['username']
+    print "  password: %s" % ("*"*len(args['password']))
+    print "  timeout: %s s" % args['timeout']
+    unittest.main()
