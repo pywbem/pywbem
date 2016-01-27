@@ -314,7 +314,7 @@ def main():
         # fixes for installation issues. This only seems to work if no version
         # is specified in its install_requires entry.
         'dependency_links': [
-            "git+https://github.com/pywbem/m2crypto@amfix2#egg=M2Crypto"
+            "git+https://github.com/pywbem/m2crypto@amfix_rebased#egg=M2Crypto"
         ],
         'install_requires': [
             # These dependencies will be installed as a site package.
