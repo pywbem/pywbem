@@ -192,5 +192,8 @@ $(doc_build_dir)/index.html: $(package_name)/*.py $(package_name)/NEWS
 pylint.log: $(pylint_rc_file) setup.py os_setup.py $(package_name)/*.py testsuite/*.py
 	-sh -c "PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py,yacc.py,lex.py,twisted_client.py,cim_provider.py,cim_provider2.py --output-format=text setup.py os_setup.py $(package_name) testsuite/test*.py testsuite/validate.py >pylint.log"
 
-test.log: install testsuite/runtests.sh testsuite/*.py
-	-sh -c "cd testsuite; ./runtests.sh 2>&1 |tee ../test.log"
+#test.log: install testsuite/runtests.sh testsuite/*.py
+#	-sh -c "cd testsuite; ./runtests.sh 2>&1 |tee ../test.log"
+
+test.log: develop install testsuite/*.py
+	py.test --ignore=releases 2>&1 |tee test.log

@@ -24,17 +24,17 @@ import os
 import inspect
 import doctest
 import socket
+import unittest
+import pytest
 
 import yaml
 import httpretty
 from lxml import etree, doctestcompare
 
-import comfychair
-from comfychair import main, TestCase
 import pywbem
 
-# Directory with the JSON test case files, relative to the comfychair module:
-TESTCASE_DIR = "test_client"
+# Directory with the JSON test case files, relative to this script:
+TESTCASE_DIR = os.path.join(os.path.dirname(__file__), "test_client")
 
 
 class ClientTestError(Exception):
@@ -126,10 +126,10 @@ class Callback(object):
         raise socket.error(32, "Broken pipe.")
 
 
-class ClientTest(TestCase):
+class ClientTest(unittest.TestCase):
     """Test case for PyWBEM client testing."""
 
-    def assert_xml_equal(self, s1, s2, entity=None):
+    def assertXMLEqual(self, s1, s2, entity=None):
         """Assert that the two XML fragments are equal, tolerating the following
         variations:
           * whitespace outside of element content and attribute values.
@@ -183,22 +183,19 @@ class ClientTest(TestCase):
             raise AssertionError("XML is not as expected in %s: %s"%\
                                  (entity, diff))
 
-    def runtest(self):
-        """This method is called by comfychair when running this test.
-        It iterates through the JSON files in the test case directory and
-        processes each of them.
+    def test_all(self):
+        """This method performs all tests of this script. It iterates through
+        the JSON files in the test case directory and processes each of them.
         """
 
-        print "" # We are in the middle of comfychair's one line output
-
+        print "" # We are in the middle of test runner output
+        
         # We need to work with absolute file paths, because this test may be
         # run from a different directory.
-        tc_absdir = os.path.join(os.path.dirname(inspect.getfile(comfychair)),
-                                 TESTCASE_DIR)
-        for fn in os.listdir(tc_absdir):
-            absfn = os.path.join(tc_absdir, fn)
-            if fn.endswith(".yaml"):
-                self.runyamlfile(absfn)
+        for basefn in os.listdir(TESTCASE_DIR):
+            relfn = os.path.join(TESTCASE_DIR, basefn)
+            if relfn.endswith(".yaml"):
+                self.runyamlfile(relfn)
 
     def runyamlfile(self, fn):
         """Read a YAML test case file and process each test case it defines.
@@ -302,15 +299,15 @@ class ClientTest(TestCase):
         if exp_http_request is not None:
             http_request = httpretty.last_request()
             exp_verb = tc_getattr(tc_name, exp_http_request, "verb")
-            self.assert_equal(http_request.method, exp_verb,
+            self.assertEqual(http_request.method, exp_verb,
                               "verb in HTTP request")
             exp_headers = tc_getattr(tc_name, exp_http_request, "headers", {})
             for header_name in exp_headers:
-                self.assert_equal(http_request.headers[header_name],
+                self.assertEqual(http_request.headers[header_name],
                                   exp_headers[header_name],
                                   "headers in HTTP request")
             exp_data = tc_getattr(tc_name, exp_http_request, "data", None)
-            self.assert_xml_equal(http_request.body, exp_data,
+            self.assertXMLEqual(http_request.body, exp_data,
                                   "data in HTTP request")
 
         # Validate PyWBEM result
@@ -337,14 +334,14 @@ class ClientTest(TestCase):
                 raise AssertionError("%s exception was expected to be raised, "\
                                      "but no exception was actually raised." %\
                                      exp_exception)
-            self.assert_equal(raised_exception.__class__.__name__,
+            self.assertEqual(raised_exception.__class__.__name__,
                               exp_exception, "expected PyWBEM exception name")
         elif exp_cim_status != 0:
             if raised_exception is None:
                 raise AssertionError("CIMError exception was expected to be "\
                                      "raised, but no exception was actually "
                                      "raised.")
-            self.assert_equal(raised_exception.__class__.__name__, "CIMError",
+            self.assertEqual(raised_exception.__class__.__name__, "CIMError",
                               "expected PyWBEM exception name")
         else:
             if raised_exception is not None:
@@ -358,7 +355,7 @@ class ClientTest(TestCase):
             cim_status = raised_exception[0]
         else:
             cim_status = 0
-        self.assert_equal(cim_status, exp_cim_status, "PyWBEM CIM status")
+        self.assertEqual(cim_status, exp_cim_status, "PyWBEM CIM status")
 
         if exp_result is not None:
             exp_result_obj = obj(exp_result, tc_name)
@@ -376,12 +373,8 @@ class ClientTest(TestCase):
                     print "  HTTP response data: %r" % conn.last_raw_reply
                 raise AssertionError("PyWBEM CIM result is not as expected.")
         else:
-            self.assert_equal(result, None, "PyWBEM CIM result")
+            self.assertEqual(result, None, "PyWBEM CIM result")
 
-
-tests = [ # pylint: disable=invalid-name
-    ClientTest
-]
 
 if __name__ == '__main__':
-    main(tests)
+    unittest.main()
