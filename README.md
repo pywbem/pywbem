@@ -1,4 +1,4 @@
-[![Test status for master branch](https://img.shields.io/travis/pywbem/pywbem/master.svg?style=plastic&label=master)](https://travis-ci.org/pywbem/pywbem/branches)
+[![Test status for master branch](https://img.shields.io/travis/pywbem/pywbem/master.svg?style=plastic&label=test%20on%20master)](https://travis-ci.org/pywbem/pywbem/branches)
 
 PyWBEM Client
 -------------
