@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/pywbem/pywbem.svg)](https://travis-ci.org/pywbem/pywbem)
+[![Build Status for master branch](https://travis-ci.org/pywbem/pywbem.svg?branch=master)](https://travis-ci.org/pywbem/pywbem)
 
 PyWBEM Client
 -------------
