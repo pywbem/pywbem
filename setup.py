@@ -34,6 +34,15 @@ import os
 import shutil
 from distutils.errors import DistutilsSetupError
 
+# Workaround for Python 2.6 issue https://bugs.python.org/issue15881
+# This causes this module to be referenced and prevents the premature
+# unloading and subsequent garbage collection causing the error.
+if sys.version_info[0:2] == (2, 6):
+    try:
+        import multiprocessing
+    except ImportError:
+        pass
+
 import os_setup
 from os_setup import shell, shell_check, import_setuptools
 
