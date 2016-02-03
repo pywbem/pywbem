@@ -5,19 +5,8 @@
 #   Windows
 #   Linux
 #
-# Prerequisites for usage:
-#   Python >=2.6.9, >=2.7.6
-#   For Python packages, see requirements.txt
-#
-# Additional prerequisites for development:
-#   Commands (On Windows, use CygWin to get these commands):
-#     make (GNU make)
-#     sh - makes sure commands are executed in a Unix shell when on Windows
-#     rm, test, find, unzip, sed, xargs, tee, grep
-#     pylint >=1.1.0
-#   These commands as well as any Python packages for development, can be
-#   installed using the 'develop_os' and 'develop' commands of the setup.py
-#   script.
+# Prerequisites for usage will be installed by 'make install'.
+# Additional prerequisites for development will be installed by 'make develop'.
 # ------------------------------------------------------------------------------
 
 # Name of this Python package
@@ -86,6 +75,7 @@ dist_dependent_files := \
 help:
 	@echo 'makefile for $(package_name)'
 	@echo 'Package version will be: $(package_version)'
+	@echo 'Uses the currently active Python environment'
 	@echo 'Valid targets are (they do just what is stated, i.e. no automatic prereq targets):'
 	@echo '  develop    - Prepare the development environment by installing prerequisites'
 	@echo '  build      - Build the distribution archive: $(dist_file)'
