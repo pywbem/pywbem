@@ -86,7 +86,7 @@ dist_dependent_files := \
 help:
 	@echo 'makefile for $(package_name)'
 	@echo 'Package version will be: $(package_version)'
-	@echo 'Valid targets are:'
+	@echo 'Valid targets are (they do just what is stated, i.e. no automatic prereq targets):'
 	@echo '  develop    - Prepare the development environment by installing prerequisites'
 	@echo '  build      - Build the distribution archive: $(dist_file)'
 	@echo '  buildwin   - Build the Windows installable: $(win64_dist_file) (on Win 64-bit)'
@@ -96,8 +96,8 @@ help:
 	@echo '  test       - Run unit tests and save results in: test.log'
 	@echo '  clean      - Remove any temporary files'
 	@echo '  all        - Do everything locally (except publish/upload)'
-	@echo '  upload     - Upload the distribution archive to PyPI'
-	@echo '  publish    - Publish documentation to: $(doc_publish_dir)'
+	@echo '  upload     - build + Upload the distribution archive to PyPI'
+	@echo '  publish    - builddoc + publish documentation to: $(doc_publish_dir)'
 	@echo '  clobber    - Remove any build products'
 
 develop:
@@ -117,7 +117,7 @@ builddoc: $(doc_build_dir)/index.html
 check: pylint.log
 	@echo '$@ done; results are in pylint.log'
 
-install: build
+install:
 	unzip -q -o -d tmp_install $(dist_file)
 	sh -c "cd tmp_install/$(package_name)-$(package_version) && sudo python setup.py install_os && python setup.py install"
 	rm -Rf tmp_install
@@ -190,10 +190,8 @@ $(doc_build_dir)/index.html: $(package_name)/*.py $(package_name)/NEWS
 	cp -p $(package_name)/NEWS $(doc_build_dir)/NEWS.txt
 
 pylint.log: $(pylint_rc_file) setup.py os_setup.py $(package_name)/*.py testsuite/*.py
-	-sh -c "PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py,yacc.py,lex.py,twisted_client.py,cim_provider.py,cim_provider2.py --output-format=text setup.py os_setup.py $(package_name) testsuite/test*.py testsuite/validate.py >pylint.log"
+	-sh -c "PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py,yacc.py,lex.py,twisted_client.py,cim_provider.py,cim_provider2.py --output-format=text setup.py os_setup.py $(package_name) testsuite/test*.py testsuite/validate.py 2>&1 |tee pylint.log"
 
-#test.log: install testsuite/runtests.sh testsuite/*.py
-#	-sh -c "cd testsuite; ./runtests.sh 2>&1 |tee ../test.log"
+test.log: $(package_name)/*.py testsuite/*.py
+	-sh -c "PYTHONPATH=. py.test --ignore=releases 2>&1 |tee test.log"
 
-test.log: develop install testsuite/*.py
-	py.test --ignore=releases 2>&1 |tee test.log

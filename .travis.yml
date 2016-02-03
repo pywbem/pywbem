@@ -12,6 +12,7 @@ install:
   - pip install --upgrade pip
   - make develop
   - pip list
+  - make check
 # command to run tests
 script: make test
 sudo: required
