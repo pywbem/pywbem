@@ -6,8 +6,10 @@ python:
   - "2.7"
 # command to install dependencies
 install:
-  - # The next command shows that Python's platform.linux_distribution() returns a incorrect distro:
+  - echo "The next command shows that Python's platform.linux_distribution() returns a incorrect distro:"
   - python -c "import platform; print('linux_distribution()=%s' % repr(platform.linux_distribution()))"
+  - echo "The next command shows the site packages directory for the system Python:"
+  - python -c "import pip, os; print(os.path.dirname(os.path.dirname(pip.__file__)))"
   - pip list
   - pip install --upgrade pip
   - make develop
