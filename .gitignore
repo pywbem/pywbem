@@ -7,7 +7,6 @@
 *.log
 pywbem.egg-info
 MANIFEST
-MANIFEST.in
 parser.out
 moflog.txt
 pylint_done
