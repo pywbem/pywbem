@@ -360,7 +360,7 @@ class install_os(BaseOsCommand): # pylint: disable=invalid-name
 
         if self.verbose:
             print "install_os: Installing prerequisite OS-level packages for "\
-                  "platform '%s'" % self.installer.platform
+                  "platform: %s" % self.installer.platform
 
         self.run_os(self.distribution.install_os_requires)
 
@@ -393,7 +393,7 @@ class develop_os(BaseOsCommand): # pylint: disable=invalid-name
 
         if self.verbose:
             print "develop_os: Installing prerequisite OS-level packages for "\
-                  "platform '%s'" % self.installer.platform
+                  "platform: %s" % self.installer.platform
 
         self.run_os(self.distribution.install_os_requires)
         self.run_os(self.distribution.develop_os_requires)
@@ -453,10 +453,10 @@ def _linux_distribution():
     """
     rc, out, _ = shell("grep \"^ID=\" /etc/os-release")
     if rc == 0 and out.startswith("ID="):
-        distro = out[3:].strip(" \t\n").lower()
+        distro = out[3:].strip("\"' \t\n").lower()
         return distro
 
-    rc, out, _ = shell("lsb_release -i -s")
+    rc, out, _ = shell("lsb_release -i -s", ignore_notfound=True)
     if rc == 0:
         distro = out.strip(" \t\n").lower()
         # Fix a few special cases:
@@ -1315,7 +1315,7 @@ class ZypperInstaller(OSInstaller):
                       "not sufficient: %s %s" % (pkg_name, version)
         return version_sufficient
 
-def shell(command, display=False):
+def shell(command, display=False, ignore_notfound=False):
     """Execute a shell command and return its return code, stdout and stderr.
 
     Note that the simpler to use subprocess.check_output() requires
@@ -1325,6 +1325,9 @@ def shell(command, display=False):
 
       * command: string or list of strings with the command and its parameters.
       * display: boolean indicating whether the command output will be printed.
+      * ignore_notfound: boolean indicating that command not found should be
+        ignored. If the command is not found and this argument is True, the
+        return code will be 10002 and stdout/stderr will be empty.
 
     Returns:
 
@@ -1347,8 +1350,11 @@ def shell(command, display=False):
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
     except OSError as exc:
-        raise DistutilsSetupError(
-            "Cannot execute %s: %s" % (command[0], exc))
+        if exc.errno == 2 and ignore_notfound:
+            return 10002, "", ""
+        else:
+            raise DistutilsSetupError(
+                "Cannot execute %s: %s" % (command[0], exc))
 
     # TODO: Add support for printing while command executes, like with 'tee'
     if display:
