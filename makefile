@@ -117,8 +117,7 @@ test: test.log
 	@echo '$@ done; results are in test.log'
 
 clobber: clean
-	rm -f MANIFEST.in pylint_done
-	rm -Rf $(package_name).egg-info $(doc_build_dir)
+	rm -Rf $(package_name).egg-info $(doc_build_dir) .tox .cache test.log pylint.log epydoc.log
 	@echo '$@ done.'
 
 clean:
