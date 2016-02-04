@@ -1189,6 +1189,7 @@ class AptInstaller(OSInstaller):
         version_line = [line for line in lines
                         if line.startswith("Version:")][0]
         version = version_line.split()[1].split("-")[0]
+        print("Debug: AptInstaller.is_available: Calling version_matches_req() with version=%r, version_reqs=%r" % (version, version_reqs))
         version_sufficient = self.version_matches_req(version, version_reqs) \
                              if version_reqs else True
         if verbose:
