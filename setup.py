@@ -103,7 +103,7 @@ def install_swig(command):
             if distro in distro_dict:
                 swig_pkg_name = distro_dict[distro]
 
-        swig_version_reqs = list(">=%s" % swig_min_version)
+        swig_version_reqs = [">=%s" % swig_min_version]
 
         if inst.is_available(swig_pkg_name, swig_version_reqs, verbose):
 
