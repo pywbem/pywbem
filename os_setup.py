@@ -626,11 +626,15 @@ class BaseInstaller(object):
         Parameters:
         * version: A string specifying the version to be tested
           (e.g. '1.0.1-rc1')
-        * req_list: A list of zero or more version requirements, each being
-          a string of the form <op><version> (e.g. '>=1.0').
+        * req_list: A list of zero or more version requirements (or a single
+          one instead of a list), each being a string of the form
+          <op><version> (e.g. '>=1.0').
         """
         if not req_list:
             return True # no requirement -> version always matches
+
+        if not isinstance(req_list, (list, tuple)):
+            req_list = list(req_list)
 
         version_info = version.split(".")
         for req_string in req_list:
@@ -1189,7 +1193,6 @@ class AptInstaller(OSInstaller):
         version_line = [line for line in lines
                         if line.startswith("Version:")][0]
         version = version_line.split()[1].split("-")[0]
-        print("Debug: AptInstaller.is_available: Calling version_matches_req() with version=%r, version_reqs=%r" % (version, version_reqs))
         version_sufficient = self.version_matches_req(version, version_reqs) \
                              if version_reqs else True
         if verbose:
