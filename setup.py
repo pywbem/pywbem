@@ -382,6 +382,7 @@ def main():
             'Linux': {
                 'redhat': [
                     "libxml2-devel",        # for installing Python lxml pkg
+                    "libxml2",              # for installing xmllint command
                     "libxslt-devel",        # for installing Python lxml pkg
                     "libyaml-devel",        # for installing Python pyyaml pkg
                     "make",                 # PyWBEM has a makefile
@@ -393,6 +394,7 @@ def main():
                 'fedora': 'redhat',
                 'debian': [
                     "libxml2-dev",
+                    "libxml2-utils",
                     "libxslt1-dev",
                     "libyaml-dev",
                     "make",
@@ -402,6 +404,7 @@ def main():
                 ],
                 'ubuntu': [
                     "libxml2-dev",
+                    "libxml2-utils",
                     "libxslt1-dev",
                     "libyaml-dev",
                     "make",
@@ -411,6 +414,7 @@ def main():
                 ],
                 'suse': [
                     "libxml2-devel",
+                    "libxml2",
                     "libxslt-devel",
                     "libyaml-devel",
                     "make",
