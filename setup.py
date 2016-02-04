@@ -104,9 +104,11 @@ def install_swig(command):
                 swig_pkg_name = distro_dict[distro]
 
         swig_version_req = ">=%s" % swig_min_version
-
+        print("Debug: Swig: swig_version_req: %r" % swig_version_req)
+        print("Debug: Swig: inst.is_available() with inst: %s" % inst.__class__.__name__)
         if inst.is_available(swig_pkg_name, swig_version_req, verbose):
 
+            print("Debug: Swig: inst.install() with inst: %s" % inst.__class__.__name__)
             # Install Swig as a package
             inst.install(swig_pkg_name, swig_version_req, dry_run, verbose)
 
