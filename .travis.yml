@@ -6,8 +6,8 @@ python:
   - "2.7"
 # command to install dependencies
 install:
-  - python -c "import platform; print('Demonstration of incorrect distro being returned: platform.linux_distribution()=%s' % repr(platform.linux_distribution()))"
-  - python -c "import pip, os; print('Site-packages directory of system Python: %s' % os.path.dirname(os.path.dirname(pip.__file__)))"
+  - python -c "import platform; print('Demonstration of incorrect distro returned by platform.linux_distribution():'); print(repr(platform.linux_distribution()))"
+  - python -c "import pip, os; print('Site-packages directory of system Python:'); print(os.path.dirname(os.path.dirname(pip.__file__)))"
   - pip list
   - pip install --upgrade pip
   - pip uninstall pbr
