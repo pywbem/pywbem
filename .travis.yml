@@ -10,7 +10,7 @@ install:
   - python -c "import pip, os; print('Site-packages directory of system Python:'); print(os.path.dirname(os.path.dirname(pip.__file__)))"
   - pip list
   - pip install --upgrade pip
-  - pip uninstall pbr
+  - pip uninstall -y pbr
   - make develop
   - pip list
   - make check
