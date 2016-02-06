@@ -34,6 +34,15 @@ import os
 import shutil
 from distutils.errors import DistutilsSetupError
 
+# Workaround for Python 2.6 issue https://bugs.python.org/issue15881
+# This causes this module to be referenced and prevents the premature
+# unloading and subsequent garbage collection causing the error.
+if sys.version_info[0:2] == (2, 6):
+    try:
+        import multiprocessing
+    except ImportError:
+        pass
+
 import os_setup
 from os_setup import shell, shell_check, import_setuptools
 
@@ -314,7 +323,7 @@ def main():
         # fixes for installation issues. This only seems to work if no version
         # is specified in its install_requires entry.
         'dependency_links': [
-            "git+https://github.com/pywbem/m2crypto@amfix2#egg=M2Crypto"
+            "git+https://github.com/pywbem/m2crypto@amfix_rebased#egg=M2Crypto"
         ],
         'install_requires': [
             # These dependencies will be installed as a site package.
