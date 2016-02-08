@@ -24,6 +24,8 @@
 
 # CIMError error code constants
 
+# pylint: disable=bad-whitespace
+
 CIM_ERR_FAILED                       = 1  # A general error occurred
 CIM_ERR_ACCESS_DENIED                = 2  # Resource not available
 CIM_ERR_INVALID_NAMESPACE            = 3  # The target namespace does not exist

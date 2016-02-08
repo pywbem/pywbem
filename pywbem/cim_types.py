@@ -101,7 +101,7 @@ class MinutesFromUTC(tzinfo):
         """
         return timedelta(0)
 
-class CIMType(object):
+class CIMType(object):       # pylint: disable=too-few-public-methods
     """Base type for numeric and datetime CIM types."""
 
 class CIMDateTime(CIMType):
@@ -141,17 +141,17 @@ class CIMDateTime(CIMType):
             date_pattern = re.compile(
                 r'^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.' \
                 r'(\d{6})([+|-])(\d{3})')
-            s = date_pattern.search(dtarg)
-            if s is not None:
-                g = s.groups()
-                offset = int(g[8])
-                if g[7] == '-':
+            srch_result = date_pattern.search(dtarg)
+            if srch_result is not None:
+                parts = srch_result.groups()
+                offset = int(parts[8])
+                if parts[7] == '-':
                     offset = -offset
                 try:
-                    self.__datetime = datetime(int(g[0]), int(g[1]),
-                                               int(g[2]), int(g[3]),
-                                               int(g[4]), int(g[5]),
-                                               int(g[6]),
+                    self.__datetime = datetime(int(parts[0]), int(parts[1]),
+                                               int(parts[2]), int(parts[3]),
+                                               int(parts[4]), int(parts[5]),
+                                               int(parts[6]),
                                                MinutesFromUTC(offset))
                 except ValueError as exc:
                     raise ValueError('dtarg argument "%s" has invalid field '\
@@ -160,16 +160,16 @@ class CIMDateTime(CIMType):
             else:
                 tv_pattern = re.compile(
                     r'^(\d{8})(\d{2})(\d{2})(\d{2})\.(\d{6})(:)(000)')
-                s = tv_pattern.search(dtarg)
-                if s is not None:
-                    g = s.groups()
+                srch_result = tv_pattern.search(dtarg)
+                if srch_result is not None:
+                    parts = srch_result.groups()
                     # Because the input values are limited by the matched
                     # pattern, timedelta() never throws any exception.
-                    self.__timedelta = timedelta(days=int(g[0]),
-                                                 hours=int(g[1]),
-                                                 minutes=int(g[2]),
-                                                 seconds=int(g[3]),
-                                                 microseconds=int(g[4]))
+                    self.__timedelta = timedelta(days=int(parts[0]),
+                                                 hours=int(parts[1]),
+                                                 minutes=int(parts[2]),
+                                                 seconds=int(parts[3]),
+                                                 microseconds=int(parts[4]))
                 else:
                     raise ValueError('dtarg argument "%s" has an invalid CIM '\
                                      'datetime format' % dtarg)
@@ -275,6 +275,7 @@ class CIMDateTime(CIMType):
 
     @classmethod
     def fromtimestamp(cls, ts, tzi=None):
+        # pylint: disable=invalid-name
         """
         Factory method that returns a new `CIMDateTime` object from a POSIX
         timestamp value and optional timezone information.
@@ -509,6 +510,7 @@ def atomic_to_cim_xml(obj):
         A unicode string in CIM-XML value format representing the CIM typed
         value. For a value of `None`, `None` is returned.
     """
+    # pylint: disable=too-many-return-statements
     if isinstance(obj, bool):
         if obj:
             return u"true"
