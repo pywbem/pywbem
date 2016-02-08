@@ -342,54 +342,12 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
             self.sock.sendall(strng)
 
     class HTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
-        """
-        Execute client connection without ssl using httplib.
-
-            :Parameters:
-
-             host : `unicode` or UTF-8 encoded `str`
-                   Name or IP address of host
-
-              port : TODO
-                   port of host or None if default to be used
-
-              strict : TODO
-
-              timeout : timeout in seconds for connection
-
-            :Returns:  TODO
-
-            :Raises:   TODO
-         """
+        """ Execute client connection without ssl using httplib. """
         def __init__(self, host, port=None, strict=None, timeout=None):
             httplib.HTTPConnection.__init__(self, host, port, strict, timeout)
 
     class HTTPSConnection(HTTPBaseConnection, httplib.HTTPSConnection):
-        """
-        Execute client connection with ssl using httplib.
-
-            :Parameters:
-
-             host : `unicode` or UTF-8 encoded `str`
-                   Name or IP address of host
-
-              port : TODO
-                   port of host or None if default to be used
-
-              key_file :
-
-              cert_file :
-
-              strict : TODO
-
-              verify_callback : TODO
-
-              timeout : timeout in seconds for connection
-
-            :Returns:  TODO
-
-            :Raises:   TODO
-        """
+        """ Execute client connection with ssl using httplib."""
         # pylint: disable=R0913,too-many-arguments
         def __init__(self, host, port=None, key_file=None, cert_file=None,
                      strict=None, ca_certs=None, verify_callback=None,
@@ -401,7 +359,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
 
         def connect(self):
             # pylint: disable=too-many-branches
-            "Connect to a host on a given (SSL) port."
+            """Connect to a host on a given (SSL) port."""
 
             # Calling httplib.HTTPSConnection.connect(self) does not work
             # because of its ssl.wrap_socket() call. So we copy the code of
@@ -469,19 +427,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                     "SSL error %s: %s" % (str(arg.__class__), arg))
 
     class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
-        """
-        Execute client connection to TODO.
-
-            :Parameters:
-
-             uds_path :  Path to the server
-
-            :Returns:  TODO
-
-            :Raises:   TODO
-        """
-
-
+        """Execute client connection based on a unix domain socket. """
 
         def __init__(self, uds_path):
             httplib.HTTPConnection.__init__(self, 'localhost')
