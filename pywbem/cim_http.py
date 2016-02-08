@@ -250,7 +250,7 @@ def get_default_ca_certs():
 def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                  verify_callback=None, ca_certs=None,
                  no_verification=False, timeout=None):
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,unused-argument
     # pylint: disable=too-many-locals
     """
     Send an HTTP or HTTPS request to a WBEM server and return the response.
