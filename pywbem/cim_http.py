@@ -515,22 +515,28 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
 
             client.putrequest('POST', '/cimom')
 
-            client.putheader('Content-type', 'application/xml; charset="utf-8"')
+            client.putheader('Content-type',
+                             'application/xml; charset="utf-8"')
             client.putheader('Content-length', str(len(data)))
             if local_auth_header is not None:
                 client.putheader(*local_auth_header)
             elif creds is not None:
+                #pylint: disable=line-too-long
                 client.putheader('Authorization', 'Basic %s' %
                                  base64.encodestring('%s:%s' %
-                                                     (creds[0], creds[1])).replace('\n', ''))
+                                                     (creds[0],
+                                                      creds[1])).replace('\n', ''))
             elif locallogin is not None:
-                client.putheader('PegasusAuthorization', 'Local "%s"' % locallogin)
+                client.putheader('PegasusAuthorization',
+                                 'Local "%s"' % locallogin)
 
             for hdr in headers:
                 if isinstance(hdr, unicode):
                     hdr = hdr.encode('utf-8')
-                hdr_pieces = map(lambda x: string.strip(x), string.split(hdr, ":", 1))
-                client.putheader(urllib.quote(hdr_pieces[0]), urllib.quote(hdr_pieces[1]))
+                hdr_pieces = map(lambda x: string.strip(x),
+                                 string.split(hdr, ":", 1))
+                client.putheader(urllib.quote(hdr_pieces[0]),
+                                 urllib.quote(hdr_pieces[1]))
 
             try:
                 # See RFC 2616 section 8.2.2
@@ -573,7 +579,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                                     raise ConnectionError(
                                         "OWLocal authorization for OpenWbem "\
                                         "server not supported on %s platform "\
-                                        "due to missing os.getuid()" %\
+                                        "due to missing os.getuid()" % \
                                         platform.system())
                                 local_auth_header = ('Authorization',
                                                      'OWLocal uid="%d"' % uid)
@@ -581,11 +587,14 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                             else:
                                 try:
                                     nonce_idx = auth_chal.index('nonce=')
-                                    nonce_begin = auth_chal.index('"', nonce_idx)
-                                    nonce_end = auth_chal.index('"', nonce_begin+1)
+                                    nonce_begin = auth_chal.index('"',
+                                                                  nonce_idx)
+                                    nonce_end = auth_chal.index('"',
+                                                                nonce_begin+1)
                                     nonce = auth_chal[nonce_begin+1:nonce_end]
                                     cookie_idx = auth_chal.index('cookiefile=')
-                                    cookie_begin = auth_chal.index('"', cookie_idx)
+                                    cookie_begin = auth_chal.index('"',
+                                                                   cookie_idx)
                                     cookie_end = auth_chal.index(
                                         '"', cookie_begin+1)
                                     cookie_file = auth_chal[
