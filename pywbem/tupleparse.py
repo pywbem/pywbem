@@ -37,7 +37,7 @@ representation of CIM in XML by having the following properties:
 
 '''
 
-# Implementation: this works by a recursive descent down the CIM XML
+# Implementation: This works by a recursive descent down the CIM XML
 # tupletree.  As we walk down, we produce cim_obj and cim_type
 # objects representing the CIM message in digested form.
 
@@ -298,11 +298,12 @@ def notimplemented(tup_tree):
 #
 
 def parse_cim(tup_tree):
-    """
-    <!ELEMENT CIM (MESSAGE | DECLARATION)>
-    <!ATTLIST CIM
-	CIMVERSION CDATA #REQUIRED
-	DTDVERSION CDATA #REQUIRED>
+    """Parse the top level element of CIM/XML message
+
+           <!ELEMENT CIM (MESSAGE | DECLARATION)>
+           <!ATTLIST CIM
+               CIMVERSION CDATA #REQUIRED
+               DTDVERSION CDATA #REQUIRED>
     """
 
     check_node(tup_tree, 'CIM', ['CIMVERSION', 'DTDVERSION'])
@@ -547,10 +548,10 @@ def parse_host(tup_tree):
 
 
 def parse_namespace(tup_tree):
-    """
+    """Parse NAMESPACE element for namespace name
     <!ELEMENT NAMESPACE EMPTY>
     <!ATTLIST NAMESPACE
-	%CIMName;>
+        %CIMName;>
     """
 
     check_node(tup_tree, 'NAMESPACE', ['NAME'], [], [])
@@ -593,18 +594,20 @@ def parse_localclasspath(tup_tree):
     return CIMClassName(classname.classname, namespace=localnspath)
 
 def parse_classname(tup_tree):
-    """
-    <!ELEMENT CLASSNAME EMPTY>
-    <!ATTLIST CLASSNAME
-	%CIMName;>
+    """Parse a CLASSNAME element and return a CIMClassName.
+    
+           <!ELEMENT CLASSNAME EMPTY>
+           <!ATTLIST CLASSNAME
+               %CIMName;>
     """
     check_node(tup_tree, 'CLASSNAME', ['NAME'], [], [])
     return CIMClassName(attrs(tup_tree)['NAME'])
 
 
 def parse_instancepath(tup_tree):
-    """
-    <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
+    """Parse a INSTANCEPATH element returning the instance name.
+    
+          <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
     """
 
     check_node(tup_tree, 'INSTANCEPATH')
@@ -622,8 +625,9 @@ def parse_instancepath(tup_tree):
     return instancename
 
 def parse_localinstancepath(tup_tree):
-    """
-    <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
+    """Parse a LOCALINSTANCEPATH element:
+    
+           <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
     """
 
     check_node(tup_tree, 'LOCALINSTANCEPATH')
@@ -691,7 +695,7 @@ def parse_objectpath(tup_tree):
 def parse_keybinding(tup_tree):
     ##<!ELEMENT KEYBINDING (KEYVALUE | VALUE.REFERENCE)>
     ##<!ATTLIST KEYBINDING
-    ##	%CIMName;>
+    ##  %CIMName;>
 
     """Returns one-item dictionary from name to Python value."""
 
@@ -788,7 +792,7 @@ def parse_instance(tup_tree):
     ##<!ELEMENT INSTANCE (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
     ##                                 PROPERTY.REFERENCE)*)>
     ##<!ATTLIST INSTANCE
-    ##	%ClassName;>
+    ##  %ClassName;>
 
     check_node(tup_tree, 'INSTANCE', ['CLASSNAME'],
                ['QUALIFIER', 'PROPERTY', 'PROPERTY.ARRAY',
@@ -1009,10 +1013,10 @@ def parse_property_reference(tup_tree):
     """
     <!ELEMENT PROPERTY.REFERENCE (QUALIFIER*, (VALUE.REFERENCE)?)>
     <!ATTLIST PROPERTY.REFERENCE
-	%CIMName;
-	%ReferenceClass;
-	%ClassOrigin;
-	%Propagated;>
+        %CIMName;
+        %ReferenceClass;
+        %ClassOrigin;
+        %Propagated;>
     """
 
     check_node(tup_tree, 'PROPERTY.REFERENCE', ['NAME'],
@@ -1152,9 +1156,9 @@ def parse_parameter_refarray(tup_tree):
     """
     <!ELEMENT PARAMETER.REFARRAY (QUALIFIER*)>
     <!ATTLIST PARAMETER.REFARRAY
-	%CIMName;
-	%ReferenceClass;
-	%ArraySize;>
+        %CIMName;
+        %ReferenceClass;
+        %ArraySize;>
     """
 
     check_node(tup_tree, 'PARAMETER.REFARRAY', ['NAME'],
@@ -1185,8 +1189,8 @@ def parse_message(tup_tree):
     """
     <!ELEMENT MESSAGE (SIMPLEREQ | MULTIREQ | SIMPLERSP | MULTIRSP)>
     <!ATTLIST MESSAGE
-	ID CDATA #REQUIRED
-	PROTOCOLVERSION CDATA #REQUIRED>
+        ID CDATA #REQUIRED
+        PROTOCOLVERSION CDATA #REQUIRED>
     """
 
     check_node(tup_tree, 'MESSAGE', ['ID', 'PROTOCOLVERSION'])
@@ -1238,7 +1242,7 @@ def parse_imethodcall(tup_tree):
     """
     <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*)>
     <!ATTLIST IMETHODCALL
-	%CIMName;>
+        %CIMName;>
     """
 
     check_node(tup_tree, 'IMETHODCALL', ['NAME'])
@@ -1427,7 +1431,7 @@ def parse_imethodresponse(tup_tree):
 
 
 def parse_error(tup_tree):
-    """
+    """Parse ERROR element to get CODE and DESCRIPTION.
     <!ELEMENT ERROR EMPTY>
     <!ATTLIST ERROR
         CODE CDATA #REQUIRED
@@ -1495,11 +1499,15 @@ def parse_ireturnvalue(tup_tree):
 #
 
 def parse_any(tup_tree):
-    """Parse any fragment of XML.
-    Builds parser function name from incoming name prepended
-    with parse_ and calls that function.
-    Return is whatever that function returns
-       """
+    """Parse a fragment of XML. This function drives the rest of
+       the parser by calling 'parse_*' functions based on the name
+       of the element being parsed.
+       
+       It builds parser function name from incoming name in tup_tree
+       prepended with 'parse_' and calls that function.
+
+    Return is determined by function called.
+    """
 
     nodename = name(tup_tree).lower().replace('.', '_')
     fn_name = 'parse_' + nodename
@@ -1513,8 +1521,8 @@ def parse_embeddedObject(val): # pylint: disable=invalid-name
     """Parse and embedded instance or class and return the
        CIMInstance or CIMClass
 
-       :return: None if val is None. Returns either the
-       CIMClass or CIMInstance or a list of them
+       :return: None if val is None. Returns either CIMClass or
+           CIMInstance or a list of them
 
        :Raises: ParseError if there is an error in the XML
     """
