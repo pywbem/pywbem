@@ -161,7 +161,8 @@ def check_node(tup_tree, nodename, required_attrs=[], optional_attrs=[],
     for attr in required_attrs:
         if not tt_attrs.has_key(attr):
             raise ParseError('expected %s attribute on %s node, but only '
-                             'have %s' % (attr, name(tup_tree), attrs(tup_tree).keys()))
+                             'have %s' % (attr, name(tup_tree),
+                                          attrs(tup_tree).keys()))
         del tt_attrs[attr]
 
     for attr in optional_attrs:
@@ -175,14 +176,16 @@ def check_node(tup_tree, nodename, required_attrs=[], optional_attrs=[],
         for child in kids(tup_tree):
             if name(child) not in allowed_children:
                 raise ParseError('unexpected node %s under %s; wanted %s'
-                                 % (name(child), name(tup_tree), allowed_children))
+                                 % (name(child), name(tup_tree),
+                                    allowed_children))
 
     if not allow_pcdata:
         for child in tup_tree[2]:
             if isinstance(child, StringTypes):
                 if child.lstrip(' \t\n') <> '':
                     raise ParseError('unexpected non-blank pcdata node %s '
-                                     'under %s' % (`child`, name(tup_tree)))
+                                     'under %s' % (`child`,
+                                                   name(tup_tree)))
 
 
 def one_child(tup_tree, acceptable):
@@ -194,9 +197,10 @@ def one_child(tup_tree, acceptable):
     k = kids(tup_tree)
 
     if len(k) <> 1:
-        raise ParseError('In element %s with attributes %s, expected just '\
-                'one child element %s, but got child elements %s' %\
-                (name(tup_tree), attrs(tup_tree), acceptable, [t[0] for t in k]))
+        raise ParseError('In element %s with attributes %s, expected '\
+                'just one child element %s, but got child elements %s' %\
+                (name(tup_tree), attrs(tup_tree), acceptable,
+                 [t[0] for t in k]))
 
     child = k[0]
 
@@ -450,7 +454,7 @@ def parse_value_namedobject(tup_tree):
 
     return (name(tup_tree), attrs(tup_tree), _object)
 
-
+#pylint: disable=invalid-function-name
 def parse_value_objectwithlocalpath(tup_tree):
     """
     <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH, CLASS) |
@@ -752,7 +756,7 @@ def parse_class(tup_tree):
     ##     %CIMName;
     ##     %SuperClass;>
 
-    # This doesn't check the ordering of elements, but it's not very important
+    # Doesn't check ordering of elements, but it's not very important
     check_node(tup_tree, 'CLASS', ['NAME'], ['SUPERCLASS'],
                ['QUALIFIER', 'PROPERTY', 'PROPERTY.REFERENCE',
                 'PROPERTY.ARRAY', 'METHOD'])
@@ -760,9 +764,10 @@ def parse_class(tup_tree):
     superclass = attrs(tup_tree).get('SUPERCLASS')
 
     # TODO: Return these as maps, not lists
-    properties = cim_obj.byname(list_of_matching(tup_tree, ['PROPERTY',
-                                                            'PROPERTY.REFERENCE',
-                                                            'PROPERTY.ARRAY']))
+    properties = cim_obj.byname(list_of_matching(tup_tree,
+                                                 ['PROPERTY',
+                                                  'PROPERTY.REFERENCE',
+                                                  'PROPERTY.ARRAY']))
 
     qualifiers = cim_obj.byname(list_of_matching(tup_tree, ['QUALIFIER']))
     methods = cim_obj.byname(list_of_matching(tup_tree, ['METHOD']))
@@ -1057,10 +1062,11 @@ def parse_method(tup_tree):
 
     qualifiers = cim_obj.byname(list_of_matching(tup_tree, ['QUALIFIER']))
 
-    parameters = cim_obj.byname(list_of_matching(tup_tree, ['PARAMETER',
-                                                            'PARAMETER.REFERENCE',
-                                                            'PARAMETER.ARRAY',
-                                                            'PARAMETER.REFARRAY',]))
+    parameters = cim_obj.byname(list_of_matching(tup_tree,
+                                                 ['PARAMETER',
+                                                  'PARAMETER.REFERENCE',
+                                                  'PARAMETER.ARRAY',
+                                                  'PARAMETER.REFARRAY',]))
 
     attrl = attrs(tup_tree)
 
@@ -1186,7 +1192,8 @@ def parse_message(tup_tree):
     check_node(tup_tree, 'MESSAGE', ['ID', 'PROTOCOLVERSION'])
 
     messages = one_child(
-        tup_tree, ['SIMPLEREQ', 'MULTIREQ', 'SIMPLERSP', 'MULTIRSP', 'SIMPLEEXPREQ'])
+        tup_tree, ['SIMPLEREQ', 'MULTIREQ', 'SIMPLERSP', 'MULTIRSP',
+                   'SIMPLEEXPREQ'])
 
     if not isinstance(messages, list):
         # make single and multi forms consistent
@@ -1305,6 +1312,7 @@ def parse_paramvalue(tup_tree):
     else:
         paramtype = None
 
+    #pylint: disable=line-too-long
     if 'EmbeddedObject' in attrs(tup_tree) or 'EMBEDDEDOBJECT' in attrs(tup_tree):
         child = parse_embeddedObject(child)
 
@@ -1315,7 +1323,8 @@ def parse_iparamvalue(tup_tree):
     """
     Parse expected IPARAMVALUE element. I.e.
        ## <!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
-       ##                       INSTANCENAME | CLASSNAME | QUALIFIER.DECLARATION |
+       ##                       INSTANCENAME | CLASSNAME |
+       ##                       QUALIFIER.DECLARATION |
        ##                       CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
        ## <!ATTLIST IPARAMVALUE %CIMName;>
 
@@ -1392,9 +1401,10 @@ def parse_methodresponse(tup_tree):
 
     check_node(tup_tree, 'METHODRESPONSE', ['NAME'], [])
 
-    return name(tup_tree), attrs(tup_tree), list_of_various(tup_tree, ['ERROR',
-                                                                       'RETURNVALUE',
-                                                                       'PARAMVALUE'])
+    return name(tup_tree), attrs(tup_tree), list_of_various(tup_tree,
+                                                            ['ERROR',
+                                                             'RETURNVALUE',
+                                                             'PARAMVALUE'])
 
 
 def parse_expmethodresponse(tup_tree):  #pylint: disable=unused-argument
@@ -1411,7 +1421,9 @@ def parse_imethodresponse(tup_tree):
 
     check_node(tup_tree, 'IMETHODRESPONSE', ['NAME'], [])
 
-    return name(tup_tree), attrs(tup_tree), optional_child(tup_tree, ['ERROR', 'IRETURNVALUE'])
+    return name(tup_tree), attrs(tup_tree), optional_child(tup_tree,
+                                                           ['ERROR',
+                                                            'IRETURNVALUE'])
 
 
 def parse_error(tup_tree):
@@ -1443,10 +1455,11 @@ def parse_returnvalue(tup_tree):
 
     check_node(tup_tree, 'RETURNVALUE', [], ['PARAMTYPE'])
 
-    return name(tup_tree), attrs(tup_tree), one_child(tup_tree, ['VALUE',
-                                                                 'VALUE.ARRAY',
-                                                                 'VALUE.REFERENCE',
-                                                                 'VALUE.REFARRAY'])
+    return name(tup_tree), attrs(tup_tree), one_child(tup_tree,
+                                                      ['VALUE',
+                                                       'VALUE.ARRAY',
+                                                       'VALUE.REFERENCE',
+                                                       'VALUE.REFARRAY'])
 
 def parse_ireturnvalue(tup_tree):
     """Parse IRETURNVALUE element. Returns name, attributes and
@@ -1466,8 +1479,9 @@ def parse_ireturnvalue(tup_tree):
     # multiple VALUEs but not multiple VALUE.REFERENCEs?
 
     values = list_of_same(tup_tree, ['CLASSNAME', 'INSTANCENAME',
-                                     'VALUE', 'VALUE.OBJECTWITHPATH', 'VALUE.OBJECT',
-                                     'OBJECTPATH', 'QUALIFIER.DECLARATION',
+                                     'VALUE', 'VALUE.OBJECTWITHPATH',
+                                     'VALUE.OBJECT', 'OBJECTPATH',
+                                     'QUALIFIER.DECLARATION',
                                      'VALUE.ARRAY', 'VALUE.REFERENCE',
                                      'CLASS', 'INSTANCE',
                                      'VALUE.NAMEDINSTANCE',])
