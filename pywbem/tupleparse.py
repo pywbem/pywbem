@@ -21,6 +21,7 @@
 # Author: Bart Whiteley <bwhiteley@suse.de>
 #
 
+# pylint: disable=too-many-lines
 '''Tuple parser for the XML schema representing CIM messages.
 
 This framework is meant to add some value to the tuple-tree
@@ -36,7 +37,7 @@ representation of CIM in XML by having the following properties:
 
 '''
 
-# Implementation: this works by a recursive descent down the CIM XML
+# Implementation: This works by a recursive descent down the CIM XML
 # tupletree.  As we walk down, we produce cim_obj and cim_type
 # objects representing the CIM message in digested form.
 
@@ -56,9 +57,9 @@ representation of CIM in XML by having the following properties:
 # Bear in mind in the parse functions that each tupletree tuple is
 # structured as
 
-#   tt[0]: name string             == name(tt)
-#   tt[1]: hash of attributes      == attrs(tt)
-#   tt[2]: sequence of children    == kids(tt)
+#   tup_tree[0]: name string             == name(tup_tree)
+#   tup_tree[1]: hash of attributes      == attrs(tup_tree)
+#   tup_tree[2]: sequence of children    == kids(tup_tree)
 
 # At the moment this layer is a little inconsistent: in some places it
 # returns tupletrees, and in others Python objects.  It may be better
@@ -104,31 +105,36 @@ def filter_tuples(list_):
         return [x for x in list_ if isinstance(x, tuple)]
 
 
-def pcdata(tt):
-    """Return the concatenated character data within a tt.
+def pcdata(tup_tree):
+    """Return the concatenated character data within a tup_tree.
 
-    The tt must not have non-character children."""
-    for x in tt[2]:
-        if not isinstance(x, StringTypes):
-            raise ParseError, 'unexpected node %s under %s' % (`x`, `tt`)
-    return ''.join(tt[2])
-
-
-def name(tt):
-    return tt[0]
+    The tup_tree must not have non-character children."""
+    for inst in tup_tree[2]:
+        if not isinstance(inst, StringTypes):
+            raise ParseError, 'unexpected node %s under %s' % (`inst`,
+                                                               `tup_tree`)
+    return ''.join(tup_tree[2])
 
 
-def attrs(tt):
-    return tt[1]
+def name(tup_tree):
+    """Return first (name) element of tup_tree"""
+    return tup_tree[0]
 
 
-def kids(tt):
-    return filter_tuples(tt[2])
+def attrs(tup_tree):
+    """Return second (attributes) element of tup_tree"""
+    return tup_tree[1]
 
 
-def check_node(tt, nodename, required_attrs=[], optional_attrs=[],
+def kids(tup_tree):
+    """Return third (children) element of tup_tree"""
+    return filter_tuples(tup_tree[2])
+
+# pylint: disable=too-many-arguments
+def check_node(tup_tree, nodename, required_attrs=[], optional_attrs=[],
                allowed_children=None,
                allow_pcdata=False):
+    # pylint: disable=too-many-branches
     """Check static local constraints on a single node.
 
     The node must have the given name.  The required attrs must be
@@ -143,19 +149,20 @@ def check_node(tt, nodename, required_attrs=[], optional_attrs=[],
     (Whitespace text nodes are always allowed.)
     """
 
-    if name(tt) <> nodename:
+    if name(tup_tree) <> nodename:
         raise ParseError('expected node type %s, not %s' %
-                         (nodename, name(tt)))
+                         (nodename, name(tup_tree)))
 
     # Check we have all the required attributes, and no unexpected ones
     tt_attrs = {}
-    if attrs(tt) is not None:
-        tt_attrs = attrs(tt).copy()
+    if attrs(tup_tree) is not None:
+        tt_attrs = attrs(tup_tree).copy()
 
     for attr in required_attrs:
         if not tt_attrs.has_key(attr):
             raise ParseError('expected %s attribute on %s node, but only '
-                             'have %s' % (attr, name(tt), attrs(tt).keys()))
+                             'have %s' % (attr, name(tup_tree),
+                                          attrs(tup_tree).keys()))
         del tt_attrs[attr]
 
     for attr in optional_attrs:
@@ -166,149 +173,155 @@ def check_node(tt, nodename, required_attrs=[], optional_attrs=[],
         raise ParseError('invalid extra attributes %s' % tt_attrs.keys())
 
     if allowed_children is not None:
-        for c in kids(tt):
-            if name(c) not in allowed_children:
+        for child in kids(tup_tree):
+            if name(child) not in allowed_children:
                 raise ParseError('unexpected node %s under %s; wanted %s'
-                                 % (name(c), name(tt), allowed_children))
+                                 % (name(child), name(tup_tree),
+                                    allowed_children))
 
     if not allow_pcdata:
-        for c in tt[2]:
-            if isinstance(c, StringTypes):
-                if c.lstrip(' \t\n') <> '':
+        for child in tup_tree[2]:
+            if isinstance(child, StringTypes):
+                if child.lstrip(' \t\n') <> '':
                     raise ParseError('unexpected non-blank pcdata node %s '
-                                     'under %s' % (`c`, name(tt)))
+                                     'under %s' % (`child`,
+                                                   name(tup_tree)))
 
 
-def one_child(tt, acceptable):
+def one_child(tup_tree, acceptable):
     """Parse children of a node with exactly one child node.
 
     PCData is ignored.
     """
 
-    k = kids(tt)
+    k = kids(tup_tree)
 
     if len(k) <> 1:
-        raise ParseError('In element %s with attributes %s, expected just '\
-                'one child element %s, but got child elements %s' %\
-                (name(tt), attrs(tt), acceptable, [t[0] for t in k]))
+        raise ParseError('In element %s with attributes %s, expected '\
+                'just one child element %s, but got child elements %s' %\
+                (name(tup_tree), attrs(tup_tree), acceptable,
+                 [t[0] for t in k]))
 
     child = k[0]
 
     if name(child) not in acceptable:
         raise ParseError('In element %s with attributes %s, expected one '\
                 'child element %s, but got child element %s' %\
-                (name(tt), attrs(tt), acceptable, name(child)))
+                (name(tup_tree), attrs(tup_tree), acceptable, name(child)))
 
     return parse_any(child)
 
 
-def optional_child(tt, allowed):
+def optional_child(tup_tree, allowed):
     """Parse exactly zero or one of a list of elements from the
     child nodes."""
 
-    k = kids(tt)
+    k = kids(tup_tree)
 
     if len(k) > 1:
         raise ParseError('In element %s with attributes %s, expected zero or '\
                 'one child element %s, but got child elements %s' %\
-                (name(tt), attrs(tt), allowed, [t[0] for t in k]))
+                (name(tup_tree), attrs(tup_tree), allowed, [t[0] for t in k]))
     elif len(k) == 1:
-        return one_child(tt, allowed)
+        return one_child(tup_tree, allowed)
     else:
         return None
 
 
-def list_of_various(tt, acceptable):
+def list_of_various(tup_tree, acceptable):
     """Parse zero or more of a list of elements from the child nodes.
 
     Each element of the list can be any type from the list of acceptable
     nodes."""
 
-    r = []
+    result = []
 
-    for child in kids(tt):
+    for child in kids(tup_tree):
         if name(child) not in acceptable:
             raise ParseError('In element %s with attributes %s, expected zero '\
                     'or more child elements %s, but got child element %s' %\
-                    (name(tt), attrs(tt), acceptable, name(child)))
-        r.append(parse_any(child))
+                    (name(tup_tree), attrs(tup_tree), acceptable, name(child)))
+        result.append(parse_any(child))
 
-    return r
+    return result
 
 
-def list_of_matching(tt, matched):
-    """Parse only the children of particular types under tt.
+def list_of_matching(tup_tree, matched):
+    """Parse only the children of particular types under tup_tree.
 
     Other children are ignored rather than giving an error."""
 
-    r = []
+    result = []
 
-    for child in kids(tt):
+    for child in kids(tup_tree):
         if name(child) not in matched:
             continue
-        r.append(parse_any(child))
+        result.append(parse_any(child))
 
-    return r
+    return result
 
 
-def list_of_same(tt, acceptable):
+def list_of_same(tup_tree, acceptable):
     """Parse a list of elements from child nodes.
 
     The children can be any of the listed acceptable types, but they
     must all be the same.
     """
 
-    k = kids(tt)
-    if not k:                   # empty list, consistent with list_of_various
+    kid = kids(tup_tree)
+    if not kid:            # empty list, consistent with list_of_various
         return []
 
-    w = name(k[0])
-    if w not in acceptable:
-        raise ParseError('In element %s with attributes %s, expected child '\
-                'elements %s, but got child element %s' %\
-                (name(tt), attrs(tt), acceptable, w))
-    r = []
-    for child in k:
-        if name(child) <> w:
+    a_child = name(kid[0])
+    if a_child not in acceptable:
+        raise ParseError('In element %s with attributes %s, expected '\
+                'child elements %s, but got child element %s' %\
+                (name(tup_tree), attrs(tup_tree), acceptable, a_child))
+    result = []
+    for child in kid:
+        if name(child) <> a_child:
             raise ParseError('In element %s with attributes %s, expected '\
                     'sequence of only child elements %s, but got child '\
-                    'element %s' % (name(tt), attrs(tt), w, name(child)))
-        r.append(parse_any(child))
+                    'element %s' % (name(tup_tree), attrs(tup_tree), a_child, \
+                     name(child)))
+        result.append(parse_any(child))
 
-    return r
+    return result
 
 
-def notimplemented(tt):
-    raise ParseError('parser for %s not implemented' % name(tt))
+def notimplemented(tup_tree):
+    """raise exception for notimplemented function"""
+    raise ParseError('parser for %s not implemented' % name(tup_tree))
 
 #
 # Root element
 #
 
-def parse_cim(tt):
-    """
-    <!ELEMENT CIM (MESSAGE | DECLARATION)>
-    <!ATTLIST CIM
-	CIMVERSION CDATA #REQUIRED
-	DTDVERSION CDATA #REQUIRED>
+def parse_cim(tup_tree):
+    """Parse the top level element of CIM/XML message
+
+           <!ELEMENT CIM (MESSAGE | DECLARATION)>
+           <!ATTLIST CIM
+               CIMVERSION CDATA #REQUIRED
+               DTDVERSION CDATA #REQUIRED>
     """
 
-    check_node(tt, 'CIM', ['CIMVERSION', 'DTDVERSION'])
+    check_node(tup_tree, 'CIM', ['CIMVERSION', 'DTDVERSION'])
 
-    if not attrs(tt)['CIMVERSION'].startswith('2.'):
+    if not attrs(tup_tree)['CIMVERSION'].startswith('2.'):
         raise ParseError('CIMVERSION is %s, expected 2.x.y' %
-                         attrs(tt)['CIMVERSION'])
+                         attrs(tup_tree)['CIMVERSION'])
 
-    child = one_child(tt, ['MESSAGE', 'DECLARATION'])
+    child = one_child(tup_tree, ['MESSAGE', 'DECLARATION'])
 
-    return name(tt), attrs(tt), child
+    return name(tup_tree), attrs(tup_tree), child
 
 
 #
 # Declaration elements
 #
 
-def parse_declaration(tt):
+def parse_declaration(tup_tree):
     """
     <!ELEMENT DECLARATION ( DECLGROUP | DECLGROUP.WITHNAME |
                             DECLGROUP.WITHPATH )+>
@@ -316,14 +329,14 @@ def parse_declaration(tt):
     Note: We only support the DECLGROUP child, at this point.
     """
 
-    check_node(tt, 'DECLARATION')
+    check_node(tup_tree, 'DECLARATION')
 
-    child = one_child(tt, ['DECLGROUP'])
+    child = one_child(tup_tree, ['DECLGROUP'])
 
-    return name(tt), attrs(tt), child
+    return name(tup_tree), attrs(tup_tree), child
 
 
-def parse_declgroup(tt):
+def parse_declgroup(tup_tree):
     """
     <!ELEMENT DECLGROUP ( (LOCALNAMESPACEPATH|NAMESPACEPATH)?,
                           QUALIFIER.DECLARATION*, VALUE.OBJECT* )>
@@ -332,43 +345,43 @@ def parse_declgroup(tt):
           children, and with a multiplicity of 1, at this point.
     """
 
-    check_node(tt, 'DECLGROUP')
+    check_node(tup_tree, 'DECLGROUP')
 
-    child = one_child(tt, ['QUALIFIER.DECLARATION', 'VALUE.OBJECT'])
+    child = one_child(tup_tree, ['QUALIFIER.DECLARATION', 'VALUE.OBJECT'])
 
-    return name(tt), attrs(tt), child
+    return name(tup_tree), attrs(tup_tree), child
 
 
 #
 # Object value elements
 #
 
-def parse_value(tt):
+def parse_value(tup_tree):
     '''Return VALUE contents as a string'''
     ## <!ELEMENT VALUE (#PCDATA)>
-    check_node(tt, 'VALUE', [], [], [], True)
+    check_node(tup_tree, 'VALUE', [], [], [], True)
 
-    return pcdata(tt)
+    return pcdata(tup_tree)
 
 
-def parse_value_array(tt):
+def parse_value_array(tup_tree):
     """Return list of strings."""
     ## <!ELEMENT VALUE.ARRAY (VALUE*)>
-    check_node(tt, 'VALUE.ARRAY', [], [], ['VALUE'])
+    check_node(tup_tree, 'VALUE.ARRAY', [], [], ['VALUE'])
 
-    return list_of_same(tt, ['VALUE'])
+    return list_of_same(tup_tree, ['VALUE'])
 
 
-def parse_value_reference(tt):
+def parse_value_reference(tup_tree):
     """
     <!ELEMENT VALUE.REFERENCE (CLASSPATH | LOCALCLASSPATH | CLASSNAME |
                                INSTANCEPATH | LOCALINSTANCEPATH |
                                INSTANCENAME)>
     """
 
-    check_node(tt, 'VALUE.REFERENCE', [])
+    check_node(tup_tree, 'VALUE.REFERENCE', [])
 
-    child = one_child(tt,
+    child = one_child(tup_tree,
                       ['CLASSPATH', 'LOCALCLASSPATH', 'CLASSNAME',
                        'INSTANCEPATH', 'LOCALINSTANCEPATH',
                        'INSTANCENAME'])
@@ -377,39 +390,39 @@ def parse_value_reference(tt):
     return child
 
 
-def parse_value_refarray(tt):
+def parse_value_refarray(tup_tree):
     """
     <!ELEMENT VALUE.REFARRAY (VALUE.REFERENCE*)>
     """
 
-    check_node(tt, 'VALUE.REFARRAY')
+    check_node(tup_tree, 'VALUE.REFARRAY')
 
-    children = list_of_various(tt, ['VALUE.REFERENCE'])
+    children = list_of_various(tup_tree, ['VALUE.REFERENCE'])
 
     # The VALUE.REFARRAY wrapper element is discarded
     return children
 
 
-def parse_value_object(tt):
+def parse_value_object(tup_tree):
     """
     <!ELEMENT VALUE.OBJECT (CLASS | INSTANCE)>
     """
 
-    check_node(tt, 'VALUE.OBJECT')
+    check_node(tup_tree, 'VALUE.OBJECT')
 
-    child = one_child(tt, ['CLASS', 'INSTANCE'])
+    child = one_child(tup_tree, ['CLASS', 'INSTANCE'])
 
-    return (name(tt), attrs(tt), child)
+    return (name(tup_tree), attrs(tup_tree), child)
 
 
-def parse_value_namedinstance(tt):
+def parse_value_namedinstance(tup_tree):
     """
     <!ELEMENT VALUE.NAMEDINSTANCE (INSTANCENAME, INSTANCE)>
     """
 
-    check_node(tt, 'VALUE.NAMEDINSTANCE')
+    check_node(tup_tree, 'VALUE.NAMEDINSTANCE')
 
-    k = kids(tt)
+    k = kids(tup_tree)
     if len(k) <> 2:
         raise ParseError('expecting (INSTANCENAME, INSTANCE), got %s' % `k`)
 
@@ -421,59 +434,59 @@ def parse_value_namedinstance(tt):
     return instance
 
 
-def parse_value_namedobject(tt):
+def parse_value_namedobject(tup_tree):
     """
     <!ELEMENT VALUE.NAMEDOBJECT (CLASS | (INSTANCENAME, INSTANCE))>
     """
 
-    check_node(tt, 'VALUE.NAMEDOBJECT')
+    check_node(tup_tree, 'VALUE.NAMEDOBJECT')
 
-    k = kids(tt)
+    k = kids(tup_tree)
     if len(k) == 1:
         _object = parse_class(k[0])
     elif len(k) == 2:
-        path = parse_instancename(kids(tt)[0])
-        _object = parse_instance(kids(tt)[1])
+        path = parse_instancename(kids(tup_tree)[0])
+        _object = parse_instance(kids(tup_tree)[1])
 
         _object.path = path
     else:
         raise ParseError('Expecting one or two elements, got %s' %
-                         `kids(tt)`)
+                         `kids(tup_tree)`)
 
-    return (name(tt), attrs(tt), _object)
+    return (name(tup_tree), attrs(tup_tree), _object)
 
-
-def parse_value_objectwithlocalpath(tt):
+#pylint: disable=invalid-function-name
+def parse_value_objectwithlocalpath(tup_tree):
     """
     <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH, CLASS) |
                                          (LOCALINSTANCEPATH, INSTANCE))>
     """
 
-    check_node(tt, 'VALUE.OBJECTWITHLOCALPATH')
+    check_node(tup_tree, 'VALUE.OBJECTWITHLOCALPATH')
 
-    if len(kids(tt)) != 2:
+    if len(kids(tup_tree)) != 2:
         raise ParseError('Expecting two elements, got %s' %
-                         len(kids(tt)))
+                         len(kids(tup_tree)))
 
-    if kids(tt)[0][0] == 'LOCALCLASSPATH':
-        _object = (parse_localclasspath(kids(tt)[0]),
-                   parse_class(kids(tt)[1]))
+    if kids(tup_tree)[0][0] == 'LOCALCLASSPATH':
+        _object = (parse_localclasspath(kids(tup_tree)[0]),
+                   parse_class(kids(tup_tree)[1]))
     else:
-        path = parse_localinstancepath(kids(tt)[0])
-        _object = parse_instance(kids(tt)[1])
+        path = parse_localinstancepath(kids(tup_tree)[0])
+        _object = parse_instance(kids(tup_tree)[1])
         _object.path = path
 
-    return (name(tt), attrs(tt), _object)
+    return (name(tup_tree), attrs(tup_tree), _object)
 
-def parse_value_objectwithpath(tt):
+def parse_value_objectwithpath(tup_tree):
     """
     <!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH, CLASS) |
                                     (INSTANCEPATH, INSTANCE))>
     """
 
-    check_node(tt, 'VALUE.OBJECTWITHPATH')
+    check_node(tup_tree, 'VALUE.OBJECTWITHPATH')
 
-    k = kids(tt)
+    k = kids(tup_tree)
 
     if len(k) != 2:
         raise ParseError('Expecting two elements, got %s' % k)
@@ -486,211 +499,214 @@ def parse_value_objectwithpath(tt):
         _object = parse_instance(k[1])
         _object.path = path
 
-    return (name(tt), attrs(tt), _object)
+    return (name(tup_tree), attrs(tup_tree), _object)
 
 #
 # Object naming and locating elements
 #
 
-def parse_namespacepath(tt):
+def parse_namespacepath(tup_tree):
     """
     <!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)>
     """
 
-    check_node(tt, 'NAMESPACEPATH')
+    check_node(tup_tree, 'NAMESPACEPATH')
 
-    if len(kids(tt)) != 2:
+    if len(kids(tup_tree)) != 2:
         raise ParseError('Expecting (HOST, LOCALNAMESPACEPATH) '
-                         'got %s' % kids(tt).keys())
+                         'got %s' % kids(tup_tree).keys())
 
-    host = parse_host(kids(tt)[0])
-    localnspath = parse_localnamespacepath(kids(tt)[1])
+    host = parse_host(kids(tup_tree)[0])
+    localnspath = parse_localnamespacepath(kids(tup_tree)[1])
 
     return (host, localnspath)
 
 
-def parse_localnamespacepath(tt):
+def parse_localnamespacepath(tup_tree):
     """
     <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
     """
 
-    check_node(tt, 'LOCALNAMESPACEPATH', [], [], ['NAMESPACE'])
+    check_node(tup_tree, 'LOCALNAMESPACEPATH', [], [], ['NAMESPACE'])
 
-    if len(kids(tt)) == 0:
+    if len(kids(tup_tree)) == 0:
         raise ParseError('Expecting one or more of NAMESPACE, got nothing')
 
-    ns_list = list_of_various(tt, ['NAMESPACE'])
+    ns_list = list_of_various(tup_tree, ['NAMESPACE'])
 
     return string.join(ns_list, '/')
 
 
-def parse_host(tt):
+def parse_host(tup_tree):
     """
     <!ELEMENT HOST (#PCDATA)>
     """
 
-    check_node(tt, 'HOST', allow_pcdata=True)
+    check_node(tup_tree, 'HOST', allow_pcdata=True)
 
-    return pcdata(tt)
+    return pcdata(tup_tree)
 
 
-def parse_namespace(tt):
-    """
+def parse_namespace(tup_tree):
+    """Parse NAMESPACE element for namespace name
     <!ELEMENT NAMESPACE EMPTY>
     <!ATTLIST NAMESPACE
-	%CIMName;>
+        %CIMName;>
     """
 
-    check_node(tt, 'NAMESPACE', ['NAME'], [], [])
+    check_node(tup_tree, 'NAMESPACE', ['NAME'], [], [])
 
-    return attrs(tt)['NAME']
+    return attrs(tup_tree)['NAME']
 
 
-def parse_classpath(tt):
+def parse_classpath(tup_tree):
     """
     <!ELEMENT CLASSPATH (NAMESPACEPATH, CLASSNAME)>
     """
 
-    check_node(tt, 'CLASSPATH')
+    check_node(tup_tree, 'CLASSPATH')
 
-    if len(kids(tt)) != 2:
+    if len(kids(tup_tree)) != 2:
         raise ParseError('Expecting (NAMESPACEPATH, CLASSNAME) '
-                         'got %s' % kids(tt).keys())
+                         'got %s' % kids(tup_tree).keys())
 
-    nspath = parse_namespacepath(kids(tt)[0])
-    classname = parse_classname(kids(tt)[1])
+    nspath = parse_namespacepath(kids(tup_tree)[0])
+    classname = parse_classname(kids(tup_tree)[1])
 
     return CIMClassName(classname.classname,
                         host=nspath[0], namespace=nspath[1])
 
 
-def parse_localclasspath(tt):
+def parse_localclasspath(tup_tree):
     """
     <!ELEMENT LOCALCLASSPATH (LOCALNAMESPACEPATH, CLASSNAME)>
     """
 
-    check_node(tt, 'LOCALCLASSPATH')
+    check_node(tup_tree, 'LOCALCLASSPATH')
 
-    if len(kids(tt)) != 2:
+    if len(kids(tup_tree)) != 2:
         raise ParseError('Expecting (LOCALNAMESPACEPATH, CLASSNAME) '
-                         'got %s' % kids(tt).keys())
+                         'got %s' % kids(tup_tree).keys())
 
-    localnspath = parse_localnamespacepath(kids(tt)[0])
-    classname = parse_classname(kids(tt)[1])
+    localnspath = parse_localnamespacepath(kids(tup_tree)[0])
+    classname = parse_classname(kids(tup_tree)[1])
 
     return CIMClassName(classname.classname, namespace=localnspath)
 
-def parse_classname(tt):
+def parse_classname(tup_tree):
+    """Parse a CLASSNAME element and return a CIMClassName.
+    
+           <!ELEMENT CLASSNAME EMPTY>
+           <!ATTLIST CLASSNAME
+               %CIMName;>
     """
-    <!ELEMENT CLASSNAME EMPTY>
-    <!ATTLIST CLASSNAME
-	%CIMName;>
-    """
-    check_node(tt, 'CLASSNAME', ['NAME'], [], [])
-    return CIMClassName(attrs(tt)['NAME'])
+    check_node(tup_tree, 'CLASSNAME', ['NAME'], [], [])
+    return CIMClassName(attrs(tup_tree)['NAME'])
 
 
-def parse_instancepath(tt):
-    """
-    <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
+def parse_instancepath(tup_tree):
+    """Parse a INSTANCEPATH element returning the instance name.
+    
+          <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
     """
 
-    check_node(tt, 'INSTANCEPATH')
+    check_node(tup_tree, 'INSTANCEPATH')
 
-    if len(kids(tt)) != 2:
+    if len(kids(tup_tree)) != 2:
         raise ParseError('Expecting (NAMESPACEPATH, INSTANCENAME), got %s'
-                         % `kids(tt)`)
+                         % `kids(tup_tree)`)
 
-    nspath = parse_namespacepath(kids(tt)[0])
-    instancename = parse_instancename(kids(tt)[1])
+    nspath = parse_namespacepath(kids(tup_tree)[0])
+    instancename = parse_instancename(kids(tup_tree)[1])
 
     instancename.host = nspath[0]
     instancename.namespace = nspath[1]
 
     return instancename
 
-def parse_localinstancepath(tt):
-    """
-    <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
+def parse_localinstancepath(tup_tree):
+    """Parse a LOCALINSTANCEPATH element:
+    
+           <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
     """
 
-    check_node(tt, 'LOCALINSTANCEPATH')
+    check_node(tup_tree, 'LOCALINSTANCEPATH')
 
-    if len(kids(tt)) != 2:
+    if len(kids(tup_tree)) != 2:
         raise ParseError('Expecting (LOCALNAMESPACEPATH, INSTANCENAME), '
-                         'got %s' % kids(tt).keys())
+                         'got %s' % kids(tup_tree).keys())
 
-    localnspath = parse_localnamespacepath(kids(tt)[0])
-    instancename = parse_instancename(kids(tt)[1])
+    localnspath = parse_localnamespacepath(kids(tup_tree)[0])
+    instancename = parse_instancename(kids(tup_tree)[1])
 
     instancename.namespace = localnspath
 
     return instancename
 
-def parse_instancename(tt):
+def parse_instancename(tup_tree):
     """Parse XML INSTANCENAME into CIMInstanceName object."""
 
     ## <!ELEMENT INSTANCENAME (KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?)>
     ## <!ATTLIST INSTANCENAME %ClassName;>
 
-    check_node(tt, 'INSTANCENAME', ['CLASSNAME'])
+    check_node(tup_tree, 'INSTANCENAME', ['CLASSNAME'])
 
-    if len(kids(tt)) == 0:
+    if len(kids(tup_tree)) == 0:
         # probably not ever going to see this, but it's valid
         # according to the grammar
-        return CIMInstanceName(attrs(tt)['CLASSNAME'], {})
+        return CIMInstanceName(attrs(tup_tree)['CLASSNAME'], {})
 
-    k0 = kids(tt)[0]
-    w = name(k0)
+    kid0 = kids(tup_tree)[0]
+    k0_name = name(kid0)
 
-    classname = attrs(tt)['CLASSNAME']
+    classname = attrs(tup_tree)['CLASSNAME']
 
-    if w == 'KEYVALUE' or w == 'VALUE.REFERENCE':
-        if len(kids(tt)) != 1:
+    if k0_name == 'KEYVALUE' or k0_name == 'VALUE.REFERENCE':
+        if len(kids(tup_tree)) != 1:
             raise ParseError('expected only one %s under %s' %
-                             w, name(tt))
+                             k0_name, name(tup_tree))
 
         # FIXME: This is probably not the best representation of these forms...
-        val = parse_any(k0)
+        val = parse_any(kid0)
         return CIMInstanceName(classname, {None: val})
-    elif w == 'KEYBINDING':
+    elif k0_name == 'KEYBINDING':
         kbs = {}
-        for kb in list_of_various(tt, ['KEYBINDING']):
-            kbs.update(kb)
+        for key_bind in list_of_various(tup_tree, ['KEYBINDING']):
+            kbs.update(key_bind)
         return CIMInstanceName(classname, kbs)
     else:
         raise ParseError('unexpected node %s under %s' %
-                         (name(kids(tt)[0]), name(tt)))
+                         (name(kids(tup_tree)[0]), name(tup_tree)))
 
 
-def parse_objectpath(tt):
+def parse_objectpath(tup_tree):
     """
     <!ELEMENT OBJECTPATH (INSTANCEPATH | CLASSPATH)>
     """
 
-    check_node(tt, 'OBJECTPATH')
+    check_node(tup_tree, 'OBJECTPATH')
 
-    child = one_child(tt, ['INSTANCEPATH', 'CLASSPATH'])
+    child = one_child(tup_tree, ['INSTANCEPATH', 'CLASSPATH'])
 
-    return (name(tt), attrs(tt), child)
+    return (name(tup_tree), attrs(tup_tree), child)
 
 
 
-def parse_keybinding(tt):
+def parse_keybinding(tup_tree):
     ##<!ELEMENT KEYBINDING (KEYVALUE | VALUE.REFERENCE)>
     ##<!ATTLIST KEYBINDING
-    ##	%CIMName;>
+    ##  %CIMName;>
 
     """Returns one-item dictionary from name to Python value."""
 
-    check_node(tt, 'KEYBINDING', ['NAME'])
+    check_node(tup_tree, 'KEYBINDING', ['NAME'])
 
-    child = one_child(tt, ['KEYVALUE', 'VALUE.REFERENCE'])
+    child = one_child(tup_tree, ['KEYVALUE', 'VALUE.REFERENCE'])
 
-    return {attrs(tt)['NAME']: child}
+    return {attrs(tup_tree)['NAME']: child}
 
 
-def parse_keyvalue(tt):
+def parse_keyvalue(tup_tree):
     ##<!ELEMENT KEYVALUE (#PCDATA)>
     ##<!ATTLIST KEYVALUE
     ##          VALUETYPE (string | boolean | numeric) "string"
@@ -699,71 +715,75 @@ def parse_keyvalue(tt):
 
     """Parse VALUETYPE into Python primitive value"""
 
-    check_node(tt, 'KEYVALUE', ['VALUETYPE'], ['TYPE'], [], True)
+    check_node(tup_tree, 'KEYVALUE', ['VALUETYPE'], ['TYPE'], [], True)
 
-    p = pcdata(tt)
+    pdta = pcdata(tup_tree)
 
-    if not attrs(tt).has_key('VALUETYPE'):
-        return p
+    if not attrs(tup_tree).has_key('VALUETYPE'):
+        return pdta
 
-    vt = attrs(tt).get('VALUETYPE')
+    val_type = attrs(tup_tree).get('VALUETYPE')
 
-    if vt == 'string':
-        return p
-    elif vt == 'boolean':
-        return unpack_boolean(p)
-    elif vt == 'numeric':
+    if val_type == 'string':
+        return pdta
+    elif val_type == 'boolean':
+        return unpack_boolean(pdta)
+    elif val_type == 'numeric':
 
         try:
             # XXX: Use TYPE attribute to create named CIM type.
-            # if attrs(tt).has_key('TYPE'):
-            #    return cim_obj.tocimobj(attrs(tt)['TYPE'], p.strip())
+            # if attrs(tup_tree).has_key('TYPE'):
+            #    return cim_obj.tocimobj(attrs(tup_tree)['TYPE'], p.strip())
 
             # XXX: Would like to use long() here, but that tends to cause
             # trouble when it's written back out as '2L'
-            return int(p.strip())
+            return int(pdta.strip())
         except ValueError:
             raise ParseError('invalid numeric %s under %s' %
-                             (`p`, name(tt)))
+                             (`pdta`, name(tup_tree)))
     else:
         raise ParseError('invalid VALUETYPE %s in %s' %
-                         (vt, name(tt)))
+                         (val_type, name(tup_tree)))
 
 
 #
 # Object definition elements
 #
 
-def parse_class(tt):
+def parse_class(tup_tree):
+    """Parse CLASS element returning a CIMClass if the parse
+       was successful.
+    """
     ## <!ELEMENT CLASS (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
     ##                               PROPERTY.REFERENCE)*, METHOD*)>
     ## <!ATTLIST CLASS
     ##     %CIMName;
     ##     %SuperClass;>
 
-    # This doesn't check the ordering of elements, but it's not very important
-    check_node(tt, 'CLASS', ['NAME'], ['SUPERCLASS'],
+    # Doesn't check ordering of elements, but it's not very important
+    check_node(tup_tree, 'CLASS', ['NAME'], ['SUPERCLASS'],
                ['QUALIFIER', 'PROPERTY', 'PROPERTY.REFERENCE',
                 'PROPERTY.ARRAY', 'METHOD'])
 
-    superclass = attrs(tt).get('SUPERCLASS')
+    superclass = attrs(tup_tree).get('SUPERCLASS')
 
     # TODO: Return these as maps, not lists
-    properties = cim_obj.byname(list_of_matching(tt, ['PROPERTY',
-                                                      'PROPERTY.REFERENCE',
-                                                      'PROPERTY.ARRAY']))
+    properties = cim_obj.byname(list_of_matching(tup_tree,
+                                                 ['PROPERTY',
+                                                  'PROPERTY.REFERENCE',
+                                                  'PROPERTY.ARRAY']))
 
-    qualifiers = cim_obj.byname(list_of_matching(tt, ['QUALIFIER']))
-    methods = cim_obj.byname(list_of_matching(tt, ['METHOD']))
+    qualifiers = cim_obj.byname(list_of_matching(tup_tree, ['QUALIFIER']))
+    methods = cim_obj.byname(list_of_matching(tup_tree, ['METHOD']))
 
-    return CIMClass(attrs(tt)['NAME'],
+    return CIMClass(attrs(tup_tree)['NAME'],
                     superclass=superclass,
                     properties=properties,
                     qualifiers=qualifiers,
                     methods=methods)
 
 
-def parse_instance(tt):
+def parse_instance(tup_tree):
     """Return a CIMInstance.
 
     The instance contains the properties, qualifiers and classname for
@@ -772,9 +792,9 @@ def parse_instance(tt):
     ##<!ELEMENT INSTANCE (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
     ##                                 PROPERTY.REFERENCE)*)>
     ##<!ATTLIST INSTANCE
-    ##	%ClassName;>
+    ##  %ClassName;>
 
-    check_node(tt, 'INSTANCE', ['CLASSNAME'],
+    check_node(tup_tree, 'INSTANCE', ['CLASSNAME'],
                ['QUALIFIER', 'PROPERTY', 'PROPERTY.ARRAY',
                 'PROPERTY.REFERENCE'])
 
@@ -785,17 +805,18 @@ def parse_instance(tt):
 
     ## TODO: Parse instance qualifiers
     qualifiers = {}
-    props = list_of_matching(tt, ['PROPERTY.REFERENCE', 'PROPERTY',
-                                  'PROPERTY.ARRAY'])
+    props = list_of_matching(tup_tree, ['PROPERTY.REFERENCE', 'PROPERTY',
+                                        'PROPERTY.ARRAY'])
 
-    obj = CIMInstance(attrs(tt)['CLASSNAME'], qualifiers=qualifiers)
+    obj = CIMInstance(attrs(tup_tree)['CLASSNAME'], qualifiers=qualifiers)
 
-    for p in props:
-        obj.__setitem__(p.name, p)
+    for prop in props:
+        obj.__setitem__(prop.name, prop)
 
     return obj
 
-def parse_scope(tt):
+def parse_scope(tup_tree):
+    """Parse SCOPE element."""
     # <!ELEMENT SCOPE EMPTY>
     # <!ATTLIST SCOPE
     #   CLASS (true | false) "false"
@@ -805,12 +826,13 @@ def parse_scope(tt):
     #   METHOD (true | false) "false"
     #   PARAMETER (true | false) "false"
     #   INDICATION (true | false) "false"
-    check_node(tt, 'SCOPE', [],
+    check_node(tup_tree, 'SCOPE', [],
                ['CLASS', 'ASSOCIATION', 'REFERENCE', 'PROPERTY', 'METHOD',
                 'PARAMETER', 'INDICATION'], [])
-    return dict([(k, v.lower() == 'true') for k, v in attrs(tt).items()])
+    return dict([(k, v.lower() == 'true') for k, v in attrs(tup_tree).items()])
 
-def parse_qualifier_declaration(tt):
+def parse_qualifier_declaration(tup_tree):
+    """Parse QUALIFIER.DECLARATION element"""
     ## <!ELEMENT QUALIFIER.DECLARATION (SCOPE?, (VALUE | VALUE.ARRAY)?)>
     ## <!ATTLIST QUALIFIER.DECLARATION
     ##     %CIMName;
@@ -819,34 +841,34 @@ def parse_qualifier_declaration(tt):
     ##     %ArraySize;
     ##     %QualifierFlavor;>
 
-    check_node(tt, 'QUALIFIER.DECLARATION',
+    check_node(tup_tree, 'QUALIFIER.DECLARATION',
                ['NAME', 'TYPE'],
                ['ISARRAY', 'ARRAYSIZE', 'OVERRIDABLE', 'TOSUBCLASS',
                 'TOINSTANCE', 'TRANSLATABLE'],
                ['SCOPE', 'VALUE', 'VALUE.ARRAY'])
 
-    a = attrs(tt)
-    qname = a['NAME']
-    _type = a['TYPE']
+    attr = attrs(tup_tree)
+    qname = attr['NAME']
+    _type = attr['TYPE']
     try:
-        is_array = a['ISARRAY'].lower() == 'true'
+        is_array = attr['ISARRAY'].lower() == 'true'
     except KeyError:
         is_array = False
     try:
-        array_size = int(a['ARRAYSIZE'])
+        array_size = int(attr['ARRAYSIZE'])
     except KeyError:
         array_size = None
 
     flavors = {}
-    for f in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE', 'TRANSLATABLE']:
+    for flavor in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE', 'TRANSLATABLE']:
         try:
-            flavors[f.lower()] = a[f].lower() == 'true'
+            flavors[flavor.lower()] = attr[flavor].lower() == 'true'
         except KeyError:
             pass
 
     scopes = None
     value = None
-    for child in kids(tt):
+    for child in kids(tup_tree):
         if name(child) == 'SCOPE':
             if scopes is not None:
                 raise ParseError("Multiple SCOPE tags encountered")
@@ -860,40 +882,42 @@ def parse_qualifier_declaration(tt):
                                    array_size, scopes, **flavors)
 
 
-def parse_qualifier(tt):
+def parse_qualifier(tup_tree):
+    """Parse QUALIFIER element returning CIMQualifier"""
     ## <!ELEMENT QUALIFIER (VALUE | VALUE.ARRAY)>
     ## <!ATTLIST QUALIFIER %CIMName;
     ##      %CIMType;              #REQUIRED
     ##      %Propagated;
     ##      %QualifierFlavor;>
 
-    check_node(tt, 'QUALIFIER', ['NAME', 'TYPE'],
+    check_node(tup_tree, 'QUALIFIER', ['NAME', 'TYPE'],
                ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE',
                 'TRANSLATABLE', 'PROPAGATED'],
                ['VALUE', 'VALUE.ARRAY'])
 
-    a = attrs(tt)
+    attrl = attrs(tup_tree)
 
-    q = CIMQualifier(a['NAME'], unpack_value(tt), type=a['TYPE'])
+    qual = CIMQualifier(attrl['NAME'], unpack_value(tup_tree),
+                        type=attrl['TYPE'])
 
     ## TODO: Lift this out?
     for i in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE',
               'TRANSLATABLE', 'PROPAGATED']:
-        rv = a.get(i)
-        if rv not in ['true', 'false', None]:
+        rtn_val = attrl.get(i)
+        if rtn_val not in ['true', 'false', None]:
             raise ParseError("invalid value %s for %s on %s" %
-                             (`rv`, i, name(tt)))
-        if rv == 'true':
-            rv = True
-        elif rv == 'false':
-            rv = False
+                             (`rtn_val`, i, name(tup_tree)))
+        if rtn_val == 'true':
+            rtn_val = True
+        elif rtn_val == 'false':
+            rtn_val = False
 
-        setattr(q, i.lower(), rv)
+        setattr(qual, i.lower(), rtn_val)
 
-    return q
+    return qual
 
 
-def parse_property(tt):
+def parse_property(tup_tree):
     """Parse PROPERTY into a CIMProperty object.
 
     VAL is just the pcdata of the enclosed VALUE node."""
@@ -907,42 +931,42 @@ def parse_property(tt):
     ## TODO: Parse this into NAME, VALUE, where the value contains
     ## magic fields for the qualifiers and the propagated flag.
 
-    check_node(tt, 'PROPERTY', ['TYPE', 'NAME'],
+    check_node(tup_tree, 'PROPERTY', ['TYPE', 'NAME'],
                ['NAME', 'CLASSORIGIN', 'PROPAGATED', 'EmbeddedObject',
                 'EMBEDDEDOBJECT'],
                ['QUALIFIER', 'VALUE'])
 
     quals = {}
-    for q in list_of_matching(tt, ['QUALIFIER']):
-        quals[q.name] = q
+    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
+        quals[qual.name] = qual
 
-    a = attrs(tt)
+    attrl = attrs(tup_tree)
     try:
-        val = unpack_value(tt)
+        val = unpack_value(tup_tree)
     except ValueError as exc:
         msg = str(exc)
         raise ParseError('Cannot parse value for property "%s": %s' %\
-                         (a['NAME'], msg))
+                         (attrl['NAME'], msg))
 
     embedded_object = None
-    if 'EmbeddedObject' in a or 'EMBEDDEDOBJECT' in a:
+    if 'EmbeddedObject' in attrl or 'EMBEDDEDOBJECT' in attrl:
         try:
-            embedded_object = a['EmbeddedObject']
+            embedded_object = attrl['EmbeddedObject']
         except KeyError:
-            embedded_object = a['EMBEDDEDOBJECT']
+            embedded_object = attrl['EMBEDDEDOBJECT']
     if embedded_object is not None:
         val = parse_embeddedObject(val)
 
-    return CIMProperty(a['NAME'],
+    return CIMProperty(attrl['NAME'],
                        val,
-                       a['TYPE'],
-                       class_origin=a.get('CLASSORIGIN'),
-                       propagated=unpack_boolean(a.get('PROPAGATED')),
+                       attrl['TYPE'],
+                       class_origin=attrl.get('CLASSORIGIN'),
+                       propagated=unpack_boolean(attrl.get('PROPAGATED')),
                        qualifiers=quals,
                        embedded_object=embedded_object)
 
 
-def parse_property_array(tt):
+def parse_property_array(tup_tree):
     """
     <!ELEMENT PROPERTY.ARRAY (QUALIFIER*, VALUE.ARRAY?)>
     <!ATTLIST PROPERTY.ARRAY %CIMName;
@@ -952,31 +976,31 @@ def parse_property_array(tt):
          %Propagated;>
     """
 
-    check_node(tt, 'PROPERTY.ARRAY', ['NAME', 'TYPE'],
+    check_node(tup_tree, 'PROPERTY.ARRAY', ['NAME', 'TYPE'],
                ['REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED',
                 'ARRAYSIZE', 'EmbeddedObject', 'EMBEDDEDOBJECT'],
                ['QUALIFIER', 'VALUE.ARRAY'])
 
     quals = {}
-    for q in list_of_matching(tt, ['QUALIFIER']):
-        quals[q.name] = q
+    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
+        quals[qual.name] = qual
 
-    values = unpack_value(tt)
-    a = attrs(tt)
+    values = unpack_value(tup_tree)
+    attrl = attrs(tup_tree)
     embedded_object = None
-    if 'EmbeddedObject' in a or 'EMBEDDEDOBJECT' in a:
+    if 'EmbeddedObject' in attrl or 'EMBEDDEDOBJECT' in attrl:
         try:
-            embedded_object = a['EmbeddedObject']
+            embedded_object = attrl['EmbeddedObject']
         except KeyError:
-            embedded_object = a['EMBEDDEDOBJECT']
+            embedded_object = attrl['EMBEDDEDOBJECT']
 
     if embedded_object is not None:
         values = parse_embeddedObject(values)
 
-    obj = CIMProperty(a['NAME'],
+    obj = CIMProperty(attrl['NAME'],
                       values,
-                      a['TYPE'],
-                      class_origin=a.get('CLASSORIGIN'),
+                      attrl['TYPE'],
+                      class_origin=attrl.get('CLASSORIGIN'),
                       qualifiers=quals,
                       is_array=True,
                       embedded_object=embedded_object)
@@ -985,20 +1009,20 @@ def parse_property_array(tt):
     return obj
 
 
-def parse_property_reference(tt):
+def parse_property_reference(tup_tree):
     """
     <!ELEMENT PROPERTY.REFERENCE (QUALIFIER*, (VALUE.REFERENCE)?)>
     <!ATTLIST PROPERTY.REFERENCE
-	%CIMName;
-	%ReferenceClass;
-	%ClassOrigin;
-	%Propagated;>
+        %CIMName;
+        %ReferenceClass;
+        %ClassOrigin;
+        %Propagated;>
     """
 
-    check_node(tt, 'PROPERTY.REFERENCE', ['NAME'],
+    check_node(tup_tree, 'PROPERTY.REFERENCE', ['NAME'],
                ['REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED'])
 
-    value = list_of_matching(tt, ['VALUE.REFERENCE'])
+    value = list_of_matching(tup_tree, ['VALUE.REFERENCE'])
 
     if value is None or len(value) == 0:
         value = None
@@ -1007,11 +1031,11 @@ def parse_property_reference(tt):
     else:
         raise ParseError('Too many VALUE.REFERENCE elements.')
 
-    attributes = attrs(tt)
+    attributes = attrs(tup_tree)
     pref = CIMProperty(attributes['NAME'], value, type='reference')
 
-    for q in list_of_matching(tt, ['QUALIFIER']):
-        pref.qualifiers[q.name] = q
+    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
+        pref.qualifiers[qual.name] = qual
 
     if attributes.has_key('REFERENCECLASS'):
         pref.reference_class = attributes['REFERENCECLASS']
@@ -1025,7 +1049,7 @@ def parse_property_reference(tt):
     return pref
 
 
-def parse_method(tt):
+def parse_method(tup_tree):
     """
     <!ELEMENT METHOD (QUALIFIER*, (PARAMETER | PARAMETER.REFERENCE |
                                    PARAMETER.ARRAY | PARAMETER.REFARRAY)*)>
@@ -1035,29 +1059,30 @@ def parse_method(tt):
          %Propagated;>
     """
 
-    check_node(tt, 'METHOD', ['NAME'],
+    check_node(tup_tree, 'METHOD', ['NAME'],
                ['TYPE', 'CLASSORIGIN', 'PROPAGATED'],
                ['QUALIFIER', 'PARAMETER', 'PARAMETER.REFERENCE',
                 'PARAMETER.ARRAY', 'PARAMETER.REFARRAY'])
 
-    qualifiers = cim_obj.byname(list_of_matching(tt, ['QUALIFIER']))
+    qualifiers = cim_obj.byname(list_of_matching(tup_tree, ['QUALIFIER']))
 
-    parameters = cim_obj.byname(list_of_matching(tt, ['PARAMETER',
-                                                      'PARAMETER.REFERENCE',
-                                                      'PARAMETER.ARRAY',
-                                                      'PARAMETER.REFARRAY',]))
+    parameters = cim_obj.byname(list_of_matching(tup_tree,
+                                                 ['PARAMETER',
+                                                  'PARAMETER.REFERENCE',
+                                                  'PARAMETER.ARRAY',
+                                                  'PARAMETER.REFARRAY',]))
 
-    a = attrs(tt)
+    attrl = attrs(tup_tree)
 
-    return CIMMethod(a['NAME'],
-                     return_type=a.get('TYPE'),
+    return CIMMethod(attrl['NAME'],
+                     return_type=attrl.get('TYPE'),
                      parameters=parameters,
                      qualifiers=qualifiers,
-                     class_origin=a.get('CLASSORIGIN'),
-                     propagated=unpack_boolean(a.get('PROPAGATED')))
+                     class_origin=attrl.get('CLASSORIGIN'),
+                     propagated=unpack_boolean(attrl.get('PROPAGATED')))
 
 
-def parse_parameter(tt):
+def parse_parameter(tup_tree):
     """
     <!ELEMENT PARAMETER (QUALIFIER*)>
     <!ATTLIST PARAMETER
@@ -1065,39 +1090,40 @@ def parse_parameter(tt):
          %CIMType;              #REQUIRED>
     """
 
-    check_node(tt, 'PARAMETER', ['NAME', 'TYPE'], [])
+    check_node(tup_tree, 'PARAMETER', ['NAME', 'TYPE'], [])
 
     quals = {}
-    for q in list_of_matching(tt, ['QUALIFIER']):
-        quals[q.name] = q
+    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
+        quals[qual.name] = qual
 
-    a = attrs(tt)
+    attrl = attrs(tup_tree)
 
-    return CIMParameter(a['NAME'], type=a['TYPE'], qualifiers=quals)
+    return CIMParameter(attrl['NAME'], type=attrl['TYPE'],
+                        qualifiers=quals)
 
-def parse_parameter_reference(tt):
+def parse_parameter_reference(tup_tree):
     """
     <!ELEMENT PARAMETER.REFERENCE (QUALIFIER*)>
     <!ATTLIST PARAMETER.REFERENCE
-	%CIMName;
-	%ReferenceClass;>
+        %CIMName;
+        %ReferenceClass;>
     """
 
-    check_node(tt, 'PARAMETER.REFERENCE', ['NAME'], ['REFERENCECLASS'])
+    check_node(tup_tree, 'PARAMETER.REFERENCE', ['NAME'], ['REFERENCECLASS'])
 
     quals = {}
-    for q in list_of_matching(tt, ['QUALIFIER']):
-        quals[q.name] = q
+    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
+        quals[qual.name] = qual
 
-    a = attrs(tt)
+    attrl = attrs(tup_tree)
 
-    return CIMParameter(a['NAME'],
+    return CIMParameter(attrl['NAME'],
                         type='reference',
-                        reference_class=a.get('REFERENCECLASS'),
+                        reference_class=attrl.get('REFERENCECLASS'),
                         qualifiers=quals)
 
 
-def parse_parameter_array(tt):
+def parse_parameter_array(tup_tree):
     """
     <!ELEMENT PARAMETER.ARRAY (QUALIFIER*)>
     <!ATTLIST PARAMETER.ARRAY
@@ -1106,51 +1132,51 @@ def parse_parameter_array(tt):
          %ArraySize;>
     """
 
-    check_node(tt, 'PARAMETER.ARRAY', ['NAME', 'TYPE'],
+    check_node(tup_tree, 'PARAMETER.ARRAY', ['NAME', 'TYPE'],
                ['ARRAYSIZE'])
 
     quals = {}
-    for q in list_of_matching(tt, ['QUALIFIER']):
-        quals[q.name] = q
+    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
+        quals[qual.name] = qual
 
-    a = attrs(tt)
+    attrl = attrs(tup_tree)
 
-    array_size = a.get('ARRAYSIZE')
+    array_size = attrl.get('ARRAYSIZE')
     if array_size is not None:
         array_size = int(array_size)
 
-    return CIMParameter(a['NAME'],
-                        type=a['TYPE'],
+    return CIMParameter(attrl['NAME'],
+                        type=attrl['TYPE'],
                         is_array=True,
                         array_size=array_size,
                         qualifiers=quals)
 
 
-def parse_parameter_refarray(tt):
+def parse_parameter_refarray(tup_tree):
     """
     <!ELEMENT PARAMETER.REFARRAY (QUALIFIER*)>
     <!ATTLIST PARAMETER.REFARRAY
-	%CIMName;
-	%ReferenceClass;
-	%ArraySize;>
+        %CIMName;
+        %ReferenceClass;
+        %ArraySize;>
     """
 
-    check_node(tt, 'PARAMETER.REFARRAY', ['NAME'],
+    check_node(tup_tree, 'PARAMETER.REFARRAY', ['NAME'],
                ['REFERENCECLASS', 'ARRAYSIZE'])
 
     quals = {}
-    for q in list_of_matching(tt, ['QUALIFIER']):
-        quals[q.name] = q
+    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
+        quals[qual.name] = qual
 
-    a = attrs(tt)
+    attr = attrs(tup_tree)
 
-    array_size = a.get('ARRAYSIZE')
+    array_size = attr.get('ARRAYSIZE')
     if array_size is not None:
         array_size = int(array_size)
 
-    return CIMParameter(a['NAME'], 'reference',
+    return CIMParameter(attr['NAME'], 'reference',
                         is_array=True,
-                        reference_class=a.get('REFERENCECLASS'),
+                        reference_class=attr.get('REFERENCECLASS'),
                         array_size=array_size,
                         qualifiers=quals)
 
@@ -1159,110 +1185,114 @@ def parse_parameter_refarray(tt):
 # Message elements
 #
 
-def parse_message(tt):
+def parse_message(tup_tree):
     """
     <!ELEMENT MESSAGE (SIMPLEREQ | MULTIREQ | SIMPLERSP | MULTIRSP)>
     <!ATTLIST MESSAGE
-	ID CDATA #REQUIRED
-	PROTOCOLVERSION CDATA #REQUIRED>
+        ID CDATA #REQUIRED
+        PROTOCOLVERSION CDATA #REQUIRED>
     """
 
-    check_node(tt, 'MESSAGE', ['ID', 'PROTOCOLVERSION'])
+    check_node(tup_tree, 'MESSAGE', ['ID', 'PROTOCOLVERSION'])
 
     messages = one_child(
-        tt, ['SIMPLEREQ', 'MULTIREQ', 'SIMPLERSP', 'MULTIRSP', 'SIMPLEEXPREQ'])
+        tup_tree, ['SIMPLEREQ', 'MULTIREQ', 'SIMPLERSP', 'MULTIRSP',
+                   'SIMPLEEXPREQ'])
 
     if not isinstance(messages, list):
         # make single and multi forms consistent
         messages = [messages]
 
-    return name(tt), attrs(tt), messages
+    return name(tup_tree), attrs(tup_tree), messages
 
 
-def parse_multireq(tt):
+def parse_multireq(tup_tree):   #pylint: disable=unused-argument
+    """Not Implemented"""
     # TODO: Implement MULTIREQ parser
     raise ParseError('MULTIREQ parser not implemented')
 
 
-def parse_multiexpreq(tt):
+def parse_multiexpreq(tup_tree):   #pylint: disable=unused-argument
+    """Not Implemented"""
     # TODO: Implement MULTIEXPREQ parser
     raise ParseError('MULTIEXPREQ parser not implemented')
 
-def parse_simpleexpreq(tt):
+def parse_simpleexpreq(tup_tree):
     """
     <!ELEMENT SIMPLEEXPREQ (EXPMETHODCALL)>
     """
 
-    child = one_child(tt, ['EXPMETHODCALL'])
+    child = one_child(tup_tree, ['EXPMETHODCALL'])
 
-    return name(tt), attrs(tt), child
+    return name(tup_tree), attrs(tup_tree), child
 
-def parse_simplereq(tt):
+def parse_simplereq(tup_tree):
     """
     <!ELEMENT SIMPLEREQ (IMETHODCALL | METHODCALL)>
     """
 
-    check_node(tt, 'SIMPLEREQ')
+    check_node(tup_tree, 'SIMPLEREQ')
 
-    child = one_child(tt, ['IMETHODCALL', 'METHODCALL'])
+    child = one_child(tup_tree, ['IMETHODCALL', 'METHODCALL'])
 
-    return name(tt), attrs(tt), child
+    return name(tup_tree), attrs(tup_tree), child
 
 
-def parse_imethodcall(tt):
+def parse_imethodcall(tup_tree):
     """
     <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*)>
     <!ATTLIST IMETHODCALL
-	%CIMName;>
+        %CIMName;>
     """
 
-    check_node(tt, 'IMETHODCALL', ['NAME'])
+    check_node(tup_tree, 'IMETHODCALL', ['NAME'])
 
-    if len(kids(tt)) < 1:
+    if len(kids(tup_tree)) < 1:
         raise ParseError('Expecting LOCALNAMESPACEPATH, got nothing')
 
-    localnspath = parse_localnamespacepath(kids(tt)[0])
+    localnspath = parse_localnamespacepath(kids(tup_tree)[0])
 
     params = map(lambda x: parse_iparamvalue(x),
-                 kids(tt)[1:])
+                 kids(tup_tree)[1:])
 
-    return (name(tt), attrs(tt), localnspath, params)
+    return (name(tup_tree), attrs(tup_tree), localnspath, params)
 
 
-def parse_methodcall(tt):
+def parse_methodcall(tup_tree):
     """
     <!ELEMENT METHODCALL ((LOCALCLASSPATH|LOCALINSTANCEPATH),PARAMVALUE*)>
     <!ATTLIST METHODCALL
          %CIMName;>
     """
 
-    check_node(tt, 'METHODCALL', ['NAME'], [],
+    check_node(tup_tree, 'METHODCALL', ['NAME'], [],
                ['LOCALCLASSPATH', 'LOCALINSTANCEPATH', 'PARAMVALUE'])
-    path = list_of_matching(tt, ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
+    path = list_of_matching(tup_tree, ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
     if len(path) != 1:
         raise ParseError('Expecting one of LOCALCLASSPATH or ' \
                          'LOCALINSTANCEPATH, got %s' % `path`)
     path = path[0]
-    params = list_of_matching(tt, ['PARAMVALUE'])
-    return (name(tt), attrs(tt), path, params)
+    params = list_of_matching(tup_tree, ['PARAMVALUE'])
+    return (name(tup_tree), attrs(tup_tree), path, params)
 
 
-def parse_expmethodcall(tt):
+def parse_expmethodcall(tup_tree):
     """
     <!ELEMENT EXPMETHODCALL (EXPPARAMVALUE*)>
     <!ATTLIST EXPMETHODCALL
         %CIMName;>
     """
 
-    check_node(tt, 'EXPMETHODCALL', ['NAME'], [], ['EXPPARAMVALUE'])
+    check_node(tup_tree, 'EXPMETHODCALL', ['NAME'], [], ['EXPPARAMVALUE'])
 
 
-    params = list_of_matching(tt, ['EXPPARAMVALUE'])
+    params = list_of_matching(tup_tree, ['EXPPARAMVALUE'])
 
-    return (name(tt), attrs(tt), params)
+    return (name(tup_tree), attrs(tup_tree), params)
 
 
-def parse_paramvalue(tt):
+def parse_paramvalue(tup_tree):
+    """Parse PARAMVALUE element """
     ## <!ELEMENT PARAMVALUE (VALUE | VALUE.REFERENCE | VALUE.ARRAY |
     ##                       VALUE.REFARRAY)?>
     ## <!ATTLIST PARAMVALUE
@@ -1274,41 +1304,46 @@ def parse_paramvalue(tt):
     ## is present in version 2.2.  Make it optional to be backwards
     ## compatible.
 
-    check_node(tt, 'PARAMVALUE', ['NAME'],
+    check_node(tup_tree, 'PARAMVALUE', ['NAME'],
                ['PARAMTYPE', 'EmbeddedObject', 'EMBEDDEDOBJECT'])
 
-    child = optional_child(tt,
+    child = optional_child(tup_tree,
                            ['VALUE', 'VALUE.REFERENCE', 'VALUE.ARRAY',
                             'VALUE.REFARRAY',])
 
-    if attrs(tt).has_key('PARAMTYPE'):
-        paramtype = attrs(tt)['PARAMTYPE']
+    if attrs(tup_tree).has_key('PARAMTYPE'):
+        paramtype = attrs(tup_tree)['PARAMTYPE']
     else:
         paramtype = None
 
-    if 'EmbeddedObject' in attrs(tt) or 'EMBEDDEDOBJECT' in attrs(tt):
+    #pylint: disable=line-too-long
+    if 'EmbeddedObject' in attrs(tup_tree) or 'EMBEDDEDOBJECT' in attrs(tup_tree):
         child = parse_embeddedObject(child)
 
-    return attrs(tt)['NAME'], paramtype, child
+    return attrs(tup_tree)['NAME'], paramtype, child
 
 
-def parse_iparamvalue(tt):
-    ## <!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
-    ##                       INSTANCENAME | CLASSNAME | QUALIFIER.DECLARATION |
-    ##                       CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
-    ## <!ATTLIST IPARAMVALUE %CIMName;>
+def parse_iparamvalue(tup_tree):
+    """
+    Parse expected IPARAMVALUE element. I.e.
+       ## <!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
+       ##                       INSTANCENAME | CLASSNAME |
+       ##                       QUALIFIER.DECLARATION |
+       ##                       CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
+       ## <!ATTLIST IPARAMVALUE %CIMName;>
 
-    """Returns NAME, VALUE pair."""
+       :return: NAME, VALUE pair.
+    """
 
-    check_node(tt, 'IPARAMVALUE', ['NAME'], [])
+    check_node(tup_tree, 'IPARAMVALUE', ['NAME'], [])
 
-    child = optional_child(tt,
+    child = optional_child(tup_tree,
                            ['VALUE', 'VALUE.ARRAY', 'VALUE.REFERENCE',
                             'INSTANCENAME', 'CLASSNAME',
                             'QUALIFIER.DECLARATION', 'CLASS', 'INSTANCE',
                             'VALUE.NAMEDINSTANCE'])
 
-    _name = attrs(tt)['NAME']
+    _name = attrs(tup_tree)['NAME']
     if isinstance(child, basestring) and \
             _name.lower() in ['deepinheritance', 'localonly',
                               'includequalifiers', 'includeclassorigin']:
@@ -1318,85 +1353,102 @@ def parse_iparamvalue(tt):
     return _name, child
 
 
-def parse_expparamvalue(tt):
-    """
+def parse_expparamvalue(tup_tree):
+    """Parse for EXPPARMVALUE Element. I.e.
     <!ELEMENT EXPPARAMVALUE (INSTANCE?)>
     <!ATTLIST EXPPARAMVALUE
         %CIMName;>
     """
 
-    check_node(tt, 'EXPPARAMVALUE', ['NAME'], [], ['INSTANCE'])
+    check_node(tup_tree, 'EXPPARAMVALUE', ['NAME'], [], ['INSTANCE'])
 
-    child = optional_child(tt, ['INSTANCE'])
+    child = optional_child(tup_tree, ['INSTANCE'])
 
-    _name = attrs(tt)['NAME']
+    _name = attrs(tup_tree)['NAME']
     return _name, child
 
 
-def parse_multirsp(tt):
+def parse_multirsp(tup_tree):   #pylint: disable=unused-argument
+    """This Function not implemented"""
     # TODO: Implement MULTIRSP parser
     raise ParseError('MULTIRSP parser not implemented')
 
 
-def parse_multiexprsp(tt):
+def parse_multiexprsp(tup_tree):   #pylint: disable=unused-argument
+    """This Function not implemented"""
     # TODO: Implement MULTIEXPRSP parser
     raise ParseError('MULTIEXPRSP parser not implemented')
 
 
-def parse_simplersp(tt):
+def parse_simplersp(tup_tree):
+    """Parse for SIMPLERSP Element"""
     ## <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE)>
-    check_node(tt, 'SIMPLERSP', [], [])
+    check_node(tup_tree, 'SIMPLERSP', [], [])
 
-    child = one_child(tt, ['METHODRESPONSE', 'IMETHODRESPONSE'])
+    child = one_child(tup_tree, ['METHODRESPONSE', 'IMETHODRESPONSE'])
 
-    return name(tt), attrs(tt), child
+    return name(tup_tree), attrs(tup_tree), child
 
 
-def parse_simpleexprsp(tt):
+def parse_simpleexprsp(tup_tree):   #pylint: disable=unused-argument
+    """This Function not implemented"""
     # TODO: Implement SIMPLEEXPRSP parser
     raise ParseError('SIMPLEEXPRSP parser not implemented')
 
 
-def parse_methodresponse(tt):
-    ## <!ELEMENT METHODRESPONSE (ERROR | (RETURNVALUE?, PARAMVALUE*))>
-    ## <!ATTLIST METHODRESPONSE
-    ##    %CIMName;>
+def parse_methodresponse(tup_tree):
+    """Parse expected METHODRESPONSE ELEMENT. I.e.
+        <!ELEMENT METHODRESPONSE (ERROR | (RETURNVALUE?, PARAMVALUE*))>
+            <!ATTLIST METHODRESPONSE
+                %CIMName;>
+    """
 
-    check_node(tt, 'METHODRESPONSE', ['NAME'], [])
+    check_node(tup_tree, 'METHODRESPONSE', ['NAME'], [])
 
-    return name(tt), attrs(tt), list_of_various(tt, ['ERROR', 'RETURNVALUE',
-                                                     'PARAMVALUE'])
+    return name(tup_tree), attrs(tup_tree), list_of_various(tup_tree,
+                                                            ['ERROR',
+                                                             'RETURNVALUE',
+                                                             'PARAMVALUE'])
 
 
-def parse_expmethodresponse(tt):
+def parse_expmethodresponse(tup_tree):  #pylint: disable=unused-argument
+    """This function not implemented"""
     # TODO: Implement EXPMETHODRESPONSE parser
     raise ParseError('EXPMETHODRESPONSE parser not implemented')
 
 
-def parse_imethodresponse(tt):
-    ## <!ELEMENT IMETHODRESPONSE (ERROR | IRETURNVALUE?)>
-    ## <!ATTLIST IMETHODRESPONSE %CIMName;>
-    check_node(tt, 'IMETHODRESPONSE', ['NAME'], [])
-
-    return name(tt), attrs(tt), optional_child(tt, ['ERROR', 'IRETURNVALUE'])
-
-
-def parse_error(tt):
+def parse_imethodresponse(tup_tree):
+    """Parse the tuple for an IMETHODRESPONE Element. I.e.
+        <!ELEMENT IMETHODRESPONSE (ERROR | IRETURNVALUE?)>
+        <!ATTLIST IMETHODRESPONSE %CIMName;>
     """
+
+    check_node(tup_tree, 'IMETHODRESPONSE', ['NAME'], [])
+
+    return name(tup_tree), attrs(tup_tree), optional_child(tup_tree,
+                                                           ['ERROR',
+                                                            'IRETURNVALUE'])
+
+
+def parse_error(tup_tree):
+    """Parse ERROR element to get CODE and DESCRIPTION.
     <!ELEMENT ERROR EMPTY>
     <!ATTLIST ERROR
-	CODE CDATA #REQUIRED
-	DESCRIPTION CDATA #IMPLIED>
+        CODE CDATA #REQUIRED
+        DESCRIPTION CDATA #IMPLIED>
     """
 
     ## TODO: Return a CIMError object, not a tuple
 
-    check_node(tt, 'ERROR', ['CODE'], ['DESCRIPTION'])
+    check_node(tup_tree, 'ERROR', ['CODE'], ['DESCRIPTION'])
 
-    return (name(tt), attrs(tt), None)
+    return (name(tup_tree), attrs(tup_tree), None)
 
 
-def parse_returnvalue(tt):
+def parse_returnvalue(tup_tree):
+    """Parse the RETURNVALUE element. Returns name, attributes, and
+       one child as a tuple.
+    """
     ## <!ELEMENT RETURNVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
     ##                        VALUE.REFARRAY)>
     ## <!ATTLIST RETURNVALUE %ParamType;       #IMPLIED>
@@ -1405,14 +1457,18 @@ def parse_returnvalue(tt):
     ## is present in version 2.2.  Make it optional to be backwards
     ## compatible.
 
-    check_node(tt, 'RETURNVALUE', [], ['PARAMTYPE'])
+    check_node(tup_tree, 'RETURNVALUE', [], ['PARAMTYPE'])
 
-    return name(tt), attrs(tt), one_child(tt, ['VALUE', 'VALUE.ARRAY',
-                                               'VALUE.REFERENCE',
-                                               'VALUE.REFARRAY'])
+    return name(tup_tree), attrs(tup_tree), one_child(tup_tree,
+                                                      ['VALUE',
+                                                       'VALUE.ARRAY',
+                                                       'VALUE.REFERENCE',
+                                                       'VALUE.REFARRAY'])
 
-
-def parse_ireturnvalue(tt):
+def parse_ireturnvalue(tup_tree):
+    """Parse IRETURNVALUE element. Returns name, attributes and
+       values of the tup_tree.
+    """
     ## <!ELEMENT IRETURNVALUE (CLASSNAME* | INSTANCENAME* | VALUE* |
     ##                         VALUE.OBJECTWITHPATH* |
     ##                         VALUE.OBJECTWITHLOCALPATH* | VALUE.OBJECT* |
@@ -1420,53 +1476,71 @@ def parse_ireturnvalue(tt):
     ##                         VALUE.ARRAY? | VALUE.REFERENCE? | CLASS* |
     ##                         INSTANCE* | VALUE.NAMEDINSTANCE*)>
 
-    check_node(tt, 'IRETURNVALUE', [], [])
+    check_node(tup_tree, 'IRETURNVALUE', [], [])
 
     # XXX: doesn't prohibit the case of only one VALUE.ARRAY or
     # VALUE.REFERENCE.  But why is that required?  Why can it return
     # multiple VALUEs but not multiple VALUE.REFERENCEs?
 
-    values = list_of_same(tt, ['CLASSNAME', 'INSTANCENAME',
-                               'VALUE', 'VALUE.OBJECTWITHPATH', 'VALUE.OBJECT',
-                               'OBJECTPATH', 'QUALIFIER.DECLARATION',
-                               'VALUE.ARRAY', 'VALUE.REFERENCE',
-                               'CLASS', 'INSTANCE',
-                               'VALUE.NAMEDINSTANCE',])
+    values = list_of_same(tup_tree, ['CLASSNAME', 'INSTANCENAME',
+                                     'VALUE', 'VALUE.OBJECTWITHPATH',
+                                     'VALUE.OBJECT', 'OBJECTPATH',
+                                     'QUALIFIER.DECLARATION',
+                                     'VALUE.ARRAY', 'VALUE.REFERENCE',
+                                     'CLASS', 'INSTANCE',
+                                     'VALUE.NAMEDINSTANCE',])
 
     ## TODO: Call unpack_value if appropriate
 
-    return name(tt), attrs(tt), values
+    return name(tup_tree), attrs(tup_tree), values
 
 #
 # Object naming and locating elements
 #
 
-def parse_any(tt):
-    """Parse any fragment of XML."""
+def parse_any(tup_tree):
+    """Parse a fragment of XML. This function drives the rest of
+       the parser by calling 'parse_*' functions based on the name
+       of the element being parsed.
+       
+       It builds parser function name from incoming name in tup_tree
+       prepended with 'parse_' and calls that function.
 
-    nodename = name(tt).lower().replace('.', '_')
+    Return is determined by function called.
+    """
+
+    nodename = name(tup_tree).lower().replace('.', '_')
     fn_name = 'parse_' + nodename
-    fn = globals().get(fn_name)
-    if fn is None:
-        raise ParseError('no parser for node type %s' % name(tt))
+    funct_name = globals().get(fn_name)
+    if funct_name is None:
+        raise ParseError('no parser for node type %s' % name(tup_tree))
     else:
-        return fn(tt)
+        return funct_name(tup_tree)
 
-def parse_embeddedObject(val):
+def parse_embeddedObject(val): # pylint: disable=invalid-name
+    """Parse and embedded instance or class and return the
+       CIMInstance or CIMClass
+
+       :return: None if val is None. Returns either CIMClass or
+           CIMInstance or a list of them
+
+       :Raises: ParseError if there is an error in the XML
+    """
+
     if isinstance(val, list):
         return [parse_embeddedObject(obj) for obj in val]
     if val is None:
         return None
-    tt = tupletree.xml_to_tupletree(val)
-    if tt[0] == 'INSTANCE':
-        return parse_instance(tt)
-    elif tt[0] == 'CLASS':
-        return parse_class(tt)
+    tuptree = tupletree.xml_to_tupletree(val)
+    if tuptree[0] == 'INSTANCE':
+        return parse_instance(tuptree)
+    elif tuptree[0] == 'CLASS':
+        return parse_class(tuptree)
     else:
         raise ParseError('Error parsing embedded object')
 
 
-def unpack_value(tt):
+def unpack_value(tup_tree):
     """Find VALUE or VALUE.ARRAY under TT and convert to a Python value.
 
     Looks at the TYPE of the node to work out how to decode it.
@@ -1474,14 +1548,14 @@ def unpack_value(tt):
     """
     ## TODO: Handle VALUE.REFERENCE, VALUE.REFARRAY
 
-    valtype = attrs(tt)['TYPE']
+    valtype = attrs(tup_tree)['TYPE']
 
-    raw_val = list_of_matching(tt, ['VALUE', 'VALUE.ARRAY'])
+    raw_val = list_of_matching(tup_tree, ['VALUE', 'VALUE.ARRAY'])
     if len(raw_val) == 0:
         return None
     elif len(raw_val) > 1:
         raise ParseError('more than one VALUE or VALUE.ARRAY under %s' % \
-                         name(tt))
+                         name(tup_tree))
 
     raw_val = raw_val[0]
 
@@ -1492,21 +1566,20 @@ def unpack_value(tt):
     else:
         return cim_obj.tocimobj(valtype, raw_val)
 
-
-def unpack_boolean(p):
+def unpack_boolean(data):
     """Unpack a boolean, represented as "TRUE" or "FALSE" in CIM."""
-    if p is None:
+    if data is None:
         return None
 
     ## CIM-XML says "These values MUST be treated as case-insensitive"
     ## (even though the XML definition requires them to be lowercase.)
 
-    p = p.strip().lower()                   # ignore space
-    if p == 'true':
+    data = data.strip().lower()                   # ignore space
+    if data == 'true':
         return True
-    elif p == 'false':
+    elif data == 'false':
         return False
-    elif p == '':
+    elif data == '':
         return None
     else:
-        raise ParseError('invalid boolean %s' % `p`)
+        raise ParseError('invalid boolean %s' % `data`)
