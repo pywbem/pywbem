@@ -69,7 +69,7 @@ class TimeoutError(Error):
     """This exception is raised when the client times out."""
     pass
 
-class HTTPTimeout(object):
+class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
     """HTTP timeout class that is a context manager (for use by 'with'
     statement).
 
@@ -183,10 +183,10 @@ def parse_url(url):
     default_ssl = False             # default SSL use (for no or unknown scheme)
 
     # Look for scheme.
-    m = re.match(r"^(https?)://(.*)$", url, re.I)
-    if m:
-        _scheme = m.group(1).lower()
-        hostport = m.group(2)
+    matches = re.match(r"^(https?)://(.*)$", url, re.I)
+    if matches:
+        _scheme = matches.group(1).lower()
+        hostport = matches.group(2)
         ssl = (_scheme == 'https')
     else:
         # The URL specified no scheme (or a scheme other than the expected
@@ -197,17 +197,17 @@ def parse_url(url):
     # Remove trailing path segments, if any.
     # Having URL components other than just slashes (e.g. '#' or '?') is not
     # allowed (but we don't check).
-    m = hostport.find("/")
-    if m >= 0:
-        hostport = hostport[0:m]
+    result = hostport.find("/")
+    if result >= 0:
+        hostport = hostport[0:result]
 
     # Look for port.
     # This regexp also works for (colon-separated) IPv6 addresses, because they
     # must be bracketed in a URL.
-    m = re.search(r":([0-9]+)$", hostport)
-    if m:
-        host = hostport[0:m.start(0)]
-        port = int(m.group(1))
+    matches = re.search(r":([0-9]+)$", hostport)
+    if matches:
+        host = hostport[0:matches.start(0)]
+        port = int(matches.group(1))
     else:
         host = hostport
         port = default_port_https if ssl else default_port_http
@@ -219,13 +219,13 @@ def parse_url(url):
     # Note on the regexp below: The first group needs the '?' after '.+' to
     # become non-greedy; in greedy mode, the optional second group would never
     # be matched.
-    m = re.match(r"^\[(.+?)(?:-(.+))?\]$", host)
-    if m:
+    matches = re.match(r"^\[(.+?)(?:-(.+))?\]$", host)
+    if matches:
         # It is an IPv6 address
-        host = m.group(1)
-        if m.group(2) != None:
+        host = matches.group(1)
+        if matches.group(2) != None:
             # The zone index is present
-            host += "%" + m.group(2)
+            host += "%" + matches.group(2)
 
     return host, port, ssl
 
@@ -246,9 +246,12 @@ def get_default_ca_certs():
             get_default_ca_certs._path = None
     return get_default_ca_certs._path
 
+# pylint: disable=too-many-branches,too-many-statements,too-many-arguments
 def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                  verify_callback=None, ca_certs=None,
                  no_verification=False, timeout=None):
+    # pylint: disable=too-many-arguments,unused-argument
+    # pylint: disable=too-many-locals
     """
     Send an HTTP or HTTPS request to a WBEM server and return the response.
 
@@ -318,9 +321,12 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
       :raise TimeoutError:
     """
 
-    class HTTPBaseConnection:
-        # pylint: disable=old-style-class
-        def send(self, str):
+    class HTTPBaseConnection:        # pylint: disable=no-init
+        """ Common base for specific connection classes. Implements
+            the send method
+        """
+        # pylint: disable=old-style-class,too-few-public-methods
+        def send(self, strng):
             """ Same as httplib.HTTPConnection.send(), except we don't
             check for sigpipe and close the connection.  If the connection
             gets closed, getresponse() fails.
@@ -332,14 +338,17 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                 else:
                     raise httplib.NotConnected()
             if self.debuglevel > 0:
-                print "send:", repr(str)
-            self.sock.sendall(str)
+                print "send:", repr(strng)
+            self.sock.sendall(strng)
 
     class HTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
+        """ Execute client connection without ssl using httplib. """
         def __init__(self, host, port=None, strict=None, timeout=None):
             httplib.HTTPConnection.__init__(self, host, port, strict, timeout)
 
     class HTTPSConnection(HTTPBaseConnection, httplib.HTTPSConnection):
+        """ Execute client connection with ssl using httplib."""
+        # pylint: disable=R0913,too-many-arguments
         def __init__(self, host, port=None, key_file=None, cert_file=None,
                      strict=None, ca_certs=None, verify_callback=None,
                      timeout=None):
@@ -349,7 +358,8 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
             self.verify_callback = verify_callback
 
         def connect(self):
-            "Connect to a host on a given (SSL) port."
+            # pylint: disable=too-many-branches
+            """Connect to a host on a given (SSL) port."""
 
             # Calling httplib.HTTPSConnection.connect(self) does not work
             # because of its ssl.wrap_socket() call. So we copy the code of
@@ -417,6 +427,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                     "SSL error %s: %s" % (str(arg.__class__), arg))
 
     class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
+        """Execute client connection based on a unix domain socket. """
 
         def __init__(self, uds_path):
             httplib.HTTPConnection.__init__(self, 'localhost')
@@ -441,9 +452,9 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
         cert_file = x509.get('cert_file')
         key_file = x509.get('key_file')
 
-    numTries = 0
-    localAuthHeader = None
-    tryLimit = 5
+    num_tries = 0
+    local_auth_header = None
+    try_limit = 5
 
     # Make sure the data argument is converted to a UTF-8 encoded str object.
     # This is important because according to RFC2616, the Content-Length HTTP
@@ -461,27 +472,27 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
 
     local = False
     if use_ssl:
-        h = HTTPSConnection(host,
-                            port=port,
-                            key_file=key_file,
-                            cert_file=cert_file,
-                            ca_certs=ca_certs,
-                            verify_callback=verify_callback,
-                            timeout=timeout)
+        client = HTTPSConnection(host,
+                                 port=port,
+                                 key_file=key_file,
+                                 cert_file=cert_file,
+                                 ca_certs=ca_certs,
+                                 verify_callback=verify_callback,
+                                 timeout=timeout)
     else:
         if url.startswith('http'):
-            h = HTTPConnection(host,
-                               port=port,
-                               timeout=timeout)
+            client = HTTPConnection(host,  # pylint: disable=redefined-variable-type
+                                    port=port,
+                                    timeout=timeout)
         else:
             if url.startswith('file:'):
                 url_ = url[5:]
             else:
                 url_ = url
             try:
-                s = os.stat(url_)
-                if S_ISSOCK(s.st_mode):
-                    h = FileHTTPConnection(url_)
+                status = os.stat(url_)
+                if S_ISSOCK(status.st_mode):
+                    client = FileHTTPConnection(url_)
                     local = True
                 else:
                     raise ConnectionError('File URL is not a socket: %s' % url)
@@ -497,30 +508,35 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
         except (KeyError, ImportError):
             locallogin = None
 
-    with HTTPTimeout(timeout, h):
+    with HTTPTimeout(timeout, client):
 
-        while numTries < tryLimit:
-            numTries = numTries + 1
+        while num_tries < try_limit:
+            num_tries = num_tries + 1
 
-            h.putrequest('POST', '/cimom')
+            client.putrequest('POST', '/cimom')
 
-            h.putheader('Content-type', 'application/xml; charset="utf-8"')
-            h.putheader('Content-length', str(len(data)))
-            if localAuthHeader is not None:
-                h.putheader(*localAuthHeader)
+            client.putheader('Content-type',
+                             'application/xml; charset="utf-8"')
+            client.putheader('Content-length', str(len(data)))
+            if local_auth_header is not None:
+                client.putheader(*local_auth_header)
             elif creds is not None:
-                h.putheader('Authorization', 'Basic %s' %
-                            base64.encodestring(
-                                '%s:%s' %
-                                (creds[0], creds[1])).replace('\n', ''))
+                #pylint: disable=line-too-long
+                client.putheader('Authorization', 'Basic %s' %
+                                 base64.encodestring('%s:%s' %
+                                                     (creds[0],
+                                                      creds[1])).replace('\n', ''))
             elif locallogin is not None:
-                h.putheader('PegasusAuthorization', 'Local "%s"' % locallogin)
+                client.putheader('PegasusAuthorization',
+                                 'Local "%s"' % locallogin)
 
             for hdr in headers:
                 if isinstance(hdr, unicode):
                     hdr = hdr.encode('utf-8')
-                s = map(lambda x: string.strip(x), string.split(hdr, ":", 1))
-                h.putheader(urllib.quote(s[0]), urllib.quote(s[1]))
+                hdr_pieces = map(lambda x: string.strip(x),
+                                 string.split(hdr, ":", 1))
+                client.putheader(urllib.quote(hdr_pieces[0]),
+                                 urllib.quote(hdr_pieces[1]))
 
             try:
                 # See RFC 2616 section 8.2.2
@@ -539,68 +555,71 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                 try:
                     # endheaders() is the first method in this sequence that
                     # actually sends something to the server.
-                    h.endheaders()
-                    h.send(data)
+                    client.endheaders()
+                    client.send(data)
                 except socket.error as exc:
                     # TODO: Verify these errno numbers on Windows vs. Linux
                     if exc[0] != 104 and exc[0] != 32:
                         raise ConnectionError("Socket error: %s" % exc)
 
-                response = h.getresponse()
+                response = client.getresponse()
 
                 if response.status != 200:
                     if response.status == 401:
-                        if numTries >= tryLimit:
+                        if num_tries >= try_limit:
                             raise AuthError(response.reason)
                         if not local:
                             raise AuthError(response.reason)
-                        authChal = response.getheader('WWW-Authenticate', '')
+                        auth_chal = response.getheader('WWW-Authenticate', '')
                         if 'openwbem' in response.getheader('Server', ''):
-                            if 'OWLocal' not in authChal:
+                            if 'OWLocal' not in auth_chal:
                                 try:
                                     uid = os.getuid()
                                 except AttributeError:
                                     raise ConnectionError(
                                         "OWLocal authorization for OpenWbem "\
                                         "server not supported on %s platform "\
-                                        "due to missing os.getuid()" %\
+                                        "due to missing os.getuid()" % \
                                         platform.system())
-                                localAuthHeader = ('Authorization',
-                                                   'OWLocal uid="%d"' % uid)
+                                local_auth_header = ('Authorization',
+                                                     'OWLocal uid="%d"' % uid)
                                 continue
                             else:
                                 try:
-                                    nonceIdx = authChal.index('nonce=')
-                                    nonceBegin = authChal.index('"', nonceIdx)
-                                    nonceEnd = authChal.index('"', nonceBegin+1)
-                                    nonce = authChal[nonceBegin+1:nonceEnd]
-                                    cookieIdx = authChal.index('cookiefile=')
-                                    cookieBegin = authChal.index('"', cookieIdx)
-                                    cookieEnd = authChal.index(
-                                        '"', cookieBegin+1)
-                                    cookieFile = authChal[
-                                        cookieBegin+1:cookieEnd]
-                                    f = open(cookieFile, 'r')
-                                    cookie = f.read().strip()
-                                    f.close()
-                                    localAuthHeader = (
+                                    nonce_idx = auth_chal.index('nonce=')
+                                    nonce_begin = auth_chal.index('"',
+                                                                  nonce_idx)
+                                    nonce_end = auth_chal.index('"',
+                                                                nonce_begin+1)
+                                    nonce = auth_chal[nonce_begin+1:nonce_end]
+                                    cookie_idx = auth_chal.index('cookiefile=')
+                                    cookie_begin = auth_chal.index('"',
+                                                                   cookie_idx)
+                                    cookie_end = auth_chal.index(
+                                        '"', cookie_begin+1)
+                                    cookie_file = auth_chal[
+                                        cookie_begin+1:cookie_end]
+                                    file_hndl = open(cookie_file, 'r')
+                                    cookie = file_hndl.read().strip()
+                                    file_hndl.close()
+                                    local_auth_header = (
                                         'Authorization',
                                         'OWLocal nonce="%s", cookie="%s"' % \
                                         (nonce, cookie))
                                     continue
-                                except:
-                                    localAuthHeader = None
+                                except:    #pylint: disable=bare-except
+                                    local_auth_header = None
                                     continue
-                        elif 'Local' in authChal:
+                        elif 'Local' in auth_chal:
                             try:
-                                beg = authChal.index('"') + 1
-                                end = authChal.rindex('"')
+                                beg = auth_chal.index('"') + 1
+                                end = auth_chal.rindex('"')
                                 if end > beg:
-                                    _file = authChal[beg:end]
-                                    fo = open(_file, 'r')
-                                    cookie = fo.read().strip()
-                                    fo.close()
-                                    localAuthHeader = (
+                                    _file = auth_chal[beg:end]
+                                    file_hndl = open(_file, 'r')
+                                    cookie = file_hndl.read().strip()
+                                    file_hndl.close()
+                                    local_auth_header = (
                                         'PegasusAuthorization',
                                         'Local "%s:%s:%s"' % \
                                         (locallogin, _file, cookie))
