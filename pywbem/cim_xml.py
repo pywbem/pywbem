@@ -20,6 +20,9 @@
 # Author: Bart Whiteley <bwhiteley@suse.de>
 #
 
+# TODO: Sort this issue out and see if we need to fix KS_TODO. These
+# two issues are found repeatedly in this file.
+# pylint: disable=non-parent-init-called,super-init-not-called
 """
 
 Functions to create XML documens and elements conforming to the DMTF
@@ -1069,7 +1072,7 @@ class PARAMETER_REFARRAY(CIMElement):
             self.setAttribute('ARRAYSIZE', str(array_size))
         self.appendChildren(qualifiers)
 
-class TABLECELL_DECLARATION(CIMElement):
+class TABLECELL_DECLARATION(CIMElement): #pylint: disable=invalid-name
     # pylint: disable=invalid-name
     """
     The TABLECELL.DECLARATION element describes a TABLECELL that is
