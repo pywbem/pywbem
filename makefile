@@ -52,7 +52,7 @@ pylint_rc_file := pylint.rc
 dist_manifest_in_files := \
     $(package_name)/LICENSE.txt \
     README.md \
-    INSTALL \
+    INSTALL.md \
     *.py \
     $(package_name)/*.py \
     $(package_name)/NEWS \
@@ -62,7 +62,7 @@ dist_manifest_in_files := \
 dist_dependent_files := \
     $(package_name)/LICENSE.txt \
     README.md \
-    INSTALL \
+    INSTALL.md \
     $(wildcard *.py) \
     $(wildcard $(package_name)/*.py) \
     $(package_name)/NEWS \
