@@ -1,3 +1,4 @@
+#!/bin/env python
 #
 # (C) Copyright 2006,2007 Hewlett-Packard Development Company, L.P.
 #
