@@ -68,10 +68,15 @@ import pywbem
 
 __all__ = []
 
+# Connection global variable. Set by remote_connection and use
+# by all functions that execute operations.
 _CONN = None
 
 def remote_connection(argv, opts):
-    """Initiate a remote connection, via PyWBEM."""
+    """Initiate a remote connection, via PyWBEM. Arguments for
+       the request are part of the command line arguments and include
+       user name, password, namespace, etc.
+    """
 
     global _CONN     # pylint: disable=global-statement
 
@@ -105,21 +110,27 @@ def remote_connection(argv, opts):
 #
 # Create some convenient global functions to reduce typing
 #
-
+# The following pylint disable is because many of the functions
+# in this file use CamelCase specifically to maintain equivalence to
+# the client functions in other languages. Do not change these names.
+# pylint: disable=invalid-name
 def EnumerateInstanceNames(classname, namespace=None):
     """Enumerate the names of the instances of a CIM Class (including the
     names of any subclasses) in the target namespace."""
 
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
 
     return _CONN.EnumerateInstanceNames(classname, namespace=namespace)
 
+# pylint: disable=too-many-arguments
 def EnumerateInstances(classname, namespace=None, LocalOnly=True,
                        DeepInheritance=True, IncludeQualifiers=False,
                        IncludeClassOrigin=False):
     """Enumerate instances of a CIM Class (includeing the instances of
     any subclasses in the target namespace."""
 
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
 
     return _CONN.EnumerateInstances(classname,
@@ -132,8 +143,21 @@ def EnumerateInstances(classname, namespace=None, LocalOnly=True,
 def GetInstance(instancename, LocalOnly=True, IncludeQualifiers=False,
                 IncludeClassOrigin=False):
     """Return a single CIM instance corresponding to the instance name
-    given."""
+    given.
 
+    :param instancename: ObjectPath defining the instance.
+    :param LocalOnly: Optional argument defining whether the
+       only the properties defined in this instance are returned.
+       Default= true. DEPRECATED
+    :param IncludeQualifier: Optional argument defining whether
+        qualifiers are included. Default false. DEPRECATED
+    :param IncludeClassOrigin: Optional argument defining wheteher
+        class origin information is cinclude in the response. Default
+        is False.
+    :return: Dictionary containing the retrieved instance
+    :raises:
+    """
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
 
     return _CONN.GetInstance(instancename,
@@ -142,81 +166,137 @@ def GetInstance(instancename, LocalOnly=True, IncludeQualifiers=False,
                              IncludeClassOrigin=IncludeClassOrigin)
 
 def DeleteInstance(instancename):
-    """Delete a single CIM instance."""
+    """Delete a single CIM instance.
 
+       :param instancename: CIMObjectPath defining the instance
+       :return:
+    """
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
 
     return _CONN.DeleteInstance(instancename)
-
+# TODO all of the following functions simply use args and kwargs
+# This makes sorting out arguments difficult for the user.
 def ModifyInstance(*args, **kwargs):
+    """Modify an existing instance"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.ModifyInstance(*args, **kwargs)
 
 def CreateInstance(*args, **kwargs):
+    """Create a new instance for an existing class"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.CreateInstance(*args, **kwargs)
 
 def InvokeMethod(*args, **kwargs):
+    """Invoke a method"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.InvokeMethod(*args, **kwargs)
 
 def AssociatorNames(*args, **kwargs):
+    """Return associator names for the source class or instance"""
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.AssociatorNames(*args, **kwargs)
 
 def Associators(*args, **kwargs):
+    """Return associators for the source class or instance"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.Associators(*args, **kwargs)
 
 def ReferenceNames(*args, **kwargs):
+    """Return the refernence names for the target class or instance"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.ReferenceNames(*args, **kwargs)
 
 def References(*args, **kwargs):
+    """Return the instances or classes for the target instance or class"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.References(*args, **kwargs)
 
 def EnumerateClassNames(*args, **kwargs):
+    "Enumerate the class names in the namespace"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.EnumerateClassNames(*args, **kwargs)
 
 def EnumerateClasses(*args, **kwargs):
+    """Enumerate the classes defined by the input arguments"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.EnumerateClasses(*args, **kwargs)
 
 def GetClass(*args, **kwargs):
+    """ Get the class defined by the inputs"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.GetClass(*args, **kwargs)
 
 def DeleteClass(*args, **kwargs):
+    """Delete the class defined by the input. """
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.DeleteClass(*args, **kwargs)
 
 def ModifyClass(*args, **kwargs):
+    """Modify the class defined by the input arguments"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.ModifyClass(*args, **kwargs)
 
 def CreateClass(*args, **kwargs):
+    """Create a class from the input arguments"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.CreateClass(*args, **kwargs)
 
 def EnumerateQualifiers(*args, **kwargs):
+    """Return the qualifier types that exist in the defined namespace"""
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.EnumerateQualifiers(*args, **kwargs)
 
 def GetQualifier(*args, **kwargs):
+    """Return the qualifier type defined by the input argument"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.GetQualifier(*args, **kwargs)
 
 def SetQualifier(*args, **kwargs):
+    """Create a new qualifier type from the input arguments"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.SetQualifier(*args, **kwargs)
 
 def DeleteQualifier(*args, **kwargs):
+    """Delete a qualifier type"""
+
+    # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
     return _CONN.DeleteQualifier(*args, **kwargs)
 
 # Aliases for global functions above
+
 
 ein = EnumerateInstanceNames
 ei = EnumerateInstances
@@ -248,7 +328,7 @@ dq = DeleteQualifier
 def get_banner():
     """Return a banner message for the interactive console."""
 
-    global _CONN     # pylint: disable=global-statement
+    global _CONN     # pylint: disable=global-statement,global-variable-not-assigned
 
     result = ''
 
