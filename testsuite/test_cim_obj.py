@@ -12,6 +12,9 @@ picked up here.
 Note that class `NocaseDict` is tested in test_nocasedict.py.
 """
 
+# Allows use of lots of single character variable names.
+# pylint: disable=invalid-name,missing-docstring,too-many-statements
+# pylint: disable=too-many-lines
 import re
 import inspect
 import os.path
@@ -134,7 +137,7 @@ class DictTest(unittest.TestCase):
 
         items = obj.items()
         self.assertTrue(('Chicken', 'Ham') in items and
-                     ('Beans', 42) in items)
+                        ('Beans', 42) in items)
         self.assertEqual(len(items), 2)
 
         # Test iterkeys
@@ -153,7 +156,7 @@ class DictTest(unittest.TestCase):
 
         items = list(obj.iteritems())
         self.assertTrue(('Chicken', 'Ham') in items and
-                     ('Beans', 42) in items)
+                        ('Beans', 42) in items)
         self.assertEqual(len(items), 2)
 
         # Test in
@@ -172,7 +175,7 @@ class DictTest(unittest.TestCase):
             default_value = 'NoValue'
             invalid_propname = 'Cheepy'
             self.assertEqual(obj.get(invalid_propname, default_value),
-                              default_value)
+                             default_value)
         except Exception as exc:
             self.fail('%s thrown in exception-free get() when accessing '
                       'undefined key %s\n'\
@@ -312,7 +315,7 @@ class CopyCIMInstanceName(unittest.TestCase, CIMObjectMixin):
         c.namespace = None
 
         self.assertCIMInstanceName(i, 'CIM_Foo', {'InstanceID': '1234'},
-                         'woot.com', 'root/cimv2')
+                                   'woot.com', 'root/cimv2')
 
 class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
     """
@@ -330,7 +333,7 @@ class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
                               host='woot.com')
 
         self.assertCIMInstanceName(obj, 'CIM_Foo', kb,
-                         'woot.com', 'root/cimv2')
+                                   'woot.com', 'root/cimv2')
 
         kb = {'InstanceID': '5678'}
 
@@ -340,7 +343,7 @@ class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
         obj.namespace = 'root/interop'
 
         self.assertCIMInstanceName(obj, 'CIM_Bar', kb,
-                         'woom.com', 'root/interop')
+                                   'woom.com', 'root/interop')
 
 class CIMInstanceNameDict(DictTest):
     """
@@ -364,26 +367,26 @@ class CIMInstanceNameEquality(unittest.TestCase):
         # Basic equality tests
 
         self.assertEqual(CIMInstanceName('CIM_Foo'),
-                          CIMInstanceName('CIM_Foo'))
+                         CIMInstanceName('CIM_Foo'))
 
         self.assertNotEqual(CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}),
-                             CIMInstanceName('CIM_Foo'))
+                            CIMInstanceName('CIM_Foo'))
 
         self.assertEqual(CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}),
-                          CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}))
+                         CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}))
 
         # Class name should be case insensitive
 
         self.assertEqual(CIMInstanceName('CIM_Foo'),
-                          CIMInstanceName('ciM_foO'))
+                         CIMInstanceName('ciM_foO'))
 
         # Key bindings should be case insensitive
 
         self.assertEqual(CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}),
-                          CIMInstanceName('CIM_Foo', {'cheepy': 'Birds'}))
+                         CIMInstanceName('CIM_Foo', {'cheepy': 'Birds'}))
 
         self.assertNotEqual(CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}),
-                             CIMInstanceName('CIM_Foo', {'cheepy': 'birds'}))
+                            CIMInstanceName('CIM_Foo', {'cheepy': 'birds'}))
 
         # Test a bunch of different key binding types
 
@@ -402,20 +405,20 @@ class CIMInstanceNameEquality(unittest.TestCase):
         # Test that key binding types are not confused in comparisons
 
         self.assertNotEqual(CIMInstanceName('CIM_Foo', {'Foo': '42'}),
-                             CIMInstanceName('CIM_Foo', {'Foo': 42}))
+                            CIMInstanceName('CIM_Foo', {'Foo': 42}))
 
         self.assertNotEqual(CIMInstanceName('CIM_Foo', {'Bar': True}),
-                             CIMInstanceName('CIM_Foo', {'Bar': 'TRUE'}))
+                            CIMInstanceName('CIM_Foo', {'Bar': 'TRUE'}))
 
         # Host name should be case insensitive
 
         self.assertEqual(CIMInstanceName('CIM_Foo', host='woot.com'),
-                          CIMInstanceName('CIM_Foo', host='Woot.Com'))
+                         CIMInstanceName('CIM_Foo', host='Woot.Com'))
 
         # Namespace should be case insensitive
 
         self.assertEqual(CIMInstanceName('CIM_Foo', namespace='root/cimv2'),
-                          CIMInstanceName('CIM_Foo', namespace='Root/CIMv2'))
+                         CIMInstanceName('CIM_Foo', namespace='Root/CIMv2'))
 
 class CIMInstanceNameCompare(unittest.TestCase):
     """
@@ -490,7 +493,7 @@ class CIMInstanceNameString(unittest.TestCase, RegexpMixin):
                               namespace='root/InterOp')
 
         self.assertEqual(str(obj),
-                          '//woot.com/root/InterOp:CIM_Foo.InstanceID="1234"')
+                         '//woot.com/root/InterOp:CIM_Foo.InstanceID="1234"')
 
 class CIMInstanceNameToXML(ValidateTest):
     """
@@ -863,43 +866,43 @@ class CIMInstanceEquality(unittest.TestCase):
         # Basic equality tests
 
         self.assertEqual(CIMInstance('CIM_Foo'),
-                          CIMInstance('CIM_Foo'))
+                         CIMInstance('CIM_Foo'))
 
         self.assertNotEqual(CIMInstance('CIM_Foo', {'Cheepy': 'Birds'}),
-                             CIMInstance('CIM_Foo'))
+                            CIMInstance('CIM_Foo'))
 
         # Classname should be case insensitive
 
         self.assertEqual(CIMInstance('CIM_Foo'),
-                          CIMInstance('cim_foo'))
+                         CIMInstance('cim_foo'))
 
         # NocaseDict should implement case insensitive keybinding names
 
         self.assertEqual(CIMInstance('CIM_Foo', {'Cheepy': 'Birds'}),
-                          CIMInstance('CIM_Foo', {'cheepy': 'Birds'}))
+                         CIMInstance('CIM_Foo', {'cheepy': 'Birds'}))
 
         self.assertNotEqual(CIMInstance('CIM_Foo', {'Cheepy': 'Birds'}),
-                             CIMInstance('CIM_Foo', {'cheepy': 'birds'}))
+                            CIMInstance('CIM_Foo', {'cheepy': 'birds'}))
 
         # Qualifiers
 
         self.assertNotEqual(CIMInstance('CIM_Foo'),
-                             CIMInstance('CIM_Foo',
-                                         qualifiers={'Key':
-                                                     CIMQualifier('Key',
-                                                                  True)}))
+                            CIMInstance('CIM_Foo',
+                                        qualifiers={'Key':
+                                                    CIMQualifier('Key',
+                                                                 True)}))
 
         # Path
 
         self.assertNotEqual(CIMInstance('CIM_Foo'),
-                             CIMInstance('CIM_Foo', {'Cheepy': 'Birds'}))
+                            CIMInstance('CIM_Foo', {'Cheepy': 'Birds'}))
 
         # Reference properties
 
         self.assertEqual(CIMInstance('CIM_Foo',
-                                      {'Ref1': CIMInstanceName('CIM_Bar')}),
-                          CIMInstance('CIM_Foo',
-                                      {'Ref1': CIMInstanceName('CIM_Bar')}))
+                                     {'Ref1': CIMInstanceName('CIM_Bar')}),
+                         CIMInstance('CIM_Foo',
+                                     {'Ref1': CIMInstanceName('CIM_Bar')}))
 
         # Null properties
 
@@ -1345,32 +1348,39 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
                                 seconds=55, microseconds=654321)
         cim_datetime_1 = '12345678224455.654321:000'
 
-        # This test failed in the old constructor implementation, because the
-        # timedelta object was not converted to a CIMDateTime object.
+        # This test failed in the old constructor implementation, because
+        # the timedelta object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', timedelta_1)
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
+                               'datetime')
 
         # This test failed in the old constructor implementation, because the
         # timedelta object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', timedelta_1, 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
+                               'datetime')
 
         p = CIMProperty('Age', CIMDateTime(timedelta_1))
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
+                               'datetime')
 
         p = CIMProperty('Age', CIMDateTime(timedelta_1), 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
+                               'datetime')
 
         # This test failed in the old constructor implementation, because the
         # datetime formatted string was not converted to a CIMDateTime object.
         p = CIMProperty('Age', cim_datetime_1, 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
+                               'datetime')
 
         p = CIMProperty('Age', CIMDateTime(cim_datetime_1))
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
+                               'datetime')
 
         p = CIMProperty('Age', CIMDateTime(cim_datetime_1), 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
+                               'datetime')
 
         datetime_2 = datetime(year=2014, month=9, day=24, hour=19, minute=30,
                               second=40, microsecond=654321,
@@ -1380,90 +1390,109 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         # This test failed in the old constructor implementation, because the
         # datetime object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', datetime_2)
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
+                               'datetime')
 
         # This test failed in the old constructor implementation, because the
         # datetime object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', datetime_2, 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
+                               'datetime')
 
         p = CIMProperty('Age', CIMDateTime(datetime_2))
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
+                               'datetime')
 
         p = CIMProperty('Age', CIMDateTime(datetime_2), 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
+                               'datetime')
 
         # This test failed in the old constructor implementation, because the
         # datetime formatted string was not converted to a CIMDateTime object.
         p = CIMProperty('Age', cim_datetime_2, 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
+                               'datetime')
 
         p = CIMProperty('Age', CIMDateTime(cim_datetime_2))
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
+                               'datetime')
 
         p = CIMProperty('Age', CIMDateTime(cim_datetime_2), 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2), 'datetime')
+        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
+                               'datetime')
 
         # Reference properties
 
         p = CIMProperty('Foo', None, 'reference')
-        self.assertCIMProperty(p, 'Foo', None, 'reference', reference_class=None)
+        self.assertCIMProperty(p, 'Foo', None, 'reference',
+                               reference_class=None)
 
         # This test failed in the old constructor implementation, because the
         # reference_class argument was required to be provided for references.
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'))
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
-                         reference_class='CIM_Foo')
+        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
+                               'reference',
+                               reference_class='CIM_Foo')
 
         # This test failed in the old constructor implementation, because the
         # reference_class argument was required to be provided for references.
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference')
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
-                         reference_class='CIM_Foo')
+        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
+                               'reference',
+                               reference_class='CIM_Foo')
 
         # This test failed in the old constructor implementation, because the
         # reference_class argument was required to be provided for references.
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
                         qualifiers=quals)
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
-                         reference_class='CIM_Foo', qualifiers=quals)
+        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
+                               'reference',
+                               reference_class='CIM_Foo', qualifiers=quals)
 
         # This test failed in the old constructor implementation, because the
         # reference_class argument was required to be provided for references.
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference',
                         qualifiers=quals)
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
-                         reference_class='CIM_Foo', qualifiers=quals)
+        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
+                               'reference',
+                               reference_class='CIM_Foo', qualifiers=quals)
 
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
                         reference_class='CIM_Foo')
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
-                         reference_class='CIM_Foo')
+        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
+                               'reference',
+                               reference_class='CIM_Foo')
 
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference',
                         reference_class='CIM_Foo')
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
-                         reference_class='CIM_Foo')
+        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
+                               'reference',
+                               reference_class='CIM_Foo')
 
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
                         reference_class='CIM_Foo', qualifiers=quals)
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
-                         reference_class='CIM_Foo', qualifiers=quals)
+        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
+                               'reference',
+                               reference_class='CIM_Foo', qualifiers=quals)
 
-        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference',
+        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
+                        'reference',
                         reference_class='CIM_Foo', qualifiers=quals)
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'), 'reference',
-                         reference_class='CIM_Foo', qualifiers=quals)
+        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
+                               'reference',
+                               reference_class='CIM_Foo', qualifiers=quals)
 
         # Initialization to CIM embedded object / instance
 
         # This test failed in the old constructor implementation, because the
         # type argument was required to be provided for embedded objects.
         p = CIMProperty('Bar', None, embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', None, 'string', embedded_object='object')
+        self.assertCIMProperty(p, 'Bar', None, 'string',
+                               embedded_object='object')
 
         p = CIMProperty('Bar', None, 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', None, 'string', embedded_object='object')
+        self.assertCIMProperty(p, 'Bar', None, 'string',
+                               embedded_object='object')
 
         ec = CIMClass('CIM_Bar')
 
@@ -1474,13 +1503,16 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         # embedded_object attribute was not implied from the value argument if
         # the type argument was also provided.
         p = CIMProperty('Bar', ec, 'string')
-        self.assertCIMProperty(p, 'Bar', ec, 'string', embedded_object='object')
+        self.assertCIMProperty(p, 'Bar', ec, 'string',
+                               embedded_object='object')
 
         p = CIMProperty('Bar', ec, embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', ec, 'string', embedded_object='object')
+        self.assertCIMProperty(p, 'Bar', ec, 'string',
+                               embedded_object='object')
 
         p = CIMProperty('Bar', ec, 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', ec, 'string', embedded_object='object')
+        self.assertCIMProperty(p, 'Bar', ec, 'string',
+                               embedded_object='object')
 
         ei = CIMInstance('CIM_Bar')
 
@@ -1491,22 +1523,27 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         self.assertCIMProperty(p, 'Bar', ei, 'string', embedded_object='object')
 
         p = CIMProperty('Bar', ei, 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', ei, 'string', embedded_object='object')
+        self.assertCIMProperty(p, 'Bar', ei, 'string',
+                               embedded_object='object')
 
         p = CIMProperty('Bar', ei)
-        self.assertCIMProperty(p, 'Bar', ei, 'string', embedded_object='instance')
+        self.assertCIMProperty(p, 'Bar', ei, 'string',
+                               embedded_object='instance')
 
         # This test failed in the old constructor implementation, because the
         # embedded_object attribute was not implied from the value argument if
         # the type argument was also provided.
         p = CIMProperty('Bar', ei, 'string')
-        self.assertCIMProperty(p, 'Bar', ei, 'string', embedded_object='instance')
+        self.assertCIMProperty(p, 'Bar', ei, 'string',
+                               embedded_object='instance')
 
         p = CIMProperty('Bar', ei, embedded_object='instance')
-        self.assertCIMProperty(p, 'Bar', ei, 'string', embedded_object='instance')
+        self.assertCIMProperty(p, 'Bar', ei, 'string',
+                               embedded_object='instance')
 
         p = CIMProperty('Bar', ei, 'string', embedded_object='instance')
-        self.assertCIMProperty(p, 'Bar', ei, 'string', embedded_object='instance')
+        self.assertCIMProperty(p, 'Bar', ei, 'string',
+                               embedded_object='instance')
 
         # Check that initialization with Null without specifying a type is
         # rejected
@@ -1548,19 +1585,19 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
 
         p = CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]])
         self.assertCIMProperty(p, 'Foo', [Uint8(x) for x in [1, 2, 3]],
-                         'uint8', is_array=True)
+                               'uint8', is_array=True)
 
         p = CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]], is_array=True)
         self.assertCIMProperty(p, 'Foo', [Uint8(x) for x in [1, 2, 3]],
-                         'uint8', is_array=True)
+                               'uint8', is_array=True)
 
         p = CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]], type='uint8')
         self.assertCIMProperty(p, 'Foo', [Uint8(x) for x in [1, 2, 3]],
-                         'uint8', is_array=True)
+                               'uint8', is_array=True)
 
         p = CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]], qualifiers=quals)
         self.assertCIMProperty(p, 'Foo', [Uint8(x) for x in [1, 2, 3]],
-                         'uint8', is_array=True, qualifiers=quals)
+                               'uint8', is_array=True, qualifiers=quals)
 
         # Arrays of CIM boolean type
 
@@ -1568,7 +1605,8 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         self.assertCIMProperty(p, 'Aged', [True], 'boolean', is_array=True)
 
         p = CIMProperty('Aged', [False, True], 'boolean')
-        self.assertCIMProperty(p, 'Aged', [False, True], 'boolean', is_array=True)
+        self.assertCIMProperty(p, 'Aged', [False, True], 'boolean',
+                               is_array=True)
 
         p = CIMProperty('Aged', [None], 'boolean')
         self.assertCIMProperty(p, 'Aged', [None], 'boolean', is_array=True)
@@ -1585,36 +1623,36 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         # This test failed in the old constructor implementation, because the
         # timedelta object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', [timedelta_1])
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
+                               'datetime', is_array=True)
 
         # This test failed in the old constructor implementation, because the
         # timedelta object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', [timedelta_1], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
+                               'datetime', is_array=True)
 
         p = CIMProperty('Age', [CIMDateTime(timedelta_1)])
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
+                               'datetime', is_array=True)
 
         p = CIMProperty('Age', [CIMDateTime(timedelta_1)], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
+                               'datetime', is_array=True)
 
         # This test failed in the old constructor implementation, because the
         # datetime formatted string was not converted to a CIMDateTime object.
         p = CIMProperty('Age', [cim_datetime_1], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
+                               'datetime', is_array=True)
 
         p = CIMProperty('Age', [CIMDateTime(cim_datetime_1)])
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
+                               'datetime', is_array=True)
 
         p = CIMProperty('Age', [CIMDateTime(cim_datetime_1)], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
+                               'datetime', is_array=True)
 
         p = CIMProperty('Age', [None], 'datetime')
         self.assertCIMProperty(p, 'Age', [None], 'datetime', is_array=True)
@@ -1627,36 +1665,36 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         # This test failed in the old constructor implementation, because the
         # datetime object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', [datetime_2])
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
+                               'datetime', is_array=True)
 
         # This test failed in the old constructor implementation, because the
         # datetime object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', [datetime_2], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
+                               'datetime', is_array=True)
 
         p = CIMProperty('Age', [CIMDateTime(datetime_2)])
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
+                               'datetime', is_array=True)
 
         p = CIMProperty('Age', [CIMDateTime(datetime_2)], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
+                               'datetime', is_array=True)
 
         # This test failed in the old constructor implementation, because the
         # datetime formatted string was not converted to a CIMDateTime object.
         p = CIMProperty('Age', [cim_datetime_2], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
+                               'datetime', is_array=True)
 
         p = CIMProperty('Age', [CIMDateTime(cim_datetime_2)])
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
+                               'datetime', is_array=True)
 
         p = CIMProperty('Age', [CIMDateTime(cim_datetime_2)], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)], 'datetime',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
+                               'datetime', is_array=True)
 
         # Arrays of reference properties are not allowed in CIM v2.
 
@@ -1666,44 +1704,52 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         # first array element was used for defaulting the type, without
         # checking for None.
         p = CIMProperty('Bar', [None], embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [None], 'string', embedded_object='object',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [None], 'string',
+                               embedded_object='object',
+                               is_array=True)
 
         p = CIMProperty('Bar', [None], 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [None], 'string', embedded_object='object',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [None], 'string',
+                               embedded_object='object',
+                               is_array=True)
 
-        # This test failed in the old constructor implementation, because the
-        # type of the empty array could not be defaulted from the
+        # This test failed in the old constructor implementation, because
+        # the type of the empty array could not be defaulted from the
         # embedded_object argument.
         p = CIMProperty('Bar', [], embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [], 'string', embedded_object='object',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [], 'string',
+                               embedded_object='object',
+                               is_array=True)
 
         p = CIMProperty('Bar', [], 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [], 'string', embedded_object='object',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [], 'string',
+                               embedded_object='object',
+                               is_array=True)
 
         ec = CIMClass('CIM_Bar')
 
         p = CIMProperty('Bar', [ec])
-        self.assertCIMProperty(p, 'Bar', [ec], 'string', embedded_object='object',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [ec], 'string',
+                               embedded_object='object',
+                               is_array=True)
 
         # This test failed in the old constructor implementation, because the
         # embedded_object attribute was not implied from the value argument if
         # the type argument was also provided.
         p = CIMProperty('Bar', [ec], 'string')
-        self.assertCIMProperty(p, 'Bar', [ec], 'string', embedded_object='object',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [ec], 'string',
+                               embedded_object='object',
+                               is_array=True)
 
         p = CIMProperty('Bar', [ec], embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [ec], 'string', embedded_object='object',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [ec], 'string',
+                               embedded_object='object',
+                               is_array=True)
 
         p = CIMProperty('Bar', [ec], 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [ec], 'string', embedded_object='object',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [ec], 'string',
+                               embedded_object='object',
+                               is_array=True)
 
         ei = CIMInstance('CIM_Bar')
 
@@ -1711,31 +1757,37 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         # embedded_object argument value of 'object' was changed to 'instance'
         # when a CIMInstance typed value was provided.
         p = CIMProperty('Bar', [ei], embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [ei], 'string', embedded_object='object',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [ei], 'string',
+                               embedded_object='object',
+                               is_array=True)
 
         p = CIMProperty('Bar', [ei], 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [ei], 'string', embedded_object='object',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [ei], 'string',
+                               embedded_object='object',
+                               is_array=True)
 
         p = CIMProperty('Bar', [ei])
-        self.assertCIMProperty(p, 'Bar', [ei], 'string', embedded_object='instance',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [ei], 'string',
+                               embedded_object='instance',
+                               is_array=True)
 
         # This test failed in the old constructor implementation, because the
         # embedded_object attribute was not implied from the value argument if
         # the type argument was also provided.
         p = CIMProperty('Bar', [ei], 'string')
-        self.assertCIMProperty(p, 'Bar', [ei], 'string', embedded_object='instance',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [ei], 'string',
+                               embedded_object='instance',
+                               is_array=True)
 
         p = CIMProperty('Bar', [ei], embedded_object='instance')
-        self.assertCIMProperty(p, 'Bar', [ei], 'string', embedded_object='instance',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [ei], 'string',
+                               embedded_object='instance',
+                               is_array=True)
 
         p = CIMProperty('Bar', [ei], 'string', embedded_object='instance')
-        self.assertCIMProperty(p, 'Bar', [ei], 'string', embedded_object='instance',
-                         is_array=True)
+        self.assertCIMProperty(p, 'Bar', [ei], 'string',
+                               embedded_object='instance',
+                               is_array=True)
 
         # Check that initialization with array being Null, array being empty,
         # or first array element being Null without specifying a type is
@@ -1783,7 +1835,8 @@ class CopyCIMProperty(unittest.TestCase, CIMObjectMixin):
         c.value = '1234'
         c.qualifiers = {'Key': CIMQualifier('Value', True)}
 
-        self.assertCIMProperty(p, 'Spotty', 'Foot', type_='string', qualifiers={})
+        self.assertCIMProperty(p, 'Spotty', 'Foot', type_='string',
+                               qualifiers={})
 
 class CIMPropertyAttrs(unittest.TestCase, CIMObjectMixin):
 
@@ -1807,7 +1860,7 @@ class CIMPropertyAttrs(unittest.TestCase, CIMObjectMixin):
         v = CIMInstanceName('CIM_Bar')
         obj = CIMProperty('Foo', v)
         self.assertCIMProperty(obj, 'Foo', v, type_='reference',
-                         reference_class='CIM_Bar')
+                               reference_class='CIM_Bar')
 
 class CIMPropertyEquality(unittest.TestCase):
 
@@ -1816,25 +1869,25 @@ class CIMPropertyEquality(unittest.TestCase):
         # Compare single-valued properties
 
         self.assertEqual(CIMProperty('Spotty', None, 'string'),
-                          CIMProperty('Spotty', None, 'string'))
+                         CIMProperty('Spotty', None, 'string'))
 
         self.assertNotEqual(CIMProperty('Spotty', '', 'string'),
-                             CIMProperty('Spotty', None, 'string'))
+                            CIMProperty('Spotty', None, 'string'))
 
         self.assertEqual(CIMProperty('Spotty', 'Foot'),
-                          CIMProperty('Spotty', 'Foot'))
+                         CIMProperty('Spotty', 'Foot'))
 
         self.assertNotEqual(CIMProperty('Spotty', 'Foot'),
-                             CIMProperty('Spotty', Uint32(42)))
+                            CIMProperty('Spotty', Uint32(42)))
 
         self.assertEqual(CIMProperty('Spotty', 'Foot'),
-                          CIMProperty('spotty', 'Foot'))
+                         CIMProperty('spotty', 'Foot'))
 
         self.assertNotEqual(CIMProperty('Spotty', 'Foot'),
-                             CIMProperty('Spotty', 'Foot',
-                                         qualifiers={'Key':
-                                                     CIMQualifier('Key',
-                                                                  True)}))
+                            CIMProperty('Spotty', 'Foot',
+                                        qualifiers={'Key':
+                                                    CIMQualifier('Key',
+                                                                 True)}))
 
         # Compare property arrays
 
@@ -2004,16 +2057,16 @@ class CIMQualifierEquality(unittest.TestCase):
     def test_all(self):
 
         self.assertEqual(CIMQualifier('Spotty', 'Foot'),
-                          CIMQualifier('Spotty', 'Foot'))
+                         CIMQualifier('Spotty', 'Foot'))
 
         self.assertEqual(CIMQualifier('Spotty', 'Foot'),
-                          CIMQualifier('spotty', 'Foot'))
+                         CIMQualifier('spotty', 'Foot'))
 
         self.assertNotEqual(CIMQualifier('Spotty', 'Foot'),
-                             CIMQualifier('Spotty', 'foot'))
+                            CIMQualifier('Spotty', 'foot'))
 
         self.assertNotEqual(CIMQualifier('Null', None, type='string'),
-                             CIMQualifier('Null', ''))
+                            CIMQualifier('Null', ''))
 
 class CIMQualifierCompare(unittest.TestCase):
 
@@ -2122,7 +2175,7 @@ class CIMClassEquality(unittest.TestCase):
         self.assertEqual(CIMClass('CIM_Foo'), CIMClass('cim_foo'))
 
         self.assertNotEqual(CIMClass('CIM_Foo', superclass='CIM_Bar'),
-                             CIMClass('CIM_Foo'))
+                            CIMClass('CIM_Foo'))
 
         properties = {'InstanceID':
                       CIMProperty('InstanceID', None,
@@ -2133,16 +2186,16 @@ class CIMClassEquality(unittest.TestCase):
         qualifiers = {'Key': CIMQualifier('Key', True)}
 
         self.assertNotEqual(CIMClass('CIM_Foo'),
-                             CIMClass('CIM_Foo', properties=properties))
+                            CIMClass('CIM_Foo', properties=properties))
 
         self.assertNotEqual(CIMClass('CIM_Foo'),
-                             CIMClass('CIM_Foo', methods=methods))
+                            CIMClass('CIM_Foo', methods=methods))
 
         self.assertNotEqual(CIMClass('CIM_Foo'),
-                             CIMClass('CIM_Foo', qualifiers=qualifiers))
+                            CIMClass('CIM_Foo', qualifiers=qualifiers))
 
         self.assertEqual(CIMClass('CIM_Foo', superclass='CIM_Bar'),
-                          CIMClass('CIM_Foo', superclass='cim_bar'))
+                         CIMClass('CIM_Foo', superclass='cim_bar'))
 
 class CIMClassCompare(unittest.TestCase):
 
@@ -2258,15 +2311,15 @@ class CIMMethodEquality(unittest.TestCase):
     def test_all(self):
 
         self.assertEqual(CIMMethod('FooMethod', 'uint32'),
-                          CIMMethod('FooMethod', 'uint32'))
+                         CIMMethod('FooMethod', 'uint32'))
 
         self.assertEqual(CIMMethod('FooMethod', 'uint32'),
-                          CIMMethod('fooMethod', 'uint32'))
+                         CIMMethod('fooMethod', 'uint32'))
 
         self.assertNotEqual(CIMMethod('FooMethod', 'uint32'),
-                             CIMMethod('FooMethod', 'uint32',
-                                       qualifiers={'Key': CIMQualifier('Key',
-                                                                       True)}))
+                            CIMMethod('FooMethod', 'uint32',
+                                      qualifiers={'Key': CIMQualifier('Key',
+                                                                      True)}))
 
 class CIMMethodCompare(unittest.TestCase):
 
@@ -2412,19 +2465,19 @@ class CIMParameterEquality(unittest.TestCase):
         # Single-valued parameters
 
         self.assertEqual(CIMParameter('Param1', 'uint32'),
-                          CIMParameter('Param1', 'uint32'))
+                         CIMParameter('Param1', 'uint32'))
 
         self.assertEqual(CIMParameter('Param1', 'uint32'),
-                          CIMParameter('param1', 'uint32'))
+                         CIMParameter('param1', 'uint32'))
 
         self.assertNotEqual(CIMParameter('Param1', 'uint32'),
-                             CIMParameter('param1', 'string'))
+                            CIMParameter('param1', 'string'))
 
         self.assertNotEqual(CIMParameter('Param1', 'uint32'),
-                             CIMParameter('param1', 'uint32',
-                                          qualifiers={'Key':
-                                                      CIMQualifier('Key',
-                                                                   True)}))
+                            CIMParameter('param1', 'uint32',
+                                         qualifiers={'Key':
+                                                     CIMQualifier('Key',
+                                                                  True)}))
 
         # Array parameters
 
@@ -2453,65 +2506,66 @@ class CIMParameterEquality(unittest.TestCase):
         # Reference parameters
 
         self.assertEqual(CIMParameter('RefParam', 'reference',
-                                       reference_class='CIM_Foo'),
-                          CIMParameter('RefParam', 'reference',
-                                       reference_class='CIM_Foo'))
+                                      reference_class='CIM_Foo'),
+                         CIMParameter('RefParam', 'reference',
+                                      reference_class='CIM_Foo'))
 
         self.assertEqual(CIMParameter('RefParam', 'reference',
-                                       reference_class='CIM_Foo'),
-                          CIMParameter('refParam', 'reference',
-                                       reference_class='CIM_Foo'))
+                                      reference_class='CIM_Foo'),
+                         CIMParameter('refParam', 'reference',
+                                      reference_class='CIM_Foo'))
 
         self.assertEqual(CIMParameter('RefParam', 'reference',
-                                       reference_class='CIM_Foo'),
-                          CIMParameter('refParam', 'reference',
-                                       reference_class='CIM_foo'))
+                                      reference_class='CIM_Foo'),
+                         CIMParameter('refParam', 'reference',
+                                      reference_class='CIM_foo'))
 
         self.assertNotEqual(CIMParameter('RefParam', 'reference',
-                                          reference_class='CIM_Foo'),
-                             CIMParameter('RefParam', 'reference',
-                                          reference_class='CIM_Bar'))
+                                         reference_class='CIM_Foo'),
+                            CIMParameter('RefParam', 'reference',
+                                         reference_class='CIM_Bar'))
 
         self.assertNotEqual(CIMParameter('RefParam', 'reference',
-                                          reference_class='CIM_Foo'),
-                             CIMParameter('RefParam', 'reference',
-                                          reference_class='CIM_Foo',
-                                          qualifiers=
-                                          {'Key': CIMQualifier('Key', True)}))
+                                         reference_class='CIM_Foo'),
+                            CIMParameter('RefParam', 'reference',
+                                         reference_class='CIM_Foo',
+                                         qualifiers=
+                                         {'Key': CIMQualifier('Key',
+                                                              True)}))
 
         # Reference array parameters
 
         self.assertEqual(CIMParameter('ArrayParam', 'reference',
-                                       reference_class='CIM_Foo',
-                                       is_array=True),
-                          CIMParameter('ArrayParam', 'reference',
-                                       reference_class='CIM_Foo',
-                                       is_array=True))
+                                      reference_class='CIM_Foo',
+                                      is_array=True),
+                         CIMParameter('ArrayParam', 'reference',
+                                      reference_class='CIM_Foo',
+                                      is_array=True))
 
         self.assertEqual(CIMParameter('ArrayParam', 'reference',
-                                       reference_class='CIM_Foo',
-                                       is_array=True),
-                          CIMParameter('arrayparam', 'reference',
-                                       reference_class='CIM_Foo',
-                                       is_array=True))
+                                      reference_class='CIM_Foo',
+                                      is_array=True),
+                         CIMParameter('arrayparam', 'reference',
+                                      reference_class='CIM_Foo',
+                                      is_array=True))
 
         self.assertNotEqual(CIMParameter('ArrayParam', 'reference',
-                                          reference_class='CIM_Foo',
-                                          is_array=True),
-                             CIMParameter('arrayParam', 'reference',
-                                          reference_class='CIM_foo',
-                                          is_array=True,
-                                          array_size=10))
+                                         reference_class='CIM_Foo',
+                                         is_array=True),
+                            CIMParameter('arrayParam', 'reference',
+                                         reference_class='CIM_foo',
+                                         is_array=True,
+                                         array_size=10))
 
         self.assertNotEqual(CIMParameter('ArrayParam', 'reference',
-                                          reference_class='CIM_Foo',
-                                          is_array=True),
-                             CIMParameter('ArrayParam', 'reference',
-                                          reference_class='CIM_Foo',
-                                          is_array=True,
-                                          qualifiers={'Key':
-                                                      CIMQualifier('Key',
-                                                                   True)}))
+                                         reference_class='CIM_Foo',
+                                         is_array=True),
+                            CIMParameter('ArrayParam', 'reference',
+                                         reference_class='CIM_Foo',
+                                         is_array=True,
+                                         qualifiers={'Key':
+                                                     CIMQualifier('Key',
+                                                                  True)}))
 
 class CIMParameterCompare(unittest.TestCase):
 
