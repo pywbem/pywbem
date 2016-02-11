@@ -34,8 +34,8 @@ operation.
 import string
 import re
 from types import StringTypes
-from xml.dom import minidom
 from datetime import datetime, timedelta
+from xml.dom import minidom
 from xml.parsers.expat import ExpatError
 
 from pywbem import cim_obj, cim_xml, cim_http, cim_types, tupletree, tupleparse
@@ -605,8 +605,8 @@ class WBEMConnection(object):
             msg = str(exc)
             parsing_error = True
         except ExpatError as exc:
-            # This is raised e.g. when XML numeric entity references of invalid
-            # XML characters are used (e.g. '&#0;').
+            # This is raised e.g. when XML numeric entity references of
+            # invalid XML characters are used (e.g. '&#0;').
             # str(exc) is: "{message}, line {X}, offset {Y}"
             parsed_line = str(reply_xml).splitlines()[exc.lineno-1]
             msg = "ExpatError %s: %s: %r" % (str(exc.code), str(exc),
@@ -678,6 +678,7 @@ class WBEMConnection(object):
 
         return tt
 
+    # pylint: disable=invalid-name
     def methodcall(self, methodname, localobject, Params=None, **params):
         """
         Perform an extrinsic method call (= CIM method invocation).
@@ -741,8 +742,12 @@ class WBEMConnection(object):
             if isinstance(obj, (cim_types.CIMType, bool, StringTypes)):
                 return cim_xml.VALUE(cim_types.atomic_to_cim_xml(obj))
             if isinstance(obj, (CIMClassName, CIMInstanceName)):
+                # Note: Because CIMDateTime is an obj but tested above
+                # pylint: disable=no-member
                 return cim_xml.VALUE_REFERENCE(obj.tocimxml())
             if isinstance(obj, (CIMClass, CIMInstance)):
+                # Note: Because CIMDateTime is an obj but tested above
+                # pylint: disable=no-member
                 return cim_xml.VALUE(obj.tocimxml().toxml())
             if isinstance(obj, list):
                 if obj and isinstance(obj[0], (CIMClassName, CIMInstanceName)):
@@ -1332,7 +1337,7 @@ class WBEMConnection(object):
     # Schema management API
     #
 
-    def _map_classname_param(self, params):
+    def _map_classname_param(self, params): # pylint: disable=no-self-use
         """Convert string ClassName parameter to a CIMClassName."""
 
         if params.has_key('ClassName') and \
@@ -1673,7 +1678,7 @@ class WBEMConnection(object):
     # Association provider API
     #
 
-    def _add_objectname_param(self, params, object_):
+    def _add_objectname_param(self, params, object_): # pylint: disable=no-self-use
         """Add an object name (either a class name or an instance
         name) to a dictionary of parameter names."""
 
@@ -1688,7 +1693,7 @@ class WBEMConnection(object):
 
         return params
 
-    def _map_association_params(self, params):
+    def _map_association_params(self, params): # pylint: disable=no-self-use
         """Convert various convenience parameters and types into their
         correct form for passing to the imethodcall() function."""
 
@@ -2207,14 +2212,13 @@ class WBEMConnection(object):
             namespace,
             **params)
 
-        qualifiers = []
 
         if result is not None:
-            names = result[2]
+            qualifiers = result[2]
         else:
-            names = []
+            qualifiers = []
 
-        return names
+        return qualifiers
 
     def GetQualifier(self, QualifierName, namespace=None, **params):
         # pylint: disable=invalid-name
@@ -2251,6 +2255,7 @@ class WBEMConnection(object):
         if namespace is None:
             namespace = self.default_namespace
 
+        #pylint: disable=unused-variable
         result = self.imethodcall(
             'SetQualifier',
             namespace,
@@ -2268,25 +2273,25 @@ class WBEMConnection(object):
         if namespace is None:
             namespace = self.default_namespace
 
-        result = self.imethodcall(
+        unused_result = self.imethodcall(
             'DeleteQualifier',
             namespace,
             QualifierName=QualifierName,
             **params)
 
-def is_subclass(ch, ns, super, sub):
+def is_subclass(ch, ns, super_class, sub):
     """Determine if one class is a subclass of another
 
     Keyword Arguments:
     ch -- A CIMOMHandle.  Either a pycimmb.CIMOMHandle or a
         pywbem.WBEMConnection.
     ns -- Namespace.
-    super -- A string containing the super class name.
+    super-class -- A string containing the super class name.
     sub -- The subclass.  This can either be a string or a pywbem.CIMClass.
 
     """
 
-    lsuper = super.lower()
+    lsuper = super_class.lower()
     if isinstance(sub, CIMClass):
         subname = sub.classname
         subclass = sub
@@ -2314,14 +2319,26 @@ def is_subclass(ch, ns, super, sub):
     return False
 
 def PegasusUDSConnection(creds=None, **kwargs):
+    """ Pegasus specific Unix Domain Socket call. Specific because
+        of the location of the file name
+    """
+
     # pylint: disable=invalid-name
     return WBEMConnection('/var/run/tog-pegasus/cimxml.socket', creds, **kwargs)
 
 def SFCBUDSConnection(creds=None, **kwargs):
+    """ SFCB specific Unix Domain Socket call. Specific because
+        of the location of the file name
+    """
+
     # pylint: disable=invalid-name
     return WBEMConnection('/tmp/sfcbHttpSocket', creds, **kwargs)
 
 def OpenWBEMUDSConnection(creds=None, **kwargs):
+    """ Pegasus specific Unix Domain Socket call. Specific because
+        of the location of the file name
+    """
+
     # pylint: disable=invalid-name
     return WBEMConnection('/tmp/OW@LCL@APIIPC_72859_Xq47Bf_P9r761-5_J-7_Q',
                           creds, **kwargs)
