@@ -696,7 +696,7 @@ def parse_property(parser, event, node): #pylint: disable=unused-argument
 
     return CIMProperty(
         name,
-        cim_obj.tocimobj(type, value),
+        cim_obj.tocimobj(cim_type, value),
         type=cim_type,
         class_origin=class_origin,
         propagated=propagated,

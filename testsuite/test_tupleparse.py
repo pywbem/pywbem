@@ -152,7 +152,7 @@ class ParseCIMClass(TupleTest):
                        }
             ))
 
-# TODO extend to all property data types
+# TODO: Feb/16: ks: extend to all property data types
 class ParseCIMProperty(TupleTest):
     """Test parsing of CIMProperty objects."""
 
