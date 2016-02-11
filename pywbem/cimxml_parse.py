@@ -339,7 +339,7 @@ def parse_namespace(parser, event, node):
 # <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
 
 def parse_instancepath(parser, event, node):
-     #pylint: disable=unused-argument
+    #pylint: disable=unused-argument
     """Parse the CIM/XML INSTANCEPATH element and return an
        instancname
 
