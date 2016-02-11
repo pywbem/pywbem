@@ -21,12 +21,12 @@
 
 """CIM/XML Parser. Parses the CIM/XML Elements defined in the DMTF
    specification DSP0201.
-   
+
    WARNING: Many of the parsing functions defined in this file must
    keep the exact name (i.e. those prepended by parse_) since the
    parser uses the names to call the function from the parse_any(...)
    function substituting _ for the "." in the element names.
-   
+
    These functions raise ParseError exception if there are any
    errors in the parsing and terminate the parsing.
 """
@@ -76,14 +76,14 @@ def _get_end_event(parser, tagName):
         raise ParseError(
             'Expecting %s end tag, got %s %s' % (tagName, event, node.tagName))
 
-def _is_start(event, node, tagName):
+def _is_start(event, node, tagName):  # pylint: disable=invalid-name
     """Return true if (event, node) is a start event for tagname."""
-    
+
     return event == pulldom.START_ELEMENT and node.tagName == tagName
 
-def _is_end(event, node, tagName):
+def _is_end(event, node, tagName): # pylint: disable=invalid-name
     """Return true if (event, node) is an end event for tagname."""
-    
+
     return event == pulldom.END_ELEMENT and node.tagName == tagName
 
 # <!-- ************************************************** -->
@@ -132,7 +132,7 @@ def _is_end(event, node, tagName):
 
 # <!ELEMENT VALUE (#PCDATA)>
 
-def parse_value(parser, event, node):
+def parse_value(parser, event, node): # pylint: disable=unused-argument
     """ Parse CIM/XML VALUE element and return the value"""
     value = ''
 
@@ -151,7 +151,7 @@ def parse_value(parser, event, node):
 
 # <!ELEMENT VALUE.ARRAY (VALUE*)>
 
-def parse_value_array(parser, event, node):
+def parse_value_array(parser, event, node): # pylint: disable=invalid-name
     """ Parse CIM/XML VALUE.ARRAY element and return the value array"""
 
     value_array = []
@@ -187,6 +187,8 @@ def parse_value_reference(parser, event, node):
     """
 
     (next_event, next_node) = parser.next()
+    
+    TODO: 2/16:ks : functions parse_classpath, parse_localclasspath, parseclassname do not exist.
 
     if _is_start(next_event, next_node, 'CLASSPATH'):
         result = parse_classpath(parser, next_event, next_node)
