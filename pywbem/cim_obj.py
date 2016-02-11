@@ -673,8 +673,8 @@ class CIMProperty(object):
     Defines a CIM property including cim type, value, and possibly
     qualifiers.
 
-    The property can be used in a CIM instance (as part of a 
-    `CIMInstance` object) or in a CIM class (as part of a 
+    The property can be used in a CIM instance (as part of a
+    `CIMInstance` object) or in a CIM class (as part of a
     `CIMClass` object).
 
     For properties in CIM instances:

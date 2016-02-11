@@ -47,18 +47,18 @@ def validate_xml(data, dtd_directory=None):
 
 # Test data to save typing
 
-def LOCALNAMESPACEPATH():
+def LOCALNAMESPACEPATH():   # pylint: disable=invalid-name
     return cim_xml.LOCALNAMESPACEPATH([cim_xml.NAMESPACE('root'),
                                        cim_xml.NAMESPACE('cimv2')])
 
-def NAMESPACEPATH():
+def NAMESPACEPATH():   # pylint: disable=invalid-name
     return cim_xml.NAMESPACEPATH(
         cim_xml.HOST('leonardo'), LOCALNAMESPACEPATH())
 
-def CLASSNAME():
+def CLASSNAME():  # pylint: disable=invalid-name
     return cim_xml.CLASSNAME('CIM_Foo')
 
-def INSTANCENAME():
+def INSTANCENAME():  # pylint: disable=invalid-name
     return cim_xml.INSTANCENAME(
         'CIM_Pet',
         [cim_xml.KEYBINDING('type', cim_xml.KEYVALUE('dog', 'string')),
@@ -101,6 +101,7 @@ class CIMXMLTest(unittest.TestCase):
                                      act_xml_str)
 
 
+# pylint: disable=too-few-public-methods
 class UnimplementedTest(object):
     def test_all(self):
         raise AssertionError('Unimplemented test')
@@ -134,11 +135,13 @@ class CIM(CIMXMLTest):
 #     3.2.2.5. QUALIFIER.DECLARATION
 #     3.2.2.6. SCOPE
 
+# pylint: disable=too-few-public-methods
 class Declaration(UnimplementedTest):
     """
     <!ELEMENT DECLARATION  (DECLGROUP|DECLGROUP.WITHNAME|DECLGROUP.WITHPATH)+>
     """
 
+# pylint: disable=too-few-public-methods
 class DeclGroup(UnimplementedTest):
     """
     <!ELEMENT DECLGROUP  ((LOCALNAMESPACEPATH|NAMESPACEPATH)?,
@@ -147,18 +150,21 @@ class DeclGroup(UnimplementedTest):
 
     pass
 
+# pylint: disable=too-few-public-methods
 class DeclGroupWithName(UnimplementedTest):
     """
     <!ELEMENT DECLGROUP.WITHNAME  ((LOCALNAMESPACEPATH|NAMESPACEPATH)?,
                                    QUALIFIER.DECLARATION*,VALUE.NAMEDOBJECT*)>
     """
 
+# pylint: disable=too-few-public-methods
 class DeclGroupWithPath(UnimplementedTest):
     """
     <!ELEMENT DECLGROUP.WITHPATH  (VALUE.OBJECTWITHPATH|
                                    VALUE.OBJECTWITHLOCALPATH)*>
     """
 
+# pylint: disable=too-few-public-methods
 class QualifierDeclaration(UnimplementedTest):
     """
     <!ELEMENT QUALIFIER.DECLARATION (SCOPE?, (VALUE | VALUE.ARRAY)?)>
@@ -434,6 +440,7 @@ class ValueObjectWithLocalPath(CIMXMLTest):
                 INSTANCENAME()),
             cim_xml.INSTANCE('CIM_Pet', [])))
 
+# pylint: disable=too-few-public-methods
 class ValueNull(UnimplementedTest):
     """
     <!ELEMENT VALUE.NULL EMPTY>
@@ -1718,6 +1725,7 @@ class IReturnValue(CIMXMLTest):
                 INSTANCENAME(),
                 cim_xml.INSTANCE('CIM_Pet', []))))
 
+# pylint: disable=too-few-public-methods
 class ResponseDestination(UnimplementedTest):
     """
     The RESPONSEDESTINATION element contains an instance that
@@ -1725,7 +1733,7 @@ class ResponseDestination(UnimplementedTest):
 
     <!ELEMENT RESPONSEDESTINATON (INSTANCE)>
     """
-
+# pylint: disable=too-few-public-methods
 class SimpleReqAck(UnimplementedTest):
     """
 
