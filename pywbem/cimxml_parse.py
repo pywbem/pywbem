@@ -191,7 +191,7 @@ def parse_value_reference(parser, event, node): #pylint: disable=unused-argument
     (next_event, next_node) = parser.next()
 
     #TODO:2/16:ks: Some functions below do not exist: i.e. class stuff broken.
-    #TODO: parse_classpath, parse_localclasspath, parseclassname.
+    #TODO: parse_classpath, parse_localclasspath, parse_classname.
 
     if _is_start(next_event, next_node, 'CLASSPATH'):
         result = parse_classpath(parser, next_event, next_node)
