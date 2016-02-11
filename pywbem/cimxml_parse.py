@@ -151,7 +151,8 @@ def parse_value(parser, event, node): # pylint: disable=unused-argument
 
 # <!ELEMENT VALUE.ARRAY (VALUE*)>
 
-def parse_value_array(parser, event, node): # pylint: disable=invalid-name
+def parse_value_array(parser, event, node): #pylint: disable=unused-argument
+     # pylint: disable=invalid-name
     """ Parse CIM/XML VALUE.ARRAY element and return the value array"""
 
     value_array = []
@@ -180,15 +181,17 @@ def parse_value_array(parser, event, node): # pylint: disable=invalid-name
 #                            INSTANCEPATH | LOCALINSTANCEPATH |
 #                            INSTANCENAME)>
 
-def parse_value_reference(parser, event, node):
+def parse_value_reference(parser, event, node): #pylint: disable=unused-argument
+
     """Parse CIM/XML VALUE.REFERENCE element and call function
        for the child ELEMENT. Return the result of that element
        parser call.
     """
 
     (next_event, next_node) = parser.next()
-    
-    TODO: 2/16:ks : functions parse_classpath, parse_localclasspath, parseclassname do not exist.
+
+    #TODO:2/16:ks: Some functions below do not exist: i.e. class stuff broken.
+    #TODO: parse_classpath, parse_localclasspath, parseclassname.
 
     if _is_start(next_event, next_node, 'CLASSPATH'):
         result = parse_classpath(parser, next_event, next_node)
@@ -232,7 +235,8 @@ def parse_value_reference(parser, event, node):
 
 # <!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)>
 
-def parse_namespacepath(parser, event, node):
+def parse_namespacepath(parser, event, node): #pylint: disable=unused-argument
+
 
     (next_event, next_node) = parser.next()
 
@@ -258,6 +262,7 @@ def parse_namespacepath(parser, event, node):
 # <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
 
 def parse_localnamespacepath(parser, event, node):
+     #pylint: disable=unused-argument
 
     (next_event, next_node) = parser.next()
 
@@ -286,6 +291,7 @@ def parse_localnamespacepath(parser, event, node):
 # <!ELEMENT HOST (#PCDATA)>
 
 def parse_host(parser, event, node):
+     #pylint: disable=unused-argument
 
     host = ''
 
@@ -308,7 +314,10 @@ def parse_host(parser, event, node):
 # >
 
 def parse_namespace(parser, event, node):
-
+     #pylint: disable=unused-argument
+    """Parse the CIM/XML NAMESPACE element and return the value
+       of the CIMName attribute
+    """
     name = _get_required_attribute(node, 'NAME')
 
     (next_event, next_node) = parser.next()
@@ -330,6 +339,13 @@ def parse_namespace(parser, event, node):
 # <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
 
 def parse_instancepath(parser, event, node):
+     #pylint: disable=unused-argument
+    """Parse the CIM/XML INSTANCEPATH element and return an
+       instancname
+
+       <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
+
+    """
 
     (next_event, next_node) = parser.next()
 
@@ -354,6 +370,7 @@ def parse_instancepath(parser, event, node):
 # <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
 
 def parse_localinstancepath(parser, event, node):
+     #pylint: disable=unused-argument
 
     (next_event, next_node) = parser.next()
 
@@ -378,7 +395,7 @@ def parse_localinstancepath(parser, event, node):
 #       %ClassName;
 # >
 
-def parse_instancename(parser, event, node):
+def parse_instancename(parser, event, node): #pylint: disable=unused-argument
 
     classname = _get_required_attribute(node, 'CLASSNAME')
     keybindings = []
@@ -425,7 +442,7 @@ def parse_instancename(parser, event, node):
 #       %CIMName;
 # >
 
-def parse_keybinding(parser, event, node):
+def parse_keybinding(parser, event, node): #pylint: disable=unused-argument
     """Parse CIM/XML KEYBINDING element and return name, value tuple"""
 
     name = _get_required_attribute(node, 'NAME')
@@ -454,15 +471,15 @@ def parse_keybinding(parser, event, node):
 #       %CIMType;              #IMPLIED
 # >
 
-def parse_keyvalue(parser, event, node):
+def parse_keyvalue(parser, event, node): #pylint: disable=unused-argument
     """Parse CIM/CML KEYVALUE element and return key value based on
        VALUETYPE  or TYPE (future) information
     """
 
     valuetype = _get_required_attribute(node, 'VALUETYPE')
-    # TODO: feb 2015: ks : Why is type attribute not used? why get
-    # if not used? Think this should be used if exists.
-    type = _get_attribute(node, 'TYPE')
+    # TODO:2/16:ks: Why is type attribute not used? Why get
+    # if not used? This was late extension to allow real types.
+    cim_type = _get_attribute(node, 'TYPE')
 
     (next_event, next_node) = parser.next()
 
@@ -501,6 +518,7 @@ def parse_keyvalue(parser, event, node):
             # trouble when it's written back out as '2L'
             # pylint: disable redefined-variable-type
             # Redefined from bool to int
+            # pylint: disable=redefined-variable-type
             value = int(value.strip(), 0)
 
         except ValueError:
@@ -532,7 +550,7 @@ def parse_keyvalue(parser, event, node):
 #       xml:lang   NMTOKEN      #IMPLIED
 # >
 
-def parse_instance(parser, event, node):
+def parse_instance(parser, event, node): #pylint: disable=unused-argument
     """Parse CIM/XML INSTANCE Element and return CIMInstance"""
 
     classname = _get_required_attribute(node, 'CLASSNAME')
@@ -600,18 +618,18 @@ def parse_instance(parser, event, node):
 #       xml:lang   NMTOKEN     #IMPLIED
 # >
 
-def parse_qualifier(parser, event, node):
+def parse_qualifier(parser, event, node): #pylint: disable=unused-argument
     """Parse CIM/XML QUALIFIER element and return CIMQualifier"""
 
     name = _get_required_attribute(node, 'NAME')
-    type = _get_required_attribute(node, 'TYPE')
+    cim_type = _get_required_attribute(node, 'TYPE')
     # TODO: Feb 2016: ks : Why is propagated not used?
     propagated = _get_attribute(node, 'PROPAGATED')
 
     (next_event, next_node) = parser.next()
 
     if _is_end(next_event, next_node, 'QUALIFIER'):
-        return CIMQualifier(name, None, type=type)
+        return CIMQualifier(name, None, type=cim_type)
 
     if _is_start(next_event, next_node, 'VALUE'):
         value = parse_value(parser, next_event, next_node)
@@ -622,7 +640,7 @@ def parse_qualifier(parser, event, node):
     else:
         raise ParseError('Expecting (VALUE | VALUE.ARRAY)')
 
-    result = CIMQualifier(name, cim_obj.tocimobj(type, value))
+    result = CIMQualifier(name, cim_obj.tocimobj(cim_type, value))
 
     _get_end_event(parser, 'QUALIFIER')
 
@@ -637,11 +655,11 @@ def parse_qualifier(parser, event, node):
 #       xml:lang   NMTOKEN     #IMPLIED
 # >
 
-def parse_property(parser, event, node):
+def parse_property(parser, event, node): #pylint: disable=unused-argument
     """Parse CIM/XML PROPERTY Element and return CIMProperty"""
 
     name = _get_required_attribute(node, 'NAME')
-    type = _get_required_attribute(node, 'TYPE')
+    cim_type = _get_required_attribute(node, 'TYPE')
 
     class_origin = _get_attribute(node, 'CLASSORIGIN')
     propagated = _get_attribute(node, 'PROPAGATED')
@@ -679,7 +697,7 @@ def parse_property(parser, event, node):
     return CIMProperty(
         name,
         cim_obj.tocimobj(type, value),
-        type=type,
+        type=cim_type,
         class_origin=class_origin,
         propagated=propagated,
         qualifiers=dict([(x.name, x) for x in qualifiers]))
@@ -694,12 +712,13 @@ def parse_property(parser, event, node):
 #       xml:lang   NMTOKEN     #IMPLIED
 # >
 
-def parse_property_array(parser, event, node):
+def parse_property_array(parser, event, node): #pylint: disable=unused-argument
     """Parse CIM/XML PROPERTY.ARRAY element and return CIMProperty"""
 
     name = _get_required_attribute(node, 'NAME')
-    type = _get_required_attribute(node, 'TYPE')
+    cim_type = _get_required_attribute(node, 'TYPE')
 
+    #TODO: 2/16:ks: array_size here is unused
     array_size = _get_attribute(node, 'ARRAYSIZE')
     class_origin = _get_attribute(node, 'CLASSORIGIN')
     propagated = _get_attribute(node, 'PROPAGATED')
@@ -738,7 +757,7 @@ def parse_property_array(parser, event, node):
     return CIMProperty(
         name,
         cim_obj.tocimobj(type, value),
-        type=type,
+        type=cim_type,
         class_origin=class_origin,
         propagated=propagated,
         is_array=True,
@@ -752,7 +771,7 @@ def parse_property_array(parser, event, node):
 #       %Propagated;
 # >
 
-def parse_property_reference(parser, event, node):
+def parse_property_reference(parser, event, node): #pylint: disable=unused-argument
     """Parse CIM/XML PROPERTY.REFERENCE ELEMENT and return
        CIMProperty
     """

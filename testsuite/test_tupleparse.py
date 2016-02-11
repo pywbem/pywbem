@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 #
-# Test XML parsing routines.
-#
-# These tests check that we don't lose any information by converting
-# an object to XML then parsing it again.  The round trip should
-# produce an object that is identical to the one we started with.
-#
 
+"""
+Test XML parsing routines.
+
+These tests check that we don't lose any information by converting
+an object to XML then parsing it again.  The round trip should
+produce an object that is identical to the one we started with.
+"""
 import unittest
 import pytest
 
@@ -55,8 +56,8 @@ class ParseCIMInstanceName(TupleTest):
         self._run_single(CIMInstanceName('CIM_Foo'))
 
         self._run_single(CIMInstanceName('CIM_Foo',
-                                  {'Name': 'Foo',
-                                   'Chicken': 'Ham'}))
+                                         {'Name': 'Foo',
+                                          'Chicken': 'Ham'}))
 
         self._run_single(
             CIMInstanceName('CIM_Foo', {'Name': 'Foo',
@@ -94,6 +95,7 @@ class ParseCIMInstance(TupleTest):
                         path=CIMInstanceName('CIM_Foo',
                                              {'InstanceID': '1234'})))
 
+# TODO: 2/8/16: ks: Create test for more complete class
 class ParseCIMClass(TupleTest):
     """Test parsing of CIMClass objects."""
 
@@ -150,6 +152,7 @@ class ParseCIMClass(TupleTest):
                        }
             ))
 
+# TODO extend to all property data types
 class ParseCIMProperty(TupleTest):
     """Test parsing of CIMProperty objects."""
 
@@ -162,21 +165,24 @@ class ParseCIMProperty(TupleTest):
         self._run_single(CIMProperty('Foo', '', type='string'))
         self._run_single(CIMProperty('Foo', None, type='string'))
         self._run_single(CIMProperty('Age', None, type='uint16',
-                              qualifiers={'Key': CIMQualifier('Key', True)}))
+                                     qualifiers={'Key': CIMQualifier('Key',
+                                                                     True)}))
 
         # Property arrays
 
         self._run_single(CIMProperty('Foo', ['a', 'b', 'c']))
         self._run_single(CIMProperty('Foo', None, type='string', is_array=True))
         self._run_single(CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]],
-                              qualifiers={'Key': CIMQualifier('Key', True)}))
+                                     qualifiers={'Key': CIMQualifier('Key',
+                                                                     True)}))
 
         # Reference properties
 
         self._run_single(CIMProperty('Foo', None, type='reference'))
         self._run_single(CIMProperty('Foo', CIMInstanceName('CIM_Foo')))
         self._run_single(CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
-                              qualifiers={'Key': CIMQualifier('Key', True)}))
+                                     qualifiers={'Key': CIMQualifier('Key',
+                                                                     True)}))
 
         # EmbeddedObject properties
 
@@ -185,7 +191,7 @@ class ParseCIMProperty(TupleTest):
         self._run_single(CIMProperty('Foo', inst))
         self._run_single(CIMProperty('Foo', [inst]))
 
-
+# TODO: Feb/16: ks: Extend for all data types
 class ParseCIMParameter(TupleTest):
     """Test parsing of CIMParameter objects."""
 
@@ -196,45 +202,53 @@ class ParseCIMParameter(TupleTest):
         self._run_single(CIMParameter('Param', 'string'))
 
         self._run_single(CIMParameter('Param', 'string',
-                               qualifiers={'Key': CIMQualifier('Key', True)}))
+                                      qualifiers={'Key': CIMQualifier('Key',
+                                                                      True)}))
 
         # Reference parameters
 
         self._run_single(CIMParameter('RefParam', 'reference'))
 
         self._run_single(CIMParameter('RefParam', 'reference',
-                               reference_class='CIM_Foo'))
+                                      reference_class='CIM_Foo'))
 
         self._run_single(CIMParameter('RefParam', 'reference',
-                               reference_class='CIM_Foo',
-                               qualifiers={'Key': CIMQualifier('Key', True)}))
+                                      reference_class='CIM_Foo',
+                                      qualifiers={'Key': CIMQualifier('Key',
+                                                                      True)}))
 
         # Array parameters
 
         self._run_single(CIMParameter('Array', 'string', is_array=True))
 
         self._run_single(CIMParameter('Array', 'string', is_array=True,
-                               array_size=10))
+                                      array_size=10))
 
         self._run_single(CIMParameter('Array', 'string', is_array=True,
-                               array_size=10,
-                               qualifiers={'Key': CIMQualifier('Key', True)}))
+                                      array_size=10,
+                                      qualifiers={'Key': CIMQualifier('Key',
+                                                                      True)}))
 
         # Reference array parameters
 
-        self._run_single(CIMParameter('RefArray', 'reference', is_array=True))
+        self._run_single(CIMParameter('RefArray', 'reference',
+                                      is_array=True))
 
-        self._run_single(CIMParameter('RefArray', 'reference', is_array=True,
-                               reference_class='CIM_Foo'))
+        self._run_single(CIMParameter('RefArray', 'reference',
+                                      is_array=True,
+                                      reference_class='CIM_Foo'))
 
-        self._run_single(CIMParameter('RefArray', 'reference', is_array=True,
-                               reference_class='CIM_Foo',
-                               array_size=10))
+        self._run_single(CIMParameter('RefArray', 'reference',
+                                      is_array=True,
+                                      reference_class='CIM_Foo',
+                                      array_size=10))
 
-        self._run_single(CIMParameter('RefArray', 'reference', is_array=True,
-                               reference_class='CIM_Foo',
-                               array_size=10,
-                               qualifiers={'Key': CIMQualifier('Key', True)}))
+        self._run_single(CIMParameter('RefArray', 'reference',
+                                      is_array=True,
+                                      reference_class='CIM_Foo',
+                                      array_size=10,
+                                      qualifiers={'Key': CIMQualifier('Key',
+                                                                      True)}))
 
 
 class ParseXMLKeyValue(RawXMLTest):

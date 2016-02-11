@@ -674,7 +674,8 @@ class WBEMConnection(object):
             raise CIMError(code, 'Error code %s' % tup_tree[1]['CODE'])
 
         if tup_tree[0] != 'IRETURNVALUE':
-            raise ParseError('Expecting IRETURNVALUE element, got %s' % tup_tree[0])
+            raise ParseError('Expecting IRETURNVALUE element, got %s' \
+                             % tup_tree[0])
 
         return tup_tree
 

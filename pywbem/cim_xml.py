@@ -20,8 +20,8 @@
 # Author: Bart Whiteley <bwhiteley@suse.de>
 #
 
-# TODO: Sort this issue out and see if we need to fix KS_TODO. These
-# two issues are found repeatedly in this file.
+# TODO:2/16:ks: Sort this issue out and see if we need to fix.
+# These two issues are found repeatedly in this file so pylint disabled.
 # pylint: disable=non-parent-init-called,super-init-not-called
 """
 
@@ -175,8 +175,9 @@ def _pcdata_nodes(pcdata):
             nodelist.append(node)
 
     else:
-
-        # The following automatically uses XML entity references for escaping.
+        # The following automatically uses XML entity references
+        # for escaping.
+        # pylint: disable=redefined-variable-type
         node = _text(pcdata)
 
         nodelist.append(node)
