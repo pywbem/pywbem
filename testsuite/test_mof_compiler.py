@@ -40,7 +40,7 @@ def setUpModule():
 
         tfo = TemporaryFile()
         ufo = urlopen(mofurl)
-        clen = int(ufo.info().getheader('Content-Length'))
+        clen = int(ufo.info().get('Content-Length'))
         offset = 0
         ppct = -1
         for data in ufo:
@@ -56,7 +56,7 @@ def setUpModule():
 
         zf = ZipFile(tfo, 'r')
         nlist = zf.namelist()
-        for i in xrange(0, len(nlist)):
+        for i in range(0, len(nlist)):
             sys.stdout.write('\rUnpacking %s: %d%% ' % (mofbname,
                                                         100*(i+1)/len(nlist)))
             sys.stdout.flush()
@@ -66,7 +66,7 @@ def setUpModule():
                 if not os.path.exists(dfile):
                     os.mkdir(dfile)
             else:
-                fo = open(dfile, 'w')
+                fo = open(dfile, 'w+b')
                 fo.write(zf.read(file_))
                 fo.close()
         tfo.close()
