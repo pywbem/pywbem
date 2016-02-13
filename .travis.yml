@@ -16,9 +16,9 @@ install:
   - pip uninstall -y pbr
   - make clean
 # commands to run tests
+# Note: 'make check' works only for Python 2.
+# Note: 'make builddoc' works only for Python 2.
 script:
   - make develop
   - pip list
-  - make check
-  - make builddoc
   - make test
