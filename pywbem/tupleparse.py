@@ -446,6 +446,9 @@ def parse_value_namedobject(tup_tree):
         _object = parse_class(k[0])
     elif len(k) == 2:
         path = parse_instancename(kids(tup_tree)[0])
+
+        # pylint: disable=redefined-variable-type
+        # redefines _object from pywbem.cim_obj.CIMClass to ...CIMInstance
         _object = parse_instance(kids(tup_tree)[1])
 
         _object.path = path
@@ -455,7 +458,7 @@ def parse_value_namedobject(tup_tree):
 
     return (name(tup_tree), attrs(tup_tree), _object)
 
-#pylint: disable=invalid-function-name
+# pylint: disable=invalid-name
 def parse_value_objectwithlocalpath(tup_tree):
     """
     <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH, CLASS) |
@@ -473,6 +476,8 @@ def parse_value_objectwithlocalpath(tup_tree):
                    parse_class(kids(tup_tree)[1]))
     else:
         path = parse_localinstancepath(kids(tup_tree)[0])
+        # pylint: disable=redefined-variable-type
+        # redefines _object from tuple to CIMInstance
         _object = parse_instance(kids(tup_tree)[1])
         _object.path = path
 
@@ -492,10 +497,11 @@ def parse_value_objectwithpath(tup_tree):
         raise ParseError('Expecting two elements, got %s' % k)
 
     if name(k[0]) == 'CLASSPATH':
-        _object = (parse_classpath(k[0]),
-                   parse_class(k[1]))
+        _object = (parse_classpath(k[0]), parse_class(k[1]))
     else:
         path = parse_instancepath(k[0])
+        # pylint: disable=redefined-variable-type
+        # redefines _object from tuple to CIMInstance
         _object = parse_instance(k[1])
         _object.path = path
 
@@ -595,7 +601,7 @@ def parse_localclasspath(tup_tree):
 
 def parse_classname(tup_tree):
     """Parse a CLASSNAME element and return a CIMClassName.
-    
+
            <!ELEMENT CLASSNAME EMPTY>
            <!ATTLIST CLASSNAME
                %CIMName;>
@@ -606,7 +612,7 @@ def parse_classname(tup_tree):
 
 def parse_instancepath(tup_tree):
     """Parse a INSTANCEPATH element returning the instance name.
-    
+
           <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
     """
 
@@ -626,7 +632,7 @@ def parse_instancepath(tup_tree):
 
 def parse_localinstancepath(tup_tree):
     """Parse a LOCALINSTANCEPATH element:
-    
+
            <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
     """
 
@@ -1502,7 +1508,7 @@ def parse_any(tup_tree):
     """Parse a fragment of XML. This function drives the rest of
        the parser by calling 'parse_*' functions based on the name
        of the element being parsed.
-       
+
        It builds parser function name from incoming name in tup_tree
        prepended with 'parse_' and calls that function.
 
@@ -1541,7 +1547,8 @@ def parse_embeddedObject(val): # pylint: disable=invalid-name
 
 
 def unpack_value(tup_tree):
-    """Find VALUE or VALUE.ARRAY under TT and convert to a Python value.
+    """Find VALUE or VALUE.ARRAY under tup_tree and convert to a
+    Python value.
 
     Looks at the TYPE of the node to work out how to decode it.
     Handles nodes with no value (e.g. in CLASS.)

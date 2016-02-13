@@ -106,8 +106,8 @@ def tc_hasattr(dict_, key):
     return key in dict_
 
 class Callback(object):
-    """A class with static methods that are HTTPretty callback functions for
-    raising expected exceptions at the socket level."""
+    """A class with static methods that are HTTPretty callback functions
+    for raising expected exceptions at the socket level."""
 
     @staticmethod
     def socket_ssl(request, uri, headers):
@@ -189,7 +189,7 @@ class ClientTest(unittest.TestCase):
         """
 
         print "" # We are in the middle of test runner output
-        
+
         # We need to work with absolute file paths, because this test may be
         # run from a different directory.
         for basefn in os.listdir(TESTCASE_DIR):
@@ -300,15 +300,15 @@ class ClientTest(unittest.TestCase):
             http_request = httpretty.last_request()
             exp_verb = tc_getattr(tc_name, exp_http_request, "verb")
             self.assertEqual(http_request.method, exp_verb,
-                              "verb in HTTP request")
+                             "verb in HTTP request")
             exp_headers = tc_getattr(tc_name, exp_http_request, "headers", {})
             for header_name in exp_headers:
                 self.assertEqual(http_request.headers[header_name],
-                                  exp_headers[header_name],
-                                  "headers in HTTP request")
+                                 exp_headers[header_name],
+                                 "headers in HTTP request")
             exp_data = tc_getattr(tc_name, exp_http_request, "data", None)
             self.assertXMLEqual(http_request.body, exp_data,
-                                  "data in HTTP request")
+                                "data in HTTP request")
 
         # Validate PyWBEM result
 
@@ -335,14 +335,14 @@ class ClientTest(unittest.TestCase):
                                      "but no exception was actually raised." %\
                                      exp_exception)
             self.assertEqual(raised_exception.__class__.__name__,
-                              exp_exception, "expected PyWBEM exception name")
+                             exp_exception, "expected PyWBEM exception name")
         elif exp_cim_status != 0:
             if raised_exception is None:
                 raise AssertionError("CIMError exception was expected to be "\
                                      "raised, but no exception was actually "
                                      "raised.")
             self.assertEqual(raised_exception.__class__.__name__, "CIMError",
-                              "expected PyWBEM exception name")
+                             "expected PyWBEM exception name")
         else:
             if raised_exception is not None:
                 raise AssertionError("No exception was expected to be raised, "\

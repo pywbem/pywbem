@@ -670,10 +670,12 @@ class CIMClassName(object):
 # pylint: disable=too-many-statements,too-many-instance-attributes
 class CIMProperty(object):
     """
-    A CIM property.
+    Defines a CIM property including cim type, value, and possibly
+    qualifiers.
 
-    The property can be used in a CIM instance (as part of a `CIMInstance`
-    object) or in a CIM class (as part of a `CIMClass` object).
+    The property can be used in a CIM instance (as part of a
+    `CIMInstance` object) or in a CIM class (as part of a
+    `CIMClass` object).
 
     For properties in CIM instances:
 
@@ -1276,12 +1278,15 @@ class CIMInstanceName(object):
         self.keybindings[key] = value
 
     def __len__(self):
+        """Return number of keybindings"""
         return len(self.keybindings)
 
     def has_key(self, key):
+        """Return boolean. True if `key` is in keybindings"""
         return self.keybindings.has_key(key)
 
     def keys(self):
+        """Return list of keys in keybindings"""
         return self.keybindings.keys()
 
     def values(self):
@@ -1304,8 +1309,8 @@ class CIMInstanceName(object):
 
     def get(self, key, default=None):
         """
-        Get the value of a specific key property, or the specified default
-        value if a key binding with that name does not exist.
+        Get the value of a specific key property, or the specified
+        default value if a key binding with that name does not exist.
         """
         return self.keybindings.get(key, default)
 
@@ -1370,7 +1375,8 @@ class CIMInstanceName(object):
                     value = str(key_bind[1])
                 elif isinstance(key_bind[1], basestring):
                     _type = 'string'
-                    value = key_bind[1].decode('utf-8') if isinstance(key_bind[1], str) \
+                    value = key_bind[1].decode('utf-8') \
+                                if isinstance(key_bind[1], str) \
                                                   else key_bind[1]
                 else:
                     raise TypeError('Invalid keybinding type for keybinding '\
@@ -1691,7 +1697,7 @@ class CIMInstance(object):
             """ Return a string representing the MOF definition of
                 a single property defined by the type and value
                 arguments.
-                :param: type_  TODO
+                :param type_:  CIMType of the property
                 :param value: value corresponsing to this type
             """
             if value is None:
@@ -1711,7 +1717,9 @@ class CIMInstance(object):
 
         ret_str = 'instance of %s {\n' % self.classname
         for prop in self.properties.values():
-            ret_str += '\t%s = %s;\n' % (prop.name, _prop2mof(prop.type, prop.value))
+            ret_str += '\t%s = %s;\n' % (prop.name,
+                                         _prop2mof(prop.type,
+                                                   prop.value))
         ret_str += '};\n'
 
         return ret_str
@@ -1719,7 +1727,8 @@ class CIMInstance(object):
 
 class CIMClass(object):
     """
-    A CIM class.
+    Create an instance of CIMClass, a CIM class with classname,
+    properties, methods, qualifiers, and superclass name.
 
     :Ivariables:
 
@@ -1733,9 +1742,9 @@ class CIMClass(object):
         """
         Initialize the `CIMClass` object.
 
-        Initialize instance variables containing the arguments provided for
-        the CIMClass including classname, properties, class qualifiers,
-        methods, and the superclass
+        Initialize instance variables containing the arguments provided
+        for the CIMClass including classname, properties, class
+        qualifiers, methods, and the superclass
         """
         self.classname = classname
         self.properties = NocaseDict(properties)
@@ -1789,7 +1798,7 @@ class CIMClass(object):
             superclass=self.superclass)
 
     def tomof(self):
-        """ Return string with MOF of the CIMClass"""
+        """ Return string with MOF representation of the CIMClass"""
 
         # Class definition
 
@@ -2145,6 +2154,8 @@ class CIMQualifier(object):
         if isinstance(self.value, list):
             value = cim_xml.VALUE_ARRAY([cim_xml.VALUE(v) for v in self.value])
         elif self.value is not None:
+            # pylint: disable=redefined-variable-type
+            # used as VALUE.ARRAY and the as VALUE
             value = cim_xml.VALUE(self.value)
 
         return cim_xml.QUALIFIER(self.name,
@@ -2415,9 +2426,10 @@ def tocimobj(type_, value):
     def partition(str_arg, seq):
         """ partition(str_arg, sep) -> (head, sep, tail)
 
-        Searches for the separator sep in str_arg, and returns the part before it,
-        the separator itself, and the part after it.  If the separator is not
-        found, returns str_arg and two empty strings.
+        Searches for the separator sep in str_arg, and returns the,
+        part before it the separator itself, and the part after it.
+        If the separator is not found, returns str_arg and two empty
+        strings.
         """
         try:
             return str_arg.partition(seq)

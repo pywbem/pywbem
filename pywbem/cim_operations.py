@@ -34,8 +34,8 @@ operation.
 import string
 import re
 from types import StringTypes
-from xml.dom import minidom
 from datetime import datetime, timedelta
+from xml.dom import minidom
 from xml.parsers.expat import ExpatError
 
 from pywbem import cim_obj, cim_xml, cim_http, cim_types, tupletree, tupleparse
@@ -605,8 +605,8 @@ class WBEMConnection(object):
             msg = str(exc)
             parsing_error = True
         except ExpatError as exc:
-            # This is raised e.g. when XML numeric entity references of invalid
-            # XML characters are used (e.g. '&#0;').
+            # This is raised e.g. when XML numeric entity references of
+            # invalid XML characters are used (e.g. '&#0;').
             # str(exc) is: "{message}, line {X}, offset {Y}"
             parsed_line = str(reply_xml).splitlines()[exc.lineno-1]
             msg = "ExpatError %s: %s: %r" % (str(exc.code), str(exc),
@@ -637,47 +637,49 @@ class WBEMConnection(object):
 
         # Parse response
 
-        tt = tupleparse.parse_cim(tupletree.dom_to_tupletree(reply_dom))
+        tup_tree = tupleparse.parse_cim(tupletree.dom_to_tupletree(reply_dom))
 
-        if tt[0] != 'CIM':
-            raise ParseError('Expecting CIM element, got %s' % tt[0])
-        tt = tt[2]
+        if tup_tree[0] != 'CIM':
+            raise ParseError('Expecting CIM element, got %s' % tup_tree[0])
+        tup_tree = tup_tree[2]
 
-        if tt[0] != 'MESSAGE':
-            raise ParseError('Expecting MESSAGE element, got %s' % tt[0])
-        tt = tt[2]
+        if tup_tree[0] != 'MESSAGE':
+            raise ParseError('Expecting MESSAGE element, got %s' % tup_tree[0])
+        tup_tree = tup_tree[2]
 
-        if len(tt) != 1 or tt[0][0] != 'SIMPLERSP':
+        if len(tup_tree) != 1 or tup_tree[0][0] != 'SIMPLERSP':
             raise ParseError('Expecting one SIMPLERSP element')
-        tt = tt[0][2]
+        tup_tree = tup_tree[0][2]
 
-        if tt[0] != 'IMETHODRESPONSE':
+        if tup_tree[0] != 'IMETHODRESPONSE':
             raise ParseError('Expecting IMETHODRESPONSE element, got %s' %\
-                             tt[0])
+                             tup_tree[0])
 
-        if tt[1]['NAME'] != methodname:
+        if tup_tree[1]['NAME'] != methodname:
             raise ParseError('Expecting attribute NAME=%s, got %s' %\
-                             (methodname, tt[1]['NAME']))
-        tt = tt[2]
+                             (methodname, tup_tree[1]['NAME']))
+        tup_tree = tup_tree[2]
 
         # At this point we either have a IRETURNVALUE, ERROR element
         # or None if there was no child nodes of the IMETHODRESPONSE
         # element.
 
-        if tt is None:
+        if tup_tree is None:
             return None
 
-        if tt[0] == 'ERROR':
-            code = int(tt[1]['CODE'])
-            if tt[1].has_key('DESCRIPTION'):
-                raise CIMError(code, tt[1]['DESCRIPTION'])
-            raise CIMError(code, 'Error code %s' % tt[1]['CODE'])
+        if tup_tree[0] == 'ERROR':
+            code = int(tup_tree[1]['CODE'])
+            if tup_tree[1].has_key('DESCRIPTION'):
+                raise CIMError(code, tup_tree[1]['DESCRIPTION'])
+            raise CIMError(code, 'Error code %s' % tup_tree[1]['CODE'])
 
-        if tt[0] != 'IRETURNVALUE':
-            raise ParseError('Expecting IRETURNVALUE element, got %s' % tt[0])
+        if tup_tree[0] != 'IRETURNVALUE':
+            raise ParseError('Expecting IRETURNVALUE element, got %s' \
+                             % tup_tree[0])
 
-        return tt
+        return tup_tree
 
+    # pylint: disable=invalid-name
     def methodcall(self, methodname, localobject, Params=None, **params):
         """
         Perform an extrinsic method call (= CIM method invocation).
@@ -741,8 +743,12 @@ class WBEMConnection(object):
             if isinstance(obj, (cim_types.CIMType, bool, StringTypes)):
                 return cim_xml.VALUE(cim_types.atomic_to_cim_xml(obj))
             if isinstance(obj, (CIMClassName, CIMInstanceName)):
+                # Note: Because CIMDateTime is an obj but tested above
+                # pylint: disable=no-member
                 return cim_xml.VALUE_REFERENCE(obj.tocimxml())
             if isinstance(obj, (CIMClass, CIMInstance)):
+                # Note: Because CIMDateTime is an obj but tested above
+                # pylint: disable=no-member
                 return cim_xml.VALUE(obj.tocimxml().toxml())
             if isinstance(obj, list):
                 if obj and isinstance(obj[0], (CIMClassName, CIMInstanceName)):
@@ -1332,7 +1338,7 @@ class WBEMConnection(object):
     # Schema management API
     #
 
-    def _map_classname_param(self, params):
+    def _map_classname_param(self, params): # pylint: disable=no-self-use
         """Convert string ClassName parameter to a CIMClassName."""
 
         if params.has_key('ClassName') and \
@@ -1673,7 +1679,7 @@ class WBEMConnection(object):
     # Association provider API
     #
 
-    def _add_objectname_param(self, params, object_):
+    def _add_objectname_param(self, params, object_): # pylint: disable=no-self-use
         """Add an object name (either a class name or an instance
         name) to a dictionary of parameter names."""
 
@@ -1688,7 +1694,7 @@ class WBEMConnection(object):
 
         return params
 
-    def _map_association_params(self, params):
+    def _map_association_params(self, params): # pylint: disable=no-self-use
         """Convert various convenience parameters and types into their
         correct form for passing to the imethodcall() function."""
 
@@ -2192,11 +2198,32 @@ class WBEMConnection(object):
     def EnumerateQualifiers(self, namespace=None, **params):
         # pylint: disable=invalid-name
         """
-        Enumerate qualifier types.
+        Enumerate qualifier declarations for a namespace.
 
-        Returns a list of `CIMQualifier` objects.
+        This method performs the GetQualifier CIM-XML operation.
+        If the operation succeeds, this method returns.
+        Otherwise, this method raises an exception.
+        Returns a `CIMQualifier` object.
 
-        TODO Complete this description.
+        TODO This method is UNSUPPORTED right now. Test and verify description.
+
+        :Parameters:
+
+          Qualifier : string
+              Name of the qualifier to be invoked deleted.
+
+          namespace : string
+              Optional: Name of the namespace in which the class is to be
+              created. The value `None` causes the default namespace of the
+              connection to be used.
+
+        :Returns:
+
+            A list of`CIMQualifierDeclaration` object that is a
+            representation of the retrieved qualifier declarations.
+        :Exceptions:
+
+            See the list of exceptions described in `WBEMConnection`.
         """
 
         if namespace is None:
@@ -2207,23 +2234,43 @@ class WBEMConnection(object):
             namespace,
             **params)
 
-        qualifiers = []
 
         if result is not None:
-            names = result[2]
+            qualifiers = result[2]
         else:
-            names = []
+            qualifiers = []
 
-        return names
+        return qualifiers
 
     def GetQualifier(self, QualifierName, namespace=None, **params):
         # pylint: disable=invalid-name
         """
-        Retrieve a qualifier type.
+        Retrieve a qualifier declaration.
 
+        This method performs the GetQualifier CIM-XML operation.
+        If the operation succeeds, this method returns.
+        Otherwise, this method raises an exception.
         Returns a `CIMQualifier` object.
 
-        TODO Complete this description.
+        TODO This method is UNSUPPORTED right now. Test and verify description.
+
+        :Parameters:
+
+          Qualifier : string
+              Name of the qualifier to be invoked deleted.
+
+          namespace : string
+              Optional: Name of the namespace in which the class is to be
+              created. The value `None` causes the default namespace of the
+              connection to be used.
+
+        :Returns:
+
+            A `CIMQualifierDeclaration` object that is a representation
+            of the retrieved qualifier declaration.
+        :Exceptions:
+
+            See the list of exceptions described in `WBEMConnection`.
         """
 
         if namespace is None:
@@ -2243,14 +2290,33 @@ class WBEMConnection(object):
     def SetQualifier(self, QualifierDeclaration, namespace=None, **params):
         # pylint: disable=invalid-name
         """
-        Create or modify a qualifier type.
+        Create or modify a qualifier declaration.
 
-        TODO Complete this description.
+        This method performs the SetQualifier CIM-XML operation.
+        If the operation succeeds, this method returns.
+        Otherwise, this method raises an exception.
+
+        TODO This method is UNSUPPORTED right now. Test and verify description.
+
+        :Parameters:
+
+          QualifierDeclaration : CIMQualifierDeclaration object
+              Definition of the qualifier to be created or modified.
+
+          namespace : string
+              Optional: Name of the namespace in which the class is to be
+              created. The value `None` causes the default namespace of the
+              connection to be used.
+
+        :Exceptions:
+
+            See the list of exceptions described in `WBEMConnection`.
         """
 
         if namespace is None:
             namespace = self.default_namespace
 
+        #pylint: disable=unused-variable
         result = self.imethodcall(
             'SetQualifier',
             namespace,
@@ -2260,33 +2326,51 @@ class WBEMConnection(object):
     def DeleteQualifier(self, QualifierName, namespace=None, **params):
         # pylint: disable=invalid-name
         """
-        Delete a qualifier type.
+        Delete a qualifier declaration.
 
-        TODO Complete this description.
+        This method performs the DeleteQualifier CIM-XML operation.
+        If the operation succeeds, this method returns.
+        Otherwise, this method raises an exception.
+
+        TODO This method is UNSUPPORTED right now. Test and verify description.
+
+        :Parameters:
+
+          Qualifier : string
+              Name of the qualifier to be deleted.
+
+          namespace : string
+              Optional: Name of the namespace in which the class is to be
+              created. The value `None` causes the default namespace of the
+              connection to be used.
+
+        :Exceptions:
+
+            See the list of exceptions described in `WBEMConnection`.
         """
 
         if namespace is None:
             namespace = self.default_namespace
 
-        result = self.imethodcall(
+        unused_result = self.imethodcall(
             'DeleteQualifier',
             namespace,
             QualifierName=QualifierName,
             **params)
 
-def is_subclass(ch, ns, super, sub):
-    """Determine if one class is a subclass of another
+def is_subclass(ch, ns, super_class, sub):
+    """Determine if one class is a subclass of another class.
 
     Keyword Arguments:
     ch -- A CIMOMHandle.  Either a pycimmb.CIMOMHandle or a
         pywbem.WBEMConnection.
     ns -- Namespace.
-    super -- A string containing the super class name.
+    super-class -- A string containing the super class name.
     sub -- The subclass.  This can either be a string or a pywbem.CIMClass.
 
     """
 
-    lsuper = super.lower()
+    lsuper = super_class.lower()
     if isinstance(sub, CIMClass):
         subname = sub.classname
         subclass = sub
@@ -2314,14 +2398,27 @@ def is_subclass(ch, ns, super, sub):
     return False
 
 def PegasusUDSConnection(creds=None, **kwargs):
+    """ Pegasus specific Unix Domain Socket call. Specific because
+        of the location of the file name
+    """
+
     # pylint: disable=invalid-name
-    return WBEMConnection('/var/run/tog-pegasus/cimxml.socket', creds, **kwargs)
+    return WBEMConnection('/var/run/tog-pegasus/cimxml.socket', creds,
+                          **kwargs)
 
 def SFCBUDSConnection(creds=None, **kwargs):
+    """ SFCB specific Unix Domain Socket call. Specific because
+        of the location of the file name
+    """
+
     # pylint: disable=invalid-name
     return WBEMConnection('/tmp/sfcbHttpSocket', creds, **kwargs)
 
 def OpenWBEMUDSConnection(creds=None, **kwargs):
+    """ Pegasus specific Unix Domain Socket call. Specific because
+        of the location of the file name
+    """
+
     # pylint: disable=invalid-name
     return WBEMConnection('/tmp/OW@LCL@APIIPC_72859_Xq47Bf_P9r761-5_J-7_Q',
                           creds, **kwargs)
