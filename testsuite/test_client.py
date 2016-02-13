@@ -26,12 +26,20 @@ import doctest
 import socket
 import unittest
 import pytest
-
+import re
+import six
+import traceback
 import yaml
 import httpretty
+from httpretty.core import HTTPrettyRequestEmpty
 from lxml import etree, doctestcompare
+if six.PY2:
+    from M2Crypto.Err import SSLError
+else:
+    from ssl import SSLError
 
 import pywbem
+from pywbem.cim_obj import _ensure_bytes, _ensure_unicode
 
 # Directory with the JSON test case files, relative to this script:
 TESTCASE_DIR = os.path.join(os.path.dirname(__file__), "test_client")
@@ -77,9 +85,9 @@ def obj(value, tc_name):
         try:
             ctor_call = getattr(pywbem, ctor_name)
         except AttributeError:
-            raise ClientTestError("Error in test case %s: Unknown type "\
-                                  "specified in 'pywbem_object' attribute: %s"%\
-                                  (tc_name, ctor_name))
+            raise ClientTestError("Error in definition of testcase %s: "\
+                                  "Unknown type specified in 'pywbem_object' "\
+                                  "attribute: %s" % (tc_name, ctor_name))
         ctor_args = {}
         for arg_name in value:
             if arg_name == "pywbem_object":
@@ -94,11 +102,23 @@ def obj(value, tc_name):
 def tc_getattr(tc_name, dict_, key, default=-1):
     try:
         value = dict_[key]
+        if isinstance(value, (list, tuple)):
+            value = value[0]
+    except (KeyError, IndexError):
+        if default != -1:
+            return default
+        raise ClientTestError("Error in definition of testcase %s: "\
+                              "'%s' attribute missing" % (tc_name, key))
+    return value
+
+def tc_getattr_list(tc_name, dict_, key, default=-1):
+    try:
+        value = dict_[key]
     except KeyError:
         if default != -1:
             return default
-        raise ClientTestError("Error in test case %s: '%s' attribute missing"%\
-                              (tc_name, key))
+        raise ClientTestError("Error in definition of testcase %s: "\
+                              "'%s' attribute missing" % (tc_name, key))
     return value
 
 
@@ -106,14 +126,34 @@ def tc_hasattr(dict_, key):
     return key in dict_
 
 class Callback(object):
-    """A class with static methods that are HTTPretty callback functions
-    for raising expected exceptions at the socket level."""
+    """A class with static methods that are HTTPretty callback functions for
+    raising expected exceptions at the socket level.
+
+    HTTPretty callback functions follow this interface:
+
+        def my_callback(request, uri, headers):
+            ...
+            return (status, headers, body)
+
+    Parameters:
+      * `request`: string with invoked HTTP method
+      * `uri`: string with target URI
+      * `headers`: list of strings with HTTP headers of request
+    
+    Return value:
+      * `status`: numeric with HTP status code for response
+      * `headers`: list of strings with HTTP headers for response
+      * `body`: response body / payload
+
+    They can also raise an exception, which is passed to the caller of the
+    socket send call.
+    """
 
     @staticmethod
     def socket_ssl(request, uri, headers):
         """HTTPretty callback function that raises an arbitrary
-        socket.sslerror."""
-        raise socket.sslerror(1, "Arbitrary SSL error.")
+        SSLError."""
+        raise SSLError(1, "Arbitrary SSL error.")
 
     @staticmethod
     def socket_104(request, uri, headers):
@@ -124,7 +164,6 @@ class Callback(object):
     def socket_32(request, uri, headers):
         """HTTPretty callback function that raises socket.error 32."""
         raise socket.error(32, "Broken pipe.")
-
 
 class ClientTest(unittest.TestCase):
     """Test case for PyWBEM client testing."""
@@ -138,8 +177,23 @@ class ClientTest(unittest.TestCase):
             function).
 
         Parameters:
-          * s1 and s2 are string representations of an XML fragment.
+          * s1 and s2 are string representations of an XML fragment. The
+            strings may be Unicode strings or UTF-8 encoded byte strings.
+            The strings may contain an encoding declaration even when
+            they are Unicode strings.
+
+            Note: An encoding declaration is the `encoding` attribute in the
+            XML declaration (aka XML processing statement), e.g.:
+                <?xml version="1.0" encoding="utf-8" ?>
         """
+
+        # Ensure Unicode strings and remove encoding from XML declaration
+        encoding_pattern = re.compile(
+            r'^<\?xml +(([a-zA-Z0-9_]+=".*")?) +' +
+            r'encoding="utf-8" +(([a-zA-Z0-9_]+=".*")?) *\?>')
+        encoding_repl = r'<?xml \1 \3 ?>'
+        s1 = re.sub(encoding_pattern, encoding_repl, _ensure_unicode(s1))
+        s2 = re.sub(encoding_pattern, encoding_repl, _ensure_unicode(s2))
 
         parser = etree.XMLParser(remove_blank_text=True)
         x1 = etree.XML(s1, parser=parser)
@@ -173,8 +227,8 @@ class ClientTest(unittest.TestCase):
         sort_children(x1, sort_elements)
         sort_children(x2, sort_elements)
 
-        ns1 = etree.tostring(x1)
-        ns2 = etree.tostring(x2)
+        ns1 = _ensure_unicode(etree.tostring(x1))
+        ns2 = _ensure_unicode(etree.tostring(x2))
 
         checker = doctestcompare.LXMLOutputChecker()
         # This tolerates differences in whitespace and attribute order
@@ -188,7 +242,7 @@ class ClientTest(unittest.TestCase):
         the JSON files in the test case directory and processes each of them.
         """
 
-        print "" # We are in the middle of test runner output
+        print("")  # We are in the middle of test runner output
 
         # We need to work with absolute file paths, because this test may be
         # run from a different directory.
@@ -201,7 +255,7 @@ class ClientTest(unittest.TestCase):
         """Read a YAML test case file and process each test case it defines.
         """
 
-        print "Processing YAML file: %s" % os.path.basename(fn)
+        print("Processing YAML file: %s" % os.path.basename(fn))
 
         with open(fn) as fp:
             testcases = yaml.load(fp)
@@ -215,18 +269,19 @@ class ClientTest(unittest.TestCase):
         tc_name = tc_getattr("", testcase, "name")
         tc_desc = tc_getattr(tc_name, testcase, "description", None)
 
-        print "Processing test case: %s: %s" % (tc_name, tc_desc)
+        print("Processing test case: %s: %s" % (tc_name, tc_desc))
+
+        httpretty.httpretty.allow_net_connect = False
 
         pywbem_request = tc_getattr(tc_name, testcase, "pywbem_request")
         exp_http_request = tc_getattr(tc_name, testcase, "http_request", None)
         http_response = tc_getattr(tc_name, testcase, "http_response", None)
-        exp_pywbem_response = tc_getattr(tc_name, testcase,
-                                         "pywbem_response")
+        exp_pywbem_response = tc_getattr(tc_name, testcase, "pywbem_response")
 
         # Setup HTTPretty for one WBEM operation
         if exp_http_request is not None:
-            exp_http_exception = tc_getattr(tc_name, http_response, "exception",
-                                            None)
+            exp_http_exception = tc_getattr(tc_name, http_response,
+                                            "exception", None)
             if exp_http_exception is None:
                 params = {
                     "body": tc_getattr(tc_name, http_response, "data"),
@@ -245,16 +300,16 @@ class ClientTest(unittest.TestCase):
                 params = {
                     "body": callback_func
                 }
-            httpretty.register_uri(
-                method=tc_getattr(tc_name, exp_http_request, "verb"),
-                uri=tc_getattr(tc_name, exp_http_request, "url"),
-                **params)
+
+            method = tc_getattr(tc_name, exp_http_request, "verb")
+            uri = tc_getattr(tc_name, exp_http_request, "url")
+
+            httpretty.register_uri(method=method, uri=uri, **params)
 
         conn = pywbem.WBEMConnection(
             url=tc_getattr(tc_name, pywbem_request, "url"),
             creds=tc_getattr(tc_name, pywbem_request, "creds"),
-            default_namespace=tc_getattr(tc_name, pywbem_request,
-                                         "namespace"),
+            default_namespace=tc_getattr(tc_name, pywbem_request, "namespace"),
             timeout=tc_getattr(tc_name, pywbem_request, "timeout"))
 
         conn.debug = tc_getattr(tc_name, pywbem_request, "debug", False)
@@ -282,8 +337,8 @@ class ClientTest(unittest.TestCase):
         try:
             op_call = getattr(conn, op_name)
         except AttributeError as exc:
-            raise ClientTestError("Error in testcase %s: Unknown "\
-                                  "operation name: %s" %\
+            raise ClientTestError("Error in definition of testcase %s: "\
+                                  "Unknown operation name: %s" %\
                                   (tc_name, op_name))
 
         # Invoke the PyWBEM operation to be tested
@@ -292,25 +347,16 @@ class ClientTest(unittest.TestCase):
             raised_exception = None
         except Exception as exc:
             raised_exception = exc
+            stringio = six.StringIO()
+            traceback.print_exc(file=stringio)
+            raised_traceback_str = stringio.getvalue()
+            stringio.close()
             result = None
 
-        # Validate HTTP request produced by PyWBEM
-
-        if exp_http_request is not None:
-            http_request = httpretty.last_request()
-            exp_verb = tc_getattr(tc_name, exp_http_request, "verb")
-            self.assertEqual(http_request.method, exp_verb,
-                             "verb in HTTP request")
-            exp_headers = tc_getattr(tc_name, exp_http_request, "headers", {})
-            for header_name in exp_headers:
-                self.assertEqual(http_request.headers[header_name],
-                                 exp_headers[header_name],
-                                 "headers in HTTP request")
-            exp_data = tc_getattr(tc_name, exp_http_request, "data", None)
-            self.assertXMLEqual(http_request.body, exp_data,
-                                "data in HTTP request")
-
-        # Validate PyWBEM result
+        # Validate PyWBEM result and exceptions.
+        # We validate exceptions before validating the HTTP request, because
+        # an exception might have been raised on the way down before the
+        # request was actually made.
 
         exp_exception = tc_getattr(tc_name, exp_pywbem_response,
                                    "exception", None)
@@ -318,41 +364,68 @@ class ClientTest(unittest.TestCase):
                                     "cim_status", 0)
         exp_result = tc_getattr(tc_name, exp_pywbem_response, "result",
                                 None)
+
         if exp_exception is not None and exp_result is not None:
-            raise ClientTestError("Error in testcase %s: 'result' and "\
-                                  "'exception' attributes in "\
+            raise ClientTestError("Error in definition of testcase %s: "\
+                                  "'result' and 'exception' attributes in "\
                                   "'pywbem_result' are not compatible." %\
                                   tc_name)
         if exp_cim_status != 0 and exp_result is not None:
-            raise ClientTestError("Error in testcase %s: 'result' and "\
-                                  "'cim_status' attributes in "\
+            raise ClientTestError("Error in definition of testcase %s: "\
+                                  "'result' and 'cim_status' attributes in "\
                                   "'pywbem_result' are not compatible." %\
                                   tc_name)
 
+        if exp_cim_status != 0:
+            exp_exception = 'CIMError'
+
         if exp_exception is not None:
             if raised_exception is None:
-                raise AssertionError("%s exception was expected to be raised, "\
-                                     "but no exception was actually raised." %\
-                                     exp_exception)
-            self.assertEqual(raised_exception.__class__.__name__,
-                             exp_exception, "expected PyWBEM exception name")
-        elif exp_cim_status != 0:
-            if raised_exception is None:
-                raise AssertionError("CIMError exception was expected to be "\
-                                     "raised, but no exception was actually "
-                                     "raised.")
-            self.assertEqual(raised_exception.__class__.__name__, "CIMError",
-                             "expected PyWBEM exception name")
+                raise AssertionError("Testcase %s: A %s exception was "\
+                                     "expected to be raised by PyWBEM "\
+                                     "operation %s, but no exception was "\
+                                     "actually raised." %\
+                                     (tc_name, exp_exception, op_name))
+            elif raised_exception.__class__.__name__ != exp_exception:
+                raise AssertionError("Testcase %s: A %s exception was "\
+                                     "expected to be raised by PyWBEM "\
+                                     "operation %s, but a different "\
+                                     "exception was actually raised:\n"\
+                                     "%s\n" %\
+                                     (tc_name, exp_exception, op_name,
+                                      raised_traceback_str))
         else:
             if raised_exception is not None:
-                raise AssertionError("No exception was expected to be raised, "\
-                                     "but %s exception was actually raised: "\
-                                     "%s" %\
-                                     (raised_exception.__class__.__name__,
-                                      raised_exception))
+                raise AssertionError("Testcase %s: No exception was "\
+                                     "expected to be raised by PyWBEM "\
+                                     "operation %s, but an exception was "\
+                                     "actually raised:\n"\
+                                     "%s\n" %\
+                                     (tc_name, op_name, raised_traceback_str))
+
+        # Validate HTTP request produced by PyWBEM
+
+        if exp_http_request is not None:
+            http_request = httpretty.last_request()
+            self.assertTrue(not isinstance(http_request,
+                                           HTTPrettyRequestEmpty),
+                            "HTTP request is empty")
+            exp_verb = tc_getattr(tc_name, exp_http_request, "verb")
+            self.assertEqual(http_request.method, exp_verb,
+                              "verb in HTTP request")
+            exp_headers = tc_getattr(tc_name, exp_http_request, "headers", {})
+            for header_name in exp_headers:
+                self.assertEqual(http_request.headers[header_name],
+                                  exp_headers[header_name],
+                                  "headers in HTTP request")
+            exp_data = tc_getattr(tc_name, exp_http_request, "data", None)
+            self.assertXMLEqual(http_request.body, exp_data,
+                                  "data in HTTP request")
+
+        # Continue with validating the result
 
         if isinstance(raised_exception, pywbem.CIMError):
-            cim_status = raised_exception[0]
+            cim_status = raised_exception.args[0]
         else:
             cim_status = 0
         self.assertEqual(cim_status, exp_cim_status, "PyWBEM CIM status")
@@ -360,17 +433,17 @@ class ClientTest(unittest.TestCase):
         if exp_result is not None:
             exp_result_obj = obj(exp_result, tc_name)
             if result != exp_result_obj:
-                print "Details for the following assertion error:"
-                print "- Expected result:"
-                print "  Returned object: %r" % exp_result_obj
+                print("Details for the following assertion error:")
+                print("- Expected result:")
+                print("  Returned object: %r" % exp_result_obj)
                 if hasattr(exp_result_obj, "properties"):
-                    print "  Its properties: %r" % exp_result_obj.properties
-                print "- Actual result:"
-                print "  Returned object: %r" % result
+                    print("  Its properties: %r" % exp_result_obj.properties)
+                print("- Actual result:")
+                print("  Returned object: %r" % result)
                 if hasattr(result, "properties"):
-                    print "  Its properties: %r" % result.properties
+                    print("  Its properties: %r" % result.properties)
                 if conn.debug:
-                    print "  HTTP response data: %r" % conn.last_raw_reply
+                    print("  HTTP response data: %r" % conn.last_raw_reply)
                 raise AssertionError("PyWBEM CIM result is not as expected.")
         else:
             self.assertEqual(result, None, "PyWBEM CIM result")

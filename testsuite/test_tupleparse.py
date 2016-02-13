@@ -32,7 +32,7 @@ class TupleTest(unittest.TestCase):
         # Assert that the before and after objects should be equal
 
         self.assertEqual(obj, result,
-                         'before: %s\nafter:  %s' %\
+                         '\nbefore: %s\nafter:  %s' %\
                          (xml, result.tocimxml().toxml()))
 
 class RawXMLTest(unittest.TestCase):

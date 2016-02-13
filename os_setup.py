@@ -136,6 +136,7 @@ from distutils.errors import DistutilsSetupError
 from setuptools import Command, Distribution
 from setuptools.command.develop import develop as _develop
 import pip
+import six
 
 class OsDistribution(Distribution):
     """Setuptools/distutils distribution class for installing OS-level
@@ -190,7 +191,7 @@ def _assert_system_dict(dist, attr, value):
             "(got type %s)" % (attr, type(system_dict))
         )
     for system in system_dict:
-        if not isinstance(system, basestring):
+        if not isinstance(system, six.string_types):
             raise DistutilsSetupError(
                 "'%s' attribute: Key in system dictionary must be a string "\
                 "(got key %r of type %s)" %\
@@ -201,7 +202,7 @@ def _assert_system_dict(dist, attr, value):
             # The packages are specified by distro (e.g. Linux)
             distro_dict = system_item
             for distro in distro_dict:
-                if not isinstance(distro, basestring):
+                if not isinstance(distro, six.string_types):
                     raise DistutilsSetupError(
                         "'%s' attribute: Key in distribution dictionary must "\
                         "be a string "\
@@ -213,7 +214,7 @@ def _assert_system_dict(dist, attr, value):
                     # Normal case: the distro specifies a package list
                     req_list = distro_item
                     _assert_req_list(dist, attr, req_list)
-                elif isinstance(distro_item, basestring):
+                elif isinstance(distro_item, six.string_types):
                     # The distro refers to another distro
                     referenced_distro = distro_item
                     if not referenced_distro in distro_dict:
@@ -258,7 +259,7 @@ def _assert_req_list(dist, attr, value): # pylint: disable=unused-argument
     """
     req_list = value
     for req in req_list:
-        if not isinstance(req, (basestring, types.FunctionType)):
+        if not isinstance(req, (six.string_types, types.FunctionType)):
             raise DistutilsSetupError(
                 "'%s' attribute: Requirement must be a string or a function "\
                 "(got requirement %r of type %s)"%\
@@ -315,7 +316,7 @@ class BaseOsCommand(Command):
                 # Normal case: the distro specifies a package list
                 req_list = distro_item
                 self._run_os_req_list(req_list)
-            elif isinstance(distro_item, basestring):
+            elif isinstance(distro_item, six.string_types):
                 # The distro refers to another distro
                 distro = distro_item
                 self._run_os_distro(distro, distro_dict)
@@ -332,8 +333,8 @@ class BaseOsCommand(Command):
                     req(self)
                 else: # requirements string
                     if self.verbose:
-                        print "Processing OS-level package requirement: %s" %\
-                              req
+                        print("Processing OS-level package requirement: %s" %\
+                              req)
                     pkg_name, version_reqs = self.installer.parse_pkg_req(req)
                     self.installer.ensure_installed(pkg_name, version_reqs,
                                                     self.dry_run, self.verbose)
@@ -359,8 +360,8 @@ class install_os(BaseOsCommand): # pylint: disable=invalid-name
         """
 
         if self.verbose:
-            print "install_os: Installing prerequisite OS-level packages for "\
-                  "platform: %s" % self.installer.platform
+            print("install_os: Installing prerequisite OS-level packages for "\
+                  "platform: %s" % self.installer.platform)
 
         self.run_os(self.distribution.install_os_requires)
 
@@ -392,8 +393,8 @@ class develop_os(BaseOsCommand): # pylint: disable=invalid-name
         """
 
         if self.verbose:
-            print "develop_os: Installing prerequisite OS-level packages for "\
-                  "platform: %s" % self.installer.platform
+            print("develop_os: Installing prerequisite OS-level packages for "\
+                  "platform: %s" % self.installer.platform)
 
         self.run_os(self.distribution.install_os_requires)
         self.run_os(self.distribution.develop_os_requires)
@@ -424,7 +425,7 @@ class develop(_develop): # pylint: disable=invalid-name
         _develop.run(self)
 
         if self.verbose:
-            print "develop: Installing prerequisite Python packages"
+            print("develop: Installing prerequisite Python packages")
 
         req_list = self.distribution.develop_requires
         for req in req_list:
@@ -432,7 +433,7 @@ class develop(_develop): # pylint: disable=invalid-name
                 req(self)
             else: # requirements string
                 if self.verbose:
-                    print "Processing Python package requirement: %s" % req
+                    print("Processing Python package requirement: %s" % req)
                 pkg_name, version_reqs = self.installer.parse_pkg_req(req)
                 self.installer.ensure_installed(pkg_name, version_reqs,
                                                 self.dry_run, self.verbose)
@@ -708,7 +709,7 @@ class BaseInstaller(object):
                 raise DistutilsSetupError(
                     "Internal Error: Unexpected message ID: %s" % msg_id
                 )
-            print msg
+            print(msg)
 
 class PythonInstaller(BaseInstaller):
     """Support for installing Python packages."""
@@ -733,10 +734,10 @@ class PythonInstaller(BaseInstaller):
         """
         pkg_req = self.pkg_req(pkg_name, version_reqs)
         if dry_run:
-            print "Dry-running: pip install %s" % pkg_req
+            print("Dry-running: pip install %s" % pkg_req)
             return 0
         else:
-            print "Running: pip install %s" % pkg_req
+            print("Running: pip install %s" % pkg_req)
             rc = pip.main(['install', pkg_req])
             if rc != 0:
                 raise DistutilsSetupError(
@@ -762,7 +763,7 @@ class PythonInstaller(BaseInstaller):
         rc, out, _ = shell(cmd)
         if rc != 0:
             if verbose:
-                print "Package is not installed: %s" % pkg_name
+                print("Package is not installed: %s" % pkg_name)
             return False
         lines = out.splitlines()
         version_line = [line for line in lines
@@ -772,11 +773,11 @@ class PythonInstaller(BaseInstaller):
                              if version_reqs else True
         if verbose:
             if version_sufficient:
-                print "Installed package version is sufficient: "\
-                      "%s %s" % (pkg_name, version)
+                print("Installed package version is sufficient: "\
+                      "%s %s" % (pkg_name, version))
             else:
-                print "Installed package version is not sufficient: "\
-                      "%s %s" % (pkg_name, version)
+                print("Installed package version is not sufficient: "\
+                      "%s %s" % (pkg_name, version))
         return version_sufficient
 
     def is_available(self, pkg_name, version_reqs=None, verbose=True):
@@ -814,16 +815,16 @@ class PythonInstaller(BaseInstaller):
                 sufficient = len(versions) > 0
                 if verbose:
                     if sufficient:
-                        print "The following package versions available in "\
+                        print("The following package versions available in "\
                               "Pypi are sufficient: %s %s" %\
-                              (pkg_name, ", ".join(versions))
+                              (pkg_name, ", ".join(versions)))
                     else:
-                        print "None of the package versions available in Pypi "\
+                        print("None of the package versions available in Pypi "\
                               "is sufficient: %s %s" %\
-                              (pkg_name, ", ".join(hit['versions']))
+                              (pkg_name, ", ".join(hit['versions'])))
                 return sufficient
         if verbose:
-            print "Package is not available in Pypi: %s" % pkg_name
+            print("Package is not available in Pypi: %s" % pkg_name)
         return False
 
     def ensure_installed(self, pkg_name, version_reqs=None, dry_run=False,
@@ -1007,9 +1008,9 @@ class YumInstaller(OSInstaller):
             cmd = "sudo %s install -y %s" %\
                  (self.installer_cmd, pkg_name)
             if dry_run:
-                print "Dry-running: %s" % cmd
+                print("Dry-running: %s" % cmd)
             else:
-                print "Running: %s" % cmd
+                print("Running: %s" % cmd)
                 shell_check(cmd, display=True)
 
     def is_installed(self, pkg_name, version_reqs=None, verbose=True):
@@ -1030,7 +1031,7 @@ class YumInstaller(OSInstaller):
         rc, out, err = shell(cmd)
         if rc != 0:
             if verbose:
-                print "Package is not installed: %s" % pkg_name
+                print("Package is not installed: %s" % pkg_name)
             return False
         info = out.splitlines()[-1].strip("\n").split()
         if not info[0].startswith(pkg_name+"."):
@@ -1042,11 +1043,11 @@ class YumInstaller(OSInstaller):
                              if version_reqs else True
         if verbose:
             if version_sufficient:
-                print "Installed package version is sufficient: %s %s" %\
-                      (pkg_name, version)
+                print("Installed package version is sufficient: %s %s" %\
+                      (pkg_name, version))
             else:
-                print "Installed package version is not sufficient: %s %s" %\
-                      (pkg_name, version)
+                print("Installed package version is not sufficient: %s %s" %\
+                      (pkg_name, version))
         return version_sufficient
 
     def is_available(self, pkg_name, version_reqs=None, verbose=True):
@@ -1069,8 +1070,8 @@ class YumInstaller(OSInstaller):
         rc, out, err = shell(cmd)
         if rc != 0:
             if verbose:
-                print "Package is not available in repositories: %s" %\
-                    pkg_name
+                print("Package is not available in repositories: %s" %\
+                    pkg_name)
             return False
         info = out.splitlines()[-1].strip("\n").split()
         if not info[0].startswith(pkg_name+"."):
@@ -1082,11 +1083,11 @@ class YumInstaller(OSInstaller):
                              if version_reqs else True
         if verbose:
             if version_sufficient:
-                print "Package version available in repositories is "\
-                      "sufficient: %s %s" % (pkg_name, version)
+                print("Package version available in repositories is "\
+                      "sufficient: %s %s" % (pkg_name, version))
             else:
-                print "Package version available in repositories is "\
-                      "not sufficient: %s %s" % (pkg_name, version)
+                print("Package version available in repositories is "\
+                      "not sufficient: %s %s" % (pkg_name, version))
         return version_sufficient
 
 class AptInstaller(OSInstaller):
@@ -1119,9 +1120,9 @@ class AptInstaller(OSInstaller):
         else:
             cmd = "sudo apt-get install -y %s" % pkg_name
             if dry_run:
-                print "Dry-running: %s" % cmd
+                print("Dry-running: %s" % cmd)
             else:
-                print "Running: %s" % cmd
+                print("Running: %s" % cmd)
                 shell_check(cmd, display=True)
 
     def is_installed(self, pkg_name, version_reqs=None, verbose=True):
@@ -1141,7 +1142,7 @@ class AptInstaller(OSInstaller):
         cmd = "dpkg -s %s" % pkg_name
         rc, out, err = shell(cmd)
         if rc != 0:
-            print "Package is not installed: %s" % pkg_name
+            print("Package is not installed: %s" % pkg_name)
             return False
         lines = out.splitlines()
         status_line = [line for line in lines if line.startswith("Status:")][0]
@@ -1159,11 +1160,11 @@ class AptInstaller(OSInstaller):
                              if version_reqs else True
         if verbose:
             if version_sufficient:
-                print "Installed package version is sufficient: %s %s" %\
-                      (pkg_name, version)
+                print("Installed package version is sufficient: %s %s" %\
+                      (pkg_name, version))
             else:
-                print "Installed package version is not sufficient: %s %s" %\
-                      (pkg_name, version)
+                print("Installed package version is not sufficient: %s %s" %\
+                      (pkg_name, version))
         return version_sufficient
 
     def is_available(self, pkg_name, version_reqs=None, verbose=True):
@@ -1186,8 +1187,8 @@ class AptInstaller(OSInstaller):
         rc, out, _ = shell(cmd)
         if rc != 0:
             if verbose:
-                print "Package is not available in repositories: %s" %\
-                    pkg_name
+                print("Package is not available in repositories: %s" %\
+                    pkg_name)
             return False
         lines = out.splitlines()
         version_line = [line for line in lines
@@ -1197,11 +1198,11 @@ class AptInstaller(OSInstaller):
                              if version_reqs else True
         if verbose:
             if version_sufficient:
-                print "Package version available in repositories is "\
-                      "sufficient: %s %s" % (pkg_name, version)
+                print("Package version available in repositories is "\
+                      "sufficient: %s %s" % (pkg_name, version))
             else:
-                print "Package version available in repositories is "\
-                      "not sufficient: %s %s" % (pkg_name, version)
+                print("Package version available in repositories is "\
+                      "not sufficient: %s %s" % (pkg_name, version))
         return version_sufficient
 
 class ZypperInstaller(OSInstaller):
@@ -1234,9 +1235,9 @@ class ZypperInstaller(OSInstaller):
         else:
             cmd = "sudo yum zypper -y %s" % pkg_name
             if dry_run:
-                print "Dry-running: %s" % cmd
+                print("Dry-running: %s" % cmd)
             else:
-                print "Running: %s" % cmd
+                print("Running: %s" % cmd)
                 shell_check(cmd, display=True)
 
     def is_installed(self, pkg_name, version_reqs=None, verbose=True):
@@ -1257,7 +1258,7 @@ class ZypperInstaller(OSInstaller):
         rc, out, err = shell(cmd)
         if rc != 0:
             if verbose:
-                print "Package is not installed: %s" % pkg_name
+                print("Package is not installed: %s" % pkg_name)
             return False
         info = out.splitlines()[-1].strip("\n").split()
         if not info[0].startswith(pkg_name+"."):
@@ -1269,11 +1270,11 @@ class ZypperInstaller(OSInstaller):
                              if version_reqs else True
         if verbose:
             if version_sufficient:
-                print "Installed package version is sufficient: %s %s" %\
-                      (pkg_name, version)
+                print("Installed package version is sufficient: %s %s" %\
+                      (pkg_name, version))
             else:
-                print "Installed package version is not sufficient: %s %s" %\
-                      (pkg_name, version)
+                print("Installed package version is not sufficient: %s %s" %\
+                      (pkg_name, version))
         return version_sufficient
 
     def is_available(self, pkg_name, version_reqs=None, verbose=True):
@@ -1299,8 +1300,8 @@ class ZypperInstaller(OSInstaller):
         version_lines = [line for line in lines if line.startswith("Version:")]
         if len(version_lines) == 0:
             if verbose:
-                print "Package is not available in repositories: %s" %\
-                    pkg_name
+                print("Package is not available in repositories: %s" %\
+                    pkg_name)
             return False
         version_line = version_lines[0]
         version = version_line.split()[1].split("-")[0]
@@ -1308,11 +1309,11 @@ class ZypperInstaller(OSInstaller):
                              if version_reqs else True
         if verbose:
             if version_sufficient:
-                print "Package version available in repositories is "\
-                      "sufficient: %s %s" % (pkg_name, version)
+                print("Package version available in repositories is "\
+                      "sufficient: %s %s" % (pkg_name, version))
             else:
-                print "Package version available in repositories is "\
-                      "not sufficient: %s %s" % (pkg_name, version)
+                print("Package version available in repositories is "\
+                      "not sufficient: %s %s" % (pkg_name, version))
         return version_sufficient
 
 def shell(command, display=False, ignore_notfound=False):
@@ -1341,11 +1342,15 @@ def shell(command, display=False, ignore_notfound=False):
       * If the command is not found, OSError is raised.
     """
 
-    if isinstance(command, basestring):
-        command = command.split(" ")
+    if isinstance(command, six.string_types):
+        cmd_parts = command.split(" ")
+    else:  # already a list
+        cmd_parts = command
 
+    encoded_cmd_parts = [part.encode("utf-8") if isinstance(part, six.text_type) \
+                         else part for part in cmd_parts]
     try:
-        p = subprocess.Popen(command,
+        p = subprocess.Popen(encoded_cmd_parts,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -1354,14 +1359,19 @@ def shell(command, display=False, ignore_notfound=False):
             return 10002, "", ""
         else:
             raise DistutilsSetupError(
-                "Cannot execute %s: %s" % (command[0], exc))
+                "Cannot execute %s: %s" % (cmd_parts[0], exc))
+
+    if isinstance(stdout, six.binary_type):
+        stdout = stdout.decode("utf-8")
+    if isinstance(stderr, six.binary_type):
+        stderr = stderr.decode("utf-8")
 
     # TODO: Add support for printing while command executes, like with 'tee'
     if display:
         if stdout != "":
-            print stdout
+            print(stdout)
         if stderr != "":
-            print stderr
+            print(stderr)
 
     return p.returncode, stdout, stderr
 
@@ -1385,7 +1395,7 @@ def shell_check(command, display=False, exp_rc=0):
       * If the command does not return 0, DistutilsSetupError is raised.
     """
 
-    if isinstance(command, basestring):
+    if isinstance(command, six.string_types):
         command = command.split(" ")
 
     if isinstance(exp_rc, int):

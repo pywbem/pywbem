@@ -19,6 +19,7 @@
 # Author: Tim Potter <tpot@hp.com>
 # Author: Martin Pool <mbp@hp.com>
 # Author: Bart Whiteley <bwhiteley@suse.de>
+# Author: Ross Peoples <ross.peoples@gmail.com>
 #
 
 """Representations of CIM objects, and a case-insensitive dictionary.
@@ -34,13 +35,16 @@ method which returns a CIM-XML string.
 
 # This module is meant to be safe for 'import *'.
 
-import string
 import re
-from types import StringTypes
 from datetime import datetime, timedelta
-from __builtin__ import type as builtin_type
+import six
+if six.PY2:
+    from __builtin__ import type as builtin_type
+else:
+    from builtins import type as builtin_type
 
-from pywbem import cim_xml, cim_types
+from . import cim_xml, cim_types
+from .cim_types import _CIMComparisonMixin
 
 __all__ = ['NocaseDict', 'cmpname', 'CIMClassName', 'CIMProperty',
            'CIMInstanceName', 'CIMInstance', 'CIMClass', 'CIMMethod',
@@ -143,7 +147,7 @@ class NocaseDict(object):
         and specifying non-string typed keys will simply lead to a KeyError.
         """
         k = key
-        if isinstance(key, (str, unicode)):
+        if isinstance(key, six.string_types):
             k = k.lower()
         try:
             return self._data[k][1]
@@ -160,7 +164,7 @@ class NocaseDict(object):
 
         Raises `TypeError` if the specified key does not have string type.
         """
-        if not isinstance(key, (str, unicode)):
+        if not isinstance(key, six.string_types):
             raise TypeError('NocaseDict key %s must be string type, ' \
                             'but is %s' %  (key, builtin_type(key)))
         k = key.lower()
@@ -176,7 +180,7 @@ class NocaseDict(object):
         and specifying non-string typed keys will simply lead to a KeyError.
         """
         k = key
-        if isinstance(key, (str, unicode)):
+        if isinstance(key, six.string_types):
             k = k.lower()
         try:
             del self._data[k]
@@ -190,17 +194,6 @@ class NocaseDict(object):
         """
         return len(self._data)
 
-    def has_key(self, key):
-        """
-        Return a boolean indicating whether a specific key is in the
-        dictionary.
-
-        The key is looked up case-insensitively.
-
-        This method is deprecated in favor of using `key in d`.
-        """
-        return key in self # delegate to __contains__()
-
     def __contains__(self, key):
         """
         Invoked when determining whether a specific key is in the dictionary
@@ -209,7 +202,7 @@ class NocaseDict(object):
         The key is looked up case-insensitively.
         """
         k = key
-        if isinstance(key, (str, unicode)):
+        if isinstance(key, six.string_types):
             k = k.lower()
         return k in self._data
 
@@ -232,7 +225,7 @@ class NocaseDict(object):
 
         The key is looked up case-insensitively.
         """
-        if not self.has_key(key):
+        if not key in self:
             self[key] = default
         return self[key]
 
@@ -264,14 +257,14 @@ class NocaseDict(object):
         Return an iterator through the dictionary keys in their original
         case.
         """
-        for item in self._data.iteritems():
+        for item in six.iteritems(self._data):
             yield item[1][0]
 
     def itervalues(self):
         """
         Return an iterator through the dictionary values.
         """
-        for item in self._data.iteritems():
+        for item in six.iteritems(self._data):
             yield item[1][1]
 
     def iteritems(self):
@@ -279,7 +272,7 @@ class NocaseDict(object):
         Return an iterator through the dictionary items, where each item is a
         tuple of its original key and its value.
         """
-        for item in self._data.iteritems():
+        for item in six.iteritems(self._data):
             yield item[1]
 
     def __iter__(self):
@@ -288,7 +281,7 @@ class NocaseDict(object):
 
         The returned keys have their original case.
         """
-        return self.iterkeys()
+        return six.iterkeys(self._data)
 
     # Other stuff
 
@@ -357,41 +350,76 @@ class NocaseDict(object):
 
     def __eq__(self, other):
         """
-        Invoked when two dictionaries are compared for equality or inequality.
+        Invoked when two dictionaries are compared with the `==` operator.
 
+        The comparison is based on matching key/value pairs.
         The keys are looked up case-insensitively.
-
-        The comparison is delegated to equality comparison of matching
-        key/value pairs.
         """
-        for key, value in self.iteritems():
-            if not key in other or not other[key] == value:
-                return 0
+        for key, self_value in self.iteritems():
+            if not key in other:
+                return False
+            other_value = other[key]
+            try:
+                if not self_value == other_value:
+                    return False
+            except TypeError:
+                return False # not comparable -> considered not equal
         return len(self) == len(other)
 
-    def __cmp__(self, other):
+    def __ne__(self, other):
         """
-        Invoked when two dictionaries are compared for equality, inequality,
-        and greater-than/less-than comparisons.
+        Invoked when two dictionaries are compared with the `!=` operator.
 
-        The keys are looked up case-insensitively.
+        Implemented by delegating to the `==` operator.
+        """
+        return not self == other
 
-        `Self` is less than `other`, if:
+    def __lt__(self, other):
+        """
+        Invoked when two dictionaries are compared with the `<` operator.
 
+        `self` is less than `other`, if:
           * a key in `self` is not in `other`, or
-
           * the value for a key in `self` is less than the value for that key
             in `other`, or
-
           * `self` has less key/value pairs than `other`.
+
+        The keys are looked up case-insensitively.
         """
-        for key, value in self.iteritems():
+        for key, self_value in self.iteritems():
             if not key in other:
-                return -1
-            rtn_val = cmp(value, other[key])
-            if rtn_val != 0:
-                return rtn_val
+                return True
+            other_value = other[key]
+            try:
+                if self_value < other_value:
+                    return True
+            except TypeError:
+                return True # not comparable -> return arbitrary result
         return len(self) - len(other)
+
+    def __gt__(self, other):
+        """
+        Invoked when two dictionaries are compared with the `>` operator.
+
+        Implemented by delegating to the `<` operator.
+        """
+        return other < self
+
+    def __ge__(self, other):
+        """
+        Invoked when two dictionaries are compared with the `>=` operator.
+
+        Implemented by delegating to the `>` and `==` operators.
+        """
+        return (self > other) or (self == other)
+
+    def __le__(self, other):
+        """
+        Invoked when two dictionaries are compared with the `<=` operator.
+
+        Implemented by delegating to the `<` and `==` operators.
+        """
+        return (self < other) or (self == other)
 
 def _intended_value(intended, unspecified, actual, name, msg):
     """
@@ -430,23 +458,116 @@ def _intended_value(intended, unspecified, actual, name, msg):
 
 def cmpname(name1, name2):
     """
-    Compare two CIM names.  The comparison is done
-    case-insensitively, and one or both of the names may be `None`.
-    """
+    Compare two CIM names, case-insensitively.
 
+    One or both of the items may be `None`, and `None` is considered the lowest
+    possible value.
+
+    The implementation delegates to the '==' and '<' operators of the
+    name datatypes.
+
+    If name1 == name2, 0 is returned.
+    If name1 < name2, -1 is returned.
+    Otherwise, +1 is returned.
+    """
     if name1 is None and name2 is None:
         return 0
-
     if name1 is None:
         return -1
-
     if name2 is None:
         return 1
-
     lower_name1 = name1.lower()
     lower_name2 = name2.lower()
+    if lower_name1 == lower_name2:
+        return 0
+    if lower_name1 < lower_name2:
+        return -1
+    else:
+        return 1
 
-    return cmp(lower_name1, lower_name2)
+def cmpitem(item1, item2):
+    """
+    Compare two items (CIM values, or other attributes of CIM objects).
+
+    One or both of the items may be `None`, and `None` is considered the lowest
+    possible value.
+
+    The implementation delegates to the '==' and '<' operators of the
+    item datatypes.
+
+    If value1 == value2, 0 is returned.
+    If value1 < value2, -1 is returned.
+    Otherwise, +1 is returned.
+    """
+    if item1 is None and item2 is None:
+        return 0
+    if item1 is None:
+        return -1
+    if item2 is None:
+        return 1
+    if item1 == item2:
+        return 0
+    try:
+        if item1 < item2:
+            return -1
+        else:
+            return 1
+    except TypeError:
+        return -1  # if non-orderable, return arbitrary result
+
+def _convert_unicode(obj):
+    """
+    Convert the input object into a Unicode string (`unicode`for Python 2,
+    and `str` for Python 3).
+
+    If the input object already is a Unicode string, it is simply returned.
+    If the input object is a byte string, it is decoded using UTF-8.
+    Otherwise, the input object is translated into its string representation.
+    """
+    if isinstance(obj, six.text_type):
+        return obj
+    if isinstance(obj, six.binary_type):
+        return obj.decode("utf-8")
+    return six.text_type(obj)
+
+def _ensure_unicode(obj):
+    """
+    Return the input object, ensuring that a byte string is decoded into a
+    Unicode string (`unicode`for Python 2, and `str` for Python 3).
+
+    If the input object is a byte string, it is decoded using UTF-8.
+    Otherwise, the input object is simply returned.
+    """
+    if isinstance(obj, six.binary_type):
+        return obj.decode("utf-8")
+    return obj
+
+def _convert_bytes(obj):
+    """
+    Convert the input object into a byte string (`str`for Python 2, and `bytes`
+    for Python 3).
+
+    If the input object already is a byte string, it is simply returned.
+    If the input object is a Unicode string, it is encoded using UTF-8.
+    Otherwise, the input object is translated into its string representation.
+    """
+    if isinstance(obj, six.binary_type):
+        return obj
+    if isinstance(obj, six.text_type):
+        return obj.encode("utf-8")
+    return six.binary_type(obj)
+
+def _ensure_bytes(obj):
+    """
+    Return the input object, ensuring that a Unicode string is decoded into a
+    byte string (`str`for Python 2, and `bytes` for Python 3).
+
+    If the input object is a Unicode string, it is encoded using UTF-8.
+    Otherwise, the input object is simply returned.
+    """
+    if isinstance(obj, six.text_type):
+        return obj.encode("utf-8")
+    return obj
 
 def _makequalifiers(qualifiers, indent):
     """Return a MOF fragment for a NocaseDict of qualifiers."""
@@ -525,7 +646,8 @@ def moftype(cimtype, refclass):
 
     return _moftype
 
-class CIMClassName(object):
+
+class CIMClassName(_CIMComparisonMixin):
     """
     A CIM class path.
 
@@ -544,10 +666,10 @@ class CIMClassName(object):
 
         :Parameters:
 
-          classname : `unicode` or UTF-8 encoded `str`
+          classname : Unicode string or UTF-8 encoded byte string
             Name of the referenced class.
 
-          host : `unicode` or UTF-8 encoded `str`
+          host : Unicode string or UTF-8 encoded byte string
             Optional: URL of the WBEM server that contains the CIM namespace
             of this class path.
 
@@ -555,7 +677,7 @@ class CIMClassName(object):
 
             Default: `None`.
 
-          namespace : `unicode` or UTF-8 encoded `str`
+          namespace : Unicode string or UTF-8 encoded byte string
             Optional: Name of the CIM namespace that contains the referenced
             class.
 
@@ -568,7 +690,12 @@ class CIMClassName(object):
           :raise ValueError:
         """
 
-        if not isinstance(classname, StringTypes):
+        # Make sure we process Unicode strings
+        classname = _ensure_unicode(classname)
+        host = _ensure_unicode(host)
+        namespace = _ensure_unicode(namespace)
+
+        if not isinstance(classname, six.string_types):
             raise TypeError(
                 "classname argument has an invalid type: %s "\
                 "(expected string)" % builtin_type(classname))
@@ -587,24 +714,26 @@ class CIMClassName(object):
         return CIMClassName(self.classname, host=self.host,
                             namespace=self.namespace)
 
-    def __cmp__(self, other):
-        """ Compare the CIMClassName object to a CIMClassName defined
-            by `other`
-            :Parameters:
-
-             other : CIMClassName to compare.
-
-             return : True if the two CIMClassName objects are the same.
+    def _cmp(self, other):
         """
+        Comparator function for two `CIMClassName` objects.
 
+        The comparison is based on the `host`, `namespace`, and `classname`
+        attributes of the `CIMClassName` objects, in descending precedence.
+
+        All of them are compared case-insensitively.
+
+        Raises `TypeError', if the `other` object is not a `CIMProperty`
+        object.
+        """
         if self is other:
             return 0
-        elif not isinstance(other, CIMClassName):
-            return 1
-
-        return (cmpname(self.classname, other.classname) or
-                cmpname(self.host, other.host) or
-                cmpname(self.namespace, other.namespace))
+        if not isinstance(other, CIMClassName):
+            raise TypeError("other must be CIMClassName, but is: %s" %\
+                            type(other))
+        return (cmpname(self.host, other.host) or
+                cmpname(self.namespace, other.namespace) or
+                cmpname(self.classname, other.classname))
 
     def __str__(self):
         """ Return readable string representing path"""
@@ -648,7 +777,7 @@ class CIMClassName(object):
 
             localnsp = cim_xml.LOCALNAMESPACEPATH(
                 [cim_xml.NAMESPACE(ns)
-                 for ns in string.split(self.namespace, '/')])
+                 for ns in self.namespace.split('/')])
 
             if self.host is not None:
 
@@ -668,7 +797,7 @@ class CIMClassName(object):
 
 
 # pylint: disable=too-many-statements,too-many-instance-attributes
-class CIMProperty(object):
+class CIMProperty(_CIMComparisonMixin):
     """
     Defines a CIM property including cim type, value, and possibly
     qualifiers.
@@ -721,7 +850,7 @@ class CIMProperty(object):
 
         :Parameters:
 
-          name : `unicode` or UTF-8 encoded `str`
+          name : Unicode string or UTF-8 encoded byte string
             Name of the property. Must not be `None`.
 
           value
@@ -730,13 +859,13 @@ class CIMProperty(object):
             it is used in a class).
             For valid types for CIM values, see `cim_types`.
 
-          type : string
+          type : Unicode string or UTF-8 encoded byte string
             Name of the CIM type of the property (e.g. `'uint8'`).
             `None` means that the argument is unspecified, causing the
             corresponding instance variable to be inferred. An exception is
             raised if it cannot be inferred.
 
-          class_origin : `unicode` or UTF-8 encoded `str`
+          class_origin : Unicode string or UTF-8 encoded byte string
             The CIM class origin of the property (the name
             of the most derived class that defines or overrides the property in
             the class hierarchy of the class owning the property).
@@ -746,7 +875,7 @@ class CIMProperty(object):
             The size of the array property, for fixed-size arrays.
             `None` means that the array property has variable size.
 
-          propagated : `unicode` or UTF-8 encoded `str`
+          propagated : Unicode string or UTF-8 encoded byte string
             The CIM *propagated* attribute of the property (the effective value
             of the `Propagated` qualifier of the property, which is a string
             that specifies the name of the source property from which the
@@ -760,7 +889,7 @@ class CIMProperty(object):
             corresponding instance variable to be inferred from the `value`
             parameter, and if that is `None` it defaults to `False` (scalar).
 
-          reference_class : `unicode` or UTF-8 encoded `str`
+          reference_class : Unicode string or UTF-8 encoded byte string
             The name of the referenced class, for reference properties.
             `None` means that the argument is unspecified, causing the
             corresponding instance variable  to be inferred. An exception is
@@ -774,7 +903,7 @@ class CIMProperty(object):
             `None` means that there are no qualifier values. In all cases,
             the `qualifiers` instance variable will be a `NocaseDict` object.
 
-          embedded_object : string
+          embedded_object : Unicode string or UTF-8 encoded byte string
             A string value indicating the kind of
             embedded object represented by the property value. The following
             values are defined for this argument:
@@ -824,6 +953,17 @@ class CIMProperty(object):
           :raise ValueError:
         """
 
+        type_ = type  # Minimize usage of the builtin 'type'
+
+        # Make sure we process Unicode strings
+        name = _ensure_unicode(name)
+        type_ = _ensure_unicode(type_)
+        value = _ensure_unicode(value)
+        class_origin = _ensure_unicode(class_origin)
+        propagated = _ensure_unicode(propagated)
+        reference_class = _ensure_unicode(reference_class)
+        embedded_object = _ensure_unicode(embedded_object)
+
         # Check `name`
 
         if name is None:
@@ -870,13 +1010,13 @@ class CIMProperty(object):
                 # Cannot infer from value, look at embedded_object and type
                 if embedded_object == 'instance':
                     msg = 'Array property %r contains embedded instances' % name
-                    type = _intended_value('string', None, type, 'type', msg)
+                    type_ = _intended_value('string', None, type_, 'type', msg)
                 elif embedded_object == 'object':
                     msg = 'Array property %r contains embedded objects' % name
-                    type = _intended_value('string', None, type, 'type', msg)
-                elif type is not None:
+                    type_ = _intended_value('string', None, type_, 'type', msg)
+                elif type_ is not None:
                     # Leave type as specified, but check it for validity
-                    dummy_type_obj = cim_types.type_from_name(type)
+                    dummy_type_obj = cim_types.type_from_name(type_)
                 else:
                     raise ValueError(
                         'Cannot infer type of array property %r that is ' \
@@ -884,13 +1024,13 @@ class CIMProperty(object):
                         name)
             elif isinstance(value[0], CIMInstance):
                 msg = 'Array property %r contains CIMInstance values' % name
-                type = _intended_value('string', None, type, 'type', msg)
+                type_ = _intended_value('string', None, type_, 'type', msg)
                 embedded_object = _intended_value(
                     ('instance', 'object'), None, embedded_object,
                     'embedded_object', msg)
             elif isinstance(value[0], CIMClass):
                 msg = 'Array property %r contains CIMClass values' % name
-                type = _intended_value('string', None, type, 'type', msg)
+                type_ = _intended_value('string', None, type_, 'type', msg)
                 embedded_object = _intended_value(
                     'object', None, embedded_object, 'embedded_object', msg)
             elif isinstance(value[0], (datetime, timedelta)):
@@ -898,19 +1038,19 @@ class CIMProperty(object):
                          else val for val in value]
                 msg = 'Array property %r contains datetime or timedelta ' \
                       'values' % name
-                type = _intended_value('datetime', None, type, 'type', msg)
+                type_ = _intended_value('datetime', None, type_, 'type', msg)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
-            elif type == 'datetime':
+            elif type_ == 'datetime':
                 value = [cim_types.CIMDateTime(val) if val is not None
                          and not isinstance(val, cim_types.CIMDateTime)
                          else val for val in value]
-                msg = 'Array property %r specifies CIM type %r' % (name, type)
+                msg = 'Array property %r specifies CIM type %r' % (name, type_)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
-            elif type is None:
+            elif type_ is None:
                 # Determine simple type from (non-Null) value
-                type = cim_types.cimtype(value[0])
+                type_ = cim_types.cimtype(value[0])
                 msg = 'Array property %r contains simple typed values ' \
                       'with no CIM type specified' % name
                 embedded_object = _intended_value(
@@ -918,10 +1058,10 @@ class CIMProperty(object):
             else: # type is specified and value (= entire array) is not Null
                 # Make sure the array elements are of the corresponding Python
                 # type.
-                value = [cim_types.type_from_name(type)(val) if val is not None
+                value = [cim_types.type_from_name(type_)(val) if val is not None
                          else val for val in value]
                 msg = 'Array property %r contains simple typed values ' \
-                        'and specifies CIM type %r' % (name, type)
+                        'and specifies CIM type %r' % (name, type_)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
         else: # Scalar property
@@ -929,23 +1069,23 @@ class CIMProperty(object):
                 # Try to infer from embedded_object, reference_class, and type
                 if embedded_object == 'instance':
                     msg = 'Property %r contains embedded instance' % name
-                    type = _intended_value('string', None, type, 'type', msg)
+                    type_ = _intended_value('string', None, type_, 'type', msg)
                     reference_class = _intended_value(
                         None, None, reference_class, 'reference_class', msg)
                 elif embedded_object == 'object':
                     msg = 'Property %r contains embedded object' % name
-                    type = _intended_value('string', None, type, 'type', msg)
+                    type_ = _intended_value('string', None, type_, 'type', msg)
                     reference_class = _intended_value(
                         None, None, reference_class, 'reference_class', msg)
                 elif reference_class is not None:
                     msg = 'Property %r is a reference' % name
                     embedded_object = _intended_value(
                         None, None, embedded_object, 'embedded_object', msg)
-                    type = _intended_value(
-                        'reference', None, type, 'type', msg)
-                elif type is not None:
+                    type_ = _intended_value(
+                        'reference', None, type_, 'type', msg)
+                elif type_ is not None:
                     # Leave type as specified, but check it for validity
-                    dummy_type_obj = cim_types.type_from_name(type)
+                    dummy_type_obj = cim_types.type_from_name(type_)
                 else:
                     raise ValueError('Cannot infer type of simple ' \
                                      'property %r that is Null' % name)
@@ -955,12 +1095,12 @@ class CIMProperty(object):
                 reference_class = _intended_value(
                     value.classname, None, reference_class, 'reference_class',
                     msg)
-                type = _intended_value('reference', None, type, 'type', msg)
+                type_ = _intended_value('reference', None, type_, 'type', msg)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
             elif isinstance(value, CIMInstance):
                 msg = 'Property %r has a CIMInstance value' % name
-                type = _intended_value('string', None, type, 'type', msg)
+                type_ = _intended_value('string', None, type_, 'type', msg)
                 embedded_object = _intended_value(
                     ('instance', 'object'), None, embedded_object,
                     'embedded_object', msg)
@@ -968,7 +1108,7 @@ class CIMProperty(object):
                     None, None, reference_class, 'reference_class', msg)
             elif isinstance(value, CIMClass):
                 msg = 'Property %r has a CIMClass value' % name
-                type = _intended_value('string', None, type, 'type', msg)
+                type_ = _intended_value('string', None, type_, 'type', msg)
                 embedded_object = _intended_value(
                     'object', None, embedded_object, 'embedded_object', msg)
                 reference_class = _intended_value(
@@ -976,22 +1116,22 @@ class CIMProperty(object):
             elif isinstance(value, (datetime, timedelta)):
                 value = cim_types.CIMDateTime(value)
                 msg = 'Property %r has a datetime or timedelta value' % name
-                type = _intended_value('datetime', None, type, 'type', msg)
+                type_ = _intended_value('datetime', None, type_, 'type', msg)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
                 reference_class = _intended_value(
                     None, None, reference_class, 'reference_class', msg)
-            elif type == 'datetime':
+            elif type_ == 'datetime':
                 if not isinstance(value, cim_types.CIMDateTime):
                     value = cim_types.CIMDateTime(value)
-                msg = 'Property %r specifies CIM type %r' % (name, type)
+                msg = 'Property %r specifies CIM type %r' % (name, type_)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
                 reference_class = _intended_value(
                     None, None, reference_class, 'reference_class', msg)
-            elif type is None:
+            elif type_ is None:
                 # Determine simple type from (non-Null) value
-                type = cim_types.cimtype(value)
+                type_ = cim_types.cimtype(value)
                 msg = 'Property %r has a simple typed value ' \
                       'with no CIM type specified' % name
                 embedded_object = _intended_value(
@@ -1000,10 +1140,10 @@ class CIMProperty(object):
                     None, None, reference_class, 'reference_class', msg)
             else: # type is specified and value is not Null
                 # Make sure the value is of the corresponding Python type.
-                _type_obj = cim_types.type_from_name(type)
+                _type_obj = cim_types.type_from_name(type_)
                 value = _type_obj(value)  # pylint: disable=redefined-variable-type
                 msg = 'Property %r has a simple typed value ' \
-                        'and specifies CIM type %r' % (name, type)
+                        'and specifies CIM type %r' % (name, type_)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
                 reference_class = _intended_value(
@@ -1012,7 +1152,7 @@ class CIMProperty(object):
         # Initialize members
         self.name = name
         self.value = value
-        self.type = type
+        self.type = type_
         self.class_origin = class_origin
         self.array_size = array_size
         self.propagated = propagated
@@ -1105,24 +1245,38 @@ class CIMProperty(object):
                 qualifiers=[q.tocimxml() for q in self.qualifiers.values()],
                 embedded_object=self.embedded_object)
 
-    def __cmp__(self, other):
+    def _cmp(self, other):
+        """
+        Comparator function for two `CIMProperty` objects.
 
+        The comparison is based on the `name`, `value`, `type`,
+        `reference_class`, `is_array`, `array_size`, `propagated`,
+        `class_origin`, and `qualifiers` instance attributes, in descending
+        precedence.
+
+        The `name` and `reference_class` attributes are compared
+        case-insensitively.
+
+        Raises `TypeError', if the `other` object is not a `CIMProperty`
+        object.
+        """
         if self is other:
             return 0
-        elif not isinstance(other, self.__class__):
-            return 1
+        if not isinstance(other, CIMProperty):
+            raise TypeError("other must be CIMProperty, but is: %s" %\
+                            type(other))
+        return (cmpname(self.name, other.name) or
+                cmpitem(self.value, other.value) or
+                cmpitem(self.type, other.type) or
+                cmpname(self.reference_class, other.reference_class) or
+                cmpitem(self.is_array, other.is_array) or
+                cmpitem(self.array_size, other.array_size) or
+                cmpitem(self.propagated, other.propagated) or
+                cmpitem(self.class_origin, other.class_origin) or
+                cmpitem(self.qualifiers, other.qualifiers))
 
-        return (cmpname(self.name, other.name)
-                or cmp(self.value, other.value)
-                or cmp(self.type, other.type)
-                or cmp(self.class_origin, other.class_origin)
-                or cmp(self.array_size, other.array_size)
-                or cmp(self.propagated, other.propagated)
-                or cmp(self.qualifiers, other.qualifiers)
-                or cmp(self.is_array, other.is_array)
-                or cmpname(self.reference_class, other.reference_class))
 
-class CIMInstanceName(object):
+class CIMInstanceName(_CIMComparisonMixin):
     """
     A CIM instance path (aka *instance name*).
 
@@ -1144,7 +1298,7 @@ class CIMInstanceName(object):
 
         :Parameters:
 
-          classname : `unicode` or UTF-8 encoded `str`
+          classname : Unicode string or UTF-8 encoded byte string
             Name of the creation class of the referenced instance.
 
           keybindings : `dict` or `NocaseDict`
@@ -1160,7 +1314,7 @@ class CIMInstanceName(object):
 
             Default: `None`.
 
-          host : `unicode` or UTF-8 encoded `str`
+          host : Unicode string or UTF-8 encoded byte string
             Optional: URL of the WBEM server that contains the CIM namespace
             of this instance path.
 
@@ -1168,7 +1322,7 @@ class CIMInstanceName(object):
 
             Default: `None`.
 
-          namespace : `unicode` or UTF-8 encoded `str`
+          namespace : Unicode string or UTF-8 encoded byte string
             Optional: Name of the CIM namespace that contains the referenced
             instance.
 
@@ -1180,6 +1334,11 @@ class CIMInstanceName(object):
           :raise TypeError:
           :raise ValueError:
         """
+
+        # Make sure we process Unicode strings
+        classname = _ensure_unicode(classname)
+        host = _ensure_unicode(host)
+        namespace = _ensure_unicode(namespace)
 
         if classname is None:
             raise ValueError('Instance path must have a class name')
@@ -1199,21 +1358,28 @@ class CIMInstanceName(object):
 
         return result
 
-    def __cmp__(self, other):
-        """ Compare the CIMInstanceName object to `other`
-            :param other: a CIMInstanceName object to be compared.
-            :return: True if the object and other object are equal.
+    def _cmp(self, other):
         """
+        Comparator function for two `CIMInstanceName` objects.
 
+        The comparison is based on the `host`, `namespace`, `classname`,
+        and `keybindings`, instance attributes, in descending precedence.
+
+        The `host` and `namespace` and `classname` attributes are compared
+        case-insensitively.
+
+        Raises `TypeError', if the `other` object is not a `CIMInstanceName`
+        object.
+        """
         if self is other:
             return 0
-        elif not isinstance(other, CIMInstanceName):
-            return 1
-
-        return (cmpname(self.classname, other.classname) or
-                cmp(self.keybindings, other.keybindings) or
-                cmpname(self.host, other.host) or
-                cmpname(self.namespace, other.namespace))
+        if not isinstance(other, CIMInstanceName):
+            raise TypeError("other must be CIMInstanceName, but is: %s" %\
+                            type(other))
+        return (cmpname(self.host, other.host) or
+                cmpname(self.namespace, other.namespace) or
+                cmpname(self.classname, other.classname) or
+                cmpitem(self.keybindings, other.keybindings))
 
     def __str__(self):
         """ Return string representation of CIMClassname in
@@ -1234,7 +1400,7 @@ class CIMInstanceName(object):
 
             ret_str += '%s=' % key
 
-            if isinstance(value, (int, long, bool, float)):
+            if isinstance(value, (six.integer_types, bool, float)):
                 ret_str += str(value)
             elif isinstance(value, CIMInstanceName):
                 ret_str += '"%s"' % str(value).replace('\\', '\\\\').replace(
@@ -1283,7 +1449,7 @@ class CIMInstanceName(object):
 
     def has_key(self, key):
         """Return boolean. True if `key` is in keybindings"""
-        return self.keybindings.has_key(key)
+        return key in self.keybindings
 
     def keys(self):
         """Return list of keys in keybindings"""
@@ -1333,7 +1499,8 @@ class CIMInstanceName(object):
 
         # Note: The CIM types are derived from the built-in types,
         # so we cannot use isinstance() for this test.
-        elif builtin_type(self.keybindings) in (int, float, long): # pylint: disable=unidiomatic-typecheck
+        # pylint: disable=unidiomatic-typecheck
+        elif builtin_type(self.keybindings) in six.integer_types + (float,):
 
             # This cannot happen; self.keybindings is always a NocaseDict:
             raise TypeError("Unexpected: keybindings has numeric type: %s" % \
@@ -1361,30 +1528,27 @@ class CIMInstanceName(object):
                     continue
 
                 if isinstance(key_bind[1], bool):
-                    _type = 'boolean'
+                    type_ = 'boolean'
                     if key_bind[1]:
                         value = 'TRUE'
                     else:
                         value = 'FALSE'
-                elif isinstance(key_bind[1], (int, float, long)):
-                    # pywbem.cim_type.{Sint32, Real64, ... } derive from
-                    # long or float
+                elif isinstance(key_bind[1], six.integer_types + (float,)):
+                    # Numeric CIM types derive from int, long or float.
                     # Note: int is a subtype of bool, but bool is already
                     # tested further up.
-                    _type = 'numeric'
+                    type_ = 'numeric'
                     value = str(key_bind[1])
-                elif isinstance(key_bind[1], basestring):
-                    _type = 'string'
-                    value = key_bind[1].decode('utf-8') \
-                                if isinstance(key_bind[1], str) \
-                                                  else key_bind[1]
+                elif isinstance(key_bind[1], six.string_types):
+                    type_ = 'string'
+                    value = _ensure_unicode(key_bind[1])
                 else:
                     raise TypeError('Invalid keybinding type for keybinding '\
                             '%s: %s' % (key_bind[0], builtin_type(key_bind[1])))
 
                 kbs.append(cim_xml.KEYBINDING(
                     key_bind[0],
-                    cim_xml.KEYVALUE(value, _type)))
+                    cim_xml.KEYVALUE(value, type_)))
 
             instancename_xml = cim_xml.INSTANCENAME(self.classname, kbs)
 
@@ -1406,7 +1570,7 @@ class CIMInstanceName(object):
             return cim_xml.LOCALINSTANCEPATH(
                 cim_xml.LOCALNAMESPACEPATH(
                     [cim_xml.NAMESPACE(ns)
-                     for ns in string.split(self.namespace, '/')]),
+                     for ns in self.namespace.split('/')]),
                 instancename_xml)
 
         # Instance name plus host and namespace = INSTANCEPATH
@@ -1417,14 +1581,14 @@ class CIMInstanceName(object):
                     cim_xml.HOST(self.host),
                     cim_xml.LOCALNAMESPACEPATH([
                         cim_xml.NAMESPACE(ns)
-                        for ns in string.split(self.namespace, '/')])),
+                        for ns in self.namespace.split('/')])),
                 instancename_xml)
 
         # Just a regular INSTANCENAME
 
         return instancename_xml
 
-class CIMInstance(object):
+class CIMInstance(_CIMComparisonMixin):
     """
     A CIM instance, optionally including its instance path.
 
@@ -1444,7 +1608,7 @@ class CIMInstance(object):
 
         :Parameters:
 
-          classname : `unicode` or UTF-8 encoded `str`
+          classname : Unicode string or UTF-8 encoded byte string
             Name of the creation class of the instance.
 
           properties : `dict` or `NocaseDict`
@@ -1469,7 +1633,7 @@ class CIMInstance(object):
 
             Default: `None`.
 
-          property_list : list of strings
+          property_list : list of Unicode strings or UTF-8 encoded byte strings
             Optional: List of property names for use by some operations on this
             object.
 
@@ -1478,12 +1642,12 @@ class CIMInstance(object):
           :raise ValueError:
         """
 
-        self.classname = classname
+        self.classname = _ensure_unicode(classname)
         self.qualifiers = NocaseDict(qualifiers)
         # TODO: Add support for accepting qualifiers as plain dict
         self.path = path
         if property_list is not None:
-            self.property_list = [x.lower() for x in property_list]
+            self.property_list = [_ensure_unicode(x).lower() for x in property_list]
         else:
             self.property_list = None
 
@@ -1554,21 +1718,27 @@ class CIMInstance(object):
 
         return result
 
-    def __cmp__(self, other):
-        """ Compare the CIMInstance object to the CIMInstance
-            object defined in `other`
-            "param other: CIMInstance object to compare
-            "return: True if the CIMInstances are equal.
+    def _cmp(self, other):
+        """
+        Comparator function for two `CIMInstance` objects.
+
+        The comparison is based on the `classname`, `path`, `properties`,
+        and `qualifiers` instance attributes, in descending precedence.
+
+        The `classname` attribute is compared case-insensitively.
+
+        Raises `TypeError', if the `other` object is not a `CIMInstance`
+        object.
         """
         if self is other:
             return 0
-        elif not isinstance(other, CIMInstance):
-            return 1
-
+        if not isinstance(other, CIMInstance):
+            raise TypeError("other must be CIMInstance, but is: %s" %\
+                            type(other))
         return (cmpname(self.classname, other.classname) or
-                cmp(self.path, other.path) or
-                cmp(self.properties, other.properties) or
-                cmp(self.qualifiers, other.qualifiers))
+                cmpitem(self.path, other.path) or
+                cmpitem(self.properties, other.properties) or
+                cmpitem(self.qualifiers, other.qualifiers))
 
     def __repr__(self):
         """
@@ -1601,7 +1771,7 @@ class CIMInstance(object):
     def has_key(self, key):
         """ Return boolean True if there is a key property"""
 
-        return self.properties.has_key(key)
+        return key in self.properties
 
     def keys(self):
         return self.properties.keys()
@@ -1633,7 +1803,7 @@ class CIMInstance(object):
         # Note: The CIM types are derived from the built-in types,
         # so we cannot use isinstance() for this test.
         # pylint: disable=unidiomatic-typecheck
-        if builtin_type(value) in (int, float, long):
+        if builtin_type(value) in six.integer_types + (float,):
             raise TypeError(
                 "Type of numeric value for a property must be a CIM type, "\
                 "but is %s" % builtin_type(value))
@@ -1725,7 +1895,7 @@ class CIMInstance(object):
         return ret_str
 
 
-class CIMClass(object):
+class CIMClass(_CIMComparisonMixin):
     """
     Create an instance of CIMClass, a CIM class with classname,
     properties, methods, qualifiers, and superclass name.
@@ -1746,11 +1916,11 @@ class CIMClass(object):
         for the CIMClass including classname, properties, class
         qualifiers, methods, and the superclass
         """
-        self.classname = classname
+        self.classname = _ensure_unicode(classname)
         self.properties = NocaseDict(properties)
         self.qualifiers = NocaseDict(qualifiers)
         self.methods = NocaseDict(methods)
-        self.superclass = superclass
+        self.superclass = _ensure_unicode(superclass)
 
     def copy(self):
         """ Return a copy of the CIMClass object"""
@@ -1769,23 +1939,30 @@ class CIMClass(object):
         return "%s(classname=%r, ...)" % (self.__class__.__name__,
                                           self.classname)
 
-    def __cmp__(self, other):
-        """ Compare the CIMClass to a CIMClass represented by `other`.
-
-            :param other: Other CIMClass for the comparison.
-            :return: True if the CIMClass and other CIMClass are equal.
+    def _cmp(self, other):
         """
+        Comparator function for two `CIMClass` objects.
 
+        The comparison is based on the `classname`, `superclass`, `qualifiers`,
+        `properties` and `methods` instance attributes, in descending
+        precedence.
+
+        The `classname` and `superclass` attributes are compared
+        case-insensitively.
+
+        Raises `TypeError', if the `other` object is not a `CIMClass`
+        object.
+        """
         if self is other:
             return 0
-        elif not isinstance(other, CIMClass):
-            return 1
-
-        return (cmpname(self.classname, other.classname)
-                or cmpname(self.superclass, other.superclass)
-                or cmp(self.properties, other.properties)
-                or cmp(self.qualifiers, other.qualifiers)
-                or cmp(self.methods, other.methods))
+        if not isinstance(other, CIMClass):
+            raise TypeError("other must be CIMClass, but is: %s" %\
+                            type(other))
+        return (cmpname(self.classname, other.classname) or
+                cmpname(self.superclass, other.superclass) or
+                cmpitem(self.qualifiers, other.qualifiers) or
+                cmpitem(self.properties, other.properties) or
+                cmpitem(self.methods, other.methods))
 
     def tocimxml(self):
         """ Return string with CIM/XML representation of the CIMClass"""
@@ -1836,7 +2013,7 @@ class CIMClass(object):
 
         return ret_str
 
-class CIMMethod(object):
+class CIMMethod(_CIMComparisonMixin):
     """
     A CIM method.
 
@@ -1854,11 +2031,11 @@ class CIMMethod(object):
 
         TODO: add description
         """
-        self.name = methodname
-        self.return_type = return_type
+        self.name = _ensure_unicode(methodname)
+        self.return_type = _ensure_unicode(return_type)
         self.parameters = NocaseDict(parameters)
-        self.class_origin = class_origin
-        self.propagated = propagated
+        self.class_origin = _ensure_unicode(class_origin)
+        self.propagated = _ensure_unicode(propagated)
         self.qualifiers = NocaseDict(qualifiers)
 
     def copy(self):
@@ -1891,19 +2068,30 @@ class CIMMethod(object):
         return '%s(name=%r, return_type=%r, ...)' % \
                (self.__class__.__name__, self.name, self.return_type)
 
-    def __cmp__(self, other):
+    def _cmp(self, other):
+        """
+        Comparator function for two `CIMMethod` objects.
 
+        The comparison is based on the `name`, `qualifiers`, `parameters`,
+        `return_type`, `class_origin` and `propagated` instance attributes,
+        in descending precedence.
+
+        The `name` attribute is compared case-insensitively.
+
+        Raises `TypeError', if the `other` object is not a `CIMMethod`
+        object.
+        """
         if self is other:
             return 0
-        elif not isinstance(other, CIMMethod):
-            return 1
-
+        if not isinstance(other, CIMMethod):
+            raise TypeError("other must be CIMMethod, but is: %s" %\
+                            type(other))
         return (cmpname(self.name, other.name) or
-                cmp(self.parameters, other.parameters) or
-                cmp(self.qualifiers, other.qualifiers) or
-                cmp(self.class_origin, other.class_origin) or
-                cmp(self.propagated, other.propagated) or
-                cmp(self.return_type, other.return_type))
+                cmpitem(self.qualifiers, other.qualifiers) or
+                cmpitem(self.parameters, other.parameters) or
+                cmpitem(self.return_type, other.return_type) or
+                cmpitem(self.class_origin, other.class_origin) or
+                cmpitem(self.propagated, other.propagated))
 
     def tomof(self):
         """ Return string MOF representation of the CIMMethod object"""
@@ -1917,13 +2105,13 @@ class CIMMethod(object):
             # (the CIM architecture does).
 
         ret_str += '%s(\n' % (self.name)
-        ret_str += string.join(
-            ['       '+p.tomof() for p in self.parameters.values()], ',\n')
+        ret_str += ',\n'.join(
+            ['       '+p.tomof() for p in self.parameters.values()])
         ret_str += ');\n'
 
         return ret_str
 
-class CIMParameter(object):
+class CIMParameter(_CIMComparisonMixin):
     """
     A CIM parameter.
 
@@ -1941,13 +2129,16 @@ class CIMParameter(object):
 
         TODO: add description
         """
-        self.name = name
-        self.type = type
-        self.reference_class = reference_class
+
+        type_ = type  # Minimize usage of the builtin 'type'
+
+        self.name = _ensure_unicode(name)
+        self.type = _ensure_unicode(type_)
+        self.reference_class = _ensure_unicode(reference_class)
         self.is_array = is_array
         self.array_size = array_size
         self.qualifiers = NocaseDict(qualifiers)
-        self.value = value
+        self.value = _ensure_unicode(value)
 
     def copy(self):
         """ return copy of the CIMParameter object"""
@@ -1968,20 +2159,31 @@ class CIMParameter(object):
                (self.__class__.__name__, self.name, self.type,
                 self.reference_class, self.is_array)
 
-    def __cmp__(self, other):
+    def _cmp(self, other):
+        """
+        Comparator function for two `CIMParameter` objects.
 
+        The comparison is based on the `name`, `type`, `reference_class`,
+        `is_array`, `array_size`, `qualifiers` and `value` instance attributes,
+        in descending precedence.
+
+        The `name` attribute is compared case-insensitively.
+
+        Raises `TypeError', if the `other` object is not a `CIMParameter`
+        object.
+        """
         if self is other:
             return 0
-        elif not isinstance(other, self.__class__):
-            return 1
-
+        if not isinstance(other, CIMParameter):
+            raise TypeError("other must be CIMParameter, but is: %s" %\
+                            type(other))
         return (cmpname(self.name, other.name) or
-                cmp(self.type, other.type) or
+                cmpitem(self.type, other.type) or
                 cmpname(self.reference_class, other.reference_class) or
-                cmp(self.is_array, other.is_array) or
-                cmp(self.array_size, other.array_size) or
-                cmp(self.qualifiers, other.qualifiers) or
-                cmp(self.value, other.value))
+                cmpitem(self.is_array, other.is_array) or
+                cmpitem(self.array_size, other.array_size) or
+                cmpitem(self.qualifiers, other.qualifiers) or
+                cmpitem(self.value, other.value))
 
     def tocimxml(self):
         """ Return String containing CIM/XML representation of
@@ -2045,7 +2247,7 @@ class CIMParameter(object):
         return rtn_str
 
 # pylint: disable=too-many-instance-attributes
-class CIMQualifier(object):
+class CIMQualifier(_CIMComparisonMixin):
     """
     A CIM qualifier value.
 
@@ -2068,9 +2270,12 @@ class CIMQualifier(object):
 
         TODO: add description
         """
-        self.name = name
-        self.type = type
-        self.propagated = propagated
+
+        type_ = type  # Minimize usage of the builtin 'type'
+
+        self.name = _ensure_unicode(name)
+        self.type = _ensure_unicode(type_)
+        self.propagated = _ensure_unicode(propagated)
         self.overridable = overridable
         self.tosubclass = tosubclass
         self.toinstance = toinstance
@@ -2108,7 +2313,7 @@ class CIMQualifier(object):
         # Note: The CIM types are derived from the built-in types,
         # so we cannot use isinstance() for this test.
         # pylint: disable=unidiomatic-typecheck
-        if builtin_type(value) in (int, float, long):
+        if builtin_type(value) in six.integer_types + (float,):
             raise TypeError(
                 "Type of numeric value for a qualifier must be a CIM type, "\
                 "but is %s" % builtin_type(value))
@@ -2131,21 +2336,32 @@ class CIMQualifier(object):
         return "%s(name=%r, value=%r, type=%r, ...)" % \
                (self.__class__.__name__, self.name, self.value, self.type)
 
-    def __cmp__(self, other):
+    def _cmp(self, other):
+        """
+        Comparator function for two `CIMQualifier` objects.
 
+        The comparison is based on the `name`, `type`, `value`, `propagated`,
+        `overridable`, `tosubclass`, `toinstance`, `translatable` instance
+        attributes, in descending precedence.
+
+        The `name` attribute is compared case-insensitively.
+
+        Raises `TypeError', if the `other` object is not a `CIMQualifier`
+        object.
+        """
         if self is other:
             return 0
-        elif not isinstance(other, CIMQualifier):
-            return 1
-
+        if not isinstance(other, CIMQualifier):
+            raise TypeError("other must be CIMQualifier, but is: %s" %\
+                            type(other))
         return (cmpname(self.name, other.name) or
-                cmp(self.value, other.value) or
-                cmp(self.type, other.type) or
-                cmp(self.propagated, other.propagated) or
-                cmp(self.overridable, other.overridable) or
-                cmp(self.tosubclass, other.tosubclass) or
-                cmp(self.toinstance, other.toinstance) or
-                cmp(self.translatable, other.translatable))
+                cmpitem(self.type, other.type) or
+                cmpitem(self.value, other.value) or
+                cmpitem(self.propagated, other.propagated) or
+                cmpitem(self.overridable, other.overridable) or
+                cmpitem(self.tosubclass, other.tosubclass) or
+                cmpitem(self.toinstance, other.toinstance) or
+                cmpitem(self.translatable, other.translatable))
 
     def tocimxml(self):
         """ Return CIM/XML string representing CIMQualifier"""
@@ -2172,7 +2388,7 @@ class CIMQualifier(object):
 
         def valstr(value):
             """ Return string representing value argument."""
-            if isinstance(value, basestring):
+            if isinstance(value, six.string_types):
                 return mofstr(value, indent)
             return str(value)
 
@@ -2183,7 +2399,7 @@ class CIMQualifier(object):
         return '%s (%s)' % (self.name, valstr(self.value))
 
 #pylint: disable=too-many-instance-attributes
-class CIMQualifierDeclaration(object):
+class CIMQualifierDeclaration(_CIMComparisonMixin):
     """
     A CIM qualifier type.
 
@@ -2208,9 +2424,12 @@ class CIMQualifierDeclaration(object):
 
         TODO: add description
         """
-        self.name = name
-        self.type = type
-        self.value = value
+
+        type_ = type  # Minimize usage of the builtin 'type'
+
+        self.name = _ensure_unicode(name)
+        self.type = _ensure_unicode(type_)
+        self.value = _ensure_unicode(value)
         self.is_array = is_array
         self.array_size = array_size
         self.scopes = NocaseDict(scopes)
@@ -2239,24 +2458,34 @@ class CIMQualifierDeclaration(object):
         return "%s(name=%r, type=%r, is_array=%r, ...)" % \
             (self.__class__.__name__, self.name, self.type, self.is_array)
 
-    def __cmp__(self, other):
-        """ Compare the CIMQualifierDeclaration with 'other'"""
+    def _cmp(self, other):
+        """
+        Comparator function for two `CIMQualifierDeclaration` objects.
 
+        The comparison is based on the `name`, `type`, `value`, `is_array`,
+        `array_size`, `scopes`, `overridable`, `tosubclass`, `toinstance`,
+        `translatable` instance attributes, in descending precedence.
+
+        The `name` attribute is compared case-insensitively.
+
+        Raises `TypeError', if the `other` object is not a
+        `CIMQualifierDeclaration` object.
+        """
         if self is other:
             return 0
-        elif not isinstance(other, CIMQualifierDeclaration):
-            return 1
-
+        if not isinstance(other, CIMQualifierDeclaration):
+            raise TypeError("other must be CIMQualifierDeclaration, "\
+                            "but is: %s" % type(other))
         return (cmpname(self.name, other.name) or
-                cmp(self.type, other.type) or
-                cmp(self.value, other.value) or
-                cmp(self.is_array, other.is_array) or
-                cmp(self.array_size, other.array_size) or
-                cmp(self.scopes, other.scopes) or
-                cmp(self.overridable, other.overridable) or
-                cmp(self.tosubclass, other.tosubclass) or
-                cmp(self.toinstance, other.toinstance) or
-                cmp(self.translatable, other.translatable))
+                cmpitem(self.type, other.type) or
+                cmpitem(self.value, other.value) or
+                cmpitem(self.is_array, other.is_array) or
+                cmpitem(self.array_size, other.array_size) or
+                cmpitem(self.scopes, other.scopes) or
+                cmpitem(self.overridable, other.overridable) or
+                cmpitem(self.tosubclass, other.tosubclass) or
+                cmpitem(self.toinstance, other.toinstance) or
+                cmpitem(self.translatable, other.translatable))
 
     def tocimxml(self):
         """
@@ -2321,12 +2550,15 @@ def tocimxml(value):
 
     # CIMType or builtin type
 
-    if isinstance(value, (cim_types.CIMType, unicode, int)):
-        return cim_xml.VALUE(unicode(value))
+    if isinstance(value, (cim_types.CIMType, int, six.text_type)):
+        return cim_xml.VALUE(six.text_type(value))
 
-    if isinstance(value, str):
-        return cim_xml.VALUE(value.decode('utf-8'))
+    if isinstance(value, six.binary_type):
+        return cim_xml.VALUE(_ensure_unicode(value))
 
+    # TODO: Verify whether this is a bug to have this test after the one for
+    #       int. Bool is a subtype of int, so bool probably matches in the test
+    #       above.
     if isinstance(value, bool):
         if value:
             return cim_xml.VALUE('TRUE')
@@ -2336,7 +2568,7 @@ def tocimxml(value):
     # List of values
 
     if isinstance(value, list):
-        return cim_xml.VALUE_ARRAY(map(tocimxml, value))
+        return cim_xml.VALUE_ARRAY(list(map(tocimxml, value)))
 
     raise ValueError("Can't convert %s (%s) to CIM XML" % \
                      (value, builtin_type(value)))
@@ -2353,20 +2585,20 @@ def tocimobj(type_, value):
     if value is None or type_ is None:
         return None
 
-    if type_ != 'string' and isinstance(value, basestring) and not value:
+    if type_ != 'string' and isinstance(value, six.string_types) and not value:
         return None
 
     # Lists of values
 
     if isinstance(value, list):
-        return map(lambda x: tocimobj(type_, x), value)
+        return [tocimobj(type_, x) for x in value]
 
     # Boolean type
 
     if type_ == 'boolean':
         if isinstance(value, bool):
             return value
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             if value.lower() == 'true':
                 return True
             elif value.lower() == 'false':
@@ -2449,7 +2681,7 @@ def tocimobj(type_, value):
 
         if isinstance(value, (CIMInstanceName, CIMClassName)):
             return value
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             nm_space = host = None
             head, sep, tail = partition(value, '//')
             if sep and head.find('"') == -1:

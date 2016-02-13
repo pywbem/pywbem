@@ -16,6 +16,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 # Author: Martin Pool <mbp@hp.com>
+# Author: Ross Peoples <ross.peoples@gmail.com>
 #
 
 """
@@ -47,8 +48,8 @@ The CONTENTS is a list of child elements.
 The fourth element is reserved.
 """
 
-from types import StringTypes
 import xml.dom.minidom
+import six
 
 __all__ = ['dom_to_tupletree', 'xml_to_tupletree']
 
@@ -73,13 +74,13 @@ def dom_to_tupletree(node):
         if child.nodeType == child.ELEMENT_NODE:
             contents.append(dom_to_tupletree(child))
         elif child.nodeType == child.TEXT_NODE:
-            assert isinstance(child.nodeValue, StringTypes), \
-                   "text node %s is not a string" % `child`
+            assert isinstance(child.nodeValue, six.string_types), \
+                   "text node %s is not a string %r" % child
             contents.append(child.nodeValue)
         elif child.nodeType == child.CDATA_SECTION_NODE:
             contents.append(child.nodeValue)
         else:
-            raise RuntimeError("can't handle %s" % child)
+            raise RuntimeError("can't handle %r" % child)
 
     for i in range(node.attributes.length):
         attr_node = node.attributes.item(i)

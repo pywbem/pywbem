@@ -19,6 +19,7 @@
 # Author: Tim Potter <tpot@hp.com>
 # Author: Martin Pool <mbp@hp.com>
 # Author: Bart Whiteley <bwhiteley@suse.de>
+# Author: Ross Peoples <ross.peoples@gmail.com>
 #
 
 '''
@@ -30,24 +31,33 @@ caller to provide CIM-XML formatted input data and interpret the result data
 as CIM-XML.
 '''
 
-import string
 import re
 import os
 import sys
 import socket
 import getpass
 from stat import S_ISSOCK
-from types import StringTypes
 import platform
-import httplib
 import base64
-import urllib
 import threading
 from datetime import datetime
+import six
+from six.moves import http_client as httplib
+from six.moves import urllib
 
-from M2Crypto import SSL, Err
+from . import cim_obj
+from .cim_obj import _ensure_unicode, _ensure_bytes
 
-from pywbem import cim_obj
+if six.PY2:
+    from M2Crypto import SSL
+    from M2Crypto.Err import SSLError
+    _HAVE_M2CRYPTO=True
+    SocketErrors = (socket.error, socket.sslerror)
+else:
+    import ssl as SSL
+    from ssl import SSLError
+    _HAVE_M2CRYPTO=False
+    SocketErrors = (socket.error,)
 
 __all__ = ['Error', 'ConnectionError', 'AuthError', 'TimeoutError',
            'HTTPTimeout', 'wbem_request', 'get_object_header']
@@ -259,12 +269,12 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
 
     :Parameters:
 
-      url : `unicode` or UTF-8 encoded `str`
+      url : Unicode string or UTF-8 encoded byte string
         URL of the WBEM server (e.g. ``"https://10.11.12.13:6988"``).
         For details, see the ``url`` parameter of
         `WBEMConnection.__init__`.
 
-      data : `unicode` or UTF-8 encoded `str`
+      data : Unicode string or UTF-8 encoded byte string
         The CIM-XML formatted data to be sent as a request to the WBEM server.
 
       creds
@@ -272,7 +282,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
         For details, see the ``creds`` parameter of
         `WBEMConnection.__init__`.
 
-      headers : list of `unicode` or UTF-8 encoded `str`
+      headers : list of Unicode strings or UTF-8 encoded byte strings
         List of HTTP header fields to be added to the request, in addition to
         the standard header fields such as ``Content-type``,
         ``Content-length``, and ``Authorization``.
@@ -337,23 +347,28 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                     self.connect()
                 else:
                     raise httplib.NotConnected()
+            strng = _ensure_bytes(strng)
             if self.debuglevel > 0:
-                print "send:", repr(strng)
+                print("send: %r" % strng)
             self.sock.sendall(strng)
 
     class HTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
         """ Execute client connection without ssl using httplib. """
-        def __init__(self, host, port=None, strict=None, timeout=None):
-            httplib.HTTPConnection.__init__(self, host, port, strict, timeout)
+        def __init__(self, host, port=None, timeout=None):
+            # TODO: Should we set strict=True in the following call, for PY2?
+            httplib.HTTPConnection.__init__(self, host=host, port=port,
+                                            timeout=timeout)
 
     class HTTPSConnection(HTTPBaseConnection, httplib.HTTPSConnection):
         """ Execute client connection with ssl using httplib."""
         # pylint: disable=R0913,too-many-arguments
         def __init__(self, host, port=None, key_file=None, cert_file=None,
-                     strict=None, ca_certs=None, verify_callback=None,
-                     timeout=None):
-            httplib.HTTPSConnection.__init__(self, host, port, key_file,
-                                             cert_file, strict, timeout)
+                     ca_certs=None, verify_callback=None, timeout=None):
+            # TODO: Should we set strict=True in the following call, for PY2?
+            httplib.HTTPSConnection.__init__(self, host=host, port=port,
+                                             key_file=key_file,
+                                             cert_file=cert_file,
+                                             timeout=timeout)
             self.ca_certs = ca_certs
             self.verify_callback = verify_callback
 
@@ -367,6 +382,8 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
             #
             # Another change is that we do not pass the timeout value
             # on to the socket call, because that does not work with M2Crypto.
+            # TODO: Check out whether we can pass the timeout for Python 3
+            # again, given that we use the standard SSL support again.
             if sys.version_info[0:2] >= (2, 7):
                 # the source_address argument was added in 2.7
                 self.sock = socket.create_connection(
@@ -379,19 +396,30 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                 self._tunnel()
             # End of code from httplib.HTTPSConnection.connect(self).
 
-            ctx = SSL.Context('sslv23')
+            if _HAVE_M2CRYPTO:
+                ctx = SSL.Context('sslv23')
+            else:
+                ctx = SSL.create_default_context()
+
             if self.cert_file:
                 ctx.load_cert(self.cert_file, keyfile=self.key_file)
             if self.ca_certs:
-                ctx.set_verify(
-                    SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
-                    depth=9, callback=verify_callback)
+                if _HAVE_M2CRYPTO:
+                    ctx.set_verify(
+                        SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
+                        depth=9, callback=verify_callback)
+                else:
+                    ctx.verify_flags |= SSL.VERIFY_CRL_CHECK_CHAIN
                 if os.path.isdir(self.ca_certs):
                     ctx.load_verify_locations(capath=self.ca_certs)
                 else:
                     ctx.load_verify_locations(cafile=self.ca_certs)
             try:
-                self.sock = SSL.Connection(ctx, self.sock)
+                if _HAVE_M2CRYPTO:
+                    self.sock = SSL.Connection(ctx, self.sock)
+                else:
+                    self.sock = ctx.wrap_socket(self.sock)
+
                 # Below is a body of SSL.Connection.connect() method
                 # except for the first line (socket connection). We want to
                 # preserve tunneling ability.
@@ -421,16 +449,19 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                             raise ConnectionError(
                                 'SSL error: post connection check failed')
                 return ret
-            except (Err.SSLError, SSL.SSLError, SSL.Checker.WrongHost), arg:
-                # This will include SSLTimeoutError (it subclasses SSLError)
+            # TODO: Verify whether the additional exceptions in the Python 2
+            # and M2Crypto code can really be omitted:
+            # Err.SSLError, SSL.SSLError, SSL.Checker.WrongHost,
+            # SSLTimeoutError
+            except SSLError as arg:
                 raise ConnectionError(
-                    "SSL error %s: %s" % (str(arg.__class__), arg))
+                    "SSL error %s: %s" % (arg.__class__, arg))
 
     class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
         """Execute client connection based on a unix domain socket. """
 
         def __init__(self, uds_path):
-            httplib.HTTPConnection.__init__(self, 'localhost')
+            httplib.HTTPConnection.__init__(self, host='localhost')
             self.uds_path = uds_path
 
         def connect(self):
@@ -443,7 +474,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
             self.sock = socket.socket(socket_af, socket.SOCK_STREAM)
             self.sock.connect(self.uds_path)
 
-    host, port, use_ssl = parse_url(url)
+    host, port, use_ssl = parse_url(_ensure_unicode(url))
 
     key_file = None
     cert_file = None
@@ -456,14 +487,13 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
     local_auth_header = None
     try_limit = 5
 
-    # Make sure the data argument is converted to a UTF-8 encoded str object.
+    # Make sure the data argument is converted to a UTF-8 encoded byte string.
     # This is important because according to RFC2616, the Content-Length HTTP
     # header must be measured in Bytes (and the Content-Type header will
     # indicate UTF-8).
-    if isinstance(data, unicode):
-        data = data.encode('utf-8')
+    data = _ensure_bytes(data)
 
-    data = '<?xml version="1.0" encoding="utf-8" ?>\n' + data
+    data = b'<?xml version="1.0" encoding="utf-8" ?>\n' + data
 
     if not no_verification and ca_certs is None:
         ca_certs = get_default_ca_certs()
@@ -472,7 +502,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
 
     local = False
     if use_ssl:
-        client = HTTPSConnection(host,
+        client = HTTPSConnection(host=host,
                                  port=port,
                                  key_file=key_file,
                                  cert_file=cert_file,
@@ -481,7 +511,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                                  timeout=timeout)
     else:
         if url.startswith('http'):
-            client = HTTPConnection(host,  # pylint: disable=redefined-variable-type
+            client = HTTPConnection(host=host,  # pylint: disable=redefined-variable-type
                                     port=port,
                                     timeout=timeout)
         else:
@@ -521,22 +551,19 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
             if local_auth_header is not None:
                 client.putheader(*local_auth_header)
             elif creds is not None:
-                #pylint: disable=line-too-long
-                client.putheader('Authorization', 'Basic %s' %
-                                 base64.encodestring('%s:%s' %
-                                                     (creds[0],
-                                                      creds[1])).replace('\n', ''))
+                auth = '%s:%s' % (creds[0], creds[1])
+                auth64 = _ensure_unicode(base64.b64encode(
+                         _ensure_bytes(auth))).replace('\n', '')
+                client.putheader('Authorization', 'Basic %s' % auth64)
             elif locallogin is not None:
                 client.putheader('PegasusAuthorization',
                                  'Local "%s"' % locallogin)
 
             for hdr in headers:
-                if isinstance(hdr, unicode):
-                    hdr = hdr.encode('utf-8')
-                hdr_pieces = map(lambda x: string.strip(x),
-                                 string.split(hdr, ":", 1))
-                client.putheader(urllib.quote(hdr_pieces[0]),
-                                 urllib.quote(hdr_pieces[1]))
+                hdr = _ensure_unicode(hdr)
+                hdr_pieces = [x.strip() for x in hdr.split(':', 1)]
+                client.putheader(urllib.parse.quote(hdr_pieces[0]),
+                                 urllib.parse.quote(hdr_pieces[1]))
 
             try:
                 # See RFC 2616 section 8.2.2
@@ -557,9 +584,9 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                     # actually sends something to the server.
                     client.endheaders()
                     client.send(data)
-                except socket.error as exc:
+                except Exception as exc: # socket.error as exc:
                     # TODO: Verify these errno numbers on Windows vs. Linux
-                    if exc[0] != 104 and exc[0] != 32:
+                    if exc.args[0] != 104 and exc.args[0] != 32:
                         raise ConnectionError("Socket error: %s" % exc)
 
                 response = client.getresponse()
@@ -635,7 +662,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                                                                None)
                         if pgerrordetail_hdr is not None:
                             exc_str += ', PGErrorDetail: %s' %\
-                                urllib.unquote(pgerrordetail_hdr)
+                                urllib.parse.unquote(pgerrordetail_hdr)
                         raise ConnectionError(exc_str)
 
                     raise ConnectionError('HTTP error: %s' % response.reason)
@@ -661,10 +688,8 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                 raise ConnectionError("HTTP incomplete read: %s" % exc)
             except httplib.NotConnected as exc:
                 raise ConnectionError("HTTP not connected: %s" % exc)
-            except socket.error as exc:
+            except SocketErrors as exc:
                 raise ConnectionError("Socket error: %s" % exc)
-            except socket.sslerror as exc:
-                raise ConnectionError("SSL error: %s" % exc)
 
             break
 
@@ -678,7 +703,7 @@ def get_object_header(obj):
 
     # Local namespacepath
 
-    if isinstance(obj, StringTypes):
+    if isinstance(obj, six.string_types):
         return 'CIMObject: %s' % obj
 
     # CIMLocalClassPath

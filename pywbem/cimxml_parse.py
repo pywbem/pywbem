@@ -17,6 +17,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 # Author: Tim Potter <tpot@hp.com>
+# Author: Ross Peoples <ross.peoples@gmail.com>
 #
 
 """CIM/XML Parser. Parses the CIM/XML Elements defined in the DMTF
@@ -31,9 +32,8 @@
    errors in the parsing and terminate the parsing.
 """
 
-import sys
-import string
 from xml.dom import pulldom
+import six
 
 from pywbem import cim_obj
 from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMQualifier, \
@@ -70,7 +70,7 @@ def _get_attribute(node, attr):
 def _get_end_event(parser, tagName):
     """Check that the next event is the end of a particular XML tag."""
 
-    (event, node) = parser.next()
+    (event, node) = six.next(parser)
 
     if event != pulldom.END_ELEMENT or node.tagName != tagName:
         raise ParseError(
@@ -136,13 +136,13 @@ def parse_value(parser, event, node): # pylint: disable=unused-argument
     """ Parse CIM/XML VALUE element and return the value"""
     value = ''
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if next_event == pulldom.CHARACTERS:
 
         value = next_node.nodeValue
 
-        (next_event, next_node) = parser.next()
+        (next_event, next_node) = six.next(parser)
 
     if not _is_end(next_event, next_node, 'VALUE'):
         raise ParseError('Expecting end VALUE')
@@ -157,7 +157,7 @@ def parse_value_array(parser, event, node): #pylint: disable=unused-argument
 
     value_array = []
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if _is_start(next_event, next_node, 'VALUE'):
 
@@ -165,7 +165,7 @@ def parse_value_array(parser, event, node): #pylint: disable=unused-argument
 
         while 1:
 
-            (next_event, next_node) = parser.next()
+            (next_event, next_node) = six.next(parser)
 
             if _is_end(next_event, next_node, 'VALUE.ARRAY'):
                 break
@@ -188,7 +188,7 @@ def parse_value_reference(parser, event, node): #pylint: disable=unused-argument
        parser call.
     """
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     #TODO:2/16:ks: Some functions below do not exist: i.e. class stuff broken.
     #TODO: parse_classpath, parse_localclasspath, parse_classname.
@@ -238,21 +238,21 @@ def parse_value_reference(parser, event, node): #pylint: disable=unused-argument
 def parse_namespacepath(parser, event, node): #pylint: disable=unused-argument
 
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if not _is_start(next_event, next_node, 'HOST'):
         raise ParseError('Expecting HOST')
 
     host = parse_host(parser, next_event, next_node)
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if not _is_start(next_event, next_node, 'LOCALNAMESPACEPATH'):
         raise ParseError('Expecting LOCALNAMESPACEPATH')
 
     namespacepath = parse_localnamespacepath(parser, next_event, next_node)
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if not _is_end(next_event, next_node, 'NAMESPACEPATH'):
         raise ParseError('Expecting end NAMESPACEPATH')
@@ -264,19 +264,19 @@ def parse_namespacepath(parser, event, node): #pylint: disable=unused-argument
 def parse_localnamespacepath(parser, event, node):
      #pylint: disable=unused-argument
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     namespaces = []
 
     if not _is_start(next_event, next_node, 'NAMESPACE'):
-        print next_event, next_node
+        print(next_event, next_node)
         raise ParseError('Expecting NAMESPACE')
 
     namespaces.append(parse_namespace(parser, next_event, next_node))
 
     while 1:
 
-        (next_event, next_node) = parser.next()
+        (next_event, next_node) = six.next(parser)
 
         if _is_end(next_event, next_node, 'LOCALNAMESPACEPATH'):
             break
@@ -286,7 +286,7 @@ def parse_localnamespacepath(parser, event, node):
         else:
             raise ParseError('Expecting NAMESPACE')
 
-    return string.join(namespaces, '/')
+    return '/'.join(namespaces)
 
 # <!ELEMENT HOST (#PCDATA)>
 
@@ -295,13 +295,13 @@ def parse_host(parser, event, node):
 
     host = ''
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if next_event == pulldom.CHARACTERS:
 
         host = next_node.nodeValue
 
-        (next_event, next_node) = parser.next()
+        (next_event, next_node) = six.next(parser)
 
     if not _is_end(next_event, next_node, 'HOST'):
         raise ParseError('Expecting end HOST')
@@ -320,7 +320,7 @@ def parse_namespace(parser, event, node):
     """
     name = _get_required_attribute(node, 'NAME')
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if not _is_end(next_event, next_node, 'NAMESPACE'):
         raise ParseError('Expecting end NAMESPACE')
@@ -347,17 +347,17 @@ def parse_instancepath(parser, event, node):
 
     """
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if not _is_start(next_event, next_node, 'NAMESPACEPATH'):
         raise ParseError('Expecting NAMESPACEPATH')
 
     host, namespacepath = parse_namespacepath(parser, next_event, next_node)
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if not _is_start(next_event, next_node, 'INSTANCENAME'):
-        print next_event, next_node
+        print(next_event, next_node)
         raise ParseError('Expecting INSTANCENAME')
 
     instancename = parse_instancename(parser, next_event, next_node)
@@ -372,14 +372,14 @@ def parse_instancepath(parser, event, node):
 def parse_localinstancepath(parser, event, node):
      #pylint: disable=unused-argument
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if not _is_start(next_event, next_node, 'LOCALNAMESPACEPATH'):
         raise ParseError('Expecting LOCALNAMESPACEPATH')
 
     namespacepath = parse_localnamespacepath(parser, next_event, next_node)
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if not _is_start(next_event, next_node, 'INSTANCENAME'):
         raise ParseError('Expecting INSTANCENAME')
@@ -400,7 +400,7 @@ def parse_instancename(parser, event, node): #pylint: disable=unused-argument
     classname = _get_required_attribute(node, 'CLASSNAME')
     keybindings = []
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if _is_start(next_event, next_node, 'KEYBINDING'):
 
@@ -408,7 +408,7 @@ def parse_instancename(parser, event, node): #pylint: disable=unused-argument
 
         while 1:
 
-            (next_event, next_node) = parser.next()
+            (next_event, next_node) = six.next(parser)
 
             if _is_end(next_event, next_node, 'INSTANCENAME'):
                 break
@@ -447,7 +447,7 @@ def parse_keybinding(parser, event, node): #pylint: disable=unused-argument
 
     name = _get_required_attribute(node, 'NAME')
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if _is_start(next_event, next_node, 'KEYVALUE'):
         keyvalue = parse_keyvalue(parser, next_event, next_node)
@@ -481,7 +481,7 @@ def parse_keyvalue(parser, event, node): #pylint: disable=unused-argument
     # if not used? This was late extension to allow real types.
     cim_type = _get_attribute(node, 'TYPE')
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if next_event != pulldom.CHARACTERS:
         raise ParseError('Expecting character data')
@@ -504,14 +504,14 @@ def parse_keyvalue(parser, event, node): #pylint: disable=unused-argument
         elif p == 'false':
             value = False
         else:
-            raise ParseError('invalid boolean value "%s"' % `p`)
+            raise ParseError('invalid boolean value %r' % p)
 
     elif valuetype == 'numeric':
 
         try:
 
             # XXX: Use TYPE attribute to create named CIM type.
-            # if attrs(tt).has_key('TYPE'):
+            # if 'TYPE' in attrs(tt):
             #    return cim_obj.tocimobj(attrs(tt)['TYPE'], p.strip())
 
             # XXX: Would like to use long() here, but that tends to cause
@@ -558,7 +558,7 @@ def parse_instance(parser, event, node): #pylint: disable=unused-argument
     properties = []
     qualifiers = []
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if _is_start(next_event, next_node, 'QUALIFIER'):
 
@@ -566,7 +566,7 @@ def parse_instance(parser, event, node): #pylint: disable=unused-argument
 
         while 1:
 
-            (next_event, next_node) = parser.next()
+            (next_event, next_node) = six.next(parser)
 
             if _is_start(next_event, next_node, 'PROPERTY') or \
                _is_start(next_event, next_node, 'PROPERTY.ARRAY') or \
@@ -599,7 +599,7 @@ def parse_instance(parser, event, node): #pylint: disable=unused-argument
             raise ParseError(
                 'Expecting (PROPERTY | PROPERTY.ARRAY | PROPERTY.REFERENCE)')
 
-        (next_event, next_node) = parser.next()
+        (next_event, next_node) = six.next(parser)
 
     if not _is_end(next_event, next_node, 'INSTANCE'):
         raise ParseError('Expecting end INSTANCE')
@@ -626,7 +626,7 @@ def parse_qualifier(parser, event, node): #pylint: disable=unused-argument
     # TODO: Feb 2016: ks : Why is propagated not used?
     propagated = _get_attribute(node, 'PROPAGATED')
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if _is_end(next_event, next_node, 'QUALIFIER'):
         return CIMQualifier(name, None, type=cim_type)
@@ -667,7 +667,7 @@ def parse_property(parser, event, node): #pylint: disable=unused-argument
     qualifiers = []
     value = None
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if _is_start(next_event, next_node, 'QUALIFIER'):
 
@@ -675,7 +675,7 @@ def parse_property(parser, event, node): #pylint: disable=unused-argument
 
         while 1:
 
-            (next_event, next_node) = parser.next()
+            (next_event, next_node) = six.next(parser)
 
             if _is_start(next_event, next_node, 'VALUE'):
                 break
@@ -689,7 +689,7 @@ def parse_property(parser, event, node): #pylint: disable=unused-argument
     if _is_start(next_event, next_node, 'VALUE'):
 
         value = parse_value(parser, next_event, next_node)
-        (next_event, next_node) = parser.next()
+        (next_event, next_node) = six.next(parser)
 
     if not _is_end(next_event, next_node, 'PROPERTY'):
         raise ParseError('Expecting end PROPERTY')
@@ -727,7 +727,7 @@ def parse_property_array(parser, event, node): #pylint: disable=unused-argument
     qualifiers = []
     value = None
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if _is_start(next_event, next_node, 'QUALIFIER'):
 
@@ -735,7 +735,7 @@ def parse_property_array(parser, event, node): #pylint: disable=unused-argument
 
         while 1:
 
-            (next_event, next_node) = parser.next()
+            (next_event, next_node) = six.next(parser)
 
             if _is_start(next_event, next_node, 'VALUE.ARRAY'):
                 break
@@ -749,7 +749,7 @@ def parse_property_array(parser, event, node): #pylint: disable=unused-argument
     if _is_start(next_event, next_node, 'VALUE.ARRAY'):
 
         value = parse_value_array(parser, next_event, next_node)
-        (next_event, next_node) = parser.next()
+        (next_event, next_node) = six.next(parser)
 
     if not _is_end(next_event, next_node, 'PROPERTY.ARRAY'):
         raise ParseError('Expecting end PROPERTY.ARRAY')
@@ -784,7 +784,7 @@ def parse_property_reference(parser, event, node): #pylint: disable=unused-argum
     qualifiers = []
     value = None
 
-    (next_event, next_node) = parser.next()
+    (next_event, next_node) = six.next(parser)
 
     if _is_start(next_event, next_node, 'QUALIFIER'):
 
@@ -792,7 +792,7 @@ def parse_property_reference(parser, event, node): #pylint: disable=unused-argum
 
         while 1:
 
-            (next_event, next_node) = parser.next()
+            (next_event, next_node) = six.next(parser)
 
             if _is_start(next_event, next_node, 'VALUE.REFERENCE'):
                 break
@@ -807,7 +807,7 @@ def parse_property_reference(parser, event, node): #pylint: disable=unused-argum
     if _is_start(next_event, next_node, 'VALUE.REFERENCE'):
 
         value = parse_value_reference(parser, next_event, next_node)
-        (next_event, next_node) = parser.next()
+        (next_event, next_node) = six.next(parser)
 
     if not _is_end(next_event, next_node, 'PROPERTY.REFERENCE'):
         raise ParseError('Expecting end PROPERTY.REFERENCE')
@@ -987,7 +987,7 @@ def parse_property_reference(parser, event, node): #pylint: disable=unused-argum
 def make_parser(stream_or_string):
     """Create a xml.dom.pulldom parser."""
 
-    if isinstance(stream_or_string, (str, unicode)):
+    if isinstance(stream_or_string, six.string_types):
 
         # XXX: the pulldom.parseString() function doesn't seem to
         # like operating on unicode strings!
@@ -1006,12 +1006,12 @@ def parse_any(stream_or_string):
 
     parser = make_parser(stream_or_string)
 
-    (event, node) = parser.next()
+    (event, node) = six.next(parser)
 
     if event != pulldom.START_DOCUMENT:
         raise ParseError('Expecting document start')
 
-    (event, node) = parser.next()
+    (event, node) = six.next(parser)
 
     if event != pulldom.START_ELEMENT:
         raise ParseError('Expecting element start')
@@ -1026,4 +1026,5 @@ def parse_any(stream_or_string):
 # Test harness
 
 if __name__ == '__main__':
-    print parse_any(sys.stdin)
+    import sys
+    print(parse_any(sys.stdin))

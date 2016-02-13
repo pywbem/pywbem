@@ -19,6 +19,7 @@
 # Author: Martin Pool <mbp@hp.com>
 # Author: Tim Potter <tpot@hp.com>
 # Author: Bart Whiteley <bwhiteley@suse.de>
+# Author: Ross Peoples <ross.peoples@gmail.com>
 #
 
 # pylint: disable=too-many-lines
@@ -77,13 +78,12 @@ representation of CIM in XML by having the following properties:
 
 # This module is meant to be safe for 'import *'.
 
-import string
-from types import StringTypes
+import six
 
-from pywbem import cim_obj, tupletree
-from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
-                           CIMClassName, CIMProperty, CIMMethod, \
-                           CIMParameter, CIMQualifier, CIMQualifierDeclaration
+from . import cim_obj, tupletree
+from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
+                     CIMClassName, CIMProperty, CIMMethod, \
+                     CIMParameter, CIMQualifier, CIMQualifierDeclaration
 
 __all__ = ['ParseError', 'parse_cim', 'parse_any']
 
@@ -110,9 +110,8 @@ def pcdata(tup_tree):
 
     The tup_tree must not have non-character children."""
     for inst in tup_tree[2]:
-        if not isinstance(inst, StringTypes):
-            raise ParseError, 'unexpected node %s under %s' % (`inst`,
-                                                               `tup_tree`)
+        if not isinstance(inst, six.string_types):
+            raise ParseError('unexpected node %r under %r' % (inst, tup_tree))
     return ''.join(tup_tree[2])
 
 
@@ -149,7 +148,7 @@ def check_node(tup_tree, nodename, required_attrs=[], optional_attrs=[],
     (Whitespace text nodes are always allowed.)
     """
 
-    if name(tup_tree) <> nodename:
+    if name(tup_tree) != nodename:
         raise ParseError('expected node type %s, not %s' %
                          (nodename, name(tup_tree)))
 
@@ -159,14 +158,14 @@ def check_node(tup_tree, nodename, required_attrs=[], optional_attrs=[],
         tt_attrs = attrs(tup_tree).copy()
 
     for attr in required_attrs:
-        if not tt_attrs.has_key(attr):
+        if attr not in tt_attrs:
             raise ParseError('expected %s attribute on %s node, but only '
                              'have %s' % (attr, name(tup_tree),
                                           attrs(tup_tree).keys()))
         del tt_attrs[attr]
 
     for attr in optional_attrs:
-        if tt_attrs.has_key(attr):
+        if attr in tt_attrs:
             del tt_attrs[attr]
 
     if len(tt_attrs.keys()) > 0:
@@ -181,10 +180,10 @@ def check_node(tup_tree, nodename, required_attrs=[], optional_attrs=[],
 
     if not allow_pcdata:
         for child in tup_tree[2]:
-            if isinstance(child, StringTypes):
-                if child.lstrip(' \t\n') <> '':
-                    raise ParseError('unexpected non-blank pcdata node %s '
-                                     'under %s' % (`child`,
+            if isinstance(child, six.string_types):
+                if child.lstrip(' \t\n') != '':
+                    raise ParseError('unexpected non-blank pcdata node %r '
+                                     'under %s' % (child,
                                                    name(tup_tree)))
 
 
@@ -196,7 +195,7 @@ def one_child(tup_tree, acceptable):
 
     k = kids(tup_tree)
 
-    if len(k) <> 1:
+    if len(k) != 1:
         raise ParseError('In element %s with attributes %s, expected '\
                 'just one child element %s, but got child elements %s' %\
                 (name(tup_tree), attrs(tup_tree), acceptable,
@@ -279,7 +278,7 @@ def list_of_same(tup_tree, acceptable):
                 (name(tup_tree), attrs(tup_tree), acceptable, a_child))
     result = []
     for child in kid:
-        if name(child) <> a_child:
+        if name(child) != a_child:
             raise ParseError('In element %s with attributes %s, expected '\
                     'sequence of only child elements %s, but got child '\
                     'element %s' % (name(tup_tree), attrs(tup_tree), a_child, \
@@ -423,8 +422,8 @@ def parse_value_namedinstance(tup_tree):
     check_node(tup_tree, 'VALUE.NAMEDINSTANCE')
 
     k = kids(tup_tree)
-    if len(k) <> 2:
-        raise ParseError('expecting (INSTANCENAME, INSTANCE), got %s' % `k`)
+    if len(k) != 2:
+        raise ParseError('expecting (INSTANCENAME, INSTANCE), got %r' % k)
 
     instancename = parse_instancename(k[0])
     instance = parse_instance(k[1])
@@ -453,8 +452,8 @@ def parse_value_namedobject(tup_tree):
 
         _object.path = path
     else:
-        raise ParseError('Expecting one or two elements, got %s' %
-                         `kids(tup_tree)`)
+        raise ParseError('Expecting one or two elements, got %r' %
+                         kids(tup_tree))
 
     return (name(tup_tree), attrs(tup_tree), _object)
 
@@ -540,7 +539,7 @@ def parse_localnamespacepath(tup_tree):
 
     ns_list = list_of_various(tup_tree, ['NAMESPACE'])
 
-    return string.join(ns_list, '/')
+    return '/'.join(ns_list)
 
 
 def parse_host(tup_tree):
@@ -619,8 +618,8 @@ def parse_instancepath(tup_tree):
     check_node(tup_tree, 'INSTANCEPATH')
 
     if len(kids(tup_tree)) != 2:
-        raise ParseError('Expecting (NAMESPACEPATH, INSTANCENAME), got %s'
-                         % `kids(tup_tree)`)
+        raise ParseError('Expecting (NAMESPACEPATH, INSTANCENAME), got %r'
+                         % kids(tup_tree))
 
     nspath = parse_namespacepath(kids(tup_tree)[0])
     instancename = parse_instancename(kids(tup_tree)[1])
@@ -725,7 +724,7 @@ def parse_keyvalue(tup_tree):
 
     pdta = pcdata(tup_tree)
 
-    if not attrs(tup_tree).has_key('VALUETYPE'):
+    if 'VALUETYPE' not in attrs(tup_tree):
         return pdta
 
     val_type = attrs(tup_tree).get('VALUETYPE')
@@ -738,15 +737,15 @@ def parse_keyvalue(tup_tree):
 
         try:
             # XXX: Use TYPE attribute to create named CIM type.
-            # if attrs(tup_tree).has_key('TYPE'):
+            # if 'TYPE' in attrs(tup_tree):
             #    return cim_obj.tocimobj(attrs(tup_tree)['TYPE'], p.strip())
 
             # XXX: Would like to use long() here, but that tends to cause
             # trouble when it's written back out as '2L'
             return int(pdta.strip())
         except ValueError:
-            raise ParseError('invalid numeric %s under %s' %
-                             (`pdta`, name(tup_tree)))
+            raise ParseError('invalid numeric %r under %s' %
+                             (pdta, name(tup_tree)))
     else:
         raise ParseError('invalid VALUETYPE %s in %s' %
                          (val_type, name(tup_tree)))
@@ -911,8 +910,8 @@ def parse_qualifier(tup_tree):
               'TRANSLATABLE', 'PROPAGATED']:
         rtn_val = attrl.get(i)
         if rtn_val not in ['true', 'false', None]:
-            raise ParseError("invalid value %s for %s on %s" %
-                             (`rtn_val`, i, name(tup_tree)))
+            raise ParseError("invalid value %r for %s on %s" %
+                             (rtn_val, i, name(tup_tree)))
         if rtn_val == 'true':
             rtn_val = True
         elif rtn_val == 'false':
@@ -1043,13 +1042,13 @@ def parse_property_reference(tup_tree):
     for qual in list_of_matching(tup_tree, ['QUALIFIER']):
         pref.qualifiers[qual.name] = qual
 
-    if attributes.has_key('REFERENCECLASS'):
+    if 'REFERENCECLASS' in attributes:
         pref.reference_class = attributes['REFERENCECLASS']
 
-    if attributes.has_key('CLASSORIGIN'):
+    if 'CLASSORIGIN' in attributes:
         pref.class_origin = attributes['CLASSORIGIN']
 
-    if attributes.has_key('PROPAGATED'):
+    if 'PROPAGATED' in attributes:
         pref.propagated = attributes['PROPAGATED']
 
     return pref
@@ -1258,8 +1257,7 @@ def parse_imethodcall(tup_tree):
 
     localnspath = parse_localnamespacepath(kids(tup_tree)[0])
 
-    params = map(lambda x: parse_iparamvalue(x),
-                 kids(tup_tree)[1:])
+    params = [parse_iparamvalue(x) for x in kids(tup_tree)[1:]]
 
     return (name(tup_tree), attrs(tup_tree), localnspath, params)
 
@@ -1276,7 +1274,7 @@ def parse_methodcall(tup_tree):
     path = list_of_matching(tup_tree, ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
     if len(path) != 1:
         raise ParseError('Expecting one of LOCALCLASSPATH or ' \
-                         'LOCALINSTANCEPATH, got %s' % `path`)
+                         'LOCALINSTANCEPATH, got %r' % path)
     path = path[0]
     params = list_of_matching(tup_tree, ['PARAMVALUE'])
     return (name(tup_tree), attrs(tup_tree), path, params)
@@ -1317,7 +1315,7 @@ def parse_paramvalue(tup_tree):
                            ['VALUE', 'VALUE.REFERENCE', 'VALUE.ARRAY',
                             'VALUE.REFARRAY',])
 
-    if attrs(tup_tree).has_key('PARAMTYPE'):
+    if 'PARAMTYPE' in attrs(tup_tree):
         paramtype = attrs(tup_tree)['PARAMTYPE']
     else:
         paramtype = None
@@ -1350,7 +1348,7 @@ def parse_iparamvalue(tup_tree):
                             'VALUE.NAMEDINSTANCE'])
 
     _name = attrs(tup_tree)['NAME']
-    if isinstance(child, basestring) and \
+    if isinstance(child, six.string_types) and \
             _name.lower() in ['deepinheritance', 'localonly',
                               'includequalifiers', 'includeclassorigin']:
         if child.lower() in ['true', 'false']:
@@ -1589,4 +1587,4 @@ def unpack_boolean(data):
     elif data == '':
         return None
     else:
-        raise ParseError('invalid boolean %s' % `data`)
+        raise ParseError('invalid boolean %r' % data)

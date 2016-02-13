@@ -29,8 +29,10 @@ XML data specified in standard input.
 import sys
 import os
 import os.path
-import string
 from subprocess import Popen, PIPE, STDOUT
+import six
+
+from pywbem.cim_obj import _ensure_bytes
 
 DTD_FILE = 'CIM_DTD_V22.dtd'
 
@@ -61,6 +63,7 @@ def validate_xml(data, dtd_directory=None, root_elem=None):
 
     p = Popen(xmllint_cmd, stdout=PIPE, stderr=STDOUT, stdin=PIPE, shell=True)
 
+    data = _ensure_bytes(data)
     p.stdin.write(data)
     p.stdin.close()
 
@@ -68,7 +71,7 @@ def validate_xml(data, dtd_directory=None, root_elem=None):
     for x in p.stdout.readlines():
         if first_time:
             first_time = False
-            print "\nOutput from xmllint:"
+            print("\nOutput from xmllint:")
         sys.stdout.write(x)
 
     status = p.wait()
@@ -80,5 +83,5 @@ def validate_xml(data, dtd_directory=None, root_elem=None):
 
 if __name__ == '__main__':
 
-    data_ = string.join(sys.stdin.readlines(), '')
+    data_ = ''.join(sys.stdin.readlines())
     sys.exit(validate_xml(data_))

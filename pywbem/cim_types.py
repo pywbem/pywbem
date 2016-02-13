@@ -18,6 +18,7 @@
 #
 # Author: Tim Potter <tpot@hp.com>
 # Author: Bart Whiteley <bwhiteley@suse.de>
+# Author: Ross Peoples <ross.peoples@gmail.com>
 #
 
 """
@@ -30,8 +31,8 @@ objects:
 CIM type                   Python type
 =========================  ===========================
 boolean                    `bool`
-char16                     `unicode` or `str`
-string                     `unicode` or `str`
+char16                     unicode string or binary bytes, see (1)
+string                     unicode string or binary bytes, see (1)
 string (EmbeddedInstance)  `CIMInstance`
 string (EmbeddedObject)    `CIMInstance` or `CIMClass`
 datetime                   `CIMDateTime`
@@ -49,11 +50,17 @@ real64                     `Real64`
 [] (array)                 `list`
 =========================  ===========================
 
+(1) CIM string and char16 types are represented as follows:
+In Python 2 as `unicode` (preferred) or `str`; in Python 3 as `str` (preferred)
+or `bytes`. The implementation may decode binary bytes types offered at the
+interface to unicode text types in the internal representation, using "utf-8"
+encoding.
+
 Note that constructors of PyWBEM classes that take CIM typed values as input
 may support Python types in addition to those shown above. For example, the
 `CIMProperty` class represents CIM datetime values internally as a
 `CIMDateTime` object, but its constructor accepts `datetime.timedelta`,
-`datetime.datetime`, `str`, and `unicode` objects in addition to
+`datetime.datetime`, `str`, and `unicode` (py2 only) objects in addition to
 `CIMDateTime` objects.
 """
 
@@ -61,11 +68,90 @@ may support Python types in addition to those shown above. For example, the
 
 from datetime import tzinfo, datetime, timedelta
 import re
+import six
+if six.PY2:
+    longint = long
+else:
+    longint = int
 
 __all__ = ['MinutesFromUTC', 'CIMType', 'CIMDateTime', 'CIMInt', 'Uint8',
            'Sint8', 'Uint16', 'Sint16', 'Uint32', 'Sint32', 'Uint64', 'Sint64',
            'CIMFloat', 'Real32', 'Real64', 'cimtype', 'type_from_name',
            'atomic_to_cim_xml']
+
+class _CIMComparisonMixin(object):
+    """Mixin class providing default implementations for rich comparison
+    operators.
+
+    In Python 2, the rich comparison operators (e.g. `__eq__()`) have
+    precedence over the traditional comparator method (`_cmp__()`).
+    In Python 3, the comparator method (`_cmp__()`) no longer exists.
+    Therefore, implementing the rich comparison operators works in both.
+
+    The default implementations delegate to a comparator method `_cmp()`
+    implemented by subclasses. This requires that the subclasses can
+    define total ordering. (If they cannot, this mixin class cannot be
+    used).
+    """
+
+    def __eq__(self, other):
+        """
+        Invoked when two CIM objects are compared with the `==` operator.
+
+        The comparison is delegated to the `_cmp()` method.
+        """
+        return self._cmp(other) == 0
+
+    def __ne__(self, other):
+        """
+        Invoked when two CIM objects are compared with the `!=` operator.
+
+        The comparison is delegated to the `_cmp()` method.
+        """
+        return self._cmp(other) != 0
+
+    def __lt__(self, other):
+        """
+        Invoked when two CIM objects are compared with the `<` operator.
+
+        The comparison is delegated to the `_cmp()` method.
+        """
+        return self._cmp(other) < 0
+
+    def __gt__(self, other):
+        """
+        Invoked when two CIM objects are compared with the `>` operator.
+
+        The comparison is delegated to the `_cmp()` method.
+        """
+        return self._cmp(other) > 0
+
+    def __le__(self, other):
+        """
+        Invoked when two CIM objects are compared with the `<=` operator.
+
+        The comparison is delegated to the `_cmp()` method.
+        """
+        return self._cmp(other) <= 0
+
+    def __ge__(self, other):
+        """
+        Invoked when two CIM objects are compared with the `>=` operator.
+
+        The comparison is delegated to the `_cmp()` method.
+        """
+        return self._cmp(other) >= 0
+
+    def _cmp(self, other):
+        """
+        Interface definition for comparator method to be provided by
+        subclasses, as follows:
+        * If self == other, 0 must be returned.
+        * If self < other, -1 must be returned.
+        * If self > other, +1 must be returned.
+        """
+        raise NotImplementedError
+
 
 class MinutesFromUTC(tzinfo):
 
@@ -104,8 +190,7 @@ class MinutesFromUTC(tzinfo):
 class CIMType(object):       # pylint: disable=too-few-public-methods
     """Base type for numeric and datetime CIM types."""
 
-class CIMDateTime(CIMType):
-
+class CIMDateTime(CIMType, _CIMComparisonMixin):
     """
     A value of CIM type datetime.
 
@@ -122,22 +207,24 @@ class CIMDateTime(CIMType):
 
           dtarg
             The input object, as one of the following types:
-            An `str` or `unicode` object will be interpreted as CIM datetime
-            format (see DSP0004) and will result in a point in time or a time
-            interval.
-            A `datetime.datetime` object must be timezone-aware and will
-            result in a point in time.
-            A `datetime.timedelta` object will result in a time interval.
-            Another `CIMDateTime` object will be copied.
+            * A Unicode string or UTF-8 encoded byte string will be interpreted
+              as CIM datetime format (see DSP0004) and will result in a point
+              in time or a time interval.
+            * A `datetime.datetime` object must be timezone-aware and will
+              result in a point in time.
+            * A `datetime.timedelta` object will result in a time interval.
+            * Another `CIMDateTime` object will be copied.
 
         :Raises:
           :raise ValueError:
           :raise TypeError:
         """
+        from .cim_obj import _ensure_unicode # defer due to cyclic deps.
         self.cimtype = 'datetime'
         self.__timedelta = None
         self.__datetime = None
-        if isinstance(dtarg, basestring):
+        dtarg = _ensure_unicode(dtarg)
+        if isinstance(dtarg, six.text_type):
             date_pattern = re.compile(
                 r'^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.' \
                 r'(\d{6})([+|-])(\d{3})')
@@ -341,17 +428,18 @@ class CIMDateTime(CIMType):
     def __setstate__(self, arg):
         self.__init__(arg)
 
-    def __cmp__(self, other):
+    def _cmp(self, other):
+        from .cim_obj import cmpitem  # defer due to cyclic deps.
         if self is other:
             return 0
         elif not isinstance(other, CIMDateTime):
             return 1
-        return cmp(self.datetime, other.datetime) or \
-               cmp(self.timedelta, other.timedelta)
+        return (cmpitem(self.datetime, other.datetime) or
+                cmpitem(self.timedelta, other.timedelta))
 
 # CIM integer types
 
-class CIMInt(CIMType, long):
+class CIMInt(CIMType, longint):
     """Base type for integer CIM types."""
 
 class Uint8(CIMInt):
@@ -430,7 +518,8 @@ def cimtype(obj):
         return obj.cimtype
     if isinstance(obj, bool):
         return 'boolean'
-    if isinstance(obj, (basestring)):
+    if isinstance(obj, (six.binary_type, six.text_type)):
+        # accept both possible types
         return 'string'
     if isinstance(obj, list):
         if len(obj) == 0:
@@ -443,8 +532,8 @@ def cimtype(obj):
 
 _TYPE_FROM_NAME = {
     'boolean': bool,
-    'string': unicode,
-    'char16': unicode,
+    'string': six.text_type, # return the preferred type
+    'char16': six.text_type, # return the preferred type
     'datetime': CIMDateTime,
     # 'reference' covered at run time
     'uint8': Uint8,
@@ -465,9 +554,12 @@ def type_from_name(type_name):
 
     For example, type name `'uint8'` will return type `Uint8`.
 
+    For CIM types `string` and `char16`, the preferred Python type
+    for unicode text representation is returned.
+
     :Parameters:
 
-      type_name : `str` or `unicode`
+      type_name : string
         The simple (=non-array) CIM type name (e.g. `'uint8'` or
         `'reference'`).
 
@@ -483,8 +575,8 @@ def type_from_name(type_name):
     """
     if type_name == 'reference':
         # move import to run time to avoid circular imports
-        from pywbem import cim_obj
-        return cim_obj.CIMInstanceName
+        from .cim_obj import CIMInstanceName
+        return CIMInstanceName
     try:
         type_obj = _TYPE_FROM_NAME[type_name]
     except KeyError:
@@ -493,7 +585,7 @@ def type_from_name(type_name):
 
 def atomic_to_cim_xml(obj):
     """
-    Convert a value of an atomic scalar CIM type to a CIM-XML unicode string
+    Convert a value of an atomic scalar CIM type to a CIM-XML Unicode string
     and return that string.
 
     TODO: Verify whether we can change this function to raise a ValueError in
@@ -507,26 +599,27 @@ def atomic_to_cim_xml(obj):
 
     :Returns:
 
-        A unicode string in CIM-XML value format representing the CIM typed
+        A Unicode string in CIM-XML value format representing the CIM typed
         value. For a value of `None`, `None` is returned.
     """
     # pylint: disable=too-many-return-statements
+    from .cim_obj import _ensure_unicode, _convert_unicode  # due to cycles
     if isinstance(obj, bool):
         if obj:
             return u"true"
         else:
             return u"false"
     elif isinstance(obj, CIMDateTime):
-        return unicode(obj)
+        return six.text_type(obj)
     elif isinstance(obj, datetime):
-        return unicode(CIMDateTime(obj))
+        return six.text_type(CIMDateTime(obj))
     elif obj is None:
         return obj
     elif cimtype(obj) == 'real32':
         return u'%.8E' % obj
     elif cimtype(obj) == 'real64':
         return u'%.16E' % obj
-    elif isinstance(obj, str):
-        return obj.decode('utf-8')
-    else: # e.g. unicode, int
-        return unicode(obj)
+    elif isinstance(obj, six.string_types):
+        return _ensure_unicode(obj)
+    else: # e.g. int
+        return _convert_unicode(obj)

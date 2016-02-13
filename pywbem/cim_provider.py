@@ -17,6 +17,7 @@
 #
 # Author: Bart Whiteley
 # Author: Jon Carey
+# Author: Ross Peoples <ross.peoples@gmail.com>
 #
 
 r"""Python CIM Providers (aka "nirvana")
@@ -29,8 +30,8 @@ Python Provider Modules
 
     Python Providers are implemented as Python modules.  By convention
     these modules are installed into /usr/lib/pycim.  However, they can
-    be anywhere.  These modules are loaded on demand using load_source()
-    from the imp module.  The CIMOM's pycim interface stores the timestamp
+    be anywhere.  These modules are loaded on demand.
+    The CIMOM's pycim interface stores the timestamp
     of the provider modules.  If the modules change, the CIMOM reloads the
     modules.  This is very useful while developing providers, since the
     latest code will always be loaded and used.
@@ -189,8 +190,14 @@ CodeGen
 
 import sys
 from os.path import dirname
-from imp import load_source
 from types import ModuleType
+import six
+if six.PY2:
+    from imp import load_source
+    Loader = None
+else:
+    from importlib.abc import Loader
+    load_source = None
 
 import pywbem
 
@@ -577,11 +584,11 @@ class CIMProvider(object):
                                    properties=props,
                                    path=instanceName)
         for k, v in instanceName.keybindings.items():
-            type = cimClass.properties[k].type
+            type_ = cimClass.properties[k].type
 
-            if type != 'reference':
-                v = val = pywbem.tocimobj(type, v)
-            model.__setitem__(k, pywbem.CIMProperty(name=k, type=type,
+            if type_ != 'reference':
+                v = val = pywbem.tocimobj(_type, v)
+            model.__setitem__(k, pywbem.CIMProperty(name=k, type=type_,
                                                     value=v))
 
         rval = self.get_instance(env=env,
@@ -737,7 +744,8 @@ class CIMProvider(object):
                                           IncludeQualifiers=True,
                                           IncludeClassOrigin=True,
                                           PropertyList=propertyList)
-                except pywbem.CIMError, (num, msg):
+                except pywbem.CIMError as exc:
+                    num, msg = exc.args
                     if num == pywbem.CIM_ERR_NOT_FOUND:
                         continue
                     else:
@@ -1077,7 +1085,7 @@ def codegen(cc):
 
     def format_desc(obj, indent):
         linelen = 75 - indent
-        if isinstance(obj, basestring):
+        if isinstance(obj, six.string_types):
             raw = obj
         else:
             try:
@@ -1324,7 +1332,8 @@ class %(classname)sProvider(pywbem.CIMProvider):
             else:
                 try:
                     yield self.get_instance(env, model, cim_class)
-                except pywbem.CIMError, (num, msg):
+                except pywbem.CIMError as exc:
+                    num, msg = exc.args
                     if num not in (pywbem.CIM_ERR_NOT_FOUND,
                                    pywbem.CIM_ERR_ACCESS_DENIED):
                         raise\n'''
@@ -1574,11 +1583,14 @@ class ProviderProxy(object):
                 sys.path.append(provdir)
             # use full path in module name for uniqueness.
             try:
-                self.provmod = load_source(provider_name, provid)
-            except IOError, arg:
+                if six.PY2:
+                    self.provmod = load_source(provider_name, provid)
+                else:
+                    self.provmod = Loader.load_module(provid.__file__)
+            except IOError as exc:
                 raise pywbem.CIMError(
                     pywbem.CIM_ERR_FAILED,
-                    "Error loading provider %s: %s" % (provid, arg))
+                    "Error loading provider %s: %s" % (provid, exc))
             self.filename = self.provmod.__file__
         self.provregs = {}
         if hasattr(self.provmod, 'init'):

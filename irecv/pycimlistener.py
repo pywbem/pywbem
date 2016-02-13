@@ -3,7 +3,7 @@
 # Simple indication receiver using Twisted Python.  HTTP post requests
 # are listened for on port 5988 and port 5899 using SSL.
 #
-# Requires Twisted Python and 
+# Requires Twisted Python and
 #
 
 import sys
@@ -23,7 +23,7 @@ class WBEMConn:
         # Borgness
         self.__dict__ = WBEMConn._shared_state
         self.conn = pywbem.SFCBUDSConnection()
-        '''        
+        '''
         if options:
             proto = 'http'
             if options.secure:
@@ -46,7 +46,7 @@ class CIMOM(resource.Resource):
     def render_POST(self, request):
 
         for line in request.content.readlines():
-            print line
+            print(line)
 
         return ''
 
@@ -65,7 +65,7 @@ from twisted.python import log
 from socket import getfqdn
 import time
 
-def _createFilter(query, 
+def _createFilter(query,
                   ns,
                   querylang='WQL',
                   src_ns='root/cimv2',
@@ -89,7 +89,7 @@ def _createFilter(query,
     filtercop = conn.CreateInstance(filterinst)
     return filtercop
 
-def _createDest(destination, 
+def _createDest(destination,
                 ns,
                 in_name=None):
     name = in_name or 'cimlistener%s'%time.time()
@@ -97,7 +97,7 @@ def _createDest(destination,
     destinst['CreationClassName']='CIM_ListenerDestinationCIMXML'
     destinst['SystemCreationClassName']='CIM_ComputerSystem'
     destinst['SystemName']=getfqdn()
-    print "destname=",name
+    print("destname=%s" % name)
     destinst['Name']=name
     destinst['Destination']=destination
     cop = pywbem.CIMInstanceName('CIM_ListenerDestinationCIMXML')
@@ -109,9 +109,9 @@ def _createDest(destination,
     destinst.path = cop
     destcop = conn.CreateInstance(destinst)
     return destcop
-    
+
 def _createSubscription(ns,
-                        handler, 
+                        handler,
                         indfilter):
     subinst=pywbem.CIMInstance('CIM_IndicationSubscription')
     subinst['Filter']=indfilter
@@ -123,7 +123,7 @@ def _createSubscription(ns,
     subinst.path = cop
     subcop = conn.CreateInstance(subinst)
     return subcop
-    
+
 
 if __name__ == '__main__':
     global conn
@@ -136,13 +136,13 @@ if __name__ == '__main__':
             help='Indicate the level of debugging statements to display (default=2)',
             default=2)
     parser.add_option('-s', '--UDS', help="Use the SFCBUDSConnection to the cimom", default=False )
-    parser.add_option('-u', '--url', default='https://localhost', 
+    parser.add_option('-u', '--url', default='https://localhost',
             help='Specify the url of the CIMOM (default=https://localhost)')
-    parser.add_option('-n', '--namespace', default='root/interop', 
+    parser.add_option('-n', '--namespace', default='root/interop',
             help='Specify the namespace the test runs against (default=root/interop)')
-    parser.add_option('', '--user', default='pegasus', 
+    parser.add_option('', '--user', default='pegasus',
             help='Specify the user name used when connection to the CIMOM (default=pegasus)')
-    parser.add_option('', '--password', default='', 
+    parser.add_option('', '--password', default='',
             help='Specify the password for the user (default=<empty>)')
     parser.add_option('--verbose', '', action='store_true', default=False,
             help='Show verbose output')
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     indhandler=None
     indfilter=None
     indsub=None
-    try:    
+    try:
         indhandler = _createDest(options.dest, options.namespace)
         indfilter = _createFilter(options.query, options.namespace, querylang=options.qlang)
         indsub = _createSubscription(options.namespace, indhandler, indfilter)
@@ -178,4 +178,4 @@ if __name__ == '__main__':
             conn.DeleteInstance(indfilter)
         if indhandler:
             conn.DeleteInstance(indhandler)
-    
+

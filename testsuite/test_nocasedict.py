@@ -82,9 +82,9 @@ class TestDelitem(BaseTest):
 class TestHasKey(BaseTest):
 
     def test_all(self):
-        self.assertTrue(self.d.has_key('DOG'))
-        self.assertTrue(self.d.has_key('budgie'))
-        self.assertTrue(not self.d.has_key(1234))
+        self.assertTrue('DOG' in self.d)
+        self.assertTrue('budgie' in self.d)
+        self.assertTrue(1234 not in self.d)
 
 class TestKeys(BaseTest):
 

@@ -17,6 +17,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 # Author: Bart Whiteley <bwhiteley suse.de>
+# Author: Ross Peoples <ross.peoples@gmail.com>
 #
 
 # Note: This module contains yacc rules in docstrings of its functions.
@@ -37,13 +38,14 @@
 import sys
 import os
 from getpass import getpass
+import six
 
-from pywbem import lex, yacc, cim_obj
-from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
+from . import lex, yacc, cim_obj
+from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                            CIMProperty, CIMMethod, CIMParameter, \
                            CIMQualifier, CIMQualifierDeclaration, NocaseDict
-from pywbem.cim_operations import CIMError, WBEMConnection
-from pywbem.cim_constants import * # pylint: disable=wildcard-import
+from .cim_operations import CIMError, WBEMConnection
+from .cim_constants import *  # pylint: disable=wildcard-import
 
 __all__ = ['MOFParseError', 'MOFWBEMConnection', 'MOFCompiler']
 
@@ -56,7 +58,12 @@ __all__ = ['MOFParseError', 'MOFWBEMConnection', 'MOFCompiler']
 _optimize = 1
 _tabmodule = 'mofparsetab'
 _lextab = 'moflextab'
-_outputdir = 'pywbem'
+
+# Directory for _tabmodule and _lextab
+try:
+    _tabdir = os.path.dirname(os.path.abspath(__file__))
+except:
+    _tabdir = '.'
 
 reserved = {
     'any':'ANY',
@@ -100,7 +107,7 @@ reserved = {
     'true':'TRUE',
     }
 
-tokens = reserved.values() + [
+tokens = list(reserved.values()) + [
     'IDENTIFIER',
     'stringValue',
     'floatValue',
@@ -239,7 +246,7 @@ def _create_ns(p, handle, ns):
         inames = [x['name'] for x in inames]
         if 'PG_InterOp' in inames:
             cimom_type = 'pegasus'
-    except CIMError, ce:
+    except CIMError as ce:
         if ce.args[0] != CIM_ERR_NOT_FOUND:
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise
@@ -249,7 +256,7 @@ def _create_ns(p, handle, ns):
                                                    namespace='Interop')
             inames = [x['name'] for x in inames]
             cimom_type = 'proper'
-        except CIMError, ce:
+        except CIMError as ce:
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise
 
@@ -271,7 +278,7 @@ def _create_ns(p, handle, ns):
                 namespace=ns))
         try:
             handle.CreateInstance(inst)
-        except CIMError, ce:
+        except CIMError as ce:
             if ce.args[0] != CIM_ERR_ALREADY_EXISTS:
                 ce.file_line = (p.parser.file, p.lexer.lineno)
                 raise
@@ -309,7 +316,7 @@ def p_mp_createClass(p):
                     p.parser.log('Created class %s:%s' % (ns, cc.classname))
                 p.parser.classnames[ns].append(cc.classname.lower())
                 break
-            except CIMError, ce:
+            except CIMError as ce:
                 ce.file_line = (p.parser.file, p.lexer.lineno)
                 errcode = ce.args[0]
                 if errcode == CIM_ERR_INVALID_NAMESPACE:
@@ -343,9 +350,9 @@ def p_mp_createClass(p):
                     if not p.parser.qualcache[ns]:
                         # can't find qualifiers
                         raise
-                    objects = cc.properties.values()
+                    objects = list(cc.properties.values())
                     for meth in cc.methods.values():
-                        objects += meth.parameters.values()
+                        objects += list(meth.parameters.values())
                     dep_classes = []
                     for obj in objects:
                         if obj.type not in ['reference', 'string']:
@@ -386,7 +393,7 @@ def p_mp_createClass(p):
                 else:
                     raise
 
-    except CIMError, ce:
+    except CIMError as ce:
         ce.file_line = (p.parser.file, p.lexer.lineno)
         if ce.args[0] != CIM_ERR_ALREADY_EXISTS:
             raise
@@ -394,7 +401,7 @@ def p_mp_createClass(p):
             p.parser.log('Class %s already exist.  Modifying...' % cc.classname)
         try:
             p.parser.handle.ModifyClass(cc, ns)
-        except CIMError, ce:
+        except CIMError as ce:
             p.parser.log('Error Modifying class %s: %s, %s' % \
                          (cc.classname, ce.args[0], ce.args[1]))
 
@@ -405,14 +412,14 @@ def p_mp_createInstance(p):
         p.parser.log('Creating instance of %s.' % inst.classname)
     try:
         p.parser.handle.CreateInstance(inst)
-    except CIMError, ce:
+    except CIMError as ce:
         if ce.args[0] == CIM_ERR_ALREADY_EXISTS:
             if p.parser.verbose:
                 p.parser.log('Instance of class %s already exist.  ' \
                              'Modifying...' % inst.classname)
             try:
                 p.parser.handle.ModifyInstance(inst)
-            except CIMError, ce:
+            except CIMError as ce:
                 if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
                     if p.parser.verbose:
                         p.parser.log('ModifyInstance not supported.  ' \
@@ -435,7 +442,7 @@ def p_mp_setQualifier(p):
         p.parser.log('Setting qualifier %s' % qualdecl.name)
     try:
         p.parser.handle.SetQualifier(qualdecl)
-    except CIMError, ce:
+    except CIMError as ce:
         if ce.args[0] == CIM_ERR_INVALID_NAMESPACE:
             if p.parser.verbose:
                 p.parser.log('Creating namespace ' + ns)
@@ -494,7 +501,7 @@ def p_classDeclaration(p):
     superclass = None
     alias = None
     quals = []
-    if isinstance(p[1], basestring): # no class qualifiers
+    if isinstance(p[1], six.string_types):  # no class qualifiers
         cname = p[2]
         if p[3][0] == '$': # alias present
             alias = p[3]
@@ -677,7 +684,7 @@ def p_qualifier(p):
     except KeyError:
         try:
             quals = p.parser.handle.EnumerateQualifiers()
-        except CIMError, ce:
+        except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                 ce.file_line = (p.parser.file, p.lexer.lineno)
                 raise
@@ -826,7 +833,7 @@ def p_methodDeclaration(p):
                          """
     paramlist = []
     quals = []
-    if isinstance(p[1], basestring): # no quals
+    if isinstance(p[1], six.string_types):  # no quals
         dt = p[1]
         mname = p[2]
         if p[4] != ')':
@@ -1233,7 +1240,7 @@ def p_instanceDeclaration(p):
     alias = None
     quals = {}
     ns = p.parser.handle.default_namespace
-    if isinstance(p[1], basestring): # no qualifiers
+    if isinstance(p[1], six.string_types):  # no qualifiers
         cname = p[3]
         if p[4] == '{':
             props = p[5]
@@ -1253,7 +1260,7 @@ def p_instanceDeclaration(p):
         cc = p.parser.handle.GetClass(cname, LocalOnly=False,
                                       IncludeQualifiers=True)
         p.parser.classnames[ns].append(cc.classname.lower())
-    except CIMError, ce:
+    except CIMError as ce:
         ce.file_line = (p.parser.file, p.lexer.lineno)
         if ce.args[0] == CIM_ERR_NOT_FOUND:
             file_ = p.parser.mofcomp.find_mof(cname)
@@ -1285,7 +1292,7 @@ def p_instanceDeclaration(p):
                           'Invalid property: %s' % pname)
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
-        except ValueError, ve:
+        except ValueError as ve:
             ce = CIMError(CIM_ERR_INVALID_PARAMETER,
                           'Invalid value for property: %s: %s' % \
                           (pname, ve.message))
@@ -1414,7 +1421,7 @@ def _get_error_context(input_, token):
 
 def _print_logger(str_):
     """Print the str_ argument to stdout"""
-    print str_
+    print(str_)
 
 
 class MOFWBEMConnection(object):
@@ -1494,7 +1501,7 @@ class MOFWBEMConnection(object):
             try:
                 dummy_super = self.GetClass(cc.superclass, LocalOnly=True,
                                             IncludeQualifiers=False)
-            except CIMError, ce:
+            except CIMError as ce:
                 if ce.args[0] == CIM_ERR_NOT_FOUND:
                     ce.args = (CIM_ERR_INVALID_SUPERCLASS, cc.superclass)
                     raise
@@ -1555,7 +1562,7 @@ class MOFWBEMConnection(object):
         else:
             rv = []
         try:
-            rv += self.qualifiers[self.default_namespace].values()
+            rv += list(self.qualifiers[self.default_namespace].values())
         except KeyError:
             pass
         return rv
@@ -1580,22 +1587,22 @@ class MOFWBEMConnection(object):
             for inst in insts:
                 try:
                     if verbose:
-                        print 'Deleting instance', inst.path
+                        print('Deleting instance %s' % inst.path)
                     self.conn.DeleteInstance(inst.path)
-                except CIMError, ce:
-                    print 'Error deleting instance', inst.path
-                    print '    ', '%s %s' % (ce.args[0], ce.args[1])
+                except CIMError as ce:
+                    print('Error deleting instance %s' % inst.path)
+                    print('     %s %s' % (ce.args[0], ce.args[1]))
         for ns, cnames in self.class_names.items():
             self.default_namespace = ns
             cnames.reverse()
             for cname in cnames:
                 try:
                     if verbose:
-                        print 'Deleting class %s:%s' % (ns, cname)
+                        print('Deleting class %s:%s' % (ns, cname))
                     self.conn.DeleteClass(cname)
-                except CIMError, ce:
-                    print 'Error deleting class %s:%s' % (ns, cname)
-                    print '    ', '%s %s' % (ce.args[0], ce.args[1])
+                except CIMError as ce:
+                    print('Error deleting class %s:%s' % (ns, cname))
+                    print('     %s %s' % (ce.args[0], ce.args[1]))
         # TODO: We want rollback to do something with qualifiers?
 
 
@@ -1657,11 +1664,11 @@ class MOFCompiler(object):
             The default logger prints to stdout.
         """
 
-        self.parser = yacc.yacc(tabmodule=_tabmodule, optimize=_optimize)
+        self.parser = yacc.yacc(tabmodule=_tabmodule, optimize=_optimize, outputdir=_tabdir)
         self.parser.search_paths = search_paths
         self.handle = handle
         self.parser.handle = handle
-        self.lexer = lex.lex(lextab=_lextab, optimize=_optimize)
+        self.lexer = lex.lex(lextab=_lextab, optimize=_optimize, outputdir=_tabdir)
         self.lexer.parser = self.parser
         self.parser.qualcache = {handle.default_namespace: NocaseDict()}
         self.parser.classnames = {handle.default_namespace: []}
@@ -1704,7 +1711,7 @@ class MOFCompiler(object):
             self.parser.file = oldfile
             self.parser.mof = oldmof
             return rv
-        except MOFParseError, pe:
+        except MOFParseError as pe:
             self.parser.log('Syntax error:')
             if hasattr(pe, 'file') and hasattr(pe, 'lineno'):
                 self.parser.log('%s:%s:' % (pe.file, pe.lineno))
@@ -1713,7 +1720,7 @@ class MOFCompiler(object):
             if str(pe):
                 self.parser.log(str(pe))
             raise
-        except CIMError, ce:
+        except CIMError as ce:
             if hasattr(ce, 'file_line'):
                 self.parser.log('Fatal Error: %s:%s' % (ce.file_line[0],
                                                         ce.file_line[1]))
@@ -1768,8 +1775,8 @@ def _build():
         the yacc.py and lex.py files
     """
 
-    yacc.yacc(optimize=_optimize, tabmodule=_tabmodule, outputdir=_outputdir)
-    lex.lex(optimize=_optimize, lextab=_lextab, outputdir=_outputdir)
+    yacc.yacc(optimize=_optimize, tabmodule=_tabmodule, outputdir=_tabdir)
+    lex.lex(optimize=_optimize, lextab=_lextab, outputdir=_tabdir)
 
 
 def main():
@@ -1851,9 +1858,9 @@ def main():
             if fname[0] != '/':
                 fname = os.path.curdir + '/' + fname
             mofcomp.compile_file(fname, options.ns)
-    except MOFParseError, dummy_pe:
+    except MOFParseError:
         sys.exit(1)
-    except CIMError, dummy_ce:
+    except CIMError:
         sys.exit(1)
 
     if options.remove and not options.dry_run:

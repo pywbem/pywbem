@@ -17,6 +17,7 @@
 #
 # Author: Bart Whiteley
 # Author: Jon Carey
+# Author: Ross Peoples <ross.peoples@gmail.com>
 #
 
 """Python CIM Providers (aka "nirvana")
@@ -196,6 +197,8 @@ from types import ModuleType
 import os
 import imp
 import threading
+import six
+import sys
 
 import pywbem
 
@@ -291,12 +294,12 @@ class CIMProvider2(object):
             values, and the instance will be filtered for you.
 
         Possible Errors:
-        CIM_ERR_ACCESS_DENIED
-        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized
+        pywbem.CIM_ERR_ACCESS_DENIED
+        pywbem.CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized
             or otherwise incorrect parameters)
-        CIM_ERR_NOT_FOUND (the CIM Class does exist, but the requested CIM
+        pywbem.CIM_ERR_NOT_FOUND (the CIM Class does exist, but the requested CIM
             Instance does not exist in the specified namespace)
-        CIM_ERR_FAILED (some other unspecified error occurred)
+        pywbem.CIM_ERR_FAILED (some other unspecified error occurred)
 
         """
         return None
@@ -310,7 +313,7 @@ class CIMProvider2(object):
 
         Keyword arguments:
         env -- Provider Environment (pycimmb.ProviderEnvironment)
-        model -- A template of the pywbem.CIMInstances to be generated.
+        model -- A template of the pywbem.CIMInstance objects to be generated.
             The properties of the model are already filtered according to
             the PropertyList from the request.  Only properties present in
             the model need to be given values.  If you prefer, you can
@@ -320,7 +323,7 @@ class CIMProvider2(object):
             set on the generated instances.
 
         Possible Errors:
-        CIM_ERR_FAILED (some other unspecified error occurred)
+        pywbem.CIM_ERR_FAILED (some other unspecified error occurred)
 
         """
         pass
@@ -338,17 +341,17 @@ class CIMProvider2(object):
         Return the new instance.  The keys must be set on the new instance.
 
         Possible Errors:
-        CIM_ERR_ACCESS_DENIED
-        CIM_ERR_NOT_SUPPORTED
-        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized
+        pywbem.CIM_ERR_ACCESS_DENIED
+        pywbem.CIM_ERR_NOT_SUPPORTED
+        pywbem.CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized
             or otherwise incorrect parameters)
-        CIM_ERR_ALREADY_EXISTS (the CIM Instance already exists -- only
+        pywbem.CIM_ERR_ALREADY_EXISTS (the CIM Instance already exists -- only
             valid if modify_existing is False, indicating that the operation
             was CreateInstance)
-        CIM_ERR_NOT_FOUND (the CIM Instance does not exist -- only valid
+        pywbem.CIM_ERR_NOT_FOUND (the CIM Instance does not exist -- only valid
             if modify_existing is True, indicating that the operation
             was ModifyInstance)
-        CIM_ERR_FAILED (some other unspecified error occurred)
+        pywbem.CIM_ERR_FAILED (some other unspecified error occurred)
 
         """
         raise pywbem.CIMError(pywbem.CIM_ERR_NOT_SUPPORTED, "")
@@ -362,16 +365,16 @@ class CIMProvider2(object):
             to delete.
 
         Possible Errors:
-        CIM_ERR_ACCESS_DENIED
-        CIM_ERR_NOT_SUPPORTED
-        CIM_ERR_INVALID_NAMESPACE
-        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized
+        pywbem.CIM_ERR_ACCESS_DENIED
+        pywbem.CIM_ERR_NOT_SUPPORTED
+        pywbem.CIM_ERR_INVALID_NAMESPACE
+        pywbem.CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized
             or otherwise incorrect parameters)
-        CIM_ERR_INVALID_CLASS (the CIM Class does not exist in the specified
+        pywbem.CIM_ERR_INVALID_CLASS (the CIM Class does not exist in the specified
             namespace)
-        CIM_ERR_NOT_FOUND (the CIM Class does exist, but the requested CIM
+        pywbem.CIM_ERR_NOT_FOUND (the CIM Class does exist, but the requested CIM
             Instance does not exist in the specified namespace)
-        CIM_ERR_FAILED (some other unspecified error occurred)
+        pywbem.CIM_ERR_FAILED (some other unspecified error occurred)
 
         """
         raise pywbem.CIMError(pywbem.CIM_ERR_NOT_SUPPORTED, "")
@@ -426,12 +429,12 @@ class CIMProvider2(object):
                           +-----------------------------------+
 
         Possible Errors:
-        CIM_ERR_ACCESS_DENIED
-        CIM_ERR_NOT_SUPPORTED
-        CIM_ERR_INVALID_NAMESPACE
-        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized
+        pywbem.CIM_ERR_ACCESS_DENIED
+        pywbem.CIM_ERR_NOT_SUPPORTED
+        pywbem.CIM_ERR_INVALID_NAMESPACE
+        pywbem.CIM_ERR_INVALID_PARAMETER (including missing, duplicate, unrecognized
             or otherwise incorrect parameters)
-        CIM_ERR_FAILED (some other unspecified error occurred)
+        pywbem.CIM_ERR_FAILED (some other unspecified error occurred)
 
         """
         # Don't change this return value.  If affects the behavior
@@ -690,7 +693,8 @@ class CIMProvider2(object):
                     if prop.value.namespace is None:
                         prop.value.namespace = objectName.namespace
                     inst = ch.GetInstance(prop.value, propertyList)
-                except pywbem.CIMError, (num, msg):
+                except pywbem.CIMError as exc:
+                    num, msg = exc.args
                     if num == pywbem.CIM_ERR_NOT_FOUND:
                         continue
                     else:
@@ -896,8 +900,8 @@ class CIMProvider2(object):
             try:
                 (rval, outs) = method(env=env, object_name=objectName,
                                       **new_inputs)
-            except TypeError, e:
-                raise pywbem.CIMError(pywbem.CIM_ERR_INVALID_PARAMETER, str(e))
+            except TypeError as exc:
+                raise pywbem.CIMError(pywbem.CIM_ERR_INVALID_PARAMETER, str(exc))
 
             def add_type(v):
                 if isinstance(v, pywbem.CIMParameter):
@@ -914,7 +918,7 @@ class CIMProvider2(object):
                 elif v is None or (type(v) == list and len(v) == 0):
                     assert(None == 'This should not happen')
                 else:
-                    tp = pywbem.cimtype(v)
+                    tp = cimtype(v)
                 return (tp, v)
 
             louts = {}
@@ -932,7 +936,7 @@ class CIMProvider2(object):
     def filter_instance(self, inst, plist):
         """Remove properties from an instance that aren't in the PropertyList
 
-        inst -- The CIMInstance
+        inst -- The pywbem.CIMInstance
         plist -- The property List, or None.  The list items must be all
             lowercase.
 
@@ -1002,7 +1006,7 @@ def codegen(cc):
     """Generate a Python Provider template.
 
     Parameters:
-    cc - A CIMClass to generate code for.
+    cc - A pywbem.CIMClass to generate code for.
 
     Returns a two-tuple containing the Python provider code stubs, and
         the provider registration MOF.
@@ -1013,7 +1017,7 @@ def codegen(cc):
 
     def format_desc(obj, indent):
         linelen = 75 - indent
-        if isinstance(obj, basestring):
+        if isinstance(obj, six.string_types):
             raw = obj
         else:
             try:
@@ -1174,7 +1178,7 @@ def codegen(cc):
         return map
 
     valuemaps = {}
-    rvaluemaps = pywbem.NocaseDict()
+    rvaluemaps = NocaseDict()
 
     for prop in cc.properties.values():
         if 'valuemap' in prop.qualifiers and 'values' in prop.qualifiers:
@@ -1269,7 +1273,7 @@ class %(classname)s(CIMProvider2):
     keydict = dict([(str(kp.name), None) for kp in keyProps])
     code += '''
         # Prime model.path with knowledge of the keys, so key values on
-        # the CIMInstanceName (model.path) will automatically be set when
+        # the pywbem.CIMInstanceName (model.path) will automatically be set when
         # we set property values on the model.
         model.pa%s
         ''' % format_desc('th.update('+str(keydict)+')', 12).strip()
@@ -1292,7 +1296,8 @@ class %(classname)s(CIMProvider2):
             else:
                 try:
                     yield self.get_instance(env, model)
-                except pywbem.CIMError, (num, msg):
+                except pywbem.CIMError as exc:
+                    num, msg = exc.args
                     if num not in (pywbem.CIM_ERR_NOT_FOUND,
                                    pywbem.CIM_ERR_ACCESS_DENIED):
                         raise\n'''
@@ -1348,7 +1353,7 @@ class %(classname)s(CIMProvider2):
         code += '''
         Keyword arguments:
         env -- Provider Environment (pycimmb.ProviderEnvironment)
-        object_name -- A pywbem.CIMInstanceName or pywbem.CIMCLassName
+        object_name -- A pywbem.CIMInstanceName or pywbem.CIMClassName
             specifying the object on which the method %s()
             should be invoked.'''\
                 % method.name
@@ -1363,7 +1368,7 @@ class %(classname)s(CIMProvider2):
         code += '''
 
         Returns a two-tuple containing the return value (type %s)
-        and a list of CIMParameter objects representing the output parameters
+        and a list of pywbem.CIMParameter objects representing the output parameters
 
         Output parameters:''' % type_str(method)
 
@@ -1379,14 +1384,14 @@ class %(classname)s(CIMProvider2):
         code += '''
 
         Possible Errors:
-        CIM_ERR_ACCESS_DENIED
-        CIM_ERR_INVALID_PARAMETER (including missing, duplicate,
+        pywbem.CIM_ERR_ACCESS_DENIED
+        pywbem.CIM_ERR_INVALID_PARAMETER (including missing, duplicate,
             unrecognized or otherwise incorrect parameters)
-        CIM_ERR_NOT_FOUND (the target CIM Class or instance does not
+        pywbem.CIM_ERR_NOT_FOUND (the target CIM Class or instance does not
             exist in the specified namespace)
-        CIM_ERR_METHOD_NOT_AVAILABLE (the CIM Server is unable to honor
+        pywbem.CIM_ERR_METHOD_NOT_AVAILABLE (the CIM Server is unable to honor
             the invocation request)
-        CIM_ERR_FAILED (some other unspecified error occurred)
+        pywbem.CIM_ERR_FAILED (some other unspecified error occurred)
 
         """
 
@@ -1457,7 +1462,7 @@ class %(classname)s(CIMProvider2):
         # you'll get a SyntaxError on the first yield below.
 
         # Prime model.path with knowledge of the keys, so key values on
-        # the CIMInstanceName (model.path) will automatically be set when
+        # the pywbem.CIMInstanceName (model.path) will automatically be set when
         # we set property values on the model.
         model.pa%s
 
@@ -1696,7 +1701,7 @@ class ProviderProxy(object):
         if hasattr(self.provmod, 'init'):
             self.provmod.init(env)
         if hasattr(self.provmod, 'get_providers'):
-            self.provregs = pywbem.NocaseDict(self.provmod.get_providers(env))
+            self.provregs = NocaseDict(self.provmod.get_providers(env))
 
     def _load_provider_source(self, logger):
         self.provider_module_name = os.path.basename(self.provid)[:-3]
@@ -1725,10 +1730,10 @@ class ProviderProxy(object):
                     imp.release_lock()
                     g_mod_lock.release()
                     fn[0].close()
-            except IOError, arg:
+            except IOError as exc:
                 raise pywbem.CIMError(
                     pywbem.CIM_ERR_FAILED,
-                    "Error loading provider %s: %s" % (self.provid, arg))
+                    "Error loading provider %s: %s" % (self.provid, exc))
         self.filename = self.provmod.__file__
 
     def _get_callable(self, classname, cname):
@@ -1777,10 +1782,10 @@ class ProviderProxy(object):
             try:
                 self._load_provider_source(logger)
                 self._init_provider(env)
-            except IOError, arg:
+            except IOError as exc:
                 raise pywbem.CIMError(
                     pywbem.CIM_ERR_FAILED,
-                    "Error loading provider %s: %s" % (provid, arg))
+                    "Error loading provider %s: %s" % (provid, exc))
 
 
 ##############################################################################

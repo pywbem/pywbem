@@ -9,7 +9,6 @@ The return codes here may be specific to OpenPegasus.
 
 import sys
 from datetime import timedelta
-from types import StringTypes
 import unittest
 
 from pywbem.cim_constants import *
@@ -583,7 +582,7 @@ class EnumerateClassNames(ClientTest):
         names = self.cimcall(self.conn.EnumerateClassNames)
 
         for n in names:
-            self.assertTrue(isinstance(n, StringTypes))
+            self.assertTrue(isinstance(n, six.string_types))
 
         # Enumerate with classname arg
 
@@ -591,7 +590,7 @@ class EnumerateClassNames(ClientTest):
                              ClassName='CIM_ManagedElement')
 
         for n in names:
-            self.assertTrue(isinstance(n, StringTypes))
+            self.assertTrue(isinstance(n, six.string_types))
 
 class EnumerateClasses(ClientTest, ClassVerifier):
 
@@ -708,8 +707,8 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
             check_utf8_xml_chars(utf8_xml, "Test XML")
         except ParseError as exc:
             if self.verbose:
-                print "Verify manually: Input XML: %r, ParseError: %s" %\
-                      (utf8_xml, exc)
+                print("Verify manually: Input XML: %r, ParseError: %s" %\
+                      (utf8_xml, exc))
             self.assertTrue(not expected_ok,
                          "ParseError unexpectedly raised: %s" % exc)
         else:
@@ -728,8 +727,8 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
 
         # invalid XML characters
         if self.verbose:
-            print "From here on, the only expected exception is ParseError "\
-                  "for invalid XML characters..."
+            print("From here on, the only expected exception is ParseError "\
+                  "for invalid XML characters...")
         self._run_single('<V>a\bb</V>', False)
         self._run_single('<V>a\x08b</V>', False)
         self._run_single('<V>a\x00b</V>', False)
@@ -739,8 +738,8 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
 
         # correctly encoded but ill-formed UTF-8
         if self.verbose:
-            print "From here on, the only expected exception is ParseError "\
-                  "for ill-formed UTF-8 Byte sequences..."
+            print("From here on, the only expected exception is ParseError "\
+                  "for ill-formed UTF-8 Byte sequences...")
         # combo of U+D800,U+DD22:
         self._run_single('<V>a\xED\xA0\x80\xED\xB4\xA2b</V>', False)
         # combo of U+D800,U+DD22 and combo of U+D800,U+DD23:
@@ -749,8 +748,8 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
 
         # incorrectly encoded UTF-8
         if self.verbose:
-            print "From here on, the only expected exception is ParseError "\
-                  "for invalid UTF-8 Byte sequences..."
+            print("From here on, the only expected exception is ParseError "\
+                  "for invalid UTF-8 Byte sequences...")
         # incorrect 1-byte sequence:
         self._run_single('<V>a\x80b</V>', False)
         # 2-byte sequence with missing second byte:
@@ -827,41 +826,42 @@ def parse_args(argv_):
     argv = list(argv_)
 
     if len(argv) <= 1:
-        print 'Error: No arguments specified; Call with --help or -h for usage.'
+        print('Error: No arguments specified; Call with --help or -h for '\
+              'usage.')
         sys.exit(2)
     elif argv[1] == '--help' or argv[1] == '-h':
-        print ''
-        print 'Test program for CIM operations.'
-        print ''
-        print 'Usage:'
-        print '    %s [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '\
-              '[UT_CLASS ...]]] ' % argv[0]
-        print ''
-        print 'Where:'
-        print '    GEN_OPTS            General options (see below).'
-        print '    URL                 The URL of the WBEM server to run '\
-              'against.'
-        print '    USERNAME            Userid to be used for logging on to '\
-              'WBEM server.'
-        print '    PASSWORD            Password to be used for logging on to '\
-              'WBEM server.'
-        print '    UT_OPTS             Unittest options (see below).'
-        print '    UT_CLASS            Name of testcase class (e.g. '\
-              'EnumerateInstances).'
-        print ''
-        print 'General options:'
-        print '    --help, -h          Display this help text.'
-        print '    -n NAMESPACE        Use this CIM namespace instead of '\
-              'default: %s' % DEFAULT_NAMESPACE
-        print '    -t TIMEOUT          Use this timeout (in seconds) instead '\
-              'of no timeout'
-        print ''
-        print 'Unittest arguments:'
+        print('')
+        print('Tet program for CIM operations.')
+        print('')
+        print('Usage:')
+        print('    %s [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '\
+              '[UT_CLASS ...]]] ' % argv[0])
+        print('')
+        print('Where:')
+        print('    GEN_OPTS            General options (see below).')
+        print('    URL                 The URL of the WBEM server to run '\
+              'against.')
+        print('    USERNAME            Userid to be used for logging on to '\
+              'WBEM server.')
+        print('    PASSWORD            Password to be used for logging on to '\
+              'WBEM server.')
+        print('    UT_OPTS             Unittest options (see below).')
+        print('    UT_CLASS            Name of testcase class (e.g. '\
+              'EnumerateInstances).')
+        print('')
+        print('General options:')
+        print('    --help, -h          Display this help text.')
+        print('    -n NAMESPACE        Use this CIM namespace instead of '\
+              'default: %s' % DEFAULT_NAMESPACE)
+        print('    -t TIMEOUT          Use this timeout (in seconds) instead '\
+              'of no timeout')
+        print('')
+        print('Unittest arguments:')
         sys.argv[1:] = ['--help']
         unittest.main()
-        print ''
-        print 'Examples:'
-        print '    %s https://9.10.11.12 username%%password' % argv[0]
+        print('')
+        print('Examples:')
+        print('    %s https://9.10.11.12 username%%password' % argv[0])
         sys.exit(2)
 
     args = {}
@@ -878,7 +878,7 @@ def parse_args(argv_):
             args['timeout'] = int(argv[2])
             del argv[1:3]
         else:
-            print "Error: Unknown option: %s" % argv[1]
+            print("Error: Unknown option: %s" % argv[1])
             sys.exit(1)
 
     args['url'] = argv[1]
@@ -889,7 +889,7 @@ def parse_args(argv_):
         del argv[1:2]
     else:
         from getpass import getpass
-        print 'Username: ',
+        print('Username: ', end=' ')
         args['username'] = sys.stdin.readline().strip()
         args['password'] = getpass()
 
@@ -897,10 +897,10 @@ def parse_args(argv_):
 
 if __name__ == '__main__':
     args, sys.argv = parse_args(sys.argv)
-    print "Using WBEM Server:"
-    print "  server url: %s" % args['url']
-    print "  default namespace: %s" % args['namespace']
-    print "  username: %s" % args['username']
-    print "  password: %s" % ("*"*len(args['password']))
-    print "  timeout: %s s" % args['timeout']
+    print("Using WBEM Server:")
+    print("  server url: %s" % args['url'])
+    print("  default namespace: %s" % args['namespace'])
+    print("  username: %s" % args['username'])
+    print("  password: %s" % ("*"*len(args['password'])))
+    print("  timeout: %s s" % args['timeout'])
     unittest.main()

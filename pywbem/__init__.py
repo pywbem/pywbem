@@ -110,7 +110,7 @@ PyWBEM has been tested with Python 2.7 on Windows and Linux, and with Python
 
 Python 2.6 is the minimum version of Python that is supported.
 
-Python 3 is not yet supported.
+Python 3 support is WIP.
 """
 
 # There are submodules, but clients shouldn't need to know about them.
@@ -119,12 +119,12 @@ Python 3 is not yet supported.
 
 import sys
 
-from pywbem.cim_types import *
-from pywbem.cim_constants import *
-from pywbem.cim_operations import *
-from pywbem.cim_obj import *
-from pywbem.tupleparse import ParseError
-from pywbem.cim_http import Error, ConnectionError, AuthError, TimeoutError
+from .cim_types import *
+from .cim_constants import *
+from .cim_operations import *
+from .cim_obj import *
+from .tupleparse import ParseError
+from .cim_http import Error, ConnectionError, AuthError, TimeoutError
 
 # Version of the pywbem package
 # !!! Keep in sync with version stated in module docstring, above !!!
