@@ -120,6 +120,7 @@ help:
 	@echo '  clobber    - Remove any build products'
 
 develop:
+	sudo pip install six
 	pip install six
 	sudo python setup.py develop_os
 	python setup.py develop
