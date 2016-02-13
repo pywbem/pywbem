@@ -22,7 +22,17 @@
 # Note: This module contains yacc rules in docstrings of its functions.
 # The version of yacc that is used (yacc 2.3) requires each choice of such a
 # rule to be on a single line, and the first choice to be on the same line as
-# the rule name.
+# the rule name.  These exist both as strings in the first line of
+# some functions and as docstrings defining the production for
+# some functions. Changing any of this breaks the current ply
+# rule generation.
+
+"""pywbem MOF Compiler Rules and implementation definition for lex and yacc.
+   This compiler implementation is based on the PLY python package.
+   Today PLY is directly copied into pywbem rather than using the
+   separate python ply package and it is version 3.0 of PLY.
+
+"""
 
 import sys
 import os
@@ -33,9 +43,15 @@ from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                            CIMProperty, CIMMethod, CIMParameter, \
                            CIMQualifier, CIMQualifierDeclaration, NocaseDict
 from pywbem.cim_operations import CIMError, WBEMConnection
-from pywbem.cim_constants import *
+from pywbem.cim_constants import * # pylint: disable=wildcard-import
 
 __all__ = ['MOFParseError', 'MOFWBEMConnection', 'MOFCompiler']
+
+# The following pylint is applied for the complete file because invalid
+# names are used throughout the file and about 200 flags generated if
+# this is not applied and at least some # may be part of ply rules.
+
+# pylint: disable=invalid-name
 
 _optimize = 1
 _tabmodule = 'mofparsetab'
@@ -152,7 +168,7 @@ identifier_re = r'([a-zA-Z_]|(%s))([0-9a-zA-Z_]|(%s))*' % (utf8Char, utf8Char)
 
 @lex.TOKEN(identifier_re)
 def t_IDENTIFIER(t):
-    # check for reserved word
+    """ check for reserved word"""
     t.type = reserved.get(t.value.lower(), 'IDENTIFIER')
     return t
 
@@ -166,6 +182,7 @@ t_ignore = ' \r\t'
 
 # Error handling rule
 def t_error(t):
+    """Rule for error handling. Generate message"""
     msg = "Illegal character '%s' " % t.value[0]
     msg += "Line %d, col %d" % (t.lineno, _find_column(t.lexer.parser.mof, t))
     t.lexer.parser.log(msg)
@@ -175,10 +192,14 @@ class MOFParseError(ValueError):
     pass
 
 def p_error(p):
+    """Get the error and raise exception"""
+
     ex = MOFParseError()
     if p is None:
         ex.args = ('Unexpected end of file',)
         raise ex
+
+    # pylint: disable=attribute-defined-outside-init
     ex.file = p.lexer.parser.file
     ex.lineno = p.lineno
     ex.column = _find_column(p.lexer.parser.mof, p)
@@ -206,6 +227,10 @@ def p_mofProduction(p):
 
 
 def _create_ns(p, handle, ns):
+    """Create a namespace in the target connection based on the handle
+       and ns arguments.
+    """
+
     # Figure out the flavor of cim server
     cimom_type = None
     ns = ns.strip('/')
@@ -269,6 +294,8 @@ def p_mp_createClass(p):
                       | assocDeclaration
                       | indicDeclaration
                       """
+
+    #pylint: disable=too-many-branches,too-many-statements,too-many-locals
     ns = p.parser.handle.default_namespace
     cc = p[1]
     try:
@@ -632,6 +659,8 @@ def p_qualifier(p):
                  | qualifierName qualifierParameter
                  | qualifierName qualifierParameter ':' flavorList
                  """
+
+    #pylint: disable=too-many-branches
     qname = p[1]
     ns = p.parser.handle.default_namespace
     qval = None
@@ -952,6 +981,9 @@ def p_constantValueList(p):
         p[0] = p[1] + [p[3]]
 
 def _fixStringValue(s):
+    """Clean up string value including special characters, etc."""
+
+    #pylint: disable=too-many-branches
     s = s[1:-1]
     rv = ''
     esc = False
@@ -1072,6 +1104,10 @@ def p_qualifierDeclaration(p):
         scopes=scopes, **flavors)
 
 def _build_flavors(flist, qualdecl=None):
+    """Build and return a dictionary defining the flavors from the
+       flist argument
+    """
+
     flavors = {}
     if qualdecl is not None:
         flavors = {'overridable':qualdecl.overridable,
@@ -1193,6 +1229,7 @@ def p_instanceDeclaration(p):
                            | qualifierList INSTANCE OF className '{' valueInitializerList '}' ';'
                            | qualifierList INSTANCE OF className alias '{' valueInitializerList '}' ';'
                            """
+    # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     alias = None
     quals = {}
     ns = p.parser.handle.default_namespace
@@ -1361,7 +1398,7 @@ def _get_error_context(input_, token):
             i = 0
         lines.insert(0, input_[i:end].strip('\r\n'))
     pointer = ''
-    for ch in token.value:
+    for dummy_ch in token.value:
         pointer += '^'
     pointline = ''
     i = 0
@@ -1376,11 +1413,17 @@ def _get_error_context(input_, token):
     return lines
 
 def _print_logger(str_):
+    """Print the str_ argument to stdout"""
     print str_
 
 
 class MOFWBEMConnection(object):
+    """Access to repository used by the compiler. Does not
+       implement all of the WBEM Operations, just the subset
+       required by the compiler
+    """
     def __init__(self, conn=None):
+        """Define the connection for the connection"""
         self.conn = conn
         self.class_names = {}
         self.qualifiers = {}
@@ -1390,12 +1433,16 @@ class MOFWBEMConnection(object):
             self.__default_namespace = 'root/cimv2'
 
     def setns(self, value):
+        """Set the namespace into the MOFWBEMConnection object"""
+
         if self.conn is not None:
             self.conn.default_namespace = value
         else:
             self.__default_namespace = value
 
     def getns(self):
+        """Get the namespace from the MOFWBEMConnection object"""
+
         if self.conn is not None:
             return self.conn.default_namespace
         else:
@@ -1405,6 +1452,8 @@ class MOFWBEMConnection(object):
                                  "default_namespace property")
 
     def GetClass(self, *args, **kwargs):
+        """Get a class from the MOFWBEMConnection"""
+
         cname = len(args) > 0 and args[0] or kwargs['ClassName']
         try:
             cc = self.classes[self.default_namespace][cname]
@@ -1436,11 +1485,15 @@ class MOFWBEMConnection(object):
         return cc
 
     def CreateClass(self, *args, **kwargs):
+        """Insert a single CIMClass defined by kwargs into the
+           target connection.
+        """
+
         cc = len(args) > 0 and args[0] or kwargs['NewClass']
         if cc.superclass:
             try:
-                super_ = self.GetClass(cc.superclass, LocalOnly=True,
-                                       IncludeQualifiers=False)
+                dummy_super = self.GetClass(cc.superclass, LocalOnly=True,
+                                            IncludeQualifiers=False)
             except CIMError, ce:
                 if ce.args[0] == CIM_ERR_NOT_FOUND:
                     ce.args = (CIM_ERR_INVALID_SUPERCLASS, cc.superclass)
@@ -1462,15 +1515,18 @@ class MOFWBEMConnection(object):
         except KeyError:
             self.class_names[self.default_namespace] = [cc.classname]
 
-    def ModifyClass(self, *args, **kwargs):
-        raise CIMError(CIM_ERR_FAILED,
-                       'This should not happen!')
+    def ModifyClass(self, *args, **kwargs): #pylint: disable=no-self-use
+        """Not Implemented because not used"""
+
+        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
 
     def ModifyInstance(self, *args, **kwargs):
-        raise CIMError(CIM_ERR_FAILED,
-                       'This should not happen!')
+        """This function should never happen so generates error"""
+
+        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
 
     def GetQualifier(self, *args, **kwargs):
+        """Get the qualifier declaration defined by name"""
         qualname = len(args) > 0 and args[0] or kwargs['QualifierName']
         try:
             qual = self.qualifiers[self.default_namespace][qualname]
@@ -1481,6 +1537,10 @@ class MOFWBEMConnection(object):
         return qual
 
     def SetQualifier(self, *args, **kwargs):
+        """Put the qualifier declaration defined in kwargs into
+           the target repository
+        """
+
         qual = len(args) > 0 and args[0] or kwargs['QualifierDeclaration']
         try:
             self.qualifiers[self.default_namespace][qual.name] = qual
@@ -1489,6 +1549,7 @@ class MOFWBEMConnection(object):
                     NocaseDict({qual.name:qual})
 
     def EnumerateQualifiers(self, *args, **kwargs):
+        """Get all qualifier declarations in the connection namespace"""
         if self.conn is not None:
             rv = self.conn.EnumerateQualifiers(*args, **kwargs)
         else:
@@ -1499,8 +1560,10 @@ class MOFWBEMConnection(object):
             pass
         return rv
 
-
     def CreateInstance(self, *args, **kwargs):
+        """Append a new instance defined by kwargs to the target
+           connection instances"""
+
         inst = len(args) > 0 and args[0] or kwargs['NewInstance']
         try:
             self.instances[self.default_namespace].append(inst)
@@ -1509,6 +1572,9 @@ class MOFWBEMConnection(object):
         return inst.path
 
     def rollback(self, verbose=False):
+        """Rollback created instances and classes created within
+           the context of this connection
+        """
         for ns, insts in self.instances.items():
             insts.reverse()
             for inst in insts:
@@ -1530,10 +1596,11 @@ class MOFWBEMConnection(object):
                 except CIMError, ce:
                     print 'Error deleting class %s:%s' % (ns, cname)
                     print '    ', '%s %s' % (ce.args[0], ce.args[1])
-        # TODO: do we want to do anything with qualifiers?
+        # TODO: We want rollback to do something with qualifiers?
 
 
 def _errcode2string(code):
+    """Defines dictionary of CIMStatusCodes and their Strings"""
     d = {
         CIM_ERR_FAILED                 : 'A general error occurred',
         CIM_ERR_ACCESS_DENIED          : 'Resource not available',
@@ -1560,6 +1627,9 @@ def _errcode2string(code):
     return s
 
 class MOFCompiler(object):
+    """MOF compiler class. Initializes the compiler and includes functions to
+       compile input files"""
+
     def __init__(self, handle, search_paths=[], verbose=False,
                  log_func=_print_logger):
         """Initialize the compiler.
@@ -1670,8 +1740,8 @@ class MOFCompiler(object):
         return self.compile_string(mof, ns, filename=filename)
 
     def find_mof(self, classname):
-        """Find a MOF file corresponding to a CIM class name.  The search_paths
-        provided to __init__() are searched recursively.
+        """Find a MOF file corresponding to a CIM class name.  The
+         search_paths provided to __init__() are searched recursively.
 
         Arguments:
         classname -- The name of the class to look for
@@ -1679,7 +1749,7 @@ class MOFCompiler(object):
 
         classname = classname.lower()
         for search in self.parser.search_paths:
-            for root, dirs, files in os.walk(search):
+            for root, dummy_dirs, files in os.walk(search):
                 for file_ in files:
                     if file_.endswith('.mof') and \
                             file_[:-4].lower() == classname:
@@ -1687,14 +1757,27 @@ class MOFCompiler(object):
         return None
 
     def rollback(self, verbose=False):
+        """Rollback/delete objects created within the context of this
+           MOFCompiler instance
+        """
+
         self.handle.rollback(verbose=verbose)
 
 def _build():
+    """ Executes Lex and Yacc functions from PLY to create
+        the yacc.py and lex.py files
+    """
+
     yacc.yacc(optimize=_optimize, tabmodule=_tabmodule, outputdir=_outputdir)
     lex.lex(optimize=_optimize, lextab=_lextab, outputdir=_outputdir)
 
 
 def main():
+    """Initialize compiler options from command line when
+       mof_compiler.py called from command line. Options can be
+       viewed with --help
+    """
+
     from optparse import OptionParser
     usage = 'usage: %prog -n <namespace> [options] <MOF file> ...'
     oparser = OptionParser(usage=usage)
@@ -1756,7 +1839,7 @@ def main():
         else:
             search.append(path)
 
-    # if removing, we'll be verbose later when we actually remove stuff.
+    # If removing, we'll be verbose later when we actually remove stuff.
     # We don't want MOFCompiler to be verbose, as that would be confusing.
     verbose = options.verbose and not options.remove
 
@@ -1768,9 +1851,9 @@ def main():
             if fname[0] != '/':
                 fname = os.path.curdir + '/' + fname
             mofcomp.compile_file(fname, options.ns)
-    except MOFParseError, pe:
+    except MOFParseError, dummy_pe:
         sys.exit(1)
-    except CIMError, ce:
+    except CIMError, dummy_ce:
         sys.exit(1)
 
     if options.remove and not options.dry_run:
