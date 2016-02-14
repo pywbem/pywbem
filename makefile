@@ -30,6 +30,9 @@ package_version := $(shell sh -c "echo $(package_specified_version) |sed 's/[.-]
 # Final version of this package (M.N.U)
 package_final_version := $(shell sh -c "echo $(package_version) |sed 's/rc[0-9]\+$$//' |sed 's/\.dev0$$//'")
 
+# Python major version
+python_major_version := $(shell python -c "import sys; sys.stdout.write('%s'%sys.version_info[0])")
+
 # Python version for use in file names
 python_version_fn := $(shell python -c "import sys; sys.stdout.write('%s%s'%(sys.version_info[0],sys.version_info[1]))")
 
@@ -87,7 +90,7 @@ doc_exclude_patterns := \
 doc_build_dir := build_doc
 
 # Documentation generator command
-doc_cmd := epydoc --verbose --simple-term --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_build_dir) $(package_name)
+doc_cmd := epydoc --verbose --simple-term --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_build_dir) $(foreach p,$(doc_exclude_patterns),--exclude=$p) $(package_name)
 
 # Directory for documentation publishing
 doc_publish_dir := ../pywbem.github.io/pywbem/doc/$(package_final_version)/doc
@@ -156,11 +159,21 @@ build: $(dist_file)
 buildwin: $(win64_dist_file)
 	@echo '$@ done; created: $(win64_dist_file)'
 
+ifeq ($(python_major_version), 2)
 builddoc: $(doc_build_dir)/index.html
 	@echo '$@ done; created documentation in: $(doc_build_dir); build output is in epydoc.log'
+else
+builddoc:
+	@echo 'Building API documentation requires Python 2; skipping this step'
+endif
 
+ifeq ($(python_major_version), 2)
 check: pylint.log
 	@echo '$@ done; results are in pylint.log'
+else
+check:
+	@echo 'Checking requires Python 2; skipping this step'
+endif
 
 install:
 	unzip -q -o -d tmp_install $(dist_file)
@@ -230,7 +243,7 @@ $(moftab_files): $(moftab_dependent_files)
 	sh -c "PYTHONPATH=. python -c \"from $(package_name) import mof_compiler; mof_compiler._build()\""
 
 # Documentation for package (generates more .html files than just this target)
-$(doc_build_dir)/index.html: $(package_name)/*.py $(package_name)/NEWS
+$(doc_build_dir)/index.html: $(doc_dependent_files)
 	rm -Rf $(doc_build_dir)
 	mkdir -p $(doc_build_dir)
 	bash -c "set -o pipefail; PYTHONPATH=. $(doc_cmd) 2>&1 |tee epydoc.log"
