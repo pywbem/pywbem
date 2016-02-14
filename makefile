@@ -119,9 +119,12 @@ help:
 	@echo '  publish    - builddoc + publish documentation to: $(doc_publish_dir)'
 	@echo '  clobber    - Remove any build products'
 
+# non-sudo commands first, to make sure that __pycache__ and 'six' site-package
+# directories are not owned by root.
 develop:
-	sudo pip install six
 	pip install six
+	sudo pip install six
+	python setup.py build      # __pycache__ owner
 	sudo python setup.py develop_os
 	python setup.py develop
 	@echo '$@ done.'
