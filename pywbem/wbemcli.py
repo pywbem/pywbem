@@ -135,6 +135,7 @@ def EnumerateInstances(classname, namespace=None, LocalOnly=True,
 
     return _CONN.EnumerateInstances(classname,
                                     namespace=namespace,
+                                    LocalOnly=LocalOnly,
                                     DeepInheritance=DeepInheritance,
                                     IncludeQualifiers=IncludeQualifiers,
                                     IncludeClassOrigin=IncludeClassOrigin)
@@ -176,6 +177,7 @@ def DeleteInstance(instancename):
     global _CONN     # pylint: disable=global-statement
 
     return _CONN.DeleteInstance(instancename)
+
 # TODO all of the following functions simply use args and kwargs
 # This makes sorting out arguments difficult for the user.
 def ModifyInstance(*args, **kwargs):
