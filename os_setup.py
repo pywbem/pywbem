@@ -58,10 +58,14 @@ Syntax for the new attributes of the `setup()` function:
       install_os_requires = {
           'Linux': {                        # system name
               'redhat': [                   # distribution name
-                  "python-devel",           # a package without version req.
-                  "openssl-devel>=1.0.1",   # a package with version requirement
-                  "pylint>=1.3,<1.4",       # a package with multiple version requirements
-                  install_swig,             # a custom function
+                  "httpretty",              # pkg without version req.
+                  "openssl-devel>=1.0.1",   # pkg with minimum version req.
+                  "pylint>=1.3,<1.4",       # pkg with multiple version reqs.
+                  "python-devel=2.7",       # pkg where any 2.7.x matches
+                  "python-xyz==2.7",        # pkg where only 2.7[.0] matches
+                  install_swig,             # pkg with a custom function
+                  "epydoc" if sys.version_info[0] == 2 else None,
+                                            # pkg only for Python 2
                   . . .
               ],
               'centos': 'redhat',           # refer to another distribution
@@ -75,7 +79,12 @@ Syntax for the new attributes of the `setup()` function:
       <op><version>[,<op><version>[,...]]
 
   Where:
-  * <op> - the comparison operator, one of '<', '<=', '=', '>=', '>'.
+  * <op> - the comparison operator, one of '<', '<=', '=', '==', '>=', '>'.
+    For '=', unspecified version components are treated like wildcards.
+    This is different from '==', where the version must match exactly,
+    and unspecified version components are considered to be 0.
+    For the other operators, unspecified version components are considered
+    to be 0 (consistent with `pip`).
   * <version> - the version to be compared against.
 
   Custom functions must have the following interface:
@@ -259,10 +268,11 @@ def _assert_req_list(dist, attr, value): # pylint: disable=unused-argument
     """
     req_list = value
     for req in req_list:
-        if not isinstance(req, (six.string_types, types.FunctionType)):
+        if not isinstance(req, (six.string_types, types.FunctionType,
+                                type(None))):
             raise DistutilsSetupError(
-                "'%s' attribute: Requirement must be a string or a function "\
-                "(got requirement %r of type %s)"%\
+                "'%s' attribute: Requirement must be a string, a function, "\
+                "or None (got requirement %r of type %s)"%\
                 (attr, req, type(req))
             )
 
@@ -329,7 +339,9 @@ class BaseOsCommand(Command):
     def _run_os_req_list(self, req_list):
         if req_list is not None:
             for req in req_list:
-                if isinstance(req, types.FunctionType):
+                if req is None:
+                    pass # ignore
+                elif isinstance(req, types.FunctionType):
                     req(self)
                 else: # requirements string
                     if self.verbose:
@@ -429,7 +441,9 @@ class develop(_develop): # pylint: disable=invalid-name
 
         req_list = self.distribution.develop_requires
         for req in req_list:
-            if isinstance(req, types.FunctionType):
+            if req is None:
+                pass # ignore
+            elif isinstance(req, types.FunctionType):
                 req(self)
             else: # requirements string
                 if self.verbose:
@@ -588,19 +602,19 @@ class BaseInstaller(object):
 
         Parameters:
         * pkg_req: A string specifying the package requirement
-          (e.g. 'abc >=1.0,<3.0', or 'def 1.0')
+          (e.g. 'abc >=1.0,<3.0', or 'def 1.0').
 
         Returns:
         * tuple of:
           - A string specifying the package name (e.g. 'abc' or 'def')
           - A list with zero or more strings, each specifying a version
-            requirement (e.g. ('>=1.0', '<3.0') or ('=1.0',)). If no
-            comparison operator was specified, the default operator '=' is
+            requirement (e.g. ('>=1.0', '<3.0') or ('==1.0',)). If no
+            comparison operator was specified, the default operator '==' is
             added, so that each list entry is of the form <op><version>.
         """
         r = r'^([a-zA-Z0-9_\.\-\+]+)'\
-            r'((?: *(?:<|<=|=| |!=|>|>=)[0-9a-zA-Z_\.\-\+]+)'\
-            r'(?: *, *(?:<|<=|=||!=|>|>=)[0-9a-zA-Z_\.\-\+]+)*)?$'
+            r'((?: *(?:<|<=|==|=| |!=|>|>=)[0-9a-zA-Z_\.\-\+]+)'\
+            r'(?: *, *(?:<|<=|==|=||!=|>|>=)[0-9a-zA-Z_\.\-\+]+)*)?$'
         m = re.match(r, pkg_req)
         if m is not None:
             pkg_name = m.group(1)
@@ -612,7 +626,7 @@ class BaseInstaller(object):
                     if len(req) == 0:
                         continue # ignore empty requirements
                     if req[0] not in "<=>!":
-                        req = '=' + req # add default operator
+                        req = '==' + req # add default operator
                     req_list.append(req)
             return pkg_name, req_list
         else:
@@ -639,7 +653,7 @@ class BaseInstaller(object):
 
         version_info = version.split(".")
         for req_string in req_list:
-            m = re.match(r'^(<|<=|=|!=|>|>=)([0-9a-zA-Z_\.\-\+]+)$',
+            m = re.match(r'^(<|<=|==|=|!=|>|>=)([0-9a-zA-Z_\.\-\+]+)$',
                          req_string)
             if m is None:
                 raise DistutilsSetupError(
@@ -648,14 +662,25 @@ class BaseInstaller(object):
                 )
             req_op = m.group(1)
             req_version_info = m.group(2).split(".")
+            if len(req_version_info) > len(version_info):
+                raise DistutilsSetupError(
+                    "Version requirement specifies too many version "\
+                    "number components: %r" % req_string 
+                )
             if req_op == '<':
                 if not version_info < req_version_info:
                     return False
             elif req_op == '<=':
                 if not version_info <= req_version_info:
                     return False
+            elif req_op == '==':
+                req_version_padded = req_version_info +\
+                    [0] * (len(version_info) - len(req_version_info))
+                if not version_info == req_version_padded:
+                    return False
             elif req_op == '=':
-                if not version_info == req_version_info:
+                cmplen = len(req_version_info)
+                if not version_info[0:cmplen] == req_version_info[0:cmplen]:
                     return False
             elif req_op == '!=':
                 if not version_info != req_version_info:

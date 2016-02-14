@@ -1,5 +1,6 @@
 # Control file for Travis CI (http://travis-ci.org)
 # Must be located in the root directory of the Git repository.
+
 sudo: required
 language: python
 python:
@@ -7,6 +8,7 @@ python:
   - "2.7"
   - "3.4"
   - "3.5"
+
 # commands to install dependencies
 install:
   - python -c "import platform; print('Demonstration of incorrect distro returned by platform.linux_distribution():'); print(repr(platform.linux_distribution()))"
@@ -15,10 +17,11 @@ install:
   - pip install --upgrade pip
   - pip uninstall -y pbr
   - make clean
-# commands to run tests
-# Note: 'make check' works only for Python 2.
-# Note: 'make builddoc' works only for Python 2.
-script:
   - make develop
   - pip list
+  - make check
+  - make builddoc
+
+# commands to run tests
+script:
   - make test

@@ -291,7 +291,9 @@ def main():
     import_setuptools()
     from setuptools import setup
 
-    py_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
+    py_version_m_n = "%s.%s" % (sys.version_info[0], sys.version_info[1])
+    py_version_mn = "%s%s" % (sys.version_info[0], sys.version_info[1])
+    py_version_m = "%s" % sys.version_info[0]
 
     args = {
         'name': 'pywbem',
@@ -347,16 +349,19 @@ def main():
         'develop_requires' : [
             # Python prereqs for 'develop' command. Handled by os_setup module.
             "pytest>=2.4",
-            "epydoc>=3.0.1",
-            patch_epydoc,
+            # Epydoc does not support Python 3.
+            "epydoc==3.0.1" if sys.version_info[0] == 2 else None,
+            patch_epydoc if sys.version_info[0] == 2 else None,
             "docutils>=0.12",
             "httpretty",
             "lxml",
             "pyyaml",
-            "astroid>=1.2,<1.3",  # Used by Pylint. V1.3 and above no longer
-                                  # works with Python 2.6.
-            "pylint>=1.1,<1.4",   # V1.4 and above no longer works with
-                                  # Python 2.6.
+            # Astroid is used by Pylint. Astroid 1.3 and above no longer works
+            # with Python 2.6.
+            "astroid>=1.2,<1.3" if sys.version_info[0] == 2 else None,
+            # Pylint 1.4 and above no longer works with Python 2.6.
+            # Pylint does not support Python 3.
+            "pylint>=1.1,<1.4" if sys.version_info[0] == 2 else None,
         ],
         'install_os_requires': {
             # OS-level prereqs for 'install_os' command. Handled by os_setup
@@ -367,30 +372,29 @@ def main():
                     "gcc-c++>=4.4",         # for building Swig and for running
                                             #   Swig in M2Crypto install
                     install_swig,           # for running Swig in M2Crypto inst.
-                    "python-devel",         # to get Python.h for Swig run
+                    # Python-devel provides Python.h for Swig run.
+                    # Note: rh-python34-... is in SCLO repo:
+                    # https://www.softwarecollections.org/en/scls/rhscl/rh-python34/
+                    "rh-python34-python-devel" if py_version_m_n == "3.4" \
+                        else "python-devel=%s" % py_version_m,
                     "git>=1.7",             # for retrieving fixed M2Crypto
                 ],
                 'centos': 'redhat',
                 'fedora': 'redhat',
-                'debian': [
-                    "libssl-dev>=1.0.1",
-                    "g++>=4.4",
-                    install_swig,
-                    "python%s-dev" % py_version,
-                    "git>=1.7",
-                ],
                 'ubuntu': [
                     "libssl-dev>=1.0.1",
                     "g++>=4.4",
                     install_swig,
-                    "python%s-dev" % py_version,
+                    "python-dev" if py_version_m == "2"
+                        else "python%s-dev" % py_version_m,
                     "git>=1.7",
                 ],
+                'debian': 'ubuntu',
                 'suse': [
                     "openssl-devel>=1.0.1",
                     "gcc-c++>=4.4",
                     install_swig,
-                    "libpython%s-devel" % py_version,
+                    "libpython%s-devel" % py_version_m_n,
                     "git>=1.7",
                 ],
             },

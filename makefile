@@ -7,7 +7,6 @@
 #
 # Basic prerequisites for running this makefile:
 #   bash, sh
-#   sudo
 #   zip, unzip
 #   rm, find, xargs, grep, sed
 #   python (Some active Python version, virtualenv is supported)
@@ -119,13 +118,9 @@ help:
 	@echo '  publish    - builddoc + publish documentation to: $(doc_publish_dir)'
 	@echo '  clobber    - Remove any build products'
 
-# non-sudo commands first, to make sure that __pycache__ and 'six' site-package
-# directories are not owned by root.
 develop:
 	pip install six
-	sudo pip install six
-	python setup.py build      # __pycache__ owner
-	sudo python setup.py develop_os
+	python setup.py develop_os
 	python setup.py develop
 	@echo '$@ done.'
 
@@ -143,7 +138,7 @@ check: pylint.log
 
 install:
 	unzip -q -o -d tmp_install $(dist_file)
-	sh -c "cd tmp_install/$(package_name)-$(package_version) && sudo python setup.py install_os && python setup.py install"
+	sh -c "cd tmp_install/$(package_name)-$(package_version) && python setup.py install_os && python setup.py install"
 	rm -Rf tmp_install
 	@echo '$@ done.'
 
