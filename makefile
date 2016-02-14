@@ -57,6 +57,32 @@ moftab_dependent_files := \
     $(package_name)/tupletree.py \
     $(package_name)/tupleparse.py \
 
+# Dependents for API doc builder
+# Note: Should not include the modules in doc_exclude_patterns
+doc_dependent_files := \
+    $(package_name)/__init__.py \
+    $(package_name)/cim_obj.py \
+    $(package_name)/cim_operations.py \
+    $(package_name)/cim_constants.py \
+    $(package_name)/cim_types.py \
+    $(package_name)/cim_xml.py \
+    $(package_name)/cim_http.py \
+    $(package_name)/tupletree.py \
+    $(package_name)/tupleparse.py \
+    $(package_name)/cimxml_parse.py \
+    $(package_name)/wbemcli.py \
+    $(package_name)/mof_compiler.py \
+    $(package_name)/cim_provider.py \
+    $(package_name)/cim_provider2.py \
+    $(package_name)/twisted_client.py \
+    $(package_name)/NEWS \
+
+# Dotted module names to be excluded in API doc generation
+# Note: Should not include the dependent files in doc_dependent_files
+doc_exclude_patterns := \
+    $(package_name).moflextab \
+    $(package_name).mofparsetab \
+
 # Directory for generated API documentation
 doc_build_dir := build_doc
 
@@ -147,7 +173,7 @@ test: $(test_log_file)
 
 clobber: clean
 	rm -f pylint.log epydoc.log test_*.log
-	rm -Rf $(doc_build_dir) .tox testsuite/schema
+	rm -Rf $(doc_build_dir) .tox
 	@echo '$@ done.'
 
 # Also remove any build products that are dependent on the Python version
