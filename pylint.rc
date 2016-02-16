@@ -61,7 +61,7 @@ disable=I0011,
 # Set the output format. Available formats are text, parseable, colorized, msvs
 # (visual studio) and html. You can also give a reporter class, eg
 # mypackage.mymodule.MyReporterClass.
-output-format=text
+output-format=parseable
 
 # Put messages in a separate file for each module / package specified on the
 # command line instead of printing them on stdout. Reports (if any) will be
@@ -93,7 +93,7 @@ evaluation=10.0 - ((float(5 * error + warning + refactor + convention) / stateme
 #   '{C}:{line:3d},{column:2d}: ({symbol})'
 # Note: The default format is:
 #   {C}:{line:3d},{column:2d}: {msg} ({symbol})
-msg-template='{C}:{line:3d},{column:2d}: {msg} ({symbol})'
+#msg-template='{C}:{line:3d},{column:2d}: {msg} ({symbol})'
 
 
 [MISCELLANEOUS]
