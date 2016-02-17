@@ -319,18 +319,25 @@ def main():
             'pywbem/wbemcli.py',
             'pywbem/mof_compiler.py',
         ],
-        # TODO: Finalize this temporary fix: Use our own fork of M2Crypto with
-        # fixes for installation issues. This only seems to work if no version
-        # is specified in its install_requires entry.
+        # TODO: The following uses the master branch of the upstream M2Crypto
+        # repo, which as of 2016-02-15 has all necessary fixes. Once ts next
+        # version (0.24.0) is released, we can use that version from PyPI
+        # again, by removing the following parameter and re-enabling the
+        # version requirement on the M2Crypto entry of the 'install_requires'
+        # parameter.
+        # Note: This only seems to work if no version is specified in its
+        # 'install_requires' entry.
         'dependency_links': [
-            "git+https://github.com/pywbem/m2crypto@amfix_rebased#egg=M2Crypto"
+            "git+https://gitlab.com/m2crypto/m2crypto.git@master#egg=M2Crypto"
         ],
         'install_requires': [
             # These dependencies will be installed as a site package.
             # They are not useable by this setup script, if they are eggs
             # (because their path is added to a .pth file which is parsed only
             # at Python startup time).
-            #'M2Crypto>=0.22.6',
+
+            # 'M2Crypto>=0.22.6', # Disabled for now, see comment on
+            #                     # 'dependency_links'.
             'M2Crypto',
         ],
         'develop_requires' : [
