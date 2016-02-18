@@ -49,17 +49,14 @@ from os_setup import shell, shell_check, import_setuptools
 # Package version - Keep in sync with pywbem/__init__.py!
 _version = '0.8.0rc4'
 
-def install_swig(command):
-    """Make sure Swig is installed, either by installing the corresponding
-    OS-level package, or by downloading the source and building it.
+def install_swig(installer, dry_run, verbose):
+    """Custom installer function for `os_setup` module.
+    This function makes sure that Swig is installed, either by installing the
+    corresponding OS-level package, or by downloading the source and building
+    it.
 
-    Parameters:
-    * command: setuptools.Command object for the command in whose context
-      this function is called.
+    Parameters: see description of `os_setup` module.
     """
-    inst = command.installer
-    dry_run = command.dry_run
-    verbose = command.verbose
 
     swig_min_version = "2.0"
 
@@ -93,8 +90,8 @@ def install_swig(command):
 
     if get_swig:
 
-        system = inst.system
-        distro = inst.distro
+        system = installer.system
+        distro = installer.distro
 
         swig_pkg_dict = {
             'Linux': {
@@ -115,12 +112,11 @@ def install_swig(command):
 
         swig_version_reqs = [">=%s" % swig_min_version]
 
-        if inst.is_available(swig_pkg_name, swig_version_reqs, verbose):
+        installed = installer.ensure_installed(
+            swig_pkg_name, swig_version_reqs, dry_run, verbose,
+            ignore=True)
 
-            # Install Swig as a package
-            inst.install(swig_pkg_name, swig_version_reqs, dry_run, verbose)
-
-        else:
+        if not installed:
 
             # Build Swig from its source
             swig_build_version = "2.0.12"
@@ -167,8 +163,10 @@ def install_swig(command):
                 if distro in distro_dict:
                     swig_prereq_pkg_names = distro_dict[distro]
             for swig_prereq_pkg_name in swig_prereq_pkg_names:
-                inst.ensure_installed(swig_prereq_pkg_name, None, dry_run,
-                                      verbose)
+
+                installed = installer.ensure_installed(
+                    swig_prereq_pkg_name, None, dry_run, verbose,
+                    ignore=False)
 
             if dry_run:
                 if verbose:
@@ -218,20 +216,15 @@ def install_swig(command):
                     print("Done downloading, building and installing Swig "\
                           "version %s" % swig_build_version)
 
-def patch_epydoc(command):
-    """
-    Patch Epydoc 3.0.1 (if not yet done) with the patches from:
+def patch_epydoc(installer, dry_run, verbose):
+    """Custom installer function for `os_setup` module.
+    This function patches Epydoc 3.0.1 (if not yet done) with the patches from:
     http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/packages/epydoc/
 
-    Parameters:
-    * command: setuptools.Command object for the command in whose context
-      this function is called.
+    Parameters: see description of `os_setup` module.
     """
-    # Find the active version of Epydoc
 
-    verbose = command.verbose
-
-    if command.dry_run:
+    if dry_run:
         if verbose:
             print("Dry-running: Patching Epydoc")
     else:
@@ -342,9 +335,6 @@ def main():
             # at Python startup time).
 
             'six',
-            # 'M2Crypto>=0.22.6', # Disabled for now, see comment on
-            #                     # 'dependency_links'.
-            'M2Crypto',
         ],
         'develop_requires' : [
             # Python prereqs for 'develop' command. Handled by os_setup module.
@@ -355,13 +345,14 @@ def main():
             "docutils>=0.12",
             "httpretty",
             "lxml",
-            "pyyaml",
-            # Astroid is used by Pylint. Astroid 1.3 and above no longer works
-            # with Python 2.6.
-            "astroid>=1.2,<1.3" if sys.version_info[0] == 2 else None,
-            # Pylint 1.4 and above no longer works with Python 2.6.
-            # Pylint does not support Python 3.
-            "pylint>=1.1,<1.4" if sys.version_info[0] == 2 else None,
+            "PyYAML",   # Pypi package name of "yaml" package.
+            # Astroid is used by Pylint. Astroid 1.3 and above, and Pylint 1.4
+            # and above no longer work with Python 2.6, and have been removed
+            # from Pypi in 2/2016 after being available for some time.
+            # Therefore, we cannot use Pylint under Python 2.6.
+            # Also, Pylint does not support Python 3.
+            "astroid" if sys.version_info[0:2] == (2,7) else None,
+            "pylint" if sys.version_info[0:2] == (2,7) else None,
         ],
         'install_os_requires': {
             # OS-level prereqs for 'install_os' command. Handled by os_setup
@@ -373,10 +364,11 @@ def main():
                                             #   Swig in M2Crypto install
                     install_swig,           # for running Swig in M2Crypto inst.
                     # Python-devel provides Python.h for Swig run.
-                    # Note: rh-python34-... is in SCLO repo:
-                    # https://www.softwarecollections.org/en/scls/rhscl/rh-python34/
-                    "rh-python34-python-devel" if py_version_m_n == "3.4" \
-                        else "python-devel=%s" % py_version_m,
+                    [ "python34-devel", "python34u-devel" ] \
+                        if py_version_m_n == "3.4" else \
+                    [ "python35-devel", "python35u-devel" ] \
+                        if py_version_m_n == "3.5" else \
+                    "python-devel",
                     "git>=1.7",             # for retrieving fixed M2Crypto
                 ],
                 'centos': 'redhat',
@@ -466,6 +458,17 @@ def main():
             'Topic :: System :: Systems Administration',
         ],
     }
+
+    if sys.version_info[0] == 2:
+        # The 'install_requires' processing in distutils does not tolerate
+        # a None value in the list, so we need be truly conditional (instead
+        # of adding an entry with None.
+        args['install_requires'] += [
+            # 'M2Crypto>=0.23',   # Disabled for now, see comment on
+            #                     # 'dependency_links'.
+            'M2Crypto',
+        ]
+
     setup(**args)
     return 0
 
