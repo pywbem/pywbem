@@ -364,9 +364,9 @@ def main():
                                             #   Swig in M2Crypto install
                     install_swig,           # for running Swig in M2Crypto inst.
                     # Python-devel provides Python.h for Swig run.
-                    [ "python34-devel", "python34u-devel" ] \
+                    [ "python34-devel", "python34u-devel", "python3-devel" ] \
                         if py_version_m_n == "3.4" else \
-                    [ "python35-devel", "python35u-devel" ] \
+                    [ "python35-devel", "python35u-devel", "python3-devel" ] \
                         if py_version_m_n == "3.5" else \
                     "python-devel",
                     "git>=1.7",             # for retrieving fixed M2Crypto
