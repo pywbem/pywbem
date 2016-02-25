@@ -10,6 +10,7 @@ MANIFEST
 parser.out
 moflog.txt
 pylint_done
+.coverage
 /build/
 /build_doc/
 /dist/

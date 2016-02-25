@@ -1,0 +1,25 @@
+# Config file for Python "coverage" package.
+#
+# For documentation, see:
+# http://coverage.readthedocs.org/en/latest/config.html
+
+[run]
+
+# TODO: For now, measure just statement coverage.
+#       Once we get better, enable this.
+branch = False
+
+# Don't measure source files we don't own or that
+# are not used in the PyWBEM Client.
+omit =
+    pywbem/lex.py
+    pywbem/yacc.py
+    pywbem/cim_provider*.py
+    pywbem/twisted_client.py
+
+[report]
+
+# TODO: For now, don't include missing lines.
+#       Once we get better, enable this.
+show_missing = False
+
