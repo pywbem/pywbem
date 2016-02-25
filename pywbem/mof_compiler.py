@@ -30,8 +30,10 @@
 
 """pywbem MOF Compiler Rules and implementation definition for lex and yacc.
    This compiler implementation is based on the PLY python package.
-   Today PLY is directly copied into pywbem rather than using the
-   separate python ply package and it is version 3.0 of PLY.
+   This module contains yacc and lex rules in docstrings of its
+   functions.  The formatting of these docstrings is critical in that
+   it defines the parser functionality. Changing the strings or
+   even the formatting breaks the ply rule generation.
 
 """
 
@@ -40,7 +42,9 @@ import os
 from getpass import getpass
 import six
 
-from . import lex, yacc, cim_obj
+from . import cim_obj
+from ply import yacc, lex
+
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                            CIMProperty, CIMMethod, CIMParameter, \
                            CIMQualifier, CIMQualifierDeclaration, NocaseDict
