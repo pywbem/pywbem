@@ -7,7 +7,6 @@
 #
 # Basic prerequisites for running this makefile:
 #   bash, sh
-#   sudo
 #   zip, unzip
 #   rm, find, xargs, grep, sed
 #   python (Some active Python version, virtualenv is supported)
@@ -30,6 +29,9 @@ package_version := $(shell sh -c "echo $(package_specified_version) |sed 's/[.-]
 
 # Final version of this package (M.N.U)
 package_final_version := $(shell sh -c "echo $(package_version) |sed 's/rc[0-9]\+$$//' |sed 's/\.dev0$$//'")
+
+# Python major version
+python_major_version := $(shell python -c "import sys; sys.stdout.write('%s'%sys.version_info[0])")
 
 # Python version for use in file names
 python_version_fn := $(shell python -c "import sys; sys.stdout.write('%s%s'%(sys.version_info[0],sys.version_info[1]))")
@@ -58,11 +60,37 @@ moftab_dependent_files := \
     $(package_name)/tupletree.py \
     $(package_name)/tupleparse.py \
 
+# Dependents for API doc builder
+# Note: Should not include the modules in doc_exclude_patterns
+doc_dependent_files := \
+    $(package_name)/__init__.py \
+    $(package_name)/cim_obj.py \
+    $(package_name)/cim_operations.py \
+    $(package_name)/cim_constants.py \
+    $(package_name)/cim_types.py \
+    $(package_name)/cim_xml.py \
+    $(package_name)/cim_http.py \
+    $(package_name)/tupletree.py \
+    $(package_name)/tupleparse.py \
+    $(package_name)/cimxml_parse.py \
+    $(package_name)/wbemcli.py \
+    $(package_name)/mof_compiler.py \
+    $(package_name)/cim_provider.py \
+    $(package_name)/cim_provider2.py \
+    $(package_name)/twisted_client.py \
+    $(package_name)/NEWS \
+
+# Dotted module names to be excluded in API doc generation
+# Note: Should not include the dependent files in doc_dependent_files
+doc_exclude_patterns := \
+    $(package_name).moflextab \
+    $(package_name).mofparsetab \
+
 # Directory for generated API documentation
 doc_build_dir := build_doc
 
 # Documentation generator command
-doc_cmd := epydoc --verbose --simple-term --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_build_dir) $(package_name)
+doc_cmd := epydoc --verbose --simple-term --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_build_dir) $(foreach p,$(doc_exclude_patterns),--exclude=$p) $(package_name)
 
 # Directory for documentation publishing
 doc_publish_dir := ../pywbem.github.io/pywbem/doc/$(package_final_version)/doc
@@ -121,7 +149,7 @@ help:
 
 develop:
 	pip install six
-	sudo python setup.py develop_os
+	python setup.py develop_os
 	python setup.py develop
 	@echo '$@ done.'
 
@@ -131,15 +159,25 @@ build: $(dist_file)
 buildwin: $(win64_dist_file)
 	@echo '$@ done; created: $(win64_dist_file)'
 
+ifeq ($(python_major_version), 2)
 builddoc: $(doc_build_dir)/index.html
 	@echo '$@ done; created documentation in: $(doc_build_dir); build output is in epydoc.log'
+else
+builddoc:
+	@echo 'Building API documentation requires Python 2; skipping this step'
+endif
 
+ifeq ($(python_major_version), 2)
 check: pylint.log
 	@echo '$@ done; results are in pylint.log'
+else
+check:
+	@echo 'Checking requires Python 2; skipping this step'
+endif
 
 install:
 	unzip -q -o -d tmp_install $(dist_file)
-	sh -c "cd tmp_install/$(package_name)-$(package_version) && sudo python setup.py install_os && python setup.py install"
+	sh -c "cd tmp_install/$(package_name)-$(package_version) && python setup.py install_os && python setup.py install"
 	rm -Rf tmp_install
 	@echo '$@ done.'
 
@@ -148,7 +186,7 @@ test: $(test_log_file)
 
 clobber: clean
 	rm -f pylint.log epydoc.log test_*.log
-	rm -Rf $(doc_build_dir) .tox testsuite/schema
+	rm -Rf $(doc_build_dir) .tox
 	@echo '$@ done.'
 
 # Also remove any build products that are dependent on the Python version
@@ -205,7 +243,7 @@ $(moftab_files): $(moftab_dependent_files)
 	sh -c "PYTHONPATH=. python -c \"from $(package_name) import mof_compiler; mof_compiler._build()\""
 
 # Documentation for package (generates more .html files than just this target)
-$(doc_build_dir)/index.html: $(package_name)/*.py $(package_name)/NEWS
+$(doc_build_dir)/index.html: $(doc_dependent_files)
 	rm -Rf $(doc_build_dir)
 	mkdir -p $(doc_build_dir)
 	bash -c "set -o pipefail; PYTHONPATH=. $(doc_cmd) 2>&1 |tee epydoc.log"

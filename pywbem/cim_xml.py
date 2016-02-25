@@ -54,6 +54,7 @@ always passes through all non-markup whitespace.
 
 import xml.dom.minidom
 from xml.dom.minidom import Element
+import six
 
 __all__ = ['CIMElement', 'CIM', 'DECLARATION', 'DECLGROUP',
            'DECLGROUP_WITHNAME', 'DECLGROUP_WITHPATH', 'QUALIFIER_DECLARATION',
@@ -144,7 +145,7 @@ def _pcdata_nodes(pcdata):
 
     nodelist = []
 
-    if _CDATA_ESCAPING and isinstance(pcdata, (str, unicode)) and \
+    if _CDATA_ESCAPING and isinstance(pcdata, six.string_types) and \
        (pcdata.find("<") >= 0 or \
         pcdata.find(">") >= 0 or \
         pcdata.find("&") >= 0):
@@ -186,6 +187,8 @@ def _pcdata_nodes(pcdata):
 
 class CIMElement(Element):
     """A base class that has a few bonus helper methods."""
+
+    ownerDocument = None
 
     def setName(self, name):
         """Set the NAME attribute of the element."""

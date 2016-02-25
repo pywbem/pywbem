@@ -3,7 +3,7 @@
 # Simple indication receiver using Twisted Python.  HTTP post requests
 # are listened for on port 5988 and port 5899 using SSL.
 #
-# Requires Twisted Python and 
+# Requires Twisted Python and
 #
 
 import sys
@@ -26,13 +26,13 @@ class WBEMConn:
     def __init__(self, options=None):
         # Borgness
         self.__dict__ = WBEMConn._shared_state
-        
+
         if options:
             self.conn = pywbem.WBEMConnection(
                     options.url,
                     (options.user, options.password),
                     default_namespace = options.namespace)
-        
+
 class CIMListener(resource.Resource):
 
     isLeaf = 1
@@ -40,7 +40,7 @@ class CIMListener(resource.Resource):
     def render_POST(self, request):
 
         for line in request.content.readlines():
-            print line
+            print(line)
 
         return ''
 
@@ -65,9 +65,9 @@ class PyPegSubscribe:
     '''
     def __init__(self, conn):
         self._conn=conn
-        
+
     def createFilter(self,
-                      query, 
+                      query,
                       ns,
                       in_name=None):
         name = in_name or 'cimfilter%d'%time.time()
@@ -89,7 +89,7 @@ class PyPegSubscribe:
         return filtercop
 
     def createDest(self,
-                    destination, 
+                    destination,
                     ns,
                     in_name=None):
         name = in_name or 'cimlistener%d'%time.time()
@@ -108,9 +108,9 @@ class PyPegSubscribe:
         destinst.path = cop
         destcop = self._conn.CreateInstance(destinst)
         return destcop
-        
+
     def createSubscription(self,
-                            handler, 
+                            handler,
                             indfilter,
                             ns):
         subinst=pywbem.CIMInstance('CIM_IndicationSubscription')
@@ -126,17 +126,18 @@ class PyPegSubscribe:
 
     def listObjects(self, cn):
         insts = self._conn.EnumerateInstances(cn)
-        print "======== Instances of class: ", cn, " ========"
+        print("======== Instances of class: %s ========" % cn)
         for inst in insts:
-            print "  >>>  ", inst.path
+            print("  >>>  %s" % inst.path)
             if not _g_options.pathonly:
                 for key in inst.properties.keys():
                     if inst.properties[key].value is not None:
-                        print "       > ",key," : ",inst.properties[key].value
-    
+                        print("       > %s : %s" %\
+                              (key, inst.properties[key].value))
+
     def listFilters(self):
         self.listObjects('CIM_IndicationFilter')
-                
+
     def listHandlers(self):
         self.listObjects('CIM_ListenerDestination')
 
@@ -163,12 +164,12 @@ class PyPegSubscribe:
                     'CIM_ListenerDestinationCIMXML',
                     'CIM_IndicationHandlerCIMXML']
         for cn in classnames:
-            print "***Cleaning up instances of: ", cn
+            print("***Cleaning up instances of: %s" % cn)
             cops = self._conn.EnumerateInstanceNames(cn, namespace=ns)
             for cop in cops:
-                print "   > ", cop
+                print("   > %s" % cop)
                 self._conn.DeleteInstance(cop)
-        
+
 
 if __name__ == '__main__':
     parser = optparse.OptionParser()
@@ -201,17 +202,17 @@ if __name__ == '__main__':
     parser.add_option('', '--pathonly', action='store_true', default=False,
             help='When listing Current Filters, Handlers, and Subscriptions, list the path only')
 
-    parser.add_option('-u', '--url', default='https://localhost', 
+    parser.add_option('-u', '--url', default='https://localhost',
             help='Specify the url of the CIMOM (default=https://localhost)')
-    parser.add_option('-n', '--namespace', default='root/cimv2', 
+    parser.add_option('-n', '--namespace', default='root/cimv2',
             help='Specify the namespace the test runs against (default=root/cimv2)')
-    parser.add_option('--user', default='pegasus', 
+    parser.add_option('--user', default='pegasus',
             help='Specify the user name used when connection to the CIMOM (default=pegasus)')
-    parser.add_option('--password', default='', 
+    parser.add_option('--password', default='',
             help='Specify the password for the user (default=<empty>)')
-    parser.add_option('-q', '--query', 
+    parser.add_option('-q', '--query',
             help='Query string for Filter.  Required for --createsub')
-    parser.add_option('-d', '--dest', 
+    parser.add_option('-d', '--dest',
             help='Destination for the CIM_ListenerDestination.  Required for --createsub')
     parser.add_option('', '--nolisten', action='store_true', default=False,
             help='When creating a subscription, don\'t start a listener')
@@ -224,7 +225,7 @@ if __name__ == '__main__':
     _g_verbose=options.verbose
 
     conn = WBEMConn(options).conn
-    
+
     subs2cleanup = []
     paths2cleanup = []
 
@@ -247,7 +248,7 @@ if __name__ == '__main__':
             reactor.listenTCP(int(options.httpPort), site)
             reactor.listenSSL(int(options.httpsPort), site, ServerContextFactory())
             reactor.run()
-        
+
             for sub in subs2cleanup:
                 conn.DeleteInstance(sub)
             for path in paths2cleanup:

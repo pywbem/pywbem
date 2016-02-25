@@ -3,7 +3,7 @@
 # Simple indication receiver using Twisted Python.  HTTP post requests
 # are listened for on port 5988 and port 5899 using SSL.
 #
-# Requires Twisted Python and 
+# Requires Twisted Python and
 #
 
 import sys
@@ -37,7 +37,7 @@ class CIMListener(resource.Resource):
             ctx.use_privatekey_file(self.key)
             return ctx
 
-    def __init__(self, callback, 
+    def __init__(self, callback,
             http_port=5988, https_port=5989,
             ssl_key=None, ssl_cert=None):
         self.callback = callback
@@ -51,7 +51,7 @@ class CIMListener(resource.Resource):
         if self.http_port and self.http_port > 0:
             reactor.listenTCP(self.http_port, site)
         if self.https_port and self.https_port > 0:
-            reactor.listenSSL(self.https_port, site, 
+            reactor.listenSSL(self.https_port, site,
                     self.ServerContextFactory(cert=ssl_cert, key=ssl_key))
 
     def start(self):
@@ -64,7 +64,7 @@ class CIMListener(resource.Resource):
 
     def run(self):
         reactor.run()
-        
+
     def render_POST(self, request):
         tt = pywbem.parse_cim(pywbem.xml_to_tupletree(request.content.read()))
         insts = [x[1] for x in tt[2][2][0][2][2]]
@@ -77,7 +77,7 @@ class CIMListener(resource.Resource):
 
 if __name__ == '__main__':
     def cb(inst):
-        print inst['IndicationTime'], inst['Description']
+        print('%s %s' % (inst['IndicationTime'], inst['Description']))
     cl = CIMListener(cb, https_port=None)
     cl.run()
 

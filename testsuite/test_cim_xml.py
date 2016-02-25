@@ -13,9 +13,10 @@
 import sys
 import unittest
 import pytest
+import six
 
 from pywbem import cim_xml
-
+from pywbem.cim_obj import _ensure_bytes
 
 DTD_FILE = 'CIM_DTD_V22.dtd'
 
@@ -32,6 +33,7 @@ def validate_xml(data, dtd_directory=None):
     p = Popen('xmllint --dtdvalid %s --noout -' % dtd_file, stdout=PIPE,
               stdin=PIPE, stderr=PIPE, shell=True)
 
+    data = _ensure_bytes(data)
     p.stdin.write(data)
     p.stdin.close()
 

@@ -52,7 +52,12 @@ import sys
 import getpass
 import errno
 import code
-import optparse
+try:
+    # Python 2.7+ and 3.2+
+    from argparse import ArgumentParser as OptionParser
+except ImportError:
+    # Python 2.6
+    from optparse import OptionParser
 
 # Additional symbols for use in the interactive session
 from pprint import pprint as pp # pylint: disable=unused-import
@@ -353,7 +358,7 @@ def main():
     global _CONN     # pylint: disable=global-statement
 
     # Parse command line args
-    optparser = optparse.OptionParser(
+    optparser = OptionParser(
         usage='%prog HOSTNAME [-u USER -p PASS] [-n NAMESPACE] [--no-ssl]')
 
     # Username and password

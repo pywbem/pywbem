@@ -25,25 +25,24 @@ that perform WBEM requests over HTTP using the
 twisted.protocols.http.HTTPClient base class.
 """
 
-import string
 import base64
-from types import StringTypes
 from datetime import datetime, timedelta
-import urllib
 try:
     from elementtree.ElementTree import fromstring, tostring
-except ImportError, arg:
+except ImportError:
     from xml.etree.ElementTree import fromstring, tostring
+import six
+from six.moves import urllib
 
 from twisted.internet import reactor, protocol, defer
 from twisted.web import http #, client, error
 
 # TODO: Eww - we should get rid of the tupletree, tupleparse modules
 # and replace with elementtree based code.
-from pywbem import cim_types, cim_xml, cim_obj, tupleparse, tupletree
-from pywbem.cim_obj import CIMClass, CIMClassName, CIMInstance, CIMInstanceName
-from pywbem.cim_operations import CIMError
-from pywbem.cim_types import CIMDateTime
+from . import cim_types, cim_xml, cim_obj, tupleparse, tupletree
+from .cim_obj import CIMClass, CIMClassName, CIMInstance, CIMInstanceName
+from .cim_operations import CIMError
+from .cim_types import CIMDateTime
 
 __all__ = ['WBEMClient', 'WBEMClientFactory', 'EnumerateInstances',
            'EnumerateInstanceNames', 'GetInstance', 'DeleteInstance',
@@ -110,9 +109,9 @@ class WBEMClient(http.HTTPClient):
         """Handle header values."""
 
         if key == 'CIMError':
-            self.CIMError = urllib.unquote(value)
+            self.CIMError = urllib.parse.unquote(value)
         if key == 'PGErrorDetail':
-            self.PGErrorDetail = urllib.unquote(value)
+            self.PGErrorDetail = urllib.parse.unquote(value)
 
     def handleEndHeaders(self):
         """Check whether the status was OK and raise an error if not
@@ -169,7 +168,7 @@ class WBEMClientFactory(protocol.ClientFactory):
                         methodname,
                         cim_xml.LOCALNAMESPACEPATH(
                             [cim_xml.NAMESPACE(ns)
-                             for ns in string.split(localnsp, '/')]),
+                             for ns in localnsp.split('/')]),
                         param_list)),
                 '1001', '1.0'),
             '2.0', '2.0')
@@ -189,13 +188,13 @@ class WBEMClientFactory(protocol.ClientFactory):
             localpath = cim_xml.LOCALINSTANCEPATH(
                 cim_xml.LOCALNAMESPACEPATH(
                     [cim_xml.NAMESPACE(ns)
-                     for ns in string.split(namespace, '/')]),
+                     for ns in namespace.split('/')]),
                 path.tocimxml())
         else:
             localpath = cim_xml.LOCALCLASSPATH(
                 cim_xml.LOCALNAMESPACEPATH(
                     [cim_xml.NAMESPACE(ns)
-                     for ns in string.split(namespace, '/')]),
+                     for ns in namespace.split('/')]),
                 obj)
 
         def paramtype(obj):
@@ -204,7 +203,7 @@ class WBEMClientFactory(protocol.ClientFactory):
                 return obj.cimtype
             elif type(obj) == bool:
                 return 'boolean'
-            elif isinstance(obj, StringTypes):
+            elif isinstance(obj, six.string_types):
                 return 'string'
             elif isinstance(obj, (datetime, timedelta)):
                 return 'datetime'
@@ -221,7 +220,7 @@ class WBEMClientFactory(protocol.ClientFactory):
             parameter."""
             if isinstance(obj, (datetime, timedelta)):
                 obj = CIMDateTime(obj)
-            if isinstance(obj, (cim_types.CIMType, bool, StringTypes)):
+            if isinstance(obj, (cim_types.CIMType, bool, six.string_types)):
                 return cim_xml.VALUE(cim_types.atomic_to_cim_xml(obj))
             if isinstance(obj, (CIMClassName, CIMInstanceName)):
                 return cim_xml.VALUE_REFERENCE(obj.tocimxml())
@@ -438,7 +437,7 @@ class ModifyInstance(WBEMClientFactory):
     def __init__(self, creds, instancename, instance, namespace='root/cimv2',
                  **kwargs):
 
-        wrapped_instance = CIMNamedInstance(instancename, instance)
+        wrapped_instance = CIMInstanceName(instancename, instance)
 
         payload = self.imethodcallPayload(
             'ModifyInstance',
@@ -690,7 +689,7 @@ class InvokeMethod(WBEMClientFactory):
 
         obj = ObjectName
 
-        if isinstance(obj, StringTypes):
+        if isinstance(obj, six.string_types):
             obj = CIMClassName(obj, namespace=namespace)
 
         if isinstance(obj, CIMInstanceName) and obj.namespace is None:

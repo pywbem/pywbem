@@ -1,14 +1,19 @@
 #!/usr/bin/env python
 #
 
+from __future__ import print_function
 import sys
 import os
 from time import time
-from urllib import urlopen
 from zipfile import ZipFile
 from tempfile import TemporaryFile
 import unittest
 import pytest
+import six
+if six.PY2:
+    from urllib2 import urlopen
+else:
+    from urllib.request import urlopen
 
 from pywbem.cim_operations import CIMError
 from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
@@ -27,7 +32,7 @@ def setUpModule():
 
     if not os.path.isdir(SCHEMA_DIR):
 
-        print "\nDownloading CIM Schema into %s ..." % SCHEMA_DIR
+        print("\nDownloading CIM Schema into %s ..." % SCHEMA_DIR)
 
         os.mkdir(SCHEMA_DIR)
 
@@ -35,7 +40,7 @@ def setUpModule():
 
         tfo = TemporaryFile()
         ufo = urlopen(mofurl)
-        clen = int(ufo.info().getheader('Content-Length'))
+        clen = int(ufo.info().get('Content-Length'))
         offset = 0
         ppct = -1
         for data in ufo:
@@ -47,11 +52,11 @@ def setUpModule():
                 sys.stdout.flush()
             tfo.write(data)
         tfo.seek(0)
-        print ''
+        print('')
 
         zf = ZipFile(tfo, 'r')
         nlist = zf.namelist()
-        for i in xrange(0, len(nlist)):
+        for i in range(0, len(nlist)):
             sys.stdout.write('\rUnpacking %s: %d%% ' % (mofbname,
                                                         100*(i+1)/len(nlist)))
             sys.stdout.flush()
@@ -61,11 +66,11 @@ def setUpModule():
                 if not os.path.exists(dfile):
                     os.mkdir(dfile)
             else:
-                fo = open(dfile, 'w')
+                fo = open(dfile, 'w+b')
                 fo.write(zf.read(file_))
                 fo.close()
         tfo.close()
-        print ''
+        print('')
 
 
 class MOFTest(unittest.TestCase):
@@ -75,7 +80,7 @@ class MOFTest(unittest.TestCase):
         """Create the MOF compiler."""
 
         def moflog(msg):
-            print >> self.logfile, msg
+            print(msg, file=self.logfile)
         moflog_file = os.path.join(SCRIPT_DIR, 'moflog.txt')
         self.logfile = open(moflog_file, 'w')
         self.mofcomp = MOFCompiler(
@@ -90,11 +95,11 @@ class TestFullSchema(MOFTest):
         t = time()
         self.mofcomp.compile_file(
             os.path.join(SCHEMA_DIR, 'cim_schema_2.20.0.mof'), ns)
-        print 'elapsed: %f  ' % (time() - t),
+        print('elapsed: %f  ' % (time() - t))
         self.assertEqual(len(self.mofcomp.handle.qualifiers[ns]), 71)
         self.assertEqual(len(self.mofcomp.handle.classes[ns]), 1644)
-        #print self.mofcomp.handle.classes[ns]['CIM_UnsignedCredential'].\
-        #    properties['OtherPublicKeyEncoding'].qualifiers['Description']
+        #print(self.mofcomp.handle.classes[ns]['CIM_UnsignedCredential'].\
+        #    properties['OtherPublicKeyEncoding'].qualifiers['Description'])
 
 class TestAliases(MOFTest):
 
@@ -112,7 +117,7 @@ class TestSchemaError(MOFTest):
                                           'System',
                                           'CIM_ComputerSystem.mof'),
                                       ns)
-        except CIMError, ce:
+        except CIMError as ce:
             self.assertEqual(ce.args[0], CIM_ERR_FAILED)
             self.assertEqual(ce.file_line[0],
                              os.path.join(
@@ -131,7 +136,7 @@ class TestSchemaError(MOFTest):
                                           'System',
                                           'CIM_ComputerSystem.mof'),
                                       ns)
-        except CIMError, ce:
+        except CIMError as ce:
             self.assertEqual(ce.args[0], CIM_ERR_INVALID_SUPERCLASS)
             self.assertEqual(ce.file_line[0],
                              os.path.join(
@@ -167,7 +172,7 @@ class TestParseError(MOFTest):
                              'parse_error01.mof')
         try:
             self.mofcomp.compile_file(_file, ns)
-        except MOFParseError, pe:
+        except MOFParseError as pe:
             self.assertEqual(pe.file, _file)
             self.assertEqual(pe.lineno, 16)
             self.assertEqual(pe.context[5][1:5], '^^^^')
@@ -178,7 +183,7 @@ class TestParseError(MOFTest):
                              'parse_error02.mof')
         try:
             self.mofcomp.compile_file(_file, ns)
-        except MOFParseError, pe:
+        except MOFParseError as pe:
             self.assertEqual(pe.file, _file)
             self.assertEqual(pe.lineno, 6)
             self.assertEqual(pe.context[5][7:13], '^^^^^^')
@@ -189,7 +194,7 @@ class TestParseError(MOFTest):
                              'parse_error03.mof')
         try:
             self.mofcomp.compile_file(_file, ns)
-        except MOFParseError, pe:
+        except MOFParseError as pe:
             self.assertEqual(pe.file, _file)
             self.assertEqual(pe.lineno, 24)
             self.assertEqual(pe.context[5][53], '^')
@@ -200,7 +205,7 @@ class TestParseError(MOFTest):
                              'parse_error04.mof')
         try:
             self.mofcomp.compile_file(_file, ns)
-        except MOFParseError, pe:
+        except MOFParseError as pe:
             self.assertEqual(str(pe), 'Unexpected end of file')
 
 class TestRefs(MOFTest):

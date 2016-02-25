@@ -19,6 +19,7 @@
 # Author: Tim Potter <tpot@hp.com>
 # Author: Martin Pool <mbp@hp.com>
 # Author: Bart Whiteley <bwhiteley@suse.de>
+# Author: Ross Peoples <ross.peoples@gmail.com>
 #
 
 """CIM operations over HTTP.
@@ -31,17 +32,16 @@ operation.
 
 # This module is meant to be safe for 'import *'.
 
-import string
 import re
-from types import StringTypes
 from datetime import datetime, timedelta
 from xml.dom import minidom
 from xml.parsers.expat import ExpatError
+import six
 
-from pywbem import cim_obj, cim_xml, cim_http, cim_types, tupletree, tupleparse
-from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
-                           CIMClassName, NocaseDict
-from pywbem.tupleparse import ParseError
+from . import cim_obj, cim_xml, cim_http, cim_types, tupletree, tupleparse
+from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
+                     CIMClassName, NocaseDict, _ensure_unicode
+from .tupleparse import ParseError
 
 __all__ = ['DEFAULT_NAMESPACE', 'check_utf8_xml_chars',
            'CIMError', 'WBEMConnection', 'is_subclass',
@@ -60,7 +60,7 @@ else:
         u'([\u0000-\u0008\u000B-\u000C\u000E-\u001F\uD800-\uDFFF\uFFFE\uFFFF])')
 
 _ILL_FORMED_UTF8_RE = re.compile(
-    '(\xED[\xA0-\xBF][\x80-\xBF])')    # U+D800...U+DFFF
+    b'(\xED[\xA0-\xBF][\x80-\xBF])')    # U+D800...U+DFFF
 
 
 def _check_classname(val):
@@ -69,8 +69,8 @@ def _check_classname(val):
 
     At this point, only the type is validated to be a string.
     """
-    if not isinstance(val, StringTypes):
-        raise ValueError("string expected for classname, not %s" % `val`)
+    if not isinstance(val, six.string_types):
+        raise ValueError("string expected for classname, not %r" % val)
 
 def check_utf8_xml_chars(utf8_xml, meaning):
     """
@@ -89,8 +89,8 @@ def check_utf8_xml_chars(utf8_xml, meaning):
 
     :Parameters:
 
-      utf8_xml : string
-        The UTF-8 encoded XML string to be examined.
+      utf8_xml : UTF-8 encoded byte string
+        The XML string to be examined.
 
       meaning : string
         Short text with meaning of the XML string, for messages in exceptions.
@@ -133,10 +133,10 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         represent the surrogate code points (as well as all other code points,
         regardless of whether they are assigned to Unicode characters).
 
-    (4) The Python `str.encode()` and `str.decode()` functions successfully
+    (4) The Python `encode()` and `decode()` functions successfully
         translate the surrogate code points back and forth for encoding UTF-8.
 
-        For example, ``'\\xed\\xb0\\x80'.decode("utf-8") = u'\\udc00'``.
+        For example, ``b'\\xed\\xb0\\x80'.decode("utf-8") = u'\\udc00'``.
 
     (5) Because Python supports the encoding and decoding of UTF-8 sequences
         also for the surrogate code points, the "narrow" Unicode build of
@@ -146,11 +146,11 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         For example, code point U+10122 can be (illegally) created from a
         sequence of code points U+D800,U+DD22 represented in UTF-8:
 
-          ``'\\xED\\xA0\\x80\\xED\\xB4\\xA2'.decode("utf-8") = u'\\U00010122'``
+          ``b'\\xED\\xA0\\x80\\xED\\xB4\\xA2'.decode("utf-8") = u'\\U00010122'``
 
         while the correct UTF-8 sequence for this code point is:
 
-          ``u'\\U00010122'.encode("utf-8") = '\\xf0\\x90\\x84\\xa2'``
+          ``u'\\U00010122'.encode("utf-8") = b'\\xf0\\x90\\x84\\xa2'``
 
     Notes on XML characters:
 
@@ -168,9 +168,9 @@ def check_utf8_xml_chars(utf8_xml, meaning):
     context_before = 16    # number of chars to print before any bad chars
     context_after = 16     # number of chars to print after any bad chars
 
-    if not isinstance(utf8_xml, str):
-        raise TypeError("utf8_xml argument does not have str type, but %s" % \
-                        type(utf8_xml))
+    if not isinstance(utf8_xml, six.binary_type):
+        raise TypeError("utf8_xml argument is not a byte string, "\
+                        "but has type %s" % type(utf8_xml))
 
     # Check for ill-formed UTF-8 sequences. This needs to be done
     # before the str type gets decoded to unicode, because afterwards
@@ -521,10 +521,10 @@ class WBEMConnection(object):
         if self.creds is None:
             user = 'anonymous'
         else:
-            user = 'user=%s' % `self.creds[0]`
+            user = 'user=%s' % self.creds[0]
         return "%s(%s, %s, namespace=%s)" % \
-            (self.__class__.__name__, `self.url`, user,
-             `self.default_namespace`)
+            (self.__class__.__name__, self.url, user,
+             self.default_namespace)
 
     def imethodcall(self, methodname, namespace, **params):
         """
@@ -556,9 +556,8 @@ class WBEMConnection(object):
 
         # Create parameter list
 
-        plist = map(lambda x:
-                    cim_xml.IPARAMVALUE(x[0], cim_obj.tocimxml(x[1])),
-                    params.items())
+        plist = [cim_xml.IPARAMVALUE(x[0], cim_obj.tocimxml(x[1])) \
+                 for x in params.items()]
 
         # Build XML request
 
@@ -569,7 +568,7 @@ class WBEMConnection(object):
                         methodname,
                         cim_xml.LOCALNAMESPACEPATH(
                             [cim_xml.NAMESPACE(ns)
-                             for ns in string.split(namespace, '/')]),
+                             for ns in namespace.split('/')]),
                         plist)),
                 '1001', '1.0'),
             '2.0', '2.0')
@@ -594,6 +593,11 @@ class WBEMConnection(object):
         except (cim_http.AuthError, cim_http.ConnectionError,
                 cim_http.TimeoutError, cim_http.Error):
             raise
+        # TODO Clean up exception handling. The next two lines are a workaround
+        # in order not to ignore TypeError and other exceptions that may be
+        # raised.
+        except Exception:
+            raise
 
         # Set the raw response before parsing (which can fail)
         if self.debug:
@@ -608,7 +612,13 @@ class WBEMConnection(object):
             # This is raised e.g. when XML numeric entity references of
             # invalid XML characters are used (e.g. '&#0;').
             # str(exc) is: "{message}, line {X}, offset {Y}"
-            parsed_line = str(reply_xml).splitlines()[exc.lineno-1]
+            xml_lines = _ensure_unicode(reply_xml).splitlines()
+            if len(xml_lines) >= exc.lineno:
+                parsed_line = xml_lines[exc.lineno - 1]
+            else:
+                parsed_line = "<error: Line number indicated in ExpatError "\
+                              "out of range: %s (only %s lines in XML)>" %\
+                              (exc.lineno, len(xml_lines))
             msg = "ExpatError %s: %s: %r" % (str(exc.code), str(exc),
                                              parsed_line)
             parsing_error = True
@@ -669,7 +679,7 @@ class WBEMConnection(object):
 
         if tup_tree[0] == 'ERROR':
             code = int(tup_tree[1]['CODE'])
-            if tup_tree[1].has_key('DESCRIPTION'):
+            if 'DESCRIPTION' in tup_tree[1]:
                 raise CIMError(code, tup_tree[1]['DESCRIPTION'])
             raise CIMError(code, 'Error code %s' % tup_tree[1]['CODE'])
 
@@ -720,7 +730,7 @@ class WBEMConnection(object):
                 return obj.cimtype
             elif isinstance(obj, bool):
                 return 'boolean'
-            elif isinstance(obj, StringTypes):
+            elif isinstance(obj, six.string_types):
                 return 'string'
             elif isinstance(obj, (datetime, timedelta)):
                 return 'datetime'
@@ -740,7 +750,7 @@ class WBEMConnection(object):
             parameter."""
             if isinstance(obj, (datetime, timedelta)):
                 obj = cim_types.CIMDateTime(obj)
-            if isinstance(obj, (cim_types.CIMType, bool, StringTypes)):
+            if isinstance(obj, (cim_types.CIMType, bool, six.string_types)):
                 return cim_xml.VALUE(cim_types.atomic_to_cim_xml(obj))
             if isinstance(obj, (CIMClassName, CIMInstanceName)):
                 # Note: Because CIMDateTime is an obj but tested above
@@ -811,6 +821,11 @@ class WBEMConnection(object):
         except (cim_http.AuthError, cim_http.ConnectionError,
                 cim_http.TimeoutError, cim_http.Error):
             raise
+        # TODO Clean up exception handling. The next two lines are a workaround
+        # in order not to ignore TypeError and other exceptions that may be
+        # raised.
+        except Exception:
+            raise
 
         # Set the raw response before parsing and checking (which can fail)
         if self.debug:
@@ -825,7 +840,13 @@ class WBEMConnection(object):
             # This is raised e.g. when XML numeric entity references of invalid
             # XML characters are used (e.g. '&#0;').
             # str(exc) is: "{message}, line {X}, offset {Y}"
-            parsed_line = str(reply_xml).splitlines()[exc.lineno-1]
+            xml_lines = _ensure_unicode(reply_xml).splitlines()
+            if len(xml_lines) >= exc.lineno:
+                parsed_line = xml_lines[exc.lineno - 1]
+            else:
+                parsed_line = "<error: Line number indicated in ExpatError "\
+                              "out of range: %s (only %s lines in XML)>" %\
+                              (exc.lineno, len(xml_lines))
             msg = "ExpatError %s: %s: %r" % (str(exc.code), str(exc),
                                              parsed_line)
             parsing_error = True
@@ -882,7 +903,7 @@ class WBEMConnection(object):
 
         if len(tt) > 0 and tt[0][0] == 'ERROR':
             code = int(tt[0][1]['CODE'])
-            if tt[0][1].has_key('DESCRIPTION'):
+            if 'DESCRIPTION' in tt[0][1]:
                 raise CIMError(code, tt[0][1]['DESCRIPTION'])
             raise CIMError(code, 'Error code %s' % tt[0][1]['CODE'])
 
@@ -1341,8 +1362,8 @@ class WBEMConnection(object):
     def _map_classname_param(self, params): # pylint: disable=no-self-use
         """Convert string ClassName parameter to a CIMClassName."""
 
-        if params.has_key('ClassName') and \
-           isinstance(params['ClassName'], StringTypes):
+        if 'ClassName' in params and \
+           isinstance(params['ClassName'], six.string_types):
             params['ClassName'] = CIMClassName(params['ClassName'])
 
         return params
@@ -1408,7 +1429,7 @@ class WBEMConnection(object):
         if result is None:
             return []
         else:
-            return map(lambda x: x.classname, result[2])
+            return [x.classname for x in result[2]]
 
     def EnumerateClasses(self, namespace=None, **params):
         # pylint: disable=invalid-name
@@ -1686,7 +1707,7 @@ class WBEMConnection(object):
         if isinstance(object_, (CIMClassName, CIMInstanceName)):
             params['ObjectName'] = object_.copy()
             params['ObjectName'].namespace = None
-        elif isinstance(object_, StringTypes):
+        elif isinstance(object_, six.string_types):
             params['ObjectName'] = CIMClassName(object_)
         else:
             raise ValueError('Expecting a classname, CIMClassName or '
@@ -1701,12 +1722,12 @@ class WBEMConnection(object):
         # ResultClass and Role parameters that are strings should be
         # mapped to CIMClassName objects.
 
-        if params.has_key('ResultClass') and \
-           isinstance(params['ResultClass'], StringTypes):
+        if 'ResultClass' in params and \
+           isinstance(params['ResultClass'], six.string_types):
             params['ResultClass'] = CIMClassName(params['ResultClass'])
 
-        if params.has_key('AssocClass') and \
-           isinstance(params['AssocClass'], StringTypes):
+        if 'AssocClass' in params and \
+           isinstance(params['AssocClass'], six.string_types):
             params['AssocClass'] = CIMClassName(params['AssocClass'])
 
         return params
@@ -1816,7 +1837,7 @@ class WBEMConnection(object):
         if result is None:
             return []
 
-        return map(lambda x: x[2], result[2])
+        return [x[2] for x in result[2]]
 
     def AssociatorNames(self, ObjectName, **params):
         # pylint: disable=invalid-name
@@ -1900,7 +1921,7 @@ class WBEMConnection(object):
         if result is None:
             return []
 
-        return map(lambda x: x[2], result[2])
+        return [x[2] for x in result[2]]
 
     def References(self, ObjectName, **params):
         # pylint: disable=invalid-name
@@ -1994,7 +2015,7 @@ class WBEMConnection(object):
         if result is None:
             return []
 
-        return map(lambda x: x[2], result[2])
+        return [x[2] for x in result[2]]
 
     def ReferenceNames(self, ObjectName, **params):
         # pylint: disable=invalid-name
@@ -2067,7 +2088,7 @@ class WBEMConnection(object):
         if result is None:
             return []
 
-        return map(lambda x: x[2], result[2])
+        return [x[2] for x in result[2]]
 
     #
     # Method provider API
@@ -2158,7 +2179,7 @@ class WBEMConnection(object):
 
         obj = ObjectName
 
-        if isinstance(obj, StringTypes):
+        if isinstance(obj, six.string_types):
             obj = CIMClassName(obj, namespace=self.default_namespace)
 
         if isinstance(obj, CIMInstanceName) and obj.namespace is None:

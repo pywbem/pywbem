@@ -30,7 +30,7 @@ class RoundTripTest(unittest.TestCase):
         # Assert that the before and after objects should be equal
 
         self.assertEqual(obj, p,
-                         'before: %s\nafter:  %s' %\
+                         '\nbefore: %s\nafter:  %s' %\
                          (xml, p.tocimxml().toxml()))
 
 class RawXMLTest(unittest.TestCase):
@@ -44,7 +44,7 @@ class RawXMLTest(unittest.TestCase):
         # Assert XML parses to particular Python object
 
         self.assertEqual(obj, p,
-                         'before: %s\nafter:  %s' %\
+                         '\nbefore: %s\nafter:  %s' %\
                          (xml, p))
 
 class ParseXMLKeyvalue(RawXMLTest):

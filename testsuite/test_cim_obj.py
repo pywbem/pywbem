@@ -21,6 +21,7 @@ import os.path
 from datetime import timedelta, datetime
 import unittest
 import pytest
+import six
 
 from pywbem import cim_obj, cim_types
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
@@ -474,10 +475,10 @@ class CIMInstanceNameString(unittest.TestCase, RegexpMixin):
         r = repr(obj)
 
         self.assertRegexpMatches(r, r"^CIMInstanceName\(")
-        self.assertRegexpContains(r, 'classname=[\'"]CIM_Foo[\'"]')
+        self.assertRegexpContains(r, 'classname=u?[\'"]CIM_Foo[\'"]')
         self.assertRegexpContains(r, 'keybindings=')
-        self.assertRegexpContains(r, '[\'"]Secret[\'"]: 42')
-        self.assertRegexpContains(r, '[\'"]Name[\'"]: [\'"]Foo[\'"]')
+        self.assertRegexpContains(r, 'u?[\'"]Secret[\'"]: 42')
+        self.assertRegexpContains(r, 'u?[\'"]Name[\'"]: u?[\'"]Foo[\'"]')
 
         # Test str() with namespace
 
@@ -657,7 +658,9 @@ class InitCIMInstance(unittest.TestCase):
         # Check that initialization with Python integer and floating point
         # values is rejected
 
-        num_values = [42, 42L, 42.1]
+        num_values = [42, 42.1]
+        if six.PY2:
+            num_values.append(long(42))
         for num_value in num_values:
             try:
                 inst = CIMInstance('CIM_Foo',
@@ -978,14 +981,14 @@ class CIMInstanceString(unittest.TestCase, RegexpMixin):
         s = str(obj)
 
         self.assertRegexpMatches(s, r"^CIMInstance\(")
-        self.assertRegexpContains(s, 'classname=[\'"]CIM_Foo[\'"]')
+        self.assertRegexpContains(s, 'classname=u?[\'"]CIM_Foo[\'"]')
         self.assertEqual(s.find('Name'), -1)
         self.assertEqual(s.find('Ref1'), -1)
 
         r = repr(obj)
 
         self.assertRegexpMatches(r, r"^CIMInstance\(")
-        self.assertRegexpContains(r, 'classname=[\'"]CIM_Foo[\'"]')
+        self.assertRegexpContains(r, 'classname=u?[\'"]CIM_Foo[\'"]')
         self.assertEqual(r.find('Name'), -1)
         self.assertEqual(r.find('Ref1'), -1)
 
@@ -1558,7 +1561,10 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         # Check that initialization with Python integer and floating point
         # values without specifying a type is rejected
 
-        for val in [42, 42L, 42.0]:
+        num_values = [42, 42.0]
+        if six.PY2:
+            num_values.append(long(42))
+        for val in num_values:
             try:
                 CIMProperty('Age', val)
             except TypeError:
@@ -2103,7 +2109,7 @@ class CIMQualifierToXML(ValidateTest):
                       root_elem_CIMQualifier)
 
         self.validate(CIMQualifier('RevisionList',
-                                   [Uint16(x) for x in 1, 2, 3],
+                                   [Uint16(x) for x in [1, 2, 3]],
                                    propagated=False),
                       root_elem_CIMQualifier)
 
