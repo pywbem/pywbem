@@ -335,6 +335,7 @@ def main():
             # at Python startup time).
 
             'six',
+            'ply'
         ],
         'develop_requires' : [
             # Python prereqs for 'develop' command. Handled by os_setup module.
