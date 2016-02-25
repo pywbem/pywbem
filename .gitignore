@@ -12,7 +12,6 @@ moflog.txt
 pylint_done
 /build/
 /build_doc/
-/dist/
 mofparsetab.py
 moflextab.py
 testsuite/runtests.log

@@ -1,4 +1,53 @@
-pywbem-0.8.0-rc4  2015-12-xx
+
+
+pywbem-0.8.0rc4  2016-03-01
+
+
+  KNOWN ISSUES:
+
+    * Installing PyWBEM on Python 2.6 has a conflict with the 'pbr' package
+      from PyPI, resulting in a TypeError: "dist must be a Distribution
+      instance". This issue is specific to Python 2.6 and does not occur in
+      any of the other supported Python versions (2.7, 3.4, 3.5). This issue
+      can be mitigated by uninstalling the 'pbr' package, or if that is not
+      possible, by migrating to Python 2.7. See issue #26 on GitHub.
+
+    * MOF using names that are reserved keywords will fail to compile in the
+      MOF compiler. For example, a CIM property named 'indication'. See issue
+      #62 on GitHub.
+
+    * The Pulled Enumeration Operations introduced in DSP0200 1.3 are not
+      supported in this release. See issue #9 on GitHub.
+
+    * Note that some components of this PyWBEM Client package are still
+      considered experimental:
+      - The twisted client module twisted_client.py.
+      - The Python provider modules cim_provider.py and cim_provider2.py.
+      - The CIM indication listener in the `irecv` directory. See issue
+        #66 on GitHub. 
+
+
+  CHANGES:
+
+    * The MOF compiler is now available as the command 'mof_compiler' that gets
+      installed into the Python script directory. It is now separate from the
+      'mof_compiler' module within the 'pywbem' package. In 0.7.0, the module
+      was at the same time the script.  (Andreas Maier)
+
+    * The WBEM client CLI is now available as the command 'wbemcli' that gets
+      installed into the Python script directory. It is now separate from the
+      'wbemcli' module within the 'pywbem' package. In 0.7.0, the module
+      was at the same time the script.  (Andreas Maier)
+
+    * The symbols in the 'pywbem' package namespace have been reduced to a
+      well-defined set that is now declared the external API of the WBEM client
+      library, and is supposed to be sufficient.
+      In 0.7.0, most symbols defined in the sub-modules of the 'pywbem' package
+      were folded into the package namespace, cluttering it significantly.
+
+    * Since 0.7.0, some exceptions that can be raised at the external API of
+      the WBEM client library have been cleaned up.
+
 
   ENHANCEMENTS:
 
@@ -87,6 +136,13 @@ pywbem-0.8.0-rc4  2015-12-xx
       that defaults to no timeout.  (This finally increased the minimum version
       of Python to 2.6.  (Andreas Maier)
 
+    * Improved installation process of PyWBEM, particularly related to
+      M2Crypto.  (Andreas Maier)
+
+    * Added support for Python 3.  Issue #3 on GitHub.
+      (Ross Peoples, Andreas Maier)
+
+ 
   BUG FIXES:
 
     * Fix syntax error in CIM DTDVERSION error path.  Allow KEYVALUE
@@ -254,11 +310,22 @@ pywbem-0.8.0-rc4  2015-12-xx
     * Fixed build error that raised a YaccError in mof_compiler.py:
       "Syntax error. Expected ':'". Issue #2 on GitHub.  (Andreas Maier)
 
-    * Improved installation process of PyWBEM, particularly related to
-      M2Crypto.  (Andreas Maier)
-
     * Fixed issue where MOF compiler did not find include files with
       a path specified. Issue #4 on GitHub.  (Karl Schopmeyer)
+
+    * Added missing LocalOnly parameter to EnumerateInstances() of
+      the wbemcli script. Issue #33 on GitHub.  (Karl Schopmeyer)
+
+    * Added workaround for Python 2.6 for Python issue 15881.
+
+    * Removed the lex.py and yacc.py files from PyWBEM, and used them from the
+      `ply` package, which is their real home. This fixes a number of issues
+      because the latest version is now used. Issue #8 on GitHub.i
+      (Karl Schopmeyer)
+
+    * Fixed the issue that the LEX and YACC table modules were regenerated
+      under certain conditions.  Issue #55 on GitHub.  (Karl Schopmeyer)
+
 
   TESTING:
 
@@ -307,6 +374,31 @@ pywbem-0.8.0-rc4  2015-12-xx
       and added printing of exception information if an operation fails.
       (Andreas Maier)
 
+    * Migrated from comfychair to py.test, standard Python unittest, and to
+      tox.  (Andreas Maier)
+
+    * Added test_client.py with a few initial testcases. This is an end-to-end
+      test concept that allows specifying test cases that cover the entire
+      PyWBEM Client top to bottom. It mocks the socket layer and allows
+      specifying the test cases in YAML, starting with input at the PyWBEM
+      Client API (e.g. an operation and its parameters), the expected CIM-XML
+      request at the socket payload level resulting from this input (the
+      request is verified), the CIM-XML response that is to be generated,
+      and finally an expected result at the PyWBEM Client API that is being
+      verified.  (Andreas Maier)
+
+    * Added use of Travis CI test environment. Commits to GitHub now trigger
+      test runs on the Travis CI. A badge on the GitHub README page shows
+      the current test result of the master branch, and links to the Travis
+      site for the test results of the branches of any pull requests.
+      (Andreas Maier)
+
+    * Added support for reporting test coverage, using the Python 'coverage'
+      package. Coverage is reported on stdout as part of testing, e.g. with
+      'make test' for the current Python environment, or with 'tox' for all
+      supported Python environments.  (Andreas Maier)
+
+
   CLEAN CODE:
 
     * Removed dangerous default parameter '{}' from CIMProperty and
@@ -332,7 +424,8 @@ pywbem-0.8.0-rc4  2015-12-xx
       - Addressed PyLint issues that are related to whitespace, continuation
         indentation, and line length.
       - Replaced all real tab characters with spaces.
-      (Andreas Maier)
+      - Many more PyLint issues
+      (Andreas Maier, Karl Schopmeyer)
 
   PACKAGING / BUILD:
 

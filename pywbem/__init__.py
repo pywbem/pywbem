@@ -105,12 +105,14 @@ The change log is in the `NEWS <NEWS.txt>`_ file.
 Compatibility
 -------------
 
-PyWBEM has been tested with Python 2.7 on Windows and Linux, and with Python
-2.6 on Linux (due to a restriction of the `M2Crypto` package on Windows).
+The ``pywbem`` package is supported in these environments:
 
-Python 2.6 is the minimum version of Python that is supported.
+* on Windows, with Python 2.6, 2.7, 3.4, 3.5, and higher 3.x
 
-Python 3 support is WIP.
+* on Linux, with Python 2.6, 2.7, 3.4, 3.5, and higher 3.x
+
+OS X has simply not been tested and is therefore not listed, above.
+You are welcome to try it out and report any issues.
 """
 
 # There are submodules, but clients shouldn't need to know about them.
