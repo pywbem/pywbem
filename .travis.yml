@@ -17,6 +17,7 @@ install:
   - pip install --upgrade pip
   - python travis_remove_pbr.py
   - make clean
+  - pip list
   - make develop
   - pip list
   - make check
