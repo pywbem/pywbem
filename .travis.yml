@@ -15,7 +15,7 @@ install:
   - python -c "import pip, os; print('Site-packages directory of system Python:'); print(os.path.dirname(os.path.dirname(pip.__file__)))"
   - pip list
   - pip install --upgrade pip
-  - python travis_remove_pbr.py
+  - python uninstall_pbr_on_py26.py
   - make clean
   - pip list
   - make develop
