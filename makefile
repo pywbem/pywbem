@@ -45,6 +45,13 @@ dist_file := $(dist_dir)/$(package_name)-$(package_version).zip
 # Windows installable (as built by setup.py)
 win64_dist_file := $(dist_dir)/$(package_name)-$(package_version).win-amd64.exe
 
+# Lex/Yacc table files, generated from and by mof_compiler.py
+moftab_files := $(package_name)/mofparsetab.py $(package_name)/moflextab.py
+
+# Dependents for Lex/Yacc table files
+moftab_dependent_files := \
+    $(package_name)/mof_compiler.py \
+
 # Dependents for API doc builder
 # Note: Should not include the modules in doc_exclude_patterns
 doc_dependent_files := \
@@ -215,13 +222,17 @@ MANIFEST.in: makefile
 # Distribution archives.
 # Note: Deleting MANIFEST causes distutils (setup.py) to read MANIFEST.in and to
 # regenerate MANIFEST. Otherwise, changes in MANIFEST.in will not be used.
-$(dist_file): setup.py MANIFEST.in $(dist_dependent_files)
+$(dist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	rm -f MANIFEST
 	python setup.py sdist -d $(dist_dir) --formats=zip
 
 $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 	rm -f MANIFEST
 	python setup.py bdist_wininst -d $(dist_dir) -o -t "PyWBEM v$(package_version)"
+
+$(moftab_files): $(moftab_dependent_files)
+	rm -f $(package_name)/mofparsetab.py* $(package_name)/moflextab.py*
+	sh -c "PYTHONPATH=. python -c \"from $(package_name) import mof_compiler; mof_compiler._build()\""
 
 # Documentation for package (generates more .html files than just this target)
 $(doc_build_dir)/index.html: $(doc_dependent_files)

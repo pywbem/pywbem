@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
  
-"""wbemcli.py script.
+"""wbemcli script.
 
 For details, see the `pywbem.wbemcli` module.
 """

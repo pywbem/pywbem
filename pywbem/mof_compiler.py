@@ -1664,11 +1664,11 @@ class MOFCompiler(object):
             The default logger prints to stdout.
         """
 
-        self.parser = yacc.yacc(tabmodule=_tabmodule, optimize=_optimize, outputdir=_tabdir)
+        self.parser = _yacc(verbose)
         self.parser.search_paths = search_paths
         self.handle = handle
         self.parser.handle = handle
-        self.lexer = lex.lex(lextab=_lextab, optimize=_optimize, outputdir=_tabdir)
+        self.lexer = _lex(verbose)
         self.lexer.parser = self.parser
         self.parser.qualcache = {handle.default_namespace: NocaseDict()}
         self.parser.classnames = {handle.default_namespace: []}
@@ -1771,19 +1771,43 @@ class MOFCompiler(object):
         self.handle.rollback(verbose=verbose)
 
 def _build(verbose=False):
-    """ Executes Lex and Yacc functions from PLY to create
-        the mofparsetab.py and moflextab.py files.
+    """Build the LEX and YACC table modules for the MOF Compiler,
+    if they do not exist yet.
     """
 
-    if verbose:
-        print("Generating YACC table for MOF Compiler: %s" % \
-              os.path.join(_tabdir, _tabmodule+'.py'))
-    yacc.yacc(optimize=_optimize, debug=verbose, tabmodule=_tabmodule, outputdir=_tabdir)
+    _yacc(verbose)
+    _lex(verbose)
 
-    if verbose:
-        print("Generating LEX table for MOF Compiler: %s" % \
-              os.path.join(_tabdir, _lextab+'.py'))
-    lex.lex(optimize=_optimize, lextab=_lextab, outputdir=_tabdir)
+def _yacc(verbose=False):
+    """Return YACC parser object.
+
+    As a side effect, the YACC table module for the MOF Compiler
+    gets created, if it does not exist yet.
+    """
+
+    # In yacc(), the 'debug' parameter controls the main error
+    # messages to the 'errorlog' in addition to the debug messages
+    # to the 'debuglog'. Because we want to see the error messages,
+    # we enable debug but set the debuglog to the NullLogger.
+    return yacc.yacc(optimize=_optimize,
+                     tabmodule=_tabmodule,
+                     outputdir=_tabdir,
+                     debug=True,
+                     debuglog=yacc.NullLogger(),
+                     errorlog=yacc.PlyLogger(sys.stdout))
+
+def _lex(verbose=False):
+    """Return LEX analyzer object.
+
+    As a side effect, the LEX table module for the MOF Compiler
+    gets created, if it does not exist yet.
+    """
+
+    return lex.lex(optimize=_optimize,
+                   lextab=_lextab,
+                   outputdir=_tabdir,
+                   debug=False,
+                   errorlog=lex.PlyLogger(sys.stdout))
 
 
 def main():

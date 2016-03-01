@@ -338,8 +338,8 @@ def main():
             ]
         },
         'scripts': [
-            'wbemcli.py',
-            'mof_compiler.py',
+            'wbemcli',
+            'mof_compiler',
         ],
         # TODO: The following uses the master branch of the upstream M2Crypto
         # repo, which as of 2016-02-15 has all necessary fixes. Once ts next
