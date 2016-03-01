@@ -20,26 +20,117 @@
 #
 
 """
-The PyWBEM Client project provides a WBEM client library and some related
-utilities, written in pure Python.
+The ``pywbem`` package provides a WBEM client library and some WBEM utility
+commands, all written in pure Python.
 
 A WBEM client library allows issuing operations to a WBEM server, using
 the CIM operations over HTTP (CIM-XML) protocol defined in the DMTF standards
 DSP0200 and DSP0201. See http://www.dmtf.org/standards/wbem for information
-about WBEM.
+about WBEM and for these standards.
 
-It is based on the idea that a good WBEM client should be easy to use and not
-necessarily require a large amount of programming knowledge. It is suitable for
-a large range of tasks from simply poking around to writing web and GUI
-applications.
+This package is based on the idea that a good WBEM client should be easy to use
+and not necessarily require a large amount of programming knowledge. It is
+suitable for a large range of tasks from simply poking around to writing web
+and GUI applications.
 
-* `WBEMConnection` :  Main class of the WBEM client library and a good starting
-  point to read about it.
+WBEM client library
+-------------------
 
-The WBEM-related utilities included in this package are:
+Class `WBEMConnection` is the main class of the WBEM client library and is a
+good starting point to understand the WBEM client API.
 
-* `mof_compiler` :   Script for compiling MOF files, can also be used as a
-  module.
+Importing the ``pywbem`` package causes some names from its sub-modules to
+be folded into the package namespace.
+For example, class `WBEMConnection` is defined in the `cim_operations`
+sub-module and is folded into the package namespace::
+
+    import pywbem
+    conn = pywbem.WBEMConnection(...)
+
+it can also be used from its sub-module::
+
+    from pywbem.cim_operations import WBEMConnection
+    conn = WBEMConnection(...)
+
+Using the symbol from the package namespace is preferred; but both forms are
+supported.
+
+Not all public symbols from all sub-modules of the ``pywbem`` package are part
+of the external API of the WBEM client library. The external API generally
+consists of the symbols in the ``pywbem`` package namespace, and the
+corresponding symbols in its sub-modules.
+
+Consumers of this package that use other symbols than those from the external
+API are at the risk of suffering from incompatible changes in future versions
+of this package.
+
+The Epydoc documentation tool that is used to produce these web pages does
+not list all symbols that are folded into the package namespace, unfortunately
+(as you can see, it lists only the variables, not including `__version__`).
+It does however honor the ``__all__`` variable defining the exported symbols
+in each sub-module, and shows only those exported symbols in the documentation
+that is generated for the sub-modules. In other words, the symbols that
+you can see in the generated documentation for a sub-module is exactly
+what is part of the external API.
+
+The external API of the WBEM client library consists of the following symbols:
+
+* All symbols exported by the ``pywbem`` package, which are:
+
+  - `__version__` (string) - Version of the ``pywbem`` package.
+
+  - The symbols exported from the sub-modules in the remainder of this list,
+    folded into the ``pywbem`` package namespace.
+
+* All symbols exported by the `cim_operations` module.
+
+* All symbols exported by the `cim_constants` module.
+
+* All symbols exported by the `cim_types` module.
+
+* All symbols exported by the `cim_obj` module.
+
+* All symbols exported by the `tupleparse` module.
+
+* All symbols exported by the `cim_http` module.
+
+WBEM utility commands
+---------------------
+
+This package provides the following commands (implemented as Python scripts):
+
+* ``mof_compiler`` : A MOF compiler.
+
+  It has a pluggable interface for the MOF repository. The default
+  implementation of that interface uses a WBEM server as its MOF repository.
+  It uses the `mof_compiler` module that can also be used by Python programs
+  that need to compile MOF.
+
+  Invoke with ``--help`` for help.
+
+  The external API of the MOF compiler consists of the following symbols:
+
+  - All symbols exported by the `mof_compiler` module. This includes the
+    plug interface for the MOF repository.
+
+* ``wbemcli`` : A WBEM client CLI.
+
+  It is currently implemented as an interactive shell, and is expected to morph
+  into a full fledged command line utility in the future.
+
+  Invoke with ``--help`` for help, or see the `wbemcli` module.
+
+  The WBEM client CLI does not have an external API on its own; it is for the
+  most part a consumer of the `WBEMConnection` class.
+
+These commands are installed into the Python script directory and should
+therefore be available in the command search path.
+
+Experimental components
+-----------------------
+
+This package contains some components that are considered experimental at
+this point:
 
 * `cim_provider` :   Module for writing CIM providers in Python.
 
@@ -48,54 +139,30 @@ The WBEM-related utilities included in this package are:
 * `twisted_client` : An experimental alternative WBEM client library that uses
   the Python `twisted` package.
 
-* `wbemcli` :  Script providing a WBEM client CLI as an interactive shell.
+These components are included in this package, but they are not covered in the
+generated documentation, at this point.
 
-Importing the `pywbem` package causes a subset of symbols from its sub-modules
-to be folded into the target namespace.
+WBEM Listener (``irecv``)
+-------------------------
 
-The use of these folded symbols is shown for the example of class
-`WBEMConnection`::
+The PYWBEM Client project on GitHub (https://github.com/pywbem/pywbem)
+contains the ``irecv`` package in addition to the ``pywbem`` package. The
+``irecv`` package is a WBEM listener (indication receiver) and is considered
+experimental at this point.
 
-    import pywbem
-    conn = pywbem.WBEMConnection(...)
+It is not included in this package or in the generated documentation, at this
+point.
 
-or::
-
-    from pywbem import WBEMConnection
-    conn = WBEMConnection(...)
-
-or (less preferred)::
-
-    from pywbem import *
-    conn = WBEMConnection(...)
-
-The folded symbols' origin symbols in the sub-modules are also considered part
-of the public interface of the `pywbem` package.
-
-Programs using sub-modules that are not part of the WBEM client library, or
-specific symbols that are not folded into the target namespace of the `pywbem`
-package need to import the respective sub-modules explicitly.
-
-The use of such sub-modules is shown for the example of class
-`cim_provider.CIMProvider`::
-
-    from pywbem import cim_provider
-    provider = cim_provider.CIMProvider(...)
-
-or::
-
-    from pywbem.cim_provider import CIMProvider
-    provider = CIMProvider(...)
-
-or::
-
-    import pywbem.cim_provider
-    provider = pywbem.cim_provider.CIMProvider(...)
+You can get it by accessing the
+`irecv directory <https://github.com/pywbem/pywbem/tree/master/irecv>`_
+of the PyWBEM Client project on GitHub.
 
 Version
 -------
 
-This version of the PyWBEM Client is 0.8.0rc4 (release candidate #4).
+For the current version of the ``pywbem`` package, see the `NEWS <NEWS.txt>`_
+file. Its version can also be retrieved from the `pywbem.__version__`
+attribute (as a string).
 
 Changes
 -------
@@ -123,8 +190,8 @@ from .cim_types import *
 from .cim_constants import *
 from .cim_operations import *
 from .cim_obj import *
-from .tupleparse import ParseError
-from .cim_http import Error, ConnectionError, AuthError, TimeoutError
+from .tupleparse import *
+from .cim_http import *
 
 # Version of the pywbem package
 # !!! Keep in sync with version stated in module docstring, above !!!

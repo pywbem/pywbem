@@ -40,7 +40,7 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMQualifier, \
                      CIMProperty
 from .tupleparse import ParseError
 
-__all__ = ['ParseError', 'make_parser', 'parse_any']
+__all__ = []
 
 #class ParseError(Exception):
 #    """This exception is raised when there is a validation error detected

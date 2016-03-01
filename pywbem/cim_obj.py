@@ -46,10 +46,10 @@ else:
 from . import cim_xml, cim_types
 from .cim_types import _CIMComparisonMixin
 
-__all__ = ['NocaseDict', 'cmpname', 'CIMClassName', 'CIMProperty',
+__all__ = ['NocaseDict', 'cmpname', 'cmpitem', 'CIMClassName', 'CIMProperty',
            'CIMInstanceName', 'CIMInstance', 'CIMClass', 'CIMMethod',
            'CIMParameter', 'CIMQualifier', 'CIMQualifierDeclaration',
-           'tocimxml', 'tocimobj', 'byname']
+           'tocimxml', 'tocimobj']
 
 # pylint: disable=too-many-lines
 class NocaseDict(object):

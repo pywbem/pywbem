@@ -43,8 +43,7 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      CIMClassName, NocaseDict, _ensure_unicode
 from .tupleparse import ParseError
 
-__all__ = ['DEFAULT_NAMESPACE', 'check_utf8_xml_chars',
-           'CIMError', 'WBEMConnection', 'is_subclass',
+__all__ = ['DEFAULT_NAMESPACE', 'CIMError', 'WBEMConnection',
            'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
 

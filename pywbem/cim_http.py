@@ -59,8 +59,7 @@ else:
     _HAVE_M2CRYPTO=False
     SocketErrors = (socket.error,)
 
-__all__ = ['Error', 'ConnectionError', 'AuthError', 'TimeoutError',
-           'HTTPTimeout', 'wbem_request', 'get_object_header']
+__all__ = ['Error', 'ConnectionError', 'AuthError', 'TimeoutError']
 
 class Error(Exception):
     """Exception base class for catching any HTTP transport related errors."""

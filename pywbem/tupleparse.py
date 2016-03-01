@@ -85,7 +85,7 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      CIMClassName, CIMProperty, CIMMethod, \
                      CIMParameter, CIMQualifier, CIMQualifierDeclaration
 
-__all__ = ['ParseError', 'parse_cim', 'parse_any']
+__all__ = ['ParseError']
 
 class ParseError(Exception):
     """This exception is raised when there is a validation error detected
