@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # (C) Copyright 2006-2007 Novell, Inc.
 #
@@ -64,10 +63,7 @@ _tabmodule = 'mofparsetab'
 _lextab = 'moflextab'
 
 # Directory for _tabmodule and _lextab
-try:
-    _tabdir = os.path.dirname(os.path.abspath(__file__))
-except:
-    _tabdir = '.'
+_tabdir = os.path.dirname(os.path.abspath(__file__))
 
 reserved = {
     'any':'ANY',
@@ -1774,12 +1770,19 @@ class MOFCompiler(object):
 
         self.handle.rollback(verbose=verbose)
 
-def _build():
+def _build(verbose=False):
     """ Executes Lex and Yacc functions from PLY to create
-        the yacc.py and lex.py files
+        the mofparsetab.py and moflextab.py files.
     """
 
-    yacc.yacc(optimize=_optimize, tabmodule=_tabmodule, outputdir=_tabdir)
+    if verbose:
+        print("Generating YACC table for MOF Compiler: %s" % \
+              os.path.join(_tabdir, _tabmodule+'.py'))
+    yacc.yacc(optimize=_optimize, debug=verbose, tabmodule=_tabmodule, outputdir=_tabdir)
+
+    if verbose:
+        print("Generating LEX table for MOF Compiler: %s" % \
+              os.path.join(_tabdir, _lextab+'.py'))
     lex.lex(optimize=_optimize, lextab=_lextab, outputdir=_tabdir)
 
 
@@ -1870,5 +1873,3 @@ def main():
     if options.remove and not options.dry_run:
         conn.rollback(verbose=options.verbose)
 
-if __name__ == '__main__':
-    main()

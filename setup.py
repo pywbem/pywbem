@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #
 # (C) Copyright 2004 Hewlett-Packard Development Company, L.P.
 #
@@ -283,6 +284,28 @@ def main():
 
     import_setuptools()
     from setuptools import setup
+    from distutils.command.install import install as _install
+
+    class install(_install):
+        def run(self):
+            pre_install(self.verbose, self.dry_run)
+            _install.run(self)
+
+    def pre_install(verbose=False, dry_run=False):
+
+        cmd = "pip install ply"
+        if dry_run:
+            print("Dry-running: %s" % cmd)
+        else:
+            print("Running: %s" % cmd)
+            shell_check(cmd, display=verbose)
+
+        if dry_run:
+            print("Dry-running: MOF Compiler build")
+        else:
+            print("Running: MOF Compiler build")
+            from pywbem import mof_compiler
+            mof_compiler._build(verbose)
 
     py_version_m_n = "%s.%s" % (sys.version_info[0], sys.version_info[1])
     py_version_mn = "%s%s" % (sys.version_info[0], sys.version_info[1])
@@ -302,6 +325,7 @@ def main():
         'license': 'LGPL version 2.1, or (at your option) any later version',
         'distclass': os_setup.OsDistribution,
         'cmdclass': {
+            'install': install,
             'install_os': os_setup.install_os,
             'develop_os': os_setup.develop_os,
             'develop': os_setup.develop,
@@ -314,8 +338,8 @@ def main():
             ]
         },
         'scripts': [
-            'pywbem/wbemcli.py',
-            'pywbem/mof_compiler.py',
+            'wbemcli.py',
+            'mof_compiler.py',
         ],
         # TODO: The following uses the master branch of the upstream M2Crypto
         # repo, which as of 2016-02-15 has all necessary fixes. Once ts next
@@ -333,9 +357,8 @@ def main():
             # They are not useable by this setup script, if they are eggs
             # (because their path is added to a .pth file which is parsed only
             # at Python startup time).
-
             'six',
-            'ply'
+            'ply',
         ],
         'develop_requires' : [
             # Python prereqs for 'develop' command. Handled by os_setup module.
