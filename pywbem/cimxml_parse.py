@@ -35,16 +35,17 @@
 from xml.dom import pulldom
 import six
 
-from pywbem import cim_obj
-from pywbem.cim_obj import CIMInstance, CIMInstanceName, CIMQualifier, \
-                           CIMProperty
+from . import cim_obj
+from .cim_obj import CIMInstance, CIMInstanceName, CIMQualifier, \
+                     CIMProperty
+from .tupleparse import ParseError
 
 __all__ = ['ParseError', 'make_parser', 'parse_any']
 
-class ParseError(Exception):
-    """This exception is raised when there is a validation error detected
-    by the parser."""
-    pass
+#class ParseError(Exception):
+#    """This exception is raised when there is a validation error detected
+#    by the parser."""
+#    pass
 
 #
 # Helper functions
