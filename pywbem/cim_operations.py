@@ -1591,8 +1591,6 @@ class WBEMConnection(object):
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
-        TODO This method is UNSUPPORTED right now. Test and verify description.
-
         :Parameters:
 
           ClassName : string
@@ -1630,8 +1628,6 @@ class WBEMConnection(object):
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
-        TODO This method is UNSUPPORTED right now. Test and verify description.
-
         :Parameters:
 
           ModifiedClass : `CIMClass`
@@ -1663,8 +1659,6 @@ class WBEMConnection(object):
         This method performs the ModifyClass CIM-XML operation.
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
-
-        TODO This method is UNSUPPORTED right now. Test and verify description.
 
         :Parameters:
 
@@ -2273,8 +2267,6 @@ class WBEMConnection(object):
         Otherwise, this method raises an exception.
         Returns a `CIMQualifier` object.
 
-        TODO This method is UNSUPPORTED right now. Test and verify description.
-
         :Parameters:
 
           Qualifier : string
@@ -2317,8 +2309,6 @@ class WBEMConnection(object):
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
-        TODO This method is UNSUPPORTED right now. Test and verify description.
-
         :Parameters:
 
           QualifierDeclaration : CIMQualifierDeclaration object
@@ -2352,8 +2342,6 @@ class WBEMConnection(object):
         This method performs the DeleteQualifier CIM-XML operation.
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
-
-        TODO This method is UNSUPPORTED right now. Test and verify description.
 
         :Parameters:
 
