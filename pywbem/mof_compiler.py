@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # (C) Copyright 2006-2007 Novell, Inc.
 #
@@ -30,8 +29,10 @@
 
 """pywbem MOF Compiler Rules and implementation definition for lex and yacc.
    This compiler implementation is based on the PLY python package.
-   Today PLY is directly copied into pywbem rather than using the
-   separate python ply package and it is version 3.0 of PLY.
+   This module contains yacc and lex rules in docstrings of its
+   functions.  The formatting of these docstrings is critical in that
+   it defines the parser functionality. Changing the strings or
+   even the formatting breaks the ply rule generation.
 
 """
 
@@ -40,7 +41,9 @@ import os
 from getpass import getpass
 import six
 
-from . import lex, yacc, cim_obj
+from . import cim_obj
+from ply import yacc, lex
+
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                            CIMProperty, CIMMethod, CIMParameter, \
                            CIMQualifier, CIMQualifierDeclaration, NocaseDict
@@ -60,10 +63,7 @@ _tabmodule = 'mofparsetab'
 _lextab = 'moflextab'
 
 # Directory for _tabmodule and _lextab
-try:
-    _tabdir = os.path.dirname(os.path.abspath(__file__))
-except:
-    _tabdir = '.'
+_tabdir = os.path.dirname(os.path.abspath(__file__))
 
 reserved = {
     'any':'ANY',
@@ -1664,11 +1664,11 @@ class MOFCompiler(object):
             The default logger prints to stdout.
         """
 
-        self.parser = yacc.yacc(tabmodule=_tabmodule, optimize=_optimize, outputdir=_tabdir)
+        self.parser = _yacc(verbose)
         self.parser.search_paths = search_paths
         self.handle = handle
         self.parser.handle = handle
-        self.lexer = lex.lex(lextab=_lextab, optimize=_optimize, outputdir=_tabdir)
+        self.lexer = _lex(verbose)
         self.lexer.parser = self.parser
         self.parser.qualcache = {handle.default_namespace: NocaseDict()}
         self.parser.classnames = {handle.default_namespace: []}
@@ -1770,13 +1770,44 @@ class MOFCompiler(object):
 
         self.handle.rollback(verbose=verbose)
 
-def _build():
-    """ Executes Lex and Yacc functions from PLY to create
-        the yacc.py and lex.py files
+def _build(verbose=False):
+    """Build the LEX and YACC table modules for the MOF Compiler,
+    if they do not exist yet.
     """
 
-    yacc.yacc(optimize=_optimize, tabmodule=_tabmodule, outputdir=_tabdir)
-    lex.lex(optimize=_optimize, lextab=_lextab, outputdir=_tabdir)
+    _yacc(verbose)
+    _lex(verbose)
+
+def _yacc(verbose=False):
+    """Return YACC parser object.
+
+    As a side effect, the YACC table module for the MOF Compiler
+    gets created, if it does not exist yet.
+    """
+
+    # In yacc(), the 'debug' parameter controls the main error
+    # messages to the 'errorlog' in addition to the debug messages
+    # to the 'debuglog'. Because we want to see the error messages,
+    # we enable debug but set the debuglog to the NullLogger.
+    return yacc.yacc(optimize=_optimize,
+                     tabmodule=_tabmodule,
+                     outputdir=_tabdir,
+                     debug=True,
+                     debuglog=yacc.NullLogger(),
+                     errorlog=yacc.PlyLogger(sys.stdout))
+
+def _lex(verbose=False):
+    """Return LEX analyzer object.
+
+    As a side effect, the LEX table module for the MOF Compiler
+    gets created, if it does not exist yet.
+    """
+
+    return lex.lex(optimize=_optimize,
+                   lextab=_lextab,
+                   outputdir=_tabdir,
+                   debug=False,
+                   errorlog=lex.PlyLogger(sys.stdout))
 
 
 def main():
@@ -1866,5 +1897,3 @@ def main():
     if options.remove and not options.dry_run:
         conn.rollback(verbose=options.verbose)
 
-if __name__ == '__main__':
-    main()

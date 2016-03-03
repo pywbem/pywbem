@@ -51,14 +51,6 @@ moftab_files := $(package_name)/mofparsetab.py $(package_name)/moflextab.py
 # Dependents for Lex/Yacc table files
 moftab_dependent_files := \
     $(package_name)/mof_compiler.py \
-    $(package_name)/cim_obj.py \
-    $(package_name)/cim_operations.py \
-    $(package_name)/cim_constants.py \
-    $(package_name)/cim_types.py \
-    $(package_name)/cim_xml.py \
-    $(package_name)/cim_http.py \
-    $(package_name)/tupletree.py \
-    $(package_name)/tupleparse.py \
 
 # Dependents for API doc builder
 # Note: Should not include the modules in doc_exclude_patterns
@@ -193,7 +185,7 @@ clobber: clean
 clean:
 	find . -name "*.pyc" -delete
 	sh -c "find . -name \"__pycache__\" |xargs rm -Rf"
-	rm -f MANIFEST parser.out $(test_tmp_file)
+	rm -f MANIFEST parser.out $(package_name)/parser.out $(test_tmp_file) $(package_name)/mofparsetab.py $(package_name)/moflextab.py
 	rm -Rf build tmp_install testtmp testsuite/testtmp .cache $(package_name).egg-info
 	@echo '$@ done.'
 

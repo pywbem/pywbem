@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # (C) Copyright 2008 Hewlett-Packard Development Company, L.P.
 #
@@ -52,12 +51,16 @@ import sys
 import getpass
 import errno
 import code
-try:
-    # Python 2.7+ and 3.2+
-    from argparse import ArgumentParser as OptionParser
-except ImportError:
-    # Python 2.6
-    from optparse import OptionParser
+# TODO Migrate to use argparse instead of optparse. It takes more than
+#      just importing the module (e.g. add_option() no longer exists
+#      in argparse).
+#try:
+#    # Python 2.7+ and 3.2+
+#    from argparse import ArgumentParser as OptionParser
+#except ImportError:
+#    # Python 2.6
+#    from optparse import OptionParser
+from optparse import OptionParser
 
 # Additional symbols for use in the interactive session
 from pprint import pprint as pp # pylint: disable=unused-import
@@ -383,11 +386,11 @@ def main():
                          help='port to connect as', default=None)
 
     # Check usage
+    # The following may exit, e.g. for --help or invalid options:
     (opts, argv) = optparser.parse_args()
-
     if len(argv) != 1:
         optparser.print_usage()
-        sys.exit(1)
+        return 2
 
     # Set up a client connection
     _CONN = remote_connection(argv, opts)
@@ -418,5 +421,3 @@ def main():
 
     return 0
 
-if __name__ == '__main__':
-    exit(main())

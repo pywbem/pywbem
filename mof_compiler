@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+ 
+"""mof_compiler script.
+
+For details, see the `pywbem.mof_compiler` module.
+"""
+
+import sys 
+from pywbem.mof_compiler import main
+ 
+if __name__ == '__main__':
+    import pywbem.mof_compiler as mc
+    rc = main()
+    sys.exit(rc)
