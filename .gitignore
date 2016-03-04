@@ -13,7 +13,6 @@ pylint_done
 .coverage
 /build/
 /build_doc/
-/dist/
 mofparsetab.py
 moflextab.py
 testsuite/runtests.log
