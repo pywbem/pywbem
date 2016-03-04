@@ -45,8 +45,8 @@ import six
 from six.moves import http_client as httplib
 from six.moves import urllib
 
-from . import cim_obj
-from .cim_obj import _ensure_unicode, _ensure_bytes
+from .cim_obj import CIMClassName, CIMInstanceName, _ensure_unicode, \
+                    _ensure_bytes
 
 if six.PY2:
     from M2Crypto import SSL
@@ -707,12 +707,12 @@ def get_object_header(obj):
 
     # CIMLocalClassPath
 
-    if isinstance(obj, cim_obj.CIMClassName):
+    if isinstance(obj, CIMClassName):
         return 'CIMObject: %s:%s' % (obj.namespace, obj.classname)
 
     # CIMInstanceName with namespace
 
-    if isinstance(obj, cim_obj.CIMInstanceName) and obj.namespace is not None:
+    if isinstance(obj, CIMInstanceName) and obj.namespace is not None:
         return 'CIMObject: %s' % obj
 
     raise TypeError('Don\'t know how to generate HTTP headers for %s' % obj)

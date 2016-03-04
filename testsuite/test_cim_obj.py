@@ -28,7 +28,8 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
                    CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
                    Uint8, Uint16, Uint32, Uint64, \
                    Sint8, Sint16, Sint32, Sint64,\
-                   Real32, Real64, CIMDateTime, NocaseDict
+                   Real32, Real64, CIMDateTime
+from pywbem.cim_obj import NocaseDict
 
 from validate import validate_xml
 from unittest_extensions import RegexpMixin, CIMObjectMixin

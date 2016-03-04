@@ -43,13 +43,15 @@ if six.PY2:
 else:
     from builtins import type as builtin_type
 
-from . import cim_xml, cim_types
-from .cim_types import _CIMComparisonMixin
-
-__all__ = ['NocaseDict', 'cmpname', 'cmpitem', 'CIMClassName', 'CIMProperty',
-           'CIMInstanceName', 'CIMInstance', 'CIMClass', 'CIMMethod',
-           'CIMParameter', 'CIMQualifier', 'CIMQualifierDeclaration',
-           'tocimxml', 'tocimobj']
+from . import cim_xml
+from .cim_types import _CIMComparisonMixin, type_from_name, \
+                       cimtype, atomic_to_cim_xml, CIMType, \
+                       CIMDateTime, Uint8, Sint8, Uint16, Sint16, Uint32, \
+                       Sint32, Uint64, Sint64, Real32, Real64
+        
+__all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
+           'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
+           'CIMQualifierDeclaration', 'tocimxml', 'tocimobj']
 
 # pylint: disable=too-many-lines
 class NocaseDict(object):
@@ -1016,7 +1018,7 @@ class CIMProperty(_CIMComparisonMixin):
                     type_ = _intended_value('string', None, type_, 'type', msg)
                 elif type_ is not None:
                     # Leave type as specified, but check it for validity
-                    dummy_type_obj = cim_types.type_from_name(type_)
+                    dummy_type_obj = type_from_name(type_)
                 else:
                     raise ValueError(
                         'Cannot infer type of array property %r that is ' \
@@ -1034,7 +1036,7 @@ class CIMProperty(_CIMComparisonMixin):
                 embedded_object = _intended_value(
                     'object', None, embedded_object, 'embedded_object', msg)
             elif isinstance(value[0], (datetime, timedelta)):
-                value = [cim_types.CIMDateTime(val) if val is not None
+                value = [CIMDateTime(val) if val is not None
                          else val for val in value]
                 msg = 'Array property %r contains datetime or timedelta ' \
                       'values' % name
@@ -1042,15 +1044,15 @@ class CIMProperty(_CIMComparisonMixin):
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
             elif type_ == 'datetime':
-                value = [cim_types.CIMDateTime(val) if val is not None
-                         and not isinstance(val, cim_types.CIMDateTime)
+                value = [CIMDateTime(val) if val is not None
+                         and not isinstance(val, CIMDateTime)
                          else val for val in value]
                 msg = 'Array property %r specifies CIM type %r' % (name, type_)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
             elif type_ is None:
                 # Determine simple type from (non-Null) value
-                type_ = cim_types.cimtype(value[0])
+                type_ = cimtype(value[0])
                 msg = 'Array property %r contains simple typed values ' \
                       'with no CIM type specified' % name
                 embedded_object = _intended_value(
@@ -1058,7 +1060,7 @@ class CIMProperty(_CIMComparisonMixin):
             else: # type is specified and value (= entire array) is not Null
                 # Make sure the array elements are of the corresponding Python
                 # type.
-                value = [cim_types.type_from_name(type_)(val) if val is not None
+                value = [type_from_name(type_)(val) if val is not None
                          else val for val in value]
                 msg = 'Array property %r contains simple typed values ' \
                         'and specifies CIM type %r' % (name, type_)
@@ -1085,7 +1087,7 @@ class CIMProperty(_CIMComparisonMixin):
                         'reference', None, type_, 'type', msg)
                 elif type_ is not None:
                     # Leave type as specified, but check it for validity
-                    dummy_type_obj = cim_types.type_from_name(type_)
+                    dummy_type_obj = type_from_name(type_)
                 else:
                     raise ValueError('Cannot infer type of simple ' \
                                      'property %r that is Null' % name)
@@ -1114,7 +1116,7 @@ class CIMProperty(_CIMComparisonMixin):
                 reference_class = _intended_value(
                     None, None, reference_class, 'reference_class', msg)
             elif isinstance(value, (datetime, timedelta)):
-                value = cim_types.CIMDateTime(value)
+                value = CIMDateTime(value)
                 msg = 'Property %r has a datetime or timedelta value' % name
                 type_ = _intended_value('datetime', None, type_, 'type', msg)
                 embedded_object = _intended_value(
@@ -1122,8 +1124,8 @@ class CIMProperty(_CIMComparisonMixin):
                 reference_class = _intended_value(
                     None, None, reference_class, 'reference_class', msg)
             elif type_ == 'datetime':
-                if not isinstance(value, cim_types.CIMDateTime):
-                    value = cim_types.CIMDateTime(value)
+                if not isinstance(value, CIMDateTime):
+                    value = CIMDateTime(value)
                 msg = 'Property %r specifies CIM type %r' % (name, type_)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
@@ -1131,7 +1133,7 @@ class CIMProperty(_CIMComparisonMixin):
                     None, None, reference_class, 'reference_class', msg)
             elif type_ is None:
                 # Determine simple type from (non-Null) value
-                type_ = cim_types.cimtype(value)
+                type_ = cimtype(value)
                 msg = 'Property %r has a simple typed value ' \
                       'with no CIM type specified' % name
                 embedded_object = _intended_value(
@@ -1140,7 +1142,7 @@ class CIMProperty(_CIMComparisonMixin):
                     None, None, reference_class, 'reference_class', msg)
             else: # type is specified and value is not Null
                 # Make sure the value is of the corresponding Python type.
-                _type_obj = cim_types.type_from_name(type_)
+                _type_obj = type_from_name(type_)
                 value = _type_obj(value)  # pylint: disable=redefined-variable-type
                 msg = 'Property %r has a simple typed value ' \
                         'and specifies CIM type %r' % (name, type_)
@@ -1201,7 +1203,7 @@ class CIMProperty(_CIMComparisonMixin):
                         value = [v.tocimxml().toxml() for v in value]
                 value = cim_xml.VALUE_ARRAY(
                     [cim_xml.VALUE(
-                        cim_types.atomic_to_cim_xml(v)) for v in value])
+                        atomic_to_cim_xml(v)) for v in value])
 
             return cim_xml.PROPERTY_ARRAY(
                 self.name,
@@ -1233,7 +1235,7 @@ class CIMProperty(_CIMComparisonMixin):
                 if self.embedded_object is not None:
                     value = value.tocimxml().toxml()
                 else:
-                    value = cim_types.atomic_to_cim_xml(value)
+                    value = atomic_to_cim_xml(value)
                 value = cim_xml.VALUE(value) # pylint: disable=redefined-variable-type
 
             return cim_xml.PROPERTY(
@@ -2299,13 +2301,13 @@ class CIMQualifier(_CIMComparisonMixin):
                     raise TypeError(
                         'Empty qualifier array "%s" must have a type' % name)
 
-                self.type = cim_types.cimtype(value[0])
+                self.type = cimtype(value[0])
 
             else:
 
                 # Determine type for regular value
 
-                self.type = cim_types.cimtype(value)
+                self.type = cimtype(value)
 
         # Don't let anyone set integer or float values.  You must use
         # a subclass from the cim_type module.
@@ -2515,11 +2517,11 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         if self.value is not None:
             if isinstance(self.value, list):
                 mof += ' = {'
-                mof += ', '.join([cim_types.atomic_to_cim_xml(
+                mof += ', '.join([atomic_to_cim_xml(
                     tocimobj(self.type, x)) for x in self.value])
                 mof += '}'
             else:
-                mof += ' = %s' % cim_types.atomic_to_cim_xml(
+                mof += ' = %s' % atomic_to_cim_xml(
                     tocimobj(self.type, self.value))
         mof += ',\n    '
         mof += 'Scope('
@@ -2550,7 +2552,7 @@ def tocimxml(value):
 
     # CIMType or builtin type
 
-    if isinstance(value, (cim_types.CIMType, int, six.text_type)):
+    if isinstance(value, (CIMType, int, six.text_type)):
         return cim_xml.VALUE(six.text_type(value))
 
     if isinstance(value, six.binary_type):
@@ -2613,36 +2615,36 @@ def tocimobj(type_, value):
     # Integer types
 
     if type_ == 'uint8':
-        return cim_types.Uint8(value)
+        return Uint8(value)
 
     if type_ == 'sint8':
-        return cim_types.Sint8(value)
+        return Sint8(value)
 
     if type_ == 'uint16':
-        return cim_types.Uint16(value)
+        return Uint16(value)
 
     if type_ == 'sint16':
-        return cim_types.Sint16(value)
+        return Sint16(value)
 
     if type_ == 'uint32':
-        return cim_types.Uint32(value)
+        return Uint32(value)
 
     if type_ == 'sint32':
-        return cim_types.Sint32(value)
+        return Sint32(value)
 
     if type_ == 'uint64':
-        return cim_types.Uint64(value)
+        return Uint64(value)
 
     if type_ == 'sint64':
-        return cim_types.Sint64(value)
+        return Sint64(value)
 
     # Real types
 
     if type_ == 'real32':
-        return cim_types.Real32(value)
+        return Real32(value)
 
     if type_ == 'real64':
-        return cim_types.Real64(value)
+        return Real64(value)
 
     # Char16
 
@@ -2652,7 +2654,7 @@ def tocimobj(type_, value):
     # Datetime
 
     if type_ == 'datetime':
-        return cim_types.CIMDateTime(value)
+        return CIMDateTime(value)
 
     # REF
     def partition(str_arg, seq):
@@ -2728,7 +2730,7 @@ def tocimobj(type_, value):
                                 val = float(val)
                             except ValueError:
                                 try:
-                                    val = cim_types.CIMDateTime(val)
+                                    val = CIMDateTime(val)
                                 except ValueError:
                                     raise ValueError('Invalid key binding: %s'\
                                             % val)

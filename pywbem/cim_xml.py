@@ -52,8 +52,7 @@ always passes through all non-markup whitespace.
 
 """
 
-import xml.dom.minidom
-from xml.dom.minidom import Element
+from xml.dom.minidom import Element, Text, CDATASection
 import six
 
 __all__ = []
@@ -71,7 +70,7 @@ def _text(data):
     """
 
     # The following initialization approach requires Python 2.3 or higher.
-    t = xml.dom.minidom.Text()
+    t = Text()
     t.data = data
 
     return t
@@ -151,7 +150,7 @@ def _pcdata_nodes(pcdata):
 
             # The following initialization approach requires Python 2.3 or
             # higher.
-            node = xml.dom.minidom.CDATASection()
+            node = CDATASection()
             node.data = left + pcdata_part + right
 
             nodelist.append(node)
