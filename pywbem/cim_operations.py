@@ -38,13 +38,17 @@ from xml.dom import minidom
 from xml.parsers.expat import ExpatError
 import six
 
-from . import cim_obj, cim_xml, cim_http, cim_types, tupletree, tupleparse
+from . import cim_xml
+from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
-                     CIMClassName, NocaseDict, _ensure_unicode
-from .tupleparse import ParseError
+                     CIMClassName, NocaseDict, _ensure_unicode, tocimxml, \
+                     tocimobj
+from .cim_http import get_object_header, wbem_request, Error, AuthError, \
+                      ConnectionError, TimeoutError
+from .tupleparse import ParseError, parse_cim
+from .tupletree import dom_to_tupletree
 
-__all__ = ['DEFAULT_NAMESPACE', 'check_utf8_xml_chars',
-           'CIMError', 'WBEMConnection', 'is_subclass',
+__all__ = ['DEFAULT_NAMESPACE', 'CIMError', 'WBEMConnection',
            'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
 
@@ -238,7 +242,7 @@ def check_utf8_xml_chars(utf8_xml, meaning):
     return utf8_xml
 
 
-class CIMError(cim_http.Error):
+class CIMError(Error):
     """
     Exception indicating that the WBEM server has returned an error response
     with a CIM status code.
@@ -552,11 +556,11 @@ class WBEMConnection(object):
 
         headers = ['CIMOperation: MethodCall',
                    'CIMMethod: %s' % methodname,
-                   cim_http.get_object_header(namespace)]
+                   get_object_header(namespace)]
 
         # Create parameter list
 
-        plist = [cim_xml.IPARAMVALUE(x[0], cim_obj.tocimxml(x[1])) \
+        plist = [cim_xml.IPARAMVALUE(x[0], tocimxml(x[1])) \
                  for x in params.items()]
 
         # Build XML request
@@ -583,15 +587,14 @@ class WBEMConnection(object):
         # Send request and receive response
 
         try:
-            reply_xml = cim_http.wbem_request(
+            reply_xml = wbem_request(
                 self.url, req_xml.toxml(), self.creds, headers,
                 x509=self.x509,
                 verify_callback=self.verify_callback,
                 ca_certs=self.ca_certs,
                 no_verification=self.no_verification,
                 timeout=self.timeout)
-        except (cim_http.AuthError, cim_http.ConnectionError,
-                cim_http.TimeoutError, cim_http.Error):
+        except (AuthError, ConnectionError, TimeoutError, Error):
             raise
         # TODO Clean up exception handling. The next two lines are a workaround
         # in order not to ignore TypeError and other exceptions that may be
@@ -647,7 +650,7 @@ class WBEMConnection(object):
 
         # Parse response
 
-        tup_tree = tupleparse.parse_cim(tupletree.dom_to_tupletree(reply_dom))
+        tup_tree = parse_cim(dom_to_tupletree(reply_dom))
 
         if tup_tree[0] != 'CIM':
             raise ParseError('Expecting CIM element, got %s' % tup_tree[0])
@@ -720,13 +723,13 @@ class WBEMConnection(object):
 
         headers = ['CIMOperation: MethodCall',
                    'CIMMethod: %s' % methodname,
-                   cim_http.get_object_header(localobject)]
+                   get_object_header(localobject)]
 
         # Create parameter list
 
         def paramtype(obj):
             """Return a string to be used as the CIMTYPE for a parameter."""
-            if isinstance(obj, cim_types.CIMType):
+            if isinstance(obj, CIMType):
                 return obj.cimtype
             elif isinstance(obj, bool):
                 return 'boolean'
@@ -749,9 +752,9 @@ class WBEMConnection(object):
             """Return a cim_xml node to be used as the value for a
             parameter."""
             if isinstance(obj, (datetime, timedelta)):
-                obj = cim_types.CIMDateTime(obj)
-            if isinstance(obj, (cim_types.CIMType, bool, six.string_types)):
-                return cim_xml.VALUE(cim_types.atomic_to_cim_xml(obj))
+                obj = CIMDateTime(obj)
+            if isinstance(obj, (CIMType, bool, six.string_types)):
+                return cim_xml.VALUE(atomic_to_cim_xml(obj))
             if isinstance(obj, (CIMClassName, CIMInstanceName)):
                 # Note: Because CIMDateTime is an obj but tested above
                 # pylint: disable=no-member
@@ -811,15 +814,14 @@ class WBEMConnection(object):
         # Send request and receive response
 
         try:
-            reply_xml = cim_http.wbem_request(
+            reply_xml = wbem_request(
                 self.url, req_xml.toxml(), self.creds, headers,
                 x509=self.x509,
                 verify_callback=self.verify_callback,
                 ca_certs=self.ca_certs,
                 no_verification=self.no_verification,
                 timeout=self.timeout)
-        except (cim_http.AuthError, cim_http.ConnectionError,
-                cim_http.TimeoutError, cim_http.Error):
+        except (AuthError, ConnectionError, TimeoutError, Error):
             raise
         # TODO Clean up exception handling. The next two lines are a workaround
         # in order not to ignore TypeError and other exceptions that may be
@@ -875,7 +877,7 @@ class WBEMConnection(object):
 
         # Parse response
 
-        tt = tupleparse.parse_cim(tupletree.dom_to_tupletree(reply_dom))
+        tt = parse_cim(dom_to_tupletree(reply_dom))
 
         if tt[0] != 'CIM':
             raise ParseError('Expecting CIM element, got %s' % tt[0])
@@ -2190,8 +2192,7 @@ class WBEMConnection(object):
 
         if len(result) > 0 and result[0][0] == 'RETURNVALUE':
 
-            returnvalue = cim_obj.tocimobj(result[0][1]['PARAMTYPE'],
-                                           result[0][2])
+            returnvalue = tocimobj(result[0][1]['PARAMTYPE'], result[0][2])
             result = result[1:]
 
         # Convert zero or more PARAMVALUE elements into dictionary
@@ -2202,7 +2203,7 @@ class WBEMConnection(object):
             if p[1] == 'reference':
                 output_params[p[0]] = p[2]
             else:
-                output_params[p[0]] = cim_obj.tocimobj(p[1], p[2])
+                output_params[p[0]] = tocimobj(p[1], p[2])
 
         return returnvalue, output_params
 

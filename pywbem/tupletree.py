@@ -51,7 +51,7 @@ The fourth element is reserved.
 import xml.dom.minidom
 import six
 
-__all__ = ['dom_to_tupletree', 'xml_to_tupletree']
+__all__ = []
 
 def dom_to_tupletree(node):
     """Convert a DOM object to a pyRXP-style tuple tree.

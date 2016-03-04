@@ -40,13 +40,12 @@ import sys
 import os
 from getpass import getpass
 import six
-
-from . import cim_obj
 from ply import yacc, lex
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
-                           CIMProperty, CIMMethod, CIMParameter, \
-                           CIMQualifier, CIMQualifierDeclaration, NocaseDict
+                     CIMProperty, CIMMethod, CIMParameter, \
+                     CIMQualifier, CIMQualifierDeclaration, NocaseDict, \
+                     tocimobj
 from .cim_operations import CIMError, WBEMConnection
 from .cim_constants import *  # pylint: disable=wildcard-import
 
@@ -713,7 +712,7 @@ def p_qualifier(p):
         else:
             qval = qualdecl.value # default value
     else:
-        qval = cim_obj.tocimobj(qualdecl.type, qval)
+        qval = tocimobj(qualdecl.type, qval)
     p[0] = CIMQualifier(qname, qval, type=qualdecl.type, **flavors)
     # TODO propagated?
 
@@ -783,7 +782,7 @@ def p_propertyDeclaration_6(p):
     # pylint: disable=line-too-long
     """propertyDeclaration_6 : qualifierList dataType propertyName defaultValue ';'"""
     quals = dict([(x.name, x) for x in p[1]])
-    p[0] = CIMProperty(p[3], cim_obj.tocimobj(p[2], p[4]),
+    p[0] = CIMProperty(p[3], tocimobj(p[2], p[4]),
                        type=p[2], qualifiers=quals)
 
 def p_propertyDeclaration_7(p):
@@ -796,7 +795,7 @@ def p_propertyDeclaration_8(p):
     # pylint: disable=line-too-long
     """propertyDeclaration_8 : qualifierList dataType propertyName array defaultValue ';'"""
     quals = dict([(x.name, x) for x in p[1]])
-    p[0] = CIMProperty(p[3], cim_obj.tocimobj(p[2], p[5]),
+    p[0] = CIMProperty(p[3], tocimobj(p[2], p[5]),
                        type=p[2], qualifiers=quals, is_array=True,
                        array_size=p[4])
 
@@ -1286,7 +1285,7 @@ def p_instanceDeclaration(p):
         pval = prop[2]
         try:
             cprop = inst.properties[pname]
-            cprop.value = cim_obj.tocimobj(cprop.type, pval)
+            cprop.value = tocimobj(cprop.type, pval)
         except KeyError:
             ce = CIMError(CIM_ERR_INVALID_PARAMETER,
                           'Invalid property: %s' % pname)

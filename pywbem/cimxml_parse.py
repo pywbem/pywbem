@@ -35,12 +35,11 @@
 from xml.dom import pulldom
 import six
 
-from . import cim_obj
 from .cim_obj import CIMInstance, CIMInstanceName, CIMQualifier, \
-                     CIMProperty
+                     CIMProperty, tocimobj
 from .tupleparse import ParseError
 
-__all__ = ['ParseError', 'make_parser', 'parse_any']
+__all__ = []
 
 #class ParseError(Exception):
 #    """This exception is raised when there is a validation error detected
@@ -513,7 +512,7 @@ def parse_keyvalue(parser, event, node): #pylint: disable=unused-argument
 
             # XXX: Use TYPE attribute to create named CIM type.
             # if 'TYPE' in attrs(tt):
-            #    return cim_obj.tocimobj(attrs(tt)['TYPE'], p.strip())
+            #    return tocimobj(attrs(tt)['TYPE'], p.strip())
 
             # XXX: Would like to use long() here, but that tends to cause
             # trouble when it's written back out as '2L'
@@ -641,7 +640,7 @@ def parse_qualifier(parser, event, node): #pylint: disable=unused-argument
     else:
         raise ParseError('Expecting (VALUE | VALUE.ARRAY)')
 
-    result = CIMQualifier(name, cim_obj.tocimobj(cim_type, value))
+    result = CIMQualifier(name, tocimobj(cim_type, value))
 
     _get_end_event(parser, 'QUALIFIER')
 
@@ -697,7 +696,7 @@ def parse_property(parser, event, node): #pylint: disable=unused-argument
 
     return CIMProperty(
         name,
-        cim_obj.tocimobj(cim_type, value),
+        tocimobj(cim_type, value),
         type=cim_type,
         class_origin=class_origin,
         propagated=propagated,
@@ -757,7 +756,7 @@ def parse_property_array(parser, event, node): #pylint: disable=unused-argument
 
     return CIMProperty(
         name,
-        cim_obj.tocimobj(type, value),
+        tocimobj(type, value),
         type=cim_type,
         class_origin=class_origin,
         propagated=propagated,

@@ -52,30 +52,10 @@ always passes through all non-markup whitespace.
 
 """
 
-import xml.dom.minidom
-from xml.dom.minidom import Element
+from xml.dom.minidom import Element, Text, CDATASection
 import six
 
-__all__ = ['CIMElement', 'CIM', 'DECLARATION', 'DECLGROUP',
-           'DECLGROUP_WITHNAME', 'DECLGROUP_WITHPATH', 'QUALIFIER_DECLARATION',
-           'SCOPE', 'VALUE', 'VALUE_ARRAY', 'VALUE_REFERENCE',
-           'VALUE_REFARRAY', 'VALUE_OBJECT', 'VALUE_NAMEDINSTANCE',
-           'VALUE_NAMEDOBJECT', 'VALUE_OBJECTWITHLOCALPATH',
-           'VALUE_OBJECTWITHPATH', 'VALUE_NULL', 'NAMESPACEPATH',
-           'LOCALNAMESPACEPATH', 'HOST', 'NAMESPACE', 'CLASSPATH',
-           'LOCALCLASSPATH', 'CLASSNAME', 'INSTANCEPATH', 'LOCALINSTANCEPATH',
-           'INSTANCENAME', 'OBJECTPATH', 'KEYBINDING', 'KEYVALUE', 'CLASS',
-           'INSTANCE', 'QUALIFIER', 'PROPERTY', 'PROPERTY_ARRAY',
-           'PROPERTY_REFERENCE', 'METHOD', 'PARAMETER', 'PARAMETER_REFERENCE',
-           'PARAMETER_ARRAY', 'PARAMETER_REFARRAY',
-           'TABLECELL_DECLARATION', 'TABLECELL_REFERENCE',
-           'TABLEROW_DECLARATION', 'TABLE', 'TABLEROW',
-           'MESSAGE', 'MULTIREQ', 'MULTIEXPREQ', 'SIMPLEREQ', 'SIMPLEEXPREQ',
-           'IMETHODCALL', 'METHODCALL', 'EXPMETHODCALL', 'PARAMVALUE',
-           'IPARAMVALUE', 'EXPPARAMVALUE', 'MULTIRSP', 'MULTIEXPRSP',
-           'SIMPLERSP', 'SIMPLEEXPRSP', 'METHODRESPONSE', 'EXPMETHODRESPONSE',
-           'IMETHODRESPONSE', 'ERROR', 'RETURNVALUE', 'IRETURNVALUE',
-           'RESPONSEDESTINATION', 'SIMPLEREQACK']
+__all__ = []
 
 def _text(data):
     """Return a minidom text node with the specified data string.
@@ -90,7 +70,7 @@ def _text(data):
     """
 
     # The following initialization approach requires Python 2.3 or higher.
-    t = xml.dom.minidom.Text()
+    t = Text()
     t.data = data
 
     return t
@@ -170,7 +150,7 @@ def _pcdata_nodes(pcdata):
 
             # The following initialization approach requires Python 2.3 or
             # higher.
-            node = xml.dom.minidom.CDATASection()
+            node = CDATASection()
             node.data = left + pcdata_part + right
 
             nodelist.append(node)

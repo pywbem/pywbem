@@ -22,7 +22,7 @@
 package_name := pywbem
 
 # Package version as specified in pywbem/__init__.py
-package_specified_version := $(shell sh -c "grep __version__ pywbem/__init__.py |sed -r 's/__version__ *= *\x27(.*)\x27.*/\1/'")
+package_specified_version := $(shell sh -c "grep -E '^ *__version__ *= ' pywbem/__init__.py |sed -r 's/__version__ *= *\x27(.*)\x27.*/\1/'")
 
 # Normalized package version (as normalized by setup.py during building)
 package_version := $(shell sh -c "echo $(package_specified_version) |sed 's/[.-]\?\(rc[0-9]\+\)$$/\1/' |sed 's/[.]\?dev[0-9]\*$$/\.dev0/'")
@@ -67,9 +67,6 @@ doc_dependent_files := \
     $(package_name)/cimxml_parse.py \
     $(package_name)/wbemcli.py \
     $(package_name)/mof_compiler.py \
-    $(package_name)/cim_provider.py \
-    $(package_name)/cim_provider2.py \
-    $(package_name)/twisted_client.py \
     $(package_name)/NEWS \
 
 # Dotted module names to be excluded in API doc generation
@@ -77,6 +74,11 @@ doc_dependent_files := \
 doc_exclude_patterns := \
     $(package_name).moflextab \
     $(package_name).mofparsetab \
+    $(package_name).lex \
+    $(package_name).yacc \
+    $(package_name).cim_provider \
+    $(package_name).cim_provider2 \
+    $(package_name).twisted_client \
 
 # Directory for generated API documentation
 doc_build_dir := build_doc

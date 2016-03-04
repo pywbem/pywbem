@@ -8,7 +8,7 @@ module by Martin Pool <mbp@samba.org>.
 import re
 import os
 
-from pywbem import NocaseDict
+from pywbem.cim_obj import NocaseDict
 
 class RegexpMixin(object):
     """Mixin class for classes derived from unittest.TestCase, providing

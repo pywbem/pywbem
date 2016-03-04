@@ -80,12 +80,13 @@ representation of CIM in XML by having the following properties:
 
 import six
 
-from . import cim_obj, tupletree
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      CIMClassName, CIMProperty, CIMMethod, \
-                     CIMParameter, CIMQualifier, CIMQualifierDeclaration
+                     CIMParameter, CIMQualifier, CIMQualifierDeclaration, \
+                     tocimobj, byname
+from .tupletree import xml_to_tupletree
 
-__all__ = ['ParseError', 'parse_cim', 'parse_any']
+__all__ = ['ParseError']
 
 class ParseError(Exception):
     """This exception is raised when there is a validation error detected
@@ -738,7 +739,7 @@ def parse_keyvalue(tup_tree):
         try:
             # XXX: Use TYPE attribute to create named CIM type.
             # if 'TYPE' in attrs(tup_tree):
-            #    return cim_obj.tocimobj(attrs(tup_tree)['TYPE'], p.strip())
+            #    return tocimobj(attrs(tup_tree)['TYPE'], p.strip())
 
             # XXX: Would like to use long() here, but that tends to cause
             # trouble when it's written back out as '2L'
@@ -773,13 +774,13 @@ def parse_class(tup_tree):
     superclass = attrs(tup_tree).get('SUPERCLASS')
 
     # TODO: Return these as maps, not lists
-    properties = cim_obj.byname(list_of_matching(tup_tree,
+    properties = byname(list_of_matching(tup_tree,
                                                  ['PROPERTY',
                                                   'PROPERTY.REFERENCE',
                                                   'PROPERTY.ARRAY']))
 
-    qualifiers = cim_obj.byname(list_of_matching(tup_tree, ['QUALIFIER']))
-    methods = cim_obj.byname(list_of_matching(tup_tree, ['METHOD']))
+    qualifiers = byname(list_of_matching(tup_tree, ['QUALIFIER']))
+    methods = byname(list_of_matching(tup_tree, ['METHOD']))
 
     return CIMClass(attrs(tup_tree)['NAME'],
                     superclass=superclass,
@@ -881,7 +882,7 @@ def parse_qualifier_declaration(tup_tree):
         else:
             if value is not None:
                 raise ParseError("Multiple VALUE/VALUE.ARRAY tags encountered")
-            value = cim_obj.tocimobj(_type, parse_any(child))
+            value = tocimobj(_type, parse_any(child))
 
     return CIMQualifierDeclaration(qname, _type, value, is_array,
                                    array_size, scopes, **flavors)
@@ -1069,13 +1070,12 @@ def parse_method(tup_tree):
                ['QUALIFIER', 'PARAMETER', 'PARAMETER.REFERENCE',
                 'PARAMETER.ARRAY', 'PARAMETER.REFARRAY'])
 
-    qualifiers = cim_obj.byname(list_of_matching(tup_tree, ['QUALIFIER']))
+    qualifiers = byname(list_of_matching(tup_tree, ['QUALIFIER']))
 
-    parameters = cim_obj.byname(list_of_matching(tup_tree,
-                                                 ['PARAMETER',
-                                                  'PARAMETER.REFERENCE',
-                                                  'PARAMETER.ARRAY',
-                                                  'PARAMETER.REFARRAY',]))
+    parameters = byname(list_of_matching(tup_tree, ['PARAMETER',
+                                                    'PARAMETER.REFERENCE',
+                                                    'PARAMETER.ARRAY',
+                                                    'PARAMETER.REFARRAY',]))
 
     attrl = attrs(tup_tree)
 
@@ -1535,7 +1535,7 @@ def parse_embeddedObject(val): # pylint: disable=invalid-name
         return [parse_embeddedObject(obj) for obj in val]
     if val is None:
         return None
-    tuptree = tupletree.xml_to_tupletree(val)
+    tuptree = xml_to_tupletree(val)
     if tuptree[0] == 'INSTANCE':
         return parse_instance(tuptree)
     elif tuptree[0] == 'CLASS':
@@ -1565,11 +1565,11 @@ def unpack_value(tup_tree):
     raw_val = raw_val[0]
 
     if isinstance(raw_val, list):
-        return [cim_obj.tocimobj(valtype, x) for x in raw_val]
+        return [tocimobj(valtype, x) for x in raw_val]
     elif len(raw_val) == 0 and valtype != 'string':
         return None
     else:
-        return cim_obj.tocimobj(valtype, raw_val)
+        return tocimobj(valtype, raw_val)
 
 def unpack_boolean(data):
     """Unpack a boolean, represented as "TRUE" or "FALSE" in CIM."""
