@@ -363,6 +363,7 @@ def main():
         'develop_requires' : [
             # Python prereqs for 'develop' command. Handled by os_setup module.
             "pytest>=2.4",
+            "pytest-cov",
             # Epydoc does not support Python 3.
             "epydoc==3.0.1" if sys.version_info[0] == 2 else None,
             patch_epydoc if sys.version_info[0] == 2 else None,

@@ -187,7 +187,7 @@ clobber: clean
 clean:
 	find . -name "*.pyc" -delete
 	sh -c "find . -name \"__pycache__\" |xargs rm -Rf"
-	rm -f MANIFEST parser.out $(package_name)/parser.out $(test_tmp_file) $(package_name)/mofparsetab.py $(package_name)/moflextab.py
+	rm -f MANIFEST parser.out .coverage $(package_name)/parser.out $(test_tmp_file) $(package_name)/mofparsetab.py $(package_name)/moflextab.py
 	rm -Rf build tmp_install testtmp testsuite/testtmp .cache $(package_name).egg-info
 	@echo '$@ done.'
 
@@ -249,8 +249,8 @@ pylint.log: $(pylint_rc_file) setup.py os_setup.py $(package_name)/*.py testsuit
 	-bash -c "set -o pipefail; PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py,yacc.py,lex.py,twisted_client.py,cim_provider.py,cim_provider2.py --output-format=text setup.py os_setup.py $(package_name) testsuite/test*.py testsuite/validate.py 2>&1 |tee pylint.tmp.log"
 	mv -f pylint.tmp.log pylint.log
 
-$(test_log_file): $(package_name)/*.py testsuite/*.py
+$(test_log_file): $(package_name)/*.py testsuite/*.py coveragerc
 	rm -f $(test_log_file)
-	bash -c "set -o pipefail; PYTHONPATH=. py.test --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
+	bash -c "set -o pipefail; PYTHONPATH=. py.test --cov $(package_name) --cov-config coveragerc --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
 
