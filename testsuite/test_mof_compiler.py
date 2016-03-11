@@ -25,7 +25,7 @@ NAME_SPACE = 'root/test'
 SCRIPT_DIR = os.path.dirname(__file__)
 SCHEMA_DIR = os.path.join(SCRIPT_DIR, 'schema')
 
-# Change the mofurl and cim_schema_mof when new schema is used.
+# Change the MOF_URL and CIM_SCHEMA_MOF when new schema is used.
 # Also, manually delete schema dir.
 MOF_URL = 'http://www.dmtf.org/standards/cim/cim_schema_v2450/' \
          'cim_schema_2.45.0Final-MOFs.zip'
@@ -39,7 +39,7 @@ def setUpModule():
 
         os.mkdir(SCHEMA_DIR)
 
-        mofbname = mofurl.split('/')[-1]
+        mofbname = MOF_URL.split('/')[-1]
 
         tfo = TemporaryFile()
         ufo = urlopen(MOF_URL)
