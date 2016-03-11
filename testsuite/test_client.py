@@ -16,7 +16,7 @@ Approach:
 * The testcases then performs the request at the PyWBEM client API, and
   verifies the response also at the level of the PyWBEM client API.
 
-* HTTPretty remembers the lest request that was sent, so after issuing the
+* HTTPretty remembers the last request that was sent, so after issuing the
   request, the CIM-XML produced by the PyWBEM client is verified based on that.
 """
 
@@ -25,10 +25,10 @@ import inspect
 import doctest
 import socket
 import unittest
-import pytest
 import re
-import six
 import traceback
+import pytest
+import six
 import yaml
 import httpretty
 from httpretty.core import HTTPrettyRequestEmpty
@@ -51,7 +51,13 @@ class ClientTestError(Exception):
 
 
 def obj(value, tc_name):
-    """Create a PyWBEM CIM object from a testcase value.
+    """Create a PyWBEM CIM object or list of CIM Objects from a testcase value.
+       If the input value is not a valid type or list of valid types an
+       error is raised.
+       If the pywbem_object defines a valid type (ex. CIMInstance) or
+       list of items where the pywbem_object entry defines a valid type,
+       the type is evaluated with the remaining entries in the
+       dictionary and returned.
 
     Examples for a testcase value (JSON object / Python dict):
 
@@ -73,13 +79,24 @@ def obj(value, tc_name):
                 }
             }
         }
+        Returns a CIMInstance with the classname, properties, and path defined
 
     2. boolean object:
 
         False
 
-    """
+        Returns boolean false
 
+    3. list of objects
+       A list of objects as defined by 1 above or boolean objects defined
+       by 2. A list of corresponding results is returned
+
+       Returns a list of the objects defined by each entry in the list
+
+       See enumerateinstances.yaml for an example of list of instances.
+       [] defines a null list
+
+    """
     if isinstance(value, dict) and "pywbem_object" in value:
         ctor_name = value["pywbem_object"]
         try:
@@ -94,12 +111,23 @@ def obj(value, tc_name):
                 continue
             ctor_args[arg_name] = obj(value[arg_name], tc_name)
         obj_ = ctor_call(**ctor_args)
+    # obj_ is list of objects
+    elif isinstance(value, list):
+        obj_ = [obj(x, tc_name) for x in value]
     else:
         obj_ = value
     return obj_
 
 
 def tc_getattr(tc_name, dict_, key, default=-1):
+    """ Gets the attribute of a name/value pair defined by key in dictionary
+        defined by dict_.
+        Get the attribute for the key and if the attribute is list or tuple
+        only return the first item. If the attribute is a dictionary
+        return the attribute
+        If the key is not in the dictionary, return either the provided
+        default or -1 if no default provided
+    """
     try:
         value = dict_[key]
         if isinstance(value, (list, tuple)):
@@ -112,6 +140,15 @@ def tc_getattr(tc_name, dict_, key, default=-1):
     return value
 
 def tc_getattr_list(tc_name, dict_, key, default=-1):
+    """ Gets the attribute of a name/value pair defined by key in dictionary
+        defined by dict_. The entry may be dictionary, ordinary value or
+        a list
+        Gets the attribute for the key return it.  Does not test for
+        type of the attribute.
+        If the key is not in the dictionary, return either the provided
+        default or -1 if no default provided
+
+    """
     try:
         value = dict_[key]
     except KeyError:
@@ -123,6 +160,7 @@ def tc_getattr_list(tc_name, dict_, key, default=-1):
 
 
 def tc_hasattr(dict_, key):
+    """Return true if key is in dict_"""
     return key in dict_
 
 class Callback(object):
@@ -139,7 +177,7 @@ class Callback(object):
       * `request`: string with invoked HTTP method
       * `uri`: string with target URI
       * `headers`: list of strings with HTTP headers of request
-    
+
     Return value:
       * `status`: numeric with HTP status code for response
       * `headers`: list of strings with HTTP headers for response
@@ -362,8 +400,10 @@ class ClientTest(unittest.TestCase):
                                    "exception", None)
         exp_cim_status = tc_getattr(tc_name, exp_pywbem_response,
                                     "cim_status", 0)
-        exp_result = tc_getattr(tc_name, exp_pywbem_response, "result",
-                                None)
+        # get the expected result.  This may be either the the definition
+        # of a value or cimobject or a list of values or cimobjects.
+        exp_result = tc_getattr_list(tc_name, exp_pywbem_response, "result",
+                                     None)
 
         if exp_exception is not None and exp_result is not None:
             raise ClientTestError("Error in definition of testcase %s: "\
@@ -412,15 +452,15 @@ class ClientTest(unittest.TestCase):
                             "HTTP request is empty")
             exp_verb = tc_getattr(tc_name, exp_http_request, "verb")
             self.assertEqual(http_request.method, exp_verb,
-                              "verb in HTTP request")
+                             "verb in HTTP request")
             exp_headers = tc_getattr(tc_name, exp_http_request, "headers", {})
             for header_name in exp_headers:
                 self.assertEqual(http_request.headers[header_name],
-                                  exp_headers[header_name],
-                                  "headers in HTTP request")
+                                 exp_headers[header_name],
+                                 "headers in HTTP request")
             exp_data = tc_getattr(tc_name, exp_http_request, "data", None)
             self.assertXMLEqual(http_request.body, exp_data,
-                                  "data in HTTP request")
+                                "data in HTTP request")
 
         # Continue with validating the result
 
@@ -432,6 +472,13 @@ class ClientTest(unittest.TestCase):
 
         if exp_result is not None:
             exp_result_obj = obj(exp_result, tc_name)
+            if type(result) != type(exp_result_obj):
+                print("result and expected result type mismatch")
+                print("result type %s" % type(result))
+                print("expected result type %s" % type(result))
+                raise AssertionError("PyWBEM CIM result type is not" \
+                                     " as expected.")
+
             if result != exp_result_obj:
                 print("Details for the following assertion error:")
                 print("- Expected result:")
