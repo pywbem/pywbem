@@ -8,25 +8,28 @@ from time import time
 from zipfile import ZipFile
 from tempfile import TemporaryFile
 import unittest
-import pytest
 import six
 if six.PY2:
     from urllib2 import urlopen
 else:
     from urllib.request import urlopen
 
+import pytest
 from pywbem.cim_operations import CIMError
 from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 from pywbem.cim_constants import *
 
-ns = 'root/test'
+## Constants
+NAME_SPACE = 'root/test'
 
 SCRIPT_DIR = os.path.dirname(__file__)
 SCHEMA_DIR = os.path.join(SCRIPT_DIR, 'schema')
 
-# Change the mofurl when new schema is released.
-mofurl = 'http://www.dmtf.org/standards/cim/cim_schema_v220/' \
-         'cim_schema_2.20.0Experimental-MOFs.zip'
+# Change the MOF_URL and CIM_SCHEMA_MOF when new schema is used.
+# Also, manually delete schema dir.
+MOF_URL = 'http://www.dmtf.org/standards/cim/cim_schema_v2450/' \
+         'cim_schema_2.45.0Final-MOFs.zip'
+CIM_SCHEMA_MOF = 'cim_schema_2.45.0.mof'
 
 def setUpModule():
 
@@ -36,10 +39,10 @@ def setUpModule():
 
         os.mkdir(SCHEMA_DIR)
 
-        mofbname = mofurl.split('/')[-1]
+        mofbname = MOF_URL.split('/')[-1]
 
         tfo = TemporaryFile()
-        ufo = urlopen(mofurl)
+        ufo = urlopen(MOF_URL)
         clen = int(ufo.info().get('Content-Length'))
         offset = 0
         ppct = -1
@@ -94,48 +97,47 @@ class TestFullSchema(MOFTest):
     def test_all(self):
         t = time()
         self.mofcomp.compile_file(
-            os.path.join(SCHEMA_DIR, 'cim_schema_2.20.0.mof'), ns)
+            os.path.join(SCHEMA_DIR, CIM_SCHEMA_MOF), NAME_SPACE)
         print('elapsed: %f  ' % (time() - t))
-        self.assertEqual(len(self.mofcomp.handle.qualifiers[ns]), 71)
-        self.assertEqual(len(self.mofcomp.handle.classes[ns]), 1644)
-        #print(self.mofcomp.handle.classes[ns]['CIM_UnsignedCredential'].\
-        #    properties['OtherPublicKeyEncoding'].qualifiers['Description'])
+        # TODO The number of qualifiers and classes is version dependent
+        self.assertEqual(len(self.mofcomp.handle.qualifiers[NAME_SPACE]),
+                         70)
+        self.assertEqual(len(self.mofcomp.handle.classes[NAME_SPACE]),
+                         1621)
 
 class TestAliases(MOFTest):
 
     def test_all(self):
         self.mofcomp.compile_file(
-            os.path.join(SCRIPT_DIR, 'test.mof'), ns)
+            os.path.join(SCRIPT_DIR, 'test.mof'), NAME_SPACE)
 
 class TestSchemaError(MOFTest):
 
     def test_all(self):
         self.mofcomp.parser.search_paths = []
         try:
-            self.mofcomp.compile_file(os.path.join(
-                                          SCHEMA_DIR,
-                                          'System',
-                                          'CIM_ComputerSystem.mof'),
-                                      ns)
+            self.mofcomp.compile_file(os.path.join(SCHEMA_DIR,
+                                                   'System',
+                                                   'CIM_ComputerSystem.mof'),
+                                      NAME_SPACE)
         except CIMError as ce:
             self.assertEqual(ce.args[0], CIM_ERR_FAILED)
             self.assertEqual(ce.file_line[0],
-                             os.path.join(
-                                 SCHEMA_DIR,
-                                 'System',
-                                 'CIM_ComputerSystem.mof'))
-            self.assertEqual(ce.file_line[1], 21)
-
-        self.mofcomp.compile_file(os.path.join(
-                                      SCHEMA_DIR,
-                                      'qualifiers.mof'),
-                                  ns)
-        try:
-            self.mofcomp.compile_file(os.path.join(
-                                          SCHEMA_DIR,
+                             os.path.join(SCHEMA_DIR,
                                           'System',
-                                          'CIM_ComputerSystem.mof'),
-                                      ns)
+                                          'CIM_ComputerSystem.mof'))
+            if ce.file_line[1] != 2:
+                print('assert {}'.format(ce.file_line))
+            self.assertEqual(ce.file_line[1], 2)
+
+        self.mofcomp.compile_file(os.path.join(SCHEMA_DIR,
+                                               'qualifiers.mof'),
+                                  NAME_SPACE)
+        try:
+            self.mofcomp.compile_file(os.path.join(SCHEMA_DIR,
+                                                   'System',
+                                                   'CIM_ComputerSystem.mof'),
+                                      NAME_SPACE)
         except CIMError as ce:
             self.assertEqual(ce.args[0], CIM_ERR_INVALID_SUPERCLASS)
             self.assertEqual(ce.file_line[0],
@@ -143,16 +145,19 @@ class TestSchemaError(MOFTest):
                                  SCHEMA_DIR,
                                  'System',
                                  'CIM_ComputerSystem.mof'))
-            self.assertEqual(ce.file_line[1], 177)
+            # TODO The following is cim version dependent.
+            if ce.file_line[1] != 179:
+                print('assertEqual {} line {}'.format(ce,
+                                                      ce.file_line[1]))
+            self.assertEqual(ce.file_line[1], 179)
 
 class TestSchemaSearch(MOFTest):
 
     def test_all(self):
-        self.mofcomp.compile_file(os.path.join(
-                                      SCHEMA_DIR,
-                                      'System',
-                                      'CIM_ComputerSystem.mof'),
-                                  ns)
+        self.mofcomp.compile_file(os.path.join(SCHEMA_DIR,
+                                               'System',
+                                               'CIM_ComputerSystem.mof'),
+                                  NAME_SPACE)
         ccs = self.mofcomp.handle.GetClass(
             'CIM_ComputerSystem',
             LocalOnly=False, IncludeQualifiers=True)
@@ -171,7 +176,7 @@ class TestParseError(MOFTest):
                              'testmofs',
                              'parse_error01.mof')
         try:
-            self.mofcomp.compile_file(_file, ns)
+            self.mofcomp.compile_file(_file, NAME_SPACE)
         except MOFParseError as pe:
             self.assertEqual(pe.file, _file)
             self.assertEqual(pe.lineno, 16)
@@ -182,7 +187,7 @@ class TestParseError(MOFTest):
                              'testmofs',
                              'parse_error02.mof')
         try:
-            self.mofcomp.compile_file(_file, ns)
+            self.mofcomp.compile_file(_file, NAME_SPACE)
         except MOFParseError as pe:
             self.assertEqual(pe.file, _file)
             self.assertEqual(pe.lineno, 6)
@@ -193,7 +198,7 @@ class TestParseError(MOFTest):
                              'testmofs',
                              'parse_error03.mof')
         try:
-            self.mofcomp.compile_file(_file, ns)
+            self.mofcomp.compile_file(_file, NAME_SPACE)
         except MOFParseError as pe:
             self.assertEqual(pe.file, _file)
             self.assertEqual(pe.lineno, 24)
@@ -204,7 +209,7 @@ class TestParseError(MOFTest):
                              'testmofs',
                              'parse_error04.mof')
         try:
-            self.mofcomp.compile_file(_file, ns)
+            self.mofcomp.compile_file(_file, NAME_SPACE)
         except MOFParseError as pe:
             self.assertEqual(str(pe), 'Unexpected end of file')
 
@@ -214,7 +219,7 @@ class TestRefs(MOFTest):
         self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
                                                'testmofs',
                                                'test_refs.mof'),
-                                  ns)
+                                  NAME_SPACE)
 
 if __name__ == '__main__':
     unittest.main()
