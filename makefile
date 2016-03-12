@@ -187,6 +187,7 @@ clobber: clean
 clean:
 	find . -name "*.pyc" -delete
 	sh -c "find . -name \"__pycache__\" |xargs rm -Rf"
+	sh -c "ls -d tmp_* |xargs rm -Rf"
 	rm -f MANIFEST parser.out .coverage $(package_name)/parser.out $(test_tmp_file) $(package_name)/mofparsetab.py $(package_name)/moflextab.py
 	rm -Rf build tmp_install testtmp testsuite/testtmp .cache $(package_name).egg-info
 	@echo '$@ done.'
