@@ -76,8 +76,7 @@ else:
 
 __all__ = ['MinutesFromUTC', 'CIMType', 'CIMDateTime', 'CIMInt', 'Uint8',
            'Sint8', 'Uint16', 'Sint16', 'Uint32', 'Sint32', 'Uint64', 'Sint64',
-           'CIMFloat', 'Real32', 'Real64', 'cimtype', 'type_from_name',
-           'atomic_to_cim_xml']
+           'CIMFloat', 'Real32', 'Real64']
 
 class _CIMComparisonMixin(object):
     """Mixin class providing default implementations for rich comparison

@@ -51,7 +51,7 @@ from .cim_types import _CIMComparisonMixin, type_from_name, \
         
 __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
-           'CIMQualifierDeclaration', 'tocimxml', 'tocimobj']
+           'CIMQualifierDeclaration']
 
 # pylint: disable=too-many-lines
 class NocaseDict(object):
