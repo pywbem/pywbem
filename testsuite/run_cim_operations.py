@@ -69,8 +69,12 @@ class ClientTest(unittest.TestCase):
         self.log('Reply:\n\n%s\n' % last_reply)
 
         return result
+        
     def log(self, data_):
         print('{}'.format(data_))
+    
+    def tearDown(self)
+        print('tearDown this connection')
 
 
 #################################################################
