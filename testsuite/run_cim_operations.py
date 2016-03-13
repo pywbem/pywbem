@@ -7,9 +7,12 @@ command line.
 The return codes here may be specific to OpenPegasus.
 """
 
+# pylint: disable=missing-docstring,superfluous-parens,no-self-use
 import sys
 from datetime import timedelta
 import unittest
+from getpass import getpass
+import six
 
 from pywbem.cim_constants import *
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
@@ -17,8 +20,10 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
                    Uint8, Uint16, Uint32, Uint64, \
                    Sint8, Sint16, Sint32, Sint64, \
                    Real32, Real64, CIMDateTime, ParseError
-from pywbem.cim_operations import DEFAULT_NAMESPACE, check_utf8_xml_chars
+from pywbem.cim_operations import CIMError, DEFAULT_NAMESPACE,  \
+                                  check_utf8_xml_chars
 
+#decocrator for unimplemented tests
 unimplemented = unittest.skip("test not implemented")
 
 # A class that should be implemented and is used for testing
@@ -33,34 +38,40 @@ class ClientTest(unittest.TestCase):
         global args
 
         self.system_url = args['url']
+
+        #print('setup connection {} user {} pw {} ns {}'.format(args['url'], args['namespace']))
         self.conn = WBEMConnection(
             self.system_url,
-            (args['username'], args['password']),
+            #(args['username'], args['password']),
             args['namespace'],
             timeout=args['timeout'])
-        self.conn.debug = True
+        self.conn.debug = args['debug']
+        print('Connected {}, ns {}'.format(self.system_url, args['namespace']))
 
     def cimcall(self, fn, *args, **kw):
         """Make a PyWBEM call and log the request and response XML."""
-
+        print('cimcall args *args {} kwargs {}'.format(args, kw))
         try:
             result = fn(*args, **kw)
         except Exception as exc:
-            #self.log('Operation %s failed with %s: %s\n' % \
-            #         (fn.__name__, exc.__class__.__name__, str(exc)))
+            self.log('Operation %s failed with %s: %s\n' % \
+                     (fn.__name__, exc.__class__.__name__, str(exc)))
             last_request = self.conn.last_request or self.conn.last_raw_request
-            #self.log('Request:\n\n%s\n' % last_request)
+            self.log('Request:\n\n%s\n' % last_request)
             last_reply = self.conn.last_reply or self.conn.last_raw_reply
-            #self.log('Reply:\n\n%s\n' % last_reply)
+            self.log('Reply:\n\n%s\n' % last_reply)
             raise
 
-        #self.log('Operation %s succeeded\n' % fn.__name__)
+        self.log('Operation %s succeeded\n' % fn.__name__)
         last_request = self.conn.last_request or self.conn.last_raw_request
-        #self.log('Request:\n\n%s\n' % last_request)
+        self.log('Request:\n\n%s\n' % last_request)
         last_reply = self.conn.last_reply or self.conn.last_raw_reply
-        #self.log('Reply:\n\n%s\n' % last_reply)
+        self.log('Reply:\n\n%s\n' % last_reply)
 
         return result
+    def log(self, data_):
+        print('{}'.format(data_))
+
 
 #################################################################
 # Instance provider interface tests
@@ -95,8 +106,8 @@ class EnumerateInstanceNames(ClientTest):
                          TEST_CLASS,
                          namespace='root/blah')
 
-        except CIMError, arg:
-            if arg[0] != CIM_ERR_INVALID_NAMESPACE:
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                 raise
 
 class EnumerateInstances(ClientTest):
@@ -129,8 +140,8 @@ class EnumerateInstances(ClientTest):
                          TEST_CLASS,
                          namespace='root/blah')
 
-        except CIMError, arg:
-            if arg[0] != CIM_ERR_INVALID_NAMESPACE:
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                 raise
 
 
@@ -162,15 +173,15 @@ class ExecQuery(ClientTest):
                              'Select * from %s' % TEST_CLASS,
                              namespace='root/blah')
 
-            except CIMError, arg:
-                if arg[0] != CIM_ERR_INVALID_NAMESPACE:
+            except CIMError as ce:
+                if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                     raise
 
-        except CIMError, arg:
-            if arg[0] == CIM_ERR_NOT_SUPPORTED:
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
                 raise AssertionError(
                     "The WBEM server doesn't support ExecQuery")
-            if arg[0] == CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
+            if ce.args[0] == CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
                 raise AssertionError(
                     "The WBEM server doesn't support WQL for ExecQuery")
             else:
@@ -199,12 +210,10 @@ class GetInstance(ClientTest):
         invalid_name.namespace = 'blahblahblah'
 
         try:
+            self.cimcall(self.conn.GetInstance, invalid_name)
 
-            self.cimcall(self.conn.GetInstance,
-                         invalid_name)
-
-        except CIMError, arg:
-            if arg[0] != CIM_ERR_INVALID_NAMESPACE:
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                 raise
 
 class CreateInstance(ClientTest):
@@ -225,16 +234,16 @@ class CreateInstance(ClientTest):
 
         try:
             self.cimcall(self.conn.DeleteInstance, instance.path)
-        except CIMError, arg:
-            if arg == CIM_ERR_NOT_FOUND:
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_FOUND:
                 pass
 
         # Simple create and delete
 
         try:
             result = self.cimcall(self.conn.CreateInstance, instance)
-        except CIMError, arg:
-            if arg == CIM_ERR_INVALID_CLASS:
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_INVALID_CLASS:
                 # does not support creation
                 pass
         else:
@@ -269,16 +278,16 @@ class ModifyInstance(ClientTest):
 
         try:
             self.cimcall(self.conn.DeleteInstance, instance.path)
-        except CIMError, arg:
-            if arg == CIM_ERR_NOT_FOUND:
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_FOUND:
                 pass
 
         # Create instance
 
         try:
             self.cimcall(self.conn.CreateInstance, instance)
-        except CIMError, arg:
-            if arg == CIM_ERR_INVALID_CLASS:
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_INVALID_CLASS:
                 # does not support creation
                 pass
         else:
@@ -308,14 +317,13 @@ class InvokeMethod(ClientTest):
         # Invoke on classname
 
         try:
-
             self.cimcall(
                 self.conn.InvokeMethod,
                 'FooMethod',
                 TEST_CLASS)
 
-        except CIMError, arg:
-            if arg[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
                 raise
 
         # Invoke on an InstanceName
@@ -330,9 +338,9 @@ class InvokeMethod(ClientTest):
                          'FooMethod',
                          name)
 
-        except CIMError, arg:
-            if arg[0] not in (CIM_ERR_METHOD_NOT_AVAILABLE,
-                              CIM_ERR_METHOD_NOT_FOUND):
+        except CIMError as ce:
+            if ce.args[0] not in (CIM_ERR_METHOD_NOT_AVAILABLE,
+                                  CIM_ERR_METHOD_NOT_FOUND):
                 raise
 
         # Test remote instance name
@@ -342,14 +350,13 @@ class InvokeMethod(ClientTest):
         name2.namespace = 'root/cimv2'
 
         try:
-
             self.cimcall(self.conn.InvokeMethod,
                          'FooMethod',
                          name)
 
-        except CIMError, arg:
-            if arg[0] not in (CIM_ERR_METHOD_NOT_AVAILABLE,
-                              CIM_ERR_METHOD_NOT_FOUND):
+        except CIMError as ce:
+            if ce.args[0] not in (CIM_ERR_METHOD_NOT_AVAILABLE,
+                                  CIM_ERR_METHOD_NOT_FOUND):
                 raise
 
         # Call with all possible parameter types
@@ -373,8 +380,8 @@ class InvokeMethod(ClientTest):
                          Date1=CIMDateTime.now(),
                          Date2=timedelta(60),
                          Ref=name)
-        except CIMError, arg:
-            if arg[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
                 raise
 
         # Call with non-empty arrays
@@ -400,8 +407,8 @@ class InvokeMethod(ClientTest):
                          Date2Array=[timedelta(0), timedelta(60)],
                          RefArray=[name, name])
 
-        except CIMError, arg:
-            if arg[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
                 raise
 
         # Call with new Params arg
@@ -413,8 +420,8 @@ class InvokeMethod(ClientTest):
                          [('Spam', Uint16(1)), ('Ham', Uint16(2))], # Params
                          Drink=Uint16(3), # begin of **params
                          Beer=Uint16(4))
-        except CIMError, arg:
-            if arg[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
                 raise
 
         # TODO: Call with empty arrays
@@ -698,7 +705,7 @@ class ExecuteQuery(ClientTest):
 
 class Test_check_utf8_xml_chars(unittest.TestCase):
 
-    verbose = False  # Set to True during development of tests for manually
+    verbose = True  # Set to True during development of tests for manually
                      # verifying the expected results.
 
     def _run_single(self, utf8_xml, expected_ok):
@@ -710,10 +717,10 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
                 print("Verify manually: Input XML: %r, ParseError: %s" %\
                       (utf8_xml, exc))
             self.assertTrue(not expected_ok,
-                         "ParseError unexpectedly raised: %s" % exc)
+                            "ParseError unexpectedly raised: %s" % exc)
         else:
             self.assertTrue(expected_ok,
-                         "ParseError unexpectedly not raised.")
+                            "ParseError unexpectedly not raised.")
 
     def test_all(self):
 
@@ -744,7 +751,7 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
         self._run_single('<V>a\xED\xA0\x80\xED\xB4\xA2b</V>', False)
         # combo of U+D800,U+DD22 and combo of U+D800,U+DD23:
         self._run_single('<V>a\xED\xA0\x80\xED\xB4\xA2b\xED\xA0\x80\xED\xB4\xA3</V>',
-                    False)
+                         False)
 
         # incorrectly encoded UTF-8
         if self.verbose:
@@ -822,7 +829,7 @@ tests_internal = [
 ]
 
 def parse_args(argv_):
-
+    print('parse args')
     argv = list(argv_)
 
     if len(argv) <= 1:
@@ -831,7 +838,7 @@ def parse_args(argv_):
         sys.exit(2)
     elif argv[1] == '--help' or argv[1] == '-h':
         print('')
-        print('Tet program for CIM operations.')
+        print('Test program for CIM operations.')
         print('')
         print('Usage:')
         print('    %s [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '\
@@ -867,7 +874,9 @@ def parse_args(argv_):
     args = {}
     args['namespace'] = DEFAULT_NAMESPACE
     args['timeout'] = None
+    args['debug'] = True
     while True:
+        print('argv {}'.format(argv))
         if argv[1][0] != '-':
             # Stop at first non-option
             break
@@ -883,16 +892,19 @@ def parse_args(argv_):
 
     args['url'] = argv[1]
     del argv[1:2]
-
+    print('args2')
     if len(argv) >= 2:
         args['username'], args['password'] = argv[1].split('%')
         del argv[1:2]
     else:
-        from getpass import getpass
-        print('Username: ', end=' ')
-        args['username'] = sys.stdin.readline().strip()
-        args['password'] = getpass()
+        args['username'] = None
+        args['password'] = None
+        ##print('Username: ,')
+        ##args['username'] = sys.stdin.readline().strip()
+        ##args['password'] = getpass()
+        print('No username,password')
 
+    print('args parsed {} argv {}'.format(args, argv))
     return args, argv
 
 if __name__ == '__main__':
@@ -900,7 +912,7 @@ if __name__ == '__main__':
     print("Using WBEM Server:")
     print("  server url: %s" % args['url'])
     print("  default namespace: %s" % args['namespace'])
-    print("  username: %s" % args['username'])
-    print("  password: %s" % ("*"*len(args['password'])))
+    #print("  username: %s" % args['username'])
+    #print("  password: %s" % ("*"*len(args['password'])))
     print("  timeout: %s s" % args['timeout'])
     unittest.main()
