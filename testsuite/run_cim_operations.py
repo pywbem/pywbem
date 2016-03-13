@@ -16,6 +16,7 @@ import six
 
 from pywbem.cim_constants import *
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
+                   CIMQualifier, CIMQualifierDeclaration, CIMMethod, \
                    WBEMConnection, CIMError, \
                    Uint8, Uint16, Uint32, Uint64, \
                    Sint8, Sint16, Sint32, Sint64, \
@@ -24,7 +25,7 @@ from pywbem.cim_operations import CIMError, DEFAULT_NAMESPACE,  \
                                   check_utf8_xml_chars
 
 #decocrator for unimplemented tests
-unimplemented = unittest.skip("test not implemented")
+UNIMPLEMENTED = unittest.skip("test not implemented")
 
 # A class that should be implemented and is used for testing
 TEST_CLASS = 'CIM_ComputerSystem'
@@ -38,21 +39,24 @@ class ClientTest(unittest.TestCase):
         global args
 
         self.system_url = args['url']
+        self.namespace = args['namespace']
 
-        #print('setup connection {} user {} pw {} ns {}'.format(args['url'], args['namespace']))
+        self.log('setup connection {} ns {}'.format(self.system_url,
+                                                    self.namespace))
         self.conn = WBEMConnection(
             self.system_url,
-            #(args['username'], args['password']),
-            args['namespace'],
+            (args['username'], args['password']),
+            self.namespace,
             timeout=args['timeout'])
         self.conn.debug = args['debug']
-        print('Connected {}, ns {}'.format(self.system_url, args['namespace']))
+        self.log('Connected {}, ns {}'.format(self.system_url,
+                                              args['namespace']))
 
-    def cimcall(self, fn, *args, **kw):
+    def cimcall(self, fn, *fargs, **kw):
         """Make a PyWBEM call and log the request and response XML."""
-        print('cimcall args *args {} kwargs {}'.format(args, kw))
+        self.log('cimcall args *args {} kwargs {}'.format(args, kw))
         try:
-            result = fn(*args, **kw)
+            result = fn(*fargs, **kw)
         except Exception as exc:
             self.log('Operation %s failed with %s: %s\n' % \
                      (fn.__name__, exc.__class__.__name__, str(exc)))
@@ -69,12 +73,14 @@ class ClientTest(unittest.TestCase):
         self.log('Reply:\n\n%s\n' % last_reply)
 
         return result
-        
+
     def log(self, data_):
-        print('{}'.format(data_))
-    
-    def tearDown(self)
-        print('tearDown this connection')
+        if args['verbose']:
+            print('{}'.format(data_))
+
+    ## TODO this is where we should disconnect the client
+    def tearDown(self):
+        self.log('FUTURE: disconnect this connection')
 
 
 #################################################################
@@ -92,9 +98,11 @@ class EnumerateInstanceNames(ClientTest):
 
         self.assertTrue(len(names) >= 1)
 
-        for n in names:
-            self.assertTrue(isinstance(n, CIMInstanceName))
-            self.assertTrue(len(n.namespace) > 0)
+        for name in names:
+            self.assertTrue(isinstance(name, CIMInstanceName))
+            self.assertTrue(len(name.namespace) > 0)
+            self.assertTrue(name.namespace == self.namespace)
+
 
         # Call with explicit CIM namespace that exists
 
@@ -129,6 +137,7 @@ class EnumerateInstances(ClientTest):
             self.assertTrue(isinstance(i, CIMInstance))
             self.assertTrue(isinstance(i.path, CIMInstanceName))
             self.assertTrue(len(i.path.namespace) > 0)
+            self.assertTrue(i.path.namespace == self.namespace)
 
         # Call with explicit CIM namespace that exists
 
@@ -184,10 +193,12 @@ class ExecQuery(ClientTest):
         except CIMError as ce:
             if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
                 raise AssertionError(
-                    "The WBEM server doesn't support ExecQuery")
+                    "CIM_ERR_NOT_SUPPORTED: The WBEM server doesn't" \
+                    " support ExecQuery for this query")
             if ce.args[0] == CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
                 raise AssertionError(
-                    "The WBEM server doesn't support WQL for ExecQuery")
+                    "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM" \
+                    " server doesn't support WQL for ExecQuery")
             else:
                 raise
 
@@ -240,6 +251,7 @@ class CreateInstance(ClientTest):
             self.cimcall(self.conn.DeleteInstance, instance.path)
         except CIMError as ce:
             if ce.args[0] == CIM_ERR_NOT_FOUND:
+            # TODO this should be an error
                 pass
 
         # Simple create and delete
@@ -279,6 +291,7 @@ class ModifyInstance(ClientTest):
                                   'Name': 'Test'}))
 
         # Delete if already exists
+        ## TODO validate this one
 
         try:
             self.cimcall(self.conn.DeleteInstance, instance.path)
@@ -555,20 +568,25 @@ class ReferenceNames(ClientTest):
 class ClassVerifier(object):
     """Mixin class for testing CIMClass instances."""
 
-    def verify_property(self, p):
-        self.assertTrue(isinstance(p, CIMProperty))
+    def verify_property(self, prop):
+        """Verify that this a cim property and verify attributes"""
+        self.assertTrue(isinstance(prop, CIMProperty))
 
-    def verify_qualifier(self, q):
-        self.assertTrue(q.name)
-        self.assertTrue(q.value)
+    def verify_qualifier(self, qualifier):
+        """Verify qualifier attributes"""
+        self.assertTrue(isinstance(qualifier, CIMQualifier))
+        self.assertTrue(qualifier.name)
+        self.assertTrue(qualifier.value)
 
-    def verify_method(self, m):
-        # TODO: verify method
-        pass
+    def verify_method(self, method):
+        """Verify method attributes"""
+        self.assertTrue(isinstance(method, CIMMethod))
+        # TODO add these tests
+        ##pass
 
     def verify_class(self, cl):
-
-        # Verify simple attributes
+        """Verify simple class attributes"""
+        self.assertTrue(isinstance(cl, CIMClass))
 
         self.assertTrue(cl.classname)
 
@@ -579,10 +597,12 @@ class ClassVerifier(object):
 
         for p in cl.properties.values():
             self.verify_property(p)
+        # TODO validate qualifiers in properties. here or elsewhere
         for q in cl.qualifiers.values():
             self.verify_qualifier(q)
         for m in cl.methods.values():
             self.verify_method(m)
+        # TODO validate parameters in methods
 
 class EnumerateClassNames(ClientTest):
 
@@ -620,32 +640,34 @@ class EnumerateClasses(ClientTest, ClassVerifier):
         classes = self.cimcall(self.conn.EnumerateClasses,
                                ClassName='CIM_ManagedElement')
 
-        for c in classes:
-            self.assertTrue(isinstance(c, CIMClass))
-            self.verify_class(c)
+        for cl in classes:
+            self.assertTrue(isinstance(cl, CIMClass))
+            self.verify_class(cl)
 
 class GetClass(ClientTest, ClassVerifier):
 
     def test_all(self):
+        """Get a classname and then get class"""
 
         name = self.cimcall(self.conn.EnumerateClassNames)[0]
-        self.cimcall(self.conn.GetClass, name)
+        cl = self.cimcall(self.conn.GetClass, name)
+        self.verify_class(cl)
 
 class CreateClass(ClientTest):
 
-    @unimplemented
+    @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
 class DeleteClass(ClientTest):
 
-    @unimplemented
+    @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
 class ModifyClass(ClientTest):
 
-    @unimplemented
+    @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
@@ -655,13 +677,13 @@ class ModifyClass(ClientTest):
 
 class GetProperty(ClientTest):
 
-    @unimplemented
+    @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
 class SetProperty(ClientTest):
 
-    @unimplemented
+    @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
@@ -671,25 +693,25 @@ class SetProperty(ClientTest):
 
 class EnumerateQualifiers(ClientTest):
 
-    @unimplemented
+    @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
 class GetQualifier(ClientTest):
 
-    @unimplemented
+    @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
 class SetQualifier(ClientTest):
 
-    @unimplemented
+    @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
 class DeleteQualifier(ClientTest):
 
-    @unimplemented
+    @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
@@ -699,7 +721,7 @@ class DeleteQualifier(ClientTest):
 
 class ExecuteQuery(ClientTest):
 
-    @unimplemented
+    @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
@@ -833,7 +855,6 @@ tests_internal = [
 ]
 
 def parse_args(argv_):
-    print('parse args')
     argv = list(argv_)
 
     if len(argv) <= 1:
@@ -851,7 +872,7 @@ def parse_args(argv_):
         print('Where:')
         print('    GEN_OPTS            General options (see below).')
         print('    URL                 The URL of the WBEM server to run '\
-              'against.')
+              'against. http:// or https:// prefix determines ssl usage')
         print('    USERNAME            Userid to be used for logging on to '\
               'WBEM server.')
         print('    PASSWORD            Password to be used for logging on to '\
@@ -875,48 +896,60 @@ def parse_args(argv_):
         print('    %s https://9.10.11.12 username%%password' % argv[0])
         sys.exit(2)
 
-    args = {}
-    args['namespace'] = DEFAULT_NAMESPACE
-    args['timeout'] = None
-    args['debug'] = True
+    args_ = {}
+    # set argument defaults
+    args_['namespace'] = DEFAULT_NAMESPACE
+    args_['timeout'] = None
+    args_['debug'] = True
+    args_['verbose'] = False
+    args_['username'] = None
+    args_['password'] = None
+
+    # options must proceed arguments
     while True:
-        print('argv {}'.format(argv))
         if argv[1][0] != '-':
             # Stop at first non-option
             break
         if argv[1] == '-n':
-            args['namespace'] = argv[2]
+            args_['namespace'] = argv[2]
             del argv[1:3]
         elif argv[1] == '-t':
-            args['timeout'] = int(argv[2])
+            args_['timeout'] = int(argv[2])
             del argv[1:3]
+        elif argv[1] == '-v':
+            args_['verbose'] = True
+            del argv[1:2]
         else:
             print("Error: Unknown option: %s" % argv[1])
             sys.exit(1)
 
-    args['url'] = argv[1]
+    args_['url'] = argv[1]
     del argv[1:2]
-    print('args2')
+
     if len(argv) >= 2:
-        args['username'], args['password'] = argv[1].split('%')
+        args_['username'], args_['password'] = argv[1].split('%')
         del argv[1:2]
     else:
-        args['username'] = None
-        args['password'] = None
         ##print('Username: ,')
         ##args['username'] = sys.stdin.readline().strip()
         ##args['password'] = getpass()
         print('No username,password')
 
-    print('args parsed {} argv {}'.format(args, argv))
-    return args, argv
+    print('args parsed {} argv {}'.format(args_, argv))
+    return args_, argv
 
 if __name__ == '__main__':
     args, sys.argv = parse_args(sys.argv)
     print("Using WBEM Server:")
     print("  server url: %s" % args['url'])
-    print("  default namespace: %s" % args['namespace'])
-    #print("  username: %s" % args['username'])
-    #print("  password: %s" % ("*"*len(args['password'])))
-    print("  timeout: %s s" % args['timeout'])
-    unittest.main()
+    print("  namespace: %s" % args['namespace'])
+    print("  username: %s" % args['username'])
+    print("  password: %s" % ("*"*len(args['password'])))
+    print("  timeout: %s" % args['timeout'])
+    print("  verbose: %s" % args['verbose'])
+    if args['verbose']:
+       verbose_ = 2
+    else:
+       verbose_ = 0
+    unittest.main(verbosity=verbose_)
+
