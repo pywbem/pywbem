@@ -2,7 +2,8 @@
 
 """
 Test CIM operations against a real WBEM server that is specified on the
-command line.
+command line.  It executes either a specific test or the full test
+suite depending on user input.
 
 The return codes here may be specific to OpenPegasus.
 """
@@ -36,10 +37,11 @@ class ClientTest(unittest.TestCase):
 
     def setUp(self):
         """Create a connection."""
-        global args
+        global args                 # pylint: disable=invalid-name
 
         self.system_url = args['url']
         self.namespace = args['namespace']
+        self.verbose = args['verbose']
 
         self.log('setup connection {} ns {}'.format(self.system_url,
                                                     self.namespace))
@@ -53,7 +55,13 @@ class ClientTest(unittest.TestCase):
                                               args['namespace']))
 
     def cimcall(self, fn, *fargs, **kw):
-        """Make a PyWBEM call and log the request and response XML."""
+        """Make a PyWBEM call, catch any exceptions, and log the
+           request and response XML.
+           Logs the call parameters, request/response xml,
+           and response status
+           
+           Returns result of request to user
+        """
         self.log('cimcall args *args {} kwargs {}'.format(args, kw))
         try:
             result = fn(*fargs, **kw)
@@ -75,7 +83,7 @@ class ClientTest(unittest.TestCase):
         return result
 
     def log(self, data_):
-        if args['verbose']:
+        if self.verbose:
             print('{}'.format(data_))
 
     ## TODO this is where we should disconnect the client
@@ -102,7 +110,6 @@ class EnumerateInstanceNames(ClientTest):
             self.assertTrue(isinstance(name, CIMInstanceName))
             self.assertTrue(len(name.namespace) > 0)
             self.assertTrue(name.namespace == self.namespace)
-
 
         # Call with explicit CIM namespace that exists
 
@@ -728,22 +735,23 @@ class ExecuteQuery(ClientTest):
 #################################################################
 # Internal functions
 #################################################################
-
+# pylint: disable=invalid-name
 class Test_check_utf8_xml_chars(unittest.TestCase):
 
-    verbose = True  # Set to True during development of tests for manually
-                     # verifying the expected results.
+    def setUp(self):
+        self.verbose = args['verbose']
 
     def _run_single(self, utf8_xml, expected_ok):
-
+        if self.verbose:
+            print('utf8_xml {} type {} '.format(utf8_xml, type(utf8_xml)))
         try:
             check_utf8_xml_chars(utf8_xml, "Test XML")
         except ParseError as exc:
             if self.verbose:
                 print("Verify manually: Input XML: %r, ParseError: %s" %\
                       (utf8_xml, exc))
-            self.assertTrue(not expected_ok,
-                            "ParseError unexpectedly raised: %s" % exc)
+            self.assertFalse(expected_ok,
+                             "ParseError unexpectedly raised: %s" % exc)
         else:
             self.assertTrue(expected_ok,
                             "ParseError unexpectedly not raised.")
@@ -751,32 +759,33 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
     def test_all(self):
 
         # good cases
-        self._run_single('<V>a</V>', True)
-        self._run_single('<V>a\tb\nc\rd</V>', True)
-        self._run_single('<V>a\x09b\x0Ac\x0Dd</V>', True)
-        self._run_single('<V>a\xCD\x90b</V>', True)             # U+350
-        self._run_single('<V>a\xE2\x80\x93b</V>', True)         # U+2013
-        self._run_single('<V>a\xF0\x90\x84\xA2b</V>', True)     # U+10122
+        self._run_single(b'<V>a</V>', True)
+        self._run_single(b'<V>a\tb\nc\rd</V>', True)
+        self._run_single(b'<V>a\x09b\x0Ac\x0Dd</V>', True)
+        self._run_single(b'<V>a\xCD\x90b</V>', True)             # U+350
+        self._run_single(b'<V>a\xE2\x80\x93b</V>', True)         # U+2013
+        self._run_single(b'<V>a\xF0\x90\x84\xA2b</V>', True)     # U+10122
 
         # invalid XML characters
         if self.verbose:
             print("From here on, the only expected exception is ParseError "\
                   "for invalid XML characters...")
-        self._run_single('<V>a\bb</V>', False)
-        self._run_single('<V>a\x08b</V>', False)
-        self._run_single('<V>a\x00b</V>', False)
-        self._run_single('<V>a\x01b</V>', False)
-        self._run_single('<V>a\x1Ab</V>', False)
-        self._run_single('<V>a\x1Ab\x1Fc</V>', False)
+        self._run_single(b'<V>a\bb</V>', False)
+        self._run_single(b'<V>a\x08b</V>', False)
+        self._run_single(b'<V>a\x00b</V>', False)
+        self._run_single(b'<V>a\x01b</V>', False)
+        self._run_single(b'<V>a\x1Ab</V>', False)
+        self._run_single(b'<V>a\x1Ab\x1Fc</V>', False)
 
         # correctly encoded but ill-formed UTF-8
         if self.verbose:
             print("From here on, the only expected exception is ParseError "\
                   "for ill-formed UTF-8 Byte sequences...")
         # combo of U+D800,U+DD22:
-        self._run_single('<V>a\xED\xA0\x80\xED\xB4\xA2b</V>', False)
+        self._run_single(b'<V>a\xED\xA0\x80\xED\xB4\xA2b</V>', False)
         # combo of U+D800,U+DD22 and combo of U+D800,U+DD23:
-        self._run_single('<V>a\xED\xA0\x80\xED\xB4\xA2b\xED\xA0\x80\xED\xB4\xA3</V>',
+        # pylint: disable=line-too-long
+        self._run_single(b'<V>a\xED\xA0\x80\xED\xB4\xA2b\xED\xA0\x80\xED\xB4\xA3</V>',
                          False)
 
         # incorrectly encoded UTF-8
@@ -784,24 +793,24 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
             print("From here on, the only expected exception is ParseError "\
                   "for invalid UTF-8 Byte sequences...")
         # incorrect 1-byte sequence:
-        self._run_single('<V>a\x80b</V>', False)
+        self._run_single(b'<V>a\x80b</V>', False)
         # 2-byte sequence with missing second byte:
-        self._run_single('<V>a\xC0', False)
+        self._run_single(b'<V>a\xC0', False)
         # 2-byte sequence with incorrect 2nd byte
-        self._run_single('<V>a\xC0b</V>', False)
+        self._run_single(b'<V>a\xC0b</V>', False)
         # 4-byte sequence with incorrect 3rd byte:
-        self._run_single('<V>a\xF1\x80abc</V>', False)
+        self._run_single(b'<V>a\xF1\x80abc</V>', False)
         # 4-byte sequence with incorrect 3rd byte that is an incorr. new start:
-        self._run_single('<V>a\xF1\x80\xFFbc</V>', False)
+        self._run_single(b'<V>a\xF1\x80\xFFbc</V>', False)
         # 4-byte sequence with incorrect 3rd byte that is an correct new start:
-        self._run_single('<V>a\xF1\x80\xC2\x81c</V>', False)
+        self._run_single(b'<V>a\xF1\x80\xC2\x81c</V>', False)
 
 
 #################################################################
 # Main function
 #################################################################
 
-tests = [
+tests = [                   # pylint: disable=invalid-name
 
     # Instance provider interface tests
 
@@ -850,7 +859,7 @@ tests = [
 
     ]
 
-tests_internal = [
+tests_internal = [                   # pylint: disable=invalid-name
     Test_check_utf8_xml_chars,
 ]
 
@@ -871,36 +880,47 @@ def parse_args(argv_):
         print('')
         print('Where:')
         print('    GEN_OPTS            General options (see below).')
-        print('    URL                 The URL of the WBEM server to run '\
-              'against. http:// or https:// prefix determines ssl usage')
-        print('    USERNAME            Userid to be used for logging on to '\
-              'WBEM server.')
-        print('    PASSWORD            Password to be used for logging on to '\
-              'WBEM server.')
+        print('    URL                 URL of the target WBEM server.\n'\
+              '                        http:// or https:// prefix'\
+              ' defines ssl usage')
+        print('    USERNAME            Userid used to log into '\
+              'WBEM server.\n' \
+              '                        Requests user input if not supplied')
+        print('    PASSWORD            Password used to log into '\
+              'WBEM server.\n' \
+              '                        Requests user input if not supplier')
         print('    UT_OPTS             Unittest options (see below).')
         print('    UT_CLASS            Name of testcase class (e.g. '\
               'EnumerateInstances).')
         print('')
-        print('General options:')
+        print('General options[GEN_OPTS]:')
         print('    --help, -h          Display this help text.')
         print('    -n NAMESPACE        Use this CIM namespace instead of '\
               'default: %s' % DEFAULT_NAMESPACE)
-        print('    -t TIMEOUT          Use this timeout (in seconds) instead '\
-              'of no timeout')
-        print('')
-        print('Unittest arguments:')
-        sys.argv[1:] = ['--help']
-        unittest.main()
+        print('    -t TIMEOUT          Use this timeout (in seconds)'\
+              ' instead of no timeout')
+        print('    -v                  Verbose output which includes:\n' \
+              '                          - xml input and output,\n' \
+              '                          - connection details,\n'
+              '                          - details of tests')
+        print('    -d                  Debug flag passed to cim_operations')
         print('')
         print('Examples:')
         print('    %s https://9.10.11.12 username%%password' % argv[0])
+        print('    %s https://9.10.11.12 -V username%%password' % argv[0])
+
+        print('------------------------')
+        print('Unittest arguments[UT_OPTS]:')
+        print('')
+        sys.argv[1:] = ['--help']
+        unittest.main()
         sys.exit(2)
 
     args_ = {}
     # set argument defaults
     args_['namespace'] = DEFAULT_NAMESPACE
     args_['timeout'] = None
-    args_['debug'] = True
+    args_['debug'] = False
     args_['verbose'] = False
     args_['username'] = None
     args_['password'] = None
@@ -919,6 +939,9 @@ def parse_args(argv_):
         elif argv[1] == '-v':
             args_['verbose'] = True
             del argv[1:2]
+        elif argv[1] == '-d':
+            args_['debug'] = True
+            del argv[1:2]
         else:
             print("Error: Unknown option: %s" % argv[1])
             sys.exit(1)
@@ -930,16 +953,16 @@ def parse_args(argv_):
         args_['username'], args_['password'] = argv[1].split('%')
         del argv[1:2]
     else:
-        ##print('Username: ,')
-        ##args['username'] = sys.stdin.readline().strip()
-        ##args['password'] = getpass()
-        print('No username,password')
+        # Get user name and pw from console
+        sys.stdout.write('Username: ')
+        sys.stdout.flush()
+        args_['username'] = sys.stdin.readline().strip()
+        args_['password'] = getpass()
 
-    print('args parsed {} argv {}'.format(args_, argv))
     return args_, argv
 
 if __name__ == '__main__':
-    args, sys.argv = parse_args(sys.argv)
+    args, sys.argv = parse_args(sys.argv) # pylint: disable=invalid-name
     print("Using WBEM Server:")
     print("  server url: %s" % args['url'])
     print("  namespace: %s" % args['namespace'])
@@ -947,9 +970,8 @@ if __name__ == '__main__':
     print("  password: %s" % ("*"*len(args['password'])))
     print("  timeout: %s" % args['timeout'])
     print("  verbose: %s" % args['verbose'])
-    if args['verbose']:
-       verbose_ = 2
-    else:
-       verbose_ = 0
-    unittest.main(verbosity=verbose_)
+
+    # Note: unittest options are defined in separate args after
+    # the url argumentl.
+    unittest.main()
 
