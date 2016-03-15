@@ -24,11 +24,16 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
                    Real32, Real64, CIMDateTime
 from pywbem.cim_operations import CIMError, DEFAULT_NAMESPACE
 
-#decocrator for unimplemented tests
-UNIMPLEMENTED = unittest.skip("test not implemented")
+# Test for decorator for unimplemented tests
+# decorator is @unittest.skip(UNIMPLEMENTED)
+UNIMPLEMENTED = "test not implemented"
 
-# A class that should be implemented and is used for testing
+
+# A class that should be implemented in a wbem server and is used
+# for testing
 TEST_CLASS = 'CIM_ComputerSystem'
+TEST_CLASS_PROPERTY1 = 'Name'
+TEST_CLASS_PROPERTY2 = 'CreationClassName'
 
 class ClientTest(unittest.TestCase):
     """Base class that creates a pywbem.WBEMConnection for
@@ -86,6 +91,7 @@ class ClientTest(unittest.TestCase):
         return result
 
     def log(self, data_):
+        """Display log entry if verbose"""
         if self.verbose:
             print('{}'.format(data_))
 
@@ -148,6 +154,28 @@ class EnumerateInstances(ClientTest):
             self.assertTrue(isinstance(i.path, CIMInstanceName))
             self.assertTrue(len(i.path.namespace) > 0)
             self.assertTrue(i.path.namespace == self.namespace)
+
+        # Call with explicit CIM namespace that exists
+
+        self.cimcall(self.conn.EnumerateInstances,
+                     TEST_CLASS,
+                     namespace=self.conn.default_namespace)
+
+        # Call with property list and localonly
+        instances = self.cimcall(self.conn.EnumerateInstances,
+                                 TEST_CLASS,
+                                 PropertyList=[TEST_CLASS_PROPERTY1, \
+                                               TEST_CLASS_PROPERTY2],
+                                 LocalOnly=False)
+
+        self.assertTrue(len(instances) >= 1)
+
+        for i in instances:
+            self.assertTrue(isinstance(i, CIMInstance))
+            self.assertTrue(isinstance(i.path, CIMInstanceName))
+            self.assertTrue(len(i.path.namespace) > 0)
+            self.assertTrue(i.path.namespace == self.namespace)
+            self.assertTrue(len(i.properties) == 2)
 
         # Call with explicit CIM namespace that exists
 
@@ -252,6 +280,29 @@ class GetInstance(ClientTest):
 
         self.assertTrue(isinstance(obj, CIMInstance))
         self.assertTrue(isinstance(obj.path, CIMInstanceName))
+
+        # Call with property list and localonly
+        obj = self.cimcall(self.conn.GetInstance,
+                           name, \
+                           PropertyList=[TEST_CLASS_PROPERTY1], \
+                           LocalOnly=False)
+
+        self.assertTrue(isinstance(obj, CIMInstance))
+        self.assertTrue(isinstance(obj.path, CIMInstanceName))
+        self.assertTrue(obj.path.namespace == self.namespace)
+        self.assertTrue(len(obj.properties) == 1)
+
+        # Call with property list empty
+
+        obj = self.cimcall(self.conn.GetInstance,
+                           name, \
+                           PropertyList=[], \
+                           LocalOnly=False)
+
+        self.assertTrue(isinstance(obj, CIMInstance))
+        self.assertTrue(isinstance(obj.path, CIMInstanceName))
+        self.assertTrue(obj.path.namespace == self.namespace)
+        self.assertTrue(len(obj.properties) == 0)
 
         # Call with invalid namespace path
 
@@ -706,35 +757,19 @@ class GetClass(ClientClassTest):
 
 class CreateClass(ClientClassTest):
 
-    @UNIMPLEMENTED
+    @unittest.skip(UNIMPLEMENTED)
     def test_all(self):
         raise AssertionError("test not implemented")
 
 class DeleteClass(ClientClassTest):
 
-    @UNIMPLEMENTED
+    @unittest.skip(UNIMPLEMENTED)
     def test_all(self):
         raise AssertionError("test not implemented")
 
 class ModifyClass(ClientClassTest):
 
-    @UNIMPLEMENTED
-    def test_all(self):
-        raise AssertionError("test not implemented")
-
-#################################################################
-# Property provider interface tests
-#################################################################
-
-class GetProperty(ClientTest):
-
-    @UNIMPLEMENTED
-    def test_all(self):
-        raise AssertionError("test not implemented")
-
-class SetProperty(ClientTest):
-
-    @UNIMPLEMENTED
+    @unittest.skip(UNIMPLEMENTED)
     def test_all(self):
         raise AssertionError("test not implemented")
 
@@ -780,13 +815,13 @@ class GetQualifier(QualifierDeclClientTest):
 
 class SetQualifier(QualifierDeclClientTest):
 
-    @UNIMPLEMENTED
+    @unittest.skip(UNIMPLEMENTED)
     def test_all(self):
         raise AssertionError("test not implemented")
 
 class DeleteQualifier(QualifierDeclClientTest):
 
-    @UNIMPLEMENTED
+    @unittest.skip(UNIMPLEMENTED)
     def test_all(self):
         raise AssertionError("test not implemented")
 
@@ -796,7 +831,7 @@ class DeleteQualifier(QualifierDeclClientTest):
 
 class ExecuteQuery(ClientTest):
 
-    @UNIMPLEMENTED
+    @unittest.skip(UNIMPLEMENTED)
     def test_all(self):
         raise AssertionError("test not implemented")
 
@@ -833,11 +868,6 @@ TEST_LIST = [
     'CreateClass',
     'DeleteClass',
     'ModifyClass',
-
-    # Property provider interface tests
-
-    'GetProperty',
-    'SetProperty',
 
     # Qualifier provider interface tests
 
