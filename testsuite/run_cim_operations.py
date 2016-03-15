@@ -16,9 +16,9 @@ from getpass import getpass
 import six
 
 from pywbem.cim_constants import *
-from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
-                   CIMQualifier, CIMQualifierDeclaration, CIMMethod, \
-                   WBEMConnection, CIMError, \
+from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
+                   CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
+                   CIMMethod, WBEMConnection, CIMError, \
                    Uint8, Uint16, Uint32, Uint64, \
                    Sint8, Sint16, Sint32, Sint64, \
                    Real32, Real64, CIMDateTime, ParseError
@@ -32,7 +32,7 @@ UNIMPLEMENTED = unittest.skip("test not implemented")
 TEST_CLASS = 'CIM_ComputerSystem'
 
 class ClientTest(unittest.TestCase):
-    """A base class that creates a pywbem.WBEMConnection for
+    """Base class that creates a pywbem.WBEMConnection for
     subclasses to use."""
 
     def setUp(self):
@@ -54,17 +54,18 @@ class ClientTest(unittest.TestCase):
         self.log('Connected {}, ns {}'.format(self.system_url,
                                               args['namespace']))
 
-    def cimcall(self, fn, *fargs, **kw):
+    def cimcall(self, fn, *pargs, **kwargs):
         """Make a PyWBEM call, catch any exceptions, and log the
            request and response XML.
            Logs the call parameters, request/response xml,
            and response status
-           
-           Returns result of request to user
+
+           Returns result of request to caller
         """
-        self.log('cimcall args *args {} kwargs {}'.format(args, kw))
+        self.log('cimcall fn {} args *pargs {} **kwargs {}'.
+                 format(fn, pargs, kwargs))
         try:
-            result = fn(*fargs, **kw)
+            result = fn(*pargs, **kwargs)
         except Exception as exc:
             self.log('Operation %s failed with %s: %s\n' % \
                      (fn.__name__, exc.__class__.__name__, str(exc)))
@@ -214,7 +215,8 @@ class GetInstance(ClientTest):
 
     def test_all(self):
 
-        inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
         name = inst_names[0] # Pick the first returned instance
 
@@ -252,13 +254,12 @@ class CreateInstance(ClientTest):
                                  {'CreationClassName': 'PyWBEM_Person',
                                   'Name': 'Test'}))
 
-        # Delete if already exists
+        # Delete if already exists (previous test incomplete)
 
         try:
             self.cimcall(self.conn.DeleteInstance, instance.path)
         except CIMError as ce:
             if ce.args[0] == CIM_ERR_NOT_FOUND:
-            # TODO this should be an error
                 pass
 
         # Simple create and delete
@@ -298,8 +299,6 @@ class ModifyInstance(ClientTest):
                                   'Name': 'Test'}))
 
         # Delete if already exists
-        ## TODO validate this one
-
         try:
             self.cimcall(self.conn.DeleteInstance, instance.path)
         except CIMError as ce:
@@ -324,6 +323,8 @@ class ModifyInstance(ClientTest):
             result = self.cimcall(self.conn.ModifyInstance, instance)
 
             self.assertTrue(result is None)
+
+            # TODO add get and test for change.
 
             # Clean up
 
@@ -352,7 +353,8 @@ class InvokeMethod(ClientTest):
 
         # Invoke on an InstanceName
 
-        inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
         name = inst_names[0] # Pick the first returned instance
 
@@ -483,6 +485,11 @@ class Associators(ClientTest):
         # Call on class name
 
         classes = self.cimcall(self.conn.Associators, TEST_CLASS)
+        self.assertTrue(len(classes) > 0)
+        for cl in classes:
+            self.assertTrue(isinstance(cl, tuple))
+            self.assertTrue(isinstance(cl[0], CIMClassName))
+            self.assertTrue(isinstance(cl[1], CIMClass))        
 
         # TODO: check return values
 
@@ -507,11 +514,14 @@ class AssociatorNames(ClientTest):
             self.assertTrue(n.namespace is not None)
             self.assertTrue(n.host is not None)
 
-        # Call on class name
+        # Call on class name. Returns CIMClassName
 
-        classes = self.cimcall(self.conn.AssociatorNames, TEST_CLASS)
+        names = self.cimcall(self.conn.AssociatorNames, TEST_CLASS)
 
-        # TODO: check return values
+        for n in names:
+            self.assertTrue(isinstance(n, CIMClassName))
+
+        # TODO: check return values, NS, etc.
 
 class References(ClientTest):
 
@@ -538,7 +548,11 @@ class References(ClientTest):
         # Call on class name
 
         classes = self.cimcall(self.conn.References, TEST_CLASS)
-
+        self.assertTrue(len(classes) > 0)
+        for cl in classes:
+            self.assertTrue(isinstance(cl, tuple))
+            self.assertTrue(isinstance(cl[0], CIMClassName))
+            self.assertTrue(isinstance(cl[1], CIMClass))
         # TODO: check return values
 
 class ReferenceNames(ClientTest):
@@ -564,16 +578,19 @@ class ReferenceNames(ClientTest):
 
         # Call on class name
 
-        classes = self.cimcall(self.conn.ReferenceNames, TEST_CLASS)
+        names = self.cimcall(self.conn.ReferenceNames, TEST_CLASS)
 
+        for n in names:
+            self.assertTrue(isinstance(n, CIMClassName))
         # TODO: check return values
 
 #################################################################
 # Schema manipulation interface tests
 #################################################################
 
-class ClassVerifier(object):
-    """Mixin class for testing CIMClass instances."""
+class ClientClassTest(ClientTest):
+    """Intermediate class for testing CIMClass instances.
+       Class operations subclass from this class"""
 
     def verify_property(self, prop):
         """Verify that this a cim property and verify attributes"""
@@ -630,7 +647,7 @@ class EnumerateClassNames(ClientTest):
         for n in names:
             self.assertTrue(isinstance(n, six.string_types))
 
-class EnumerateClasses(ClientTest, ClassVerifier):
+class EnumerateClasses(ClientClassTest):
 
     def test_all(self):
 
@@ -651,28 +668,29 @@ class EnumerateClasses(ClientTest, ClassVerifier):
             self.assertTrue(isinstance(cl, CIMClass))
             self.verify_class(cl)
 
-class GetClass(ClientTest, ClassVerifier):
+class GetClass(ClientClassTest):
 
     def test_all(self):
-        """Get a classname and then get class"""
+        """Get a classname from server and then get class"""
 
         name = self.cimcall(self.conn.EnumerateClassNames)[0]
         cl = self.cimcall(self.conn.GetClass, name)
+        print('GetClass gets name %s' % name)
         self.verify_class(cl)
 
-class CreateClass(ClientTest):
+class CreateClass(ClientClassTest):
 
     @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
-class DeleteClass(ClientTest):
+class DeleteClass(ClientClassTest):
 
     @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
-class ModifyClass(ClientTest):
+class ModifyClass(ClientClassTest):
 
     @UNIMPLEMENTED
     def test_all(self):
@@ -695,28 +713,61 @@ class SetProperty(ClientTest):
         raise AssertionError("test not implemented")
 
 #################################################################
-# Qualifier provider interface tests
+# Qualifier Declaration provider interface tests
 #################################################################
 
-class EnumerateQualifiers(ClientTest):
+class QualifierDeclClientTest(ClientTest):
+    def verify_qual_decl(self, cl):
+        """Verify simple class attributes"""
+        self.assertTrue(isinstance(cl, CIMQualifierDeclaration))
+
+        #self.assertTrue(cl.classname)
+
+        #if cl.superclass is not None:
+            #self.assertTrue(cl.superclass)
+
+        ## Verify properties, qualifiers and methods
+
+        #for p in cl.properties.values():
+            #self.verify_property(p)
+        ## TODO validate qualifiers in properties. here or elsewhere
+        #for q in cl.qualifiers.values():
+            #self.verify_qualifier(q)
+        #for m in cl.methods.values():
+            #self.verify_method(m)
+        ## TODO validate parameters in methods
+
+class EnumerateQualifiers(QualifierDeclClientTest):
+
+    def test_all(self):
+        qual_decls = self.cimcall(self.conn.EnumerateQualifiers)
+        self.assertTrue(qual_decls > 0)
+
+        for qual_decl in qual_decls:
+            self.verify_qual_decl(qual_decl)
+
+
+class GetQualifier(QualifierDeclClientTest):
 
     @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
-class GetQualifier(ClientTest):
+# TODO add this test. Right now reports __name__ attribute missing
+#    def test_all(self):
+#        qual_decl = self.cimcall(self.conn.GetQualifier(
+#            QualifierName='Abstract'))
+
+#        self.assertTrue(isinstance(qual_decl, CIMQualifierDeclaration))
+
+
+class SetQualifier(QualifierDeclClientTest):
 
     @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
 
-class SetQualifier(ClientTest):
-
-    @UNIMPLEMENTED
-    def test_all(self):
-        raise AssertionError("test not implemented")
-
-class DeleteQualifier(ClientTest):
+class DeleteQualifier(QualifierDeclClientTest):
 
     @UNIMPLEMENTED
     def test_all(self):
@@ -743,7 +794,7 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
 
     def _run_single(self, utf8_xml, expected_ok):
         if self.verbose:
-            print('utf8_xml {} type {} '.format(utf8_xml, type(utf8_xml)))
+            print('utf8_xml %s type %s ' % (utf8_xml, type(utf8_xml)))
         try:
             check_utf8_xml_chars(utf8_xml, "Test XML")
         except ParseError as exc:
