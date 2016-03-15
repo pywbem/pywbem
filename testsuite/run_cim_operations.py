@@ -42,6 +42,7 @@ class ClientTest(unittest.TestCase):
         self.system_url = args['url']
         self.namespace = args['namespace']
         self.verbose = args['verbose']
+        self.debug = args['debug']
 
         self.log('setup connection {} ns {}'.format(self.system_url,
                                                     self.namespace))
@@ -50,7 +51,8 @@ class ClientTest(unittest.TestCase):
             (args['username'], args['password']),
             self.namespace,
             timeout=args['timeout'])
-        self.conn.debug = args['debug']
+        # enable saving of xml for display
+        self.conn.debug = args['verbose']
         self.log('Connected {}, ns {}'.format(self.system_url,
                                               args['namespace']))
 
@@ -175,7 +177,7 @@ class ExecQuery(ClientTest):
             # Simplest invocation
 
             instances = self.cimcall(self.conn.ExecQuery,
-                                     'wql',
+                                     'WQL',
                                      'Select * from %s' % TEST_CLASS)
 
             self.assertTrue(len(instances) >= 1)
@@ -184,19 +186,6 @@ class ExecQuery(ClientTest):
                 self.assertTrue(isinstance(i, CIMInstance))
                 self.assertTrue(isinstance(i.path, CIMInstanceName))
                 self.assertTrue(len(i.path.namespace) > 0)
-
-            # Call with explicit CIM namespace that does not exist
-
-            try:
-
-                self.cimcall(self.conn.ExecQuery,
-                             'wql',
-                             'Select * from %s' % TEST_CLASS,
-                             namespace='root/blah')
-
-            except CIMError as ce:
-                if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
-                    raise
 
         except CIMError as ce:
             if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
@@ -210,6 +199,42 @@ class ExecQuery(ClientTest):
             else:
                 raise
 
+        # Call with explicit CIM namespace that does not exist
+
+        try:
+
+            self.cimcall(self.conn.ExecQuery,
+                         'WQL',
+                         'Select * from %s' % TEST_CLASS,
+                         namespace='root/blah')
+
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
+                raise
+        # Call with invalid query lang
+
+        try:
+
+            self.cimcall(self.conn.ExecQuery,
+                         'wql',
+                         'Select * from %s' % TEST_CLASS,
+                         namespace='root/cimv2')
+
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
+                raise
+        # Call with invalid query
+
+        try:
+
+            self.cimcall(self.conn.ExecQuery,
+                         'WQL',
+                         'SelectSLOP * from %s' % TEST_CLASS,
+                         namespace='root/cimv2')
+
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_QUERY:
+                raise
 
 class GetInstance(ClientTest):
 
@@ -489,7 +514,7 @@ class Associators(ClientTest):
         for cl in classes:
             self.assertTrue(isinstance(cl, tuple))
             self.assertTrue(isinstance(cl[0], CIMClassName))
-            self.assertTrue(isinstance(cl[1], CIMClass))        
+            self.assertTrue(isinstance(cl[1], CIMClass))
 
         # TODO: check return values
 
@@ -582,7 +607,7 @@ class ReferenceNames(ClientTest):
 
         for n in names:
             self.assertTrue(isinstance(n, CIMClassName))
-        # TODO: check return values
+        # TODO: further check return values
 
 #################################################################
 # Schema manipulation interface tests
@@ -675,7 +700,8 @@ class GetClass(ClientClassTest):
 
         name = self.cimcall(self.conn.EnumerateClassNames)[0]
         cl = self.cimcall(self.conn.GetClass, name)
-        print('GetClass gets name %s' % name)
+        if self.debug:
+            print('GetClass gets name %s' % name)
         self.verify_class(cl)
 
 class CreateClass(ClientClassTest):
@@ -717,35 +743,24 @@ class SetProperty(ClientTest):
 #################################################################
 
 class QualifierDeclClientTest(ClientTest):
-    def verify_qual_decl(self, cl):
+    def verify_qual_decl(self, ql, qual_test_name=None):
         """Verify simple class attributes"""
-        self.assertTrue(isinstance(cl, CIMQualifierDeclaration))
+        self.assertTrue(isinstance(ql, CIMQualifierDeclaration))
 
-        #self.assertTrue(cl.classname)
+        if qual_test_name is not None:
+            self.assertTrue(ql.name == qual_test_name)
 
-        #if cl.superclass is not None:
-            #self.assertTrue(cl.superclass)
 
-        ## Verify properties, qualifiers and methods
-
-        #for p in cl.properties.values():
-            #self.verify_property(p)
-        ## TODO validate qualifiers in properties. here or elsewhere
-        #for q in cl.qualifiers.values():
-            #self.verify_qualifier(q)
-        #for m in cl.methods.values():
-            #self.verify_method(m)
-        ## TODO validate parameters in methods
+        # TODO expand the verification of qual decls
 
 class EnumerateQualifiers(QualifierDeclClientTest):
 
     def test_all(self):
         qual_decls = self.cimcall(self.conn.EnumerateQualifiers)
-        self.assertTrue(qual_decls > 0)
+        self.assertTrue(len(qual_decls) > 0)
 
         for qual_decl in qual_decls:
             self.verify_qual_decl(qual_decl)
-
 
 class GetQualifier(QualifierDeclClientTest):
 
@@ -753,13 +768,11 @@ class GetQualifier(QualifierDeclClientTest):
     def test_all(self):
         raise AssertionError("test not implemented")
 
-# TODO add this test. Right now reports __name__ attribute missing
-#    def test_all(self):
-#        qual_decl = self.cimcall(self.conn.GetQualifier(
-#            QualifierName='Abstract'))
+    # TODO this test fails
+    #def test_all(self):
+        #qual_decl = self.cimcall(self.conn.GetQualifier('Abstract'))
 
-#        self.assertTrue(isinstance(qual_decl, CIMQualifierDeclaration))
-
+        #self.assertTrue(isinstance(qual_decl, CIMQualifierDeclaration))
 
 class SetQualifier(QualifierDeclClientTest):
 
@@ -783,136 +796,60 @@ class ExecuteQuery(ClientTest):
     def test_all(self):
         raise AssertionError("test not implemented")
 
-#################################################################
-# Internal functions
-#################################################################
-# pylint: disable=invalid-name
-class Test_check_utf8_xml_chars(unittest.TestCase):
-
-    def setUp(self):
-        self.verbose = args['verbose']
-
-    def _run_single(self, utf8_xml, expected_ok):
-        if self.verbose:
-            print('utf8_xml %s type %s ' % (utf8_xml, type(utf8_xml)))
-        try:
-            check_utf8_xml_chars(utf8_xml, "Test XML")
-        except ParseError as exc:
-            if self.verbose:
-                print("Verify manually: Input XML: %r, ParseError: %s" %\
-                      (utf8_xml, exc))
-            self.assertFalse(expected_ok,
-                             "ParseError unexpectedly raised: %s" % exc)
-        else:
-            self.assertTrue(expected_ok,
-                            "ParseError unexpectedly not raised.")
-
-    def test_all(self):
-
-        # good cases
-        self._run_single(b'<V>a</V>', True)
-        self._run_single(b'<V>a\tb\nc\rd</V>', True)
-        self._run_single(b'<V>a\x09b\x0Ac\x0Dd</V>', True)
-        self._run_single(b'<V>a\xCD\x90b</V>', True)             # U+350
-        self._run_single(b'<V>a\xE2\x80\x93b</V>', True)         # U+2013
-        self._run_single(b'<V>a\xF0\x90\x84\xA2b</V>', True)     # U+10122
-
-        # invalid XML characters
-        if self.verbose:
-            print("From here on, the only expected exception is ParseError "\
-                  "for invalid XML characters...")
-        self._run_single(b'<V>a\bb</V>', False)
-        self._run_single(b'<V>a\x08b</V>', False)
-        self._run_single(b'<V>a\x00b</V>', False)
-        self._run_single(b'<V>a\x01b</V>', False)
-        self._run_single(b'<V>a\x1Ab</V>', False)
-        self._run_single(b'<V>a\x1Ab\x1Fc</V>', False)
-
-        # correctly encoded but ill-formed UTF-8
-        if self.verbose:
-            print("From here on, the only expected exception is ParseError "\
-                  "for ill-formed UTF-8 Byte sequences...")
-        # combo of U+D800,U+DD22:
-        self._run_single(b'<V>a\xED\xA0\x80\xED\xB4\xA2b</V>', False)
-        # combo of U+D800,U+DD22 and combo of U+D800,U+DD23:
-        # pylint: disable=line-too-long
-        self._run_single(b'<V>a\xED\xA0\x80\xED\xB4\xA2b\xED\xA0\x80\xED\xB4\xA3</V>',
-                         False)
-
-        # incorrectly encoded UTF-8
-        if self.verbose:
-            print("From here on, the only expected exception is ParseError "\
-                  "for invalid UTF-8 Byte sequences...")
-        # incorrect 1-byte sequence:
-        self._run_single(b'<V>a\x80b</V>', False)
-        # 2-byte sequence with missing second byte:
-        self._run_single(b'<V>a\xC0', False)
-        # 2-byte sequence with incorrect 2nd byte
-        self._run_single(b'<V>a\xC0b</V>', False)
-        # 4-byte sequence with incorrect 3rd byte:
-        self._run_single(b'<V>a\xF1\x80abc</V>', False)
-        # 4-byte sequence with incorrect 3rd byte that is an incorr. new start:
-        self._run_single(b'<V>a\xF1\x80\xFFbc</V>', False)
-        # 4-byte sequence with incorrect 3rd byte that is an correct new start:
-        self._run_single(b'<V>a\xF1\x80\xC2\x81c</V>', False)
 
 
 #################################################################
 # Main function
 #################################################################
 
-tests = [                   # pylint: disable=invalid-name
+TEST_LIST = [
 
     # Instance provider interface tests
 
-    EnumerateInstanceNames,
-    EnumerateInstances,
-    GetInstance,
-    CreateInstance,
-    ModifyInstance,
+    'EnumerateInstanceNames',
+    'EnumerateInstances',
+    'GetInstance',
+    'CreateInstance',
+    'ModifyInstance',
 
     # Method provider interface tests
 
-    InvokeMethod,
+    'InvokeMethod',
 
     # Association provider interface tests
 
-    Associators,
-    AssociatorNames,
-    References,
-    ReferenceNames,
+    'Associators',
+    'AssociatorNames',
+    'References',
+    'ReferenceNames',
 
     # Schema manipulation interface tests
 
-    EnumerateClassNames,
-    EnumerateClasses,
-    GetClass,
-    CreateClass,
-    DeleteClass,
-    ModifyClass,
+    'EnumerateClassNames',
+    'EnumerateClasses',
+    'GetClass',
+    'CreateClass',
+    'DeleteClass',
+    'ModifyClass',
 
     # Property provider interface tests
 
-    GetProperty,
-    SetProperty,
+    'GetProperty',
+    'SetProperty',
 
     # Qualifier provider interface tests
 
-    EnumerateQualifiers,
-    GetQualifier,
-    SetQualifier,
-    DeleteQualifier,
+    'EnumerateQualifiers',
+    'GetQualifier',
+    'SetQualifier',
+    'DeleteQualifier',
 
     # Query provider interface tests
 
-    ExecQuery,
-    ExecuteQuery,
-
+    'ExecQuery',
+    'ExecuteQuery',
     ]
 
-tests_internal = [                   # pylint: disable=invalid-name
-    Test_check_utf8_xml_chars,
-]
 
 def parse_args(argv_):
     argv = list(argv_)
@@ -954,7 +891,9 @@ def parse_args(argv_):
               '                          - xml input and output,\n' \
               '                          - connection details,\n'
               '                          - details of tests')
-        print('    -d                  Debug flag passed to cim_operations')
+        print('    -d                  Debug flag for extra displays')
+        print('    -hl                 List of indifidual tests')
+
         print('')
         print('Examples:')
         print('    %s https://9.10.11.12 username%%password' % argv[0])
@@ -993,6 +932,11 @@ def parse_args(argv_):
         elif argv[1] == '-d':
             args_['debug'] = True
             del argv[1:2]
+        elif argv[1] == '-hl':
+            args_['debug'] = True
+            del argv[1:3]
+            print('List of tests: %s' % ", ".join(TEST_LIST))
+            sys.exit(2)
         else:
             print("Error: Unknown option: %s" % argv[1])
             sys.exit(1)
@@ -1021,6 +965,7 @@ if __name__ == '__main__':
     print("  password: %s" % ("*"*len(args['password'])))
     print("  timeout: %s" % args['timeout'])
     print("  verbose: %s" % args['verbose'])
+    print("  debug: %s" % args['debug'])
 
     # Note: unittest options are defined in separate args after
     # the url argumentl.
