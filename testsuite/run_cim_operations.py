@@ -21,9 +21,8 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
                    CIMMethod, WBEMConnection, CIMError, \
                    Uint8, Uint16, Uint32, Uint64, \
                    Sint8, Sint16, Sint32, Sint64, \
-                   Real32, Real64, CIMDateTime, ParseError
-from pywbem.cim_operations import CIMError, DEFAULT_NAMESPACE,  \
-                                  check_utf8_xml_chars
+                   Real32, Real64, CIMDateTime
+from pywbem.cim_operations import CIMError, DEFAULT_NAMESPACE
 
 #decocrator for unimplemented tests
 UNIMPLEMENTED = unittest.skip("test not implemented")
@@ -37,6 +36,7 @@ class ClientTest(unittest.TestCase):
 
     def setUp(self):
         """Create a connection."""
+        #pylint: disable=global-variable-not-assigned
         global args                 # pylint: disable=invalid-name
 
         self.system_url = args['url']
@@ -743,13 +743,15 @@ class SetProperty(ClientTest):
 #################################################################
 
 class QualifierDeclClientTest(ClientTest):
-    def verify_qual_decl(self, ql, qual_test_name=None):
+    """Base class for QualifierDeclaration tests. Adds specific
+       tests
+    """
+    def verify_qual_decl(self, ql, test_name=None):
         """Verify simple class attributes"""
         self.assertTrue(isinstance(ql, CIMQualifierDeclaration))
 
-        if qual_test_name is not None:
-            self.assertTrue(ql.name == qual_test_name)
-
+        if test_name is not None:
+            self.assertTrue(ql.name == test_name)
 
         # TODO expand the verification of qual decls
 
@@ -764,15 +766,17 @@ class EnumerateQualifiers(QualifierDeclClientTest):
 
 class GetQualifier(QualifierDeclClientTest):
 
-    @UNIMPLEMENTED
     def test_all(self):
-        raise AssertionError("test not implemented")
+        qual_decl = self.cimcall(self.conn.GetQualifier, 'Abstract')
+        self.verify_qual_decl(qual_decl, test_name='Abstract')
 
-    # TODO this test fails
-    #def test_all(self):
-        #qual_decl = self.cimcall(self.conn.GetQualifier('Abstract'))
+        # test with name that is not found
+        try:
+            qual_decl = self.cimcall(self.conn.GetQualifier, 'blahblah')
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_NOT_FOUND:
+                raise
 
-        #self.assertTrue(isinstance(qual_decl, CIMQualifierDeclaration))
 
 class SetQualifier(QualifierDeclClientTest):
 
@@ -795,8 +799,6 @@ class ExecuteQuery(ClientTest):
     @UNIMPLEMENTED
     def test_all(self):
         raise AssertionError("test not implemented")
-
-
 
 #################################################################
 # Main function
@@ -897,7 +899,9 @@ def parse_args(argv_):
         print('')
         print('Examples:')
         print('    %s https://9.10.11.12 username%%password' % argv[0])
-        print('    %s https://9.10.11.12 -V username%%password' % argv[0])
+        print('    %s https://myhost -v username%%password' % argv[0])
+        print('    %s http://localhost -v username%%password' \
+              ' GetQualifier' % argv[0])
 
         print('------------------------')
         print('Unittest arguments[UT_OPTS]:')
