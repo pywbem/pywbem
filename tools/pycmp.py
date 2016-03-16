@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# Author: Andreas Maier
+#
+# Tool that compares the symbols in the external API of two versions of a
+# Python package.
+# Invoke with --help for usage.
 
 import sys
 import argparse
@@ -11,11 +17,30 @@ import types
 from pprint import pprint
 
 ARGS = None
+MYNAME=sys.argv[0]
 
 def main():
     global ARGS
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        prog=MYNAME,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        usage="%s [-h|--help] [options] olddir newdir" % MYNAME,
+        description=
+"""
+Compare the symbols in the external API of two versions of a Python package,
+and print a report to stdout.
+
+Package directories can be specified with relative or absolute path, and must
+specify the package directory (inside of which there is the __init__.py file
+for the package).
+""",
+        epilog=
+"""
+example:
+  %s ../v1.0/foo foo
+    Compare the foo package version in ../v1.0/foo with the version in ./foo.
+""" % MYNAME)
 
     parser.add_argument("olddir", type=str,
                         help="path name of old package directory")
