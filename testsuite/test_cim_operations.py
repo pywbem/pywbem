@@ -61,10 +61,6 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
         self._run_single(b'<V>a\x1Ab</V>', False)
         self._run_single(b'<V>a\x1Ab\x1Fc</V>', False)
 
-        # TODO all of the following tests fail with python3 with the
-        # error TypeError: ord() expected string len 1 but int found
-        if sys.version_info >= (3, 0):
-            return
         # correctly encoded but ill-formed UTF-8
         if self.VERBOSE:
             print("From here on, the only expected exception is ParseError "\
@@ -94,6 +90,6 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
         self._run_single(b'<V>a\xF1\x80\xC2\x81c</V>', False)
 
 
-
 if __name__ == '__main__':
     unittest.main()
+
