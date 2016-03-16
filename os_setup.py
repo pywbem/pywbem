@@ -149,7 +149,7 @@ Syntax for the new attributes of the `setup()` function:
   The syntax of version requirements and the interface of custom functions are
   the same as for the `install_os_requires` attribute.
 """
-
+from __future__ import print_function
 import re
 import types
 import subprocess
@@ -708,6 +708,7 @@ class BaseInstaller(object):
         self.errors[msg_id].append(req)
 
     def print_errors(self):
+        """Print errors from the instance errors list"""
         for msg_id in self.errors:
             pkg_reqs = self.errors[msg_id]
             if msg_id == self.MSG_PLATFORM_NOT_SUPPORTED:

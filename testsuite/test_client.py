@@ -19,7 +19,7 @@ Approach:
 * HTTPretty remembers the last request that was sent, so after issuing the
   request, the CIM-XML produced by the PyWBEM client is verified based on that.
 """
-
+from __future__ import print_function
 import os
 import inspect
 import doctest
@@ -188,18 +188,18 @@ class Callback(object):
     """
 
     @staticmethod
-    def socket_ssl(request, uri, headers):
+    def socket_ssl(request, uri, headers): #pylint: disable=unused-argument
         """HTTPretty callback function that raises an arbitrary
         SSLError."""
         raise SSLError(1, "Arbitrary SSL error.")
 
     @staticmethod
-    def socket_104(request, uri, headers):
+    def socket_104(request, uri, headers): #pylint: disable=unused-argument
         """HTTPretty callback function that raises socket.error 104."""
         raise socket.error(104, "Connection reset by peer.")
 
     @staticmethod
-    def socket_32(request, uri, headers):
+    def socket_32(request, uri, headers): #pylint: disable=unused-argument
         """HTTPretty callback function that raises socket.error 32."""
         raise socket.error(32, "Broken pipe.")
 

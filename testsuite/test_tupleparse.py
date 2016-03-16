@@ -18,6 +18,7 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, \
 
 
 class TupleTest(unittest.TestCase):
+    """ Top level class for testing tupleparse"""
 
     def _run_single(self, obj):
 
@@ -36,6 +37,7 @@ class TupleTest(unittest.TestCase):
                          (xml, result.tocimxml().toxml()))
 
 class RawXMLTest(unittest.TestCase):
+    """Test parse of any XML to object"""
 
     def _run_single(self, xml, obj):
 
