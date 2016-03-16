@@ -39,7 +39,8 @@ __all__ = [
     'CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED',
     'CIM_ERR_INVALID_QUERY',
     'CIM_ERR_METHOD_NOT_AVAILABLE',
-    'CIM_ERR_METHOD_NOT_FOUND'
+    'CIM_ERR_METHOD_NOT_FOUND',
+    'DEFAULT_NAMESPACE'
 ]
 
 # CIMError error code constants
@@ -73,3 +74,6 @@ PROVIDERTYPE_INDICATION  = 4
 PROVIDERTYPE_METHOD      = 5
 PROVIDERTYPE_CONSUMER    = 6            # Indication consumer
 PROVIDERTYPE_QUERY       = 7
+
+DEFAULT_NAMESPACE = 'root/cimv2'        # Default namespace for PyWBEM
+
