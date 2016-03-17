@@ -24,3 +24,4 @@ swig-2.0*.tar.gz
 /setupswig-2.0*/
 setuptools-*.egg
 setuptools-*.zip
+/tmp_*/
