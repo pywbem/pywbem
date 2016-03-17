@@ -1142,6 +1142,35 @@ class CIMInstanceToMOF(unittest.TestCase):
                       "Instance: %r\n"\
                       "Generated MOF: %r" % (i, imof))
 
+class CIMInstanceWithEmbeddedInst(unittest.TestCase):
+    def test_all(self):
+
+        embed = CIMInstance('CIM_Embedded',
+                        {'EbString': 'string',
+                         'EbUint8': Uint8(0),
+                         'EbUint8array': [Uint8(1), Uint8(2)],
+                         'EbRef': CIMInstanceName('CIM_Bar')})
+
+        i = CIMInstance('CIM_Foo',
+                        {'MyString': 'string',
+                         'MyUint8': Uint8(0),
+                         'MyUint8array': [Uint8(1), Uint8(2)],
+                         'MyRef': CIMInstanceName('CIM_Bar'),
+                         'MyEmbed' : embed,
+                         'MyUint32' : Uint32(9999)})
+
+        imof = i.tomof()
+        print('{}'.format(imof))
+        m = re.match(
+            r"^\s*instance\s+of\s+CIM_Foo\s*\{"
+            r"(?:\s*(\w+)\s*=\s*.*;){4,4}" # just match the general syntax
+            r"\s*\}\s*;\s*$", imof)
+        if m is None:
+            self.fail("Invalid MOF generated.\n"\
+                      "Instance: %r\n"\
+                      "Generated MOF: %r" % (i, imof))
+
+
 class CIMInstanceUpdatePath(unittest.TestCase):
     """
     Test updating key and non-key properties of `CIMInstance` objects.

@@ -55,6 +55,8 @@ __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
            'CIMQualifierDeclaration', 'tocimxml', 'tocimobj']
 
+DEFAULT_INDENT = 7
+
 # pylint: disable=too-many-lines
 class NocaseDict(object):
     """
@@ -1865,11 +1867,11 @@ class CIMInstance(_CIMComparisonMixin):
         return cim_xml.VALUE_NAMEDINSTANCE(self.path.tocimxml(),
                                            instance_xml)
 
-    def tomof(self):
+    def tomof(self, indent=DEFAULT_INDENT):
         """ Return string representing the MOF definition of this
             CIMInstance.
         """
-        def _prop2mof(type_, value):
+        def _prop2mof(type_, value, indent=DEFAULT_INDENT):
             """ Return a string representing the MOF definition of
                 a single property defined by the type and value
                 arguments.
@@ -1883,19 +1885,32 @@ class CIMInstance(_CIMComparisonMixin):
                 for i, item in enumerate(value):
                     if i > 0:
                         val += ', '
-                    val += _prop2mof(type_, item)
+                    val += _prop2mof(type_, item, indent=indent)
                 val += '}'
             elif type_ == 'string':
                 val = mofstr(value)
             else:
                 val = str(value)
             return val
-
-        ret_str = 'instance of %s {\n' % self.classname
+        # Create temp indent remove one level
+        indent_str = ' '.ljust(indent, ' ')
+        short = indent - DEFAULT_INDENT
+        short_indent = indent_str[:short]
+        print('indents short={}, indent={}, len(short_indent)={}, ind_str=x{}x, short=x{}x'.format(short, indent, len(short_indent),indent_str,short_indent))
+        
+        ret_str = short_indent + 'instance of %s {\n' % self.classname
         for prop in self.properties.values():
-            ret_str += '\t%s = %s;\n' % (prop.name,
-                                         _prop2mof(prop.type,
-                                                   prop.value))
+            print('property name={}, len(indent)={}, type={}, value={}, embeddedObject={}'.format(prop.name, indent, prop.type, prop.value, prop.embedded_object))
+            if prop.embedded_object is not None:
+                indent += DEFAULT_INDENT
+                ret_str += prop.value.tomof(indent)
+                indent -= DEFAULT_INDENT
+            else:
+                ret_str += '\t%s = %s;\n' % (prop.name,
+                                             _prop2mof(prop.type,
+                                                       prop.value,
+                                                       indent=indent))
+        ret_str += short_indent
         ret_str += '};\n'
 
         return ret_str
