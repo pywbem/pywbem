@@ -950,8 +950,11 @@ class OSInstaller(BaseInstaller):
         """Determine whether the current userid is authorized to install
         OS packages."""
         if self.system == "Linux":
-            rc, _, _ = shell("sudo echo ok")
-            authorized = (rc == 0)
+            # TODO: Using sudo may ask for the sudo password. Find a better
+            #       way of testing for authorization to install packages.
+            #rc, _, _ = shell("sudo echo ok")
+            #authorized = (rc == 0)
+            authorized = True # For now...
         else:
             authorized = True
         return authorized
