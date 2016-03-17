@@ -33,6 +33,9 @@ mv $tmpdir/pywbem-${version}/*.py $tmpdir/pywbem/
 rm $tmpdir/pywbem/setup.py   # not part of the package
 rm $tmpdir/pywbem/wbemcli.py # cannot be imported, in 0.7.0
 
+# twisted is needed for pywbem/twisted_client.py
+pip install twisted
+
 $pycmp -e $tmpdir/pywbem pywbem >$reportfile
 
 echo "Success: Generated report: $reportfile"
