@@ -1383,7 +1383,8 @@ class WBEMConnection(object):
         :Parameters:
 
           namespace : string
-            Optional: Name of the namespace of the class, as a string.
+            Optional: Name of the namespace in which the class names are to be
+            enumerated.
             The value `None` causes the default namespace of the connection to
             be used.
 
@@ -1446,7 +1447,8 @@ class WBEMConnection(object):
         :Parameters:
 
           namespace : string
-            Optional: Name of the namespace of the class, as a string.
+            Optional: Name of the namespace in which the classes are to be
+            enumerated.
             The value `None` causes the default namespace of the connection to
             be used.
 
@@ -1529,7 +1531,7 @@ class WBEMConnection(object):
             Name of the class to be retrieved.
 
           namespace : string
-            Optional: Name of the namespace of the class, as a string.
+            Optional: Name of the namespace of the class to be retrieved.
             The value `None` causes the default namespace of the connection to
             be used.
 
@@ -1599,7 +1601,7 @@ class WBEMConnection(object):
             Name of the class to be deleted.
 
           namespace : string
-            Optional: Name of the namespace of the class, as a string.
+            Optional: Name of the namespace of the class to be deleted.
             The value `None` causes the default namespace of the connection to
             be used.
 
@@ -1637,7 +1639,7 @@ class WBEMConnection(object):
             contain any modified properties, methods and qualifiers and the
             class path of the class to be modified.
             Typically, this object has been retrieved by other operations, such
-            as GetClass.
+            as `GetClass`.
 
         :Exceptions:
 
@@ -1658,7 +1660,7 @@ class WBEMConnection(object):
         """
         Create a class.
 
-        This method performs the ModifyClass CIM-XML operation.
+        This method performs the CreateClass CIM-XML operation.
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -1673,8 +1675,9 @@ class WBEMConnection(object):
 
           namespace : string
             Optional: Name of the namespace in which the class is to be
-            created. The value `None` causes the default namespace of the
-            connection to be used.
+            created.
+            The value `None` causes the default namespace of the connection to
+            be used.
 
             Default: `None`
 
@@ -2214,29 +2217,25 @@ class WBEMConnection(object):
     def EnumerateQualifiers(self, namespace=None, **params):
         # pylint: disable=invalid-name
         """
-        Enumerate qualifier declarations for a namespace.
+        Enumerate qualifier declarations.
 
-        This method performs the GetQualifier CIM-XML operation.
+        This method performs the EnumerateQualifiers CIM-XML operation.
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
-        Returns a `CIMQualifier` object.
-
-        TODO This method is UNSUPPORTED right now. Test and verify description.
 
         :Parameters:
 
-          Qualifier : string
-              Name of the qualifier to be invoked deleted.
-
           namespace : string
-              Optional: Name of the namespace in which the class is to be
-              created. The value `None` causes the default namespace of the
-              connection to be used.
+            Optional: Name of the namespace in which the qualifier
+            declarations are to be enumerated.
+            The value `None` causes the default namespace of the connection to
+            be used.
 
         :Returns:
 
-            A list of`CIMQualifierDeclaration` object that is a
-            representation of the retrieved qualifier declarations.
+            A list of `CIMQualifierDeclaration` objects that are
+            representations of the enumerated qualifier declarations.
+
         :Exceptions:
 
             See the list of exceptions described in `WBEMConnection`.
@@ -2266,22 +2265,22 @@ class WBEMConnection(object):
         This method performs the GetQualifier CIM-XML operation.
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
-        Returns a `CIMQualifier` object.
 
         :Parameters:
 
           Qualifier : string
-              Name of the qualifier to be invoked deleted.
+            Name of the qualifier declaration to be retrieved.
 
           namespace : string
-              Optional: Name of the namespace in which the class is to be
-              created. The value `None` causes the default namespace of the
-              connection to be used.
+            Optional: Name of the namespace of the qualifier declaration.
+            The value `None` causes the default namespace of the connection to
+            be used.
 
         :Returns:
 
             A `CIMQualifierDeclaration` object that is a representation
             of the retrieved qualifier declaration.
+
         :Exceptions:
 
             See the list of exceptions described in `WBEMConnection`.
@@ -2312,13 +2311,15 @@ class WBEMConnection(object):
 
         :Parameters:
 
-          QualifierDeclaration : CIMQualifierDeclaration object
-              Definition of the qualifier to be created or modified.
+          QualifierDeclaration : `CIMQualifierDeclaration`
+            Representation of the qualifier declaration to be created or
+            modified.
 
           namespace : string
-              Optional: Name of the namespace in which the class is to be
-              created. The value `None` causes the default namespace of the
-              connection to be used.
+            Optional: Name of the namespace in which the qualifier declaration
+            is to be created or modified.
+            The value `None` causes the default namespace of the connection to
+            be used.
 
         :Exceptions:
 
@@ -2347,12 +2348,13 @@ class WBEMConnection(object):
         :Parameters:
 
           Qualifier : string
-              Name of the qualifier to be deleted.
+            Name of the qualifier declaration to be deleted.
 
           namespace : string
-              Optional: Name of the namespace in which the class is to be
-              created. The value `None` causes the default namespace of the
-              connection to be used.
+            Optional: Name of the namespace in which the qualifier declaration
+            is to be deleted.
+            The value `None` causes the default namespace of the connection to
+            be used.
 
         :Exceptions:
 
