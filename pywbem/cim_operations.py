@@ -39,6 +39,7 @@ from xml.parsers.expat import ExpatError
 import six
 
 from . import cim_xml
+from .cim_constants import DEFAULT_NAMESPACE
 from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      CIMClassName, NocaseDict, _ensure_unicode, tocimxml, \
@@ -48,11 +49,9 @@ from .cim_http import get_object_header, wbem_request, Error, AuthError, \
 from .tupleparse import ParseError, parse_cim
 from .tupletree import dom_to_tupletree
 
-__all__ = ['DEFAULT_NAMESPACE', 'CIMError', 'WBEMConnection',
+__all__ = ['CIMError', 'WBEMConnection',
            'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
-
-DEFAULT_NAMESPACE = 'root/cimv2'
 
 if len(u'\U00010122') == 2:
     # This is a "narrow" Unicode build of Python (the normal case).

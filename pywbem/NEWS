@@ -1,6 +1,6 @@
 
 
-pywbem-0.8.0rc4  2016-03-01
+pywbem-0.8.0rc4  2016-03-16
 
 
   KNOWN ISSUES:
@@ -39,11 +39,14 @@ pywbem-0.8.0rc4  2016-03-01
       'wbemcli' module within the 'pywbem' package. In 0.7.0, the module
       was at the same time the script.  (Andreas Maier)
 
-    * The symbols in the 'pywbem' package namespace have been reduced to a
-      well-defined set that is now declared the external API of the WBEM client
-      library, and is supposed to be sufficient.
-      In 0.7.0, most symbols defined in the sub-modules of the 'pywbem' package
-      were folded into the package namespace, cluttering it significantly.
+    * In 0.7.0, most symbols defined in the sub-modules of the 'pywbem' package
+      were folded into the 'pywbem' package namespace, cluttering it
+      significantly. The symbols in the 'pywbem' package namespace have been
+      reduced to a well-defined set that is now declared the external API of
+      the WBEM client library, and is supposed to be sufficient. If you find
+      that you need something you were used to, please think twice as to
+      whether that makes sense to be part of the external PyWBEM API, and if
+      so, let us know by opening an issue.
 
     * Since 0.7.0, some exceptions that can be raised at the external API of
       the WBEM client library have been cleaned up.
