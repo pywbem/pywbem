@@ -1,7 +1,5 @@
 
-
-pywbem-0.8.0rc4  2016-03-16
-
+pywbem-0.8.0  2016-03-18
 
   KNOWN ISSUES:
 
@@ -26,7 +24,6 @@ pywbem-0.8.0rc4  2016-03-16
       - The CIM indication listener in the `irecv` directory. See issue
         #66 on GitHub. 
 
-
   CHANGES:
 
     * The MOF compiler is now available as the command 'mof_compiler' that gets
@@ -50,7 +47,6 @@ pywbem-0.8.0rc4  2016-03-16
 
     * Since 0.7.0, some exceptions that can be raised at the external API of
       the WBEM client library have been cleaned up.
-
 
   ENHANCEMENTS:
 
@@ -145,7 +141,6 @@ pywbem-0.8.0rc4  2016-03-16
     * Added support for Python 3.  Issue #3 on GitHub.
       (Ross Peoples, Andreas Maier)
 
- 
   BUG FIXES:
 
     * Fix syntax error in CIM DTDVERSION error path.  Allow KEYVALUE
@@ -329,6 +324,10 @@ pywbem-0.8.0rc4  2016-03-16
     * Fixed the issue that the LEX and YACC table modules were regenerated
       under certain conditions.  Issue #55 on GitHub.  (Karl Schopmeyer)
 
+    * Fixed bugs in the mof_compiler script.  (Karl Schopmeyer)
+
+    * Fixed errors in the description of the qualifier operations in
+      WBEMConnection.  Issue #91 on GitHub.  (Andreas Maier)
 
   TESTING:
 
@@ -400,7 +399,6 @@ pywbem-0.8.0rc4  2016-03-16
       package. Coverage is reported on stdout as part of testing, e.g. with
       'make test' for the current Python environment, or with 'tox' for all
       supported Python environments.  (Andreas Maier)
-
 
   CLEAN CODE:
 
