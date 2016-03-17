@@ -14,7 +14,7 @@ Note that class `NocaseDict` is tested in test_nocasedict.py.
 
 # Allows use of lots of single character variable names.
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
-# pylint: disable=too-many-lines
+# pylint: disable=too-many-lines,no-self-use
 import re
 import inspect
 import os.path

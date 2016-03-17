@@ -292,14 +292,14 @@ class QUALIFIER_DECLARATION(CIMElement):
          %QualifierFlavor;>
     """
 
-    def __init__(self, name, type, value, is_array=None,
+    def __init__(self, name, type_, value, is_array=None,
                  array_size=None, qualifier_scopes={},
                  overridable=None, tosubclass=None,
                  toinstance=None, translatable=None):
 
         Element.__init__(self, 'QUALIFIER.DECLARATION')
         self.setName(name)
-        self.setAttribute('TYPE', type)
+        self.setAttribute('TYPE', type_)
         if is_array is not None:
             self.setOptionalAttribute('ISARRAY', str(is_array).lower())
         if array_size is not None:
@@ -778,14 +778,14 @@ class QUALIFIER(CIMElement):
         xml:lang  NMTOKEN  #IMPLIED>
     """
 
-    def __init__(self, name, type, value=None, propagated=None,
+    def __init__(self, name, type_, value=None, propagated=None,
                  overridable=None, tosubclass=None, toinstance=None,
                  translatable=None, xml_lang=None):
 
         Element.__init__(self, 'QUALIFIER')
 
         self.setName(name)
-        self.setAttribute('TYPE', type)
+        self.setAttribute('TYPE', type_)
 
         if propagated is not None:
             self.setAttribute('PROPAGATED', str(propagated).lower())
@@ -825,14 +825,14 @@ class PROPERTY(CIMElement):
         xml:lang   NMTOKEN  #IMPLIED>
     """
 
-    def __init__(self, name, type, value=None, class_origin=None,
+    def __init__(self, name, type_, value=None, class_origin=None,
                  propagated=None, qualifiers=[], xml_lang=None,
                  embedded_object=None):
 
         Element.__init__(self, 'PROPERTY')
 
         self.setName(name)
-        self.setAttribute('TYPE', type)
+        self.setAttribute('TYPE', type_)
 
         self.setOptionalAttribute('CLASSORIGIN', class_origin)
 
@@ -884,14 +884,14 @@ class PROPERTY_ARRAY(CIMElement):
        xml:lang   NMTOKEN  #IMPLIED>
     """
 
-    def __init__(self, name, type, value_array=None, array_size=None,
+    def __init__(self, name, type_, value_array=None, array_size=None,
                  class_origin=None, propagated=None, qualifiers=[],
                  xml_lang=None, embedded_object=None):
 
         Element.__init__(self, 'PROPERTY.ARRAY')
 
         self.setName(name)
-        self.setAttribute('TYPE', type)
+        self.setAttribute('TYPE', type_)
 
         if array_size is not None:
             self.setAttribute('ARRAYSIZE', str(array_size))
@@ -986,10 +986,10 @@ class PARAMETER(CIMElement):
         %CIMType;      #REQUIRED>
     """
 
-    def __init__(self, name, type, qualifiers=[]):
+    def __init__(self, name, type_, qualifiers=[]):
         Element.__init__(self, 'PARAMETER')
         self.setName(name)
-        self.setAttribute('TYPE', type)
+        self.setAttribute('TYPE', type_)
         self.appendChildren(qualifiers)
 
 class PARAMETER_REFERENCE(CIMElement):
@@ -1025,10 +1025,10 @@ class PARAMETER_ARRAY(CIMElement):
         %ArraySize;>
     """
 
-    def __init__(self, name, type, array_size=None, qualifiers=[]):
+    def __init__(self, name, type_, array_size=None, qualifiers=[]):
         Element.__init__(self, 'PARAMETER.ARRAY')
         self.setName(name)
-        self.setAttribute('TYPE', type)
+        self.setAttribute('TYPE', type_)
         if array_size is not None:
             self.setAttribute('ARRAYSIZE', str(array_size))
         self.appendChildren(qualifiers)

@@ -48,7 +48,7 @@ from .cim_types import _CIMComparisonMixin, type_from_name, \
                        cimtype, atomic_to_cim_xml, CIMType, \
                        CIMDateTime, Uint8, Sint8, Uint16, Sint16, Uint32, \
                        Sint32, Uint64, Sint64, Real32, Real64
-        
+
 __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
            'CIMQualifierDeclaration', 'tocimxml', 'tocimobj']
@@ -638,13 +638,13 @@ def mofstr(strvalue, indent=7, maxline=80):
     ret_str = ('\n'+indent_str).join(ret_str_list)
     return ret_str
 
-def moftype(cimtype, refclass):
+def moftype(cim_type, refclass):
     """Converts a CIM type name to MOF syntax."""
 
-    if cimtype == 'reference':
+    if cim_type == 'reference':
         _moftype = refclass + " REF"
     else:
-        _moftype = cimtype
+        _moftype = cim_type
 
     return _moftype
 
@@ -1458,6 +1458,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         return self.keybindings.keys()
 
     def values(self):
+        """Return keybinding values"""
         return self.keybindings.values()
 
     def items(self):
@@ -1649,7 +1650,8 @@ class CIMInstance(_CIMComparisonMixin):
         # TODO: Add support for accepting qualifiers as plain dict
         self.path = path
         if property_list is not None:
-            self.property_list = [_ensure_unicode(x).lower() for x in property_list]
+            self.property_list = [_ensure_unicode(x).lower() \
+                for x in property_list]
         else:
             self.property_list = None
 
@@ -1782,7 +1784,8 @@ class CIMInstance(_CIMComparisonMixin):
         return [v.value for v in self.properties.values()]
 
     def items(self):
-        return [(k, v.value) for k, v in self.properties.items()]
+        """ return key and value for property.items"""
+        return [(key, v.value) for key, v in self.properties.items()]
 
     def iterkeys(self):
         return self.properties.iterkeys()

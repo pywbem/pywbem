@@ -31,8 +31,9 @@
    These functions raise ParseError exception if there are any
    errors in the parsing and terminate the parsing.
 """
-
+from __future__ import print_function
 from xml.dom import pulldom
+import sys
 import six
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMQualifier, \
@@ -190,7 +191,7 @@ def parse_value_reference(parser, event, node): #pylint: disable=unused-argument
 
     (next_event, next_node) = six.next(parser)
 
-    #TODO:2/16:ks: Some functions below do not exist: i.e. class stuff broken.
+    #TODO:2/16:ks: Functions below do not exist: i.e. class stuff broken.
     #TODO: parse_classpath, parse_localclasspath, parse_classname.
 
     if _is_start(next_event, next_node, 'CLASSPATH'):
@@ -233,9 +234,11 @@ def parse_value_reference(parser, event, node): #pylint: disable=unused-argument
 # <!-- Object naming and locating elements                -->
 # <!-- ************************************************** -->
 
-# <!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)>
-
 def parse_namespacepath(parser, event, node): #pylint: disable=unused-argument
+    """Parse namespace path element and return tuple of
+       host and namespace
+           <!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)>
+    """
 
 
     (next_event, next_node) = six.next(parser)
@@ -259,10 +262,12 @@ def parse_namespacepath(parser, event, node): #pylint: disable=unused-argument
 
     return (host, namespacepath)
 
-# <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
 
 def parse_localnamespacepath(parser, event, node):
-     #pylint: disable=unused-argument
+    #pylint: disable=unused-argument
+    """Parse LOCALNAMESPACEPATH for Namespace. Return assembled namespace
+            <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
+    """
 
     (next_event, next_node) = six.next(parser)
 
@@ -288,9 +293,11 @@ def parse_localnamespacepath(parser, event, node):
 
     return '/'.join(namespaces)
 
-# <!ELEMENT HOST (#PCDATA)>
 
 def parse_host(parser, event, node):
+    """Parse and return the host entity if that is the next entity
+           <!ELEMENT HOST (#PCDATA)>
+    """
      #pylint: disable=unused-argument
 
     host = ''
@@ -308,15 +315,15 @@ def parse_host(parser, event, node):
 
     return host
 
-# <!ELEMENT NAMESPACE EMPTY>
-# <!ATTLIST NAMESPACE
-#       %CIMName;
-# >
+
 
 def parse_namespace(parser, event, node):
      #pylint: disable=unused-argument
     """Parse the CIM/XML NAMESPACE element and return the value
        of the CIMName attribute
+           <!ELEMENT NAMESPACE EMPTY>
+           <!ATTLIST NAMESPACE
+                 %CIMName;
     """
     name = _get_required_attribute(node, 'NAME')
 
@@ -336,7 +343,8 @@ def parse_namespace(parser, event, node):
 #       %CIMName;
 # >
 
-# <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
+# TODO ks: 16 mar 2016.  MUST implement CLASSPATH, etc.
+
 
 def parse_instancepath(parser, event, node):
     #pylint: disable=unused-argument
@@ -344,7 +352,6 @@ def parse_instancepath(parser, event, node):
        instancname
 
        <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
-
     """
 
     (next_event, next_node) = six.next(parser)
@@ -367,9 +374,12 @@ def parse_instancepath(parser, event, node):
 
     return instancename
 
-# <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
 
 def parse_localinstancepath(parser, event, node):
+    """Parse LOCALINSTANCEPATH element returning instancename
+           <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
+    """
+
      #pylint: disable=unused-argument
 
     (next_event, next_node) = six.next(parser)
@@ -390,12 +400,15 @@ def parse_localinstancepath(parser, event, node):
 
     return instancename
 
-# <!ELEMENT INSTANCENAME (KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?)>
-# <!ATTLIST INSTANCENAME
-#       %ClassName;
-# >
 
 def parse_instancename(parser, event, node): #pylint: disable=unused-argument
+    """Parse INSTANCENAME element returning CIMInstancename containing
+       classname and keybindings
+            <!ELEMENT INSTANCENAME (KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?)>
+            <!ATTLIST INSTANCENAME
+                  %ClassName;
+            >
+    """
 
     classname = _get_required_attribute(node, 'CLASSNAME')
     keybindings = []
@@ -443,7 +456,7 @@ def parse_instancename(parser, event, node): #pylint: disable=unused-argument
 # >
 
 def parse_keybinding(parser, event, node): #pylint: disable=unused-argument
-    """Parse CIM/XML KEYBINDING element and return name, value tuple"""
+    """Parse CIM/XML KEYBINDING element returning name, value tuple"""
 
     name = _get_required_attribute(node, 'NAME')
 
@@ -477,9 +490,9 @@ def parse_keyvalue(parser, event, node): #pylint: disable=unused-argument
     """
 
     valuetype = _get_required_attribute(node, 'VALUETYPE')
-    # TODO:2/16:ks: Why is type attribute not used? Why get
-    # if not used? This was late extension to allow real types.
-    cim_type = _get_attribute(node, 'TYPE')
+    # TODO:2/16:ks: Type attribute not used. Extend to use
+    # Type  was late extension to spec to allow real types.
+    cim_type = _get_attribute(node, 'TYPE') #pylint: disable=unused-variable
 
     (next_event, next_node) = six.next(parser)
 
@@ -516,7 +529,7 @@ def parse_keyvalue(parser, event, node): #pylint: disable=unused-argument
 
             # XXX: Would like to use long() here, but that tends to cause
             # trouble when it's written back out as '2L'
-            # pylint: disable redefined-variable-type
+            # pylint: disable=redefined-variable-type
             # Redefined from bool to int
             # pylint: disable=redefined-variable-type
             value = int(value.strip(), 0)
@@ -718,7 +731,7 @@ def parse_property_array(parser, event, node): #pylint: disable=unused-argument
     name = _get_required_attribute(node, 'NAME')
     cim_type = _get_required_attribute(node, 'TYPE')
 
-    #TODO: 2/16:ks: array_size here is unused
+    #TODO: 2/16:ks: array_size here is unused. It is valid attribute
     array_size = _get_attribute(node, 'ARRAYSIZE')
     class_origin = _get_attribute(node, 'CLASSORIGIN')
     propagated = _get_attribute(node, 'PROPAGATED')
@@ -1026,5 +1039,4 @@ def parse_any(stream_or_string):
 # Test harness
 
 if __name__ == '__main__':
-    import sys
     print(parse_any(sys.stdin))

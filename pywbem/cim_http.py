@@ -30,7 +30,7 @@ transferred in the HTTP request and response is CIM-XML.  It is up to the
 caller to provide CIM-XML formatted input data and interpret the result data
 as CIM-XML.
 '''
-
+from __future__ import print_function
 import re
 import os
 import sys
@@ -51,12 +51,14 @@ from .cim_obj import CIMClassName, CIMInstanceName, _ensure_unicode, \
 if six.PY2:
     from M2Crypto import SSL
     from M2Crypto.Err import SSLError
-    _HAVE_M2CRYPTO=True
+    _HAVE_M2CRYPTO = True
+    #pylint: disable=invalid-name
     SocketErrors = (socket.error, socket.sslerror)
 else:
     import ssl as SSL
     from ssl import SSLError
-    _HAVE_M2CRYPTO=False
+    _HAVE_M2CRYPTO = False
+    #pylint: disable=invalid-name
     SocketErrors = (socket.error,)
 
 __all__ = ['Error', 'ConnectionError', 'AuthError', 'TimeoutError']
@@ -429,6 +431,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                 # the symptom is that reading the response returns None.
                 # Therefore, we set the timeout at the level of the outer
                 # M2Crypto socket object.
+                # pylint: disable=using-constant-test
                 if False: # TODO: Currently disabled, figure out how to reenable
                     if self.timeout is not None:
                         self.sock.set_socket_read_timeout(
@@ -660,6 +663,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                         pgerrordetail_hdr = response.getheader('PGErrorDetail',
                                                                None)
                         if pgerrordetail_hdr is not None:
+                            #pylint: disable=too-many-function-args
                             exc_str += ', PGErrorDetail: %s' %\
                                 urllib.parse.unquote(pgerrordetail_hdr)
                         raise ConnectionError(exc_str)

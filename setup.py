@@ -28,7 +28,7 @@ and DSP0201. See http://www.dmtf.org/standards/wbem for information about
 WBEM. This is used for all kinds of systems management tasks that are
 supported by the system running the WBEM server.
 """
-
+from __future__ import print_function
 import re
 import sys
 import os
@@ -40,7 +40,7 @@ from distutils.errors import DistutilsSetupError
 # unloading and subsequent garbage collection causing the error.
 if sys.version_info[0:2] == (2, 6):
     try:
-        import multiprocessing
+        import multiprocessing #pylint: disable=unused-import
     except ImportError:
         pass
 
@@ -48,7 +48,7 @@ import os_setup
 from os_setup import shell, shell_check, import_setuptools
 
 # Package version - Keep in sync with pywbem/__init__.py!
-_version = '0.8.0rc4'
+_version = '0.8.0rc4' # pylint: disable=invalid-name
 
 def install_swig(installer, dry_run, verbose):
     """Custom installer function for `os_setup` module.
@@ -376,8 +376,8 @@ def main():
             # from Pypi in 2/2016 after being available for some time.
             # Therefore, we cannot use Pylint under Python 2.6.
             # Also, Pylint does not support Python 3.
-            "astroid" if sys.version_info[0:2] == (2,7) else None,
-            "pylint" if sys.version_info[0:2] == (2,7) else None,
+            "astroid" if sys.version_info[0:2] == (2, 7) else None,
+            "pylint" if sys.version_info[0:2] == (2, 7) else None,
         ],
         'install_os_requires': {
             # OS-level prereqs for 'install_os' command. Handled by os_setup
@@ -389,9 +389,9 @@ def main():
                                             #   Swig in M2Crypto install
                     install_swig,           # for running Swig in M2Crypto inst.
                     # Python-devel provides Python.h for Swig run.
-                    [ "python34-devel", "python34u-devel", "python3-devel" ] \
+                    ["python34-devel", "python34u-devel", "python3-devel"] \
                         if py_version_m_n == "3.4" else \
-                    [ "python35-devel", "python35u-devel", "python3-devel" ] \
+                    ["python35-devel", "python35u-devel", "python3-devel"] \
                         if py_version_m_n == "3.5" else \
                     "python-devel",
                     "git>=1.7",             # for retrieving fixed M2Crypto

@@ -25,12 +25,11 @@ Validate XML instance data against the CIM-XML DTD.
 Can also be invoked as a script for testing purposes, and then validates
 XML data specified in standard input.
 """
-
+from __future__ import print_function
 import sys
 import os
 import os.path
 from subprocess import Popen, PIPE, STDOUT
-import six
 
 from pywbem.cim_obj import _ensure_bytes
 
@@ -82,6 +81,4 @@ def validate_xml(data, dtd_directory=None, root_elem=None):
     return True
 
 if __name__ == '__main__':
-
-    data_ = ''.join(sys.stdin.readlines())
-    sys.exit(validate_xml(data_))
+    sys.exit(validate_xml(''.join(sys.stdin.readlines())))

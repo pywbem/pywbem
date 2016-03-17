@@ -775,9 +775,9 @@ def parse_class(tup_tree):
 
     # TODO: Return these as maps, not lists
     properties = byname(list_of_matching(tup_tree,
-                                                 ['PROPERTY',
-                                                  'PROPERTY.REFERENCE',
-                                                  'PROPERTY.ARRAY']))
+                                         ['PROPERTY',
+                                          'PROPERTY.REFERENCE',
+                                          'PROPERTY.ARRAY']))
 
     qualifiers = byname(list_of_matching(tup_tree, ['QUALIFIER']))
     methods = byname(list_of_matching(tup_tree, ['METHOD']))
