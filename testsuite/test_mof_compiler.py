@@ -10,11 +10,12 @@ from tempfile import TemporaryFile
 import unittest
 import six
 if six.PY2:
+    # pylint: disable=wrong-import-order
     from urllib2 import urlopen
 else:
+    # pylint: disable=wrong-import-order
     from urllib.request import urlopen
 
-import pytest
 from pywbem.cim_operations import CIMError
 from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 from pywbem.cim_constants import *

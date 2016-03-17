@@ -520,7 +520,7 @@ def parse_namespacepath(tup_tree):
 
     if len(kids(tup_tree)) != 2:
         raise ParseError('Expecting (HOST, LOCALNAMESPACEPATH) '
-                         'got %s' % kids(tup_tree).keys())
+                         'got %s' % kids(tup_tree))
 
     host = parse_host(kids(tup_tree)[0])
     localnspath = parse_localnamespacepath(kids(tup_tree)[1])
@@ -574,7 +574,7 @@ def parse_classpath(tup_tree):
 
     if len(kids(tup_tree)) != 2:
         raise ParseError('Expecting (NAMESPACEPATH, CLASSNAME) '
-                         'got %s' % kids(tup_tree).keys())
+                         'got %s' % kids(tup_tree))
 
     nspath = parse_namespacepath(kids(tup_tree)[0])
     classname = parse_classname(kids(tup_tree)[1])
@@ -592,7 +592,7 @@ def parse_localclasspath(tup_tree):
 
     if len(kids(tup_tree)) != 2:
         raise ParseError('Expecting (LOCALNAMESPACEPATH, CLASSNAME) '
-                         'got %s' % kids(tup_tree).keys())
+                         'got %s' % kids(tup_tree))
 
     localnspath = parse_localnamespacepath(kids(tup_tree)[0])
     classname = parse_classname(kids(tup_tree)[1])
@@ -640,7 +640,7 @@ def parse_localinstancepath(tup_tree):
 
     if len(kids(tup_tree)) != 2:
         raise ParseError('Expecting (LOCALNAMESPACEPATH, INSTANCENAME), '
-                         'got %s' % kids(tup_tree).keys())
+                         'got %s' % kids(tup_tree))
 
     localnspath = parse_localnamespacepath(kids(tup_tree)[0])
     instancename = parse_instancename(kids(tup_tree)[1])

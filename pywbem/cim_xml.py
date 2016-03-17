@@ -20,11 +20,11 @@
 # Author: Bart Whiteley <bwhiteley@suse.de>
 #
 
-# TODO:2/16:ks: Sort this issue out and see if we need to fix.
-# These two issues are found repeatedly in this file so pylint disabled.
+# TODO 2/16 KS: Sort this issue out and see if we need to fix. These two
+#               issues are found repeatedly in this file so pylint disabled.
 # pylint: disable=non-parent-init-called,super-init-not-called
-"""
 
+"""
 Functions to create XML documens and elements conforming to the DMTF
 standard DSP0201, Representation of CIM in XML, v2.2.
 

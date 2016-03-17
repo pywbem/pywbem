@@ -12,8 +12,6 @@
 
 import sys
 import unittest
-import pytest
-import six
 
 from pywbem import cim_xml
 from pywbem.cim_obj import _ensure_bytes
@@ -81,6 +79,7 @@ class CIMXMLTest(unittest.TestCase):
                             # test case.
 
     def validate(self, xml, expectedResult=0):
+        # pylint: disable=unused-argument
         """xml is a string with the CIM-XML."""
         validate_xml(xml, dtd_directory='../..')
 

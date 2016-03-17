@@ -676,8 +676,11 @@ class InitCIMInstance(unittest.TestCase):
                           (num_value, type(num_value), inst.properties))
 
         # Check that initialization with string values for boolean types
-        # is rejected
-        if False: # TODO Re-enable this test once this check is implemented
+        # is rejected.
+        #
+        # TODO Re-enable this test once this check is implemented.
+        # pylint: disable=using-constant-test
+        if False:
             try:
                 inst = CIMInstance('CIM_Foo',
                                    properties={'Old':

@@ -3,7 +3,6 @@
 """Exercise routines in cim_http"""
 
 import unittest
-import pytest
 
 from pywbem import cim_http
 

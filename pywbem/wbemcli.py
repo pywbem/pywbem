@@ -47,13 +47,13 @@ function. For example:
 """
 
 import os
-import sys
 import getpass
 import errno
 import code
-# TODO Migrate to use argparse instead of optparse. It takes more than
-#      just importing the module (e.g. add_option() no longer exists
-#      in argparse).
+
+# TODO 2/16 AM: Migrate to use argparse instead of optparse. It takes more than
+#               just importing the module (e.g. add_option() no longer exists
+#               in argparse).
 #try:
 #    # Python 2.7+ and 3.2+
 #    from argparse import ArgumentParser as OptionParser
@@ -186,8 +186,9 @@ def DeleteInstance(instancename):
 
     return _CONN.DeleteInstance(instancename)
 
-# TODO all of the following functions simply use args and kwargs
-# This makes sorting out arguments difficult for the user.
+# TODO KS: All of the following functions simply use args and kwargs. This
+#          makes sorting out arguments difficult for the user.
+
 def ModifyInstance(*args, **kwargs):
     """Modify an existing instance"""
 

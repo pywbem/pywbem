@@ -70,9 +70,9 @@ from datetime import tzinfo, datetime, timedelta
 import re
 import six
 if six.PY2:
-    _longint = long
+    _Longint = long
 else:
-    _longint = int
+    _Longint = int
 
 __all__ = ['MinutesFromUTC', 'CIMType', 'CIMDateTime', 'CIMInt', 'Uint8',
            'Sint8', 'Uint16', 'Sint16', 'Uint32', 'Sint32', 'Uint64', 'Sint64',
@@ -438,7 +438,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
 
 # CIM integer types
 
-class CIMInt(CIMType, _longint):
+class CIMInt(CIMType, _Longint):
     """Base type for integer CIM types."""
 
 class Uint8(CIMInt):

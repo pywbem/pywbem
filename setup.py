@@ -217,7 +217,7 @@ def install_swig(installer, dry_run, verbose):
                     print("Done downloading, building and installing Swig "\
                           "version %s" % swig_build_version)
 
-def patch_epydoc(installer, dry_run, verbose):
+def patch_epydoc(installer, dry_run, verbose): # pylint: disable=unused-argument
     """Custom installer function for `os_setup` module.
     This function patches Epydoc 3.0.1 (if not yet done) with the patches from:
     http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/packages/epydoc/
@@ -287,6 +287,8 @@ def main():
     from distutils.command.install import install as _install
 
     class install(_install):
+    # pylint: disable=invalid-name,too-few-public-methods
+
         def run(self):
             pre_install(self.verbose, self.dry_run)
             _install.run(self)
@@ -308,7 +310,6 @@ def main():
             mof_compiler._build(verbose)
 
     py_version_m_n = "%s.%s" % (sys.version_info[0], sys.version_info[1])
-    py_version_mn = "%s%s" % (sys.version_info[0], sys.version_info[1])
     py_version_m = "%s" % sys.version_info[0]
 
     args = {
@@ -403,7 +404,7 @@ def main():
                     "g++>=4.4",
                     install_swig,
                     "python-dev" if py_version_m == "2"
-                        else "python%s-dev" % py_version_m,
+                    else "python%s-dev" % py_version_m,
                     "git>=1.7",
                 ],
                 'debian': 'ubuntu',
