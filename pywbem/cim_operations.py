@@ -179,20 +179,20 @@ def check_utf8_xml_chars(utf8_xml, meaning):
     # before the str type gets decoded to unicode, because afterwards
     # surrogates produced from ill-formed UTF-8 cannot be distinguished from
     # legally produced surrogates (for code points above U+FFFF).
-    ic_list = list()
+    ifs_list = list()
     for m in _ILL_FORMED_UTF8_RE.finditer(utf8_xml):
-        ic_pos = m.start(1)
-        ic_seq = m.group(1)
-        ic_list.append((ic_pos, ic_seq))
-    if len(ic_list) > 0:
+        ifs_pos = m.start(1)
+        ifs_seq = m.group(1)
+        ifs_list.append((ifs_pos, ifs_seq))
+    if len(ifs_list) > 0:
         exc_txt = "Ill-formed (surrogate) UTF-8 Byte sequences found in %s:" %\
                   meaning
-        for (ic_pos, ic_seq) in ic_list:
-            exc_txt += "\n  At offset %d:" % ic_pos
-            for c in ic_seq:
-                exc_txt += " 0x%02X" % ord(c)
-            cpos1 = max(ic_pos-context_before, 0)
-            cpos2 = min(ic_pos+context_after, len(utf8_xml))
+        for (ifs_pos, ifs_seq) in ifs_list:
+            exc_txt += "\n  At offset %d:" % ifs_pos
+            for ifs_ord in six.iterbytes(ifs_seq):
+                exc_txt += " 0x%02X" % ifs_ord
+            cpos1 = max(ifs_pos-context_before, 0)
+            cpos2 = min(ifs_pos+context_after, len(utf8_xml))
             exc_txt += ", CIM-XML snippet: %r" % utf8_xml[cpos1:cpos2]
         raise ParseError(exc_txt)
 
@@ -211,8 +211,9 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         exc_txt = "Incorrectly encoded UTF-8 Byte sequences found in %s" %\
                   meaning
         exc_txt += "\n  At offset %d:" % _p1
-        for c in utf8_xml[_p1:_p2+1]:
-            exc_txt += " 0x%02X" % ord(c)
+        ies_seq = utf8_xml[_p1:_p2+1]
+        for ies_ord in six.iterbytes(ies_seq):
+            exc_txt += " 0x%02X" % ies_ord
         cpos1 = max(_p1-context_before, 0)
         cpos2 = min(_p2+context_after, len(utf8_xml))
         exc_txt += ", CIM-XML snippet: %r" % utf8_xml[cpos1:cpos2]
@@ -221,21 +222,21 @@ def check_utf8_xml_chars(utf8_xml, meaning):
     # Now we know the Unicode characters are valid.
     # Check for Unicode characters that cannot legally be represented as XML
     # characters.
-    ic_list = list()
-    last_ic_pos = -2
+    ixc_list = list()
+    last_ixc_pos = -2
     for m in _ILLEGAL_XML_CHARS_RE.finditer(utf8_xml_u):
-        ic_pos = m.start(1)
-        ic_char = m.group(1)
-        if ic_pos > last_ic_pos + 1:
-            ic_list.append((ic_pos, ic_char))
-        last_ic_pos = ic_pos
-    if len(ic_list) > 0:
+        ixc_pos = m.start(1)
+        ixc_char_u = m.group(1)
+        if ixc_pos > last_ixc_pos + 1:
+            ixc_list.append((ixc_pos, ixc_char_u))
+        last_ixc_pos = ixc_pos
+    if len(ixc_list) > 0:
         exc_txt = "Invalid XML characters found in %s:" % meaning
-        for (ic_pos, ic_char) in ic_list:
-            cpos1 = max(ic_pos-context_before, 0)
-            cpos2 = min(ic_pos+context_after, len(utf8_xml_u))
+        for (ixc_pos, ixc_char_u) in ixc_list:
+            cpos1 = max(ixc_pos-context_before, 0)
+            cpos2 = min(ixc_pos+context_after, len(utf8_xml_u))
             exc_txt += "\n  At offset %d: U+%04X, CIM-XML snippet: %r" % \
-                (ic_pos, ord(ic_char), utf8_xml_u[cpos1:cpos2])
+                (ixc_pos, ord(ixc_char_u), utf8_xml_u[cpos1:cpos2])
         raise ParseError(exc_txt)
 
     return utf8_xml
