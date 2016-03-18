@@ -32,7 +32,7 @@ represented as a special Python object.
 These objects can also be mapped back into CIM-XML, by their `tocimxml()`
 method which returns a CIM-XML string.
 """
-
+from __future__ import print_function
 # This module is meant to be safe for 'import *'.
 
 import re
@@ -54,6 +54,8 @@ from .cim_types import _CIMComparisonMixin, type_from_name, \
 __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
            'CIMQualifierDeclaration', 'tocimxml', 'tocimobj']
+
+DEFAULT_INDENT = 7
 
 # pylint: disable=too-many-lines
 class NocaseDict(object):
@@ -835,6 +837,8 @@ class CIMProperty(_CIMComparisonMixin):
         All parameters of `__init__` are set as instance variables.
     """
 
+
+    # pylint: disable=too-many-statements
     def __init__(self, name, value, type=None,
                  class_origin=None, array_size=None, propagated=None,
                  is_array=None, reference_class=None, qualifiers=None,
@@ -1760,9 +1764,11 @@ class CIMInstance(_CIMComparisonMixin):
     # operation on self.properties.
 
     def __contains__(self, key):
+        """Test if argument key is one of the properteis"""
         return key in self.properties
 
     def __getitem__(self, key):
+        """Return the property with key"""
         return self.properties[key].value
 
     def __delitem__(self, key):
@@ -1779,6 +1785,7 @@ class CIMInstance(_CIMComparisonMixin):
         return key in self.properties
 
     def keys(self):
+        """return keys for properties in instance"""
         return self.properties.keys()
 
     def values(self):
@@ -1865,11 +1872,11 @@ class CIMInstance(_CIMComparisonMixin):
         return cim_xml.VALUE_NAMEDINSTANCE(self.path.tocimxml(),
                                            instance_xml)
 
-    def tomof(self):
+    def tomof(self, indent=DEFAULT_INDENT):
         """ Return string representing the MOF definition of this
             CIMInstance.
         """
-        def _prop2mof(type_, value):
+        def _prop2mof(type_, value, indent_lvl=DEFAULT_INDENT):
             """ Return a string representing the MOF definition of
                 a single property defined by the type and value
                 arguments.
@@ -1883,21 +1890,30 @@ class CIMInstance(_CIMComparisonMixin):
                 for i, item in enumerate(value):
                     if i > 0:
                         val += ', '
-                    val += _prop2mof(type_, item)
+                    val += _prop2mof(type_, item, indent_lvl=indent_lvl)
                 val += '}'
             elif type_ == 'string':
-                val = mofstr(value)
+                val = mofstr(value, indent=indent_lvl)
             else:
                 val = str(value)
             return val
 
-        ret_str = 'instance of %s {\n' % self.classname
-        for prop in self.properties.values():
-            ret_str += '\t%s = %s;\n' % (prop.name,
-                                         _prop2mof(prop.type,
-                                                   prop.value))
-        ret_str += '};\n'
+        # Create temp indent remove one level
+        indent_str = ' '.ljust(indent, ' ')
+        out_indent = indent_str[:(indent - DEFAULT_INDENT)]
 
+        ret_str = out_indent + 'instance of %s {\n' % self.classname
+        for prop in self.properties.values():
+            if prop.embedded_object is not None:
+                # convert the instance in this property
+                ret_str += prop.value.tomof(indent=(indent + DEFAULT_INDENT))
+            else:
+                # output this property indented to return string
+                ret_str += '%s%s = %s;\n' % (indent_str, prop.name,
+                                             _prop2mof(prop.type,
+                                                       prop.value,
+                                                       indent_lvl=indent))
+        ret_str += (out_indent + '};\n')
         return ret_str
 
 

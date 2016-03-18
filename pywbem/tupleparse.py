@@ -933,6 +933,7 @@ def parse_property(tup_tree):
     ##      %ClassOrigin;
     ##      %Propagated;
     ##      %CIMType;              #REQUIRED>
+    ##      %EMBEDDEDOBJECT
 
     ## TODO: Parse this into NAME, VALUE, where the value contains
     ## magic fields for the qualifiers and the propagated flag.
