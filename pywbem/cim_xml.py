@@ -65,7 +65,7 @@ def _text(data):
 
     Note: The API for the minidom text node function has changed in
     Python 2.3.  The code for older Python versions has been removed from this
-    function in PyWBEM 0.8.0; the Python version check is now done in
+    function in PyWBEM 0.8; the Python version check is now done in
     __init__.py.
     """
 

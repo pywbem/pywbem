@@ -5,7 +5,7 @@ The PyWBEM Client can be installed quite easily by running its standard Python
 setup script (`setup.py`) with the `install` command, or by using `pip install`
 (which also invokes the setup script).
 
-As of PyWBEM Client v0.8.0, the setup script has support for installing its
+As of PyWBEM Client v0.8, the setup script has support for installing its
 prerequisites. This includes installing Python packages and OS-level packages,
 and it includes the usual install mode and development mode.
 
@@ -64,9 +64,9 @@ Examples
 * Install from a particular distribution archive on GitHub into new Python 2.7
   virtual environment, installing OS-level prerequisites as needed:
 
-      wget https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.8.0/pywbem-0.8.0.zip
-      unzip pywbem-0.8.0.zip
-      cd pywbem-0.8.0
+      wget https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.8/pywbem-0.8.1.tar.gz
+      tar -vf pywbem-0.8.1.tar.gz
+      cd pywbem-0.8.1
       mkvirtualenv -p python2.7 pywbem27
       python setup.py install_os install
 

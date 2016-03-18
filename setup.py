@@ -48,7 +48,7 @@ import os_setup
 from os_setup import shell, shell_check, import_setuptools
 
 # Package version - Keep in sync with pywbem/__init__.py!
-_version = '0.8.0'  # pylint: disable=invalid-name
+_version = '0.8.1'  # pylint: disable=invalid-name
 
 def install_swig(installer, dry_run, verbose):
     """Custom installer function for `os_setup` module.
@@ -317,8 +317,8 @@ def main():
         'author': 'Tim Potter',
         'author_email': 'tpot@hp.com',
         'maintainer': 'Andreas Maier',
-        'maintainer_email': 'andreas.r.maier@gmx.de',
-        'description': 'A WBEM client and related utilities',
+        'maintainer_email': 'maiera@de.ibm.com',
+        'description': 'PyWBEM Client - A WBEM client and related utilities',
         'long_description': __doc__,
         'platforms': ['any'],
         'url': 'http://pywbem.github.io/pywbem/',

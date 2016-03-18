@@ -7,8 +7,7 @@
 #
 # Basic prerequisites for running this makefile:
 #   bash, sh
-#   zip, unzip
-#   rm, find, xargs, grep, sed
+#   rm, find, xargs, grep, sed, tar
 #   python (Some active Python version, virtualenv is supported)
 #   pip (in the active Python environment)
 #
@@ -30,6 +29,9 @@ package_version := $(shell sh -c "echo $(package_specified_version) |sed 's/[.-]
 # Final version of this package (M.N.U)
 package_final_version := $(shell sh -c "echo $(package_version) |sed 's/rc[0-9]\+$$//' |sed 's/\.dev0$$//'")
 
+# Final version of this package (M.N)
+package_final_mn_version := $(shell sh -c "echo $(package_final_version) |sed 's/\([0-9]\+\.[0-9]\+\).\+$$/\1/'")
+
 # Python major version
 python_major_version := $(shell python -c "import sys; sys.stdout.write('%s'%sys.version_info[0])")
 
@@ -37,10 +39,10 @@ python_major_version := $(shell python -c "import sys; sys.stdout.write('%s'%sys
 python_version_fn := $(shell python -c "import sys; sys.stdout.write('%s%s'%(sys.version_info[0],sys.version_info[1]))")
 
 # Directory for the generated distribution files
-dist_dir := dist/$(package_name)-$(package_final_version)
+dist_dir := dist/$(package_name)-$(package_final_mn_version)
 
 # Distribution archive (as built by setup.py)
-dist_file := $(dist_dir)/$(package_name)-$(package_version).zip
+dist_file := $(dist_dir)/$(package_name)-$(package_version).tar.gz
 
 # Windows installable (as built by setup.py)
 win64_dist_file := $(dist_dir)/$(package_name)-$(package_version).win-amd64.exe
@@ -130,14 +132,14 @@ help:
 	@echo 'Valid targets are (they do just what is stated, i.e. no automatic prereq targets):'
 	@echo '  develop    - Prepare the development environment by installing prerequisites'
 	@echo '  build      - Build the distribution archive: $(dist_file)'
-	@echo '  buildwin   - Build the Windows installable: $(win64_dist_file) (on Win 64-bit)'
+	@echo '  buildwin   - Build the Windows installable: $(win64_dist_file) (requires Windows 64-bit)'
 	@echo '  builddoc   - Build documentation in: $(doc_build_dir)'
 	@echo '  check      - Run PyLint on sources and save results in: pylint.log'
 	@echo '  install    - Install distribution archive to active Python environment'
 	@echo '  test       - Run unit tests and save results in: $(test_log_file)'
 	@echo '  clean      - Remove any temporary files; ensure clean build start'
 	@echo '  all        - Do everything locally (except publish/upload)'
-	@echo '  upload     - build + Upload the distribution archive to PyPI'
+	@echo '  upload     - build + upload the distribution archive to PyPI: $(dist_file)'
 	@echo '  publish    - builddoc + publish documentation to: $(doc_publish_dir)'
 	@echo '  clobber    - Remove any build products'
 
@@ -169,8 +171,9 @@ check:
 	@echo 'Checking requires Python 2; skipping this step'
 endif
 
-install:
-	unzip -q -o -d tmp_install $(dist_file)
+install: $(dist_file)
+	mkdir tmp_install
+	tar -x -C tmp_install -f $(dist_file)
 	sh -c "cd tmp_install/$(package_name)-$(package_version) && python setup.py install_os && python setup.py install"
 	rm -Rf tmp_install
 	@echo '$@ done.'
@@ -192,21 +195,13 @@ clean:
 	rm -Rf build tmp_install testtmp testsuite/testtmp .cache $(package_name).egg-info
 	@echo '$@ done.'
 
-all: clean develop check builddoc test
+all: clean develop check build builddoc test
 	@echo '$@ done.'
 
-upload: build
-	@sh -c "\
-if [[ $(package_version) =~ .*-dev ]]; \
-then \
-  echo Error: Development versions should not be uploaded to PyPI: $(package_version); \
-  false; \
-else \
-  echo No Development version; \
-fi \
-"
-	python setup.py upload
-	@echo '$@ done; uploaded package to PyPI.'
+upload: setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
+	rm -f MANIFEST
+	python setup.py sdist -d $(dist_dir) register upload
+	@echo '$@ done; registered and uploaded package to PyPI.'
 
 publish: builddoc
 	rm -Rf $(doc_publish_dir)
@@ -227,7 +222,7 @@ MANIFEST.in: makefile
 # regenerate MANIFEST. Otherwise, changes in MANIFEST.in will not be used.
 $(dist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	rm -f MANIFEST
-	python setup.py sdist -d $(dist_dir) --formats=zip
+	python setup.py sdist -d $(dist_dir)
 
 $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 	rm -f MANIFEST
