@@ -4,7 +4,6 @@
 #
 
 import unittest
-import pytest
 
 from pywbem.cim_obj import NocaseDict
 

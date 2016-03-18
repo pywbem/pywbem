@@ -9,7 +9,6 @@ an object to XML then parsing it again.  The round trip should
 produce an object that is identical to the one we started with.
 """
 import unittest
-import pytest
 
 from pywbem import tupletree, tupleparse
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, \
@@ -97,7 +96,7 @@ class ParseCIMInstance(TupleTest):
                         path=CIMInstanceName('CIM_Foo',
                                              {'InstanceID': '1234'})))
 
-# TODO: 2/8/16: ks: Create test for more complete class
+# TODO 2/16 KS: Create test for more complete class.
 class ParseCIMClass(TupleTest):
     """Test parsing of CIMClass objects."""
 
@@ -154,7 +153,7 @@ class ParseCIMClass(TupleTest):
                        }
             ))
 
-# TODO: Feb/16: ks: extend to all property data types
+# TODO 2/16 KS: Extend to all property data types.
 class ParseCIMProperty(TupleTest):
     """Test parsing of CIMProperty objects."""
 
@@ -193,7 +192,7 @@ class ParseCIMProperty(TupleTest):
         self._run_single(CIMProperty('Foo', inst))
         self._run_single(CIMProperty('Foo', [inst]))
 
-# TODO: Feb/16: ks: Extend for all data types
+# TODO 2/16 KS: Extend for all data types.
 class ParseCIMParameter(TupleTest):
     """Test parsing of CIMParameter objects."""
 

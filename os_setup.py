@@ -67,9 +67,9 @@ Syntax for the new attributes of the `setup()` function:
                   "pylint>=1.3,<1.4",       # req: pkg with multiple version
                                             # requirements
                   "xyz=2.7",                # req: pkg where any 2.7.x matches
-                  "xyz==2.7",               # req: pkg where only 2.7[.0] matches
-                  "abc"\                    # req: pkg only for Python 2
-                    if sys.version_info[0] == 2\
+                  "xyz==2.7",               # req: pkg where only 2.7[.0] match
+                  "abc"                     # req: pkg only for Python 2
+                    if sys.version_info[0] == 2
                     else None,
                   [                         # req: pkg choice where first
                                             # available pkg name is installed;
@@ -879,7 +879,7 @@ class PythonInstaller(BaseInstaller):
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.ensure_installed()`.
         """
-        inst, inst_sufficient, inst_version = \
+        unused_inst, inst_sufficient, inst_version = \
             self.is_installed(pkg_name, version_reqs)
 
         if inst_sufficient:
@@ -888,7 +888,7 @@ class PythonInstaller(BaseInstaller):
                       "%s %s" % (pkg_name, inst_version))
             return True
 
-        avail, avail_sufficient, avail_versions = \
+        avail, avail_sufficient, unused_avail_versions = \
             self.is_available(pkg_name, version_reqs)
 
         if not avail:
@@ -993,8 +993,8 @@ class OSInstaller(BaseInstaller):
 
     def install_distro(self, distro, distro_dict, dry_run, verbose):
         """
-        Install the OS package requirements specified in a distro dictionary, for
-        the specified distro.
+        Install the OS package requirements specified in a distro dictionary,
+        for the specified distro.
 
         Parameters:
             * distro (string): Distro ID (key in distro_dict).
@@ -1135,7 +1135,7 @@ class OSInstaller(BaseInstaller):
                               self.MSG_PLATFORM_NOT_SUPPORTED)
             return False
 
-        inst, inst_sufficient, inst_version = \
+        unused_inst, inst_sufficient, inst_version = \
             self.is_installed(pkg_name, version_reqs)
 
         if inst_sufficient:
@@ -1144,7 +1144,7 @@ class OSInstaller(BaseInstaller):
                       "%s %s" % (pkg_name, inst_version))
             return True
 
-        avail, avail_sufficient, avail_versions = \
+        avail, avail_sufficient, unused_avail_versions = \
             self.is_available(pkg_name, version_reqs)
 
         if not avail:
@@ -1405,8 +1405,9 @@ def shell(command, display=False, ignore_notfound=False):
     else:  # already a list
         cmd_parts = command
 
-    encoded_cmd_parts = [part.encode("utf-8") if isinstance(part,
-                         six.text_type) else part for part in cmd_parts]
+    encoded_cmd_parts = [part.encode("utf-8")
+                         if isinstance(part, six.text_type)
+                         else part for part in cmd_parts]
     try:
         p = subprocess.Popen(encoded_cmd_parts,
                              stdout=subprocess.PIPE,

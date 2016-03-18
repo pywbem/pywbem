@@ -5,7 +5,6 @@
 Test functions in cim_operations
 """
 from __future__ import print_function
-import sys
 import unittest
 
 from pywbem.cim_operations import check_utf8_xml_chars, ParseError

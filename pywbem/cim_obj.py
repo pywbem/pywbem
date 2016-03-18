@@ -39,8 +39,10 @@ import re
 from datetime import datetime, timedelta
 import six
 if six.PY2:
+    # pylint: disable=wrong-import-order
     from __builtin__ import type as builtin_type
 else:
+    # pylint: disable=wrong-import-order
     from builtins import type as builtin_type
 
 from . import cim_xml
@@ -833,14 +835,13 @@ class CIMProperty(_CIMComparisonMixin):
         All parameters of `__init__` are set as instance variables.
     """
 
-    ## pylint: too-many-statements
     def __init__(self, name, value, type=None,
                  class_origin=None, array_size=None, propagated=None,
                  is_array=None, reference_class=None, qualifiers=None,
                  embedded_object=None):
         # pylint: disable=redefined-builtin,too-many-arguments,too-many-branches
-        # pylint: too-many-statements,too-many-instance-attributes,
-        # pylint: too-many-instance-attributes
+        # pylint: disable=too-many-statements,too-many-instance-attributes
+        # pylint: disable=too-many-instance-attributes
         """
         Initialize the `CIMProperty` object.
 

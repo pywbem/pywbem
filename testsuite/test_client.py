@@ -21,13 +21,12 @@ Approach:
 """
 from __future__ import print_function
 import os
-import inspect
 import doctest
 import socket
 import unittest
 import re
 import traceback
-import pytest
+
 import six
 import yaml
 import httpretty
@@ -39,7 +38,7 @@ else:
     from ssl import SSLError
 
 import pywbem
-from pywbem.cim_obj import _ensure_bytes, _ensure_unicode
+from pywbem.cim_obj import _ensure_unicode
 
 # Directory with the JSON test case files, relative to this script:
 TESTCASE_DIR = os.path.join(os.path.dirname(__file__), "test_client")
@@ -253,6 +252,9 @@ class ClientTest(unittest.TestCase):
                         if parent[i].tag != tag and first is not None:
                             after = i
                     # The following changes the original XML tree:
+                    # The following pylint warning can safely be disabled, see
+                    # http://stackoverflow.com/a/25314665
+                    # pylint: disable=cell-var-from-loop
                     parent[first:after] = sorted(elems,
                                                  key=lambda e: e.attrib[attr])
 
@@ -472,6 +474,7 @@ class ClientTest(unittest.TestCase):
 
         if exp_result is not None:
             exp_result_obj = obj(exp_result, tc_name)
+            # pylint: disable=unidiomatic-typecheck
             if type(result) != type(exp_result_obj):
                 print("result and expected result type mismatch")
                 print("result type %s" % type(result))

@@ -596,9 +596,9 @@ class WBEMConnection(object):
                 timeout=self.timeout)
         except (AuthError, ConnectionError, TimeoutError, Error):
             raise
-        # TODO Clean up exception handling. The next two lines are a workaround
-        # in order not to ignore TypeError and other exceptions that may be
-        # raised.
+        # TODO 3/16 AM: Clean up exception handling. The next two lines are a
+        # workaround in order not to ignore TypeError and other exceptions
+        # that may be raised.
         except Exception:
             raise
 
@@ -823,9 +823,9 @@ class WBEMConnection(object):
                 timeout=self.timeout)
         except (AuthError, ConnectionError, TimeoutError, Error):
             raise
-        # TODO Clean up exception handling. The next two lines are a workaround
-        # in order not to ignore TypeError and other exceptions that may be
-        # raised.
+        # TODO 3/16 AM: Clean up exception handling. The next two lines are a
+        # workaround in order not to ignore TypeError and other exceptions
+        # that may be raised.
         except Exception:
             raise
 

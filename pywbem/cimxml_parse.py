@@ -191,8 +191,8 @@ def parse_value_reference(parser, event, node): #pylint: disable=unused-argument
 
     (next_event, next_node) = six.next(parser)
 
-    #TODO:2/16:ks: Functions below do not exist: i.e. class stuff broken.
-    #TODO: parse_classpath, parse_localclasspath, parse_classname.
+    # TODO 2/16 KS: Functions below do not exist: i.e. class stuff broken:
+    #               parse_classpath, parse_localclasspath, parse_classname.
 
     if _is_start(next_event, next_node, 'CLASSPATH'):
         result = parse_classpath(parser, next_event, next_node)
@@ -343,8 +343,7 @@ def parse_namespace(parser, event, node):
 #       %CIMName;
 # >
 
-# TODO ks: 16 mar 2016.  MUST implement CLASSPATH, etc.
-
+# TODO 3/16 KS: MUST implement CLASSPATH, etc.
 
 def parse_instancepath(parser, event, node):
     #pylint: disable=unused-argument
@@ -490,9 +489,10 @@ def parse_keyvalue(parser, event, node): #pylint: disable=unused-argument
     """
 
     valuetype = _get_required_attribute(node, 'VALUETYPE')
-    # TODO:2/16:ks: Type attribute not used. Extend to use
-    # Type  was late extension to spec to allow real types.
-    cim_type = _get_attribute(node, 'TYPE') #pylint: disable=unused-variable
+
+    # TODO 2/16 KS: Type attribute not used. Extend to use. Type  was late
+    #               extension to spec to allow real types.
+    cim_type = _get_attribute(node, 'TYPE')  # pylint: disable=unused-variable
 
     (next_event, next_node) = six.next(parser)
 
@@ -636,7 +636,7 @@ def parse_qualifier(parser, event, node): #pylint: disable=unused-argument
 
     name = _get_required_attribute(node, 'NAME')
     cim_type = _get_required_attribute(node, 'TYPE')
-    # TODO: Feb 2016: ks : Why is propagated not used?
+    # TODO 2/16 KS: Why is propagated not used?
     propagated = _get_attribute(node, 'PROPAGATED')
 
     (next_event, next_node) = six.next(parser)
@@ -731,12 +731,12 @@ def parse_property_array(parser, event, node): #pylint: disable=unused-argument
     name = _get_required_attribute(node, 'NAME')
     cim_type = _get_required_attribute(node, 'TYPE')
 
-    #TODO: 2/16:ks: array_size here is unused. It is valid attribute
+    # TODO 2/16 KS: array_size here is unused. It is valid attribute.
     array_size = _get_attribute(node, 'ARRAYSIZE')
     class_origin = _get_attribute(node, 'CLASSORIGIN')
     propagated = _get_attribute(node, 'PROPAGATED')
 
-    ## TODO: Jan 2016: ks The qualifier processing could be common
+    # TODO 1/16 KS: The qualifier processing could be common.
     qualifiers = []
     value = None
 

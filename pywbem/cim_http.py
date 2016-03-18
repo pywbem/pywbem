@@ -356,7 +356,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
     class HTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
         """ Execute client connection without ssl using httplib. """
         def __init__(self, host, port=None, timeout=None):
-            # TODO: Should we set strict=True in the following call, for PY2?
+            # TODO AM: Should we set strict=True in the following call, for PY2?
             httplib.HTTPConnection.__init__(self, host=host, port=port,
                                             timeout=timeout)
 
@@ -365,7 +365,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
         # pylint: disable=R0913,too-many-arguments
         def __init__(self, host, port=None, key_file=None, cert_file=None,
                      ca_certs=None, verify_callback=None, timeout=None):
-            # TODO: Should we set strict=True in the following call, for PY2?
+            # TODO AM: Should we set strict=True in the following call, for PY2?
             httplib.HTTPSConnection.__init__(self, host=host, port=port,
                                              key_file=key_file,
                                              cert_file=cert_file,
@@ -383,8 +383,9 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
             #
             # Another change is that we do not pass the timeout value
             # on to the socket call, because that does not work with M2Crypto.
-            # TODO: Check out whether we can pass the timeout for Python 3
-            # again, given that we use the standard SSL support again.
+            #
+            # TODO AM: Check out whether we can pass the timeout for Python 3
+            #          again, given that we use the standard SSL support again.
             if sys.version_info[0:2] >= (2, 7):
                 # the source_address argument was added in 2.7
                 self.sock = socket.create_connection(
@@ -432,7 +433,9 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                 # Therefore, we set the timeout at the level of the outer
                 # M2Crypto socket object.
                 # pylint: disable=using-constant-test
-                if False: # TODO: Currently disabled, figure out how to reenable
+                if False:
+                    # TODO 2/16 AM: Currently disabled, figure out how to
+                    #               reenable.
                     if self.timeout is not None:
                         self.sock.set_socket_read_timeout(
                             SSL.timeout(self.timeout))
@@ -451,10 +454,11 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                             raise ConnectionError(
                                 'SSL error: post connection check failed')
                 return ret
-            # TODO: Verify whether the additional exceptions in the Python 2
-            # and M2Crypto code can really be omitted:
-            # Err.SSLError, SSL.SSLError, SSL.Checker.WrongHost,
-            # SSLTimeoutError
+
+            # TODO 2/16 AM: Verify whether the additional exceptions in the
+            #               Python 2 and M2Crypto code can really be omitted:
+            #               Err.SSLError, SSL.SSLError, SSL.Checker.WrongHost,
+            #               SSLTimeoutError
             except SSLError as arg:
                 raise ConnectionError(
                     "SSL error %s: %s" % (arg.__class__, arg))
@@ -551,11 +555,15 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                              'application/xml; charset="utf-8"')
             client.putheader('Content-length', str(len(data)))
             if local_auth_header is not None:
+                # The following pylint stmt disables a false positive, see
+                # https://github.com/PyCQA/pylint/issues/701
+                # TODO 3/16 AM: Track resolution of this Pylint bug.
+                # pylint: disable=not-an-iterable
                 client.putheader(*local_auth_header)
             elif creds is not None:
                 auth = '%s:%s' % (creds[0], creds[1])
                 auth64 = _ensure_unicode(base64.b64encode(
-                         _ensure_bytes(auth))).replace('\n', '')
+                    _ensure_bytes(auth))).replace('\n', '')
                 client.putheader('Authorization', 'Basic %s' % auth64)
             elif locallogin is not None:
                 client.putheader('PegasusAuthorization',
@@ -587,7 +595,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                     client.endheaders()
                     client.send(data)
                 except Exception as exc: # socket.error as exc:
-                    # TODO: Verify these errno numbers on Windows vs. Linux
+                    # TODO AM: Verify these errno numbers on Windows vs. Linux.
                     if exc.args[0] != 104 and exc.args[0] != 32:
                         raise ConnectionError("Socket error: %s" % exc)
 
