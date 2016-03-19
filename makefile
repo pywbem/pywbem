@@ -144,7 +144,6 @@ help:
 	@echo '  clobber    - Remove any build products'
 
 develop:
-	pip install six
 	python setup.py develop_os
 	python setup.py develop
 	@echo '$@ done.'

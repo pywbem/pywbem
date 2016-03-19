@@ -149,7 +149,9 @@ Syntax for the new attributes of the `setup()` function:
   The syntax of version requirements and the interface of custom functions are
   the same as for the `install_os_requires` attribute.
 """
+
 from __future__ import print_function
+import sys
 import re
 import types
 import subprocess
@@ -159,7 +161,18 @@ from distutils.errors import DistutilsSetupError
 from setuptools import Command, Distribution
 from setuptools.command.develop import develop as _develop
 import pip
-import six
+
+
+# Some types to avoid dependency on "six" package during installation.
+if sys.version_info[0] == 2:
+    string_types = basestring,
+    text_type = unicode
+    binary_type = str
+else:
+    string_types = str,
+    text_type = str
+    binary_type = bytes
+
 
 class OsDistribution(Distribution):
     """Setuptools/distutils distribution class for installing OS packages."""
@@ -213,7 +226,7 @@ def _assert_system_dict(dist, attr, value):
             "(got type %s)" % (attr, type(system_dict))
         )
     for system in system_dict:
-        if not isinstance(system, six.string_types):
+        if not isinstance(system, string_types):
             raise DistutilsSetupError(
                 "'%s' attribute: Key in system dictionary must be a string "\
                 "(got key %r of type %s)" %\
@@ -224,7 +237,7 @@ def _assert_system_dict(dist, attr, value):
             # The packages are specified by distro (e.g. Linux)
             distro_dict = system_item
             for distro in distro_dict:
-                if not isinstance(distro, six.string_types):
+                if not isinstance(distro, string_types):
                     raise DistutilsSetupError(
                         "'%s' attribute: Key in distribution dictionary must "\
                         "be a string "\
@@ -236,7 +249,7 @@ def _assert_system_dict(dist, attr, value):
                     # Normal case: the distro specifies a package list
                     req_list = distro_item
                     _assert_req_list(dist, attr, req_list)
-                elif isinstance(distro_item, six.string_types):
+                elif isinstance(distro_item, string_types):
                     # The distro refers to another distro
                     referenced_distro = distro_item
                     if not referenced_distro in distro_dict:
@@ -283,13 +296,13 @@ def _assert_req_list(dist, attr, value): # pylint: disable=unused-argument
     for req in req_list:
         if isinstance(req, (list, tuple)):
             for single_req in req:
-                if not isinstance(single_req, six.string_types):
+                if not isinstance(single_req, string_types):
                     raise DistutilsSetupError(
                         "'%s' attribute: Requirement list must contain "\
                         "strings (got list item %r of type %s)"%\
                         (attr, single_req, type(single_req))
                     )
-        elif not isinstance(req, (six.string_types, types.FunctionType,
+        elif not isinstance(req, (string_types, types.FunctionType,
                                   type(None))):
             raise DistutilsSetupError(
                 "'%s' attribute: Requirement must be a string, a function, "\
@@ -1010,7 +1023,7 @@ class OSInstaller(BaseInstaller):
                 # Normal case: the distro specifies a package list
                 req_list = distro_item
                 self.install_reqlist(req_list, dry_run, verbose)
-            elif isinstance(distro_item, six.string_types):
+            elif isinstance(distro_item, string_types):
                 # The distro refers to another distro
                 distro = distro_item
                 self.install_distro(distro, distro_dict, dry_run, verbose)
@@ -1400,13 +1413,13 @@ def shell(command, display=False, ignore_notfound=False):
       * If the command is not found, OSError is raised.
     """
 
-    if isinstance(command, six.string_types):
+    if isinstance(command, string_types):
         cmd_parts = command.split(" ")
     else:  # already a list
         cmd_parts = command
 
     encoded_cmd_parts = [part.encode("utf-8")
-                         if isinstance(part, six.text_type)
+                         if isinstance(part, text_type)
                          else part for part in cmd_parts]
     try:
         p = subprocess.Popen(encoded_cmd_parts,
@@ -1420,9 +1433,9 @@ def shell(command, display=False, ignore_notfound=False):
             raise DistutilsSetupError(
                 "Cannot execute %s: %s" % (cmd_parts[0], exc))
 
-    if isinstance(stdout, six.binary_type):
+    if isinstance(stdout, binary_type):
         stdout = stdout.decode("utf-8")
-    if isinstance(stderr, six.binary_type):
+    if isinstance(stderr, binary_type):
         stderr = stderr.decode("utf-8")
 
     # TODO: Add support for printing while command executes, like with 'tee'
@@ -1451,7 +1464,7 @@ def shell_check(command, display=False, exp_rc=0):
       * If the command does not return 0, DistutilsSetupError is raised.
     """
 
-    if isinstance(command, six.string_types):
+    if isinstance(command, string_types):
         command = command.split(" ")
 
     if isinstance(exp_rc, int):
