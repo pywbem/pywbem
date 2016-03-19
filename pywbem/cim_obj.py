@@ -2142,7 +2142,7 @@ class CIMParameter(_CIMComparisonMixin):
       ...
         All parameters of `__init__` are set as instance variables.
     """
-     # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments
     def __init__(self, name, type, reference_class=None, is_array=None,
                  array_size=None, qualifiers={}, value=None):
         # pylint: disable=redefined-builtin

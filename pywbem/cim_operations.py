@@ -2330,7 +2330,7 @@ class WBEMConnection(object):
             namespace = self.default_namespace
 
         #pylint: disable=unused-variable
-        result = self.imethodcall(
+        unused_result = self.imethodcall(
             'SetQualifier',
             namespace,
             QualifierDeclaration=QualifierDeclaration,
