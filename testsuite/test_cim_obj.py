@@ -12,7 +12,7 @@ picked up here.
 Note that class `NocaseDict` is tested in test_nocasedict.py.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 # Allows use of lots of single character variable names.
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
@@ -1128,14 +1128,9 @@ class CIMInstanceToMOF(unittest.TestCase):
 
         imof = i.tomof()
 
-        # Result (with unpredictable order of properties):
-        #   instance of CIM_Foo {
-        #       MyString = "string";
-        #       MyRef = "CIM_Bar";
-        #       MyUint8array = {1, 2};
-        #       MyUint8 = 0;
-        #   };
+        #print('MOF Output\n%s' % imof)
 
+        # match first line
         m = re.match(
             r"^\s*instance\s+of\s+CIM_Foo\s*\{"
             r"(?:\s*(\w+)\s*=\s*.*;){4,4}" # just match the general syntax
@@ -1144,29 +1139,48 @@ class CIMInstanceToMOF(unittest.TestCase):
             self.fail("Invalid MOF generated.\n"\
                       "Instance: %r\n"\
                       "Generated MOF: %r" % (i, imof))
+        
+        # search for one property
+        s = re.search(r"\s*MyRef\s*=\s*CIM_Bar;", imof)
+        if s is None:
+            self.fail("Invalid MOF generated. No MyRef.\n"\
+                      "Instance: %r\n"\
+                      "Generated MOF: %r" % (i, imof))
 
 class CIMInstanceWithEmbeddedInstToMOF(unittest.TestCase):
     """Test that MOF with valid embedded insance is generated for instance"""
 
-    #TODO merge this with above test
     def test_all(self):
+
+        str_data = "The pink fox jumped over the big blue dog"
+        dt = datetime(2014, 9, 22, 10, 49, 20, 524789)
 
         embed = CIMInstance('CIM_Embedded',
                             {'EbString': 'string',
                              'EbUint8': Uint8(0),
+                             'EbStrArray': [str_data, str_data, str_data],
                              'EbUint8array': [Uint8(1), Uint8(2)],
-                             'EbRef': CIMInstanceName('CIM_Bar')})
+                             'EbRef': CIMInstanceName('CIM_Bar'),
+                             'EbUint64Array' : [Uint64(123456789),
+                                                Uint64(123456789),
+                                                Uint64(123456789)]})
 
         i = CIMInstance('CIM_Foo',
                         {'MyString': 'string',
                          'MyUint8': Uint8(0),
-                         'MyUint8array': [Uint8(3), Uint8(4)],
+                         'MyUint8Array': [Uint8(1), Uint8(2)],
+                         'MyUint64Array' : [Uint64(123456789),
+                                            Uint64(123456789),
+                                            Uint64(123456789)],
                          'MyRef': CIMInstanceName('CIM_Bar'),
                          'MyEmbed' : embed,
-                         'MyUint32' : Uint32(9999)})
-        imof = i.tomof()
+                         'MyUint32' : Uint32(9999),
+                         'MyDateTimeArray' : [dt, dt, dt],
+                         'MyStrLongArray' : [str_data, str_data, str_data]})
 
-        # TODO expand this match to at least catch embedded instance
+        imof = i.tomof()
+        # print('%s' % imof)
+
         m = re.match(
             r"^\s*instance\s+of\s+CIM_Foo\s*\{",
             imof)
@@ -1175,6 +1189,15 @@ class CIMInstanceWithEmbeddedInstToMOF(unittest.TestCase):
             self.fail("Invalid MOF generated.\n"\
                       "Instance: %r\n"\
                       "Generated MOF: %r" % (i, imof))
+
+        # search for the CIM_Embedded instance.
+        s = re.search(r"CIM_Embedded", imof)
+
+        if s is None:
+            self.fail("Invalid MOF embedded generated.\n"\
+                      "Instance: %r\n"\
+                      "Generated MOF: %r" % (i, imof))
+        # TODO this test only catchs existence of the embedded instance
 
 
 class CIMInstanceUpdatePath(unittest.TestCase):
@@ -2292,12 +2315,141 @@ class CIMClassToMOF(unittest.TestCase):
 
     def test_all(self):
 
-        c = CIMClass(
+        cl = CIMClass(
             'CIM_Foo',
             properties={'InstanceID': CIMProperty('InstanceID', None,
                                                   type='string')})
 
-        c.tomof()
+        imof = cl.tomof()
+
+        m = re.match(
+            r"^\s*class\s+CIM_Foo\s*\{", imof)
+
+        if m is None:
+            self.fail("Invalid MOF generated.\n"\
+                      "Class: %r\n"\
+                      "Generated MOF: %r" % (cl, imof))
+        #TODO improve test.
+
+class CIMClassWQualToMOF(unittest.TestCase):
+    """Generate mof output for a a class with a qualifiers, multiple
+       properties and methods
+    """
+
+    def test_all(self):
+        pquals = {'ModelCorresponse': CIMQualifier('ModelCorrespondense',
+                                                   'BlahBlahClass'),
+                  'Description' : CIMQualifier('Description', "This is a" \
+                                               " description for a property" \
+                                               " that serves no purpose" \
+                                               " but is multiline.")}
+        pquals2 = {'ValueMap' : CIMQualifier('ValueMap',
+                                             ["0", "1", "2", "3", "4",
+                                              "5", "6"]),
+                   'Values' : CIMQualifier('Values',
+                                           ["Unknown", "value1", "value2",
+                                            "value3", "value4", "value5",
+                                            "value6"])}
+        mquals = {'Description' : CIMQualifier('Description', "blah blah")}
+        pquals = {'Description' : CIMQualifier('Description', "more blah"),
+                  'IN' : CIMQualifier('in', False)}
+
+        params = {'Param1': CIMParameter('Param1', 'string',
+                                         qualifiers=pquals),
+                  'Param2': CIMParameter('Param2', 'uint32')}
+        embedqual = {'Description' : CIMQualifier('Description',
+                                                  "An embedded instance"),
+                     'EmbeddedInstance' : CIMQualifier('EmbeddedInstance',
+                                                       "My_Embedded")}
+
+        cl = CIMClass(
+            'CIM_Foo', superclass='CIM_Bar',
+            qualifiers={'Abstract': CIMQualifier('Abstract', True),
+                        'Description' : CIMQualifier('Description',
+                                                     'This is a class ' \
+                                                     'description')},
+
+            properties={'InstanceID': CIMProperty('InstanceID', None,
+                                                  type='string',
+                                                  qualifiers=pquals),
+                        'MyUint8': CIMProperty('MyUint8', None, type='uint8',
+                                               qualifiers=pquals),
+                        'MyUint16': CIMProperty('MyUint16', None, type='uint16',
+                                                qualifiers=pquals2),
+                        'MyEmbedded' : CIMProperty('MyEmbedded', None,
+                                                   type='string',
+                                                   qualifiers=embedqual)},
+
+            methods={'Delete': CIMMethod('Delete', 'uint32',
+                                         qualifiers=mquals),
+                     'FooMethod' : CIMMethod('FooMethod', 'uint32',
+                                             parameters=params,
+                                             qualifiers=mquals)}
+            )
+
+        clmof = cl.tomof()
+        # print('class\n%s' % clmof)
+        #TODO this test does not work because class is multiline test
+
+        # match first line for [Abstract (True),
+        m = re.match(r"^\s*\[Abstract", clmof)
+        if m is None:
+            self.fail("Invalid MOF generated. First line\n"\
+                      "Class: %r\n"\
+                      "Generated MOF: \n%s" % (cl, clmof))
+
+        # search for class CIM_Foo : CIM_Bar {
+        s = re.search(r"\s*class\s+CIM_Foo\s*:\s*CIM_Bar\s*\{", clmof)
+
+        if s is None:
+            self.fail("Invalid MOF generated. Class name line.\n"\
+                      "Class: %r\n"\
+                      "Generated MOF: \n%s" % (cl, clmof))
+        # TODO Expand test of output format
+
+class CIMClassWoQualifiersToMof(unittest.TestCase):
+    """Generate class without qualifiers and convert to mof.
+    """
+
+    def test_all(self):
+
+        params = {'Param1': CIMParameter('Param1', 'string'),
+                  'Param2': CIMParameter('Param2', 'uint32')}
+
+        cl = CIMClass(
+            'CIM_FooNoQual', superclass='CIM_Bar',
+
+            properties={'InstanceID': CIMProperty('InstanceID', None,
+                                                  type='string'),
+                        'MyUint8': CIMProperty('MyUint8', None,
+                                               type='uint8'),
+                        'MyUint16': CIMProperty('MyUint16', None,
+                                                type='uint16'),
+
+                       },
+            methods={'Delete': CIMMethod('Delete', 'uint32'),
+                     'FooMethod' : CIMMethod('FooMethod', 'uint32',
+                                             parameters=params)
+                    }
+            )
+
+        # Generate the mof. Does not really test result
+        clmof = cl.tomof()
+        #print('%s' % clmof)
+
+        # search for class CIM_Foo : CIM_Bar {
+        s = re.match(r"^\s*class\s+CIM_FooNoQual\s*:\s*CIM_Bar\s*\{", clmof)
+        if s is None:
+            self.fail("Invalid MOF generated. First line.\n"\
+                      "Class: %r\n"\
+                      "Generated MOF: \n%s" % (cl, clmof))
+
+        # match method Delete,
+        m = re.search(r"\s*uint32\s+Delete\(\);", clmof)
+        if m is None:
+            self.fail("Invalid MOF generated. Method line\n"\
+                      "Class: %r\n"\
+                      "Generated MOF: \n%s" % (cl, clmof))
 
 
 class InitCIMMethod(unittest.TestCase):
@@ -2856,31 +3008,32 @@ class MofStr(unittest.TestCase):
         #                    |0                                                                     |71
         # pylint: disable=line-too-long
         self._run_single('the big brown fox jumps over a big brown fox jumps over a big brown f jumps over a big brown fox',\
-                           '"the big brown fox jumps over a big brown fox jumps over a big brown f "\n       '+\
+                           '"the big brown fox jumps over a big brown fox jumps over a big brown f "\n    '+\
                            '"jumps over a big brown fox"')
         # pylint: disable=line-too-long
         self._run_single('the big brown fox jumps over a big brown fox jumps over a big brown fo jumps over a big brown fox',\
-                           '"the big brown fox jumps over a big brown fox jumps over a big brown fo "\n       '+\
+                           '"the big brown fox jumps over a big brown fox jumps over a big brown fo "\n    '+\
                            '"jumps over a big brown fox"')
         # pylint: disable=line-too-long
         self._run_single('the big brown fox jumps over a big brown fox jumps over a big brown fox jumps over a big brown fox',\
-                           '"the big brown fox jumps over a big brown fox jumps over a big brown "\n       '+\
-                           '"fox jumps over a big brown fox"')
+                           '"the big brown fox jumps over a big brown fox jumps over a big brown fox "\n    '+\
+                           '"jumps over a big brown fox"')
         # pylint: disable=line-too-long
         self._run_single('the big brown fox jumps over a big brown fox jumps over a big brown foxx jumps over a big brown fox',\
-                           '"the big brown fox jumps over a big brown fox jumps over a big brown "\n       '+\
-                           '"foxx jumps over a big brown fox"')
+                           '"the big brown fox jumps over a big brown fox jumps over a big brown foxx "\n    '+\
+                           '"jumps over a big brown fox"')
         # pylint: disable=line-too-long
         self._run_single('the big brown fox jumps over a big brown fox jumps over a big brown foxxx jumps over a big brown fox',\
-                           '"the big brown fox jumps over a big brown fox jumps over a big brown "\n       '+\
+                           '"the big brown fox jumps over a big brown fox jumps over a big brown "\n    '+\
                            '"foxxx jumps over a big brown fox"')
         # pylint: disable=line-too-long
+        # TODO: This may be wrong in that it breaks a word, not between words.
         self._run_single('the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over a big brown fox',\
-                           '"the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big_brown_fox"\n       '+\
-                           '"_jumps_over a big brown fox"')
+                           '"the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big_brown_fox_j"\n    '+\
+                           '"umps_over a big brown fox"')
         # pylint: disable=line-too-long
         self._run_single('the big brown fox jumps over a big brown fox jumps over a big brown fox_jumps_over_a_big_brown_fox',\
-                           '"the big brown fox jumps over a big brown fox jumps over a big brown "\n       '+\
+                           '"the big brown fox jumps over a big brown fox jumps over a big brown "\n    '+\
                            '"fox_jumps_over_a_big_brown_fox"')
 
         return 0

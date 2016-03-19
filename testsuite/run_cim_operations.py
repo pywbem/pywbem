@@ -757,6 +757,9 @@ class GetClass(ClientClassTest):
         if self.debug:
             print('GetClass gets name %s' % name)
         self.verify_class(cl)
+        mof_output = cl.tomof()
+        if self.verbose:
+            print('MOF OUTPUT\n%s' % (mof_output))
 
 class CreateClass(ClientClassTest):
 
