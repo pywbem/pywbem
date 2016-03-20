@@ -1,6 +1,15 @@
 
 pywbem-0.9.0.dev<x>  2016-03-20
 
+  CLEAN CODE:
+
+    * Moved the following unused modules from the pywbem package directory
+      into a new "attic" directory, in order to clean up the pywbem
+      package:
+        - cim_provider.py
+        - cim_provider2.py
+        - cimxml_parse.py
+        - twisted_client.py
 
 
 pywbem-0.8.2  2016-03-20
