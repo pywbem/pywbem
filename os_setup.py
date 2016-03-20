@@ -165,13 +165,13 @@ import pip
 
 # Some types to avoid dependency on "six" package during installation.
 if sys.version_info[0] == 2:
-    string_types = basestring,
-    text_type = unicode
-    binary_type = str
+    string_types = basestring,      # pylint: disable=invalid-name
+    text_type = unicode             # pylint: disable=invalid-name
+    binary_type = str               # pylint: disable=invalid-name
 else:
-    string_types = str,
-    text_type = str
-    binary_type = bytes
+    string_types = str,             # pylint: disable=invalid-name
+    text_type = str                 # pylint: disable=invalid-name
+    binary_type = bytes             # pylint: disable=invalid-name
 
 
 class OsDistribution(Distribution):

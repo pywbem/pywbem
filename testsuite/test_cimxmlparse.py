@@ -8,7 +8,6 @@
 #
 
 import unittest
-import pytest
 
 from pywbem import cimxml_parse
 from pywbem import CIMInstance, CIMInstanceName, CIMProperty, CIMQualifier, \

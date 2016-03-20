@@ -153,7 +153,7 @@ def parse_value(parser, event, node): # pylint: disable=unused-argument
 # <!ELEMENT VALUE.ARRAY (VALUE*)>
 
 def parse_value_array(parser, event, node): #pylint: disable=unused-argument
-     # pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     """ Parse CIM/XML VALUE.ARRAY element and return the value array"""
 
     value_array = []
@@ -298,7 +298,7 @@ def parse_host(parser, event, node):
     """Parse and return the host entity if that is the next entity
            <!ELEMENT HOST (#PCDATA)>
     """
-     #pylint: disable=unused-argument
+    #pylint: disable=unused-argument
 
     host = ''
 
@@ -316,9 +316,8 @@ def parse_host(parser, event, node):
     return host
 
 
-
 def parse_namespace(parser, event, node):
-     #pylint: disable=unused-argument
+    #pylint: disable=unused-argument
     """Parse the CIM/XML NAMESPACE element and return the value
        of the CIMName attribute
            <!ELEMENT NAMESPACE EMPTY>
@@ -379,7 +378,7 @@ def parse_localinstancepath(parser, event, node):
            <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
     """
 
-     #pylint: disable=unused-argument
+    #pylint: disable=unused-argument
 
     (next_event, next_node) = six.next(parser)
 
