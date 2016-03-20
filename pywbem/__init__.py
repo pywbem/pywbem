@@ -202,7 +202,7 @@ from .cim_http import *
 #   M.N.Udev   : During development of future M.N.U release
 #   M.N.UrcX   : Release candidate X of future M.N.U release
 #   M.N.U      : The final M.N.U release
-__version__ = '0.8.2'
+__version__ = '0.9.0.dev0'
 
 if sys.version_info < (2, 6, 0):
     raise RuntimeError('PyWBEM requires Python 2.6.0 or higher')
