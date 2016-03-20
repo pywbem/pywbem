@@ -197,10 +197,16 @@ clean:
 all: clean develop check build builddoc test
 	@echo '$@ done.'
 
+ifeq ($(package_version), $(package_final_version))
 upload: setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	rm -f MANIFEST
 	python setup.py sdist -d $(dist_dir) register upload
 	@echo '$@ done; registered and uploaded package to PyPI.'
+else
+upload: setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
+	@echo 'Error: Cannot upload development or release candidate version to PyPI: $(package_version)'
+	@false
+endif
 
 publish: builddoc
 	rm -Rf $(doc_publish_dir)
