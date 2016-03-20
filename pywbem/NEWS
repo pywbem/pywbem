@@ -1,11 +1,19 @@
 
-pywbem-0.8.2dev  2016-03-19
+pywbem-0.8.2  2016-03-20
 
   BUG FIXES:
 
     * Eliminated dependency on "six" package during installation of pywbem.
       (Andreas Maier)
 
+  DEPENDENCIES:
+
+    * v0.8.x has the following dependencies on other PyPI packages
+      (see 'install_requires' argument in setup script):
+        - M2Crypto
+        - ply
+        - six
+      
 
 pywbem-0.8.1  2016-03-18
 
