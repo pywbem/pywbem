@@ -194,15 +194,7 @@ from .cim_operations import *
 from .cim_obj import *
 from .tupleparse import *
 from .cim_http import *
-
-# Version of the pywbem package
-# !!! Keep in sync with version stated in module docstring, above !!!
-# !!! Keep in sync with version in ../setup.py !!!
-# Possible formats are:
-#   M.N.Udev   : During development of future M.N.U release
-#   M.N.UrcX   : Release candidate X of future M.N.U release
-#   M.N.U      : The final M.N.U release
-__version__ = '0.9.0.dev0'
+from ._version import __version__
 
 if sys.version_info < (2, 6, 0):
     raise RuntimeError('PyWBEM requires Python 2.6.0 or higher')
