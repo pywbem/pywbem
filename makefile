@@ -66,7 +66,6 @@ doc_dependent_files := \
     $(package_name)/cim_http.py \
     $(package_name)/tupletree.py \
     $(package_name)/tupleparse.py \
-    $(package_name)/cimxml_parse.py \
     $(package_name)/wbemcli.py \
     $(package_name)/mof_compiler.py \
     $(package_name)/NEWS \
@@ -252,6 +251,6 @@ pylint.log: $(pylint_rc_file) setup.py os_setup.py $(package_name)/*.py testsuit
 
 $(test_log_file): $(package_name)/*.py testsuite/*.py coveragerc
 	rm -f $(test_log_file)
-	bash -c "set -o pipefail; PYTHONPATH=. py.test --cov $(package_name) --cov-config coveragerc --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
+	bash -c "set -o pipefail; PYTHONPATH=. py.test --cov $(package_name) --cov-config coveragerc --ignore=attic --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
 
