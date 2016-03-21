@@ -160,14 +160,14 @@ of the PyWBEM Client project on GitHub.
 Version
 -------
 
-For the current version of the ``pywbem`` package, see the `NEWS <NEWS.txt>`_
+For the current version of the ``pywbem`` package, see the `NEWS <NEWS.md>`_
 file. Its version can also be retrieved from the `pywbem.__version__`
 attribute (as a string).
 
 Changes
 -------
 
-The change log is in the `NEWS <NEWS.txt>`_ file.
+The change log is in the `NEWS <NEWS.md>`_ file.
 
 Compatibility
 -------------
