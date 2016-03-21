@@ -12,6 +12,8 @@ picked up here.
 Note that class `NocaseDict` is tested in test_nocasedict.py.
 """
 
+from __future__ import absolute_import
+
 # Allows use of lots of single character variable names.
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
 # pylint: disable=too-many-lines,no-self-use
@@ -20,6 +22,7 @@ import inspect
 import os.path
 from datetime import timedelta, datetime
 import unittest
+
 import pytest
 import six
 

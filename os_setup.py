@@ -150,7 +150,8 @@ Syntax for the new attributes of the `setup()` function:
   the same as for the `install_os_requires` attribute.
 """
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+
 import sys
 import re
 import types

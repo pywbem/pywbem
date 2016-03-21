@@ -5,6 +5,8 @@ The ideas for these extensions are based on functions from the comfychair
 module by Martin Pool <mbp@samba.org>.
 """
 
+from __future__ import absolute_import
+
 import re
 import os
 

@@ -32,11 +32,14 @@ represented as a special Python object.
 These objects can also be mapped back into CIM-XML, by their `tocimxml()`
 method which returns a CIM-XML string.
 """
-from __future__ import print_function
+
 # This module is meant to be safe for 'import *'.
+
+from __future__ import print_function, absolute_import
 
 import re
 from datetime import datetime, timedelta
+
 import six
 if six.PY2:
     # pylint: disable=wrong-import-order

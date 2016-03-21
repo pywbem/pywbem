@@ -186,6 +186,8 @@ You are welcome to try it out and report any issues.
 # Importing just this module is enough.
 # These are explicitly safe for 'import *'
 
+from __future__ import absolute_import
+
 import sys
 
 from .cim_types import *

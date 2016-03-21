@@ -2,6 +2,8 @@
 
 """Exercise routines in cim_http"""
 
+from __future__ import absolute_import
+
 import unittest
 
 from pywbem import cim_http

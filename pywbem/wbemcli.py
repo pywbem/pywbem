@@ -46,6 +46,8 @@ function. For example:
   ...
 """
 
+from __future__ import absolute_import
+
 import os
 import getpass
 import errno

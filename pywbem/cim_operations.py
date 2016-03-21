@@ -32,10 +32,13 @@ operation.
 
 # This module is meant to be safe for 'import *'.
 
+from __future__ import absolute_import
+
 import re
 from datetime import datetime, timedelta
 from xml.dom import minidom
 from xml.parsers.expat import ExpatError
+
 import six
 
 from . import cim_xml

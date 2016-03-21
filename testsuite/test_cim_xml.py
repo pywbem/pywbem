@@ -10,6 +10,8 @@
 # schema that PyWBEM doesn't use right now.
 #
 
+from __future__ import absolute_import
+
 import sys
 import unittest
 

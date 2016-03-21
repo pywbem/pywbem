@@ -30,7 +30,9 @@ transferred in the HTTP request and response is CIM-XML.  It is up to the
 caller to provide CIM-XML formatted input data and interpret the result data
 as CIM-XML.
 '''
-from __future__ import print_function
+
+from __future__ import print_function, absolute_import
+
 import re
 import os
 import sys
@@ -41,6 +43,7 @@ import platform
 import base64
 import threading
 from datetime import datetime
+
 import six
 from six.moves import http_client as httplib
 from six.moves import urllib
