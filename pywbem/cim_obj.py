@@ -295,14 +295,10 @@ class NocaseDict(object):
     # Other stuff
 
     def __repr__(self):
-        """
-        Invoked when using `repr(d)`.
+        """Return a string representation suitable for debugging."""
 
-        The representation hides the implementation data structures and shows
-        a dictionary that can be used for the constructor.
-        """
         items = ', '.join([('%r: %r' % (key, value))
-                           for key, value in self.iteritems()])
+                           for key, value in sorted(self.iteritems())])
         return 'NocaseDict({%s})' % items
 
     def update(self, *args, **kwargs):
@@ -745,7 +741,7 @@ class CIMClassName(_CIMComparisonMixin):
                 cmpname(self.classname, other.classname))
 
     def __str__(self):
-        """ Return readable string representing path"""
+        """Return the WBEM URI representation of the CIM class path."""
 
         ret_str = ''
 
@@ -760,19 +756,12 @@ class CIMClassName(_CIMComparisonMixin):
         return ret_str
 
     def __repr__(self):
-        """ Return String representing path in form name=value"""
+        """Return a string representation suitable for debugging."""
 
-        rep = '%s(classname=%r' % (self.__class__.__name__, self.classname)
-
-        if self.host is not None:
-            rep += ', host=%r' % self.host
-
-        if self.namespace is not None:
-            rep += ', namespace=%r' % self.namespace
-
-        rep += ')'
-
-        return rep
+        return '%s(classname=%r, namespace=%r, ' \
+               'host=%r)' % \
+               (self.__class__.__name__, self.classname, self.namespace,
+                self.host)
 
     def tocimxml(self):
         """
@@ -1184,18 +1173,29 @@ class CIMProperty(_CIMComparisonMixin):
                            reference_class=self.reference_class,
                            qualifiers=self.qualifiers.copy())
 
-    def __repr__(self):
-        """ Return a string repesenting the CIMProperty in
-            name=value form for each attribute of the CIMProperty
-        """
+    def __str__(self):
+        """Return a short string representation for human consumption."""
 
-        return '%s(name=%r, value=%r, type=%r, class_origin=%r, ' \
-               'array_size=%r, propagated=%r, is_array=%r, ' \
-               'reference_class=%r, qualifiers=%r, embedded_object=%r)' % \
+        return '%s(name=%r, value=%r, type=%r, ' \
+               'reference_class=%r, embedded_object=%r, ' \
+               'is_array=%r, ...)' % \
                (self.__class__.__name__, self.name, self.value, self.type,
-                self.class_origin, self.array_size, self.propagated,
-                self.is_array, self.reference_class, self.qualifiers,
-                self.embedded_object)
+                self.reference_class, self.embedded_object,
+                self.is_array)
+
+    def __repr__(self):
+        """Return a string representation suitable for debugging."""
+
+        return '%s(name=%r, value=%r, type=%r, ' \
+               'reference_class=%r, embedded_object=%r, ' \
+               'is_array=%r, array_size=%r, ' \
+               'class_origin=%r, propagated=%r, ' \
+               'qualifiers=%r)' % \
+               (self.__class__.__name__, self.name, self.value, self.type,
+                self.reference_class, self.embedded_object,
+                self.is_array, self.array_size,
+                self.class_origin, self.propagated,
+                self.qualifiers)
 
     def tocimxml(self):
         """ Return the string with CIM/XML form of the CIMProperty object using
@@ -1392,9 +1392,7 @@ class CIMInstanceName(_CIMComparisonMixin):
                 cmpitem(self.keybindings, other.keybindings))
 
     def __str__(self):
-        """ Return string representation of CIMClassname in
-            readable format
-        """
+        """Return the WBEM URI representation of the CIM instance path."""
 
         ret_str = ''
 
@@ -1423,20 +1421,12 @@ class CIMInstanceName(_CIMComparisonMixin):
         return ret_str[:-1]
 
     def __repr__(self):
-        """ return string of CIMClassName in name=value form"""
+        """Return a string representation suitable for debugging."""
 
-        rep = '%s(classname=%r, keybindings=%r' % \
-            (self.__class__.__name__, self.classname, self.keybindings)
-
-        if self.host is not None:
-            rep += ', host=%r' % self.host
-
-        if self.namespace is not None:
-            rep += ', namespace=%r' % self.namespace
-
-        rep += ')'
-
-        return rep
+        return '%s(classname=%r, keybindings=%r, ' \
+               'namespace=%r, host=%r)' % \
+               (self.__class__.__name__, self.classname, self.keybindings,
+                self.namespace, self.host)
 
     # A whole bunch of dictionary methods that map to the equivalent
     # operation on self.keybindings.
@@ -1755,16 +1745,21 @@ class CIMInstance(_CIMComparisonMixin):
                 cmpitem(self.properties, other.properties) or
                 cmpitem(self.qualifiers, other.qualifiers))
 
-    def __repr__(self):
-        """
-            Return string for CIMInstance in name=value form. Note
-            that it does not
-            show all the properties and qualifiers because they're
-            just too big.
-        """
+    def __str__(self):
+        """Return a short string representation for human consumption."""
 
         return '%s(classname=%r, path=%r, ...)' % \
-            (self.__class__.__name__, self.classname, self.path)
+               (self.__class__.__name__, self.classname, self.path)
+
+    def __repr__(self):
+        """Return a string representation suitable for debugging."""
+
+        return '%s(classname=%r, path=%r, ' \
+               'properties=%r, property_list=%r' \
+               'qualifiers=%r)' % \
+               (self.__class__.__name__, self.classname, self.path,
+                self.properties, self.property_list,
+                self.qualifiers)
 
     # A whole bunch of dictionary methods that map to the equivalent
     # operation on self.properties.
@@ -1946,9 +1941,9 @@ class CIMClass(_CIMComparisonMixin):
         """
         self.classname = _ensure_unicode(classname)
         self.properties = NocaseDict(properties)
-        self.qualifiers = NocaseDict(qualifiers)
         self.methods = NocaseDict(methods)
         self.superclass = _ensure_unicode(superclass)
+        self.qualifiers = NocaseDict(qualifiers)
 
     def copy(self):
         """ Return a copy of the CIMClass object"""
@@ -1960,12 +1955,19 @@ class CIMClass(_CIMComparisonMixin):
 
         return result
 
-    def __repr__(self):
-        """ Return string containing the CIMClass data in
-            name=value form"""
+    def __str__(self):
+        """Return a short string representation for human consumption."""
 
-        return "%s(classname=%r, ...)" % (self.__class__.__name__,
-                                          self.classname)
+        return '%s(classname=%r, ...)' % \
+               (self.__class__.__name__, self.classname)
+
+    def __repr__(self):
+        """Return a string representation suitable for debugging."""
+
+        return '%s(classname=%r, superclass=%r, ' \
+               'properties=%r, methods=%r, qualifiers=%r)' % \
+               (self.__class__.__name__, self.classname, self.superclass,
+                self.properties, self.methods, self.qualifiers)
 
     def _cmp(self, other):
         """
@@ -2092,9 +2094,21 @@ class CIMMethod(_CIMComparisonMixin):
             propagated=self.propagated,
             qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
-    def __repr__(self):
+    def __str__(self):
+        """Return a short string representation for human consumption."""
+
         return '%s(name=%r, return_type=%r, ...)' % \
                (self.__class__.__name__, self.name, self.return_type)
+
+    def __repr__(self):
+        """Return a string representation suitable for debugging."""
+
+        return '%s(name=%r, return_type=%r, ' \
+               'class_origin=%r, propagated=%r, ' \
+               'parameters=%r, qualifiers=%r)' % \
+               (self.__class__.__name__, self.name, self.return_type,
+                self.class_origin, self.propagated,
+                self.parameters, self.qualifiers)
 
     def _cmp(self, other):
         """
@@ -2181,11 +2195,27 @@ class CIMParameter(_CIMComparisonMixin):
 
         return result
 
-    def __repr__(self):
+    def __str__(self):
+        """Return a short string representation for human consumption."""
 
-        return '%s(name=%r, type=%r, reference_class=%r, is_array=%r, ...)' % \
-               (self.__class__.__name__, self.name, self.type,
-                self.reference_class, self.is_array)
+        return '%s(name=%r, value=%r, type=%r, ' \
+               'reference_class=%r, ' \
+               'is_array=%r, ...)' % \
+               (self.__class__.__name__, self.name, self.value, self.type,
+                self.reference_class,
+                self.is_array)
+
+    def __repr__(self):
+        """Return a string representation suitable for debugging."""
+
+        return '%s(name=%r, value=%r, type=%r, ' \
+               'reference_class=%r, ' \
+               'is_array=%r, array_size=%r, ' \
+               'qualifiers=%r)' % \
+               (self.__class__.__name__, self.name, self.value, self.type,
+                self.reference_class,
+                self.is_array, self.array_size,
+                self.qualifiers)
 
     def _cmp(self, other):
         """
@@ -2360,9 +2390,21 @@ class CIMQualifier(_CIMComparisonMixin):
                             toinstance=self.toinstance,
                             translatable=self.translatable)
 
-    def __repr__(self):
+    def __str__(self):
+        """Return a short string representation for human consumption."""
+
         return "%s(name=%r, value=%r, type=%r, ...)" % \
                (self.__class__.__name__, self.name, self.value, self.type)
+
+    def __repr__(self):
+        """Return a string representation suitable for debugging."""
+
+        return '%s(name=%r, value=%r, type=%r, ' \
+               'tosubclass=%r, overridable=%r, translatable=%r, ' \
+               'toinstance=%r, propagated=%r)' % \
+               (self.__class__.__name__, self.name, self.value, self.type,
+                self.tosubclass, self.overridable, self.translatable,
+                self.toinstance, self.propagated)
 
     def _cmp(self, other):
         """
@@ -2480,11 +2522,25 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
                                        toinstance=self.toinstance,
                                        translatable=self.translatable)
 
-    def __repr__(self):
-        """ Return String of CIMQualifierDeclaration in form name=value"""
+    def __str__(self):
+        """Return a short string representation for human consumption."""
 
-        return "%s(name=%r, type=%r, is_array=%r, ...)" % \
-            (self.__class__.__name__, self.name, self.type, self.is_array)
+        return '%s(name=%r, value=%r, type=%r, ' \
+               'is_array=%r, ...)' % \
+               (self.__class__.__name__, self.name, elf.value, self.type,
+                self.is_array)
+
+    def __repr__(self):
+        """Return a string representation suitable for debugging."""
+
+        return '%s(name=%r, value=%r, type=%r, ' \
+               'is_array=%r, array_size=%r, ' \
+               'scopes=%r, tosubclass=%r, overridable=%r, ' \
+               'translatable=%r, toinstance=%r)' % \
+               (self.__class__.__name__, self.name, self.value, self.type,
+                self.is_array, self.array_size,
+                self.scopes, self.tosubclass, self.overridable,
+                self.translatable, self.toinstance)
 
     def _cmp(self, other):
         """

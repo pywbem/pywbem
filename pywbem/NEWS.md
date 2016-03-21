@@ -24,6 +24,24 @@ Enhancements
 
   * Replaced `[]` and `{}` default arguments with None.
 
+  * Changed the return value of `repr()` for `WBEMConnection`, CIM type
+    classes (e.g. `Sint8`, `CIMDateTime`), and CIM object classes
+    (e.g. `CIMInstance`) so that they now return all attributes in a
+    reasonable order, and are suitable for debugging.
+
+  * Clarified in the description of `CIMClassName.__str__()` and
+    `CIMInstanceName.__str__()` that they return the WBEM URI representation
+    of the class path and instance path.
+
+  * Changed the return value of `str()` for CIM object classes
+    (e.g. `CIMProperty`) so that they now return a short set of the most
+    important attributes for human consumption.
+    Specifically, this resulted in the following changes:
+      - For `CIMProperty`, reduced the complete set of attributes to a short
+        set.
+      - For `CIMParameter`, added the attribute `value`.
+      - For `CIMQualifierDeclaration`, added the attribute `value`.
+
 
 pywbem v0.8.2
 =============
