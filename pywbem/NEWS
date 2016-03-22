@@ -1,6 +1,9 @@
 
 pywbem-0.8.3.dev0  2016-03-22
 
+  ENHANCEMENTS:
+
+    * Upgraded M2Crypto to use official 0.24.0 from PyPI.
 
 
 pywbem-0.8.2  2016-03-20
