@@ -52,7 +52,10 @@ always passes through all non-markup whitespace.
 
 """
 
+from __future__ import absolute_import
+
 from xml.dom.minidom import Element, Text, CDATASection
+
 import six
 
 __all__ = []

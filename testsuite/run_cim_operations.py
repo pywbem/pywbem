@@ -8,11 +8,14 @@ suite depending on user input.
 The return codes here may be specific to OpenPegasus.
 """
 
+from __future__ import absolute_import
+
 # pylint: disable=missing-docstring,superfluous-parens,no-self-use
 import sys
 from datetime import timedelta
 import unittest
 from getpass import getpass
+
 import six
 
 from pywbem.cim_constants import *

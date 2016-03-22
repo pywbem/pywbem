@@ -66,8 +66,11 @@ may support Python types in addition to those shown above. For example, the
 
 # This module is meant to be safe for 'import *'.
 
+from __future__ import absolute_import
+
 from datetime import tzinfo, datetime, timedelta
 import re
+
 import six
 if six.PY2:
     _Longint = long

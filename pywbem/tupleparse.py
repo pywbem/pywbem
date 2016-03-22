@@ -78,6 +78,8 @@ representation of CIM in XML by having the following properties:
 
 # This module is meant to be safe for 'import *'.
 
+from __future__ import absolute_import
+
 import six
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \

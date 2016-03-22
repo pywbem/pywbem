@@ -35,10 +35,13 @@
    even the formatting breaks the ply rule generation.
 
 """
-from __future__ import print_function
+
+from __future__ import print_function, absolute_import
+
 import sys
 import os
 from getpass import getpass
+
 import six
 from ply import yacc, lex
 

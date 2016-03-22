@@ -28,7 +28,9 @@ and DSP0201. See http://www.dmtf.org/standards/wbem for information about
 WBEM. This is used for all kinds of systems management tasks that are
 supported by the system running the WBEM server.
 """
-from __future__ import print_function
+
+from __future__ import print_function, absolute_import
+
 import re
 import sys
 import os

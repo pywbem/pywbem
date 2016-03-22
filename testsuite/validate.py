@@ -25,7 +25,9 @@ Validate XML instance data against the CIM-XML DTD.
 Can also be invoked as a script for testing purposes, and then validates
 XML data specified in standard input.
 """
-from __future__ import print_function
+
+from __future__ import print_function, absolute_import
+
 import sys
 import os
 import os.path

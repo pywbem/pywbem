@@ -8,6 +8,9 @@ These tests check that we don't lose any information by converting
 an object to XML then parsing it again.  The round trip should
 produce an object that is identical to the one we started with.
 """
+
+from __future__ import absolute_import
+
 import unittest
 
 from pywbem import tupletree, tupleparse

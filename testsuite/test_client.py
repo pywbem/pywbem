@@ -19,7 +19,9 @@ Approach:
 * HTTPretty remembers the last request that was sent, so after issuing the
   request, the CIM-XML produced by the PyWBEM client is verified based on that.
 """
-from __future__ import print_function
+
+from __future__ import print_function, absolute_import
+
 import os
 import doctest
 import socket

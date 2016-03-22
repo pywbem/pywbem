@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 #
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+
 import sys
 import os
 from time import time
 from zipfile import ZipFile
 from tempfile import TemporaryFile
 import unittest
+
 import six
 if six.PY2:
     # pylint: disable=wrong-import-order

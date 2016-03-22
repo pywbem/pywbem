@@ -3,6 +3,8 @@
 # Test case-insensitive dictionary implementation.
 #
 
+from __future__ import absolute_import
+
 import unittest
 
 from pywbem.cim_obj import NocaseDict

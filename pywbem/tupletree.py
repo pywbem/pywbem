@@ -48,7 +48,10 @@ The CONTENTS is a list of child elements.
 The fourth element is reserved.
 """
 
+from __future__ import absolute_import
+
 import xml.dom.minidom
+
 import six
 
 __all__ = []
