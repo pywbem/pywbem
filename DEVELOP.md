@@ -6,7 +6,7 @@ Git workflow
 
 * Long-lived branches:
   - `master` - for next functional release
-  - `stable_M.N` - for next fix release
+  - `stable_M.N` - for next fix release on fix stream `M.N`.
 * We use topic branches for everything!
   - Based upon the intended long-lived branch, if no dependencies
   - Based upon an earlier topic branch, in case of dependencies
@@ -55,8 +55,11 @@ In the directory of the `pywbem` repo:
   - `git push --set-upstream origin release_M.N.U` - if branch is pushed for the first time
   - `git push` - after first time, for normal additional commit
   - `git push -f` - after first time, if a rebase was used
-* On Github, create a Pull Request for this branch. This will trigger the
-  Travis CI run.
+* On Github, create a Pull Request for the target branch. This will trigger
+  the Travis CI run. **Important:** Regardless of which branch the commit was
+  based upon, Github will by default target the master branch for the merge.
+  So if your base branch for this release was not `master`, change the target
+  branch for the PR to be your base branch.
 * Perform a complete test:
   - `tox`
 * Perform any other tests you wish, e.g.
@@ -65,7 +68,7 @@ In the directory of the `pywbem` repo:
 * If any of the tests (including the Travis CI run of the Pull Request) fails,
   fix and iterate back to (1) until they all succeed.
 * Once the Travis CI run for this PR succeeds:
-  - Merge the PR
+  - Merge the PR (no review is needed)
   - Delete the PR
 * Clean up local branches:
   - `git-prune origin` (From `andy-maier/gitsurvival`)
@@ -100,7 +103,8 @@ In the directory of the `pywbem.github.io` repo:
   - `vi pywbem/doc/M.N.U/changelog.html`
 * Update download table in `pywbem/installation.html` for new release:
   - `vi pywbem/installation.html`
-* If ths was a functional release, adjust the latest release link:
+* If `M.N.U` is higher than any other released version, adjust the *latest
+  release* link:
   - `rm pywbem/doc/latest`
   - `ln -s M.N.U pywbem/doc/latest`
 * Verify that the installation page (`pywbem/installation.html` in your web
@@ -149,8 +153,11 @@ In the directory of the `pywbem` repo:
     the first time
   - `git push` - after first time, for normal additional commit
   - `git push -f` - after first time, if a rebase was used
-* On Github, create a Pull Request for this branch. This will trigger the
-  Travis CI run.
+* On Github, create a Pull Request for the target branch. This will trigger
+  the Travis CI run. **Important:** Regardless of which branch the commit was
+  based upon, Github will by default target the master branch for the merge.
+  So if your base branch for this release was not `master`, change the target
+  branch for the PR to be your base branch.
 * If the Travis CI run fails, fix and iterate back to (2) until they all
   succeed.
 * Once the Travis CI run for this PR succeeds:
