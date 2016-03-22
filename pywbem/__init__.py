@@ -126,22 +126,6 @@ This package provides the following commands (implemented as Python scripts):
 These commands are installed into the Python script directory and should
 therefore be available in the command search path.
 
-Experimental components
------------------------
-
-This package contains some components that are considered experimental at
-this point:
-
-* `cim_provider` :   Module for writing CIM providers in Python.
-
-* `cim_provider2` :  Another module for writing CIM providers in Python.
-
-* `twisted_client` : An experimental alternative WBEM client library that uses
-  the Python `twisted` package.
-
-These components are included in this package, but they are not covered in the
-generated documentation, at this point.
-
 WBEM Listener (``irecv``)
 -------------------------
 
@@ -160,14 +144,14 @@ of the PyWBEM Client project on GitHub.
 Version
 -------
 
-For the current version of the ``pywbem`` package, see the `NEWS <NEWS.txt>`_
+For the current version of the ``pywbem`` package, see the `NEWS <NEWS.md>`_
 file. Its version can also be retrieved from the `pywbem.__version__`
 attribute (as a string).
 
 Changes
 -------
 
-The change log is in the `NEWS <NEWS.txt>`_ file.
+The change log is in the `NEWS <NEWS.md>`_ file.
 
 Compatibility
 -------------

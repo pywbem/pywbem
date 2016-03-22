@@ -68,7 +68,7 @@ doc_dependent_files := \
     $(package_name)/tupleparse.py \
     $(package_name)/wbemcli.py \
     $(package_name)/mof_compiler.py \
-    $(package_name)/NEWS \
+    $(package_name)/NEWS.md \
 
 # Dotted module names to be excluded in API doc generation
 # Note: Should not include the dependent files in doc_dependent_files
@@ -107,7 +107,7 @@ dist_manifest_in_files := \
     INSTALL.md \
     *.py \
     $(package_name)/*.py \
-    $(package_name)/NEWS \
+    $(package_name)/NEWS.md \
 
 # Files that are dependents of the distribution archive.
 # Keep in sync with dist_manifest_in_files.
@@ -117,7 +117,7 @@ dist_dependent_files := \
     INSTALL.md \
     $(wildcard *.py) \
     $(wildcard $(package_name)/*.py) \
-    $(package_name)/NEWS \
+    $(package_name)/NEWS.md \
 
 # No built-in rules needed:
 .SUFFIXES:
@@ -241,7 +241,7 @@ $(doc_build_dir)/index.html: $(doc_dependent_files)
 	rm -Rf $(doc_build_dir)
 	mkdir -p $(doc_build_dir)
 	bash -c "set -o pipefail; PYTHONPATH=. $(doc_cmd) 2>&1 |tee epydoc.log"
-	cp -p $(package_name)/NEWS $(doc_build_dir)/NEWS.txt
+	cp -p $(package_name)/NEWS.md $(doc_build_dir)/NEWS.md
 
 # TODO: Once pylint has no more errors, remove the dash "-"
 pylint.log: $(pylint_rc_file) setup.py os_setup.py $(package_name)/*.py testsuite/*.py
