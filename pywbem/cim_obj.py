@@ -1612,7 +1612,7 @@ class CIMInstance(_CIMComparisonMixin):
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, classname, properties={}, qualifiers={},
+    def __init__(self, classname, properties=None, qualifiers=None,
                  path=None, property_list=None):
         """
         Initialize the `CIMInstance` object.
@@ -1625,6 +1625,7 @@ class CIMInstance(_CIMComparisonMixin):
           properties : `dict` or `NocaseDict`
             Optional: Dictionary of properties, specifying property values of
             the instance.
+            If `None`, the instance will have no properties.
             The dictionary must contain one item for each property, where:
 
             - its key is the property name.
@@ -1635,6 +1636,7 @@ class CIMInstance(_CIMComparisonMixin):
             Optional: Dictionary of qualifier values of the instance.
             Note that CIM-XML has deprecated the presence of qualifier values
             on CIM instances.
+            If `None`, the instance will have no qualifiers.
 
           path : `CIMInstanceName`
             Optional: Instance path of the instance.
@@ -1667,8 +1669,9 @@ class CIMInstance(_CIMComparisonMixin):
         # __setitem__ to enforce CIM types for each property.
 
         self.properties = NocaseDict()
-        for key, value in properties.items():
-            self.__setitem__(key, value)
+        if properties:
+            for key, value in properties.items():
+                self.__setitem__(key, value)
 
     def update(self, *args, **kwargs):
         """D.update(E, **F) -> None.
@@ -1932,8 +1935,8 @@ class CIMClass(_CIMComparisonMixin):
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, classname, properties={}, methods={},
-                 superclass=None, qualifiers={}):
+    def __init__(self, classname, properties=None, methods=None,
+                 superclass=None, qualifiers=None):
         """
         Initialize the `CIMClass` object.
 
@@ -2049,8 +2052,8 @@ class CIMMethod(_CIMComparisonMixin):
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, methodname, return_type=None, parameters={},
-                 class_origin=None, propagated=False, qualifiers={}):
+    def __init__(self, methodname, return_type=None, parameters=None,
+                 class_origin=None, propagated=False, qualifiers=None):
         """
         Initialize the `CIMMethod` object.
 
@@ -2147,7 +2150,7 @@ class CIMParameter(_CIMComparisonMixin):
     """
     # pylint: disable=too-many-arguments
     def __init__(self, name, type, reference_class=None, is_array=None,
-                 array_size=None, qualifiers={}, value=None):
+                 array_size=None, qualifiers=None, value=None):
         # pylint: disable=redefined-builtin
         """
         Initialize the `CIMParameter` object.
@@ -2440,7 +2443,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     # pylint: disable=too-many-arguments
     def __init__(self, name, type, value=None, is_array=False,
-                 array_size=None, scopes={},
+                 array_size=None, scopes=None,
                  overridable=None, tosubclass=None, toinstance=None,
                  translatable=None):
         # pylint: disable=redefined-builtin
@@ -2593,7 +2596,7 @@ def tocimxml(value):
     # List of values
 
     if isinstance(value, list):
-        return cim_xml.VALUE_ARRAY(list(map(tocimxml, value)))
+        return cim_xml.VALUE_ARRAY([tocimxml(v) for v in value])
 
     raise ValueError("Can't convert %s (%s) to CIM XML" % \
                      (value, builtin_type(value)))

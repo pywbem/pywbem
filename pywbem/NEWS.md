@@ -22,6 +22,8 @@ Enhancements
 
   * Upgraded M2Crypto to use official 0.24.0 from PyPI.
 
+  * Replaced `[]` and `{}` default arguments with None.
+
 
 pywbem v0.8.2
 =============

@@ -296,7 +296,7 @@ class QUALIFIER_DECLARATION(CIMElement):
     """
 
     def __init__(self, name, type_, value, is_array=None,
-                 array_size=None, qualifier_scopes={},
+                 array_size=None, qualifier_scopes=None,
                  overridable=None, tosubclass=None,
                  toinstance=None, translatable=None):
 
@@ -343,9 +343,11 @@ class SCOPE(CIMElement):
          INDICATION   (true|false)      'false'>
     """
 
-    def __init__(self, scopes={}):
+    def __init__(self, scopes=None):
         Element.__init__(self, 'SCOPE')
-        if 'any' in scopes and scopes['any']:
+        if not scopes:
+            scopes = {}
+        elif 'any' in scopes and scopes['any']:
             scopes = {'CLASS': True,
                       'ASSOCIATION': True,
                       'REFERENCE': True,
@@ -735,12 +737,19 @@ class CLASS(CIMElement):
         %SuperClass;>
     """
 
-    def __init__(self, classname, properties=[], methods=[],
-                 qualifiers=[], superclass=None):
+    def __init__(self, classname, properties=None, methods=None,
+                 qualifiers=None, superclass=None):
         Element.__init__(self, 'CLASS')
         self.setName(classname)
         self.setOptionalAttribute('SUPERCLASS', superclass)
-        self.appendChildren(qualifiers + properties + methods)
+        children = []
+        if qualifiers:
+            children.extend(qualifiers)
+        if properties:
+            children.extend(properties)
+        if methods:
+            children.extend(methods)
+        self.appendChildren(children)
 
 class INSTANCE(CIMElement):
     # pylint: disable=invalid-name
@@ -753,12 +762,17 @@ class INSTANCE(CIMElement):
          %ClassName;
          xml:lang   NMTOKEN  #IMPLIED>
     """
-    def __init__(self, classname, properties=[], qualifiers=[],
+    def __init__(self, classname, properties=None, qualifiers=None,
                  xml_lang=None):
         Element.__init__(self, 'INSTANCE')
         self.setAttribute('CLASSNAME', classname)
         self.setOptionalAttribute('xml:lang', xml_lang)
-        self.appendChildren(qualifiers + properties)
+        children = []
+        if qualifiers:
+            children.extend(qualifiers)
+        if properties:
+            children.extend(properties)
+        self.appendChildren(children)
 
 class QUALIFIER(CIMElement):
     # pylint: disable=invalid-name
@@ -829,7 +843,7 @@ class PROPERTY(CIMElement):
     """
 
     def __init__(self, name, type_, value=None, class_origin=None,
-                 propagated=None, qualifiers=[], xml_lang=None,
+                 propagated=None, qualifiers=None, xml_lang=None,
                  embedded_object=None):
 
         Element.__init__(self, 'PROPERTY')
@@ -861,7 +875,8 @@ class PROPERTY(CIMElement):
         # As a result, the best choice is to use only the standards-conforming
         # mixed case form in any requests sent by PyWBEM.
 
-        self.appendChildren(qualifiers)
+        if qualifiers:
+            self.appendChildren(qualifiers)
         self.appendOptionalChild(value)
 
 class PROPERTY_ARRAY(CIMElement):
@@ -888,7 +903,7 @@ class PROPERTY_ARRAY(CIMElement):
     """
 
     def __init__(self, name, type_, value_array=None, array_size=None,
-                 class_origin=None, propagated=None, qualifiers=[],
+                 class_origin=None, propagated=None, qualifiers=None,
                  xml_lang=None, embedded_object=None):
 
         Element.__init__(self, 'PROPERTY.ARRAY')
@@ -907,7 +922,8 @@ class PROPERTY_ARRAY(CIMElement):
 
         self.setOptionalAttribute('xml:lang', xml_lang)
 
-        self.appendChildren(qualifiers)
+        if qualifiers:
+            self.appendChildren(qualifiers)
         self.appendOptionalChild(value_array)
 
 class PROPERTY_REFERENCE(CIMElement):
@@ -928,7 +944,7 @@ class PROPERTY_REFERENCE(CIMElement):
     """
 
     def __init__(self, name, value_reference=None, reference_class=None,
-                 class_origin=None, propagated=None, qualifiers=[]):
+                 class_origin=None, propagated=None, qualifiers=None):
 
         Element.__init__(self, 'PROPERTY.REFERENCE')
 
@@ -940,7 +956,8 @@ class PROPERTY_REFERENCE(CIMElement):
         if propagated is not None:
             self.setAttribute('PROPAGATED', str(propagated).lower())
 
-        self.appendChildren(qualifiers)
+        if qualifiers:
+            self.appendChildren(qualifiers)
         self.appendOptionalChild(value_reference)
 
 class METHOD(CIMElement):
@@ -961,8 +978,8 @@ class METHOD(CIMElement):
         %Propagated;>
     """
 
-    def __init__(self, name, parameters=[], return_type=None,
-                 class_origin=None, propagated=None, qualifiers=[]):
+    def __init__(self, name, parameters=None, return_type=None,
+                 class_origin=None, propagated=None, qualifiers=None):
 
         Element.__init__(self, 'METHOD')
 
@@ -974,7 +991,12 @@ class METHOD(CIMElement):
         if propagated is not None:
             self.setAttribute('PROPAGATED', str(propagated).lower())
 
-        self.appendChildren(qualifiers + parameters)
+        children = []
+        if qualifiers:
+            children.extend(qualifiers)
+        if parameters:
+            children.extend(parameters)
+        self.appendChildren(children)
 
 class PARAMETER(CIMElement):
     # pylint: disable=invalid-name
@@ -989,11 +1011,12 @@ class PARAMETER(CIMElement):
         %CIMType;      #REQUIRED>
     """
 
-    def __init__(self, name, type_, qualifiers=[]):
+    def __init__(self, name, type_, qualifiers=None):
         Element.__init__(self, 'PARAMETER')
         self.setName(name)
         self.setAttribute('TYPE', type_)
-        self.appendChildren(qualifiers)
+        if qualifiers:
+            self.appendChildren(qualifiers)
 
 class PARAMETER_REFERENCE(CIMElement):
     # pylint: disable=invalid-name
@@ -1008,11 +1031,12 @@ class PARAMETER_REFERENCE(CIMElement):
         %ReferenceClass;>
     """
 
-    def __init__(self, name, reference_class=None, qualifiers=[]):
+    def __init__(self, name, reference_class=None, qualifiers=None):
         Element.__init__(self, 'PARAMETER.REFERENCE')
         self.setName(name)
         self.setOptionalAttribute('REFERENCECLASS', reference_class)
-        self.appendChildren(qualifiers)
+        if qualifiers:
+            self.appendChildren(qualifiers)
 
 class PARAMETER_ARRAY(CIMElement):
     # pylint: disable=invalid-name
@@ -1028,13 +1052,14 @@ class PARAMETER_ARRAY(CIMElement):
         %ArraySize;>
     """
 
-    def __init__(self, name, type_, array_size=None, qualifiers=[]):
+    def __init__(self, name, type_, array_size=None, qualifiers=None):
         Element.__init__(self, 'PARAMETER.ARRAY')
         self.setName(name)
         self.setAttribute('TYPE', type_)
         if array_size is not None:
             self.setAttribute('ARRAYSIZE', str(array_size))
-        self.appendChildren(qualifiers)
+        if qualifiers:
+            self.appendChildren(qualifiers)
 
 class PARAMETER_REFARRAY(CIMElement):
     # pylint: disable=invalid-name
@@ -1051,13 +1076,14 @@ class PARAMETER_REFARRAY(CIMElement):
     """
 
     def __init__(self, name, reference_class=None, array_size=None,
-                 qualifiers=[]):
+                 qualifiers=None):
         Element.__init__(self, 'PARAMETER.REFARRAY')
         self.setName(name)
         self.setOptionalAttribute('REFERENCECLASS', reference_class)
         if array_size is not None:
             self.setAttribute('ARRAYSIZE', str(array_size))
-        self.appendChildren(qualifiers)
+        if qualifiers:
+            self.appendChildren(qualifiers)
 
 class TABLECELL_DECLARATION(CIMElement): #pylint: disable=invalid-name
     # pylint: disable=invalid-name
@@ -1222,12 +1248,13 @@ class IMETHODCALL(CIMElement):
 	%CIMName;>
     """
 
-    def __init__(self, name, localnamespacepath, iparamvalues=[],
+    def __init__(self, name, localnamespacepath, iparamvalues=None,
                  responsedestination=None):
         Element.__init__(self, 'IMETHODCALL')
         self.setName(name)
         self.appendChild(localnamespacepath)
-        self.appendChildren(iparamvalues)
+        if iparamvalues:
+            self.appendChildren(iparamvalues)
         self.appendOptionalChild(responsedestination)
 
 class METHODCALL(CIMElement):
@@ -1246,12 +1273,13 @@ class METHODCALL(CIMElement):
 	%CIMName;>
     """
 
-    def __init__(self, name, localpath, paramvalues=[],
+    def __init__(self, name, localpath, paramvalues=None,
                  responsedestination=None):
         Element.__init__(self, 'METHODCALL')
         self.setName(name)
         self.appendChild(localpath)
-        self.appendChildren(paramvalues)
+        if paramvalues:
+            self.appendChildren(paramvalues)
         self.appendOptionalChild(responsedestination)
 
 class EXPMETHODCALL(CIMElement):
@@ -1266,10 +1294,11 @@ class EXPMETHODCALL(CIMElement):
 	%CIMName;>
     """
 
-    def __init__(self, name, params=[]):
+    def __init__(self, name, params=None):
         Element.__init__(self, 'EXPMETHODCALL')
         self.setName(name)
-        self.appendChildren(params)
+        if params:
+            self.appendChildren(params)
 
 class PARAMVALUE(CIMElement):
     # pylint: disable=invalid-name
@@ -1463,11 +1492,12 @@ class ERROR(CIMElement):
 	DESCRIPTION CDATA #IMPLIED>
     """
 
-    def __init__(self, code, description=None, instances=[]):
+    def __init__(self, code, description=None, instances=None):
         Element.__init__(self, 'ERROR')
         self.setAttribute('CODE', code)
         self.setOptionalAttribute('DESCRIPTION', description)
-        self.appendChildren(instances)
+        if instances:
+            self.appendChildren(instances)
 
 class RETURNVALUE(CIMElement):
     # pylint: disable=invalid-name
