@@ -49,8 +49,15 @@ if sys.version_info[0:2] == (2, 6):
 import os_setup
 from os_setup import shell, shell_check, import_setuptools
 
-# Package version - Keep in sync with pywbem/__init__.py!
-_version = '0.9.0.dev0'  # pylint: disable=invalid-name
+
+def package_version(filename, varname):
+    """Return package version string by reading `filename` and retrieving its
+       module-global variable `varnam`."""
+    _locals = {}
+    with open(filename) as fp:
+        exec(fp.read(), None, _locals)
+    return _locals[varname]
+
 
 def install_swig(installer, dry_run, verbose):
     """Custom installer function for `os_setup` module.
@@ -314,6 +321,8 @@ def main():
     py_version_m_n = "%s.%s" % (sys.version_info[0], sys.version_info[1])
     py_version_m = "%s" % sys.version_info[0]
 
+    pkg_version = package_version("pywbem/_version.py", "__version__")
+
     args = {
         'name': 'pywbem',
         'author': 'Tim Potter',
@@ -324,7 +333,7 @@ def main():
         'long_description': __doc__,
         'platforms': ['any'],
         'url': 'http://pywbem.github.io/pywbem/',
-        'version': _version,
+        'version': pkg_version,
         'license': 'LGPL version 2.1, or (at your option) any later version',
         'distclass': os_setup.OsDistribution,
         'cmdclass': {
