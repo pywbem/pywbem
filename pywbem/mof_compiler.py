@@ -41,6 +41,7 @@ from __future__ import print_function, absolute_import
 import sys
 import os
 from getpass import getpass
+import argparse
 
 import six
 from ply import yacc, lex
@@ -1812,90 +1813,158 @@ def _lex(verbose=False):
                    errorlog=lex.PlyLogger(sys.stdout))
 
 
+class SmartFormatter(argparse.HelpFormatter):
+    """Formatter class for `argparse`, that respects newlines in help strings.
+
+    Idea and code from: http://stackoverflow.com/a/22157136
+
+    Usage:
+
+        If an argparse argument help text starts with 'R|', it will be treated
+        as a *raw* string that does line formatting on its own by specifying
+        newlines appropriately. The string should not exceed 55 characters per
+        line. Indentation handling is still applied automatically and does not
+        need to be specified within the string.
+
+        Otherwise, the strings are formatted as normal and newlines are
+        treated like blanks.
+
+    Limitations:
+        It seems this only works for the `help` argument of
+        `ArgumentParser.add_argument()`, and not for group descriptions,
+        and usage, description, and epilog of ArgumentParser.
+"""
+
+    def _split_lines(self, text, width):
+        if text.startswith('R|'):
+            return text[2:].splitlines()  
+        return argparse.HelpFormatter._split_lines(self, text, width)
+
+
 def main():
-    """Initialize compiler options from command line when
-       mof_compiler.py called from command line. Options can be
-       viewed with --help
+    """Parse command line arguments and process the specified MOF files.
+       A help message is printed with `-h` or `--help`.
     """
 
-    from optparse import OptionParser
-    usage = 'usage: %prog -n <namespace> [options] <MOF file> ...'
-    oparser = OptionParser(usage=usage)
-    oparser.add_option('-s', '--search', dest='search',
-                       help='Search path to find missing schema elements.  ' \
-                            'This option can be present multiple times.',
-                       metavar='Path', action='append')
-    oparser.add_option('-n', '--namespace', dest='ns',
-                       help='Specify the namespace', metavar='Namespace')
-    oparser.add_option('-u', '--url', dest='url',
-                       help='URL to the CIM Server', metavar='URL',
-                       default='/var/run/tog-pegasus/cimxml.socket')
-    oparser.add_option('-v', '--verbose',
-                       action='store_true', dest='verbose', default=False,
-                       help='Print more messages to stdout')
-    oparser.add_option('-r', '--remove',
-                       action='store_true', dest='remove', default=False,
-                       help='Remove elements found in MOF, instead of ' \
-                            'create them')
-    oparser.add_option('-l', '--username',
-                       dest='username', metavar='Username',
-                       help='Specify the username')
-    oparser.add_option('-p', '--password',
-                       dest='password', metavar='Password',
-                       help='Specify the password')
-    oparser.add_option('-d', '--dry-run',
-                       dest='dry_run', default=False, action='store_true',
-                       help="Don't actually modify the repository, just " \
-                            "check mof file syntax. Connection to CIMOM is " \
-                            "still required to check qualifiers.")
+    prog = "mof_compiler"  # Name of the script file invoking this module
+    usage = '%(prog)s [options] moffile ...'
+    desc = 'Compile MOF files, and update the repository of a WBEM ' \
+           'server with the result.'
+    epilog = """
+Example:
+  %s CIM_Schema_2.45.mof -u https://localhost:15989 -n root/cimv2 -l sheldon -p penny42
+""" % prog
+    argparser = argparse.ArgumentParser(
+        prog=prog, usage=usage, description=desc, epilog=epilog, 
+        add_help=False, formatter_class=SmartFormatter)
 
-    (options, args) = oparser.parse_args()
-    search = options.search
-    if not args:
-        oparser.error('No input files given for parsing')
-    if options.ns is None:
-        oparser.error('No namespace given')
+    pos_arggroup = argparser.add_argument_group(
+        'Positional arguments')
+    pos_arggroup.add_argument(
+        'mof_files', metavar='moffile',
+        action='append', 
+        help='R|Path name of the MOF file to be compiled.\n' \
+             'Can be specified multiple times.')
 
-    passwd = options.password
-    if options.username and not passwd:
-        passwd = getpass('Enter password for %s: ' % options.username)
-    if options.username:
-        conn = WBEMConnection(options.url, (options.username, passwd))
+    server_arggroup = argparser.add_argument_group(
+        'Server related options',
+        'Specify the WBEM server and namespace')
+    server_arggroup.add_argument(
+        '-u', '--url', dest='url', metavar='url',
+        default='/var/run/tog-pegasus/cimxml.socket',
+        help='R|URL of the WBEM server.\n' \
+             'Default: %(default)s')
+    server_arggroup.add_argument(
+        '-n', '--namespace', dest='namespace', metavar='namespace',
+        required=True, 
+        help='Namespace in the WBEM server to work against (required)')
+    server_arggroup.add_argument(
+        '-l', '--username', dest='username', metavar='username',
+        help='R|Username for authenticating with the WBEM server.\n' \
+             'Default: No username')
+    server_arggroup.add_argument(
+        '-p', '--password', dest='password', metavar='password',
+        help='R|Password for authenticating with the WBEM server.\n' \
+             'Default: No password')
+
+    action_arggroup = argparser.add_argument_group(
+        'Action related options',
+        'Specify actions against the repository. Default: create/update ' \
+        'elements.')
+    action_arggroup.add_argument(
+       '-r', '--remove', dest='remove',
+       action='store_true', default=False,
+       help='Remove elements (found in the MOF files) from the repository, ' \
+            'instead of creating or updating them')
+    action_arggroup.add_argument(
+        '-d', '--dry-run', dest='dry_run',
+        action='store_true', default=False,
+        help="Don't actually modify the repository, just check MOF syntax. " \
+             "Connection to WBEM server is still required to check " \
+             "qualifiers.")
+
+    general_arggroup = argparser.add_argument_group(
+        'General options')
+    general_arggroup.add_argument(
+       '-s', '--search', dest='search_dirs', metavar='dir',
+       action='append',
+       help='Path name of an additional search directory for MOF include ' \
+            'files. Can be specified multiple times.')
+    general_arggroup.add_argument(
+       '-v', '--verbose', dest='verbose',
+       action='store_true', default=False,
+       help='Print more messages while processing')
+    general_arggroup.add_argument(
+       '-h', '--help', action='help',
+       help='Show this help message and exit')
+
+    args = argparser.parse_args()
+
+    if not args.mof_files:
+        argparser.error('No MOF files specified')
+
+    passwd = args.password
+    if args.username and not passwd:
+        passwd = getpass('Enter password for %s: ' % args.username)
+    if args.username:
+        conn = WBEMConnection(args.url, (args.username, passwd))
     else:
-        conn = WBEMConnection(options.url)
-    if options.remove or options.dry_run:
+        conn = WBEMConnection(args.url)
+    if args.remove or args.dry_run:
         conn = MOFWBEMConnection(conn=conn)
     #conn.debug = True
-    conn.default_namespace = options.ns
-    if search is None:
-        search = []
+    conn.default_namespace = args.namespace
 
-    search = [os.path.abspath(x) for x in search]
-    for fname in args:
+    search_dirs = args.search_dirs
+    if search_dirs is None:
+        search_dirs = []
+    search_dirs = [os.path.abspath(x) for x in search_dirs]
+
+    for fname in args.mof_files:
         path = os.path.abspath(os.path.dirname(fname))
-        for spath in search:
+        for spath in search_dirs:
             if path.startswith(spath):
                 break
         else:
-            search.append(path)
+            search_dirs.append(path)
 
     # If removing, we'll be verbose later when we actually remove stuff.
     # We don't want MOFCompiler to be verbose, as that would be confusing.
-    verbose = options.verbose and not options.remove
+    verbose = args.verbose and not args.remove
 
-    mofcomp = MOFCompiler(handle=conn, search_paths=search,
+    mofcomp = MOFCompiler(handle=conn, search_paths=search_dirs,
                           verbose=verbose)
 
     try:
-        for fname in args:
+        for fname in args.mof_files:
             if fname[0] != '/':
                 fname = os.path.curdir + '/' + fname
-            mofcomp.compile_file(fname, options.ns)
+            mofcomp.compile_file(fname, args.namespace)
     except MOFParseError:
         sys.exit(1)
     except CIMError:
         sys.exit(1)
 
-    if options.remove and not options.dry_run:
-        conn.rollback(verbose=options.verbose)
+    if args.remove and not args.dry_run:
+        conn.rollback(verbose=args.verbose)
 
