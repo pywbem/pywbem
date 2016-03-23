@@ -1862,7 +1862,7 @@ Example:
         'Positional arguments')
     pos_arggroup.add_argument(
         'mof_files', metavar='moffile',
-        action='append', 
+        nargs='*', 
         help='R|Path name of the MOF file to be compiled.\n' \
              'Can be specified multiple times.')
 
@@ -1876,7 +1876,6 @@ Example:
              'Default: %(default)s')
     server_arggroup.add_argument(
         '-n', '--namespace', dest='namespace', metavar='namespace',
-        required=True, 
         help='Namespace in the WBEM server to work against (required)')
     server_arggroup.add_argument(
         '-l', '--username', dest='username', metavar='username',
@@ -1922,6 +1921,9 @@ Example:
 
     if not args.mof_files:
         argparser.error('No MOF files specified')
+
+    if not args.namespace:
+        argparser.error('No namespace specified (-n/--namespace option)')
 
     passwd = args.password
     if args.username and not passwd:
