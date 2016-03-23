@@ -52,17 +52,7 @@ import os
 import getpass
 import errno
 import code
-
-# TODO 2/16 AM: Migrate to use argparse instead of optparse. It takes more than
-#               just importing the module (e.g. add_option() no longer exists
-#               in argparse).
-#try:
-#    # Python 2.7+ and 3.2+
-#    from argparse import ArgumentParser as OptionParser
-#except ImportError:
-#    # Python 2.6
-#    from optparse import OptionParser
-from optparse import OptionParser
+import argparse
 
 # Additional symbols for use in the interactive session
 from pprint import pprint as pp # pylint: disable=unused-import
@@ -82,7 +72,7 @@ __all__ = []
 # by all functions that execute operations.
 _CONN = None
 
-def remote_connection(argv, opts):
+def remote_connection(server, opts):
     """Initiate a remote connection, via PyWBEM. Arguments for
        the request are part of the command line arguments and include
        user name, password, namespace, etc.
@@ -90,15 +80,15 @@ def remote_connection(argv, opts):
 
     global _CONN     # pylint: disable=global-statement
 
-    if argv[0][0] == '/':
-        url = argv[0]
+    if server[0] == '/':
+        url = server
     else:
         proto = 'https'
 
         if opts.no_ssl:
             proto = 'http'
 
-        url = '%s://%s' % (proto, argv[0])
+        url = '%s://%s' % (proto, server)
 
         if opts.port is not None:
             url += ':%d' % opts.port
@@ -358,45 +348,102 @@ def get_banner():
     return result
 
 
+class SmartFormatter(argparse.HelpFormatter):
+    """Formatter class for `argparse`, that respects newlines in help strings.
+
+    Idea and code from: http://stackoverflow.com/a/22157136
+
+    Usage:
+
+        If an argparse argument help text starts with 'R|', it will be treated
+        as a *raw* string that does line formatting on its own by specifying
+        newlines appropriately. The string should not exceed 55 characters per
+        line. Indentation handling is still applied automatically and does not
+        need to be specified within the string.
+
+        Otherwise, the strings are formatted as normal and newlines are
+        treated like blanks.
+
+    Limitations:
+        It seems this only works for the `help` argument of
+        `ArgumentParser.add_argument()`, and not for group descriptions,
+        and usage, description, and epilog of ArgumentParser.
+"""
+
+    def _split_lines(self, text, width):
+        if text.startswith('R|'):
+            return text[2:].splitlines()
+        return argparse.HelpFormatter._split_lines(self, text, width)
+
+
 def main():
-    """Main routine, when called as a script."""
+    """Parse command line arguments, connect to the WBEM server and
+    open the interactive shell.
+    A help message is printed with `-h` or `--help`.
+    """
 
     global _CONN     # pylint: disable=global-statement
 
-    # Parse command line args
-    optparser = OptionParser(
-        usage='%prog HOSTNAME [-u USER -p PASS] [-n NAMESPACE] [--no-ssl]')
+    prog = "wbemcli"  # Name of the script file invoking this module
+    usage = '%(prog)s [options] server'
+    desc = 'Provide an interactive shell for issuing operations against a ' \
+           'WBEM server.'
+    epilog = """
+Example:
+  %s localhost --port 15989 -n root/cimv2 -u sheldon -p penny42
+""" % prog
+    argparser = argparse.ArgumentParser(
+        prog=prog, usage=usage, description=desc, epilog=epilog,
+        add_help=False, formatter_class=SmartFormatter)
 
-    # Username and password
-    optparser.add_option('-u', '--user', dest='user',
-                         action='store', type='string',
-                         help='user to connect as')
-    optparser.add_option('-p', '--password', dest='password',
-                         action='store', type='string',
-                         help='password to connect user as')
+    pos_arggroup = argparser.add_argument_group(
+        'Positional arguments')
+    pos_arggroup.add_argument(
+        'server', metavar='server', nargs='?',
+        help='Host name or IP address of the WBEM server.')
 
-    # Change the default namespace used
-    optparser.add_option('-n', '--namespace', dest='namespace',
-                         action='store', type='string', default='root/cimv2',
-                         help='default namespace to use')
+    server_arggroup = argparser.add_argument_group(
+        'Server related options',
+        'Specify the WBEM server and namespace')
+    server_arggroup.add_argument(
+        '--port', dest='port', metavar='port', type=int,
+        default=None,
+        help='Port where the WBEM server listens')
+    server_arggroup.add_argument(
+        '--no-ssl', dest='no_ssl',
+        action='store_true',
+        help='Don\'t use SSL')
+    server_arggroup.add_argument(
+        '-n', '--namespace', dest='namespace', metavar='namespace',
+        default='root/cimv2',
+        help='R|Namespace in the WBEM server to work against.\n' \
+             'Default: %(default)s')
+    server_arggroup.add_argument(
+        '-u', '--user', dest='user', metavar='user',
+        help='R|Username for authenticating with the WBEM server.\n' \
+             'Default: No username')
+    server_arggroup.add_argument(
+        '-p', '--password', dest='password', metavar='password',
+        help='R|Password for authenticating with the WBEM server.\n' \
+             'Default: Will be prompted for, if username was specified.')
 
-    # Don't use SSL for remote connections
-    optparser.add_option('--no-ssl', dest='no_ssl', action='store_true',
-                         help='don\'t use SSL')
+    general_arggroup = argparser.add_argument_group(
+        'General options')
+    general_arggroup.add_argument(
+       '-v', '--verbose', dest='verbose',
+       action='store_true', default=False,
+       help='Print more messages while processing')
+    general_arggroup.add_argument(
+       '-h', '--help', action='help',
+       help='Show this help message and exit')
 
-    # Specify non-standard port
-    optparser.add_option('--port', dest='port', action='store', type='int',
-                         help='port to connect as', default=None)
+    args = argparser.parse_args()
 
-    # Check usage
-    # The following may exit, e.g. for --help or invalid options:
-    (opts, argv) = optparser.parse_args()
-    if len(argv) != 1:
-        optparser.print_usage()
-        return 2
+    if not args.server:
+        argparser.error('No WBEM server specified')
 
     # Set up a client connection
-    _CONN = remote_connection(argv, opts)
+    _CONN = remote_connection(args.server, args)
 
     # Determine file path of history file
     home_dir = '.'
