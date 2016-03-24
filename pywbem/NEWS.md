@@ -17,6 +17,11 @@ Clean Code
       - `test_cimxml_parse.py`
       - `twisted_client.py`
 
+Enhancements
+------------
+
+  * Upgraded M2Crypto to use official 0.24.0 from PyPI.
+
 
 pywbem v0.8.2
 =============
