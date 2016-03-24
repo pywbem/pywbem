@@ -66,7 +66,8 @@ of this package.
 
 The Epydoc documentation tool that is used to produce these web pages does
 not list all symbols that are folded into the package namespace, unfortunately
-(as you can see, it lists only the variables, not including `__version__`).
+(as you can see, it lists only the variables, not including
+`pywbem.__version__`).
 It does however honor the ``__all__`` variable defining the exported symbols
 in each sub-module, and shows only those exported symbols in the documentation
 that is generated for the sub-modules. In other words, the symbols that

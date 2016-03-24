@@ -1422,9 +1422,9 @@ def _get_error_context(input_, token):
     lines.append(pointline + pointer)
     return lines
 
-def _print_logger(str_):
-    """Print the str_ argument to stdout"""
-    print(str_)
+def _print_logger(msg):
+    """Print the msg argument to stdout."""
+    print(msg)
 
 
 class MOFWBEMConnection(object):
@@ -1432,6 +1432,7 @@ class MOFWBEMConnection(object):
        implement all of the WBEM Operations, just the subset
        required by the compiler
     """
+
     def __init__(self, conn=None):
         """Define the connection for the connection"""
         self.conn = conn
@@ -1644,11 +1645,14 @@ class MOFCompiler(object):
                  log_func=_print_logger):
         """Initialize the compiler.
 
-        Keyword arguments:
-        handle -- A WBEMConnection or similar object.  The following
+        :Parameters:
+
+          handle : WBEMConnection
+            A WBEMConnection or similar object.  The following
             attributes and methods need to be present, corresponding to the
-            the attributes and methods on pywbem.WBEMConnection having
+            the attributes and methods on `WBEMConnection` having
             the same names:
+            
             - default_namespace
             - EnumerateInstanceNames()
             - CreateClass()
@@ -1660,11 +1664,16 @@ class MOFCompiler(object):
             - DeleteQualifier()
             - EnumerateQualifiers()
             - SetQualifier()
-        search_paths -- A list of file system paths specifying where
-            missing schema elements should be looked for. `None` is considered
-            the same as an empty list.
-        verbose -- True if extra messages should be printed.
-        log_func -- A callable that takes a single string argument.
+
+          search_paths : list
+            A list of file system paths specifying where missing schema
+            elements should be looked for.
+
+          verbose : bool
+            True if extra messages should be printed.
+
+          log_func : callable
+            A callable that takes a single string argument.
             The default logger prints to stdout.
         """
 
@@ -1684,12 +1693,16 @@ class MOFCompiler(object):
     def compile_string(self, mof, ns, filename=None):
         """Compile a string of MOF.
 
-        Arguments:
-        mof -- The string of MOF
-        ns -- The CIM namespace
+        :Parameters:
 
-        Keyword arguments:
-        filename -- The name of the file that the MOF was read from.  This
+          mof : string
+            The string of MOF
+
+          ns : string
+            The CIM namespace
+
+          filename : string
+            The name of the file that the MOF was read from.  This
             is used in status and error messages.
         """
 

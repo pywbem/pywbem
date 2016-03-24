@@ -295,7 +295,8 @@ class NocaseDict(object):
     # Other stuff
 
     def __repr__(self):
-        """Return a string representation suitable for debugging."""
+        """Return a string representation of the `NocaseDict` object that is
+        suitable for debugging."""
 
         items = ', '.join([('%r: %r' % (key, value))
                            for key, value in sorted(self.iteritems())])
@@ -661,13 +662,12 @@ class CIMClassName(_CIMComparisonMixin):
 
     :Ivariables:
 
-      ...
+      ... : ...
         All parameters of `__init__` are set as instance variables.
     """
 
     def __init__(self, classname, host=None, namespace=None):
-        """
-        Initialize the `CIMClassName` object.
+        """Initialize the `CIMClassName` object.
 
         :Parameters:
 
@@ -690,9 +690,8 @@ class CIMClassName(_CIMComparisonMixin):
 
             Default: `None`.
 
-        :Raises:
-          :raise TypeError:
-          :raise ValueError:
+        :Raises TypeError:
+        :Raises ValueError:
         """
 
         # Make sure we process Unicode strings
@@ -714,7 +713,7 @@ class CIMClassName(_CIMComparisonMixin):
         self.namespace = namespace
 
     def copy(self):
-        """Return a copy the CIMClassName object"""
+        """Return a copy the `CIMClassName` object"""
 
         return CIMClassName(self.classname, host=self.host,
                             namespace=self.namespace)
@@ -741,7 +740,8 @@ class CIMClassName(_CIMComparisonMixin):
                 cmpname(self.classname, other.classname))
 
     def __str__(self):
-        """Return the WBEM URI representation of the CIM class path."""
+        """Return the WBEM URI of the CIM class path represented by the
+        `CIMClassName` object."""
 
         ret_str = ''
 
@@ -756,7 +756,8 @@ class CIMClassName(_CIMComparisonMixin):
         return ret_str
 
     def __repr__(self):
-        """Return a string representation suitable for debugging."""
+        """Return a string representation of the `CIMClassName` object that is
+        suitable for debugging."""
 
         return '%s(classname=%r, namespace=%r, ' \
                'host=%r)' % \
@@ -764,9 +765,10 @@ class CIMClassName(_CIMComparisonMixin):
                 self.host)
 
     def tocimxml(self):
-        """
-        Convert the CIMClassName object to CIM/XML consistent with
-        DMTF DSP-0200 format and return the resulting XML
+        """Return the CIM-XML representation of the `CIMClassName` object,
+        as an object of an appropriate subclass of `xml.dom.minidom.Element`.
+
+        The returned CIM-XML representation is consistent with DMTF DSP0201.
         """
 
         classname = cim_xml.CLASSNAME(self.classname)
@@ -825,10 +827,9 @@ class CIMProperty(_CIMComparisonMixin):
 
     :Ivariables:
 
-      ...
+      ... : ...
         All parameters of `__init__` are set as instance variables.
     """
-
 
     # pylint: disable=too-many-statements
     def __init__(self, name, value, type=None,
@@ -852,14 +853,14 @@ class CIMProperty(_CIMComparisonMixin):
           name : Unicode string or UTF-8 encoded byte string
             Name of the property. Must not be `None`.
 
-          value
+          value :
             Value of the property (interpreted as actual value when the
             property object is used in an instance, and as default value when
             it is used in a class).
             For valid types for CIM values, see `cim_types`.
 
           type : Unicode string or UTF-8 encoded byte string
-            Name of the CIM type of the property (e.g. `'uint8'`).
+            Name of the CIM type of the property (e.g. ``uint8``).
             `None` means that the argument is unspecified, causing the
             corresponding instance variable to be inferred. An exception is
             raised if it cannot be inferred.
@@ -870,18 +871,18 @@ class CIMProperty(_CIMComparisonMixin):
             the class hierarchy of the class owning the property).
             `None` means that class origin information is not available.
 
-          array_size : `int`
+          array_size : int
             The size of the array property, for fixed-size arrays.
             `None` means that the array property has variable size.
 
           propagated : Unicode string or UTF-8 encoded byte string
             The CIM *propagated* attribute of the property (the effective value
-            of the `Propagated` qualifier of the property, which is a string
+            of the ``Propagated`` qualifier of the property, which is a string
             that specifies the name of the source property from which the
             property value should be propagated).
             `None` means that propagation information is not available.
 
-          is_array : `bool`
+          is_array : bool
             A boolean indicating whether the property is an array (`True`) or a
             scalar (`False`).
             `None` means that the argument is unspecified, causing the
@@ -906,16 +907,17 @@ class CIMProperty(_CIMComparisonMixin):
             A string value indicating the kind of
             embedded object represented by the property value. The following
             values are defined for this argument:
-            `'instance'`: The property is declared with the
-            `EmbeddedInstance` qualifier, indicating that the property
-            value is an embedded instance of a known class name (or Null).
-            `'object'`: The property is declared with the
-            `EmbeddedObject` qualifier, indicating that the property
-            value is an embedded object (instance or class) of which the
-            class name is not known (or Null).
-            `None` means that the argument is unspecified, causing the
-            corresponding instance variable to be inferred. An exception is
-            raised if it cannot be inferred.
+
+            * ``"instance"``: The property is declared with the
+              ``EmbeddedInstance`` qualifier, indicating that the property
+              value is an embedded instance of a known class name (or Null).
+            * ``"object"``: The property is declared with the
+              ``EmbeddedObject`` qualifier, indicating that the property
+              value is an embedded object (instance or class) of which the
+              class name is not known (or Null).
+            * `None`: The argument is unspecified, causing the
+              corresponding instance variable to be inferred. An exception is
+              raised if it cannot be inferred.
 
         Examples:
 
@@ -931,8 +933,7 @@ class CIMProperty(_CIMComparisonMixin):
             -> a reference property
           * `CIMProperty("MyEmbObj", CIMClass(...))`
             -> an embedded object property containing a class
-          * `CIMProperty("MyEmbObj", CIMInstance(...),
-            embedded_object='object')`
+          * `CIMProperty("MyEmbObj",CIMInstance(...),embedded_object="object")`
             -> an embedded object property containing an instance
           * `CIMProperty("MyEmbInst", CIMInstance(...))`
             -> an embedded instance property
@@ -942,14 +943,13 @@ class CIMProperty(_CIMComparisonMixin):
             -> a uint8 property that is Null
           * `CIMProperty("MyRef", None, reference_class="MyClass")`
             -> a reference property that is Null
-          * `CIMProperty("MyEmbObj", None, embedded_object='object')`
+          * `CIMProperty("MyEmbObj", None, embedded_object="object")`
             -> an embedded object property that is Null
-          * `CIMProperty("MyEmbInst", None, embedded_object='instance')`
+          * `CIMProperty("MyEmbInst", None, embedded_object="instance")`
             -> an embedded instance property that is Null
 
-        :Raises:
-          :raise TypeError:
-          :raise ValueError:
+        :Raises TypeError:
+        :Raises ValueError:
         """
 
         type_ = type  # Minimize usage of the builtin 'type'
@@ -1161,7 +1161,7 @@ class CIMProperty(_CIMComparisonMixin):
         self.embedded_object = embedded_object
 
     def copy(self):
-        """ Return a copy of the CIMProperty object"""
+        """ Return a copy of the `CIMProperty` object"""
 
         return CIMProperty(self.name,
                            self.value,
@@ -1174,7 +1174,8 @@ class CIMProperty(_CIMComparisonMixin):
                            qualifiers=self.qualifiers.copy())
 
     def __str__(self):
-        """Return a short string representation for human consumption."""
+        """Return a short string representation of the `CIMProperty` object
+        for human consumption."""
 
         return '%s(name=%r, value=%r, type=%r, ' \
                'reference_class=%r, embedded_object=%r, ' \
@@ -1184,7 +1185,8 @@ class CIMProperty(_CIMComparisonMixin):
                 self.is_array)
 
     def __repr__(self):
-        """Return a string representation suitable for debugging."""
+        """Return a string representation of the `CIMProperty` object
+        that is suitable for debugging."""
 
         return '%s(name=%r, value=%r, type=%r, ' \
                'reference_class=%r, embedded_object=%r, ' \
@@ -1198,8 +1200,10 @@ class CIMProperty(_CIMComparisonMixin):
                 self.qualifiers)
 
     def tocimxml(self):
-        """ Return the string with CIM/XML form of the CIMProperty object using
-            the representation defined in DSP0200
+        """Return the CIM-XML representation of the `CIMProperty` object,
+        as an object of an appropriate subclass of `xml.dom.minidom.Element`.
+
+        The returned CIM-XML representation is consistent with DMTF DSP0201.
         """
 
         if self.is_array:
@@ -1298,7 +1302,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     :Ivariables:
 
-      ...
+      ... : ...
         All parameters of `__init__` are set as instance variables.
     """
 
@@ -1340,9 +1344,8 @@ class CIMInstanceName(_CIMComparisonMixin):
 
             Default: `None`.
 
-        :Raises:
-          :raise TypeError:
-          :raise ValueError:
+        :Raises TypeError:
+        :Raises ValueError:
         """
 
         # Make sure we process Unicode strings
@@ -1359,7 +1362,9 @@ class CIMInstanceName(_CIMComparisonMixin):
         self.namespace = namespace
 
     def copy(self):
-        """ Return a copy of the CIMInstanceName object """
+        """
+        Return a copy of the `CIMInstanceName` object.
+        """
 
         result = CIMInstanceName(self.classname)
         result.keybindings = self.keybindings.copy()
@@ -1392,7 +1397,8 @@ class CIMInstanceName(_CIMComparisonMixin):
                 cmpitem(self.keybindings, other.keybindings))
 
     def __str__(self):
-        """Return the WBEM URI representation of the CIM instance path."""
+        """Return the WBEM URI of the CIM instance path represented by the
+        `CIMInstanceName` object."""
 
         ret_str = ''
 
@@ -1421,7 +1427,8 @@ class CIMInstanceName(_CIMComparisonMixin):
         return ret_str[:-1]
 
     def __repr__(self):
-        """Return a string representation suitable for debugging."""
+        """Return a string representation of the `CIMInstanceName` object
+        that is suitable for debugging."""
 
         return '%s(classname=%r, keybindings=%r, ' \
                'namespace=%r, host=%r)' % \
@@ -1483,8 +1490,11 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     # pylint: disable=too-many-branches
     def tocimxml(self):
-        """Generate a CIM-XML representation of the instance name (class name
-        and key bindings)."""
+        """Return the CIM-XML representation of the `CIMInstanceName` object,
+        as an object of an appropriate subclass of `xml.dom.minidom.Element`.
+
+        The returned CIM-XML representation is consistent with DMTF DSP0201.
+        """
 
         if isinstance(self.keybindings, str):
 
@@ -1597,7 +1607,7 @@ class CIMInstance(_CIMComparisonMixin):
 
     :Ivariables:
 
-      ...
+      ... : ...
         All parameters of `__init__` are set as instance variables.
     """
 
@@ -1640,9 +1650,8 @@ class CIMInstance(_CIMComparisonMixin):
             Optional: List of property names for use by some operations on this
             object.
 
-        :Raises:
-          :raise TypeError:
-          :raise ValueError:
+        :Raises TypeError:
+        :Raises ValueError:
         """
 
         self.classname = _ensure_unicode(classname)
@@ -1713,7 +1722,7 @@ class CIMInstance(_CIMComparisonMixin):
             prop.value = tocimobj(prop.type, value)
 
     def copy(self):
-        """ Return copy of the CIMInstance object"""
+        """Return copy of the `CIMInstance` object."""
 
         result = CIMInstance(self.classname)
         result.properties = self.properties.copy()
@@ -1746,13 +1755,15 @@ class CIMInstance(_CIMComparisonMixin):
                 cmpitem(self.qualifiers, other.qualifiers))
 
     def __str__(self):
-        """Return a short string representation for human consumption."""
+        """Return a short string representation of the `CIMInstance` object
+        for human consumption."""
 
         return '%s(classname=%r, path=%r, ...)' % \
                (self.__class__.__name__, self.classname, self.path)
 
     def __repr__(self):
-        """Return a string representation suitable for debugging."""
+        """Return a string representation of the `CIMInstance` object
+        that is suitable for debugging."""
 
         return '%s(classname=%r, path=%r, ' \
                'properties=%r, property_list=%r' \
@@ -1846,7 +1857,10 @@ class CIMInstance(_CIMComparisonMixin):
         return default if prop is None else prop.value
 
     def tocimxml(self):
-        """ Return string with CIM/XML representing this CIMInstance.
+        """Return the CIM-XML representation of the `CIMInstance` object,
+        as an object of an appropriate subclass of `xml.dom.minidom.Element`.
+
+        The returned CIM-XML representation is consistent with DMTF DSP0201.
         """
 
         props = []
@@ -1881,7 +1895,7 @@ class CIMInstance(_CIMComparisonMixin):
             """ Return a string representing the MOF definition of
                 a single property defined by the type and value
                 arguments.
-                :param type_:  CIMType of the property
+                :param type_: `CIMType` of the property
                 :param value: value corresponsing to this type
             """
             if value is None:
@@ -1919,13 +1933,12 @@ class CIMInstance(_CIMComparisonMixin):
 
 
 class CIMClass(_CIMComparisonMixin):
-    """
-    Create an instance of CIMClass, a CIM class with classname,
+    """Create an instance of CIMClass, a CIM class with classname,
     properties, methods, qualifiers, and superclass name.
 
     :Ivariables:
 
-      ...
+      ... : ...
         All parameters of `__init__` are set as instance variables.
     """
 
@@ -1936,7 +1949,7 @@ class CIMClass(_CIMComparisonMixin):
         Initialize the `CIMClass` object.
 
         Initialize instance variables containing the arguments provided
-        for the CIMClass including classname, properties, class
+        for the `CIMClass` including classname, properties, class
         qualifiers, methods, and the superclass
         """
         self.classname = _ensure_unicode(classname)
@@ -1946,7 +1959,7 @@ class CIMClass(_CIMComparisonMixin):
         self.qualifiers = NocaseDict(qualifiers)
 
     def copy(self):
-        """ Return a copy of the CIMClass object"""
+        """ Return a copy of the `CIMClass` object"""
         result = CIMClass(self.classname)
         result.properties = self.properties.copy()
         result.methods = self.methods.copy()
@@ -1956,13 +1969,15 @@ class CIMClass(_CIMComparisonMixin):
         return result
 
     def __str__(self):
-        """Return a short string representation for human consumption."""
+        """Return a short string representation of the `CIMClass` object
+        for human consumption."""
 
         return '%s(classname=%r, ...)' % \
                (self.__class__.__name__, self.classname)
 
     def __repr__(self):
-        """Return a string representation suitable for debugging."""
+        """Return a string representation of the `CIMClass` object
+        that is suitable for debugging."""
 
         return '%s(classname=%r, superclass=%r, ' \
                'properties=%r, methods=%r, qualifiers=%r)' % \
@@ -1995,7 +2010,11 @@ class CIMClass(_CIMComparisonMixin):
                 cmpitem(self.methods, other.methods))
 
     def tocimxml(self):
-        """ Return string with CIM/XML representation of the CIMClass"""
+        """Return the CIM-XML representation of the `CIMClass` object,
+        as an object of an appropriate subclass of `xml.dom.minidom.Element`.
+
+        The returned CIM-XML representation is consistent with DMTF DSP0201.
+        """
 
         return cim_xml.CLASS(
             self.classname,
@@ -2049,7 +2068,7 @@ class CIMMethod(_CIMComparisonMixin):
 
     :Ivariables:
 
-      ...
+      ... : ...
         All parameters of `__init__` are set as instance variables.
     """
 
@@ -2069,7 +2088,7 @@ class CIMMethod(_CIMComparisonMixin):
         self.qualifiers = NocaseDict(qualifiers)
 
     def copy(self):
-        """ Return copy of the CIMMethod object"""
+        """ Return copy of the `CIMMethod` object"""
 
         result = CIMMethod(self.name,
                            return_type=self.return_type,
@@ -2082,8 +2101,10 @@ class CIMMethod(_CIMComparisonMixin):
         return result
 
     def tocimxml(self):
-        """ Return string containing CIM/XML representation of CIMMethod
-            object
+        """Return the CIM-XML representation of the `CIMMethod` object,
+        as an object of an appropriate subclass of `xml.dom.minidom.Element`.
+
+        The returned CIM-XML representation is consistent with DMTF DSP0201.
         """
 
         return cim_xml.METHOD(
@@ -2095,13 +2116,15 @@ class CIMMethod(_CIMComparisonMixin):
             qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
     def __str__(self):
-        """Return a short string representation for human consumption."""
+        """Return a short string representation of the `CIMMethod` object
+        for human consumption."""
 
         return '%s(name=%r, return_type=%r, ...)' % \
                (self.__class__.__name__, self.name, self.return_type)
 
     def __repr__(self):
-        """Return a string representation suitable for debugging."""
+        """Return a string representation of the `CIMMethod` object
+        that is suitable for debugging."""
 
         return '%s(name=%r, return_type=%r, ' \
                'class_origin=%r, propagated=%r, ' \
@@ -2136,7 +2159,7 @@ class CIMMethod(_CIMComparisonMixin):
                 cmpitem(self.propagated, other.propagated))
 
     def tomof(self):
-        """ Return string MOF representation of the CIMMethod object"""
+        """ Return string MOF representation of the `CIMMethod` object"""
         ret_str = ''
 
         ret_str += '      %s\n' % (_makequalifiers(self.qualifiers, 7))
@@ -2159,9 +2182,10 @@ class CIMParameter(_CIMComparisonMixin):
 
     :Ivariables:
 
-      ...
+      ... : ...
         All parameters of `__init__` are set as instance variables.
     """
+
     # pylint: disable=too-many-arguments
     def __init__(self, name, type, reference_class=None, is_array=None,
                  array_size=None, qualifiers=None, value=None):
@@ -2183,7 +2207,7 @@ class CIMParameter(_CIMComparisonMixin):
         self.value = _ensure_unicode(value)
 
     def copy(self):
-        """ return copy of the CIMParameter object"""
+        """ return copy of the `CIMParameter` object"""
         result = CIMParameter(self.name,
                               self.type,
                               reference_class=self.reference_class,
@@ -2196,7 +2220,8 @@ class CIMParameter(_CIMComparisonMixin):
         return result
 
     def __str__(self):
-        """Return a short string representation for human consumption."""
+        """Return a short string representation of the `CIMParameter` object
+        for human consumption."""
 
         return '%s(name=%r, value=%r, type=%r, ' \
                'reference_class=%r, ' \
@@ -2206,7 +2231,8 @@ class CIMParameter(_CIMComparisonMixin):
                 self.is_array)
 
     def __repr__(self):
-        """Return a string representation suitable for debugging."""
+        """Return a string representation of the `CIMParameter` object
+        that is suitable for debugging."""
 
         return '%s(name=%r, value=%r, type=%r, ' \
                'reference_class=%r, ' \
@@ -2244,8 +2270,10 @@ class CIMParameter(_CIMComparisonMixin):
                 cmpitem(self.value, other.value))
 
     def tocimxml(self):
-        """ Return String containing CIM/XML representation of
-            the CIMParameter
+        """Return the CIM-XML representation of the `CIMParameter` object,
+        as an object of an appropriate subclass of `xml.dom.minidom.Element`.
+
+        The returned CIM-XML representation is consistent with DMTF DSP0201.
         """
 
         if self.type == 'reference':
@@ -2315,9 +2343,10 @@ class CIMQualifier(_CIMComparisonMixin):
 
     :Ivariables:
 
-      ...
+      ... : ...
         All parameters of `__init__` are set as instance variables.
     """
+
     #pylint: disable=too-many-arguments
     def __init__(self, name, value, type=None, propagated=None,
                  overridable=None, tosubclass=None, toinstance=None,
@@ -2379,7 +2408,7 @@ class CIMQualifier(_CIMComparisonMixin):
         self.value = value
 
     def copy(self):
-        """ Return copy of CIMQualifier object"""
+        """ Return copy of `CIMQualifier` object"""
 
         return CIMQualifier(self.name,
                             self.value,
@@ -2391,13 +2420,15 @@ class CIMQualifier(_CIMComparisonMixin):
                             translatable=self.translatable)
 
     def __str__(self):
-        """Return a short string representation for human consumption."""
+        """Return a short string representation of the `CIMQualifier` object
+        for human consumption."""
 
         return "%s(name=%r, value=%r, type=%r, ...)" % \
                (self.__class__.__name__, self.name, self.value, self.type)
 
     def __repr__(self):
-        """Return a string representation suitable for debugging."""
+        """Return a string representation of the `CIMQualifier` object
+        that is suitable for debugging."""
 
         return '%s(name=%r, value=%r, type=%r, ' \
                'tosubclass=%r, overridable=%r, translatable=%r, ' \
@@ -2434,7 +2465,12 @@ class CIMQualifier(_CIMComparisonMixin):
                 cmpitem(self.translatable, other.translatable))
 
     def tocimxml(self):
-        """ Return CIM/XML string representing CIMQualifier"""
+        """Return the CIM-XML representation of the `CIMQualifier` object,
+        as an object of an appropriate subclass of `xml.dom.minidom.Element`.
+
+        The returned CIM-XML representation is consistent with DMTF DSP0201.
+        """
+
         value = None
 
         if isinstance(self.value, list):
@@ -2454,7 +2490,7 @@ class CIMQualifier(_CIMComparisonMixin):
                                  translatable=self.translatable)
 
     def tomof(self, indent=7):
-        """ Return string representing CIMQualifier in MOF format"""
+        """ Return string representing `CIMQualifier` in MOF format"""
 
         def valstr(value):
             """ Return string representing value argument."""
@@ -2477,7 +2513,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     :Ivariables:
 
-      ...
+      ... : ...
         All parameters of `__init__` are set as instance variables.
     """
 
@@ -2523,7 +2559,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
                                        translatable=self.translatable)
 
     def __str__(self):
-        """Return a short string representation for human consumption."""
+        """Return a short string representation of the
+        `CIMQualifierDeclaration` object for human consumption."""
 
         return '%s(name=%r, value=%r, type=%r, ' \
                'is_array=%r, ...)' % \
@@ -2531,7 +2568,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
                 self.is_array)
 
     def __repr__(self):
-        """Return a string representation suitable for debugging."""
+        """Return a string representation of the `CIMQualifierDeclaration`
+        object that is suitable for debugging."""
 
         return '%s(name=%r, value=%r, type=%r, ' \
                'is_array=%r, array_size=%r, ' \
@@ -2543,8 +2581,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
                 self.translatable, self.toinstance)
 
     def _cmp(self, other):
-        """
-        Comparator function for two `CIMQualifierDeclaration` objects.
+        """Comparator function for two `CIMQualifierDeclaration` objects.
 
         The comparison is based on the `name`, `type`, `value`, `is_array`,
         `array_size`, `scopes`, `overridable`, `tosubclass`, `toinstance`,
@@ -2552,8 +2589,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
         The `name` attribute is compared case-insensitively.
 
-        Raises `TypeError', if the `other` object is not a
-        `CIMQualifierDeclaration` object.
+        :Raises TypeError: `other` is not a `CIMQualifierDeclaration` object.
         """
         if self is other:
             return 0
@@ -2572,10 +2608,13 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
                 cmpitem(self.translatable, other.translatable))
 
     def tocimxml(self):
+        """Return the CIM-XML representation of the `CIMQualifierDeclaration`
+        object, as an object of an appropriate subclass of
+        `xml.dom.minidom.Element`.
+
+        The returned CIM-XML representation is consistent with DMTF DSP0201.
         """
-        Return string with CIM/XML representation of CIMQualifierDeclaration
-        based on DMTF DSP0200 representation
-        """
+
         return cim_xml.QUALIFIER_DECLARATION(self.name,
                                              self.type,
                                              self.value,
@@ -2624,8 +2663,21 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         return mof
 
 def tocimxml(value):
-    """Convert an arbitrary object to CIM xml.  Works with cim_obj
-    objects and builtin types."""
+    """Return the CIM-XML representation of the value, consistent with
+    DMTF DSP0201.
+
+    :Parameters:
+
+      value : see description
+        The value to be converted to CIM-XML. Must be a either a CIM
+        object (see `cim_obj` module) or a CIM typed value (see `cim_types`
+        module).
+
+    :Returns:
+
+      CIM-XML representation of the value, as an object of an appropriate
+      subclass of `xml.dom.minidom.Element`.
+    """
 
     # Python cim_obj object
 
@@ -2659,11 +2711,27 @@ def tocimxml(value):
 
 #pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
 def tocimobj(type_, value):
-    """Convert a CIM type and a string value into an appropriate
-       CIM builtin type.
-       :return: value converted from value argument using type
-       argument.
-       :exception: ValueError if type and value string do not match
+    """Return a CIM object representing the value and
+    type.
+
+    :Parameters:
+
+      type_ : string
+        The CIM type name for the CIM object. See `cim_types` for a table with
+        valid CIM type names and their corresponding Python types.
+        If the value is a list, type_ must specify the CIM type name of
+        an item in the list.
+
+      value : see description
+        The value to be represented as a CIM object. Its Python type must be
+        valid for the specified type parameter.
+
+    :Returns:
+
+      CIM object representing the value and type, as an object of an appropriate
+      Python object as defined in `cim_types`.
+
+    :Raises ValueError: The value is not suitable for the type name.
     """
 
     if value is None or type_ is None:
@@ -2824,7 +2892,7 @@ def tocimobj(type_, value):
         else:
             raise ValueError('Invalid reference value: "%s"' % value)
 
-    raise ValueError('Invalid CIM type: "%s"' % type_)
+    raise ValueError('Invalid CIM type name: "%s"' % type_)
 
 
 def byname(nlist):

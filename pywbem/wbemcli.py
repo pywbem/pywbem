@@ -150,13 +150,12 @@ def GetInstance(instancename, LocalOnly=True, IncludeQualifiers=False,
     :param LocalOnly: Optional argument defining whether the
        only the properties defined in this instance are returned.
        Default= true. DEPRECATED
-    :param IncludeQualifier: Optional argument defining whether
+    :param IncludeQualifiers: Optional argument defining whether
         qualifiers are included. Default false. DEPRECATED
     :param IncludeClassOrigin: Optional argument defining wheteher
         class origin information is cinclude in the response. Default
         is False.
     :return: Dictionary containing the retrieved instance
-    :raises:
     """
     # pylint: disable=global-variable-not-assigned
     global _CONN     # pylint: disable=global-statement
