@@ -64,7 +64,8 @@ try:
 except ImportError as arg:
     _HAVE_READLINE = False
 
-import pywbem
+from . import WBEMConnection
+from ._cliutils import SmartFormatter
 
 __all__ = []
 
@@ -101,7 +102,7 @@ def remote_connection(server, opts):
     if opts.user is not None or opts.password is not None:
         creds = (opts.user, opts.password)
 
-    _CONN = pywbem.WBEMConnection(url, creds, default_namespace=opts.namespace)
+    _CONN = WBEMConnection(url, creds, default_namespace=opts.namespace)
 
     _CONN.debug = True
 
@@ -345,34 +346,6 @@ def get_banner():
     result += '\nPress Ctrl-D to exit'
 
     return result
-
-
-class SmartFormatter(argparse.HelpFormatter):
-    """Formatter class for `argparse`, that respects newlines in help strings.
-
-    Idea and code from: http://stackoverflow.com/a/22157136
-
-    Usage:
-
-        If an argparse argument help text starts with 'R|', it will be treated
-        as a *raw* string that does line formatting on its own by specifying
-        newlines appropriately. The string should not exceed 55 characters per
-        line. Indentation handling is still applied automatically and does not
-        need to be specified within the string.
-
-        Otherwise, the strings are formatted as normal and newlines are
-        treated like blanks.
-
-    Limitations:
-        It seems this only works for the `help` argument of
-        `ArgumentParser.add_argument()`, and not for group descriptions,
-        and usage, description, and epilog of ArgumentParser.
-"""
-
-    def _split_lines(self, text, width):
-        if text.startswith('R|'):
-            return text[2:].splitlines()
-        return argparse.HelpFormatter._split_lines(self, text, width)
 
 
 def main():
