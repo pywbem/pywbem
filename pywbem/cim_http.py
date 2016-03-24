@@ -88,7 +88,9 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
     statement).
 
     Usage:
+
       ::
+
         with HTTPTimeout(timeout, http_conn):
             ... operations using http_conn ...
 
@@ -330,10 +332,9 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
       The CIM-XML formatted response data from the WBEM server, as a `unicode`
       object.
 
-    :Raises:
-      :raise AuthError:
-      :raise ConnectionError:
-      :raise TimeoutError:
+    :Raises AuthError:
+    :Raises ConnectionError:
+    :Raises TimeoutError:
     """
 
     class HTTPBaseConnection:        # pylint: disable=no-init

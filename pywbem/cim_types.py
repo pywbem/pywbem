@@ -220,6 +220,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
 
           dtarg
             The input object, as one of the following types:
+
             * A Unicode string or UTF-8 encoded byte string will be interpreted
               as CIM datetime format (see DSP0004) and will result in a point
               in time or a time interval.
@@ -228,9 +229,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             * A `datetime.timedelta` object will result in a time interval.
             * Another `CIMDateTime` object will be copied.
 
-        :Raises:
-          :raise ValueError:
-          :raise TypeError:
+        :Raises ValueError:
+        :Raises TypeError:
         """
         from .cim_obj import _ensure_unicode # defer due to cyclic deps.
         self.cimtype = 'datetime'
@@ -355,8 +355,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         The optional timezone information is used to convert the CIM datetime
         value into the desired timezone. That does not change the point in time
         that is represented by the value, but it changes the value of the
-        `hhmmss` components of the CIM datetime value to compensate for changes
-        in the timezone offset component.
+        ``hhmmss`` components of the CIM datetime value to compensate for
+        changes in the timezone offset component.
 
         :Parameters:
 
@@ -387,8 +387,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         The optional timezone information is used to convert the CIM datetime
         value into the desired timezone. That does not change the point in time
         that is represented by the value, but it changes the value of the
-        `hhmmss` components of the CIM datetime value to compensate for changes
-        in the timezone offset component.
+        ``hhmmss`` components of the CIM datetime value to compensate for
+        changes in the timezone offset component.
 
         :Parameters:
 
@@ -522,13 +522,8 @@ def cimtype(obj):
 
         The CIM type name of the value, as a string.
 
-    :Raises:
-
-        :raise TypeError:
-            Type is not a CIM type.
-
-        :raise ValueError:
-            Cannot determine CIM type from empty array.
+    :Raises TypeError: Type is not a CIM type.
+    :Raises ValueError: Cannot determine CIM type from empty array.
     """
     if isinstance(obj, CIMType):
         return obj.cimtype
@@ -584,10 +579,7 @@ def type_from_name(type_name):
         The Python type object for the CIM type (e.g. `Uint8` or
         `CIMInstanceName`).
 
-    :Raises:
-
-      :raise ValueError:
-        Unknown CIM type name.
+    :Raises ValueError: Unknown CIM type name.
     """
     if type_name == 'reference':
         # move import to run time to avoid circular imports

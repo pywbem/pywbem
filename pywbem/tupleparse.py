@@ -304,10 +304,12 @@ def notimplemented(tup_tree):
 def parse_cim(tup_tree):
     """Parse the top level element of CIM/XML message
 
-           <!ELEMENT CIM (MESSAGE | DECLARATION)>
-           <!ATTLIST CIM
-               CIMVERSION CDATA #REQUIRED
-               DTDVERSION CDATA #REQUIRED>
+      ::
+
+        <!ELEMENT CIM (MESSAGE | DECLARATION)>
+        <!ATTLIST CIM
+            CIMVERSION CDATA #REQUIRED
+            DTDVERSION CDATA #REQUIRED>
     """
 
     check_node(tup_tree, 'CIM', ['CIMVERSION', 'DTDVERSION'])
@@ -327,8 +329,10 @@ def parse_cim(tup_tree):
 
 def parse_declaration(tup_tree):
     """
-    <!ELEMENT DECLARATION ( DECLGROUP | DECLGROUP.WITHNAME |
-                            DECLGROUP.WITHPATH )+>
+      ::
+
+        <!ELEMENT DECLARATION ( DECLGROUP | DECLGROUP.WITHNAME |
+                                DECLGROUP.WITHPATH )+>
 
     Note: We only support the DECLGROUP child, at this point.
     """
@@ -342,8 +346,10 @@ def parse_declaration(tup_tree):
 
 def parse_declgroup(tup_tree):
     """
-    <!ELEMENT DECLGROUP ( (LOCALNAMESPACEPATH|NAMESPACEPATH)?,
-                          QUALIFIER.DECLARATION*, VALUE.OBJECT* )>
+      ::
+
+        <!ELEMENT DECLGROUP ( (LOCALNAMESPACEPATH|NAMESPACEPATH)?,
+                              QUALIFIER.DECLARATION*, VALUE.OBJECT* )>
 
     Note: We only support the QUALIFIER.DECLARATION and VALUE.OBJECT
           children, and with a multiplicity of 1, at this point.
@@ -361,16 +367,26 @@ def parse_declgroup(tup_tree):
 #
 
 def parse_value(tup_tree):
-    '''Return VALUE contents as a string'''
-    ## <!ELEMENT VALUE (#PCDATA)>
+    """Return VALUE contents as a string
+    
+      ::
+
+        <!ELEMENT VALUE (#PCDATA)>
+    """
+
     check_node(tup_tree, 'VALUE', [], [], [], True)
 
     return pcdata(tup_tree)
 
 
 def parse_value_array(tup_tree):
-    """Return list of strings."""
-    ## <!ELEMENT VALUE.ARRAY (VALUE*)>
+    """Return list of strings.
+
+      ::
+
+        <!ELEMENT VALUE.ARRAY (VALUE*)>
+    """
+
     check_node(tup_tree, 'VALUE.ARRAY', [], [], ['VALUE'])
 
     return list_of_same(tup_tree, ['VALUE'])
@@ -378,9 +394,11 @@ def parse_value_array(tup_tree):
 
 def parse_value_reference(tup_tree):
     """
-    <!ELEMENT VALUE.REFERENCE (CLASSPATH | LOCALCLASSPATH | CLASSNAME |
-                               INSTANCEPATH | LOCALINSTANCEPATH |
-                               INSTANCENAME)>
+      ::
+
+        <!ELEMENT VALUE.REFERENCE (CLASSPATH | LOCALCLASSPATH | CLASSNAME |
+                                   INSTANCEPATH | LOCALINSTANCEPATH |
+                                   INSTANCENAME)>
     """
 
     check_node(tup_tree, 'VALUE.REFERENCE', [])
@@ -396,7 +414,9 @@ def parse_value_reference(tup_tree):
 
 def parse_value_refarray(tup_tree):
     """
-    <!ELEMENT VALUE.REFARRAY (VALUE.REFERENCE*)>
+      ::
+
+        <!ELEMENT VALUE.REFARRAY (VALUE.REFERENCE*)>
     """
 
     check_node(tup_tree, 'VALUE.REFARRAY')
@@ -409,7 +429,9 @@ def parse_value_refarray(tup_tree):
 
 def parse_value_object(tup_tree):
     """
-    <!ELEMENT VALUE.OBJECT (CLASS | INSTANCE)>
+      ::
+
+        <!ELEMENT VALUE.OBJECT (CLASS | INSTANCE)>
     """
 
     check_node(tup_tree, 'VALUE.OBJECT')
@@ -421,7 +443,9 @@ def parse_value_object(tup_tree):
 
 def parse_value_namedinstance(tup_tree):
     """
-    <!ELEMENT VALUE.NAMEDINSTANCE (INSTANCENAME, INSTANCE)>
+      ::
+
+        <!ELEMENT VALUE.NAMEDINSTANCE (INSTANCENAME, INSTANCE)>
     """
 
     check_node(tup_tree, 'VALUE.NAMEDINSTANCE')
@@ -440,7 +464,9 @@ def parse_value_namedinstance(tup_tree):
 
 def parse_value_namedobject(tup_tree):
     """
-    <!ELEMENT VALUE.NAMEDOBJECT (CLASS | (INSTANCENAME, INSTANCE))>
+      ::
+
+        <!ELEMENT VALUE.NAMEDOBJECT (CLASS | (INSTANCENAME, INSTANCE))>
     """
 
     check_node(tup_tree, 'VALUE.NAMEDOBJECT')
@@ -465,8 +491,10 @@ def parse_value_namedobject(tup_tree):
 # pylint: disable=invalid-name
 def parse_value_objectwithlocalpath(tup_tree):
     """
-    <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH, CLASS) |
-                                         (LOCALINSTANCEPATH, INSTANCE))>
+      ::
+
+        <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH, CLASS) |
+                                             (LOCALINSTANCEPATH, INSTANCE))>
     """
 
     check_node(tup_tree, 'VALUE.OBJECTWITHLOCALPATH')
@@ -489,8 +517,10 @@ def parse_value_objectwithlocalpath(tup_tree):
 
 def parse_value_objectwithpath(tup_tree):
     """
-    <!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH, CLASS) |
-                                    (INSTANCEPATH, INSTANCE))>
+      ::
+
+        <!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH, CLASS) |
+                                        (INSTANCEPATH, INSTANCE))>
     """
 
     check_node(tup_tree, 'VALUE.OBJECTWITHPATH')
@@ -517,7 +547,9 @@ def parse_value_objectwithpath(tup_tree):
 
 def parse_namespacepath(tup_tree):
     """
-    <!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)>
+      ::
+
+        <!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)>
     """
 
     check_node(tup_tree, 'NAMESPACEPATH')
@@ -534,7 +566,9 @@ def parse_namespacepath(tup_tree):
 
 def parse_localnamespacepath(tup_tree):
     """
-    <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
+      ::
+
+        <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
     """
 
     check_node(tup_tree, 'LOCALNAMESPACEPATH', [], [], ['NAMESPACE'])
@@ -549,7 +583,9 @@ def parse_localnamespacepath(tup_tree):
 
 def parse_host(tup_tree):
     """
-    <!ELEMENT HOST (#PCDATA)>
+      ::
+
+        <!ELEMENT HOST (#PCDATA)>
     """
 
     check_node(tup_tree, 'HOST', allow_pcdata=True)
@@ -559,9 +595,12 @@ def parse_host(tup_tree):
 
 def parse_namespace(tup_tree):
     """Parse NAMESPACE element for namespace name
-    <!ELEMENT NAMESPACE EMPTY>
-    <!ATTLIST NAMESPACE
-        %CIMName;>
+
+      ::
+
+        <!ELEMENT NAMESPACE EMPTY>
+        <!ATTLIST NAMESPACE
+            %CIMName;>
     """
 
     check_node(tup_tree, 'NAMESPACE', ['NAME'], [], [])
@@ -571,7 +610,9 @@ def parse_namespace(tup_tree):
 
 def parse_classpath(tup_tree):
     """
-    <!ELEMENT CLASSPATH (NAMESPACEPATH, CLASSNAME)>
+      ::
+
+        <!ELEMENT CLASSPATH (NAMESPACEPATH, CLASSNAME)>
     """
 
     check_node(tup_tree, 'CLASSPATH')
@@ -589,7 +630,9 @@ def parse_classpath(tup_tree):
 
 def parse_localclasspath(tup_tree):
     """
-    <!ELEMENT LOCALCLASSPATH (LOCALNAMESPACEPATH, CLASSNAME)>
+      ::
+
+        <!ELEMENT LOCALCLASSPATH (LOCALNAMESPACEPATH, CLASSNAME)>
     """
 
     check_node(tup_tree, 'LOCALCLASSPATH')
@@ -606,10 +649,13 @@ def parse_localclasspath(tup_tree):
 def parse_classname(tup_tree):
     """Parse a CLASSNAME element and return a CIMClassName.
 
-           <!ELEMENT CLASSNAME EMPTY>
-           <!ATTLIST CLASSNAME
-               %CIMName;>
+      ::
+
+        <!ELEMENT CLASSNAME EMPTY>
+        <!ATTLIST CLASSNAME
+            %CIMName;>
     """
+
     check_node(tup_tree, 'CLASSNAME', ['NAME'], [], [])
     return CIMClassName(attrs(tup_tree)['NAME'])
 
@@ -617,7 +663,9 @@ def parse_classname(tup_tree):
 def parse_instancepath(tup_tree):
     """Parse a INSTANCEPATH element returning the instance name.
 
-          <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
+      ::
+
+        <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
     """
 
     check_node(tup_tree, 'INSTANCEPATH')
@@ -637,7 +685,9 @@ def parse_instancepath(tup_tree):
 def parse_localinstancepath(tup_tree):
     """Parse a LOCALINSTANCEPATH element:
 
-           <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
+      ::
+
+        <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
     """
 
     check_node(tup_tree, 'LOCALINSTANCEPATH')
@@ -654,10 +704,14 @@ def parse_localinstancepath(tup_tree):
     return instancename
 
 def parse_instancename(tup_tree):
-    """Parse XML INSTANCENAME into CIMInstanceName object."""
+    """Parse XML INSTANCENAME into CIMInstanceName object.
 
-    ## <!ELEMENT INSTANCENAME (KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?)>
-    ## <!ATTLIST INSTANCENAME %ClassName;>
+      ::
+
+        <!ELEMENT INSTANCENAME (KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?)>
+        <!ATTLIST INSTANCENAME %ClassName;>
+    """
+
 
     check_node(tup_tree, 'INSTANCENAME', ['CLASSNAME'])
 
@@ -691,7 +745,9 @@ def parse_instancename(tup_tree):
 
 def parse_objectpath(tup_tree):
     """
-    <!ELEMENT OBJECTPATH (INSTANCEPATH | CLASSPATH)>
+      ::
+
+        <!ELEMENT OBJECTPATH (INSTANCEPATH | CLASSPATH)>
     """
 
     check_node(tup_tree, 'OBJECTPATH')
@@ -703,11 +759,14 @@ def parse_objectpath(tup_tree):
 
 
 def parse_keybinding(tup_tree):
-    ##<!ELEMENT KEYBINDING (KEYVALUE | VALUE.REFERENCE)>
-    ##<!ATTLIST KEYBINDING
-    ##  %CIMName;>
+    """Returns one-item dictionary from name to Python value.
 
-    """Returns one-item dictionary from name to Python value."""
+      ::
+
+        <!ELEMENT KEYBINDING (KEYVALUE | VALUE.REFERENCE)>
+        <!ATTLIST KEYBINDING
+            %CIMName;>
+    """
 
     check_node(tup_tree, 'KEYBINDING', ['NAME'])
 
@@ -717,13 +776,15 @@ def parse_keybinding(tup_tree):
 
 
 def parse_keyvalue(tup_tree):
-    ##<!ELEMENT KEYVALUE (#PCDATA)>
-    ##<!ATTLIST KEYVALUE
-    ##          VALUETYPE (string | boolean | numeric) "string"
-    ##          %CIMType;              #IMPLIED>
+    """Parse VALUETYPE into Python primitive value.
 
+      ::
 
-    """Parse VALUETYPE into Python primitive value"""
+        <!ELEMENT KEYVALUE (#PCDATA)>
+        <!ATTLIST KEYVALUE
+            VALUETYPE (string | boolean | numeric) "string"
+            %CIMType;              #IMPLIED>
+    """
 
     check_node(tup_tree, 'KEYVALUE', ['VALUETYPE'], ['TYPE'], [], True)
 
@@ -763,12 +824,15 @@ def parse_keyvalue(tup_tree):
 def parse_class(tup_tree):
     """Parse CLASS element returning a CIMClass if the parse
        was successful.
+
+      ::
+
+        <!ELEMENT CLASS (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
+                                      PROPERTY.REFERENCE)*, METHOD*)>
+        <!ATTLIST CLASS
+            %CIMName;
+            %SuperClass;>
     """
-    ## <!ELEMENT CLASS (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
-    ##                               PROPERTY.REFERENCE)*, METHOD*)>
-    ## <!ATTLIST CLASS
-    ##     %CIMName;
-    ##     %SuperClass;>
 
     # Doesn't check ordering of elements, but it's not very important
     check_node(tup_tree, 'CLASS', ['NAME'], ['SUPERCLASS'],
@@ -797,12 +861,15 @@ def parse_instance(tup_tree):
     """Return a CIMInstance.
 
     The instance contains the properties, qualifiers and classname for
-    the instance"""
+    the instance.
 
-    ##<!ELEMENT INSTANCE (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
-    ##                                 PROPERTY.REFERENCE)*)>
-    ##<!ATTLIST INSTANCE
-    ##  %ClassName;>
+      ::
+
+        <!ELEMENT INSTANCE (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
+                                         PROPERTY.REFERENCE)*)>
+        <!ATTLIST INSTANCE
+            %ClassName;>
+    """
 
     check_node(tup_tree, 'INSTANCE', ['CLASSNAME'],
                ['QUALIFIER', 'PROPERTY', 'PROPERTY.ARRAY',
@@ -826,30 +893,39 @@ def parse_instance(tup_tree):
     return obj
 
 def parse_scope(tup_tree):
-    """Parse SCOPE element."""
-    # <!ELEMENT SCOPE EMPTY>
-    # <!ATTLIST SCOPE
-    #   CLASS (true | false) "false"
-    #   ASSOCIATION (true | false) "false"
-    #   REFERENCE (true | false) "false"
-    #   PROPERTY (true | false) "false"
-    #   METHOD (true | false) "false"
-    #   PARAMETER (true | false) "false"
-    #   INDICATION (true | false) "false"
+    """Parse SCOPE element.
+
+      ::
+
+        <!ELEMENT SCOPE EMPTY>
+        <!ATTLIST SCOPE
+            CLASS (true | false) "false"
+            ASSOCIATION (true | false) "false"
+            REFERENCE (true | false) "false"
+            PROPERTY (true | false) "false"
+            METHOD (true | false) "false"
+            PARAMETER (true | false) "false"
+            INDICATION (true | false) "false"
+    """
+
     check_node(tup_tree, 'SCOPE', [],
                ['CLASS', 'ASSOCIATION', 'REFERENCE', 'PROPERTY', 'METHOD',
                 'PARAMETER', 'INDICATION'], [])
     return dict([(k, v.lower() == 'true') for k, v in attrs(tup_tree).items()])
 
 def parse_qualifier_declaration(tup_tree):
-    """Parse QUALIFIER.DECLARATION element"""
-    ## <!ELEMENT QUALIFIER.DECLARATION (SCOPE?, (VALUE | VALUE.ARRAY)?)>
-    ## <!ATTLIST QUALIFIER.DECLARATION
-    ##     %CIMName;
-    ##     %CIMType;               #REQUIRED
-    ##     ISARRAY    (true|false) #IMPLIED
-    ##     %ArraySize;
-    ##     %QualifierFlavor;>
+    """Parse QUALIFIER.DECLARATION element.
+
+      ::
+
+        <!ELEMENT QUALIFIER.DECLARATION (SCOPE?, (VALUE | VALUE.ARRAY)?)>
+        <!ATTLIST QUALIFIER.DECLARATION
+            %CIMName;
+            %CIMType;               #REQUIRED
+            ISARRAY    (true|false) #IMPLIED
+            %ArraySize;
+            %QualifierFlavor;>
+    """
 
     check_node(tup_tree, 'QUALIFIER.DECLARATION',
                ['NAME', 'TYPE'],
@@ -893,12 +969,16 @@ def parse_qualifier_declaration(tup_tree):
 
 
 def parse_qualifier(tup_tree):
-    """Parse QUALIFIER element returning CIMQualifier"""
-    ## <!ELEMENT QUALIFIER (VALUE | VALUE.ARRAY)>
-    ## <!ATTLIST QUALIFIER %CIMName;
-    ##      %CIMType;              #REQUIRED
-    ##      %Propagated;
-    ##      %QualifierFlavor;>
+    """Parse QUALIFIER element returning CIMQualifier.
+
+      ::
+
+        <!ELEMENT QUALIFIER (VALUE | VALUE.ARRAY)>
+        <!ATTLIST QUALIFIER %CIMName;
+            %CIMType;              #REQUIRED
+            %Propagated;
+            %QualifierFlavor;>
+    """
 
     check_node(tup_tree, 'QUALIFIER', ['NAME', 'TYPE'],
                ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE',
@@ -930,14 +1010,17 @@ def parse_qualifier(tup_tree):
 def parse_property(tup_tree):
     """Parse PROPERTY into a CIMProperty object.
 
-    VAL is just the pcdata of the enclosed VALUE node."""
+    VAL is just the pcdata of the enclosed VALUE node.
 
-    ## <!ELEMENT PROPERTY (QUALIFIER*, VALUE?)>
-    ## <!ATTLIST PROPERTY %CIMName;
-    ##      %ClassOrigin;
-    ##      %Propagated;
-    ##      %CIMType;              #REQUIRED>
-    ##      %EMBEDDEDOBJECT
+      ::
+
+        <!ELEMENT PROPERTY (QUALIFIER*, VALUE?)>
+        <!ATTLIST PROPERTY %CIMName;
+            %ClassOrigin;
+            %Propagated;
+            %CIMType;              #REQUIRED>
+            %EMBEDDEDOBJECT
+    """
 
     ## TODO: Parse this into NAME, VALUE, where the value contains
     ## magic fields for the qualifiers and the propagated flag.
@@ -979,12 +1062,14 @@ def parse_property(tup_tree):
 
 def parse_property_array(tup_tree):
     """
-    <!ELEMENT PROPERTY.ARRAY (QUALIFIER*, VALUE.ARRAY?)>
-    <!ATTLIST PROPERTY.ARRAY %CIMName;
-         %CIMType;              #REQUIRED
-         %ArraySize;
-         %ClassOrigin;
-         %Propagated;>
+      ::
+
+        <!ELEMENT PROPERTY.ARRAY (QUALIFIER*, VALUE.ARRAY?)>
+        <!ATTLIST PROPERTY.ARRAY %CIMName;
+            %CIMType;              #REQUIRED
+            %ArraySize;
+            %ClassOrigin;
+            %Propagated;>
     """
 
     check_node(tup_tree, 'PROPERTY.ARRAY', ['NAME', 'TYPE'],
@@ -1022,12 +1107,14 @@ def parse_property_array(tup_tree):
 
 def parse_property_reference(tup_tree):
     """
-    <!ELEMENT PROPERTY.REFERENCE (QUALIFIER*, (VALUE.REFERENCE)?)>
-    <!ATTLIST PROPERTY.REFERENCE
-        %CIMName;
-        %ReferenceClass;
-        %ClassOrigin;
-        %Propagated;>
+      ::
+
+        <!ELEMENT PROPERTY.REFERENCE (QUALIFIER*, (VALUE.REFERENCE)?)>
+        <!ATTLIST PROPERTY.REFERENCE
+            %CIMName;
+            %ReferenceClass;
+            %ClassOrigin;
+            %Propagated;>
     """
 
     check_node(tup_tree, 'PROPERTY.REFERENCE', ['NAME'],
@@ -1062,12 +1149,14 @@ def parse_property_reference(tup_tree):
 
 def parse_method(tup_tree):
     """
-    <!ELEMENT METHOD (QUALIFIER*, (PARAMETER | PARAMETER.REFERENCE |
-                                   PARAMETER.ARRAY | PARAMETER.REFARRAY)*)>
-    <!ATTLIST METHOD %CIMName;
-         %CIMType;              #IMPLIED
-         %ClassOrigin;
-         %Propagated;>
+      ::
+
+        <!ELEMENT METHOD (QUALIFIER*, (PARAMETER | PARAMETER.REFERENCE |
+                                       PARAMETER.ARRAY | PARAMETER.REFARRAY)*)>
+        <!ATTLIST METHOD %CIMName;
+            %CIMType;              #IMPLIED
+            %ClassOrigin;
+            %Propagated;>
     """
 
     check_node(tup_tree, 'METHOD', ['NAME'],
@@ -1094,10 +1183,12 @@ def parse_method(tup_tree):
 
 def parse_parameter(tup_tree):
     """
-    <!ELEMENT PARAMETER (QUALIFIER*)>
-    <!ATTLIST PARAMETER
-         %CIMName;
-         %CIMType;              #REQUIRED>
+      ::
+
+        <!ELEMENT PARAMETER (QUALIFIER*)>
+        <!ATTLIST PARAMETER
+            %CIMName;
+            %CIMType;              #REQUIRED>
     """
 
     check_node(tup_tree, 'PARAMETER', ['NAME', 'TYPE'], [])
@@ -1113,10 +1204,12 @@ def parse_parameter(tup_tree):
 
 def parse_parameter_reference(tup_tree):
     """
-    <!ELEMENT PARAMETER.REFERENCE (QUALIFIER*)>
-    <!ATTLIST PARAMETER.REFERENCE
-        %CIMName;
-        %ReferenceClass;>
+      ::
+
+        <!ELEMENT PARAMETER.REFERENCE (QUALIFIER*)>
+        <!ATTLIST PARAMETER.REFERENCE
+            %CIMName;
+            %ReferenceClass;>
     """
 
     check_node(tup_tree, 'PARAMETER.REFERENCE', ['NAME'], ['REFERENCECLASS'])
@@ -1135,11 +1228,13 @@ def parse_parameter_reference(tup_tree):
 
 def parse_parameter_array(tup_tree):
     """
-    <!ELEMENT PARAMETER.ARRAY (QUALIFIER*)>
-    <!ATTLIST PARAMETER.ARRAY
-         %CIMName;
-         %CIMType;              #REQUIRED
-         %ArraySize;>
+      ::
+
+        <!ELEMENT PARAMETER.ARRAY (QUALIFIER*)>
+        <!ATTLIST PARAMETER.ARRAY
+            %CIMName;
+            %CIMType;              #REQUIRED
+            %ArraySize;>
     """
 
     check_node(tup_tree, 'PARAMETER.ARRAY', ['NAME', 'TYPE'],
@@ -1164,11 +1259,13 @@ def parse_parameter_array(tup_tree):
 
 def parse_parameter_refarray(tup_tree):
     """
-    <!ELEMENT PARAMETER.REFARRAY (QUALIFIER*)>
-    <!ATTLIST PARAMETER.REFARRAY
-        %CIMName;
-        %ReferenceClass;
-        %ArraySize;>
+      ::
+
+        <!ELEMENT PARAMETER.REFARRAY (QUALIFIER*)>
+        <!ATTLIST PARAMETER.REFARRAY
+            %CIMName;
+            %ReferenceClass;
+            %ArraySize;>
     """
 
     check_node(tup_tree, 'PARAMETER.REFARRAY', ['NAME'],
@@ -1197,10 +1294,12 @@ def parse_parameter_refarray(tup_tree):
 
 def parse_message(tup_tree):
     """
-    <!ELEMENT MESSAGE (SIMPLEREQ | MULTIREQ | SIMPLERSP | MULTIRSP)>
-    <!ATTLIST MESSAGE
-        ID CDATA #REQUIRED
-        PROTOCOLVERSION CDATA #REQUIRED>
+      ::
+
+        <!ELEMENT MESSAGE (SIMPLEREQ | MULTIREQ | SIMPLERSP | MULTIRSP)>
+        <!ATTLIST MESSAGE
+            ID CDATA #REQUIRED
+            PROTOCOLVERSION CDATA #REQUIRED>
     """
 
     check_node(tup_tree, 'MESSAGE', ['ID', 'PROTOCOLVERSION'])
@@ -1229,7 +1328,9 @@ def parse_multiexpreq(tup_tree):   #pylint: disable=unused-argument
 
 def parse_simpleexpreq(tup_tree):
     """
-    <!ELEMENT SIMPLEEXPREQ (EXPMETHODCALL)>
+      ::
+
+        <!ELEMENT SIMPLEEXPREQ (EXPMETHODCALL)>
     """
 
     child = one_child(tup_tree, ['EXPMETHODCALL'])
@@ -1238,7 +1339,9 @@ def parse_simpleexpreq(tup_tree):
 
 def parse_simplereq(tup_tree):
     """
-    <!ELEMENT SIMPLEREQ (IMETHODCALL | METHODCALL)>
+      ::
+
+        <!ELEMENT SIMPLEREQ (IMETHODCALL | METHODCALL)>
     """
 
     check_node(tup_tree, 'SIMPLEREQ')
@@ -1250,9 +1353,11 @@ def parse_simplereq(tup_tree):
 
 def parse_imethodcall(tup_tree):
     """
-    <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*)>
-    <!ATTLIST IMETHODCALL
-        %CIMName;>
+      ::
+
+        <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*)>
+        <!ATTLIST IMETHODCALL
+            %CIMName;>
     """
 
     check_node(tup_tree, 'IMETHODCALL', ['NAME'])
@@ -1269,9 +1374,11 @@ def parse_imethodcall(tup_tree):
 
 def parse_methodcall(tup_tree):
     """
-    <!ELEMENT METHODCALL ((LOCALCLASSPATH|LOCALINSTANCEPATH),PARAMVALUE*)>
-    <!ATTLIST METHODCALL
-         %CIMName;>
+      ::
+
+        <!ELEMENT METHODCALL ((LOCALCLASSPATH|LOCALINSTANCEPATH),PARAMVALUE*)>
+        <!ATTLIST METHODCALL
+            %CIMName;>
     """
 
     check_node(tup_tree, 'METHODCALL', ['NAME'], [],
@@ -1287,9 +1394,11 @@ def parse_methodcall(tup_tree):
 
 def parse_expmethodcall(tup_tree):
     """
-    <!ELEMENT EXPMETHODCALL (EXPPARAMVALUE*)>
-    <!ATTLIST EXPMETHODCALL
-        %CIMName;>
+      ::
+
+        <!ELEMENT EXPMETHODCALL (EXPPARAMVALUE*)>
+        <!ATTLIST EXPMETHODCALL
+            %CIMName;>
     """
 
     check_node(tup_tree, 'EXPMETHODCALL', ['NAME'], [], ['EXPPARAMVALUE'])
@@ -1301,13 +1410,17 @@ def parse_expmethodcall(tup_tree):
 
 
 def parse_paramvalue(tup_tree):
-    """Parse PARAMVALUE element """
-    ## <!ELEMENT PARAMVALUE (VALUE | VALUE.REFERENCE | VALUE.ARRAY |
-    ##                       VALUE.REFARRAY)?>
-    ## <!ATTLIST PARAMVALUE
-    ##   %CIMName;
-    ##   %ParamType;  #IMPLIED
-    ##   %EmbeddedObject;>
+    """Parse PARAMVALUE element.
+
+      ::
+
+        <!ELEMENT PARAMVALUE (VALUE | VALUE.REFERENCE | VALUE.ARRAY |
+                              VALUE.REFARRAY)?>
+        <!ATTLIST PARAMVALUE
+            %CIMName;
+            %ParamType;  #IMPLIED
+            %EmbeddedObject;>
+    """
 
     ## Version 2.1.1 of the DTD lacks the %ParamType attribute but it
     ## is present in version 2.2.  Make it optional to be backwards
@@ -1333,15 +1446,17 @@ def parse_paramvalue(tup_tree):
 
 
 def parse_iparamvalue(tup_tree):
-    """
-    Parse expected IPARAMVALUE element. I.e.
-       ## <!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
-       ##                       INSTANCENAME | CLASSNAME |
-       ##                       QUALIFIER.DECLARATION |
-       ##                       CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
-       ## <!ATTLIST IPARAMVALUE %CIMName;>
+    """Parse expected IPARAMVALUE element. I.e.
 
-       :return: NAME, VALUE pair.
+      ::
+
+        <!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
+                              INSTANCENAME | CLASSNAME |
+                              QUALIFIER.DECLARATION |
+                              CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
+        <!ATTLIST IPARAMVALUE %CIMName;>
+
+    :return: NAME, VALUE pair.
     """
 
     check_node(tup_tree, 'IPARAMVALUE', ['NAME'], [])
@@ -1364,9 +1479,12 @@ def parse_iparamvalue(tup_tree):
 
 def parse_expparamvalue(tup_tree):
     """Parse for EXPPARMVALUE Element. I.e.
-    <!ELEMENT EXPPARAMVALUE (INSTANCE?)>
-    <!ATTLIST EXPPARAMVALUE
-        %CIMName;>
+
+      ::
+
+        <!ELEMENT EXPPARAMVALUE (INSTANCE?)>
+        <!ATTLIST EXPPARAMVALUE
+            %CIMName;>
     """
 
     check_node(tup_tree, 'EXPPARAMVALUE', ['NAME'], [], ['INSTANCE'])
@@ -1390,8 +1508,13 @@ def parse_multiexprsp(tup_tree):   #pylint: disable=unused-argument
 
 
 def parse_simplersp(tup_tree):
-    """Parse for SIMPLERSP Element"""
-    ## <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE)>
+    """Parse for SIMPLERSP Element.
+
+      ::
+
+        <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE)>
+    """
+
     check_node(tup_tree, 'SIMPLERSP', [], [])
 
     child = one_child(tup_tree, ['METHODRESPONSE', 'IMETHODRESPONSE'])
@@ -1407,9 +1530,12 @@ def parse_simpleexprsp(tup_tree):   #pylint: disable=unused-argument
 
 def parse_methodresponse(tup_tree):
     """Parse expected METHODRESPONSE ELEMENT. I.e.
+
+      ::
+
         <!ELEMENT METHODRESPONSE (ERROR | (RETURNVALUE?, PARAMVALUE*))>
-            <!ATTLIST METHODRESPONSE
-                %CIMName;>
+        <!ATTLIST METHODRESPONSE
+            %CIMName;>
     """
 
     check_node(tup_tree, 'METHODRESPONSE', ['NAME'], [])
@@ -1428,6 +1554,9 @@ def parse_expmethodresponse(tup_tree):  #pylint: disable=unused-argument
 
 def parse_imethodresponse(tup_tree):
     """Parse the tuple for an IMETHODRESPONE Element. I.e.
+
+      ::
+
         <!ELEMENT IMETHODRESPONSE (ERROR | IRETURNVALUE?)>
         <!ATTLIST IMETHODRESPONSE %CIMName;>
     """
@@ -1441,10 +1570,13 @@ def parse_imethodresponse(tup_tree):
 
 def parse_error(tup_tree):
     """Parse ERROR element to get CODE and DESCRIPTION.
-    <!ELEMENT ERROR EMPTY>
-    <!ATTLIST ERROR
-        CODE CDATA #REQUIRED
-        DESCRIPTION CDATA #IMPLIED>
+
+      ::
+
+        <!ELEMENT ERROR EMPTY>
+        <!ATTLIST ERROR
+            CODE CDATA #REQUIRED
+            DESCRIPTION CDATA #IMPLIED>
     """
 
     ## TODO: Return a CIMError object, not a tuple
@@ -1456,11 +1588,14 @@ def parse_error(tup_tree):
 
 def parse_returnvalue(tup_tree):
     """Parse the RETURNVALUE element. Returns name, attributes, and
-       one child as a tuple.
+    one child as a tuple.
+
+      ::
+
+        <!ELEMENT RETURNVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
+                               VALUE.REFARRAY)>
+        <!ATTLIST RETURNVALUE %ParamType;       #IMPLIED>
     """
-    ## <!ELEMENT RETURNVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
-    ##                        VALUE.REFARRAY)>
-    ## <!ATTLIST RETURNVALUE %ParamType;       #IMPLIED>
 
     ## Version 2.1.1 of the DTD lacks the %ParamType attribute but it
     ## is present in version 2.2.  Make it optional to be backwards
@@ -1476,14 +1611,17 @@ def parse_returnvalue(tup_tree):
 
 def parse_ireturnvalue(tup_tree):
     """Parse IRETURNVALUE element. Returns name, attributes and
-       values of the tup_tree.
+    values of the tup_tree.
+
+      ::
+
+        <!ELEMENT IRETURNVALUE (CLASSNAME* | INSTANCENAME* | VALUE* |
+                                VALUE.OBJECTWITHPATH* |
+                                VALUE.OBJECTWITHLOCALPATH* | VALUE.OBJECT* |
+                                OBJECTPATH* | QUALIFIER.DECLARATION* |
+                                VALUE.ARRAY? | VALUE.REFERENCE? | CLASS* |
+                                INSTANCE* | VALUE.NAMEDINSTANCE*)>
     """
-    ## <!ELEMENT IRETURNVALUE (CLASSNAME* | INSTANCENAME* | VALUE* |
-    ##                         VALUE.OBJECTWITHPATH* |
-    ##                         VALUE.OBJECTWITHLOCALPATH* | VALUE.OBJECT* |
-    ##                         OBJECTPATH* | QUALIFIER.DECLARATION* |
-    ##                         VALUE.ARRAY? | VALUE.REFERENCE? | CLASS* |
-    ##                         INSTANCE* | VALUE.NAMEDINSTANCE*)>
 
     check_node(tup_tree, 'IRETURNVALUE', [], [])
 
@@ -1509,11 +1647,11 @@ def parse_ireturnvalue(tup_tree):
 
 def parse_any(tup_tree):
     """Parse a fragment of XML. This function drives the rest of
-       the parser by calling 'parse_*' functions based on the name
-       of the element being parsed.
+    the parser by calling ``parse_*()`` functions based on the name
+    of the element being parsed.
 
-       It builds parser function name from incoming name in tup_tree
-       prepended with 'parse_' and calls that function.
+    It builds parser function name from incoming name in tup_tree
+    prepended with ``parse_`` and calls that function.
 
     Return is determined by function called.
     """
@@ -1528,12 +1666,13 @@ def parse_any(tup_tree):
 
 def parse_embeddedObject(val): # pylint: disable=invalid-name
     """Parse and embedded instance or class and return the
-       CIMInstance or CIMClass
+    CIMInstance or CIMClass.
 
-       :return: None if val is None. Returns either CIMClass or
-           CIMInstance or a list of them
+    :Returns:
+      None if val is None. Returns either CIMClass or CIMInstance or a list of
+      them.
 
-       :Raises: ParseError if there is an error in the XML
+    :Raises ParseError: There is an error in the XML.
     """
 
     if isinstance(val, list):
@@ -1578,6 +1717,7 @@ def unpack_value(tup_tree):
 
 def unpack_boolean(data):
     """Unpack a boolean, represented as "TRUE" or "FALSE" in CIM."""
+
     if data is None:
         return None
 

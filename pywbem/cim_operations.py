@@ -103,9 +103,9 @@ def check_utf8_xml_chars(utf8_xml, meaning):
 
     :Exceptions:
 
-      `TypeError`, if invoked with incorrect Python object type for `utf8_xml`.
+      `TypeError` : Invoked with incorrect Python object type for `utf8_xml`.
 
-      `pywbem.ParseError`, if `utf8_xml` contains Bytes that are invalid UTF-8
+      `pywbem.ParseError` : `utf8_xml` contains Bytes that are invalid UTF-8
       sequences (incorrectly encoded or ill-formed) or invalid XML characters.
 
     Notes on Unicode support in Python:
@@ -162,10 +162,10 @@ def check_utf8_xml_chars(utf8_xml, meaning):
 
     (1) The legal XML characters are defined in W3C XML 1.0 (Fith Edition):
 
-        ::
+          ::
 
-          Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] |
-                   [#x10000-#x10FFFF]
+            Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] |
+                     [#x10000-#x10FFFF]
 
         These are the code points of Unicode characters using a non-surrogate
         representation.
@@ -334,7 +334,7 @@ class WBEMConnection(object):
 
     :Ivariables:
 
-      ...
+      ... : ...
         All parameters of `__init__` are set as instance variables.
 
       debug : `bool`
@@ -520,9 +520,9 @@ class WBEMConnection(object):
 
     def __repr__(self):
         """
-        Return a representation of the connection object with all instance
-        variables (except for the password in the credentials), suitable for
-        debugging.
+        Return a representation of the `WBEMConnection` object with all
+        instance variables (except for the password in the credentials)
+        that is suitable for debugging.
         """
 
         if isinstance(self.creds, tuple):
@@ -1690,6 +1690,7 @@ class WBEMConnection(object):
 
         :Exceptions:
 
+          ... : ...
             See the list of exceptions described in `WBEMConnection`.
         """
 
@@ -2380,13 +2381,20 @@ class WBEMConnection(object):
 def is_subclass(ch, ns, super_class, sub):
     """Determine if one class is a subclass of another class.
 
-    Keyword Arguments:
-    ch -- A CIMOMHandle.  Either a pycimmb.CIMOMHandle or a
-        pywbem.WBEMConnection.
-    ns -- Namespace.
-    super-class -- A string containing the super class name.
-    sub -- The subclass.  This can either be a string or a pywbem.CIMClass.
+    :Parameters:
 
+      ch : ...
+        A CIMOMHandle.  Either a pycimmb.CIMOMHandle or a
+        pywbem.WBEMConnection.
+
+      ns : string
+        Namespace.
+
+      super_class : string
+        Super class name.
+
+      sub : ...
+        The subclass.  This can either be a string or a pywbem.CIMClass.
     """
 
     lsuper = super_class.lower()
