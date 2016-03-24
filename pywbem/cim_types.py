@@ -189,8 +189,19 @@ class MinutesFromUTC(tzinfo):
         """
         return timedelta(0)
 
+
 class CIMType(object):       # pylint: disable=too-few-public-methods
     """Base type for numeric and datetime CIM types."""
+
+    # Note: __str__() is not needed; the inherited method is used,
+    # even though there is a __repr__() method here.
+
+    def __repr__(self):
+        """Return a string representation suitable for debugging."""
+
+        return '%s(cimtype=%r, %s)' % \
+               (self.__class__.__name__, self.cimtype, self)
+
 
 class CIMDateTime(CIMType, _CIMComparisonMixin):
     """
@@ -422,7 +433,10 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
                     self.datetime.microsecond, sign, offset)
 
     def __repr__(self):
-        return '%s(\'%s\')' % (self.__class__.__name__, str(self))
+        """Return a string representation suitable for debugging."""
+
+        return '%s(cimtype=%r, %r)' % \
+               (self.__class__.__name__, self.cimtype, str(self))
 
     def __getstate__(self):
         return str(self)

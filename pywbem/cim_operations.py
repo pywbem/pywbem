@@ -520,18 +520,22 @@ class WBEMConnection(object):
 
     def __repr__(self):
         """
-        Return a representation of the connection object with the major
-        instance variables, except for the password in the credentials.
-
-        TODO: Change to show all instance variables.
+        Return a representation of the connection object with all instance
+        variables (except for the password in the credentials), suitable for
+        debugging.
         """
-        if self.creds is None:
-            user = 'anonymous'
+
+        if isinstance(self.creds, tuple):
+            # tuple (userid, password) was specified
+            creds_repr = "(%r, ...)" % self.creds[0]
         else:
-            user = 'user=%s' % self.creds[0]
-        return "%s(%s, %s, namespace=%s)" % \
-            (self.__class__.__name__, self.url, user,
-             self.default_namespace)
+            creds_repr = self.creds 
+        return "%s(url=%r, creds=%r, " \
+               "default_namespace=%r, x509=%r, verify_callback=%r, " \
+               "ca_certs=%r, no_verification=%r, timeout=%r)" % \
+               (self.__class__.__name__, self.url, creds_repr,
+                self.default_namespace, self.x509, self.verify_callback,
+                self.ca_certs, self.no_verification, self.timeout)
 
     def imethodcall(self, methodname, namespace, **params):
         """

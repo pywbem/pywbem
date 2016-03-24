@@ -996,8 +996,8 @@ class CIMInstanceString(unittest.TestCase, RegexpMixin):
 
         self.assertRegexpMatches(r, r"^CIMInstance\(")
         self.assertRegexpContains(r, 'classname=u?[\'"]CIM_Foo[\'"]')
-        self.assertEqual(r.find('Name'), -1)
-        self.assertEqual(r.find('Ref1'), -1)
+        self.assertNotEqual(r.find('Name'), -1)
+        self.assertNotEqual(r.find('Ref1'), -1)
 
 class CIMInstanceToXML(ValidateTest):
     """
