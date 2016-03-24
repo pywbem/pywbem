@@ -2710,16 +2710,16 @@ def tocimxml(value):
                      (value, builtin_type(value)))
 
 #pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
-def tocimobj(type_name, value):
+def tocimobj(type_, value):
     """Return a CIM object representing the value and
     type.
 
     :Parameters:
 
-      type_name : string
+      type_ : string
         The CIM type name for the CIM object. See `cim_types` for a table with
         valid CIM type names and their corresponding Python types.
-        If the value is a list, type_name must specify the CIM type name of
+        If the value is a list, type_ must specify the CIM type name of
         an item in the list.
 
       value : see description
@@ -2734,20 +2734,20 @@ def tocimobj(type_name, value):
     :Raises ValueError: The value is not suitable for the type name.
     """
 
-    if value is None or type_name is None:
+    if value is None or type_ is None:
         return None
 
-    if type_name != 'string' and isinstance(value, six.string_types) and not value:
+    if type_ != 'string' and isinstance(value, six.string_types) and not value:
         return None
 
     # Lists of values
 
     if isinstance(value, list):
-        return [tocimobj(type_name, x) for x in value]
+        return [tocimobj(type_, x) for x in value]
 
     # Boolean type
 
-    if type_name == 'boolean':
+    if type_ == 'boolean':
         if isinstance(value, bool):
             return value
         elif isinstance(value, six.string_types):
@@ -2759,51 +2759,51 @@ def tocimobj(type_name, value):
 
     # String type
 
-    if type_name == 'string':
+    if type_ == 'string':
         return value
 
     # Integer types
 
-    if type_name == 'uint8':
+    if type_ == 'uint8':
         return Uint8(value)
 
-    if type_name == 'sint8':
+    if type_ == 'sint8':
         return Sint8(value)
 
-    if type_name == 'uint16':
+    if type_ == 'uint16':
         return Uint16(value)
 
-    if type_name == 'sint16':
+    if type_ == 'sint16':
         return Sint16(value)
 
-    if type_name == 'uint32':
+    if type_ == 'uint32':
         return Uint32(value)
 
-    if type_name == 'sint32':
+    if type_ == 'sint32':
         return Sint32(value)
 
-    if type_name == 'uint64':
+    if type_ == 'uint64':
         return Uint64(value)
 
-    if type_name == 'sint64':
+    if type_ == 'sint64':
         return Sint64(value)
 
     # Real types
 
-    if type_name == 'real32':
+    if type_ == 'real32':
         return Real32(value)
 
-    if type_name == 'real64':
+    if type_ == 'real64':
         return Real64(value)
 
     # Char16
 
-    if type_name == 'char16':
+    if type_ == 'char16':
         raise ValueError('CIMType char16 not handled')
 
     # Datetime
 
-    if type_name == 'datetime':
+    if type_ == 'datetime':
         return CIMDateTime(value)
 
     # REF
@@ -2824,7 +2824,7 @@ def tocimobj(type_name, value):
                 return (str_arg, '', '')
             return (str_arg[:idx], seq, str_arg[idx+len(seq):])
 
-    if type_name == 'reference': # pylint: disable=too-many-nested-blocks
+    if type_ == 'reference': # pylint: disable=too-many-nested-blocks
         # pylint: disable=too-many-return-statements,too-many-branches
         # TODO doesn't handle double-quoting, as in refs to refs.  Example:
         # r'ex_composedof.composer="ex_sampleClass.label1=9921,' +
@@ -2892,7 +2892,7 @@ def tocimobj(type_name, value):
         else:
             raise ValueError('Invalid reference value: "%s"' % value)
 
-    raise ValueError('Invalid CIM type name: "%s"' % type_name)
+    raise ValueError('Invalid CIM type name: "%s"' % type_)
 
 
 def byname(nlist):
