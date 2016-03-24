@@ -2647,16 +2647,15 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         mof += ',\n    '
         mof += 'Scope('
         mof += ', '.join([x.lower() for x, y in self.scopes.items() if y]) + ')'
+        # toinstance flavor not included here because not part of DSP0004
         if not self.overridable and not self.tosubclass \
-                and not self.toinstance and not self.translatable:
+                and not self.translatable:
             mof += ';'
             return mof
         mof += ',\n    Flavor('
         mof += self.overridable and 'EnableOverride' or 'DisableOverride'
         mof += ', '
         mof += self.tosubclass and 'ToSubclass' or 'Restricted'
-        if self.toinstance:
-            mof += ', ToInstance'
         if self.translatable:
             mof += ', Translatable'
         mof += ');'
