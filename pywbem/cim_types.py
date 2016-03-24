@@ -21,47 +21,44 @@
 # Author: Ross Peoples <ross.peoples@gmail.com>
 #
 
+# pylint: disable=line-too-long
 """
 Types to represent CIM typed values, and related conversion functions.
 
 The following table shows how CIM typed values are represented as Python
-objects:
+objects. Note that some basic CIM types are represented with built-in Python
+types.
 
-=========================  ===========================
+=========================  ====================================================
 CIM type                   Python type
-=========================  ===========================
+=========================  ====================================================
 boolean                    `bool`
-char16                     unicode string or binary bytes, see (1)
-string                     unicode string or binary bytes, see (1)
-string (EmbeddedInstance)  `CIMInstance`
-string (EmbeddedObject)    `CIMInstance` or `CIMClass`
-datetime                   `CIMDateTime`
-reference                  `CIMInstanceName`
-uint8                      `Uint8`
-uint16                     `Uint16`
-uint32                     `Uint32`
-uint64                     `Uint64`
-sint8                      `Sint8`
-sint16                     `Sint16`
-sint32                     `Sint32`
-sint64                     `Sint64`
-real32                     `Real32`
-real64                     `Real64`
+char16                     `unicode string`_ or `byte string`_
+string                     `unicode string`_ or `byte string`_
+string (EmbeddedInstance)  :class:`~pywbem.CIMInstance`
+string (EmbeddedObject)    :class:`~pywbem.CIMInstance` or :class:`~pywbem.CIMClass`
+datetime                   :class:`~pywbem.CIMDateTime`
+reference                  :class:`~pywbem.CIMInstanceName`
+uint8                      :class:`~pywbem.Uint8`
+uint16                     :class:`~pywbem.Uint16`
+uint32                     :class:`~pywbem.Uint32`
+uint64                     :class:`~pywbem.Uint64`
+sint8                      :class:`~pywbem.Sint8`
+sint16                     :class:`~pywbem.Sint16`
+sint32                     :class:`~pywbem.Sint32`
+sint64                     :class:`~pywbem.Sint64`
+real32                     :class:`~pywbem.Real32`
+real64                     :class:`~pywbem.Real64`
 [] (array)                 `list`
-=========================  ===========================
+=========================  ====================================================
 
-(1) CIM string and char16 types are represented as follows:
-In Python 2 as `unicode` (preferred) or `str`; in Python 3 as `str` (preferred)
-or `bytes`. The implementation may decode binary bytes types offered at the
-interface to unicode text types in the internal representation, using "utf-8"
-encoding.
-
-Note that constructors of PyWBEM classes that take CIM typed values as input
+Note that constructors of pywbem classes that take CIM typed values as input
 may support Python types in addition to those shown above. For example, the
-`CIMProperty` class represents CIM datetime values internally as a
-`CIMDateTime` object, but its constructor accepts `datetime.timedelta`,
-`datetime.datetime`, `str`, and `unicode` (py2 only) objects in addition to
-`CIMDateTime` objects.
+:class:`~pywbem.CIMProperty` class represents property values of CIM datetime
+type internally as :class:`~pywbem.CIMDateTime` objects, but its constructor
+accepts :class:`py2:datetime.timedelta` objects, :class:`py2:datetime.datetime`
+objects, `unicode string`_, and `byte string`_, in addition to
+:class:`~pywbem.CIMDateTime` objects.
 """
 
 # This module is meant to be safe for 'import *'.
@@ -158,17 +155,15 @@ class _CIMComparisonMixin(object): #pylint: disable=too-few-public-methods
 class MinutesFromUTC(tzinfo):
 
     """
-    A `datetime.tzinfo` implementation defined using a fixed offset in +/-
-    minutes from UTC.
+    An implementation of :class:`py2:datetime.tzinfo` that uses a fixed offset
+    in +/- minutes from UTC.
     """
 
     def __init__(self, offset): # pylint: disable=super-init-not-called
         """
-        Initialize the `MinutesFromUTC` object from a timezone offset.
+        Parameters:
 
-        :Parameters:
-
-          offset : `int`
+          offset (int):
             Timezone offset in +/- minutes from UTC, where a positive value
             indicates minutes east of UTC, and a negative value indicates
             minutes west of UTC.
@@ -177,15 +172,17 @@ class MinutesFromUTC(tzinfo):
 
     def utcoffset(self, dt): # pylint: disable=unused-argument
         """
-        Implement the `datetime.tzinfo.utcoffset` method by returning
-        the timezone offset as a `datetime.timedelta` object.
+        Implementation of the :func:`py2:datetime.tzinfo.utcoffset` method
+        that returns the timezone offset as a :class:`py2:datetime.timedelta`
+        object.
         """
         return self.__offset
 
     def dst(self, dt): # pylint: disable=unused-argument
         """
-        Implement the `datetime.tzinfo.dst` method by returning
-        a DST value of 0 as a `datetime.timedelta` object.
+        Implementation of the :func:`py2:datetime.tzinfo.dst` method
+        that returns a DST value of 0 as a :class:`py2:datetime.timedelta`
+        object.
         """
         return timedelta(0)
 
@@ -213,24 +210,24 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
 
     def __init__(self, dtarg):
         """
-        Initialize the `CIMDateTime` object from different types of input
-        object.
+        Parameters:
 
-        :Parameters:
+          dtarg:
+            The value from which the object is initialized, as one of the
+            following types:
 
-          dtarg
-            The input object, as one of the following types:
-
-            * A Unicode string or UTF-8 encoded byte string will be interpreted
+            * A `unicode string`_ or `byte string`_ object will be interpreted
               as CIM datetime format (see DSP0004) and will result in a point
               in time or a time interval.
-            * A `datetime.datetime` object must be timezone-aware and will
-              result in a point in time.
-            * A `datetime.timedelta` object will result in a time interval.
-            * Another `CIMDateTime` object will be copied.
+            * A :class:`py2:datetime.datetime` object must be timezone-aware
+              and will result in a point in time.
+            * A :class:`py2:datetime.timedelta` object will result in a time
+              interval.
+            * Another :class:`~pywbem.CIMDateTime` object will be copied.
 
-        :Raises ValueError:
-        :Raises TypeError:
+        Raises:
+            ValueError
+            TypeError
         """
         from .cim_obj import _ensure_unicode # defer due to cyclic deps.
         self.cimtype = 'datetime'
@@ -306,8 +303,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
     @property
     def datetime(self):
         """
-        The point in time represented by the object, as a `datetime.datetime`
-        object.
+        The point in time represented by the object, as a
+        :class:`py2:datetime.datetime` object.
 
         `None` if the object represents a time interval.
         """
@@ -316,8 +313,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
     @property
     def timedelta(self):
         """
-        The time interval represented by the object, as a `datetime.timedelta`
-        object.
+        The time interval represented by the object, as a
+        :class:`py2:datetime.timedelta` object.
 
         `None` if the object represents a point in time.
         """
@@ -349,8 +346,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
     @classmethod
     def now(cls, tzi=None):
         """
-        Factory method that returns a new `CIMDateTime` object representing
-        the current date and time.
+        Factory method that returns a new :class:`~pywbem.CIMDateTime` object
+        representing the current date and time.
 
         The optional timezone information is used to convert the CIM datetime
         value into the desired timezone. That does not change the point in time
@@ -358,16 +355,16 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         ``hhmmss`` components of the CIM datetime value to compensate for
         changes in the timezone offset component.
 
-        :Parameters:
+        Parameters:
 
-          tzi : `datetime.tzinfo`
+          tzi (:class:`py2:datetime.tzinfo` or :class:`~pywbem.MinutesFromUTC`):
             Timezone information. `None` means that the current local timezone
-            is used. The `datetime.tzinfo` object may be a `MinutesFromUTC`
-            object.
+            is used.
 
-        :Returns:
+        Returns:
 
-            A new `CIMDateTime` object representing the current date and time.
+            A new :class:`~pywbem.CIMDateTime` object representing the current
+            date and time.
         """
         if tzi is None:
             tzi = MinutesFromUTC(cls.get_local_utcoffset())
@@ -377,8 +374,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
     def fromtimestamp(cls, ts, tzi=None):
         # pylint: disable=invalid-name
         """
-        Factory method that returns a new `CIMDateTime` object from a POSIX
-        timestamp value and optional timezone information.
+        Factory method that returns a new :class:`~pywbem.CIMDateTime` object
+        from a POSIX timestamp value and optional timezone information.
 
         A POSIX timestamp value is the number of seconds since 1970-01-01
         00:00:00 UTC. Thus, a POSIX timestamp value is unambiguous w.r.t. the
@@ -390,20 +387,19 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         ``hhmmss`` components of the CIM datetime value to compensate for
         changes in the timezone offset component.
 
-        :Parameters:
+        Parameters:
 
-          ts : `int`
+          ts (int):
             POSIX timestamp value.
 
-          tzi : `datetime.tzinfo`
+          tzi (:class:`py2:datetime.tzinfo` or :class:`~pywbem.MinutesFromUTC`):
             Timezone information. `None` means that the current local timezone
-            is used. The `datetime.tzinfo` object may be a `MinutesFromUTC`
-            object.
+            is used.
 
-        :Returns:
+        Returns:
 
-            A new `CIMDateTime` object representing the specified point in
-            time.
+            A new :class:`~pywbem.CIMDateTime` object representing the
+            specified point in time.
         """
         if tzi is None:
             tzi = MinutesFromUTC(cls.get_local_utcoffset())
@@ -507,23 +503,21 @@ def cimtype(obj):
     """
     Return the CIM type name of a value, as a string.
 
-    For an array, the type is determined from the first array element because
-    CIM arrays must be homogeneous. If the array is empty, ValueError is
-    raised.
+    For an array, the type is determined from the first array element
+    (CIM arrays must be homogeneous w.r.t. the type of their elements).
 
-    If the type of the value is not a CIM type, TypeError is raised.
+    Parameters:
 
-    :Parameters:
-
-      obj : CIM typed value
+      obj (CIM typed value):
         The value whose CIM type name is returned.
 
-    :Returns:
+    Returns:
 
         The CIM type name of the value, as a string.
 
-    :Raises TypeError: Type is not a CIM type.
-    :Raises ValueError: Cannot determine CIM type from empty array.
+    Raises:
+        TypeError: Type is not a CIM type.
+        ValueError: Cannot determine CIM type from empty array.
     """
     if isinstance(obj, CIMType):
         return obj.cimtype
@@ -563,23 +557,24 @@ def type_from_name(type_name):
     """
     Return the Python type object for a given CIM type name.
 
-    For example, type name `'uint8'` will return type `Uint8`.
+    For example, type name "uint8" will return type :class:`~pywbem.Uint8`.
 
-    For CIM types `string` and `char16`, the preferred Python type
-    for unicode text representation is returned.
+    For CIM types `string` and `char16`, the `unicode string`_ type is returned
+    (Unicode strings are the preferred representation).
 
-    :Parameters:
+    Parameters:
 
       type_name : string
-        The simple (=non-array) CIM type name (e.g. `'uint8'` or
-        `'reference'`).
+        The simple (=non-array) CIM type name (e.g. "uint8" or
+        "reference").
 
-    :Returns:
+    Returns:
 
-        The Python type object for the CIM type (e.g. `Uint8` or
-        `CIMInstanceName`).
+        The Python type object for the CIM type (e.g. :class:`~pywbem.Uint8` or
+        :class:`~pywbem.CIMInstanceName`).
 
-    :Raises ValueError: Unknown CIM type name.
+    Raises;
+        ValueError: Unknown CIM type name.
     """
     if type_name == 'reference':
         # move import to run time to avoid circular imports
@@ -593,22 +588,23 @@ def type_from_name(type_name):
 
 def atomic_to_cim_xml(obj):
     """
-    Convert a value of an atomic scalar CIM type to a CIM-XML Unicode string
-    and return that string.
+    Convert a value of an atomic scalar CIM type to a CIM-XML string and
+    return that string.
 
     TODO: Verify whether we can change this function to raise a ValueError in
     case the value is not CIM typed.
 
-    :Parameters:
+    Parameters:
 
-      obj : CIM typed value.
-        The CIM typed value`, including `None`. Must be a scalar. Must be an
-        atomic type (i.e. not `CIMInstance` or `CIMClass`).
+      obj (atomic scalar CIM typed value):
+        The CIM typed value, including `None`. Must be a scalar (not an array).
+        Must be an atomic type (i.e. those listed in `CIM data types`_, except
+        any `CIM objects`_).
 
-    :Returns:
+    Returns:
 
-        A Unicode string in CIM-XML value format representing the CIM typed
-        value. For a value of `None`, `None` is returned.
+        A `unicode string`_ object in CIM-XML value format representing the CIM
+        typed value. For a value of `None`, `None` is returned.
     """
     # pylint: disable=too-many-return-statements
     from .cim_obj import _ensure_unicode, _convert_unicode  # due to cycles

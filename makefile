@@ -85,8 +85,17 @@ doc_exclude_patterns := \
 # Directory for generated API documentation
 doc_build_dir := build_doc
 
+# Directory where Sphinx conf.py is located
+doc_conf_dir := docs
+
+# Paper format for the Sphinx LaTex/PDF builder.
+# Valid values: a4, letter
+doc_paper_format := a4
+
 # Documentation generator command
-doc_cmd := epydoc --verbose --simple-term --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_build_dir) $(foreach p,$(doc_exclude_patterns),--exclude=$p) $(package_name)
+doc_cmd := sphinx-build
+doc_opts := -v -d $(doc_build_dir)/doctrees -c $(doc_conf_dir) -D latex_paper_size=$(doc_paper_format) .
+# doc_cmd := epydoc --verbose --simple-term --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_build_dir) $(foreach p,$(doc_exclude_patterns),--exclude=$p) $(package_name)
 
 # Directory for documentation publishing
 doc_publish_dir := ../pywbem.github.io/pywbem/doc/$(package_final_version)/doc
@@ -154,13 +163,43 @@ build: $(dist_file)
 buildwin: $(win64_dist_file)
 	@echo '$@ done; created: $(win64_dist_file)'
 
-ifeq ($(python_major_version), 2)
-builddoc: $(doc_build_dir)/index.html
-	@echo '$@ done; created documentation in: $(doc_build_dir); build output is in epydoc.log'
-else
-builddoc:
-	@echo 'Building API documentation requires Python 2; skipping this step'
-endif
+builddoc: html
+	@echo '$@ done; created documentation in: $(doc_build_dir)'
+
+.PHONY: html
+html:
+	PYTHONPATH=. $(doc_cmd) -b html $(doc_opts) $(doc_build_dir)/html
+	cp $(package_name)/NEWS.md $(doc_build_dir)/html/docs/
+	@echo "$@ done; the HTML pages are in $(doc_build_dir)/html."
+
+.PHONY: pdf
+pdf:
+	$(doc_cmd) -b latex $(doc_opts) $(doc_build_dir)/pdf
+	@echo "Running LaTeX files through pdflatex..."
+	$(MAKE) -C $(doc_build_dir)/pdf all-pdf
+	@echo "$@ done; the PDF files are in $(doc_build_dir)/pdf."
+
+.PHONY: man
+man:
+	$(doc_cmd) -b man $(doc_opts) $(doc_build_dir)/man
+	@echo "$@ done; the manual pages are in $(doc_build_dir)/man."
+
+.PHONY: docchanges
+docchanges:
+	$(doc_cmd) -b changes $(doc_opts) $(doc_build_dir)/changes
+	@echo
+	@echo "$@ done; the doc changes overview file is in $(doc_build_dir)/changes."
+
+.PHONY: doclinkcheck
+doclinkcheck:
+	$(doc_cmd) -b linkcheck $(doc_opts) $(doc_build_dir)/linkcheck
+	@echo
+	@echo "$@ done; look for any errors in the above output or in $(doc_build_dir)/linkcheck/output.txt."
+
+.PHONY: doccoverage
+doccoverage:
+	$(doc_cmd) -b coverage $(doc_opts) $(doc_build_dir)/coverage
+	@echo "$@ done; the doc coverage results are in $(doc_build_dir)/coverage/python.txt."
 
 ifeq ($(python_major_version), 2)
 check: pylint.log
@@ -237,13 +276,6 @@ $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 $(moftab_files): $(moftab_dependent_files) build_moftab.py
 	rm -f $(package_name)/mofparsetab.py* $(package_name)/moflextab.py*
 	python -c "from pywbem import mof_compiler; mof_compiler._build(verbose=True)"
-
-# Documentation for package (generates more .html files than just this target)
-$(doc_build_dir)/index.html: $(doc_dependent_files)
-	rm -Rf $(doc_build_dir)
-	mkdir -p $(doc_build_dir)
-	bash -c "set -o pipefail; PYTHONPATH=. $(doc_cmd) 2>&1 |tee epydoc.log"
-	cp -p $(package_name)/NEWS.md $(doc_build_dir)/NEWS.md
 
 # TODO: Once pylint has no more errors, remove the dash "-"
 pylint.log: $(pylint_rc_file) setup.py os_setup.py $(package_name)/*.py testsuite/*.py
