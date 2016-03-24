@@ -261,7 +261,7 @@ def get_default_ca_certs():
     return get_default_ca_certs._path
 
 # pylint: disable=too-many-branches,too-many-statements,too-many-arguments
-def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
+def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                  verify_callback=None, ca_certs=None,
                  no_verification=False, timeout=None):
     # pylint: disable=too-many-arguments,unused-argument
@@ -290,6 +290,7 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
         List of HTTP header fields to be added to the request, in addition to
         the standard header fields such as ``Content-type``,
         ``Content-length``, and ``Authorization``.
+        A value of None causes no headers to be added.
 
       debug : ``bool``
         Boolean indicating whether to create debug information.
@@ -482,6 +483,9 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
                     'to missing AF_UNIX support' % platform.system())
             self.sock = socket.socket(socket_af, socket.SOCK_STREAM)
             self.sock.connect(self.uds_path)
+
+    if not headers:
+        headers = []
 
     host, port, use_ssl = parse_url(_ensure_unicode(url))
 

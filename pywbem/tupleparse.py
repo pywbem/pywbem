@@ -133,7 +133,7 @@ def kids(tup_tree):
     return filter_tuples(tup_tree[2])
 
 # pylint: disable=too-many-arguments
-def check_node(tup_tree, nodename, required_attrs=[], optional_attrs=[],
+def check_node(tup_tree, nodename, required_attrs=None, optional_attrs=None,
                allowed_children=None,
                allow_pcdata=False):
     # pylint: disable=too-many-branches
@@ -160,16 +160,18 @@ def check_node(tup_tree, nodename, required_attrs=[], optional_attrs=[],
     if attrs(tup_tree) is not None:
         tt_attrs = attrs(tup_tree).copy()
 
-    for attr in required_attrs:
-        if attr not in tt_attrs:
-            raise ParseError('expected %s attribute on %s node, but only '
-                             'have %s' % (attr, name(tup_tree),
-                                          attrs(tup_tree).keys()))
-        del tt_attrs[attr]
-
-    for attr in optional_attrs:
-        if attr in tt_attrs:
+    if required_attrs:
+        for attr in required_attrs:
+            if attr not in tt_attrs:
+                raise ParseError('expected %s attribute on %s node, but only '
+                                 'have %s' % (attr, name(tup_tree),
+                                              attrs(tup_tree).keys()))
             del tt_attrs[attr]
+
+    if optional_attrs:
+        for attr in optional_attrs:
+            if attr in tt_attrs:
+                del tt_attrs[attr]
 
     if len(tt_attrs.keys()) > 0:
         raise ParseError('invalid extra attributes %s' % tt_attrs.keys())

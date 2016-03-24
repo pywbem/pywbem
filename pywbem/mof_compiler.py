@@ -1640,7 +1640,7 @@ class MOFCompiler(object):
     """MOF compiler class. Initializes the compiler and includes functions to
        compile input files"""
 
-    def __init__(self, handle, search_paths=[], verbose=False,
+    def __init__(self, handle, search_paths=None, verbose=False,
                  log_func=_print_logger):
         """Initialize the compiler.
 
@@ -1661,14 +1661,15 @@ class MOFCompiler(object):
             - EnumerateQualifiers()
             - SetQualifier()
         search_paths -- A list of file system paths specifying where
-            missing schema elements should be looked for.
+            missing schema elements should be looked for. `None` is considered
+            the same as an empty list.
         verbose -- True if extra messages should be printed.
         log_func -- A callable that takes a single string argument.
             The default logger prints to stdout.
         """
 
         self.parser = _yacc(verbose)
-        self.parser.search_paths = search_paths
+        self.parser.search_paths = search_paths if search_paths else []
         self.handle = handle
         self.parser.handle = handle
         self.lexer = _lex(verbose)
