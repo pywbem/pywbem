@@ -1788,18 +1788,23 @@ class MOFCompiler(object):
         self.handle.rollback(verbose=verbose)
 
 def _build(verbose=False):
-    """Build the LEX and YACC table modules for the MOF Compiler,
-    if they do not exist yet.
+    """Build the LEX and YACC table modules for the MOF compiler, if they do
+    not exist yet, or if their table versions do not match the installed
+    version of the `ply` package.
     """
+
+    if verbose:
+        print("Building LEX/YACC modules for MOF compiler in: %s" % _tabdir)
 
     _yacc(verbose)
     _lex(verbose)
 
 def _yacc(verbose=False):
-    """Return YACC parser object.
+    """Return YACC parser object for the MOF compiler.
 
-    As a side effect, the YACC table module for the MOF Compiler
-    gets created, if it does not exist yet.
+    As a side effect, the YACC table module for the MOF compiler gets created
+    if it does not exist yet, or updated if its table version does not match
+    the installed version of the `ply` package.
     """
 
     # In yacc(), the 'debug' parameter controls the main error
@@ -1814,10 +1819,11 @@ def _yacc(verbose=False):
                      errorlog=yacc.PlyLogger(sys.stdout))
 
 def _lex(verbose=False):
-    """Return LEX analyzer object.
+    """Return LEX analyzer object for the MOF Compiler.
 
-    As a side effect, the LEX table module for the MOF Compiler
-    gets created, if it does not exist yet.
+    As a side effect, the LEX table module for the MOF compiler gets created
+    if it does not exist yet, or updated if its table version does not match
+    the installed version of the `ply` package.
     """
 
     return lex.lex(optimize=_optimize,
