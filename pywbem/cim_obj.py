@@ -2564,7 +2564,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
         return '%s(name=%r, value=%r, type=%r, ' \
                'is_array=%r, ...)' % \
-               (self.__class__.__name__, self.name, elf.value, self.type,
+               (self.__class__.__name__, self.name, self.value, self.type,
                 self.is_array)
 
     def __repr__(self):
