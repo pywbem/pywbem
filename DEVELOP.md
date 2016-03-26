@@ -30,50 +30,50 @@ released.
 
 In the directory of the `pywbem` repo:
 
-* Make sure the branch is checked out that is to be released, and that it
+# Make sure the branch is checked out that is to be released, and that it
   is in a git-wise clean state:
   - `git status` - to verify checked out branch and clean state
   - `git log` - to verify the content of this branch
-* Create a topic branch:
+# Create a topic branch:
   - `git checkout -b release_M.N.U`
-* Finalize package versions (i.e. change development version `M.N.U.dev0` to
+# Finalize package versions (i.e. change development version `M.N.U.dev0` to
   final version `M.N.U`):
   - `vi setup.py`
   - `vi pywbem/__init__.py`
   - `vi pywbem/NEWS.md`
-* Make sure the change log reflects all changes in the release:
+# Make sure the change log reflects all changes in the release:
   - `vi pywbem/NEWS.md`
-* **(1)** Perform a complete build (in a Python virtual environment):
+# Perform a complete build (in a Python virtual environment):
   - `make clobber all`
-* If this fails, fix and iterate back to (1) until it succeeds.
-* Create README file in distribution directory:
+# If this fails, fix and iterate back to step 5 until it succeeds.
+# Create README file in distribution directory:
   - Only if the `dist/pywbem-M.N/README.md` file does not yet exist:
     - `find dist -name README.md | sort | tail | xargs cp -t dist/pywbem-M.N/`
     - `vi dist/pywbem-M.N/README.md` - adjust to this release
-* Commit and push to upstream repo:
+# Commit and push to upstream repo:
   - `git commit -m "Release vM.N.U"`
   - `git push --set-upstream origin release_M.N.U` - if branch is pushed for the first time
   - `git push` - after first time, for normal additional commit
   - `git push -f` - after first time, if a rebase was used
-* On Github, create a Pull Request for the target branch. This will trigger
+# On Github, create a Pull Request for the target branch. This will trigger
   the Travis CI run. **Important:** Regardless of which branch the commit was
   based upon, Github will by default target the master branch for the merge.
   So if your base branch for this release was not `master`, change the target
   branch for the PR to be your base branch.
-* Perform a complete test:
+# Perform a complete test:
   - `tox`
-* Perform any other tests you wish, e.g.
+# Perform any other tests you wish, e.g.
   - Run in local CI environment
   - Run against a real WBEM server
-* If any of the tests (including the Travis CI run of the Pull Request) fails,
+# If any of the tests (including the Travis CI run of the Pull Request) fails,
   fix and iterate back to (1) until they all succeed.
-* Once the Travis CI run for this PR succeeds:
+# Once the Travis CI run for this PR succeeds:
   - Merge the PR (no review is needed)
   - Delete the PR
-* Clean up local branches:
+# Clean up local branches:
   - `git-prune origin` (From `andy-maier/gitsurvival`)
-* Close milestone `M.N.U` on GitHub.
-* Tag the release and push to upstream repo:
+# Close milestone `M.N.U` on GitHub.
+# Tag the release and push to upstream repo:
   - Create tag for M.N.U:
     - `git tag vM.N.U`
   - Delete preliminary M.N* tags, if any:
@@ -81,39 +81,39 @@ In the directory of the `pywbem` repo:
     - `git tag -d <tags ...>`
   - Push tag changes:
     - `git push --tags`
-* On GitHub, edit the new tag, and create a release description on it. This
+# On GitHub, edit the new tag, and create a release description on it. This
   will cause it to appear in the Release tab.
-* Upload the package to PyPI:
+# Upload the package to PyPI:
   - **Attention!!** This only works once. You cannot re-release the same
     version to PyPI.
   - `make release`
   - Verify that it arrived on PyPI:
     - https://pypi.python.org/pypi/pywbem/M.N.U
-* Publish the API docs to the adjacent `pywbem.github.io` repo directory:
+# Publish the API docs to the adjacent `pywbem.github.io` repo directory:
   - `make publish`
 
 In the directory of the `pywbem.github.io` repo:
  
-* Make sure the `master` branch is checked out, and that it is in a git-wise
+# Make sure the `master` branch is checked out, and that it is in a git-wise
   clean state:
   - `git status`
-* Copy and adjust HTML files for API docs of new release by finalizing version:
+# Copy and adjust HTML files for API docs of new release by finalizing version:
   - `cp pywbem/doc/latest/*.html pywbem/doc/M.N.U/`
   - `vi pywbem/doc/M.N.U/index.html`
   - `vi pywbem/doc/M.N.U/changelog.html`
-* Update download table in `pywbem/installation.html` for new release:
+# Update download table in `pywbem/installation.html` for new release:
   - `vi pywbem/installation.html`
-* If `M.N.U` is higher than any other released version, adjust the *latest
+# If `M.N.U` is higher than any other released version, adjust the *latest
   release* link:
   - `rm pywbem/doc/latest`
   - `ln -s M.N.U pywbem/doc/latest`
-* Verify that the installation page (`pywbem/installation.html` in your web
+# Verify that the installation page (`pywbem/installation.html` in your web
   browser) shows the new release correctly, and that all of its links work.
-* Commit in master branch and push to upstream repo:
+# Commit in master branch and push to upstream repo:
   - `git commit -m "Release vM.N.U"`
   - `git push` - for normal additional commit
   - `git push -f` - if a rebase was used
-* Verify that the installation page of `http://pywbem.github.io/pywbem` is
+# Verify that the installation page of `http://pywbem.github.io/pywbem` is
   updated, and that all the links work and show the intended version.
 
 Announcement on `pywbem-devel` mailing list.
@@ -129,17 +129,17 @@ development is to be started.
 
 In the directory of the `pywbem` repo:
 
-* Make sure the desired functional or fix branch that is to be used
+# Make sure the desired functional or fix branch that is to be used
   as the basis for the new development, is checked out, and that it
   is in a git-wise clean state:
   - `git status` - to verify checked out branch and clean state
-* Create README file in distribution directory:
+# Create README file in distribution directory:
   - Only if the `dist/pywbem-M.N/README.md` file does not yet exist:
     - `find dist -name README.md | sort | tail | xargs cp -t dist/pywbem-M.N/`
     - `vi dist/pywbem-M.N/README.md` - adjust to this release
-* Create a topic branch:
+# Create a topic branch:
   - `git checkout -b start_M.N.U`
-* Bump package versions up and add development suffix (i.e. change to version
+# Bump package versions up and add development suffix (i.e. change to version
   `M.N.U.dev0`):
   - `vi setup.py`
   - `vi pywbem/__init__.py`
@@ -147,23 +147,23 @@ In the directory of the `pywbem` repo:
     by date, so it is possible that a new fix version v0.8.2.dev0 that gets
     added is followed by v0.9.0 which is followed by v0.8.1, if v0.9.0 was
     already released at the time v0.8.2 is started.
-* **(2)** Commit and push to upstream repo:
+# Commit and push to upstream repo:
   - `git commit -m "Start development of vM.N.U"`
   - `git push --set-upstream origin release_M.N.U` - if branch is pushed for
     the first time
   - `git push` - after first time, for normal additional commit
   - `git push -f` - after first time, if a rebase was used
-* On Github, create a Pull Request for the target branch. This will trigger
+# On Github, create a Pull Request for the target branch. This will trigger
   the Travis CI run. **Important:** Regardless of which branch the commit was
   based upon, Github will by default target the master branch for the merge.
   So if your base branch for this release was not `master`, change the target
   branch for the PR to be your base branch.
-* If the Travis CI run fails, fix and iterate back to (2) until they all
+# If the Travis CI run fails, fix and iterate back to step 5 until they all
   succeed.
-* Once the Travis CI run for this PR succeeds:
+# Once the Travis CI run for this PR succeeds:
   - Merge the PR (no review is needed)
   - Delete the PR
-* Create milestone `M.N.U` on GitHub.
-* Clean up local branches:
+# Create milestone `M.N.U` on GitHub.
+# Clean up local branches:
   - `git-prune origin` (From `andy-maier/gitsurvival`)
 
