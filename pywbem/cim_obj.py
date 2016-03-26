@@ -46,7 +46,7 @@ if six.PY2:
     from __builtin__ import type as builtin_type
 else:
     # pylint: disable=wrong-import-order
-    from builtins import type as builtin_type
+    from builtins import type as builtin_type  # pylint: disable=import-error
 
 from . import cim_xml
 from .cim_types import _CIMComparisonMixin, type_from_name, \
@@ -58,7 +58,9 @@ __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
            'CIMQualifierDeclaration', 'tocimxml', 'tocimobj']
 
-DEFAULT_INDENT = 7
+# Constants for MOF formatting output
+MOF_INDENT = 4
+MAX_MOF_LINE = 79   # use 79 because comma separator sometimes runs over
 
 # pylint: disable=too-many-lines
 class NocaseDict(object):
@@ -576,17 +578,29 @@ def _ensure_bytes(obj):
     return obj
 
 def _makequalifiers(qualifiers, indent):
-    """Return a MOF fragment for a NocaseDict of qualifiers."""
+    """Return a MOF fragment for a NocaseDict of qualifiers indented
+       the number of spaces defined by indent. Return empty string
+       if no qualifiers. Normally multiline output and may fold
+       qualifiers into multiple lines.
+       :param qualifiers: list of qualifiers to format
+       :param indent: Indent level for this set of qualifiers.
+    """
 
     if len(qualifiers) == 0:
         return ''
 
-    return '[%s]' % ',\n '.ljust(indent+2).\
-        join([q.tomof(indent) for q in sorted(qualifiers.values())])
+    return '%s[%s]' % (_indent_str(indent), ',\n '.ljust(indent+2).\
+        join([q.tomof(indent+2) for q in sorted(qualifiers.values())]))
 
-def mofstr(strvalue, indent=7, maxline=80):
-    """Converts the input string value to a MOF literal string value, including
-    the surrounding double quotes.
+def _indent_str(indent):
+    """ Return a MOF indent pad string from the indent integer variable
+        that defines number of spaces to indent. Used to format mof output
+    """
+    return ' '.ljust(indent, ' ')
+
+def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
+    """Converts the input string value to a MOF literal string value,
+    including the surrounding double quotes.
 
     In doing so, all characters that have MOF escape characters (except for
     single quotes) are escaped by adding a leading backslash (\\), if not yet
@@ -623,8 +637,12 @@ def mofstr(strvalue, indent=7, maxline=80):
 
     # Break into multiple strings for better readability
     blankfind = maxline - indent - 2
-    indent_str = ' '.ljust(indent, ' ')
+    _is = _indent_str(indent)
     ret_str_list = list()
+    # TODO does not account for the extra char that may be appended
+    # to line (ex. comma). Improvement would to be to test last line
+    # for one char less than max line length and adjust. To get
+    # around this, we set max line length default to 79 ks Mar 2016
     if escaped_str == '':
         ret_str_list.append('""')
     else:
@@ -639,18 +657,13 @@ def mofstr(strvalue, indent=7, maxline=80):
                 ret_str_list.append('"' + escaped_str[0:splitpos+1] + '"')
                 escaped_str = escaped_str[splitpos+1:]
 
-    ret_str = ('\n'+indent_str).join(ret_str_list)
+    ret_str = ('\n'+_is).join(ret_str_list)
     return ret_str
 
 def moftype(cim_type, refclass):
     """Converts a CIM type name to MOF syntax."""
 
-    if cim_type == 'reference':
-        _moftype = refclass + " REF"
-    else:
-        _moftype = cim_type
-
-    return _moftype
+    return (refclass + ' REF') if cim_type == 'reference' else cim_type
 
 
 class CIMClassName(_CIMComparisonMixin):
@@ -1887,48 +1900,73 @@ class CIMInstance(_CIMComparisonMixin):
         return cim_xml.VALUE_NAMEDINSTANCE(self.path.tocimxml(),
                                            instance_xml)
 
-    def tomof(self, indent=DEFAULT_INDENT):
+    def tomof(self, indent=0):
         """ Return string representing the MOF definition of this
             CIMInstance.
+
+            :param indent: (optional) defines the number of spaces
+            that the initial line of the output is indented
         """
-        def _prop2mof(type_, value, indent_lvl=DEFAULT_INDENT):
+        def _prop2mof(type_, value, indent):
             """ Return a string representing the MOF definition of
                 a single property defined by the type and value
                 arguments.
                 :param type_: `CIMType` of the property
-                :param value: value corresponsing to this type
+                :param value: value corresponding to this type
+                :param indent: number of spaces to indent the
+                    initial line of the generated mof.
             """
+            def _prop_array_val2mof(value, indent, single_line):
+                """ Output array of values either on single line or
+                    one line per value
+                    :param value: Array of values to output
+                    :param indent: indent number of spaces of currnet
+                         indent indent level if multiple line
+                """
+                val = ''
+
+                sep = ', 'if single_line else ',\n' + _indent_str(indent)
+                for i, item in enumerate(value):
+                    if i > 0:
+                        val += sep
+                    val += _prop2mof(type_, item, indent)
+                return val
+
             if value is None:
                 val = 'NULL'
             elif isinstance(value, list):
                 val = '{'
-                for i, item in enumerate(value):
-                    if i > 0:
-                        val += ', '
-                    val += _prop2mof(type_, item, indent_lvl=indent_lvl)
-                val += '}'
+                # output as single line if within width limits
+                val_tmp = _prop_array_val2mof(value, indent, True)
+                # If too large, redo with on array element per line
+                if len(val_tmp) > MAX_MOF_LINE - indent:
+                    val_tmp = '\n' + _indent_str(indent+MOF_INDENT)
+                    val_tmp += _prop_array_val2mof(value,
+                                                   (indent+MOF_INDENT),
+                                                   False)
+                val += val_tmp + '}'
+
             elif type_ == 'string':
-                val = mofstr(value, indent=indent_lvl)
+                val = mofstr(value, indent=indent)
             else:
                 val = str(value)
             return val
 
-        # Create temp indent remove one level
-        indent_str = ' '.ljust(indent, ' ')
-        out_indent = indent_str[:(indent - DEFAULT_INDENT)]
-
-        ret_str = out_indent + 'instance of %s {\n' % self.classname
+        ret_str = 'instance of %s {\n' % self.classname
         for prop in self.properties.values():
             if prop.embedded_object is not None:
-                # convert the instance in this property
-                ret_str += prop.value.tomof(indent=(indent + DEFAULT_INDENT))
+                # TODO: May not handle recursive embedded instances
+                # convert the instance in this property to cimxml
+                prop_val = prop.value.tocimxml().toxml()
             else:
-                # output this property indented to return string
-                ret_str += '%s%s = %s;\n' % (indent_str, prop.name,
-                                             _prop2mof(prop.type,
-                                                       prop.value,
-                                                       indent_lvl=indent))
-        ret_str += (out_indent + '};\n')
+                prop_val = prop.value
+
+            ret_str += '%s%s = %s;\n' % (_indent_str(indent+MOF_INDENT),
+                                         prop.name,
+                                         _prop2mof(prop.type,
+                                                   prop_val,
+                                                   (indent+MOF_INDENT)))
+        ret_str += '};\n'
         return ret_str
 
 
@@ -2024,11 +2062,15 @@ class CIMClass(_CIMComparisonMixin):
             superclass=self.superclass)
 
     def tomof(self):
-        """ Return string with MOF representation of the CIMClass"""
+        """ Return string with MOF representation of the CIMClass
+            with components indented from 0. No concept of class
+            in class
+        """
+        indent = MOF_INDENT
 
-        # Class definition
-
-        ret_str = '   %s\n' % _makequalifiers(self.qualifiers, 4)
+        # Qualifiers definition or empty line
+        ret_str = '%s\n' % (_makequalifiers(self.qualifiers,
+                                            indent))
 
         ret_str += 'class %s ' % self.classname
 
@@ -2039,7 +2081,7 @@ class CIMClass(_CIMComparisonMixin):
 
         ret_str += '{\n'
 
-        # Properties
+        # Properties; indent one level from class definition
 
         for prop_val in self.properties.values():
             if prop_val.is_array and prop_val.array_size is not None:
@@ -2047,16 +2089,18 @@ class CIMClass(_CIMComparisonMixin):
             else:
                 array_str = ''
             ret_str += '\n'
-            ret_str += '      %s\n' % (_makequalifiers(prop_val.qualifiers, 7))
-            ret_str += '   %s %s%s;\n' % (moftype(prop_val.type,
-                                                  prop_val.reference_class),
-                                          prop_val.name, array_str)
+            if len(prop_val.qualifiers) != 0:
+                ret_str += '%s\n' % ((_makequalifiers(prop_val.qualifiers,
+                                                      (indent + MOF_INDENT))))
+            ret_str += '%s%s %s%s;\n' % (_indent_str(indent),
+                                         moftype(prop_val.type,
+                                                 prop_val.reference_class),
+                                         prop_val.name, array_str)
 
-        # Methods
+        # Methods, indent one level from class definition
 
         for method in self.methods.values():
-            ret_str += '\n'
-            ret_str += '   %s\n' % method.tomof()
+            ret_str += '%s\n' % method.tomof(indent)
 
         ret_str += '};\n'
 
@@ -2158,21 +2202,28 @@ class CIMMethod(_CIMComparisonMixin):
                 cmpitem(self.class_origin, other.class_origin) or
                 cmpitem(self.propagated, other.propagated))
 
-    def tomof(self):
+    def tomof(self, indent):
         """ Return string MOF representation of the `CIMMethod` object"""
+
         ret_str = ''
 
-        ret_str += '      %s\n' % (_makequalifiers(self.qualifiers, 7))
-
+        if len(self.qualifiers) != 0:
+            ret_str += '%s\n' % (_makequalifiers(self.qualifiers,
+                                                 (indent+MOF_INDENT)))
+        # TODO is None allowed for return type.
+        ret_str += _indent_str(indent)
         if self.return_type is not None:
             ret_str += '%s ' % moftype(self.return_type, None)
-            # CIM-XML does not support methods returning reference types
-            # (the CIM architecture does).
+            # TODO CIM-XML does not support methods returning reference
+            # types(the CIM architecture does).
 
-        ret_str += '%s(\n' % (self.name)
-        ret_str += ',\n'.join(
-            ['       '+p.tomof() for p in self.parameters.values()])
-        ret_str += ');\n'
+        if len(self.parameters.values()) != 0:
+            ret_str += '%s(\n' % (self.name)
+            ret_str += ',\n'.join(
+                [p.tomof(indent+MOF_INDENT) for p in self.parameters.values()])
+            ret_str += ');\n'
+        else:
+            ret_str += '%s();\n' % (self.name)
 
         return ret_str
 
@@ -2320,16 +2371,23 @@ class CIMParameter(_CIMComparisonMixin):
                 self.type,
                 qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
-    def tomof(self):
-        """ Return string with MOF representation of CIMParameter"""
+    def tomof(self, indent):
+        """ Return string with MOF representation of a `CIMParameter`.
+            :param indent: Number of spaces to indent each parameter.
+        """
+
         if self.is_array and self.array_size is not None:
             array_str = "[%s]" % self.array_size
         else:
             array_str = ''
-        rtn_str = '\n'
-        rtn_str += '         %s\n' % (_makequalifiers(self.qualifiers, 10))
-        rtn_str += '      %s %s%s' % (moftype(self.type, self.reference_class),
-                                      self.name, array_str)
+
+        rtn_str = ''
+        if len(self.qualifiers) != 0:
+            rtn_str = '%s\n' % (_makequalifiers(self.qualifiers,
+                                                indent + 2))
+        rtn_str += '%s%s %s%s' % (_indent_str(indent),
+                                  moftype(self.type, self.reference_class),
+                                  self.name, array_str)
         return rtn_str
 
 # pylint: disable=too-many-instance-attributes
@@ -2489,8 +2547,15 @@ class CIMQualifier(_CIMComparisonMixin):
                                  toinstance=self.toinstance,
                                  translatable=self.translatable)
 
-    def tomof(self, indent=7):
-        """ Return string representing `CIMQualifier` in MOF format"""
+    def tomof(self, indent=MOF_INDENT):
+        """ Return string representing `CIMQualifier` in MOF format.
+            Normally called from tomof for property, class, or
+            instance.
+
+            :param indent: (optional) number of spaces to indent
+            the resultif multiple lines returned. Does not indent
+            initial line.
+        """
 
         def valstr(value):
             """ Return string representing value argument."""
@@ -2499,8 +2564,9 @@ class CIMQualifier(_CIMComparisonMixin):
             return str(value)
 
         if isinstance(self.value, list):
-            return '%s {' % self.name + \
+            mof = '%s {' % self.name + \
                    ', '.join([valstr(val) for val in self.value]) + '}'
+            return mof
 
         return '%s (%s)' % (self.name, valstr(self.value))
 
@@ -2644,15 +2710,16 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             else:
                 mof += ' = %s' % atomic_to_cim_xml(
                     tocimobj(self.type, self.value))
-        mof += ',\n    '
-        mof += 'Scope('
+
+        mof += ',\n%sScope(' % _indent_str(MOF_INDENT)
         mof += ', '.join([x.lower() for x, y in self.scopes.items() if y]) + ')'
         # toinstance flavor not included here because not part of DSP0004
         if not self.overridable and not self.tosubclass \
                 and not self.translatable:
             mof += ';'
             return mof
-        mof += ',\n    Flavor('
+
+        mof += ',\n%sFlavor(' % _indent_str(MOF_INDENT)
         mof += self.overridable and 'EnableOverride' or 'DisableOverride'
         mof += ', '
         mof += self.tosubclass and 'ToSubclass' or 'Restricted'
