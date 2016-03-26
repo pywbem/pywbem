@@ -52,6 +52,7 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      tocimobj
 from .cim_operations import CIMError, WBEMConnection
 from .cim_constants import *  # pylint: disable=wildcard-import
+from ._cliutils import SmartFormatter
 
 __all__ = ['MOFParseError', 'MOFWBEMConnection', 'MOFCompiler']
 
@@ -1825,34 +1826,6 @@ def _lex(verbose=False):
                    outputdir=_tabdir,
                    debug=False,
                    errorlog=lex.PlyLogger(sys.stdout))
-
-
-class SmartFormatter(argparse.HelpFormatter):
-    """Formatter class for `argparse`, that respects newlines in help strings.
-
-    Idea and code from: http://stackoverflow.com/a/22157136
-
-    Usage:
-
-        If an argparse argument help text starts with 'R|', it will be treated
-        as a *raw* string that does line formatting on its own by specifying
-        newlines appropriately. The string should not exceed 55 characters per
-        line. Indentation handling is still applied automatically and does not
-        need to be specified within the string.
-
-        Otherwise, the strings are formatted as normal and newlines are
-        treated like blanks.
-
-    Limitations:
-        It seems this only works for the `help` argument of
-        `ArgumentParser.add_argument()`, and not for group descriptions,
-        and usage, description, and epilog of ArgumentParser.
-"""
-
-    def _split_lines(self, text, width):
-        if text.startswith('R|'):
-            return text[2:].splitlines()  
-        return argparse.HelpFormatter._split_lines(self, text, width)
 
 
 def main():
