@@ -841,6 +841,204 @@ class ExecuteQuery(ClientTest):
     def test_all(self):
         raise AssertionError("test not implemented")
 
+
+#################################################################
+# Open pegasus special tests
+#################################################################
+
+class PegasusServerTest(ClientTest):
+
+    def get_interop_namespace(self):
+        """Return the namespace used by this pegasus as interop"""
+        ns_list = ['interop', 'root/interop', 'root/PG_InterOp']
+        class_name = 'CIM_ManagedElement'
+        for ns in ns_list:
+            try:
+                _class = self.cimcall(self.conn.GetClass,
+                                      class_name,
+                                      namespace=ns,
+                                      LocalOnly=True)
+                return ns
+            except CIMError as ce:
+                if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
+                    raise
+
+        self.assertEqual(False, 'No interop namespace exists in server')
+
+    def get_namespaces(self):
+        """ Return list of namespaces found converted to strings
+            from utf-8 strings
+        """
+
+        interop = self.get_interop_namespace()
+        class_name = 'CIM_Namespace'
+        try:
+            namespaces = []
+            instances = self.cimcall(self.conn.EnumerateInstances,
+                                     class_name,
+                                     namespace=interop,
+                                     LocalOnly=True)
+            self.assertTrue(len(instances) != 0)
+            print('Namespaces:')
+            for instance in instances:
+                prop = instance.properties['Name'].value
+                ascii = prop.encode()
+                print ('  %s' % (ascii))
+                namespaces.append(ascii)
+
+            return namespaces
+
+        except CIMError as ce:
+            raise
+        return None
+
+
+    def try_class(self, ns, class_name):
+        """Test if class exists
+           returns true if `class_name` exists
+        """
+        try:
+            my_class = self.cimcall(self.conn.GetClass, class_name,
+                                    namespace=ns)
+            return True
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_NOT_FOUND:
+                print('class get %s failed' % my_class)
+                raise
+            else:
+                return False
+
+    def has_namespace(self, ns):
+        ns = self.get_namespaces()
+        ##TODO Finish this one
+
+    def get_instances(self, ns, class_name):
+
+        # test to be sure class exists
+        # self.try_class(ns, class)
+
+        try:
+            instances = self.cimcall(self.conn.EnumerateInstances,
+                                     class_name,
+                                     namespace=ns)
+            return instances
+
+        # TODO figure out why we could not get instances of a class
+        #  and whether we should continue
+        except CIMError as ce:
+            raise
+            #if ce.args[0] != CIM_ERR_NOT_FOUND:
+                #print('class get %s failed' % my_class)
+                #raise
+            #else:
+                #return False
+
+    def get_registered_profiles(self):
+
+        interop = self.get_interop_namespace()
+        profiles = self.get_instances(interop, 'CIM_RegisteredProfile')
+
+
+
+class PegasusInteropTest(PegasusServerTest):
+
+    def test_all(self):
+        interop = self.get_interop_namespace()
+        print('interop=%r' % interop)
+
+        namespaces = self.get_namespaces()
+
+        ## TODO what else is in interop???
+
+        self.assertTrue(self.try_class(interop, 'CIM_RegisteredProfile'))
+
+
+
+class PEGASUSCLITestClass(PegasusServerTest):
+    """Test against a class that has all of the property types
+       defined
+    """
+
+    def test_all(self):
+        class_name = 'Test_CLITestProviderClass'
+        ns = 'test/TestProvider'
+
+        # Get the class, test and possibly display
+        my_class = self.cimcall(self.conn.GetClass, class_name,
+                                namespace=ns, LocalOnly=False)
+
+        mofout = my_class.tomof()
+        xmlout = my_class.tocimxml().toprettyxml(indent='  ')
+
+        if self.verbose:
+            print('MOF for %s\n%s' % (my_class, mofout))
+            print('CIMXML  for %s\n%s' % (my_class, xmlout))
+
+        inst_paths = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  class_name, namespace=ns)
+        for inst_path in inst_paths:
+            print('class %s instance %s' % (class_name, inst_path))
+            inst_path_xml = inst_path.tocimxml().toprettyxml(indent='  ')
+            if self.verbose:
+                print('INST PATH %s' % inst_path_xml)
+
+        # Enumerate instances of the class
+        instances = self.cimcall(self.conn.EnumerateInstances,
+                                 class_name, namespace=ns)
+        for instance in instances:
+            print('class %s============= instance %s'
+                  % (class_name, instance.path))
+            mofout = instance.tomof()
+            xmlout = instance.tocimxml().toprettyxml(indent='  ')
+            if self.verbose:
+                print('MOF for %s\n%s' % (instance, mofout))
+                print('CIMXML  for %s\n%s' % (instance, xmlout))
+        # TODO create an instance write it, get it and test results
+
+
+class PegasusTestEmbeddedInstance(PegasusServerTest):
+
+    def test_all(self):
+        # test class with embedded instance
+        cl1 = 'Test_CLITestEmbeddedClass'
+        ns = 'test/TestProvider'
+        #prop_name = 'Id'
+        prop_name = 'embeddedInst'
+        #property_list = ['embeddedInst']
+        #property_list = ['comment', 'Id']
+        property_list = [prop_name]
+
+        instances = self.cimcall(self.conn.EnumerateInstances,
+                             cl1, namespace=ns,
+                             propertylist=property_list)
+        for inst in instances:
+            print('INSTANCE ========= %s ============' % inst.path)
+            if self.verbose:
+                print('==========MOF=======\n%s' %(inst.tomof()))
+                print('==========XML=======\n%s' %(inst.tocimxml().toprettyxml()))
+
+            print('instance {}'.format(inst))
+            print('property count {}'.format(len(inst.properties)))
+            print('property id %s' % inst.properties[prop_name])
+
+            prop = inst.properties[prop_name]
+            print('property {}: view {}'.format(prop_name, prop))
+            print('property {}: details name={}, type={}, value={} eo={}'
+                  .format(prop_name, prop.name, prop.type, prop.value,
+                          prop.embedded_object))
+                          
+            ####for key, value in self.properties.items()
+
+            ## why does this produce a unicode output for property???
+            for name, property in inst.properties.items():
+                print('====property name={}, type={}, value={}'
+                .format(name, property.type, property.value))
+                print('tocimxml\n{}'.format(property.tocimxml().toprettyxml()))
+                print('repr %s' % repr(property))
+        # TODO now create a new instance of embedded instance
+        # and to create instance
+
+
 #################################################################
 # Main function
 #################################################################
