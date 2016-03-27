@@ -1,0 +1,6 @@
+# Requirements fir building with SPhinx at readthedocs.org
+#
+six
+ply
+M2Crypto>=0.24
+Sphinx>=1.3
