@@ -19,21 +19,17 @@ The **pywbem** PyPI package provides the following components:
 
 * a WBEM client library
 
-  It provides an API for issuing operations to a WBEM server,
-  using the CIM operations over HTTP (CIM-XML) protocol defined in the DMTF
-  standards DSP0200 and DSP0201. See http://www.dmtf.org/standards/wbem for
-  information about WBEM and for these standards.
-
-  It is contained in the ``pywbem`` Python package.
+  The WBEM client library provides an API for issuing operations to a WBEM
+  server, using the CIM operations over HTTP (CIM-XML) protocol defined in the
+  DMTF standards DSP0200 and DSP0201. See http://www.dmtf.org/standards/wbem
+  for information about WBEM and these standards.
 
   See `WBEM client library API`_ for a description of the API.
 
 * a WBEM listener
 
-  It waits for indications (i.e. events) emitted by a WBEM server and provides
-  an API for applications to register for indications.
-
-  It is contained in the ``irecv`` Python package.
+  The WBEM listener waits for indications (i.e. events) emitted by a WBEM
+  server and provides an API for applications to register for indications.
 
   See `WBEM listener API`_ for a description of the API.
 
@@ -60,7 +56,8 @@ The ``pywbem`` PyPI package is supported in these environments:
 * on Linux, with Python 2.6, 2.7, 3.4, 3.5, and higher 3.x
 
 OS X has not been tested and is therefore not listed, above.
-You are welcome to try it out and report any issues.
+You are welcome to try it out andi
+[report any issues](https://github.com/pywbem/pywbem/issues).
 
 Special type names
 ------------------
@@ -74,7 +71,7 @@ _`unicode string`   a Unicode string type (:func:`unicode <py2:unicode>` in
                     Python 2, and :class:`py3:str` in Python 3)
 _`byte string`      a byte string type (:class:`py2:str` in Python 2, and
                     :class:`py3:bytes` in Python 3). Unless otherwise
-                    indicated, byte strings are always UTF-8 encoded.
+                    indicated, byte strings in pywbem are always UTF-8 encoded.
 _`CIM data type`    one of the types listed in `CIM data types`_.
 _`CIM object`       one of the types listed in `CIM objects`_.
 ==================  ===========================================================

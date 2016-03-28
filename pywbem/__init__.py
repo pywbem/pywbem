@@ -20,41 +20,28 @@
 #
 
 """
-The ``pywbem`` module provides a WBEM client library, written in pure Python.
-
-This documentation describes the external API of the WBEM client library.
-The external API of the WBEM client library is defined by those symbols that
-are exported from the ``pywbem`` package and its sub-modules via the
-``__all__`` variable. Public symbols that are not listed in the
-``__all__`` variable, as well as any private symbols are not part of the
+The external API of the WBEM client library is defined by the symbols that
+are exported from the ``pywbem`` Python package and its sub-modules via their
+``__all__`` variables. Public symbols that are not listed in the
+``__all__`` variables, as well as any private symbols are not part of the
 external API of the WBEM client library.
 
 Consumers of this package that use other symbols than those from the external
 API are at the risk of suffering from incompatible changes in future versions
 of this package.
 
-Importing the ``pywbem`` package causes some names from its sub-modules to be
-folded into the package namespace. For example, class :class:`WBEMConnection`
-is defined in the ``pywbem.cim_operations`` sub-module and is folded into
-the ``pywbem`` package namespace:
+The external API is completely available in the ``pywbem`` namespace. That
+is the only namespace that needs to be imported by users of the API. The
+sub-modules do not need to be imported; but their external symbols are still
+available for compatibility.
 
-.. sourcecode:: python
-
-    import pywbem
-    conn = pywbem.WBEMConnection(...)
-
-it can also be used from its defining sub-module:
-
-.. sourcecode:: python
-
-    from pywbem.cim_operations import WBEMConnection
-    conn = WBEMConnection(...)
-
-Using the symbols from the ``pywbem`` package namespace is preferred; but both
-forms are supported.
+This documentation describes the symbols of the ``pywbem`` namespace,
+and it is recommended to use its symbols and not those of the sub-modules.
 
 The WBEM client API consists of the following elements:
 
+* `Package version`_ - Provides access to the version of the ``pywbem``
+  package.
 * `CIM operations`_ - Class :class:`WBEMConnection` is the main class of the
   WBEM client library and its methods invoke CIM operations against a WBEM
   server.
@@ -63,15 +50,16 @@ The WBEM client API consists of the following elements:
 * `CIM data types`_ - Python objects for representing CIM data types (actually
   their values).
 * `CIM status codes`_ - CIM status codes returned by failing CIM operations.
-* `Exceptions`_ - pywbem-specific exceptions that may be raised.
-* `Package version`_ - Access the ``pywbem`` package version.
+* `Exceptions`_ - Exceptions specific to pywbem that may be raised.
 
 Package version
 ---------------
 
 The package version can be accessed by programs using the following variable.
-For tooling reasons, this variable is shown as ``pywbem._version.__version__``,
-but users should access it as ``pywbem.__version__``.
+
+For tooling reasons, this variable is currently shown as
+``pywbem._version.__version__``, but users should access it as
+``pywbem.__version__``.
 
 .. autodata:: pywbem._version.__version__
 

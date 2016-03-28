@@ -406,14 +406,13 @@ class WBEMConnection(object):
 
       last_reply (`unicode string`_):
         CIM-XML data of the last response received from the WBEM server
-        on this connection, formatted as prettified XML. Prior to sending the
-        very first request on this connection object, while waiting for any
-        response, it is `None`.
+        on this connection, formatted as prettified XML. Prior to receiving
+        the very first response on this connection object, it is `None`.
 
       last_raw_reply (`unicode string`_):
         CIM-XML data of the last response received from the WBEM server
-        on this connection, formatted as it was received. Prior to sending the
-        very first request on this connection object, while waiting for any
+        on this connection, formatted as it was received. Prior to receiving
+        the very first response on this connection object, it is `None`.
         response, it is `None`.
     """
 
@@ -443,7 +442,7 @@ class WBEMConnection(object):
             used by default (if no  namespace is specified for an
             operation).
 
-            Default: :data:`~pywbem.DEFAULT_NAMESPACE`.
+            Default: :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`.
 
           x509 (dict):
             Optional: X.509 certificates for HTTPS to be used instead of the
