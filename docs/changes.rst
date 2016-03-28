@@ -200,6 +200,10 @@ Bug fixes
   
 * Fixed issue with tomof() output where datetime values were not quoted.
   (issue #289)
+  
+* Eliminate automatic setting of toinstance flavor in mof_compiler when
+  tosubclass is set.  Also enabled use of toinstance flavor if defined
+  in a class or qualifier declaration. (issue 193)
 
 * Fixed problem in class-level associator operations that namespace was classname
   when classname was passed as a string (issue #322).
