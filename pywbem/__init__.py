@@ -22,9 +22,12 @@
 """
 The external API of the WBEM client library is defined by the symbols that
 are exported from the ``pywbem`` Python package and its sub-modules via their
-``__all__`` variables. Public symbols that are not listed in the
-``__all__`` variables, as well as any private symbols are not part of the
-external API of the WBEM client library.
+``__all__`` variables.
+
+Public symbols that are not listed in the ``__all__`` variables are still
+available for compatibility reasons (the ``__all__`` variables and a definition
+of the external API were introduced in pywbem v0.8). However, they may change
+over time.
 
 Consumers of this package that use other symbols than those from the external
 API are at the risk of suffering from incompatible changes in future versions
@@ -32,13 +35,13 @@ of this package.
 
 The external API is completely available in the ``pywbem`` namespace. That
 is the only namespace that needs to be imported by users of the API. The
-sub-modules do not need to be imported; but their external symbols are still
-available for compatibility.
+sub-modules do not need to be imported. It is recommended to use the symbols
+in the ``pywbem`` namespace and not those of the sub-modules.
 
-This documentation describes the symbols of the ``pywbem`` namespace,
-and it is recommended to use its symbols and not those of the sub-modules.
+With a few exceptions for tooling reasons, this documentation describes the
+symbols of the ``pywbem`` namespace.
 
-The WBEM client API consists of the following elements:
+The WBEM client library API consists of the following elements:
 
 * `Package version`_ - Provides access to the version of the ``pywbem``
   package.
@@ -57,9 +60,9 @@ Package version
 
 The package version can be accessed by programs using the following variable.
 
-For tooling reasons, this variable is currently shown as
-``pywbem._version.__version__``, but users should access it as
-``pywbem.__version__``.
+Note: For tooling reasons, the variable is shown in the namespace
+``pywbem._version``. However, it is also available in the ``pywbem`` namespace
+and should be used from there.
 
 .. autodata:: pywbem._version.__version__
 

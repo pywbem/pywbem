@@ -21,8 +21,9 @@ The **pywbem** PyPI package provides the following components:
 
   The WBEM client library provides an API for issuing operations to a WBEM
   server, using the CIM operations over HTTP (CIM-XML) protocol defined in the
-  DMTF standards DSP0200 and DSP0201. See http://www.dmtf.org/standards/wbem
-  for information about WBEM and these standards.
+  DMTF standards `DSP0200`_ and `DSP0201`_.
+  See http://www.dmtf.org/standards/wbem  for information about WBEM and these
+  standards.
 
   See `WBEM client library API`_ for a description of the API.
 
@@ -44,7 +45,7 @@ The **pywbem** PyPI package provides the following components:
 Changes
 -------
 
-The change log is in the `NEWS <NEWS.md>`_ file.
+The change log is in the `pywbem/NEWS.md <NEWS.md>`_ file.
 
 Compatibility
 -------------
@@ -55,17 +56,16 @@ The ``pywbem`` PyPI package is supported in these environments:
 
 * on Linux, with Python 2.6, 2.7, 3.4, 3.5, and higher 3.x
 
-OS X has not been tested and is therefore not listed, above.
-You are welcome to try it out andi
-[report any issues](https://github.com/pywbem/pywbem/issues).
+OS X has not been tested and is therefore not listed, above. You are welcome to
+try it out and `report any issues <https://github.com/pywbem/pywbem/issues>`_.
 
 Special type names
 ------------------
 
-This documentation uses a few special type names:
+This documentation uses a few special terms to refer to Python types:
 
 ==================  ===========================================================
-Type name           Meaning
+Type term           Meaning
 ==================  ===========================================================
 _`unicode string`   a Unicode string type (:func:`unicode <py2:unicode>` in
                     Python 2, and :class:`py3:str` in Python 3)
@@ -304,4 +304,18 @@ Invoke ``wbemcli --help`` for a detailed help message.
 
 The WBEM client CLI does not have an external API on its own; it is for the
 most part a consumer of the `WBEM client library API`_.
+
+References
+==========
+
+* _`DSP0004`:
+  `DMTF DSP0004, CIM Infrastructure, Version 2.8 <http://www.dmtf.org/standards/published_documents/DSP0004_2.8.pdf>`_
+* _`DSP0200`:
+  `DMTF DSP0200, CIM Operations over HTTP, Version 1.4 <http://www.dmtf.org/standards/published_documents/DSP0200_1.4.pdf>`_
+* _`DSP0201`:
+  `DMTF DSP0201, Representation of CIM in XML, Version 2.4 <http://www.dmtf.org/standards/published_documents/DSP0201_2.4.pdf>`_
+* _`DSP0207`:
+  `DMTF DSP0207, WBEM URI Mapping, Version 1.0 <http://www.dmtf.org/standards/published_documents/DSP0207_1.0.pdf>`_
+* _`X.509`:
+  `ITU-T X.509, Information technology - Open Systems Interconnection - The Directory: Public-key and attribute certificate frameworks <http://www.itu.int/rec/T-REC-X.509/en>`_
 

@@ -35,7 +35,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    #'sphinx.ext.viewcode',   # disabed, raises anexception
+    'sphinx.ext.viewcode',   # disabed, raises anexception
 ]
 
 # Add any paths that contain templates here, relative to this directory.

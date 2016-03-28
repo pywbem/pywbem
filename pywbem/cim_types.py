@@ -25,32 +25,33 @@
 """
 Types to represent CIM typed values, and related conversion functions.
 
-The following table shows how CIM typed values are represented as Python
-objects. Note that some basic CIM types are represented with built-in Python
+The following table shows how CIM data types are represented in Python.
+Note that some basic CIM data types are represented with built-in Python
 types.
 
-=========================  ====================================================
-CIM type                   Python type
-=========================  ====================================================
-boolean                    `bool`
-char16                     `unicode string`_ or `byte string`_
-string                     `unicode string`_ or `byte string`_
-string (EmbeddedInstance)  :class:`~pywbem.CIMInstance`
-string (EmbeddedObject)    :class:`~pywbem.CIMInstance` or :class:`~pywbem.CIMClass`
-datetime                   :class:`~pywbem.CIMDateTime`
-reference                  :class:`~pywbem.CIMInstanceName`
-uint8                      :class:`~pywbem.Uint8`
-uint16                     :class:`~pywbem.Uint16`
-uint32                     :class:`~pywbem.Uint32`
-uint64                     :class:`~pywbem.Uint64`
-sint8                      :class:`~pywbem.Sint8`
-sint16                     :class:`~pywbem.Sint16`
-sint32                     :class:`~pywbem.Sint32`
-sint64                     :class:`~pywbem.Sint64`
-real32                     :class:`~pywbem.Real32`
-real64                     :class:`~pywbem.Real64`
-[] (array)                 `list`
-=========================  ====================================================
+========================================  =====================================
+CIM data type                             Python type
+========================================  =====================================
+boolean                                   :class:`py2:bool`
+char16                                    `unicode string`_ or `byte string`_
+string                                    `unicode string`_ or `byte string`_
+string (EmbeddedInstance)                 :class:`~pywbem.CIMInstance`
+string (EmbeddedObject)                   :class:`~pywbem.CIMInstance`
+                                          or :class:`~pywbem.CIMClass`
+datetime                                  :class:`~pywbem.CIMDateTime`
+reference                                 :class:`~pywbem.CIMInstanceName`
+uint8                                     :class:`~pywbem.Uint8`
+uint16                                    :class:`~pywbem.Uint16`
+uint32                                    :class:`~pywbem.Uint32`
+uint64                                    :class:`~pywbem.Uint64`
+sint8                                     :class:`~pywbem.Sint8`
+sint16                                    :class:`~pywbem.Sint16`
+sint32                                    :class:`~pywbem.Sint32`
+sint64                                    :class:`~pywbem.Sint64`
+real32                                    :class:`~pywbem.Real32`
+real64                                    :class:`~pywbem.Real64`
+[] (array)                                :class:`py2:list`
+========================================  =====================================
 
 Note that constructors of pywbem classes that take CIM typed values as input
 may support Python types in addition to those shown above. For example, the
@@ -153,7 +154,6 @@ class _CIMComparisonMixin(object): #pylint: disable=too-few-public-methods
 
 
 class MinutesFromUTC(tzinfo):
-
     """
     An implementation of :class:`py2:datetime.tzinfo` that uses a fixed offset
     in +/- minutes from UTC.
@@ -188,7 +188,7 @@ class MinutesFromUTC(tzinfo):
 
 
 class CIMType(object):       # pylint: disable=too-few-public-methods
-    """Base type for numeric and datetime CIM types."""
+    """Base type for all CIM data types defined in this package."""
 
     # Note: __str__() is not needed; the inherited method is used,
     # even though there is a __repr__() method here.
@@ -202,7 +202,7 @@ class CIMType(object):       # pylint: disable=too-few-public-methods
 
 class CIMDateTime(CIMType, _CIMComparisonMixin):
     """
-    A value of CIM type datetime.
+    A value of CIM data type datetime.
 
     The object represents either a timezone-aware point in time, or a time
     interval.
@@ -217,8 +217,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             following types:
 
             * A `unicode string`_ or `byte string`_ object will be interpreted
-              as CIM datetime format (see DSP0004) and will result in a point
-              in time or a time interval.
+              as CIM datetime format (see `DSP0004`_) and will result in a
+              point in time or a time interval.
             * A :class:`py2:datetime.datetime` object must be timezone-aware
               and will result in a point in time.
             * A :class:`py2:datetime.timedelta` object will result in a time
@@ -226,8 +226,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             * Another :class:`~pywbem.CIMDateTime` object will be copied.
 
         Raises:
-            ValueError
-            TypeError
+            ValueError: `dtarg` value has an invalid CIM datetime format
+            TypeError: `dtarg` has an invalid type
         """
         from .cim_obj import _ensure_unicode # defer due to cyclic deps.
         self.cimtype = 'datetime'
@@ -452,72 +452,72 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
 # CIM integer types
 
 class CIMInt(CIMType, _Longint):
-    """Base type for integer CIM types."""
+    """Base type for integer CIM data types."""
 
 class Uint8(CIMInt):
-    """A value of CIM type uint8."""
+    """A value of CIM data type uint8."""
     cimtype = 'uint8'
 
 class Sint8(CIMInt):
-    """A value of CIM type sint8."""
+    """A value of CIM data type sint8."""
     cimtype = 'sint8'
 
 class Uint16(CIMInt):
-    """A value of CIM type uint16."""
+    """A value of CIM data type uint16."""
     cimtype = 'uint16'
 
 class Sint16(CIMInt):
-    """A value of CIM type sint16."""
+    """A value of CIM data type sint16."""
     cimtype = 'sint16'
 
 class Uint32(CIMInt):
-    """A value of CIM type uint32."""
+    """A value of CIM data type uint32."""
     cimtype = 'uint32'
 
 class Sint32(CIMInt):
-    """A value of CIM type sint32."""
+    """A value of CIM data type sint32."""
     cimtype = 'sint32'
 
 class Uint64(CIMInt):
-    """A value of CIM type uint64."""
+    """A value of CIM data type uint64."""
     cimtype = 'uint64'
 
 class Sint64(CIMInt):
-    """A value of CIM type sint64."""
+    """A value of CIM data type sint64."""
     cimtype = 'sint64'
 
 # CIM float types
 
 class CIMFloat(CIMType, float):
-    """Base type for real (floating point) CIM types."""
+    """Base type for real (floating point) CIM data types."""
 
 class Real32(CIMFloat):
-    """A value of CIM type real32."""
+    """A value of CIM data type real32."""
     cimtype = 'real32'
 
 class Real64(CIMFloat):
-    """A value of CIM type real64."""
+    """A value of CIM data type real64."""
     cimtype = 'real64'
 
 def cimtype(obj):
     """
-    Return the CIM type name of a value, as a string.
+    Return the CIM data type name of a CIM typed object, as a string.
 
     For an array, the type is determined from the first array element
     (CIM arrays must be homogeneous w.r.t. the type of their elements).
 
     Parameters:
 
-      obj (CIM typed value):
-        The value whose CIM type name is returned.
+      obj (`CIM data type`_):
+        The object whose CIM data type name is returned.
 
     Returns:
 
-        The CIM type name of the value, as a string.
+        The CIM data type name of the object, as a string (e.g. ``"uint8"``).
 
     Raises:
-        TypeError: Type is not a CIM type.
-        ValueError: Cannot determine CIM type from empty array.
+        TypeError: Type is not a CIM data type.
+        ValueError: Cannot determine CIM data type from an empty array.
     """
     if isinstance(obj, CIMType):
         return obj.cimtype
@@ -528,11 +528,11 @@ def cimtype(obj):
         return 'string'
     if isinstance(obj, list):
         if len(obj) == 0:
-            raise ValueError("Cannot determine CIM type from empty array")
+            raise ValueError("Cannot determine CIM data type from an empty array")
         return cimtype(obj[0])
     if isinstance(obj, (datetime, timedelta)):
         return 'datetime'
-    raise TypeError("Type %s of this value is not a CIM type: %r" % \
+    raise TypeError("Type %s of this object is not a CIM data type: %r" % \
                     (type(obj), obj))
 
 _TYPE_FROM_NAME = {
@@ -555,26 +555,28 @@ _TYPE_FROM_NAME = {
 
 def type_from_name(type_name):
     """
-    Return the Python type object for a given CIM type name.
+    Return the Python type object for a given CIM data type name.
 
-    For example, type name "uint8" will return type :class:`~pywbem.Uint8`.
+    For example, type name "uint8" will return type object
+    :class:`~pywbem.Uint8`.
 
-    For CIM types `string` and `char16`, the `unicode string`_ type is returned
-    (Unicode strings are the preferred representation).
+    For CIM data type names ``"string"`` and ``"char16"``, the
+    `unicode string`_ type is returned (Unicode strings are the preferred
+    representation for these CIM data types).
 
     Parameters:
 
       type_name : string
-        The simple (=non-array) CIM type name (e.g. "uint8" or
-        "reference").
+        The simple (=non-array) CIM data type name (e.g. ``"uint8"`` or
+        ``"reference"``).
 
     Returns:
 
-        The Python type object for the CIM type (e.g. :class:`~pywbem.Uint8` or
-        :class:`~pywbem.CIMInstanceName`).
+        The Python type object for the CIM data type (e.g.
+        :class:`~pywbem.Uint8` or :class:`~pywbem.CIMInstanceName`).
 
-    Raises;
-        ValueError: Unknown CIM type name.
+    Raises:
+        ValueError: Unknown CIM data type name.
     """
     if type_name == 'reference':
         # move import to run time to avoid circular imports
@@ -583,12 +585,12 @@ def type_from_name(type_name):
     try:
         type_obj = _TYPE_FROM_NAME[type_name]
     except KeyError:
-        raise ValueError("Unknown CIM type name: %r" % type_name)
+        raise ValueError("Unknown CIM data type name: %r" % type_name)
     return type_obj
 
 def atomic_to_cim_xml(obj):
     """
-    Convert a value of an atomic scalar CIM type to a CIM-XML string and
+    Convert a value of an atomic scalar CIM data type to a CIM-XML string and
     return that string.
 
     TODO: Verify whether we can change this function to raise a ValueError in

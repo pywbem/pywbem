@@ -230,7 +230,8 @@ pre {
 code {
     background-color: #ecf0f3;
     padding: 0 1px 0 1px;
-    font-size: 0.95em;
+    /* pywbem: Changed font-size from 0.95em. */
+    font-size: 1.1em;
 }
 
 th {

@@ -423,7 +423,7 @@ class WBEMConnection(object):
         Parameters:
 
           url (`unicode string`_ or `byte string`_):
-            URL of the WBEM server (e.g. "https://10.11.12.13:6988").
+            URL of the WBEM server (e.g. ``"https://10.11.12.13:6988"``).
 
             TODO: Describe supported formats.
 
@@ -445,10 +445,10 @@ class WBEMConnection(object):
             Default: :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`.
 
           x509 (dict):
-            Optional: X.509 certificates for HTTPS to be used instead of the
+            Optional: `X.509`_ certificates for HTTPS to be used instead of the
             credentials provided in the `creds` parameter.
             This parameter is used only when the `url` parameter specifies
-            a scheme of ``https``.
+            a scheme of ``"https"``.
 
             If `None`, certificates are not used (and credentials are used
             instead).
@@ -457,12 +457,13 @@ class WBEMConnection(object):
             and this parameter must be a dictionary containing the following
             two items:
 
-            * "cert_file": The file path of a file containing an X.509
+            * ``"cert_file"``: The file path of a file containing an `X.509`_
               certificate, as a `unicode string`_ or `byte string`_ object.
 
-            * "key_file": The file path of a file containing the private key
-              belonging to the public key that is part of the X.509 certificate
-              file, as a `unicode string`_ or `byte string`_ object.
+            * ``"key_file"``: The file path of a file containing the private
+              key belonging to the public key that is part of the `X.509`_
+              certificate file, as a `unicode string`_ or `byte string`_
+              object.
 
             Default: `None`.
 

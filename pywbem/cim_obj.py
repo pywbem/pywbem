@@ -689,7 +689,7 @@ def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
     return ret_str
 
 def moftype(cim_type, refclass):
-    """Converts a CIM type name to MOF syntax."""
+    """Converts a CIM data type name to MOF syntax."""
 
     return (refclass + ' REF') if cim_type == 'reference' else cim_type
 
@@ -781,8 +781,11 @@ class CIMClassName(_CIMComparisonMixin):
                 cmpname(self.classname, other.classname))
 
     def __str__(self):
-        """Return the WBEM URI of the CIM class path represented by the
-        :class:`~pywbem.CIMClassName` object."""
+        """Return the untyped WBEM URI of the CIM class path represented by the
+        :class:`~pywbem.CIMClassName` object.
+
+        The returned WBEM URI is consistent with `DSP0207`_.
+        """
 
         ret_str = ''
 
@@ -810,7 +813,7 @@ class CIMClassName(_CIMComparisonMixin):
         :class:`~pywbem.CIMClassName` object, as an object of an appropriate
         subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with DMTF DSP0201.
+        The returned CIM-XML representation is consistent with `DSP0201`_.
         """
 
         classname = cim_xml.CLASSNAME(self.classname)
@@ -858,13 +861,13 @@ class CIMProperty(_CIMComparisonMixin):
       * Qualifiers are allowed.
 
     Scalar (=non-array) properties may have a value of NULL (= `None`), any
-    primitive CIM type, reference type, and string type with embedded instance
-    or embedded object.
+    primitive CIM data type, reference type, and string type with embedded
+    instance or embedded object.
 
     Array properties may be Null or may have elements with a value of NULL, any
-    primitive CIM type, and string type with embedded instance or embedded
+    primitive CIM data type, and string type with embedded instance or embedded
     object. Reference types are not allowed in property arrays in CIM, as per
-    DMTF DSP0004.
+    `DSP0004`_.
 
     Attributes:
 
@@ -898,7 +901,7 @@ class CIMProperty(_CIMComparisonMixin):
             it is used in a class).
 
           type (`unicode string`_ or `byte string`_):
-            Name of the CIM type of the property (e.g. ``uint8``).
+            Name of the CIM data type of the property (e.g. ``"uint8"``).
             `None` means that the argument is unspecified, causing the
             corresponding instance variable to be inferred. An exception is
             raised if it cannot be inferred.
@@ -959,32 +962,46 @@ class CIMProperty(_CIMComparisonMixin):
 
         Examples:
 
-          * `CIMProperty("MyString", "abc")`
-            -> a string property
-          * `CIMProperty("MyNum", 42, "uint8")`
-            -> a uint8 property
-          * `CIMProperty("MyNum", Uint8(42))`
-            -> a uint8 property
-          * `CIMProperty("MyNumArray", [1,2,3], "uint8")`
-            -> a uint8 array property
-          * `CIMProperty("MyRef", CIMInstanceName(...))`
-            -> a reference property
-          * `CIMProperty("MyEmbObj", CIMClass(...))`
-            -> an embedded object property containing a class
-          * `CIMProperty("MyEmbObj",CIMInstance(...),embedded_object="object")`
-            -> an embedded object property containing an instance
-          * `CIMProperty("MyEmbInst", CIMInstance(...))`
-            -> an embedded instance property
-          * `CIMProperty("MyString", None, "string")`
-            -> a string property that is Null
-          * `CIMProperty("MyNum", None, "uint8")`
-            -> a uint8 property that is Null
-          * `CIMProperty("MyRef", None, reference_class="MyClass")`
-            -> a reference property that is Null
-          * `CIMProperty("MyEmbObj", None, embedded_object="object")`
-            -> an embedded object property that is Null
-          * `CIMProperty("MyEmbInst", None, embedded_object="instance")`
-            -> an embedded instance property that is Null
+        ::
+
+            # a string property:
+            CIMProperty("MyString", "abc")
+
+            # a uint8 property:
+            CIMProperty("MyNum", 42, "uint8")
+
+            # a uint8 property:
+            CIMProperty("MyNum", Uint8(42))
+
+            # a uint8 array property:
+            CIMProperty("MyNumArray", [1,2,3], "uint8")
+
+            # a reference property:
+            CIMProperty("MyRef", CIMInstanceName(...))
+
+            # an embedded object property containing a class:
+            CIMProperty("MyEmbObj", CIMClass(...))
+
+            # an embedded object property containing an instance:
+            CIMProperty("MyEmbObj", CIMInstance(...), embedded_object="object")
+
+            # an embedded instance property:
+            CIMProperty("MyEmbInst", CIMInstance(...))
+
+            # a string property that is Null:
+            CIMProperty("MyString", None, "string")
+
+            # a uint8 property that is Null:
+            CIMProperty("MyNum", None, "uint8")
+
+            # a reference property that is Null:
+            CIMProperty("MyRef", None, reference_class="MyClass")
+
+            # an embedded object property that is Null:
+            CIMProperty("MyEmbObj", None, embedded_object="object")
+
+            # an embedded instance property that is Null:
+            CIMProperty("MyEmbInst", None, embedded_object="instance")
 
         Raises:
             TypeError
@@ -1083,14 +1100,15 @@ class CIMProperty(_CIMComparisonMixin):
                 value = [CIMDateTime(val) if val is not None
                          and not isinstance(val, CIMDateTime)
                          else val for val in value]
-                msg = 'Array property %r specifies CIM type %r' % (name, type_)
+                msg = 'Array property %r specifies CIM data type %r' % \
+                      (name, type_)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
             elif type_ is None:
                 # Determine simple type from (non-Null) value
                 type_ = cimtype(value[0])
                 msg = 'Array property %r contains simple typed values ' \
-                      'with no CIM type specified' % name
+                      'with no CIM data type specified' % name
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
             else: # type is specified and value (= entire array) is not Null
@@ -1099,7 +1117,7 @@ class CIMProperty(_CIMComparisonMixin):
                 value = [type_from_name(type_)(val) if val is not None
                          else val for val in value]
                 msg = 'Array property %r contains simple typed values ' \
-                        'and specifies CIM type %r' % (name, type_)
+                        'and specifies CIM data type %r' % (name, type_)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
         else: # Scalar property
@@ -1162,7 +1180,7 @@ class CIMProperty(_CIMComparisonMixin):
             elif type_ == 'datetime':
                 if not isinstance(value, CIMDateTime):
                     value = CIMDateTime(value)
-                msg = 'Property %r specifies CIM type %r' % (name, type_)
+                msg = 'Property %r specifies CIM data type %r' % (name, type_)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
                 reference_class = _intended_value(
@@ -1171,7 +1189,7 @@ class CIMProperty(_CIMComparisonMixin):
                 # Determine simple type from (non-Null) value
                 type_ = cimtype(value)
                 msg = 'Property %r has a simple typed value ' \
-                      'with no CIM type specified' % name
+                      'with no CIM data type specified' % name
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
                 reference_class = _intended_value(
@@ -1181,7 +1199,7 @@ class CIMProperty(_CIMComparisonMixin):
                 _type_obj = type_from_name(type_)
                 value = _type_obj(value)  # pylint: disable=redefined-variable-type
                 msg = 'Property %r has a simple typed value ' \
-                        'and specifies CIM type %r' % (name, type_)
+                        'and specifies CIM data type %r' % (name, type_)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
                 reference_class = _intended_value(
@@ -1243,7 +1261,7 @@ class CIMProperty(_CIMComparisonMixin):
         :class:`~pywbem.CIMProperty` object, as an object of an appropriate
         subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with DMTF DSP0201.
+        The returned CIM-XML representation is consistent with `DSP0201`_.
         """
 
         if self.is_array:
@@ -1425,8 +1443,11 @@ class CIMInstanceName(_CIMComparisonMixin):
                 cmpitem(self.keybindings, other.keybindings))
 
     def __str__(self):
-        """Return the WBEM URI of the CIM instance path represented by the
-        :class:`~pywbem.CIMInstanceName` object."""
+        """Return the untyped WBEM URI of the CIM instance path represented
+        by the :class:`~pywbem.CIMInstanceName` object.
+
+        The returned WBEM URI is consistent with `DSP0207`_.
+        """
 
         ret_str = ''
 
@@ -1540,7 +1561,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         :class:`~pywbem.CIMInstanceName` object, as an object of an appropriate
         subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with DMTF DSP0201.
+        The returned CIM-XML representation is consistent with `DSP0201`_.
         """
 
         if isinstance(self.keybindings, str):
@@ -1555,7 +1576,7 @@ class CIMInstanceName(_CIMComparisonMixin):
             #     self.classname,
             #     cim_xml.KEYVALUE(self.keybindings, 'string'))
 
-        # Note: The CIM types are derived from the built-in types,
+        # Note: The CIM data types are derived from the built-in types,
         # so we cannot use isinstance() for this test.
         # pylint: disable=unidiomatic-typecheck
         elif builtin_type(self.keybindings) in six.integer_types + (float,):
@@ -1592,7 +1613,7 @@ class CIMInstanceName(_CIMComparisonMixin):
                     else:
                         value = 'FALSE'
                 elif isinstance(key_bind[1], six.integer_types + (float,)):
-                    # Numeric CIM types derive from int, long or float.
+                    # Numeric CIM data types derive from int, long or float.
                     # Note: int is a subtype of bool, but bool is already
                     # tested further up.
                     type_ = 'numeric'
@@ -1716,7 +1737,7 @@ class CIMInstance(_CIMComparisonMixin):
             self.property_list = None
 
         # Assign initialised property values and run through
-        # __setitem__ to enforce CIM types for each property.
+        # __setitem__ to enforce CIM data types for each property.
 
         self.properties = NocaseDict()
         if properties:
@@ -1774,13 +1795,13 @@ class CIMInstance(_CIMComparisonMixin):
         # Don't let anyone set integer or float values.  You must use
         # a subclass from the cim_type module.
 
-        # Note: The CIM types are derived from the built-in types,
+        # Note: The CIM data types are derived from the built-in types,
         # so we cannot use isinstance() for this test.
         # pylint: disable=unidiomatic-typecheck
         if builtin_type(value) in six.integer_types + (float,):
             raise TypeError(
-                "Type of numeric value for a property must be a CIM type, "\
-                "but is %s" % builtin_type(value))
+                "Type of numeric value for a property must be a "\
+                "CIM data type, but is %s" % builtin_type(value))
 
         if self.property_list is not None and key.lower() not in \
                 self.property_list:
@@ -1899,9 +1920,9 @@ class CIMInstance(_CIMComparisonMixin):
     def tocimxml(self):
         """Return the CIM-XML representation of the
         :class:`~pywbem.CIMInstance` object, as an object of an appropriate
-        subclass of `xml.dom.minidom.Element`.
+        subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with DMTF DSP0201.
+        The returned CIM-XML representation is consistent with `DSP0201`_.
         """
 
         props = []
@@ -2097,9 +2118,9 @@ class CIMClass(_CIMComparisonMixin):
     def tocimxml(self):
         """Return the CIM-XML representation of the
         :class:`~pywbem.CIMClass` object, as an object of an appropriate
-        subclass of `xml.dom.minidom.Element`.
+        subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with DMTF DSP0201.
+        The returned CIM-XML representation is consistent with `DSP0201`_.
         """
 
         return cim_xml.CLASS(
@@ -2262,9 +2283,9 @@ class CIMMethod(_CIMComparisonMixin):
     def tocimxml(self):
         """Return the CIM-XML representation of the
         :class:`~pywbem.CIMMethod` object, as an object of an appropriate
-        subclass of `xml.dom.minidom.Element`.
+        subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with DMTF DSP0201.
+        The returned CIM-XML representation is consistent with `DSP0201`_.
         """
 
         return cim_xml.METHOD(
@@ -2323,7 +2344,7 @@ class CIMParameter(_CIMComparisonMixin):
             Name of the parameter. Must not be `None`.
 
           type (`unicode string`_ or `byte string`_):
-            Name of the CIM type of the parameter (e.g. ``uint8``).
+            Name of the CIM data type of the parameter (e.g. ``"uint8"``).
 
           reference_class (`unicode string`_ or `byte string`_):
             The name of the referenced class, for reference properties.
@@ -2435,9 +2456,9 @@ class CIMParameter(_CIMComparisonMixin):
     def tocimxml(self):
         """Return the CIM-XML representation of the
         :class:`~pywbem.CIMParameter` object, as an object of an appropriate
-        subclass of `xml.dom.minidom.Element`.
+        subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with DMTF DSP0201.
+        The returned CIM-XML representation is consistent with `DSP0201`_.
         """
 
         if self.type == 'reference':
@@ -2568,13 +2589,13 @@ class CIMQualifier(_CIMComparisonMixin):
         # Don't let anyone set integer or float values.  You must use
         # a subclass from the cim_type module.
 
-        # Note: The CIM types are derived from the built-in types,
+        # Note: The CIM data types are derived from the built-in types,
         # so we cannot use isinstance() for this test.
         # pylint: disable=unidiomatic-typecheck
         if builtin_type(value) in six.integer_types + (float,):
             raise TypeError(
-                "Type of numeric value for a qualifier must be a CIM type, "\
-                "but is %s" % builtin_type(value))
+                "Type of numeric value for a qualifier must be a "\
+                "CIM data type, but is %s" % builtin_type(value))
 
         self.value = value
 
@@ -2640,7 +2661,7 @@ class CIMQualifier(_CIMComparisonMixin):
         :class:`~pywbem.CIMQualifier` object, as an object of an appropriate
         subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with DMTF DSP0201.
+        The returned CIM-XML representation is consistent with `DSP0201`_.
         """
 
         value = None
@@ -2795,7 +2816,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         appropriate subclass of class ``Element`` from module
         :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with DMTF DSP0201.
+        The returned CIM-XML representation is consistent with `DSP0201`_.
         """
 
         return cim_xml.QUALIFIER_DECLARATION(self.name,
@@ -2850,7 +2871,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 def tocimxml(value):
     """Return the CIM-XML representation of the CIM object or CIM data type.
 
-    The returned CIM-XML representation is consistent with DMTF DSP0201.
+    The returned CIM-XML representation is consistent with `DSP0201`_.
 
     Parameters:
 
@@ -2901,10 +2922,10 @@ def tocimobj(type_, value):
     Parameters:
 
       `type_` (`unicode string`_ or `byte string`_):
-        The CIM type name for the CIM object. See `CIM data types`_ for valid
-        CIM type names and their corresponding Python types.
+        The CIM data type name for the CIM object. See `CIM data types`_ for valid
+        type names and their corresponding Python types.
 
-        If `value` is a list, `type_` must specify the CIM type name of
+        If `value` is a list, `type_` must specify the CIM data type name of
         an item in the list.
 
       value (`CIM data type`_):
@@ -3078,9 +3099,10 @@ def tocimobj(type_, value):
         else:
             raise ValueError('Invalid reference value: "%s"' % value)
 
-    raise ValueError('Invalid CIM type name: "%s"' % type_)
+    raise ValueError('Invalid CIM data type name: "%s"' % type_)
 
 
 def byname(nlist):
     """Convert a list of named objects into a map indexed by name"""
     return dict([(x.name, x) for x in nlist])
+

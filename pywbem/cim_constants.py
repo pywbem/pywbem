@@ -21,14 +21,14 @@
 """
 This section defines constants for two areas:
 
-* CIM status codes (the CIM_ERR* symbols). They are for example stored in
+* CIM status codes (the ``CIM_ERR_*`` symbols). They are for example stored in
   :exc:`~pywbem.CIMError` exceptions.
-* Default namespace :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`. It is
+* Default CIM namespace :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`. It is
   used as a default for the `namespace` argument of
   :class:`~pywbem.WBEMConnection`.
 
 Note: For tooling reasons, the constants are shown in the namespace
-``pywbem.con_constants``. However, they are also available in the ``pywbem``
+``pywbem.cim_constants``. However, they are also available in the ``pywbem``
 namespace and should be used from there.
 """
 

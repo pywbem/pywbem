@@ -24,7 +24,7 @@ Version of the pywbem package.
 
 #: Version of the ``pywbem`` package, as a string.
 #:
-#: Possible formats are:
+#: Possible formats for the version string are:
 #:
 #: * "M.N.U.dev0": During development of future M.N.U release (not released to
 #:   PyPI)
