@@ -368,7 +368,7 @@ def parse_declgroup(tup_tree):
 
 def parse_value(tup_tree):
     """Return VALUE contents as a string
-    
+
       ::
 
         <!ELEMENT VALUE (#PCDATA)>

@@ -402,12 +402,12 @@ Example:
     general_arggroup = argparser.add_argument_group(
         'General options')
     general_arggroup.add_argument(
-       '-v', '--verbose', dest='verbose',
-       action='store_true', default=False,
-       help='Print more messages while processing')
+        '-v', '--verbose', dest='verbose',
+        action='store_true', default=False,
+        help='Print more messages while processing')
     general_arggroup.add_argument(
-       '-h', '--help', action='help',
-       help='Show this help message and exit')
+        '-h', '--help', action='help',
+        help='Show this help message and exit')
 
     args = argparser.parse_args()
 

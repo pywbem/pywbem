@@ -55,7 +55,7 @@ def package_version(filename, varname):
        module-global variable `varnam`."""
     _locals = {}
     with open(filename) as fp:
-        exec(fp.read(), None, _locals)
+        exec(fp.read(), None, _locals)  # pylint: disable=exec-used
     return _locals[varname]
 
 

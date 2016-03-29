@@ -18,6 +18,9 @@
 # Importing just this module is enough.
 # These are explicitly safe for 'import *'
 
+"""
+Version of the pywbem package.
+"""
 
 # Version of the pywbem package
 # Possible formats are:

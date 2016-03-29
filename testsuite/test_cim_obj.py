@@ -262,38 +262,40 @@ class InitCIMInstanceName(unittest.TestCase, CIMObjectMixin):
         obj = CIMInstanceName('CIM_Foo', keybindings=kb)
         self.assertCIMInstanceName(obj, 'CIM_Foo', kb)
 
-        kb = NocaseDict({'Name': 'Foo', 'Chicken': 'Ham'})
+        kb2 = NocaseDict({'Name': 'Foo', 'Chicken': 'Ham'})
 
-        obj = CIMInstanceName('CIM_Foo', kb)
-        self.assertCIMInstanceName(obj, 'CIM_Foo', kb)
+        obj = CIMInstanceName('CIM_Foo', kb2)
+        self.assertCIMInstanceName(obj, 'CIM_Foo', kb2)
 
-        kb = {'Name': 'Foo',
-              'Number': 42,
-              'Boolean': False,
-              'Ref': CIMInstanceName('CIM_Bar')}
+        kb3 = {'Name': 'Foo',
+               'Number': 42,
+               'Boolean': False,
+               'Ref': CIMInstanceName('CIM_Bar')}
 
-        obj = CIMInstanceName('CIM_Foo', kb)
-        self.assertCIMInstanceName(obj, 'CIM_Foo', kb)
+        obj = CIMInstanceName('CIM_Foo', kb3)
+        self.assertCIMInstanceName(obj, 'CIM_Foo', kb3)
 
         # Initialize with namespace in addition
 
-        kb = {'InstanceID': '1234'}
+        kb4 = {'InstanceID': '1234'}
 
-        obj = CIMInstanceName('CIM_Foo', kb, None, 'root/cimv2')
-        self.assertCIMInstanceName(obj, 'CIM_Foo', kb, None, 'root/cimv2')
+        obj = CIMInstanceName('CIM_Foo', kb4, None, 'root/cimv2')
+        self.assertCIMInstanceName(obj, 'CIM_Foo', kb4, None, 'root/cimv2')
 
-        obj = CIMInstanceName('CIM_Foo', kb, namespace='root/cimv2')
-        self.assertCIMInstanceName(obj, 'CIM_Foo', kb, None, 'root/cimv2')
+        obj = CIMInstanceName('CIM_Foo', kb4, namespace='root/cimv2')
+        self.assertCIMInstanceName(obj, 'CIM_Foo', kb4, None, 'root/cimv2')
 
         # Initialize with host in addition
 
-        obj = CIMInstanceName('CIM_Foo', kb,
+        obj = CIMInstanceName('CIM_Foo', kb4,
                               'woot.com', 'root/cimv2')
-        self.assertCIMInstanceName(obj, 'CIM_Foo', kb, 'woot.com', 'root/cimv2')
+        self.assertCIMInstanceName(obj, 'CIM_Foo', kb4, 'woot.com',
+                                   'root/cimv2')
 
-        obj = CIMInstanceName('CIM_Foo', kb,
+        obj = CIMInstanceName('CIM_Foo', kb4,
                               namespace='root/cimv2', host='woot.com')
-        self.assertCIMInstanceName(obj, 'CIM_Foo', kb, 'woot.com', 'root/cimv2')
+        self.assertCIMInstanceName(obj, 'CIM_Foo', kb4, 'woot.com',
+                                   'root/cimv2')
 
 class CopyCIMInstanceName(unittest.TestCase, CIMObjectMixin):
     """
@@ -340,14 +342,14 @@ class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
         self.assertCIMInstanceName(obj, 'CIM_Foo', kb,
                                    'woot.com', 'root/cimv2')
 
-        kb = {'InstanceID': '5678'}
+        kb2 = {'InstanceID': '5678'}
 
         obj.classname = 'CIM_Bar'
-        obj.keybindings = kb
+        obj.keybindings = kb2
         obj.host = 'woom.com'
         obj.namespace = 'root/interop'
 
-        self.assertCIMInstanceName(obj, 'CIM_Bar', kb,
+        self.assertCIMInstanceName(obj, 'CIM_Bar', kb2,
                                    'woom.com', 'root/interop')
 
 class CIMInstanceNameDict(DictTest):
@@ -1139,7 +1141,7 @@ class CIMInstanceToMOF(unittest.TestCase):
             self.fail("Invalid MOF generated.\n"\
                       "Instance: %r\n"\
                       "Generated MOF: %r" % (i, imof))
-        
+
         # search for one property
         s = re.search(r"\s*MyRef\s*=\s*CIM_Bar;", imof)
         if s is None:

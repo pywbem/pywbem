@@ -16,58 +16,58 @@ class TestInit(unittest.TestCase):
 
         # Basic init
 
-        d = NocaseDict()
-        self.assertTrue(len(d) == 0)
+        dic = NocaseDict()
+        self.assertTrue(len(dic) == 0)
 
         # Initialise from sequence object
 
-        d = NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')])
-        self.assertTrue(len(d) == 2)
-        self.assertTrue(d['Dog'] == 'Cat' and d['Budgie'] == 'Fish')
+        dic = NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')])
+        self.assertTrue(len(dic) == 2)
+        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
 
         # Initialise from mapping object
 
-        d = NocaseDict({'Dog': 'Cat', 'Budgie': 'Fish'})
-        self.assertTrue(len(d) == 2)
-        self.assertTrue(d['Dog'] == 'Cat' and d['Budgie'] == 'Fish')
+        dic = NocaseDict({'Dog': 'Cat', 'Budgie': 'Fish'})
+        self.assertTrue(len(dic) == 2)
+        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
 
         # Initialise from kwargs
 
-        d = NocaseDict(Dog='Cat', Budgie='Fish')
-        self.assertTrue(len(d) == 2)
-        self.assertTrue(d['Dog'] == 'Cat' and d['Budgie'] == 'Fish')
+        dic = NocaseDict(Dog='Cat', Budgie='Fish')
+        self.assertTrue(len(dic) == 2)
+        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
 
 class BaseTest(unittest.TestCase):
 
     def setUp(self):
-        self.d = NocaseDict()
-        self.d['Dog'] = 'Cat'
-        self.d['Budgie'] = 'Fish'
+        self.dic = NocaseDict()
+        self.dic['Dog'] = 'Cat'
+        self.dic['Budgie'] = 'Fish'
 
 class TestGetitem(BaseTest):
 
     def test_all(self):
-        self.assertTrue(self.d['dog'] == 'Cat')
-        self.assertTrue(self.d['DOG'] == 'Cat')
+        self.assertTrue(self.dic['dog'] == 'Cat')
+        self.assertTrue(self.dic['DOG'] == 'Cat')
 
 class TestLen(BaseTest):
 
     def test_all(self):
-        self.assertTrue(len(self.d) == 2)
+        self.assertTrue(len(self.dic) == 2)
 
 class TestSetitem(BaseTest):
 
     def test_all(self):
 
-        self.d['DOG'] = 'Kitten'
-        self.assertTrue(self.d['DOG'] == 'Kitten')
-        self.assertTrue(self.d['Dog'] == 'Kitten')
-        self.assertTrue(self.d['dog'] == 'Kitten')
+        self.dic['DOG'] = 'Kitten'
+        self.assertTrue(self.dic['DOG'] == 'Kitten')
+        self.assertTrue(self.dic['Dog'] == 'Kitten')
+        self.assertTrue(self.dic['dog'] == 'Kitten')
 
         # Check that using a non-string key raises an exception
 
         try:
-            self.d[1234] = '1234'
+            self.dic[1234] = '1234'
         except TypeError:
             pass
         else:
@@ -76,103 +76,103 @@ class TestSetitem(BaseTest):
 class TestDelitem(BaseTest):
 
     def test_all(self):
-        del self.d['DOG']
-        del self.d['budgie']
-        self.assertTrue(self.d.keys() == [])
+        del self.dic['DOG']
+        del self.dic['budgie']
+        self.assertTrue(self.dic.keys() == [])
 
 class TestHasKey(BaseTest):
 
     def test_all(self):
-        self.assertTrue('DOG' in self.d)
-        self.assertTrue('budgie' in self.d)
-        self.assertTrue(1234 not in self.d)
+        self.assertTrue('DOG' in self.dic)
+        self.assertTrue('budgie' in self.dic)
+        self.assertTrue(1234 not in self.dic)
 
 class TestKeys(BaseTest):
 
     def test_all(self):
-        keys = self.d.keys()
+        keys = self.dic.keys()
         animals = ['Budgie', 'Dog']
-        for a in animals:
-            self.assertTrue(a in keys)
-            keys.remove(a)
+        for ani in animals:
+            self.assertTrue(ani in keys)
+            keys.remove(ani)
         self.assertTrue(keys == [])
 
 class TestValues(BaseTest):
 
     def test_all(self):
-        values = self.d.values()
+        values = self.dic.values()
         animals = ['Cat', 'Fish']
-        for a in animals:
-            self.assertTrue(a in values)
-            values.remove(a)
+        for ani in animals:
+            self.assertTrue(ani in values)
+            values.remove(ani)
         self.assertTrue(values == [])
 
 class TestItems(BaseTest):
 
     def test_all(self):
-        items = self.d.items()
+        items = self.dic.items()
         animals = [('Dog', 'Cat'), ('Budgie', 'Fish')]
-        for a in animals:
-            self.assertTrue(a in items)
-            items.remove(a)
+        for ani in animals:
+            self.assertTrue(ani in items)
+            items.remove(ani)
         self.assertTrue(items == [])
 
 class TestClear(BaseTest):
 
     def test_all(self):
-        self.d.clear()
-        self.assertTrue(len(self.d) == 0)
+        self.dic.clear()
+        self.assertTrue(len(self.dic) == 0)
 
 class TestUpdate(BaseTest):
 
     def test_all(self):
-        self.d.clear()
-        self.d.update({'Chicken': 'Ham'})
-        self.assertTrue(self.d.keys() == ['Chicken'])
-        self.assertTrue(self.d.values() == ['Ham'])
-        self.d.clear()
-        self.d.update({'Chicken': 'Ham'}, {'Dog': 'Cat'})
-        keys = self.d.keys()
-        vals = self.d.values()
+        self.dic.clear()
+        self.dic.update({'Chicken': 'Ham'})
+        self.assertTrue(self.dic.keys() == ['Chicken'])
+        self.assertTrue(self.dic.values() == ['Ham'])
+        self.dic.clear()
+        self.dic.update({'Chicken': 'Ham'}, {'Dog': 'Cat'})
+        keys = self.dic.keys()
+        vals = self.dic.values()
         keys = list(keys)
         vals = list(vals)
         keys.sort()
         vals.sort()
         self.assertTrue(keys == ['Chicken', 'Dog'])
         self.assertTrue(vals == ['Cat', 'Ham'])
-        self.d.update([('Chicken', 'Egg')], {'Fish': 'Eel'})
-        self.assertTrue(self.d['chicken'] == 'Egg')
-        self.assertTrue(self.d['fish'] == 'Eel')
-        self.d.update({'Fish': 'Salmon'}, Cow='Beef')
-        self.assertTrue(self.d['fish'] == 'Salmon')
-        self.assertTrue(self.d['Cow'] == 'Beef')
-        self.assertTrue(self.d['COW'] == 'Beef')
-        self.assertTrue(self.d['cow'] == 'Beef')
+        self.dic.update([('Chicken', 'Egg')], {'Fish': 'Eel'})
+        self.assertTrue(self.dic['chicken'] == 'Egg')
+        self.assertTrue(self.dic['fish'] == 'Eel')
+        self.dic.update({'Fish': 'Salmon'}, Cow='Beef')
+        self.assertTrue(self.dic['fish'] == 'Salmon')
+        self.assertTrue(self.dic['Cow'] == 'Beef')
+        self.assertTrue(self.dic['COW'] == 'Beef')
+        self.assertTrue(self.dic['cow'] == 'Beef')
 
 class TestCopy(BaseTest):
 
     def test_all(self):
-        c = self.d.copy()
-        self.assertEqual(c, self.d)
-        self.assertTrue(isinstance(c, NocaseDict))
-        c['Dog'] = 'Kitten'
-        self.assertTrue(self.d['Dog'] == 'Cat')
-        self.assertTrue(c['Dog'] == 'Kitten')
+        cp = self.dic.copy()
+        self.assertEqual(cp, self.dic)
+        self.assertTrue(isinstance(cp, NocaseDict))
+        cp['Dog'] = 'Kitten'
+        self.assertTrue(self.dic['Dog'] == 'Cat')
+        self.assertTrue(cp['Dog'] == 'Kitten')
 
 class TestGet(BaseTest):
 
     def test_all(self):
-        self.assertTrue(self.d.get('Dog', 'Chicken') == 'Cat')
-        self.assertTrue(self.d.get('Ningaui') is None)
-        self.assertTrue(self.d.get('Ningaui', 'Chicken') == 'Chicken')
+        self.assertTrue(self.dic.get('Dog', 'Chicken') == 'Cat')
+        self.assertTrue(self.dic.get('Ningaui') is None)
+        self.assertTrue(self.dic.get('Ningaui', 'Chicken') == 'Chicken')
 
 class TestSetDefault(BaseTest):
 
     def test_all(self):
-        self.d.setdefault('Dog', 'Kitten')
-        self.assertTrue(self.d['Dog'] == 'Cat')
-        self.d.setdefault('Ningaui', 'Chicken')
-        self.assertTrue(self.d['Ningaui'] == 'Chicken')
+        self.dic.setdefault('Dog', 'Kitten')
+        self.assertTrue(self.dic['Dog'] == 'Cat')
+        self.dic.setdefault('Ningaui', 'Chicken')
+        self.assertTrue(self.dic['Ningaui'] == 'Chicken')
 
 class TestPopItem(BaseTest):
 
@@ -182,35 +182,35 @@ class TestPopItem(BaseTest):
 class TestEqual(BaseTest):
 
     def test_all(self):
-        c = NocaseDict({'dog': 'Cat', 'Budgie': 'Fish'})
-        self.assertTrue(self.d == c)
-        c['Budgie'] = 'fish'
-        self.assertTrue(self.d != c)
+        dic2 = NocaseDict({'dog': 'Cat', 'Budgie': 'Fish'})
+        self.assertTrue(self.dic == dic2)
+        dic2['Budgie'] = 'fish'
+        self.assertTrue(self.dic != dic2)
 
 class TestContains(BaseTest):
 
     def test_all(self):
-        self.assertTrue('dog' in self.d)
-        self.assertTrue('Dog' in self.d)
-        self.assertTrue('Cat' not in self.d)
+        self.assertTrue('dog' in self.dic)
+        self.assertTrue('Dog' in self.dic)
+        self.assertTrue('Cat' not in self.dic)
 
 class TestIterkeys(BaseTest):
 
     def test_all(self):
-        for k in self.d.iterkeys():
-            self.assertTrue(k in ['Budgie', 'Dog'])
+        for key in self.dic.iterkeys():
+            self.assertTrue(key in ['Budgie', 'Dog'])
 
 class TestItervalues(BaseTest):
 
     def test_all(self):
-        for v in self.d.itervalues():
-            self.assertTrue(v in ['Cat', 'Fish'])
+        for val in self.dic.itervalues():
+            self.assertTrue(val in ['Cat', 'Fish'])
 
 class TestIteritems(BaseTest):
 
     def test_all(self):
-        for i in self.d.iteritems():
-            self.assertTrue(i in [('Budgie', 'Fish'), ('Dog', 'Cat')])
+        for item in self.dic.iteritems():
+            self.assertTrue(item in [('Budgie', 'Fish'), ('Dog', 'Cat')])
 
 
 if __name__ == '__main__':
