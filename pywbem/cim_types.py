@@ -224,10 +224,6 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             * A :class:`py2:datetime.timedelta` object will result in a time
               interval.
             * Another :class:`~pywbem.CIMDateTime` object will be copied.
-
-        Raises:
-            ValueError: `dtarg` value has an invalid CIM datetime format
-            TypeError: `dtarg` has an invalid type
         """
         from .cim_obj import _ensure_unicode # defer due to cyclic deps.
         self.cimtype = 'datetime'

@@ -713,7 +713,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         URL of the WBEM server containing the CIM namespace of the
         referenced instance,
         or `None`.
- 
+
       namespace (`unicode string`_):
         Name of the CIM namespace containing the referenced instance,
         or `None`.
@@ -740,7 +740,7 @@ class CIMInstanceName(_CIMComparisonMixin):
           host (`unicode string`_ or `byte string`_):
             URL of the WBEM server containing the CIM namespace of the
             referenced instance.
- 
+
           namespace (`unicode string`_ or `byte string`_):
             Name of the CIM namespace containing the referenced instance.
         """
@@ -1104,9 +1104,6 @@ class CIMInstance(_CIMComparisonMixin):
         and `qualifiers` instance attributes, in descending precedence.
 
         The `classname` attribute is compared case-insensitively.
-
-        Raises:
-            TypeError: `other` is not a :class:`~pywbem.CIMInstance`.
         """
         if self is other:
             return 0
@@ -1446,9 +1443,6 @@ class CIMClassName(_CIMComparisonMixin):
         precedence.
 
         All of them are compared case-insensitively.
-
-        Raises:
-            TypeError: `other` is not a :class:`~pywbem.CIMClassName`.
         """
         if self is other:
             return 0
@@ -1603,9 +1597,6 @@ class CIMClass(_CIMComparisonMixin):
 
         The `classname` and `superclass` attributes are compared
         case-insensitively.
-
-        Raises:
-            TypeError: `other` is not a :class:`~pywbem.CIMClass`.
         """
         if self is other:
             return 0
@@ -1910,10 +1901,6 @@ class CIMProperty(_CIMComparisonMixin):
 
             # an embedded instance property that is Null:
             CIMProperty("MyEmbInst", None, embedded_object="instance")
-
-        Raises:
-            TypeError
-            ValueError
         """
 
         type_ = type  # Minimize usage of the builtin 'type'
@@ -2356,9 +2343,6 @@ class CIMMethod(_CIMComparisonMixin):
         in descending precedence.
 
         The `name` attribute is compared case-insensitively.
-
-        Raises:
-            TypeError: `other` is not a :class:`~pywbem.CIMMethod`.
         """
         if self is other:
             return 0
@@ -2840,9 +2824,6 @@ class CIMQualifier(_CIMComparisonMixin):
         attributes, in descending precedence.
 
         The `name` attribute is compared case-insensitively.
-
-        Raises:
-            TypeError: `other` is not a :class:`~pywbem.CIMQualifier`.
         """
         if self is other:
             return 0
@@ -3079,9 +3060,6 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         `translatable` instance attributes, in descending precedence.
 
         The `name` attribute is compared case-insensitively.
-
-        Raises:
-          TypeError: `other` is not a :class:`~pywbem.CIMQualifierDeclaration`.
         """
         if self is other:
             return 0
@@ -3264,10 +3242,6 @@ def tocimobj(type_, value):
     Returns:
 
         A `CIM data type`_ object, representing the specified value and type.
-
-    Raises:
-
-        ValueError: The value is not suitable for the type name.
     """
 
     if value is None or type_ is None:
