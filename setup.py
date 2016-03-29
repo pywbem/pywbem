@@ -503,7 +503,7 @@ def main():
 
     setup(**args)
     
-    if 'install' in sys.argv or 'develop':
+    if 'install' in sys.argv or 'develop' in sys.argv:
         build_moftab(_VERBOSE)
     
     return 0
