@@ -413,7 +413,8 @@ dd {
     margin-left: 30px;
 }
 
-dt:target, .highlighted {
+/* pywbem: Added span:target to highlight targets of normal links. */
+dt:target, span:target, .highlighted {
     background-color: #fbe54e;
 }
 
