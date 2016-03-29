@@ -384,7 +384,6 @@ def main():
                     "libyaml-devel",        # for installing Python pyyaml pkg
                     "make",                 # PyWBEM has a makefile
                     "tar",                  # for distribution archive
-                    "patch",                # for patching Epydoc
                 ],
                 'centos': 'redhat',
                 'fedora': 'redhat',
@@ -395,7 +394,6 @@ def main():
                     "libyaml-dev",
                     "make",
                     "tar",
-                    "patch",
                 ],
                 'ubuntu': [
                     "libxml2-dev",
@@ -404,7 +402,6 @@ def main():
                     "libyaml-dev",
                     "make",
                     "tar",
-                    "patch",
                 ],
                 'suse': [
                     "libxml2-devel",
@@ -413,7 +410,6 @@ def main():
                     "libyaml-devel",
                     "make",
                     "tar",
-                    "patch",
                 ],
             },
             # TODO: Add support for Windows. Some notes:
