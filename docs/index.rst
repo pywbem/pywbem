@@ -6,11 +6,15 @@ Overview
 ========
 
 The **pywbem** PyPI package provides a WBEM client, written in pure Python.
+It supports Python 2 and Python 3.
 
 This package is based on the idea that a good WBEM client should be easy to use
 and not necessarily require a large amount of programming knowledge. It is
 suitable for a large range of tasks from simply poking around to writing web
 and GUI applications.
+
+This is the API documentation of the **pywbem** PyPI package. Its general web
+site is: http://pywbem.github.io/pywbem/index.html.
 
 Components in the package
 -------------------------
@@ -19,9 +23,9 @@ The **pywbem** PyPI package provides the following components:
 
 * a WBEM client library
 
-  The WBEM client library provides an API for issuing operations to a WBEM
-  server, using the CIM operations over HTTP (CIM-XML) protocol defined in the
-  DMTF standards `DSP0200`_ and `DSP0201`_.
+  The WBEM client library provides an API for issuing WBEM operations to a WBEM
+  server, using the CIM operations over HTTP (CIM-XML) WBEM protocol defined in
+  the DMTF standards `DSP0200`_ and `DSP0201`_.
   See http://www.dmtf.org/standards/wbem  for information about WBEM and these
   standards.
 
@@ -39,8 +43,8 @@ The **pywbem** PyPI package provides the following components:
   * `mof_compiler`_ - Takes MOF files as input and creates the CIM elements
     defined in them in a WBEM server.
 
-  * `wbemcli`_ - Provides an interactive Python environment for invoking CIM
-    operations on a WBEM server.
+  * `wbemcli`_ - Provides an interactive Python environment for issuing
+    operations to a WBEM server.
 
 Changes
 -------
@@ -81,14 +85,29 @@ WBEM client library API
 
 .. automodule:: pywbem
 
-CIM operations
---------------
+WBEM operations
+---------------
 
 .. automodule:: pywbem.cim_operations
 
 .. autoclass:: pywbem.WBEMConnection
    :members:
-   :special-members: __repr__ __str__
+   :special-members: __str__, __repr__
+
+.. # TODO: Requesting all members (by means of :members: without a list
+.. # of members) causes the internal methods imethodcall() and methodcall()
+.. # also to be generated. However, specifying a list of members in order
+.. # to exclude these two methods causes the special members also not to be
+.. # shown. It seems the least evil at this point to have both shown,
+.. # and to document that the two low-level functions are not part of the
+.. # external API.
+.. # List of members to specify for :members: (once it works):
+.. #         EnumerateInstanceNames, EnumerateInstances, GetInstance,
+.. #         ModifyInstance, CreateInstance, DeleteInstance, AssociatorNames,
+.. #         Associators, ReferenceNames, References, InvokeMethod,
+.. #         ExecQuery, EnumerateClassNames, EnumerateClasses, GetClass,
+.. #         ModifyClass, CreateClass, DeleteClass, EnumerateQualifiers,
+.. #         GetQualifier, SetQualifier, DeleteQualifier
 
 CIM objects
 -----------
@@ -100,63 +119,63 @@ CIMInstanceName
 
 .. autoclass:: pywbem.CIMInstanceName
    :members:
-   :special-members: __repr__ __str__
+   :special-members: __str__, __repr__
 
 CIMInstance
 ^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMInstance
    :members:
-   :special-members: __repr__ __str__
+   :special-members: __str__, __repr__
 
 CIMClassName
 ^^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMClassName
    :members:
-   :special-members: __repr__ __str__
+   :special-members: __str__, __repr__
 
 CIMClass
 ^^^^^^^^
 
 .. autoclass:: pywbem.CIMClass
    :members:
-   :special-members: __repr__ __str__
+   :special-members: __str__, __repr__
 
 CIMProperty
 ^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMProperty
    :members:
-   :special-members: __repr__ __str__
+   :special-members: __str__, __repr__
 
 CIMMethod
 ^^^^^^^^^
 
 .. autoclass:: pywbem.CIMMethod
    :members:
-   :special-members: __repr__ __str__
+   :special-members: __str__, __repr__
 
 CIMParameter
 ^^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMParameter
    :members:
-   :special-members: __repr__ __str__
+   :special-members: __str__, __repr__
 
 CIMQualifier
 ^^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMQualifier
    :members:
-   :special-members: __repr__ __str__
+   :special-members: __str__, __repr__
 
 CIMQualifierDeclaration
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMQualifierDeclaration
    :members:
-   :special-members: __repr__ __str__
+   :special-members: __str__, __repr__
 
 Conversion functions
 ^^^^^^^^^^^^^^^^^^^^
@@ -179,7 +198,7 @@ CIM data types
 
 .. autoclass:: pywbem.CIMDateTime
    :members:
-   :special-members: __repr__ __str__
+   :special-members: __str__, __repr__
 
 .. autoclass:: pywbem.MinutesFromUTC
    :members:

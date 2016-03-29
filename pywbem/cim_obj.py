@@ -25,7 +25,7 @@
 # pylint: disable=line-too-long
 """
 CIM objects are local representations of CIM instances, classes, properties,
-etc., as Python objects. They are used as input to and output from CIM
+etc., as Python objects. They are used as input to and output from WBEM
 operations:
 
 ==========================================  ==========================================================================
@@ -1706,8 +1706,8 @@ class CIMInstance(_CIMComparisonMixin):
 
             If `None`, the instance will have no qualifiers.
 
-            Note that CIM-XML has deprecated the presence of qualifier values
-            on CIM instances.
+            Note that `DSP0200`_ has deprecated the presence of qualifier
+            values on CIM instances.
 
           path (CIMInstanceName):
             Optional: Instance path of the instance.
