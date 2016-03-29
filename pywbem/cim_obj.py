@@ -47,18 +47,13 @@ NocaseDict
 ----------
 
 :class:`~pywbem.NocaseDict` is a dictionary implementation with
-case-insensitive but case-preserving keys. It is used for CIM names
-(e.g. property names, class names).
+case-insensitive but case-preserving keys. It is used for sets of named
+CIM elements (e.g. CIM properties in an instance or class, or CIM parameters
+in a method).
 
 Except for the case-insensitivity of its keys, it behaves like the built-in
-:class:`py2:dict`.
-
-:class:`~pywbem.NocaseDict` is not part of the public WBEM client library API
-and is therefore not covered by this documentation.
-
-TODO: The CIM objects have constructor parameters that can be normal dict
-or NocaseDict. The second case requires that the user creates them. This
-is obviously not in line with the strategy not to document NocaseDict.
+:class:`py2:dict`. Therefore, :class:`~pywbem.NocaseDict` is not described
+in detail in this documentation.
 """
 
 # This module is meant to be safe for 'import *'.
@@ -694,6 +689,692 @@ def moftype(cim_type, refclass):
     return (refclass + ' REF') if cim_type == 'reference' else cim_type
 
 
+class CIMInstanceName(_CIMComparisonMixin):
+    """
+    A CIM instance path (aka *instance name*).
+
+    A CIM instance path references a CIM instance in a namespace in a WBEM
+    server. Namespace and WBEM server may be unknown.
+
+    This object can be used like a dictionary of the keybindings of the
+    instance path, with the names of the keybindings (= key properties) as
+    dictionary keys, and their property values as dictionary values.
+
+    Attributes:
+
+      classname (`unicode string`_):
+        Name of the creation class of the referenced instance.
+
+      keybindings (`NocaseDict`_):
+        Keybindings for the instance path (the key property values of the
+        referenced instance), see the corresponding constructor parameter.
+
+      host (`unicode string`_):
+        URL of the WBEM server containing the CIM namespace of the
+        referenced instance,
+        or `None`.
+ 
+      namespace (`unicode string`_):
+        Name of the CIM namespace containing the referenced instance,
+        or `None`.
+    """
+
+    def __init__(self, classname, keybindings=None, host=None, namespace=None):
+        """
+        Parameters:
+
+          classname (`unicode string`_ or `byte string`_):
+            Name of the creation class of the referenced instance.
+            Must not be `None`.
+
+          keybindings (dict or `NocaseDict`_):
+            Keybindings for the instance path (the key property values
+            of the referenced instance).
+            Each dictionary item specifies one key property value, with:
+
+            * key (`unicode string`_ or `byte string`_): Key property name
+            * value (`CIM data type`_): Key property value
+
+            `None` is interpreted as an empty dictionary.
+
+          host (`unicode string`_ or `byte string`_):
+            URL of the WBEM server containing the CIM namespace of the
+            referenced instance.
+ 
+          namespace (`unicode string`_ or `byte string`_):
+            Name of the CIM namespace containing the referenced instance.
+        """
+
+        # Make sure we process Unicode strings
+        classname = _ensure_unicode(classname)
+        host = _ensure_unicode(host)
+        namespace = _ensure_unicode(namespace)
+
+        if classname is None:
+            raise ValueError('Instance path must have a class name')
+
+        self.classname = classname
+        self.keybindings = NocaseDict(keybindings)
+        self.host = host
+        self.namespace = namespace
+
+    def _cmp(self, other):
+        """
+        Comparator function for two :class:`~pywbem.CIMInstanceName` objects.
+
+        The comparison is based on the `host`, `namespace`, `classname`,
+        and `keybindings`, instance attributes, in descending precedence.
+
+        The `host` and `namespace` and `classname` attributes are compared
+        case-insensitively.
+
+        Raises `TypeError', if the `other` object is not a
+        :class:`~pywbem.CIMInstanceName` object.
+        """
+        if self is other:
+            return 0
+        if not isinstance(other, CIMInstanceName):
+            raise TypeError("other must be CIMInstanceName, but is: %s" %\
+                            type(other))
+        return (cmpname(self.host, other.host) or
+                cmpname(self.namespace, other.namespace) or
+                cmpname(self.classname, other.classname) or
+                cmpitem(self.keybindings, other.keybindings))
+
+    def __str__(self):
+        """Return the untyped WBEM URI of the CIM instance path represented
+        by the :class:`~pywbem.CIMInstanceName` object.
+
+        The returned WBEM URI is consistent with `DSP0207`_.
+        """
+
+        ret_str = ''
+
+        if self.host is not None:
+            ret_str += '//%s/' % self.host
+
+        if self.namespace is not None:
+            ret_str += '%s:' % self.namespace
+
+        ret_str += '%s.' % self.classname
+
+        for key, value in self.keybindings.items():
+
+            ret_str += '%s=' % key
+
+            if isinstance(value, (six.integer_types, bool, float)):
+                ret_str += str(value)
+            elif isinstance(value, CIMInstanceName):
+                ret_str += '"%s"' % str(value).replace('\\', '\\\\').replace(
+                    '"', '\\"')
+            else:
+                ret_str += '"%s"' % value
+
+            ret_str += ','
+
+        return ret_str[:-1]
+
+    def __repr__(self):
+        """Return a string representation of the
+        :class:`~pywbem.CIMInstanceName` object that is suitable for
+        debugging."""
+
+        return '%s(classname=%r, keybindings=%r, ' \
+               'namespace=%r, host=%r)' % \
+               (self.__class__.__name__, self.classname, self.keybindings,
+                self.namespace, self.host)
+
+    def __contains__(self, key):
+        return key in self.keybindings
+
+    def __getitem__(self, key):
+        return self.keybindings[key]
+
+    def __setitem__(self, key, value):
+        self.keybindings[key] = value
+
+    def __delitem__(self, key):
+        del self.keybindings[key]
+
+    def __len__(self):
+        return len(self.keybindings)
+
+    def copy(self):
+        """Return a copy of the :class:`~pywbem.CIMInstanceName` object.
+        """
+
+        result = CIMInstanceName(self.classname)
+        result.keybindings = self.keybindings.copy()
+        result.host = self.host
+        result.namespace = self.namespace
+
+        return result
+
+    def update(self, *args, **kwargs):
+        """Add the named arguments and keyword arguments to the keybindings,
+        updating the values of those that already exist."""
+        self.keybindings.update(*args, **kwargs)
+
+    def has_key(self, key):
+        """Return a boolean indicating whether the instance path has a
+        keybinding with name `key`."""
+        return key in self.keybindings
+
+    def get(self, key, default=None):
+        """Return the value of the keybinding with name `key`, or a default
+        value if a keybinding with that name does not exist."""
+        return self.keybindings.get(key, default)
+
+    def keys(self):
+        """Return a copied list of the keybinding names (in their original
+        lexical case)."""
+        return self.keybindings.keys()
+
+    def values(self):
+        """Return a copied list of the keybinding values."""
+        return self.keybindings.values()
+
+    def items(self):
+        """Return a copied list of the keybindings, where each item is a tuple
+        of its keybinding name (in the original lexical case) and its value."""
+        return self.keybindings.items()
+
+    def iterkeys(self):
+        """Iterate through the keybinding names (in their original lexical
+        case)."""
+        return self.keybindings.iterkeys()
+
+    def itervalues(self):
+        """Iterate through the keybinding values."""
+        return self.keybindings.itervalues()
+
+    def iteritems(self):
+        """Iterate through the keybindings, where each item is a tuple of the
+        keybinding name (in the original lexical case) and the keybinding
+        value."""
+        return self.keybindings.iteritems()
+
+    # pylint: disable=too-many-branches
+    def tocimxml(self):
+        """Return the CIM-XML representation of the
+        :class:`~pywbem.CIMInstanceName` object, as an object of an appropriate
+        subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
+
+        The returned CIM-XML representation is consistent with `DSP0201`_.
+        """
+
+        if isinstance(self.keybindings, str):
+
+            # This cannot happen; self.keybindings is always a NocaseDict:
+            raise TypeError("Unexpected: keybindings has string type: %s" % \
+                            repr(self.keybindings))
+
+            # TODO: Remove this old code after verifying that it works.
+            # #Class with single key string property
+            # instancename_xml = cim_xml.INSTANCENAME(
+            #     self.classname,
+            #     cim_xml.KEYVALUE(self.keybindings, 'string'))
+
+        # Note: The CIM data types are derived from the built-in types,
+        # so we cannot use isinstance() for this test.
+        # pylint: disable=unidiomatic-typecheck
+        elif builtin_type(self.keybindings) in six.integer_types + (float,):
+
+            # This cannot happen; self.keybindings is always a NocaseDict:
+            raise TypeError("Unexpected: keybindings has numeric type: %s" % \
+                            repr(self.keybindings))
+
+            # TODO: Remove this old code after verifying that it works.
+            # # Class with single key numeric property
+            # instancename_xml = cim_xml.INSTANCENAME(
+            #     self.classname,
+            #     cim_xml.KEYVALUE(str(self.keybindings), 'numeric'))
+
+        elif isinstance(self.keybindings, NocaseDict):
+
+            kbs = []
+
+            for key_bind in self.keybindings.items():
+
+                # Keybindings can be integers, booleans, strings or
+                # value references.
+
+                if hasattr(key_bind[1], 'tocimxml'):
+                    kbs.append(cim_xml.KEYBINDING(
+                        key_bind[0],
+                        cim_xml.VALUE_REFERENCE(key_bind[1].tocimxml())))
+                    continue
+
+                if isinstance(key_bind[1], bool):
+                    type_ = 'boolean'
+                    if key_bind[1]:
+                        value = 'TRUE'
+                    else:
+                        value = 'FALSE'
+                elif isinstance(key_bind[1], six.integer_types + (float,)):
+                    # Numeric CIM data types derive from int, long or float.
+                    # Note: int is a subtype of bool, but bool is already
+                    # tested further up.
+                    type_ = 'numeric'
+                    value = str(key_bind[1])
+                elif isinstance(key_bind[1], six.string_types):
+                    type_ = 'string'
+                    value = _ensure_unicode(key_bind[1])
+                else:
+                    raise TypeError('Invalid keybinding type for keybinding '\
+                            '%s: %s' % (key_bind[0], builtin_type(key_bind[1])))
+
+                kbs.append(cim_xml.KEYBINDING(
+                    key_bind[0],
+                    cim_xml.KEYVALUE(value, type_)))
+
+            instancename_xml = cim_xml.INSTANCENAME(self.classname, kbs)
+
+        else:
+
+            # This cannot happen; self.keybindings is always a NocaseDict:
+            raise TypeError("Unexpected: keybindings has type: %s" % \
+                            repr(self.keybindings))
+
+            # TODO: Remove this old code after verifying that it works.
+            # # Value reference
+            # instancename_xml = cim_xml.INSTANCENAME(
+            #     self.classname,
+            #     cim_xml.VALUE_REFERENCE(self.keybindings.tocimxml()))
+
+        # Instance name plus namespace = LOCALINSTANCEPATH
+
+        if self.host is None and self.namespace is not None:
+            return cim_xml.LOCALINSTANCEPATH(
+                cim_xml.LOCALNAMESPACEPATH(
+                    [cim_xml.NAMESPACE(ns)
+                     for ns in self.namespace.split('/')]),
+                instancename_xml)
+
+        # Instance name plus host and namespace = INSTANCEPATH
+
+        if self.host is not None and self.namespace is not None:
+            return cim_xml.INSTANCEPATH(
+                cim_xml.NAMESPACEPATH(
+                    cim_xml.HOST(self.host),
+                    cim_xml.LOCALNAMESPACEPATH([
+                        cim_xml.NAMESPACE(ns)
+                        for ns in self.namespace.split('/')])),
+                instancename_xml)
+
+        # Just a regular INSTANCENAME
+
+        return instancename_xml
+
+class CIMInstance(_CIMComparisonMixin):
+    """
+    A CIM instance, optionally including its instance path.
+
+    This object can be used like a dictionary of its properties, with the
+    names of the properties as dictionary keys, and their values as dictionary
+    values.
+
+    Attributes:
+
+      classname (`unicode string`_):
+        Name of the creation class of the instance.
+
+      properties (`NocaseDict`_):
+        Properties for the instance, see the corresponding constructor
+        parameter.
+
+      qualifiers (`NocaseDict`_):
+        Qualifiers for the instance, see the corresponding constructor
+        parameter.
+
+        Note that `DSP0200`_ has deprecated the presence of qualifier
+        values on CIM instances.
+
+      path (CIMInstanceName):
+        Instance path for the instance,
+        or `None`.
+
+      property_list (list of `unicode string`_):
+        List of property names for use by some operations on the instance,
+        converted to lower case,
+        or `None`.
+    """
+
+    # pylint: disable=too-many-arguments
+    def __init__(self, classname, properties=None, qualifiers=None,
+                 path=None, property_list=None):
+        """
+        Parameters:
+
+          classname (`unicode string`_ or `byte string`_):
+            Name of the creation class of the instance.
+            Must not be `None`.
+
+          properties (dict or `NocaseDict`_):
+            Properties for the instance.
+            Each dictionary item specifies one property value, with:
+
+            * key (`unicode string`_ or `byte string`_): Property name
+            * value (:class:`~pywbem.CIMProperty`): Property value
+
+            `None` is interpreted as an empty dictionary.
+
+          qualifiers (dict or `NocaseDict`_):
+            Qualifiers for the instance.
+            Each dictionary item specifies one qualifier value, with:
+
+            * key (`unicode string`_ or `byte string`_): Qualifier name
+            * value (:class:`~pywbem.CIMQualifier`): Qualifier value
+
+            `None` is interpreted as an empty dictionary.
+
+            Note that `DSP0200`_ has deprecated the presence of qualifier
+            values on CIM instances.
+
+          path (CIMInstanceName):
+            Instance path for the instance.
+
+          property_list (iterable of `unicode string`_ or `byte string`_):
+            List of property names for use by some operations on the instance.
+        """
+
+        self.classname = _ensure_unicode(classname)
+        self.qualifiers = NocaseDict(qualifiers)
+        # TODO: Add support for accepting qualifiers as plain dict
+        self.path = path
+        if property_list is not None:
+            self.property_list = [_ensure_unicode(x).lower() \
+                for x in property_list]
+        else:
+            self.property_list = None
+
+        # Assign initialised property values and run through
+        # __setitem__ to enforce CIM data types for each property.
+
+        self.properties = NocaseDict()
+        if properties:
+            for key, value in properties.items():
+                self.__setitem__(key, value)
+
+    def _cmp(self, other):
+        """
+        Comparator function for two :class:`~pywbem.CIMInstance` objects.
+
+        The comparison is based on the `classname`, `path`, `properties`,
+        and `qualifiers` instance attributes, in descending precedence.
+
+        The `classname` attribute is compared case-insensitively.
+
+        Raises:
+            TypeError: `other` is not a :class:`~pywbem.CIMInstance`.
+        """
+        if self is other:
+            return 0
+        if not isinstance(other, CIMInstance):
+            raise TypeError("other must be CIMInstance, but is: %s" %\
+                            type(other))
+        return (cmpname(self.classname, other.classname) or
+                cmpitem(self.path, other.path) or
+                cmpitem(self.properties, other.properties) or
+                cmpitem(self.qualifiers, other.qualifiers))
+
+    def __str__(self):
+        """Return a short string representation of the
+        :class:`~pywbem.CIMInstance` object for human consumption."""
+
+        return '%s(classname=%r, path=%r, ...)' % \
+               (self.__class__.__name__, self.classname, self.path)
+
+    def __repr__(self):
+        """Return a string representation of the
+        :class:`~pywbem.CIMInstance` object that is suitable for debugging."""
+
+        return '%s(classname=%r, path=%r, ' \
+               'properties=%r, property_list=%r' \
+               'qualifiers=%r)' % \
+               (self.__class__.__name__, self.classname, self.path,
+                self.properties, self.property_list,
+                self.qualifiers)
+
+    def __contains__(self, key):
+        return key in self.properties
+
+    def __getitem__(self, key):
+        return self.properties[key].value
+
+    def __setitem__(self, key, value):
+
+        # Don't let anyone set integer or float values.  You must use
+        # a subclass from the cim_type module.
+
+        # Note: The CIM data types are derived from the built-in types,
+        # so we cannot use isinstance() for this test.
+        # pylint: disable=unidiomatic-typecheck
+        if builtin_type(value) in six.integer_types + (float,):
+            raise TypeError(
+                "Type of numeric value for a property must be a "\
+                "CIM data type, but is %s" % builtin_type(value))
+
+        if self.property_list is not None and key.lower() not in \
+                self.property_list:
+            if self.path is not None and key not in self.path.keybindings:
+                return
+        # Convert value to appropriate PyWBEM type
+
+        if isinstance(value, CIMProperty):
+            val = value
+        else:
+            val = CIMProperty(key, value)
+
+        self.properties[key] = val
+        if self.path is not None and key in self.path.keybindings:
+            self.path[key] = val.value
+
+    def __delitem__(self, key):
+        del self.properties[key]
+
+    def __len__(self):
+        return len(self.properties)
+
+    def copy(self):
+        """Return copy of the :class:`~pywbem.CIMInstance` object."""
+
+        result = CIMInstance(self.classname)
+        result.properties = self.properties.copy()
+        result.qualifiers = self.qualifiers.copy()
+        result.path = (self.path is not None and \
+                       [self.path.copy()] or [None])[0]
+
+        return result
+
+    def update(self, *args, **kwargs):
+        """Add the named arguments and keyword arguments to the properties,
+        updating the values of those that already exist."""
+
+        for mapping in args:
+            if hasattr(mapping, 'items'):
+                for key, value in mapping.items():
+                    self[key] = value
+            else:
+                for (key, value) in mapping:
+                    self[key] = value
+        for key, value in kwargs.items():
+            self[key] = value
+
+    def update_existing(self, *args, **kwargs):
+        """Update the values of already existing properties from the named
+        arguments and keyword arguments."""
+
+        for mapping in args:
+            if hasattr(mapping, 'items'):
+                for key, value in mapping.items():
+                    try:
+                        prop = self.properties[key]
+                    except KeyError:
+                        continue
+                    prop.value = tocimobj(prop.type, value)
+            else:
+                for (key, value) in mapping:
+                    try:
+                        prop = self.properties[key]
+                    except KeyError:
+                        continue
+                    prop.value = tocimobj(prop.type, value)
+        for key, value in kwargs.items():
+            try:
+                prop = self.properties[key]
+            except KeyError:
+                continue
+            prop.value = tocimobj(prop.type, value)
+
+    def has_key(self, key):
+        """Return a boolean indicating whether the instance has a property
+        with name `key`."""
+        return key in self.properties
+
+    def get(self, key, default=None):
+        """Return the value of the property with name `key`, or a default
+        value if a property with that name does not exist."""
+        prop = self.properties.get(key, None)
+        return default if prop is None else prop.value
+
+    def keys(self):
+        """Return a copied list of the property names (in their original
+        lexical case)."""
+        return self.properties.keys()
+
+    def values(self):
+        """Return a copied list of the property values."""
+        return [v.value for v in self.properties.values()]
+
+    def items(self):
+        """Return a copied list of the properties, where each item is a tuple
+        of the property name (in the original lexical case) and the property
+        value."""
+        return [(key, v.value) for key, v in self.properties.items()]
+
+    def iterkeys(self):
+        """Iterate through the property names (in their original lexical
+        case)."""
+        return self.properties.iterkeys()
+
+    def itervalues(self):
+        """Iterate through the property values."""
+        for _, val in self.properties.iteritems():
+            yield val.value
+
+    def iteritems(self):
+        """Iterate through the property names (in their original lexical
+        case)."""
+        for key, val in self.properties.iteritems():
+            yield (key, val.value)
+
+    def tocimxml(self):
+        """Return the CIM-XML representation of the
+        :class:`~pywbem.CIMInstance` object, as an object of an appropriate
+        subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
+
+        The returned CIM-XML representation is consistent with `DSP0201`_.
+        """
+
+        props = []
+
+        for key, value in self.properties.items():
+
+            # Value has already been converted into a CIM object
+            # property type (e.g for creating null property values).
+
+            if isinstance(value, CIMProperty):
+                props.append(value)
+                continue
+
+            props.append(CIMProperty(key, value))
+
+        instance_xml = cim_xml.INSTANCE(
+            self.classname,
+            properties=[p.tocimxml() for p in props],
+            qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
+
+        if self.path is None:
+            return instance_xml
+
+        return cim_xml.VALUE_NAMEDINSTANCE(self.path.tocimxml(),
+                                           instance_xml)
+
+    def tomof(self, indent=0):
+        """Return a string representing the MOF definition of the
+        :class:`~pywbem.CIMInstance` object.
+
+        Parameters:
+
+          indent (number): Optional: defines the number of spaces
+            that the initial line of the output is indented.
+        """
+
+        def _prop2mof(type_, value, indent):
+            """ Return a string representing the MOF definition of
+                a single property defined by the type and value
+                arguments.
+                :param type_: :class:`~pywbem.CIMType` of the property
+                :param value: value corresponding to this type
+                :param indent: number of spaces to indent the
+                    initial line of the generated mof.
+            """
+
+            def _prop_array_val2mof(value, indent, single_line):
+                """ Output array of values either on single line or
+                    one line per value
+                    :param value: Array of values to output
+                    :param indent: indent number of spaces of currnet
+                         indent indent level if multiple line
+                """
+                val = ''
+
+                sep = ', 'if single_line else ',\n' + _indent_str(indent)
+                for i, item in enumerate(value):
+                    if i > 0:
+                        val += sep
+                    val += _prop2mof(type_, item, indent)
+                return val
+
+            if value is None:
+                val = 'NULL'
+            elif isinstance(value, list):
+                val = '{'
+                # output as single line if within width limits
+                val_tmp = _prop_array_val2mof(value, indent, True)
+                # If too large, redo with on array element per line
+                if len(val_tmp) > MAX_MOF_LINE - indent:
+                    val_tmp = '\n' + _indent_str(indent+MOF_INDENT)
+                    val_tmp += _prop_array_val2mof(value,
+                                                   (indent+MOF_INDENT),
+                                                   False)
+                val += val_tmp + '}'
+
+            elif type_ == 'string':
+                val = mofstr(value, indent=indent)
+            else:
+                val = str(value)
+            return val
+
+        ret_str = 'instance of %s {\n' % self.classname
+        for prop in self.properties.values():
+            if prop.embedded_object is not None:
+                # TODO: May not handle recursive embedded instances
+                # convert the instance in this property to cimxml
+                prop_val = prop.value.tocimxml().toxml()
+            else:
+                prop_val = prop.value
+
+            ret_str += '%s%s = %s;\n' % (_indent_str(indent+MOF_INDENT),
+                                         prop.name,
+                                         _prop2mof(prop.type,
+                                                   prop_val,
+                                                   (indent+MOF_INDENT)))
+        ret_str += '};\n'
+        return ret_str
+
+
 class CIMClassName(_CIMComparisonMixin):
     """
     A CIM class path.
@@ -703,7 +1384,17 @@ class CIMClassName(_CIMComparisonMixin):
 
     Attributes:
 
-      ...: All parameters of the constructor are set as instance variables.
+      classname (`unicode string`_):
+        Name of the referenced class.
+
+      host (`unicode string`_):
+        URL of the WBEM server containing the CIM namespace of the
+        referenced class,
+        or `None`.
+
+      namespace (`unicode string`_):
+        Name of the CIM namespace containing the referenced class,
+        or `None`.
     """
 
     def __init__(self, classname, host=None, namespace=None):
@@ -712,26 +1403,14 @@ class CIMClassName(_CIMComparisonMixin):
 
           classname (`unicode string`_ or `byte string`_):
             Name of the referenced class.
+            Must not be `None`.
 
           host (`unicode string`_ or `byte string`_):
-            Optional: URL of the WBEM server that contains the CIM namespace
-            of this class path.
-
-            If `None`, the class path will not specify a WBEM server.
-
-            Default: `None`.
+            URL of the WBEM server containing the CIM namespace of the
+            referenced class.
 
           namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the CIM namespace that contains the referenced
-            class.
-
-            If `None`, the class path will not specify a CIM namespace.
-
-            Default: `None`.
-
-        Raises:
-            TypeError
-            ValueError
+            Name of the CIM namespace containing the referenced class.
         """
 
         # Make sure we process Unicode strings
@@ -841,6 +1520,190 @@ class CIMClassName(_CIMComparisonMixin):
         return cim_xml.CLASSNAME(self.classname)
 
 
+class CIMClass(_CIMComparisonMixin):
+    """A CIM class.
+
+    Attributes:
+
+      classname (`unicode string`_):
+        Name for the class.
+
+      properties (`NocaseDict`_):
+        Property declarations for the class, see the corresponding constructor
+        parameter.
+
+      methods (`NocaseDict`_):
+        Method declarations for the class, see the corresponding constructor
+        parameter.
+
+      superclass (`unicode string`_):
+        Name of the superclass for the class,
+        or `None`.
+
+      qualifiers (`NocaseDict`_):
+        Qualifier values for the class, see the corresponding constructor
+        parameter.
+    """
+
+    # pylint: disable=too-many-arguments
+    def __init__(self, classname, properties=None, methods=None,
+                 superclass=None, qualifiers=None):
+        """
+        Parameters:
+
+          classname (`unicode string`_ or `byte string`_):
+            Name for the class.
+            Must not be `None`.
+
+          properties (dict or `NocaseDict`_):
+            Property declarations for the class.
+            Each dictionary item specifies one property declaration, with:
+
+            * key (`unicode string`_ or `byte string`_): Property name
+            * value (:class:`~pywbem.CIMProperty`): Property declaration
+
+            `None` is interpreted as an empty dictionary.
+
+          methods (dict or `NocaseDict`_):
+            Method declarations for the class.
+            Each dictionary item specifies one method declaration, with:
+
+            * key (`unicode string`_ or `byte string`_): Nethod name
+            * value (:class:`~pywbem.CIMMethod`): Method declaration
+
+            `None` is interpreted as an empty dictionary.
+
+          superclass (`unicode string`_ or `byte string`_):
+            Name of the superclass for the class.
+            If `None`, the class will be a top-level class.
+
+          qualifiers (dict or `NocaseDict`_):
+            Qualifier values for the class.
+            Each dictionary item specifies one qualifier value, with:
+
+            * key (`unicode string`_ or `byte string`_): Qualifier name
+            * value (:class:`~pywbem.CIMQualifier`): Qualifier value
+
+            If `None`, the class will have no qualifiers.
+        """
+
+        self.classname = _ensure_unicode(classname)
+        self.properties = NocaseDict(properties)
+        self.methods = NocaseDict(methods)
+        self.superclass = _ensure_unicode(superclass)
+        self.qualifiers = NocaseDict(qualifiers)
+
+    def _cmp(self, other):
+        """
+        Comparator function for two :class:`~pywbem.CIMClass` objects.
+
+        The comparison is based on the `classname`, `superclass`, `qualifiers`,
+        `properties` and `methods` instance attributes, in descending
+        precedence.
+
+        The `classname` and `superclass` attributes are compared
+        case-insensitively.
+
+        Raises:
+            TypeError: `other` is not a :class:`~pywbem.CIMClass`.
+        """
+        if self is other:
+            return 0
+        if not isinstance(other, CIMClass):
+            raise TypeError("other must be CIMClass, but is: %s" %\
+                            type(other))
+        return (cmpname(self.classname, other.classname) or
+                cmpname(self.superclass, other.superclass) or
+                cmpitem(self.qualifiers, other.qualifiers) or
+                cmpitem(self.properties, other.properties) or
+                cmpitem(self.methods, other.methods))
+
+    def __str__(self):
+        """Return a short string representation of the
+        :class:`~pywbem.CIMClass` object for human consumption."""
+
+        return '%s(classname=%r, ...)' % \
+               (self.__class__.__name__, self.classname)
+
+    def __repr__(self):
+        """Return a string representation of the :class:`~pywbem.CIMClass`
+        object that is suitable for debugging."""
+
+        return '%s(classname=%r, superclass=%r, ' \
+               'properties=%r, methods=%r, qualifiers=%r)' % \
+               (self.__class__.__name__, self.classname, self.superclass,
+                self.properties, self.methods, self.qualifiers)
+
+    def copy(self):
+        """Return a copy of the :class:`~pywbem.CIMClass` object."""
+        result = CIMClass(self.classname)
+        result.properties = self.properties.copy()
+        result.methods = self.methods.copy()
+        result.superclass = self.superclass
+        result.qualifiers = self.qualifiers.copy()
+
+        return result
+
+    def tocimxml(self):
+        """Return the CIM-XML representation of the
+        :class:`~pywbem.CIMClass` object, as an object of an appropriate
+        subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
+
+        The returned CIM-XML representation is consistent with `DSP0201`_.
+        """
+
+        return cim_xml.CLASS(
+            self.classname,
+            properties=[p.tocimxml() for p in self.properties.values()],
+            methods=[m.tocimxml() for m in self.methods.values()],
+            qualifiers=[q.tocimxml() for q in self.qualifiers.values()],
+            superclass=self.superclass)
+
+    def tomof(self):
+        """Return a string representing the MOF definition of the
+        :class:`~pywbem.CIMClass` object."""
+
+        indent = MOF_INDENT
+
+        # Qualifiers definition or empty line
+        ret_str = '%s\n' % (_makequalifiers(self.qualifiers,
+                                            indent))
+
+        ret_str += 'class %s ' % self.classname
+
+        # Superclass
+
+        if self.superclass is not None:
+            ret_str += ': %s ' % self.superclass
+
+        ret_str += '{\n'
+
+        # Properties; indent one level from class definition
+
+        for prop_val in self.properties.values():
+            if prop_val.is_array and prop_val.array_size is not None:
+                array_str = "[%s]" % prop_val.array_size
+            else:
+                array_str = ''
+            ret_str += '\n'
+            if len(prop_val.qualifiers) != 0:
+                ret_str += '%s\n' % ((_makequalifiers(prop_val.qualifiers,
+                                                      (indent + MOF_INDENT))))
+            ret_str += '%s%s %s%s;\n' % (_indent_str(indent),
+                                         moftype(prop_val.type,
+                                                 prop_val.reference_class),
+                                         prop_val.name, array_str)
+
+        # Methods, indent one level from class definition
+
+        for method in self.methods.values():
+            ret_str += '%s\n' % method.tomof(indent)
+
+        ret_str += '};\n'
+
+        return ret_str
+
+
 # pylint: disable=too-many-statements,too-many-instance-attributes
 class CIMProperty(_CIMComparisonMixin):
     """
@@ -850,14 +1713,15 @@ class CIMProperty(_CIMComparisonMixin):
     representing a property value, or in a :class:`~pywbem.CIMClass` object
     for representing a property declaration.
 
-    For properties in CIM instances:
+    For property values in CIM instances:
 
       * The `value` instance variable is the actual value of the property.
       * Qualifiers are not allowed.
 
-    For properties in CIM classes:
+    For property declarations in CIM classes:
 
-      * The `value` instance variable is the default value for the property.
+      * The `value` instance variable is the default value of the property
+        declaration.
       * Qualifiers are allowed.
 
     Scalar (=non-array) properties may have a value of NULL (= `None`), any
@@ -871,8 +1735,44 @@ class CIMProperty(_CIMComparisonMixin):
 
     Attributes:
 
-      ...: All parameters of the constructor are set as instance variables,
-        whereby any mutable objects are copied.
+      name (`unicode string`_):
+        Name of the property.
+
+      value (`CIM data type`_):
+        Value of the property, or `None`, see the corresponding constructor
+        parameter.
+        For CIM data types string and char16, this instance variable will be a
+        `unicode string`_ , even when specified as a `byte string`_.
+
+      type (`unicode string`_):
+        Name of the CIM data type of the property (e.g. ``"uint8"``).
+
+      class_origin (`unicode string`_):
+        The CIM class origin of the property, see the corresponding constructor
+        parameter, or `None`.
+
+      array_size (int):
+        The size of the array property, or `None`.
+
+      propagated (bool):
+        Propagation information for the property, see the corresponding
+        constructor parameter, or `None`.
+
+      is_array (bool):
+        A boolean indicating whether the property is an array (`True`) or a
+        scalar (`False`).
+
+      reference_class (`unicode string`_):
+        The name of the referenced class, for reference properties, or `None`.
+
+      qualifiers (`NocaseDict`_):
+        Qualifier values for the property declaration, see the corresponding
+        constructor parameter.
+
+      embedded_object (`unicode string`_):
+        A string value indicating the kind of embedded object represented
+        by the property value, or `None`, see the corresponding constructor
+        parameter.
     """
 
     # pylint: disable=too-many-statements
@@ -893,12 +1793,14 @@ class CIMProperty(_CIMComparisonMixin):
         Parameters:
 
           name (`unicode string`_ or `byte string`_):
-            Name of the property. Must not be `None`.
+            Name of the property.
+            Must not be `None`.
 
           value (`CIM data type`_):
-            Value of the property (interpreted as actual value when the
-            property object is used in an instance, and as default value when
-            it is used in a class).
+            Value of the property (interpreted as actual value when
+            representing a property value, and as default value for property
+            declarations).
+            `None` means that the property is Null.
 
           type (`unicode string`_ or `byte string`_):
             Name of the CIM data type of the property (e.g. ``"uint8"``).
@@ -916,11 +1818,11 @@ class CIMProperty(_CIMComparisonMixin):
             The size of the array property, for fixed-size arrays.
             `None` means that the array property has variable size.
 
-          propagated (`unicode string`_ or `byte string`_):
-            The CIM *propagated* attribute of the property (the effective value
-            of the ``Propagated`` qualifier of the property, which is a string
-            that specifies the name of the source property from which the
-            property value should be propagated).
+          propagated (bool):
+            If not `None`, indicates whether the property declaration has been
+            propagated from a superclass to this class, or the property value
+            has been propagated from the creation class to this instance (the
+            latter is not really used).
             `None` means that propagation information is not available.
 
           is_array (bool):
@@ -933,32 +1835,38 @@ class CIMProperty(_CIMComparisonMixin):
           reference_class (`unicode string`_ or `byte string`_):
             The name of the referenced class, for reference properties.
             `None` means that the argument is unspecified, causing the
-            corresponding instance variable  to be inferred. An exception is
+            corresponding instance variable to be inferred. An exception is
             raised if it cannot be inferred.
 
           qualifiers (dict or `NocaseDict`_):
-            A dictionary specifying CIM qualifier values.
-            The dictionary keys must be the qualifier names. The dictionary
-            values must be :class:`~pywbem.CIMQualifier` objects specifying the
-            qualifier values.
-            `None` means that there are no qualifier values. In all cases,
-            the `qualifiers` instance variable will be a `NocaseDict`_ object.
+            Qualifier values for the property declaration.
+            Each dictionary item specifies one qualifier value, with:
+
+            * key (`unicode string`_ or `byte string`_): Qualifier name
+            * value (:class:`~pywbem.CIMQualifier`): Qualifier value
+
+            `None` is interpreted as an empty dictionary.
 
           embedded_object (`unicode string`_ or `byte string`_):
-            A string value indicating the kind of
-            embedded object represented by the property value. The following
-            values are defined for this argument:
+            A string value indicating the kind of embedded object represented
+            by the property value. Has no meaning for property declarations.
+            The following values are defined for this argument:
 
             * ``"instance"``: The property is declared with the
               ``EmbeddedInstance`` qualifier, indicating that the property
-              value is an embedded instance of a known class name (or Null).
+              value is an embedded instance of the class specified as the value
+              of the ``EmbeddedInstance`` qualifier.
+              The property value must be a :class:`~pywbem.CIMInstance` object,
+              or `None`.
             * ``"object"``: The property is declared with the
               ``EmbeddedObject`` qualifier, indicating that the property
               value is an embedded object (instance or class) of which the
-              class name is not known (or Null).
-            * `None`: The argument is unspecified, causing the
-              corresponding instance variable to be inferred. An exception is
-              raised if it cannot be inferred.
+              class name is not known.
+              The property value must be a :class:`~pywbem.CIMInstance` or
+              :class:`~pywbem.CIMClass` object, or `None`.
+            * `None`: The argument is unspecified, causing the corresponding
+              instance variable to be inferred. An exception is raised if it
+              cannot be inferred.
 
         Examples:
 
@@ -1348,858 +2256,66 @@ class CIMProperty(_CIMComparisonMixin):
                 cmpitem(self.qualifiers, other.qualifiers))
 
 
-class CIMInstanceName(_CIMComparisonMixin):
-    """
-    A CIM instance path (aka *instance name*).
-
-    A CIM instance path references a CIM instance in a namespace in a WBEM
-    server. Namespace and WBEM server may be unknown.
-
-    This object can be used like a dictionary of the keybindings of the
-    instance path, with the names of the keybindings (= key properties) as
-    dictionary keys, and their property values as dictionary values.
-
-    Attributes:
-
-      ...: All parameters of the constructor are set as instance variables,
-        whereby any mutable objects are copied.
-    """
-
-    def __init__(self, classname, keybindings=None, host=None, namespace=None):
-        """
-        Parameters:
-
-          classname (`unicode string`_ or `byte string`_):
-            Name of the creation class of the referenced instance.
-
-          keybindings (dict or `NocaseDict`_):
-            Optional: Dictionary of keybindings, specifying key properties
-            that identify the referenced instance.
-
-            The dictionary must contain one item for each keybinding, with:
-
-            * key (`unicode string`_ or `byte string`_): Key property name
-            * value (`CIM data type`_): Key property value
-
-            If `None`, an empty dictionary of keybindings will be created.
-
-            Default: `None`.
-
-          host (`unicode string`_ or `byte string`_):
-            Optional: URL of the WBEM server that contains the CIM namespace
-            of this instance path.
-
-            If `None`, the instance path will not specify a WBEM server.
-
-            Default: `None`.
-
-          namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the CIM namespace that contains the referenced
-            instance.
-
-            If `None`, the instance path will not specify a CIM namespace.
-
-            Default: `None`.
-
-        Raises:
-            TypeError
-            ValueError
-        """
-
-        # Make sure we process Unicode strings
-        classname = _ensure_unicode(classname)
-        host = _ensure_unicode(host)
-        namespace = _ensure_unicode(namespace)
-
-        if classname is None:
-            raise ValueError('Instance path must have a class name')
-
-        self.classname = classname
-        self.keybindings = NocaseDict(keybindings)
-        self.host = host
-        self.namespace = namespace
-
-    def _cmp(self, other):
-        """
-        Comparator function for two :class:`~pywbem.CIMInstanceName` objects.
-
-        The comparison is based on the `host`, `namespace`, `classname`,
-        and `keybindings`, instance attributes, in descending precedence.
-
-        The `host` and `namespace` and `classname` attributes are compared
-        case-insensitively.
-
-        Raises `TypeError', if the `other` object is not a
-        :class:`~pywbem.CIMInstanceName` object.
-        """
-        if self is other:
-            return 0
-        if not isinstance(other, CIMInstanceName):
-            raise TypeError("other must be CIMInstanceName, but is: %s" %\
-                            type(other))
-        return (cmpname(self.host, other.host) or
-                cmpname(self.namespace, other.namespace) or
-                cmpname(self.classname, other.classname) or
-                cmpitem(self.keybindings, other.keybindings))
-
-    def __str__(self):
-        """Return the untyped WBEM URI of the CIM instance path represented
-        by the :class:`~pywbem.CIMInstanceName` object.
-
-        The returned WBEM URI is consistent with `DSP0207`_.
-        """
-
-        ret_str = ''
-
-        if self.host is not None:
-            ret_str += '//%s/' % self.host
-
-        if self.namespace is not None:
-            ret_str += '%s:' % self.namespace
-
-        ret_str += '%s.' % self.classname
-
-        for key, value in self.keybindings.items():
-
-            ret_str += '%s=' % key
-
-            if isinstance(value, (six.integer_types, bool, float)):
-                ret_str += str(value)
-            elif isinstance(value, CIMInstanceName):
-                ret_str += '"%s"' % str(value).replace('\\', '\\\\').replace(
-                    '"', '\\"')
-            else:
-                ret_str += '"%s"' % value
-
-            ret_str += ','
-
-        return ret_str[:-1]
-
-    def __repr__(self):
-        """Return a string representation of the
-        :class:`~pywbem.CIMInstanceName` object that is suitable for
-        debugging."""
-
-        return '%s(classname=%r, keybindings=%r, ' \
-               'namespace=%r, host=%r)' % \
-               (self.__class__.__name__, self.classname, self.keybindings,
-                self.namespace, self.host)
-
-    def __contains__(self, key):
-        return key in self.keybindings
-
-    def __getitem__(self, key):
-        return self.keybindings[key]
-
-    def __setitem__(self, key, value):
-        self.keybindings[key] = value
-
-    def __delitem__(self, key):
-        del self.keybindings[key]
-
-    def __len__(self):
-        return len(self.keybindings)
-
-    def copy(self):
-        """Return a copy of the :class:`~pywbem.CIMInstanceName` object.
-        """
-
-        result = CIMInstanceName(self.classname)
-        result.keybindings = self.keybindings.copy()
-        result.host = self.host
-        result.namespace = self.namespace
-
-        return result
-
-    def update(self, *args, **kwargs):
-        """Add the named arguments and keyword arguments to the keybindings,
-        updating the values of those that already exist."""
-        self.keybindings.update(*args, **kwargs)
-
-    def has_key(self, key):
-        """Return a boolean indicating whether the instance path has a
-        keybinding with name `key`."""
-        return key in self.keybindings
-
-    def get(self, key, default=None):
-        """Return the value of the keybinding with name `key`, or a default
-        value if a keybinding with that name does not exist."""
-        return self.keybindings.get(key, default)
-
-    def keys(self):
-        """Return a copied list of the keybinding names (in their original
-        lexical case)."""
-        return self.keybindings.keys()
-
-    def values(self):
-        """Return a copied list of the keybinding values."""
-        return self.keybindings.values()
-
-    def items(self):
-        """Return a copied list of the keybindings, where each item is a tuple
-        of its keybinding name (in the original lexical case) and its value."""
-        return self.keybindings.items()
-
-    def iterkeys(self):
-        """Iterate through the keybinding names (in their original lexical
-        case)."""
-        return self.keybindings.iterkeys()
-
-    def itervalues(self):
-        """Iterate through the keybinding values."""
-        return self.keybindings.itervalues()
-
-    def iteritems(self):
-        """Iterate through the keybindings, where each item is a tuple of the
-        keybinding name (in the original lexical case) and the keybinding
-        value."""
-        return self.keybindings.iteritems()
-
-    # pylint: disable=too-many-branches
-    def tocimxml(self):
-        """Return the CIM-XML representation of the
-        :class:`~pywbem.CIMInstanceName` object, as an object of an appropriate
-        subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
-
-        The returned CIM-XML representation is consistent with `DSP0201`_.
-        """
-
-        if isinstance(self.keybindings, str):
-
-            # This cannot happen; self.keybindings is always a NocaseDict:
-            raise TypeError("Unexpected: keybindings has string type: %s" % \
-                            repr(self.keybindings))
-
-            # TODO: Remove this old code after verifying that it works.
-            # #Class with single key string property
-            # instancename_xml = cim_xml.INSTANCENAME(
-            #     self.classname,
-            #     cim_xml.KEYVALUE(self.keybindings, 'string'))
-
-        # Note: The CIM data types are derived from the built-in types,
-        # so we cannot use isinstance() for this test.
-        # pylint: disable=unidiomatic-typecheck
-        elif builtin_type(self.keybindings) in six.integer_types + (float,):
-
-            # This cannot happen; self.keybindings is always a NocaseDict:
-            raise TypeError("Unexpected: keybindings has numeric type: %s" % \
-                            repr(self.keybindings))
-
-            # TODO: Remove this old code after verifying that it works.
-            # # Class with single key numeric property
-            # instancename_xml = cim_xml.INSTANCENAME(
-            #     self.classname,
-            #     cim_xml.KEYVALUE(str(self.keybindings), 'numeric'))
-
-        elif isinstance(self.keybindings, NocaseDict):
-
-            kbs = []
-
-            for key_bind in self.keybindings.items():
-
-                # Keybindings can be integers, booleans, strings or
-                # value references.
-
-                if hasattr(key_bind[1], 'tocimxml'):
-                    kbs.append(cim_xml.KEYBINDING(
-                        key_bind[0],
-                        cim_xml.VALUE_REFERENCE(key_bind[1].tocimxml())))
-                    continue
-
-                if isinstance(key_bind[1], bool):
-                    type_ = 'boolean'
-                    if key_bind[1]:
-                        value = 'TRUE'
-                    else:
-                        value = 'FALSE'
-                elif isinstance(key_bind[1], six.integer_types + (float,)):
-                    # Numeric CIM data types derive from int, long or float.
-                    # Note: int is a subtype of bool, but bool is already
-                    # tested further up.
-                    type_ = 'numeric'
-                    value = str(key_bind[1])
-                elif isinstance(key_bind[1], six.string_types):
-                    type_ = 'string'
-                    value = _ensure_unicode(key_bind[1])
-                else:
-                    raise TypeError('Invalid keybinding type for keybinding '\
-                            '%s: %s' % (key_bind[0], builtin_type(key_bind[1])))
-
-                kbs.append(cim_xml.KEYBINDING(
-                    key_bind[0],
-                    cim_xml.KEYVALUE(value, type_)))
-
-            instancename_xml = cim_xml.INSTANCENAME(self.classname, kbs)
-
-        else:
-
-            # This cannot happen; self.keybindings is always a NocaseDict:
-            raise TypeError("Unexpected: keybindings has type: %s" % \
-                            repr(self.keybindings))
-
-            # TODO: Remove this old code after verifying that it works.
-            # # Value reference
-            # instancename_xml = cim_xml.INSTANCENAME(
-            #     self.classname,
-            #     cim_xml.VALUE_REFERENCE(self.keybindings.tocimxml()))
-
-        # Instance name plus namespace = LOCALINSTANCEPATH
-
-        if self.host is None and self.namespace is not None:
-            return cim_xml.LOCALINSTANCEPATH(
-                cim_xml.LOCALNAMESPACEPATH(
-                    [cim_xml.NAMESPACE(ns)
-                     for ns in self.namespace.split('/')]),
-                instancename_xml)
-
-        # Instance name plus host and namespace = INSTANCEPATH
-
-        if self.host is not None and self.namespace is not None:
-            return cim_xml.INSTANCEPATH(
-                cim_xml.NAMESPACEPATH(
-                    cim_xml.HOST(self.host),
-                    cim_xml.LOCALNAMESPACEPATH([
-                        cim_xml.NAMESPACE(ns)
-                        for ns in self.namespace.split('/')])),
-                instancename_xml)
-
-        # Just a regular INSTANCENAME
-
-        return instancename_xml
-
-class CIMInstance(_CIMComparisonMixin):
-    """
-    A CIM instance, optionally including its instance path.
-
-    This object can be used like a dictionary of its properties, with the
-    names of the properties as dictionary keys, and their values as dictionary
-    values.
-
-    Attributes:
-
-      ...: All parameters of the constructor are set as instance variables,
-        whereby any mutable objects are copied.
-    """
-
-    # pylint: disable=too-many-arguments
-    def __init__(self, classname, properties=None, qualifiers=None,
-                 path=None, property_list=None):
-        """
-        Parameters:
-
-          classname (`unicode string`_ or `byte string`_):
-            Name of the creation class of the instance.
-
-          properties (dict or `NocaseDict`_):
-            Optional: Dictionary of properties, specifying property values of
-            the instance.
-
-            The dictionary must contain one item for each property, with:
-
-            * key (`unicode string`_ or `byte string`_): Property name
-            * value (`CIM data type`_): Property value
-
-            If `None`, the instance will have no properties.
-
-          qualifiers (dict or `NocaseDict`_):
-            Optional: Dictionary of qualifier values of the instance.
-
-            If `None`, the instance will have no qualifiers.
-
-            Note that `DSP0200`_ has deprecated the presence of qualifier
-            values on CIM instances.
-
-          path (CIMInstanceName):
-            Optional: Instance path of the instance.
-
-            If `None`, the instance is not addressable or the instance path is
-            unknown or not needed.
-
-            Default: `None`.
-
-          property_list (list of `unicode string`_ or `byte string`_):
-            Optional: List of property names for use by some operations on this
-            object.
-
-        Raises:
-            TypeError
-            ValueError
-        """
-
-        self.classname = _ensure_unicode(classname)
-        self.qualifiers = NocaseDict(qualifiers)
-        # TODO: Add support for accepting qualifiers as plain dict
-        self.path = path
-        if property_list is not None:
-            self.property_list = [_ensure_unicode(x).lower() \
-                for x in property_list]
-        else:
-            self.property_list = None
-
-        # Assign initialised property values and run through
-        # __setitem__ to enforce CIM data types for each property.
-
-        self.properties = NocaseDict()
-        if properties:
-            for key, value in properties.items():
-                self.__setitem__(key, value)
-
-    def _cmp(self, other):
-        """
-        Comparator function for two :class:`~pywbem.CIMInstance` objects.
-
-        The comparison is based on the `classname`, `path`, `properties`,
-        and `qualifiers` instance attributes, in descending precedence.
-
-        The `classname` attribute is compared case-insensitively.
-
-        Raises:
-            TypeError: `other` is not a :class:`~pywbem.CIMInstance`.
-        """
-        if self is other:
-            return 0
-        if not isinstance(other, CIMInstance):
-            raise TypeError("other must be CIMInstance, but is: %s" %\
-                            type(other))
-        return (cmpname(self.classname, other.classname) or
-                cmpitem(self.path, other.path) or
-                cmpitem(self.properties, other.properties) or
-                cmpitem(self.qualifiers, other.qualifiers))
-
-    def __str__(self):
-        """Return a short string representation of the
-        :class:`~pywbem.CIMInstance` object for human consumption."""
-
-        return '%s(classname=%r, path=%r, ...)' % \
-               (self.__class__.__name__, self.classname, self.path)
-
-    def __repr__(self):
-        """Return a string representation of the
-        :class:`~pywbem.CIMInstance` object that is suitable for debugging."""
-
-        return '%s(classname=%r, path=%r, ' \
-               'properties=%r, property_list=%r' \
-               'qualifiers=%r)' % \
-               (self.__class__.__name__, self.classname, self.path,
-                self.properties, self.property_list,
-                self.qualifiers)
-
-    def __contains__(self, key):
-        return key in self.properties
-
-    def __getitem__(self, key):
-        return self.properties[key].value
-
-    def __setitem__(self, key, value):
-
-        # Don't let anyone set integer or float values.  You must use
-        # a subclass from the cim_type module.
-
-        # Note: The CIM data types are derived from the built-in types,
-        # so we cannot use isinstance() for this test.
-        # pylint: disable=unidiomatic-typecheck
-        if builtin_type(value) in six.integer_types + (float,):
-            raise TypeError(
-                "Type of numeric value for a property must be a "\
-                "CIM data type, but is %s" % builtin_type(value))
-
-        if self.property_list is not None and key.lower() not in \
-                self.property_list:
-            if self.path is not None and key not in self.path.keybindings:
-                return
-        # Convert value to appropriate PyWBEM type
-
-        if isinstance(value, CIMProperty):
-            val = value
-        else:
-            val = CIMProperty(key, value)
-
-        self.properties[key] = val
-        if self.path is not None and key in self.path.keybindings:
-            self.path[key] = val.value
-
-    def __delitem__(self, key):
-        del self.properties[key]
-
-    def __len__(self):
-        return len(self.properties)
-
-    def copy(self):
-        """Return copy of the :class:`~pywbem.CIMInstance` object."""
-
-        result = CIMInstance(self.classname)
-        result.properties = self.properties.copy()
-        result.qualifiers = self.qualifiers.copy()
-        result.path = (self.path is not None and \
-                       [self.path.copy()] or [None])[0]
-
-        return result
-
-    def update(self, *args, **kwargs):
-        """Add the named arguments and keyword arguments to the properties,
-        updating the values of those that already exist."""
-
-        for mapping in args:
-            if hasattr(mapping, 'items'):
-                for key, value in mapping.items():
-                    self[key] = value
-            else:
-                for (key, value) in mapping:
-                    self[key] = value
-        for key, value in kwargs.items():
-            self[key] = value
-
-    def update_existing(self, *args, **kwargs):
-        """Update the values of already existing properties from the named
-        arguments and keyword arguments."""
-
-        for mapping in args:
-            if hasattr(mapping, 'items'):
-                for key, value in mapping.items():
-                    try:
-                        prop = self.properties[key]
-                    except KeyError:
-                        continue
-                    prop.value = tocimobj(prop.type, value)
-            else:
-                for (key, value) in mapping:
-                    try:
-                        prop = self.properties[key]
-                    except KeyError:
-                        continue
-                    prop.value = tocimobj(prop.type, value)
-        for key, value in kwargs.items():
-            try:
-                prop = self.properties[key]
-            except KeyError:
-                continue
-            prop.value = tocimobj(prop.type, value)
-
-    def has_key(self, key):
-        """Return a boolean indicating whether the instance has a property
-        with name `key`."""
-        return key in self.properties
-
-    def get(self, key, default=None):
-        """Return the value of the property with name `key`, or a default
-        value if a property with that name does not exist."""
-        prop = self.properties.get(key, None)
-        return default if prop is None else prop.value
-
-    def keys(self):
-        """Return a copied list of the property names (in their original
-        lexical case)."""
-        return self.properties.keys()
-
-    def values(self):
-        """Return a copied list of the property values."""
-        return [v.value for v in self.properties.values()]
-
-    def items(self):
-        """Return a copied list of the properties, where each item is a tuple
-        of the property name (in the original lexical case) and the property
-        value."""
-        return [(key, v.value) for key, v in self.properties.items()]
-
-    def iterkeys(self):
-        """Iterate through the property names (in their original lexical
-        case)."""
-        return self.properties.iterkeys()
-
-    def itervalues(self):
-        """Iterate through the property values."""
-        for _, val in self.properties.iteritems():
-            yield val.value
-
-    def iteritems(self):
-        """Iterate through the property names (in their original lexical
-        case)."""
-        for key, val in self.properties.iteritems():
-            yield (key, val.value)
-
-    def tocimxml(self):
-        """Return the CIM-XML representation of the
-        :class:`~pywbem.CIMInstance` object, as an object of an appropriate
-        subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
-
-        The returned CIM-XML representation is consistent with `DSP0201`_.
-        """
-
-        props = []
-
-        for key, value in self.properties.items():
-
-            # Value has already been converted into a CIM object
-            # property type (e.g for creating null property values).
-
-            if isinstance(value, CIMProperty):
-                props.append(value)
-                continue
-
-            props.append(CIMProperty(key, value))
-
-        instance_xml = cim_xml.INSTANCE(
-            self.classname,
-            properties=[p.tocimxml() for p in props],
-            qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
-
-        if self.path is None:
-            return instance_xml
-
-        return cim_xml.VALUE_NAMEDINSTANCE(self.path.tocimxml(),
-                                           instance_xml)
-
-    def tomof(self, indent=0):
-        """Return a string representing the MOF definition of the
-        :class:`~pywbem.CIMInstance` object.
-
-        Parameters:
-
-          indent (number): Optional: defines the number of spaces
-            that the initial line of the output is indented.
-        """
-
-        def _prop2mof(type_, value, indent):
-            """ Return a string representing the MOF definition of
-                a single property defined by the type and value
-                arguments.
-                :param type_: :class:`~pywbem.CIMType` of the property
-                :param value: value corresponding to this type
-                :param indent: number of spaces to indent the
-                    initial line of the generated mof.
-            """
-
-            def _prop_array_val2mof(value, indent, single_line):
-                """ Output array of values either on single line or
-                    one line per value
-                    :param value: Array of values to output
-                    :param indent: indent number of spaces of currnet
-                         indent indent level if multiple line
-                """
-                val = ''
-
-                sep = ', 'if single_line else ',\n' + _indent_str(indent)
-                for i, item in enumerate(value):
-                    if i > 0:
-                        val += sep
-                    val += _prop2mof(type_, item, indent)
-                return val
-
-            if value is None:
-                val = 'NULL'
-            elif isinstance(value, list):
-                val = '{'
-                # output as single line if within width limits
-                val_tmp = _prop_array_val2mof(value, indent, True)
-                # If too large, redo with on array element per line
-                if len(val_tmp) > MAX_MOF_LINE - indent:
-                    val_tmp = '\n' + _indent_str(indent+MOF_INDENT)
-                    val_tmp += _prop_array_val2mof(value,
-                                                   (indent+MOF_INDENT),
-                                                   False)
-                val += val_tmp + '}'
-
-            elif type_ == 'string':
-                val = mofstr(value, indent=indent)
-            else:
-                val = str(value)
-            return val
-
-        ret_str = 'instance of %s {\n' % self.classname
-        for prop in self.properties.values():
-            if prop.embedded_object is not None:
-                # TODO: May not handle recursive embedded instances
-                # convert the instance in this property to cimxml
-                prop_val = prop.value.tocimxml().toxml()
-            else:
-                prop_val = prop.value
-
-            ret_str += '%s%s = %s;\n' % (_indent_str(indent+MOF_INDENT),
-                                         prop.name,
-                                         _prop2mof(prop.type,
-                                                   prop_val,
-                                                   (indent+MOF_INDENT)))
-        ret_str += '};\n'
-        return ret_str
-
-
-class CIMClass(_CIMComparisonMixin):
-    """A CIM class.
-
-    Attributes:
-
-      ...: All parameters of the constructor are set as instance variables,
-        whereby any mutable objects are copied.
-    """
-
-    # pylint: disable=too-many-arguments
-    def __init__(self, classname, properties=None, methods=None,
-                 superclass=None, qualifiers=None):
-        """
-        Parameters:
-
-          classname (`unicode string`_ or `byte string`_):
-            Name of the class.
-
-          properties (iterable of :class:`~pywbem.CIMProperty`):
-            Optional: Iterable of property declarations for the class.
-            If `None`, the class will have no properties.
-
-          methods (iterable of :class:`~pywbem.CIMMethod`):
-            Optional: Iterable of method declarations for the class.
-            If `None`, the class will have no methods.
-
-          superclass (`unicode string`_ or `byte string`_):
-            Name of the superclass of the class.
-            If `None`, the class will be a top-level class.
-
-          qualifiers (iterable of :class:`~pywbem.CIMQualifier`):
-            Optional: Iterable of qualifier values for the class.
-            If `None`, the class will have no qualifiers.
-        """
-
-        self.classname = _ensure_unicode(classname)
-        self.properties = NocaseDict(properties)
-        self.methods = NocaseDict(methods)
-        self.superclass = _ensure_unicode(superclass)
-        self.qualifiers = NocaseDict(qualifiers)
-
-    def _cmp(self, other):
-        """
-        Comparator function for two :class:`~pywbem.CIMClass` objects.
-
-        The comparison is based on the `classname`, `superclass`, `qualifiers`,
-        `properties` and `methods` instance attributes, in descending
-        precedence.
-
-        The `classname` and `superclass` attributes are compared
-        case-insensitively.
-
-        Raises:
-            TypeError: `other` is not a :class:`~pywbem.CIMClass`.
-        """
-        if self is other:
-            return 0
-        if not isinstance(other, CIMClass):
-            raise TypeError("other must be CIMClass, but is: %s" %\
-                            type(other))
-        return (cmpname(self.classname, other.classname) or
-                cmpname(self.superclass, other.superclass) or
-                cmpitem(self.qualifiers, other.qualifiers) or
-                cmpitem(self.properties, other.properties) or
-                cmpitem(self.methods, other.methods))
-
-    def __str__(self):
-        """Return a short string representation of the
-        :class:`~pywbem.CIMClass` object for human consumption."""
-
-        return '%s(classname=%r, ...)' % \
-               (self.__class__.__name__, self.classname)
-
-    def __repr__(self):
-        """Return a string representation of the :class:`~pywbem.CIMClass`
-        object that is suitable for debugging."""
-
-        return '%s(classname=%r, superclass=%r, ' \
-               'properties=%r, methods=%r, qualifiers=%r)' % \
-               (self.__class__.__name__, self.classname, self.superclass,
-                self.properties, self.methods, self.qualifiers)
-
-    def copy(self):
-        """Return a copy of the :class:`~pywbem.CIMClass` object."""
-        result = CIMClass(self.classname)
-        result.properties = self.properties.copy()
-        result.methods = self.methods.copy()
-        result.superclass = self.superclass
-        result.qualifiers = self.qualifiers.copy()
-
-        return result
-
-    def tocimxml(self):
-        """Return the CIM-XML representation of the
-        :class:`~pywbem.CIMClass` object, as an object of an appropriate
-        subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
-
-        The returned CIM-XML representation is consistent with `DSP0201`_.
-        """
-
-        return cim_xml.CLASS(
-            self.classname,
-            properties=[p.tocimxml() for p in self.properties.values()],
-            methods=[m.tocimxml() for m in self.methods.values()],
-            qualifiers=[q.tocimxml() for q in self.qualifiers.values()],
-            superclass=self.superclass)
-
-    def tomof(self):
-        """Return a string representing the MOF definition of the
-        :class:`~pywbem.CIMClass` object."""
-
-        indent = MOF_INDENT
-
-        # Qualifiers definition or empty line
-        ret_str = '%s\n' % (_makequalifiers(self.qualifiers,
-                                            indent))
-
-        ret_str += 'class %s ' % self.classname
-
-        # Superclass
-
-        if self.superclass is not None:
-            ret_str += ': %s ' % self.superclass
-
-        ret_str += '{\n'
-
-        # Properties; indent one level from class definition
-
-        for prop_val in self.properties.values():
-            if prop_val.is_array and prop_val.array_size is not None:
-                array_str = "[%s]" % prop_val.array_size
-            else:
-                array_str = ''
-            ret_str += '\n'
-            if len(prop_val.qualifiers) != 0:
-                ret_str += '%s\n' % ((_makequalifiers(prop_val.qualifiers,
-                                                      (indent + MOF_INDENT))))
-            ret_str += '%s%s %s%s;\n' % (_indent_str(indent),
-                                         moftype(prop_val.type,
-                                                 prop_val.reference_class),
-                                         prop_val.name, array_str)
-
-        # Methods, indent one level from class definition
-
-        for method in self.methods.values():
-            ret_str += '%s\n' % method.tomof(indent)
-
-        ret_str += '};\n'
-
-        return ret_str
-
-
 class CIMMethod(_CIMComparisonMixin):
     """
     A method declaration in a CIM class.
 
     Attributes:
 
-      ...: All parameters of the constructor are set as instance variables,
-        whereby any mutable objects are copied.
+      methodname (`unicode string`_):
+        Name of the method.
+
+      return_type (`unicode string`_):
+        Name of the CIM data type of the method return type.
+
+      parameters (`NocaseDict`_):
+        Parameter declarations for the method declaration, see the
+        corresponding constructor parameter.
+
+      class_origin (`unicode string`_):
+        The CIM class origin of the method, see the corresponding constructor
+        parameter, or `None`.
+
+      propagated (bool):
+        Indicates whether the method has been propagated from a superclass to
+        this class, or `None`.
+
+      qualifiers (`NocaseDict`_):
+        Qualifier values for the method declaration, see the corresponding
+        constructor parameter.
     """
 
     # pylint: disable=too-many-arguments
     def __init__(self, methodname, return_type=None, parameters=None,
                  class_origin=None, propagated=False, qualifiers=None):
         """
+        The constructor currently stores the input arguments as-is. In the
+        future, it is intended to change such that some values when specified
+        as `None` are considered unspecified and will tried to be inferred from
+        other values, similar to the constructor of
+        :class:`~pywbem.CIMProperty`.
+
         Parameters:
 
           methodname (`unicode string`_ or `byte string`_):
             Name of the method (just the method name, without class name
             or parenthesis).
+            Must not be `None`.
 
           return_type (`unicode string`_ or `byte string`_):
-            CIM data type name of method return type (e.g. "uint8").
+            Name of the CIM data type of the method return type
+            (e.g. ``"uint32"``).
+            `None` is currently stored as is; in the future it will mean that
+            the argument is unspecified, causing the corresponding instance
+            variable to be inferred.
 
-          parameters (iterable of :class:`~pywbem.CIMParameter`):
-            Optional: Iterable of parameters for the method.
+          parameters (dict or `NocaseDict`_):
+            Parameter declarations for the method declaration.
+            Each dictionary item specifies one parameter declaration, with:
+
+            * key (`unicode string`_ or `byte string`_): Parameter name
+            * value (:class:`~pywbem.CIMParameter`): Parameter declaration
+
             If `None`, the method will have no parameters.
 
           class_origin (`unicode string`_ or `byte string`_):
@@ -2208,19 +2324,26 @@ class CIMMethod(_CIMComparisonMixin):
             the class hierarchy of the class owning the method).
             `None` means that class origin information is not available.
 
-          propagated (`unicode string`_ or `byte string`_):
-            This parameter has no meaning; the concept of value propagation
-            applies only to properties.
+          propagated (bool):
+            If not `None`, indicates whether the method has been propagated
+            from a superclass to this class.
+            `None` means that propagation information is not available.
 
-          qualifiers (iterable of :class:`~pywbem.CIMQualifier`):
-            Optional: Iterable of qualifier values for the method.
-            If `None`, the method will have no qualifiers.
+          qualifiers (dict or `NocaseDict`_):
+            Qualifier values for the method declaration.
+            Each dictionary item specifies one qualifier value, with:
+
+            * key (`unicode string`_ or `byte string`_): Qualifier name
+            * value (:class:`~pywbem.CIMQualifier`): Qualifier value
+
+            `None` is interpreted as an empty dictionary.
         """
 
         self.name = _ensure_unicode(methodname)
         self.return_type = _ensure_unicode(return_type)
         self.parameters = NocaseDict(parameters)
         self.class_origin = _ensure_unicode(class_origin)
+        # TODO: Propagated is bool; _ensure_unicode() is unnecessary
         self.propagated = _ensure_unicode(propagated)
         self.qualifiers = NocaseDict(qualifiers)
 
@@ -2329,8 +2452,31 @@ class CIMParameter(_CIMComparisonMixin):
 
     Attributes:
 
-      ...: All parameters of the constructor are set as instance variables,
-        whereby any mutable objects are copied.
+      name (`unicode string`_):
+        Name of the parameter.
+
+      type (`unicode string`_):
+        Name of the CIM data type of the parameter (e.g. ``"uint8"``).
+
+      reference_class (`unicode string`_):
+        Name of the referenced class, for reference properties, or `None`.
+
+      is_array (bool):
+        A boolean indicating whether the property is an array (`True`) or a
+        scalar (`False`), or `None`.
+
+      array_size (int):
+        The size of the array property, for fixed-size arrays.
+        `None` means that the array property has variable size.
+
+      qualifiers (`NocaseDict`_):
+        Qualifier values for the parameter declaration, see the corresponding
+        constructor parameter.
+
+      value:
+        This variable has no meaning; the object represents only
+        parameter declarations, but not parameter values in method
+        invocations. Parameter declarations do not have a default value.
     """
 
     # pylint: disable=too-many-arguments
@@ -2338,43 +2484,54 @@ class CIMParameter(_CIMComparisonMixin):
                  array_size=None, qualifiers=None, value=None):
         # pylint: disable=redefined-builtin
         """
+        The constructor currently stores the input arguments as-is. In the
+        future, it is intended to change such that some values when specified
+        as `None` are considered unspecified and will tried to be inferred from
+        other values, similar to the constructor of
+        :class:`~pywbem.CIMProperty`.
+
         Parameters:
 
           name (`unicode string`_ or `byte string`_):
-            Name of the parameter. Must not be `None`.
+            Name of the parameter.
+            Must not be `None`.
 
           type (`unicode string`_ or `byte string`_):
             Name of the CIM data type of the parameter (e.g. ``"uint8"``).
+            Must not be `None`, currently; in the future `None` will mean that
+            the argument is unspecified, causing the corresponding instance
+            variable to be inferred.
 
           reference_class (`unicode string`_ or `byte string`_):
-            The name of the referenced class, for reference properties.
-            `None` means that the argument is unspecified, causing the
-            corresponding instance variable  to be inferred. An exception is
-            raised if it cannot be inferred.
+            Name of the referenced class, for reference properties.
+            `None` is currently stored as is; in the future it will mean that
+            the argument is unspecified, causing the corresponding instance
+            variable to be inferred.
 
           is_array (bool):
             A boolean indicating whether the property is an array (`True`) or a
             scalar (`False`).
-            `None` means that the argument is unspecified, causing the
-            corresponding instance variable to be inferred from the `value`
-            parameter, and if that is `None` it defaults to `False` (scalar).
+            `None` is currently stored as is; in the future it will mean that
+            the argument is unspecified, causing the corresponding instance
+            variable to be inferred.
 
           array_size (int):
             The size of the array property, for fixed-size arrays.
             `None` means that the array property has variable size.
 
           qualifiers (dict or `NocaseDict`_):
-            A dictionary specifying CIM qualifier values.
-            The dictionary keys must be the qualifier names. The dictionary
-            values must be :class:`~pywbem.CIMQualifier` objects specifying the
-            qualifier values.
-            `None` means that there are no qualifier values. In all cases,
-            the `qualifiers` instance variable will be a `NocaseDict`_ object.
+            Qualifier values for the parameter declaration.
+            Each dictionary item specifies one qualifier value, with:
 
-          value (???):
+            * key (`unicode string`_ or `byte string`_): Qualifier name
+            * value (:class:`~pywbem.CIMQualifier`): Qualifier value
+
+            `None` is interpreted as an empty dictionary.
+
+          value:
             This parameter has no meaning; the object represents only
             parameter declarations, but not parameter values in method
-            invocations.
+            invocations. Parameter declarations do not have a default value.
         """
 
         type_ = type  # Minimize usage of the builtin 'type'
@@ -2527,6 +2684,7 @@ class CIMParameter(_CIMComparisonMixin):
                                   self.name, array_str)
         return rtn_str
 
+
 # pylint: disable=too-many-instance-attributes
 class CIMQualifier(_CIMComparisonMixin):
     """
@@ -2538,7 +2696,36 @@ class CIMQualifier(_CIMComparisonMixin):
 
     Attributes:
 
-      ...: All parameters of the constructor are set as instance variables.
+      name (`unicode string`_):
+        Name of the qualifier.
+
+      value (`CIM data type`_):
+        Value of the qualifier, or `None`.
+        For CIM data types string and char16, the resulting instance
+        variable will be a `unicode string`_, even when specified as a
+        `byte string`_.
+
+      type (`unicode string`_):
+        Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
+
+      propagated (bool):
+        Indicates whether the qualifier value has been propagated from a
+        superclass to this class, or `None`.
+
+      overridable (bool):
+        Indicates whether the qualifier value is overridable in subclasses,
+        or `None`.
+
+      tosubclass (bool):
+        Indicates whether the qualifier value propagates to subclasses, or
+        `None`.
+
+      toinstance (bool):
+        Indicates whether the qualifier value propagates to instances, or
+        `None`.
+
+      translatable (bool):
+        Indicates whether the qualifier is translatable, or `None`.
     """
 
     #pylint: disable=too-many-arguments
@@ -2547,13 +2734,58 @@ class CIMQualifier(_CIMComparisonMixin):
                  translatable=None):
         # pylint: disable=redefined-builtin
         """
-        TODO: add description for constructor parameters.
+        The constructor infers optional arguments that are not specified (for
+        example, it infers `type` from the Python type of `value` and other
+        information). If the specified arguments are inconsistent, an
+        exception is raised. If an optional argument is needed for some reason,
+        an exception is raised.
+
+        Parameters:
+
+          name (`unicode string`_ or `byte string`_):
+            Name of the qualifier.
+            Must not be `None`.
+
+          value (`CIM data type`_):
+            Value of the qualifier.
+            `None` means that the qualifier is Null.
+
+          type (`unicode string`_ or `byte string`_):
+            Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
+            `None` means that the argument is unspecified, causing the
+            corresponding instance variable to be inferred. An exception is
+            raised if it cannot be inferred.
+
+          propagated (bool):
+            If not `None`, specifies whether the qualifier value has been
+            propagated from a superclass to this class.
+            `None` means that this information is not available.
+
+          overridable (bool):
+            If not `None`, specifies whether the qualifier value is overridable
+            in subclasses.
+            `None` means that this information is not available.
+
+          tosubclass (bool):
+            If not `None`, specifies whether the qualifier value propagates
+            to subclasses.
+            `None` means that this information is not available.
+
+          toinstance (bool):
+            If not `None`, specifies whether the qualifier value propagates
+            to instances.
+            `None` means that this information is not available.
+
+          translatable (bool):
+            If not `None`, specifies whether the qualifier is translatable.
+            `None` means that this information is not available.
         """
 
         type_ = type  # Minimize usage of the builtin 'type'
 
         self.name = _ensure_unicode(name)
         self.type = _ensure_unicode(type_)
+        # TODO: Propagated is bool; _ensure_unicode() is unnecessary
         self.propagated = _ensure_unicode(propagated)
         self.overridable = overridable
         self.tosubclass = tosubclass
@@ -2705,6 +2937,7 @@ class CIMQualifier(_CIMComparisonMixin):
 
         return '%s (%s)' % (self.name, valstr(self.value))
 
+
 #pylint: disable=too-many-instance-attributes
 class CIMQualifierDeclaration(_CIMComparisonMixin):
     """
@@ -2714,8 +2947,48 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     Attributes:
 
-      ...: All parameters of the constructor are set as instance variables,
-        whereby any mutable objects are copied.
+      name (`unicode string`_):
+        Name of the qualifier.
+
+      type (`unicode string`_):
+        Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
+
+      value (`CIM data type`_):
+        Default value of the qualifier, or `None` meaning Null.
+        For CIM data types string and char16, the resulting instance
+        variable will be a `unicode string`_, even when specified as a
+        `byte string`_.
+
+      is_array (bool):
+        A boolean indicating whether the qualifier is an array (`True`) or a
+        scalar (`False`).
+
+      array_size (int):
+        The size of the array qualifier, for fixed-size arrays.
+        `None` means that the array qualifier has variable size.
+
+      scopes (`NocaseDict`_):
+        Scopes for the qualifier declaration, see the corresponding constructor
+        parameter.
+
+      overridable (bool):
+        If not `None`, specifies whether the qualifier value is overridable
+        in subclasses.
+        `None` means that this information is not available.
+
+      tosubclass (bool):
+        If not `None`, specifies whether the qualifier value propagates
+        to subclasses.
+        `None` means that this information is not available.
+
+      toinstance (bool):
+        If not `None`, specifies whether the qualifier value propagates
+        to instances.
+        `None` means that this information is not available.
+
+      translatable (bool):
+        If not `None`, specifies whether the qualifier is translatable.
+        `None` means that this information is not available.
     """
 
     # TODO: Scope and qualifier flavors
@@ -2727,7 +3000,61 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
                  translatable=None):
         # pylint: disable=redefined-builtin
         """
-        TODO: add description for constructor parameters.
+        Parameters:
+
+          name (`unicode string`_ or `byte string`_):
+            Name of the qualifier.
+            Must not be `None`.
+
+          type (`unicode string`_ or `byte string`_):
+            Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
+            Must not be `None`.
+
+          value (`CIM data type`_):
+            Default value of the qualifier.
+            `None` means a default value of Null.
+
+          is_array (bool):
+            A boolean indicating whether the qualifier is an array (`True`) or a
+            scalar (`False`).
+            Must not be `None`.
+
+          array_size (int):
+            The size of the array qualifier, for fixed-size arrays.
+            `None` means that the array qualifier has variable size.
+
+          scopes (dict or `NocaseDict`_):
+            Scopes for the qualifier declaration.
+            Each dictionary item specifies one scope value, with:
+
+            * key (`unicode string`_ or `byte string`_): Scope name, in upper
+              case
+            * value (bool): Scope value, specifying whether the qualifier
+              has that scope (i.e. can be applied to a CIM element of that
+              kind).
+
+            Valid scope names are "CLASS", "ASSOCIATION", "REFERENCE",
+            "PROPERTY", "METHOD", "PARAMETER", "INDICATION", and "ANY".
+            `None` is interpreted as an empty dictionary.
+
+          overridable (bool):
+            If not `None`, specifies whether the qualifier value is overridable
+            in subclasses.
+            `None` means that this information is not available.
+
+          tosubclass (bool):
+            If not `None`, specifies whether the qualifier value propagates
+            to subclasses.
+            `None` means that this information is not available.
+
+          toinstance (bool):
+            If not `None`, specifies whether the qualifier value propagates
+            to instances.
+            `None` means that this information is not available.
+
+          translatable (bool):
+            If not `None`, specifies whether the qualifier is translatable.
+            `None` means that this information is not available.
         """
 
         type_ = type  # Minimize usage of the builtin 'type'
@@ -2868,6 +3195,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         mof += ');'
         return mof
 
+
 def tocimxml(value):
     """Return the CIM-XML representation of the CIM object or CIM data type.
 
@@ -2913,6 +3241,7 @@ def tocimxml(value):
 
     raise ValueError("Can't convert %s (%s) to CIM XML" % \
                      (value, builtin_type(value)))
+
 
 #pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
 def tocimobj(type_, value):
