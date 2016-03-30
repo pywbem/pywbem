@@ -297,10 +297,8 @@ mof_compiler
 A MOF compiler. It compiles MOF files, and updates the repository of a WBEM
 server with the result.
 
-Invoke ``mof_compiler --help`` for a detailed help message.
-
-.. # TODO: Replace the hint to invoke with --help by including an automatically
-.. #       generated help output. Auto-generate it in the makefile.
+.. include:: mof_compiler.help.txt
+ 	 :literal:
 
 The MOF compiler can also be invoked from programs via the `MOF compiler API`_.
 
@@ -316,10 +314,8 @@ A WBEM client CLI.
 It is currently implemented as an interactive shell, and is expected to morph
 into a full fledged command line utility in the future.
 
-Invoke ``wbemcli --help`` for a detailed help message.
-
-.. # TODO: Replace the hint to invoke with --help by including an automatically
-.. #       generated help output. Auto-generate it in the makefile.
+.. include:: wbemcli.help.txt
+ 	 :literal:
 
 The WBEM client CLI does not have an external API on its own; it is for the
 most part a consumer of the `WBEM client library API`_.

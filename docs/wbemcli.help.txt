@@ -1,0 +1,26 @@
+usage: wbemcli [options] server
+
+Provide an interactive shell for issuing operations against a WBEM server.
+
+Positional arguments:
+  server                Host name or IP address of the WBEM server.
+
+Server related options:
+  Specify the WBEM server and namespace
+
+  --port port           Port where the WBEM server listens
+  --no-ssl              Don't use SSL
+  -n namespace, --namespace namespace
+                        Namespace in the WBEM server to work against.
+                        Default: root/cimv2
+  -u user, --user user  Username for authenticating with the WBEM server.
+                        Default: No username
+  -p password, --password password
+                        Password for authenticating with the WBEM server.
+                        Default: Will be prompted for, if username was specified.
+
+General options:
+  -v, --verbose         Print more messages while processing
+  -h, --help            Show this help message and exit
+
+Example: wbemcli localhost --port 15989 -n root/cimv2 -u sheldon -p penny42

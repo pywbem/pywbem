@@ -1,0 +1,40 @@
+usage: mof_compiler [options] moffile ...
+
+Compile MOF files, and update the repository of a WBEM server with the result.
+
+Positional arguments:
+  moffile               Path name of the MOF file to be compiled.
+                        Can be specified multiple times.
+
+Server related options:
+  Specify the WBEM server and namespace
+
+  -u url, --url url     URL of the WBEM server.
+                        Default: /var/run/tog-pegasus/cimxml.socket
+  -n namespace, --namespace namespace
+                        Namespace in the WBEM server to work against
+                        (required)
+  -l username, --username username
+                        Username for authenticating with the WBEM server.
+                        Default: No username
+  -p password, --password password
+                        Password for authenticating with the WBEM server.
+                        Default: No password
+
+Action related options:
+  Specify actions against the repository. Default: create/update elements.
+
+  -r, --remove          Remove elements (found in the MOF files) from the
+                        repository, instead of creating or updating them
+  -d, --dry-run         Don't actually modify the repository, just check MOF
+                        syntax. Connection to WBEM server is still required to
+                        check qualifiers.
+
+General options:
+  -s dir, --search dir  Path name of an additional search directory for MOF
+                        include files. Can be specified multiple times.
+  -v, --verbose         Print more messages while processing
+  -h, --help            Show this help message and exit
+
+Example: mof_compiler CIM_Schema_2.45.mof -u https://localhost:15989 -n
+root/cimv2 -l sheldon -p penny42

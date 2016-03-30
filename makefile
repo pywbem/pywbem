@@ -100,6 +100,11 @@ doc_opts := -v -d $(doc_build_dir)/doctrees -c $(doc_conf_dir) -D latex_paper_si
 # Directory for documentation publishing
 doc_publish_dir := ../pywbem.github.io/pywbem/doc/$(package_final_version)/doc
 
+# File names of automatically generated utility help message text output
+doc_utility_help_files := \
+    $(doc_conf_dir)/wbemcli.help.txt \
+    $(doc_conf_dir)/mof_compiler.help.txt \
+
 # PyLint config file
 pylint_rc_file := pylint.rc
 
@@ -167,20 +172,20 @@ builddoc: html
 	@echo '$@ done; created documentation in: $(doc_build_dir)'
 
 .PHONY: html
-html:
+html: $(doc_utility_help_files)
 	PYTHONPATH=. $(doc_cmd) -b html $(doc_opts) $(doc_build_dir)/html
 	cp $(package_name)/NEWS.md $(doc_build_dir)/html/docs/
 	@echo "$@ done; the HTML pages are in $(doc_build_dir)/html."
 
 .PHONY: pdf
-pdf:
+pdf: $(doc_utility_help_files)
 	$(doc_cmd) -b latex $(doc_opts) $(doc_build_dir)/pdf
 	@echo "Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(doc_build_dir)/pdf all-pdf
 	@echo "$@ done; the PDF files are in $(doc_build_dir)/pdf."
 
 .PHONY: man
-man:
+man: $(doc_utility_help_files)
 	$(doc_cmd) -b man $(doc_opts) $(doc_build_dir)/man
 	@echo "$@ done; the manual pages are in $(doc_build_dir)/man."
 
@@ -287,4 +292,10 @@ $(test_log_file): $(package_name)/*.py testsuite/*.py coveragerc
 	rm -f $(test_log_file)
 	bash -c "set -o pipefail; PYTHONPATH=. py.test --cov $(package_name) --cov-config coveragerc --ignore=attic --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
+
+$(doc_conf_dir)/wbemcli.help.txt: wbemcli $(package_name)/wbemcli.py
+	./wbemcli --help >$@
+
+$(doc_conf_dir)/mof_compiler.help.txt: mof_compiler $(package_name)/mof_compiler.py
+	./mof_compiler --help >$@
 
