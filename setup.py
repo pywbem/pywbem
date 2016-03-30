@@ -428,8 +428,7 @@ def main():
                     "libxslt-devel",        # for installing Python lxml pkg
                     "libyaml-devel",        # for installing Python pyyaml pkg
                     "make",                 # PyWBEM has a makefile
-                    "zip",                  # for building distribution archive
-                    "unzip",                # for installing distrib. archive
+                    "tar",                  # for distribution archive
                     "patch",                # for patching Epydoc
                 ],
                 'centos': 'redhat',
@@ -440,8 +439,7 @@ def main():
                     "libxslt1-dev",
                     "libyaml-dev",
                     "make",
-                    "zip",
-                    "unzip",
+                    "tar",
                     "patch",
                 ],
                 'ubuntu': [
@@ -450,8 +448,7 @@ def main():
                     "libxslt1-dev",
                     "libyaml-dev",
                     "make",
-                    "zip",
-                    "unzip",
+                    "tar",
                     "patch",
                 ],
                 'suse': [
@@ -460,8 +457,7 @@ def main():
                     "libxslt-devel",
                     "libyaml-devel",
                     "make",
-                    "zip",
-                    "unzip",
+                    "tar",
                     "patch",
                 ],
             },
