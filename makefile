@@ -191,7 +191,7 @@ clean:
 	sh -c "find . -name \"__pycache__\" |xargs rm -Rf"
 	sh -c "ls -d tmp_* |xargs rm -Rf"
 	rm -f MANIFEST parser.out .coverage $(package_name)/parser.out $(test_tmp_file) $(package_name)/mofparsetab.py $(package_name)/moflextab.py
-	rm -Rf build tmp_install testtmp testsuite/testtmp .cache $(package_name).egg-info
+	rm -Rf build tmp_install testtmp testsuite/testtmp .cache $(package_name).egg-info .eggs
 	@echo '$@ done.'
 
 all: clean develop check build builddoc test
@@ -233,9 +233,10 @@ $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
 	rm -f MANIFEST
 	python setup.py bdist_wininst -d $(dist_dir) -o -t "PyWBEM v$(package_version)"
 
-$(moftab_files): $(moftab_dependent_files)
+# Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)
+$(moftab_files): $(moftab_dependent_files) build_moftab.py
 	rm -f $(package_name)/mofparsetab.py* $(package_name)/moflextab.py*
-	sh -c "PYTHONPATH=. python -c \"from $(package_name) import mof_compiler; mof_compiler._build()\""
+	python -c "from pywbem import mof_compiler; mof_compiler._build(verbose=True)"
 
 # Documentation for package (generates more .html files than just this target)
 $(doc_build_dir)/index.html: $(doc_dependent_files)
