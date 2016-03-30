@@ -1878,10 +1878,10 @@ Example:
         'Specify actions against the repository. Default: create/update ' \
         'elements.')
     action_arggroup.add_argument(
-       '-r', '--remove', dest='remove',
-       action='store_true', default=False,
-       help='Remove elements (found in the MOF files) from the repository, ' \
-            'instead of creating or updating them')
+        '-r', '--remove', dest='remove',
+        action='store_true', default=False,
+        help='Remove elements (found in the MOF files) from the repository, ' \
+             'instead of creating or updating them')
     action_arggroup.add_argument(
         '-d', '--dry-run', dest='dry_run',
         action='store_true', default=False,
@@ -1892,17 +1892,17 @@ Example:
     general_arggroup = argparser.add_argument_group(
         'General options')
     general_arggroup.add_argument(
-       '-s', '--search', dest='search_dirs', metavar='dir',
-       action='append',
-       help='Path name of an additional search directory for MOF include ' \
-            'files. Can be specified multiple times.')
+        '-s', '--search', dest='search_dirs', metavar='dir',
+        action='append',
+        help='Path name of an additional search directory for MOF include ' \
+             'files. Can be specified multiple times.')
     general_arggroup.add_argument(
-       '-v', '--verbose', dest='verbose',
-       action='store_true', default=False,
-       help='Print more messages while processing')
+        '-v', '--verbose', dest='verbose',
+        action='store_true', default=False,
+        help='Print more messages while processing')
     general_arggroup.add_argument(
-       '-h', '--help', action='help',
-       help='Show this help message and exit')
+        '-h', '--help', action='help',
+        help='Show this help message and exit')
 
     args = argparser.parse_args()
 
