@@ -85,7 +85,7 @@ def _remote_connection(server, opts):
     if server[0] == '/':
         url = server
     else:
-        roto = 'https'
+        proto = 'https'
 
         if opts.no_ssl:
             proto = 'http'
