@@ -790,6 +790,7 @@ Short and long names of operation functions:
 
 Connection:
   CONN = WBEMConnection object connected to the WBEM server
+  conn = WBEMConnection class.
 
 Debugging support:
   pdb('<stmt>') = enter PDB debugger to execute <stmt>
@@ -804,11 +805,11 @@ Printing support:
                   producing an XML string
 
 Help:
-  help(<op>) : Brief help; <op> is a short operation namei, e.g. help(gi)
+  help(<op>) : Brief help; <op> is a short operation name, e.g. help(gi)
   help(conn.<OpName>): Detailed help; <OpName> is a long operation name,
-         e.g. help(conn.GetInstance). conn = WBEMConnection class.
+         e.g. help(conn.GetInstance).
 
-The symbols from the pywbem package namespace are available in this namespace
+The symbols from the pywbem package namespace are available in this namespace.
 """)
 
 def pdb(stmt):
