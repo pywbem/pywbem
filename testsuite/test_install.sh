@@ -31,8 +31,8 @@ function abspath()
 }
 
 if [[ $(pwd) != $(abspath $MYDIR) ]]; then
-  echo "Error: $MYNAME must be run from within its own directory: $MYDIR"
-  exit 1
+  echo "Switching to the directory where this script is located: $MYDIR"
+  cd $MYDIR
 fi
 
 PYTHON="python2.7"   # Python command / version to be used
@@ -382,6 +382,12 @@ function prep()
   remove_virtualenv "build"
 }
 
+function cleanup()
+{
+  info "Cleaning up the environment."
+  run "rm -f $DISTFILE_OLDPLY $DISTFILE_NEWPLY cmd.log"
+}
+
 function test1()
 {
   info "Testcase test1: Normal pip installation"
@@ -478,6 +484,8 @@ test1
 test2
 test3
 test4
+
+cleanup
 
 info "All testcases succeeded."
 
