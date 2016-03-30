@@ -793,21 +793,25 @@ Connection:
   conn = WBEMConnection class.
 
 Debugging support:
-  pdb('<stmt>') = enter PDB debugger to execute <stmt>
+  pdb('<stmt>')    Enter PDB debugger to execute <stmt>
 
 Printing support:
-  pp(<obj>) = pprint function, good for dicts
-  <obj>.repr() = Operation result objects have repr() for debugging
-  <obj>.tomof() = Operation result objects often have a tomof() producing a
-                  MOF string
-  <obj>.tocimxml().toxml() = Operation result objects have a tocimxml()
-                  producing a DOM object that has a toxml() function
-                  producing an XML string
+  pp(<obj>)        pprint function, good for dicts
+  repr(<obj>)      Operation result objects have repr() for debugging
+  print(<obj>.tomof())
+                   Operation result objects often have a tomof()
+                   producing a MOF string
+  <obj>.tocimxml().toxml()
+                   Operation result objects have a tocimxml()
+                   producing a DOM object that has a toxml() function
+                   producing an XML string
 
 Help:
-  help(<op>) : Brief help; <op> is a short operation name, e.g. help(gi)
-  help(conn.<OpName>): Detailed help; <OpName> is a long operation name,
-         e.g. help(conn.GetInstance).
+  help(<op>)       Brief help; <op> is a short operation name, e.g. help(gi)
+  help(conn.<OpName>)
+                   Detailed help; <OpName> is a long operation name, e.g.
+                   help(conn.GetInstance).
+  'q' to get back from help().
 
 The symbols from the pywbem package namespace are available in this namespace.
 """)
