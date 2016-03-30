@@ -227,67 +227,6 @@ def install_swig(installer, dry_run, verbose):
                     print("Done downloading, building and installing Swig "\
                           "version %s" % swig_build_version)
 
-def patch_epydoc(installer, dry_run, verbose): # pylint: disable=unused-argument
-    """Custom installer function for `os_setup` module.
-    This function patches Epydoc 3.0.1 (if not yet done) with the patches from:
-    http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/packages/epydoc/
-
-    Parameters: see description of `os_setup` module.
-    """
-
-    if dry_run:
-        if verbose:
-            print("Dry-running: Patching Epydoc")
-    else:
-        if verbose:
-            print("Patching Epydoc")
-
-        import epydoc
-        epydoc_target_dir = os.path.dirname(epydoc.__file__)
-        epydoc_patch_dir = epydoc_target_dir+"/epydoc-3.0.1-patches"
-
-        if verbose:
-            print("Epydoc patch directory: %s" % epydoc_patch_dir)
-
-        if os.path.exists(epydoc_patch_dir):
-            if verbose:
-                print("Assuming Epydoc patches have already been applied, "\
-                      "because patch directory exists")
-        else:
-            if verbose:
-                print("Downloading Epydoc patches into patch directory: %s" %\
-                      epydoc_patch_dir)
-            shell_check("mkdir -p %s" % epydoc_patch_dir, display=True)
-            shell_check("wget -q -O %s/epydoc-rst.patch "\
-                        "http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/"\
-                        "packages/epydoc/epydoc-rst.patch?revision=1.1&"\
-                        "view=co" % epydoc_patch_dir, display=True)
-            shell_check("wget -q -O %s/epydoc-cons_fields_stripping.patch "\
-                        "http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/"\
-                        "packages/epydoc/epydoc-cons_fields_stripping.patch?"\
-                        "view=co" % epydoc_patch_dir, display=True)
-            shell_check("wget -q -O %s/epydoc-__package__.patch "\
-                        "http://cvs.pld-linux.org/cgi-bin/viewvc.cgi/cvs/"\
-                        "packages/epydoc/epydoc-__package__.patch?"\
-                        "revision=1.1&view=co" % epydoc_patch_dir, display=True)
-            if verbose:
-                print("Applying Epydoc patches to Epydoc installation "\
-                      "directory: %s" % epydoc_target_dir)
-            shell_check("patch -N -r %s/epydoc-rst.patch.rej "
-                        "-i %s/epydoc-rst.patch "
-                        "%s/markup/restructuredtext.py" %\
-                        (epydoc_patch_dir, epydoc_patch_dir, epydoc_target_dir),
-                        display=True, exp_rc=(0, 1))
-            shell_check("patch -N -r %s/epydoc-cons_fields_stripping.patch.rej "
-                        "-i %s/epydoc-cons_fields_stripping.patch "
-                        "%s/markup/restructuredtext.py" %\
-                        (epydoc_patch_dir, epydoc_patch_dir, epydoc_target_dir),
-                        display=True, exp_rc=(0, 1))
-            shell_check("patch -N -r %s/epydoc-__package__.patch.rej "
-                        "-i %s/epydoc-__package__.patch "
-                        "%s/docintrospecter.py" %\
-                        (epydoc_patch_dir, epydoc_patch_dir, epydoc_target_dir),
-                        display=True, exp_rc=(0, 1))
 
 _VERBOSE = True
 
@@ -384,10 +323,7 @@ def main():
             # Python prereqs for 'develop' command. Handled by os_setup module.
             "pytest>=2.4",
             "pytest-cov",
-            # Epydoc does not support Python 3.
-            "epydoc==3.0.1" if sys.version_info[0] == 2 else None,
-            patch_epydoc if sys.version_info[0] == 2 else None,
-            "docutils>=0.12",
+            "Sphinx>=1.3",
             "httpretty",
             "lxml",
             "PyYAML",   # Pypi package name of "yaml" package.
@@ -448,7 +384,6 @@ def main():
                     "libyaml-devel",        # for installing Python pyyaml pkg
                     "make",                 # PyWBEM has a makefile
                     "tar",                  # for distribution archive
-                    "patch",                # for patching Epydoc
                 ],
                 'centos': 'redhat',
                 'fedora': 'redhat',
@@ -459,7 +394,6 @@ def main():
                     "libyaml-dev",
                     "make",
                     "tar",
-                    "patch",
                 ],
                 'ubuntu': [
                     "libxml2-dev",
@@ -468,7 +402,6 @@ def main():
                     "libyaml-dev",
                     "make",
                     "tar",
-                    "patch",
                 ],
                 'suse': [
                     "libxml2-devel",
@@ -477,7 +410,6 @@ def main():
                     "libyaml-devel",
                     "make",
                     "tar",
-                    "patch",
                 ],
             },
             # TODO: Add support for Windows. Some notes:

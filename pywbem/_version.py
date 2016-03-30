@@ -22,10 +22,14 @@
 Version of the pywbem package.
 """
 
-# Version of the pywbem package
-# Possible formats are:
-#   M.N.U.dev0  : During development of future M.N.U release
-#   M.N.U.rcX   : Release candidate X of future M.N.U release
-#   M.N.U       : The final M.N.U release
+#: Version of the ``pywbem`` package, as a string.
+#:
+#: Possible formats for the version string are:
+#:
+#: * "M.N.U.dev0": During development of future M.N.U release (not released to
+#:   PyPI)
+#: * "M.N.U.rcX": Release candidate X of future M.N.U release (not released to
+#:   PyPI)
+#: * "M.N.U": The final M.N.U release
 __version__ = '0.9.0.dev0'
 

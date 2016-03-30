@@ -18,7 +18,19 @@
 # Author: Tim Potter <tpot@hp.com>
 #
 
-"""Useful CIM constants."""
+"""
+This section defines constants for two areas:
+
+* CIM status codes (the ``CIM_ERR_*`` symbols). They are for example stored in
+  :exc:`~pywbem.CIMError` exceptions.
+* Default CIM namespace :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`. It is
+  used as a default for the `namespace` argument of
+  :class:`~pywbem.WBEMConnection`.
+
+Note: For tooling reasons, the constants are shown in the namespace
+``pywbem.cim_constants``. However, they are also available in the ``pywbem``
+namespace and should be used from there.
+"""
 
 # This module is meant to be safe for 'import *'.
 
@@ -43,27 +55,26 @@ __all__ = [
     'DEFAULT_NAMESPACE'
 ]
 
-# CIMError error code constants
+# CIM status codes
 
 # pylint: disable=bad-whitespace
-
-CIM_ERR_FAILED                       = 1  # A general error occurred
-CIM_ERR_ACCESS_DENIED                = 2  # Resource not available
-CIM_ERR_INVALID_NAMESPACE            = 3  # The target namespace does not exist
-CIM_ERR_INVALID_PARAMETER            = 4  # Parameter value(s) invalid
-CIM_ERR_INVALID_CLASS                = 5  # The specified Class does not exist
-CIM_ERR_NOT_FOUND                    = 6  # Requested object could not be found
-CIM_ERR_NOT_SUPPORTED                = 7  # Operation not supported
-CIM_ERR_CLASS_HAS_CHILDREN           = 8  # Class has subclasses
-CIM_ERR_CLASS_HAS_INSTANCES          = 9  # Class has instances
-CIM_ERR_INVALID_SUPERCLASS           = 10 # Superclass does not exist
-CIM_ERR_ALREADY_EXISTS               = 11 # Object already exists
-CIM_ERR_NO_SUCH_PROPERTY             = 12 # Property does not exist
-CIM_ERR_TYPE_MISMATCH                = 13 # Value incompatible with type
-CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED = 14 # Query language not supported
-CIM_ERR_INVALID_QUERY                = 15 # Query not valid
-CIM_ERR_METHOD_NOT_AVAILABLE         = 16 # Extrinsic method not executed
-CIM_ERR_METHOD_NOT_FOUND             = 17 # Extrinsic method does not exist
+CIM_ERR_FAILED                       = 1  #: A general error occurred
+CIM_ERR_ACCESS_DENIED                = 2  #: Resource not available
+CIM_ERR_INVALID_NAMESPACE            = 3  #: The target namespace does not exist
+CIM_ERR_INVALID_PARAMETER            = 4  #: Parameter value(s) invalid
+CIM_ERR_INVALID_CLASS                = 5  #: The specified Class does not exist
+CIM_ERR_NOT_FOUND                    = 6  #: Requested object could not be found
+CIM_ERR_NOT_SUPPORTED                = 7  #: Operation not supported
+CIM_ERR_CLASS_HAS_CHILDREN           = 8  #: Class has subclasses
+CIM_ERR_CLASS_HAS_INSTANCES          = 9  #: Class has instances
+CIM_ERR_INVALID_SUPERCLASS           = 10 #: Superclass does not exist
+CIM_ERR_ALREADY_EXISTS               = 11 #: Object already exists
+CIM_ERR_NO_SUCH_PROPERTY             = 12 #: Property does not exist
+CIM_ERR_TYPE_MISMATCH                = 13 #: Value incompatible with type
+CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED = 14 #: Query language not supported
+CIM_ERR_INVALID_QUERY                = 15 #: Query not valid
+CIM_ERR_METHOD_NOT_AVAILABLE         = 16 #: Extrinsic method not executed
+CIM_ERR_METHOD_NOT_FOUND             = 17 #: Extrinsic method does not exist
 
 # Provider types
 
@@ -75,5 +86,5 @@ PROVIDERTYPE_METHOD      = 5
 PROVIDERTYPE_CONSUMER    = 6            # Indication consumer
 PROVIDERTYPE_QUERY       = 7
 
-DEFAULT_NAMESPACE = 'root/cimv2'        # Default namespace for PyWBEM
+DEFAULT_NAMESPACE = 'root/cimv2'        #: Default namespace for PyWBEM
 

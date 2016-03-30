@@ -42,6 +42,10 @@ Enhancements
       - For `CIMParameter`, added the attribute `value`.
       - For `CIMQualifierDeclaration`, added the attribute `value`.
 
+  * Migrated API documentation to Sphinx.
+
+  * Improved documentation of many classes of the external API.
+
 
 pywbem v0.8.2
 =============
