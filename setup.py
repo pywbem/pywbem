@@ -33,6 +33,7 @@ import re
 import sys
 import os
 import shutil
+import subprocess
 from distutils.errors import DistutilsSetupError
 
 # Workaround for Python 2.6 issue https://bugs.python.org/issue15881
@@ -279,36 +280,54 @@ def patch_epydoc(installer, dry_run, verbose): # pylint: disable=unused-argument
                         (epydoc_patch_dir, epydoc_patch_dir, epydoc_target_dir),
                         display=True, exp_rc=(0, 1))
 
+_VERBOSE = True
+
+def build_moftab(verbose):
+    """Generate the moftab modules.
+
+    This function is called after the installation of the `pywbem`package
+    and its dependencies.
+    The modules are generated into the directory where the
+    `mof_compiler` module runs from, i.e. the installation target.
+
+    Because the generation depends on the packages `ply`, `six`, and
+    `M2Crypto` the build function is invoked in a child Python process,
+    which picks up the changed module search path.
+
+    Note that ideally these dependencies would be specified in a
+    `setup_requires` keyword, but at this point (setuptools v20), it does
+    not work together woth `install_requires`. See setuptools issue #391:
+    https://bitbucket.org/pypa/setuptools/issues/391/
+    dependencies-listed-in-both-setup_requires
+    """
+    rc = subprocess.call([sys.executable, 'build_moftab.py'])
+    if rc != 0:
+        # Because this does not work on pip, the best compromise is to 
+        # tolerate a failure:
+        print("Warning: build_moftab.py failed with rc=%s, PyWBEM's " \
+              "LEX/YACC table files may be re-generated on use" % rc)
+
 def main():
     """Main function of this script."""
+    global _VERBOSE
 
     import_setuptools()
     from setuptools import setup
-    from distutils.command.install import install as _install
+    from setuptools.command.build_py import build_py as _build_py
 
-    class install(_install):
+    class build_py(_build_py):
     # pylint: disable=invalid-name,too-few-public-methods
-
+        """Custom command that extends the setuptools `build_py` command,
+        which prepares the Python files before they are being installed.
+        This command is used by `setup.py install` and `pip install`.
+        
+        We use this only to pick up the verbosity level.
+        """
         def run(self):
-            pre_install(self.verbose, self.dry_run)
-            _install.run(self)
-
-    def pre_install(verbose=False, dry_run=False):
-
-        cmd = "pip install ply"
-        if dry_run:
-            print("Dry-running: %s" % cmd)
-        else:
-            print("Running: %s" % cmd)
-            shell_check(cmd, display=verbose)
-
-        if dry_run:
-            print("Dry-running: MOF Compiler build")
-        else:
-            print("Running: MOF Compiler build")
-            from pywbem import mof_compiler
-            mof_compiler._build(verbose)
-
+            global _VERBOSE
+            _VERBOSE = self.verbose
+            _build_py.run(self)
+    
     py_version_m_n = "%s.%s" % (sys.version_info[0], sys.version_info[1])
     py_version_m = "%s" % sys.version_info[0]
 
@@ -326,7 +345,7 @@ def main():
         'license': 'LGPL version 2.1, or (at your option) any later version',
         'distclass': os_setup.OsDistribution,
         'cmdclass': {
-            'install': install,
+            'build_py': build_py,
             'install_os': os_setup.install_os,
             'develop_os': os_setup.develop_os,
             'develop': os_setup.develop,
@@ -334,7 +353,7 @@ def main():
         'packages': ['pywbem'],
         'package_data': {
             'pywbem': [
-                'NEWS',
+                'NEWS.md',
                 'LICENSE.txt',
             ]
         },
@@ -477,12 +496,16 @@ def main():
     if sys.version_info[0] == 2:
         # The 'install_requires' processing in distutils does not tolerate
         # a None value in the list, so we need be truly conditional (instead
-        # of adding an entry with None.
+        # of adding an entry with None).
         args['install_requires'] += [
             'M2Crypto>=0.24',
         ]
 
     setup(**args)
+    
+    if 'install' in sys.argv or 'develop' in sys.argv:
+        build_moftab(_VERBOSE)
+    
     return 0
 
 if __name__ == '__main__':
