@@ -52,7 +52,7 @@ CIM elements (e.g. CIM properties in an instance or class, or CIM parameters
 in a method).
 
 Except for the case-insensitivity of its keys, it behaves like the built-in
-:class:`py2:dict`. Therefore, :class:`~pywbem.NocaseDict` is not described
+:class:`py:dict`. Therefore, :class:`~pywbem.NocaseDict` is not described
 in detail in this documentation.
 """
 
