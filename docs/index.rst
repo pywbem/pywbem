@@ -264,7 +264,18 @@ MOF compiler API
 ================
 
 .. automodule:: pywbem.mof_compiler
+
+.. autoclass:: pywbem.mof_compiler.MOFCompiler
    :members:
+   :special-members: __str__, __repr__
+
+.. autoclass:: pywbem.mof_compiler.MOFParseError
+   :members:
+   :special-members: __str__, __repr__
+
+.. autoclass:: pywbem.mof_compiler.MOFWBEMConnection
+   :members:
+   :special-members: __str__, __repr__
 
 WBEM listener API
 =================

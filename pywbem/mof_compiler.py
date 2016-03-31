@@ -19,21 +19,24 @@
 # Author: Ross Peoples <ross.peoples@gmail.com>
 #
 
-# Note: This module contains yacc rules in docstrings of its functions.
-# The version of yacc that is used (yacc 2.3) requires each choice of such a
-# rule to be on a single line, and the first choice to be on the same line as
-# the rule name.  These exist both as strings in the first line of
-# some functions and as docstrings defining the production for
-# some functions. Changing any of this breaks the current ply
-# rule generation.
+"""
+The language in which CIM classes are specified, is called `MOF` (for Managed
+Object Format). It is defined in `DSP0004`_.
 
-"""pywbem MOF Compiler Rules and implementation definition for lex and yacc.
-   This compiler implementation is based on the PLY python package.
-   This module contains yacc and lex rules in docstrings of its
-   functions.  The formatting of these docstrings is critical in that
-   it defines the parser functionality. Changing the strings or
-   even the formatting breaks the ply rule generation.
+The ``pywbem.mof_compiler`` module provides a MOF compiler.
 
+MOF compilers are not operating just on its MOF input. In most cases, the CIM
+elements defined in the MOF input will have dependencies on other CIM elements.
+For this reason, most MOF compilers (and this one as well) need access to
+a CIM repository that contains all the CIM elements that can be used as
+dependencies. The result of the MOF compilation is again applied to that
+repository. So except for the very first time when the repository is still
+empty, a MOF compiler always operates against existing CIM elements and
+performs some kind of delta update, creating new elements, or updating existing
+elements.
+
+The MOF compiler in this package also has an option to remove CIM elements
+from the repository it has a definition for in the MOF files it processes.
 """
 
 from __future__ import print_function, absolute_import
@@ -200,6 +203,10 @@ def t_error(t):
     t.lexer.skip(1)
 
 class MOFParseError(ValueError):
+    """
+    This exception is raised when MOF cannot be parsed correctly, e.g. for
+    syntax errors.
+    """
     pass
 
 def p_error(p):
@@ -217,7 +224,26 @@ def p_error(p):
     ex.context = _get_error_context(p.lexer.parser.mof, p)
     raise ex
 
-# First function with a yacc rule in its docstring.
+#------------------------------------------------------------------------------
+#
+# IMPORTANT NOTE:
+#
+# This MOF compiler implementation is based on the PLY Python package.
+# This module here contains YACC rules in docstrings of its functions.
+# The formatting of these docstrings is critical in that it defines the parser
+# functionality. These docstrings are processed by the YACC in PLY.
+# Changing the strings or even the formatting breaks the PLY rule generation!
+#
+# In the YACC of PLY 2.3 (included in pywbem up to 0.7), the requirement was
+# that each choice of a YACC rule needed to be on a single line, and the first
+# choice needed to be on the same line as the rule name. Not sure what the
+# requirements of the current PLY version are.
+#
+# First function with a YACC rule in its docstring follows.
+# These functions are all named "p_*".
+#
+#------------------------------------------------------------------------------
+
 # pylint: disable=unused-argument
 def p_mofSpecification(p):
     """mofSpecification : mofProductionList"""
@@ -1423,19 +1449,37 @@ def _get_error_context(input_, token):
     lines.append(pointline + pointer)
     return lines
 
-def _print_logger(msg):
-    """Print the msg argument to stdout."""
-    print(msg)
-
 
 class MOFWBEMConnection(object):
-    """Access to repository used by the compiler. Does not
-       implement all of the WBEM Operations, just the subset
-       required by the compiler
+    """
+    A repository connection to the CIM repository of a WBEM server, that is to
+    be used by the MOF compiler
+    (class :class:`~pywbem.mof_compiler.MOFCompiler`).
+
+    At the moment, this class also acts as an interface definition class for
+    repository connection class, defining the interactions between the MOF
+    compiler and the CIM repository used by the MOF compiler.
+
+    Exceptions:
+
+      The methods of this class may raise any exceptions described for
+      class :class:`~pywbem.WBEMConnection`.
     """
 
     def __init__(self, conn=None):
-        """Define the connection for the connection"""
+        """
+        Parameters:
+
+          conn (WBEMConnection):
+            The connection to the WBEM server that is to be used for this
+            repository connection.
+
+            The default namespace of that WBEM server connection is used as the
+            initial repository namespace. The repository namespace is used when
+            interactions are performed with the CIM repository in the connected
+            WBEM server.
+        """
+
         self.conn = conn
         self.class_names = {}
         self.qualifiers = {}
@@ -1445,7 +1489,7 @@ class MOFWBEMConnection(object):
             self.__default_namespace = 'root/cimv2'
 
     def setns(self, value):
-        """Set the namespace into the MOFWBEMConnection object"""
+        """Internal method to set the repository namespace from `value`."""
 
         if self.conn is not None:
             self.conn.default_namespace = value
@@ -1453,18 +1497,26 @@ class MOFWBEMConnection(object):
             self.__default_namespace = value
 
     def getns(self):
-        """Get the namespace from the MOFWBEMConnection object"""
+        """Internal method to return the repository namespace."""
 
         if self.conn is not None:
             return self.conn.default_namespace
         else:
             return self.__default_namespace
 
-    default_namespace = property(getns, setns, None,
-                                 "default_namespace property")
+    default_namespace = property(
+        getns, setns, None,
+        """The repository namespace, as a string.
+
+        The repository namespace is used when interactions are performed with
+        the CIM repository in the connected WBEM server.""")
 
     def GetClass(self, *args, **kwargs):
-        """Get a class from the MOFWBEMConnection"""
+        """Retrieve a CIM class from the repository of the WBEM server.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.GetClass`.
+        """
 
         cname = len(args) > 0 and args[0] or kwargs['ClassName']
         try:
@@ -1497,8 +1549,10 @@ class MOFWBEMConnection(object):
         return cc
 
     def CreateClass(self, *args, **kwargs):
-        """Insert a single CIMClass defined by kwargs into the
-           target connection.
+        """Create a CIM class in the repository of the WBEM server.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.CreateClass`.
         """
 
         cc = len(args) > 0 and args[0] or kwargs['NewClass']
@@ -1528,17 +1582,24 @@ class MOFWBEMConnection(object):
             self.class_names[self.default_namespace] = [cc.classname]
 
     def ModifyClass(self, *args, **kwargs): #pylint: disable=no-self-use
-        """Not Implemented because not used"""
+        """This method is not currently used by the MOF compiler, and is
+        therefore not implemented."""
 
         raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
 
     def ModifyInstance(self, *args, **kwargs):
-        """This function should never happen so generates error"""
+        """This method is not currently used by the MOF compiler, and is
+        therefore not implemented."""
 
         raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
 
     def GetQualifier(self, *args, **kwargs):
-        """Get the qualifier declaration defined by name"""
+        """Retrieve a qualifier type from the repository of the WBEM server.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.GetQualifier`.
+        """
+
         qualname = len(args) > 0 and args[0] or kwargs['QualifierName']
         try:
             qual = self.qualifiers[self.default_namespace][qualname]
@@ -1549,8 +1610,11 @@ class MOFWBEMConnection(object):
         return qual
 
     def SetQualifier(self, *args, **kwargs):
-        """Put the qualifier declaration defined in kwargs into
-           the target repository
+        """Create or modify a qualifier type in the repository of the WBEM
+        server.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.SetQualifier`.
         """
 
         qual = len(args) > 0 and args[0] or kwargs['QualifierDeclaration']
@@ -1561,7 +1625,13 @@ class MOFWBEMConnection(object):
                     NocaseDict({qual.name:qual})
 
     def EnumerateQualifiers(self, *args, **kwargs):
-        """Get all qualifier declarations in the connection namespace"""
+        """Enumerate the qualifier types in the repository of the WBEM
+        server.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.EnumerateQualifiers`.
+        """
+
         if self.conn is not None:
             rv = self.conn.EnumerateQualifiers(*args, **kwargs)
         else:
@@ -1573,8 +1643,11 @@ class MOFWBEMConnection(object):
         return rv
 
     def CreateInstance(self, *args, **kwargs):
-        """Append a new instance defined by kwargs to the target
-           connection instances"""
+        """Create a CIM instance in the repository of the WBEM server.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.CreateInstance`.
+        """
 
         inst = len(args) > 0 and args[0] or kwargs['NewInstance']
         try:
@@ -1584,8 +1657,13 @@ class MOFWBEMConnection(object):
         return inst.path
 
     def rollback(self, verbose=False):
-        """Rollback created instances and classes created within
-           the context of this connection
+        """
+        Rollback any changes to the repository of the WBEM server that were
+        performed by compilations using this repository connection object,
+        since this object was created.
+
+        Limitation: At this point, only classes and instances will be rolled
+        back.
         """
         for ns, insts in self.instances.items():
             insts.reverse()
@@ -1638,43 +1716,48 @@ def _errcode2string(code):
         s = 'Unknown Error'
     return s
 
+
+def _print_logger(msg):
+    """Print the msg argument to stdout."""
+    print(msg)
+
+
 class MOFCompiler(object):
-    """MOF compiler class. Initializes the compiler and includes functions to
-       compile input files"""
+    """
+    Each object of this class represents a MOF compiler.
+
+    A MOF compiler is associated with a CIM repository. The repository is
+    used for looking up dependent CIM elements (e.g. the subclass specified
+    in a class whose MOF definition is being compiled), and it is also updated
+    with the result of the compilation. A repository contains CIM namespaces,
+    and the namespaces contain CIM classes, instances and qualifier types.
+
+    The association with a CIM repository is established when creating an
+    object of this class. The interactions with the CIM repository are defined
+    by class :class:`~pywbem.mof_compiler.MOFWBEMConnection`, which at the
+    moment is both the class defining the interface, and an implementation that
+    connects to the CIM repository of a running WBEM server.
+    """
 
     def __init__(self, handle, search_paths=None, verbose=False,
                  log_func=_print_logger):
-        """Initialize the compiler.
+        """
+        Parameters:
 
-        :Parameters:
+          handle (MOFWBEMConnection):
+            A connection to the CIM repository that will be associated with the
+            MOF compiler.
 
-          handle : WBEMConnection
-            A WBEMConnection or similar object.  The following
-            attributes and methods need to be present, corresponding to the
-            the attributes and methods on `WBEMConnection` having
-            the same names:
-            
-            - default_namespace
-            - EnumerateInstanceNames()
-            - CreateClass()
-            - GetClass()
-            - ModifyClass()
-            - DeleteInstance()
-            - CreateInstance()
-            - ModifyInstance()
-            - DeleteQualifier()
-            - EnumerateQualifiers()
-            - SetQualifier()
+          search_paths (list of string):
+            A list of path names of directories where MOF include files should
+            be looked up.
 
-          search_paths : list
-            A list of file system paths specifying where missing schema
-            elements should be looked for.
+          verbose (bool):
+            Indicates whether to issue more detailed compiler messages.
 
-          verbose : bool
-            True if extra messages should be printed.
-
-          log_func : callable
-            A callable that takes a single string argument.
+          log_func (callable):
+            A logger function that is invoked for each compiler message.
+            The logger function must take one parameter of string type.
             The default logger prints to stdout.
         """
 
@@ -1692,19 +1775,32 @@ class MOFCompiler(object):
         self.parser.aliases = {}
 
     def compile_string(self, mof, ns, filename=None):
-        """Compile a string of MOF.
+        """
+        Compile a string of MOF statements into a namespace of the associated
+        CIM repository.
 
-        :Parameters:
+        Parameters:
 
-          mof : string
-            The string of MOF
+          mof (string):
+            The string of MOF statements to be compiled.
 
-          ns : string
-            The CIM namespace
+          ns (string):
+            The name of the CIM namespace in the associated CIM repository
+            that is used for lookup of any dependent CIM elements, and that
+            is also the target of the compilation.
 
-          filename : string
-            The name of the file that the MOF was read from.  This
-            is used in status and error messages.
+          filename (string):
+            The path name of the file that the MOF statements were read from.
+            This information is used only in compiler messages.
+
+        Raises:
+
+          MOFParseError: Syntax error in the MOF.
+
+          : Any exceptions that are raised by the repository connection class.
+            See :class:`~pywbem.mof_compiler.MOFWBEMConnection` for the
+            exceptions that can be raised by the default repository connection
+            class.
         """
 
         lexer = self.lexer.clone()
@@ -1749,15 +1845,33 @@ class MOFCompiler(object):
             raise
 
     def compile_file(self, filename, ns):
-        """Compile MOF from a file.
+        """
+        Compile a MOF file into a namespace of the associated CIM repository.
 
-        Arguments:
-        filename -- The file to read MOF from
-        ns -- The CIM namespace
+        Parameters:
+
+          filename (string):
+            The path name of the MOF file containing the MOF statements to be
+            compiled.
+
+          ns (string):
+            The name of the CIM namespace in the associated CIM repository
+            that is used for lookup of any dependent CIM elements, and that
+            is also the target of the compilation.
+
+        Raises:
+
+          MOFParseError: Syntax error in the MOF.
+
+          : Any exceptions that are raised by the repository connection class.
+            See :class:`~pywbem.mof_compiler.MOFWBEMConnection` for the
+            exceptions that can be raised by the default repository connection
+            class.
         """
 
         if self.parser.verbose:
             self.parser.log('Compiling file ' + filename)
+
         f = open(filename, 'r')
         mof = f.read()
         f.close()
@@ -1765,11 +1879,25 @@ class MOFCompiler(object):
         return self.compile_string(mof, ns, filename=filename)
 
     def find_mof(self, classname):
-        """Find a MOF file corresponding to a CIM class name.  The
-         search_paths provided to __init__() are searched recursively.
+        """
+        Find the MOF file that defines a particular CIM class, in the search
+        path of the MOF compiler.
 
-        Arguments:
-        classname -- The name of the class to look for
+        The MOF file is found based on its file name: It is assumed that the
+        base part of the file name is the CIM class name.
+
+        Example: The class "CIM_ComputerSystem" is expected to be in a file
+        "CIM_ComputerSystem.mof".
+
+        Parameters:
+
+          classame (string):
+            The name of the CIM class to look up.
+
+        Returns:
+
+          A string with the path name of the MOF file, if it was found.
+          `None`, otherwise.
         """
 
         classname = classname.lower()
@@ -1782,11 +1910,14 @@ class MOFCompiler(object):
         return None
 
     def rollback(self, verbose=False):
-        """Rollback/delete objects created within the context of this
-           MOFCompiler instance
+        """
+        Rollback any changes to the CIM repository that were performed by
+        compilations using this MOFCompiler object, since the object was
+        created.
         """
 
         self.handle.rollback(verbose=verbose)
+
 
 def _build(verbose=False):
     """Build the LEX and YACC table modules for the MOF compiler, if they do
@@ -1836,7 +1967,8 @@ def _lex(verbose=False):
 
 def main():
     """Parse command line arguments and process the specified MOF files.
-       A help message is printed with `-h` or `--help`.
+
+    A help message is printed with `-h` or `--help`.
     """
 
     prog = "mof_compiler"  # Name of the script file invoking this module
