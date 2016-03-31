@@ -1748,7 +1748,7 @@ class MOFCompiler(object):
             A connection to the CIM repository that will be associated with the
             MOF compiler.
 
-          search_paths (list of string):
+          search_paths (list of `unicode string`_ or `byte string`_):
             A list of path names of directories where MOF include files should
             be looked up.
 
@@ -1781,15 +1781,15 @@ class MOFCompiler(object):
 
         Parameters:
 
-          mof (string):
+          mof (`unicode string`_ or `byte string`_):
             The string of MOF statements to be compiled.
 
-          ns (string):
+          ns (`unicode string`_ or `byte string`_):
             The name of the CIM namespace in the associated CIM repository
             that is used for lookup of any dependent CIM elements, and that
             is also the target of the compilation.
 
-          filename (string):
+          filename (`unicode string`_ or `byte string`_):
             The path name of the file that the MOF statements were read from.
             This information is used only in compiler messages.
 
@@ -1850,11 +1850,11 @@ class MOFCompiler(object):
 
         Parameters:
 
-          filename (string):
+          filename (`unicode string`_ or `byte string`_):
             The path name of the MOF file containing the MOF statements to be
             compiled.
 
-          ns (string):
+          ns (`unicode string`_ or `byte string`_):
             The name of the CIM namespace in the associated CIM repository
             that is used for lookup of any dependent CIM elements, and that
             is also the target of the compilation.
@@ -1891,7 +1891,7 @@ class MOFCompiler(object):
 
         Parameters:
 
-          classame (string):
+          classame (`unicode string`_ or `byte string`_):
             The name of the CIM class to look up.
 
         Returns:
