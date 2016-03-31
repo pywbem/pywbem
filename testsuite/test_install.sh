@@ -385,7 +385,8 @@ function prep()
 function cleanup()
 {
   info "Cleaning up the environment."
-  run "rm -f $DISTFILE_OLDPLY $DISTFILE_NEWPLY cmd.log"
+  run "rm -f $DISTFILE_OLDPLY $DISTFILE_NEWPLY cmd.log $ROOTDIR/dist/pywbem-${PYWBEM_FULL}-py2.7.egg"
+  run "git checkout -- $DISTFILE"
 }
 
 function test1()
