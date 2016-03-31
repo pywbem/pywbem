@@ -465,7 +465,7 @@ class WBEMConnection(object):
 
             Default: `None`.
 
-          verify_callback (function):
+          verify_callback (callable):
             Optional: Registers a callback function
             that will be called to verify the certificate returned by the
             WBEM server during the SSL handshake, in addition to the
