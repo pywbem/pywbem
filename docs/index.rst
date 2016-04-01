@@ -273,6 +273,10 @@ MOF compiler API
    :members:
    :special-members: __str__, __repr__
 
+.. autoclass:: pywbem.mof_compiler.BaseRepositoryConnection
+   :members:
+   :special-members: __str__, __repr__
+
 .. autoclass:: pywbem.mof_compiler.MOFWBEMConnection
    :members:
    :special-members: __str__, __repr__

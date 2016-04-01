@@ -45,6 +45,7 @@ import sys
 import os
 from getpass import getpass
 import argparse
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 import six
 from ply import yacc, lex
@@ -53,7 +54,7 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      CIMProperty, CIMMethod, CIMParameter, \
                      CIMQualifier, CIMQualifierDeclaration, NocaseDict, \
                      tocimobj
-from .cim_operations import CIMError, WBEMConnection
+from .cim_operations import CIMError, WBEMConnection, Error
 from .cim_constants import *  # pylint: disable=wildcard-import
 from ._cliutils import SmartFormatter
 
@@ -1449,16 +1450,173 @@ def _get_error_context(input_, token):
     lines.append(pointline + pointer)
     return lines
 
-
-class MOFWBEMConnection(object):
+@six.add_metaclass(ABCMeta)
+class BaseRepositoryConnection(object):
     """
-    A repository connection to the CIM repository of a WBEM server, that is to
-    be used by the MOF compiler
-    (class :class:`~pywbem.mof_compiler.MOFCompiler`).
+    An abstract base class for implementing repository connections. This class
+    defines the interface that is used by the MOF compiler
+    (class :class:`~pywbem.mof_compiler.MOFCompiler`) when it interacts with
+    the repository.
 
-    At the moment, this class also acts as an interface definition class for
-    repository connection class, defining the interactions between the MOF
-    compiler and the CIM repository used by the MOF compiler.
+    Class :class:`~pywbem.mof_compiler.MOFCompiler` invokes only the operations
+    that are defined as methods on this class. Specifically, it does not
+    invoke:
+
+    * EnumerateInstances
+    * GetInstance
+    * EnumerateClasses
+    * EnumerateClassNames
+    * association or query operations
+    * method invocations
+
+    Exceptions:
+
+      Implementation classes should raise only exceptions derived from
+      :exc:`~pywbem.Error`. Other exceptions are considered programming
+      errors.
+    """
+
+    def _get_not_impl(self):
+        raise NotImplementedError
+
+    def _set_not_impl(self, value):
+        raise NotImplementedError
+
+    # Ideally this property would be created via abstractproperty(), but then
+    # Sphinx does not generate documentation for it. So we create it via
+    # property() and raise NotImplementedError exceptions in the default
+    # implementations of the getter/setter methods.
+    default_namespace = property(
+        _get_not_impl, _set_not_impl, None,
+        """The default repository namespace, as a string (readable and
+        writeable).""")
+
+    @abstractmethod
+    def EnumerateInstanceNames(self, *args, **kwargs):
+        """Enumerate instance paths of CIM instances in the repository.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.EnumerateInstanceNames`.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def CreateInstance(self, *args, **kwargs):
+        """Create a CIM instance in the repository.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.CreateInstance`.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def ModifyInstance(self, *args, **kwargs):
+        """Modify a CIM instance in the repository.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.ModifyInstance`.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def DeleteInstance(self, *args, **kwargs):
+        """Delete a CIM instance in the repository.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.DeleteInstance`.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def GetClass(self, *args, **kwargs):
+        """Retrieve a CIM class from the repository.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.GetClass`.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def ModifyClass(self, *args, **kwargs):
+        """Modify a CIM class in the repository.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.ModifyClass`.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def CreateClass(self, *args, **kwargs):
+        """Create a CIM class in the repository.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.CreateClass`.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def DeleteClass(self, *args, **kwargs):
+        """Delete a CIM class in the repository.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.DeleteClass`.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def EnumerateQualifiers(self, *args, **kwargs):
+        """Enumerate the qualifier types in the repository.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.EnumerateQualifiers`.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def GetQualifier(self, *args, **kwargs):
+        """Retrieve a qualifier type from the repository.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.GetQualifier`.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def SetQualifier(self, *args, **kwargs):
+        """Create or modify a qualifier type in the repository.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.SetQualifier`.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def DeleteQualifier(self, *args, **kwargs):
+        """Delete a qualifier type from the repository.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.DeleteQualifier`.
+        """
+        raise NotImplementedError
+
+BaseRepositoryConnection.register(WBEMConnection)
+
+
+class MOFWBEMConnection(BaseRepositoryConnection):
+    """
+    A repository connection that handles the removal of CIM elements.
+
+    It is instantiated on top of an underlying repository connection that
+    is connected with the CIM repository that is actually being updated.
+
+    The operation methods of the class store all interactions locally in
+    instance variables, i.e. this class maintains a local repository.
+
+    The :meth:`rollback` method is used at the end to delete the CIM elements
+    through the underlying repository connection.
+
+    This class implements the
+    :class:`~pywbem.mof_compiler.BaseRepositoryConnection` interface.
 
     Exceptions:
 
@@ -1470,14 +1628,11 @@ class MOFWBEMConnection(object):
         """
         Parameters:
 
-          conn (WBEMConnection):
-            The connection to the WBEM server that is to be used for this
-            repository connection.
+          conn (BaseRepositoryConnection):
+            The underlying repository connection.
 
-            The default namespace of that WBEM server connection is used as the
-            initial repository namespace. The repository namespace is used when
-            interactions are performed with the CIM repository in the connected
-            WBEM server.
+            `None` means that there is no underlying repository and all
+            operations performed through this object will fail.
         """
 
         self.conn = conn
@@ -1486,33 +1641,73 @@ class MOFWBEMConnection(object):
         self.instances = {}
         self.classes = {}
         if conn is None:
+            # This instance variable is used only to make get/set
+            # of 'default_namespace' behave as it should, in the case
+            # of conn=None.
             self.__default_namespace = 'root/cimv2'
 
-    def setns(self, value):
-        """Internal method to set the repository namespace from `value`."""
-
-        if self.conn is not None:
-            self.conn.default_namespace = value
-        else:
-            self.__default_namespace = value
-
-    def getns(self):
-        """Internal method to return the repository namespace."""
-
+    def _getns(self):
         if self.conn is not None:
             return self.conn.default_namespace
         else:
             return self.__default_namespace
 
-    default_namespace = property(
-        getns, setns, None,
-        """The repository namespace, as a string.
+    def _setns(self, value):
+        if self.conn is not None:
+            self.conn.default_namespace = value
+        else:
+            self.__default_namespace = value
 
-        The repository namespace is used when interactions are performed with
-        the CIM repository in the connected WBEM server.""")
+    getns = _getns  # for compatibility
+    setns = _setns  # for compatibility
+
+    default_namespace = property(
+        _getns, _setns, None,
+        """The default repository namespace, as a string (readable and
+        writeable).""")
+
+    def EnumerateInstanceNames(self, *args, **kwargs):
+        """This method is used by the MOF compiler only when it creates a
+        namespace in the course of handling CIM_ERR_NAMESPACE_NOT_FOUND.
+        Because the operations of this class silently create every namespace
+        that is needed and never return that error, this method is never
+        called, and is therefore not implemented.
+        """
+
+        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
+
+    def ModifyInstance(self, *args, **kwargs):
+        """This method is used by the MOF compiler only in the course of
+        handling CIM_ERR_ALREADY_EXISTS after trying to create an instance.
+        Because :meth:`CreateInstance` overwrites existing instances, this
+        method is never called, and is therefore not implemented.
+        """
+
+        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
+
+    def CreateInstance(self, *args, **kwargs):
+        """Create a CIM instance in the local repository of this class.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.CreateInstance`.
+        """
+
+        inst = len(args) > 0 and args[0] or kwargs['NewInstance']
+        try:
+            self.instances[self.default_namespace].append(inst)
+        except KeyError:
+            self.instances[self.default_namespace] = [inst]
+        return inst.path
+
+    def DeleteInstance(self, *args, **kwargs):
+        """This method is only invoked by :meth:`rollback` (on the underlying
+        repository), and never by the MOF compiler, and is therefore not
+        implemented."""
+
+        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
 
     def GetClass(self, *args, **kwargs):
-        """Retrieve a CIM class from the repository of the WBEM server.
+        """Retrieve a CIM class from the ilocal repository of this class.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.GetClass`.
@@ -1548,14 +1743,24 @@ class MOFWBEMConnection(object):
                         cc.methods[meth.name] = meth
         return cc
 
+    def ModifyClass(self, *args, **kwargs): #pylint: disable=no-self-use
+        """This method is used by the MOF compiler only in the course of
+        handling CIM_ERR_ALREADY_EXISTS after trying to create a class.
+        Because :meth:`CreateClass` overwrites existing classes, this method
+        is never called, and is therefore not implemented.
+        """
+
+        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
+
     def CreateClass(self, *args, **kwargs):
-        """Create a CIM class in the repository of the WBEM server.
+        """Create a CIM class in the local repository of this class.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.CreateClass`.
         """
 
         cc = len(args) > 0 and args[0] or kwargs['NewClass']
+        # TODO 2016/03 AM: Dubious stmt above.
         if cc.superclass:
             try:
                 dummy_super = self.GetClass(cc.superclass, LocalOnly=True,
@@ -1581,52 +1786,15 @@ class MOFWBEMConnection(object):
         except KeyError:
             self.class_names[self.default_namespace] = [cc.classname]
 
-    def ModifyClass(self, *args, **kwargs): #pylint: disable=no-self-use
-        """This method is not currently used by the MOF compiler, and is
-        therefore not implemented."""
+    def DeleteClass(self, *args, **kwargs):
+        """This method is only invoked by :meth:`rollback` (on the underlying
+        repository), and never by the MOF compiler, and is therefore not
+        implemented."""
 
         raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
-
-    def ModifyInstance(self, *args, **kwargs):
-        """This method is not currently used by the MOF compiler, and is
-        therefore not implemented."""
-
-        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
-
-    def GetQualifier(self, *args, **kwargs):
-        """Retrieve a qualifier type from the repository of the WBEM server.
-
-        For a description of the parameters, see
-        :meth:`pywbem.WBEMConnection.GetQualifier`.
-        """
-
-        qualname = len(args) > 0 and args[0] or kwargs['QualifierName']
-        try:
-            qual = self.qualifiers[self.default_namespace][qualname]
-        except KeyError:
-            if self.conn is None:
-                raise CIMError(CIM_ERR_NOT_FOUND, qualname)
-            qual = self.conn.GetQualifier(*args, **kwargs)
-        return qual
-
-    def SetQualifier(self, *args, **kwargs):
-        """Create or modify a qualifier type in the repository of the WBEM
-        server.
-
-        For a description of the parameters, see
-        :meth:`pywbem.WBEMConnection.SetQualifier`.
-        """
-
-        qual = len(args) > 0 and args[0] or kwargs['QualifierDeclaration']
-        try:
-            self.qualifiers[self.default_namespace][qual.name] = qual
-        except KeyError:
-            self.qualifiers[self.default_namespace] = \
-                    NocaseDict({qual.name:qual})
 
     def EnumerateQualifiers(self, *args, **kwargs):
-        """Enumerate the qualifier types in the repository of the WBEM
-        server.
+        """Enumerate the qualifier types in the local repository of this class.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.EnumerateQualifiers`.
@@ -1642,28 +1810,51 @@ class MOFWBEMConnection(object):
             pass
         return rv
 
-    def CreateInstance(self, *args, **kwargs):
-        """Create a CIM instance in the repository of the WBEM server.
+    def GetQualifier(self, *args, **kwargs):
+        """Retrieve a qualifier type from the local repository of this class.
 
         For a description of the parameters, see
-        :meth:`pywbem.WBEMConnection.CreateInstance`.
+        :meth:`pywbem.WBEMConnection.GetQualifier`.
         """
 
-        inst = len(args) > 0 and args[0] or kwargs['NewInstance']
+        qualname = len(args) > 0 and args[0] or kwargs['QualifierName']
         try:
-            self.instances[self.default_namespace].append(inst)
+            qual = self.qualifiers[self.default_namespace][qualname]
         except KeyError:
-            self.instances[self.default_namespace] = [inst]
-        return inst.path
+            if self.conn is None:
+                raise CIMError(CIM_ERR_NOT_FOUND, qualname)
+            qual = self.conn.GetQualifier(*args, **kwargs)
+        return qual
+
+    def SetQualifier(self, *args, **kwargs):
+        """Create or modify a qualifier type in the local repository of this
+        class.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.SetQualifier`.
+        """
+
+        qual = len(args) > 0 and args[0] or kwargs['QualifierDeclaration']
+        try:
+            self.qualifiers[self.default_namespace][qual.name] = qual
+        except KeyError:
+            self.qualifiers[self.default_namespace] = \
+                    NocaseDict({qual.name:qual})
+
+    def DeleteQualifier(self, *args, **kwargs):
+        """This method is only invoked by :meth:`rollback` (on the underlying
+        repository), and never by the MOF compiler, and is therefore not
+        implemented."""
+
+        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
 
     def rollback(self, verbose=False):
         """
-        Rollback any changes to the repository of the WBEM server that were
-        performed by compilations using this repository connection object,
-        since this object was created.
+        Remove classes and instances from the underlying repository, that have
+        been created in the local repository of this class.
 
-        Limitation: At this point, only classes and instances will be rolled
-        back.
+        Limitation: At this point, only classes and instances will be removed,
+        but not qualifiers.
         """
         for ns, insts in self.instances.items():
             insts.reverse()
@@ -1734,9 +1925,8 @@ class MOFCompiler(object):
 
     The association with a CIM repository is established when creating an
     object of this class. The interactions with the CIM repository are defined
-    by class :class:`~pywbem.mof_compiler.MOFWBEMConnection`, which at the
-    moment is both the class defining the interface, and an implementation that
-    connects to the CIM repository of a running WBEM server.
+    in the abstract base class
+    :class:`~pywbem.mof_compiler.BaseRepositoryConnection`.
     """
 
     def __init__(self, handle, search_paths=None, verbose=False,
@@ -1744,7 +1934,7 @@ class MOFCompiler(object):
         """
         Parameters:
 
-          handle (MOFWBEMConnection):
+          handle (BaseRepositoryConnection):
             A connection to the CIM repository that will be associated with the
             MOF compiler.
 
@@ -1798,9 +1988,6 @@ class MOFCompiler(object):
           MOFParseError: Syntax error in the MOF.
 
           : Any exceptions that are raised by the repository connection class.
-            See :class:`~pywbem.mof_compiler.MOFWBEMConnection` for the
-            exceptions that can be raised by the default repository connection
-            class.
         """
 
         lexer = self.lexer.clone()
@@ -1864,9 +2051,6 @@ class MOFCompiler(object):
           MOFParseError: Syntax error in the MOF.
 
           : Any exceptions that are raised by the repository connection class.
-            See :class:`~pywbem.mof_compiler.MOFWBEMConnection` for the
-            exceptions that can be raised by the default repository connection
-            class.
         """
 
         if self.parser.verbose:
@@ -1912,7 +2096,7 @@ class MOFCompiler(object):
     def rollback(self, verbose=False):
         """
         Rollback any changes to the CIM repository that were performed by
-        compilations using this MOFCompiler object, since the object was
+        compilations using this MOF compiler object, since the object was
         created.
         """
 
@@ -2057,8 +2241,11 @@ Example:
         conn = WBEMConnection(args.url, (args.username, passwd))
     else:
         conn = WBEMConnection(args.url)
+
     if args.remove or args.dry_run:
+        # Only record the changes to the repository, but do not perform them.
         conn = MOFWBEMConnection(conn=conn)
+
     #conn.debug = True
     conn.default_namespace = args.namespace
 
@@ -2089,9 +2276,11 @@ Example:
             mofcomp.compile_file(fname, args.namespace)
     except MOFParseError:
         sys.exit(1)
-    except CIMError:
+    except Error:
         sys.exit(1)
 
     if args.remove and not args.dry_run:
+        # Removal works by recording the changes but not doing them, and then
+        # rolling back and doing them.
         conn.rollback(verbose=args.verbose)
 
