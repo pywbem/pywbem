@@ -1724,7 +1724,7 @@ def _print_logger(msg):
 
 class MOFCompiler(object):
     """
-    Each object of this class represents a MOF compiler.
+    A MOF compiler.
 
     A MOF compiler is associated with a CIM repository. The repository is
     used for looking up dependent CIM elements (e.g. the subclass specified
