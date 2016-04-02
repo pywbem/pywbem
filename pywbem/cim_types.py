@@ -207,7 +207,9 @@ class MinutesFromUTC(tzinfo):
 
     def utcoffset(self, dt): # pylint: disable=unused-argument
         """
-        An implementation of the corresponding base class method, which needs
+        An implementation of the corresponding base class method
+        (see :meth:`py:datetime.tzinfo.utcoffset` for its description),
+        which needs
         to return the offset of local time to UTC (including DST offset), as a
         :class:`py:datetime.timedelta` object. This method is called by the
         Python datetime classes, and a pywbem user normally does not have
@@ -220,7 +222,9 @@ class MinutesFromUTC(tzinfo):
 
     def dst(self, dt): # pylint: disable=unused-argument
         """
-        An implementation of the corresponding base class method, which needs
+        An implementation of the corresponding base class method,
+        (see :meth:`py:datetime.tzinfo.dst` for its description),
+        which needs
         to return the offset caused by DST, as a :class:`py:datetime.timedelta`
         object. This method is called by the Python datetime classes, and a
         pywbem user normally does not have to deal with it.
