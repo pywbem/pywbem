@@ -51,7 +51,9 @@ from six.moves import urllib
 from .cim_obj import CIMClassName, CIMInstanceName, _ensure_unicode, \
                     _ensure_bytes
 
-if six.PY2:
+_ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
+
+if six.PY2 and not _ON_RTD:  # RTD has no swig to install M2Crypto
     from M2Crypto import SSL
     from M2Crypto.Err import SSLError
     _HAVE_M2CRYPTO = True
