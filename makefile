@@ -54,34 +54,6 @@ moftab_files := $(package_name)/mofparsetab.py $(package_name)/moflextab.py
 moftab_dependent_files := \
     $(package_name)/mof_compiler.py \
 
-# Dependents for API doc builder
-# Note: Should not include the modules in doc_exclude_patterns
-doc_dependent_files := \
-    $(package_name)/__init__.py \
-    $(package_name)/_version.py \
-    $(package_name)/cim_obj.py \
-    $(package_name)/cim_operations.py \
-    $(package_name)/cim_constants.py \
-    $(package_name)/cim_types.py \
-    $(package_name)/cim_xml.py \
-    $(package_name)/cim_http.py \
-    $(package_name)/tupletree.py \
-    $(package_name)/tupleparse.py \
-    $(package_name)/wbemcli.py \
-    $(package_name)/mof_compiler.py \
-    $(package_name)/NEWS.md \
-
-# Dotted module names to be excluded in API doc generation
-# Note: Should not include the dependent files in doc_dependent_files
-doc_exclude_patterns := \
-    $(package_name).moflextab \
-    $(package_name).mofparsetab \
-    $(package_name).lex \
-    $(package_name).yacc \
-    $(package_name).cim_provider \
-    $(package_name).cim_provider2 \
-    $(package_name).twisted_client \
-
 # Directory for generated API documentation
 doc_build_dir := build_doc
 
@@ -95,18 +67,34 @@ doc_paper_format := a4
 # Documentation generator command
 doc_cmd := sphinx-build
 doc_opts := -v -d $(doc_build_dir)/doctrees -c $(doc_conf_dir) -D latex_paper_size=$(doc_paper_format) .
-# doc_cmd := epydoc --verbose --simple-term --html --docformat=restructuredtext --no-private --name=PyWBEM --output=$(doc_build_dir) $(foreach p,$(doc_exclude_patterns),--exclude=$p) $(package_name)
-
-# Directory for documentation publishing
-doc_publish_dir := ../pywbem.github.io/pywbem/doc/$(package_final_version)/doc
 
 # File names of automatically generated utility help message text output
 doc_utility_help_files := \
     $(doc_conf_dir)/wbemcli.help.txt \
     $(doc_conf_dir)/mof_compiler.help.txt \
 
+# Dependents for Sphinx documentation build
+doc_dependent_files := \
+    $(doc_conf_dir)/conf.py \
+    $(doc_conf_dir)/index.rst \
+    $(package_name)/__init__.py \
+    $(package_name)/cim_constants.py \
+    $(package_name)/cim_obj.py \
+    $(package_name)/cim_operations.py \
+    $(package_name)/cim_types.py \
+    $(package_name)/mof_compiler.py \
+    $(package_name)/NEWS.md \
+
 # PyLint config file
 pylint_rc_file := pylint.rc
+
+# PyLint source files to check
+pylint_py_files := \
+    setup.py \
+    os_setup.py \
+    $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
+    $(wildcard testsuite/test*.py) \
+    testsuite/validate.py \
 
 # Test log
 test_log_file := test_$(python_version_fn).log
@@ -137,8 +125,7 @@ dist_dependent_files := \
 # No built-in rules needed:
 .SUFFIXES:
 
-.PHONY: build buildwin test install develop upload clean clobber all help
-
+.PHONY: help
 help:
 	@echo 'makefile for $(package_name)'
 	@echo 'Package version will be: $(package_version)'
@@ -149,114 +136,127 @@ help:
 	@echo '  buildwin   - Build the Windows installable: $(win64_dist_file) (requires Windows 64-bit)'
 	@echo '  builddoc   - Build documentation in: $(doc_build_dir)'
 	@echo '  check      - Run PyLint on sources and save results in: pylint.log'
-	@echo '  install    - Install distribution archive to active Python environment'
 	@echo '  test       - Run unit tests and save results in: $(test_log_file)'
-	@echo '  clean      - Remove any temporary files; ensure clean build start'
-	@echo '  all        - Do everything locally (except publish/upload)'
+	@echo '  all        - Do all of the above (except buildwin when not on Windows)'
+	@echo '  install    - Install distribution archive to active Python environment'
 	@echo '  upload     - build + upload the distribution archive to PyPI: $(dist_file)'
-	@echo '  publish    - builddoc + publish documentation to: $(doc_publish_dir)'
-	@echo '  clobber    - Remove any build products'
+	@echo '  clean      - Remove any temporary files'
+	@echo '  clobber    - Remove everything; ensure clean start like a fresh clone'
 
+.PHONY: develop
 develop:
 	python setup.py develop_os
 	python setup.py develop
 	@echo '$@ done.'
 
+.PHONY: build
 build: $(dist_file)
-	@echo '$@ done; created: $(dist_file)'
+	@echo '$@ done.'
 
+.PHONY: buildwin
 buildwin: $(win64_dist_file)
-	@echo '$@ done; created: $(win64_dist_file)'
+	@echo '$@ done.'
 
+.PHONY: builddoc
 builddoc: html
-	@echo '$@ done; created documentation in: $(doc_build_dir)'
+	@echo '$@ done.'
 
 .PHONY: html
-html: $(doc_utility_help_files)
+html: $(doc_build_dir)/html/docs/index.html
+	@echo '$@ done.'
+
+$(doc_build_dir)/html/docs/index.html: makefile $(doc_utility_help_files) $(doc_dependent_files)
+	rm -f $@
 	PYTHONPATH=. $(doc_cmd) -b html $(doc_opts) $(doc_build_dir)/html
 	cp $(package_name)/NEWS.md $(doc_build_dir)/html/docs/
-	@echo "$@ done; the HTML pages are in $(doc_build_dir)/html."
+	@echo "Done: Created the HTML pages with top level file: $@"
 
 .PHONY: pdf
-pdf: $(doc_utility_help_files)
+pdf: makefile $(doc_utility_help_files) $(doc_dependent_files)
+	rm -f $@
 	$(doc_cmd) -b latex $(doc_opts) $(doc_build_dir)/pdf
 	@echo "Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(doc_build_dir)/pdf all-pdf
-	@echo "$@ done; the PDF files are in $(doc_build_dir)/pdf."
+	@echo "Done: Created the PDF files in: $(doc_build_dir)/pdf/"
+	@echo '$@ done.'
 
 .PHONY: man
-man: $(doc_utility_help_files)
+man: makefile $(doc_utility_help_files) $(doc_dependent_files)
+	rm -f $@
 	$(doc_cmd) -b man $(doc_opts) $(doc_build_dir)/man
-	@echo "$@ done; the manual pages are in $(doc_build_dir)/man."
+	@echo "Done: Created the manual pages in: $(doc_build_dir)/man/"
+	@echo '$@ done.'
 
 .PHONY: docchanges
 docchanges:
 	$(doc_cmd) -b changes $(doc_opts) $(doc_build_dir)/changes
 	@echo
-	@echo "$@ done; the doc changes overview file is in $(doc_build_dir)/changes."
+	@echo "Done: Created the doc changes overview file in: $(doc_build_dir)/changes/"
+	@echo '$@ done.'
 
 .PHONY: doclinkcheck
 doclinkcheck:
 	$(doc_cmd) -b linkcheck $(doc_opts) $(doc_build_dir)/linkcheck
 	@echo
-	@echo "$@ done; look for any errors in the above output or in $(doc_build_dir)/linkcheck/output.txt."
+	@echo "Done: Look for any errors in the above output or in: $(doc_build_dir)/linkcheck/output.txt"
+	@echo '$@ done.'
 
 .PHONY: doccoverage
 doccoverage:
 	$(doc_cmd) -b coverage $(doc_opts) $(doc_build_dir)/coverage
-	@echo "$@ done; the doc coverage results are in $(doc_build_dir)/coverage/python.txt."
+	@echo "Done: Created the doc coverage results in: $(doc_build_dir)/coverage/python.txt"
+	@echo '$@ done.'
 
-ifeq ($(python_major_version), 2)
+.PHONY: check
 check: pylint.log
-	@echo '$@ done; results are in pylint.log'
-else
-check:
-	@echo 'Checking requires Python 2; skipping this step'
-endif
+	@echo '$@ done.'
 
+.PHONY: install
 install: $(dist_file)
 	mkdir tmp_install
 	tar -x -C tmp_install -f $(dist_file)
 	sh -c "cd tmp_install/$(package_name)-$(package_version) && python setup.py install_os && python setup.py install"
 	rm -Rf tmp_install
+	@echo 'Done: Installed pywbem into current Python environment.'
 	@echo '$@ done.'
 
+.PHONY: test
 test: $(test_log_file)
-	@echo '$@ done; results are in $(test_log_file)'
+	@echo '$@ done.'
 
+.PHONY: clobber
 clobber: clean
-	rm -f pylint.log epydoc.log test_*.log
+	rm -f pylint.log epydoc.log test_*.log $(moftab_files)
 	rm -Rf $(doc_build_dir) .tox
+	@echo 'Done: Removed everything to get to a fresh state.'
 	@echo '$@ done.'
 
 # Also remove any build products that are dependent on the Python version
+.PHONY: clean
 clean:
 	find . -name "*.pyc" -delete
 	sh -c "find . -name \"__pycache__\" |xargs rm -Rf"
 	sh -c "ls -d tmp_* |xargs rm -Rf"
-	rm -f MANIFEST parser.out .coverage $(package_name)/parser.out $(test_tmp_file) $(package_name)/mofparsetab.py $(package_name)/moflextab.py
+	rm -f MANIFEST parser.out .coverage $(package_name)/parser.out $(test_tmp_file)
 	rm -Rf build tmp_install testtmp testsuite/testtmp .cache $(package_name).egg-info .eggs
+	@echo 'Done: Cleaned out all temporary files.'
 	@echo '$@ done.'
 
-all: clean develop check build builddoc test
+.PHONY: all
+all: develop check build builddoc test
 	@echo '$@ done.'
 
-ifeq ($(package_version), $(package_final_version))
+.PHONY: upload
 upload: setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
+ifeq ($(python_major_version), 2)
 	rm -f MANIFEST
 	python setup.py sdist -d $(dist_dir) register upload
-	@echo '$@ done; registered and uploaded package to PyPI.'
+	@echo 'Done: Registered and uploaded package to PyPI.'
+	@echo '$@ done.'
 else
-upload: setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	@echo 'Error: Cannot upload development or release candidate version to PyPI: $(package_version)'
 	@false
 endif
-
-publish: builddoc
-	rm -Rf $(doc_publish_dir)
-	mkdir -p $(doc_publish_dir)
-	cp -rp $(doc_build_dir)/* $(doc_publish_dir)/
-	@echo '$@ done; published documentation to: $(doc_publish_dir)'
 
 # Note: distutils depends on the right files specified in MANIFEST.in, even when
 # they are already specified e.g. in 'package_data' in setup.py.
@@ -265,6 +265,7 @@ publish: builddoc
 MANIFEST.in: makefile
 	echo '# file GENERATED by makefile, do NOT edit' >$@
 	echo '$(dist_manifest_in_files)' | xargs -r -n 1 echo include >>$@
+	@echo 'Done: Created manifest input file: $@'
 
 # Distribution archives.
 # Note: Deleting MANIFEST causes distutils (setup.py) to read MANIFEST.in and to
@@ -272,30 +273,41 @@ MANIFEST.in: makefile
 $(dist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	rm -f MANIFEST
 	python setup.py sdist -d $(dist_dir)
+	@echo 'Done: Created distribution archive: $@'
 
-$(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files)
+$(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	rm -f MANIFEST
 	python setup.py bdist_wininst -d $(dist_dir) -o -t "PyWBEM v$(package_version)"
+	@echo 'Done: Created Windows installable: $@'
 
 # Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)
 $(moftab_files): $(moftab_dependent_files) build_moftab.py
 	rm -f $(package_name)/mofparsetab.py* $(package_name)/moflextab.py*
 	python -c "from pywbem import mof_compiler; mof_compiler._build(verbose=True)"
+	@echo 'Done: Created LEX/YACC table modules: $@'
 
 # TODO: Once pylint has no more errors, remove the dash "-"
-pylint.log: $(pylint_rc_file) setup.py os_setup.py $(package_name)/*.py testsuite/*.py
+pylint.log: makefile $(pylint_rc_file) $(pylint_py_files)
+ifeq ($(python_major_version), 2)
 	rm -f pylint.log
-	-bash -c "set -o pipefail; PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --ignore=moflextab.py,mofparsetab.py,yacc.py,lex.py,twisted_client.py,cim_provider.py,cim_provider2.py --output-format=text setup.py os_setup.py $(package_name) testsuite/test*.py testsuite/validate.py 2>&1 |tee pylint.tmp.log"
+	-bash -c "set -o pipefail; PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --output-format=text $(pylint_py_files) 2>&1 |tee pylint.tmp.log"
 	mv -f pylint.tmp.log pylint.log
+	@echo 'Done: Created Pylint log file: $@'
+else
+	@echo 'Info: Pylint requires Python 2; skipping this step on Python $(python_major_version)'
+endif
 
-$(test_log_file): $(package_name)/*.py testsuite/*.py coveragerc
+$(test_log_file): makefile $(package_name)/*.py testsuite/*.py coveragerc
 	rm -f $(test_log_file)
 	bash -c "set -o pipefail; PYTHONPATH=. py.test --cov $(package_name) --cov-config coveragerc --ignore=attic --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
+	@echo 'Done: Created test log file: $@'
 
 $(doc_conf_dir)/wbemcli.help.txt: wbemcli $(package_name)/wbemcli.py
 	./wbemcli --help >$@
+	@echo 'Done: Created wbemcli script help message file: $@'
 
 $(doc_conf_dir)/mof_compiler.help.txt: mof_compiler $(package_name)/mof_compiler.py
 	./mof_compiler --help >$@
+	@echo 'Done: Created mof_compiler script help message file: $@'
 
