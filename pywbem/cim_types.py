@@ -33,8 +33,8 @@ types.
 CIM data type                             Python type
 ========================================  =====================================
 boolean                                   :class:`py:bool`
-char16                                    `unicode string`_ or `byte string`_
-string                                    `unicode string`_ or `byte string`_
+char16                                    :term:`unicode string` or :term:`byte string`
+string                                    :term:`unicode string` or :term:`byte string`
 string (EmbeddedInstance)                 :class:`~pywbem.CIMInstance`
 string (EmbeddedObject)                   :class:`~pywbem.CIMInstance`
                                           or :class:`~pywbem.CIMClass`
@@ -58,9 +58,12 @@ may support Python types in addition to those shown above. For example, the
 :class:`~pywbem.CIMProperty` class represents property values of CIM datetime
 type internally as :class:`~pywbem.CIMDateTime` objects, but its constructor
 accepts :class:`py:datetime.timedelta` objects, :class:`py:datetime.datetime`
-objects, `unicode string`_, and `byte string`_, in addition to
+objects, :term:`unicode string`, and :term:`byte string`, in addition to
 :class:`~pywbem.CIMDateTime` objects.
 """
+# pylint: enable=line-too-long
+# Note: When used before module docstrings, Pylint scopes the disable statement
+#       to the whole rest of the file, so we need an enable statement.
 
 # This module is meant to be safe for 'import *'.
 
@@ -265,9 +268,9 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             The value from which the object is initialized, as one of the
             following types:
 
-            * A `unicode string`_ or `byte string`_ object will be interpreted
-              as CIM datetime format (see `DSP0004`_) and will result in a
-              point in time or a time interval.
+            * A :term:`unicode string` or :term:`byte string` object will be
+              interpreted as CIM datetime format (see :term:`DSP0004`) and
+              will result in a point in time or a time interval.
             * A :class:`py:datetime.datetime` object must be timezone-aware
               (see :class:`~pywbem.MinutesFromUTC`) and will result in a point
               in time.
@@ -556,7 +559,7 @@ def cimtype(obj):
 
     Parameters:
 
-      obj (`CIM data type`_):
+      obj (:term:`CIM data type`):
         The object whose CIM data type name is returned.
 
     Returns:
@@ -576,7 +579,8 @@ def cimtype(obj):
         return 'string'
     if isinstance(obj, list):
         if len(obj) == 0:
-            raise ValueError("Cannot determine CIM data type from an empty array")
+            raise ValueError(
+                "Cannot determine CIM data type from an empty array")
         return cimtype(obj[0])
     if isinstance(obj, (datetime, timedelta)):
         return 'datetime'
@@ -609,7 +613,7 @@ def type_from_name(type_name):
     :class:`~pywbem.Uint8`.
 
     For CIM data type names ``"string"`` and ``"char16"``, the
-    `unicode string`_ type is returned (Unicode strings are the preferred
+    :term:`unicode string` type is returned (Unicode strings are the preferred
     representation for these CIM data types).
 
     Parameters:
@@ -648,13 +652,13 @@ def atomic_to_cim_xml(obj):
 
       obj (atomic scalar CIM typed value):
         The CIM typed value, including `None`. Must be a scalar (not an array).
-        Must be an atomic type (i.e. those listed in `CIM data types`_, except
-        any `CIM objects`_).
+        Must be an atomic type (i.e. those listed in :ref:`CIM data types`,
+        except any :ref:`CIM objects`).
 
     Returns:
 
-        A `unicode string`_ object in CIM-XML value format representing the CIM
-        typed value. For a value of `None`, `None` is returned.
+        A :term:`unicode string` object in CIM-XML value format representing
+        the CIM typed value. For a value of `None`, `None` is returned.
     """
     # pylint: disable=too-many-return-statements
     from .cim_obj import _ensure_unicode, _convert_unicode  # due to cycles

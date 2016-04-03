@@ -21,7 +21,7 @@
 
 """
 The language in which CIM classes are specified, is called `MOF` (for Managed
-Object Format). It is defined in `DSP0004`_.
+Object Format). It is defined in :term:`DSP0004`.
 
 The ``pywbem.mof_compiler`` module provides a MOF compiler.
 
@@ -1938,7 +1938,7 @@ class MOFCompiler(object):
             A connection to the CIM repository that will be associated with the
             MOF compiler.
 
-          search_paths (list of `unicode string`_ or `byte string`_):
+          search_paths (list of :term:`unicode string` or :term:`byte string`):
             A list of path names of directories where MOF include files should
             be looked up.
 
@@ -1971,15 +1971,15 @@ class MOFCompiler(object):
 
         Parameters:
 
-          mof (`unicode string`_ or `byte string`_):
+          mof (:term:`unicode string` or :term:`byte string`):
             The string of MOF statements to be compiled.
 
-          ns (`unicode string`_ or `byte string`_):
+          ns (:term:`unicode string` or :term:`byte string`):
             The name of the CIM namespace in the associated CIM repository
             that is used for lookup of any dependent CIM elements, and that
             is also the target of the compilation.
 
-          filename (`unicode string`_ or `byte string`_):
+          filename (:term:`unicode string` or :term:`byte string`):
             The path name of the file that the MOF statements were read from.
             This information is used only in compiler messages.
 
@@ -2037,11 +2037,11 @@ class MOFCompiler(object):
 
         Parameters:
 
-          filename (`unicode string`_ or `byte string`_):
+          filename (:term:`unicode string` or :term:`byte string`):
             The path name of the MOF file containing the MOF statements to be
             compiled.
 
-          ns (`unicode string`_ or `byte string`_):
+          ns (:term:`unicode string` or :term:`byte string`):
             The name of the CIM namespace in the associated CIM repository
             that is used for lookup of any dependent CIM elements, and that
             is also the target of the compilation.
@@ -2075,7 +2075,7 @@ class MOFCompiler(object):
 
         Parameters:
 
-          classame (`unicode string`_ or `byte string`_):
+          classame (:term:`unicode string` or :term:`byte string`):
             The name of the CIM class to look up.
 
         Returns:
@@ -2164,14 +2164,14 @@ Example:
   %s CIM_Schema_2.45.mof -u https://localhost:15989 -n root/cimv2 -l sheldon -p penny42
 """ % prog
     argparser = argparse.ArgumentParser(
-        prog=prog, usage=usage, description=desc, epilog=epilog, 
+        prog=prog, usage=usage, description=desc, epilog=epilog,
         add_help=False, formatter_class=SmartFormatter)
 
     pos_arggroup = argparser.add_argument_group(
         'Positional arguments')
     pos_arggroup.add_argument(
         'mof_files', metavar='moffile',
-        nargs='*', 
+        nargs='*',
         help='R|Path name of the MOF file to be compiled.\n' \
              'Can be specified multiple times.')
 

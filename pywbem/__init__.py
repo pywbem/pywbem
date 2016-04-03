@@ -43,16 +43,20 @@ symbols of the ``pywbem`` namespace.
 
 The WBEM client library API consists of the following elements:
 
-* `Package version`_ - Provides access to the version of the ``pywbem``
+* :ref:`Package version` - Provides access to the version of the ``pywbem``
   package.
-* `WBEM operations`_ - Class :class:`WBEMConnection` is the main class of the
-  WBEM client library and its methods issue WBEM operations to a WBEM server.
-* `CIM objects`_ - Python objects for CIM instances, classes, properties, etc.
-  that are used by the WBEM operations as input or output.
-* `CIM data types`_ - Python objects for representing CIM data types (actually
-  their values).
-* `CIM status codes`_ - CIM status codes returned by failing WBEM operations.
-* `Exceptions`_ - Exceptions specific to pywbem that may be raised.
+* :ref:`WBEM operations` - Class :class:`WBEMConnection` is the main class of
+  the WBEM client library and its methods issue WBEM operations to a WBEM
+  server.
+* :ref:`CIM objects` - Python objects for CIM instances, classes, properties,
+  etc. that are used by the WBEM operations as input or output.
+* :ref:`CIM data types` - Python objects for representing CIM data types
+  (actually their values).
+* :ref:`CIM status codes` - CIM status codes returned by failing WBEM
+  operations.
+* :ref:`Exceptions` - Exceptions specific to pywbem that may be raised.
+
+.. _`Package version`:
 
 Package version
 ---------------

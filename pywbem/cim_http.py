@@ -277,20 +277,20 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
 
     Parameters:
 
-      url (`unicode string`_ or `byte string`_):
+      url (:term:`unicode string` or :term:`byte string`):
         URL of the WBEM server (e.g. ``"https://10.11.12.13:6988"``).
         For details, see the ``url`` parameter of
-        `WBEMConnection.__init__`.
+        :meth:`WBEMConnection.__init__`.
 
-      data (`unicode string`_ or `byte string`_):
+      data (:term:`unicode string` or :term:`byte string`):
         The CIM-XML formatted data to be sent as a request to the WBEM server.
 
       creds:
         Credentials for authenticating with the WBEM server.
         For details, see the ``creds`` parameter of
-        `WBEMConnection.__init__`.
+        :meth:`WBEMConnection.__init__`.
 
-      headers (list of `unicode string`_ or list of `byte string`_):
+      headers (list of :term:`unicode string` or list of :term:`byte string`):
         List of HTTP header fields to be added to the request, in addition to
         the standard header fields such as ``Content-type``,
         ``Content-length``, and ``Authorization``.
@@ -303,27 +303,27 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
       x509:
         Used for HTTPS with certificates.
         For details, see the ``x509`` parameter of
-        `WBEMConnection.__init__`.
+        :meth:`WBEMConnection.__init__`.
 
       verify_callback:
         Used for HTTPS with certificates.
         For details, see the ``verify_callback`` parameter of
-        `WBEMConnection.__init__`.
+        :meth:`WBEMConnection.__init__`.
 
       ca_certs:
         Used for HTTPS with certificates.
         For details, see the ``ca_certs`` parameter of
-        `WBEMConnection.__init__`.
+        :meth:`WBEMConnection.__init__`.
 
       no_verification:
         Used for HTTPS with certificates.
         For details, see the ``no_verification`` parameter of
-        `WBEMConnection.__init__`.
+        :meth:`WBEMConnection.__init__`.
 
       timeout (number):
         Timeout in seconds, for requests sent to the server. If the server did
         not respond within the timeout duration, the socket for the connection
-        will be closed, causing a `TimeoutError` to be raised.
+        will be closed, causing a :exc:`TimeoutError` to be raised.
         A value of ``None`` means there is no timeout.
         A value of ``0`` means the timeout is very short, and does not really
         make any sense.
@@ -332,7 +332,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
 
     Returns:
         The CIM-XML formatted response data from the WBEM server, as a
-        `unicode string`_ object.
+        :term:`unicode string` object.
 
     Raises:
         :exc:`~pywbem.AuthError`

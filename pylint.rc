@@ -71,6 +71,7 @@ disable=I0011,
         too-many-lines, too-many-public-methods,
         too-many-nested-blocks, too-many-return-statements, too-many-arguments,
         wildcard-import, unused-wildcard-import,
+        locally-enabled, superfluous-parens,
 
 # Note: The too-many-* messages are excluded temporarily, and should be dealt
 #       with at some point.
