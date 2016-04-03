@@ -2276,11 +2276,9 @@ class CIMMethod(_CIMComparisonMixin):
     def __init__(self, methodname, return_type=None, parameters=None,
                  class_origin=None, propagated=False, qualifiers=None):
         """
-        The constructor currently stores the input arguments as-is. In the
-        future, it is intended to change such that some values when specified
-        as `None` are considered unspecified and will tried to be inferred from
-        other values, similar to the constructor of
-        :class:`~pywbem.CIMProperty`.
+        The constructor currently stores the input arguments as-is and does
+        not infer unspecified arguments from the others
+        (like :class:`~pywbem.CIMProperty` does).
 
         Parameters:
 
@@ -2292,9 +2290,7 @@ class CIMMethod(_CIMComparisonMixin):
           return_type (`unicode string`_ or `byte string`_):
             Name of the CIM data type of the method return type
             (e.g. ``"uint32"``).
-            `None` is currently stored as is; in the future it will mean that
-            the argument is unspecified, causing the corresponding instance
-            variable to be inferred.
+            `None` is currently stored as is.
 
           parameters (dict or `NocaseDict`_):
             Parameter declarations for the method declaration.
@@ -2468,11 +2464,9 @@ class CIMParameter(_CIMComparisonMixin):
                  array_size=None, qualifiers=None, value=None):
         # pylint: disable=redefined-builtin
         """
-        The constructor currently stores the input arguments as-is. In the
-        future, it is intended to change such that some values when specified
-        as `None` are considered unspecified and will tried to be inferred from
-        other values, similar to the constructor of
-        :class:`~pywbem.CIMProperty`.
+        The constructor currently stores the input arguments as-is and does
+        not infer unspecified arguments from the others
+        (like :class:`~pywbem.CIMProperty` does).
 
         Parameters:
 
@@ -2482,22 +2476,16 @@ class CIMParameter(_CIMComparisonMixin):
 
           type (`unicode string`_ or `byte string`_):
             Name of the CIM data type of the parameter (e.g. ``"uint8"``).
-            Must not be `None`, currently; in the future `None` will mean that
-            the argument is unspecified, causing the corresponding instance
-            variable to be inferred.
+            Must not be `None`, currently.
 
           reference_class (`unicode string`_ or `byte string`_):
             Name of the referenced class, for reference properties.
-            `None` is currently stored as is; in the future it will mean that
-            the argument is unspecified, causing the corresponding instance
-            variable to be inferred.
+            `None` is currently stored as is.
 
           is_array (bool):
             A boolean indicating whether the property is an array (`True`) or a
             scalar (`False`).
-            `None` is currently stored as is; in the future it will mean that
-            the argument is unspecified, causing the corresponding instance
-            variable to be inferred.
+            `None` is currently stored as is.
 
           array_size (int):
             The size of the array property, for fixed-size arrays.
