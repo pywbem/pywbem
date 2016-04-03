@@ -182,6 +182,10 @@ Bug fixes
 * Fixed an IndexError in cim_http.wbem_request() that occurred during handling
   of another exception.
 
+* fixed issue with python 3 and https that was causing connect() to fail. 
+  This completely separates connect() code for python 3 ssl module from
+  python 2 m2cyrpto.
+
 
 pywbem v0.8.2
 -------------
