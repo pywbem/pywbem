@@ -407,13 +407,24 @@ autodoc_mock_imports = []
 # For documentation, see
 # http://www.sphinx-doc.org/en/stable/ext/intersphinx.html
 
-# Defines the prefixes for intersphinx links, and the targets they resolve
-# to. Example RST source for 'py' prefix:
-#     :py:func:`platform.dist`
+# Defines the prefixes for intersphinx links, and the targets they resolve to.
+# Example RST source for 'py2' prefix:
+#     :func:`py2:platform.dist`
+#
+# Note: The URLs apparently cannot be the same for two different IDs; otherwise
+#       the links for one of them are not being created. A small difference
+#       such as adding a trailing backslash is already sufficient to work
+#       around the problem.
+#
+# Note: This mapping does not control how links to datatypes of function
+#       parameters are generated.
+# TODO: Find out how the targeted Python version for auto-generated links
+#       to datatypes of function parameters can be controlled.
+#
 intersphinx_mapping = {
-  'py': ('https://docs.python.org/2.7', None),
-  'py2': ('https://docs.python.org/2.7', None),
-  'py3': ('https://docs.python.org/3.5', None),
+  'py': ('https://docs.python.org/2/', None), # agnostic to Python version
+  'py2': ('https://docs.python.org/2', None), # specific to Python 2
+  'py3': ('https://docs.python.org/3', None), # specific to Python 3
 }
 
 intersphinx_cache_limit = 5

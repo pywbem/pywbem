@@ -264,7 +264,18 @@ MOF compiler API
 ================
 
 .. automodule:: pywbem.mof_compiler
+
+.. autoclass:: pywbem.mof_compiler.MOFCompiler
    :members:
+   :special-members: __str__, __repr__
+
+.. autoclass:: pywbem.mof_compiler.MOFParseError
+   :members:
+   :special-members: __str__, __repr__
+
+.. autoclass:: pywbem.mof_compiler.MOFWBEMConnection
+   :members:
+   :special-members: __str__, __repr__
 
 WBEM listener API
 =================
@@ -311,8 +322,7 @@ wbemcli
 
 A WBEM client CLI.
 
-It is currently implemented as an interactive shell, and is expected to morph
-into a full fledged command line utility in the future.
+It is implemented as an interactive shell.
 
 .. include:: wbemcli.help.txt
  	 :literal:

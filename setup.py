@@ -432,7 +432,11 @@ def main():
         ],
     }
 
-    if sys.version_info[0] == 2:
+    _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
+
+    if sys.version_info[0] == 2 and not _ON_RTD:
+        # RTD does not have Swig so we cannot install M2Crypto.
+
         # The 'install_requires' processing in distutils does not tolerate
         # a None value in the list, so we need be truly conditional (instead
         # of adding an entry with None).

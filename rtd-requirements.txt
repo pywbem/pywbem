@@ -1,6 +1,6 @@
-# Requirements fir building with SPhinx at readthedocs.org
+# Requirements for building with Sphinx at readthedocs.org
 #
 six
 ply
-M2Crypto>=0.24
+# M2Crypto>=0.24   # we cannot install M2Crypto because RTD does not have Swig
 Sphinx>=1.3

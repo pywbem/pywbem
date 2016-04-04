@@ -32,7 +32,7 @@ types.
 ========================================  =====================================
 CIM data type                             Python type
 ========================================  =====================================
-boolean                                   :class:`py2:bool`
+boolean                                   :class:`py:bool`
 char16                                    `unicode string`_ or `byte string`_
 string                                    `unicode string`_ or `byte string`_
 string (EmbeddedInstance)                 :class:`~pywbem.CIMInstance`
@@ -50,14 +50,14 @@ sint32                                    :class:`~pywbem.Sint32`
 sint64                                    :class:`~pywbem.Sint64`
 real32                                    :class:`~pywbem.Real32`
 real64                                    :class:`~pywbem.Real64`
-[] (array)                                :class:`py2:list`
+[] (array)                                :class:`py:list`
 ========================================  =====================================
 
 Note that constructors of pywbem classes that take CIM typed values as input
 may support Python types in addition to those shown above. For example, the
 :class:`~pywbem.CIMProperty` class represents property values of CIM datetime
 type internally as :class:`~pywbem.CIMDateTime` objects, but its constructor
-accepts :class:`py2:datetime.timedelta` objects, :class:`py2:datetime.datetime`
+accepts :class:`py:datetime.timedelta` objects, :class:`py:datetime.datetime`
 objects, `unicode string`_, and `byte string`_, in addition to
 :class:`~pywbem.CIMDateTime` objects.
 """
@@ -155,8 +155,40 @@ class _CIMComparisonMixin(object): #pylint: disable=too-few-public-methods
 
 class MinutesFromUTC(tzinfo):
     """
-    An implementation of :class:`py2:datetime.tzinfo` that uses a fixed offset
-    in +/- minutes from UTC.
+    Timezone information (an implementation of :class:`py:datetime.tzinfo`)
+    that represents a fixed offset in +/- minutes from UTC and is thus suitable
+    for the CIM datetime data type.
+
+    Objects of this class are needed in order to make
+    :class:`py:datetime.datetime` objects timezone-aware, in order to be
+    useable as input data to the timezone-aware :class:`~pywbem.CIMDateTime`
+    type.
+
+    They are also used to provide timezone information to
+    :meth:`~pywbem.CIMDateTime.now` and
+    :meth:`~pywbem.CIMDateTime.fromtimestamp`
+
+    Example:
+
+    ::
+
+        from datetime import datetime
+        from time import time
+        import pywbem
+
+        # Create a timezone-aware datetime object (for CEDT = UTC+2h), and
+        # convert that to CIM datetime:
+
+        dt = datetime(year=2016, month=3, day=31, hour=19, minute=30,
+                      second=40, microsecond=654321,
+                      tzinfo=pywbem.MinutesFromUTC(120))
+        cim_dt = pywbem.CIMDateTime(dt)
+
+        # Convert a POSIX timestamp value to CIM datetime (for EST = UTC-5h):
+
+        posix_ts = time()  # seconds since the epoch, not timezone-aware
+        cim_dt = pywbem.CIMDateTime.fromtimestamp(posix_ts,
+                                                  pywbem.MinutesFromUTC(-300))
     """
 
     def __init__(self, offset): # pylint: disable=super-init-not-called
@@ -164,25 +196,42 @@ class MinutesFromUTC(tzinfo):
         Parameters:
 
           offset (int):
-            Timezone offset in +/- minutes from UTC, where a positive value
-            indicates minutes east of UTC, and a negative value indicates
-            minutes west of UTC.
+            Timezone offset to be represented in the CIM datetime value in +/-
+            minutes from UTC.
+
+            This is the offset of local time to UTC (including DST offset),
+            where a positive value indicates minutes east of UTC, and a
+            negative value indicates minutes west of UTC.
         """
         self.__offset = timedelta(minutes=offset)
 
     def utcoffset(self, dt): # pylint: disable=unused-argument
         """
-        Implementation of the :func:`py2:datetime.tzinfo.utcoffset` method
-        that returns the timezone offset as a :class:`py2:datetime.timedelta`
-        object.
+        An implementation of the corresponding base class method
+        (see :meth:`py:datetime.tzinfo.utcoffset` for its description),
+        which needs
+        to return the offset of local time to UTC (including DST offset), as a
+        :class:`py:datetime.timedelta` object. This method is called by the
+        Python datetime classes, and a pywbem user normally does not have
+        to deal with it.
+
+        This implementation returns the offset used to initialize the object,
+        for any specified `dt` argument.
         """
         return self.__offset
 
     def dst(self, dt): # pylint: disable=unused-argument
         """
-        Implementation of the :func:`py2:datetime.tzinfo.dst` method
-        that returns a DST value of 0 as a :class:`py2:datetime.timedelta`
-        object.
+        An implementation of the corresponding base class method,
+        (see :meth:`py:datetime.tzinfo.dst` for its description),
+        which needs
+        to return the offset caused by DST, as a :class:`py:datetime.timedelta`
+        object. This method is called by the Python datetime classes, and a
+        pywbem user normally does not have to deal with it.
+
+        This implementation returns an offset of 0 (indicating that DST is not
+        in effect), for any specified `dt` argument, because CIM datetime
+        values do not represent DST information.
         """
         return timedelta(0)
 
@@ -219,9 +268,10 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             * A `unicode string`_ or `byte string`_ object will be interpreted
               as CIM datetime format (see `DSP0004`_) and will result in a
               point in time or a time interval.
-            * A :class:`py2:datetime.datetime` object must be timezone-aware
-              and will result in a point in time.
-            * A :class:`py2:datetime.timedelta` object will result in a time
+            * A :class:`py:datetime.datetime` object must be timezone-aware
+              (see :class:`~pywbem.MinutesFromUTC`) and will result in a point
+              in time.
+            * A :class:`py:datetime.timedelta` object will result in a time
               interval.
             * Another :class:`~pywbem.CIMDateTime` object will be copied.
         """
@@ -281,12 +331,13 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
     @property
     def minutes_from_utc(self):
         """
-        The timezone offset of a point in time object as +/- minutes from UTC.
+        The timezone offset of this point in time object as +/- minutes from
+        UTC.
 
         A positive value of the timezone offset indicates minutes east of UTC,
         and a negative value indicates minutes west of UTC.
 
-        0, if the object represents a time interval.
+        0, if this object represents a time interval.
         """
         offset = 0
         if self.__datetime is not None and \
@@ -299,27 +350,27 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
     @property
     def datetime(self):
         """
-        The point in time represented by the object, as a
-        :class:`py2:datetime.datetime` object.
+        The point in time represented by this object, as a
+        :class:`py:datetime.datetime` object.
 
-        `None` if the object represents a time interval.
+        `None` if this object represents a time interval.
         """
         return self.__datetime
 
     @property
     def timedelta(self):
         """
-        The time interval represented by the object, as a
-        :class:`py2:datetime.timedelta` object.
+        The time interval represented by this object, as a
+        :class:`py:datetime.timedelta` object.
 
-        `None` if the object represents a point in time.
+        `None` if this object represents a point in time.
         """
         return self.__timedelta
 
     @property
     def is_interval(self):
         """
-        A boolean indicating whether the object represents a time interval
+        A boolean indicating whether this object represents a time interval
         (`True`) or a point in time (`False`).
         """
         return self.__timedelta is not None
@@ -327,7 +378,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
     @staticmethod
     def get_local_utcoffset():
         """
-        Return the timezone offset of the current local timezone from UTC.
+        Return the timezone offset of the current local timezone as +/- minutes
+        from UTC.
 
         A positive value indicates minutes east of UTC, and a negative
         value indicates minutes west of UTC.
@@ -353,7 +405,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
 
         Parameters:
 
-          tzi (:class:`py2:datetime.tzinfo` or :class:`~pywbem.MinutesFromUTC`):
+          tzi (:class:`~pywbem.MinutesFromUTC`):
             Timezone information. `None` means that the current local timezone
             is used.
 
@@ -373,9 +425,9 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         Factory method that returns a new :class:`~pywbem.CIMDateTime` object
         from a POSIX timestamp value and optional timezone information.
 
-        A POSIX timestamp value is the number of seconds since 1970-01-01
-        00:00:00 UTC. Thus, a POSIX timestamp value is unambiguous w.r.t. the
-        timezone.
+        A POSIX timestamp value is the number of seconds since "the epoch",
+        i.e. 1970-01-01 00:00:00 UTC. Thus, a POSIX timestamp value is
+        unambiguous w.r.t. the timezone, but it is not timezone-aware.
 
         The optional timezone information is used to convert the CIM datetime
         value into the desired timezone. That does not change the point in time
@@ -388,7 +440,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
           ts (int):
             POSIX timestamp value.
 
-          tzi (:class:`py2:datetime.tzinfo` or :class:`~pywbem.MinutesFromUTC`):
+          tzi (:class:`~pywbem.MinutesFromUTC`):
             Timezone information. `None` means that the current local timezone
             is used.
 
