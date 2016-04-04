@@ -62,17 +62,19 @@ In the directory of the `pywbem` repo:
     branch for the PR to be your base branch.
 10. Perform a complete test:
     - `tox`
-11. Perform any other tests you wish, e.g.
+11. Perform an install test:
+    - `cd testsuite; ./test_install.sh`
+12. Perform any other tests you wish, e.g.
     - Run in local CI environment
     - Run against a real WBEM server
-12. If any of the tests (including the Travis CI run of the Pull Request) fails,
+13. If any of the tests (including the Travis CI run of the Pull Request) fails,
     fix and iterate back to (1) until they all succeed.
-13. Once the Travis CI run for this PR succeeds:
+14. Once the Travis CI run for this PR succeeds:
     - Merge the PR (no review is needed)
     - Delete the PR
-14. Clean up local branches:
+15. Clean up local branches:
     - `git-prune origin` (From `andy-maier/gitsurvival`)
-15. Close milestone `M.N.U` on GitHub.
+16. Close milestone `M.N.U` on GitHub.
     Tag the release and push to upstream repo:
     - Create tag for M.N.U:
       - `git tag vM.N.U`
@@ -81,15 +83,15 @@ In the directory of the `pywbem` repo:
       - `git tag -d <tags ...>`
     - Push tag changes:
       - `git push --tags`
-16. On GitHub, edit the new tag, and create a release description on it. This
+17. On GitHub, edit the new tag, and create a release description on it. This
     will cause it to appear in the Release tab.
-17. Upload the package to PyPI:
+18. Upload the package to PyPI:
     - **Attention!!** This only works once. You cannot re-release the same
       version to PyPI.
     - `make release`
     - Verify that it arrived on PyPI:
       - https://pypi.python.org/pypi/pywbem/M.N.U
-18. Publish the API docs to the adjacent `pywbem.github.io` repo directory:
+19. Publish the API docs to the adjacent `pywbem.github.io` repo directory:
     - `make publish`
 
 In the directory of the `pywbem.github.io` repo:
