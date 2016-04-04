@@ -16,11 +16,12 @@ install:
   - pip list
   - pip install --upgrade pip
   - python uninstall_pbr_on_py26.py
-  - make clean
+  - make clobber
   - pip list
   - make develop
   - pip list
   - make check
+  - make build
   - make builddoc
 
 # commands to run tests
