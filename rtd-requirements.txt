@@ -4,3 +4,4 @@ six
 ply
 # M2Crypto>=0.24   # we cannot install M2Crypto because RTD does not have Swig
 Sphinx>=1.3
+sphinx-git
