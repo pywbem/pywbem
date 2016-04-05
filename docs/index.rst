@@ -1,6 +1,6 @@
 
-pywbem version |version|
-************************
+pywbem - A WBEM Client
+**********************
 
 Overview
 ========
@@ -50,6 +50,14 @@ Changes
 -------
 
 The change log is in the `pywbem/NEWS.md <NEWS.md>`_ file.
+
+.. ifconfig:: version.endswith('dev0')
+
+   This version of the documentation is development version |version| and
+   contains the `master` branch up to commit:
+
+   .. git_changelog::
+      :revisions: 1
 
 Compatibility
 -------------

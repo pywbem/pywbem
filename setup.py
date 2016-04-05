@@ -324,6 +324,7 @@ def main():
             "pytest>=2.4",
             "pytest-cov",
             "Sphinx>=1.3",
+            "sphinx-git",
             "httpretty",
             "lxml",
             "PyYAML",   # Pypi package name of "yaml" package.
