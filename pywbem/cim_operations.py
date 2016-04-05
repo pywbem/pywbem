@@ -436,14 +436,13 @@ class WBEMConnection(object):
               Password for that userid.
 
           default_namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the CIM namespace to be
-            used by default (if no  namespace is specified for an
-            operation).
+            Name of the CIM namespace to be used by default (if no namespace is
+            specified for an operation).
 
             Default: :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`.
 
           x509 (dict):
-            Optional: `X.509`_ certificates for HTTPS to be used instead of the
+            `X.509`_ certificates for HTTPS to be used instead of the
             credentials provided in the `creds` parameter.
             This parameter is used only when the `url` parameter specifies
             a scheme of ``"https"``.
@@ -463,13 +462,10 @@ class WBEMConnection(object):
               certificate file, as a `unicode string`_ or `byte string`_
               object.
 
-            Default: `None`.
-
           verify_callback (callable):
-            Optional: Registers a callback function
-            that will be called to verify the certificate returned by the
-            WBEM server during the SSL handshake, in addition to the
-            verification alreay performed by `M2Crypto`.
+            Registers a callback function that will be called to verify the
+            certificate returned by the WBEM server during the SSL handshake,
+            in addition to the verification alreay performed by `M2Crypto`.
 
             If `None`, no such callback function will be registered.
 
@@ -508,11 +504,9 @@ class WBEMConnection(object):
             The callback function must return `True` if the verification
             passes and `False` otherwise.
 
-            Default: `None`.
-
           ca_certs (`unicode string`_ or `byte string`_):
-            Optional: Location of CA certificates (trusted
-            certificates) for verification purposes.
+            Location of CA certificates (trusted certificates) for verification
+            purposes.
 
             The parameter value is either the directory path of a directory
             prepared using the ``c_rehash`` tool included with OpenSSL, or the
@@ -520,25 +514,20 @@ class WBEMConnection(object):
 
             If `None`, the default system path will be used.
 
-            Default: `None`.
-
           no_verification (bool):
-            Optional: Indicates that verification of the
-            certificate returned by the WBEM server is disabled (both by
-            `M2Crypto` and by the callback function specified in
-            `verify_callback`).
+            Indicates that verification of the certificate returned by the WBEM
+            server is disabled (both by `M2Crypto` and by the callback function
+            specified in `verify_callback`).
 
             Disabling the verification is insecure and should be avoided.
 
             If `True`, verification is disabled; otherwise, it is enabled.
 
-            Default: `False`.
-
           timeout (number):
-            Timeout in seconds, for requests sent to the
-            server. If the server did not respond within the timeout duration,
-            the socket for the connection will be closed, causing a
-            :exc:`~pywbem.TimeoutError` to be raised.
+            Timeout in seconds, for requests sent to the server. If the server
+            did not respond within the timeout duration, the socket for the
+            connection will be closed, causing a :exc:`~pywbem.TimeoutError` to
+            be raised.
 
             A value of `None` means there is no timeout.
 
@@ -965,11 +954,93 @@ class WBEMConnection(object):
 
         return tt
 
+        namespace = self.default_namespace
+
+        if isinstance(ObjectName, CIMInstanceName) and \
+           ObjectName.namespace is not None:
+            namespace = ObjectName.namespace
+
+    def _iparam_namespace_from(self, obj):
+        """Determine the namespace from an object that can be a namespace
+        string, a CIMClassName or CIMInstanceName object, or `None`. The
+        default namespace of the connection object is used, if needed.
+
+        Return the so determined namespace for use as an argument to
+        imethodcall()."""
+
+        if isinstance(obj, (CIMClassName, CIMInstanceName)):
+            namespace = obj.namespace
+        elif isinstance(obj, six.string_types):
+            namespace = obj
+        elif obj is None:
+            namespace = obj
+        else:
+            raise TypeError('Expecting None (for default), a namespace ' \
+                            'string, a CIMClassName or CIMInstanceName ' \
+                            'object, got: %s' % type(obj))
+        if namespace is None:
+            namespace = self.default_namespace
+        return namespace
+
+    @staticmethod
+    def _iparam_objectname(objectname):
+        """Convert an object name (= class or instance name) specified in an
+        operation method into a CIM object that can be passed to
+        imethodcall()."""
+
+        if isinstance(objectname, (CIMClassName, CIMInstanceName)):
+            objectname = objectname.copy()
+            objectname.host = None
+            objectname.namespace = None
+        elif isinstance(objectname, six.string_types):
+            objectname = CIMClassName(objectname)
+        elif objectname is None:
+            pass
+        else:
+            raise TypeError('Expecting None, a classname string, a ' \
+                            'CIMClassName or CIMInstanceName object, ' \
+                            'got: %s' % type(objectname))
+        return objectname
+
+    @staticmethod
+    def _iparam_classname(classname):
+        """Convert a class name specified in an operation method into a CIM
+        object that can be passed to imethodcall()."""
+
+        if isinstance(classname, CIMClassName):
+            classname = classname.copy()
+            classname.host = None
+            classname.namespace = None
+        elif isinstance(classname, six.string_types):
+            classname = CIMClassName(classname)
+        elif classname is None:
+            pass
+        else:
+            raise TypeError('Expecting None, a classname string or a ' \
+                            'CIMClassName object, got: %s' % type(classname))
+        return classname
+
+    @staticmethod
+    def _iparam_instancename(instancename):
+        """Convert an instance name specified in an operation method into a CIM
+        object that can be passed to imethodcall()."""
+
+        if isinstance(instancename, CIMInstanceName):
+            instancename = instancename.copy()
+            instancename.host = None
+            instancename.namespace = None
+        elif instancename is None:
+            pass
+        else:
+            raise TypeError('Expecting None or a CIMInstanceName object, ' \
+                            'got: %s' % type(instancename))
+        return instancename
+
     #
     # Instance operations
     #
 
-    def EnumerateInstanceNames(self, ClassName, namespace=None, **params):
+    def EnumerateInstanceNames(self, ClassName, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
         Enumerate the instance paths of instances of a class (including
@@ -981,20 +1052,22 @@ class WBEMConnection(object):
 
         Parameters:
 
-          ClassName (`unicode string`_ or `byte string`_):
+          ClassName (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
             Name of the class to be enumerated, in any lexical case.
 
           namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the CIM namespace to be used, in any lexical
-            case.
-            The value `None` causes the default namespace of the connection
-            object to be used.
+            Name of the CIM namespace to be used, in any lexical case.
 
-            Default: `None`.
+            If `None`, the default namespace of the connection object will be
+            used.
 
         Keyword Arguments:
 
-          : None.
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -1006,26 +1079,28 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(namespace)
+        classname = self._iparam_classname(ClassName)
 
         result = self.imethodcall(
             'EnumerateInstanceNames',
             namespace,
-            ClassName=CIMClassName(ClassName),
-            **params)
+            ClassName=classname,
+            **extra)
 
-        names = []
-
+        instancenames = []
         if result is not None:
-            names = result[2]
+            instancenames = result[2]
 
-        for n in names:
-            setattr(n, 'namespace', namespace)
+        for instancename in instancenames:
+            instancename.namespace = namespace
 
-        return names
+        return instancenames
 
-    def EnumerateInstances(self, ClassName, namespace=None, **params):
+    def EnumerateInstances(self, ClassName, namespace=None, LocalOnly=None,
+                           DeepInheritance=None, IncludeQualifiers=None,
+                           IncludeClassOrigin=None, PropertyList=None,
+                           **extra):
         # pylint: disable=invalid-name
         """
         Enumerate the instances of a class (including instances of its
@@ -1037,62 +1112,82 @@ class WBEMConnection(object):
 
         Parameters:
 
-          ClassName (`unicode string`_ or `byte string`_):
+          ClassName (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
             Name of the class to be enumerated, in any lexical case.
 
           namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the CIM namespace to be used, in any lexical case.
-            The value `None` causes the default namespace of the connection
-            object to be used.
+            Name of the CIM namespace to be used, in any lexical case.
 
-            Default: `None`.
-
-        Keyword Arguments:
+            If `None`, the default namespace of the connection object will be
+            used.
 
           LocalOnly (bool):
-            Optional: Controls the exclusion of inherited properties from the
-            returned instances, as follows:
+            Controls the exclusion of inherited properties from the returned
+            instances, as follows:
 
             * If `False`, inherited properties are not excluded.
-            * If `True`, the behavior is WBEM server specific.
-
-            Default: `True`.
+            * If `True`, inherited properties are basically excluded, but the
+              behavior may be WBEM server specific.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `True`.
 
             This parameter has been deprecated in `DSP0200`_ and should be set
             to `False` by the caller.
 
           DeepInheritance (bool):
-            Optional: Indicates that properties added by subclasses of the
-            specified class are to be included in the returned instances.
+            Indicates that properties added by subclasses of the specified
+            class are to be included in the returned instances, as follows:
 
-            Note, the semantics of this parameter differs between instance and
-            class level operations.
+            * If `False`, properties added by subclasses are not included.
+            * If `True`, properties added by subclasses are included.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `True`.
 
-            Default: `True`.
+            Note, the semantics of the `DeepInheritance` parameter in
+            :meth:`EnumerateClasses` and :meth:`EnumerateClassNames`
+            is different.
 
           IncludeQualifiers (bool):
-            Optional: Indicates that qualifiers are to be included in the
-            returned instance.
+            Indicates that qualifiers are to be included in the returned
+            instance, as follows:
 
-            Default: `False`.
+            * If `False`, qualifiers not included.
+            * If `True`, qualifiers are included if the WBEM server implements
+              support for this parameter.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in `DSP0200`_. Clients cannot
             rely on it being implemented by WBEM servers.
 
           IncludeClassOrigin (bool):
-            Optional: Indicates that class origin information is to be
-            included on each property in the returned instances.
+            Indicates that class origin information is to be included on each
+            property in the returned instances, as follows:
 
-            Default: `False`.
+            * If `False`, class origin information is not included.
+            * If `True`, class origin information is included.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
 
           PropertyList (iterable of `unicode string`_ or `byte string`_):
-            Optional: An iterable specifying the names of the properties to be
+            An iterable specifying the names of the properties to be
             included in the returned instances, in any lexical case.
-            An empty iterable indicates to include no properties.
-            A value of `None` for this parameter indicates to include all
-            properties.
 
-            Default: `None`.
+            An empty iterable indicates to include no properties.
+
+            If `None`, all properties are included.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -1104,26 +1199,31 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(namespace)
+        classname = self._iparam_classname(ClassName)
 
         result = self.imethodcall(
             'EnumerateInstances',
             namespace,
-            ClassName=CIMClassName(ClassName),
-            **params)
+            ClassName=classname,
+            LocalOnly=LocalOnly,
+            DeepInheritance=DeepInheritance,
+            IncludeQualifiers=IncludeQualifiers,
+            IncludeClassOrigin=IncludeClassOrigin,
+            PropertyList=PropertyList,
+            **extra)
 
         instances = []
-
         if result is not None:
             instances = result[2]
 
-        for i in instances:
-            setattr(i.path, 'namespace', namespace)
+        for instance in instances:
+            instance.path.namespace = namespace
 
         return instances
 
-    def GetInstance(self, InstanceName, **params):
+    def GetInstance(self, InstanceName, LocalOnly=None, IncludeQualifiers=None,
+                    IncludeClassOrigin=None, PropertyList=None, **extra):
         # pylint: disable=invalid-name
         """
         Retrieve an instance.
@@ -1137,43 +1237,59 @@ class WBEMConnection(object):
           InstanceName (CIMInstanceName): Instance path of the instance to be
             retrieved.
 
-        Keyword Arguments:
-
           LocalOnly (bool):
-            Optional: Controls the exclusion of inherited properties from the
-            returned instance, as follows:
+            Controls the exclusion of inherited properties from the returned
+            instances, as follows:
 
             * If `False`, inherited properties are not excluded.
-            * If `True`, the behavior is WBEM server specific.
-
-            Default: `True`.
+            * If `True`, inherited properties are basically excluded, but the
+              behavior may be WBEM server specific.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `True`.
 
             This parameter has been deprecated in `DSP0200`_ and should be set
             to `False` by the caller.
 
           IncludeQualifiers (bool):
-            Optional: Indicates that qualifiers are to be included in the
-            returned instance.
+            Indicates that qualifiers are to be included in the returned
+            instance, as follows:
 
-            Default: `False`.
+            * If `False`, qualifiers not included.
+            * If `True`, qualifiers are included if the WBEM server implements
+              support for this parameter.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in `DSP0200`_. Clients cannot
             rely on it being implemented by WBEM servers.
 
           IncludeClassOrigin (bool):
-            Optional: Indicates that class origin information is to be included
-            on each property in the returned instance.
+            Indicates that class origin information is to be included on each
+            property in the returned instances, as follows:
 
-            Default: `False`.
+            * If `False`, class origin information is not included.
+            * If `True`, class origin information is included.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
 
           PropertyList (iterable of `unicode string`_ or `byte string`_):
-            Optional: An iterable specifying the names of the properties to be
-            included in the returned instance, in any lexical case.
-            An empty iterable indicates to include no properties.
-            A value of `None` for this parameter indicates to include all
-            properties.
+            An iterable specifying the names of the properties to be
+            included in the returned instances, in any lexical case.
 
-            Default: `None`.
+            An empty iterable indicates to include no properties.
+
+            If `None`, all properties are included.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -1187,28 +1303,27 @@ class WBEMConnection(object):
 
         # Strip off host and namespace to make this a "local" object
 
-        iname = InstanceName.copy()
-        iname.host = None
-        iname.namespace = None
-
-        if InstanceName.namespace is None:
-            namespace = self.default_namespace
-        else:
-            namespace = InstanceName.namespace
+        namespace = self._iparam_namespace_from(InstanceName)
+        instancename = self._iparam_instancename(InstanceName)
 
         result = self.imethodcall(
             'GetInstance',
             namespace,
-            InstanceName=iname,
-            **params)
+            InstanceName=instancename,
+            LocalOnly=LocalOnly,
+            IncludeQualifiers=IncludeQualifiers,
+            IncludeClassOrigin=IncludeClassOrigin,
+            PropertyList=PropertyList,
+            **extra)
 
         instance = result[2][0]
-        instance.path = InstanceName
+        instance.path = instancename
         instance.path.namespace = namespace
 
         return instance
 
-    def ModifyInstance(self, ModifiedInstance, **params):
+    def ModifyInstance(self, ModifiedInstance, IncludeQualifiers=None,
+                       PropertyList=None, **extra):
         # pylint: disable=invalid-name
         """
         Modify the property values of an instance.
@@ -1220,32 +1335,49 @@ class WBEMConnection(object):
         Parameters:
 
           ModifiedInstance (CIMInstance):
-            A representation of the modified instance. This object needs to
-            contain any new property values and the instance path of the
-            instance to be modified. Missing properties (relative to the class
-            declaration) and properties provided with a value of `None` will be
-            set to NULL. Typically, this object has been retrieved by other
-            operations, such as GetInstance.
+            A representation of the modified instance, also indicating its
+            instance path.
 
-        Keyword Arguments:
+            The namespace component of the `path` instance variable of this
+            object specifies the namespace for the instance to be modified.
+
+            The properties defined in this object specify the new property
+            values for the instance to be modified. Missing properties
+            (relative to the class declaration) and properties provided with
+            a value of `None` will be set to NULL.
+
+            Typically, this object has been retrieved by other operations,
+            such as :meth:`GetInstance`.
 
           IncludeQualifiers (bool):
-            Optional: Indicates that qualifiers are to be modified as specified
-            in the `ModifiedInstance` parameter.
+            Indicates that qualifiers are to be modified as specified in the
+            `ModifiedInstance` parameter, as follows:
 
-            Default: `True`.
+            * If `False`, qualifiers not modified.
+            * If `True`, qualifiers are modified if the WBEM server implements
+              support for this parameter.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `True`.
 
             This parameter has been deprecated in `DSP0200`_. Clients cannot
             rely on it being implemented by WBEM servers.
 
           PropertyList (iterable of `unicode string`_ or `byte string`_):
-            Optional: An iterable specifying the names of the properties to be
+            An iterable specifying the names of the properties to be
             modified, in any lexical case.
-            An empty iterable indicates to modify no properties.
-            A value of `None` for this parameter indicates to modify all
-            properties.
 
-            Default: `None`.
+            An empty iterable indicates to modify no properties.
+
+            If `None`, all properties are modified.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Raises:
 
@@ -1258,12 +1390,7 @@ class WBEMConnection(object):
             raise ValueError(
                 'ModifiedInstance parameter must have path attribute set')
 
-        # Take namespace path from object parameter
-
-        if ModifiedInstance.path.namespace is None:
-            namespace = self.default_namespace
-        else:
-            namespace = ModifiedInstance.path.namespace
+        namespace = self._iparam_namespace_from(ModifiedInstance.path)
 
         instance = ModifiedInstance.copy()
         instance.path.namespace = None
@@ -1272,9 +1399,11 @@ class WBEMConnection(object):
             'ModifyInstance',
             namespace,
             ModifiedInstance=instance,
-            **params)
+            IncludeQualifiers=IncludeQualifiers,
+            PropertyList=PropertyList,
+            **extra)
 
-    def CreateInstance(self, NewInstance, **params):
+    def CreateInstance(self, NewInstance, **extra):
         # pylint: disable=invalid-name
         """
         Create an instance.
@@ -1288,11 +1417,10 @@ class WBEMConnection(object):
           NewInstance (CIMInstance):
             A representation of the instance to be created.
 
-            The `namespace` and `classname` instance variables of this object
-            specify CIM namespace and creation class for the new instance,
-            respectively.
-            An instance path specified using the `path` instance variable of
-            this object will be ignored.
+            The `classname` instance variable of this object specifies the
+            creation class for the new instance. The namespace component of
+            the `path` instance variable specifies the namespace for the new
+            instance.
 
             The `properties` instance variable of this object specifies initial
             property values for the new instance.
@@ -1303,7 +1431,11 @@ class WBEMConnection(object):
 
         Keyword Arguments:
 
-          : None.
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -1315,13 +1447,7 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        # Take namespace path from object parameter
-
-        if NewInstance.path is not None and \
-           NewInstance.path.namespace is not None:
-            namespace = NewInstance.path.namespace
-        else:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(NewInstance.path)
 
         # Strip off path to avoid producing a VALUE.NAMEDINSTANCE
         # element instead of an INSTANCE element.
@@ -1333,14 +1459,14 @@ class WBEMConnection(object):
             'CreateInstance',
             namespace,
             NewInstance=instance,
-            **params)
+            **extra)
 
-        name = result[2][0]
-        name.namespace = namespace
+        instancename = result[2][0]
+        instancename.namespace = namespace
 
-        return name
+        return instancename
 
-    def DeleteInstance(self, InstanceName, **params):
+    def DeleteInstance(self, InstanceName, **extra):
         # pylint: disable=invalid-name
         """
         Delete an instance.
@@ -1356,67 +1482,32 @@ class WBEMConnection(object):
 
         Keyword Arguments:
 
-          : None.
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        # Strip off host and namespace to make this a "local" object
-
-        iname = InstanceName.copy()
-        iname.host = None
-        iname.namespace = None
-
-        if InstanceName.namespace is None:
-            namespace = self.default_namespace
-        else:
-            namespace = InstanceName.namespace
+        namespace = self._iparam_namespace_from(InstanceName)
+        instancename = self._iparam_instancename(InstanceName)
 
         self.imethodcall(
             'DeleteInstance',
             namespace,
-            InstanceName=iname,
-            **params)
+            InstanceName=instancename,
+            **extra)
 
     #
     # Association operations
     #
 
-    def _add_objectname_param(self, params, object_): # pylint: disable=no-self-use
-        """Add an object name (either a class name or an instance
-        name) to a dictionary of parameter names."""
-
-        if isinstance(object_, (CIMClassName, CIMInstanceName)):
-            params['ObjectName'] = object_.copy()
-            params['ObjectName'].namespace = None
-        elif isinstance(object_, six.string_types):
-            params['ObjectName'] = CIMClassName(object_)
-        else:
-            raise ValueError('Expecting a classname, CIMClassName or '
-                             'CIMInstanceName object')
-
-        return params
-
-    def _map_association_params(self, params): # pylint: disable=no-self-use
-        """Convert various convenience parameters and types into their
-        correct form for passing to the imethodcall() function."""
-
-        # ResultClass and Role parameters that are strings should be
-        # mapped to CIMClassName objects.
-
-        if 'ResultClass' in params and \
-           isinstance(params['ResultClass'], six.string_types):
-            params['ResultClass'] = CIMClassName(params['ResultClass'])
-
-        if 'AssocClass' in params and \
-           isinstance(params['AssocClass'], six.string_types):
-            params['AssocClass'] = CIMClassName(params['AssocClass'])
-
-        return params
-
-    def AssociatorNames(self, ObjectName, **params):
+    def AssociatorNames(self, ObjectName, AssocClass=None, ResultClass=None,
+                        Role=None, ResultRole=None, **extra):
         # pylint: disable=invalid-name, line-too-long
         """
         Retrieve the instance paths of the instances (or class paths of the
@@ -1444,35 +1535,41 @@ class WBEMConnection(object):
             not specify a namespace, the default namespace of the connection is
             used.
 
-        Keyword Arguments:
-
           AssocClass (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
-            Optional: Class name of an association class, in any lexical case,
+            Class name of an association class, in any lexical case,
             to filter the result to include only traversals of that association
             class (or subclasses).
 
-            Default: `None` (no filtering).
+            `None` means that no filtering is peformed.
 
           ResultClass (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
-            Optional: Class name of an associated class, in any lexical case,
+            Class name of an associated class, in any lexical case,
             to filter the result to include only traversals to that associated
             class (or subclasses).
 
-            Default: `None` (no filtering).
+            `None` means that no filtering is peformed.
 
           Role (`unicode string`_ or `byte string`_):
-            Optional: Role name (= property name) of the source end, in any
+            Role name (= property name) of the source end, in any
             lexical case, to filter the result to include only traversals from
             that source role.
 
-            Default: `None` (no filtering).
+            `None` means that no filtering is peformed.
 
           ResultRole (`unicode string`_ or `byte string`_):
-            Optional: Role name (= property name) of the far end, in any
+            Role name (= property name) of the far end, in any
             lexical case, to filter the result to include only traversals to
             that far role.
 
-            Default: `None` (no filtering).
+            `None` means that no filtering is peformed.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -1488,26 +1585,27 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        params = self._map_association_params(params)
-        params = self._add_objectname_param(params, ObjectName)
-
-        namespace = self.default_namespace
-
-        if isinstance(ObjectName, CIMInstanceName) and \
-           ObjectName.namespace is not None:
-            namespace = ObjectName.namespace
+        namespace = self._iparam_namespace_from(ObjectName)
+        objectname = self._iparam_objectname(ObjectName)
 
         result = self.imethodcall(
             'AssociatorNames',
             namespace,
-            **params)
+            ObjectName=objectname,
+            AssocClass=self._iparam_classname(AssocClass),
+            ResultClass=self._iparam_classname(ResultClass),
+            Role=Role,
+            ResultRole=ResultRole,
+            **extra)
 
         if result is None:
             return []
 
         return [x[2] for x in result[2]]
 
-    def Associators(self, ObjectName, **params):
+    def Associators(self, ObjectName, AssocClass=None, ResultClass=None,
+                    Role=None, ResultRole=None, IncludeQualifiers=None,
+                    IncludeClassOrigin=None, PropertyList=None, **extra):
         # pylint: disable=invalid-name, line-too-long
         """
         Retrieve the instances (or classes) associated to a source instance
@@ -1535,60 +1633,74 @@ class WBEMConnection(object):
             not specify a namespace, the default namespace of the connection is
             used.
 
-        Keyword Arguments:
-
           AssocClass (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
-            Optional: Class name of an association class, in any lexical case,
+            Class name of an association class, in any lexical case,
             to filter the result to include only traversals of that association
             class (or subclasses).
 
-            Default: `None` (no filtering).
+            `None` means that no filtering is peformed.
 
           ResultClass (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
-            Optional: Class name of an associated class, in any lexical case,
+            Class name of an associated class, in any lexical case,
             to filter the result to include only traversals to that associated
             class (or subclasses).
 
-            Default: `None` (no filtering).
+            `None` means that no filtering is peformed.
 
           Role (`unicode string`_ or `byte string`_):
-            Optional: Role name (= property name) of the source end, in any
+            Role name (= property name) of the source end, in any
             lexical case, to filter the result to include only traversals from
             that source role.
 
-            Default: `None` (no filtering).
+            `None` means that no filtering is peformed.
 
           ResultRole (`unicode string`_ or `byte string`_):
-            Optional: Role name (= property name) of the far end, in any
+            Role name (= property name) of the far end, in any
             lexical case, to filter the result to include only traversals to
             that far role.
 
-            Default: `None` (no filtering).
+            `None` means that no filtering is peformed.
 
           IncludeQualifiers (bool):
-            Optional: Indicates that qualifiers are to be included in the
-            returned instances (or classes).
+            Indicates that qualifiers are to be included in the returned
+            instances (or classes), as follows:
 
-            Default: `False`.
+            * If `False`, qualifiers not included.
+            * If `True`, qualifiers are included if the WBEM server implements
+              support for this parameter.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in `DSP0200`_. Clients cannot
             rely on it being implemented by WBEM servers.
 
           IncludeClassOrigin (bool):
-            Optional: Indicates that class origin information is to be included
-            on each property or method in the returned instances (or classes).
+            Indicates that class origin information is to be included on each
+            property or method in the returned instances (or classes), as
+            follows:
 
-            Default: `False`.
+            * If `False`, class origin information is not included.
+            * If `True`, class origin information is included.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
 
           PropertyList (iterable of `unicode string`_ or `byte string`_):
-            Optional: An iterable specifying the names of the properties to be
-            included in the returned instances (or classes), in any lexical
-            case.
-            An empty iterable indicates to include no properties.
-            A value of `None` for this parameter indicates to include all
-            properties.
+            An iterable specifying the names of the properties to be included
+            in the returned instances (or classes), in any lexical case.
 
-            Default: `None`.
+            An empty iterable indicates to include no properties.
+
+            If `None`, all properties are included.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -1603,26 +1715,28 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        params = self._map_association_params(params)
-        params = self._add_objectname_param(params, ObjectName)
-
-        namespace = self.default_namespace
-
-        if isinstance(ObjectName, CIMInstanceName) and \
-           ObjectName.namespace is not None:
-            namespace = ObjectName.namespace
+        namespace = self._iparam_namespace_from(ObjectName)
+        objectname = self._iparam_objectname(ObjectName)
 
         result = self.imethodcall(
             'Associators',
             namespace,
-            **params)
+            ObjectName=objectname,
+            AssocClass=self._iparam_classname(AssocClass),
+            ResultClass=self._iparam_classname(ResultClass),
+            Role=Role,
+            ResultRole=ResultRole,
+            IncludeQualifiers=IncludeQualifiers,
+            IncludeClassOrigin=IncludeClassOrigin,
+            PropertyList=PropertyList,
+            **extra)
 
         if result is None:
             return []
 
         return [x[2] for x in result[2]]
 
-    def ReferenceNames(self, ObjectName, **params):
+    def ReferenceNames(self, ObjectName, ResultClass=None, Role=None, **extra):
         # pylint: disable=invalid-name, line-too-long
         """
         Retrieve the instance paths of the association instances (or class
@@ -1651,21 +1765,27 @@ class WBEMConnection(object):
             not specify a namespace, the default namespace of the connection is
             used.
 
-        Keyword Arguments:
-
           ResultClass (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
-            Optional: Class name of an association class, in any lexical case,
+            Class name of an association class, in any lexical case,
             to filter the result to include only traversals of that association
             class (or subclasses).
 
-            Default: `None` (no filtering).
+            `None` means that no filtering is peformed.
 
           Role (`unicode string`_ or `byte string`_):
-            Optional: Role name (= property name) of the source end, in any
+            Role name (= property name) of the source end, in any
             lexical case, to filter the result to include only traversals from
             that source role.
 
-            Default: `None` (no filtering).
+            `None` means that no filtering is peformed.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -1682,26 +1802,25 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        params = self._map_association_params(params)
-        params = self._add_objectname_param(params, ObjectName)
-
-        namespace = self.default_namespace
-
-        if isinstance(ObjectName, CIMInstanceName) and \
-           ObjectName.namespace is not None:
-            namespace = ObjectName.namespace
+        namespace = self._iparam_namespace_from(ObjectName)
+        objectname = self._iparam_objectname(ObjectName)
 
         result = self.imethodcall(
             'ReferenceNames',
             namespace,
-            **params)
+            ObjectName=objectname,
+            ResultClass=self._iparam_classname(ResultClass),
+            Role=Role,
+            **extra)
 
         if result is None:
             return []
 
         return [x[2] for x in result[2]]
 
-    def References(self, ObjectName, **params):
+    def References(self, ObjectName, ResultClass=None, Role=None,
+                   IncludeQualifiers=None, IncludeClassOrigin=None,
+                   PropertyList=None, **extra):
         # pylint: disable=invalid-name, line-too-long
         """
         Retrieve the association instances (or association classes) that
@@ -1729,46 +1848,60 @@ class WBEMConnection(object):
             not specify a namespace, the default namespace of the connection is
             used.
 
-        Keyword Arguments:
-
           ResultClass (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
-            Optional: Class name of an association class, in any lexical case,
+            Class name of an association class, in any lexical case,
             to filter the result to include only traversals of that association
             class (or subclasses).
 
-            Default: `None` (no filtering).
+            `None` means that no filtering is peformed.
 
           Role (`unicode string`_ or `byte string`_):
-            Optional: Role name (= property name) of the source end, in any
+            Role name (= property name) of the source end, in any
             lexical case, to filter the result to include only traversals from
             that source role.
 
-            Default: `None` (no filtering).
+            `None` means that no filtering is peformed.
 
           IncludeQualifiers (bool):
-            Optional: Indicates that qualifiers are to be included in the
-            returned instances (or classes).
+            Indicates that qualifiers are to be included in the returned
+            instances (or classes), as follows:
 
-            Default: `False`.
+            * If `False`, qualifiers not included.
+            * If `True`, qualifiers are included if the WBEM server implements
+              support for this parameter.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in `DSP0200`_. Clients cannot
             rely on it being implemented by WBEM servers.
 
           IncludeClassOrigin (bool):
-            Optional: Indicates that class origin information is to be included
-            on each property or method in the returned instances (or classes).
+            Indicates that class origin information is to be included on each
+            property or method in the returned instances (or classes), as
+            follows:
 
-            Default: `False`.
+            * If `False`, class origin information is not included.
+            * If `True`, class origin information is included.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
 
           PropertyList (iterable of `unicode string`_ or `byte string`_):
-            Optional: An iterable specifying the names of the properties to be
-            included in the returned instances (or classes), in any lexical
-            case.
-            An empty iterable indicates to include no properties.
-            A value of `None` for this parameter indicates to include all
-            properties.
+            An iterable specifying the names of the properties to be included
+            in the returned instances (or classes), in any lexical case.
 
-            Default: `None`.
+            An empty iterable indicates to include no properties.
+
+            If `None`, all properties are included.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -1784,19 +1917,19 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        params = self._map_association_params(params)
-        params = self._add_objectname_param(params, ObjectName)
-
-        namespace = self.default_namespace
-
-        if isinstance(ObjectName, CIMInstanceName) and \
-           ObjectName.namespace is not None:
-            namespace = ObjectName.namespace
+        namespace = self._iparam_namespace_from(ObjectName)
+        objectname = self._iparam_objectname(ObjectName)
 
         result = self.imethodcall(
             'References',
             namespace,
-            **params)
+            ObjectName=objectname,
+            ResultClass=self._iparam_classname(ResultClass),
+            Role=Role,
+            IncludeQualifiers=IncludeQualifiers,
+            IncludeClassOrigin=IncludeClassOrigin,
+            PropertyList=PropertyList,
+            **extra)
 
         if result is None:
             return []
@@ -1931,7 +2064,7 @@ class WBEMConnection(object):
     # Query operations
     #
 
-    def ExecQuery(self, QueryLanguage, Query, namespace=None):
+    def ExecQuery(self, QueryLanguage, Query, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
         Execute a query in a namespace.
@@ -1950,11 +2083,18 @@ class WBEMConnection(object):
             parameter.
 
           namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the CIM namespace to be used, in any lexical
-            case. The value `None` causes the default namespace of the
-            connection object to be used.
+            Name of the CIM namespace to be used, in any lexical case.
 
-            Default: `None`.
+            If `None`, the default namespace of the connection object will be
+            used.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -1970,22 +2110,22 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(namespace)
 
         result = self.imethodcall(
             'ExecQuery',
             namespace,
             QueryLanguage=QueryLanguage,
-            Query=Query)
+            Query=Query,
+            **extra)
 
         instances = []
 
         if result is not None:
             instances = [tt[2] for tt in result[2]]
 
-        for i in instances:
-            setattr(i.path, 'namespace', namespace)
+        for instance in instances:
+            instance.path.namespace = namespace
 
         return instances
 
@@ -1993,16 +2133,8 @@ class WBEMConnection(object):
     # Class operations
     #
 
-    def _map_classname_param(self, params): # pylint: disable=no-self-use
-        """Convert string ClassName parameter to a CIMClassName."""
-
-        if 'ClassName' in params and \
-           isinstance(params['ClassName'], six.string_types):
-            params['ClassName'] = CIMClassName(params['ClassName'])
-
-        return params
-
-    def EnumerateClassNames(self, namespace=None, **params):
+    def EnumerateClassNames(self, namespace=None, ClassName=None,
+                            DeepInheritance=None, **extra):
         # pylint: disable=invalid-name
         """
         Enumerate the names of subclasses of a class, or of the top-level
@@ -2015,34 +2147,43 @@ class WBEMConnection(object):
         Parameters:
 
           namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the namespace in which the class names are to be
+            Name of the namespace in which the class names are to be
             enumerated, in any lexical case.
-            The value `None` causes the default namespace of the connection to
-            be used.
 
-            Default: `None`
+            If `None`, the default namespace of the connection object will be
+            used.
+
+          ClassName (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+            Name of the class whose subclasses are to be retrieved, in any
+            lexical case.
+
+            If `None`, the top-level classes in the namespace will be
+            retrieved.
+
+          DeepInheritance (bool):
+            Indicates that all (direct and indirect) subclasses of the
+            specified class or of the top-level classes are to be included in
+            the result, as follows:
+
+            * If `False`, only direct subclasses of the specified class or only
+              top-level classes are included in the result.
+            * If `True`, all direct and indirect subclasses of the specified
+              class or the top-level classes and all of their direct and
+              indirect subclasses are included in the result.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
+
+            Note, the semantics of the `DeepInheritance` parameter in
+            :meth:`EnumerateInstances` is different.
 
         Keyword Arguments:
 
-          ClassName (`unicode string`_ or `byte string`_):
-            Optional: Name of the class whose subclasses are to be retrieved,
-            in any lexical case.
-            The value `None` causes the top-level classes in the namespace to
-            be retrieved.
-
-            Default: `None`
-
-          DeepInheritance (bool):
-            Optional: Indicates that all (direct and indirect) subclasses of
-            the specified class or of the top-level classes are to be included
-            in the result.
-            `False` indicates that only direct subclasses of the specified
-            class or ony top-level classes are to be included in the result.
-
-            Note, the semantics of this parameter differs between instance and
-            class level operations.
-
-            Default: `False`.
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -2054,22 +2195,25 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        params = self._map_classname_param(params)
-
-        if namespace is None:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(namespace)
+        classname = self._iparam_classname(ClassName)
 
         result = self.imethodcall(
             'EnumerateClassNames',
             namespace,
-            **params)
+            ClassName=classname,
+            DeepInheritance=DeepInheritance,
+            **extra)
 
         if result is None:
             return []
         else:
             return [x.classname for x in result[2]]
 
-    def EnumerateClasses(self, namespace=None, **params):
+    def EnumerateClasses(self, namespace=None, ClassName=None,
+                         DeepInheritance=None, LocalOnly=None,
+                         IncludeQualifiers=None, IncludeClassOrigin=None,
+                         **extra):
         # pylint: disable=invalid-name
         """
         Enumerate the subclasses of a class, or the top-level classes in a
@@ -2082,52 +2226,73 @@ class WBEMConnection(object):
         Parameters:
 
           namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the namespace in which the classes are to be
-            enumerated, in any lexical case.
-            The value `None` causes the default namespace of the connection to
-            be used.
+            Name of the namespace in which the classes are to be enumerated, in
+            any lexical case.
 
-            Default: `None`
+            If `None`, the default namespace of the connection object will be
+            used.
+
+          ClassName (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+            Name of the class whose subclasses are to be retrieved, in any
+            lexical case.
+
+            If `None`, the top-level classes in the namespace will be
+            retrieved.
+
+          DeepInheritance (bool):
+            Indicates that all (direct and indirect) subclasses of the
+            specified class or of the top-level classes are to be included in
+            the result, as follows:
+
+            * If `False`, only direct subclasses of the specified class or only
+              top-level classes are included in the result.
+            * If `True`, all direct and indirect subclasses of the specified
+              class or the top-level classes and all of their direct and
+              indirect subclasses are included in the result.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
+
+            Note, the semantics of the `DeepInheritance` parameter in
+            :meth:`EnumerateInstances` is different.
+
+          LocalOnly (bool):
+            Indicates that inherited properties, methods, and qualifiers are to
+            be excluded from the returned classes, as follows.
+
+            * If `False`, inherited elements are not excluded.
+            * If `True`, inherited elements are excluded.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `True`.
+
+          IncludeQualifiers (bool):
+            Indicates that qualifiers are to be included in the returned
+            classes, as follows:
+
+            * If `False`, qualifiers not included.
+            * If `True`, qualifiers are included.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
+
+          IncludeClassOrigin (bool):
+            Indicates that class origin information is to be included on each
+            property and method in the returned classes, as follows:
+
+            * If `False`, class origin information is not included.
+            * If `True`, class origin information is included.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
 
         Keyword Arguments:
 
-          ClassName (`unicode string`_ or `byte string`_):
-            Optional: Name of the class whose subclasses are to be retrieved,
-            in any lexical case.
-            The value `None` causes the top-level classes in the namespace to
-            be retrieved.
-
-            Default: `None`
-
-          DeepInheritance (bool):
-            Optional: Indicates that all (direct and indirect) subclasses of
-            the specified class or of the top-level classes are to be included
-            in the result.
-            `False` indicates that only direct subclasses of the specified
-            class or ony top-level classes are to be included in the result.
-
-            Note, the semantics of this parameter differs between instance and
-            class level operations.
-
-            Default: `False`.
-
-          LocalOnly (bool):
-            Optional: Indicates that inherited properties, methods, and
-            qualifiers are to be excluded from the returned classes.
-
-            Default: `True`.
-
-          IncludeQualifiers (bool):
-            Optional: Indicates that qualifiers are to be included in the
-            returned classes.
-
-            Default: `False`.
-
-          IncludeClassOrigin (bool):
-            Optional: Indicates that class origin information is to be included
-            on each property and method in the returned classes.
-
-            Default: `False`.
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -2139,22 +2304,27 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        params = self._map_classname_param(params)
-
-        if namespace is None:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(namespace)
+        classname = self._iparam_classname(ClassName)
 
         result = self.imethodcall(
             'EnumerateClasses',
             namespace,
-            **params)
+            ClassName=classname,
+            DeepInheritance=DeepInheritance,
+            LocalOnly=LocalOnly,
+            IncludeQualifiers=IncludeQualifiers,
+            IncludeClassOrigin=IncludeClassOrigin,
+            **extra)
 
         if result is None:
             return []
 
         return result[2]
 
-    def GetClass(self, ClassName, namespace=None, **params):
+    def GetClass(self, ClassName, namespace=None, LocalOnly=None,
+                 IncludeQualifiers=None, IncludeClassOrigin=None,
+                 PropertyList=None, **extra):
         # pylint: disable=invalid-name
         """
         Retrieve a class.
@@ -2165,45 +2335,61 @@ class WBEMConnection(object):
 
         Parameters:
 
-          ClassName (`unicode string`_ or `byte string`_):
+          ClassName (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
             Name of the class to be retrieved, in any lexical case.
 
           namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the namespace of the class to be retrieved,
-            in any lexical case.
-            The value `None` causes the default namespace of the connection to
-            be used.
+            Name of the namespace of the class to be retrieved, in any lexical
+            case.
 
-            Default: `None`
+            If `None`, the default namespace of the connection object will be
+            used.
+
+          LocalOnly (bool):
+            Indicates that inherited properties, methods, and qualifiers are to
+            be excluded from the returned class, as follows.
+
+            * If `False`, inherited elements are not excluded.
+            * If `True`, inherited elements are excluded.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `True`.
+
+          IncludeQualifiers (bool):
+            Indicates that qualifiers are to be included in the returned
+            class, as follows:
+
+            * If `False`, qualifiers not included.
+            * If `True`, qualifiers are included.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
+
+          IncludeClassOrigin (bool):
+            Indicates that class origin information is to be included on each
+            property and method in the returned class, as follows:
+
+            * If `False`, class origin information is not included.
+            * If `True`, class origin information is included.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. `DSP0200`_
+              defines that the server-implemented default is `False`.
+
+          PropertyList (iterable of `unicode string`_ or `byte string`_):
+            An iterable specifying the names of the properties to be included
+            in the returned class, in any lexical case.
+
+            An empty iterable indicates to include no properties.
+
+            If `None`, all properties are included.
 
         Keyword Arguments:
 
-          LocalOnly (bool):
-            Optional: Indicates that inherited properties, methods, and
-            qualifiers are to be excluded from the returned class.
-
-            Default: `True`.
-
-          IncludeQualifiers (bool):
-            Optional: Indicates that qualifiers are to be included in the
-            returned class.
-
-            Default: `False`.
-
-          IncludeClassOrigin (bool):
-            Optional: Indicates that class origin information is to be included
-            on each property and method in the returned class.
-
-            Default: `False`.
-
-          PropertyList (iterable of `unicode string`_ or `byte string`_):
-            Optional: An iterable specifying the names of the properties to be
-            included in the returned class, in any lexical case.
-            An empty iterable indicates to include no properties.
-            A value of `None` for this parameter indicates to include all
-            properties.
-
-            Default: `None`.
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -2215,20 +2401,22 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        params = self._map_classname_param(params)
-
-        if namespace is None:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(namespace)
+        classname = self._iparam_classname(ClassName)
 
         result = self.imethodcall(
             'GetClass',
             namespace,
-            ClassName=CIMClassName(ClassName),
-            **params)
+            ClassName=classname,
+            LocalOnly=LocalOnly,
+            IncludeQualifiers=IncludeQualifiers,
+            IncludeClassOrigin=IncludeClassOrigin,
+            PropertyList=PropertyList,
+            **extra)
 
         return result[2][0]
 
-    def ModifyClass(self, ModifiedClass, namespace=None, **params):
+    def ModifyClass(self, ModifiedClass, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
         Modify a class.
@@ -2240,39 +2428,48 @@ class WBEMConnection(object):
         Parameters:
 
           ModifiedClass (CIMClass):
-            A representation of the modified class. This object needs to
-            contain any modified properties, methods and qualifiers and the
-            class path of the class to be modified.
-            Typically, this object has been retrieved by other operations, such
-            as :meth:`~pywbem.WBEMConnection.GetClass`.
+            A representation of the modified class.
+
+            Its class path (`path` instance variable) will be ignored.
+
+            The properties, methods and qualifiers defined in this object
+            specify what is to be modified.
+
+            Typically, this object has been retrieved by other operations,
+            such as :meth:`GetClass`.
 
           namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the namespace in which the class is to be
-            modified, in any lexical case.
-            The value `None` causes the default namespace of the connection to
-            be used.
+            Name of the namespace in which the class is to be modified, in any
+            lexical case.
 
-            Default: `None`
+            If `None`, the default namespace of the connection object will be
+            used.
 
         Keyword Arguments:
 
-          : None.
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(namespace)
+
+        klass = ModifiedClass.copy()
+        klass.path = None
 
         self.imethodcall(
             'ModifyClass',
             namespace,
-            ModifiedClass=ModifiedClass,
-            **params)
+            ModifiedClass=klass,
+            **extra)
 
-    def CreateClass(self, NewClass, namespace=None, **params):
+    def CreateClass(self, NewClass, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
         Create a class.
@@ -2284,39 +2481,45 @@ class WBEMConnection(object):
         Parameters:
 
           NewClass (CIMClass):
-            A representation of the class to be created. This object needs to
-            contain any properties, methods, qualifiers, superclass name, and
-            the class name of the class to be created.
-            The class path in this object (`path` instance variable) will be
-            ignored.
+            A representation of the class to be created.
+
+            Its class path (`path` instance variable) will be ignored.
+
+            The properties, methods and qualifiers defined in this object
+            specify how the class is to be created.
 
           namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the namespace in which the class is to be
-            created, in any lexical case.
-            The value `None` causes the default namespace of the connection to
-            be used.
+            Name of the namespace in which the class is to be created, in any
+            lexical case.
 
-            Default: `None`
+            If `None`, the default namespace of the connection object will be
+            used.
 
         Keyword Arguments:
 
-          : None.
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(namespace)
+
+        klass = NewClass.copy()
+        klass.path = None
 
         self.imethodcall(
             'CreateClass',
             namespace,
-            NewClass=NewClass,
-            **params)
+            NewClass=klass,
+            **extra)
 
-    def DeleteClass(self, ClassName, namespace=None, **params):
+    def DeleteClass(self, ClassName, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
         Delete a class.
@@ -2327,42 +2530,45 @@ class WBEMConnection(object):
 
         Parameters:
 
-          ClassName (`unicode string`_ or `byte string`_):
+          ClassName (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
             Name of the class to be deleted, in any lexical case.
 
-          namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the namespace of the class to be deleted,
-            in any lexical case.
-            The value `None` causes the default namespace of the connection to
-            be used.
+            Its namespace component will be ignored.
 
-            Default: `None`
+          namespace (`unicode string`_ or `byte string`_):
+            Name of the namespace of the class to be deleted, in any lexical
+            case.
+
+            If `None`, the default namespace of the connection object will be
+            used.
 
         Keyword Arguments:
 
-          : None.
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        params = self._map_classname_param(params)
-
-        if namespace is None:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(namespace)
+        classname = self._iparam_classname(ClassName)
 
         self.imethodcall(
             'DeleteClass',
             namespace,
-            ClassName=CIMClassName(ClassName),
-            **params)
+            ClassName=classname,
+            **extra)
 
     #
     # Qualifier operations
     #
 
-    def EnumerateQualifiers(self, namespace=None, **params):
+    def EnumerateQualifiers(self, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
         Enumerate qualifier declarations.
@@ -2374,14 +2580,19 @@ class WBEMConnection(object):
         Parameters:
 
           namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the namespace in which the qualifier
-            declarations are to be enumerated, in any lexical case.
-            The value `None` causes the default namespace of the connection to
-            be used.
+            Name of the namespace in which the qualifier declarations are to be
+            enumerated, in any lexical case.
+
+            If `None`, the default namespace of the connection object will be
+            used.
 
         Keyword Arguments:
 
-          : None.
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -2393,14 +2604,12 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(namespace)
 
         result = self.imethodcall(
             'EnumerateQualifiers',
             namespace,
-            **params)
-
+            **extra)
 
         if result is not None:
             qualifiers = result[2]
@@ -2409,7 +2618,7 @@ class WBEMConnection(object):
 
         return qualifiers
 
-    def GetQualifier(self, QualifierName, namespace=None, **params):
+    def GetQualifier(self, QualifierName, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
         Retrieve a qualifier declaration.
@@ -2420,15 +2629,24 @@ class WBEMConnection(object):
 
         Parameters:
 
-          Qualifier (`unicode string`_ or `byte string`_):
+          QualifierName (`unicode string`_ or `byte string`_):
             Name of the qualifier declaration to be retrieved, in any lexical
             case.
 
           namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the namespace of the qualifier declaration, in
-            any lexical case.
-            The value `None` causes the default namespace of the connection to
-            be used.
+            Name of the namespace of the qualifier declaration, in any lexical
+            case.
+
+            If `None`, the default namespace of the connection object will be
+            used.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Returns:
 
@@ -2440,21 +2658,20 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(namespace)
 
         result = self.imethodcall(
             'GetQualifier',
             namespace,
             QualifierName=QualifierName,
-            **params)
+            **extra)
 
         if result is not None:
             names = result[2][0]
 
         return names
 
-    def SetQualifier(self, QualifierDeclaration, namespace=None, **params):
+    def SetQualifier(self, QualifierDeclaration, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
         Create or modify a qualifier declaration.
@@ -2470,27 +2687,34 @@ class WBEMConnection(object):
             modified.
 
           namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the namespace in which the qualifier declaration
-            is to be created or modified, in any lexical case.
-            The value `None` causes the default namespace of the connection to
-            be used.
+            Name of the namespace in which the qualifier declaration is to be
+            created or modified, in any lexical case.
+
+            If `None`, the default namespace of the connection object will be
+            used.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(namespace)
 
-        #pylint: disable=unused-variable
         unused_result = self.imethodcall(
             'SetQualifier',
             namespace,
             QualifierDeclaration=QualifierDeclaration,
-            **params)
+            **extra)
 
-    def DeleteQualifier(self, QualifierName, namespace=None, **params):
+    def DeleteQualifier(self, QualifierName, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
         Delete a qualifier declaration.
@@ -2506,24 +2730,32 @@ class WBEMConnection(object):
             case.
 
           namespace (`unicode string`_ or `byte string`_):
-            Optional: Name of the namespace in which the qualifier declaration
-            is to be deleted, in any lexical case.
-            The value `None` causes the default namespace of the connection to
-            be used.
+            Name of the namespace in which the qualifier declaration is to be
+            deleted, in any lexical case.
+
+            If `None`, the default namespace of the connection object will be
+            used.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that `DSP0200`_ does not define any additional parameters for
+            this operation.
 
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None:
-            namespace = self.default_namespace
+        namespace = self._iparam_namespace_from(namespace)
 
         unused_result = self.imethodcall(
             'DeleteQualifier',
             namespace,
             QualifierName=QualifierName,
-            **params)
+            **extra)
 
 def is_subclass(ch, ns, super_class, sub):
     """Determine if one class is a subclass of another class.
