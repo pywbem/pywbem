@@ -954,12 +954,6 @@ class WBEMConnection(object):
 
         return tt
 
-        namespace = self.default_namespace
-
-        if isinstance(ObjectName, CIMInstanceName) and \
-           ObjectName.namespace is not None:
-            namespace = ObjectName.namespace
-
     def _iparam_namespace_from(self, obj):
         """Determine the namespace from an object that can be a namespace
         string, a CIMClassName or CIMInstanceName object, or `None`. The
