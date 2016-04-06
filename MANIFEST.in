@@ -4,4 +4,3 @@ include README.md
 include INSTALL.md
 include *.py
 include pywbem/*.py
-include pywbem/NEWS.md

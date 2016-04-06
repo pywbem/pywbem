@@ -419,8 +419,9 @@ dt:target, span:target, .highlighted {
 }
 
 dl.glossary dt {
-    font-weight: bold;
-    font-size: 1.1em;
+/* pywbem: Changed font-size from 1.1em to 1em, and font-weight from bold to normal. */
+    font-weight: normal;
+    font-size: 1em;
 }
 
 .field-list ul {

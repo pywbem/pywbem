@@ -65,7 +65,7 @@ try:
 except ImportError as arg:
     _HAVE_READLINE = False
 
-from . import *
+from . import WBEMConnection
 from ._cliutils import SmartFormatter as _SmartFormatter
 
 __all__ = []

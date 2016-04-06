@@ -43,6 +43,8 @@ CIM object                                  Purpose
 :class:`~pywbem.CIMQualifierDeclaration`    CIM qualifier type/declaration
 ==========================================  ==========================================================================
 
+.. _`NocaseDict`:
+
 NocaseDict
 ----------
 
@@ -55,6 +57,9 @@ Except for the case-insensitivity of its keys, it behaves like the built-in
 :class:`py:dict`. Therefore, :class:`~pywbem.NocaseDict` is not described
 in detail in this documentation.
 """
+# pylint: enable=line-too-long
+# Note: When used before module docstrings, Pylint scopes the disable statement
+#       to the whole rest of the file, so we need an enable statement.
 
 # This module is meant to be safe for 'import *'.
 
@@ -702,19 +707,19 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     Attributes:
 
-      classname (`unicode string`_):
+      classname (:term:`unicode string`):
         Name of the creation class of the referenced instance.
 
       keybindings (`NocaseDict`_):
         Keybindings for the instance path (the key property values of the
         referenced instance), see the corresponding constructor parameter.
 
-      host (`unicode string`_):
+      host (:term:`unicode string`):
         URL of the WBEM server containing the CIM namespace of the
         referenced instance,
         or `None`.
 
-      namespace (`unicode string`_):
+      namespace (:term:`unicode string`):
         Name of the CIM namespace containing the referenced instance,
         or `None`.
     """
@@ -723,7 +728,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         """
         Parameters:
 
-          classname (`unicode string`_ or `byte string`_):
+          classname (:term:`unicode string` or :term:`byte string`):
             Name of the creation class of the referenced instance.
             Must not be `None`.
 
@@ -732,16 +737,17 @@ class CIMInstanceName(_CIMComparisonMixin):
             of the referenced instance).
             Each dictionary item specifies one key property value, with:
 
-            * key (`unicode string`_ or `byte string`_): Key property name
-            * value (`CIM data type`_): Key property value
+            * key (:term:`unicode string` or :term:`byte string`): Key property
+              name
+            * value (:term:`CIM data type`): Key property value
 
             `None` is interpreted as an empty dictionary.
 
-          host (`unicode string`_ or `byte string`_):
+          host (:term:`unicode string` or :term:`byte string`):
             URL of the WBEM server containing the CIM namespace of the
             referenced instance.
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the CIM namespace containing the referenced instance.
         """
 
@@ -785,7 +791,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         """Return the untyped WBEM URI of the CIM instance path represented
         by the :class:`~pywbem.CIMInstanceName` object.
 
-        The returned WBEM URI is consistent with `DSP0207`_.
+        The returned WBEM URI is consistent with :term:`DSP0207`.
         """
 
         ret_str = ''
@@ -900,7 +906,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         :class:`~pywbem.CIMInstanceName` object, as an object of an appropriate
         subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with `DSP0201`_.
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
 
         if isinstance(self.keybindings, str):
@@ -1016,7 +1022,7 @@ class CIMInstance(_CIMComparisonMixin):
 
     Attributes:
 
-      classname (`unicode string`_):
+      classname (:term:`unicode string`):
         Name of the creation class of the instance.
 
       properties (`NocaseDict`_):
@@ -1027,14 +1033,14 @@ class CIMInstance(_CIMComparisonMixin):
         Qualifiers for the instance, see the corresponding constructor
         parameter.
 
-        Note that `DSP0200`_ has deprecated the presence of qualifier
+        Note that :term:`DSP0200` has deprecated the presence of qualifier
         values on CIM instances.
 
       path (CIMInstanceName):
         Instance path for the instance,
         or `None`.
 
-      property_list (list of `unicode string`_):
+      property_list (list of :term:`unicode string`):
         List of property names for use by some operations on the instance,
         converted to lower case,
         or `None`.
@@ -1043,10 +1049,11 @@ class CIMInstance(_CIMComparisonMixin):
     # pylint: disable=too-many-arguments
     def __init__(self, classname, properties=None, qualifiers=None,
                  path=None, property_list=None):
+        # pylint: disable=line-too-long
         """
         Parameters:
 
-          classname (`unicode string`_ or `byte string`_):
+          classname (:term:`unicode string` or :term:`byte string`):
             Name of the creation class of the instance.
             Must not be `None`.
 
@@ -1054,7 +1061,7 @@ class CIMInstance(_CIMComparisonMixin):
             Properties for the instance.
             Each dictionary item specifies one property value, with:
 
-            * key (`unicode string`_ or `byte string`_): Property name
+            * key (:term:`unicode string` or :term:`byte string`): Property name
             * value (:class:`~pywbem.CIMProperty`): Property value
 
             `None` is interpreted as an empty dictionary.
@@ -1063,18 +1070,19 @@ class CIMInstance(_CIMComparisonMixin):
             Qualifiers for the instance.
             Each dictionary item specifies one qualifier value, with:
 
-            * key (`unicode string`_ or `byte string`_): Qualifier name
+            * key (:term:`unicode string` or :term:`byte string`): Qualifier
+              name
             * value (:class:`~pywbem.CIMQualifier`): Qualifier value
 
             `None` is interpreted as an empty dictionary.
 
-            Note that `DSP0200`_ has deprecated the presence of qualifier
+            Note that :term:`DSP0200` has deprecated the presence of qualifier
             values on CIM instances.
 
           path (CIMInstanceName):
             Instance path for the instance.
 
-          property_list (iterable of `unicode string`_ or `byte string`_):
+          property_list (iterable of :term:`unicode string` or :term:`byte string`):
             List of property names for use by some operations on the instance.
         """
 
@@ -1271,7 +1279,7 @@ class CIMInstance(_CIMComparisonMixin):
         :class:`~pywbem.CIMInstance` object, as an object of an appropriate
         subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with `DSP0201`_.
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
 
         props = []
@@ -1381,15 +1389,15 @@ class CIMClassName(_CIMComparisonMixin):
 
     Attributes:
 
-      classname (`unicode string`_):
+      classname (:term:`unicode string`):
         Name of the referenced class.
 
-      host (`unicode string`_):
+      host (:term:`unicode string`):
         URL of the WBEM server containing the CIM namespace of the
         referenced class,
         or `None`.
 
-      namespace (`unicode string`_):
+      namespace (:term:`unicode string`):
         Name of the CIM namespace containing the referenced class,
         or `None`.
     """
@@ -1398,15 +1406,15 @@ class CIMClassName(_CIMComparisonMixin):
         """
         Parameters:
 
-          classname (`unicode string`_ or `byte string`_):
+          classname (:term:`unicode string` or :term:`byte string`):
             Name of the referenced class.
             Must not be `None`.
 
-          host (`unicode string`_ or `byte string`_):
+          host (:term:`unicode string` or :term:`byte string`):
             URL of the WBEM server containing the CIM namespace of the
             referenced class.
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the CIM namespace containing the referenced class.
         """
 
@@ -1457,7 +1465,7 @@ class CIMClassName(_CIMComparisonMixin):
         """Return the untyped WBEM URI of the CIM class path represented by the
         :class:`~pywbem.CIMClassName` object.
 
-        The returned WBEM URI is consistent with `DSP0207`_.
+        The returned WBEM URI is consistent with :term:`DSP0207`.
         """
 
         ret_str = ''
@@ -1486,7 +1494,7 @@ class CIMClassName(_CIMComparisonMixin):
         :class:`~pywbem.CIMClassName` object, as an object of an appropriate
         subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with `DSP0201`_.
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
 
         classname = cim_xml.CLASSNAME(self.classname)
@@ -1519,7 +1527,7 @@ class CIMClass(_CIMComparisonMixin):
 
     Attributes:
 
-      classname (`unicode string`_):
+      classname (:term:`unicode string`):
         Name for the class.
 
       properties (`NocaseDict`_):
@@ -1530,7 +1538,7 @@ class CIMClass(_CIMComparisonMixin):
         Method declarations for the class, see the corresponding constructor
         parameter.
 
-      superclass (`unicode string`_):
+      superclass (:term:`unicode string`):
         Name of the superclass for the class,
         or `None`.
 
@@ -1545,7 +1553,7 @@ class CIMClass(_CIMComparisonMixin):
         """
         Parameters:
 
-          classname (`unicode string`_ or `byte string`_):
+          classname (:term:`unicode string` or :term:`byte string`):
             Name for the class.
             Must not be `None`.
 
@@ -1553,7 +1561,7 @@ class CIMClass(_CIMComparisonMixin):
             Property declarations for the class.
             Each dictionary item specifies one property declaration, with:
 
-            * key (`unicode string`_ or `byte string`_): Property name
+            * key (:term:`unicode string` or :term:`byte string`): Property name
             * value (:class:`~pywbem.CIMProperty`): Property declaration
 
             `None` is interpreted as an empty dictionary.
@@ -1562,12 +1570,12 @@ class CIMClass(_CIMComparisonMixin):
             Method declarations for the class.
             Each dictionary item specifies one method declaration, with:
 
-            * key (`unicode string`_ or `byte string`_): Nethod name
+            * key (:term:`unicode string` or :term:`byte string`): Nethod name
             * value (:class:`~pywbem.CIMMethod`): Method declaration
 
             `None` is interpreted as an empty dictionary.
 
-          superclass (`unicode string`_ or `byte string`_):
+          superclass (:term:`unicode string` or :term:`byte string`):
             Name of the superclass for the class.
             If `None`, the class will be a top-level class.
 
@@ -1575,7 +1583,8 @@ class CIMClass(_CIMComparisonMixin):
             Qualifier values for the class.
             Each dictionary item specifies one qualifier value, with:
 
-            * key (`unicode string`_ or `byte string`_): Qualifier name
+            * key (:term:`unicode string` or :term:`byte string`): Qualifier
+              name
             * value (:class:`~pywbem.CIMQualifier`): Qualifier value
 
             If `None`, the class will have no qualifiers.
@@ -1640,7 +1649,7 @@ class CIMClass(_CIMComparisonMixin):
         :class:`~pywbem.CIMClass` object, as an object of an appropriate
         subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with `DSP0201`_.
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
 
         return cim_xml.CLASS(
@@ -1722,23 +1731,23 @@ class CIMProperty(_CIMComparisonMixin):
     Array properties may be Null or may have elements with a value of NULL, any
     primitive CIM data type, and string type with embedded instance or embedded
     object. Reference types are not allowed in property arrays in CIM, as per
-    `DSP0004`_.
+    :term:`DSP0004`.
 
     Attributes:
 
-      name (`unicode string`_):
+      name (:term:`unicode string`):
         Name of the property.
 
-      value (`CIM data type`_):
+      value (:term:`CIM data type`):
         Value of the property, or `None`, see the corresponding constructor
         parameter.
         For CIM data types string and char16, this instance variable will be a
-        `unicode string`_ , even when specified as a `byte string`_.
+        :term:`unicode string` , even when specified as a :term:`byte string`.
 
-      type (`unicode string`_):
+      type (:term:`unicode string`):
         Name of the CIM data type of the property (e.g. ``"uint8"``).
 
-      class_origin (`unicode string`_):
+      class_origin (:term:`unicode string`):
         The CIM class origin of the property, see the corresponding constructor
         parameter, or `None`.
 
@@ -1753,14 +1762,14 @@ class CIMProperty(_CIMComparisonMixin):
         A boolean indicating whether the property is an array (`True`) or a
         scalar (`False`).
 
-      reference_class (`unicode string`_):
+      reference_class (:term:`unicode string`):
         The name of the referenced class, for reference properties, or `None`.
 
       qualifiers (`NocaseDict`_):
         Qualifier values for the property declaration, see the corresponding
         constructor parameter.
 
-      embedded_object (`unicode string`_):
+      embedded_object (:term:`unicode string`):
         A string value indicating the kind of embedded object represented
         by the property value, or `None`, see the corresponding constructor
         parameter.
@@ -1783,23 +1792,23 @@ class CIMProperty(_CIMComparisonMixin):
 
         Parameters:
 
-          name (`unicode string`_ or `byte string`_):
+          name (:term:`unicode string` or :term:`byte string`):
             Name of the property.
             Must not be `None`.
 
-          value (`CIM data type`_):
+          value (:term:`CIM data type`):
             Value of the property (interpreted as actual value when
             representing a property value, and as default value for property
             declarations).
             `None` means that the property is Null.
 
-          type (`unicode string`_ or `byte string`_):
+          type (:term:`unicode string` or :term:`byte string`):
             Name of the CIM data type of the property (e.g. ``"uint8"``).
             `None` means that the argument is unspecified, causing the
             corresponding instance variable to be inferred. An exception is
             raised if it cannot be inferred.
 
-          class_origin (`unicode string`_ or `byte string`_):
+          class_origin (:term:`unicode string` or :term:`byte string`):
             The CIM class origin of the property (the name
             of the most derived class that defines or overrides the property in
             the class hierarchy of the class owning the property).
@@ -1823,7 +1832,7 @@ class CIMProperty(_CIMComparisonMixin):
             corresponding instance variable to be inferred from the `value`
             parameter, and if that is `None` it defaults to `False` (scalar).
 
-          reference_class (`unicode string`_ or `byte string`_):
+          reference_class (:term:`unicode string` or :term:`byte string`):
             The name of the referenced class, for reference properties.
             `None` means that the argument is unspecified, causing the
             corresponding instance variable to be inferred. An exception is
@@ -1833,12 +1842,13 @@ class CIMProperty(_CIMComparisonMixin):
             Qualifier values for the property declaration.
             Each dictionary item specifies one qualifier value, with:
 
-            * key (`unicode string`_ or `byte string`_): Qualifier name
+            * key (:term:`unicode string` or :term:`byte string`): Qualifier
+              name
             * value (:class:`~pywbem.CIMQualifier`): Qualifier value
 
             `None` is interpreted as an empty dictionary.
 
-          embedded_object (`unicode string`_ or `byte string`_):
+          embedded_object (:term:`unicode string` or :term:`byte string`):
             A string value indicating the kind of embedded object represented
             by the property value. Has no meaning for property declarations.
             The following values are defined for this argument:
@@ -2156,7 +2166,7 @@ class CIMProperty(_CIMComparisonMixin):
         :class:`~pywbem.CIMProperty` object, as an object of an appropriate
         subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with `DSP0201`_.
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
 
         if self.is_array:
@@ -2249,17 +2259,17 @@ class CIMMethod(_CIMComparisonMixin):
 
     Attributes:
 
-      methodname (`unicode string`_):
+      methodname (:term:`unicode string`):
         Name of the method.
 
-      return_type (`unicode string`_):
+      return_type (:term:`unicode string`):
         Name of the CIM data type of the method return type.
 
       parameters (`NocaseDict`_):
         Parameter declarations for the method declaration, see the
         corresponding constructor parameter.
 
-      class_origin (`unicode string`_):
+      class_origin (:term:`unicode string`):
         The CIM class origin of the method, see the corresponding constructor
         parameter, or `None`.
 
@@ -2282,12 +2292,12 @@ class CIMMethod(_CIMComparisonMixin):
 
         Parameters:
 
-          methodname (`unicode string`_ or `byte string`_):
+          methodname (:term:`unicode string` or :term:`byte string`):
             Name of the method (just the method name, without class name
             or parenthesis).
             Must not be `None`.
 
-          return_type (`unicode string`_ or `byte string`_):
+          return_type (:term:`unicode string` or :term:`byte string`):
             Name of the CIM data type of the method return type
             (e.g. ``"uint32"``).
             `None` is currently stored as is.
@@ -2296,12 +2306,13 @@ class CIMMethod(_CIMComparisonMixin):
             Parameter declarations for the method declaration.
             Each dictionary item specifies one parameter declaration, with:
 
-            * key (`unicode string`_ or `byte string`_): Parameter name
+            * key (:term:`unicode string` or :term:`byte string`): Parameter
+              name
             * value (:class:`~pywbem.CIMParameter`): Parameter declaration
 
             If `None`, the method will have no parameters.
 
-          class_origin (`unicode string`_ or `byte string`_):
+          class_origin (:term:`unicode string` or :term:`byte string`):
             The CIM class origin of the method (the name
             of the most derived class that defines or overrides the method in
             the class hierarchy of the class owning the method).
@@ -2316,7 +2327,8 @@ class CIMMethod(_CIMComparisonMixin):
             Qualifier values for the method declaration.
             Each dictionary item specifies one qualifier value, with:
 
-            * key (`unicode string`_ or `byte string`_): Qualifier name
+            * key (:term:`unicode string` or :term:`byte string`): Qualifier
+              name
             * value (:class:`~pywbem.CIMQualifier`): Qualifier value
 
             `None` is interpreted as an empty dictionary.
@@ -2388,7 +2400,7 @@ class CIMMethod(_CIMComparisonMixin):
         :class:`~pywbem.CIMMethod` object, as an object of an appropriate
         subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with `DSP0201`_.
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
 
         return cim_xml.METHOD(
@@ -2432,13 +2444,13 @@ class CIMParameter(_CIMComparisonMixin):
 
     Attributes:
 
-      name (`unicode string`_):
+      name (:term:`unicode string`):
         Name of the parameter.
 
-      type (`unicode string`_):
+      type (:term:`unicode string`):
         Name of the CIM data type of the parameter (e.g. ``"uint8"``).
 
-      reference_class (`unicode string`_):
+      reference_class (:term:`unicode string`):
         Name of the referenced class, for reference properties, or `None`.
 
       is_array (bool):
@@ -2470,15 +2482,15 @@ class CIMParameter(_CIMComparisonMixin):
 
         Parameters:
 
-          name (`unicode string`_ or `byte string`_):
+          name (:term:`unicode string` or :term:`byte string`):
             Name of the parameter.
             Must not be `None`.
 
-          type (`unicode string`_ or `byte string`_):
+          type (:term:`unicode string` or :term:`byte string`):
             Name of the CIM data type of the parameter (e.g. ``"uint8"``).
             Must not be `None`, currently.
 
-          reference_class (`unicode string`_ or `byte string`_):
+          reference_class (:term:`unicode string` or :term:`byte string`):
             Name of the referenced class, for reference properties.
             `None` is currently stored as is.
 
@@ -2495,7 +2507,8 @@ class CIMParameter(_CIMComparisonMixin):
             Qualifier values for the parameter declaration.
             Each dictionary item specifies one qualifier value, with:
 
-            * key (`unicode string`_ or `byte string`_): Qualifier name
+            * key (:term:`unicode string` or :term:`byte string`): Qualifier
+              name
             * value (:class:`~pywbem.CIMQualifier`): Qualifier value
 
             `None` is interpreted as an empty dictionary.
@@ -2587,7 +2600,7 @@ class CIMParameter(_CIMComparisonMixin):
         :class:`~pywbem.CIMParameter` object, as an object of an appropriate
         subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with `DSP0201`_.
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
 
         if self.type == 'reference':
@@ -2668,16 +2681,16 @@ class CIMQualifier(_CIMComparisonMixin):
 
     Attributes:
 
-      name (`unicode string`_):
+      name (:term:`unicode string`):
         Name of the qualifier.
 
-      value (`CIM data type`_):
+      value (:term:`CIM data type`):
         Value of the qualifier, or `None`.
         For CIM data types string and char16, the resulting instance
-        variable will be a `unicode string`_, even when specified as a
-        `byte string`_.
+        variable will be a :term:`unicode string`, even when specified as a
+        :term:`byte string`.
 
-      type (`unicode string`_):
+      type (:term:`unicode string`):
         Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
 
       propagated (bool):
@@ -2714,15 +2727,15 @@ class CIMQualifier(_CIMComparisonMixin):
 
         Parameters:
 
-          name (`unicode string`_ or `byte string`_):
+          name (:term:`unicode string` or :term:`byte string`):
             Name of the qualifier.
             Must not be `None`.
 
-          value (`CIM data type`_):
+          value (:term:`CIM data type`):
             Value of the qualifier.
             `None` means that the qualifier is Null.
 
-          type (`unicode string`_ or `byte string`_):
+          type (:term:`unicode string` or :term:`byte string`):
             Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
             `None` means that the argument is unspecified, causing the
             corresponding instance variable to be inferred. An exception is
@@ -2862,7 +2875,7 @@ class CIMQualifier(_CIMComparisonMixin):
         :class:`~pywbem.CIMQualifier` object, as an object of an appropriate
         subclass of class ``Element`` from module :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with `DSP0201`_.
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
 
         value = None
@@ -2916,17 +2929,17 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     Attributes:
 
-      name (`unicode string`_):
+      name (:term:`unicode string`):
         Name of the qualifier.
 
-      type (`unicode string`_):
+      type (:term:`unicode string`):
         Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
 
-      value (`CIM data type`_):
+      value (:term:`CIM data type`):
         Default value of the qualifier, or `None` meaning Null.
         For CIM data types string and char16, the resulting instance
-        variable will be a `unicode string`_, even when specified as a
-        `byte string`_.
+        variable will be a :term:`unicode string`, even when specified as a
+        :term:`byte string`.
 
       is_array (bool):
         A boolean indicating whether the qualifier is an array (`True`) or a
@@ -2971,15 +2984,15 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         """
         Parameters:
 
-          name (`unicode string`_ or `byte string`_):
+          name (:term:`unicode string` or :term:`byte string`):
             Name of the qualifier.
             Must not be `None`.
 
-          type (`unicode string`_ or `byte string`_):
+          type (:term:`unicode string` or :term:`byte string`):
             Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
             Must not be `None`.
 
-          value (`CIM data type`_):
+          value (:term:`CIM data type`):
             Default value of the qualifier.
             `None` means a default value of Null.
 
@@ -2996,8 +3009,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             Scopes for the qualifier declaration.
             Each dictionary item specifies one scope value, with:
 
-            * key (`unicode string`_ or `byte string`_): Scope name, in upper
-              case
+            * key (:term:`unicode string` or :term:`byte string`): Scope name,
+              in upper case.
             * value (bool): Scope value, specifying whether the qualifier
               has that scope (i.e. can be applied to a CIM element of that
               kind).
@@ -3109,7 +3122,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         appropriate subclass of class ``Element`` from module
         :mod:`py2:xml.dom.minidom`.
 
-        The returned CIM-XML representation is consistent with `DSP0201`_.
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
 
         return cim_xml.QUALIFIER_DECLARATION(self.name,
@@ -3165,11 +3178,11 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 def tocimxml(value):
     """Return the CIM-XML representation of the CIM object or CIM data type.
 
-    The returned CIM-XML representation is consistent with `DSP0201`_.
+    The returned CIM-XML representation is consistent with :term:`DSP0201`.
 
     Parameters:
 
-      value (`CIM object`_ or `CIM data type`_):
+      value (:term:`CIM object` or :term:`CIM data type`):
         The CIM object or CIM data type to be converted to CIM-XML.
 
     Returns:
@@ -3216,20 +3229,21 @@ def tocimobj(type_, value):
 
     Parameters:
 
-      `type_` (`unicode string`_ or `byte string`_):
-        The CIM data type name for the CIM object. See `CIM data types`_ for valid
-        type names and their corresponding Python types.
+      `type_` (:term:`unicode string` or :term:`byte string`):
+        The CIM data type name for the CIM object. See :ref:`CIM data types`
+        for valid type names and their corresponding Python types.
 
         If `value` is a list, `type_` must specify the CIM data type name of
         an item in the list.
 
-      value (`CIM data type`_):
+      value (:term:`CIM data type`):
         The value to be represented as a CIM object. Its Python type must be
         valid for the specified type name.
 
     Returns:
 
-        A `CIM data type`_ object, representing the specified value and type.
+        A :term:`CIM data type` object, representing the specified value and
+        type.
     """
 
     if value is None or type_ is None:

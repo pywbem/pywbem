@@ -77,13 +77,18 @@ doc_utility_help_files := \
 doc_dependent_files := \
     $(doc_conf_dir)/conf.py \
     $(doc_conf_dir)/index.rst \
+    $(doc_conf_dir)/intro.rst \
+    $(doc_conf_dir)/client.rst \
+    $(doc_conf_dir)/listener.rst \
+    $(doc_conf_dir)/compiler.rst \
+    $(doc_conf_dir)/utilities.rst \
+    $(doc_conf_dir)/changes.rst \
     $(package_name)/__init__.py \
     $(package_name)/cim_constants.py \
     $(package_name)/cim_obj.py \
     $(package_name)/cim_operations.py \
     $(package_name)/cim_types.py \
     $(package_name)/mof_compiler.py \
-    $(package_name)/NEWS.md \
 
 # PyLint config file
 pylint_rc_file := pylint.rc
@@ -110,7 +115,6 @@ dist_manifest_in_files := \
     INSTALL.md \
     *.py \
     $(package_name)/*.py \
-    $(package_name)/NEWS.md \
 
 # Files that are dependents of the distribution archive.
 # Keep in sync with dist_manifest_in_files.
@@ -120,7 +124,6 @@ dist_dependent_files := \
     INSTALL.md \
     $(wildcard *.py) \
     $(wildcard $(package_name)/*.py) \
-    $(package_name)/NEWS.md \
 
 # No built-in rules needed:
 .SUFFIXES:
@@ -168,7 +171,6 @@ html: $(doc_build_dir)/html/docs/index.html
 $(doc_build_dir)/html/docs/index.html: makefile $(doc_utility_help_files) $(doc_dependent_files)
 	rm -f $@
 	PYTHONPATH=. $(doc_cmd) -b html $(doc_opts) $(doc_build_dir)/html
-	cp $(package_name)/NEWS.md $(doc_build_dir)/html/docs/
 	@echo "Done: Created the HTML pages with top level file: $@"
 
 .PHONY: pdf

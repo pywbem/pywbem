@@ -26,7 +26,7 @@
 """
 Objects of the :class:`~pywbem.WBEMConnection` class represent a connection to
 a WBEM server.
-All WBEM operations defined in `DSP0200`_ can be issued across this connection.
+All WBEM operations defined in :term:`DSP0200` can be issued across this connection.
 Each method of this class corresponds directly to a WBEM operation.
 
 ======================================================  ==============================================================
@@ -70,6 +70,9 @@ WBEMConnection method                                   Purpose
 :meth:`~pywbem.WBEMConnection.DeleteQualifier`          Delete a qualifier declaration
 ======================================================  ==============================================================
 """
+# pylint: enable=line-too-long
+# Note: When used before module docstrings, Pylint scopes the disable statement
+#       to the whole rest of the file, so we need an enable statement.
 
 # This module is meant to be safe for 'import *'.
 
@@ -136,10 +139,10 @@ def check_utf8_xml_chars(utf8_xml, meaning):
 
     Parameters:
 
-      utf8_xml (`byte string`_):
+      utf8_xml (:term:`byte string`):
         The UTF-8 encoded XML string to be examined.
 
-      meaning (`unicode string`_ or `byte string`_):
+      meaning (:term:`unicode string` or :term:`byte string`):
         Short text with meaning of the XML string, for messages in exceptions.
 
     Raises:
@@ -297,10 +300,10 @@ class CIMError(Error):
 
       * error_code (number):
         Numeric CIM status code.
-        See `CIM status codes`_ for constants defining the numeric CIM status
-        code values.
+        See :ref:`CIM status codes` for constants defining the numeric CIM
+        status code values.
 
-      * description (`unicode string`_ or `byte string`_):
+      * description (:term:`unicode string` or :term:`byte string`):
         CIM status description text returned by the server, representing a
         human readable message describing the error.
 
@@ -334,7 +337,7 @@ class WBEMConnection(object):
     the WBEM server.
 
     CIM elements such as instances or classes are represented as Python objects
-    (see `CIM objects`_). The caller does not need to know about the CIM-XML
+    (see :ref:`CIM objects`). The caller does not need to know about the CIM-XML
     encoding of CIM elements and protocol payload that is used underneath (It
     should be possible to use a different WBEM protocol below this layer without
     disturbing any callers).
@@ -392,22 +395,22 @@ class WBEMConnection(object):
         Debug logging can be enabled for future operations by setting this
         instance variable to `True`.
 
-      last_request (`unicode string`_):
+      last_request (:term:`unicode string`):
         CIM-XML data of the last request sent to the WBEM server
         on this connection, formatted as prettified XML. Prior to sending the
         very first request on this connection object, it is `None`.
 
-      last_raw_request (`unicode string`_):
+      last_raw_request (:term:`unicode string`):
         CIM-XML data of the last request sent to the WBEM server
         on this connection, formatted as it was sent. Prior to sending the
         very first request on this connection object, it is `None`.
 
-      last_reply (`unicode string`_):
+      last_reply (:term:`unicode string`):
         CIM-XML data of the last response received from the WBEM server
         on this connection, formatted as prettified XML. Prior to receiving
         the very first response on this connection object, it is `None`.
 
-      last_raw_reply (`unicode string`_):
+      last_raw_reply (:term:`unicode string`):
         CIM-XML data of the last response received from the WBEM server
         on this connection, formatted as it was received. Prior to receiving
         the very first response on this connection object, it is `None`.
@@ -420,7 +423,7 @@ class WBEMConnection(object):
         """
         Parameters:
 
-          url (`unicode string`_ or `byte string`_):
+          url (:term:`unicode string` or :term:`byte string`):
             URL of the WBEM server (e.g. ``"https://10.11.12.13:6988"``).
 
             TODO: Describe supported formats.
@@ -429,20 +432,20 @@ class WBEMConnection(object):
             Credentials for authenticating with the WBEM server.
             Currently, that is always a `tuple(userid, password)`, with:
 
-            * userid (`unicode string`_ or `byte string`_):
+            * userid (:term:`unicode string` or :term:`byte string`):
               Userid for authenticating with the WBEM server.
 
-            * password (`unicode string`_ or `byte string`_):
+            * password (:term:`unicode string` or :term:`byte string`):
               Password for that userid.
 
-          default_namespace (`unicode string`_ or `byte string`_):
-            Name of the CIM namespace to be used by default (if no namespace is
-            specified for an operation).
+          default_namespace (:term:`unicode string` or :term:`byte string`):
+            Name of the CIM namespace to be used by default (if no namespace
+            is specified for an operation).
 
             Default: :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`.
 
           x509 (dict):
-            `X.509`_ certificates for HTTPS to be used instead of the
+            :term:`X.509` certificates for HTTPS to be used instead of the
             credentials provided in the `creds` parameter.
             This parameter is used only when the `url` parameter specifies
             a scheme of ``"https"``.
@@ -454,13 +457,14 @@ class WBEMConnection(object):
             and this parameter must be a dictionary containing the following
             two items:
 
-            * ``"cert_file"``: The file path of a file containing an `X.509`_
-              certificate, as a `unicode string`_ or `byte string`_ object.
+            * ``"cert_file"``: The file path of a file containing an
+              :term:`X.509` certificate, as a :term:`unicode string` or
+              :term:`byte string` object.
 
             * ``"key_file"``: The file path of a file containing the private
-              key belonging to the public key that is part of the `X.509`_
-              certificate file, as a `unicode string`_ or `byte string`_
-              object.
+              key belonging to the public key that is part of the :term:`X.509`
+              certificate file, as a :term:`unicode string` or
+              :term:`byte string` object.
 
           verify_callback (callable):
             Registers a callback function that will be called to verify the
@@ -504,9 +508,9 @@ class WBEMConnection(object):
             The callback function must return `True` if the verification
             passes and `False` otherwise.
 
-          ca_certs (`unicode string`_ or `byte string`_):
-            Location of CA certificates (trusted certificates) for verification
-            purposes.
+          ca_certs (:term:`unicode string` or :term:`byte string`):
+            Location of CA certificates (trusted certificates) for
+            verification purposes.
 
             The parameter value is either the directory path of a directory
             prepared using the ``c_rehash`` tool included with OpenSSL, or the
@@ -1035,7 +1039,7 @@ class WBEMConnection(object):
     #
 
     def EnumerateInstanceNames(self, ClassName, namespace=None, **extra):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Enumerate the instance paths of instances of a class (including
         instances of its subclasses).
@@ -1046,10 +1050,10 @@ class WBEMConnection(object):
 
         Parameters:
 
-          ClassName (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+          ClassName (:term:`unicode string` or :term:`byte string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be enumerated, in any lexical case.
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the CIM namespace to be used, in any lexical case.
 
             If `None`, the default namespace of the connection object will be
@@ -1060,8 +1064,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
@@ -1095,7 +1099,7 @@ class WBEMConnection(object):
                            DeepInheritance=None, IncludeQualifiers=None,
                            IncludeClassOrigin=None, PropertyList=None,
                            **extra):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Enumerate the instances of a class (including instances of its
         subclasses).
@@ -1106,10 +1110,10 @@ class WBEMConnection(object):
 
         Parameters:
 
-          ClassName (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+          ClassName (:term:`unicode string` or :term:`byte string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be enumerated, in any lexical case.
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the CIM namespace to be used, in any lexical case.
 
             If `None`, the default namespace of the connection object will be
@@ -1123,11 +1127,11 @@ class WBEMConnection(object):
             * If `True`, inherited properties are basically excluded, but the
               behavior may be WBEM server specific.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `True`.
 
-            This parameter has been deprecated in `DSP0200`_ and should be set
-            to `False` by the caller.
+            This parameter has been deprecated in :term:`DSP0200` and should be
+            set to `False` by the caller.
 
           DeepInheritance (bool):
             Indicates that properties added by subclasses of the specified
@@ -1136,11 +1140,12 @@ class WBEMConnection(object):
             * If `False`, properties added by subclasses are not included.
             * If `True`, properties added by subclasses are included.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `True`.
 
             Note, the semantics of the `DeepInheritance` parameter in
-            :meth:`EnumerateClasses` and :meth:`EnumerateClassNames`
+            :meth:`~pywbem.WBEMConnection.EnumerateClasses` and
+            :meth:`~pywbem.WBEMConnection.EnumerateClassNames`
             is different.
 
           IncludeQualifiers (bool):
@@ -1151,11 +1156,11 @@ class WBEMConnection(object):
             * If `True`, qualifiers are included if the WBEM server implements
               support for this parameter.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-            This parameter has been deprecated in `DSP0200`_. Clients cannot
-            rely on it being implemented by WBEM servers.
+            This parameter has been deprecated in :term:`DSP0200`. Clients
+            cannot rely on it being implemented by WBEM servers.
 
           IncludeClassOrigin (bool):
             Indicates that class origin information is to be included on each
@@ -1164,10 +1169,10 @@ class WBEMConnection(object):
             * If `False`, class origin information is not included.
             * If `True`, class origin information is included.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (iterable of `unicode string`_ or `byte string`_):
+          PropertyList (iterable of :term:`unicode string` or :term:`byte string`):
             An iterable specifying the names of the properties to be
             included in the returned instances, in any lexical case.
 
@@ -1180,8 +1185,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
@@ -1218,7 +1223,7 @@ class WBEMConnection(object):
 
     def GetInstance(self, InstanceName, LocalOnly=None, IncludeQualifiers=None,
                     IncludeClassOrigin=None, PropertyList=None, **extra):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Retrieve an instance.
 
@@ -1239,11 +1244,11 @@ class WBEMConnection(object):
             * If `True`, inherited properties are basically excluded, but the
               behavior may be WBEM server specific.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `True`.
 
-            This parameter has been deprecated in `DSP0200`_ and should be set
-            to `False` by the caller.
+            This parameter has been deprecated in :term:`DSP0200` and should be
+            set to `False` by the caller.
 
           IncludeQualifiers (bool):
             Indicates that qualifiers are to be included in the returned
@@ -1253,11 +1258,11 @@ class WBEMConnection(object):
             * If `True`, qualifiers are included if the WBEM server implements
               support for this parameter.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-            This parameter has been deprecated in `DSP0200`_. Clients cannot
-            rely on it being implemented by WBEM servers.
+            This parameter has been deprecated in :term:`DSP0200`. Clients
+            cannot rely on it being implemented by WBEM servers.
 
           IncludeClassOrigin (bool):
             Indicates that class origin information is to be included on each
@@ -1266,13 +1271,12 @@ class WBEMConnection(object):
             * If `False`, class origin information is not included.
             * If `True`, class origin information is included.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (iterable of `unicode string`_ or `byte string`_):
+          PropertyList (iterable of :term:`unicode string` or :term:`byte string`):
             An iterable specifying the names of the properties to be
-            included in the returned instances, in any lexical case.
-
+            included in the returned instance, in any lexical case.
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -1282,8 +1286,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
@@ -1318,7 +1322,7 @@ class WBEMConnection(object):
 
     def ModifyInstance(self, ModifiedInstance, IncludeQualifiers=None,
                        PropertyList=None, **extra):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Modify the property values of an instance.
 
@@ -1341,7 +1345,7 @@ class WBEMConnection(object):
             a value of `None` will be set to NULL.
 
             Typically, this object has been retrieved by other operations,
-            such as :meth:`GetInstance`.
+            such as :meth:`~pywbem.WBEMConnection.GetInstance`.
 
           IncludeQualifiers (bool):
             Indicates that qualifiers are to be modified as specified in the
@@ -1351,13 +1355,13 @@ class WBEMConnection(object):
             * If `True`, qualifiers are modified if the WBEM server implements
               support for this parameter.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `True`.
 
-            This parameter has been deprecated in `DSP0200`_. Clients cannot
-            rely on it being implemented by WBEM servers.
+            This parameter has been deprecated in :term:`DSP0200`. Clients
+            cannot rely on it being implemented by WBEM servers.
 
-          PropertyList (iterable of `unicode string`_ or `byte string`_):
+          PropertyList (iterable of :term:`unicode string` or :term:`byte string`):
             An iterable specifying the names of the properties to be
             modified, in any lexical case.
 
@@ -1370,8 +1374,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Raises:
 
@@ -1428,8 +1432,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
@@ -1479,8 +1483,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Raises:
 
@@ -1520,8 +1524,8 @@ class WBEMConnection(object):
             used.
 
             For class level usage: The class path of the source class, as a
-            `unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`
-            object.
+            :term:`unicode string`, :term:`byte string` or
+            :class:`~pywbem.CIMClassName` object.
             If specified as a string, the string is interpreted as a class name
             in the default namespace of the connection, and can have any
             lexical case.
@@ -1529,28 +1533,28 @@ class WBEMConnection(object):
             not specify a namespace, the default namespace of the connection is
             used.
 
-          AssocClass (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+          AssocClass (:term:`unicode string`, :term:`byte string` or :class:`~pywbem.CIMClassName`):
             Class name of an association class, in any lexical case,
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no filtering is peformed.
 
-          ResultClass (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+          ResultClass (:term:`unicode string`, :term:`byte string` or :class:`~pywbem.CIMClassName`):
             Class name of an associated class, in any lexical case,
             to filter the result to include only traversals to that associated
             class (or subclasses).
 
             `None` means that no filtering is peformed.
 
-          Role (`unicode string`_ or `byte string`_):
+          Role (:term:`unicode string` or :term:`byte string`):
             Role name (= property name) of the source end, in any
             lexical case, to filter the result to include only traversals from
             that source role.
 
             `None` means that no filtering is peformed.
 
-          ResultRole (`unicode string`_ or `byte string`_):
+          ResultRole (:term:`unicode string` or :term:`byte string`):
             Role name (= property name) of the far end, in any
             lexical case, to filter the result to include only traversals to
             that far role.
@@ -1562,8 +1566,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
@@ -1618,8 +1622,8 @@ class WBEMConnection(object):
             used.
 
             For class level usage: The class path of the source class, as a
-            `unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`
-            object.
+            :term:`unicode string`, :term:`byte string` or
+            :class:`~pywbem.CIMClassName` object.
             If specified as a string, the string is interpreted as a class name
             in the default namespace of the connection, and can have any
             lexical case.
@@ -1627,28 +1631,28 @@ class WBEMConnection(object):
             not specify a namespace, the default namespace of the connection is
             used.
 
-          AssocClass (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+          AssocClass (:term:`unicode string`, :term:`byte string` or :class:`~pywbem.CIMClassName`):
             Class name of an association class, in any lexical case,
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no filtering is peformed.
 
-          ResultClass (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+          ResultClass (:term:`unicode string`, :term:`byte string` or :class:`~pywbem.CIMClassName`):
             Class name of an associated class, in any lexical case,
             to filter the result to include only traversals to that associated
             class (or subclasses).
 
             `None` means that no filtering is peformed.
 
-          Role (`unicode string`_ or `byte string`_):
+          Role (:term:`unicode string` or :term:`byte string`):
             Role name (= property name) of the source end, in any
             lexical case, to filter the result to include only traversals from
             that source role.
 
             `None` means that no filtering is peformed.
 
-          ResultRole (`unicode string`_ or `byte string`_):
+          ResultRole (:term:`unicode string` or :term:`byte string`):
             Role name (= property name) of the far end, in any
             lexical case, to filter the result to include only traversals to
             that far role.
@@ -1663,11 +1667,11 @@ class WBEMConnection(object):
             * If `True`, qualifiers are included if the WBEM server implements
               support for this parameter.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-            This parameter has been deprecated in `DSP0200`_. Clients cannot
-            rely on it being implemented by WBEM servers.
+            This parameter has been deprecated in :term:`DSP0200`. Clients
+            cannot rely on it being implemented by WBEM servers.
 
           IncludeClassOrigin (bool):
             Indicates that class origin information is to be included on each
@@ -1677,13 +1681,12 @@ class WBEMConnection(object):
             * If `False`, class origin information is not included.
             * If `True`, class origin information is included.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (iterable of `unicode string`_ or `byte string`_):
+          PropertyList (iterable of :term:`unicode string` or :term:`byte string`):
             An iterable specifying the names of the properties to be included
             in the returned instances (or classes), in any lexical case.
-
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -1693,8 +1696,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
@@ -1750,7 +1753,7 @@ class WBEMConnection(object):
             used.
 
             For class level usage: The class path of the source class, as a
-            `unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`
+            :term:`unicode string`, :term:`byte string` or :class:`~pywbem.CIMClassName`
             object.
             If specified as a string, the string is interpreted as a class name
             in the default namespace of the connection, and can have any
@@ -1759,14 +1762,14 @@ class WBEMConnection(object):
             not specify a namespace, the default namespace of the connection is
             used.
 
-          ResultClass (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+          ResultClass (:term:`unicode string`, :term:`byte string` or :class:`~pywbem.CIMClassName`):
             Class name of an association class, in any lexical case,
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no filtering is peformed.
 
-          Role (`unicode string`_ or `byte string`_):
+          Role (:term:`unicode string` or :term:`byte string`):
             Role name (= property name) of the source end, in any
             lexical case, to filter the result to include only traversals from
             that source role.
@@ -1778,8 +1781,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
@@ -1833,7 +1836,7 @@ class WBEMConnection(object):
             used.
 
             For class level usage: The class path of the source class, as a
-            `unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`
+            :term:`unicode string`, :term:`byte string` or :class:`~pywbem.CIMClassName`
             object.
             If specified as a string, the string is interpreted as a class name
             in the default namespace of the connection, and can have any
@@ -1842,14 +1845,14 @@ class WBEMConnection(object):
             not specify a namespace, the default namespace of the connection is
             used.
 
-          ResultClass (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+          ResultClass (:term:`unicode string`, :term:`byte string` or :class:`~pywbem.CIMClassName`):
             Class name of an association class, in any lexical case,
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no filtering is peformed.
 
-          Role (`unicode string`_ or `byte string`_):
+          Role (:term:`unicode string` or :term:`byte string`):
             Role name (= property name) of the source end, in any
             lexical case, to filter the result to include only traversals from
             that source role.
@@ -1864,10 +1867,10 @@ class WBEMConnection(object):
             * If `True`, qualifiers are included if the WBEM server implements
               support for this parameter.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-            This parameter has been deprecated in `DSP0200`_. Clients cannot
+            This parameter has been deprecated in :term:`DSP0200`. Clients cannot
             rely on it being implemented by WBEM servers.
 
           IncludeClassOrigin (bool):
@@ -1878,13 +1881,12 @@ class WBEMConnection(object):
             * If `False`, class origin information is not included.
             * If `True`, class origin information is included.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (iterable of `unicode string`_ or `byte string`_):
+          PropertyList (iterable of :term:`unicode string` or :term:`byte string`):
             An iterable specifying the names of the properties to be included
             in the returned instances (or classes), in any lexical case.
-
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -1894,8 +1896,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
@@ -1957,7 +1959,7 @@ class WBEMConnection(object):
 
         Parameters:
 
-          MethodName (`unicode string`_ or `byte string`_):
+          MethodName (:term:`unicode string` or :term:`byte string`):
             Name of the method to be invoked (without parenthesis or any
             parameter signature), in any lexical case.
 
@@ -1968,8 +1970,8 @@ class WBEMConnection(object):
             used.
 
             For class level usage: The class path of the target class, as a
-            `unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`
-            object.
+            :term:`unicode string`, :term:`byte string` or
+            :class:`~pywbem.CIMClassName` object.
             If specified as a string, the string is interpreted as a class name
             in the default namespace of the connection, and can have any
             lexical case.
@@ -1983,9 +1985,9 @@ class WBEMConnection(object):
             Each list item represents a single input parameter for the CIM
             method and must be a `tuple(name, value)`, with:
 
-            * name (`unicode string`_ or `byte string`_):
+            * name (:term:`unicode string` or :term:`byte string`):
               Parameter name, in any lexical case
-            * value (`CIM data type`_):
+            * value (:term:`CIM data type`):
               Parameter value
 
         Keyword Arguments:
@@ -1993,24 +1995,24 @@ class WBEMConnection(object):
           : Each keyword parameter represents a single input parameter for the
             CIM method, with:
 
-            * key (`unicode string`_ or `byte string`_):
+            * key (:term:`unicode string` or :term:`byte string`):
               Parameter name, in any lexical case
-            * value (`CIM data type`_):
+            * value (:term:`CIM data type`):
               Parameter value
 
         Returns:
 
             `tuple(returnvalue, outparams)`
 
-            * returnvalue (`CIM data type`_):
+            * returnvalue (:term:`CIM data type`):
               Return value of the CIM method.
-            * outparams (`NocaseDict`_):
+            * outparams (:ref:`NocaseDict`):
               Dictionary with all provided output parameters of the CIM method,
               with:
 
-                * key (`unicode string`_):
+                * key (:term:`unicode string`):
                   CIM parameter name
-                * value (`CIM data type`_):
+                * value (:term:`CIM data type`):
                   CIM parameter value
 
         Raises:
@@ -2069,14 +2071,14 @@ class WBEMConnection(object):
 
         Parameters:
 
-          QueryLanguage (`unicode string`_ or `byte string`_):
+          QueryLanguage (:term:`unicode string` or :term:`byte string`):
             Name of the query language used in the `Query` parameter.
 
-          Query (`unicode string`_ or `byte string`_):
+          Query (:term:`unicode string` or :term:`byte string`):
             Query string in the query language specified in the `QueryLanguage`
             parameter.
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the CIM namespace to be used, in any lexical case.
 
             If `None`, the default namespace of the connection object will be
@@ -2087,8 +2089,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
@@ -2129,7 +2131,7 @@ class WBEMConnection(object):
 
     def EnumerateClassNames(self, namespace=None, ClassName=None,
                             DeepInheritance=None, **extra):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Enumerate the names of subclasses of a class, or of the top-level
         classes in a namespace.
@@ -2140,14 +2142,14 @@ class WBEMConnection(object):
 
         Parameters:
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the namespace in which the class names are to be
             enumerated, in any lexical case.
 
             If `None`, the default namespace of the connection object will be
             used.
 
-          ClassName (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+          ClassName (:term:`unicode string` or :term:`byte string` or :class:`~pywbem.CIMClassName`):
             Name of the class whose subclasses are to be retrieved, in any
             lexical case.
 
@@ -2165,24 +2167,24 @@ class WBEMConnection(object):
               class or the top-level classes and all of their direct and
               indirect subclasses are included in the result.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
             Note, the semantics of the `DeepInheritance` parameter in
-            :meth:`EnumerateInstances` is different.
+            :meth:`~pywbem.WBEMConnection.EnumerateInstances` is different.
 
         Keyword Arguments:
 
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
-            A list of `unicode string`_ objects that are the class names of the
-            enumerated classes.
+            A list of :term:`unicode string` objects that are the class names
+            of the enumerated classes.
 
         Raises:
 
@@ -2208,7 +2210,7 @@ class WBEMConnection(object):
                          DeepInheritance=None, LocalOnly=None,
                          IncludeQualifiers=None, IncludeClassOrigin=None,
                          **extra):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Enumerate the subclasses of a class, or the top-level classes in a
         namespace.
@@ -2219,14 +2221,14 @@ class WBEMConnection(object):
 
         Parameters:
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the namespace in which the classes are to be enumerated, in
             any lexical case.
 
             If `None`, the default namespace of the connection object will be
             used.
 
-          ClassName (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+          ClassName (:term:`unicode string` or :term:`byte string` or :class:`~pywbem.CIMClassName`):
             Name of the class whose subclasses are to be retrieved, in any
             lexical case.
 
@@ -2244,11 +2246,11 @@ class WBEMConnection(object):
               class or the top-level classes and all of their direct and
               indirect subclasses are included in the result.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
             Note, the semantics of the `DeepInheritance` parameter in
-            :meth:`EnumerateInstances` is different.
+            :meth:`~pywbem.WBEMConnection.EnumerateInstances` is different.
 
           LocalOnly (bool):
             Indicates that inherited properties, methods, and qualifiers are to
@@ -2257,7 +2259,7 @@ class WBEMConnection(object):
             * If `False`, inherited elements are not excluded.
             * If `True`, inherited elements are excluded.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `True`.
 
           IncludeQualifiers (bool):
@@ -2267,7 +2269,7 @@ class WBEMConnection(object):
             * If `False`, qualifiers not included.
             * If `True`, qualifiers are included.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
           IncludeClassOrigin (bool):
@@ -2277,7 +2279,7 @@ class WBEMConnection(object):
             * If `False`, class origin information is not included.
             * If `True`, class origin information is included.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
         Keyword Arguments:
@@ -2285,8 +2287,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
@@ -2319,7 +2321,7 @@ class WBEMConnection(object):
     def GetClass(self, ClassName, namespace=None, LocalOnly=None,
                  IncludeQualifiers=None, IncludeClassOrigin=None,
                  PropertyList=None, **extra):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name, line-too-long
         """
         Retrieve a class.
 
@@ -2329,10 +2331,10 @@ class WBEMConnection(object):
 
         Parameters:
 
-          ClassName (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+          ClassName (:term:`unicode string` or :term:`byte string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be retrieved, in any lexical case.
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the namespace of the class to be retrieved, in any lexical
             case.
 
@@ -2346,7 +2348,7 @@ class WBEMConnection(object):
             * If `False`, inherited elements are not excluded.
             * If `True`, inherited elements are excluded.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `True`.
 
           IncludeQualifiers (bool):
@@ -2356,7 +2358,7 @@ class WBEMConnection(object):
             * If `False`, qualifiers not included.
             * If `True`, qualifiers are included.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
           IncludeClassOrigin (bool):
@@ -2366,13 +2368,12 @@ class WBEMConnection(object):
             * If `False`, class origin information is not included.
             * If `True`, class origin information is included.
             * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. `DSP0200`_
+              causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (iterable of `unicode string`_ or `byte string`_):
+          PropertyList (iterable of :term:`unicode string` or :term:`byte string`):
             An iterable specifying the names of the properties to be included
             in the returned class, in any lexical case.
-
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -2382,8 +2383,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
@@ -2429,10 +2430,10 @@ class WBEMConnection(object):
             The properties, methods and qualifiers defined in this object
             specify what is to be modified.
 
-            Typically, this object has been retrieved by other operations,
-            such as :meth:`GetClass`.
+            Typically, this object has been retrieved by other operations, such
+            as :meth:`~pywbem.WBEMConnection.GetClass`.
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the namespace in which the class is to be modified, in any
             lexical case.
 
@@ -2444,8 +2445,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Raises:
 
@@ -2482,7 +2483,7 @@ class WBEMConnection(object):
             The properties, methods and qualifiers defined in this object
             specify how the class is to be created.
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the namespace in which the class is to be created, in any
             lexical case.
 
@@ -2494,8 +2495,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Raises:
 
@@ -2514,7 +2515,7 @@ class WBEMConnection(object):
             **extra)
 
     def DeleteClass(self, ClassName, namespace=None, **extra):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Delete a class.
 
@@ -2524,12 +2525,12 @@ class WBEMConnection(object):
 
         Parameters:
 
-          ClassName (`unicode string`_, `byte string`_ or :class:`~pywbem.CIMClassName`):
+          ClassName (:term:`unicode string` or :term:`byte string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be deleted, in any lexical case.
 
             Its namespace component will be ignored.
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the namespace of the class to be deleted, in any lexical
             case.
 
@@ -2541,8 +2542,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Raises:
 
@@ -2573,7 +2574,7 @@ class WBEMConnection(object):
 
         Parameters:
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the namespace in which the qualifier declarations are to be
             enumerated, in any lexical case.
 
@@ -2585,8 +2586,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
@@ -2623,11 +2624,11 @@ class WBEMConnection(object):
 
         Parameters:
 
-          QualifierName (`unicode string`_ or `byte string`_):
+          Qualifier (:term:`unicode string` or :term:`byte string`):
             Name of the qualifier declaration to be retrieved, in any lexical
             case.
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the namespace of the qualifier declaration, in any lexical
             case.
 
@@ -2639,8 +2640,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Returns:
 
@@ -2680,7 +2681,7 @@ class WBEMConnection(object):
             Representation of the qualifier declaration to be created or
             modified.
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the namespace in which the qualifier declaration is to be
             created or modified, in any lexical case.
 
@@ -2692,8 +2693,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Raises:
 
@@ -2719,11 +2720,11 @@ class WBEMConnection(object):
 
         Parameters:
 
-          Qualifier (`unicode string`_ or `byte string`_):
+          Qualifier (:term:`unicode string` or :term:`byte string`):
             Name of the qualifier declaration to be deleted, in any lexical
             case.
 
-          namespace (`unicode string`_ or `byte string`_):
+          namespace (:term:`unicode string` or :term:`byte string`):
             Name of the namespace in which the qualifier declaration is to be
             deleted, in any lexical case.
 
@@ -2735,8 +2736,8 @@ class WBEMConnection(object):
           extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
-            Note that `DSP0200`_ does not define any additional parameters for
-            this operation.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
 
         Raises:
 
@@ -2760,10 +2761,10 @@ def is_subclass(ch, ns, super_class, sub):
         A CIMOMHandle.  Either a pycimmb.CIMOMHandle or a
         :class:`~pywbem.WBEMConnection` object.
 
-      ns (`unicode string`_ or `byte string`_):
+      ns (:term:`unicode string` or :term:`byte string`):
         Namespace, in any lexical case.
 
-      super_class (`unicode string`_ or `byte string`_):
+      super_class (:term:`unicode string` or :term:`byte string`):
         Super class name, in any lexical case.
 
       sub:
