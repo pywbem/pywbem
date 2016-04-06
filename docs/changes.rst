@@ -59,6 +59,7 @@ Enhancements
 
 * Improved documentation of many classes of the external API.
 
+* Added CIM status codes 20 to 28.
 
 pywbem v0.8.2
 -------------
