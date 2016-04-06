@@ -91,14 +91,15 @@ from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      CIMClassName, NocaseDict, _ensure_unicode, tocimxml, \
                      tocimobj
-from .cim_http import get_object_header, wbem_request, Error, AuthError, \
-                      ConnectionError, TimeoutError
-from .tupleparse import ParseError, parse_cim
+from .cim_http import get_object_header, wbem_request
+from .tupleparse import parse_cim
 from .tupletree import dom_to_tupletree
+from .exceptions import Error, ParseError, AuthError, ConnectionError, \
+                        TimeoutError, CIMError
 
-__all__ = ['CIMError', 'WBEMConnection',
-           'PegasusUDSConnection', 'SFCBUDSConnection',
+__all__ = ['WBEMConnection', 'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
+
 
 if len(u'\U00010122') == 2:
     # This is a "narrow" Unicode build of Python (the normal case).
@@ -289,29 +290,6 @@ def check_utf8_xml_chars(utf8_xml, meaning):
 
     return utf8_xml
 
-
-class CIMError(Error):
-    """
-    Exception indicating that the WBEM server has returned an error response
-    with a CIM status code.
-
-    The exception value is a `tuple(error_code, description, exception_obj)`,
-    with:
-
-      * error_code (number):
-        Numeric CIM status code.
-        See :ref:`CIM status codes` for constants defining the numeric CIM
-        status code values.
-
-      * description (:term:`unicode string` or :term:`byte string`):
-        CIM status description text returned by the server, representing a
-        human readable message describing the error.
-
-      * exception_obj (exception):
-        The underlying exception object that caused this exception to be
-        raised, or `None`. Will always be `None`, currently.
-    """
-    pass
 
 class WBEMConnection(object):
     """

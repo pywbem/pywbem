@@ -61,6 +61,10 @@ Enhancements
 
 * Added CIM status codes 20 to 28.
 
+* Changed the `ParseError` exception to be derived from the `Error` base
+  exception, so that now all pywbem specific exceptions are derived from
+  `Error`.
+
 pywbem v0.8.2
 -------------
 

@@ -50,6 +50,7 @@ from six.moves import urllib
 
 from .cim_obj import CIMClassName, CIMInstanceName, _ensure_unicode, \
                     _ensure_bytes
+from .exceptions import Error, ConnectionError, AuthError, TimeoutError
 
 _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
@@ -66,24 +67,8 @@ else:
     #pylint: disable=invalid-name
     SocketErrors = (socket.error,)
 
-__all__ = ['Error', 'ConnectionError', 'AuthError', 'TimeoutError']
+__all__ = []
 
-class Error(Exception):
-    """Exception base class for catching any HTTP transport related errors."""
-    pass
-
-class ConnectionError(Error):
-    """This exception is raised when there is a problem with the connection
-    to the server. A retry may or may not succeed."""
-    pass
-
-class AuthError(Error):
-    """This exception is raised when an authentication error (401) occurs."""
-    pass
-
-class TimeoutError(Error):
-    """This exception is raised when the client times out."""
-    pass
 
 class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
     """HTTP timeout class that is a context manager (for use by 'with'
