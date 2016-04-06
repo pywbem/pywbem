@@ -845,6 +845,9 @@ class CIMInstanceName(_CIMComparisonMixin):
     def __len__(self):
         return len(self.keybindings)
 
+    def __iter__(self):
+        return six.iterkeys(self.keybindings)
+
     def copy(self):
         """Return a copy of the :class:`~pywbem.CIMInstanceName` object.
         """
@@ -1180,6 +1183,9 @@ class CIMInstance(_CIMComparisonMixin):
 
     def __len__(self):
         return len(self.properties)
+
+    def __iter__(self):
+        return six.iterkeys(self.properties)
 
     def copy(self):
         """Return copy of the :class:`~pywbem.CIMInstance` object."""

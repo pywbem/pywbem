@@ -68,36 +68,45 @@ class ValidateTest(unittest.TestCase):
             '  Required XML root element: %s\n'\
             '  Generated CIM-XML: %s' % (root_elem, xml))
 
+def swapcase2(text):
+    """Returns text, where every other character has been changed to swap
+    its lexical case. For strings that contain at least one letter, the
+    returned string is guaranteed to be different from the input string."""
+    text_cs = ''
+    i = 0
+    for c in text:
+        if i % 2 != 0:
+            c = c.swapcase()
+        text_cs += c
+        i += 1
+    return text_cs
+
 class DictTest(unittest.TestCase):
     """
     A base class for test cases that need to run a test against a dictionary
     interface, such as class `CIMInstance` that provides a dictionary interface
     for its properties.
-
-    Note that the expected dictionary content upon input is hard coded at this
-    point:
-        obj['Chicken'] = 'Ham'
-        obj['Beans'] = 42
     """
 
-    def runtest_dict(self, obj):
+    def runtest_dict(self, obj, exp_dict):
         """
-        Run the test against dictionary interfaces.
+        Treat obj as a dict and run dictionary tests, and compare the
+        dict content with exp_dict.
 
         Raises a test failure if the test fails.
 
         Arguments:
 
-          * `obj`: The CIM object to be tested (e.g. `CIMInstance`).
+          * `obj`: The dictionary-like CIM object to be tested
+            (e.g. `CIMInstance`).
+          * `exp_dict`: The expected content of the dictionary.
         """
 
-        # Test __getitem__
+        # Test __getitem__()
 
-        self.assertEqual(obj['Chicken'], 'Ham')
-        self.assertEqual(obj['Beans'], 42)
-
-        self.assertEqual(obj['chickeN'], 'Ham')
-        self.assertEqual(obj['beanS'], 42)
+        for key in exp_dict:
+            self.assertEqual(obj[key], exp_dict[key])
+            self.assertEqual(obj[swapcase2(key)], exp_dict[key])
 
         try:
             dummy_val = obj['Cheepy']
@@ -108,73 +117,93 @@ class DictTest(unittest.TestCase):
                       '\'Cheepy\'\n'\
                       'Object: %r' % obj)
 
-        # Test __setitem__
+        # Test __setitem__()
 
-        obj['tmp'] = 'tmp'
-        self.assertEqual(obj['Tmp'], 'tmp')
+        new_key = 'tmp'
+        new_value = 'tmp_value'
 
-        # Test has_key
+        obj[new_key] = new_value
 
-        self.assertTrue(obj.has_key('tmP'))
+        self.assertEqual(obj[new_key], new_value)
+        self.assertEqual(obj[swapcase2(new_key)], new_value)
 
-        # Test __delitem__
+        # Test has_key()
 
-        del obj['tMp']
-        self.assertTrue(not obj.has_key('tmp'))
+        self.assertTrue(obj.has_key(new_key))
+        self.assertTrue(obj.has_key(swapcase2(new_key)))
 
-        # Test __len__
+        # Test __delitem__()
 
-        self.assertEqual(len(obj), 2)
+        del obj[swapcase2(new_key)]
 
-        # Test keys
+        self.assertTrue(not obj.has_key(new_key))
+        self.assertTrue(not obj.has_key(swapcase2(new_key)))
+
+        # Test __len__()
+
+        self.assertEqual(len(obj), len(exp_dict))
+
+        # Test keys()
 
         keys = obj.keys()
-        self.assertTrue('Chicken' in keys and 'Beans' in keys)
         self.assertEqual(len(keys), 2)
 
-        # Test values
+        for key in exp_dict:
+            self.assertTrue(key in keys)
+
+        # Test values()
 
         values = obj.values()
-        self.assertTrue('Ham' in values and 42 in values)
         self.assertEqual(len(values), 2)
 
-        # Test items
+        for key in exp_dict:
+            self.assertTrue(exp_dict[key] in values)
+
+        # Test items()
 
         items = obj.items()
-        self.assertTrue(('Chicken', 'Ham') in items and
-                        ('Beans', 42) in items)
         self.assertEqual(len(items), 2)
 
-        # Test iterkeys
+        for key in exp_dict:
+            self.assertTrue((key, exp_dict[key]) in items)
 
-        keys = list(obj.iterkeys())
-        self.assertTrue('Chicken' in keys and 'Beans' in keys)
-        self.assertEqual(len(keys), 2)
+        # Test iterkeys()
 
-        # Test itervalues
+        self.assertEqual(len(list(obj.iterkeys())), 2)
 
-        values = list(obj.itervalues())
-        self.assertTrue('Ham' in values and 42 in values)
-        self.assertEqual(len(values), 2)
+        for key in exp_dict:
+            self.assertTrue(key in obj.iterkeys())
 
-        # Test iteritems
+        # Test itervalues()
 
-        items = list(obj.iteritems())
-        self.assertTrue(('Chicken', 'Ham') in items and
-                        ('Beans', 42) in items)
-        self.assertEqual(len(items), 2)
+        self.assertEqual(len(list(obj.itervalues())), 2)
 
-        # Test in
+        for key in exp_dict:
+            self.assertTrue(exp_dict[key] in obj.itervalues())
 
-        self.assertTrue('Chicken' in obj and 'Beans' in obj)
+        # Test iteritems()
 
-        # Test get
+        self.assertEqual(len(list(obj.iteritems())), 2)
 
-        self.assertEqual(obj.get('Chicken'), 'Ham')
-        self.assertEqual(obj.get('Beans'), 42)
+        for key in exp_dict:
+            self.assertTrue((key, exp_dict[key]) in obj.iteritems())
 
-        self.assertEqual(obj.get('chickeN'), 'Ham')
-        self.assertEqual(obj.get('beanS'), 42)
+        # Test in as test -> __getitem__()
+
+        for key in exp_dict:
+            self.assertTrue(key in obj)
+
+        # Test in as iteration -> __iter__()
+
+        for key in obj:
+            value = obj[key]
+            self.assertTrue(value, exp_dict[key])
+
+        # Test get()
+
+        for key in exp_dict:
+            self.assertEqual(obj.get(key), exp_dict[key])
+            self.assertEqual(obj.get(swapcase2(key)), exp_dict[key])
 
         try:
             default_value = 'NoValue'
@@ -187,13 +216,13 @@ class DictTest(unittest.TestCase):
                       'Object: %r' % \
                       (exc.__class__.__name__, invalid_propname, obj))
 
-        # Test update
+        # Test update()
 
         obj.update({'One':'1', 'Two': '2'})
         self.assertEqual(obj['one'], '1')
         self.assertEqual(obj['two'], '2')
-        self.assertEqual(obj['Chicken'], 'Ham')
-        self.assertEqual(obj['Beans'], 42)
+        for key in exp_dict:
+            self.assertEqual(obj[key], exp_dict[key])
         self.assertEqual(len(obj), 4)
 
         obj.update({'Three':'3', 'Four': '4'}, [('Five', '5')])
@@ -362,7 +391,7 @@ class CIMInstanceNameDict(DictTest):
         kb = {'Chicken': 'Ham', 'Beans': 42}
         obj = CIMInstanceName('CIM_Foo', kb)
 
-        self.runtest_dict(obj)
+        self.runtest_dict(obj, kb)
 
 class CIMInstanceNameEquality(unittest.TestCase):
     """
@@ -854,7 +883,7 @@ class CIMInstanceDict(DictTest):
 
         obj = CIMInstance('CIM_Foo', props)
 
-        self.runtest_dict(obj)
+        self.runtest_dict(obj, props)
 
         # Test CIM type checking
 
