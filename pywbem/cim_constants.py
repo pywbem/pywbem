@@ -52,29 +52,110 @@ __all__ = [
     'CIM_ERR_INVALID_QUERY',
     'CIM_ERR_METHOD_NOT_AVAILABLE',
     'CIM_ERR_METHOD_NOT_FOUND',
+    'CIM_ERR_NAMESPACE_NOT_EMPTY',
+    'CIM_ERR_INVALID_ENUMERATION_CONTEXT',
+    'CIM_ERR_INVALID_OPERATION_TIMEOUT',
+    'CIM_ERR_PULL_HAS_BEEN_ABANDONED',
+    'CIM_ERR_PULL_CANNOT_BE_ABANDONED',
+    'CIM_ERR_FILTERED_ENUMERATION_NOT_SUPPORTED',
+    'CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED',
+    'CIM_ERR_SERVER_LIMITS_EXCEEDED',
+    'CIM_ERR_SERVER_IS_SHUTTING_DOWN',
     'DEFAULT_NAMESPACE'
 ]
 
 # CIM status codes
 
-# pylint: disable=bad-whitespace
-CIM_ERR_FAILED                       = 1  #: A general error occurred
-CIM_ERR_ACCESS_DENIED                = 2  #: Resource not available
-CIM_ERR_INVALID_NAMESPACE            = 3  #: The target namespace does not exist
-CIM_ERR_INVALID_PARAMETER            = 4  #: Parameter value(s) invalid
-CIM_ERR_INVALID_CLASS                = 5  #: The specified Class does not exist
-CIM_ERR_NOT_FOUND                    = 6  #: Requested object could not be found
-CIM_ERR_NOT_SUPPORTED                = 7  #: Operation not supported
-CIM_ERR_CLASS_HAS_CHILDREN           = 8  #: Class has subclasses
-CIM_ERR_CLASS_HAS_INSTANCES          = 9  #: Class has instances
-CIM_ERR_INVALID_SUPERCLASS           = 10 #: Superclass does not exist
-CIM_ERR_ALREADY_EXISTS               = 11 #: Object already exists
-CIM_ERR_NO_SUCH_PROPERTY             = 12 #: Property does not exist
-CIM_ERR_TYPE_MISMATCH                = 13 #: Value incompatible with type
-CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED = 14 #: Query language not supported
-CIM_ERR_INVALID_QUERY                = 15 #: Query not valid
-CIM_ERR_METHOD_NOT_AVAILABLE         = 16 #: Extrinsic method not executed
-CIM_ERR_METHOD_NOT_FOUND             = 17 #: Extrinsic method does not exist
+#: A general error occurred that is not covered by a more specific error code.
+CIM_ERR_FAILED = 1
+
+#: Access to a CIM resource is not available to the client.
+CIM_ERR_ACCESS_DENIED = 2
+
+#: The target namespace does not exist.
+CIM_ERR_INVALID_NAMESPACE = 3
+
+#: One or more parameter values passed to the method are not valid.
+CIM_ERR_INVALID_PARAMETER = 4
+
+#: The specified class does not exist.
+CIM_ERR_INVALID_CLASS = 5
+
+#: The requested object cannot be found. The operation can be unsupported on
+#: behalf of the WBEM server in general or on behalf of an implementation of a
+#: management profile.
+CIM_ERR_NOT_FOUND = 6
+
+#: The requested operation is not supported on behalf of the WBEM server, or on
+#: behalf of a provided class. If the operation is supported for a provided
+#: class but is not supported for particular instances of that class, then
+#: CIM_ERR_FAILED shall be used.
+CIM_ERR_NOT_SUPPORTED = 7
+
+#: The operation cannot be invoked on this class because it has subclasses.
+CIM_ERR_CLASS_HAS_CHILDREN = 8
+
+#: The operation cannot be invoked on this class because one or more instances
+#: of this class exist.
+CIM_ERR_CLASS_HAS_INSTANCES = 9
+
+#: The operation cannot be invoked because the specified superclass does not
+#: exist.
+CIM_ERR_INVALID_SUPERCLASS = 10
+
+#: The operation cannot be invoked because an object already exists.
+CIM_ERR_ALREADY_EXISTS = 11
+
+#: The specified property does not exist.
+CIM_ERR_NO_SUCH_PROPERTY = 12
+
+#: The value supplied is not compatible with the type.
+CIM_ERR_TYPE_MISMATCH = 13
+
+#: The query language is not recognized or supported.
+CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED = 14
+
+#: The query is not valid for the specified query language.
+CIM_ERR_INVALID_QUERY = 15
+
+#: The extrinsic method cannot be invoked.
+CIM_ERR_METHOD_NOT_AVAILABLE = 16
+
+#: The specified extrinsic method does not exist.
+CIM_ERR_METHOD_NOT_FOUND = 17
+
+# 18 and 19 existed once and had been removed again.                                          
+
+#: The specified namespace is not empty.
+CIM_ERR_NAMESPACE_NOT_EMPTY = 20
+
+#: The enumeration identified by the specified context cannot be found, is in
+#: a closed state, does not exist, or is otherwise invalid.
+CIM_ERR_INVALID_ENUMERATION_CONTEXT = 21
+
+#: The specified operation timeout is not supported by the WBEM server.
+CIM_ERR_INVALID_OPERATION_TIMEOUT = 22
+
+#: The pull operation has been abandoned due to execution of a concurrent
+#: CloseEnumeration operation on the same enumeration.
+CIM_ERR_PULL_HAS_BEEN_ABANDONED = 23
+
+#: The attempt to abandon a concurrent pull operation on the same enumeration
+#: failed. The concurrent pull operation proceeds normally.
+CIM_ERR_PULL_CANNOT_BE_ABANDONED = 24
+
+#: Using a a filter query in pulled enumerations is not supported by the WBEM
+#: server.
+CIM_ERR_FILTERED_ENUMERATION_NOT_SUPPORTED = 25
+
+#: The WBEM server does not support continuation on error.
+CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED = 26
+
+#: The WBEM server has failed the operation based upon exceeding server limits.
+CIM_ERR_SERVER_LIMITS_EXCEEDED = 27
+
+#: The WBEM server is shutting down and cannot process the operation.
+CIM_ERR_SERVER_IS_SHUTTING_DOWN = 28
 
 # Provider types
 
