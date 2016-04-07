@@ -3015,57 +3015,171 @@ class MofStr(unittest.TestCase):
         Run all tests for mofstr().
         '''
 
-        self._run_single('', '""')
-        self._run_single('\\', '"\\\\"')
-        self._run_single('"', '"\\""')
-        self._run_single('a"b', '"a\\"b"')
-        # TODO: Enable the following test, once "" is supported.
-        #self._run_single('a""b', '"a\\"\\"b"')
-        self._run_single("'", '"\'"')
-        self._run_single("a'b", '"a\'b"')
-        self._run_single("a''b", '"a\'\'b"')
-        self._run_single("\\'", '"\\\'"')
-        self._run_single('\\"', '"\\""')
-        self._run_single('\r\n\t\b\f', '"\\r\\n\\t\\b\\f"')
-        self._run_single('\\r\\n\\t\\b\\f', '"\\r\\n\\t\\b\\f"')
-        self._run_single('\\_\\+\\v\\h\\j', '"\\_\\+\\v\\h\\j"')
-        self._run_single('a', '"a"')
-        self._run_single('a b', '"a b"')
-        self._run_single(' b', '" b"')
-        self._run_single('a ', '"a "')
-        self._run_single(' ', '" "')
+        # Note: The following literal strings use normal Python escaping.
 
-        # pylint: disable=line-too-long
-        #                    |0                                                                     |71
-        # pylint: disable=line-too-long
-        self._run_single('the big brown fox jumps over a big brown fox jumps over a big brown f jumps over a big brown fox',\
-                           '"the big brown fox jumps over a big brown fox jumps over a big brown f "\n    '+\
-                           '"jumps over a big brown fox"')
-        # pylint: disable=line-too-long
-        self._run_single('the big brown fox jumps over a big brown fox jumps over a big brown fo jumps over a big brown fox',\
-                           '"the big brown fox jumps over a big brown fox jumps over a big brown fo "\n    '+\
-                           '"jumps over a big brown fox"')
-        # pylint: disable=line-too-long
-        self._run_single('the big brown fox jumps over a big brown fox jumps over a big brown fox jumps over a big brown fox',\
-                           '"the big brown fox jumps over a big brown fox jumps over a big brown fox "\n    '+\
-                           '"jumps over a big brown fox"')
-        # pylint: disable=line-too-long
-        self._run_single('the big brown fox jumps over a big brown fox jumps over a big brown foxx jumps over a big brown fox',\
-                           '"the big brown fox jumps over a big brown fox jumps over a big brown foxx "\n    '+\
-                           '"jumps over a big brown fox"')
-        # pylint: disable=line-too-long
-        self._run_single('the big brown fox jumps over a big brown fox jumps over a big brown foxxx jumps over a big brown fox',\
-                           '"the big brown fox jumps over a big brown fox jumps over a big brown "\n    '+\
-                           '"foxxx jumps over a big brown fox"')
-        # pylint: disable=line-too-long
+        # Some standard cases
+        self._run_single('', '""')
+        self._run_single('c', '"c"')
+        self._run_single('c d', '"c d"')
+
+        # Whitespace
+        self._run_single(' c', '" c"')
+        self._run_single('c ', '"c "')
+        self._run_single(' ', '" "')
+        self._run_single('c  d', '"c  d"')
+
+        # Single quote (does not get escaped)
+        self._run_single('\'', '"\'"')
+        self._run_single('c\'d', '"c\'d"')
+        self._run_single('c\'\'d', '"c\'\'d"')
+
+        # Double quote (gets escaped)
+        self._run_single('"', '"\\""')
+        self._run_single('c"d', '"c\\"d"')
+        self._run_single('c""d', '"c\\"\\"d"')
+
+        # Backslash character (gets escaped)
+        self._run_single('\\', '"\\\\"')
+        self._run_single('\\c', '"\\\\c"')
+        self._run_single('c\\', '"c\\\\"')
+        self._run_single('c\\d', '"c\\\\d"')
+        self._run_single('c\\\\d', '"c\\\\\\\\d"')
+
+        # Other MOF-escapable characters (get escaped)
+        self._run_single('\b', '"\\b"')
+        self._run_single('\t', '"\\t"')
+        self._run_single('\n', '"\\n"')
+        self._run_single('\f', '"\\f"')
+        self._run_single('\r', '"\\r"')
+        self._run_single('c\bd', '"c\\bd"')
+        self._run_single('c\td', '"c\\td"')
+        self._run_single('c\nd', '"c\\nd"')
+        self._run_single('c\fd', '"c\\fd"')
+        self._run_single('c\rd', '"c\\rd"')
+
+        # An already MOF-escaped sequence.
+        # Such a sequence is treated as separate characters, i.e. backslash
+        # gets escaped, and the following char gets escaped on its own.
+        # These sequences were treated specially before v0.9, by parsing them
+        # as already-escaped MOF sequences and passing them through unchanged.
+        self._run_single('\\b', '"\\\\b"')
+        self._run_single('\\t', '"\\\\t"')
+        self._run_single('\\n', '"\\\\n"')
+        self._run_single('\\f', '"\\\\f"')
+        self._run_single('\\r', '"\\\\r"')
+        self._run_single('\\\'', '"\\\\\'"')
+        self._run_single('\\"', '"\\\\\\""') # escape the following quote
+        self._run_single('c\\bd', '"c\\\\bd"')
+        self._run_single('c\\td', '"c\\\\td"')
+        self._run_single('c\\nd', '"c\\\\nd"')
+        self._run_single('c\\fd', '"c\\\\fd"')
+        self._run_single('c\\rd', '"c\\\\rd"')
+        self._run_single('c\\\'d', '"c\\\\\'d"')
+        self._run_single('c\\"d', '"c\\\\\\"d"') # escape the following quote
+
+        # Backslash followed by MOF-escapable character (are treated separately)
+        self._run_single('\\\b', '"\\\\\\b"')
+        self._run_single('\\\t', '"\\\\\\t"')
+        self._run_single('\\\n', '"\\\\\\n"')
+        self._run_single('\\\f', '"\\\\\\f"')
+        self._run_single('\\\r', '"\\\\\\r"')
+        self._run_single('c\\\bd', '"c\\\\\\bd"')
+        self._run_single('c\\\td', '"c\\\\\\td"')
+        self._run_single('c\\\nd', '"c\\\\\\nd"')
+        self._run_single('c\\\fd', '"c\\\\\\fd"')
+        self._run_single('c\\\rd', '"c\\\\\\rd"')
+
+        # Control character (get escaped)
+        self._run_single(u'\u0001', '"\\x0001"')
+        self._run_single(u'\u0002', '"\\x0002"')
+        self._run_single(u'\u0003', '"\\x0003"')
+        self._run_single(u'\u0004', '"\\x0004"')
+        self._run_single(u'\u0005', '"\\x0005"')
+        self._run_single(u'\u0006', '"\\x0006"')
+        self._run_single(u'\u0007', '"\\x0007"')
+        self._run_single(u'\u0008', '"\\b"')
+        self._run_single(u'\u0009', '"\\t"')
+        self._run_single(u'\u000A', '"\\n"')
+        self._run_single(u'\u000B', '"\\x000B"')
+        self._run_single(u'\u000C', '"\\f"')
+        self._run_single(u'\u000D', '"\\r"')
+        self._run_single(u'\u000E', '"\\x000E"')
+        self._run_single(u'\u000F', '"\\x000F"')
+        self._run_single(u'\u0010', '"\\x0010"')
+        self._run_single(u'\u0011', '"\\x0011"')
+        self._run_single(u'\u0012', '"\\x0012"')
+        self._run_single(u'\u0013', '"\\x0013"')
+        self._run_single(u'\u0014', '"\\x0014"')
+        self._run_single(u'\u0015', '"\\x0015"')
+        self._run_single(u'\u0016', '"\\x0016"')
+        self._run_single(u'\u0017', '"\\x0017"')
+        self._run_single(u'\u0018', '"\\x0018"')
+        self._run_single(u'\u0019', '"\\x0019"')
+        self._run_single(u'\u001A', '"\\x001A"')
+        self._run_single(u'\u001B', '"\\x001B"')
+        self._run_single(u'\u001C', '"\\x001C"')
+        self._run_single(u'\u001D', '"\\x001D"')
+        self._run_single(u'\u001E', '"\\x001E"')
+        self._run_single(u'\u001F', '"\\x001F"')
+        self._run_single(u'\u0020', '" "')
+
+        # Line break cases
+
+        self._run_single(
+            #|1                                                          |60
+            'the big brown fox jumps over a big brown fox jumps over a big' \
+            ' brown f jumps over a big brown fox', \
+            '"the big brown fox jumps over a big brown fox jumps over a big' \
+            ' brown f "\n' \
+            '    "jumps over a big brown fox"')
+
+        self._run_single(
+            #|1                                                          |60
+            'the big brown fox jumps over a big brown fox jumps over a big' \
+            ' brown fo jumps over a big brown fox', \
+            '"the big brown fox jumps over a big brown fox jumps over a big' \
+            ' brown fo "\n' \
+            '    "jumps over a big brown fox"')
+
+        self._run_single(
+            #|1                                                          |60
+            'the big brown fox jumps over a big brown fox jumps over a big' \
+            ' brown fox jumps over a big brown fox', \
+            '"the big brown fox jumps over a big brown fox jumps over a big' \
+            ' brown fox "\n' \
+            '    "jumps over a big brown fox"')
+
+        self._run_single(
+            #|1                                                          |60
+            'the big brown fox jumps over a big brown fox jumps over a big' \
+            ' brown foxx jumps over a big brown fox', \
+            '"the big brown fox jumps over a big brown fox jumps over a big' \
+            ' brown foxx "\n' \
+            '    "jumps over a big brown fox"')
+        self._run_single(
+            #|1                                                          |60
+            'the big brown fox jumps over a big brown fox jumps over a big' \
+            ' brown foxxx jumps over a big brown fox', \
+            '"the big brown fox jumps over a big brown fox jumps over a big' \
+            ' brown "\n' \
+            '    "foxxx jumps over a big brown fox"')
+
         # TODO: This may be wrong in that it breaks a word, not between words.
-        self._run_single('the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over a big brown fox',\
-                           '"the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big_brown_fox_j"\n    '+\
-                           '"umps_over a big brown fox"')
-        # pylint: disable=line-too-long
-        self._run_single('the big brown fox jumps over a big brown fox jumps over a big brown fox_jumps_over_a_big_brown_fox',\
-                           '"the big brown fox jumps over a big brown fox jumps over a big brown "\n    '+\
-                           '"fox_jumps_over_a_big_brown_fox"')
+        self._run_single(
+            #|1                                                          |60
+            'the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big' \
+            '_brown_fox_jumps_over a big brown fox', \
+            '"the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big' \
+            '_brown_fox_j"\n' \
+            '    "umps_over a big brown fox"')
+
+        self._run_single(
+            #|1                                                          |60
+            'the big brown fox jumps over a big brown fox jumps over a big' \
+            ' brown fox_jumps_over_a_big_brown_fox', \
+            '"the big brown fox jumps over a big brown fox jumps over a big' \
+            ' brown "\n' \
+            '    "fox_jumps_over_a_big_brown_fox"')
 
         return 0
 
