@@ -172,6 +172,8 @@ a.headerlink:hover {
 div.body p, div.body dd, div.body li, div.body blockquote {
     text-align: justify;
     line-height: 130%;
+    /* pywbem: Added paragraph padding. */
+    padding: 3px;
 }
 
 div.admonition p.admonition-title + p {

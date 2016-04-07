@@ -168,7 +168,8 @@ def EnumerateInstances(cn, ns=None, lo=None, di=None, iq=None, ico=None,
                    None causes it not to be included in request to server.
                    Server default: False
 
-      pl (list):   List of property names to be included. None means all.
+      pl (iterable):
+                   Iterable of property names to be included. None means all.
                    None causes it not to be included in the request to server.
                    Server default: None
 
@@ -208,7 +209,8 @@ def GetInstance(ip, lo=None, iq=None, ico=None, pl=None):
                    None causes it not to be included in request to server.
                    Server default: False
 
-      pl (list):   List of property names to be included. None means all.
+      pl (iterable):
+                   Iterable of property names to be included. None means all.
                    None causes it not to be included in request to server.
                    Server default: None
 
@@ -237,7 +239,8 @@ def ModifyInstance(mi, iq=None, pl=None):
                    None causes it not to be included in request to server.
                    Server default: False
 
-      pl (list):   List of property names to be modified. None means all.
+      pl (iterable):
+                   Iterable of property names to be included. None means all.
                    None causes it not to be included in request to server.
                    Server default: None
     """
@@ -362,7 +365,8 @@ def Associators(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None,
                    None causes it not to be included in request to server.
                    Server default: False
 
-      pl (list):   List of property names to be included. None means all.
+      pl (iterable):
+                   Iterable of property names to be included. None means all.
                    None causes it not to be included in request to server.
                    Server default: None
 
@@ -446,7 +450,8 @@ def References(op, rc=None, r=None, iq=None, ico=None, pl=None):
                    None causes it not to be included in request to server.
                    Server default: False
 
-      pl (list):   List of property names to be included. None means all.
+      pl (iterable):
+                   Iterable of property names to be included. None means all.
                    None causes it not to be included in request to server.
                    Server default: None
 
@@ -577,7 +582,8 @@ def GetClass(cn, ns=None, lo=None, iq=None, ico=None, pl=None):
                    None causes it not to be included in request to server.
                    Server default: False
 
-      pl (list):   List of property names to be included. None means all.
+      pl (iterable):
+                   Iterable of property names to be included. None means all.
                    None causes it not to be included in request to server.
                    Server default: None
 

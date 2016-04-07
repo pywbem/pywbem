@@ -33,10 +33,7 @@ The plug interface is also described in the :ref:`MOF compiler API`.
 wbemcli
 -------
 
-A WBEM client CLI.
-
-It is currently implemented as an interactive shell, and is expected to morph
-into a full fledged command line utility in the future.
+A WBEM client CLI. It is implemented as an interactive shell.
 
 .. include:: wbemcli.help.txt
    :literal:

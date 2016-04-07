@@ -1983,8 +1983,8 @@ class MOFCompiler(object):
     and the namespaces contain CIM classes, instances and qualifier types.
 
     The association with a CIM repository is established when creating an
-    object of this class. The interactions with the CIM repository are defined
-    in the abstract base class
+    instance of this class. The interactions with the CIM repository are
+    defined in the abstract base class
     :class:`~pywbem.mof_compiler.BaseRepositoryConnection`.
     """
 
@@ -2001,14 +2001,14 @@ class MOFCompiler(object):
             case, the MOF compiler can only process standalone MOF that does
             not depend on existing CIM elements in the repository.
 
-          search_paths (list of :term:`unicode string` or :term:`byte string`):
-            A list of path names of directories where MOF include files should
-            be looked up.
+          search_paths (:term:`py:iterable` of :term:`string`):
+            An iterable of path names of directories where MOF include files
+            should be looked up.
 
-          verbose (bool):
+          verbose (:class:`py:bool`):
             Indicates whether to issue more detailed compiler messages.
 
-          log_func (callable):
+          log_func (:term:`callable`):
             A logger function that is invoked for each compiler message.
             The logger function must take one parameter of string type.
             The default logger prints to stdout.
@@ -2038,15 +2038,15 @@ class MOFCompiler(object):
 
         Parameters:
 
-          mof (:term:`unicode string` or :term:`byte string`):
+          mof (:term:`string`):
             The string of MOF statements to be compiled.
 
-          ns (:term:`unicode string` or :term:`byte string`):
+          ns (:term:`string`):
             The name of the CIM namespace in the associated CIM repository
             that is used for lookup of any dependent CIM elements, and that
             is also the target of the compilation.
 
-          filename (:term:`unicode string` or :term:`byte string`):
+          filename (:term:`string`):
             The path name of the file that the MOF statements were read from.
             This information is used only in compiler messages.
 
@@ -2104,11 +2104,11 @@ class MOFCompiler(object):
 
         Parameters:
 
-          filename (:term:`unicode string` or :term:`byte string`):
+          filename (:term:`string`):
             The path name of the MOF file containing the MOF statements to be
             compiled.
 
-          ns (:term:`unicode string` or :term:`byte string`):
+          ns (:term:`string`):
             The name of the CIM namespace in the associated CIM repository
             that is used for lookup of any dependent CIM elements, and that
             is also the target of the compilation.
@@ -2142,7 +2142,7 @@ class MOFCompiler(object):
 
         Parameters:
 
-          classame (:term:`unicode string` or :term:`byte string`):
+          classame (:term:`string`):
             The name of the CIM class to look up.
 
         Returns:

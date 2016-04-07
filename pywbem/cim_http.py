@@ -92,10 +92,10 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
 
         :Parameters:
 
-          timeout : number
+          timeout (:term:`number`):
             Timeout in seconds, ``None`` means no timeout.
 
-          http_conn : `httplib.HTTPBaseConnection` (or subclass)
+          http_conn (`httplib.HTTPBaseConnection` or subclass):
             The connection that is to be stopped when the timeout expires.
         """
 
@@ -262,12 +262,12 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
 
     Parameters:
 
-      url (:term:`unicode string` or :term:`byte string`):
+      url (:term:`string`):
         URL of the WBEM server (e.g. ``"https://10.11.12.13:6988"``).
         For details, see the ``url`` parameter of
         :meth:`WBEMConnection.__init__`.
 
-      data (:term:`unicode string` or :term:`byte string`):
+      data (:term:`string`):
         The CIM-XML formatted data to be sent as a request to the WBEM server.
 
       creds:
@@ -275,13 +275,13 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
         For details, see the ``creds`` parameter of
         :meth:`WBEMConnection.__init__`.
 
-      headers (list of :term:`unicode string` or list of :term:`byte string`):
-        List of HTTP header fields to be added to the request, in addition to
-        the standard header fields such as ``Content-type``,
+      headers (:term:`py:iterable` of :term:`string`):
+        Iterable of HTTP header fields to be added to the request, in addition
+        to the standard header fields such as ``Content-type``,
         ``Content-length``, and ``Authorization``.
         A value of None causes no headers to be added.
 
-      debug (bool):
+      debug (:class:`py:bool`):
         Boolean indicating whether to create debug information.
         Not currently used.
 
@@ -305,7 +305,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
         For details, see the ``no_verification`` parameter of
         :meth:`WBEMConnection.__init__`.
 
-      timeout (number):
+      timeout (:term:`number`):
         Timeout in seconds, for requests sent to the server. If the server did
         not respond within the timeout duration, the socket for the connection
         will be closed, causing a :exc:`TimeoutError` to be raised.
