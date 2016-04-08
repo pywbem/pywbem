@@ -627,41 +627,122 @@ def _indent_str(indent):
     return ' '.ljust(indent, ' ')
 
 def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
-    """Convert the input string value to a MOF literal string value,
-    including the surrounding double quotes.
+    # Note: This is a raw docstring because it shows many backslashes, and
+    # that avoids having to double them.
+    r"""
+    Convert the string in `strvalue` into a MOF string constant
+    (i.e. a string literal), including the surrounding double quotes, and
+    return that result.
 
-    In doing so, all characters that have MOF escape characters (except for
-    single quotes) are escaped by adding a leading backslash (\\), if not yet
-    present. This conditional behavior is needed for WBEM servers that return
-    the MOF escape sequences in their CIM-XML representation of any strings,
-    instead of converting them to the binary characters as required by the CIM
-    standards.
+    The input string must be a Python unicode string object, and the
+    returned MOF string constant is also a Python unicode string object.
 
-    Single quotes do not need to be escaped because the returned literal
-    string uses double quotes.
+    This function handles MOF escaping and breaking the string into multiple
+    lines according to the `maxline` and `indent` parameters.
+
+    DSP0004 defines that the character repertoire for MOF string constants
+    is the entire repertoire for the CIM string datatype. That is, the entire
+    Unicode character repertoire except for U+0000.
+
+    The only character for which DSP0004 requires the use of a MOF escape
+    sequence in a MOF string constant, is the double quote (because a MOF
+    string constant is enclosed in double quotes).
+
+    DSP0004 defines MOF escape sequences for several more characters, but it
+    does not require their use in MOF. For example, it is valid for a MOF
+    string constant to contain the characters U+000D (newline) or U+0009
+    (horizontal tab).
+
+    Now that may not be supported by MOF related tools, and therefore this
+    function plays it safe and uses MOF escape sequences for all characters
+    that have short MOF escape sequences defined (except for single quote), and
+    for all remaining characters in the so called "control range"
+    U+0001..U+001F, it uses generic MOF escape sequences (e.g. U+0001 becomes
+    "\x0001")
+
+    The following table shows the MOF escape sequences defined in DSP0004:
+
+    ============  =============================================================
+    MOF escape    Character
+    sequence
+    ============  =============================================================
+    \b            U+0008: Backspace
+    \t            U+0009: Horizontal tab
+    \n            U+000A: Line feed
+    \f            U+000C: Form feed
+    \r            U+000D: Carriage return
+    \"            U+0022: Double quote (") (required to be used)
+    \'            U+0027: Single quote (')
+    \\            U+005C: Backslash (\)
+    \x<hex>       U+<hex>: Any UCS-2 character, where <hex> is one to four hex
+                  digits, representing its UCS code position (this form is
+                  limited to the UCS-2 character repertoire)
+    \X<hex>       U+<hex>: Any UCS-2 character, where <hex> is one to four hex
+                  digits, representing its UCS code position (this form is
+                  limited to the UCS-2 character repertoire)
+    ============  =============================================================
+
+    This function does not tolerate that the input string already contains
+    MOF escape sequences (it did so before v0.9, but that created more
+    problems than it solved).
 
     After escaping, the string is broken into multiple lines, for better
-    readability. The maximum line size is specified via the ``maxline``
+    readability. The maximum line size is specified via the `maxline`
     argument. The indentation for any spilled over lines (i.e. not the first
-    line) is specified via the ``indent`` argument.
+    line) is specified via the `indent` argument.
     """
 
-    # escape \n, \r, \t, \f, \b
-    escaped_str = strvalue.replace("\n", "\\n").replace("\r", "\\r").\
-                  replace("\t", "\\t").replace("\f", "\\f").replace("\b", "\\b")
+    escaped_str = strvalue
 
-    # escape double quote (") if not already escaped.
-    # TODO: Add support for two consecutive double quotes ("").
-    escaped_str = re.sub(r'([^\\])"', r'\1\\"', escaped_str)
+    # Escape backslash (\)
+    escaped_str = escaped_str.replace('\\', '\\\\')
 
-    # escape special case of a single double quote (")
-    escaped_str = re.sub(r'^"$', r'\"', escaped_str)
+    # Escape \b, \t, \n, \f, \r
+    # Note, the Python escape sequences happen to be the same as in MOF
+    escaped_str = escaped_str.replace('\b', '\\b').\
+                              replace('\t', '\\t').\
+                              replace('\n', '\\n').\
+                              replace('\f', '\\f').\
+                              replace('\r', '\\r')
 
-    # escape backslash (\) not followed by any of: nrtfb"'
-    escaped_str = re.sub(r'\\([^nrtfb"\'])', r'\\\1', escaped_str)
+    # Escape remaining control characters (U+0001...U+001F), skipping
+    # U+0008, U+0009, U+000A, U+000C, U+000D that are already handled.
+    # We hard code it to be faster, plus we can easily skip already handled
+    # chars.
+    # The generic code would be (not skipping already handled chars):
+    #     for cp in range(1, 32):
+    #         c = six.unichr(cp)
+    #         esc = '\\x%04X' % cp
+    #         escaped_str = escaped_str.replace(c, esc)
+    escaped_str = escaped_str.replace(u'\u0001', '\\x0001').\
+                              replace(u'\u0002', '\\x0002').\
+                              replace(u'\u0003', '\\x0003').\
+                              replace(u'\u0004', '\\x0004').\
+                              replace(u'\u0005', '\\x0005').\
+                              replace(u'\u0006', '\\x0006').\
+                              replace(u'\u0007', '\\x0007').\
+                              replace(u'\u000B', '\\x000B').\
+                              replace(u'\u000E', '\\x000E').\
+                              replace(u'\u000F', '\\x000F').\
+                              replace(u'\u0010', '\\x0010').\
+                              replace(u'\u0011', '\\x0011').\
+                              replace(u'\u0012', '\\x0012').\
+                              replace(u'\u0013', '\\x0013').\
+                              replace(u'\u0014', '\\x0014').\
+                              replace(u'\u0015', '\\x0015').\
+                              replace(u'\u0016', '\\x0016').\
+                              replace(u'\u0017', '\\x0017').\
+                              replace(u'\u0018', '\\x0018').\
+                              replace(u'\u0019', '\\x0019').\
+                              replace(u'\u001A', '\\x001A').\
+                              replace(u'\u001B', '\\x001B').\
+                              replace(u'\u001C', '\\x001C').\
+                              replace(u'\u001D', '\\x001D').\
+                              replace(u'\u001E', '\\x001E').\
+                              replace(u'\u001F', '\\x001F')
 
-    # escape special case of a single backslash (\)
-    escaped_str = re.sub(r'^\\$', r'\\\\', escaped_str)
+    # Escape double quote
+    escaped_str = escaped_str.replace('"', '\\"')
 
     # Break into multiple strings for better readability
     blankfind = maxline - indent - 2
@@ -2913,7 +2994,7 @@ class CIMQualifier(_CIMComparisonMixin):
         """
 
         def valstr(value):
-            """ Return string representing value argument."""
+            """Return a string that is the MOF literal representing a value."""
             if isinstance(value, six.string_types):
                 return mofstr(value, indent)
             return str(value)

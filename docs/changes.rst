@@ -65,10 +65,17 @@ Enhancements
   exception, so that now all pywbem specific exceptions are derived from
   `Error`.
 
-Bug fixes:
+Bug fixes
+^^^^^^^^^
 
 * In `CIMInstance` and `CIMInstanceName`, fixed KeyError when iterating
   over the objects.
+
+* Added support for representing control characters in MOF strings using MOF
+  escape sequences, e.g. U+0001 becomes `"\x0001"`.
+
+* Fixed bug that MOF escape sequences in strings were passed through
+  unchanged, into generated MOF, by removing needless special-casing code.
 
 pywbem v0.8.2
 -------------
