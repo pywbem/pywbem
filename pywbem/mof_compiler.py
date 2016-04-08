@@ -46,6 +46,7 @@ import os
 from getpass import getpass
 import argparse
 from abc import ABCMeta, abstractmethod, abstractproperty
+import re
 
 import six
 from ply import yacc, lex
@@ -72,6 +73,29 @@ _lextab = 'moflextab'
 
 # Directory for _tabmodule and _lextab
 _tabdir = os.path.dirname(os.path.abspath(__file__))
+
+#------------------------------------------------------------------------------
+#
+# IMPORTANT NOTE:
+#
+# This MOF compiler implementation is based on the PLY Python package.
+# This module here contains LEX & YACC rules in docstrings of its functions.
+# The formatting of these docstrings is critical in that it defines the parser
+# functionality. These docstrings are processed by the LEX & YACC in PLY.
+# Changing the strings or even the formatting breaks the PLY rule generation!
+#
+# In the YACC of PLY 2.3 (included in pywbem up to 0.7), the requirement was
+# that each choice of a YACC rule needed to be on a single line, and the first
+# choice needed to be on the same line as the rule name. Not sure what the
+# requirements of the current PLY version are.
+#
+# The LEX token functions and strings are all named "t_*".
+# Note the order of LEX token processing, described in:
+# http://www.dabeaz.com/ply/ply.html#ply_nn6
+#
+# The YACC parser functions are all named "p_*".
+#
+#------------------------------------------------------------------------------
 
 reserved = {
     'any':'ANY',
@@ -157,18 +181,65 @@ utf8Char = r'(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)' % \
 # pylint: disable=unused-argument
 def t_COMMENT(t):
     r'//.*'
-    pass
+    return  # discard token
 
 def t_MCOMMENT(t):
     r'/\*(.|\n)*?\*/'
     t.lineno += t.value.count('\n')
+    return  # discard token
 
+# These simple tokens must also be defined as functions, in order to control
+# the order of evaluation.
 
-t_binaryValue = r'[+-]?[01]+[bB]'
-t_octalValue = r'[+-]?0[0-7]+'
-t_decimalValue = r'[+-]?([1-9][0-9]*|0)'
-t_hexValue = r'[+-]?0[xX][0-9a-fA-F]+'
-t_floatValue = r'[+-]?[0-9]*\.[0-9]+([eE][+-]?[0-9]+)?'
+def t_binaryValue(t):
+    r'[+-]?[0-9]+[bB]'
+    # We must match [0-9], and then check the validity of the binary number.
+    # If we match [01], the invalid number "02" (not in binary range, leading
+    # zeros not allowed for decimal) would match 'decimalValue' and only
+    # the zero would be taken out.
+    if re.search(r'[2-9]', t.value) is not None:
+        msg = "Skipping invalid binary number '%s' in line %d" % \
+            (t.value, t.lineno)
+        try:
+            msg += " col %d" % _find_column(t.lexer.parser.mof, t)
+        except AttributeError:
+            pass  # adding t.lexpos does not make too much sense
+        t.lexer.parser.log(msg)
+        t.type = 'error'
+        t.lexer.skip(len(t.value))
+    return t
+
+def t_octalValue(t):
+    r'[+-]?0[0-9]+'
+    # We must match [0-9], and then check the validity of the octal number.
+    # If we match [0-7], the invalid number "08" (not in octal range, leading
+    # zeros not allowed for decimal) would match 'decimalValue' and only
+    # the zero would be taken out, and the 8 would be another decimalValue.
+    if re.search(r'[8-9]', t.value) is not None:
+        msg = "Skipping invalid octal number '%s' in line %d" % \
+            (t.value, t.lineno)
+        try:
+            msg += " col %d" % _find_column(t.lexer.parser.mof, t)
+        except AttributeError:
+            pass  # adding t.lexpos does not make too much sense
+        t.lexer.parser.log(msg)
+        t.type = 'error'
+        t.lexer.skip(len(t.value))
+    return t
+
+def t_hexValue(t):
+    r'[+-]?0[xX][0-9a-fA-F]+'
+    return t
+
+def t_floatValue(t):
+    r'[+-]?[0-9]*\.[0-9]+([eE][+-]?[0-9]+)?'
+    return t
+
+# Matching for decimal must be at the end of the other numerics because of
+# the 0. If not at the end, 0 would match at the begin of e.g. an octal value.
+def t_decimalValue(t):
+    r'[+-]?([1-9][0-9]*|0)'
+    return t
 
 simpleEscape = r"""[bfnrt'"\\]"""
 hexEscape = r'x[0-9a-fA-F]{1,4}'
@@ -177,13 +248,16 @@ cChar = r"[^'\\\n\r]|(%s)" % escapeSequence
 sChar = r'[^"\\\n\r]|(%s)' % escapeSequence
 charValue = r"'%s'" % cChar
 
-t_stringValue = r'"(%s)*"' % sChar
+stringvalue_re = r'"(%s)*"' % sChar
+
+@lex.TOKEN(stringvalue_re)
+def t_stringValue(t):
+    return t
 
 identifier_re = r'([a-zA-Z_]|(%s))([0-9a-zA-Z_]|(%s))*' % (utf8Char, utf8Char)
 
 @lex.TOKEN(identifier_re)
 def t_IDENTIFIER(t):
-    """ check for reserved word"""
     t.type = reserved.get(t.value.lower(), 'IDENTIFIER')
     return t
 
@@ -192,14 +266,19 @@ def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
     t.lexer.linestart = t.lexpos
+    return  # discard token
 
 t_ignore = ' \r\t'
 
-# Error handling rule
+# LEX error handling
 def t_error(t):
-    """Rule for error handling. Generate message"""
-    msg = "Illegal character '%s' " % t.value[0]
-    msg += "Line %d, col %d" % (t.lineno, _find_column(t.lexer.parser.mof, t))
+
+    msg = "Skipping first character of invalid token '%s' in line %d" % \
+        (t.value, t.lineno)
+    try:
+        msg += " col %d" % _find_column(t.lexer.parser.mof, t)
+    except AttributeError:
+        pass  # adding t.lexpos does not make too much sense
     t.lexer.parser.log(msg)
     t.lexer.skip(1)
 
@@ -210,8 +289,8 @@ class MOFParseError(ValueError):
     """
     pass
 
+# YACC error handling
 def p_error(p):
-    """Get the error and raise exception"""
 
     ex = MOFParseError()
     if p is None:
@@ -224,26 +303,6 @@ def p_error(p):
     ex.column = _find_column(p.lexer.parser.mof, p)
     ex.context = _get_error_context(p.lexer.parser.mof, p)
     raise ex
-
-#------------------------------------------------------------------------------
-#
-# IMPORTANT NOTE:
-#
-# This MOF compiler implementation is based on the PLY Python package.
-# This module here contains YACC rules in docstrings of its functions.
-# The formatting of these docstrings is critical in that it defines the parser
-# functionality. These docstrings are processed by the YACC in PLY.
-# Changing the strings or even the formatting breaks the PLY rule generation!
-#
-# In the YACC of PLY 2.3 (included in pywbem up to 0.7), the requirement was
-# that each choice of a YACC rule needed to be on a single line, and the first
-# choice needed to be on the same line as the rule name. Not sure what the
-# requirements of the current PLY version are.
-#
-# First function with a YACC rule in its docstring follows.
-# These functions are all named "p_*".
-#
-#------------------------------------------------------------------------------
 
 # pylint: disable=unused-argument
 def p_mofSpecification(p):
@@ -1938,6 +1997,10 @@ class MOFCompiler(object):
             A connection to the CIM repository that will be associated with the
             MOF compiler.
 
+            `None` means that no CIM repository will be associated. In this
+            case, the MOF compiler can only process standalone MOF that does
+            not depend on existing CIM elements in the repository.
+
           search_paths (list of :term:`unicode string` or :term:`byte string`):
             A list of path names of directories where MOF include files should
             be looked up.
@@ -1957,8 +2020,12 @@ class MOFCompiler(object):
         self.parser.handle = handle
         self.lexer = _lex(verbose)
         self.lexer.parser = self.parser
-        self.parser.qualcache = {handle.default_namespace: NocaseDict()}
-        self.parser.classnames = {handle.default_namespace: []}
+        self.parser.qualcache = {}
+        self.parser.classnames = {}
+        if handle:
+            default_namespace = handle.default_namespace
+            self.parser.qualcache[default_namespace] = NocaseDict()
+            self.parser.classnames[default_namespace] = []
         self.parser.mofcomp = self
         self.parser.verbose = verbose
         self.parser.log = log_func
