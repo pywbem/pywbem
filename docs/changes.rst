@@ -65,6 +65,11 @@ Enhancements
   exception, so that now all pywbem specific exceptions are derived from
   `Error`.
 
+Bug fixes:
+
+* In `CIMInstance` and `CIMInstanceName`, fixed KeyError when iterating
+  over the objects.
+
 pywbem v0.8.2
 -------------
 
