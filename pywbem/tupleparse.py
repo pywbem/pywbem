@@ -87,13 +87,9 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      CIMParameter, CIMQualifier, CIMQualifierDeclaration, \
                      tocimobj, byname
 from .tupletree import xml_to_tupletree
+from .exceptions import ParseError
 
-__all__ = ['ParseError']
-
-class ParseError(Exception):
-    """This exception is raised when there is a validation error detected
-    by the parser."""
-    pass
+__all__ = []
 
 
 def filter_tuples(list_):

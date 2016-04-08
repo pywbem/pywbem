@@ -179,15 +179,17 @@ CIM status codes
 Exceptions
 ----------
 
+.. automodule:: pywbem.exceptions
+
 .. autoclass:: pywbem.Error
 
-.. autoclass:: pywbem.CIMError
+.. autoclass:: pywbem.ConnectionError
 
 .. autoclass:: pywbem.AuthError
-
-.. autoclass:: pywbem.ConnectionError
 
 .. autoclass:: pywbem.TimeoutError
 
 .. autoclass:: pywbem.ParseError
+
+.. autoclass:: pywbem.CIMError
 

@@ -85,6 +85,7 @@ from .cim_operations import *
 from .cim_obj import *
 from .tupleparse import *
 from .cim_http import *
+from .exceptions import *
 
 from ._version import __version__
 
