@@ -191,6 +191,14 @@ def t_MCOMMENT(t):
 # These simple tokens must also be defined as functions, in order to control
 # the order of evaluation.
 
+def t_floatValue(t):
+    r'[+-]?[0-9]*\.[0-9]+([eE][+-]?[0-9]+)?'
+    return t
+
+def t_hexValue(t):
+    r'[+-]?0[xX][0-9a-fA-F]+'
+    return t
+
 def t_binaryValue(t):
     r'[+-]?[0-9]+[bB]'
     # We must match [0-9], and then check the validity of the binary number.
@@ -225,14 +233,6 @@ def t_octalValue(t):
         t.lexer.parser.log(msg)
         t.type = 'error'
         t.lexer.skip(len(t.value))
-    return t
-
-def t_hexValue(t):
-    r'[+-]?0[xX][0-9a-fA-F]+'
-    return t
-
-def t_floatValue(t):
-    r'[+-]?[0-9]*\.[0-9]+([eE][+-]?[0-9]+)?'
     return t
 
 # Matching for decimal must be at the end of the other numerics because of

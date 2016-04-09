@@ -299,7 +299,7 @@ class BaseTestLexer(unittest.TestCase):
             act_token = self.lexer.token()
 
             try:
-                exp_token = token_iter.next()
+                exp_token = six.next(token_iter)
             except StopIteration:
                 exp_token = None  # indicate tokens exhausted
 
