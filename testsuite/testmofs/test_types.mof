@@ -1,0 +1,67 @@
+// A class with all CIM data types
+
+#pragma include ("qualifiers.mof")
+
+class EX_AllTypes
+{
+	[key] uint32 k1;
+	[key] string k2;
+	uint8  pui8;
+	uint16 pui16;
+	uint32 pui32;
+	uint64 pui64;
+	sint8  psi8;
+	sint16 psi16;
+	sint32 psi32;
+	sint64 psi64;
+	string ps;
+	char16 pc;
+	boolean pb;
+	datetime pdt;
+	[embeddedobject] string peo;
+	[embeddedinstance("EX_AllTypes")] string pei;
+};
+
+/*
+
+instance of EX_AllTypes as $inner
+{
+	k1 = 9921;
+	k2 = "SampleLabel";
+	pui8  = 0;
+	pui16 = 0;
+	pui32 = 0;
+	pui64 = 0;
+	psi8  = +127;
+	psi16 = +32767;
+	psi32 = +2147483647;
+	psi64 = +9223372036854775807;
+	ps    = "abcdefg";
+	pc    = 'a';
+	pb    = false;
+	pdt   = "01234567061213.123456:000";
+	peo   = Null;
+	pei   = Null;
+};
+
+instance of EX_AllTypes as $outer
+{
+	k1 = 9922;
+	k2 = "SampleLabel";
+	pui8  = 255;
+	pui16 = 65535;
+	pui32 = 4294967295;
+	pui64 = 18446744073709551615;
+	psi8  = -128;
+	psi16 = -32768;
+	psi32 = -2147483648;
+	psi64 = -9223372036854775808;
+	ps    = "abcdefg";
+	pc    = 'a';
+	pb    = true;
+	pdt   = "20160409061213.123456+120";
+	peo   = $inner;
+	pei   = $inner;
+};
+
+*/

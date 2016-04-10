@@ -3519,7 +3519,7 @@ def tocimobj(type_, value):
     # String type
 
     if type_ == 'string':
-        return value
+        return _ensure_unicode(value)
 
     # Integer types
 
@@ -3558,7 +3558,7 @@ def tocimobj(type_, value):
     # Char16
 
     if type_ == 'char16':
-        raise ValueError('CIMType char16 not handled')
+        return _ensure_unicode(value)
 
     # Datetime
 
