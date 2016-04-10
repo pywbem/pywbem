@@ -18,9 +18,12 @@ else:
     # pylint: disable=wrong-import-order
     from urllib.request import urlopen
 
+from ply import lex
+
 from pywbem.cim_operations import CIMError
 from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 from pywbem.cim_constants import *
+from pywbem import mof_compiler
 
 ## Constants
 NAME_SPACE = 'root/test'
@@ -223,6 +226,445 @@ class TestRefs(MOFTest):
                                                'testmofs',
                                                'test_refs.mof'),
                                   NAME_SPACE)
+
+class LexErrorToken(lex.LexToken):
+    """Class indicating an expected LEX error."""
+    # Like lex.LexToken, we set its instance variables from outside
+    pass
+
+def _test_log(msg):
+    """Our log function when testing."""
+    pass
+
+class BaseTestLexer(unittest.TestCase):
+    """Base class for testcases just for the lexical analyzer."""
+
+    def setUp(self):
+        self.mofcomp = MOFCompiler(handle=None, log_func=_test_log)
+        self.lexer = self.mofcomp.lexer
+        self.last_error_t = None  # saves 't' arg of t_error()
+
+        def test_t_error(t):
+            """Our replacement for t_error() when testing."""
+            self.last_error_t = t
+            self.saved_t_error(t)
+
+        self.saved_t_error = mof_compiler.t_error
+        mof_compiler.t_error = test_t_error
+
+    def tearDown(self):
+        mof_compiler.t_error = self.saved_t_error
+
+    @staticmethod
+    def lex_token(type, value, lineno, lexpos):
+        """Return an expected LexToken."""
+        tok = lex.LexToken()
+        tok.type = type
+        tok.value = value
+        tok.lineno = lineno
+        tok.lexpos = lexpos
+        return tok
+
+    @staticmethod
+    def lex_error(value, lineno, lexpos):
+        """Return an expected LEX error."""
+        tok = LexErrorToken()
+        tok.type = None
+        tok.value = value
+        tok.lineno = lineno
+        tok.lexpos = lexpos
+        return tok
+
+    def debug_data(self, input_data):
+        """For debugging testcases: Print input data and its tokens."""
+        print("debug_data: input_data=<%s>" % input_data)
+        self.lexer.input(input_data)
+        while True:
+            tok = self.lexer.token()
+            if not tok:
+                break  # No more input
+            print("debug_data: token=<%s>" % tok)
+
+    def run_assert_lexer(self, input_data, exp_tokens):
+        """Run lexer and assert results."""
+
+        # Supply the lexer with input
+        self.lexer.input(input_data)
+
+        token_iter = iter(exp_tokens)
+        while True:
+
+            # Get next parsed token from lexer,
+            # returns None if exhausted
+            act_token = self.lexer.token()
+
+            try:
+                exp_token = six.next(token_iter)
+            except StopIteration:
+                exp_token = None  # indicate tokens exhausted
+
+            if act_token is None and exp_token is None:
+                break  # successfully came to the end
+            elif act_token is None and exp_token is not None:
+                self.fail("Not enough tokens found, expected: %r" % exp_token)
+            elif act_token is not None and exp_token is None:
+                self.fail("Too many tokens found: %r" % act_token)
+            else:
+                # We have both an expected and an actual token
+                if isinstance(exp_token, LexErrorToken):
+                    # We expect an error
+                    if self.last_error_t is None:
+                        self.fail("t_error() was not called as expected, " \
+                                  "actual token: %r" % act_token)
+                    else:
+                        self.assertTrue(
+                            self.last_error_t.type == exp_token.type and \
+                            self.last_error_t.value == exp_token.value,
+                            "t_error() was called with an unexpected " \
+                            "token: %r (expected: %r)" % \
+                            (self.last_error_t, exp_token))
+                else:
+                    # We do not expect an error
+                    if self.last_error_t is not None:
+                        self.fail(
+                            "t_error() was unexpectedly called with " \
+                            "token: %r" % self.last_error_t)
+                    else:
+                        self.assertTrue(
+                            act_token.type == exp_token.type,
+                            "Unexpected token type: %s (expected: %s) " \
+                            "in token: %r" % \
+                            (act_token.type, exp_token.type, act_token))
+                        self.assertTrue(
+                            act_token.value == exp_token.value,
+                            "Unexpected token value: %s (expected: %s) " \
+                            "in token: %r" % \
+                            (act_token.value, exp_token.value, act_token))
+                        self.assertTrue(
+                            act_token.lineno == exp_token.lineno,
+                            "Unexpected token lineno: %s (expected: %s) " \
+                            "in token: %r" % \
+                            (act_token.lineno, exp_token.lineno, act_token))
+                        self.assertTrue(
+                            act_token.lexpos == exp_token.lexpos,
+                            "Unexpected token lexpos: %s (expected: %s) " \
+                            "in token: %r" % \
+                            (act_token.lexpos, exp_token.lexpos, act_token))
+
+class TestLexerSimple(BaseTestLexer):
+    """Simple testcases for the lexical analyzer."""
+
+    def test_empty(self):
+        """Test an empty string."""
+        self.run_assert_lexer("", [])
+
+    def test_simple(self):
+        """Test a simple list of tokens."""
+        input_data = """a 42"""
+        exp_tokens = [
+            self.lex_token('IDENTIFIER', 'a', 1, 0),
+            self.lex_token('decimalValue', '42', 1, 2),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+class TestLexerNumber(BaseTestLexer):
+    """Number testcases for the lexical analyzer."""
+
+    # Decimal numbers
+
+    def test_decimal_0(self):
+        """Test a decimal number 0."""
+        input_data = """0"""
+        exp_tokens = [
+            self.lex_token('decimalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_decimal_plus_0(self):
+        """Test a decimal number +0."""
+        input_data = """+0"""
+        exp_tokens = [
+            self.lex_token('decimalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_decimal_minus_0(self):
+        """Test a decimal number -0."""
+        input_data = """-0"""
+        exp_tokens = [
+            self.lex_token('decimalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_decimal_small(self):
+        """Test a small decimal number."""
+        input_data = """12345"""
+        exp_tokens = [
+            self.lex_token('decimalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_decimal_small_plus(self):
+        """Test a small decimal number with +."""
+        input_data = """+12345"""
+        exp_tokens = [
+            self.lex_token('decimalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_decimal_small_minus(self):
+        """Test a small decimal number with -."""
+        input_data = """-12345"""
+        exp_tokens = [
+            self.lex_token('decimalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_decimal_long(self):
+        """Test a decimal number that is long."""
+        input_data = """12345678901234567890"""
+        exp_tokens = [
+            self.lex_token('decimalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    # Binary numbers
+
+    def test_binary_0b(self):
+        """Test a binary number 0b."""
+        input_data = """0b"""
+        exp_tokens = [
+            self.lex_token('binaryValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_binary_0B(self):
+        """Test a binary number 0B (upper case B)."""
+        input_data = """0B"""
+        exp_tokens = [
+            self.lex_token('binaryValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_binary_small(self):
+        """Test a small binary number."""
+        input_data = """101b"""
+        exp_tokens = [
+            self.lex_token('binaryValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_binary_small_plus(self):
+        """Test a small binary number with +."""
+        input_data = """+1011b"""
+        exp_tokens = [
+            self.lex_token('binaryValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_binary_small_minus(self):
+        """Test a small binary number with -."""
+        input_data = """-1011b"""
+        exp_tokens = [
+            self.lex_token('binaryValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_binary_long(self):
+        """Test a binary number that is long."""
+        input_data = """1011001101001011101101101010101011001011111001101b"""
+        exp_tokens = [
+            self.lex_token('binaryValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_binary_leadingzero(self):
+        """Test a binary number with a leading zero."""
+        input_data = """01b"""
+        exp_tokens = [
+            self.lex_token('binaryValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_binary_leadingzeros(self):
+        """Test a binary number with two leading zeros."""
+        input_data = """001b"""
+        exp_tokens = [
+            self.lex_token('binaryValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    # Octal numbers
+
+    def test_octal_00(self):
+        """Test octal number 00."""
+        input_data = """00"""
+        exp_tokens = [
+            self.lex_token('octalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_octal_01(self):
+        """Test octal number 01."""
+        input_data = """01"""
+        exp_tokens = [
+            self.lex_token('octalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_octal_small(self):
+        """Test a small octal number."""
+        input_data = """0101"""
+        exp_tokens = [
+            self.lex_token('octalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_octal_small_plus(self):
+        """Test a small octal number with +."""
+        input_data = """+01011"""
+        exp_tokens = [
+            self.lex_token('octalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_octal_small_minus(self):
+        """Test a small octal number with -."""
+        input_data = """-01011"""
+        exp_tokens = [
+            self.lex_token('octalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_octal_long(self):
+        """Test an octal number that is long."""
+        input_data = """07051604302011021104151151610403031021011271071701"""
+        exp_tokens = [
+            self.lex_token('octalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_octal_leadingzeros(self):
+        """Test an octal number with two leading zeros."""
+        input_data = """001"""
+        exp_tokens = [
+            self.lex_token('octalValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    # Floating point numbers
+
+    def test_float_dot0(self):
+        """Test a float number '.0'."""
+        input_data = """.0"""
+        exp_tokens = [
+            self.lex_token('floatValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_float_0dot0(self):
+        """Test a float number '0.0'."""
+        input_data = """0.0"""
+        exp_tokens = [
+            self.lex_token('floatValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_float_plus_0dot0(self):
+        """Test a float number '+0.0'."""
+        input_data = """+0.0"""
+        exp_tokens = [
+            self.lex_token('floatValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_float_minus_0dot0(self):
+        """Test a float number '-0.0'."""
+        input_data = """-0.0"""
+        exp_tokens = [
+            self.lex_token('floatValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_float_small(self):
+        """Test a small float number."""
+        input_data = """123.45"""
+        exp_tokens = [
+            self.lex_token('floatValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_float_small_plus(self):
+        """Test a small float number with +."""
+        input_data = """+123.45"""
+        exp_tokens = [
+            self.lex_token('floatValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_float_small_minus(self):
+        """Test a small float number with -."""
+        input_data = """-123.45"""
+        exp_tokens = [
+            self.lex_token('floatValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_float_long(self):
+        """Test a float number that is long."""
+        input_data = """1.2345678901234567890"""
+        exp_tokens = [
+            self.lex_token('floatValue', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    # Errors
+
+    def test_error_09(self):
+        """Test '09' (decimal: no leading zeros; octal: digit out of range)."""
+        input_data = """09"""
+        exp_tokens = [
+            self.lex_token('error', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_error_008(self):
+        """Test '008' (decimal: no leading zeros; octal: digit out of range)."""
+        input_data = """008"""
+        exp_tokens = [
+            self.lex_token('error', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_error_2b(self):
+        """Test '2b' (decimal: b means binary; binary: digit out of range)."""
+        input_data = """2b"""
+        exp_tokens = [
+            self.lex_token('error', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_error_02B(self):
+        """Test '02B' (decimal: B means binary; binary: digit out of range;
+        octal: B means binary)."""
+        input_data = """02B"""
+        exp_tokens = [
+            self.lex_token('error', input_data, 1, 0),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_error_0dot(self):
+        """Test a float number '0.' (not allowed)."""
+        input_data = """0."""
+        exp_tokens = [
+            # TODO: The current floatValue regexp does not match, so
+            # it treats this as decimal. Improve the handling of this.
+            self.lex_token('decimalValue', '0', 1, 0),
+            # TODO: This testcase succeeds without any expected token for the
+            # '.'. Find out why.
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
 
 if __name__ == '__main__':
     unittest.main()
