@@ -13,11 +13,11 @@ The **pywbem** PyPI package provides the following components:
 
 * WBEM client library
 
-  The WBEM client library issues WBEM operations to a WBEM server, using the
-  CIM operations over HTTP (CIM-XML) protocol defined in the DMTF standards
-  :term:`DSP0200` and :term:`DSP0201`.
+  The WBEM client library provides an API for issuing WBEM operations to a
+  WBEM server, using the CIM operations over HTTP (CIM-XML) protocol defined
+  in the DMTF standards :term:`DSP0200` and :term:`DSP0201`.
 
-  See :ref:`WBEM client library API` for a description of its API.
+  See :ref:`WBEM client library API` for a description of the API.
 
 * WBEM listener
 
