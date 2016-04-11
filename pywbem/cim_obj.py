@@ -1837,32 +1837,32 @@ class CIMProperty(_CIMComparisonMixin):
       type (:term:`unicode string`):
         Name of the CIM data type of the property (e.g. ``"uint8"``).
 
-      class_origin (:term:`unicode string`):
-        The CIM class origin of the property, or `None`.
-        For details, see the corresponding constructor parameter.
-
-      array_size (:term:`integer`):
-        The size of the array property, or `None`.
-
-      propagated (:class:`py:bool`):
-        Propagation information for the property, see the corresponding
-        constructor parameter, or `None`.
-
-      is_array (:class:`py:bool`):
-        A boolean indicating whether the property is an array (`True`) or a
-        scalar (`False`).
-
       reference_class (:term:`unicode string`):
         The name of the referenced class, for reference properties, or `None`.
-
-      qualifiers (`NocaseDict`_):
-        Qualifier values for the property declaration, see the corresponding
-        constructor parameter.
 
       embedded_object (:term:`unicode string`):
         A string value indicating the kind of embedded object represented
         by the property value, or `None`.
         For details, see the corresponding constructor parameter.
+
+      array_size (:term:`integer`):
+        The size of the array property, or `None`.
+
+      is_array (:class:`py:bool`):
+        A boolean indicating whether the property is an array (`True`) or a
+        scalar (`False`).
+
+      class_origin (:term:`unicode string`):
+        The CIM class origin of the property, or `None`.
+        For details, see the corresponding constructor parameter.
+
+      propagated (:class:`py:bool`):
+        Propagation information for the property, see the corresponding
+        constructor parameter, or `None`.
+
+      qualifiers (`NocaseDict`_):
+        Qualifier values for the property declaration, see the corresponding
+        constructor parameter.
     """
 
     # pylint: disable=too-many-statements
@@ -2355,10 +2355,6 @@ class CIMMethod(_CIMComparisonMixin):
       return_type (:term:`unicode string`):
         Name of the CIM data type of the method return type.
 
-      parameters (`NocaseDict`_):
-        Parameter declarations for the method declaration, see the
-        corresponding constructor parameter.
-
       class_origin (:term:`unicode string`):
         The CIM class origin of the method, or `None`.
         For details, see the corresponding constructor parameter.
@@ -2366,6 +2362,10 @@ class CIMMethod(_CIMComparisonMixin):
       propagated (:class:`py:bool`):
         Indicates whether the method has been propagated from a superclass to
         this class, or `None`.
+
+      parameters (`NocaseDict`_):
+        Parameter declarations for the method declaration, see the
+        corresponding constructor parameter.
 
       qualifiers (`NocaseDict`_):
         Qualifier values for the method declaration, see the corresponding
@@ -2792,10 +2792,6 @@ class CIMQualifier(_CIMComparisonMixin):
         Indicates whether the qualifier value has been propagated from a
         superclass to this class, or `None`.
 
-      overridable (:class:`py:bool`):
-        Indicates whether the qualifier value is overridable in subclasses,
-        or `None`.
-
       tosubclass (:class:`py:bool`):
         Indicates whether the qualifier value propagates to subclasses, or
         `None`.
@@ -2803,6 +2799,13 @@ class CIMQualifier(_CIMComparisonMixin):
       toinstance (:class:`py:bool`):
         Indicates whether the qualifier value propagates to instances, or
         `None`.
+
+        Note that :term:`DSP0200` has deprecated the presence of qualifier
+        values on CIM instances.
+
+      overridable (:class:`py:bool`):
+        Indicates whether the qualifier value is overridable in subclasses,
+        or `None`.
 
       translatable (:class:`py:bool`):
         Indicates whether the qualifier is translatable, or `None`.
@@ -2855,6 +2858,9 @@ class CIMQualifier(_CIMComparisonMixin):
             If not `None`, specifies whether the qualifier value propagates
             to instances.
             `None` means that this information is not available.
+
+            Note that :term:`DSP0200` has deprecated the presence of qualifier
+            values on CIM instances.
 
           translatable (:class:`py:bool`):
             If not `None`, specifies whether the qualifier is translatable.
@@ -3050,11 +3056,6 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         Scopes of the qualifier declaration.
         For details, see the corresponding constructor parameter.
 
-      overridable (:class:`py:bool`):
-        If not `None`, specifies whether the qualifier value is overridable
-        in subclasses.
-        `None` means that this information is not available.
-
       tosubclass (:class:`py:bool`):
         If not `None`, specifies whether the qualifier value propagates
         to subclasses.
@@ -3063,6 +3064,14 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
       toinstance (:class:`py:bool`):
         If not `None`, specifies whether the qualifier value propagates
         to instances.
+        `None` means that this information is not available.
+
+        Note that :term:`DSP0200` has deprecated the presence of qualifier
+        values on CIM instances.
+
+      overridable (:class:`py:bool`):
+        If not `None`, specifies whether the qualifier value is overridable
+        in subclasses.
         `None` means that this information is not available.
 
       translatable (:class:`py:bool`):
@@ -3130,6 +3139,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             If not `None`, specifies whether the qualifier value propagates
             to instances.
             `None` means that this information is not available.
+
+            Note that :term:`DSP0200` has deprecated the presence of qualifier
+            values on CIM instances.
 
           translatable (:class:`py:bool`):
             If not `None`, specifies whether the qualifier is translatable.
