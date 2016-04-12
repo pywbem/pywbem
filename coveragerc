@@ -5,21 +5,17 @@
 
 [run]
 
-# TODO: For now, measure just statement coverage.
-#       Once we get better, enable this.
+# Controls whether branch coverage is measured, vs. just statement coverage.
+# TODO: Once statement coverage gets better, enable branch coverage.
 branch = False
 
-# Don't measure source files we don't own or that
-# are not used in the PyWBEM Client.
+# The following files are omitted in the coverage.
 omit =
-    pywbem/lex.py
-    pywbem/yacc.py
-    pywbem/cim_provider*.py
-    pywbem/twisted_client.py
+    pywbem/mofparsetab.py
+    pywbem/moflextab.py
 
 [report]
 
-# TODO: For now, don't include missing lines.
-#       Once we get better, enable this.
+# Controls whether lines without coverage are shown in the report.
 show_missing = True
 
