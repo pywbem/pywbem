@@ -130,10 +130,10 @@ class NocaseDict(object):
             value None is provided, the new dictionary will be left empty in
             this step.
 
-          * If one positional argument of sequence type is provided, the items
-            in that sequence must be tuples of key and value, respectively.
-            The key/value pairs will be put into the new dictionary (without
-            copying them).
+          * If one positional argument of tuple or list type is provided, the
+            items in that iterable must be tuples of key and value,
+            respectively. The key/value pairs will be put into the new
+            dictionary (without copying them).
 
           * If one positional argument of dictionary (mapping) or `NocaseDict`_
             type is provided, its key/value pairs are put into the new
@@ -149,12 +149,12 @@ class NocaseDict(object):
 
         # Step 1: Initialize from at most one positional argument
         if len(args) == 1:
-            if isinstance(args[0], list):
-                # Initialize from sequence object
+            if isinstance(args[0], (list, tuple)):
+                # Initialize from iterable of tuple(key,value)
                 for item in args[0]:
                     self[item[0]] = item[1]
             elif isinstance(args[0], dict):
-                # Initialize from mapping object
+                # Initialize from dict/mapping object
                 self.update(args[0])
             elif isinstance(args[0], NocaseDict):
                 # Initialize from another NocaseDict object

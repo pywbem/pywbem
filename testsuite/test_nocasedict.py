@@ -14,18 +14,37 @@ class TestInit(unittest.TestCase):
 
     def test_all(self):
 
-        # Basic init
+        # Empty
 
         dic = NocaseDict()
         self.assertTrue(len(dic) == 0)
 
-        # Initialise from sequence object
+        dic = NocaseDict(None)
+        self.assertTrue(len(dic) == 0)
+
+        dic = NocaseDict(list())
+        self.assertTrue(len(dic) == 0)
+
+        dic = NocaseDict(tuple())
+        self.assertTrue(len(dic) == 0)
+
+        dic = NocaseDict(dict())
+        self.assertTrue(len(dic) == 0)
+
+        dic = NocaseDict(dic)
+        self.assertTrue(len(dic) == 0)
+
+        # Initialise from iterable
 
         dic = NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')])
         self.assertTrue(len(dic) == 2)
         self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
 
-        # Initialise from mapping object
+        dic = NocaseDict((('Dog', 'Cat'), ('Budgie', 'Fish')))
+        self.assertTrue(len(dic) == 2)
+        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
+
+        # Initialise from dictionary
 
         dic = NocaseDict({'Dog': 'Cat', 'Budgie': 'Fish'})
         self.assertTrue(len(dic) == 2)
@@ -36,6 +55,40 @@ class TestInit(unittest.TestCase):
         dic = NocaseDict(Dog='Cat', Budgie='Fish')
         self.assertTrue(len(dic) == 2)
         self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
+
+        # Initialise from iterable and kwargs
+
+        dic = NocaseDict([('Dog', 'Cat'),], Budgie='Fish')
+        self.assertTrue(len(dic) == 2)
+        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
+
+        dic = NocaseDict((('Dog', 'Cat'),), Budgie='Fish')
+        self.assertTrue(len(dic) == 2)
+        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
+
+        # Initialise from dictionary and kwargs
+
+        dic = NocaseDict({'Dog': 'Cat'}, Budgie='Fish')
+        self.assertTrue(len(dic) == 2)
+        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
+
+        # Initialise from unsupported object type
+
+        try:
+            dic = NocaseDict('illegal')
+        except TypeError as exc:
+            pass
+        else:
+            self.fail("TypeError was unexpectedly not thrown.")
+
+        # Initialise with too many positional arguments
+
+        try:
+            dic = NocaseDict(list(), list())
+        except TypeError as exc:
+            pass
+        else:
+            self.fail("TypeError was unexpectedly not thrown.")
 
 class BaseTest(unittest.TestCase):
 
@@ -49,6 +102,13 @@ class TestGetitem(BaseTest):
     def test_all(self):
         self.assertTrue(self.dic['dog'] == 'Cat')
         self.assertTrue(self.dic['DOG'] == 'Cat')
+
+        try:
+            x = self.dic['notfound']
+        except KeyError as exc:
+            pass
+        else:
+            self.fail("KeyError was unexpectedly not thrown.")
 
 class TestLen(BaseTest):
 
@@ -79,6 +139,13 @@ class TestDelitem(BaseTest):
         del self.dic['DOG']
         del self.dic['budgie']
         self.assertTrue(self.dic.keys() == [])
+
+        try:
+            del self.dic['notfound']
+        except KeyError as exc:
+            pass
+        else:
+            self.fail("KeyError was unexpectedly not thrown.")
 
 class TestHasKey(BaseTest):
 
@@ -187,6 +254,52 @@ class TestEqual(BaseTest):
         dic2['Budgie'] = 'fish'
         self.assertTrue(self.dic != dic2)
 
+class TestComparison(BaseTest):
+
+    def assertSame(self, dic1, dic2):
+
+        self.assertTrue(dic1 == dic2)
+        self.assertFalse(dic1 != dic2)
+        self.assertTrue(dic1 >= dic2)
+        self.assertFalse(dic1 > dic2)
+        self.assertTrue(dic1 <= dic2)
+        self.assertFalse(dic1 < dic2)
+
+        self.assertTrue(dic2 == dic1)
+        self.assertFalse(dic2 != dic1)
+        self.assertTrue(dic2 >= dic1)
+        self.assertFalse(dic2 > dic1)
+        self.assertTrue(dic2 <= dic1)
+        self.assertFalse(dic2 < dic1)
+
+    def assertLess(self, dic1, dic2):
+
+        self.assertTrue(dic1 != dic2)
+        self.assertFalse(dic1 == dic2)
+        self.assertTrue(dic1 < dic2)
+        self.assertFalse(dic1 > dic2)
+        self.assertTrue(dic1 <= dic2)
+        self.assertFalse(dic1 >= dic2)
+
+        self.assertTrue(dic2 != dic1)
+        self.assertFalse(dic2 == dic1)
+        self.assertTrue(dic2 > dic1)
+        self.assertFalse(dic2 < dic1)
+        self.assertTrue(dic2 >= dic1)
+        self.assertFalse(dic2 <= dic1)
+
+    def test_all(self):
+        dic_same = NocaseDict({'doG': 'Cat', 'BuDgie': 'Fish'})
+        dic_less1 = NocaseDict({'doG': 'Cat'})
+        dic_less2 = NocaseDict({'DOg': 'Cat', 'Alf': 'Horse'})
+        dic_less3 = NocaseDict({'doG': 'Car', 'budGie': 'Fish'})
+
+        self.assertSame(dic_same, self.dic)
+        # TODO: Enable these tests to work on the dict ordering issue
+        #self.assertLess(dic_less1, self.dic)
+        #self.assertLess(dic_less2, self.dic)
+        #self.assertLess(dic_less3, self.dic)
+
 class TestContains(BaseTest):
 
     def test_all(self):
@@ -194,23 +307,37 @@ class TestContains(BaseTest):
         self.assertTrue('Dog' in self.dic)
         self.assertTrue('Cat' not in self.dic)
 
+class TestForLoop(BaseTest):
+
+    def test_all(self):
+        keys = set()
+        for key in self.dic:
+            keys.add(key)
+        self.assertTrue(keys, set(['Budgie', 'Dog']))
+
 class TestIterkeys(BaseTest):
 
     def test_all(self):
+        keys = set()
         for key in self.dic.iterkeys():
-            self.assertTrue(key in ['Budgie', 'Dog'])
+            keys.add(key)
+        self.assertTrue(keys, set(['Budgie', 'Dog']))
 
 class TestItervalues(BaseTest):
 
     def test_all(self):
+        vals = set()
         for val in self.dic.itervalues():
-            self.assertTrue(val in ['Cat', 'Fish'])
+            vals.add(val)
+        self.assertTrue(vals, set(['Cat', 'Fish']))
 
 class TestIteritems(BaseTest):
 
     def test_all(self):
+        items = set()
         for item in self.dic.iteritems():
-            self.assertTrue(item in [('Budgie', 'Fish'), ('Dog', 'Cat')])
+            items.add(item)
+        self.assertTrue(items, set([('Budgie', 'Fish'), ('Dog', 'Cat')]))
 
 
 if __name__ == '__main__':
