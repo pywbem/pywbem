@@ -402,19 +402,52 @@ class WBEMConnection(object):
         Parameters:
 
           url (:term:`string`):
-            URL of the WBEM server (e.g. ``"https://10.11.12.13:6988"``).
+            URL of the WBEM server, in the format:
 
-            TODO: Describe supported formats.
+              ``[{scheme}://]{host}[:{port}]``
+
+            The following URL schemes are supported:
+              * ``https``: Causes HTTPS to be used.
+              * ``http``: Causes HTTP to be used.
+
+            The host can be specified in any of the usual formats:
+              * a short or fully qualified DNS hostname
+              * a literal (= dotted) IPv4 address
+              * a literal IPv6 address, formatted as defined in :term:`RFC3986`
+                with the extensions for zone identifiers as defined in
+                :term:`RFC6874`, supporting ``-`` (minus) for the delimiter
+                before the zone ID string, as an additional choice to ``%25``.
+
+            If no port is specified in the URL, the default ports are:
+              * If HTTPS is used, port 5989.
+              * If HTTP is used, port 5988.
+
+            Examples for some URL formats:
+              * ``"https://10.11.12.13:6988"``:
+                Use HTTPS to port 6988 on host 10.11.12.13
+              * ``"https://mysystem.acme.org"``:
+                Use HTTPS to port 5989 on host mysystem.acme.org
+              * ``"10.11.12.13"``:
+                Use HTTP to port 5988 on host 10.11.12.13
+              * ``"http://[2001:db8::1234]:15988"``:
+                Use HTTP to port 15988 on host 2001:db8::1234
+              * ``"http://[::ffff.10.11.12.13]"``:
+                Use HTTP to port 5988 on host ::ffff.10.11.12.13 (an
+                IPv4-mapped IPv6 address)
+              * ``"http://[2001:db8::1234%25eth0]"`` or
+                ``"http://[2001:db8::1234-eth0]"``:
+                Use HTTP to port 5988 to host 2001:db8::1234 (a link-local IPv6
+                address) using zone identifier eth0
 
           creds (:class:`py:tuple` of userid, password):
-            Credentials for authenticating with the WBEM server.
-            Currently, that is always a `tuple(userid, password)`, with:
+            Credentials for authenticating with the WBEM server, as a
+            tuple(userid, password), with:
 
-            * userid (:term:`string`):
-              Userid for authenticating with the WBEM server.
+              * userid (:term:`string`):
+                Userid for authenticating with the WBEM server.
 
-            * password (:term:`string`):
-              Password for that userid.
+              * password (:term:`string`):
+                Password for that userid.
 
           default_namespace (:term:`string`):
             Name of the CIM namespace to be used by default (if no namespace
@@ -435,12 +468,12 @@ class WBEMConnection(object):
             and this parameter must be a dictionary containing the following
             two items:
 
-            * ``"cert_file"``: The file path of a file containing an
-              :term:`X.509` certificate, as a :term:`string` object.
+              * ``"cert_file"``: The file path of a file containing an
+                :term:`X.509` certificate, as a :term:`string` object.
 
-            * ``"key_file"``: The file path of a file containing the private
-              key belonging to the public key that is part of the :term:`X.509`
-              certificate file, as a :term:`string` object.
+              * ``"key_file"``: The file path of a file containing the private
+                key belonging to the public key that is part of the
+                :term:`X.509` certificate file, as a :term:`string` object.
 
           verify_callback (:term:`callable`):
             Registers a callback function that will be called to verify the
@@ -1497,7 +1530,7 @@ class WBEMConnection(object):
         Retrieve the instance paths of the instances associated to a source
         instance.
 
-        Retrieve the class paths of the classes associated to a source class.         
+        Retrieve the class paths of the classes associated to a source class.
 
         This method performs the AssociatorNames operation
         (see :term:`DSP0200`).
@@ -1596,7 +1629,7 @@ class WBEMConnection(object):
         """
         Retrieve the instances associated to a source instance.
 
-        Retrieve the classes associated to a source class.         
+        Retrieve the classes associated to a source class.
 
         This method performs the Associators operation
         (see :term:`DSP0200`).
@@ -1729,7 +1762,7 @@ class WBEMConnection(object):
         a source instance.
 
         Retrieve the class paths of the association classes that reference a
-        source class.         
+        source class.
 
         This method performs the ReferenceNames operation
         (see :term:`DSP0200`).
@@ -1814,7 +1847,7 @@ class WBEMConnection(object):
         """
         Retrieve the association instances that reference a source instance.
 
-        Retrieve the association classes that reference a source class.         
+        Retrieve the association classes that reference a source class.
 
         This method performs the References operation
         (see :term:`DSP0200`).

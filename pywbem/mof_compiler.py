@@ -1766,7 +1766,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
 
     def GetClass(self, *args, **kwargs):
-        """Retrieve a CIM class from the ilocal repository of this class.
+        """Retrieve a CIM class from the local repository of this class.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.GetClass`.
