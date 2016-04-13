@@ -23,7 +23,8 @@
 
 # pylint: disable=line-too-long
 """
-Types to represent CIM typed values, and related conversion functions.
+Python classes for representing values of CIM data types, and related
+conversion functions.
 
 The following table shows how CIM data types are represented in Python.
 Note that some basic CIM data types are represented with built-in Python
@@ -33,8 +34,8 @@ types.
 CIM data type                             Python type
 ========================================  =====================================
 boolean                                   :class:`py:bool`
-char16                                    :term:`unicode string` or :term:`byte string`
-string                                    :term:`unicode string` or :term:`byte string`
+char16                                    :term:`string`
+string                                    :term:`string`
 string (EmbeddedInstance)                 :class:`~pywbem.CIMInstance`
 string (EmbeddedObject)                   :class:`~pywbem.CIMInstance`
                                           or :class:`~pywbem.CIMClass`
@@ -58,7 +59,7 @@ may support Python types in addition to those shown above. For example, the
 :class:`~pywbem.CIMProperty` class represents property values of CIM datetime
 type internally as :class:`~pywbem.CIMDateTime` objects, but its constructor
 accepts :class:`py:datetime.timedelta` objects, :class:`py:datetime.datetime`
-objects, :term:`unicode string`, and :term:`byte string`, in addition to
+objects, :term:`string`, in addition to
 :class:`~pywbem.CIMDateTime` objects.
 """
 # pylint: enable=line-too-long
@@ -198,7 +199,7 @@ class MinutesFromUTC(tzinfo):
         """
         Parameters:
 
-          offset (int):
+          offset (:term:`integer`):
             Timezone offset to be represented in the CIM datetime value in +/-
             minutes from UTC.
 
@@ -268,7 +269,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             The value from which the object is initialized, as one of the
             following types:
 
-            * A :term:`unicode string` or :term:`byte string` object will be
+            * A :term:`string` object will be
               interpreted as CIM datetime format (see :term:`DSP0004`) and
               will result in a point in time or a time interval.
             * A :class:`py:datetime.datetime` object must be timezone-aware
@@ -440,7 +441,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
 
         Parameters:
 
-          ts (int):
+          ts (:term:`integer`):
             POSIX timestamp value.
 
           tzi (:class:`~pywbem.MinutesFromUTC`):
