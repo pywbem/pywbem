@@ -83,7 +83,7 @@ from .cim_types import _CIMComparisonMixin, type_from_name, \
 
 __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
-           'CIMQualifierDeclaration', 'tocimxml', 'tocimobj']
+           'CIMQualifierDeclaration', 'tocimxml', 'tocimxmlstr', 'tocimobj']
 
 # Constants for MOF formatting output
 MOF_INDENT = 4
@@ -1105,6 +1105,31 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         return instancename_xml
 
+    def tocimxmlstr(self, indent=None):
+        """Return the CIM-XML representation of the
+        :class:`~pywbem.CIMInstanceName` object, as a :term:`unicode string`.
+
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        Parameters:
+
+          indent (:term:`string` or :term:`integer`):
+            `None` indicates that a single-line version of the XML should be
+            returned, without any whitespace between the XML elements.
+
+            Other values indicate that a prettified, multi-line version of the
+            XML should be returned. A string value specifies the indentation
+            string to be used for each level of nested XML elements. An integer
+            value specifies an indentation string of so many blanks.
+
+        Returns:
+
+            The CIM-XML representation of the value, as a
+            :term:`unicode string`.
+        """
+        return tocimxmlstr(self, indent)
+
+
 class CIMInstance(_CIMComparisonMixin):
     """
     A CIM instance, optionally including its instance path.
@@ -1415,6 +1440,30 @@ class CIMInstance(_CIMComparisonMixin):
         return cim_xml.VALUE_NAMEDINSTANCE(self.path.tocimxml(),
                                            instance_xml)
 
+    def tocimxmlstr(self, indent=None):
+        """Return the CIM-XML representation of the
+        :class:`~pywbem.CIMInstance` object, as a :term:`unicode string`.
+
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        Parameters:
+
+          indent (:term:`string` or :term:`integer`):
+            `None` indicates that a single-line version of the XML should be
+            returned, without any whitespace between the XML elements.
+
+            Other values indicate that a prettified, multi-line version of the
+            XML should be returned. A string value specifies the indentation
+            string to be used for each level of nested XML elements. An integer
+            value specifies an indentation string of so many blanks.
+
+        Returns:
+
+            The CIM-XML representation of the object, as a
+            :term:`unicode string`.
+        """
+        return tocimxmlstr(self, indent)
+
     def tomof(self, indent=0):
         """
         Return a :term:`unicode string` that is a MOF fragment with the
@@ -1639,6 +1688,30 @@ class CIMClassName(_CIMComparisonMixin):
 
         return cim_xml.CLASSNAME(self.classname)
 
+    def tocimxmlstr(self, indent=None):
+        """Return the CIM-XML representation of the
+        :class:`~pywbem.CIMClassName` object, as a :term:`unicode string`.
+
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        Parameters:
+
+          indent (:term:`string` or :term:`integer`):
+            `None` indicates that a single-line version of the XML should be
+            returned, without any whitespace between the XML elements.
+
+            Other values indicate that a prettified, multi-line version of the
+            XML should be returned. A string value specifies the indentation
+            string to be used for each level of nested XML elements. An integer
+            value specifies an indentation string of so many blanks.
+
+        Returns:
+
+            The CIM-XML representation of the object, as a
+            :term:`unicode string`.
+        """
+        return tocimxmlstr(self, indent)
+
 
 class CIMClass(_CIMComparisonMixin):
     """A CIM class.
@@ -1788,6 +1861,30 @@ class CIMClass(_CIMComparisonMixin):
             methods=[m.tocimxml() for m in self.methods.values()],
             qualifiers=[q.tocimxml() for q in self.qualifiers.values()],
             superclass=self.superclass)
+
+    def tocimxmlstr(self, indent=None):
+        """Return the CIM-XML representation of the
+        :class:`~pywbem.CIMClass` object, as a :term:`unicode string`.
+
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        Parameters:
+
+          indent (:term:`string` or :term:`integer`):
+            `None` indicates that a single-line version of the XML should be
+            returned, without any whitespace between the XML elements.
+
+            Other values indicate that a prettified, multi-line version of the
+            XML should be returned. A string value specifies the indentation
+            string to be used for each level of nested XML elements. An integer
+            value specifies an indentation string of so many blanks.
+
+        Returns:
+
+            The CIM-XML representation of the object, as a
+            :term:`unicode string`.
+        """
+        return tocimxmlstr(self, indent)
 
     def tomof(self):
         """
@@ -2386,6 +2483,30 @@ class CIMProperty(_CIMComparisonMixin):
                 qualifiers=[q.tocimxml() for q in self.qualifiers.values()],
                 embedded_object=self.embedded_object)
 
+    def tocimxmlstr(self, indent=None):
+        """Return the CIM-XML representation of the
+        :class:`~pywbem.CIMProperty` object, as a :term:`unicode string`.
+
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        Parameters:
+
+          indent (:term:`string` or :term:`integer`):
+            `None` indicates that a single-line version of the XML should be
+            returned, without any whitespace between the XML elements.
+
+            Other values indicate that a prettified, multi-line version of the
+            XML should be returned. A string value specifies the indentation
+            string to be used for each level of nested XML elements. An integer
+            value specifies an indentation string of so many blanks.
+
+        Returns:
+
+            The CIM-XML representation of the object, as a
+            :term:`unicode string`.
+        """
+        return tocimxmlstr(self, indent)
+
     def _cmp(self, other):
         """
         Comparator function for two :class:`~pywbem.CIMProperty` objects.
@@ -2586,6 +2707,30 @@ class CIMMethod(_CIMComparisonMixin):
             class_origin=self.class_origin,
             propagated=self.propagated,
             qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
+
+    def tocimxmlstr(self, indent=None):
+        """Return the CIM-XML representation of the
+        :class:`~pywbem.CIMMethod` object, as a :term:`unicode string`.
+
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        Parameters:
+
+          indent (:term:`string` or :term:`integer`):
+            `None` indicates that a single-line version of the XML should be
+            returned, without any whitespace between the XML elements.
+
+            Other values indicate that a prettified, multi-line version of the
+            XML should be returned. A string value specifies the indentation
+            string to be used for each level of nested XML elements. An integer
+            value specifies an indentation string of so many blanks.
+
+        Returns:
+
+            The CIM-XML representation of the object, as a
+            :term:`unicode string`.
+        """
+        return tocimxmlstr(self, indent)
 
     def tomof(self, indent):
         """
@@ -2837,6 +2982,30 @@ class CIMParameter(_CIMComparisonMixin):
                 self.name,
                 self.type,
                 qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
+
+    def tocimxmlstr(self, indent=None):
+        """Return the CIM-XML representation of the
+        :class:`~pywbem.CIMParameter` object, as a :term:`unicode string`.
+
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        Parameters:
+
+          indent (:term:`string` or :term:`integer`):
+            `None` indicates that a single-line version of the XML should be
+            returned, without any whitespace between the XML elements.
+
+            Other values indicate that a prettified, multi-line version of the
+            XML should be returned. A string value specifies the indentation
+            string to be used for each level of nested XML elements. An integer
+            value specifies an indentation string of so many blanks.
+
+        Returns:
+
+            The CIM-XML representation of the object, as a
+            :term:`unicode string`.
+        """
+        return tocimxmlstr(self, indent)
 
     def tomof(self, indent):
         """
@@ -3113,6 +3282,30 @@ class CIMQualifier(_CIMComparisonMixin):
                                  toinstance=self.toinstance,
                                  translatable=self.translatable)
 
+    def tocimxmlstr(self, indent=None):
+        """Return the CIM-XML representation of the
+        :class:`~pywbem.CIMQualifier` object, as a :term:`unicode string`.
+
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        Parameters:
+
+          indent (:term:`string` or :term:`integer`):
+            `None` indicates that a single-line version of the XML should be
+            returned, without any whitespace between the XML elements.
+
+            Other values indicate that a prettified, multi-line version of the
+            XML should be returned. A string value specifies the indentation
+            string to be used for each level of nested XML elements. An integer
+            value specifies an indentation string of so many blanks.
+
+        Returns:
+
+            The CIM-XML representation of the object, as a
+            :term:`unicode string`.
+        """
+        return tocimxmlstr(self, indent)
+
     def tomof(self, indent=MOF_INDENT):
         """
         Return a :term:`unicode string` that is a MOF fragment with the
@@ -3381,6 +3574,31 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
                                              toinstance=self.toinstance,
                                              translatable=self.translatable)
 
+    def tocimxmlstr(self, indent=None):
+        """Return the CIM-XML representation of the
+        :class:`~pywbem.CIMQualifierDeclaration` object, as a
+        :term:`unicode string`.
+
+        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        Parameters:
+
+          indent (:term:`string` or :term:`integer`):
+            `None` indicates that a single-line version of the XML should be
+            returned, without any whitespace between the XML elements.
+
+            Other values indicate that a prettified, multi-line version of the
+            XML should be returned. A string value specifies the indentation
+            string to be used for each level of nested XML elements. An integer
+            value specifies an indentation string of so many blanks.
+
+        Returns:
+
+            The CIM-XML representation of the object, as a
+            :term:`unicode string`.
+        """
+        return tocimxmlstr(self, indent)
+
     def tomof(self):
         """
         Return a :term:`unicode string` that is a MOF fragment with the
@@ -3423,7 +3641,10 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
 
 def tocimxml(value):
-    """Return the CIM-XML representation of the specified value.
+    """Return the CIM-XML representation of the CIM object or CIM data type,
+    as an :term:`Element` object.
+
+    The returned CIM-XML representation is consistent with :term:`DSP0201`.
 
     Parameters:
 
@@ -3467,6 +3688,46 @@ def tocimxml(value):
 
     raise ValueError("Can't convert %s (%s) to CIM XML" % \
                      (value, builtin_type(value)))
+
+
+def tocimxmlstr(value, indent=None):
+    """Return the CIM-XML representation of the CIM object or CIM data type,
+    as a :term:`unicode string`.
+
+    The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+    Parameters:
+
+      value (:term:`CIM object` or :term:`CIM data type`):
+        The CIM object or CIM data type to be converted to CIM-XML.
+
+      indent (:term:`string` or :term:`integer`):
+        `None` indicates that a single-line version of the XML should be
+        returned, without any whitespace between the XML elements.
+
+        Other values indicate that a prettified, multi-line version of the XML
+        should be returned. A string value specifies the indentation string to
+        be used for each level of nested XML elements. An integer value
+        specifies an indentation string of so many blanks.
+
+    Returns:
+
+        The CIM-XML representation of the value, as a :term:`unicode string`.
+    """
+    xml_elem = tocimxml(value)
+    if indent is None:
+        xml_str = xml_elem.toxml()
+    else:
+        if isinstance(indent, six.string_types):
+            pass  # use indent, as specified
+        elif isinstance(indent, six.integer_types):
+            indent = ' '*indent
+        else:
+            raise TypeError("Type of indent must be string or integer, " \
+                            "but is: %s" % type(indent))
+        xml_str = xml_elem.toprettyxml(indent=indent)
+    # xml_str is a unicode string if required based upon its content.
+    return _ensure_unicode(xml_str)
 
 
 #pylint: disable=too-many-locals,too-many-return-statements,too-many-branches

@@ -744,9 +744,8 @@ Printing support:
   print(<obj>.tomof())
                    Operation result objects often have a tomof()
                    producing a MOF string
-  <obj>.tocimxml().toxml()
-                   Operation result objects have a tocimxml()
-                   producing a DOM object that has a toxml() function
+  print(<obj>.tocimxmlstr())
+                   Operation result objects have a tocimxmlstr()
                    producing an XML string
 
 Help:

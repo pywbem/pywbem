@@ -110,6 +110,8 @@ such as debugging.
 
 .. autofunction:: pywbem.tocimxml
 
+.. autofunction:: pywbem.tocimxmlstr
+
 .. autofunction:: pywbem.tocimobj
 
 .. _`CIM data types`:
