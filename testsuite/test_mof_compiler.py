@@ -227,6 +227,7 @@ class TestRefs(MOFTest):
                                                'test_refs.mof'),
                                   NAME_SPACE)
 
+# pylint: disable=too-few-public-methods
 class LexErrorToken(lex.LexToken):
     """Class indicating an expected LEX error."""
     # Like lex.LexToken, we set its instance variables from outside

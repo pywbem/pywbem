@@ -50,19 +50,19 @@ from six.moves import urllib
 
 from .cim_obj import CIMClassName, CIMInstanceName, _ensure_unicode, \
                     _ensure_bytes
-from .exceptions import Error, ConnectionError, AuthError, TimeoutError
+from .exceptions import ConnectionError, AuthError, TimeoutError
 
 _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
 if six.PY2 and not _ON_RTD:  # RTD has no swig to install M2Crypto
-    from M2Crypto import SSL
-    from M2Crypto.Err import SSLError
+    from M2Crypto import SSL           # pylint: disable=wrong-import-position
+    from M2Crypto.Err import SSLError  # pylint: disable=wrong-import-position
     _HAVE_M2CRYPTO = True
     #pylint: disable=invalid-name
     SocketErrors = (socket.error, socket.sslerror)
 else:
-    import ssl as SSL
-    from ssl import SSLError
+    import ssl as SSL                  # pylint: disable=wrong-import-position
+    from ssl import SSLError           # pylint: disable=wrong-import-position
     _HAVE_M2CRYPTO = False
     #pylint: disable=invalid-name
     SocketErrors = (socket.error,)
