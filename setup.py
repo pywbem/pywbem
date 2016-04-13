@@ -50,6 +50,7 @@ if sys.version_info[0:2] == (2, 6):
 import os_setup
 from os_setup import shell, shell_check, import_setuptools
 
+_VERBOSE = True
 
 def package_version(filename, varname):
     """Return package version string by reading `filename` and retrieving its
@@ -228,8 +229,6 @@ def install_swig(installer, dry_run, verbose):
                           "version %s" % swig_build_version)
 
 
-_VERBOSE = True
-
 def build_moftab(verbose):
     """Generate the moftab modules.
 
@@ -257,7 +256,6 @@ def build_moftab(verbose):
 
 def main():
     """Main function of this script."""
-    global _VERBOSE
 
     import_setuptools()
     from setuptools import setup
@@ -272,7 +270,7 @@ def main():
         We use this only to pick up the verbosity level.
         """
         def run(self):
-            global _VERBOSE
+            global _VERBOSE  #pylint: disable=global-statement
             _VERBOSE = self.verbose
             _build_py.run(self)
 

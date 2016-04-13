@@ -124,7 +124,7 @@ CIM_ERR_METHOD_NOT_AVAILABLE = 16
 #: The specified extrinsic method does not exist.
 CIM_ERR_METHOD_NOT_FOUND = 17
 
-# 18 and 19 existed once and had been removed again.                                          
+# 18 and 19 existed once and had been removed again.
 
 #: The specified namespace is not empty.
 CIM_ERR_NAMESPACE_NOT_EMPTY = 20
@@ -158,14 +158,13 @@ CIM_ERR_SERVER_LIMITS_EXCEEDED = 27
 CIM_ERR_SERVER_IS_SHUTTING_DOWN = 28
 
 # Provider types
-
-PROVIDERTYPE_CLASS       = 1
-PROVIDERTYPE_INSTANCE    = 2
+PROVIDERTYPE_CLASS = 1
+PROVIDERTYPE_INSTANCE = 2
 PROVIDERTYPE_ASSOCIATION = 3
-PROVIDERTYPE_INDICATION  = 4
-PROVIDERTYPE_METHOD      = 5
-PROVIDERTYPE_CONSUMER    = 6            # Indication consumer
-PROVIDERTYPE_QUERY       = 7
+PROVIDERTYPE_INDICATION = 4
+PROVIDERTYPE_METHOD = 5
+PROVIDERTYPE_CONSUMER = 6               # Indication consumer
+PROVIDERTYPE_QUERY = 7
 
 DEFAULT_NAMESPACE = 'root/cimv2'        #: Default namespace for PyWBEM
 

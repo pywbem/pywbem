@@ -134,9 +134,6 @@ def EnumerateInstanceNames(cn, ns=None):
       list(CIMInstanceName): The enumerated instance paths.
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     return CONN.EnumerateInstanceNames(cn, ns)
 
 # pylint: disable=too-many-arguments
@@ -180,9 +177,6 @@ def EnumerateInstances(cn, ns=None, lo=None, di=None, iq=None, ico=None,
       list(CIMInstance): The enumerated instances.
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     return CONN.EnumerateInstances(cn, ns,
                                    LocalOnly=lo,
                                    DeepInheritance=di,
@@ -223,9 +217,6 @@ def GetInstance(ip, lo=None, iq=None, ico=None, pl=None):
       CIMInstance: The retrieved instance.
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     return CONN.GetInstance(ip,
                             LocalOnly=lo,
                             IncludeQualifiers=iq,
@@ -251,9 +242,6 @@ def ModifyInstance(mi, iq=None, pl=None):
                    Server default: None
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     CONN.ModifyInstance(mi,
                         IncludeQualifiers=iq,
                         PropertyList=pl)
@@ -272,9 +260,6 @@ def CreateInstance(ni):
       CIMInstanceName: Instance path of the new instance.
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     return CONN.CreateInstance(ni)
 
 
@@ -286,9 +271,6 @@ def DeleteInstance(ip):
 
       ip (CIMInstanceName): Instance path.
     """
-
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
 
     CONN.DeleteInstance(ip)
 
@@ -330,9 +312,6 @@ def AssociatorNames(op, ac=None, rc=None, r=None, rr=None):
 
       list(CIMInstanceName): The instance paths of the associated instances.
     """
-
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
 
     return CONN.AssociatorNames(op,
                                 AssocClass=ac,
@@ -392,9 +371,6 @@ def Associators(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None,
       list(CIMInstance): The associated instances.
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     return CONN.Associators(op,
                             AssocClass=ac,
                             ResultClass=rc,
@@ -431,9 +407,6 @@ def ReferenceNames(op, rc=None, r=None):
     Returns:
       list(CIMInstanceName): The instance paths of the association instances.
     """
-
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
 
     return CONN.ReferenceNames(op,
                                ResultClass=rc,
@@ -482,9 +455,6 @@ def References(op, rc=None, r=None, iq=None, ico=None, pl=None):
       list(CIMInstance): The association instances.
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     return CONN.References(op,
                            ResultClass=rc,
                            Role=r,
@@ -513,9 +483,6 @@ def InvokeMethod(mn, op, *params, **kwparams):
       tuple(rv, out): Method return value, dict with output parameters.
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     return CONN.InvokeMethod(mn, op, *params, **kwparams)
 
 
@@ -540,9 +507,6 @@ def EnumerateClassNames(ns=None, cn=None, di=None):
 
       list(string): The enumerated class names.
     """
-
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
 
     return CONN.EnumerateClassNames(ns,
                                     ClassName=ns,
@@ -583,9 +547,6 @@ def EnumerateClasses(ns=None, cn=None, di=None, lo=None, iq=None, ico=None):
       list(string): The enumerated class names.
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     return CONN.EnumerateClassNames(ns,
                                     ClassName=cn,
                                     DeepInheritance=di,
@@ -625,9 +586,6 @@ def GetClass(cn, ns=None, lo=None, iq=None, ico=None, pl=None):
       list(CIMClass): The retrieved class.
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     return CONN.GetClass(cn, ns,
                          LocalOnly=lo,
                          IncludeQualifiers=iq,
@@ -646,9 +604,6 @@ def ModifyClass(mc, ns=None):
       ns (string): Namespace name. None will use the default namespace.
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     return CONN.ModifyClass(mc, ns)
 
 
@@ -663,9 +618,6 @@ def CreateClass(nc, ns=None):
       ns (string): Namespace name. None will use the default namespace.
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     CONN.CreateClass(nc, ns)
 
 
@@ -679,9 +631,6 @@ def DeleteClass(cn, ns=None):
 
       ns (string): Namespace name. None will use the default namespace.
     """
-
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
 
     CONN.DeleteClass(cn, ns)
 
@@ -698,9 +647,6 @@ def EnumerateQualifiers(ns=None):
 
       list(CIMQualifierDeclaration): Enumerated qualifier types.
     """
-
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
 
     return CONN.EnumerateQualifiers(ns)
 
@@ -720,9 +666,6 @@ def GetQualifier(qn, ns=None):
       CIMQualifierDeclaration: Retrieved qualifier type.
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     return CONN.GetQualifier(qn, ns)
 
 
@@ -737,9 +680,6 @@ def SetQualifier(qd, ns=None):
       ns (string): Namespace name. None will use the default namespace.
     """
 
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
-
     CONN.SetQualifier(qd, ns)
 
 
@@ -753,9 +693,6 @@ def DeleteQualifier(qn, ns=None):
 
       ns (string): Namespace name. None will use the default namespace.
     """
-
-    # pylint: disable=global-variable-not-assigned
-    global CONN     # pylint: disable=global-statement
 
     CONN.DeleteQualifier(qn, ns)
 
@@ -867,8 +804,6 @@ def _get_connection_info():
 
 def _get_banner():
     """Return a banner message for the interactive console."""
-
-    global CONN     # pylint: disable=global-statement,global-variable-not-assigned
 
     result = ''
     result += '\nPython %s' % _sys.version

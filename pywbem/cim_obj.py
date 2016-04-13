@@ -65,7 +65,6 @@ in detail in this documentation.
 
 from __future__ import print_function, absolute_import
 
-import re
 from datetime import datetime, timedelta
 
 import six

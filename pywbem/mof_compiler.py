@@ -45,7 +45,7 @@ import sys
 import os
 from getpass import getpass
 import argparse
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 import re
 
 import six
