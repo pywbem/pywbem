@@ -55,6 +55,18 @@ Enhancements
   - For `CIMParameter`, added the attribute `value`.
   - For `CIMQualifierDeclaration`, added the attribute `value`.
 
+* Changes in the `CIMError` exception class:
+
+  - Changed the behavior of the `__str__()` method to return a human readable
+    string containing the symbolic name of the status code, and the status
+    description. The previous behavior was to return a Python representation
+    of the tuple status code, status description.
+  - Added properties `status_code` (numeric CIM status code),
+    `status_code_name` (symbolic name of CIM status code), and
+    `status_description` (CIM status description).
+  - Updated the documentation to no longer show the unused third tuple element
+    `exception_obj`. It was never created, so this is only a doc change.
+
 * Migrated API documentation to Sphinx.
 
 * Improved documentation of many classes of the external API.

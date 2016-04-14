@@ -57,6 +57,7 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      tocimobj
 from .cim_operations import CIMError, WBEMConnection, Error
 from .cim_constants import *  # pylint: disable=wildcard-import
+from .cim_constants import _statuscode2string
 from ._cliutils import SmartFormatter
 
 __all__ = ['MOFParseError', 'MOFWBEMConnection', 'MOFCompiler']
@@ -1939,34 +1940,6 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         # TODO: We want rollback to do something with qualifiers?
 
 
-def _errcode2string(code):
-    """Defines dictionary of CIMStatusCodes and their Strings"""
-    d = {
-        CIM_ERR_FAILED                 : 'A general error occurred',
-        CIM_ERR_ACCESS_DENIED          : 'Resource not available',
-        CIM_ERR_INVALID_NAMESPACE      : 'The target namespace does not exist',
-        CIM_ERR_INVALID_PARAMETER      : 'Parameter value(s) invalid',
-        CIM_ERR_INVALID_CLASS          : 'The specified Class does not exist',
-        CIM_ERR_NOT_FOUND              : 'Requested object could not be found',
-        CIM_ERR_NOT_SUPPORTED          : 'Operation not supported',
-        CIM_ERR_CLASS_HAS_CHILDREN     : 'Class has subclasses',
-        CIM_ERR_CLASS_HAS_INSTANCES    : 'Class has instances',
-        CIM_ERR_INVALID_SUPERCLASS     : 'Superclass does not exist',
-        CIM_ERR_ALREADY_EXISTS         : 'Object already exists',
-        CIM_ERR_NO_SUCH_PROPERTY       : 'Property does not exist',
-        CIM_ERR_TYPE_MISMATCH          : 'Value incompatible with type',
-        CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED   : 'Query language not supported',
-        CIM_ERR_INVALID_QUERY          : 'Query not valid',
-        CIM_ERR_METHOD_NOT_AVAILABLE   : 'Extrinsic method not executed',
-        CIM_ERR_METHOD_NOT_FOUND       : 'Extrinsic method does not exist',
-        }
-    try:
-        s = d[code]
-    except KeyError:
-        s = 'Unknown Error'
-    return s
-
-
 def _print_logger(msg):
     """Print the msg argument to stdout."""
     print(msg)
@@ -2094,7 +2067,7 @@ class MOFCompiler(object):
                                                         ce.file_line[1]))
             else:
                 self.parser.log('Fatal Error:')
-            self.parser.log('%s%s' % (_errcode2string(ce.args[0]),
+            self.parser.log('%s%s' % (_statuscode2string(ce.args[0]),
                                       ce.args[1] and ': '+ce.args[1] or ''))
             raise
 
