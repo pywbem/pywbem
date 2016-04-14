@@ -945,6 +945,7 @@ class OSInstaller(BaseInstaller):
             "fedora": YumInstaller,
             "debian": AptInstaller,
             "ubuntu": AptInstaller,
+            "linuxmint": AptInstaller,
             "suse": ZypperInstaller,
         }
 
