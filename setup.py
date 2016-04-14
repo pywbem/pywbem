@@ -251,8 +251,8 @@ def build_moftab(verbose):
     if rc != 0:
         # Because this does not work on pip, the best compromise is to
         # tolerate a failure:
-        print("Warning: build_moftab.py failed with rc=%s, PyWBEM's " \
-              "LEX/YACC table files may be re-generated on use" % rc)
+        print("Warning: build_moftab.py failed with rc=%s; the PyWBEM " \
+              "LEX/YACC table modules may be rebuilt on first use" % rc)
 
 def main():
     """Main function of this script."""
