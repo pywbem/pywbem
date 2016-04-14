@@ -302,10 +302,10 @@ def build_moftab(verbose):
     """
     rc = subprocess.call([sys.executable, 'build_moftab.py'])
     if rc != 0:
-        # Because this does not work on pip, the best compromise is to 
+        # Because this does not work on pip, the best compromise is to
         # tolerate a failure:
-        print("Warning: build_moftab.py failed with rc=%s, PyWBEM's " \
-              "LEX/YACC table files may be re-generated on use" % rc)
+        print("Warning: build_moftab.py failed with rc=%s; the PyWBEM " \
+              "LEX/YACC table modules may be rebuilt on first use" % rc)
 
 def main():
     """Main function of this script."""
@@ -320,14 +320,14 @@ def main():
         """Custom command that extends the setuptools `build_py` command,
         which prepares the Python files before they are being installed.
         This command is used by `setup.py install` and `pip install`.
-        
+
         We use this only to pick up the verbosity level.
         """
         def run(self):
             global _VERBOSE
             _VERBOSE = self.verbose
             _build_py.run(self)
-    
+
     py_version_m_n = "%s.%s" % (sys.version_info[0], sys.version_info[1])
     py_version_m = "%s" % sys.version_info[0]
 
@@ -498,10 +498,10 @@ def main():
         ]
 
     setup(**args)
-    
+
     if 'install' in sys.argv or 'develop' in sys.argv:
         build_moftab(_VERBOSE)
-    
+
     return 0
 
 if __name__ == '__main__':
