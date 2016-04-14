@@ -192,4 +192,6 @@ Exceptions
 .. autoclass:: pywbem.ParseError
 
 .. autoclass:: pywbem.CIMError
+   :members:
+   :special-members: __str__
 

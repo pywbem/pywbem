@@ -19,6 +19,8 @@ The following exceptions are pywbem specific exceptions that can be raised at
 the WBEM client library API.
 """
 
+from .cim_constants import _statuscode2name, _statuscode2string
+
 # This module is meant to be safe for 'import *'.
 
 __all__ = ['Error', 'ConnectionError', 'AuthError', 'TimeoutError',
@@ -54,21 +56,37 @@ class CIMError(Error):
     This exception indicates that the WBEM server returned an error response
     with a CIM status code. Derived from :exc:`~pywbem.Error`.
 
-    The exception value is a `tuple(error_code, description, exception_obj)`,
-    with:
+    The `args` instance variable is a `tuple(status_code, status_description)`.
 
-      * error_code (number):
-        Numeric CIM status code.
+    The `message` instance variable is not set.
+    """
+
+    @property
+    def status_code(self):
+        """Numeric CIM status code.
+
         See :ref:`CIM status codes` for constants defining the numeric CIM
-        status code values.
+        status code values."""
+        return self.args[0]
 
-      * description (:term:`unicode string` or :term:`byte string`):
-        CIM status description text returned by the server, representing a
+    @property
+    def status_code_name(self):
+        """Symbolic name of the CIM status code.
+
+        If the CIM status code is invalid, the string
+        ``"Invalid status code <code>"`` is returned."""
+        return _statuscode2name(self.status_code)
+
+    @property
+    def status_description(self):
+        """CIM status description text returned by the server, representing a
         human readable message describing the error.
 
-      * exception_obj (exception):
-        The underlying exception object that caused this exception to be
-        raised, or `None`. Will always be `None`, currently.
-    """
-    pass
+        If the server did not return a description, a short default text for
+        the CIM status code is returned. If the CIM status code is invalid,
+        the string ``"Invalid status code <code>"`` is returned."""
+        return self.args[1] or _statuscode2string(self.status_code)
+
+    def __str__(self):
+        return "%s: %s" % (self.status_code, self.status_description)
 
