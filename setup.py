@@ -34,6 +34,7 @@ import sys
 import os
 import shutil
 import subprocess
+import platform
 from distutils.errors import DistutilsSetupError
 
 # Workaround for Python 2.6 issue https://bugs.python.org/issue15881
@@ -360,6 +361,8 @@ def main():
         'scripts': [
             'wbemcli',
             'mof_compiler',
+            'wbemcli.bat',
+            'mof_compiler.bat',
         ],
         'install_requires': [
             # These dependencies will be installed as a site package.
@@ -493,8 +496,15 @@ def main():
         # The 'install_requires' processing in distutils does not tolerate
         # a None value in the list, so we need be truly conditional (instead
         # of adding an entry with None).
+        if platform.system() == 'Windows':
+            if platform.architecture()[0] == '64bit':
+                m2crypto_req = 'M2CryptoWin64>=0.21'
+            else:
+                m2crypto_req = 'M2CryptoWin32>=0.21'
+        else:
+            m2crypto_req = 'M2Crypto>=0.24'
         args['install_requires'] += [
-            'M2Crypto>=0.24',
+            m2crypto_req,
         ]
 
     setup(**args)
