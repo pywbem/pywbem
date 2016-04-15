@@ -112,6 +112,7 @@ def install_swig(installer, dry_run, verbose):
                 'fedora': "swig",
                 'debian': "swig",
                 'ubuntu': "swig",
+                'linuxmint': "swig",
                 'suse': "swig",
             },
         }
@@ -156,6 +157,10 @@ def install_swig(installer, dry_run, verbose):
                         "libpcre3-dev",
                     ],
                     'ubuntu': [
+                        "libpcre3",
+                        "libpcre3-dev",
+                    ],
+                    'linuxmint': [
                         "libpcre3",
                         "libpcre3-dev",
                     ],
@@ -362,6 +367,7 @@ def main():
                     "git>=1.7",
                 ],
                 'debian': 'ubuntu',
+                'linuxmint': 'ubuntu',
                 'suse': [
                     "openssl-devel>=1.0.1",
                     "gcc-c++>=4.4",
@@ -395,6 +401,14 @@ def main():
                     "tar",
                 ],
                 'ubuntu': [
+                    "libxml2-dev",
+                    "libxml2-utils",
+                    "libxslt1-dev",
+                    "libyaml-dev",
+                    "make",
+                    "tar",
+                ],
+                'linuxmint': [
                     "libxml2-dev",
                     "libxml2-utils",
                     "libxslt1-dev",
