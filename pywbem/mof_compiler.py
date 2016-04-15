@@ -55,12 +55,14 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      CIMProperty, CIMMethod, CIMParameter, \
                      CIMQualifier, CIMQualifierDeclaration, NocaseDict, \
                      tocimobj
-from .cim_operations import CIMError, WBEMConnection, Error
+from .cim_operations import WBEMConnection
 from .cim_constants import *  # pylint: disable=wildcard-import
 from .cim_constants import _statuscode2string
 from ._cliutils import SmartFormatter
+from .exceptions import Error, CIMError
 
-__all__ = ['MOFParseError', 'MOFWBEMConnection', 'MOFCompiler']
+__all__ = ['MOFParseError', 'MOFWBEMConnection', 'MOFCompiler',
+           'BaseRepositoryConnection']
 
 # The following pylint is applied for the complete file because invalid
 # names are used throughout the file and about 200 flags generated if
@@ -283,10 +285,10 @@ def t_error(t):
     t.lexer.parser.log(msg)
     t.lexer.skip(1)
 
-class MOFParseError(ValueError):
+class MOFParseError(Error):
     """
     This exception is raised when MOF cannot be parsed correctly, e.g. for
-    syntax errors.
+    syntax errors. Derived from :exc:`~pywbem.Error`.
     """
     pass
 
@@ -1513,8 +1515,8 @@ def _get_error_context(input_, token):
 @six.add_metaclass(ABCMeta)
 class BaseRepositoryConnection(object):
     """
-    An abstract base class for implementing repository connections. This class
-    defines the interface that is used by the MOF compiler
+    An abstract base class for implementing repository connections for the MOF
+    compiler. This class defines the interface that is used by the MOF compiler
     (class :class:`~pywbem.mof_compiler.MOFCompiler`) when it interacts with
     the repository.
 
@@ -1664,16 +1666,13 @@ BaseRepositoryConnection.register(WBEMConnection)
 
 class MOFWBEMConnection(BaseRepositoryConnection):
     """
-    A repository connection that handles the removal of CIM elements.
+    A repository connection that stores CIM elements locally in the
+    instance of this class. It also supports removal of CIM elements
+    via its :meth:`rollback` method, by rolling back the changes
+    applied locally to the instance.
 
     It is instantiated on top of an underlying repository connection that
     is connected with the CIM repository that is actually being updated.
-
-    The operation methods of the class store all interactions locally in
-    instance variables, i.e. this class maintains a local repository.
-
-    The :meth:`rollback` method is used at the end to delete the CIM elements
-    through the underlying repository connection.
 
     This class implements the
     :class:`~pywbem.mof_compiler.BaseRepositoryConnection` interface.
@@ -1950,7 +1949,7 @@ class MOFCompiler(object):
     A MOF compiler.
 
     A MOF compiler is associated with a CIM repository. The repository is
-    used for looking up dependent CIM elements (e.g. the subclass specified
+    used for looking up dependent CIM elements (e.g. the superclass specified
     in a class whose MOF definition is being compiled), and it is also updated
     with the result of the compilation. A repository contains CIM namespaces,
     and the namespaces contain CIM classes, instances and qualifier types.
