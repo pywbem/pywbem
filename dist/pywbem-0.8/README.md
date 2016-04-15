@@ -11,7 +11,7 @@ of a file again, so the first final release has become v0.8.1.
 The NEWS file in each distribution archive describes the changes up to that
 point.
 
-The distribution archives for the v0.8.x releases are namedi
+The distribution archives for the v0.8.x releases are named
 `pywbem-0.8.<x>.tar.gz`.
 
 Earlier versions are still available for reference, and their file names
