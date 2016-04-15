@@ -91,7 +91,7 @@ from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      CIMClassName, NocaseDict, _ensure_unicode, tocimxml, \
                      tocimobj
-from .cim_http import get_object_header, wbem_request
+from .cim_http import get_object_header, PyWBEMRequester
 from .tupleparse import parse_cim
 from .tupletree import dom_to_tupletree
 from .exceptions import Error, ParseError, AuthError, ConnectionError, \
@@ -397,7 +397,7 @@ class WBEMConnection(object):
 
     def __init__(self, url, creds=None, default_namespace=DEFAULT_NAMESPACE,
                  x509=None, verify_callback=None, ca_certs=None,
-                 no_verification=False, timeout=None):
+                 no_verification=False, timeout=None, requester=None):
         """
         Parameters:
 
@@ -550,6 +550,10 @@ class WBEMConnection(object):
             Note that not all situations can be handled within this timeout, so
             for some issues, operations may take longer before raising an
             exception.
+
+          requester (:class:`cim_http.BasePyWBEMRequester`):
+            Instance of a class with `wbem_request` method for making the actual
+            HTTP requests.
         """
 
         self.url = url
@@ -560,6 +564,7 @@ class WBEMConnection(object):
         self.no_verification = no_verification
         self.default_namespace = default_namespace
         self.timeout = timeout
+        self.requester = requester or PyWBEMRequester()
 
         self.debug = False
         self.last_raw_request = None
@@ -651,7 +656,7 @@ class WBEMConnection(object):
         # Send request and receive response
 
         try:
-            reply_xml = wbem_request(
+            reply_xml = self.requester.wbem_request(
                 self.url, req_xml.toxml(), self.creds, headers,
                 x509=self.x509,
                 verify_callback=self.verify_callback,
@@ -870,7 +875,7 @@ class WBEMConnection(object):
         # Send request and receive response
 
         try:
-            reply_xml = wbem_request(
+            reply_xml = self.requester.wbem_request(
                 self.url, req_xml.toxml(), self.creds, headers,
                 x509=self.x509,
                 verify_callback=self.verify_callback,
