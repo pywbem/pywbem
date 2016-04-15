@@ -59,14 +59,41 @@ class ValidateTest(unittest.TestCase):
             expected XML root element will happen.
         """
         global _MODULE_PATH # pylint: disable=global-variable-not-assigned
-        xml = obj.tocimxml().toxml()
+        xml_str = obj.tocimxml().toxml()
         self.assertTrue(
-            validate_xml(xml,
+            validate_xml(xml_str,
                          dtd_directory=os.path.relpath(_MODULE_PATH),
                          root_elem=root_elem),
-            'XML validation failed\n'\
+            'DTD validation of CIM-XML for %s object failed\n'\
             '  Required XML root element: %s\n'\
-            '  Generated CIM-XML: %s' % (root_elem, xml))
+            '  Generated CIM-XML: %s' % (type(obj), root_elem, xml_str))
+
+        xml_str2 = obj.tocimxmlstr()
+        self.assertTrue(isinstance(xml_str2, six.text_type),
+                        'XML string returned by tocimxmlstr() is not ' \
+                        'a unicode type, but: %s' % type(xml_str2))
+        self.assertEqual(xml_str2, xml_str,
+                         'XML string returned by tocimxmlstr() is not ' \
+                         'equal to tocimxml().toxml().')
+
+        xml_pretty_str = obj.tocimxml().toprettyxml(indent='    ')
+        xml_pretty_str2 = obj.tocimxmlstr(indent='    ')
+        self.assertTrue(isinstance(xml_pretty_str2, six.text_type),
+                        'XML string returned by tocimxmlstr() is not ' \
+                        'a unicode type, but: %s' % type(xml_pretty_str2))
+        self.assertEqual(xml_pretty_str2, xml_pretty_str,
+                         'XML string returned by tocimxmlstr(indent) is not ' \
+                         'equal to tocimxml().toprettyxml(indent).')
+
+        xml_pretty_str = obj.tocimxml().toprettyxml(indent='  ')
+        xml_pretty_str2 = obj.tocimxmlstr(indent=2)
+        self.assertTrue(isinstance(xml_pretty_str2, six.text_type),
+                        'XML string returned by tocimxmlstr() is not ' \
+                        'a unicode type, but: %s' % type(xml_pretty_str2))
+        self.assertEqual(xml_pretty_str2, xml_pretty_str,
+                         'XML string returned by tocimxmlstr(indent) is not ' \
+                         'equal to tocimxml().toprettyxml(indent).')
+
 
 def swapcase2(text):
     """Returns text, where every other character has been changed to swap

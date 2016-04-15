@@ -77,6 +77,11 @@ Enhancements
   exception, so that now all pywbem specific exceptions are derived from
   `Error`.
 
+* Added `tocimxmlstr()` as a global function and as methods on all CIM
+  object classes. It returns the CIM-XML representation of the object
+  as a unicode string either in a single-line variant, or in a prettified
+  multi-line variant.
+
 Bug fixes
 ^^^^^^^^^
 
