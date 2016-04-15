@@ -254,51 +254,169 @@ class TestEqual(BaseTest):
         dic2['Budgie'] = 'fish'
         self.assertTrue(self.dic != dic2)
 
+# TODO: swapcase2() is also defined in test_cim_obj.py. Consolidate.
+def swapcase2(text):
+    """Returns text, where every other character has been changed to swap
+    its lexical case. For strings that contain at least one letter, the
+    returned string is guaranteed to be different from the input string."""
+    text_cs = ''
+    i = 0
+    for c in text:
+        if i % 2 != 0:
+            c = c.swapcase()
+        text_cs += c
+        i += 1
+    return text_cs
+
 class TestComparison(BaseTest):
 
-    def assertSame(self, dic1, dic2):
+    def assertSame(self, dic1, dic2, msg):
 
-        self.assertTrue(dic1 == dic2)
-        self.assertFalse(dic1 != dic2)
-        self.assertTrue(dic1 >= dic2)
-        self.assertFalse(dic1 > dic2)
-        self.assertTrue(dic1 <= dic2)
-        self.assertFalse(dic1 < dic2)
+        self.assertTrue(dic1 == dic2, msg)
+        self.assertFalse(dic1 != dic2, msg)
+        self.assertTrue(dic1 >= dic2, msg)
+        self.assertFalse(dic1 > dic2, msg)
+        self.assertTrue(dic1 <= dic2, msg)
+        self.assertFalse(dic1 < dic2, msg)
 
-        self.assertTrue(dic2 == dic1)
-        self.assertFalse(dic2 != dic1)
-        self.assertTrue(dic2 >= dic1)
-        self.assertFalse(dic2 > dic1)
-        self.assertTrue(dic2 <= dic1)
-        self.assertFalse(dic2 < dic1)
+        self.assertTrue(dic2 == dic1, msg)
+        self.assertFalse(dic2 != dic1, msg)
+        self.assertTrue(dic2 >= dic1, msg)
+        self.assertFalse(dic2 > dic1, msg)
+        self.assertTrue(dic2 <= dic1, msg)
+        self.assertFalse(dic2 < dic1, msg)
 
-    def assertLess(self, dic1, dic2):
+    def assertLess(self, dic1, dic2, msg):
 
-        self.assertTrue(dic1 != dic2)
-        self.assertFalse(dic1 == dic2)
-        self.assertTrue(dic1 < dic2)
-        self.assertFalse(dic1 > dic2)
-        self.assertTrue(dic1 <= dic2)
-        self.assertFalse(dic1 >= dic2)
+        self.assertTrue(dic1 != dic2, msg)
+        self.assertFalse(dic1 == dic2, msg)
+        self.assertTrue(dic1 < dic2, msg)
+        self.assertFalse(dic1 > dic2, msg)
+        self.assertTrue(dic1 <= dic2, msg)
+        self.assertFalse(dic1 >= dic2, msg)
 
-        self.assertTrue(dic2 != dic1)
-        self.assertFalse(dic2 == dic1)
-        self.assertTrue(dic2 > dic1)
-        self.assertFalse(dic2 < dic1)
-        self.assertTrue(dic2 >= dic1)
-        self.assertFalse(dic2 <= dic1)
+        self.assertTrue(dic2 != dic1, msg)
+        self.assertFalse(dic2 == dic1, msg)
+        self.assertTrue(dic2 > dic1, msg)
+        self.assertFalse(dic2 < dic1, msg)
+        self.assertTrue(dic2 >= dic1, msg)
+        self.assertFalse(dic2 <= dic1, msg)
+
+    def run_test_dicts(self, base_dict, test_dicts):
+
+        for test_dict, relation, comment in test_dicts:
+            if relation == 'same':
+                self.assertSame(test_dict, base_dict,
+                                "Expected test_dict == base_dict:\n" \
+                                "  test case: %s\n" \
+                                "  test_dict: %r\n" \
+                                "  base_dict: %r" % \
+                                (comment, test_dict, base_dict))
+            elif relation == 'less':
+                self.assertLess(test_dict, base_dict,
+                                "Expected test_dict < base_dict:\n" \
+                                "  test case: %s\n" \
+                                "  test_dict: %r\n" \
+                                "  base_dict: %r" % \
+                                (comment, test_dict, base_dict))
+            elif relation == 'greater':
+                self.assertLess(base_dict, test_dict,
+                                "Expected test_dict > base_dict:\n" \
+                                "  test case: %s\n" \
+                                "  test_dict: %r\n" \
+                                "  base_dict: %r" % \
+                                (comment, test_dict, base_dict))
+            else:
+                raise AssertionError("Internal Error: Invalid relation %s" \
+                                     "specified in testcase: %s" % \
+                                     (relation, comment))
 
     def test_all(self):
-        dic_same = NocaseDict({'doG': 'Cat', 'BuDgie': 'Fish'})
-        dic_less1 = NocaseDict({'doG': 'Cat'})
-        dic_less2 = NocaseDict({'DOg': 'Cat', 'Alf': 'Horse'})
-        dic_less3 = NocaseDict({'doG': 'Car', 'budGie': 'Fish'})
 
-        self.assertSame(dic_same, self.dic)
-        # TODO: Enable these tests to work on the dict ordering issue
-        #self.assertLess(dic_less1, self.dic)
-        #self.assertLess(dic_less2, self.dic)
-        #self.assertLess(dic_less3, self.dic)
+        # First, test our test cases against a standard Python dictionary.
+        #
+        # Based on these tests, we conclude the following behavior of
+        # standard dictionaries:
+        # - The longer dict is always greater -> done
+        # - If same size, they are compared in the order of sorted keys:
+        #   - First non-matching key determines greater or less.
+        #   - If all keys are same, first non-matching value determines greater
+        #     or less.
+
+        # The base dictionary that is used for all comparisons
+        base_dict = dict({'Budgie': 'Fish', 'Dog': 'Cat'})
+
+        # Test dictionaries to test against the base dict, as a list of
+        # tuple(dict, relation, comment), with relation being the expected
+        # comparison relation, and one of ('same', 'less', 'greater').
+        test_dicts = [
+
+            (dict({'Budgie': 'Fish', 'Dog': 'Cat'}),
+             'same',
+             'Same'),
+
+            (dict({'Budgie': 'Fish'}),
+             'less',
+             'Higher key missing, shorter size'),
+
+            (dict({'Dog': 'Cat'}),
+             'less',
+             'Lower key missing, shorter size'),
+
+            (dict({'Budgie': 'Fish', 'Curly': 'Snake', 'Cozy': 'Dog'}),
+             'greater',
+             'First non-matching key is less. But longer size!'),
+
+            (dict({'Alf': 'F', 'Anton': 'S', 'Aussie': 'D'}),
+             'greater',
+             'Only non-matching keys that are less. But longer size!'),
+
+            (dict({'Budgio': 'Fish'}),
+             'less',
+             'First non-matching key is greater. But shorter size!'),
+
+            (dict({'Zoe': 'F'}),
+             'less',
+             'Only non-matching keys that are greater. But shorter size!'),
+
+            (dict({'Budgie': 'Fish', 'Curly': 'Snake'}),
+             'less',
+             'Same size. First non-matching key is less'),
+
+            (dict({'Alf': 'F', 'Anton': 'S'}),
+             'less',
+             'Same size. Only non-matching keys that are less'),
+
+            (dict({'Zoe': 'F', 'Zulu': 'S'}),
+             'greater',
+             'Same size. Only non-matching keys that are greater'),
+
+            (dict({'Budgie': 'Fish', 'Dog': 'Car'}),
+             'less',
+             'Same size, only matching keys. First non-matching value is less'),
+
+            (dict({'Budgie': 'Fish', 'Dog': 'Caz'}),
+             'greater',
+             'Same size, only matching keys. First non-matching value is grt.'),
+        ]
+
+        self.run_test_dicts(base_dict, test_dicts)
+
+        # Then, transform these tests to NocaseDict and run them
+
+        base_ncdict = NocaseDict(base_dict)
+
+        test_ncdicts = []
+        for test_dict, relation, comment in test_dicts:
+            test_ncdict = NocaseDict()
+            for key in test_dict:
+                test_ncdict[swapcase2(key)] = test_dict[key]
+            test_ncdicts.append((test_ncdict, relation, comment))
+
+        # TODO: These tests fail because of the current ordering between
+        #       NocaseDict instances. Enable these tests to debug that.
+
+        # self.run_test_dicts(base_ncdict, test_ncdicts)
 
 class TestContains(BaseTest):
 
