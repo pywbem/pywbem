@@ -10,7 +10,7 @@ from pprint import pprint
 
 myname = os.path.basename(sys.argv[0])
 
-DEBUG = True    # Enable to get debug info
+DEBUG = False   # Enable to get debug info
 VERBOSE = True  # TODO: Pass as command line option
 
 
