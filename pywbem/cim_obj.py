@@ -2453,7 +2453,7 @@ class CIMProperty(_CIMComparisonMixin):
 
     def _scalar_val2mof(self, value_, indent):
         """ Private function to map provided value to string for
-            mof output
+            mof output. Used by property tomof().
         """
 
         if self.type == 'string':
@@ -2468,16 +2468,17 @@ class CIMProperty(_CIMComparisonMixin):
             _mof = str(value_)
         return _mof
 
-    def _array_val2mof(self, indent, single_line):
+    def _array_val2mof(self, indent, format_):
         """ Output array of values either on single line or
-            one line per value
-            :param value: Array of values to output
+            one line per value. Used by property tomof().
             :param indent: indent number of spaces of currnet
-                 indent indent level if multiple line
+                indent indent level if multiple line
+            :param format_: boolean that forces multiline
+                format If True, format each entry on single line.
         """
         mof_ = ''
 
-        sep = ', 'if single_line else ',\n' + _indent_str(indent)
+        sep = ', ' if not format_ else ',\n' + _indent_str(indent)
         for i, val_ in enumerate(self.value):
             if i > 0:
                 mof_ += sep
@@ -2500,11 +2501,11 @@ class CIMProperty(_CIMComparisonMixin):
         elif self.is_array:
             mof += '{'
             # output as single line if within width limits
-            val_tmp = self._array_val2mof(indent, True)
+            val_tmp = self._array_val2mof(indent, False)
             # If too large, redo with on array element per line
             if len(val_tmp) > (MAX_MOF_LINE - indent):
                 val_tmp = '\n' + _indent_str(indent+MOF_INDENT)
-                val_tmp += self._array_val2mof((indent+MOF_INDENT), False)
+                val_tmp += self._array_val2mof((indent+MOF_INDENT), True)
             mof += val_tmp + '}'
         else:
             mof += self._scalar_val2mof(self.value, indent)
