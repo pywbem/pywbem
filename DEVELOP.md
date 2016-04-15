@@ -25,8 +25,9 @@ repo and the `pywbem/pywbem.github.io` repo are both cloned locally in
 adjacent directories named `pywbem` and `pywbem.github.io`.
 The upstream repos are assumed to have the remote name `origin`.
 
-In the following description, `M.N.U` stands for the version that is to be
-released. It applies to v0.9.0 and above.
+The following description applies to v0.9.0 and above.
+In this description, the `master` branch is released.
+`M.N.U` stands for the version that is to be released.
 
 In the directory of the `pywbem` repo:
 
@@ -56,6 +57,7 @@ In the directory of the `pywbem` repo:
 
 5.  For a new `M.N` release, create a README file in distribution directory:
 
+    - `mkdir dist/pywbem-M.N`
     - `find dist -name README.md | sort | tail | xargs cp -t dist/pywbem-M.N/`
     - `vi dist/pywbem-M.N/README.md`
       # adjust to this release
@@ -70,11 +72,13 @@ In the directory of the `pywbem` repo:
         # If pushing the release branch for the first time
       - `git push`
         # After first time, for normal additional commit
-      - `git push -f`i
+      - `git push -f`
         # After first time, if a rebase was used
 
 7.  On Github, create a Pull Request for the target branch. This will trigger
-    the Travis CI run. **Important:** Regardless of which branch the commit was
+    the Travis CI run.
+
+    **Important:** Regardless of which branch the commit was
     based upon, Github will by default target the master branch for the merge.
     So if your base branch for this release was not `master`, change the target
     branch for the PR to be your base branch.
@@ -93,7 +97,7 @@ In the directory of the `pywbem` repo:
     - Run against a real WBEM server
 
 11. If any of the tests (including the Travis CI run of the Pull Request) fails,
-    fix and iterate back to (1) until they all succeed.
+    fix and iterate back to (4.) until they all succeed.
 
 12. Once the Travis CI run for this PR succeeds:
 
