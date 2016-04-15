@@ -30,63 +30,99 @@ released. It applies to v0.9.0 and above.
 
 In the directory of the `pywbem` repo:
 
-1.  Make sure the branch is checked out that is to be released, and that it
-    is in a git-wise clean state:
-    - `git status` - to verify checked out branch and clean state
-    - `git log` - to verify the content of this branch
-2.  Create a topic branch:
-    - `git checkout -b release_M.N.U`
+1.  Make sure the `master` branch is checked out, and that it is in a git-wise
+    clean state:
+
+    - `git checkout master`
+
+2.  Make sure the change log reflects all changes in the release:
+
+    - `vi docs/changes.rst`
+
 3.  Finalize package versions (i.e. change development version `M.N.U.dev0` to
     final version `M.N.U`):
+
     - `vi pywbem/_version.py`
     - `vi docs/changes.rst`
+
     Note: `makefile`, `setup.py` and `docs/conf.py` determine the package
     version at run time from `pywbem/_version.py`.
-4.  Make sure the change log reflects all changes in the release:
-    - `vi docs/changes.rst`
-5.  Perform a complete build (in a Python virtual environment):
+
+4.  Perform a complete build (in a Python virtual environment):
+
     - `make clobber all`
-6.  If this fails, fix and iterate back to step 5 until it succeeds.
-7.  Create a README file in distribution directory:
-    - Only if the `dist/pywbem-M.N/README.md` file does not yet exist:
-      - `find dist -name README.md | sort | tail | xargs cp -t dist/pywbem-M.N/`
-      - `vi dist/pywbem-M.N/README.md` - adjust to this release
-8.  Commit and push to upstream repo:
-    - `git commit -m "Release vM.N.U"`
-    - `git push --set-upstream origin release_M.N.U` - if branch is pushed for the first time
-    - `git push` - after first time, for normal additional commit
-    - `git push -f` - after first time, if a rebase was used
-9.  On Github, create a Pull Request for the target branch. This will trigger
+
+    If this fails, fix and iterate over this step until it succeeds.
+
+5.  For a new `M.N` release, create a README file in distribution directory:
+
+    - `find dist -name README.md | sort | tail | xargs cp -t dist/pywbem-M.N/`
+    - `vi dist/pywbem-M.N/README.md`
+      # adjust to this release
+
+6.  Commit and push to upstream repo:
+
+    - `git checkout -b release_M.N.U`
+    - `git commit -a -m "Release vM.N.U"`
+    - Push the commit upstream:
+
+      - `git push --set-upstream origin release_M.N.U`
+        # If pushing the release branch for the first time
+      - `git push`
+        # After first time, for normal additional commit
+      - `git push -f`i
+        # After first time, if a rebase was used
+
+7.  On Github, create a Pull Request for the target branch. This will trigger
     the Travis CI run. **Important:** Regardless of which branch the commit was
     based upon, Github will by default target the master branch for the merge.
     So if your base branch for this release was not `master`, change the target
     branch for the PR to be your base branch.
-10. Perform a complete test:
+
+8.  Perform a complete test:
+
     - `tox`
-11. Perform an install test:
+
+9.  Perform an install test:
+
     - `cd testsuite; ./test_install.sh`
-12. Perform any other tests you wish, e.g.
+
+10. Perform any other tests you wish, e.g.
+
     - Run in local CI environment
     - Run against a real WBEM server
-13. If any of the tests (including the Travis CI run of the Pull Request) fails,
+
+11. If any of the tests (including the Travis CI run of the Pull Request) fails,
     fix and iterate back to (1) until they all succeed.
-14. Once the Travis CI run for this PR succeeds:
+
+12. Once the Travis CI run for this PR succeeds:
+
     - Merge the PR (no review is needed)
     - Delete the PR
-15. Clean up local branches:
+
+13. Clean up local branches:
+
     - `git-prune origin` (From `andy-maier/gitsurvival`)
-16. Close milestone `M.N.U` on GitHub.
+
+14. Close milestone `M.N.U` on GitHub.
+
     Tag the release and push to upstream repo:
+
     - Create tag for M.N.U:
       - `git tag vM.N.U`
+
     - Delete preliminary M.N* tags, if any:
       - `git tag | grep "M.N"`
       - `git tag -d <tags ...>`
+
     - Push tag changes:
       - `git push --tags`
-17. On GitHub, edit the new tag, and create a release description on it. This
+
+15. On GitHub, edit the new tag, and create a release description on it. This
     will cause it to appear in the Release tab.
-18. Upload the package to PyPI:
+
+16. Upload the package to PyPI:
+
     - **Attention!!** This only works once. You cannot re-release the same
       version to PyPI.
     - `make upload`
