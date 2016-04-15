@@ -26,7 +26,7 @@ adjacent directories named `pywbem` and `pywbem.github.io`.
 The upstream repos are assumed to have the remote name `origin`.
 
 In the following description, `M.N.U` stands for the version that is to be
-released.
+released. It applies to v0.9.0 and above.
 
 In the directory of the `pywbem` repo:
 
@@ -38,15 +38,16 @@ In the directory of the `pywbem` repo:
     - `git checkout -b release_M.N.U`
 3.  Finalize package versions (i.e. change development version `M.N.U.dev0` to
     final version `M.N.U`):
-    - `vi setup.py`
-    - `vi pywbem/__init__.py`
-    - `vi pywbem/NEWS.md`
+    - `vi pywbem/_version.py`
+    - `vi docs/changes.rst`
+    Note: `makefile`, `setup.py` and `docs/conf.py` determine the package
+    version at run time from `pywbem/_version.py`.
 4.  Make sure the change log reflects all changes in the release:
-    - `vi pywbem/NEWS.md`
+    - `vi docs/changes.rst`
 5.  Perform a complete build (in a Python virtual environment):
     - `make clobber all`
 6.  If this fails, fix and iterate back to step 5 until it succeeds.
-7.  Create README file in distribution directory:
+7.  Create a README file in distribution directory:
     - Only if the `dist/pywbem-M.N/README.md` file does not yet exist:
       - `find dist -name README.md | sort | tail | xargs cp -t dist/pywbem-M.N/`
       - `vi dist/pywbem-M.N/README.md` - adjust to this release
@@ -88,11 +89,9 @@ In the directory of the `pywbem` repo:
 18. Upload the package to PyPI:
     - **Attention!!** This only works once. You cannot re-release the same
       version to PyPI.
-    - `make release`
+    - `make upload`
     - Verify that it arrived on PyPI:
       - https://pypi.python.org/pypi/pywbem/M.N.U
-19. Publish the API docs to the adjacent `pywbem.github.io` repo directory:
-    - `make publish`
 
 In the directory of the `pywbem.github.io` repo:
  
