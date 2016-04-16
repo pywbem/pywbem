@@ -238,8 +238,8 @@ clobber: clean
 .PHONY: clean
 clean:
 	find . -name "*.pyc" -delete
-	sh -c "find . -name \"__pycache__\" |xargs rm -Rf"
-	sh -c "ls -d tmp_* |xargs rm -Rf"
+	sh -c "find . -name \"__pycache__\" |xargs -r rm -Rf"
+	sh -c "ls -d tmp_* |xargs -r rm -Rf"
 	rm -f MANIFEST parser.out .coverage $(package_name)/parser.out $(test_tmp_file)
 	rm -Rf build tmp_install testtmp testsuite/testtmp .cache $(package_name).egg-info .eggs
 	@echo 'Done: Cleaned out all temporary files.'
