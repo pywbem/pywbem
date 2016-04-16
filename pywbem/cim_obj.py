@@ -2451,9 +2451,15 @@ class CIMProperty(_CIMComparisonMixin):
         """
         return tocimxmlstr(self, indent)
 
-    def _scalar_val2mof(self, value_, indent):
+    def _scalar_value2mof(self, value_, indent):
         """ Private function to map provided value to string for
-            mof output. Used by property tomof().
+            mof output. Used by CIMProperty tomof().
+
+            Parameters:
+                value_ (:term:`CIM data type`): Value to be mapped
+                to string for mof output.
+                indent (:term: `integer`): number of spaces to indent
+                the initial line of the generated mof.
         """
 
         if self.type == 'string':
@@ -2461,54 +2467,57 @@ class CIMProperty(_CIMComparisonMixin):
                 val_ = value_.tocimxml().toxml()
             else:
                 val_ = value_
-
             _mof = mofstr(val_, indent=indent)
 
         else:
             _mof = str(value_)
         return _mof
 
-    def _array_val2mof(self, indent, format_):
+    def _array_val2mof(self, indent, fold):
         """ Output array of values either on single line or
-            one line per value. Used by property tomof().
-            :param indent: indent number of spaces of currnet
-                indent indent level if multiple line
-            :param format_: boolean that forces multiline
-                format If True, format each entry on single line.
+            one line per value. Used by CIMProperty tomof().
+
+            Parameters:
+                indent (:term: `integer`): number of spaces to indent
+                the initial line of the generated mof.
+                fold (:term:`bool`): If True format as instance
+                mof. Else format as class mof.
         """
         mof_ = ''
 
-        sep = ', ' if not format_ else ',\n' + _indent_str(indent)
+        sep = ', ' if not fold else ',\n' + _indent_str(indent)
         for i, val_ in enumerate(self.value):
             if i > 0:
                 mof_ += sep
-            mof_ += self._scalar_val2mof(val_, indent)
+            mof_ += self._scalar_value2mof(val_, indent)
         return mof_
 
     def tomof(self, isInstance=True, indent=0):
         """ Return a string representing the MOF definition of
             a single property.
-            :param isInstance: if True format as instance mof property.
-                Otherise format as class property
-            :param indent: number of spaces to indent the
-                initial line of the generated mof.
+
+            Parameters:
+                isInstance (:term:`bool`): If True format as instance
+                mof. Else format as class mof.
+                indent (:term: `integer`): number of spaces to indent
+                the initial line of the generated mof.
         """
 
         mof = '%s%s = ' % (_indent_str(indent), self.name)
 
-        if self.value is None:   # this should never happen
+        if self.value is None:
             mof += 'NULL'
         elif self.is_array:
             mof += '{'
             # output as single line if within width limits
-            val_tmp = self._array_val2mof(indent, False)
+            arr_str = self._array_val2mof(indent, False)
             # If too large, redo with on array element per line
-            if len(val_tmp) > (MAX_MOF_LINE - indent):
-                val_tmp = '\n' + _indent_str(indent+MOF_INDENT)
-                val_tmp += self._array_val2mof((indent+MOF_INDENT), True)
-            mof += val_tmp + '}'
+            if len(arr_str) > (MAX_MOF_LINE - indent):
+                arr_str = '\n' + _indent_str(indent+MOF_INDENT)
+                arr_str += self._array_val2mof((indent+MOF_INDENT), True)
+            mof += arr_str + '}'
         else:
-            mof += self._scalar_val2mof(self.value, indent)
+            mof += self._scalar_value2mof(self.value, indent)
 
         mof += ';\n'
         return mof
