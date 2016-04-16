@@ -2395,6 +2395,8 @@ class CIMClassWQualToMOF(unittest.TestCase):
     """
 
     def test_all(self):
+
+        # predefine qualifiers, params
         pquals = {'ModelCorresponse': CIMQualifier('ModelCorrespondense',
                                                    'BlahBlahClass'),
                   'Description' : CIMQualifier('Description', "This is a" \
@@ -2409,17 +2411,19 @@ class CIMClassWQualToMOF(unittest.TestCase):
                                             "value3", "value4", "value5",
                                             "value6"])}
         mquals = {'Description' : CIMQualifier('Description', "blah blah")}
-        pquals = {'Description' : CIMQualifier('Description', "more blah"),
-                  'IN' : CIMQualifier('in', False)}
+
+        prquals = {'Description' : CIMQualifier('Description', "more blah"),
+                                                'IN' : CIMQualifier('in',
+                                                                    False)}
 
         params = {'Param1': CIMParameter('Param1', 'string',
-                                         qualifiers=pquals),
+                                         qualifiers=prquals),
                   'Param2': CIMParameter('Param2', 'uint32')}
         embedqual = {'Description' : CIMQualifier('Description',
                                                   "An embedded instance"),
                      'EmbeddedInstance' : CIMQualifier('EmbeddedInstance',
                                                        "My_Embedded")}
-
+        #define the target class
         cl = CIMClass(
             'CIM_Foo', superclass='CIM_Bar',
             qualifiers={'Abstract': CIMQualifier('Abstract', True),
@@ -2430,10 +2434,19 @@ class CIMClassWQualToMOF(unittest.TestCase):
             properties={'InstanceID': CIMProperty('InstanceID', None,
                                                   type='string',
                                                   qualifiers=pquals),
-                        'MyUint8': CIMProperty('MyUint8', None, type='uint8',
+                        'MyUint8': CIMProperty('MyUint8', None,
+                                               type='uint8',
                                                qualifiers=pquals),
-                        'MyUint16': CIMProperty('MyUint16', None, type='uint16',
+                        'MyUint16': CIMProperty('MyUint16', None,
+                                                type='uint16',
                                                 qualifiers=pquals2),
+                        'MyUint32': CIMProperty('MyUint32', None,
+                                                type='uint32',
+                                                qualifiers=pquals),
+                        'MyUint32Ar': CIMProperty('MyUint32Ar', None,
+                                                  type='uint32',
+                                                  is_array=True,
+                                                  qualifiers=pquals),
                         'MyEmbedded' : CIMProperty('MyEmbedded', None,
                                                    type='string',
                                                    qualifiers=embedqual)},
@@ -2463,7 +2476,23 @@ class CIMClassWQualToMOF(unittest.TestCase):
             self.fail("Invalid MOF generated. Class name line.\n"\
                       "Class: %r\n"\
                       "Generated MOF: \n%s" % (cl, clmof))
-        # TODO Expand test of output format
+
+        # search for EmbeddedInstance ("My_Embedded")]
+        s = re.search(r"\s*EmbeddedInstance\s+\(\"My_Embedded\"\)\]", clmof)
+
+        if s is None:
+            self.fail("Invalid MOF generated. EmbeddedInstance.\n"\
+                      "Class: %r\n"\
+                      "Generated MOF: \n%s" % (cl, clmof))
+
+        # search for 'string MyEmbedded;'
+        s = re.search(r"\s*string\s+MyEmbedded;", clmof)
+
+        if s is None:
+            self.fail("Invalid MOF generated. property string MyEmbedded.\n"\
+                      "Class: %r\n"\
+                      "Generated MOF: \n%s" % (cl, clmof))
+
 
 class CIMClassWoQualifiersToMof(unittest.TestCase):
     """Generate class without qualifiers and convert to mof.

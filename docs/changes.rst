@@ -82,6 +82,9 @@ Enhancements
   as a unicode string either in a single-line variant, or in a prettified
   multi-line variant.
 
+* Created tomof() for CIMProperty making common functionality available
+  to both class and instance tomof() pr # 151
+
 Bug fixes
 ^^^^^^^^^
 
