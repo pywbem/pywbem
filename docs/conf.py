@@ -79,8 +79,8 @@ def package_version(filename, varname):
     return _locals[varname]
 
 # The short X.Y version.
-# Note: We use the full version in both cases.
-version = '0.9.0.dev0'  # package_version('../pywbem/__init__.py', '__version__')
+# Note: We use the full version in both cases (e.g. 'M.N.U' or 'M.N.U.dev0').
+version = package_version('../pywbem/_version.py', '__version__')
 
 # The full version, including alpha/beta/rc tags.
 release = version
