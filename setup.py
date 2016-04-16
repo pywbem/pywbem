@@ -34,6 +34,7 @@ import sys
 import os
 import shutil
 import subprocess
+import platform
 from distutils.errors import DistutilsSetupError
 
 # Workaround for Python 2.6 issue https://bugs.python.org/issue15881
@@ -302,10 +303,10 @@ def build_moftab(verbose):
     """
     rc = subprocess.call([sys.executable, 'build_moftab.py'])
     if rc != 0:
-        # Because this does not work on pip, the best compromise is to 
+        # Because this does not work on pip, the best compromise is to
         # tolerate a failure:
-        print("Warning: build_moftab.py failed with rc=%s, PyWBEM's " \
-              "LEX/YACC table files may be re-generated on use" % rc)
+        print("Warning: build_moftab.py failed with rc=%s; the PyWBEM " \
+              "LEX/YACC table modules may be rebuilt on first use" % rc)
 
 def main():
     """Main function of this script."""
@@ -320,14 +321,14 @@ def main():
         """Custom command that extends the setuptools `build_py` command,
         which prepares the Python files before they are being installed.
         This command is used by `setup.py install` and `pip install`.
-        
+
         We use this only to pick up the verbosity level.
         """
         def run(self):
             global _VERBOSE
             _VERBOSE = self.verbose
             _build_py.run(self)
-    
+
     py_version_m_n = "%s.%s" % (sys.version_info[0], sys.version_info[1])
     py_version_m = "%s" % sys.version_info[0]
 
@@ -360,6 +361,8 @@ def main():
         'scripts': [
             'wbemcli',
             'mof_compiler',
+            'wbemcli.bat',
+            'mof_compiler.bat',
         ],
         'install_requires': [
             # These dependencies will be installed as a site package.
@@ -493,15 +496,22 @@ def main():
         # The 'install_requires' processing in distutils does not tolerate
         # a None value in the list, so we need be truly conditional (instead
         # of adding an entry with None).
+        if platform.system() == 'Windows':
+            if platform.architecture()[0] == '64bit':
+                m2crypto_req = 'M2CryptoWin64>=0.21'
+            else:
+                m2crypto_req = 'M2CryptoWin32>=0.21'
+        else:
+            m2crypto_req = 'M2Crypto>=0.24'
         args['install_requires'] += [
-            'M2Crypto>=0.24',
+            m2crypto_req,
         ]
 
     setup(**args)
-    
+
     if 'install' in sys.argv or 'develop' in sys.argv:
         build_moftab(_VERBOSE)
-    
+
     return 0
 
 if __name__ == '__main__':
