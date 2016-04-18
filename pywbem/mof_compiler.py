@@ -249,7 +249,12 @@ hexEscape = r'x[0-9a-fA-F]{1,4}'
 escapeSequence = r'[\\]((%s)|(%s))' % (simpleEscape, hexEscape)
 cChar = r"[^'\\\n\r]|(%s)" % escapeSequence
 sChar = r'[^"\\\n\r]|(%s)' % escapeSequence
-charValue = r"'%s'" % cChar
+
+charvalue_re = r"'(%s)'" % cChar
+
+@lex.TOKEN(charvalue_re)
+def t_charValue(t):
+    return t
 
 stringvalue_re = r'"(%s)*"' % sChar
 
@@ -1174,7 +1179,7 @@ def p_referenceInitializer(p):
             p[0] = p.parser.aliases[p[1]]
         except KeyError:
             ce = CIMError(CIM_ERR_FAILED,
-                          'Unknown alias: ' + p[0])
+                          'Unknown alias: ' + p[1])
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
     else:
@@ -1387,7 +1392,7 @@ def p_instanceDeclaration(p):
             raise ce
         except ValueError as ve:
             ce = CIMError(CIM_ERR_INVALID_PARAMETER,
-                          'Invalid value for property: %s: %s' % \
+                          'Invalid value for property %s: %s' % \
                           (pname, ve.message))
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
