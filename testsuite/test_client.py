@@ -98,21 +98,25 @@ def obj(value, tc_name):
        [] defines a null list
 
     """
-    if isinstance(value, dict) and "pywbem_object" in value:
-        ctor_name = value["pywbem_object"]
-        try:
-            ctor_call = getattr(pywbem, ctor_name)
-        except AttributeError:
-            raise ClientTestError("Error in definition of testcase %s: "\
-                                  "Unknown type specified in 'pywbem_object' "\
-                                  "attribute: %s" % (tc_name, ctor_name))
-        ctor_args = {}
-        for arg_name in value:
-            if arg_name == "pywbem_object":
-                continue
-            ctor_args[arg_name] = obj(value[arg_name], tc_name)
-        obj_ = ctor_call(**ctor_args)
-    # obj_ is list of objects
+    if isinstance(value, dict):
+        if "pywbem_object" in value:
+            ctor_name = value["pywbem_object"]
+            try:
+                ctor_call = getattr(pywbem, ctor_name)
+            except AttributeError:
+                raise ClientTestError("Error in definition of testcase %s: "\
+                                      "Unknown type specified in 'pywbem_object' "\
+                                      "attribute: %s" % (tc_name, ctor_name))
+            ctor_args = {}
+            for arg_name in value:
+                if arg_name == "pywbem_object":
+                    continue
+                ctor_args[arg_name] = obj(value[arg_name], tc_name)
+            obj_ = ctor_call(**ctor_args)
+        else:
+            obj_ = {}
+            for key in value:
+                obj_[key] = obj(value[key], tc_name)
     elif isinstance(value, list):
         obj_ = [obj(x, tc_name) for x in value]
     else:
@@ -472,31 +476,28 @@ class ClientTest(unittest.TestCase):
             cim_status = raised_exception.args[0]
         else:
             cim_status = 0
-        self.assertEqual(cim_status, exp_cim_status, "PyWBEM CIM status")
+        self.assertEqual(cim_status, exp_cim_status,
+                         "WBEMConnection operation CIM status code")
 
         if exp_result is not None:
             exp_result_obj = obj(exp_result, tc_name)
+
             # pylint: disable=unidiomatic-typecheck
             if type(result) != type(exp_result_obj):
-                print("result and expected result type mismatch")
-                print("result type %s" % type(result))
-                print("expected result type %s" % type(result))
+                print("Details for the following assertion error:")
+                print("- Expected result type: %s" % type(exp_result_obj))
+                print("- Actual result type: %s" % type(result))
                 raise AssertionError("PyWBEM CIM result type is not" \
                                      " as expected.")
 
             if result != exp_result_obj:
                 print("Details for the following assertion error:")
-                print("- Expected result:")
-                print("  Returned object: %r" % exp_result_obj)
-                if hasattr(exp_result_obj, "properties"):
-                    print("  Its properties: %r" % exp_result_obj.properties)
-                print("- Actual result:")
-                print("  Returned object: %r" % result)
-                if hasattr(result, "properties"):
-                    print("  Its properties: %r" % result.properties)
+                print("- Expected result: %r" % exp_result_obj)
+                print("- Actual result: %r" % result)
                 if conn.debug:
-                    print("  HTTP response data: %r" % conn.last_raw_reply)
-                raise AssertionError("PyWBEM CIM result is not as expected.")
+                    print("- HTTP response data: %r" % conn.last_raw_reply)
+                raise AssertionError("WBEMConnection operation method result " \
+                                     "is not as expected.")
         else:
             self.assertEqual(result, None, "PyWBEM CIM result")
 

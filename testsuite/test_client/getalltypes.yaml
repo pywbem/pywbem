@@ -1,0 +1,244 @@
+-
+    name: GetAllTypes1
+    description: GetInstance succeeds with instance having properties with all CIM types
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_AllTypes
+                keybindings:
+                    ID: "42"
+            LocalOnly: false
+    pywbem_response:
+        result:
+            pywbem_object: CIMInstance
+            classname: PyWBEM_AllTypes
+            properties:
+                ID: "42"
+                PString: Fritz
+                PChar16:
+                    pywbem_object: CIMProperty
+                    name: PChar16
+                    type: char16
+                    value: F
+                PUint8:
+                    pywbem_object: CIMProperty
+                    name: PUint8
+                    type: uint8
+                    value: 8
+                PUint16:
+                    pywbem_object: CIMProperty
+                    name: PUint16
+                    type: uint16
+                    value: 16
+                PUint32:
+                    pywbem_object: CIMProperty
+                    name: PUint32
+                    type: uint32
+                    value: 32
+                PUint64:
+                    pywbem_object: CIMProperty
+                    name: PUint64
+                    type: uint64
+                    value: 64
+                PSint8:
+                    pywbem_object: CIMProperty
+                    name: PSint8
+                    type: sint8
+                    value: -8
+                PSint16:
+                    pywbem_object: CIMProperty
+                    name: PSint16
+                    type: sint16
+                    value: -16
+                PSint32:
+                    pywbem_object: CIMProperty
+                    name: PSint32
+                    type: sint32
+                    value: -32
+                PSint64:
+                    pywbem_object: CIMProperty
+                    name: PSint64
+                    type: sint64
+                    value: -64
+                PReal32:
+                    pywbem_object: CIMProperty
+                    name: PReal32
+                    type: real32
+                    value: -32.1
+                PReal64:
+                    pywbem_object: CIMProperty
+                    name: PReal64
+                    type: real64
+                    value: 64.1
+                PDatetime1:
+                    pywbem_object: CIMProperty
+                    name: PDatetime1
+                    value:
+                        pywbem_object: CIMDateTime
+                        dtarg: "20160318201500.123456-060"
+                PDatetime2:
+                    pywbem_object: CIMProperty
+                    name: PDatetime2
+                    value:
+                        pywbem_object: CIMDateTime
+                        dtarg: "00001234567890.123456:000"
+                pRef1:
+                    pywbem_object: CIMProperty
+                    name: pRef1
+                    value:
+                        pywbem_object: CIMInstanceName
+                        classname: PyWBEM_End1
+                        keybindings:
+                            ID: "1"
+                pRef2:
+                    pywbem_object: CIMProperty
+                    name: pRef2
+                    value:
+                        pywbem_object: CIMInstanceName
+                        classname: PyWBEM_End2
+                        keybindings:
+                            ID: "2"
+                pEmbeddedInst:
+                    pywbem_object: CIMProperty
+                    name: pEmbeddedInst
+                    value:
+                        pywbem_object: CIMInstance
+                        classname: PyWBEM_Embedded1
+                        properties:
+                            ID: "2"
+            path:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_AllTypes
+                namespace: root/cimv2
+                keybindings:
+                    ID: "42"
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_AllTypes">
+                        <KEYBINDING NAME="ID">
+                          <KEYVALUE VALUETYPE="string">42</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>False</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetInstance">
+                    <IRETURNVALUE>
+                      <INSTANCE CLASSNAME="PyWBEM_AllTypes">
+                        <PROPERTY NAME="ID" TYPE="string">
+                          <VALUE>42</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PString" TYPE="string">
+                          <VALUE>Fritz</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PChar16" TYPE="char16">
+                          <VALUE>F</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PUint8" TYPE="uint8">
+                          <VALUE>8</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PUint16" TYPE="uint16">
+                          <VALUE>16</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PUint32" TYPE="uint32">
+                          <VALUE>32</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PUint64" TYPE="uint64">
+                          <VALUE>64</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PSint8" TYPE="sint8">
+                          <VALUE>-8</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PSint16" TYPE="sint16">
+                          <VALUE>-16</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PSint32" TYPE="sint32">
+                          <VALUE>-32</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PSint64" TYPE="sint64">
+                          <VALUE>-64</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PReal32" TYPE="real32">
+                          <VALUE>-32.1</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PReal64" TYPE="real64">
+                          <VALUE>64.1</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PDatetime1" TYPE="datetime">
+                          <VALUE>20160318201500.123456-060</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="PDatetime2" TYPE="datetime">
+                          <VALUE>00001234567890.123456:000</VALUE>
+                        </PROPERTY>
+                        <PROPERTY.REFERENCE NAME="pRef1" REFERENCECLASS="PyWBEM_End1">
+                          <VALUE.REFERENCE>
+                            <INSTANCENAME CLASSNAME="PyWBEM_End1">
+                              <KEYBINDING NAME="ID">
+                                <KEYVALUE VALUETYPE="string">1</KEYVALUE>
+                              </KEYBINDING>
+                            </INSTANCENAME>
+                          </VALUE.REFERENCE>
+                        </PROPERTY.REFERENCE>
+                        <PROPERTY.REFERENCE NAME="pRef2" REFERENCECLASS="PyWBEM_End2">
+                          <VALUE.REFERENCE>
+                            <INSTANCENAME CLASSNAME="PyWBEM_End2">
+                              <KEYBINDING NAME="ID">
+                                <KEYVALUE VALUETYPE="string">2</KEYVALUE>
+                              </KEYBINDING>
+                            </INSTANCENAME>
+                          </VALUE.REFERENCE>
+                        </PROPERTY.REFERENCE>
+                        <PROPERTY NAME="pEmbeddedInst" TYPE="string" EmbeddedObject="instance">
+                          <VALUE>
+                            &lt;INSTANCE CLASSNAME="PyWBEM_Embedded1"&gt;
+                              &lt;PROPERTY NAME="ID" TYPE="string"&gt;
+                                &lt;VALUE&gt;2&lt;/VALUE&gt;
+                              &lt;/PROPERTY&gt;
+                            &lt;/INSTANCE&gt;
+                          </VALUE>
+                        </PROPERTY>
+                      </INSTANCE>
+                    </IRETURNVALUE>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
