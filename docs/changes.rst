@@ -30,6 +30,11 @@ Clean Code
   - `test_cimxml_parse.py`
   - `twisted_client.py`
 
+* Moved the script-related portions of the `pywbem/mof_compiler.py` module
+  into the `mof_compiler` script.
+
+* Moved the complete `pywbem/wbemcli.py` module into the `wbemcli` script.
+
 Enhancements
 ^^^^^^^^^^^^
 
