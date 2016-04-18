@@ -1855,8 +1855,11 @@ class CIMClass(_CIMComparisonMixin):
         # Properties; indent one level from class definition
 
         for prop_val in self.properties.values():
-            if prop_val.is_array and prop_val.array_size is not None:
-                array_str = "[%s]" % prop_val.array_size
+            if prop_val.is_array:
+                if prop_val.array_size is not None:
+                    array_str = "[%s]" % prop_val.array_size
+                else:
+                    array_str = "[]"
             else:
                 array_str = ''
             ret_str += '\n'

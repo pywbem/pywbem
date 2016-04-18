@@ -100,7 +100,6 @@ class MOFTest(unittest.TestCase):
             search_paths=[SCHEMA_DIR], verbose=False,
             log_func=moflog)
 
-
 class TestFullSchema(MOFTest):
 
     def test_all(self):
@@ -222,6 +221,34 @@ class TestParseError(MOFTest):
         except MOFParseError as pe:
             self.assertEqual(str(pe), 'Unexpected end of file')
 
+class TestPropertyAlternatives(MOFTest):
+    """ Test compile of a class with individual property alternatives
+    """
+    def test_array_type(self):
+        """ Test compile of class with array property"""
+        mof_str = "class PyWBEM_TestArray{\n    Uint32 arrayprop[];\n};"
+        self.mofcomp.compile_string(mof_str, NAME_SPACE)
+        cl = self.mofcomp.handle.GetClass(
+            'PyWBEM_TestArray',
+            LocalOnly=False, IncludeQualifiers=True)
+        self.assertEqual(cl.properties['arrayprop'].type, 'uint32')
+        self.assertEqual(cl.properties['arrayprop'].is_array, True)
+        self.assertEqual(cl.properties['arrayprop'].array_size, None)
+
+    def test_array_type_w_size(self):
+        """ Test compile of class with array property with size"""
+        mof_str = "class PyWBEM_TestArray{\n    Uint32 arrayprop[9];\n};"
+        self.mofcomp.compile_string(mof_str, NAME_SPACE)
+        cl = self.mofcomp.handle.GetClass(
+            'PyWBEM_TestArray',
+            LocalOnly=False, IncludeQualifiers=True)
+        self.assertEqual(cl.properties['arrayprop'].type, 'uint32')
+        self.assertEqual(cl.properties['arrayprop'].is_array, True)
+        self.assertEqual(cl.properties['arrayprop'].array_size, 9)
+
+    #TODO ks apr 2016 Grow the number of functions to test property
+    #     parameter alternatives one by one.
+
 class TestRefs(MOFTest):
 
     def test_all(self):
@@ -318,7 +345,7 @@ class LexErrorToken(lex.LexToken):
     # Like lex.LexToken, we set its instance variables from outside
     pass
 
-def _test_log(msg):
+def _test_log(msg):     #pylint: disable=unused-argument
     """Our log function when testing."""
     pass
 
@@ -330,7 +357,7 @@ class BaseTestLexer(unittest.TestCase):
         self.lexer = self.mofcomp.lexer
         self.last_error_t = None  # saves 't' arg of t_error()
 
-        def test_t_error(t):
+        def test_t_error(t):  # pylint: disable=invalid-name
             """Our replacement for t_error() when testing."""
             self.last_error_t = t
             self.saved_t_error(t)
@@ -342,10 +369,10 @@ class BaseTestLexer(unittest.TestCase):
         mof_compiler.t_error = self.saved_t_error
 
     @staticmethod
-    def lex_token(type, value, lineno, lexpos):
+    def lex_token(type_, value, lineno, lexpos):
         """Return an expected LexToken."""
         tok = lex.LexToken()
-        tok.type = type
+        tok.type = type_
         tok.value = value
         tok.lineno = lineno
         tok.lexpos = lexpos

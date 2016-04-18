@@ -1199,7 +1199,7 @@ class CIMInstanceToMOF(unittest.TestCase):
                       "Generated MOF: %r" % (i, imof))
 
         # search for one property
-        s = re.search(r"\s*MyRef\s*=\s*CIM_Bar;", imof)
+        s = re.search(r"\n\s*MyRef\s*=\s*CIM_Bar;\n", imof)
         if s is None:
             self.fail("Invalid MOF generated. No MyRef.\n"\
                       "Instance: %r\n"\
@@ -2369,7 +2369,7 @@ class CIMClassToXML(ValidateTest):
                                qualifiers={'Key': CIMQualifier('Key', True)}),
                       root_elem_CIMClass)
 
-class CIMClassToMOF(unittest.TestCase):
+class CIMClassToMOF(unittest.TestCase, RegexpMixin):
 
     def test_all(self):
 
@@ -2380,14 +2380,69 @@ class CIMClassToMOF(unittest.TestCase):
 
         imof = cl.tomof()
 
-        m = re.match(
-            r"^\s*class\s+CIM_Foo\s*\{", imof)
+        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{",)
 
-        if m is None:
-            self.fail("Invalid MOF generated.\n"\
-                      "Class: %r\n"\
-                      "Generated MOF: %r" % (cl, imof))
-        #TODO improve test.
+        self.assertRegexpContains(imof, r"\s*string\s+InstanceID",)
+
+class CIMClassToMofArrayProperty(unittest.TestCase, RegexpMixin):
+    def test_ArrayDef32(self):
+
+        cl = CIMClass(
+            'CIM_Foo',
+            properties={'Uint32Array': CIMProperty('Uint32Array', None,
+                                                   type='uint32',
+                                                   is_array=True)})
+
+        imof = cl.tomof()
+
+        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
+
+        self.assertRegexpContains(imof, r"\n\s*uint32\s+Uint32Array\[];\n")
+
+    def test_ArrayDefWSize32(self):
+
+        cl = CIMClass(
+            'CIM_Foo',
+            properties={'Uint32Array': CIMProperty('Uint32Array', None,
+                                                   type='uint32',
+                                                   array_size=9,
+                                                   is_array=True)})
+        imof = cl.tomof()
+
+        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
+
+        self.assertRegexpContains(imof, r"\n\s*uint32\s+Uint32Array\[9];\n")
+
+    def test_ArrayDefStr(self):
+
+        cl = CIMClass(
+            'CIM_Foo',
+            properties={'StrArray': CIMProperty('StrArray', None,
+                                                type='string',
+                                                is_array=True)})
+
+        imof = cl.tomof()
+
+        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
+
+        self.assertRegexpContains(imof, r"\n\s*string\s+StrArray\[];\n")
+
+    def test_ArrayDefWSizeStr(self):
+
+        cl = CIMClass(
+            'CIM_Foo',
+            properties={'StrArray': CIMProperty('StrArray', None,
+                                                type='string',
+                                                array_size=111,
+                                                is_array=True)})
+        imof = cl.tomof()
+
+        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
+
+        self.assertRegexpContains(imof, r"\n\s*string\s+StrArray\[111];\n")
+
+    # TODO ks apr 16: extend this test for other alternatives for mof output
+    # of property parameters.
 
 class CIMClassWQualToMOF(unittest.TestCase):
     """Generate mof output for a a class with a qualifiers, multiple
@@ -2413,8 +2468,7 @@ class CIMClassWQualToMOF(unittest.TestCase):
         mquals = {'Description' : CIMQualifier('Description', "blah blah")}
 
         prquals = {'Description' : CIMQualifier('Description', "more blah"),
-                                                'IN' : CIMQualifier('in',
-                                                                    False)}
+                   'IN' : CIMQualifier('in', False)}
 
         params = {'Param1': CIMParameter('Param1', 'string',
                                          qualifiers=prquals),
@@ -2459,8 +2513,6 @@ class CIMClassWQualToMOF(unittest.TestCase):
             )
 
         clmof = cl.tomof()
-        # print('class\n%s' % clmof)
-        #TODO this test does not work because class is multiline test
 
         # match first line for [Abstract (True),
         m = re.match(r"^\s*\[Abstract", clmof)
@@ -2494,7 +2546,7 @@ class CIMClassWQualToMOF(unittest.TestCase):
                       "Generated MOF: \n%s" % (cl, clmof))
 
 
-class CIMClassWoQualifiersToMof(unittest.TestCase):
+class CIMClassWoQualifiersToMof(unittest.TestCase, RegexpMixin):
     """Generate class without qualifiers and convert to mof.
     """
 
@@ -2512,7 +2564,6 @@ class CIMClassWoQualifiersToMof(unittest.TestCase):
                                                type='uint8'),
                         'MyUint16': CIMProperty('MyUint16', None,
                                                 type='uint16'),
-
                        },
             methods={'Delete': CIMMethod('Delete', 'uint32'),
                      'FooMethod' : CIMMethod('FooMethod', 'uint32',
@@ -2522,22 +2573,14 @@ class CIMClassWoQualifiersToMof(unittest.TestCase):
 
         # Generate the mof. Does not really test result
         clmof = cl.tomof()
-        #print('%s' % clmof)
 
         # search for class CIM_Foo : CIM_Bar {
-        s = re.match(r"^\s*class\s+CIM_FooNoQual\s*:\s*CIM_Bar\s*\{", clmof)
-        if s is None:
-            self.fail("Invalid MOF generated. First line.\n"\
-                      "Class: %r\n"\
-                      "Generated MOF: \n%s" % (cl, clmof))
+        self.assertRegexpContains(clmof,
+                                  r"^\s*class\s+CIM_FooNoQual\s*:\s*" \
+                                  r"CIM_Bar\s*\{")
 
         # match method Delete,
-        m = re.search(r"\s*uint32\s+Delete\(\);", clmof)
-        if m is None:
-            self.fail("Invalid MOF generated. Method line\n"\
-                      "Class: %r\n"\
-                      "Generated MOF: \n%s" % (cl, clmof))
-
+        self.assertRegexpContains(clmof, r"\n\s*uint32\s+Delete\(\);\n")
 
 class InitCIMMethod(unittest.TestCase):
 
