@@ -79,6 +79,7 @@ doc_dependent_files := \
     $(doc_conf_dir)/index.rst \
     $(doc_conf_dir)/intro.rst \
     $(doc_conf_dir)/client.rst \
+    $(doc_conf_dir)/server.rst \
     $(doc_conf_dir)/listener.rst \
     $(doc_conf_dir)/compiler.rst \
     $(doc_conf_dir)/utilities.rst \
@@ -90,6 +91,8 @@ doc_dependent_files := \
     $(package_name)/cim_types.py \
     $(package_name)/mof_compiler.py \
     $(package_name)/exceptions.py \
+    $(package_name)/_listener.py \
+    $(package_name)/_server.py \
 
 # PyLint config file
 pylint_rc_file := pylint.rc
@@ -98,7 +101,7 @@ pylint_rc_file := pylint.rc
 pylint_py_files := \
     setup.py \
     os_setup.py \
-    $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
+    $(filter-out $(moftab_files), $(shell find $(package_name)/ -type f -name '*.py')) \
     $(wildcard testsuite/test*.py) \
     testsuite/validate.py \
 

@@ -357,6 +357,8 @@ def main():
             # Also, Pylint does not support Python 3.
             "astroid" if sys.version_info[0:2] == (2, 7) else None,
             "pylint" if sys.version_info[0:2] == (2, 7) else None,
+            "mock",
+            "pbr", # needed by mock
         ],
         'install_os_requires': {
             # OS-level prereqs for 'install_os' command. Handled by os_setup
