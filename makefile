@@ -90,6 +90,7 @@ doc_dependent_files := \
     $(package_name)/cim_types.py \
     $(package_name)/mof_compiler.py \
     $(package_name)/exceptions.py \
+    $(package_name)/listener/__init__.py \
 
 # PyLint config file
 pylint_rc_file := pylint.rc

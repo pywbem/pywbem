@@ -4,16 +4,22 @@
 WBEM listener API
 =================
 
-.. # TODO: This description should be moved into the irecv module once
-.. #       it is included in this documentation.
+This is an initial stab at an API for a WBEM listener.
 
-The ``irecv`` Python package is a WBEM listener (indication receiver) and is
-considered experimental at this point.
+At this point, it is likely incomplete and should be considered just an initial
+stab with the intention to discuss its definition.
 
-At this point, it is not included in the **pywbem** PyPI package, and not
-covered in this documentation.
+.. automodule:: pywbem.listener
 
-You can get it by accessing the
-`irecv directory <https://github.com/pywbem/pywbem/tree/master/irecv>`_
-of the PyWBEM Client project on GitHub.
+WBEMListener
+^^^^^^^^^^^^
+
+.. autoclass:: pywbem.listener.WBEMListener
+   :members:
+
+WBEMServer
+^^^^^^^^^^
+
+.. autoclass:: pywbem.listener.WBEMServer
+   :members:
 
