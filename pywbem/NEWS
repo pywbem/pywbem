@@ -1,9 +1,22 @@
 
-pywbem-0.8.3.dev0  2016-03-22
+pywbem-0.8.3  2016-04-15
+
+  BUG FIXES:
+
+    * To address some M2Crypto issues, upgraded to use M2Crypto >=0.24 from
+      PyPI.
+
+    * For Windows, using M2CryptoWin32/64 >=0.21 from PyPI, in order to
+      avoid the Swig-based build in Windows.
+
+    * Improved the mechanism to build the LEX/YACC table modules, so that
+      import errors for freshly installed packages (e.g. M2Crypto) no longer
+      occur.
 
   ENHANCEMENTS:
 
-    * Upgraded M2Crypto to use official 0.24.0 from PyPI.
+    * Added Windows versions of WBEM utility commands: wbemcli.bat,
+      mof_compiler.bat.
 
 
 pywbem-0.8.2  2016-03-20

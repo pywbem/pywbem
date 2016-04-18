@@ -50,7 +50,7 @@ import os_setup
 from os_setup import shell, shell_check, import_setuptools
 
 # Package version - Keep in sync with pywbem/__init__.py!
-_version = '0.8.3.dev0'  # pylint: disable=invalid-name
+_version = '0.8.3'  # pylint: disable=invalid-name
 
 def install_swig(installer, dry_run, verbose):
     """Custom installer function for `os_setup` module.
