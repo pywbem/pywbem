@@ -97,6 +97,9 @@ Bug fixes
 * Fixed bug that MOF escape sequences in strings were passed through
   unchanged, into generated MOF, by removing needless special-casing code.
 
+* fix bug with class mof generation where output was not including array
+  indicator ([]). Issue #233.
+
 pywbem v0.8.2
 -------------
 
