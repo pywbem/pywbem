@@ -47,7 +47,7 @@ class RegexpMixin(object):
         Raises:
             AssertionError if not matched
           """
-        if not re.search(pattern, text):
+        if not re.match(pattern, text):
             raise AssertionError(
                 "String text does not match regexp pattern\n"\
                 "    text:    %r\n"\
