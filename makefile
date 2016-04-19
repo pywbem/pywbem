@@ -306,7 +306,7 @@ $(test_log_file): makefile $(package_name)/*.py testsuite/*.py coveragerc
 	mv -f $(test_tmp_file) $(test_log_file)
 	@echo 'Done: Created test log file: $@'
 
-$(doc_conf_dir)/wbemcli.help.txt: wbemcli $(package_name)/wbemcli.py
+$(doc_conf_dir)/wbemcli.help.txt: wbemcli
 	./wbemcli --help >$@
 	@echo 'Done: Created wbemcli script help message file: $@'
 
