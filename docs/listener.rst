@@ -4,10 +4,7 @@
 WBEM listener API
 =================
 
-This is an initial stab at an API for a WBEM listener.
-
-At this point, it is likely incomplete and should be considered just an initial
-stab with the intention to discuss its definition.
+WIP: This is an initial stab and needs review.
 
 .. automodule:: pywbem.listener
 
@@ -16,6 +13,11 @@ WBEMListener
 
 .. autoclass:: pywbem.listener.WBEMListener
    :members:
+
+Indication callback function
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autofunction:: pywbem.listener.callback_interface
 
 WBEMServer
 ^^^^^^^^^^

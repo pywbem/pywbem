@@ -81,6 +81,7 @@ doc_dependent_files := \
     $(doc_conf_dir)/client.rst \
     $(doc_conf_dir)/listener.rst \
     $(doc_conf_dir)/compiler.rst \
+    $(doc_conf_dir)/management.rst \
     $(doc_conf_dir)/utilities.rst \
     $(doc_conf_dir)/changes.rst \
     $(package_name)/__init__.py \
@@ -91,6 +92,8 @@ doc_dependent_files := \
     $(package_name)/mof_compiler.py \
     $(package_name)/exceptions.py \
     $(package_name)/listener/__init__.py \
+    $(package_name)/management/__init__.py \
+    $(package_name)/management/namespace.py \
 
 # PyLint config file
 pylint_rc_file := pylint.rc
