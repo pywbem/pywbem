@@ -266,9 +266,12 @@ version (e.g. `0.9.4`) whose development is started.
 6.  Increase the package versions in the following files by changing the
     old final version `M.N.U-1` to the new development version `M.N.U.dev0`:
 
-    - `vi setup.py`
-    - `vi pywbem/__init__.py`
-    - `vi pywbem/NEWS`
+    - `vi pywbem/_version.py`
+    - `vi docs/changes.rst`
+
+    Note: The `makefile`, `setup.py` and `docs/conf.py` determine the package
+    version at run time from `pywbem/__init__.py`, so they do not need to be
+    updated.
 
 7.  For a new `M.N` release, create a new distribution subdirectory with a
     readme file in it:
