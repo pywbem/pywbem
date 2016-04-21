@@ -17,6 +17,10 @@ pywbem v0.9.0.dev0
 
 Released: Not yet
 
+Deprecations
+^^^^^^^^^^^^
+
+
 Clean Code
 ^^^^^^^^^^
 
