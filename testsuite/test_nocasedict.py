@@ -6,6 +6,8 @@
 from __future__ import absolute_import
 
 import unittest
+import warnings
+import six
 
 from pywbem.cim_obj import NocaseDict
 
@@ -246,14 +248,6 @@ class TestPopItem(BaseTest):
     def test_all(self):
         pass
 
-class TestEqual(BaseTest):
-
-    def test_all(self):
-        dic2 = NocaseDict({'dog': 'Cat', 'Budgie': 'Fish'})
-        self.assertTrue(self.dic == dic2)
-        dic2['Budgie'] = 'fish'
-        self.assertTrue(self.dic != dic2)
-
 # TODO: swapcase2() is also defined in test_cim_obj.py. Consolidate.
 def swapcase2(text):
     """Returns text, where every other character has been changed to swap
@@ -268,60 +262,37 @@ def swapcase2(text):
         i += 1
     return text_cs
 
-class TestComparison(BaseTest):
+class TestEqual(BaseTest):
 
-    def assertSame(self, dic1, dic2, msg):
+    def assertDictEqual(self, dic1, dic2, msg):
 
         self.assertTrue(dic1 == dic2, msg)
         self.assertFalse(dic1 != dic2, msg)
-        self.assertTrue(dic1 >= dic2, msg)
-        self.assertFalse(dic1 > dic2, msg)
-        self.assertTrue(dic1 <= dic2, msg)
-        self.assertFalse(dic1 < dic2, msg)
 
         self.assertTrue(dic2 == dic1, msg)
         self.assertFalse(dic2 != dic1, msg)
-        self.assertTrue(dic2 >= dic1, msg)
-        self.assertFalse(dic2 > dic1, msg)
-        self.assertTrue(dic2 <= dic1, msg)
-        self.assertFalse(dic2 < dic1, msg)
 
-    def assertLess(self, dic1, dic2, msg):
+    def assertDictNotEqual(self, dic1, dic2, msg):
 
         self.assertTrue(dic1 != dic2, msg)
         self.assertFalse(dic1 == dic2, msg)
-        self.assertTrue(dic1 < dic2, msg)
-        self.assertFalse(dic1 > dic2, msg)
-        self.assertTrue(dic1 <= dic2, msg)
-        self.assertFalse(dic1 >= dic2, msg)
 
         self.assertTrue(dic2 != dic1, msg)
         self.assertFalse(dic2 == dic1, msg)
-        self.assertTrue(dic2 > dic1, msg)
-        self.assertFalse(dic2 < dic1, msg)
-        self.assertTrue(dic2 >= dic1, msg)
-        self.assertFalse(dic2 <= dic1, msg)
 
     def run_test_dicts(self, base_dict, test_dicts):
 
         for test_dict, relation, comment in test_dicts:
-            if relation == 'same':
-                self.assertSame(test_dict, base_dict,
+            if relation == 'eq':
+                self.assertDictEqual(test_dict, base_dict,
                                 "Expected test_dict == base_dict:\n" \
                                 "  test case: %s\n" \
                                 "  test_dict: %r\n" \
                                 "  base_dict: %r" % \
                                 (comment, test_dict, base_dict))
-            elif relation == 'less':
-                self.assertLess(test_dict, base_dict,
-                                "Expected test_dict < base_dict:\n" \
-                                "  test case: %s\n" \
-                                "  test_dict: %r\n" \
-                                "  base_dict: %r" % \
-                                (comment, test_dict, base_dict))
-            elif relation == 'greater':
-                self.assertLess(base_dict, test_dict,
-                                "Expected test_dict > base_dict:\n" \
+            elif relation == 'ne':
+                self.assertDictNotEqual(test_dict, base_dict,
+                                "Expected test_dict != base_dict:\n" \
                                 "  test case: %s\n" \
                                 "  test_dict: %r\n" \
                                 "  base_dict: %r" % \
@@ -333,90 +304,109 @@ class TestComparison(BaseTest):
 
     def test_all(self):
 
-        # First, test our test cases against a standard Python dictionary.
-        #
-        # Based on these tests, we conclude the following behavior of
-        # standard dictionaries:
-        # - The longer dict is always greater -> done
-        # - If same size, they are compared in the order of sorted keys:
-        #   - First non-matching key determines greater or less.
-        #   - If all keys are same, first non-matching value determines greater
-        #     or less.
-
         # The base dictionary that is used for all comparisons
         base_dict = dict({'Budgie': 'Fish', 'Dog': 'Cat'})
 
         # Test dictionaries to test against the base dict, as a list of
         # tuple(dict, relation, comment), with relation being the expected
-        # comparison relation, and one of ('same', 'less', 'greater').
+        # comparison relation, and one of ('eq', 'ne').
         test_dicts = [
 
             (dict({'Budgie': 'Fish', 'Dog': 'Cat'}),
-             'same',
+             'eq',
              'Same'),
 
             (dict({'Budgie': 'Fish'}),
-             'less',
+             'ne',
              'Higher key missing, shorter size'),
 
             (dict({'Dog': 'Cat'}),
-             'less',
+             'ne',
              'Lower key missing, shorter size'),
 
             (dict({'Budgie': 'Fish', 'Curly': 'Snake', 'Cozy': 'Dog'}),
-             'greater',
+             'ne',
              'First non-matching key is less. But longer size!'),
 
             (dict({'Alf': 'F', 'Anton': 'S', 'Aussie': 'D'}),
-             'greater',
+             'ne',
              'Only non-matching keys that are less. But longer size!'),
 
             (dict({'Budgio': 'Fish'}),
-             'less',
+             'ne',
              'First non-matching key is greater. But shorter size!'),
 
             (dict({'Zoe': 'F'}),
-             'less',
+             'ne',
              'Only non-matching keys that are greater. But shorter size!'),
 
             (dict({'Budgie': 'Fish', 'Curly': 'Snake'}),
-             'less',
+             'ne',
              'Same size. First non-matching key is less'),
 
             (dict({'Alf': 'F', 'Anton': 'S'}),
-             'less',
+             'ne',
              'Same size. Only non-matching keys that are less'),
 
             (dict({'Zoe': 'F', 'Zulu': 'S'}),
-             'greater',
+             'ne',
              'Same size. Only non-matching keys that are greater'),
 
             (dict({'Budgie': 'Fish', 'Dog': 'Car'}),
-             'less',
+             'ne',
              'Same size, only matching keys. First non-matching value is less'),
 
             (dict({'Budgie': 'Fish', 'Dog': 'Caz'}),
-             'greater',
+             'ne',
              'Same size, only matching keys. First non-matching value is grt.'),
         ]
 
+        # First, run these tests against a standard dictionary to verify
+        # that the test case definitions conform to that
         self.run_test_dicts(base_dict, test_dicts)
 
-        # Then, transform these tests to NocaseDict and run them
-
+        # Then, transform these tests to NocaseDict and run them again
+        TEST_CASE_INSENSITIVITY = True
         base_ncdict = NocaseDict(base_dict)
-
         test_ncdicts = []
         for test_dict, relation, comment in test_dicts:
             test_ncdict = NocaseDict()
             for key in test_dict:
-                test_ncdict[swapcase2(key)] = test_dict[key]
+                if TEST_CASE_INSENSITIVITY:
+                    nc_key = swapcase2(key)
+                else:
+                    nc_key = key
+                test_ncdict[nc_key] = test_dict[key]
             test_ncdicts.append((test_ncdict, relation, comment))
+        self.run_test_dicts(base_ncdict, test_ncdicts)
 
-        # TODO: These tests fail because of the current ordering between
-        #       NocaseDict instances. Enable these tests to debug that.
+class TestOrdering(BaseTest):
+    """Verify that ordering comparisons between NocaseDict instances
+    issue a deprecation warning, and for Python 3, in addition the usual
+    "TypeError: unorderable types" for standard dicts."""
 
-        # self.run_test_dicts(base_ncdict, test_ncdicts)
+    def assertWarning(self, comp_str):
+        with warnings.catch_warnings(record=True) as wlist:
+            warnings.simplefilter("always")
+            if six.PY2:
+                eval(comp_str)
+            else:
+                try:
+                    eval(comp_str)
+                except TypeError as exc:
+                    assert "unorderable types" in str(exc)
+                else:
+                    self.fail("Ordering a dictionary in Python 3 did not "
+                              "raise TypeError")
+            assert len(wlist) >= 1
+            assert issubclass(wlist[-1].category, DeprecationWarning)
+            assert "deprecated" in str(wlist[-1].message)
+
+    def test_all(self):
+        self.assertWarning("self.dic < self.dic")
+        self.assertWarning("self.dic <= self.dic")
+        self.assertWarning("self.dic > self.dic")
+        self.assertWarning("self.dic >= self.dic")
 
 class TestContains(BaseTest):
 

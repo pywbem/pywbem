@@ -56,6 +56,9 @@ in a method).
 Except for the case-insensitivity of its keys, it behaves like the built-in
 :class:`py:dict`. Therefore, :class:`~pywbem.NocaseDict` is not described
 in detail in this documentation.
+
+Deprecated: In v0.9.0, support for comparing two NocaseDict instances with the
+``>``, ``>``, ``<=``, ``>=`` operators has been deprecated.
 """
 # pylint: enable=line-too-long
 # Note: When used before module docstrings, Pylint scopes the disable statement
@@ -410,28 +413,19 @@ class NocaseDict(object):
         """
         return not self == other
 
+    @staticmethod
+    def __ordering_deprecated():
+        warnings.warn(
+            "Ordering comparisons for pywbem.NocaseDict are deprecated",
+            DeprecationWarning)
+
     def __lt__(self, other):
-        """
-        Invoked when two dictionaries are compared with the `<` operator.
-
-        `self` is less than `other`, if:
-          * a key in `self` is not in `other`, or
-          * the value for a key in `self` is less than the value for that key
-            in `other`, or
-          * `self` has less key/value pairs than `other`.
-
-        The keys are looked up case-insensitively.
-        """
-        for key, self_value in self.iteritems():
-            if not key in other:
-                return True
-            other_value = other[key]
-            try:
-                if self_value < other_value:
-                    return True
-            except TypeError:
-                return True # not comparable -> return arbitrary result
-        return len(self) - len(other)
+        self.__ordering_deprecated()
+        # Delegate to the underlying standard dictionary. This will result in
+        # a case sensitive comparison, bt that will be better than the faulty
+        # algorithm that was used before. It will raise TypeError "unorderable
+        # types" in Python 3.
+        return self._data < other._data
 
     def __gt__(self, other):
         """
@@ -439,6 +433,7 @@ class NocaseDict(object):
 
         Implemented by delegating to the `<` operator.
         """
+        self.__ordering_deprecated()
         return other < self
 
     def __ge__(self, other):
@@ -447,6 +442,7 @@ class NocaseDict(object):
 
         Implemented by delegating to the `>` and `==` operators.
         """
+        self.__ordering_deprecated()
         return (self > other) or (self == other)
 
     def __le__(self, other):
@@ -455,6 +451,7 @@ class NocaseDict(object):
 
         Implemented by delegating to the `<` and `==` operators.
         """
+        self.__ordering_deprecated()
         return (self < other) or (self == other)
 
 def _intended_value(intended, unspecified, actual, name, msg):
@@ -523,33 +520,26 @@ def cmpname(name1, name2):
 
 def cmpitem(item1, item2):
     """
-    Compare two items (CIM values, or other attributes of CIM objects).
+    Compare two items (CIM values, CIM objects, or NocaseDict objects) for
+    unequality.
 
-    One or both of the items may be `None`, and `None` is considered the lowest
-    possible value.
+    Note: Support for comparing the order of the items has been removed
+    in pywbem v0.9.0.
 
-    The implementation delegates to the '==' and '<' operators of the
-    item datatypes.
+    One or both of the items may be `None`.
+
+    The implementation uses the '==' operator of the item datatypes.
 
     If value1 == value2, 0 is returned.
-    If value1 < value2, -1 is returned.
-    Otherwise, +1 is returned.
+    If value1 != value2, 1 is returned.
     """
     if item1 is None and item2 is None:
         return 0
-    if item1 is None:
-        return -1
-    if item2 is None:
+    if item1 is None or item2 is None:
         return 1
     if item1 == item2:
         return 0
-    try:
-        if item1 < item2:
-            return -1
-        else:
-            return 1
-    except TypeError:
-        return -1  # if non-orderable, return arbitrary result
+    return 1
 
 def _convert_unicode(obj):
     """
