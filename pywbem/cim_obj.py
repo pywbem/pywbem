@@ -66,6 +66,7 @@ in detail in this documentation.
 from __future__ import print_function, absolute_import
 
 from datetime import datetime, timedelta
+import warnings
 
 import six
 if six.PY2:
@@ -2814,9 +2815,9 @@ class CIMParameter(_CIMComparisonMixin):
         constructor parameter.
 
       value:
-        This variable has no meaning; the object represents only
-        parameter declarations, but not parameter values in method
-        invocations. Parameter declarations do not have a default value.
+        Deprecated: Because the object represents a parameter declaration,
+        this attribute does not make any sense. Accessing it will issue
+        a :term:`DeprecationWarning`.
     """
 
     # pylint: disable=too-many-arguments
@@ -2868,9 +2869,9 @@ class CIMParameter(_CIMComparisonMixin):
             `None` is interpreted as an empty dictionary.
 
           value:
-            This parameter has no meaning; the object represents only
-            parameter declarations, but not parameter values in method
-            invocations. Parameter declarations do not have a default value.
+            Deprecated: Because the object represents a parameter declaration,
+            this parameter does not make any sense. Specifying a value other
+            than `None` will issue a :term:`DeprecationWarning`.
         """
 
         type_ = type  # Minimize usage of the builtin 'type'
@@ -2881,8 +2882,25 @@ class CIMParameter(_CIMComparisonMixin):
         self.is_array = is_array
         self.array_size = array_size
         self.qualifiers = NocaseDict(qualifiers)
-        self.value = _ensure_unicode(value)
-        # TODO 2016-03 AM: The code above assumes value is a string
+        if value is not None:
+            warnings.warn(
+                "The value parameter of CIMParameter is deprecated",
+                DeprecationWarning)
+        self._value = value
+
+    @property
+    def value(self):
+        warnings.warn(
+            "The value attribute of CIMParameter is deprecated",
+            DeprecationWarning)
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        warnings.warn(
+            "The value attribute of CIMParameter is deprecated",
+            DeprecationWarning)
+        self._value = value
 
     def _cmp(self, other):
         """
