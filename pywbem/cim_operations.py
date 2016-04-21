@@ -82,6 +82,7 @@ import re
 from datetime import datetime, timedelta
 from xml.dom import minidom
 from xml.parsers.expat import ExpatError
+import warnings
 
 import six
 
@@ -607,13 +608,22 @@ class WBEMConnection(object):
         This is a low-level method that is used by the operation-specific
         methods of this class
         (e.g. :meth:`~pywbem.WBEMConnection.EnumerateInstanceNames`).
-        Users should call these operation-specific methods instead of this
-        method.
-
         This method is not part of the external WBEM client library API; it is
         being included in the documentation only for tooling reasons.
-        For compatibility reasons, it has not been renamed to become a private
-        member.
+
+        Deprecated: Calling this function directly has been deprecated and
+        will issue a :term:`DeprecationWarning`.
+        Users should call the operation-specific methods instead of this
+        method.
+        """
+        warnings.warn(
+            "Calling imethodcall() directly is deprecated",
+            DeprecationWarning)
+        return self._imethodcall(methodname, namespace, **params)
+
+    def _imethodcall(self, methodname, namespace, **params):
+        """
+        Perform an intrinsic CIM-XML operation.
         """
 
         # Create HTTP headers
@@ -756,18 +766,26 @@ class WBEMConnection(object):
 
         return tup_tree
 
-    # pylint: disable=invalid-name
     def methodcall(self, methodname, localobject, Params=None, **params):
         """
         This is a low-level method that is used by the
         :meth:`~pywbem.WBEMConnection.InvokeMethod` method of this class.
-        Users should call :meth:`~pywbem.WBEMConnection.InvokeMethod` instead
-        of this method.
-
         This method is not part of the external WBEM client library API; it is
         being included in the documentation only for tooling reasons.
-        For compatibility reasons, it has not been renamed to become a private
-        member.
+
+        Deprecated: Calling this function directly has been deprecated and
+        will issue a :term:`DeprecationWarning`.
+        Users should call :meth:`~pywbem.WBEMConnection.InvokeMethod` instead
+        of this method.
+        """
+        warnings.warn(
+            "Calling methodcall() directly is deprecated",
+            DeprecationWarning)
+        return self._methodcall(methodname, localobject, Params, **params)
+
+    def _methodcall(self, methodname, localobject, Params=None, **params):
+        """
+        Perform an extrinsic CIM-XML method call.
         """
 
         # METHODCALL only takes a LOCALCLASSPATH or LOCALINSTANCEPATH
@@ -1092,7 +1110,7 @@ class WBEMConnection(object):
         namespace = self._iparam_namespace_from(namespace)
         classname = self._iparam_classname(ClassName)
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'EnumerateInstanceNames',
             namespace,
             ClassName=classname,
@@ -1216,7 +1234,7 @@ class WBEMConnection(object):
         namespace = self._iparam_namespace_from(namespace)
         classname = self._iparam_classname(ClassName)
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'EnumerateInstances',
             namespace,
             ClassName=classname,
@@ -1320,7 +1338,7 @@ class WBEMConnection(object):
         namespace = self._iparam_namespace_from(InstanceName)
         instancename = self._iparam_instancename(InstanceName)
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'GetInstance',
             namespace,
             InstanceName=instancename,
@@ -1410,7 +1428,7 @@ class WBEMConnection(object):
         instance = ModifiedInstance.copy()
         instance.path.namespace = None
 
-        self.imethodcall(
+        self._imethodcall(
             'ModifyInstance',
             namespace,
             ModifiedInstance=instance,
@@ -1471,7 +1489,7 @@ class WBEMConnection(object):
         instance = NewInstance.copy()
         instance.path = None
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'CreateInstance',
             namespace,
             NewInstance=instance,
@@ -1513,7 +1531,7 @@ class WBEMConnection(object):
         namespace = self._iparam_namespace_from(InstanceName)
         instancename = self._iparam_instancename(InstanceName)
 
-        self.imethodcall(
+        self._imethodcall(
             'DeleteInstance',
             namespace,
             InstanceName=instancename,
@@ -1607,7 +1625,7 @@ class WBEMConnection(object):
         namespace = self._iparam_namespace_from(ObjectName)
         objectname = self._iparam_objectname(ObjectName)
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'AssociatorNames',
             namespace,
             ObjectName=objectname,
@@ -1737,7 +1755,7 @@ class WBEMConnection(object):
         namespace = self._iparam_namespace_from(ObjectName)
         objectname = self._iparam_objectname(ObjectName)
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'Associators',
             namespace,
             ObjectName=objectname,
@@ -1827,7 +1845,7 @@ class WBEMConnection(object):
         namespace = self._iparam_namespace_from(ObjectName)
         objectname = self._iparam_objectname(ObjectName)
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'ReferenceNames',
             namespace,
             ObjectName=objectname,
@@ -1943,7 +1961,7 @@ class WBEMConnection(object):
         namespace = self._iparam_namespace_from(ObjectName)
         objectname = self._iparam_objectname(ObjectName)
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'References',
             namespace,
             ObjectName=objectname,
@@ -2061,7 +2079,7 @@ class WBEMConnection(object):
 
         # Make the method call
 
-        result = self.methodcall(MethodName, obj, Params, **params)
+        result = self._methodcall(MethodName, obj, Params, **params)
 
         # Convert optional RETURNVALUE into a Python object
 
@@ -2139,7 +2157,7 @@ class WBEMConnection(object):
 
         namespace = self._iparam_namespace_from(namespace)
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'ExecQuery',
             namespace,
             QueryLanguage=QueryLanguage,
@@ -2228,7 +2246,7 @@ class WBEMConnection(object):
         namespace = self._iparam_namespace_from(namespace)
         classname = self._iparam_classname(ClassName)
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'EnumerateClassNames',
             namespace,
             ClassName=classname,
@@ -2340,7 +2358,7 @@ class WBEMConnection(object):
         namespace = self._iparam_namespace_from(namespace)
         classname = self._iparam_classname(ClassName)
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'EnumerateClasses',
             namespace,
             ClassName=classname,
@@ -2439,7 +2457,7 @@ class WBEMConnection(object):
         namespace = self._iparam_namespace_from(namespace)
         classname = self._iparam_classname(ClassName)
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'GetClass',
             namespace,
             ClassName=classname,
@@ -2497,7 +2515,7 @@ class WBEMConnection(object):
         klass = ModifiedClass.copy()
         klass.path = None
 
-        self.imethodcall(
+        self._imethodcall(
             'ModifyClass',
             namespace,
             ModifiedClass=klass,
@@ -2546,7 +2564,7 @@ class WBEMConnection(object):
         klass = NewClass.copy()
         klass.path = None
 
-        self.imethodcall(
+        self._imethodcall(
             'CreateClass',
             namespace,
             NewClass=klass,
@@ -2592,7 +2610,7 @@ class WBEMConnection(object):
         namespace = self._iparam_namespace_from(namespace)
         classname = self._iparam_classname(ClassName)
 
-        self.imethodcall(
+        self._imethodcall(
             'DeleteClass',
             namespace,
             ClassName=classname,
@@ -2641,7 +2659,7 @@ class WBEMConnection(object):
 
         namespace = self._iparam_namespace_from(namespace)
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'EnumerateQualifiers',
             namespace,
             **extra)
@@ -2696,7 +2714,7 @@ class WBEMConnection(object):
 
         namespace = self._iparam_namespace_from(namespace)
 
-        result = self.imethodcall(
+        result = self._imethodcall(
             'GetQualifier',
             namespace,
             QualifierName=QualifierName,
@@ -2745,7 +2763,7 @@ class WBEMConnection(object):
 
         namespace = self._iparam_namespace_from(namespace)
 
-        unused_result = self.imethodcall(
+        unused_result = self._imethodcall(
             'SetQualifier',
             namespace,
             QualifierDeclaration=QualifierDeclaration,
@@ -2789,7 +2807,7 @@ class WBEMConnection(object):
 
         namespace = self._iparam_namespace_from(namespace)
 
-        unused_result = self.imethodcall(
+        unused_result = self._imethodcall(
             'DeleteQualifier',
             namespace,
             QualifierName=QualifierName,
