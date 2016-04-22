@@ -60,6 +60,55 @@ The ``pywbem`` PyPI package is supported in these environments:
 OS X has not been tested and is therefore not listed, above. You are welcome to
 try it out and `report any issues <https://github.com/pywbem/pywbem/issues>`_.
 
+.. _`Deprecation policy`:
+
+Deprecation policy
+------------------
+
+Since its v0.7.0, the ``pywbem`` package attempts to be as backwards compatible
+as possible.
+
+However, in an attempt to clean up some of its history, and in order to prepare
+for future additions, the Python namespaces visible to users of ``pywbem`` need
+to be cleaned up.
+
+Also, occasionally functionality needs to be retired, because it is flawed and
+a better but incompatible replacement has emerged.
+
+In ``pywbem``, such changes are done by deprecating existing functionality,
+without removing it. The deprecated functionality is still supported throughout
+new minor releases. Eventually, a new major release will break compatibility and
+will remove the deprecated functionality.
+
+In order to prepare users of ``pywbem`` for that, deprecation of functionality
+is stated in the API documentation, and is made visible at runtime by issuing
+Python warnings of type ``DeprecationWarning`` (see the Python
+:mod:`py:warnings` module).
+
+Since Python 2.7, ``DeprecationWarning`` messages are suppressed by default.
+They can be shown for example in any of these ways:
+
+* By specifying the Python command line option: ``-W default``
+* By invoking Python with the environment variable: ``PYTHONWARNINGS=default``
+
+It is recommended that users of ``pywbem`` run their test code with
+``DeprecationWarning`` messages being shown, so they become aware of any use of
+deprecated functionality in ``pywbem``.
+
+Here is a summary of the deprecation and compatibility policy used by
+``pywbem``, by release type:
+
+* New update release (M.N.U -> M.N.U+1): No new deprecations; fully backwards
+  compatible.
+* New minor release (M.N.U -> M.N+1.0): New deprecations may be added; as
+  backwards compatible as possible.
+* New major release (M.N.U -> M+1.0.0): Deprecated functionality may get
+  removed; backwards compatibility may be broken.
+
+Compatibility is always seen from the perspective of the user of ``pywbem``, so
+a backwards compatible new ``pywbem`` release means that the user can safely
+upgrade to that new release without encountering compatibility issues.
+
 .. _'Special type names`:
 
 Special type names
@@ -93,6 +142,11 @@ This documentation uses a few special terms to refer to Python types:
       a type for callable objects (e.g. a function, calling a class returns a
       new instance, instances are callable if they have a
       :meth:`~py:object.__call__` method).
+
+   DeprecationWarning
+      a standard Python warning that indicates a deprecated functionality.
+      See section `Deprecation policy`_ and the standard Python module
+      :mod:`py:warnings` for details.
 
    Element
       class ``xml.dom.minidom.Element``. Its methods are described in section
