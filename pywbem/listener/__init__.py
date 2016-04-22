@@ -1,44 +1,46 @@
 """
 WBEM listener API.
 
-Requirements for the WBEM listener API:
+.. note::
 
-* Must support an easy way for applications to subscribe for indications, and
-  to get the corresponding indications.
+   Requirements for the WBEM listener API:
 
-* Subscriptions from one "application" must be independent from subscriptions
-  by another application, so that each application has its own scope and can
-  manage its own subscriptions independently.
+   * Must support an easy way for applications to subscribe for indications, and
+     to get the corresponding indications.
 
-* Must be able to start and stop the listener service.
+   * Subscriptions from one "application" must be independent from subscriptions
+     by another application, so that each application has its own scope and can
+     manage its own subscriptions independently.
 
-* The listener service should have a simple default way to be run (e.g. as a
-  thread) but should also be integrateable into external service frameworks.
+   * Must be able to start and stop the listener service.
 
-* Must support multiple WBEM servers.
+   * The listener service should have a simple default way to be run (e.g. as a
+     thread) but should also be integrateable into external service frameworks.
 
-Design:
+   * Must support multiple WBEM servers.
 
-* An "application" is a Python process.
+.. note::
 
-* Each Python process has the listener demon included in the form of a thread.
+   Design notes:
 
-  - That automatically results in each application having its own scope of 
-    managing subcriptions.
-  - On the downside, the price for that is that two Python processes on the
-    same client system that subscribe for the same set of indications get
-    them delivered bythe WBEM server once for each of them.
-  - Another downside is that each such listener demon occupies one port
-    (or set of ports) on the client system.
-  - However, it is probably rare to have multiple applications interested
-    in indications on the same system.
+   * An "application" is a Python process.
 
-* Indications are communicated to the subscribing application:
+   * Each Python process has the listener demon included in the form of a thread.
 
-  - By callback function
-  - Other mechanisms are left for the future (e.g. some event notification)
+     - That automatically results in each application having its own scope of 
+       managing subcriptions.
+     - On the downside, the price for that is that two Python processes on the
+       same client system that subscribe for the same set of indications get
+       them delivered bythe WBEM server once for each of them.
+     - Another downside is that each such listener demon occupies one port
+       (or set of ports) on the client system.
+     - However, it is probably rare to have multiple applications interested
+       in indications on the same system.
 
-End of design notes
+   * Indications are communicated to the subscribing application:
+
+     - By callback function
+     - Other mechanisms are left for the future (e.g. some event notification)
 
 Example
 -------

@@ -4,7 +4,9 @@
 WBEM listener API
 =================
 
-WIP: This is an initial stab and needs review.
+.. note::
+
+   WIP: This is an initial stab and needs review.
 
 .. automodule:: pywbem.listener
 
