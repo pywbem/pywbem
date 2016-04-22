@@ -20,6 +20,9 @@ Released: Not yet
 Deprecations
 ^^^^^^^^^^^^
 
+* Deprecated the use of the `value` instance variable and ctor parameter
+  of the `CIMParameter` class, because that class represents CIM parameter
+  declarations, which do not have a default value.
 
 Clean Code
 ^^^^^^^^^^
