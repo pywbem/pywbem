@@ -460,15 +460,20 @@ class ClientTest(unittest.TestCase):
                             "HTTP request is empty")
             exp_verb = tc_getattr(tc_name, exp_http_request, "verb")
             self.assertEqual(http_request.method, exp_verb,
-                             "verb in HTTP request")
+                             "Verb in HTTP request is: %s (expected: %s)" % \
+                             (http_request.method, exp_verb))
             exp_headers = tc_getattr(tc_name, exp_http_request, "headers", {})
             for header_name in exp_headers:
                 self.assertEqual(http_request.headers[header_name],
                                  exp_headers[header_name],
-                                 "headers in HTTP request")
+                                 "Value of %s header in HTTP request is: %s " \
+                                 "(expected: %s)" % \
+                                 (header_name,
+                                  http_request.headers[header_name],
+                                  exp_headers[header_name]))
             exp_data = tc_getattr(tc_name, exp_http_request, "data", None)
             self.assertXMLEqual(http_request.body, exp_data,
-                                "data in HTTP request")
+                                "Unexpected CIM-XML payload in HTTP request")
 
         # Continue with validating the result
 
