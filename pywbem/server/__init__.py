@@ -51,8 +51,9 @@ class WBEMServer(object):
     INTEROP_NAMESPACES = [
         'interop',
         'root/interop',
-        '/interop',
-        '/root/interop',
+        # TODO: Disabled namespace names with leading slash; see issue #255
+        # '/interop',   
+        # '/root/interop',
         'root/PG_Interop',
     ]
 
