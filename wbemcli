@@ -496,7 +496,7 @@ def EnumerateClassNames(ns=None, cn=None, di=None):
     """
 
     return CONN.EnumerateClassNames(ns,
-                                    ClassName=ns,
+                                    ClassName=cn,
                                     DeepInheritance=di)
 
 
