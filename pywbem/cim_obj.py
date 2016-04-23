@@ -325,8 +325,10 @@ class NocaseDict(object):
     # Other stuff
 
     def __repr__(self):
-        """Return a string representation of the `NocaseDict`_ object that is
-        suitable for debugging."""
+        """
+        Return a string representation of the `NocaseDict`_ object that is
+        suitable for debugging.
+        """
 
         items = ', '.join([('%r: %r' % (key, value))
                            for key, value in sorted(self.iteritems())])
@@ -606,12 +608,16 @@ def _ensure_bytes(obj):
     return obj
 
 def _makequalifiers(qualifiers, indent):
-    """Return a MOF fragment for a NocaseDict of qualifiers indented
-       the number of spaces defined by indent. Return empty string
-       if no qualifiers. Normally multiline output and may fold
-       qualifiers into multiple lines.
-       :param qualifiers: list of qualifiers to format
-       :param indent: Indent level for this set of qualifiers.
+    """
+    Return a MOF fragment for a NocaseDict of qualifiers indented the
+    number of spaces defined by indent. Return empty string if no qualifiers.
+    Normally multiline output and may fold qualifiers into multiple lines.
+
+    Parameters:
+
+      qualifiers (list): List of qualifiers to format.
+
+      indent (:term:`integer): Indent level for this set of qualifiers.
     """
 
     if len(qualifiers) == 0:
@@ -621,8 +627,9 @@ def _makequalifiers(qualifiers, indent):
         join([q.tomof(indent+2) for q in sorted(qualifiers.values())]))
 
 def _indent_str(indent):
-    """ Return a MOF indent pad string from the indent integer variable
-        that defines number of spaces to indent. Used to format mof output
+    """
+    Return a MOF indent pad string from the indent integer variable
+    that defines number of spaces to indent. Used to format MOF output
     """
     return ' '.ljust(indent, ' ')
 
@@ -770,7 +777,9 @@ def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
     return ret_str
 
 def moftype(cim_type, refclass):
-    """Converts a CIM data type name to MOF syntax."""
+    """
+    Converts a CIM data type name to MOF syntax.
+    """
 
     return (refclass + ' REF') if cim_type == 'reference' else cim_type
 
@@ -879,7 +888,8 @@ class CIMInstanceName(_CIMComparisonMixin):
                 cmpitem(self.keybindings, other.keybindings))
 
     def __str__(self):
-        """Return the untyped WBEM URI of the CIM instance path represented
+        """
+        Return the untyped WBEM URI of the CIM instance path represented
         by the :class:`~pywbem.CIMInstanceName` object.
 
         The returned WBEM URI is consistent with :term:`DSP0207`.
@@ -912,9 +922,11 @@ class CIMInstanceName(_CIMComparisonMixin):
         return ret_str[:-1]
 
     def __repr__(self):
-        """Return a string representation of the
+        """
+        Return a string representation of the
         :class:`~pywbem.CIMInstanceName` object that is suitable for
-        debugging."""
+        debugging.
+        """
 
         return '%s(classname=%r, keybindings=%r, ' \
                'namespace=%r, host=%r)' % \
@@ -940,7 +952,8 @@ class CIMInstanceName(_CIMComparisonMixin):
         return six.iterkeys(self.keybindings)
 
     def copy(self):
-        """Return a copy of the :class:`~pywbem.CIMInstanceName` object.
+        """
+        Return a copy of the :class:`~pywbem.CIMInstanceName` object.
         """
 
         result = CIMInstanceName(self.classname)
@@ -951,52 +964,70 @@ class CIMInstanceName(_CIMComparisonMixin):
         return result
 
     def update(self, *args, **kwargs):
-        """Add the named arguments and keyword arguments to the keybindings,
-        updating the values of those that already exist."""
+        """
+        Add the named arguments and keyword arguments to the keybindings,
+        updating the values of those that already exist.
+        """
         self.keybindings.update(*args, **kwargs)
 
     def has_key(self, key):
-        """Return a boolean indicating whether the instance path has a
-        keybinding with name `key`."""
+        """
+        Return a boolean indicating whether the instance path has a
+        keybinding with name `key`.
+        """
         return key in self.keybindings
 
     def get(self, key, default=None):
-        """Return the value of the keybinding with name `key`, or a default
-        value if a keybinding with that name does not exist."""
+        """
+        Return the value of the keybinding with name `key`, or a default
+        value if a keybinding with that name does not exist.
+        """
         return self.keybindings.get(key, default)
 
     def keys(self):
-        """Return a copied list of the keybinding names (in their original
-        lexical case)."""
+        """
+        Return a copied list of the keybinding names (in their original
+        lexical case).
+        """
         return self.keybindings.keys()
 
     def values(self):
-        """Return a copied list of the keybinding values."""
+        """
+        Return a copied list of the keybinding values.
+        """
         return self.keybindings.values()
 
     def items(self):
-        """Return a copied list of the keybindings, where each item is a tuple
-        of its keybinding name (in the original lexical case) and its value."""
+        """
+        Return a copied list of the keybindings, where each item is a tuple
+        of its keybinding name (in the original lexical case) and its value.
+        """
         return self.keybindings.items()
 
     def iterkeys(self):
-        """Iterate through the keybinding names (in their original lexical
-        case)."""
+        """
+        Iterate through the keybinding names (in their original lexical case).i
+        """
         return self.keybindings.iterkeys()
 
     def itervalues(self):
-        """Iterate through the keybinding values."""
+        """
+        Iterate through the keybinding values.
+        """
         return self.keybindings.itervalues()
 
     def iteritems(self):
-        """Iterate through the keybindings, where each item is a tuple of the
+        """
+        Iterate through the keybindings, where each item is a tuple of the
         keybinding name (in the original lexical case) and the keybinding
-        value."""
+        value.
+        """
         return self.keybindings.iteritems()
 
     # pylint: disable=too-many-branches
     def tocimxml(self):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMInstanceName` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
@@ -1107,7 +1138,8 @@ class CIMInstanceName(_CIMComparisonMixin):
         return instancename_xml
 
     def tocimxmlstr(self, indent=None):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMInstanceName` object, as a :term:`unicode string`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
@@ -1256,15 +1288,19 @@ class CIMInstance(_CIMComparisonMixin):
                 cmpitem(self.qualifiers, other.qualifiers))
 
     def __str__(self):
-        """Return a short string representation of the
-        :class:`~pywbem.CIMInstance` object for human consumption."""
+        """
+        Return a short string representation of the
+        :class:`~pywbem.CIMInstance` object for human consumption.
+        """
 
         return '%s(classname=%r, path=%r, ...)' % \
                (self.__class__.__name__, self.classname, self.path)
 
     def __repr__(self):
-        """Return a string representation of the
-        :class:`~pywbem.CIMInstance` object that is suitable for debugging."""
+        """
+        Return a string representation of the :class:`~pywbem.CIMInstance`
+        object that is suitable for debugging.
+        """
 
         return '%s(classname=%r, path=%r, ' \
                'properties=%r, property_list=%r' \
@@ -1317,7 +1353,9 @@ class CIMInstance(_CIMComparisonMixin):
         return six.iterkeys(self.properties)
 
     def copy(self):
-        """Return copy of the :class:`~pywbem.CIMInstance` object."""
+        """
+        Return copy of the :class:`~pywbem.CIMInstance` object.
+        """
 
         result = CIMInstance(self.classname)
         result.properties = self.properties.copy()
@@ -1328,8 +1366,10 @@ class CIMInstance(_CIMComparisonMixin):
         return result
 
     def update(self, *args, **kwargs):
-        """Add the named arguments and keyword arguments to the properties,
-        updating the values of those that already exist."""
+        """
+        Add the named arguments and keyword arguments to the properties,
+        updating the values of those that already exist.
+        """
 
         for mapping in args:
             if hasattr(mapping, 'items'):
@@ -1342,8 +1382,10 @@ class CIMInstance(_CIMComparisonMixin):
             self[key] = value
 
     def update_existing(self, *args, **kwargs):
-        """Update the values of already existing properties from the named
-        arguments and keyword arguments."""
+        """
+        Update the values of already existing properties from the named
+        arguments and keyword arguments.
+        """
 
         for mapping in args:
             if hasattr(mapping, 'items'):
@@ -1368,49 +1410,65 @@ class CIMInstance(_CIMComparisonMixin):
             prop.value = tocimobj(prop.type, value)
 
     def has_key(self, key):
-        """Return a boolean indicating whether the instance has a property
-        with name `key`."""
+        """
+        Return a boolean indicating whether the instance has a property with
+        name `key`.
+        """
         return key in self.properties
 
     def get(self, key, default=None):
-        """Return the value of the property with name `key`, or a default
-        value if a property with that name does not exist."""
+        """
+        Return the value of the property with name `key`, or a default value if
+        a property with that name does not exist.
+        """
         prop = self.properties.get(key, None)
         return default if prop is None else prop.value
 
     def keys(self):
-        """Return a copied list of the property names (in their original
-        lexical case)."""
+        """
+        Return a copied list of the property names (in their original lexical
+        case).
+        """
         return self.properties.keys()
 
     def values(self):
-        """Return a copied list of the property values."""
+        """
+        Return a copied list of the property values.
+        """
         return [v.value for v in self.properties.values()]
 
     def items(self):
-        """Return a copied list of the properties, where each item is a tuple
+        """
+        Return a copied list of the properties, where each item is a tuple
         of the property name (in the original lexical case) and the property
-        value."""
+        value.
+    """
         return [(key, v.value) for key, v in self.properties.items()]
 
     def iterkeys(self):
-        """Iterate through the property names (in their original lexical
-        case)."""
+        """
+        Iterate through the property names (in their original lexical
+        case).
+    """
         return self.properties.iterkeys()
 
     def itervalues(self):
-        """Iterate through the property values."""
+        """
+    Iterate through the property values.
+    """
         for _, val in self.properties.iteritems():
             yield val.value
 
     def iteritems(self):
-        """Iterate through the property names (in their original lexical
-        case)."""
+        """
+        Iterate through the property names (in their original lexical case).
+        """
         for key, val in self.properties.iteritems():
             yield (key, val.value)
 
     def tocimxml(self):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMInstance` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
@@ -1442,7 +1500,8 @@ class CIMInstance(_CIMComparisonMixin):
                                            instance_xml)
 
     def tocimxmlstr(self, indent=None):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMInstance` object, as a :term:`unicode string`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
@@ -1549,8 +1608,9 @@ class CIMClassName(_CIMComparisonMixin):
         self.namespace = namespace
 
     def copy(self):
-        """Return a copy the :class:`~pywbem.CIMClassName` object"""
-
+        """
+        Return a copy the :class:`~pywbem.CIMClassName` object.
+        """
         return CIMClassName(self.classname, host=self.host,
                             namespace=self.namespace)
 
@@ -1574,7 +1634,8 @@ class CIMClassName(_CIMComparisonMixin):
                 cmpname(self.classname, other.classname))
 
     def __str__(self):
-        """Return the untyped WBEM URI of the CIM class path represented by the
+        """
+        Return the untyped WBEM URI of the CIM class path represented by the
         :class:`~pywbem.CIMClassName` object.
 
         The returned WBEM URI is consistent with :term:`DSP0207`.
@@ -1593,16 +1654,18 @@ class CIMClassName(_CIMComparisonMixin):
         return ret_str
 
     def __repr__(self):
-        """Return a string representation of the :class:`~pywbem.CIMClassName`
-        object that is suitable for debugging."""
-
+        """
+        Return a string representation of the :class:`~pywbem.CIMClassName`
+        object that is suitable for debugging.
+        """
         return '%s(classname=%r, namespace=%r, ' \
                'host=%r)' % \
                (self.__class__.__name__, self.classname, self.namespace,
                 self.host)
 
     def tocimxml(self):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMClassName` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
@@ -1634,7 +1697,8 @@ class CIMClassName(_CIMComparisonMixin):
         return cim_xml.CLASSNAME(self.classname)
 
     def tocimxmlstr(self, indent=None):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMClassName` object, as a :term:`unicode string`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
@@ -1659,7 +1723,8 @@ class CIMClassName(_CIMComparisonMixin):
 
 
 class CIMClass(_CIMComparisonMixin):
-    """A CIM class.
+    """
+    A CIM class.
 
     Attributes:
 
@@ -1767,15 +1832,19 @@ class CIMClass(_CIMComparisonMixin):
                 cmpitem(self.methods, other.methods))
 
     def __str__(self):
-        """Return a short string representation of the
-        :class:`~pywbem.CIMClass` object for human consumption."""
+        """
+        Return a short string representation of the
+        :class:`~pywbem.CIMClass` object for human consumption.
+    """
 
         return '%s(classname=%r, ...)' % \
                (self.__class__.__name__, self.classname)
 
     def __repr__(self):
-        """Return a string representation of the :class:`~pywbem.CIMClass`
-        object that is suitable for debugging."""
+        """
+        Return a string representation of the :class:`~pywbem.CIMClass`
+        object that is suitable for debugging.
+    """
 
         return '%s(classname=%r, superclass=%r, ' \
                'properties=%r, methods=%r, qualifiers=%r)' % \
@@ -1783,7 +1852,9 @@ class CIMClass(_CIMComparisonMixin):
                 self.properties, self.methods, self.qualifiers)
 
     def copy(self):
-        """Return a copy of the :class:`~pywbem.CIMClass` object."""
+        """
+        Return a copy of the :class:`~pywbem.CIMClass` object.
+        """
         result = CIMClass(self.classname)
         result.properties = self.properties.copy()
         result.methods = self.methods.copy()
@@ -1793,13 +1864,13 @@ class CIMClass(_CIMComparisonMixin):
         return result
 
     def tocimxml(self):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMClass` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
-
         return cim_xml.CLASS(
             self.classname,
             properties=[p.tocimxml() for p in self.properties.values()],
@@ -1808,7 +1879,8 @@ class CIMClass(_CIMComparisonMixin):
             superclass=self.superclass)
 
     def tocimxmlstr(self, indent=None):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMClass` object, as a :term:`unicode string`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
@@ -2318,8 +2390,9 @@ class CIMProperty(_CIMComparisonMixin):
         self.embedded_object = embedded_object
 
     def copy(self):
-        """ Return a copy of the :class:`~pywbem.CIMProperty` object"""
-
+        """
+        Return a copy of the :class:`~pywbem.CIMProperty` object.
+        """
         return CIMProperty(self.name,
                            self.value,
                            type=self.type,
@@ -2331,9 +2404,10 @@ class CIMProperty(_CIMComparisonMixin):
                            qualifiers=self.qualifiers.copy())
 
     def __str__(self):
-        """Return a short string representation of the
-        :class:`~pywbem.CIMProperty` object for human consumption."""
-
+        """
+        Return a short string representation of the
+        :class:`~pywbem.CIMProperty` object for human consumption.
+        """
         return '%s(name=%r, value=%r, type=%r, ' \
                'reference_class=%r, embedded_object=%r, ' \
                'is_array=%r, ...)' % \
@@ -2342,9 +2416,10 @@ class CIMProperty(_CIMComparisonMixin):
                 self.is_array)
 
     def __repr__(self):
-        """Return a string representation of the :class:`~pywbem.CIMProperty`
-        object that is suitable for debugging."""
-
+        """
+        Return a string representation of the :class:`~pywbem.CIMProperty`
+        object that is suitable for debugging.
+        """
         return '%s(name=%r, value=%r, type=%r, ' \
                'reference_class=%r, embedded_object=%r, ' \
                'is_array=%r, array_size=%r, ' \
@@ -2357,7 +2432,8 @@ class CIMProperty(_CIMComparisonMixin):
                 self.qualifiers)
 
     def tocimxml(self):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMProperty` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
@@ -2418,7 +2494,8 @@ class CIMProperty(_CIMComparisonMixin):
                 embedded_object=self.embedded_object)
 
     def tocimxmlstr(self, indent=None):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMProperty` object, as a :term:`unicode string`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
@@ -2442,14 +2519,17 @@ class CIMProperty(_CIMComparisonMixin):
         return tocimxmlstr(self, indent)
 
     def _scalar_value2mof(self, value_, indent):
-        """ Private function to map provided value to string for
-            mof output. Used by CIMProperty tomof().
+        """
+        Private function to map provided value to string for MOF output.
+        Used by :meth:`tomof`.
 
-            Parameters:
-                value_ (:term:`CIM data type`): Value to be mapped
-                to string for mof output.
-                indent (:term: `integer`): number of spaces to indent
-                the initial line of the generated mof.
+        Parameters:
+
+          value_ (:term:`CIM data type`): Value to be mapped to string for MOF
+            output.
+
+          indent (:term:`integer`): Number of spaces to indent the initial
+            line of the generated MOF.
         """
 
         if self.type == 'string':
@@ -2464,14 +2544,17 @@ class CIMProperty(_CIMComparisonMixin):
         return _mof
 
     def _array_val2mof(self, indent, fold):
-        """ Output array of values either on single line or
-            one line per value. Used by CIMProperty tomof().
+        """
+        Output array of values either on single line or one line per value.
+        Used by :meth:`tomof`.
 
-            Parameters:
-                indent (:term: `integer`): number of spaces to indent
-                the initial line of the generated mof.
-                fold (bool): If True format as instance
-                mof. Else format as class mof.
+        Parameters:
+
+          indent (:term:`integer`): Number of spaces to indent the initiali
+            line of the generated MOF.
+
+          fold (bool): If True, format as instance MOF. Else, format as class
+            MOF.
         """
         mof_ = ''
 
@@ -2483,14 +2566,16 @@ class CIMProperty(_CIMComparisonMixin):
         return mof_
 
     def tomof(self, is_instance=True, indent=0):
-        """ Return a string representing the MOF definition of
-            a single property.
+        """
+        Return a string representing the MOF definition of a single property.
 
-            Parameters:
-                is_instance (bool): If True format as instance
-                mof. Else format as class mof. Default=True
-                indent (:term: `integer`): number of spaces to indent
-                the initial line of the generated mof. Default = 0
+        Parameters:
+
+          is_instance (bool): If True, format as instance MOF. Else, format as
+            class MOF.
+
+          indent (:term:`integer`): Number of spaces to indent the initial
+            line of the generated MOF.
         """
 
         if is_instance:
@@ -2691,16 +2776,18 @@ class CIMMethod(_CIMComparisonMixin):
                 cmpitem(self.propagated, other.propagated))
 
     def __str__(self):
-        """Return a short string representation of the
-        :class:`~pywbem.CIMMethod` object for human consumption."""
-
+        """
+        Return a short string representation of the
+        :class:`~pywbem.CIMMethod` object for human consumption.
+        """
         return '%s(name=%r, return_type=%r, ...)' % \
                (self.__class__.__name__, self.name, self.return_type)
 
     def __repr__(self):
-        """Return a string representation of the :class:`~pywbem.CIMMethod`
-        object that is suitable for debugging."""
-
+        """
+        Return a string representation of the :class:`~pywbem.CIMMethod`
+        object that is suitable for debugging.
+        """
         return '%s(name=%r, return_type=%r, ' \
                'class_origin=%r, propagated=%r, ' \
                'parameters=%r, qualifiers=%r)' % \
@@ -2709,8 +2796,9 @@ class CIMMethod(_CIMComparisonMixin):
                 self.parameters, self.qualifiers)
 
     def copy(self):
-        """Return a copy of the :class:`~pywbem.CIMMethod` object."""
-
+        """
+        Return a copy of the :class:`~pywbem.CIMMethod` object.
+        """
         result = CIMMethod(self.name,
                            return_type=self.return_type,
                            class_origin=self.class_origin,
@@ -2722,13 +2810,13 @@ class CIMMethod(_CIMComparisonMixin):
         return result
 
     def tocimxml(self):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMMethod` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
-
         return cim_xml.METHOD(
             self.name,
             parameters=[p.tocimxml() for p in self.parameters.values()],
@@ -2738,7 +2826,8 @@ class CIMMethod(_CIMComparisonMixin):
             qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
     def tocimxmlstr(self, indent=None):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMMethod` object, as a :term:`unicode string`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
@@ -2942,9 +3031,10 @@ class CIMParameter(_CIMComparisonMixin):
                 cmpitem(self.value, other.value))
 
     def __str__(self):
-        """Return a short string representation of the
-        :class:`~pywbem.CIMParameter` object for human consumption."""
-
+        """
+        Return a short string representation of the
+        :class:`~pywbem.CIMParameter` object for human consumption.
+        """
         return '%s(name=%r, value=%r, type=%r, ' \
                'reference_class=%r, ' \
                'is_array=%r, ...)' % \
@@ -2953,9 +3043,10 @@ class CIMParameter(_CIMComparisonMixin):
                 self.is_array)
 
     def __repr__(self):
-        """Return a string representation of the :class:`~pywbem.CIMParameter`
-        object that is suitable for debugging."""
-
+        """
+        Return a string representation of the :class:`~pywbem.CIMParameter`
+        object that is suitable for debugging.
+        """
         return '%s(name=%r, value=%r, type=%r, ' \
                'reference_class=%r, ' \
                'is_array=%r, array_size=%r, ' \
@@ -2966,8 +3057,9 @@ class CIMParameter(_CIMComparisonMixin):
                 self.qualifiers)
 
     def copy(self):
-        """Return a copy of the :class:`~pywbem.CIMParameter` object."""
-
+        """
+        Return a copy of the :class:`~pywbem.CIMParameter` object.
+        """
         result = CIMParameter(self.name,
                               self.type,
                               reference_class=self.reference_class,
@@ -2980,13 +3072,13 @@ class CIMParameter(_CIMComparisonMixin):
         return result
 
     def tocimxml(self):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMParameter` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
-
         if self.type == 'reference':
 
             if self.is_array:
@@ -3032,7 +3124,8 @@ class CIMParameter(_CIMComparisonMixin):
                 qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
     def tocimxmlstr(self, indent=None):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMParameter` object, as a :term:`unicode string`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
@@ -3275,16 +3368,18 @@ class CIMQualifier(_CIMComparisonMixin):
                 cmpitem(self.translatable, other.translatable))
 
     def __str__(self):
-        """Return a short string representation of the
-        :class:`~pywbem.CIMQualifier` object for human consumption."""
-
+        """
+        Return a short string representation of the
+        :class:`~pywbem.CIMQualifier` object for human consumption.
+        """
         return "%s(name=%r, value=%r, type=%r, ...)" % \
                (self.__class__.__name__, self.name, self.value, self.type)
 
     def __repr__(self):
-        """Return a string representation of the :class:`~pywbem.CIMQualifier`
-        object that is suitable for debugging."""
-
+        """
+        Return a string representation of the :class:`~pywbem.CIMQualifier`
+        object that is suitable for debugging.
+        """
         return '%s(name=%r, value=%r, type=%r, ' \
                'tosubclass=%r, overridable=%r, translatable=%r, ' \
                'toinstance=%r, propagated=%r)' % \
@@ -3293,8 +3388,9 @@ class CIMQualifier(_CIMComparisonMixin):
                 self.toinstance, self.propagated)
 
     def copy(self):
-        """Return a copy of the :class:`~pywbem.CIMQualifier` object."""
-
+        """
+        Return a copy of the :class:`~pywbem.CIMQualifier` object.
+        """
         return CIMQualifier(self.name,
                             self.value,
                             type=self.type,
@@ -3305,7 +3401,8 @@ class CIMQualifier(_CIMComparisonMixin):
                             translatable=self.translatable)
 
     def tocimxml(self):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMQualifier` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
@@ -3331,7 +3428,8 @@ class CIMQualifier(_CIMComparisonMixin):
                                  translatable=self.translatable)
 
     def tocimxmlstr(self, indent=None):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMQualifier` object, as a :term:`unicode string`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
@@ -3367,7 +3465,9 @@ class CIMQualifier(_CIMComparisonMixin):
         """
 
         def valstr(value):
-            """Return a string that is the MOF literal representing a value."""
+            """
+            Return a string that is the MOF literal representing a value.
+            """
             if isinstance(value, six.string_types):
                 return mofstr(value, indent)
             return str(value)
@@ -3559,7 +3659,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         self.translatable = translatable
 
     def _cmp(self, other):
-        """Comparator function for two :class:`~pywbem.CIMQualifierDeclaration`
+        """
+        Comparator function for two :class:`~pywbem.CIMQualifierDeclaration`
         objects.
 
         The comparison is based on the `name`, `type`, `value`, `is_array`,
@@ -3585,20 +3686,22 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
                 cmpitem(self.translatable, other.translatable))
 
     def __str__(self):
-        """Return a short string representation of the
+        """
+        Return a short string representation of the
         :class:`~pywbem.CIMQualifierDeclaration` object for human
-        consumption."""
-
+        consumption.
+        """
         return '%s(name=%r, value=%r, type=%r, ' \
                'is_array=%r, ...)' % \
                (self.__class__.__name__, self.name, self.value, self.type,
                 self.is_array)
 
     def __repr__(self):
-        """Return a string representation of the
+        """
+        Return a string representation of the
         :class:`~pywbem.CIMQualifierDeclaration` object that is suitable for
-        debugging."""
-
+        debugging.
+        """
         return '%s(name=%r, value=%r, type=%r, ' \
                'is_array=%r, array_size=%r, ' \
                'scopes=%r, tosubclass=%r, overridable=%r, ' \
@@ -3609,8 +3712,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
                 self.translatable, self.toinstance)
 
     def copy(self):
-        """Return a copy the :class:`~pywbem.CIMQualifierDeclaration` object."""
-
+        """
+        Return a copy the :class:`~pywbem.CIMQualifierDeclaration` object.
+        """
         return CIMQualifierDeclaration(self.name,
                                        self.type,
                                        value=self.value,
@@ -3623,13 +3727,13 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
                                        translatable=self.translatable)
 
     def tocimxml(self):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMQualifierDeclaration` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
-
         return cim_xml.QUALIFIER_DECLARATION(self.name,
                                              self.type,
                                              self.value,
@@ -3642,7 +3746,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
                                              translatable=self.translatable)
 
     def tocimxmlstr(self, indent=None):
-        """Return the CIM-XML representation of the
+        """
+        Return the CIM-XML representation of the
         :class:`~pywbem.CIMQualifierDeclaration` object, as a
         :term:`unicode string`.
 
@@ -3672,7 +3777,6 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         qualifier type represented by the
         :class:`~pywbem.CIMQualifierDeclaration` object.
         """
-
         mof = 'Qualifier %s : %s' % (self.name, self.type)
         if self.is_array:
             mof += '['
@@ -3708,7 +3812,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
 
 def tocimxml(value):
-    """Return the CIM-XML representation of the CIM object or CIM data type,
+    """
+    Return the CIM-XML representation of the CIM object or CIM data type,
     as an :term:`Element` object.
 
     The returned CIM-XML representation is consistent with :term:`DSP0201`.
@@ -3758,7 +3863,8 @@ def tocimxml(value):
 
 
 def tocimxmlstr(value, indent=None):
-    """Return the CIM-XML representation of the CIM object or CIM data type,
+    """
+    Return the CIM-XML representation of the CIM object or CIM data type,
     as a :term:`unicode string`.
 
     The returned CIM-XML representation is consistent with :term:`DSP0201`.
@@ -3799,7 +3905,8 @@ def tocimxmlstr(value, indent=None):
 
 #pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
 def tocimobj(type_, value):
-    """Return a CIM object representing the specified value and
+    """
+    Return a CIM object representing the specified value and
     type.
 
     Parameters:
@@ -3895,7 +4002,8 @@ def tocimobj(type_, value):
 
     # REF
     def partition(str_arg, seq):
-        """ partition(str_arg, sep) -> (head, sep, tail)
+        """
+        partition(str_arg, sep) -> (head, sep, tail)
 
         Searches for the separator sep in str_arg, and returns the,
         part before it the separator itself, and the part after it.
@@ -3983,6 +4091,8 @@ def tocimobj(type_, value):
 
 
 def byname(nlist):
-    """Convert a list of named objects into a map indexed by name"""
+    """
+    Convert a list of named objects into a map indexed by name
+    """
     return dict([(x.name, x) for x in nlist])
 
