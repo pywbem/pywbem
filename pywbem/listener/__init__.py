@@ -1,5 +1,8 @@
 """
-WBEM listener API.
+The `WBEM listener API`_ is provided by the :mod:`pywbem.listener` module.
+
+It provides functionality for managing subscriptions for indications from
+one or more WBEM servers, and implements a thread-based WBEM listener service.
 
 .. note::
 
@@ -53,7 +56,8 @@ delivery:
 
     from socket import getfqdn
     from pywbem import WBEMConnection
-    from pywbem.listener import WBEMListener, WBEMServer
+    from pywbem.listener import WBEMListener
+    from pywbem.server import WBEMServer
 
     def process_indication(indication):
         '''This function gets called when an indication is received.'''
@@ -61,11 +65,13 @@ delivery:
 
     def main():
 
-        conn1 = WBEMConnection('http://server1')  # default http port
-        conn2 = WBEMConnection('http://server2')  # default http port
+        conn1 = WBEMConnection('http://server1')
+        server1 = WBEMServer(conn1)
+        server1.determine_interop_ns()
 
-        server1 = WBEMServer(conn1)  # auto-determine Interop namespace
-        server2 = WBEMServer(conn2)  # auto-determine Interop namespace
+        conn2 = WBEMConnection('http://server2')
+        server2 = WBEMServer(conn2)
+        server2.validate_interop_ns('root/PG_InterOp')
 
         listener = WBEMListener(getfqdn())  # default http + https ports
         listener.add_callback(process_indication)
@@ -112,244 +118,13 @@ else:
     _HAVE_M2CRYPTO = False
 
 import pywbem
-from pywbem.management import namespace
+from pywbem.server import WBEMServer
 
 DEFAULT_LISTENER_PORT_HTTP = 5988
 DEFAULT_LISTENER_PORT_HTTPS = 5989
 DEFAULT_QUERY_LANGUAGE = 'WQL'
 
-INTEROP_NAMESPACES = [
-    'interop',
-    'root/interop',
-    '/interop',
-    '/root/interop',
-]
-
-__all__ = ['WBEMServer', 'WBEMListener']
-
-
-def create_destination(conn, interop_ns, dest_url):
-    """
-    Create a listener destination instance in a WBEM server and return its
-    instance path.
-
-    Parameters:
-
-      conn (pywbem.WBEMConnection):
-        Connection to the WBEM server.
-
-      interop_ns (:term:`string`):
-        Interop namespace in the WBEM server, for creating the instance in.
-
-      dest_url (:term:`string`):
-        URL of the listener that is used by the WBEM server to send any
-        indications to.
-
-        The URL scheme (e.g. http/https) determines whether the WBEM server
-        uses HTTP or HTTPS for sending the indication. Host and port in the URL
-        specify the target location to be used by the WBEM server.
-
-    Returns:
-
-      CIMInstanceName object representing the instance path of the
-      created instance.
-
-    Raises:
-
-        Exceptions raised by :class:`~pywbem.WBEMConnection`.
-    """
-    classname = 'CIM_ListenerDestinationCIMXML'
-
-    dest_path = pywbem.CIMInstanceName(classname)
-    dest_path.classname = classname
-    dest_path.namespace = namespace
-
-    dest_inst = pywbem.CIMInstance(classname)
-    dest_inst.path = dest_path
-    dest_inst['CreationClassName'] = classname
-    dest_inst['SystemCreationClassName'] = 'CIM_ComputerSystem'
-    dest_inst['SystemName'] = getfqdn()
-    dest_inst['Name'] = 'cimlistener%d' % time.time()
-    dest_inst['Destination'] = dest_url
-
-    dest_path = conn.CreateInstance(dest_inst)
-    return dest_path
-
-
-def create_filter(conn, interop_ns, query,
-                  query_language=DEFAULT_QUERY_LANGUAGE):
-    """
-    Create a dynamic indication filter instance in a WBEM server and return
-    its instance path.
-
-    Parameters:
-
-      conn (pywbem.WBEMConnection):
-        Connection to the WBEM server.
-
-      interop_ns (:term:`string`):
-        Interop namespace in the WBEM server, for creating the instance in.
-
-      query (:term:`string`):
-        Filter query in the specified query language.
-
-      query_language (:term:`string`):
-        Query language for the specified filter query.
-
-        Examples: 'WQL', 'DMTF:CQL'.
-
-    Returns:
-
-      CIMInstanceName object representing the instance path of the
-      created instance.
-
-    Raises:
-
-        Exceptions raised by :class:`~pywbem.WBEMConnection`.
-    """
-
-    classname = 'CIM_IndicationFilter'
-
-    filter_path = pywbem.CIMInstanceName(classname)
-    filter_path.classname = classname
-    filter_path.namespace = namespace
-
-    filter_inst = pywbem.CIMInstance(classname)
-    filter_inst.path = filter_path
-    filter_inst['CreationClassName'] = classname
-    filter_inst['SystemCreationClassName'] = 'CIM_ComputerSystem'
-    filter_inst['SystemName'] = getfqdn()
-    filter_inst['Name'] = 'cimfilter%d' % time.time()
-    filter_inst['Query'] = query
-    filter_inst['QueryLanguage'] = query_language
-
-    filter_path = conn.CreateInstance(filter_inst)
-    return filter_path
-
-
-def create_subscription(conn, interop_ns, dest_path, filter_path):
-    """
-    Create an indication subscription instance in a WBEM server and return
-    its instance path.
-
-    Parameters:
-
-      conn (pywbem.WBEMConnection):
-        Connection to the WBEM server.
-
-      interop_ns (:term:`string`):
-        Interop namespace in the WBEM server, for creating the instance in.
-
-      dest_path (pywbem.CIMInstanceName):
-        Instance path of the listener destination instance in the WBEM
-        server that references this listener.
-
-      filter_path (pywbem.CIMInstanceName):
-        Instance path of the indication filter instance in the WBEM
-        server that specifies the indications to be sent.
-
-    Returns:
-
-      CIMInstanceName object representing the instance path of the created
-      instance.
-
-    Raises:
-
-        Exceptions raised by :class:`~pywbem.WBEMConnection`.
-    """
-
-    classname = 'CIM_IndicationSubscription'
-
-    sub_path = pywbem.CIMInstanceName(classname)
-    sub_path.classname = classname
-    sub_path.namespace = namespace
-
-    sub_inst = pywbem.CIMInstance(classname)
-    sub_inst.path = sub_path
-    sub_inst['Filter'] = filter_path
-    sub_inst['Handler'] = dest_path
-
-    sub_path = conn.CreateInstance(sub_inst)
-    return sub_path
-
-
-def callback_interface(indication):
-    """
-    Interface of a function that is provided by the user of the API and
-    that will be called by the listener for each received CIM indication.
-
-    Parameters:
-
-      indication (pywbem.CIMInstance):
-        Representation of the CIM indication that has been received.
-        Its `path` component is not set.
-
-    Raises:
-      TBD
-    """
-    raise NotImplementedError
-
-
-class WBEMServer(object):
-    """
-    A WBEM Server as known by a WBEM listener.
-
-    This is a data object that identifies the WBEM server and has some
-    information about it, to the extent this is relevant to a WBEM listener.
-    """
-
-    def __init__(self, conn, interop_ns=None):
-        """
-        Parameters:
-
-          conn (pywbem.WBEMConnection):
-            Connection to the WBEM server.
-
-          interop_ns (:term:`string`):
-            Name of the Interop namespace of the WBEM server.
-
-            `None` causes the Interop namespace to be determined automatically.
-
-            In any case, the Interop namespace is validated with the WBEM
-            server, by communicating with it.
-
-        Raises:
-
-            pywbem.CIMError: With CIM_ERR_INVALID_NAMESPACE: The specified
-              Interop namespace does not exist.
-
-            ValueError: Cannot determine Interop namespace.
-
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
-        """
-        self._conn = conn
-        if interop_ns is None:
-            interop_ns = namespace.determine_interop_ns(conn)
-            if interop_ns is None:
-                raise ValueError("Cannot determine Interop namespace")
-        else:
-            namespace.validate_interop_ns(conn, interop_ns)
-        self._interop_ns = interop_ns
-
-    @property
-    def conn(self):
-        """The connection to the WBEM server, as a
-        :class:`~pywbem.WBEMConnection` object."""
-        return self._conn
-
-    @property
-    def interop_ns(self):
-        """The name of the Interop namespace of the WBEM server, as a
-        :term:`string`."""
-        return self._interop_ns
-
-    @property
-    def key(self):
-        """The key of the WBEM server.
-
-        This is a unique key for identifying an instance of this class, that
-        can be used as a dictionary key."""
-        return self._conn.url
+__all__ = ['WBEMListener']
 
 
 class WBEMListener(object):
@@ -422,18 +197,20 @@ class WBEMListener(object):
 
     @property
     def http_port(self):
-        """The HTTP port this listener can be reached at,
-        as an :term:`integer`.
+        """
+        The HTTP port this listener can be reached at, as an :term:`integer`.
 
-        `None` means there is no port set up for HTTP."""
+        `None` means there is no port set up for HTTP.
+        """
         return self._http_port
 
     @property
     def https_port(self):
-        """The HTTPS port this listener can be reached at,
-        as an :term:`integer`.
+        """
+        The HTTPS port this listener can be reached at, as an :term:`integer`.
 
-        `None` means there is no port set up for HTTPS."""
+        `None` means there is no port set up for HTTPS.
+        """
         return self._https_port
 
     def start(self):
@@ -442,12 +219,9 @@ class WBEMListener(object):
 
         Once the WBEM listener thread is up and running, return.
         """
-
-        # TODO: Logging
+        # TODO: Start logging
         #log.startLogging(sys.stdout)
-
         site = Site(_WBEMListenerResource(self))
-
         if self.http_port:
             reactor.listenTCP(self.http_port, site)
         if self.https_port:
@@ -456,7 +230,9 @@ class WBEMListener(object):
         reactor.run()
 
     def stop(self):
-        """Stop the WBEM listener thread."""
+        """
+        Stop the WBEM listener thread.
+        """
         raise NotImplementedError  # TODO: Implement
 
     def add_server(self, server):
@@ -467,22 +243,26 @@ class WBEMListener(object):
 
         Parameters:
 
-          server (WBEMServer):
+          server (:class:`~pywbem.server.WBEMServer`):
             The WBEM server to be added.
+
+        Returns:
+
+          The URL of the WBEM server, as a :term:`string`.
 
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
 
-        if server.key in self._servers:
+        if server.url in self._servers:
             raise ValueError("WBEM server already known by listener: %s" % \
-                             server.key)
-        self._servers[server.key] = server
-        self._subscriptions[server.key] = []
-        self._dynamic_filters[server.key] = []
-        self._destinations[server.key] = []
-        self._callbacks[server.key] = []
+                             server.url)
+        self._servers[server.url] = server
+        self._subscriptions[server.url] = []
+        self._dynamic_filters[server.url] = []
+        self._destinations[server.url] = []
+        self._callbacks[server.url] = []
 
         # We let the WBEM server use HTTP or HTTPS dependent on whether we
         # contact it using HTTP or HTTPS.
@@ -495,13 +275,14 @@ class WBEMListener(object):
         else:
             raise ValueError("Invalid scheme in server URL: %s" % \
                              server.conn.url)
+
         dest_url = '%s://%s:%s' % (scheme, self.host, port)
+        dest_inst_path = server.create_destination(dest_url)
+        self._destinations[server.url].append(dest_inst_path)
 
-        dest_inst_path = create_destination(server.conn, server.interop_ns,
-                                            dest_url)
-        self._destinations[server.key].append(dest_inst_path)
+        return server.url
 
-    def remove_server(self, server_key):
+    def remove_server(self, server_url):
         """
         Remove a WBEM server from this listener and unregister this listener
         from that WBEM server by deleting all indication subscriptions,
@@ -510,47 +291,46 @@ class WBEMListener(object):
 
         Parameters:
 
-          server_key (:term:`string`):
-            The key of the WBEM server to be removed (see :class:`WBEMServer`
-            for details on the key).
+          server_url (:term:`string`):
+            The URL of the WBEM server.
 
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
 
-        if server_key not in self._servers:
+        if server_url not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_key)
-        server = self._servers[server_key]
+                             server_url)
+        server = self._servers[server_url]
 
         # Delete any instances we recorded to be cleaned up
 
-        if server_key in self._subscriptions:
-            sub_tuples = self._subscriptions[server_key]
+        if server_url in self._subscriptions:
+            sub_tuples = self._subscriptions[server_url]
             for i, sub_tuple in enumerate(sub_tuples):
                 server.conn.DeleteInstance(sub_tuple[0])
                 del sub_tuples[i]
-            del self._subscriptions[server_key]
+            del self._subscriptions[server_url]
 
-        if server_key in self._dynamic_filters:
-            filter_insts = self._dynamic_filters[server_key]
+        if server_url in self._dynamic_filters:
+            filter_insts = self._dynamic_filters[server_url]
             for i, inst in enumerate(filter_insts):
                 server.conn.DeleteInstance(inst.path)
                 del filter_insts[i]
-            del self._dynamic_filters[server_key]
+            del self._dynamic_filters[server_url]
 
-        if server_key in self._destinations:
-            cleanup_insts = self._destinations[server_key]
+        if server_url in self._destinations:
+            cleanup_insts = self._destinations[server_url]
             for i, inst_path in enumerate(cleanup_insts):
                 server.conn.DeleteInstance(inst_path)
                 del cleanup_insts[i]
-            del self._destinations[server_key]
+            del self._destinations[server_url]
 
         # Remove server from this listener
-        del self._servers[server_key]
+        del self._servers[server_url]
 
-    def add_dynamic_filter(self, server_key, query,
+    def add_dynamic_filter(self, server_url, query,
                            query_language=DEFAULT_QUERY_LANGUAGE):
         """
         Add a dynamic indication filter to a WBEM server that defines a
@@ -560,9 +340,8 @@ class WBEMListener(object):
 
         Parameters:
 
-          server_key (:term:`string`):
-            The key of the WBEM server (see :class:`WBEMServer` for details on
-            the key).
+          server_url (:term:`string`):
+            The URL of the WBEM server.
 
           query (:term:`string`):
             Filter query in the specified query language.
@@ -580,19 +359,15 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-
-        if server_key not in self._servers:
+        if server_url not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_key)
-
-        server = self._servers[server_key]
-
-        filter_inst = create_filter(server.conn, server.interop_ns,
-                                         query, query_language)
-        self._dynamic_filters[server_key].append(filter_inst)
+                             server_url)
+        server = self._servers[server_url]
+        filter_inst = server.create_filter(query, query_language)
+        self._dynamic_filters[server_url].append(filter_inst)
         return filter_inst.path
 
-    def remove_dynamic_filter(self, server_key, filter_path):
+    def remove_dynamic_filter(self, server_url, filter_path):
         """
         Remove a dynamic indication filter from a WBEM server, and forget it for
         cleanup.
@@ -605,11 +380,10 @@ class WBEMListener(object):
 
         Parameters:
 
-          server_key (:term:`string`):
-            The key of the WBEM server (see :class:`WBEMServer` for details on
-            the key).
+          server_url (:term:`string`):
+            The URL of the WBEM server.
 
-          filter_path (pywbem.CIMInstanceName):
+          filter_path (:class:`~pywbem.CIMInstanceName`):
             Instance path of the indication filter instance in the WBEM
             server.
 
@@ -617,30 +391,26 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-
-        if server_key not in self._servers:
+        if server_url not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_key)
-
-        server = self._servers[server_key]
-
-        if server_key in self._dynamic_filters:
-            filter_insts = self._dynamic_filters[server_key]
+                             server_url)
+        server = self._servers[server_url]
+        if server_url in self._dynamic_filters:
+            filter_insts = self._dynamic_filters[server_url]
             for i, inst in enumerate(filter_insts):
                 if inst.path == filter_path:
                     server.conn.DeleteInstance(filter_path)
                 del filter_insts[i]
 
-    def get_dynamic_filters(self, server_key):
+    def get_dynamic_filters(self, server_url):
         """
         Return the dynamic indication filters in a WBEM server that have been
         created by this listener.
 
         Parameters:
 
-          server_key (:term:`string`):
-            The key of the WBEM server (see :class:`WBEMServer` for details on
-            the key).
+          server_url (:term:`string`):
+            The URL of the WBEM server.
 
         Returns:
 
@@ -651,25 +421,21 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-
-        if server_key not in self._servers:
+        if server_url not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_key)
-
-        server = self._servers[server_key]
-        filter_insts = self._dynamic_filters[server_key]
-
+                             server_url)
+        server = self._servers[server_url]
+        filter_insts = self._dynamic_filters[server_url]
         return filter_insts
 
-    def get_filters(self, server_key):
+    def get_filters(self, server_url):
         """
         Return all (dynamic and static) indication filters in a WBEM server.
 
         Parameters:
 
-          server_key (:term:`string`):
-            The key of the WBEM server (see :class:`WBEMServer` for details on
-            the key).
+          server_url (:term:`string`):
+            The URL of the WBEM server.
 
         Returns:
 
@@ -680,18 +446,15 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-
-        if server_key not in self._servers:
+        if server_url not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_key)
-
-        server = self._servers[server_key]
-
+                             server_url)
+        server = self._servers[server_url]
         filter_insts = server.conn.EnumerateInstance(
             'CIM_IndicationFilter', namespace=server.interop_ns)
         return filter_insts
 
-    def add_subscription(self, server_key, filter_path):
+    def add_subscription(self, server_url, filter_path):
         """
         Add a subscription to a WBEM server for particular set of indications
         defined by an indication filter, and remember it for cleanup.
@@ -709,11 +472,10 @@ class WBEMListener(object):
 
         Parameters:
 
-          server_key (:term:`string`):
-            The key of the WBEM server (see :class:`WBEMServer` for details on
-            the key).
+          server_url (:term:`string`):
+            The URL of the WBEM server.
 
-          filter_path (pywbem.CIMInstanceName):
+          filter_path (:class:`~pywbem.CIMInstanceName`):
             Instance path of the indication filter instance in the WBEM
             server that specifies the indications to be sent.
 
@@ -725,21 +487,16 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-
-        if server_key not in self._servers:
+        if server_url not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_key)
-
-        server = self._servers[server_key]
-        dest_path = self._destinations[server_key][0]
-
-        sub_inst_path = create_subscription(server.conn, server.interop_ns,
-                                            dest_path, filter_path)
-        self._subscriptions[server_key].append(tuple(sub_inst_path, callback))
+                             server_url)
+        server = self._servers[server_url]
+        dest_path = self._destinations[server_url][0]
+        sub_inst_path = server.create_subscription(dest_path, filter_path)
+        self._subscriptions[server_url].append(tuple(sub_inst_path, callback))
         return sub_inst_path
 
-
-    def remove_subscription(self, server_key, sub_path):
+    def remove_subscription(self, server_url, sub_path):
         """
         Remove an indication subscription from a WBEM server, and forget it for
         cleanup.
@@ -749,11 +506,10 @@ class WBEMListener(object):
 
         Parameters:
 
-          server_key (:term:`string`):
-            The key of the WBEM server (see :class:`WBEMServer` for details on
-            the key).
+          server_url (:term:`string`):
+            The URL of the WBEM server.
 
-          sub_path (pywbem.CIMInstanceName):
+          sub_path (:class:`~pywbem.CIMInstanceName`):
             Instance path of the indication subscription instance in the WBEM
             server.
 
@@ -761,31 +517,27 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-
-        if server_key not in self._servers:
+        if server_url not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_key)
-
-        server = self._servers[server_key]
-
-        if server_key in self._subscriptions:
-            sub_tuples = self._subscriptions[server_key]
+                             server_url)
+        server = self._servers[server_url]
+        if server_url in self._subscriptions:
+            sub_tuples = self._subscriptions[server_url]
             for i, sub_tuple in enumerate(sub_tuples):
                 if sub_tuple[0] == sub_path:
                     server.conn.DeleteInstance(sub_path)
                     del sub_tuples[i]
                     break
 
-    def get_subscriptions(self, server_key):
+    def get_subscriptions(self, server_url):
         """
         Return the indication subscriptions in a WBEM server that have been
         created by this listener.
 
         Parameters:
 
-          server_key (:term:`string`):
-            The key of the WBEM server (see :class:`WBEMServer` for details on
-            the key).
+          server_url (:term:`string`):
+            The URL of the WBEM server.
 
         Returns:
 
@@ -796,14 +548,11 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-
-        if server_key not in self._servers:
+        if server_url not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_key)
-
-        server = self._servers[server_key]
-        sub_paths = self._subscriptions[server_key]
-
+                             server_url)
+        server = self._servers[server_url]
+        sub_paths = self._subscriptions[server_url]
         return sub_paths
 
     def _deliver_indication(self, indication):
@@ -840,6 +589,23 @@ class WBEMListener(object):
         """
         if callback not in self._callbacks:
             self._callbacks.append(callback)
+
+
+def callback_interface(indication):
+    """
+    Interface of a function that is provided by the user of the API and
+    that will be called by the listener for each received CIM indication.
+
+    Parameters:
+
+      indication (:class:`~pywbem.CIMInstance`):
+        Representation of the CIM indication that has been received.
+        Its `path` component is not set.
+
+    Raises:
+      TBD
+    """
+    raise NotImplementedError
 
 
 class _WBEMListenerResource(Resource):
