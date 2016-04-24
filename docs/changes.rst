@@ -110,7 +110,12 @@ Bug fixes
   unchanged, into generated MOF, by removing needless special-casing code.
 
 * fix bug with class mof generation where output was not including array
-  indicator ([]). Issue #233.
+  indicator ([]). Issue #233
+
+* Move class.property tomof processing to CIMProperty and fix issue
+  where default values not being generated. Issue 223 and #231.
+
+* Modify qualifier.tomof processing to stay within 80 column limits. Issue #35
 
 pywbem v0.8.2
 -------------
