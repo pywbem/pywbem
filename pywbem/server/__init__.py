@@ -41,9 +41,10 @@ The following example code displays some information about a WBEM server:
         org_vm = ValueMapping.for_property(server, server.interop_ns,
             'CIM_RegisteredProfile', 'RegisteredOrganization')
         for inst in server.profiles:
-            print("  %s %s Profile %s" % \\
-                (org_vm.tovalues(str(inst['RegisteredOrganization'])),
-                 inst['RegisteredName'], inst['RegisteredVersion']))
+            org = org_vm.tovalues(str(inst['RegisteredOrganization']))
+            name = inst['RegisteredName']
+            vers = inst['RegisteredVersion']
+            print("  %s %s Profile %s" % (org, name, vers))
 
 Example output:
 
@@ -94,12 +95,13 @@ class WBEMServer(object):
     a client.
 
     It supports determining the Interop namespace of the server, all namespaces,
-    its brand and version, and the advertised management profiles
+    its brand and version, the advertised management profiles and finally
+    allows to retrieve the central instances of a management profile with
+    one method invocation regardless of whether the profile implementation
+    chose the central or scoping class profile advertisement methodology
+    (see :term:`DSP1033`).
 
     It also provides functions to subscribe for indications.
-
-    TODO: Provide function that returns the central instances of a profile,
-    based on the new method, and the traditional central and scoping mechanism.
     """
 
     #: A class variable with the possible names of Interop namespaces that
@@ -236,6 +238,175 @@ class WBEMServer(object):
         if self._profiles is None:
             self.determine_profiles()
         return self._profiles
+
+    def get_central_instances(self, profile_path, central_class=None,
+                              scoping_class=None, scoping_path=None):
+        """
+        Determine the central instances for a management profile, and return
+        their instance paths as a list of :class:`~pywbem.CIMInstanceName`
+        objects.
+
+        This method supports the following profile advertisement methodologies
+        (see :term:`DSP1033`), and attempts them in this order:
+    
+          * GetCentralInstances methodology (new in :term:`DSP1033` 1.1)
+          * Central class methodology
+          * Scoping class methodology
+
+        Use of the scoping class methodology requires specifying the central
+        class, scoping class and scoping path defined by the profile. If any
+        of them is `None`, this method will attempt only the GetCentralInstances
+        and central class methodologies, but not the scoping class methodology.
+        If using these two methodologies does not result in any central
+        instances, and the scoping class methodology cannot be used, an
+        exception is raised.
+
+        The scoping path is a directed traversal path from the central
+        instances to the scoping instances. Its first list item is always
+        the association class name of the traversal hop starting at the
+        central instances. For each further traversal hop, the list contains
+        two more items: The class name of the near end of that hop, and
+        the class name of the traversed association.
+        As a result, the class names of the central instances and scoping
+        instances are not part of the list.
+
+        Example for a 1-hop traversal:
+
+        * central class: ``"CIM_Fan"``
+        * scoping path: ``["CIM_SystemDevice"]``
+        * scoping class: ``"CIM_ComputerSystem"``
+
+        Example for a 2-hop traversal:
+
+        * central class: ``"CIM_Sensor"``
+        * scoping path: ``["CIM_SensorDevice", "CIM_Fan", "CIM_SystemDevice"]``
+        * scoping class: ``"CIM_ComputerSystem"``
+
+        Parameters:
+
+          profile_path (:class:`~pywbem.CIMInstanceName`):
+            Instance path of CIM_RegisteredProfile instance representing the
+            management profile.
+
+          central_class (:term:`string`):
+            Class name of central class defined by the management profile.
+
+            Will be ignored, unless the profile is a component profile and its
+            implementation supports only the scoping class methodology.
+            `None` will cause the scoping class methodology not to be attempted.
+
+          scoping_class (:term:`string`):
+            Class name of scoping class defined by the management profile.
+
+            Will be ignored, unless the profile is a component profile and its
+            implementation supports only the scoping class methodology.
+            `None` will cause the scoping class methodology not to be attempted.
+
+          scoping_path (list of :term:`string`):
+            Scoping path defined by the management profile.
+
+            Will be ignored, unless the profile is a component profile and its
+            implementation supports only the scoping class methodology.
+            `None` will cause the scoping class methodology not to be attempted.
+
+        Returns:
+
+          List of :class:`~pywbem.CIMInstanceName` objects representing the
+          instance paths of the central instances of the management profile.
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            ValueError
+        """
+        if not isinstance(profile_path, pywbem.CIMInstanceName):
+            raise TypeError("profile_path must be a CIMInstanceName, but is " \
+                            "a %s" % type(profile_path))
+
+        # Try GetCentralInstances() method:
+        try:
+            (ret_val, out_params) = self._conn.InvokeMethod(
+                MethodName="GetCentralInstances",
+                ObjectName=profile_path)
+        except pywbem.CIMError as exc:
+            if exc.status_code in (pywbem.CIM_ERR_METHOD_NOT_AVAILABLE,
+                                   pywbem.CIM_ERR_NOT_SUPPORTED):
+                # Method is not implemented.
+                # CIM_ERR_NOT_SUPPORTED is not an official status code for this
+                # situation, but is used by some implementations.
+                pass  # try next approach
+            else:
+                raise
+        else:
+            if ret_val != 0:
+                raise ValueError("GetCentralInstances() implemented but " \
+                                 "failed with rc=%s" % ret_val)
+            #print("Debug: GCI method: Found central instances via GCI() method")
+            return out_params['CentralInstances']
+
+        # Try central methodology
+        ci_paths = self._conn.AssociatorNames(
+            ObjectName=profile_path,
+            AssocClass="CIM_ElementConformsToProfile",
+            ResultRole="ManagedElement")
+        if len(ci_paths) > 0:
+            #print("Debug: Central class method: Found instances when traversing ECTP")
+            return ci_paths
+
+        # Try scoping methodology
+        if central_class is None or \
+           scoping_class is None or \
+           scoping_path is None:
+            raise ValueError("No central instances found after applying "\
+                             "GetCentralInstances and central class " \
+                             "methodologies, and parameters for scoping " \
+                             "class methodology were not specified")
+
+        # Go up one level on the profile side
+        referencing_profile_paths = self._conn.AssociatorNames(
+            ObjectName=profile_path,
+            AssocClass="CIM_ReferencedProfile",
+            ResultRole="Dependent")
+        if len(referencing_profile_paths) == 0:
+            raise ValueError("No referencing profile found")
+        elif len(referencing_profile_paths) > 1:
+            raise ValueError("More than one referencing profile found")
+
+        # Traverse to the resource side (remember that scoping instances are
+        # the central instances at the next upper level).
+        # Do this recursively, if needed.
+        if len(scoping_path) >= 3:
+            upper_central_class = scoping_path[1]
+            upper_scoping_path = scoping_path[2:-1]
+        else:
+            upper_central_class = None
+            upper_scoping_path = None
+        #print("Debug: recursing to next upper scoping level with central class: %s" % upper_central_class)
+        scoping_inst_paths = self.get_central_instances(
+            referencing_profile_path,
+            upper_central_class, scoping_class, upper_scoping_path)
+        if len(scoping_inst_paths) == 0:
+            raise ValueError("No scoping instances found")
+        #print("Debug: returning from next upper scoping level with central class: %s" % upper_central_class)
+
+        # Go down one level on the resource side (using the last
+        # entry in the scoping path as the association to traverse)
+        total_ci_paths = []
+        assoc_class = scoping_path[-1]
+        for ip in scoping_inst_paths:
+            ci_paths = self._conn.AssociatorNames(
+                ObjectName=ip,
+                AssocClass=assoc_class,
+                ResultClass=central_class)
+            if len(ci_paths) == 0:
+                # At least one central instance for each scoping instance
+                raise ValueError("No central instances found traversing down " \
+                                 "across %s to %s" % \
+                                 (assoc_class, central_class))
+            total_ci_paths.extend(ci_paths)
+
+        #print("Debug: Scoping class method: Found central instances")
+        return total_ci_paths
 
     def determine_interop_ns(self):
         """

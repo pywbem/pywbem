@@ -23,10 +23,39 @@ def explore_server(server_url, username, password):
     print("Advertised management profiles:")
     org_vm = ValueMapping.for_property(server, server.interop_ns,
         'CIM_RegisteredProfile', 'RegisteredOrganization')
+    indications_profile = None
+    server_profile = None
     for inst in server.profiles:
-        print("  %s %s Profile %s" % \
-            (org_vm.tovalues(str(inst['RegisteredOrganization'])),
-             inst['RegisteredName'], inst['RegisteredVersion']))
+        org = org_vm.tovalues(str(inst['RegisteredOrganization']))
+        name = inst['RegisteredName']
+        vers = inst['RegisteredVersion']
+        print("  %s %s Profile %s" % (org, name, vers))
+        if org == "DMTF" and name == "Indications":
+            indications_profile = inst
+        if org == "SNIA" and name == "Server":
+            server_profile = inst
+
+    if indications_profile is not None:
+        print("Central instances for DMTF Indications profile (component):")
+        try:
+            ci_paths = server.get_central_instances(
+                indications_profile.path,
+                "CIM_IndicationService", "CIM_System", ["CIM_HostedService"])
+        except Exception as exc:
+            print("Error: %s" % str(exc))
+            ci_paths = []
+        for ip in ci_paths:
+            print("  %s" % str(ip))
+
+    if server_profile is not None:
+        print("Central instances for SNIA Server profile (autonomous):")
+        try:
+            ci_paths = server.get_central_instances(server_profile.path)
+        except Exception as exc:
+            print("Error: %s" % str(exc))
+            ci_paths = []
+        for ip in ci_paths:
+            print("  %s" % str(ip))
 
 def main():
 
