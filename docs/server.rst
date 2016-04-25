@@ -13,3 +13,9 @@ WBEMServer
 .. autoclass:: pywbem.server.WBEMServer
    :members:
 
+ValueMapping
+^^^^^^^^^^^^
+
+.. autoclass:: pywbem.server.ValueMapping
+   :members:
+

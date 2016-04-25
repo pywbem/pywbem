@@ -1,33 +1,83 @@
 """
 The `WBEM server API`_ is provided by the :mod:`pywbem.server` module.
 
-It provides basic functionality of a WBEM server that is relevant for a
-client, such as determing its Interop namespace, the type of WBEM server,
-the supported management profiles, and functions to subscribe for indications.
+It provides basic functionality of a WBEM server that is relevant for a client.
+
+The :class:`WBEMServer` class serves as a general access point for clients,
+and supports determing the Interop namespace of the server, all namespaces, its
+brand and version, the advertised management profiles, and functions to
+subscribe for indications.
+
+The :class:`ValueMapping` class maps corresponding entries in Values and
+ValueMap qualifiers of a CIM element and supports a translation between the two.
 
 Example
 -------
 
-The following example code displays the namespaces of a WBEM server:
+The following example code displays some information about a WBEM server:
 
 ::
 
     from pywbem import WBEMConnection
-    from pywbem.server import WBEMServer
+    from pywbem.server import WBEMServer, ValueMapping
 
-    def main():
+    def explore_server(server_url, username, password):
 
-        conn1 = WBEMConnection('http://server1')
-        server1 = WBEMServer(conn1)
-        server1.determine_interop_ns()
+        print("WBEM server URL:\\n  %s" % server_url)
 
-        for ns in server1.namespaces:
-            print(ns)
+        conn = WBEMConnection(server_url, (username, password))
+        server = WBEMServer(conn)
+
+        print("Brand:\\n  %s" % server.brand)
+        print("Version:\\n  %s" % server.version)
+        print("Interop namespace:\\n  %s" % server.interop_ns)
+
+        print("All namespaces:")
+        for ns in server.namespaces:
+            print("  %s" % ns)
+
+        print("Advertised management profiles:")
+        org_vm = ValueMapping.for_property(server, server.interop_ns,
+            'CIM_RegisteredProfile', 'RegisteredOrganization')
+        for inst in server.profiles:
+            print("  %s %s Profile %s" % \\
+                (org_vm.tovalues(str(inst['RegisteredOrganization'])),
+                 inst['RegisteredName'], inst['RegisteredVersion']))
+
+Example output:
+
+::
+
+    WBEM server URL:
+      http://0.0.0.0
+    Brand:
+      pegasus
+    Version:
+      2.12.0
+    Interop namespace:
+      root/PG_Interop
+    All namespaces:
+      root/PG_InterOp
+      root/PG_Internal
+      root/cimv2
+      root
+    Advertised management profiles:
+      SNIA Indication Profile 1.1.0
+      SNIA Indication Profile 1.2.0
+      SNIA Software Profile 1.1.0
+      SNIA Software Profile 1.2.0
+      SNIA Profile Registration Profile 1.0.0
+      SNIA SMI-S Profile 1.2.0
+      SNIA Server Profile 1.1.0
+      SNIA Server Profile 1.2.0
+      DMTF Profile Registration Profile 1.0.0
+      DMTF Indications Profile 1.1.0
 """
 
 import os
 import sys
 import time
+import re
 from socket import getfqdn
 
 import six
@@ -39,10 +89,15 @@ __all__ = ['WBEMServer']
 
 class WBEMServer(object):
     """
-    A representation of a WBEM server that serves as an access point to
-    a client, providing basic functionality such as determing its Interop
-    namespace, the type of WBEM server, the supported management profiles,
-    and functions to subscribe for indications.
+    A representation of a WBEM server that serves as a general access point to
+    a client.
+
+    It supports determing the Interop namespace of the server, all namespaces,
+    its brand and version, the advertised management profiles, and functions to
+    subscribe for indications.
+
+    TODO: Provide function that returns the central instances of a profile,
+    based on the new method, and the traditional central and scoping mechanism.
     """
 
     #: A class variable with the possible names of Interop namespaces that
@@ -54,7 +109,7 @@ class WBEMServer(object):
         # TODO: Disabled namespace names with leading slash; see issue #255
         # '/interop',   
         # '/root/interop',
-        'root/PG_Interop',
+        'root/PG_Interop',  # Needed up to OpenPegasus 2.12?
     ]
 
     #: A class variable with the possible names of CIM classes for
@@ -76,37 +131,84 @@ class WBEMServer(object):
         self._interop_ns = None
         self._namespaces = None
         self._namespace_classname = None
+        self._brand = None
+        self._version = None
+        self._profiles = None
 
     @property
     def conn(self):
-        """The connection to the WBEM server, as a
-        :class:`~pywbem.WBEMConnection` object."""
+        """
+        The connection to the WBEM server, as a
+        :class:`~pywbem.WBEMConnection` object.
+        """
         return self._conn
 
     @property
     def interop_ns(self):
-        """The name of the Interop namespace of the WBEM server, as a
-        :term:`string`. Initially `None`.
-
-        Will be populated by :meth:`determine_interop_ns` or
-        :meth:`validate_interop_ns`."""
+        """
+        The name of the Interop namespace of the WBEM server, as a
+        :term:`string`.
+        """
+        if self._interop_ns is None:
+            self.determine_interop_ns()
         return self._interop_ns
 
     @property
     def namespace_classname(self):
-        """The name of the CIM class that was found to represent the CIM
-        namespaces of the WBEM server, as a :term:`string`. Initially `None`.
-
-        Will be populated by :meth:`determine_namespaces`."""
+        """
+        The name of the CIM class that was found to represent the CIM
+        namespaces of the WBEM server, as a :term:`string`.
+        """
+        if self._namespace_classname is None:
+            self.determine_namespaces()
         return self._namespace_classname
 
     @property
     def namespaces(self):
-        """A list with the names of all namespaces of the WBEM server, each
-        list item being a :term:`string`. Initially `None`.
-
-        Will be populated by :meth:`determine_namespaces`."""
+        """
+        A list with the names of all namespaces of the WBEM server, each
+        list item being a :term:`string`.
+        """
+        if self._namespaces is None:
+            self.determine_namespaces()
         return self._namespaces
+
+    @property
+    def brand(self):
+        """
+        Brand of the WBEM server, as a :term:`string`.
+
+        The brand string will be one of the following:
+
+        * ``pegasus``: OpenPegasus
+        * ``sfcb``: SFCB
+        * Value of the ElementName property of the CIM_ObjectManager instance,
+          for any other WBEM servers.
+        """
+        if self._brand is None:
+            self.determine_brand()
+        return self._brand
+
+    @property
+    def version(self):
+        """
+        Version of the WBEM server, as a :term:`string`. `None`, if the version
+        cannot be determined.
+        """
+        if self._version is None:
+            self.determine_brand()
+        return self._version
+
+    @property
+    def profiles(self):
+        """
+        List of management profiles advertised by the WBEM server, each list
+        item being a :class:`CIMClassName` object representing the instance
+        path of the corresponding CIM_RegisteredProfile instance.
+        """
+        if self._profiles is None:
+            self.determine_profiles()
+        return self._profiles
 
     @property
     def url(self):
@@ -132,7 +234,6 @@ class WBEMServer(object):
         test_classname = 'CIM_Namespace'
         interop_ns = None
         for ns in self.INTEROP_NAMESPACES:
-            print("Debug: Trying with namespace=<%s>" % ns)
             try:
                 self._conn.EnumerateInstanceNames(test_classname, namespace=ns)
             except pywbem.CIMError as exc:
@@ -172,8 +273,6 @@ class WBEMServer(object):
 
           interop_ns (:term:`string`):
             Name of the Interop namespace to be validated.
-
-            Must not be `None`.
 
         Raises:
 
@@ -236,6 +335,71 @@ class WBEMServer(object):
                                   "(tried %s)" % self.NAMESPACE_CLASSNAMES)
         self._namespace_classname = ns_classname
         self._namespaces = [inst['Name'] for inst in ns_insts]
+
+    def determine_brand(self):
+        """
+        Determine the brand of the WBEM server (e.g. OpenPegasus, SFCB, ...)
+        and its version, by communicating with it and retrieving the
+        CIM_ObjectManager instance.
+
+        On success, this method sets the :attr:`brand` and :attr:`version`
+        properties of this object and returns.
+        Otherwise, it raises an exception.
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+        """
+        if self._interop_ns is None:
+            self.determine_interop_ns()
+        cimom_insts = self._conn.EnumerateInstances(
+            "CIM_ObjectManager", namespace=self._interop_ns)
+        if len(cimom_insts) != 1:
+            raise pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND,
+                                  "Unexpected number of CIM_ObjectManager " \
+                                  "instances: %s " % \
+                                  [i['ElementName'] for i in cimom_insts])
+        cimom_inst = cimom_insts[0]
+        element_name = cimom_inst['ElementName']
+        if element_name == "Pegasus":
+            brand = 'pegasus'
+            # Description = "Pegasus OpenPegasus Version 2.12.0"
+            m = re.match(r'.+ *Version *([^ ]+)', cimom_inst['Description'])
+            if m:
+                version = m.group(1)
+            else:
+                version = None
+        elif element_name == "SFCB":
+            brand = 'sfcb'
+            # TODO: figure out version of SFCB
+            version = None
+        else:
+            brand = element_name
+            version = None
+        self._brand = brand
+        self._version = version
+
+    def determine_profiles(self):
+        """
+        Determine the WBEM management profiles advertised by the WBEM server,
+        by communicating with it and enumerating the instances of
+        CIM_RegisteredProfile.
+
+        If the profiles could be determined, this method sets the
+        :attr:`profiles` property of this object to the list of
+        CIM_RegisteredProfile instances (as :class:`CIMInstance` objects),
+        and returns.
+        Otherwise, it raises an exception.
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+        """
+        if self._interop_ns is None:
+            self.determine_interop_ns()
+        mp_insts = self._conn.EnumerateInstances("CIM_RegisteredProfile",
+                                                 namespace=self._interop_ns)
+        self._profiles = mp_insts
 
     def create_destination(self, dest_url):
         """
@@ -369,4 +533,251 @@ class WBEMServer(object):
 
         sub_path = self._conn.CreateInstance(sub_inst)
         return sub_path
+
+
+class ValueMapping(object):
+    """
+    A mapping between ValueMap and Values qualifiers on a specific CIM element
+    (property, parameter, ...) in a WBEM server.
+
+    Instances of this class should be created through one of the factory class
+    methods: :meth:`for_property`, :meth:`for_method`, or :meth:`for_parameter`.
+    """
+
+    def __init__(self, element_obj, values_dict, valuemap_dict):
+        """
+        Parameters:
+
+          element_obj (:class:`~pywbem.CIMProperty`, :class:`~pywbem.CIMMethod`, or :class:`~pywbem.CIMParameter`):
+            The CIM element on which the qualifiers are defined.
+
+          values_dict (dict):
+            A dictionary that maps ValueMap qualifier entries to their
+            corresponding Values qualifier entries.
+
+          valuemap_dict (dict):
+            A dictionary that maps Values qualifier entries to their
+            corresponding ValueMap qualifier entries.
+        """
+        self._element_obj = element_obj
+        self._values_dict = values_dict
+        self._valuemap_dict = valuemap_dict
+
+    @classmethod
+    def for_property(cls, server, namespace, classname, propname):
+        """
+        Return a new :class:`ValueMapping` instance for the Values / ValueMap
+        qualifiers defined on a CIM property.
+
+        This is done by retrieving the class definition for the specified
+        class, and by inspecting these qualifiers.
+
+        Parameters:
+
+          server (:class:`WBEMServer`):
+            The WBEM server containing the namespace.
+
+          namespace (:term:`string`):
+            Name of the CIM namespace containing the class.
+
+          classname (:term:`string`):
+            Name of the CIM class exposing the property. The property can be
+            defined in that class or inherited into that class.
+
+          propname (:term:`string`):
+            Name of the CIM property that defines the Values / ValueMap
+            qualifiers.
+
+        Returns:
+
+            The created :class:`ValueMapping` instance for the Values / ValueMap
+            qualifiers defined on the CIM property.
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+        """
+        class_obj = server.conn.GetClass(ClassName=classname,
+                                         namespace=namespace,
+                                         LocalOnly=False,
+                                         IncludeQualifiers=True)
+        property_obj = class_obj.properties[propname]
+        return cls._create_for_element(property_obj)
+
+    @classmethod
+    def for_method(cls, server, namespace, classname, methodname):
+        """
+        Return a new :class:`ValueMapping` instance for the Values / ValueMap
+        qualifiers defined on a CIM method.
+
+        This is done by retrieving the class definition for the specified
+        class, and by inspecting these qualifiers.
+
+        Parameters:
+
+          server (:class:`WBEMServer`):
+            The WBEM server containing the namespace.
+
+          namespace (:term:`string`):
+            Name of the CIM namespace containing the class.
+
+          classname (:term:`string`):
+            Name of the CIM class exposing the method. The method can be
+            defined in that class or inherited into that class.
+
+          methodname (:term:`string`):
+            Name of the CIM method that defines the Values / ValueMap
+            qualifiers.
+
+        Returns:
+
+            The created :class:`ValueMapping` instance for the Values / ValueMap
+            qualifiers defined on the CIM method.
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+        """
+        class_obj = server.conn.GetClass(ClassName=classname,
+                                         namespace=namespace,
+                                         LocalOnly=False,
+                                         IncludeQualifiers=True)
+        method_obj = class_obj.methods[methodname]
+        return cls._create_for_element(method_obj)
+
+    @classmethod
+    def for_parameter(cls, server, namespace, classname, methodname,
+                      parametername):
+        """
+        Return a new :class:`ValueMapping` instance for the Values / ValueMap
+        qualifiers defined on a CIM parameter.
+
+        This is done by retrieving the class definition for the specified
+        class, and by inspecting these qualifiers.
+
+        Parameters:
+
+          server (:class:`WBEMServer`):
+            The WBEM server containing the namespace.
+
+          namespace (:term:`string`):
+            Name of the CIM namespace containing the class.
+
+          classname (:term:`string`):
+            Name of the CIM class exposing the method. The method can be
+            defined in that class or inherited into that class.
+
+          methodname (:term:`string`):
+            Name of the CIM method that has the parameter.
+
+          parametername (:term:`string`):
+            Name of the CIM parameter that defines the Values / ValueMap
+            qualifiers.
+
+        Returns:
+
+            The created :class:`ValueMapping` instance for the Values / ValueMap
+            qualifiers defined on the CIM parameter.
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+        """
+        class_obj = server.conn.GetClass(ClassName=classname,
+                                         namespace=namespace,
+                                         LocalOnly=False,
+                                         IncludeQualifiers=True)
+        method_obj = class_obj.methods[methodname]
+        parameter_obj = method_obj.parameters[parametername]
+        return cls._create_for_element(parameter_obj)
+
+    @classmethod
+    def _create_for_element(cls, element_obj):
+        """
+        Return a new :class:`ValueMapping` instance for the specified
+        CIM element.
+
+        Parameters:
+
+          element_obj (:class:`~pywbem.CIMProperty`, :class:`~pywbem.CIMMethod`, or :class:`~pywbem.CIMParameter`):
+            The CIM element on which the qualifiers are defined.
+
+        Returns:
+
+            The created :class:`ValueMapping` instance for the specified
+            CIM element.
+        """
+
+        values_qual = element_obj.qualifiers.get('Values', None)
+        valuemap_qual = element_obj.qualifiers.get('ValueMap', None)
+
+        # Apply defaults defined in DSP0004
+        if valuemap_qual is None:
+            # Default: Consecutive index numbers from 0
+            valuemap_list = range(0, len(values_qual.value))
+        else:
+            valuemap_list = valuemap_qual.value
+        if values_qual is None:
+            # Default: ValueMap values
+            values_list = valuemap_list
+        else:
+            values_list = values_qual.value
+
+        values_dict = dict(zip(valuemap_list, values_list))
+        valuemap_dict = dict(zip(values_list, valuemap_list))
+
+        vm = ValueMapping(element_obj, values_dict, valuemap_dict)
+
+        return vm
+
+    @property
+    def element(self):
+        """
+        Return the element on which the Values and ValueMap qualifiers are
+        defined, as a CIM object (:class:`~pywbem.CIMProperty`,
+        :class:`~pywbem.CIMMethod`, or :class:`~pywbem.CIMParameter`).
+        """
+        return self._element_obj
+
+    def tovalues(self, valuemap):
+        """
+        Return the entry in the Values qualifier that corresponds to an entry
+        in the ValueMaps qualifier.
+
+        Parameters:
+
+          valuemap (:term:`string`):
+            The entry in the ValueMaps qualifier.
+
+        Returns:
+
+          :term:`string`:
+            The entry in the Values qualifier.
+
+        Raises:
+
+            KeyError: The ValueMaps entry does not exist in this mapping.
+        """
+        return self._values_dict[valuemap]
+
+    def tovaluemap(self, values):
+        """
+        Return the entry in the ValueMap qualifier that corresponds to an entry
+        in the Values qualifier.
+
+        Parameters:
+
+          values (:term:`string`):
+            The entry in the Values qualifier.
+
+        Returns:
+
+          :term:`string`:
+            The entry in the ValueMap qualifier.
+
+        Raises:
+
+            KeyError: The Values entry does not exist in this mapping.
+        """
+        return self._valuemap_dict[values]
 
