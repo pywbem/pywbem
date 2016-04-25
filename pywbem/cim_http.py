@@ -594,6 +594,8 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                     # TODO AM: Verify these errno numbers on Windows vs. Linux.
                     if exc.args[0] != 104 and exc.args[0] != 32:
                         raise ConnectionError("Socket error: %s" % exc)
+                    else:
+                        print("Debug: Ignoring %s at cim_http #1: %s" % (type(exc), str(exc)))
 
                 response = client.getresponse()
 
@@ -616,7 +618,8 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                         platform.system())
                                 local_auth_header = ('Authorization',
                                                      'OWLocal uid="%d"' % uid)
-                                continue
+                                print("Debug: Continuing with next retry at cim_http #1a")
+                                continue  # with next retry
                             else:
                                 try:
                                     nonce_idx = auth_chal.index('nonce=')
@@ -639,10 +642,13 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                         'Authorization',
                                         'OWLocal nonce="%s", cookie="%s"' % \
                                         (nonce, cookie))
-                                    continue
+                                    print("Debug: Continuing with next retry at cim_http #2")
+                                    continue  # with next retry
                                 except:    #pylint: disable=bare-except
                                     local_auth_header = None
-                                    continue
+                                    print("Debug: Ignoring %s at cim_http #3: %s" % (type(exc), str(exc)))
+                                    print("Debug: Continuing with next retry at cim_http #3")
+                                    continue  # with next retry
                         elif 'Local' in auth_chal:
                             try:
                                 beg = auth_chal.index('"') + 1
@@ -656,8 +662,10 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                         'PegasusAuthorization',
                                         'Local "%s:%s:%s"' % \
                                         (locallogin, _file, cookie))
-                                    continue
-                            except ValueError:
+                                    print("Debug: Continuing with next retry at cim_http #4")
+                                    continue  # with next retry
+                            except ValueError as exc:
+                                print("Debug: Ignoring ValueError at cim_http #5: %s" % str(exc))
                                 pass
                         raise AuthError(response.reason)
 
@@ -698,7 +706,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
             except SocketErrors as exc:
                 raise ConnectionError("Socket error: %s" % exc)
 
-            break
+            break  # retry loop
 
     return body
 

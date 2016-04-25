@@ -673,7 +673,8 @@ class WBEMConnection(object):
         # TODO 3/16 AM: Clean up exception handling. The next two lines are a
         # workaround in order not to ignore TypeError and other exceptions
         # that may be raised.
-        except Exception:
+        except Exception as exc:
+            print("Debug: Reraising %s at cim_operations #1: %s" % (type(exc), str(exc)))
             raise
 
         # Set the raw response before parsing (which can fail)
@@ -900,7 +901,8 @@ class WBEMConnection(object):
         # TODO 3/16 AM: Clean up exception handling. The next two lines are a
         # workaround in order not to ignore TypeError and other exceptions
         # that may be raised.
-        except Exception:
+        except Exception as exc:
+            print("Debug: Reraising %s at cim_operations #2: %s" % (type(exc), str(exc)))
             raise
 
         # Set the raw response before parsing and checking (which can fail)
