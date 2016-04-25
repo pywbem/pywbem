@@ -1856,26 +1856,12 @@ class CIMClass(_CIMComparisonMixin):
         # Properties; indent one level from class definition
 
         for prop_val in self.properties.values():
-            if prop_val.is_array:
-                if prop_val.array_size is not None:
-                    array_str = "[%s]" % prop_val.array_size
-                else:
-                    array_str = "[]"
-            else:
-                array_str = ''
-            ret_str += '\n'
-            if len(prop_val.qualifiers) != 0:
-                ret_str += '%s\n' % ((_makequalifiers(prop_val.qualifiers,
-                                                      (indent + MOF_INDENT))))
-            ret_str += '%s%s %s%s;\n' % (_indent_str(indent),
-                                         moftype(prop_val.type,
-                                                 prop_val.reference_class),
-                                         prop_val.name, array_str)
+            ret_str += prop_val.tomof(False, indent)
 
         # Methods, indent one level from class definition
 
         for method in self.methods.values():
-            ret_str += '%s\n' % method.tomof(indent)
+            ret_str += '\n%s' % method.tomof(indent)
 
         ret_str += '};\n'
 
@@ -2484,7 +2470,7 @@ class CIMProperty(_CIMComparisonMixin):
             Parameters:
                 indent (:term: `integer`): number of spaces to indent
                 the initial line of the generated mof.
-                fold (:term:`bool`): If True format as instance
+                fold (bool): If True format as instance
                 mof. Else format as class mof.
         """
         mof_ = ''
@@ -2496,23 +2482,45 @@ class CIMProperty(_CIMComparisonMixin):
             mof_ += self._scalar_value2mof(val_, indent)
         return mof_
 
-    def tomof(self, isInstance=True, indent=0):
+    def tomof(self, is_instance=True, indent=0):
         """ Return a string representing the MOF definition of
             a single property.
 
             Parameters:
-                isInstance (:term:`bool`): If True format as instance
-                mof. Else format as class mof.
+                is_instance (bool): If True format as instance
+                mof. Else format as class mof. Default=True
                 indent (:term: `integer`): number of spaces to indent
-                the initial line of the generated mof.
+                the initial line of the generated mof. Default = 0
         """
 
-        mof = '%s%s = ' % (_indent_str(indent), self.name)
+        if is_instance:
+            # is an instance; set name
+            mof = '%s%s = ' % (_indent_str(indent), self.name)
+        else:   # is a class; set type, name, array info
+            if self.is_array:
+                if self.array_size is not None:
+                    array_str = "[%s]" % self.array_size
+                else:
+                    array_str = "[]"
+            else:
+                array_str = ''
 
+            mof = '\n'
+            if len(self.qualifiers) != 0:
+                mof += '%s\n' % ((_makequalifiers(self.qualifiers,
+                                                  (indent + MOF_INDENT))))
+
+            mof += '%s%s %s%s' % (_indent_str(indent),
+                                  moftype(self.type,
+                                          self.reference_class),
+                                  self.name, array_str)
+
+        # set the value into the mof
         if self.value is None:
-            mof += 'NULL'
+            if is_instance:
+                mof += 'NULL'
         elif self.is_array:
-            mof += '{'
+            mof += ' = {'
             # output as single line if within width limits
             arr_str = self._array_val2mof(indent, False)
             # If too large, redo with on array element per line
@@ -2521,6 +2529,8 @@ class CIMProperty(_CIMComparisonMixin):
                 arr_str += self._array_val2mof((indent+MOF_INDENT), True)
             mof += arr_str + '}'
         else:
+            if not is_instance:
+                mof += ' = '
             mof += self._scalar_value2mof(self.value, indent)
 
         mof += ';\n'
@@ -2890,6 +2900,7 @@ class CIMParameter(_CIMComparisonMixin):
 
     @property
     def value(self):
+        """Return value component(Deprecated)."""
         warnings.warn(
             "The value attribute of CIMParameter is deprecated",
             DeprecationWarning)
@@ -2897,6 +2908,7 @@ class CIMParameter(_CIMComparisonMixin):
 
     @value.setter
     def value(self, value):
+        """Set value component(Deprecated)."""
         warnings.warn(
             "The value attribute of CIMParameter is deprecated",
             DeprecationWarning)
@@ -3361,12 +3373,31 @@ class CIMQualifier(_CIMComparisonMixin):
             return str(value)
 
         if isinstance(self.value, list):
-            mof = '%s {' % self.name + \
-                   ', '.join([valstr(val) for val in self.value]) + '}'
-            return mof
+            line_pos = indent + len(self.name) + 4
+            values = ''
+            for i, val in enumerate(self.value):
+                if i != 0:
+                    values += ','
+                nextval = valstr(val)
+                if (line_pos + len(nextval) + 3) > MAX_MOF_LINE:
+                    sep = '\n' + _indent_str(indent)
+                    line_pos = len(_indent_str(indent)) + 4
+                else:
+                    sep = ' '
 
-        return '%s (%s)' % (self.name, valstr(self.value))
+                line_pos += (len(nextval) + 2)
+                values += sep + nextval
 
+            mof = '%s {%s%s' % (self.name, values, '}')
+
+        else:
+            val = valstr(self.value)
+            if len(val) + indent + 4 >= MAX_MOF_LINE:
+                mof = '%s (\n%s%s)' % (self.name, _indent_str(indent),
+                                       val)
+            else:
+                mof = '%s (%s)' % (self.name, val)
+        return mof
 
 #pylint: disable=too-many-instance-attributes
 class CIMQualifierDeclaration(_CIMComparisonMixin):
