@@ -2470,7 +2470,7 @@ class CIMProperty(_CIMComparisonMixin):
             Parameters:
                 indent (:term: `integer`): number of spaces to indent
                 the initial line of the generated mof.
-                fold (:class:`py:bool`): If True format as instance
+                fold (bool): If True format as instance
                 mof. Else format as class mof.
         """
         mof_ = ''
@@ -2482,18 +2482,18 @@ class CIMProperty(_CIMComparisonMixin):
             mof_ += self._scalar_value2mof(val_, indent)
         return mof_
 
-    def tomof(self, isInstance=True, indent=0):
+    def tomof(self, is_instance=True, indent=0):
         """ Return a string representing the MOF definition of
             a single property.
 
             Parameters:
-                isInstance (:class:`py:bool`): If True format as instance
-                mof. Else format as class mof.
+                is_instance (bool): If True format as instance
+                mof. Else format as class mof. Default=True
                 indent (:term: `integer`): number of spaces to indent
-                the initial line of the generated mof.
+                the initial line of the generated mof. Default = 0
         """
 
-        if isInstance:
+        if is_instance:
             # is an instance; set name
             mof = '%s%s = ' % (_indent_str(indent), self.name)
         else:   # is a class; set type, name, array info
@@ -2517,7 +2517,7 @@ class CIMProperty(_CIMComparisonMixin):
 
         # set the value into the mof
         if self.value is None:
-            if isInstance:
+            if is_instance:
                 mof += 'NULL'
         elif self.is_array:
             mof += ' = {'
@@ -2529,7 +2529,7 @@ class CIMProperty(_CIMComparisonMixin):
                 arr_str += self._array_val2mof((indent+MOF_INDENT), True)
             mof += arr_str + '}'
         else:
-            if not isInstance:
+            if not is_instance:
                 mof += ' = '
             mof += self._scalar_value2mof(self.value, indent)
 
@@ -2900,6 +2900,7 @@ class CIMParameter(_CIMComparisonMixin):
 
     @property
     def value(self):
+        """Return value component(Deprecated)."""
         warnings.warn(
             "The value attribute of CIMParameter is deprecated",
             DeprecationWarning)
@@ -2907,6 +2908,7 @@ class CIMParameter(_CIMComparisonMixin):
 
     @value.setter
     def value(self, value):
+        """Set value component(Deprecated)."""
         warnings.warn(
             "The value attribute of CIMParameter is deprecated",
             DeprecationWarning)
