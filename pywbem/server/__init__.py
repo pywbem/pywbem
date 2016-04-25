@@ -541,7 +541,8 @@ class ValueMapping(object):
     (property, parameter, ...) in a WBEM server.
 
     Instances of this class should be created through one of the factory class
-    methods: :meth:`for_property`, :meth:`for_method`, or :meth:`for_parameter`.
+    methods: :meth:`for_property`, :meth:`for_method`, or
+    :meth:`for_parameter`.
     """
 
     def __init__(self, element_obj, values_dict, valuemap_dict):
@@ -590,8 +591,8 @@ class ValueMapping(object):
 
         Returns:
 
-            The created :class:`ValueMapping` instance for the Values / ValueMap
-            qualifiers defined on the CIM property.
+            The created :class:`ValueMapping` instance for the Values /
+            ValueMap qualifiers defined on the CIM property.
 
         Raises:
 
@@ -631,8 +632,8 @@ class ValueMapping(object):
 
         Returns:
 
-            The created :class:`ValueMapping` instance for the Values / ValueMap
-            qualifiers defined on the CIM method.
+            The created :class:`ValueMapping` instance for the Values /
+            ValueMap qualifiers defined on the CIM method.
 
         Raises:
 
@@ -676,8 +677,8 @@ class ValueMapping(object):
 
         Returns:
 
-            The created :class:`ValueMapping` instance for the Values / ValueMap
-            qualifiers defined on the CIM parameter.
+            The created :class:`ValueMapping` instance for the Values /
+            ValueMap qualifiers defined on the CIM parameter.
 
         Raises:
 
@@ -697,6 +698,9 @@ class ValueMapping(object):
         Return a new :class:`ValueMapping` instance for the specified
         CIM element.
 
+        The defaults defined in DSP0004 for a missing ValueMap qualifier
+        are applied.
+
         Parameters:
 
           element_obj (:class:`~pywbem.CIMProperty`, :class:`~pywbem.CIMMethod`, or :class:`~pywbem.CIMParameter`):
@@ -711,17 +715,15 @@ class ValueMapping(object):
         values_qual = element_obj.qualifiers.get('Values', None)
         valuemap_qual = element_obj.qualifiers.get('ValueMap', None)
 
-        # Apply defaults defined in DSP0004
         if valuemap_qual is None:
-            # Default: Consecutive index numbers from 0
+            # DSP0004 defines a default of consecutive index numbers
             valuemap_list = range(0, len(values_qual.value))
         else:
             valuemap_list = valuemap_qual.value
         if values_qual is None:
-            # Default: ValueMap values
-            values_list = valuemap_list
-        else:
-            values_list = values_qual.value
+            # DSP0004 defines no default for a missing Values qualifier
+            raise ValueError("No Values qualifier defined")
+        values_list = values_qual.value
 
         values_dict = dict(zip(valuemap_list, values_list))
         valuemap_dict = dict(zip(values_list, valuemap_list))
