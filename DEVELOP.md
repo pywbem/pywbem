@@ -333,3 +333,59 @@ version (e.g. `0.9.4`) whose development is started.
 14. On GitHub, list all open issues that still have a milestone of less than
     `M.N.U` set, and update them to target milestone `M.N.U`.
 
+Use of Python namespaces
+========================
+
+This section describes how Python namespaces are used by the PyWBEM Client project.
+
+There is obviously a history of namespace usage in pywbem that is different, and
+that we try to still support for compatibility. This section describes both the
+future use and the historical use.
+
+The PyWBEM Client project corresponds 1:1 to:
+
+* GitHub repository `pywbem/pywbem`
+* Pypi package `pywbem`
+* Python namespace `pywbem` and its sub-namespaces.
+
+The following sub-namespaces are used:
+
+* `pywbem.client`: WBEM client API.
+
+  It provides the traditional PyWBEM stuff, minus the MOF compiler and any
+  stuff that was moved to the attic (e.g. `cim_provider`):
+
+  - `WBEMConnection` class
+  - CIM object classes (e.g. `CIMInstance`)
+  - CIM data type classes (e.g. `Uint8`)
+  - constants for CIM status codes (`CIM_ERR_*`)
+
+  The content of this namespace is also available in the `pywbem` namespace,
+  and in the historical `pywbem.cim_obj` etc. namespaces, for backwards
+  compatibility.
+
+* `pywbem.listener`: WBEM listener API.
+
+   It provides:
+
+   - `WBEMListener` class
+
+   Note that the `irecv` namespace was always experimental and will be go to
+   the attic.
+
+* `pywbem.mof_compiler`: MOF compiler API.
+
+   It provides:
+
+   - `MOFCompiler` class etc.
+
+* `pywbem.server`: WBEM server API (what the client side know about the server).
+
+   It provides:
+
+   - `WBEMServer` class etc.
+
+* Further namespaces that are to be discussed, for higher level management
+  functionality (e.g. for management profiles, SLP discovery, more from Interop
+  namespace).
+
