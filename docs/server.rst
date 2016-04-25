@@ -1,6 +1,5 @@
 
 .. _`WBEM server API`:
-.. #_`pywbem.server`:
 
 WBEM server API
 ===============

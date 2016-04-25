@@ -27,6 +27,15 @@ The **pywbem** PyPI package provides the following components:
 
   See :ref:`WBEM listener API` for a description of the API.
 
+* WBEM server
+
+  The WBEM server represents a general access point for basic server
+  functionality to a client (i.e. it does not run as a WBEM server).
+  It provides an API for applications that for example allows determining the
+  Interop namespace of the server, or the advertised management profiles.
+
+  See :ref:`WBEM server API` for a description of the API.
+
 * WBEM utility commands
 
   * :ref:`mof_compiler` - A MOF compiler that takes MOF files as input and

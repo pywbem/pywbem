@@ -1,15 +1,16 @@
 """
 The `WBEM server API`_ is provided by the :mod:`pywbem.server` module.
 
-It provides basic functionality of a WBEM server that is relevant for a client.
+It provides basic functionality of a WBEM server that is relevant for a
+client:
 
-The :class:`WBEMServer` class serves as a general access point for clients,
-and supports determing the Interop namespace of the server, all namespaces, its
-brand and version, the advertised management profiles, and functions to
-subscribe for indications.
+* The :class:`WBEMServer` class serves as a general access point for clients.
+  It provides an API for applications that for example allows determining the
+  Interop namespace of the server, or the advertised management profiles.
 
-The :class:`ValueMapping` class maps corresponding entries in Values and
-ValueMap qualifiers of a CIM element and supports a translation between the two.
+* The :class:`ValueMapping` class maps corresponding entries in Values and
+  ValueMap qualifiers of a CIM element and supports a translation between the
+  two.
 
 Example
 -------
@@ -92,9 +93,10 @@ class WBEMServer(object):
     A representation of a WBEM server that serves as a general access point to
     a client.
 
-    It supports determing the Interop namespace of the server, all namespaces,
-    its brand and version, the advertised management profiles, and functions to
-    subscribe for indications.
+    It supports determining the Interop namespace of the server, all namespaces,
+    its brand and version, and the advertised management profiles
+
+    It also provides functions to subscribe for indications.
 
     TODO: Provide function that returns the central instances of a profile,
     based on the new method, and the traditional central and scoping mechanism.
@@ -136,6 +138,13 @@ class WBEMServer(object):
         self._profiles = None
 
     @property
+    def url(self):
+        """
+        The URL of the WBEM server, as a :term:`string`.
+        """
+        return self._conn.url
+
+    @property
     def conn(self):
         """
         The connection to the WBEM server, as a
@@ -148,6 +157,9 @@ class WBEMServer(object):
         """
         The name of the Interop namespace of the WBEM server, as a
         :term:`string`.
+
+        If the Interop namespace has not been determined yet, it
+        will be determined using :meth:`determine_interop_ns`.
         """
         if self._interop_ns is None:
             self.determine_interop_ns()
@@ -158,6 +170,9 @@ class WBEMServer(object):
         """
         The name of the CIM class that was found to represent the CIM
         namespaces of the WBEM server, as a :term:`string`.
+
+        If the class name has not been determined yet, it will be
+        determined using :meth:`determine_namespaces`.
         """
         if self._namespace_classname is None:
             self.determine_namespaces()
@@ -168,6 +183,9 @@ class WBEMServer(object):
         """
         A list with the names of all namespaces of the WBEM server, each
         list item being a :term:`string`.
+
+        If the namespaces have not been determined yet, they will be
+        determined using :meth:`determine_namespaces`.
         """
         if self._namespaces is None:
             self.determine_namespaces()
@@ -180,10 +198,13 @@ class WBEMServer(object):
 
         The brand string will be one of the following:
 
-        * ``pegasus``: OpenPegasus
-        * ``sfcb``: SFCB
+        * ``"pegasus"``, for OpenPegasus
+        * ``"sfcb"``, for SFCB
         * Value of the ElementName property of the CIM_ObjectManager instance,
           for any other WBEM servers.
+
+        If the brand has not been determined yet, it will be determined using
+        :meth:`determine_brand`.
         """
         if self._brand is None:
             self.determine_brand()
@@ -194,6 +215,9 @@ class WBEMServer(object):
         """
         Version of the WBEM server, as a :term:`string`. `None`, if the version
         cannot be determined.
+
+        If the version has not been determined yet, it will be determined using
+        :meth:`determine_brand`.
         """
         if self._version is None:
             self.determine_brand()
@@ -203,17 +227,15 @@ class WBEMServer(object):
     def profiles(self):
         """
         List of management profiles advertised by the WBEM server, each list
-        item being a :class:`CIMClassName` object representing the instance
-        path of the corresponding CIM_RegisteredProfile instance.
+        item being a :class:`~pywbem.CIMInstance` object representing a
+        CIM_RegisteredProfile instance.
+
+        If the management profiles have not been determined yet, they will be
+        determined using :meth:`determine_profiles`.
         """
         if self._profiles is None:
             self.determine_profiles()
         return self._profiles
-
-    @property
-    def url(self):
-        """The URL of the WBEM server."""
-        return self._conn.url
 
     def determine_interop_ns(self):
         """
@@ -387,8 +409,8 @@ class WBEMServer(object):
 
         If the profiles could be determined, this method sets the
         :attr:`profiles` property of this object to the list of
-        CIM_RegisteredProfile instances (as :class:`CIMInstance` objects),
-        and returns.
+        CIM_RegisteredProfile instances (as :class:`~pywbem.CIMInstance`
+        objects), and returns.
         Otherwise, it raises an exception.
 
         Raises:
@@ -573,6 +595,10 @@ class ValueMapping(object):
         This is done by retrieving the class definition for the specified
         class, and by inspecting these qualifiers.
 
+        If a Values qualifier is defined but no ValueMap qualifier, a
+        default of 0-based consecutive numbers is applied (that is the
+        default defined in :term:`DSP0004`).
+
         Parameters:
 
           server (:class:`WBEMServer`):
@@ -597,6 +623,7 @@ class ValueMapping(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            ValueError: No Values qualifier defined.
         """
         class_obj = server.conn.GetClass(ClassName=classname,
                                          namespace=namespace,
@@ -613,6 +640,10 @@ class ValueMapping(object):
 
         This is done by retrieving the class definition for the specified
         class, and by inspecting these qualifiers.
+
+        If a Values qualifier is defined but no ValueMap qualifier, a
+        default of 0-based consecutive numbers is applied (that is the
+        default defined in :term:`DSP0004`).
 
         Parameters:
 
@@ -638,6 +669,7 @@ class ValueMapping(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            ValueError: No Values qualifier defined.
         """
         class_obj = server.conn.GetClass(ClassName=classname,
                                          namespace=namespace,
@@ -655,6 +687,10 @@ class ValueMapping(object):
 
         This is done by retrieving the class definition for the specified
         class, and by inspecting these qualifiers.
+
+        If a Values qualifier is defined but no ValueMap qualifier, a
+        default of 0-based consecutive numbers is applied (that is the
+        default defined in :term:`DSP0004`).
 
         Parameters:
 
@@ -683,6 +719,7 @@ class ValueMapping(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            ValueError: No Values qualifier defined.
         """
         class_obj = server.conn.GetClass(ClassName=classname,
                                          namespace=namespace,
@@ -698,8 +735,9 @@ class ValueMapping(object):
         Return a new :class:`ValueMapping` instance for the specified
         CIM element.
 
-        The defaults defined in DSP0004 for a missing ValueMap qualifier
-        are applied.
+        If a Values qualifier is defined but no ValueMap qualifier, a
+        default of 0-based consecutive numbers is applied (that is the
+        default defined in :term:`DSP0004`).
 
         Parameters:
 
@@ -710,6 +748,10 @@ class ValueMapping(object):
 
             The created :class:`ValueMapping` instance for the specified
             CIM element.
+
+        Raises:
+
+            ValueError: No Values qualifier defined.
         """
 
         values_qual = element_obj.qualifiers.get('Values', None)
@@ -744,12 +786,12 @@ class ValueMapping(object):
     def tovalues(self, valuemap):
         """
         Return the entry in the Values qualifier that corresponds to an entry
-        in the ValueMaps qualifier.
+        in the ValueMap qualifier.
 
         Parameters:
 
           valuemap (:term:`string`):
-            The entry in the ValueMaps qualifier.
+            The entry in the ValueMap qualifier.
 
         Returns:
 
@@ -758,7 +800,7 @@ class ValueMapping(object):
 
         Raises:
 
-            KeyError: The ValueMaps entry does not exist in this mapping.
+            KeyError: The ValueMap entry does not exist in this mapping.
         """
         return self._values_dict[valuemap]
 
