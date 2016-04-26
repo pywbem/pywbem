@@ -26,7 +26,7 @@ def explore_server(server_url, username, password):
     indications_profile = None
     server_profile = None
     for inst in server.profiles:
-        org = org_vm.tovalues(str(inst['RegisteredOrganization']))
+        org = org_vm.tovalues(inst['RegisteredOrganization'])
         name = inst['RegisteredName']
         vers = inst['RegisteredVersion']
         print("  %s %s Profile %s" % (org, name, vers))

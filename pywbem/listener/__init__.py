@@ -28,9 +28,10 @@ one or more WBEM servers, and implements a thread-based WBEM listener service.
 
    * An "application" is a Python process.
 
-   * Each Python process has the listener demon included in the form of a thread.
+   * Each Python process has the listener demon included in the form of a
+     thread.
 
-     - That automatically results in each application having its own scope of 
+     - That automatically results in each application having its own scope of
        managing subcriptions.
      - On the downside, the price for that is that two Python processes on the
        same client system that subscribe for the same set of indications get
@@ -101,24 +102,29 @@ import time
 from socket import getfqdn
 
 import six
-from twisted.web.resource import Resource
-from twisted.web.server import Site
-from twisted.internet import reactor
-#from twisted.python import log
+
+# pylint: disable=wrong-import-position
+_USE_TWISTED = sys.version_info[0:2] >= (2, 7)
+if _USE_TWISTED:
+    from twisted.web.resource import Resource
+    from twisted.web.server import Site
+    from twisted.internet import reactor
+    #from twisted.python import log
 
 _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
 if six.PY2 and not _ON_RTD:  # RTD has no swig to install M2Crypto
-    from M2Crypto import SSL           # pylint: disable=wrong-import-position
-    from M2Crypto.Err import SSLError  # pylint: disable=wrong-import-position
+    from M2Crypto import SSL
+    from M2Crypto.Err import SSLError
     _HAVE_M2CRYPTO = True
 else:
-    import ssl as SSL                  # pylint: disable=wrong-import-position
-    from ssl import SSLError           # pylint: disable=wrong-import-position
+    import ssl as SSL
+    from ssl import SSLError
     _HAVE_M2CRYPTO = False
 
 import pywbem
 from pywbem.server import WBEMServer
+# pylint: enable=wrong-import-position
 
 DEFAULT_LISTENER_PORT_HTTP = 5988
 DEFAULT_LISTENER_PORT_HTTPS = 5989
@@ -187,7 +193,7 @@ class WBEMListener(object):
         self._subscriptions = {}
         self._dynamic_filters = {}
         self._destinations = {}
-        self._callbacks = ()
+        self._callbacks = []
 
     @property
     def host(self):
@@ -219,15 +225,16 @@ class WBEMListener(object):
 
         Once the WBEM listener thread is up and running, return.
         """
-        # TODO: Start logging
-        #log.startLogging(sys.stdout)
-        site = Site(_WBEMListenerResource(self))
-        if self.http_port:
-            reactor.listenTCP(self.http_port, site)
-        if self.https_port:
-            reactor.listenSSL(self.https_port, site,
-                              _HTTPSServerContextFactory())
-        reactor.run()
+        if _USE_TWISTED:
+            # TODO: Start logging
+            #log.startLogging(sys.stdout)
+            site = Site(_WBEMListenerResource(self))
+            if self.http_port:
+                reactor.listenTCP(self.http_port, site)
+            if self.https_port:
+                reactor.listenSSL(self.https_port, site,
+                                  _HTTPSServerContextFactory())
+            reactor.run()
 
     def stop(self):
         """
@@ -424,7 +431,6 @@ class WBEMListener(object):
         if server_url not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
                              server_url)
-        server = self._servers[server_url]
         filter_insts = self._dynamic_filters[server_url]
         return filter_insts
 
@@ -493,7 +499,7 @@ class WBEMListener(object):
         server = self._servers[server_url]
         dest_path = self._destinations[server_url][0]
         sub_inst_path = server.create_subscription(dest_path, filter_path)
-        self._subscriptions[server_url].append(tuple(sub_inst_path, callback))
+        self._subscriptions[server_url].append(sub_inst_path)
         return sub_inst_path
 
     def remove_subscription(self, server_url, sub_path):
@@ -551,7 +557,6 @@ class WBEMListener(object):
         if server_url not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
                              server_url)
-        server = self._servers[server_url]
         sub_paths = self._subscriptions[server_url]
         return sub_paths
 
@@ -592,6 +597,7 @@ class WBEMListener(object):
 
 
 def callback_interface(indication):
+    # pylint: disable=unused-argument
     """
     Interface of a function that is provided by the user of the API and
     that will be called by the listener for each received CIM indication.
@@ -625,7 +631,7 @@ class _WBEMListenerResource(Resource):
         indication to the stored listener object.
         """
         # TODO: Convert CIM-XML payload into a CIMInstance
-        indication = CIMInstance('CIM_Indication') # dummy, for now
+        indication = pywbem.CIMInstance('CIM_Indication') # dummy, for now
         self._listener._deliver_indication(indication)
 
 

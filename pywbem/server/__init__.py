@@ -41,7 +41,7 @@ The following example code displays some information about a WBEM server:
         org_vm = ValueMapping.for_property(server, server.interop_ns,
             'CIM_RegisteredProfile', 'RegisteredOrganization')
         for inst in server.profiles:
-            org = org_vm.tovalues(str(inst['RegisteredOrganization']))
+            org = org_vm.tovalues(inst['RegisteredOrganization'])
             name = inst['RegisteredName']
             vers = inst['RegisteredVersion']
             print("  %s %s Profile %s" % (org, name, vers))
@@ -111,7 +111,7 @@ class WBEMServer(object):
         'interop',
         'root/interop',
         # TODO: Disabled namespace names with leading slash; see issue #255
-        # '/interop',   
+        # '/interop',
         # '/root/interop',
         'root/PG_Interop',  # Needed up to OpenPegasus 2.12?
     ]
@@ -241,6 +241,7 @@ class WBEMServer(object):
 
     def get_central_instances(self, profile_path, central_class=None,
                               scoping_class=None, scoping_path=None):
+        # pylint: disable=line-too-long
         """
         Determine the central instances for a management profile, and return
         their instance paths as a list of :class:`~pywbem.CIMInstanceName`
@@ -248,7 +249,7 @@ class WBEMServer(object):
 
         This method supports the following profile advertisement methodologies
         (see :term:`DSP1033`), and attempts them in this order:
-    
+
           * GetCentralInstances methodology (new in :term:`DSP1033` 1.1)
           * Central class methodology
           * Scoping class methodology
@@ -279,7 +280,7 @@ class WBEMServer(object):
         Example for a 2-hop traversal:
 
         * central class: ``"CIM_Sensor"``
-        * scoping path: ``["CIM_SensorDevice", "CIM_Fan", "CIM_SystemDevice"]``
+        * scoping path: ``["CIM_AssociatedSensor", "CIM_Fan", "CIM_SystemDevice"]``
         * scoping class: ``"CIM_ComputerSystem"``
 
         Parameters:
@@ -383,7 +384,7 @@ class WBEMServer(object):
             upper_scoping_path = None
         #print("Debug: recursing to next upper scoping level with central class: %s" % upper_central_class)
         scoping_inst_paths = self.get_central_instances(
-            referencing_profile_path,
+            referencing_profile_paths[0],
             upper_central_class, scoping_class, upper_scoping_path)
         if len(scoping_inst_paths) == 0:
             raise ValueError("No scoping instances found")
@@ -506,10 +507,11 @@ class WBEMServer(object):
         if self._interop_ns is None:
             self.determine_interop_ns()
         ns_insts = None
-        for ns_classname in self.NAMESPACE_CLASSNAMES:
+        ns_classname = None
+        for classname in self.NAMESPACE_CLASSNAMES:
             try:
                 ns_insts = self._conn.EnumerateInstances(
-                    ns_classname, namespace=self._interop_ns)
+                    classname, namespace=self._interop_ns)
             except pywbem.CIMError as exc:
                 if exc.status_code in (pywbem.CIM_ERR_INVALID_CLASS,
                                        pywbem.CIM_ERR_NOT_FOUND):
@@ -520,6 +522,7 @@ class WBEMServer(object):
                     raise
             else:
                 # Found a namespace class that is implemented.
+                ns_classname = classname
                 break
         if ns_insts is None:
             # Exhausted the possible class names
@@ -729,46 +732,70 @@ class WBEMServer(object):
 
 
 class ValueMapping(object):
+    # pylint: disable=line-too-long
     """
-    A mapping between ValueMap and Values qualifiers on a specific CIM element
-    (property, parameter, ...) in a WBEM server.
+    A utility class that translates the values of a corresponding integer-typed
+    CIM element (property, method, parameter) that is qualified with the
+    ValueMap and Values qualifiers, from the element value space into into its
+    Values qualifier space.
+
+    This is done by retrieving the CIM class definition defining the CIM
+    element in question, and by inspecting its ValueMap and Values qualifiers.
+
+    The actual translation of the values is performed by the :meth:`tovalues`
+    method.
 
     Instances of this class should be created through one of the factory class
-    methods: :meth:`for_property`, :meth:`for_method`, or
-    :meth:`for_parameter`.
+    methods: :meth:`for_property`, :meth:`for_method`, or :meth:`for_parameter`.
+
+    Value ranges (``"2..4"``) and the indicator for unclaimed values (``".."``)
+    in the ValueMap qualifier are supported.
+
+    Example: Given the following definition of a property in MOF:
+
+    ::
+
+        [ValueMap{ "0", "2..4", "..6", "7..", "9", ".." },
+         Values{ "zero", "two-four", "five-six", "seven-eight", "nine", "unclaimed"}]
+        uint16 MyProp;
+
+    The following code will create a value mapping for this property and will
+    print a few integer values and their Values strings:
+
+    ::
+
+        >>> vm = pywbem.server.ValueMapping.for_property(server, namespace, classname, "MyProp")
+        >>> for value in range(0, 12):
+        >>>    print("value: %s, Values string: %r" % (value, vm.tovalues(value))
+        value: 0, Values string: 'zero'
+        value: 1, Values string: 'unclaimed'
+        value: 2, Values string: 'two-four'
+        value: 3, Values string: 'two-four'
+        value: 4, Values string: 'two-four'
+        value: 5, Values string: 'five-six'
+        value: 6, Values string: 'five-six'
+        value: 7, Values string: 'seven-eight'
+        value: 8, Values string: 'seven-eight'
+        value: 9, Values string: 'nine'
+        value: 10, Values string: 'unclaimed'
+        value: 11, Values string: 'unclaimed'
     """
 
-    def __init__(self, element_obj, values_dict, valuemap_dict):
-        """
-        Parameters:
-
-          element_obj (:class:`~pywbem.CIMProperty`, :class:`~pywbem.CIMMethod`, or :class:`~pywbem.CIMParameter`):
-            The CIM element on which the qualifiers are defined.
-
-          values_dict (dict):
-            A dictionary that maps ValueMap qualifier entries to their
-            corresponding Values qualifier entries.
-
-          valuemap_dict (dict):
-            A dictionary that maps Values qualifier entries to their
-            corresponding ValueMap qualifier entries.
-        """
-        self._element_obj = element_obj
-        self._values_dict = values_dict
-        self._valuemap_dict = valuemap_dict
+    def __init__(self):
+        self._element_obj = None
+        self._single_dict = {}  # for single values; elem_val: values_str)
+        self._range_tuple_list = []  # for value ranges; tuple(lo,hi,values_str)
+        self._unclaimed = None  # value of the unclaimed indicator '..'
 
     @classmethod
     def for_property(cls, server, namespace, classname, propname):
         """
-        Return a new :class:`ValueMapping` instance for the Values / ValueMap
-        qualifiers defined on a CIM property.
+        Factory method that returns a new :class:`ValueMapping` instance
+        corresponding to a CIM property.
 
-        This is done by retrieving the class definition for the specified
-        class, and by inspecting these qualifiers.
-
-        If a Values qualifier is defined but no ValueMap qualifier, a
-        default of 0-based consecutive numbers is applied (that is the
-        default defined in :term:`DSP0004`).
+        If a Values qualifier is defined but no ValueMap qualifier, a default
+        of 0-based consecutive numbers is applied (that is the default defined
+        in :term:`DSP0004`).
 
         Parameters:
 
@@ -788,13 +815,13 @@ class ValueMapping(object):
 
         Returns:
 
-            The created :class:`ValueMapping` instance for the Values /
-            ValueMap qualifiers defined on the CIM property.
+            The new :class:`ValueMapping` instance.
 
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ValueError: No Values qualifier defined.
+            TypeError: The property is not integer-typed.
         """
         class_obj = server.conn.GetClass(ClassName=classname,
                                          namespace=namespace,
@@ -806,15 +833,12 @@ class ValueMapping(object):
     @classmethod
     def for_method(cls, server, namespace, classname, methodname):
         """
-        Return a new :class:`ValueMapping` instance for the Values / ValueMap
-        qualifiers defined on a CIM method.
+        Factory method that returns a new :class:`ValueMapping` instance
+        corresponding to a CIM method.
 
-        This is done by retrieving the class definition for the specified
-        class, and by inspecting these qualifiers.
-
-        If a Values qualifier is defined but no ValueMap qualifier, a
-        default of 0-based consecutive numbers is applied (that is the
-        default defined in :term:`DSP0004`).
+        If a Values qualifier is defined but no ValueMap qualifier, a default
+        of 0-based consecutive numbers is applied (that is the default defined
+        in :term:`DSP0004`).
 
         Parameters:
 
@@ -834,13 +858,13 @@ class ValueMapping(object):
 
         Returns:
 
-            The created :class:`ValueMapping` instance for the Values /
-            ValueMap qualifiers defined on the CIM method.
+            The new :class:`ValueMapping` instance.
 
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ValueError: No Values qualifier defined.
+            TypeError: The method is not integer-typed.
         """
         class_obj = server.conn.GetClass(ClassName=classname,
                                          namespace=namespace,
@@ -853,15 +877,12 @@ class ValueMapping(object):
     def for_parameter(cls, server, namespace, classname, methodname,
                       parametername):
         """
-        Return a new :class:`ValueMapping` instance for the Values / ValueMap
-        qualifiers defined on a CIM parameter.
+        Factory method that returns a new :class:`ValueMapping` instance
+        corresponding to a CIM parameter.
 
-        This is done by retrieving the class definition for the specified
-        class, and by inspecting these qualifiers.
-
-        If a Values qualifier is defined but no ValueMap qualifier, a
-        default of 0-based consecutive numbers is applied (that is the
-        default defined in :term:`DSP0004`).
+        If a Values qualifier is defined but no ValueMap qualifier, a default
+        of 0-based consecutive numbers is applied (that is the default defined
+        in :term:`DSP0004`).
 
         Parameters:
 
@@ -884,13 +905,13 @@ class ValueMapping(object):
 
         Returns:
 
-            The created :class:`ValueMapping` instance for the Values /
-            ValueMap qualifiers defined on the CIM parameter.
+            The new :class:`ValueMapping` instance.
 
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ValueError: No Values qualifier defined.
+            TypeError: The parameter is not integer-typed.
         """
         class_obj = server.conn.GetClass(ClassName=classname,
                                          namespace=namespace,
@@ -901,14 +922,71 @@ class ValueMapping(object):
         return cls._create_for_element(parameter_obj)
 
     @classmethod
-    def _create_for_element(cls, element_obj):
+    def _values_tuple(cls, i, valuemap_list, values_list, cimtype):
         """
-        Return a new :class:`ValueMapping` instance for the specified
-        CIM element.
+        Return a tuple for the value range at position i, with these items:
 
-        If a Values qualifier is defined but no ValueMap qualifier, a
-        default of 0-based consecutive numbers is applied (that is the
-        default defined in :term:`DSP0004`).
+        * lo - low value of the range
+        * hi - high value of the range (can be equal to lo)
+        * values - Value of Values qualifier for this position
+
+        Parameters:
+
+          i (integer): position into valuemap_list and values_list
+
+          valuemap_list (list of strings): ValueMap qualifier value
+
+          values_list (list of strings): Values qualifier value
+
+          cimtype (type): CIM type of the CIM element
+
+        Raises:
+
+            ValueError: Invalid ValueMap entry.
+        """
+        values_str = values_list[i]
+        valuemap_str = valuemap_list[i]
+        try:
+            valuemap_int = int(valuemap_str)
+            return (valuemap_int, valuemap_int, values_str)
+        except ValueError:
+            m = re.match(r'^([0-9]*)\.\.([0-9]*)$', valuemap_str)
+            if m is None:
+                raise ValueError("Invalid ValueMap entry: %r" % valuemap_str)
+            lo = m.group(1)
+            if lo == '':
+                if i == 0:
+                    lo = 0
+                    # TODO: Change to min(cimtype) once issue #268 is solved.
+                else:
+                    _, previous_hi, _ = cls._values_tuple(
+                        i - 1, valuemap_list, values_list, cimtype)
+                    lo = previous_hi + 1
+            else:
+                lo = int(lo)
+            hi = m.group(2)
+            if hi == '':
+                if i == len(valuemap_list) - 1:
+                    hi = 32767
+                    # TODO: Change to max(cimtype) once issue #268 is solved.
+                else:
+                    next_lo, _, _ = cls._values_tuple(
+                        i + 1, valuemap_list, values_list, cimtype)
+                    hi = next_lo - 1
+            else:
+                hi = int(hi)
+            return (lo, hi, values_str)
+
+    @classmethod
+    def _create_for_element(cls, element_obj):
+        # pylint: disable=line-too-long
+        """
+        Return a new :class:`ValueMapping` instance for the specified CIM
+        element.
+
+        If a Values qualifier is defined but no ValueMap qualifier, a default
+        of 0-based consecutive numbers is applied (that is the default defined
+        in :term:`DSP0004`).
 
         Parameters:
 
@@ -923,76 +1001,110 @@ class ValueMapping(object):
         Raises:
 
             ValueError: No Values qualifier defined.
+            ValueError: Invalid ValueMap entry.
+            TypeError: The CIM element is not integer-typed.
         """
 
-        values_qual = element_obj.qualifiers.get('Values', None)
-        valuemap_qual = element_obj.qualifiers.get('ValueMap', None)
+        # pylint: disable=protected-access
 
-        if valuemap_qual is None:
-            # DSP0004 defines a default of consecutive index numbers
-            valuemap_list = range(0, len(values_qual.value))
-        else:
-            valuemap_list = valuemap_qual.value
+        typename = element_obj.type
+        # TODO: We should make type_from_name() and cimtype() part of the API
+        cimtype = pywbem.cim_types.type_from_name(typename)
+
+        if not issubclass(cimtype, pywbem.CIMInt):
+            raise TypeError("The CIM element is not integer-typed: %s" % \
+                            typename)
+
+        vm = ValueMapping()
+        vm._element_obj = element_obj
+
+        values_qual = element_obj.qualifiers.get('Values', None)
         if values_qual is None:
             # DSP0004 defines no default for a missing Values qualifier
             raise ValueError("No Values qualifier defined")
         values_list = values_qual.value
 
-        values_dict = dict(zip(valuemap_list, values_list))
-        valuemap_dict = dict(zip(values_list, valuemap_list))
-
-        vm = ValueMapping(element_obj, values_dict, valuemap_dict)
+        valuemap_qual = element_obj.qualifiers.get('ValueMap', None)
+        if valuemap_qual is None:
+            # DSP0004 defines a default of consecutive index numbers
+            vm._single_dict = dict(zip(range(0, len(values_list)), values_list))
+            vm._range_tuple_list = []
+            vm._unclaimed = None
+        else:
+            vm._single_dict = {}
+            vm._range_tuple_list = []
+            vm._unclaimed = None
+            valuemap_list = valuemap_qual.value
+            for i, valuemap_str in enumerate(valuemap_list):
+                values_str = values_list[i]
+                if valuemap_str == '..':
+                    vm._unclaimed = values_str
+                else:
+                    lo, hi, values_str = cls._values_tuple(
+                        i, valuemap_list, values_list, cimtype)
+                    if lo == hi:
+                        # single value
+                        vm._single_dict[lo] = values_str
+                    else:
+                        # value range
+                        vm._range_tuple_list.append((lo, hi, values_str))
 
         return vm
 
     @property
     def element(self):
         """
-        Return the element on which the Values and ValueMap qualifiers are
-        defined, as a CIM object (:class:`~pywbem.CIMProperty`,
-        :class:`~pywbem.CIMMethod`, or :class:`~pywbem.CIMParameter`).
+        Return the corresponding CIM element of this instance, as a CIM object
+        (:class:`~pywbem.CIMProperty`, :class:`~pywbem.CIMMethod`, or
+        :class:`~pywbem.CIMParameter`).
         """
         return self._element_obj
 
-    def tovalues(self, valuemap):
+    def tovalues(self, element_value):
+        # pylint: disable=line-too-long
         """
-        Return the entry in the Values qualifier that corresponds to an entry
-        in the ValueMap qualifier.
+        Return the Values string for an element value, based on the ValueMap /
+        Values qualifiers of the corresponding CIM element.
 
         Parameters:
 
-          valuemap (:term:`string`):
-            The entry in the ValueMap qualifier.
+          element_value (:term:`integer` or :class:`~pywbem.CIMInt`):
+            The value of the CIM element.
 
         Returns:
 
           :term:`string`:
-            The entry in the Values qualifier.
+            The Values string for the element value.
 
         Raises:
 
-            KeyError: The ValueMap entry does not exist in this mapping.
+            ValueError: Element value outside of the set defined by ValueMap.
+            ValueError: No Values qualifier defined.
+            ValueError: Invalid ValueMap entry.
+            TypeError: The CIM element is not integer-typed.
+            TypeError: Element value is not an integer type.
         """
-        return self._values_dict[valuemap]
 
-    def tovaluemap(self, values):
-        """
-        Return the entry in the ValueMap qualifier that corresponds to an entry
-        in the Values qualifier.
+        if not isinstance(element_value, (six.integer_types, pywbem.CIMInt)):
+            raise TypeError("Element value is not an integer type: %s" % \
+                            type(element_value))
 
-        Parameters:
+        # try single value
+        try:
+            return self._single_dict[element_value]
+        except KeyError:
+            pass
 
-          values (:term:`string`):
-            The entry in the Values qualifier.
+        # try value ranges
+        for range_tuple in self._range_tuple_list:
+            lo, hi, values_str = range_tuple
+            if lo <= element_value <= hi:
+                return values_str
 
-        Returns:
+        # try catch-all '..'
+        if self._unclaimed is not None:
+            return self._unclaimed
 
-          :term:`string`:
-            The entry in the ValueMap qualifier.
-
-        Raises:
-
-            KeyError: The Values entry does not exist in this mapping.
-        """
-        return self._valuemap_dict[values]
+        raise ValueError("Element value outside of the set defined by " \
+                         "ValueMap: %r" % element_value)
 

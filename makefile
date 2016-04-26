@@ -101,7 +101,7 @@ pylint_rc_file := pylint.rc
 pylint_py_files := \
     setup.py \
     os_setup.py \
-    $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
+    $(filter-out $(moftab_files), $(shell find $(package_name)/ -type f -name '*.py')) \
     $(wildcard testsuite/test*.py) \
     testsuite/validate.py \
 
