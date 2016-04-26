@@ -117,6 +117,8 @@ Bug fixes
 
 * Modify qualifier.tomof processing to stay within 80 column limits. Issue #35
 
+* fix bug in method mof output where array flag "[]" left off array parameters.
+
 pywbem v0.8.2
 -------------
 
