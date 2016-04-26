@@ -1928,10 +1928,10 @@ class CIMClass(_CIMComparisonMixin):
         # Properties; indent one level from class definition
 
         for prop_val in self.properties.values():
+
             ret_str += prop_val.tomof(False, indent)
 
         # Methods, indent one level from class definition
-
         for method in self.methods.values():
             ret_str += '\n%s' % method.tomof(indent)
 
@@ -3158,8 +3158,11 @@ class CIMParameter(_CIMComparisonMixin):
             indent (:term:`integer`): Number of spaces to indent each parameter
         """
 
-        if self.is_array and self.array_size is not None:
-            array_str = "[%s]" % self.array_size
+        if self.is_array:
+            if self.array_size is not None:
+                array_str = "[%s]" % self.array_size
+            else:
+                array_str = "[]"
         else:
             array_str = ''
 

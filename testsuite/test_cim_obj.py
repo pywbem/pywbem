@@ -94,7 +94,6 @@ class ValidateTest(unittest.TestCase):
                          'XML string returned by tocimxmlstr(indent) is not ' \
                          'equal to tocimxml().toprettyxml(indent).')
 
-
 def swapcase2(text):
     """Returns text, where every other character has been changed to swap
     its lexical case. For strings that contain at least one letter, the
@@ -1186,8 +1185,6 @@ class CIMInstanceToMOF(unittest.TestCase):
 
         imof = i.tomof()
 
-        #print('MOF Output\n%s' % imof)
-
         # match first line
         m = re.match(
             r"^\s*instance\s+of\s+CIM_Foo\s*\{"
@@ -1237,7 +1234,6 @@ class CIMInstanceWithEmbeddedInstToMOF(unittest.TestCase):
                          'MyStrLongArray' : [str_data, str_data, str_data]})
 
         imof = i.tomof()
-        # print('%s' % imof)
 
         m = re.match(
             r"^\s*instance\s+of\s+CIM_Foo\s*\{",
@@ -2382,7 +2378,8 @@ class CIMClassToMOF(unittest.TestCase, RegexpMixin):
 
         self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{",)
 
-        self.assertRegexpContains(imof, r"\s*string\s+InstanceID",)
+        self.assertRegexpContains(imof, r"\n\s*string\s+InstanceID",)
+        self.assertRegexpContains(imof, r"\n\};",)
 
 class CIMClassToMofArrayProperty(unittest.TestCase, RegexpMixin):
     def test_ArrayDef32(self):
@@ -2410,8 +2407,8 @@ class CIMClassToMofArrayProperty(unittest.TestCase, RegexpMixin):
         imof = cl.tomof()
 
         self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
-
         self.assertRegexpContains(imof, r"\n\s*uint32\s+Uint32Array\[9];\n")
+        self.assertRegexpContains(imof, r"\n\};",)
 
     def test_ArrayDefStr(self):
 
@@ -2424,8 +2421,8 @@ class CIMClassToMofArrayProperty(unittest.TestCase, RegexpMixin):
         imof = cl.tomof()
 
         self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
-
         self.assertRegexpContains(imof, r"\n\s*string\s+StrArray\[];\n")
+        self.assertRegexpContains(imof, r"\n\};",)
 
     def test_ArrayDefWSizeStr(self):
 
@@ -2440,9 +2437,66 @@ class CIMClassToMofArrayProperty(unittest.TestCase, RegexpMixin):
         self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
 
         self.assertRegexpContains(imof, r"\n\s*string\s+StrArray\[111];\n")
+        self.assertRegexpContains(imof, r"\n};\n")
 
     # TODO ks apr 16: extend this test for other alternatives for mof output
     # of property parameters.
+
+class CIMClassMethodsToMOF(unittest.TestCase, RegexpMixin):
+    """Test variations of class method mof output"""
+
+    def test_OneMethod(self):
+        """test a cimple method with no parameters mof output"""
+        cl = CIMClass(
+            'CIM_FooOneMethod',
+            methods={'Simple': CIMMethod('Simple', 'uint32')})
+
+        imof = cl.tomof()
+
+        self.assertRegexpContains(imof, r"^\s*class\s+CIM_FooOneMethod\s*\{")
+        self.assertRegexpContains(imof, r"\s*uint32\s+Simple\(\);")
+        self.assertRegexpContains(imof, r"\n\};",)
+
+
+    def test_SimpleMethod(self):
+        """Test multiple methods some with parameters"""
+        params = {'Param1': CIMParameter('Param1', 'string'),
+                  'Param2': CIMParameter('Param2', 'uint32')}
+
+        cl = CIMClass(
+            'CIM_FooSimple',
+            methods={'Simple': CIMMethod('Simple', 'uint32'),
+                     'WithParams' : CIMMethod('WithParams', 'uint32',
+                                              parameters=params)})
+        imof = cl.tomof()
+
+        self.assertRegexpContains(imof, r"^\s*class\s+CIM_FooSimple\s*\{")
+        self.assertRegexpContains(imof, r"\n\s*uint32\s+Simple\(\);")
+        self.assertRegexpContains(imof, r"\n\s*uint32\s+WithParams\(")
+        self.assertRegexpContains(imof, r"\n\s*uint32\s+Param2")
+        self.assertRegexpContains(imof, r"\n\s*string\s+Param1")
+        self.assertRegexpContains(imof, r"\n\};",)
+
+    def test_ArrayParams(self):
+        """Test methods with parameters that defined arrays"""
+        array_p1 = {'Param3': CIMParameter('Param3', 'string',
+                                           is_array=True)}
+        array_p2 = {'Param4': CIMParameter('Param4', 'sint32',
+                                           is_array=True, array_size=9)}
+
+        cl = CIMClass(
+            'CIM_FooArray',
+            methods={'ArrayP1' : CIMMethod('ArrayP1', 'uint32',
+                                           parameters=array_p1),
+                     'ArrayP2' : CIMMethod('ArrayP2', 'uint32',
+                                           parameters=array_p2)})
+
+        imof = cl.tomof()
+
+        self.assertRegexpContains(imof, r"^\s*class\s+CIM_FooArray\s*\{")
+        self.assertRegexpContains(imof, r"\n\s*string\s+Param3\[\]\);")
+        self.assertRegexpContains(imof, r"\n\s*sint32\s+Param4\[9\]\);")
+        self.assertRegexpContains(imof, r"\n\};",)
 
 class CIMClassWQualToMOF(unittest.TestCase):
     """Generate mof output for a a class with a qualifiers, multiple
@@ -2581,6 +2635,7 @@ class CIMClassWoQualifiersToMof(unittest.TestCase, RegexpMixin):
 
         # match method Delete,
         self.assertRegexpContains(clmof, r"\n\s*uint32\s+Delete\(\);\n")
+        self.assertRegexpContains(clmof, r"\n\};",)
 
 class InitCIMMethod(unittest.TestCase):
 
