@@ -191,7 +191,7 @@ class NocaseDict(object):
         try:
             return self._data[k][1]
         except KeyError:
-            raise KeyError('Key %s not found in %r' % (key, self))
+            raise KeyError('Key %r not found' % key)
 
     def __setitem__(self, key, value):
         """
@@ -224,7 +224,7 @@ class NocaseDict(object):
         try:
             del self._data[k]
         except KeyError:
-            raise KeyError('Key %s not found in %r' % (key, self))
+            raise KeyError('Key %r not found' % key)
 
     def __len__(self):
         """
