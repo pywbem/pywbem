@@ -81,8 +81,8 @@ in the version specified when following the links to the standards:
   produced by their ``tocimxml()`` and ``tocimxmlstr()`` methods
   conforms to :term:`DSP0201`.
 
-* The representation of CIM elements as :ref:`CIM objects` conforms to
-  :term:`DSP0004`.
+* The CIM metamodel implemented by ``pywbem`` (e.g. in its :ref:`CIM objects`)
+  conforms to :term:`DSP0004`.
 
 * The support for MOF as produced by the ``tomof()`` methods on
   :ref:`CIM objects` and as parsed by the :class:`MOFCompiler` class conforms
