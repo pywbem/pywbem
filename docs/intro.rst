@@ -62,6 +62,48 @@ try it out and `report any issues <https://github.com/pywbem/pywbem/issues>`_.
 
 .. _`Deprecation policy`:
 
+Standards conformance
+---------------------
+
+The ``pywbem`` package conforms to the following CIM and WBEM standards,
+in the version specified when following the links to the standards:
+
+* The protocol supported by the PyWBEM client and listener is CIM-XML; it
+  conforms to :term:`DSP0200` and :term:`DSP0201`.
+
+  Limitations:
+
+  - Pulled enumeration operations are not currently supported.
+  - Indication delivery and the WBEM listener support is experimental (see
+    :ref:`WBEM listener API`).
+
+* The support for the CIM-XML representation of :ref:`CIM objects`, as
+  produced by their ``tocimxml()`` and ``tocimxmlstr()`` methods
+  conforms to :term:`DSP0201`.
+
+* The representation of CIM elements as :ref:`CIM objects` conforms to
+  :term:`DSP0004`.
+
+* The support for MOF as produced by the ``tomof()`` methods on
+  :ref:`CIM objects` and as parsed by the :class:`MOFCompiler` class conforms
+  to :term:`DSP0004`.
+
+  Limitations:
+
+  - Several `issues in the MOF compiler
+    <https://github.com/pywbem/pywbem/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+MOF>`_.
+
+* The WBEM URIs produced by the :meth:`pywbem.CIMInstanceName.__str__` and
+  :meth:`pywbem.CIMClassName.__str__` methods conform to :term:`DSP0207`.
+
+TODO: The following applies to the ``listener`` branch; remove this todo if merged:
+
+* The support for discovering the Interop namespace, management profiles and
+  their central instances in the :ref:`WBEM server API` conforms to
+  :term:`DSP1033`.
+
+* The support for subscribing for CIM indications conforms to :term:`DSP1054`.
+
 Deprecation policy
 ------------------
 
