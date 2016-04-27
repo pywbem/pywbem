@@ -246,6 +246,10 @@ class CIMType(object):       # pylint: disable=too-few-public-methods
     # Note: __str__() is not needed; the inherited method is used,
     # even though there is a __repr__() method here.
 
+    #: The name of the CIM datatype, as a :term:`string`. See
+    #: :ref:`CIM data types` for details.
+    cimtype = None
+
     def __repr__(self):
         """Return a string representation suitable for debugging."""
 
@@ -504,51 +508,159 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
 # CIM integer types
 
 class CIMInt(CIMType, _Longint):
-    """Base type for integer CIM data types."""
+    """
+    Base type for CIM integer data types. Derived from :class:`~pywbem.CIMType`
+    and :class:`py:int` (for Python 3) or :class:`py:long` (for Python 2).
+
+    This class has a concept of a valid range for the represented integer,
+    based upon the capability of the CIM data type as defined in
+    :term:`DSP0004`. The additional constraints defined by possible MinValue
+    or MaxValue qualifiers are not taken into account at this level.
+
+    The valid value range is enforced when an instance of a subclass of this
+    class (e.g. :class:`~pywbem.Uint8`) is created. Values outside of the
+    valid range raise a :exc:`ValueError`.
+
+    Instances of subclasses of this class can be initialized with the usual
+    input arguments supported by :term:`integer`, for example:
+
+    ::
+
+        >>> pywbem.Uint8(42)
+        Uint8(cimtype='uint8', 42)
+
+        >>> pywbem.Uint8('42')
+        Uint8(cimtype='uint8', 42)
+
+        >>> pywbem.Uint8('2A', 16)
+        Uint8(cimtype='uint8', 42)
+
+        >>> pywbem.Uint8('100', 16)
+        Traceback (most recent call last):
+          . . .
+        ValueError: Integer value 256 is out of range for CIM datatype uint8
+
+        >>> pywbem.Uint8(100, 10)
+        Traceback (most recent call last):
+          . . .
+        TypeError: int() can't convert non-string with explicit base
+    """
+
+    #: The minimum valid value for the integer, according to the capabilities
+    #: of its CIM data type. See :ref:`CIM data types` for a list of CIM
+    #: integer data types.
+    minvalue = None
+
+    #: The maximum valid value for the integer, according to the capabilities
+    #: of its CIM data type. See :ref:`CIM data types` for a list of CIM
+    #: integer data types.
+    maxvalue = None
+
+    def __new__(cls, *args, **kwargs):
+        value = _Longint(*args, **kwargs)
+        if value > cls.maxvalue or value < cls.minvalue:
+            raise ValueError("Integer value %s is out of range for CIM " \
+                             "datatype %s" % (value, cls.cimtype))
+        # The value needs to be processed here, because int/long is unmutable
+        return super(CIMInt, cls).__new__(cls, *args, **kwargs)
 
 class Uint8(CIMInt):
-    """A value of CIM data type uint8."""
+    """
+    A value of CIM data type uint8. Derived from :class:`~pywbem.CIMInt`.
+
+    For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+    """
     cimtype = 'uint8'
+    minvalue = 0
+    maxvalue = 2**8 - 1
 
 class Sint8(CIMInt):
-    """A value of CIM data type sint8."""
+    """
+    A value of CIM data type sint8. Derived from :class:`~pywbem.CIMInt`.
+
+    For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+    """
     cimtype = 'sint8'
+    minvalue = -2**(8-1)
+    maxvalue = 2**(8-1) - 1
 
 class Uint16(CIMInt):
-    """A value of CIM data type uint16."""
+    """
+    A value of CIM data type uint16. Derived from :class:`~pywbem.CIMInt`.
+
+    For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+    """
     cimtype = 'uint16'
+    minvalue = 0
+    maxvalue = 2**16 - 1
 
 class Sint16(CIMInt):
-    """A value of CIM data type sint16."""
+    """
+    A value of CIM data type sint16. Derived from :class:`~pywbem.CIMInt`.
+
+    For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+    """
     cimtype = 'sint16'
+    minvalue = -2**(16-1)
+    maxvalue = 2**(16-1) - 1
 
 class Uint32(CIMInt):
-    """A value of CIM data type uint32."""
+    """
+    A value of CIM data type uint32. Derived from :class:`~pywbem.CIMInt`.
+
+    For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+    """
     cimtype = 'uint32'
+    minvalue = 0
+    maxvalue = 2**32 - 1
 
 class Sint32(CIMInt):
-    """A value of CIM data type sint32."""
+    """
+    A value of CIM data type sint32. Derived from :class:`~pywbem.CIMInt`.
+
+    For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+    """
     cimtype = 'sint32'
+    minvalue = -2**(32-1)
+    maxvalue = 2**(32-1) - 1
 
 class Uint64(CIMInt):
-    """A value of CIM data type uint64."""
+    """
+    A value of CIM data type uint64. Derived from :class:`~pywbem.CIMInt`.
+
+    For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+    """
     cimtype = 'uint64'
+    minvalue = 0
+    maxvalue = 2**64 - 1
 
 class Sint64(CIMInt):
-    """A value of CIM data type sint64."""
+    """
+    A value of CIM data type sint64. Derived from :class:`~pywbem.CIMInt`.
+
+    For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+    """
     cimtype = 'sint64'
+    minvalue = -2**(64-1)
+    maxvalue = 2**(64-1) - 1
 
 # CIM float types
 
 class CIMFloat(CIMType, float):
-    """Base type for real (floating point) CIM data types."""
+    """
+    Base type for real (floating point) CIM data types.
+    """
 
 class Real32(CIMFloat):
-    """A value of CIM data type real32."""
+    """
+    A value of CIM data type real32. Derived from :class:`~pywbem.CIMFloat`.
+    """
     cimtype = 'real32'
 
 class Real64(CIMFloat):
-    """A value of CIM data type real64."""
+    """
+    A value of CIM data type real64. Derived from :class:`~pywbem.CIMFloat`.
+    """
     cimtype = 'real64'
 
 def cimtype(obj):

@@ -3916,14 +3916,37 @@ def tocimobj(type_, value):
 
       `type_` (:term:`string`):
         The CIM data type name for the CIM object. See :ref:`CIM data types`
-        for valid type names and their corresponding Python types.
+        for valid type names.
 
         If `value` is a list, `type_` must specify the CIM data type name of
         an item in the list.
 
-      value (:term:`CIM data type`):
-        The value to be represented as a CIM object. Its Python type must be
-        valid for the specified type name.
+      value (:term:`CIM data type` and some others, see description):
+        The value to be represented as a CIM object.
+
+        In addition to the Python types listed in :ref:`CIM data types`, the
+        following Python types are supported for this argument:
+
+        * `None`: The returned object will be `None`.
+
+        * If `type_` specifies one of the CIM integer data types:
+
+          - :term:`integer`
+          - :term:`string`. The string must represent a decimal number
+
+        * If `type_` specifies the CIM boolean data type:
+
+          - :term:`string`. The string must be ``'true'`` or ``'false'`` in any
+            lexical case
+
+        * If `type_` specifies the CIM datetime data type:
+
+          - All input types of :class:`~pywbem.CIMDateTime`
+
+        * If `type_` specifies the CIM reference data type:
+
+          - :term:`string`. The string must be an untyped WBEM URI representing
+            an instance path (see :term:`DSP0207`)
 
     Returns:
 
