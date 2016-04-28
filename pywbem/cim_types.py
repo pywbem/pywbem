@@ -276,6 +276,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
     interval.
     """
 
+    cimtype = 'datetime'
+
     def __init__(self, dtarg):
         """
         Parameters:
@@ -295,7 +297,6 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             * Another :class:`~pywbem.CIMDateTime` object will be copied.
         """
         from .cim_obj import _ensure_unicode # defer due to cyclic deps.
-        self.cimtype = 'datetime'
         self.__timedelta = None
         self.__datetime = None
         dtarg = _ensure_unicode(dtarg)
@@ -574,6 +575,13 @@ class CIMInt(CIMType, _Longint):
                              "datatype %s" % (value, cls.cimtype))
         # The value needs to be processed here, because int/long is unmutable
         return super(CIMInt, cls).__new__(cls, *args, **kwargs)
+
+    def __repr__(self):
+        """Return a string representation suitable for debugging."""
+
+        return '%s(cimtype=%r, minvalue=%s, maxvalue=%s, %s)' % \
+               (self.__class__.__name__, self.cimtype, self.minvalue,
+                self.maxvalue, self)
 
 class Uint8(CIMInt):
     """
