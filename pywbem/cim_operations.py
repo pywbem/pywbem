@@ -1080,14 +1080,15 @@ class WBEMConnection(object):
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be enumerated, in any lexical case.
-            The host and namespace components in a :class:`~pywbem.CIMClassName`
-            object will be ignored.
+            If specified as a :class:`~pywbem.CIMClassName` object, its host
+            component will be ignored.
 
           namespace (:term:`string`):
             Name of the CIM namespace to be used, in any lexical case.
 
-            If `None`, the default namespace of the connection object will be
-            used.
+            If `None`, the namespace of the `ClassName` parameter will be used,
+            if specified as a :class:`~pywbem.CIMClassName` object. If that is
+            also `None`, the default namespace of the connection will be used.
 
         Keyword Arguments:
 
@@ -1107,6 +1108,8 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
+        if namespace is None and isinstance(ClassName, CIMClassName):
+            namespace = ClassName.namespace
         namespace = self._iparam_namespace_from(namespace)
         classname = self._iparam_classname(ClassName)
 
@@ -1143,14 +1146,15 @@ class WBEMConnection(object):
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be enumerated, in any lexical case.
-            The host and namespace components in a :class:`~pywbem.CIMClassName`
-            object will be ignored.
+            If specified as a :class:`~pywbem.CIMClassName` object, its host
+            component will be ignored.
 
           namespace (:term:`string`):
             Name of the CIM namespace to be used, in any lexical case.
 
-            If `None`, the default namespace of the connection object will be
-            used.
+            If `None`, the namespace of the `ClassName` parameter will be used,
+            if specified as a :class:`~pywbem.CIMClassName` object. If that is
+            also `None`, the default namespace of the connection will be used.
 
           LocalOnly (:class:`py:bool`):
             Controls the exclusion of inherited properties from the returned
@@ -1231,6 +1235,8 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
+        if namespace is None and isinstance(ClassName, CIMClassName):
+            namespace = ClassName.namespace
         namespace = self._iparam_namespace_from(namespace)
         classname = self._iparam_classname(ClassName)
 
@@ -1371,8 +1377,13 @@ class WBEMConnection(object):
             A representation of the modified instance, also indicating its
             instance path.
 
-            The namespace component of the `path` instance variable of this
-            object specifies the namespace for the instance to be modified.
+            The `path` instance variable of this object identifies the instance
+            to be modified. Its keybindings component is required. If its
+            namespace component is `None`, the default namespace of the
+            connection will be used. Its host component will be ignored.
+
+            The `classname` component of the path and the `classname` attribute
+            of the instance must specify the same class name.
 
             The properties defined in this object specify the new property
             values for the instance to be modified. Missing properties
@@ -1418,15 +1429,24 @@ class WBEMConnection(object):
         """
 
         # Must pass a named CIMInstance here (i.e path attribute set)
-
         if ModifiedInstance.path is None:
             raise ValueError(
                 'ModifiedInstance parameter must have path attribute set')
+        if ModifiedInstance.path.classname is None:
+            raise ValueError(
+                'ModifiedInstance parameter must have classname set in path')
+        if ModifiedInstance.classname is None:
+            raise ValueError(
+                'ModifiedInstance parameter must have classname set in ' \
+                'instance')
 
         namespace = self._iparam_namespace_from(ModifiedInstance.path)
 
+        # Strip off host and namespace to avoid producing an INSTANCEPATH or
+        # LOCALINSTANCEPATH element instead of the desired INSTANCENAME element.
         instance = ModifiedInstance.copy()
         instance.path.namespace = None
+        instance.path.host = None
 
         self._imethodcall(
             'ModifyInstance',
@@ -1436,7 +1456,7 @@ class WBEMConnection(object):
             PropertyList=PropertyList,
             **extra)
 
-    def CreateInstance(self, NewInstance, **extra):
+    def CreateInstance(self, NewInstance, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
         Create an instance in a namespace.
@@ -1446,15 +1466,27 @@ class WBEMConnection(object):
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
+        The creation class for the new instance is taken from the `classname`
+        instance variable of the `NewInstance` parameter.
+
+        The namespace for the new instance is taken from these sources, in
+        decreasing order of priority:
+
+          * `namespace` parameter of this method, if not `None`,
+          * namespace in `path` attribute of the `NewInstance` parameter, if
+            not `None`,
+          * default namespace of the connection.
+
         Parameters:
 
           NewInstance (CIMInstance):
             A representation of the instance to be created.
 
             The `classname` instance variable of this object specifies the
-            creation class for the new instance. The namespace component of
-            the `path` instance variable specifies the namespace for the new
-            instance.
+            creation class for the new instance.
+
+            Apart from utilizing its namespace, the `path` instance variable
+            is ignored.
 
             The `properties` instance variable of this object specifies initial
             property values for the new instance.
@@ -1462,6 +1494,9 @@ class WBEMConnection(object):
             Instance-level qualifiers have been deprecated in CIM, so any
             qualifier values specified using the `qualifiers` instance variable
             of this object will be ignored.
+
+          namespace (:term:`string`):
+            Name of the CIM namespace to be used, in any lexical case.
 
         Keyword Arguments:
 
@@ -1481,11 +1516,12 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from(NewInstance.path)
+        if namespace is None and NewInstance.path.namespace is not None:
+            namespace = NewInstance.path.namespace
+        namespace = self._iparam_namespace_from(namespace)
 
-        # Strip off path to avoid producing a VALUE.NAMEDINSTANCE
-        # element instead of an INSTANCE element.
-
+        # Strip off path to avoid producing a VALUE.NAMEDINSTANCE element
+        # instead of the desired INSTANCE element.
         instance = NewInstance.copy()
         instance.path = None
 
@@ -1496,7 +1532,7 @@ class WBEMConnection(object):
             **extra)
 
         instancename = result[2][0]
-        instancename.namespace = namespace
+        instancename.namespace = namespace  # TODO: Why not accept returned ns?
 
         return instancename
 
@@ -2196,14 +2232,15 @@ class WBEMConnection(object):
             Name of the namespace in which the class names are to be
             enumerated, in any lexical case.
 
-            If `None`, the default namespace of the connection object will be
-            used.
+            If `None`, the namespace of the `ClassName` parameter will be used,
+            if specified as a :class:`~pywbem.CIMClassName` object. If that is
+            also `None`, the default namespace of the connection will be used.
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class whose subclasses are to be retrieved, in any
             lexical case.
-            The host and namespace components in a :class:`~pywbem.CIMClassName`
-            object will be ignored.
+            If specified as a :class:`~pywbem.CIMClassName` object, its host
+            component will be ignored.
 
             If `None`, the top-level classes in the namespace will be
             retrieved.
@@ -2243,6 +2280,8 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
+        if namespace is None and isinstance(ClassName, CIMClassName):
+            namespace = ClassName.namespace
         namespace = self._iparam_namespace_from(namespace)
         classname = self._iparam_classname(ClassName)
 
@@ -2278,14 +2317,15 @@ class WBEMConnection(object):
             Name of the namespace in which the classes are to be enumerated, in
             any lexical case.
 
-            If `None`, the default namespace of the connection object will be
-            used.
+            If `None`, the namespace of the `ClassName` parameter will be used,
+            if specified as a :class:`~pywbem.CIMClassName` object. If that is
+            also `None`, the default namespace of the connection will be used.
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class whose subclasses are to be retrieved, in any
             lexical case.
-            The host and namespace components in a :class:`~pywbem.CIMClassName`
-            object will be ignored.
+            If specified as a :class:`~pywbem.CIMClassName` object, its host
+            component will be ignored.
 
             If `None`, the top-level classes in the namespace will be
             retrieved.
@@ -2355,6 +2395,8 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
+        if namespace is None and isinstance(ClassName, CIMClassName):
+            namespace = ClassName.namespace
         namespace = self._iparam_namespace_from(namespace)
         classname = self._iparam_classname(ClassName)
 
@@ -2389,15 +2431,16 @@ class WBEMConnection(object):
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be retrieved, in any lexical case.
-            The host and namespace components in a :class:`~pywbem.CIMClassName`
-            object will be ignored.
+            If specified as a :class:`~pywbem.CIMClassName` object, its host
+            component will be ignored.
 
           namespace (:term:`string`):
             Name of the namespace of the class to be retrieved, in any lexical
             case.
 
-            If `None`, the default namespace of the connection object will be
-            used.
+            If `None`, the namespace of the `ClassName` parameter will be used,
+            if specified as a :class:`~pywbem.CIMClassName` object. If that is
+            also `None`, the default namespace of the connection will be used.
 
           LocalOnly (:class:`py:bool`):
             Indicates that inherited properties, methods, and qualifiers are to
@@ -2454,6 +2497,8 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
+        if namespace is None and isinstance(ClassName, CIMClassName):
+            namespace = ClassName.namespace
         namespace = self._iparam_namespace_from(namespace)
         classname = self._iparam_classname(ClassName)
 
@@ -2584,15 +2629,16 @@ class WBEMConnection(object):
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be deleted, in any lexical case.
-            The host and namespace components in a :class:`~pywbem.CIMClassName`
-            object will be ignored.
+            If specified as a :class:`~pywbem.CIMClassName` object, its host
+            component will be ignored.
 
           namespace (:term:`string`):
             Name of the namespace of the class to be deleted, in any lexical
             case.
 
-            If `None`, the default namespace of the connection object will be
-            used.
+            If `None`, the namespace of the `ClassName` parameter will be used,
+            if specified as a :class:`~pywbem.CIMClassName` object. If that is
+            also `None`, the default namespace of the connection will be used.
 
         Keyword Arguments:
 
@@ -2607,6 +2653,8 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
+        if namespace is None and isinstance(ClassName, CIMClassName):
+            namespace = ClassName.namespace
         namespace = self._iparam_namespace_from(namespace)
         classname = self._iparam_classname(ClassName)
 

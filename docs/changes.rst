@@ -97,6 +97,18 @@ Enhancements
 * Created tomof() for CIMProperty making common functionality available
   to both class and instance tomof() pr # 151
 
+* Added an optional `namespace` parameter to the
+  `WBEMConnection.CreateInstance()` method, for consistency with other methods,
+  and to have an explicit alternative to the namespace in the path component of
+  the `NewInstance` parameter.
+
+* The `ClassName` parameter of several operation methods can be specified
+  as both a string and a `CIMClassName` object. In the latter case, a namespace
+  in that object was ignored so far. Now, it is honored. This affects the
+  following `WBEMConnection` methods: `EnumerateInstanceNames`,
+  `EnumerateInstances`, `EnumerateClassNames`, `EnumerateClasses`, `GetClass`,
+  `DeleteClass`.
+
 Bug fixes
 ^^^^^^^^^
 
@@ -119,6 +131,16 @@ Bug fixes
 
 * fix bug in method mof output where array flag "[]" left off array parameters.
 
+* In the `WBEMConnection.ModifyInstance()` method, the class names in the
+  instance and path component of the `ModifiedInstance` parameter are required,
+  but that was neither described nor checked. It is now described and checked.
+
+* In the `WBEMConnection.ModifyInstance()` method, a host that was specified in
+  the path component of the `ModifiedInstance` parameter incorrectly caused
+  an INSTANCEPATH element to be created in the CIM-XML. This bug was fixed,
+  and a host is now ignored.
+
+
 pywbem v0.8.2
 -------------
 
@@ -139,7 +161,7 @@ Dependencies
   - `M2Crypto`
   - `ply`
   - `six`
-    
+
 
 pywbem v0.8.1
 -------------
@@ -169,7 +191,7 @@ Known Issues
   - The twisted client module `twisted_client.py`.
   - The Python provider modules `cim_provider.py` and `cim_provider2.py`.
   - The CIM indication listener in the `irecv` directory.
-    See issue #66 on GitHub. 
+    See issue #66 on GitHub.
 
 Changes
 ^^^^^^^
