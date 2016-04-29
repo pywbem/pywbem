@@ -12,6 +12,10 @@ client:
   ValueMap qualifiers of a CIM element and supports a translation between the
   two.
 
+.. note::
+
+   At this point, the WBEM listener API is experimental.
+
 Example
 -------
 
@@ -86,7 +90,7 @@ import six
 
 import pywbem
 
-__all__ = ['WBEMServer']
+__all__ = ['WBEMServer', 'ValueMapping']
 
 
 class WBEMServer(object):
@@ -110,10 +114,8 @@ class WBEMServer(object):
     INTEROP_NAMESPACES = [
         'interop',
         'root/interop',
-        # TODO: Disabled namespace names with leading slash; see issue #255
-        # '/interop',
-        # '/root/interop',
-        'root/PG_Interop',  # Needed up to OpenPegasus 2.12?
+        'root/PG_Interop',
+        # TODO: Clarify which OpenPegasus versions need root/PGInterOp?
     ]
 
     #: A class variable with the possible names of CIM classes for
@@ -160,11 +162,12 @@ class WBEMServer(object):
         The name of the Interop namespace of the WBEM server, as a
         :term:`string`.
 
-        If the Interop namespace has not been determined yet, it
-        will be determined using :meth:`determine_interop_ns`.
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
         if self._interop_ns is None:
-            self.determine_interop_ns()
+            self._determine_interop_ns()
         return self._interop_ns
 
     @property
@@ -173,11 +176,12 @@ class WBEMServer(object):
         The name of the CIM class that was found to represent the CIM
         namespaces of the WBEM server, as a :term:`string`.
 
-        If the class name has not been determined yet, it will be
-        determined using :meth:`determine_namespaces`.
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
         if self._namespace_classname is None:
-            self.determine_namespaces()
+            self._determine_namespaces()
         return self._namespace_classname
 
     @property
@@ -186,11 +190,12 @@ class WBEMServer(object):
         A list with the names of all namespaces of the WBEM server, each
         list item being a :term:`string`.
 
-        If the namespaces have not been determined yet, they will be
-        determined using :meth:`determine_namespaces`.
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
         if self._namespaces is None:
-            self.determine_namespaces()
+            self._determine_namespaces()
         return self._namespaces
 
     @property
@@ -200,16 +205,18 @@ class WBEMServer(object):
 
         The brand string will be one of the following:
 
-        * ``"pegasus"``, for OpenPegasus
-        * ``"sfcb"``, for SFCB
-        * Value of the ElementName property of the CIM_ObjectManager instance,
-          for any other WBEM servers.
+        * ``"OpenPegasus"``, for OpenPegasus
+        * ``"SFCB"``, for SFCB
+        * First word of the value of the ElementName property of the
+          CIM_ObjectManager instance, for any other WBEM servers.
+        * ``"unknown"``, if the ElementName property is Null.
 
-        If the brand has not been determined yet, it will be determined using
-        :meth:`determine_brand`.
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
         if self._brand is None:
-            self.determine_brand()
+            self._determine_brand()
         return self._brand
 
     @property
@@ -218,11 +225,12 @@ class WBEMServer(object):
         Version of the WBEM server, as a :term:`string`. `None`, if the version
         cannot be determined.
 
-        If the version has not been determined yet, it will be determined using
-        :meth:`determine_brand`.
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
         if self._version is None:
-            self.determine_brand()
+            self._determine_brand()
         return self._version
 
     @property
@@ -232,11 +240,12 @@ class WBEMServer(object):
         item being a :class:`~pywbem.CIMInstance` object representing a
         CIM_RegisteredProfile instance.
 
-        If the management profiles have not been determined yet, they will be
-        determined using :meth:`determine_profiles`.
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
         if self._profiles is None:
-            self.determine_profiles()
+            self._determine_profiles()
         return self._profiles
 
     def get_central_instances(self, profile_path, central_class=None,
@@ -409,7 +418,7 @@ class WBEMServer(object):
         #print("Debug: Scoping class method: Found central instances")
         return total_ci_paths
 
-    def determine_interop_ns(self):
+    def _determine_interop_ns(self):
         """
         Determine the name of the Interop namespace of the WBEM server, by
         communicating with it and trying a number of possible Interop
@@ -453,7 +462,7 @@ class WBEMServer(object):
                                   "(tried %s)" % self.INTEROP_NAMESPACES)
         self._interop_ns = interop_ns
 
-    def validate_interop_ns(self, interop_ns):
+    def _validate_interop_ns(self, interop_ns):
         """
         Validate whether the specified Interop namespace exists in the WBEM
         server, by communicating with it.
@@ -486,7 +495,7 @@ class WBEMServer(object):
                 raise
         self._interop_ns = interop_ns
 
-    def determine_namespaces(self):
+    def _determine_namespaces(self):
         """
         Determine the names of all namespaces of the WBEM server, by
         communicating with it and enumerating the instances of a number of
@@ -504,14 +513,12 @@ class WBEMServer(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if self._interop_ns is None:
-            self.determine_interop_ns()
         ns_insts = None
         ns_classname = None
         for classname in self.NAMESPACE_CLASSNAMES:
             try:
                 ns_insts = self._conn.EnumerateInstances(
-                    classname, namespace=self._interop_ns)
+                    classname, namespace=self.interop_ns)
             except pywbem.CIMError as exc:
                 if exc.status_code in (pywbem.CIM_ERR_INVALID_CLASS,
                                        pywbem.CIM_ERR_NOT_FOUND):
@@ -532,7 +539,7 @@ class WBEMServer(object):
         self._namespace_classname = ns_classname
         self._namespaces = [inst['Name'] for inst in ns_insts]
 
-    def determine_brand(self):
+    def _determine_brand(self):
         """
         Determine the brand of the WBEM server (e.g. OpenPegasus, SFCB, ...)
         and its version, by communicating with it and retrieving the
@@ -546,10 +553,8 @@ class WBEMServer(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if self._interop_ns is None:
-            self.determine_interop_ns()
         cimom_insts = self._conn.EnumerateInstances(
-            "CIM_ObjectManager", namespace=self._interop_ns)
+            "CIM_ObjectManager", namespace=self.interop_ns)
         if len(cimom_insts) != 1:
             raise pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND,
                                   "Unexpected number of CIM_ObjectManager " \
@@ -557,25 +562,29 @@ class WBEMServer(object):
                                   [i['ElementName'] for i in cimom_insts])
         cimom_inst = cimom_insts[0]
         element_name = cimom_inst['ElementName']
-        if element_name == "Pegasus":
-            brand = 'pegasus'
+        if element_name is not None:
+            element_word = element_name.split(' ')[0]
+        else:
+            element_word = "unknown"
+        if element_word in ("Pegasus", "OpenPegasus"):
+            brand = 'OpenPegasus'
             # Description = "Pegasus OpenPegasus Version 2.12.0"
             m = re.match(r'.+ *Version *([^ ]+)', cimom_inst['Description'])
             if m:
                 version = m.group(1)
             else:
                 version = None
-        elif element_name == "SFCB":
-            brand = 'sfcb'
-            # TODO: figure out version of SFCB
+        elif element_keyword == "SFCB":
+            brand = 'SFCB'
+            # TODO: Figure out how to get version of SFCB
             version = None
         else:
-            brand = element_name
+            brand = element_word
             version = None
         self._brand = brand
         self._version = version
 
-    def determine_profiles(self):
+    def _determine_profiles(self):
         """
         Determine the WBEM management profiles advertised by the WBEM server,
         by communicating with it and enumerating the instances of
@@ -591,144 +600,9 @@ class WBEMServer(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if self._interop_ns is None:
-            self.determine_interop_ns()
         mp_insts = self._conn.EnumerateInstances("CIM_RegisteredProfile",
-                                                 namespace=self._interop_ns)
+                                                 namespace=self.interop_ns)
         self._profiles = mp_insts
-
-    def create_destination(self, dest_url):
-        """
-        Create a listener destination instance in the Interop namespace of the
-        WBEM server and return its instance path.
-
-        Parameters:
-
-          dest_url (:term:`string`):
-            URL of the listener that is used by the WBEM server to send any
-            indications to.
-
-            The URL scheme (e.g. http/https) determines whether the WBEM server
-            uses HTTP or HTTPS for sending the indication. Host and port in the
-            URL specify the target location to be used by the WBEM server.
-
-        Returns:
-
-          :class:`~pywbem.CIMInstanceName` object representing the instance
-          path of the created instance.
-
-        Raises:
-
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
-        """
-
-        if self._interop_ns is None:
-            self.determine_interop_ns()
-
-        classname = 'CIM_ListenerDestinationCIMXML'
-
-        dest_path = pywbem.CIMInstanceName(classname)
-        dest_path.classname = classname
-        dest_path.namespace = self._interop_ns
-
-        dest_inst = pywbem.CIMInstance(classname)
-        dest_inst.path = dest_path
-        dest_inst['CreationClassName'] = classname
-        dest_inst['SystemCreationClassName'] = 'CIM_ComputerSystem'
-        dest_inst['SystemName'] = getfqdn()
-        dest_inst['Name'] = 'cimlistener%d' % time.time()
-        dest_inst['Destination'] = dest_url
-
-        dest_path = self._conn.CreateInstance(dest_inst)
-        return dest_path
-
-    def create_filter(self, query, query_language):
-        """
-        Create a dynamic indication filter instance in the Interop namespace
-        of the WBEM server and return its instance path.
-
-        Parameters:
-
-          query (:term:`string`):
-            Filter query in the specified query language.
-
-          query_language (:term:`string`):
-            Query language for the specified filter query.
-
-            Examples: 'WQL', 'DMTF:CQL'.
-
-        Returns:
-
-          :class:`~pywbem.CIMInstanceName` object representing the instance
-          path of the created instance.
-
-        Raises:
-
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
-        """
-
-        if self._interop_ns is None:
-            self.determine_interop_ns()
-
-        classname = 'CIM_IndicationFilter'
-
-        filter_path = pywbem.CIMInstanceName(classname)
-        filter_path.classname = classname
-        filter_path.namespace = self._interop_ns
-
-        filter_inst = pywbem.CIMInstance(classname)
-        filter_inst.path = filter_path
-        filter_inst['CreationClassName'] = classname
-        filter_inst['SystemCreationClassName'] = 'CIM_ComputerSystem'
-        filter_inst['SystemName'] = getfqdn()
-        filter_inst['Name'] = 'cimfilter%d' % time.time()
-        filter_inst['Query'] = query
-        filter_inst['QueryLanguage'] = query_language
-
-        filter_path = self._conn.CreateInstance(filter_inst)
-        return filter_path
-
-    def create_subscription(self, dest_path, filter_path):
-        """
-        Create an indication subscription instance in the Interop namespace of
-        the WBEM server and return its instance path.
-
-        Parameters:
-
-          dest_path (:class:`~pywbem.CIMInstanceName`):
-            Instance path of the listener destination instance in the WBEM
-            server that references this listener.
-
-          filter_path (:class:`~pywbem.CIMInstanceName`):
-            Instance path of the indication filter instance in the WBEM
-            server that specifies the indications to be sent.
-
-        Returns:
-
-          :class:`~pywbem.CIMInstanceName` object representing the instance
-          path of the created instance.
-
-        Raises:
-
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
-        """
-
-        if self._interop_ns is None:
-            self.determine_interop_ns()
-
-        classname = 'CIM_IndicationSubscription'
-
-        sub_path = pywbem.CIMInstanceName(classname)
-        sub_path.classname = classname
-        sub_path.namespace = self._interop_ns
-
-        sub_inst = pywbem.CIMInstance(classname)
-        sub_inst.path = sub_path
-        sub_inst['Filter'] = filter_path
-        sub_inst['Handler'] = dest_path
-
-        sub_path = self._conn.CreateInstance(sub_inst)
-        return sub_path
 
 
 class ValueMapping(object):

@@ -6,45 +6,7 @@ one or more WBEM servers, and implements a thread-based WBEM listener service.
 
 .. note::
 
-   Requirements for the WBEM listener API:
-
-   * Must support an easy way for applications to subscribe for indications, and
-     to get the corresponding indications.
-
-   * Subscriptions from one "application" must be independent from subscriptions
-     by another application, so that each application has its own scope and can
-     manage its own subscriptions independently.
-
-   * Must be able to start and stop the listener service.
-
-   * The listener service should have a simple default way to be run (e.g. as a
-     thread) but should also be integrateable into external service frameworks.
-
-   * Must support multiple WBEM servers.
-
-.. note::
-
-   Design notes:
-
-   * An "application" is a Python process.
-
-   * Each Python process has the listener demon included in the form of a
-     thread.
-
-     - That automatically results in each application having its own scope of
-       managing subcriptions.
-     - On the downside, the price for that is that two Python processes on the
-       same client system that subscribe for the same set of indications get
-       them delivered bythe WBEM server once for each of them.
-     - Another downside is that each such listener demon occupies one port
-       (or set of ports) on the client system.
-     - However, it is probably rare to have multiple applications interested
-       in indications on the same system.
-
-   * Indications are communicated to the subscribing application:
-
-     - By callback function
-     - Other mechanisms are left for the future (e.g. some event notification)
+   At this point, the WBEM listener API is experimental.
 
 Example
 -------
@@ -244,14 +206,14 @@ class WBEMListener(object):
 
     def add_server(self, server):
         """
-        Add a WBEM server to this listener and register with the WBEM server by
-        creating an indication listener instance for this listener in its
-        Interop namespace.
+        Add a WBEM server to the listener and register the listener with the
+        server by creating an indication listener instance referencing this
+        listener in the Interop namespace of the server.
 
         Parameters:
 
           server (:class:`~pywbem.server.WBEMServer`):
-            The WBEM server to be added.
+            The WBEM server.
 
         Returns:
 
@@ -284,17 +246,17 @@ class WBEMListener(object):
                              server.conn.url)
 
         dest_url = '%s://%s:%s' % (scheme, self.host, port)
-        dest_inst_path = server.create_destination(dest_url)
+        dest_inst_path = _create_destination(server, dest_url)
         self._destinations[server.url].append(dest_inst_path)
 
         return server.url
 
     def remove_server(self, server_url):
         """
-        Remove a WBEM server from this listener and unregister this listener
-        from that WBEM server by deleting all indication subscriptions,
-        dynamic indication filters and listener destinations in the WBEM server
-        that were created by this listener.
+        Remove a WBEM server from the listener and unregister the listener
+        from the server by deleting all indication subscriptions, dynamic
+        indication filters and listener destinations in the server that were
+        created by this listener.
 
         Parameters:
 
@@ -340,11 +302,14 @@ class WBEMListener(object):
     def add_dynamic_filter(self, server_url, query,
                            query_language=DEFAULT_QUERY_LANGUAGE):
         """
-        Add a dynamic indication filter to a WBEM server that defines a
-        particular set of indications, and remember it for cleanup.
+        Add a dynamic indication filter to a WBEM server, by creating an
+        indication filter instance in the Interop namespace of the server.
 
-        This function creates an indication filter instance in the WBEM server.
-
+        Dynamic indication filters are those that are created by clients.
+        Indication filters that pre-exist in the WBEM server are termed
+        *static indication filters* and cannot be created or deleted by
+        clients. See :term:`DSP1054` for details about indication filters.
+        
         Parameters:
 
           server_url (:term:`string`):
@@ -370,16 +335,14 @@ class WBEMListener(object):
             raise ValueError("WBEM server not known by listener: %s" % \
                              server_url)
         server = self._servers[server_url]
-        filter_inst = server.create_filter(query, query_language)
+        filter_inst = _create_filter(server, query, query_language)
         self._dynamic_filters[server_url].append(filter_inst)
         return filter_inst.path
 
     def remove_dynamic_filter(self, server_url, filter_path):
         """
-        Remove a dynamic indication filter from a WBEM server, and forget it for
-        cleanup.
-
-        This function deletes an indication filter instance in the WBEM server.
+        Remove a dynamic indication filter from a WBEM server, by deleting an
+        indication filter instance in the WBEM server.
 
         The indication filter must be a dynamic indication filter that has been
         created by this listener, and there must not exist any subscriptions
@@ -463,11 +426,10 @@ class WBEMListener(object):
     def add_subscription(self, server_url, filter_path):
         """
         Add a subscription to a WBEM server for particular set of indications
-        defined by an indication filter, and remember it for cleanup.
-
-        This function creates an indication subscription instance linking
-        the specified indication filter with the listener destination
-        in the WBEM server.
+        defined by an indication filter, by creating an indication subscription
+        instance in the Interop namespace of the server, that links the
+        specified indication filter with the listener destination in the
+        server that references this listener.
 
         The indication filter can be a dynamic filter created specifically for
         this listener via :meth:`add_dynamic_filter`, or a static filter that
@@ -498,17 +460,14 @@ class WBEMListener(object):
                              server_url)
         server = self._servers[server_url]
         dest_path = self._destinations[server_url][0]
-        sub_inst_path = server.create_subscription(dest_path, filter_path)
+        sub_inst_path = _create_subscription(server, dest_path, filter_path)
         self._subscriptions[server_url].append(sub_inst_path)
         return sub_inst_path
 
     def remove_subscription(self, server_url, sub_path):
         """
-        Remove an indication subscription from a WBEM server, and forget it for
-        cleanup.
-
-        This function deletes an indication subscription instance in the WBEM
-        server.
+        Remove an indication subscription from a WBEM server, by deleting an
+        indication subscription instance in the server.
 
         Parameters:
 
@@ -594,6 +553,139 @@ class WBEMListener(object):
         """
         if callback not in self._callbacks:
             self._callbacks.append(callback)
+
+def _create_destination(server, dest_url):
+    """
+    Create a listener destination instance in the Interop namespace of a
+    WBEM server and return its instance path.
+
+    Parameters:
+
+      server (:class:`~pywbem.server.WBEMServer`):
+        Identifies the WBEM server.
+
+      dest_url (:term:`string`):
+        URL of the listener that is used by the WBEM server to send any
+        indications to.
+
+        The URL scheme (e.g. http/https) determines whether the WBEM server
+        uses HTTP or HTTPS for sending the indication. Host and port in the
+        URL specify the target location to be used by the WBEM server.
+
+    Returns:
+
+      :class:`~pywbem.CIMInstanceName` object representing the instance
+      path of the created instance.
+
+    Raises:
+
+        Exceptions raised by :class:`~pywbem.WBEMConnection`.
+    """
+
+    classname = 'CIM_ListenerDestinationCIMXML'
+
+    dest_path = pywbem.CIMInstanceName(classname)
+    dest_path.classname = classname
+    dest_path.namespace = server.interop_ns
+
+    dest_inst = pywbem.CIMInstance(classname)
+    dest_inst.path = dest_path
+    dest_inst['CreationClassName'] = classname
+    dest_inst['SystemCreationClassName'] = 'CIM_ComputerSystem'
+    dest_inst['SystemName'] = getfqdn()
+    dest_inst['Name'] = 'cimlistener%d' % time.time()
+    dest_inst['Destination'] = dest_url
+
+    dest_path = server.conn.CreateInstance(dest_inst)
+    return dest_path
+
+def _create_filter(server, query, query_language):
+    """
+    Create a dynamic indication filter instance in the Interop namespace
+    of a WBEM server and return its instance path.
+
+    Parameters:
+
+      server (:class:`~pywbem.server.WBEMServer`):
+        Identifies the WBEM server.
+
+      query (:term:`string`):
+        Filter query in the specified query language.
+
+      query_language (:term:`string`):
+        Query language for the specified filter query.
+
+        Examples: 'WQL', 'DMTF:CQL'.
+
+    Returns:
+
+      :class:`~pywbem.CIMInstanceName` object representing the instance
+      path of the created instance.
+
+    Raises:
+
+        Exceptions raised by :class:`~pywbem.WBEMConnection`.
+    """
+
+    classname = 'CIM_IndicationFilter'
+
+    filter_path = pywbem.CIMInstanceName(classname)
+    filter_path.classname = classname
+    filter_path.namespace = server.interop_ns
+
+    filter_inst = pywbem.CIMInstance(classname)
+    filter_inst.path = filter_path
+    filter_inst['CreationClassName'] = classname
+    filter_inst['SystemCreationClassName'] = 'CIM_ComputerSystem'
+    filter_inst['SystemName'] = getfqdn()
+    filter_inst['Name'] = 'cimfilter%d' % time.time()
+    filter_inst['Query'] = query
+    filter_inst['QueryLanguage'] = query_language
+
+    filter_path = server.conn.CreateInstance(filter_inst)
+    return filter_path
+
+def _create_subscription(server, dest_path, filter_path):
+    """
+    Create an indication subscription instance in the Interop namespace of
+    a WBEM server and return its instance path.
+
+    Parameters:
+
+      server (:class:`~pywbem.server.WBEMServer`):
+        Identifies the WBEM server.
+
+      dest_path (:class:`~pywbem.CIMInstanceName`):
+        Instance path of the listener destination instance in the WBEM
+        server that references this listener.
+
+      filter_path (:class:`~pywbem.CIMInstanceName`):
+        Instance path of the indication filter instance in the WBEM
+        server that specifies the indications to be sent.
+
+    Returns:
+
+      :class:`~pywbem.CIMInstanceName` object representing the instance
+      path of the created instance.
+
+    Raises:
+
+        Exceptions raised by :class:`~pywbem.WBEMConnection`.
+    """
+
+    classname = 'CIM_IndicationSubscription'
+
+    sub_path = pywbem.CIMInstanceName(classname)
+    sub_path.classname = classname
+    sub_path.namespace = server.interop_ns
+
+    sub_inst = pywbem.CIMInstance(classname)
+    sub_inst.path = sub_path
+    sub_inst['Filter'] = filter_path
+    sub_inst['Handler'] = dest_path
+
+    sub_path = server.conn.CreateInstance(sub_inst)
+    return sub_path
 
 
 def callback_interface(indication):

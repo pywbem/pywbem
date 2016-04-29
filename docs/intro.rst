@@ -4,37 +4,31 @@
 Introduction
 ============
 
-.. _`Components in the package`:
+.. _`Contents of the package`:
 
-Components in the package
--------------------------
+Functionality
+-------------
 
-The **pywbem** PyPI package provides the following components:
+The **pywbem** PyPI package provides the following functionality:
 
-* WBEM client library
+* WBEM client library API
 
-  The WBEM client library provides an API for issuing WBEM operations to a
+  The :ref:`WBEM client library API` supports issuing WBEM operations to a
   WBEM server, using the CIM operations over HTTP (CIM-XML) protocol defined
   in the DMTF standards :term:`DSP0200` and :term:`DSP0201`.
 
-  See :ref:`WBEM client library API` for a description of the API.
+* WBEM listener API
 
-* WBEM listener
+  The :ref:`WBEM listener API` supports starting and stopping a WBEM listener
+  thread that waits for indications (i.e. events) emitted by a WBEM server
+  using the CIM-XML protocol. The API also supports managing subscriptions
+  for such indications.
 
-  The WBEM listener waits for indications (i.e. events) emitted by a WBEM
-  server using the CIM-XML protocol. It provides an API for applications to
-  subscribe to such indications.
+* WBEM server API
 
-  See :ref:`WBEM listener API` for a description of the API.
-
-* WBEM server
-
-  The WBEM server represents a general access point for basic server
-  functionality to a client (i.e. it does not run as a WBEM server).
-  It provides an API for applications that for example allows determining the
-  Interop namespace of the server, or the advertised management profiles.
-
-  See :ref:`WBEM server API` for a description of the API.
+  The :ref:`WBEM server API` represents a general access point for basic server
+  functionality to a client, such as determining the Interop namespace of the
+  server, or the advertised management profiles.
 
 * WBEM utility commands
 
