@@ -422,7 +422,7 @@ class NocaseDict(object):
     def __lt__(self, other):
         self.__ordering_deprecated()
         # Delegate to the underlying standard dictionary. This will result in
-        # a case sensitive comparison, bt that will be better than the faulty
+        # a case sensitive comparison, but that will be better than the faulty
         # algorithm that was used before. It will raise TypeError "unorderable
         # types" in Python 3.
         return self._data < other._data
