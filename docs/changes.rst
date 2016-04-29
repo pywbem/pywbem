@@ -109,6 +109,12 @@ Enhancements
   `EnumerateInstances`, `EnumerateClassNames`, `EnumerateClasses`, `GetClass`,
   `DeleteClass`.
 
+* Enhanced the CIM integer data types (e.g. `pywbem.Uint8()`) to accept all
+  input parameters that are supported by `int()`.
+
+* Added the concept of a valid value range for the CIM integer data types, that
+  is enforced at construction time.
+
 Bug fixes
 ^^^^^^^^^
 
