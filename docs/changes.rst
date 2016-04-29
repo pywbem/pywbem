@@ -24,6 +24,10 @@ Deprecations
   of the `CIMParameter` class, because that class represents CIM parameter
   declarations, which do not have a default value.
 
+* Deprecated ordering comparisons for NocaseDict, CIMInstance, CIMInstanceName,
+  and CIMClass objects. This affects the ordering comparisons between two such
+  objects, not the ordering of the items within such a dictionary.
+
 Clean Code
 ^^^^^^^^^^
 

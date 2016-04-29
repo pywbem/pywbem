@@ -72,6 +72,7 @@ from __future__ import absolute_import
 
 from datetime import tzinfo, datetime, timedelta
 import re
+import warnings
 
 import six
 if six.PY2:
@@ -114,12 +115,19 @@ class _CIMComparisonMixin(object): #pylint: disable=too-few-public-methods
         """
         return self._cmp(other) != 0
 
+    @staticmethod
+    def __ordering_deprecated():
+        warnings.warn(
+            "Ordering comparisons for pywbem CIM objects are deprecated",
+            DeprecationWarning)
+
     def __lt__(self, other):
         """
         Invoked when two CIM objects are compared with the `<` operator.
 
         The comparison is delegated to the `_cmp()` method.
         """
+        self.__ordering_deprecated()
         return self._cmp(other) < 0
 
     def __gt__(self, other):
@@ -128,6 +136,7 @@ class _CIMComparisonMixin(object): #pylint: disable=too-few-public-methods
 
         The comparison is delegated to the `_cmp()` method.
         """
+        self.__ordering_deprecated()
         return self._cmp(other) > 0
 
     def __le__(self, other):
@@ -136,6 +145,7 @@ class _CIMComparisonMixin(object): #pylint: disable=too-few-public-methods
 
         The comparison is delegated to the `_cmp()` method.
         """
+        self.__ordering_deprecated()
         return self._cmp(other) <= 0
 
     def __ge__(self, other):
@@ -144,6 +154,7 @@ class _CIMComparisonMixin(object): #pylint: disable=too-few-public-methods
 
         The comparison is delegated to the `_cmp()` method.
         """
+        self.__ordering_deprecated()
         return self._cmp(other) >= 0
 
     def _cmp(self, other):
