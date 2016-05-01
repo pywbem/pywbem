@@ -477,8 +477,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         Return a string representing the object in CIM datetime format.
         """
         if self.is_interval:
-            hour = self.timedelta.seconds / 3600
-            minute = (self.timedelta.seconds - hour * 3600) / 60
+            hour = self.timedelta.seconds // 3600
+            minute = (self.timedelta.seconds - hour * 3600) // 60
             second = self.timedelta.seconds - hour * 3600 - minute * 60
             return '%08d%02d%02d%02d.%06d:000' % \
                     (self.timedelta.days, hour, minute, second,

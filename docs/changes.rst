@@ -150,6 +150,10 @@ Bug fixes
   an INSTANCEPATH element to be created in the CIM-XML. This bug was fixed,
   and a host is now ignored.
 
+* Fixed a bug where the CIM datetime string returned by the `str()` function
+  on `CIMDateTime` interval objects contained incorrect values for the minutes
+  and seconds fields on Python 3 (issue #275).
+
 
 pywbem v0.8.2
 -------------
