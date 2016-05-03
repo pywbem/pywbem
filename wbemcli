@@ -857,9 +857,15 @@ def main():
     desc = 'Provide an interactive shell for issuing operations against a ' \
            'WBEM server.'
     epilog = """
-Example:
-  %s https://localhost:15345 -n root/cimv2 -u sheldon -p penny42
-""" % prog
+Examples:
+  %s https://localhost:15345 -n vendor -u sheldon -p penny
+          - (https localhost, port 15345, namespace vendor user sheldon
+         password penny)
+\n
+  %s http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
+
+""" % (prog, prog)
+
     argparser = _argparse.ArgumentParser(
         prog=prog, usage=usage, description=desc, epilog=epilog,
         add_help=False, formatter_class=_SmartFormatter)
@@ -868,9 +874,23 @@ Example:
         'Positional arguments')
     pos_arggroup.add_argument(
         'server', metavar='server', nargs='?',
-        help='Host name or IP address of the WBEM server. Prefix with'
-             ' "https://" for ssl connection or "http://" for'
-             '  non-ssl connection:')
+        help='R|Host name or url of the WBEM serverin this format:\n'
+             '    [{scheme}://]{host}[:{port}]:\n'
+             '-scheme: defines the connection type; "https://" for an\n'
+             ' ssl connection or "http://" for a non-ssl connection.\n'
+             ' Ifthere is no scheme prefix the -no-ssl option\n'
+             ' determines the connection type.\n'
+             '-host: may be  a short or fully qualified DNS hostname,\n.'
+             ' a literal ipv4 address(dotted) or a literal IPV6\n'
+             ' address(RFC 3986) with zone identifier extensions\n '
+             ' (RFC6874) supporting "-" or %%25 for the delimiter.\n.'
+             '-port: if provided defines the WBEM server port\n'
+             ' to be used.\n'
+             ' If the port suffix is not provided the default ports\n'
+             ' are:\n'
+             '    http  - 5988\n'
+             '    https - 5989\n'
+             'The port suffix superceeds the --port argument')
 
     server_arggroup = argparser.add_argument_group(
         'Server related options',
@@ -878,10 +898,9 @@ Example:
     server_arggroup.add_argument(
         '--port', dest='port', metavar='port', type=int,
         default=None,
-        help='(Deprecated) Port where the WBEM server listens. Default:'
-             ' Standard WBEM defined ports( non-ssl=5988 or ssl=5989).'
-             ' This option is deprecated in favor of adding port to'
-             ' server as a suffix preceded by ":"')
+        help='(Deprecated) Port where the WBEM server listens.'
+             ' A port specification on the server argument overrides this'
+             ' argument.')
     server_arggroup.add_argument(
         '-n', '--namespace', dest='namespace', metavar='namespace',
         default='root/cimv2',
@@ -896,9 +915,8 @@ Example:
     server_arggroup.add_argument(
         '--no-ssl', dest='no_ssl',
         action='store_true',
-        help='(Deprecated)Don\'t use SSL for the connection. This'
-             ' option is deprecated in favor of using http or https on server'
-             ' argument.')
+        help='(Deprecated)Don\'t use SSL for the connection. The scheme'
+             ' prefix on the server argument overrides this option.')
 
     security_arggroup = argparser.add_argument_group(
         'Connection security related options',
@@ -912,26 +930,28 @@ Example:
         help='R|Password for authenticating with the WBEM server.\n' \
              'Default: Will be prompted for, if username was\nspecified.')
     security_arggroup.add_argument(
-        '-no', '--no_verification', dest='no_verification',
+        '-x', '--no-verification', dest='no_verification',
         action='store_true',
         help='Do not verify wbem server returned certificate against'
              ' certificatess in ca_certs argument or system defined certs.')
     security_arggroup.add_argument(
-        '--ca_certs', dest='ca_certs', metavar='CaCerts',
+        '--cacerts', dest='ca_certs', metavar='cacerts',
         help='File or directory containing certificates that will be' \
              ' matched against a certificate received from the WBEM server.'
-             ' Default: None. However, if None, pywbem will search'
+             ' However, if None, pywbem will search'
              ' for possible certificates in default system directories.'
              ' Therefore, --no-verification must be supplied to bypass'
              ' client verification of server sent certificaties.')
     security_arggroup.add_argument(
         '--certfile', dest='cert_file', metavar='certfile',
         help='R|Client certificate file for authenticating with the\n' \
-             'WBEM server.\nDefault: None. ')
+             'WBEM server. If this option exists the client attempts\n'
+             'to execute mutual authentication.\nDefault: None.')
     security_arggroup.add_argument(
         '--keyfile', dest='key_file', metavar='keyfile',
         help='R|Client private key file for authenticating with the\n' \
-             'WBEM server.\nDefault: None. ')
+             'WBEM server. Not required if private key is part of the\n'
+             'certfile option.\nDefault: None. ')
 
     general_arggroup = argparser.add_argument_group(
         'General options')
