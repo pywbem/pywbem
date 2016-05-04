@@ -933,8 +933,13 @@ Examples:
     security_arggroup.add_argument(
         '-x', '--no-verification', dest='no_verification',
         action='store_true',
-        help='Do not verify wbem server returned certificate against'
-             ' certificatess in ca_certs argument or system defined certs.')
+        help='Client will not verify WBEM server returned certificate'
+             ' against certificates in cacerts argument or system defined'
+             ' certs. This bypasses a significant part of ssl authentication'
+             '  of the  WBEM server to the client but allows encrypted'
+             ' communication with a server for which the client does'
+             ' not have certificates.  It does not bypass credential'
+             ' or client  certificate authentication by the WBEM server')
     security_arggroup.add_argument(
         '--cacerts', dest='ca_certs', metavar='cacerts',
         help='File or directory containing certificates that will be' \
