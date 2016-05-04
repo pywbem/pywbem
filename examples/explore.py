@@ -2,8 +2,7 @@
 
 import sys
 
-from pywbem import WBEMConnection
-from pywbem.server import WBEMServer, ValueMapping
+from pywbem import WBEMConnection, WBEMServer, ValueMapping
 
 def explore_server(server_url, username, password):
 

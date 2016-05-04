@@ -1,14 +1,12 @@
 """
-The `WBEM server API`_ is provided by the :mod:`pywbem.server` module.
+The `WBEM server API`_ provides basic functionality of a WBEM server that is
+relevant for a client:
 
-It provides basic functionality of a WBEM server that is relevant for a
-client:
-
-* The :class:`WBEMServer` class serves as a general access point for clients.
+* The :class:`~pywbem.WBEMServer` class serves as a general access point for clients.
   It provides an API for applications that for example allows determining the
   Interop namespace of the server, or the advertised management profiles.
 
-* The :class:`ValueMapping` class maps corresponding entries in Values and
+* The :class:`~pywbem.ValueMapping` class maps corresponding entries in Values and
   ValueMap qualifiers of a CIM element and supports a translation between the
   two.
 
@@ -23,8 +21,7 @@ The following example code displays some information about a WBEM server:
 
 ::
 
-    from pywbem import WBEMConnection
-    from pywbem.server import WBEMServer, ValueMapping
+    from pywbem import WBEMConnection, WBEMServer, ValueMapping
 
     def explore_server(server_url, username, password):
 
@@ -88,7 +85,11 @@ from socket import getfqdn
 
 import six
 
-import pywbem
+from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
+                           CIM_ERR_METHOD_NOT_AVAILABLE, \
+                           CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND
+from .exceptions import CIMError
+from .cim_types import CIMInt, type_from_name
 
 __all__ = ['WBEMServer', 'ValueMapping']
 
@@ -329,7 +330,7 @@ class WBEMServer(object):
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ValueError
         """
-        if not isinstance(profile_path, pywbem.CIMInstanceName):
+        if not isinstance(profile_path, CIMInstanceName):
             raise TypeError("profile_path must be a CIMInstanceName, but is " \
                             "a %s" % type(profile_path))
 
@@ -338,9 +339,9 @@ class WBEMServer(object):
             (ret_val, out_params) = self._conn.InvokeMethod(
                 MethodName="GetCentralInstances",
                 ObjectName=profile_path)
-        except pywbem.CIMError as exc:
-            if exc.status_code in (pywbem.CIM_ERR_METHOD_NOT_AVAILABLE,
-                                   pywbem.CIM_ERR_NOT_SUPPORTED):
+        except CIMError as exc:
+            if exc.status_code in (CIM_ERR_METHOD_NOT_AVAILABLE,
+                                   CIM_ERR_NOT_SUPPORTED):
                 # Method is not implemented.
                 # CIM_ERR_NOT_SUPPORTED is not an official status code for this
                 # situation, but is used by some implementations.
@@ -351,7 +352,6 @@ class WBEMServer(object):
             if ret_val != 0:
                 raise ValueError("GetCentralInstances() implemented but " \
                                  "failed with rc=%s" % ret_val)
-            #print("Debug: GCI method: Found central instances via GCI() method")
             return out_params['CentralInstances']
 
         # Try central methodology
@@ -360,7 +360,6 @@ class WBEMServer(object):
             AssocClass="CIM_ElementConformsToProfile",
             ResultRole="ManagedElement")
         if len(ci_paths) > 0:
-            #print("Debug: Central class method: Found instances when traversing ECTP")
             return ci_paths
 
         # Try scoping methodology
@@ -391,13 +390,11 @@ class WBEMServer(object):
         else:
             upper_central_class = None
             upper_scoping_path = None
-        #print("Debug: recursing to next upper scoping level with central class: %s" % upper_central_class)
         scoping_inst_paths = self.get_central_instances(
             referencing_profile_paths[0],
             upper_central_class, scoping_class, upper_scoping_path)
         if len(scoping_inst_paths) == 0:
             raise ValueError("No scoping instances found")
-        #print("Debug: returning from next upper scoping level with central class: %s" % upper_central_class)
 
         # Go down one level on the resource side (using the last
         # entry in the scoping path as the association to traverse)
@@ -415,7 +412,6 @@ class WBEMServer(object):
                                  (assoc_class, central_class))
             total_ci_paths.extend(ci_paths)
 
-        #print("Debug: Scoping class method: Found central instances")
         return total_ci_paths
 
     def _determine_interop_ns(self):
@@ -439,12 +435,12 @@ class WBEMServer(object):
         for ns in self.INTEROP_NAMESPACES:
             try:
                 self._conn.EnumerateInstanceNames(test_classname, namespace=ns)
-            except pywbem.CIMError as exc:
-                if exc.status_code == pywbem.CIM_ERR_INVALID_NAMESPACE:
+            except CIMError as exc:
+                if exc.status_code == CIM_ERR_INVALID_NAMESPACE:
                     # Current namespace does not exist.
                     continue
-                elif exc.status_code in (pywbem.CIM_ERR_INVALID_CLASS,
-                                         pywbem.CIM_ERR_NOT_FOUND):
+                elif exc.status_code in (CIM_ERR_INVALID_CLASS,
+                                         CIM_ERR_NOT_FOUND):
                     # Class is not implemented, but current namespace exists.
                     interop_ns = ns
                     break
@@ -457,7 +453,7 @@ class WBEMServer(object):
                 break
         if interop_ns is None:
             # Exhausted the possible namespaces
-            raise pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND,
+            raise CIMError(CIM_ERR_NOT_FOUND,
                                   "Interop namespace could not be determined " \
                                   "(tried %s)" % self.INTEROP_NAMESPACES)
         self._interop_ns = interop_ns
@@ -485,11 +481,11 @@ class WBEMServer(object):
         try:
             self._conn.EnumerateInstanceNames(test_classname,
                                               namespace=interop_ns)
-        except pywbem.CIMError as exc:
+        except CIMError as exc:
             # We tolerate it if the WBEM server does not implement this class,
             # as long as it does not return CIM_ERR_INVALID_NAMESPACE.
-            if exc.status_code in (pywbem.CIM_ERR_INVALID_CLASS,
-                                   pywbem.CIM_ERR_NOT_FOUND):
+            if exc.status_code in (CIM_ERR_INVALID_CLASS,
+                                   CIM_ERR_NOT_FOUND):
                 pass
             else:
                 raise
@@ -519,9 +515,9 @@ class WBEMServer(object):
             try:
                 ns_insts = self._conn.EnumerateInstances(
                     classname, namespace=self.interop_ns)
-            except pywbem.CIMError as exc:
-                if exc.status_code in (pywbem.CIM_ERR_INVALID_CLASS,
-                                       pywbem.CIM_ERR_NOT_FOUND):
+            except CIMError as exc:
+                if exc.status_code in (CIM_ERR_INVALID_CLASS,
+                                       CIM_ERR_NOT_FOUND):
                     # Class is not implemented, try next one.
                     continue
                 else:
@@ -533,7 +529,7 @@ class WBEMServer(object):
                 break
         if ns_insts is None:
             # Exhausted the possible class names
-            raise pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND,
+            raise CIMError(CIM_ERR_NOT_FOUND,
                                   "Namespace class could not be determined " \
                                   "(tried %s)" % self.NAMESPACE_CLASSNAMES)
         self._namespace_classname = ns_classname
@@ -556,7 +552,7 @@ class WBEMServer(object):
         cimom_insts = self._conn.EnumerateInstances(
             "CIM_ObjectManager", namespace=self.interop_ns)
         if len(cimom_insts) != 1:
-            raise pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND,
+            raise CIMError(CIM_ERR_NOT_FOUND,
                                   "Unexpected number of CIM_ObjectManager " \
                                   "instances: %s " % \
                                   [i['ElementName'] for i in cimom_insts])
@@ -638,7 +634,7 @@ class ValueMapping(object):
 
     ::
 
-        >>> vm = pywbem.server.ValueMapping.for_property(server, namespace, classname, "MyProp")
+        >>> vm = pywbem.ValueMapping.for_property(server, namespace, classname, "MyProp")
         >>> for value in range(0, 12):
         >>>    print("value: %s, Values string: %r" % (value, vm.tovalues(value))
         value: 0, Values string: 'zero'
@@ -664,8 +660,8 @@ class ValueMapping(object):
     @classmethod
     def for_property(cls, server, namespace, classname, propname):
         """
-        Factory method that returns a new :class:`ValueMapping` instance
-        corresponding to a CIM property.
+        Factory method that returns a new :class:`~pywbem.ValueMapping`
+        instance corresponding to a CIM property.
 
         If a Values qualifier is defined but no ValueMap qualifier, a default
         of 0-based consecutive numbers is applied (that is the default defined
@@ -673,7 +669,7 @@ class ValueMapping(object):
 
         Parameters:
 
-          server (:class:`WBEMServer`):
+          server (:class:`~pywbem.WBEMServer`):
             The WBEM server containing the namespace.
 
           namespace (:term:`string`):
@@ -689,7 +685,7 @@ class ValueMapping(object):
 
         Returns:
 
-            The new :class:`ValueMapping` instance.
+            The new :class:`~pywbem.ValueMapping` instance.
 
         Raises:
 
@@ -707,8 +703,8 @@ class ValueMapping(object):
     @classmethod
     def for_method(cls, server, namespace, classname, methodname):
         """
-        Factory method that returns a new :class:`ValueMapping` instance
-        corresponding to a CIM method.
+        Factory method that returns a new :class:`~pywbem.ValueMapping`
+        instance corresponding to a CIM method.
 
         If a Values qualifier is defined but no ValueMap qualifier, a default
         of 0-based consecutive numbers is applied (that is the default defined
@@ -716,7 +712,7 @@ class ValueMapping(object):
 
         Parameters:
 
-          server (:class:`WBEMServer`):
+          server (:class:`~pywbem.WBEMServer`):
             The WBEM server containing the namespace.
 
           namespace (:term:`string`):
@@ -732,7 +728,7 @@ class ValueMapping(object):
 
         Returns:
 
-            The new :class:`ValueMapping` instance.
+            The new :class:`~pywbem.ValueMapping` instance.
 
         Raises:
 
@@ -751,8 +747,8 @@ class ValueMapping(object):
     def for_parameter(cls, server, namespace, classname, methodname,
                       parametername):
         """
-        Factory method that returns a new :class:`ValueMapping` instance
-        corresponding to a CIM parameter.
+        Factory method that returns a new :class:`~pywbem.ValueMapping`
+        instance corresponding to a CIM parameter.
 
         If a Values qualifier is defined but no ValueMap qualifier, a default
         of 0-based consecutive numbers is applied (that is the default defined
@@ -760,7 +756,7 @@ class ValueMapping(object):
 
         Parameters:
 
-          server (:class:`WBEMServer`):
+          server (:class:`~pywbem.WBEMServer`):
             The WBEM server containing the namespace.
 
           namespace (:term:`string`):
@@ -779,7 +775,7 @@ class ValueMapping(object):
 
         Returns:
 
-            The new :class:`ValueMapping` instance.
+            The new :class:`~pywbem.ValueMapping` instance.
 
         Raises:
 
@@ -855,8 +851,8 @@ class ValueMapping(object):
     def _create_for_element(cls, element_obj):
         # pylint: disable=line-too-long
         """
-        Return a new :class:`ValueMapping` instance for the specified CIM
-        element.
+        Return a new :class:`~pywbem.ValueMapping` instance for the specified
+        CIM element.
 
         If a Values qualifier is defined but no ValueMap qualifier, a default
         of 0-based consecutive numbers is applied (that is the default defined
@@ -869,7 +865,7 @@ class ValueMapping(object):
 
         Returns:
 
-            The created :class:`ValueMapping` instance for the specified
+            The created :class:`~pywbem.ValueMapping` instance for the specified
             CIM element.
 
         Raises:
@@ -883,9 +879,9 @@ class ValueMapping(object):
 
         typename = element_obj.type
         # TODO: We should make type_from_name() and cimtype() part of the API
-        cimtype = pywbem.cim_types.type_from_name(typename)
+        cimtype = type_from_name(typename)
 
-        if not issubclass(cimtype, pywbem.CIMInt):
+        if not issubclass(cimtype, CIMInt):
             raise TypeError("The CIM element is not integer-typed: %s" % \
                             typename)
 
@@ -959,7 +955,7 @@ class ValueMapping(object):
             TypeError: Element value is not an integer type.
         """
 
-        if not isinstance(element_value, (six.integer_types, pywbem.CIMInt)):
+        if not isinstance(element_value, (six.integer_types, CIMInt)):
             raise TypeError("Element value is not an integer type: %s" % \
                             type(element_value))
 

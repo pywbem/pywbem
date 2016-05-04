@@ -1,8 +1,7 @@
 """
-The `WBEM listener API`_ is provided by the :mod:`pywbem.listener` module.
-
-It provides functionality for managing subscriptions for indications from
-one or more WBEM servers, and implements a thread-based WBEM listener service.
+The `WBEM listener API`_ provides functionality for managing subscriptions for
+indications from one or more WBEM servers, and implements a thread-based WBEM
+listener service.
 
 .. note::
 
@@ -18,9 +17,7 @@ delivery:
 ::
 
     from socket import getfqdn
-    from pywbem import WBEMConnection
-    from pywbem.listener import WBEMListener
-    from pywbem.server import WBEMServer
+    from pywbem import WBEMConnection, WBEMListener, WBEMServer
 
     def process_indication(indication):
         '''This function gets called when an indication is received.'''
@@ -84,15 +81,15 @@ else:
     from ssl import SSLError
     _HAVE_M2CRYPTO = False
 
-import pywbem
-from pywbem.server import WBEMServer
+from ._server import WBEMServer
+from .cim_obj import CIMInstance, CIMInstanceName
 # pylint: enable=wrong-import-position
 
 DEFAULT_LISTENER_PORT_HTTP = 5988
 DEFAULT_LISTENER_PORT_HTTPS = 5989
 DEFAULT_QUERY_LANGUAGE = 'WQL'
 
-__all__ = ['WBEMListener']
+__all__ = ['WBEMListener', 'callback_interface']
 
 
 class WBEMListener(object):
@@ -212,7 +209,7 @@ class WBEMListener(object):
 
         Parameters:
 
-          server (:class:`~pywbem.server.WBEMServer`):
+          server (:class:`~pywbem.WBEMServer`):
             The WBEM server.
 
         Returns:
@@ -547,7 +544,7 @@ class WBEMListener(object):
 
         Parameters:
 
-          callback (callback_interface):
+          callback (:func:`~pywbem.callback_interface`):
             Callable that is being called for each CIM indication that is
             received while the listener thread is active.
         """
@@ -561,7 +558,7 @@ def _create_destination(server, dest_url):
 
     Parameters:
 
-      server (:class:`~pywbem.server.WBEMServer`):
+      server (:class:`~pywbem.WBEMServer`):
         Identifies the WBEM server.
 
       dest_url (:term:`string`):
@@ -584,11 +581,11 @@ def _create_destination(server, dest_url):
 
     classname = 'CIM_ListenerDestinationCIMXML'
 
-    dest_path = pywbem.CIMInstanceName(classname)
+    dest_path = CIMInstanceName(classname)
     dest_path.classname = classname
     dest_path.namespace = server.interop_ns
 
-    dest_inst = pywbem.CIMInstance(classname)
+    dest_inst = CIMInstance(classname)
     dest_inst.path = dest_path
     dest_inst['CreationClassName'] = classname
     dest_inst['SystemCreationClassName'] = 'CIM_ComputerSystem'
@@ -606,7 +603,7 @@ def _create_filter(server, query, query_language):
 
     Parameters:
 
-      server (:class:`~pywbem.server.WBEMServer`):
+      server (:class:`~pywbem.WBEMServer`):
         Identifies the WBEM server.
 
       query (:term:`string`):
@@ -629,11 +626,11 @@ def _create_filter(server, query, query_language):
 
     classname = 'CIM_IndicationFilter'
 
-    filter_path = pywbem.CIMInstanceName(classname)
+    filter_path = CIMInstanceName(classname)
     filter_path.classname = classname
     filter_path.namespace = server.interop_ns
 
-    filter_inst = pywbem.CIMInstance(classname)
+    filter_inst = CIMInstance(classname)
     filter_inst.path = filter_path
     filter_inst['CreationClassName'] = classname
     filter_inst['SystemCreationClassName'] = 'CIM_ComputerSystem'
@@ -652,7 +649,7 @@ def _create_subscription(server, dest_path, filter_path):
 
     Parameters:
 
-      server (:class:`~pywbem.server.WBEMServer`):
+      server (:class:`~pywbem.WBEMServer`):
         Identifies the WBEM server.
 
       dest_path (:class:`~pywbem.CIMInstanceName`):
@@ -675,11 +672,11 @@ def _create_subscription(server, dest_path, filter_path):
 
     classname = 'CIM_IndicationSubscription'
 
-    sub_path = pywbem.CIMInstanceName(classname)
+    sub_path = CIMInstanceName(classname)
     sub_path.classname = classname
     sub_path.namespace = server.interop_ns
 
-    sub_inst = pywbem.CIMInstance(classname)
+    sub_inst = CIMInstance(classname)
     sub_inst.path = sub_path
     sub_inst['Filter'] = filter_path
     sub_inst['Handler'] = dest_path
@@ -706,25 +703,25 @@ def callback_interface(indication):
     raise NotImplementedError
 
 
-class _WBEMListenerResource(Resource):
+if _USE_TWISTED:
+    class _WBEMListenerResource(Resource):
 
+        def __init__(self, listener):
+            """
+            Store the specified WBEMListener object for later use.
+            """
+            super(_WBEMListenerResource, self)
+            self._listener = listener
 
-    def __init__(self, listener):
-        """
-        Store the specified WBEMListener object for later use.
-        """
-        super(_WBEMListenerResource, self)
-        self._listener = listener
-
-    def render_POST(self, request):
-        """
-        Will be called for each POST to the WBEM listener. It handles
-        the CIM-XML export message and delivers the contained CIM
-        indication to the stored listener object.
-        """
-        # TODO: Convert CIM-XML payload into a CIMInstance
-        indication = pywbem.CIMInstance('CIM_Indication') # dummy, for now
-        self._listener._deliver_indication(indication)
+        def render_POST(self, request):
+            """
+            Will be called for each POST to the WBEM listener. It handles
+            the CIM-XML export message and delivers the contained CIM
+            indication to the stored listener object.
+            """
+            # TODO: Convert CIM-XML payload into a CIMInstance
+            indication = CIMInstance('CIM_Indication') # dummy, for now
+            self._listener._deliver_indication(indication)
 
 
 class _HTTPSServerContextFactory:
