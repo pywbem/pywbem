@@ -3,17 +3,29 @@ usage: wbemcli [options] server
 Provide an interactive shell for issuing operations against a WBEM server.
 
 Positional arguments:
-  server                Host name or IP address of the WBEM server. Prefix
-                        with "https://" for ssl connection or
-                        "http://"(optional) for non-ssl connection:
+  server                Host name or url of the WBEM serverin this format:
+                            [{scheme}://]{host}[:{port}]:
+                        -scheme: defines the connection type; "https://" for an
+                         ssl connection or "http://" for a non-ssl connection.
+                         If there is no scheme prefix the -no-ssl option
+                         determines the connection type.
+                        -host: may be  a short or fully qualified DNS hostname,
+                         a literal ipv4 address(dotted) or a literal IPV6
+                         address(RFC 3986) with zone identifier extensions
+                          (RFC6874) supporting "-" or %25 for the delimiter.
+                        -port: if provided defines the WBEM server port
+                         to be used. If the port suffix is not provided the
+                         default ports are:
+                            http  - 5988
+                            https - 5989
+                        The port suffix superceeds the --port argument
 
 Server related options:
   Specify the WBEM server connection type, port, and namespace
 
-  --port port           (Deprecated) Port where the WBEM server listens.
-                        Default: Standard WBEM defined ports( non-ssl=5988 or
-                        ssl=5989). This option is deprecated in favor of
-                        adding port to server as a suffix preceded by ":"
+  --port port           (Deprecated) Port where the WBEM server listens. A
+                        port specification on the server argument overrides
+                        this argument.
   -n namespace, --namespace namespace
                         Namespace in the WBEM server to work against.
                         Default: root/cimv2
@@ -21,9 +33,9 @@ Server related options:
                         Timeout in the WBEM server in seconds for operation to
                         complete.
                         Default: No timeout(None)
-  --no-ssl              (Deprecated)Don't use SSL for the connection. This
-                        option is deprecated in favor of using http or https
-                        on server argument.
+  --no-ssl              (Deprecated)Don't use SSL for the connection. The
+                        scheme prefix on the server argument overrides this
+                        option.
 
 Connection security related options:
   Specify user name and password or certificates and keys
@@ -34,26 +46,30 @@ Connection security related options:
                         Password for authenticating with the WBEM server.
                         Default: Will be prompted for, if username was
                         specified.
-  -no, --no_verification
+  -x, --no-verification
                         Do not verify wbem server returned certificate against
                         certificatess in ca_certs argument or system defined
                         certs.
-  --ca_certs CaCerts    File or directory containing certificates that will be
+  --cacerts cacerts     File or directory containing certificates that will be
                         matched against a certificate received from the WBEM
-                        server. Default: None. However, if None, pywbem will
-                        search for possible certificates in default system
-                        directories. Therefore, --no-verification must be
-                        supplied to bypass client verification of server sent
+                        server. However, if None, pywbem will search for
+                        possible certificates in default system directories.
+                        Therefore, --no-verification must be supplied to
+                        bypass client verification of server sent
                         certificaties.
   --certfile certfile   Client certificate file for authenticating with the
-                        WBEM server.
-                        Default: None. 
+                        WBEM server. If this option exists the client attempts
+                        to execute mutual authentication.
+                        Default: None.
   --keyfile keyfile     Client private key file for authenticating with the
-                        WBEM server.
+                        WBEM server. Not required if private key is part of the
+                        certfile option.
                         Default: None. 
 
 General options:
   -v, --verbose         Print more messages while processing
   -h, --help            Show this help message and exit
 
-Example: wbemcli https://localhost:15345 -n root/cimv2 -u sheldon -p penny42
+Examples: wbemcli https://localhost:15345 -n vendor -u sheldon -p penny -
+(https localhost, port 15345, namespace vendor user sheldon password penny)
+wbemcli http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)

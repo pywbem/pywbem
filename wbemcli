@@ -67,7 +67,9 @@ def _remote_connection(server, opts):
 
     if server[0] == '/':
         url = server
+
     elif re.match(r"^https{0,1}://", server) is not None:
+
         url = server
         if opts.no_ssl:
             print('Argument conflict. Both schema and no_ssl set.'
@@ -878,16 +880,15 @@ Examples:
              '    [{scheme}://]{host}[:{port}]:\n'
              '-scheme: defines the connection type; "https://" for an\n'
              ' ssl connection or "http://" for a non-ssl connection.\n'
-             ' Ifthere is no scheme prefix the -no-ssl option\n'
+             ' If there is no scheme prefix the -no-ssl option\n'
              ' determines the connection type.\n'
-             '-host: may be  a short or fully qualified DNS hostname,\n.'
+             '-host: may be  a short or fully qualified DNS hostname,\n'
              ' a literal ipv4 address(dotted) or a literal IPV6\n'
              ' address(RFC 3986) with zone identifier extensions\n '
-             ' (RFC6874) supporting "-" or %%25 for the delimiter.\n.'
+             ' (RFC6874) supporting "-" or %%25 for the delimiter.\n'
              '-port: if provided defines the WBEM server port\n'
-             ' to be used.\n'
-             ' If the port suffix is not provided the default ports\n'
-             ' are:\n'
+             ' to be used. If the port suffix is not provided the\n'
+             ' default ports are:\n'
              '    http  - 5988\n'
              '    https - 5989\n'
              'The port suffix superceeds the --port argument')
