@@ -51,13 +51,14 @@ except ImportError as arg:
     _HAVE_READLINE = False
 
 from pywbem import WBEMConnection
+from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 
 # Connection global variable. Set by remote_connection and use
 # by all functions that execute operations.
 CONN = None
 
-def _remote_connection(server, opts):
+def _remote_connection(server, opts, argparser_):
     """Initiate a remote connection, via PyWBEM. Arguments for
        the request are part of the command line arguments and include
        user name, password, namespace, etc.
@@ -69,49 +70,38 @@ def _remote_connection(server, opts):
         url = server
 
     elif re.match(r"^https{0,1}://", server) is not None:
-
         url = server
-        if opts.no_ssl:
-            print('Argument conflict. Both schema and no_ssl set.'
-                  ' --no-ssl flag ignored')
 
-        #TODO test for port existing on url and error out.
-        if opts.port is not None:
-            url += ':%d' % opts.port
+    elif re.match(r"^[a-zA-Z0-9]+://", server) is not None:
+        argparser_.error('Invalid scheme on server argument.' \
+                        ' Use "http" or "https"')
+
     else:
-        proto = 'http' if opts.no_ssl else 'https'
-
-        #if opts.no_ssl:
-            #proto = 'http'
-
-        url = '%s://%s' % (proto, server)
-        #TODO ks 4/16 test for : existing on url and error out
-        if opts.port is not None:
-            url += ':%d' % opts.port
+        url = '%s://%s' % ('https', server)
 
     creds = None
 
+    if opts.key_file is not None and opts.cert_file is None:
+        argparser_.error('keyfile option requires certfile option')
+
     if opts.user is not None and opts.password is None:
-        opts.password = _getpass.getpass('Enter password for %s: ' % opts.user)
+        opts.password = _getpass.getpass('Enter password for %s: ' \
+                                         % opts.user)
 
     if opts.user is not None or opts.password is not None:
         creds = (opts.user, opts.password)
-
-    ca_certs_val = None
-    if opts.ca_certs is not None:
-        ca_certs_val = opts.ca_certs
 
     # if client cert and key provided, create dictionary for
     # wbem connection
     x509_dict = None
     if opts.cert_file is not None:
-        x509_dict = {"cert_file":opts.key_file}
+        x509_dict = {"cert_file":opts.cert_file}
         if opts.key_file is not None:
             x509_dict.update({'key_file':opts.key_file})
 
     CONN = WBEMConnection(url, creds, default_namespace=opts.namespace,
-                          no_verification=opts.no_verification,
-                          x509=x509_dict, ca_certs=ca_certs_val)
+                          no_verification=opts.no_verify_cert,
+                          x509=x509_dict, ca_certs=opts.ca_certs)
 
     CONN.debug = True
 
@@ -815,18 +805,26 @@ conn = WBEMConnection
 def _get_connection_info():
     """Return a string with the connection info."""
 
-    info = 'Connection: %s' % CONN.url
+    info = 'Connection: %s,' % CONN.url
     if CONN.creds is not None:
-        info += ' as %s' % CONN.creds[0]
+        info += ' userid=%s,' % CONN.creds[0]
     else:
-        info += ' no credentials'
+        info += ' no creds,'
 
-    if CONN.no_verification:
-        info += ', no cert verification'
-    else:
-        info += ', cert verification set'
+    info += ' cacerts=%s,' % ('sys-default' if CONN.ca_certs is None \
+                                            else CONN.ca_certs)
 
-    info += ', namespace %s' % CONN.default_namespace
+    info += ' verifycert=%s,' % ('off' if CONN.no_verification else 'on')
+
+    info += ' default-namespace=%s' % CONN.default_namespace
+    if CONN.x509 is not None:
+        info += ', client-cert=%s' % CONN.x509['cert_file']
+        try:
+            kf = CONN.x509['key_file']
+        except KeyError:
+            kf = "none"
+        info += ":%s" % kf
+
     return info
 
 
@@ -856,16 +854,15 @@ def main():
 
     prog = "wbemcli"  # Name of the script file invoking this module
     usage = '%(prog)s [options] server'
-    desc = 'Provide an interactive shell for issuing operations against a ' \
-           'WBEM server.'
+    desc = 'Provide an interactive shell for issuing operations against' \
+           ' a WBEM server.'
     epilog = """
 Examples:
   %s https://localhost:15345 -n vendor -u sheldon -p penny
-          - (https localhost, port 15345, namespace vendor user sheldon
-         password penny)
-\n
-  %s http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
+          - (https localhost, port=15345, namespace=vendor user=sheldon
+         password=penny)
 
+  %s http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
 """ % (prog, prog)
 
     argparser = _argparse.ArgumentParser(
@@ -876,88 +873,85 @@ Examples:
         'Positional arguments')
     pos_arggroup.add_argument(
         'server', metavar='server', nargs='?',
-        help='R|Host name or url of the WBEM serverin this format:\n'
-             '    [{scheme}://]{host}[:{port}]:\n'
-             '-scheme: defines the connection type; "https://" for an\n'
-             ' ssl connection or "http://" for a non-ssl connection.\n'
-             ' If there is no scheme prefix the -no-ssl option\n'
-             ' determines the connection type.\n'
-             '-host: may be  a short or fully qualified DNS hostname,\n'
-             ' a literal ipv4 address(dotted) or a literal IPV6\n'
-             ' address(RFC 3986) with zone identifier extensions\n '
-             ' (RFC6874) supporting "-" or %%25 for the delimiter.\n'
-             '-port: if provided defines the WBEM server port\n'
-             ' to be used. If the port suffix is not provided the\n'
-             ' default ports are:\n'
-             '    http  - 5988\n'
-             '    https - 5989\n'
-             'The port suffix superceeds the --port argument')
+        help='R|Host name or url of the WBEM server in this format:\n' \
+             '    [{scheme}://]{host}[:{port}]\n' \
+             '-scheme: Defines the url scheme;\n'  \
+             '    - "https" for HTTPs protocol\n'    \
+             '    - "http"" for HTTP protocol.\n' \
+             ' Default: "https".\n' \
+             '-host: Defines host name as follows:\n' \
+             '     - short or fully qualified DNS hostname,\n' \
+             '     - literal IPV4 address(dotted)\n' \
+             '     - literal IPV6 address (RFC 3986) with zone\n' \
+             '       identifier extensions(RFC 6874)\n' \
+             '       supporting "-" or %%25 for the delimiter.\n' \
+             '-port: Defines the WBEM server port to be us ed\n' \
+             ' Defaults::\n' \
+             '     - HTTP  - 5988\n' \
+             '     - HTTPS - 5989\n')
 
     server_arggroup = argparser.add_argument_group(
         'Server related options',
-        'Specify the WBEM server connection type, port, and namespace')
-    server_arggroup.add_argument(
-        '--port', dest='port', metavar='port', type=int,
-        default=None,
-        help='(Deprecated) Port where the WBEM server listens.'
-             ' A port specification on the server argument overrides this'
-             ' argument.')
+        'Specify the WBEM server namespace and timeout')
     server_arggroup.add_argument(
         '-n', '--namespace', dest='namespace', metavar='namespace',
         default='root/cimv2',
-        help='R|Namespace in the WBEM server to work against.\n' \
+        help='R|Default namespace in the WBEM server for operation\n' \
+             'requests when namespace option not supplied with\n' \
+             'operation request.\n'
              'Default: %(default)s')
     server_arggroup.add_argument(
         '-t', '--timeout', dest='timeout', metavar='timeout',
         default='root/cimv2',
         help='R|Timeout in the WBEM server in seconds for operation to\n' \
              'complete.\n' \
-             'Default: No timeout(None)')
-    server_arggroup.add_argument(
-        '--no-ssl', dest='no_ssl',
-        action='store_true',
-        help='(Deprecated)Don\'t use SSL for the connection. The scheme'
-             ' prefix on the server argument overrides this option.')
+             'Default: No timeout')
 
     security_arggroup = argparser.add_argument_group(
         'Connection security related options',
         'Specify user name and password or certificates and keys')
     security_arggroup.add_argument(
         '-u', '--user', dest='user', metavar='user',
-        help='R|Username for authenticating with the WBEM server.\n' \
-             'Default: No username.')
+        help='R|User name for authenticating with the WBEM server.\n' \
+             'Default: No user name.')
     security_arggroup.add_argument(
         '-p', '--password', dest='password', metavar='password',
         help='R|Password for authenticating with the WBEM server.\n' \
-             'Default: Will be prompted for, if username was\nspecified.')
+             'Default: Will be prompted for, if user name\nspecified.')
     security_arggroup.add_argument(
-        '-x', '--no-verification', dest='no_verification',
+        '-nvc', '--no-verify-cert', dest='no_verify_cert',
         action='store_true',
-        help='Client will not verify WBEM server returned certificate'
-             ' against certificates in cacerts argument or system defined'
-             ' certs. This bypasses a significant part of ssl authentication'
-             '  of the  WBEM server to the client but allows encrypted'
-             ' communication with a server for which the client does'
-             ' not have certificates.  It does not bypass credential'
-             ' or client  certificate authentication by the WBEM server')
+        help='Client will not verify WBEM  returned by the WBEM server' \
+             ' against certificates in cacerts argument or system defined' \
+             ' certs. This bypasses the client-side verification of the' \
+             ' server identity, but allows encrypted communication' \
+             ' with a server for which the client does not have' \
+             ' certificates.')
     security_arggroup.add_argument(
         '--cacerts', dest='ca_certs', metavar='cacerts',
-        help='File or directory containing certificates that will be' \
-             ' matched against a certificate received from the WBEM server.'
-             ' However, if None, pywbem will search'
-             ' for possible certificates in default system directories.'
-             ' Therefore, --no-verification must be supplied to bypass'
-             ' client verification of server sent certificaties.')
+        help='R|File or directory containing certificates that will be\n' \
+             'matched against a certificate received from the WBEM\n' \
+             'server.\n' \
+             'The --no-verify-cert option must be set to bypass\n' \
+             'client verification of the WBEM server certificaties.\n' \
+             'The system directories searched for certificates are:\n'
+             'Default: Search for matching certificates in the\n'
+             'following system directories:\n'
+        + ("\n".join("%s" % p for p in get_default_ca_cert_paths())))
+
     security_arggroup.add_argument(
         '--certfile', dest='cert_file', metavar='certfile',
         help='R|Client certificate file for authenticating with the\n' \
-             'WBEM server. If this option exists the client attempts\n'
-             'to execute mutual authentication.\nDefault: None.')
+             'WBEM server. If option specified the client attempts\n' \
+             'to execute mutual authentication.\n'
+             'Default: Simple authentication.')
     security_arggroup.add_argument(
         '--keyfile', dest='key_file', metavar='keyfile',
         help='R|Client private key file for authenticating with the\n' \
-             'WBEM server. Not required if private key is part of the\n'
-             'certfile option.\nDefault: None. ')
+             'WBEM server. Not required if private key is part of the\n' \
+             'certfile option. Not allowed if no certfile option.\n'
+             'Default: No client key file. Client private key should\n'
+             'then be part  of the certfile')
 
     general_arggroup = argparser.add_argument_group(
         'General options')
@@ -974,11 +968,8 @@ Examples:
     if not args.server:
         argparser.error('No WBEM server specified')
 
-    if args.key_file is not None and args.cert_file is None:
-        argparser.error('Cert_file required if key_file defined')
-
     # Set up a client connection
-    CONN = _remote_connection(args.server, args)
+    CONN = _remote_connection(args.server, args, argparser)
 
     # Determine file path of history file
     home_dir = '.'

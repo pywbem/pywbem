@@ -123,7 +123,7 @@ Enhancements
   be logical for a ssl or non-ssl client. This included arguments for
   ca certificates, client keys and certificates, timeout. It also modifies
   the server argument to use http:// or https:// prefix and suffix with
-  :<port number>
+  :<port number> and drops the old arguments of --port and --no-ssl
 
 Bug fixes
 ^^^^^^^^^
