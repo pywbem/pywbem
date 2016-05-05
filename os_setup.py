@@ -500,7 +500,8 @@ class BaseInstaller(object):
         self.env = None
 
 
-    def do_install(self, pkg_name, version_reqs=None, dry_run=False):
+    def do_install(self, pkg_name, version_reqs=None, dry_run=False,
+                   reinstall=False):
         """Interface definition: Install an OS or Python package,
         optionally applying version requirements.
 
@@ -517,6 +518,7 @@ class BaseInstaller(object):
         * version_reqs (list): None, or list of zero or more strings that are
           version requirements for the package (e.g. ('>=3.0', '!=3.5')).
         * dry_run (boolean): Display what would happen instead of doing it.
+        * reinstall (boolean): Reinstall the package if already installed.
 
         Returns: Nothing
 
@@ -817,7 +819,8 @@ class PythonInstaller(BaseInstaller):
             installed = self.ensure_installed(
                 pkg_name, version_reqs, dry_run, verbose, ignore=False)
 
-    def do_install(self, pkg_name, version_reqs=None, dry_run=False):
+    def do_install(self, pkg_name, version_reqs=None, dry_run=False,
+                   reinstall=False):
         """Install a Python package, optionally ensuring that the specified
         version requirements are satisfied.
 
@@ -825,11 +828,15 @@ class PythonInstaller(BaseInstaller):
         `BaseInstaller.do_install()`.
         """
         pkg_req = self.pkg_req(pkg_name, version_reqs)
+        args = ['install']
+        if reinstall:
+            args.append('--ignore-installed')
+        args.append(pkg_req)
         if dry_run:
-            print("Dry-running: pip install %s" % pkg_req)
+            print("Dry-running: pip %s" % ' '.join(args))
         else:
-            print("Running: pip install %s" % pkg_req)
-            rc = pip.main(['install', pkg_req])
+            print("Running: pip %s" % ' '.join(args))
+            rc = pip.main(args)
             if rc != 0:
                 raise DistutilsSetupError("Pip returns rc=%d" % rc)
 
@@ -1091,7 +1098,8 @@ class OSInstaller(BaseInstaller):
             installed = self.ensure_installed(
                 pkg_name, version_reqs, dry_run, verbose, ignore=False)
 
-    def do_install(self, pkg_name, version_reqs=None, dry_run=False):
+    def do_install(self, pkg_name, version_reqs=None, dry_run=False,
+                   reinstall=False):
         """Install an OS package, optionally ensuring that the specified
         version requirements are satisfied.
 
@@ -1197,14 +1205,16 @@ class YumInstaller(OSInstaller):
         else:
             self.installer_cmd = "yum"
 
-    def do_install(self, pkg_name, version_reqs=None, dry_run=False):
+    def do_install(self, pkg_name, version_reqs=None, dry_run=False,
+                   reinstall=False):
         """Install an OS package, optionally ensuring that the specified
         version requirements are satisfied.
 
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.do_install()`.
         """
-        cmd = "sudo %s install -y %s" % (self.installer_cmd, pkg_name)
+        subcmd = 'reinstall' if reinstall else 'install'
+        cmd = "sudo %s %s -y %s" % (self.installer_cmd, subcmd, pkg_name)
         if dry_run:
             print("Dry-running: %s" % cmd)
         else:
@@ -1263,14 +1273,16 @@ class AptInstaller(OSInstaller):
     def __init__(self):
         OSInstaller.__init__(self)
 
-    def do_install(self, pkg_name, version_reqs=None, dry_run=False):
+    def do_install(self, pkg_name, version_reqs=None, dry_run=False,
+                   reinstall=False):
         """Install an OS package, optionally ensuring that the specified
         version requirements are satisfied.
 
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.do_install()`.
         """
-        cmd = "sudo apt-get install -y %s" % pkg_name
+        reinstall_opt = '--reinstall' if reinstall else ''
+        cmd = "sudo apt-get install -y %s %s" % (reinstall_opt, pkg_name)
         if dry_run:
             print("Dry-running: %s" % cmd)
         else:
@@ -1333,14 +1345,16 @@ class ZypperInstaller(OSInstaller):
     def __init__(self):
         OSInstaller.__init__(self)
 
-    def do_install(self, pkg_name, version_reqs=None, dry_run=False):
+    def do_install(self, pkg_name, version_reqs=None, dry_run=False,
+                   reinstall=False):
         """Install an OS package, optionally ensuring that the specified
         version requirements are satisfied.
 
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.do_install()`.
         """
-        cmd = "sudo zypper -y %s" % pkg_name
+        reinstall_opt = '-f' if reinstall else ''
+        cmd = "sudo zypper -y %s %s" % (reinstall_opt, pkg_name)
         if dry_run:
             print("Dry-running: %s" % cmd)
         else:
