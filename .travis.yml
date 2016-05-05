@@ -23,6 +23,11 @@ install:
   - make check
   - make build
   - make builddoc
+  - pwd
+  - cd testsuite
+  - pwd
+  - cd ..
+  - pwd
 
 # commands to run tests
 script:
