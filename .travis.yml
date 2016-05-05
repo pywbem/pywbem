@@ -16,19 +16,13 @@ install:
   - pip list
   - pip install --upgrade pip
   - python uninstall_pbr_on_py26.py
-  - make clobber
+  - pip download pywbem
+  - tar -xf pywbem-0.*.tar.gz
+  - cd pywbem-0.*
+  - pwd
+  - python setup.py install_os install
   - pip list
-  - make develop
-  - pip list
-  - make check
-  - make build
-  - make builddoc
-  - pwd
-  - cd testsuite
-  - pwd
-  - cd ..
-  - pwd
 
 # commands to run tests
 script:
-  - make test
+  - python -c "import pywbem; print(pywbem.__version__)"
