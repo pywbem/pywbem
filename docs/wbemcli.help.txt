@@ -5,9 +5,9 @@ Provide an interactive shell for issuing operations against a WBEM server.
 Positional arguments:
   server                Host name or url of the WBEM server in this format:
                             [{scheme}://]{host}[:{port}]
-                        -scheme: Defines the url scheme;
-                            - "https" for ssl protocol
-                            - "http"" for non-ssl protocol.
+                        -scheme: Defines the protocol to use;
+                            - "https" for HTTPs protocol
+                            - "http"" for HTTP protocol.
                          Default: "https".
                         -host: Defines host name as follows:
                              - short or fully qualified DNS hostname,
@@ -16,9 +16,9 @@ Positional arguments:
                                identifier extensions(RFC 6874)
                                supporting "-" or %25 for the delimiter.
                         -port: Defines the WBEM server port to be us ed
-                         Defaults::
-                             - http  - 5988
-                             - https - 5989
+                         Defaults:
+                             - HTTP  - 5988
+                             - HTTPS - 5989
 
 Server related options:
   Specify the WBEM server namespace and timeout
@@ -43,17 +43,15 @@ Connection security related options:
                         Default: Will be prompted for, if user name
                         specified.
   -nvc, --no-verify-cert
-                        Client will not verify WBEM returned by the WBEM
-                        server against certificates in cacerts argument or
-                        system defined certs. This bypasses the client-side
-                        verification of the server identity, but allows
+                        Client will not verify certificate returned by the
+                        WBEM server (see cacerts). This bypasses the client-
+                        side verification of the server identity, but allows
                         encrypted communication with a server for which the
                         client does not have certificates.
   --cacerts cacerts     File or directory containing certificates that will be
                         matched against a certificate received from the WBEM
-                        server.
-                        The --no-verify-cert option must be set to bypass
-                        client verification of the WBEM server certificaties.
+                        server. Set the --no-verify-cert option to bypass
+                        client verification of the WBEM server certificate.
                         The system directories searched for certificates are:
                         Default: Search for matching certificates in the
                         following system directories:
@@ -67,7 +65,8 @@ Connection security related options:
   --keyfile keyfile     Client private key file for authenticating with the
                         WBEM server. Not required if private key is part of the
                         certfile option. Not allowed if no certfile option.
-                        Default: No client key file. 
+                        Default: No client key file. Client private key should
+                        then be part  of the certfile
 
 General options:
   -v, --verbose         Print more messages while processing

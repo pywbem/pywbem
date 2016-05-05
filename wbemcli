@@ -99,9 +99,12 @@ def _remote_connection(server, opts, argparser_):
         if opts.key_file is not None:
             x509_dict.update({'key_file':opts.key_file})
 
+    print('opts %s' % opts)
+
     CONN = WBEMConnection(url, creds, default_namespace=opts.namespace,
                           no_verification=opts.no_verify_cert,
-                          x509=x509_dict, ca_certs=opts.ca_certs)
+                          x509=x509_dict, ca_certs=opts.ca_certs,
+                          timeout=opts.timeout)
 
     CONN.debug = True
 
@@ -825,6 +828,9 @@ def _get_connection_info():
             kf = "none"
         info += ":%s" % kf
 
+    if CONN.timeout is not None:
+        info += ', timeout=%s' % CONN.timeout
+
     return info
 
 
@@ -875,7 +881,7 @@ Examples:
         'server', metavar='server', nargs='?',
         help='R|Host name or url of the WBEM server in this format:\n' \
              '    [{scheme}://]{host}[:{port}]\n' \
-             '-scheme: Defines the url scheme;\n'  \
+             '-scheme: Defines the protocol to use;\n'  \
              '    - "https" for HTTPs protocol\n'    \
              '    - "http"" for HTTP protocol.\n' \
              ' Default: "https".\n' \
@@ -886,7 +892,7 @@ Examples:
              '       identifier extensions(RFC 6874)\n' \
              '       supporting "-" or %%25 for the delimiter.\n' \
              '-port: Defines the WBEM server port to be us ed\n' \
-             ' Defaults::\n' \
+             ' Defaults:\n' \
              '     - HTTP  - 5988\n' \
              '     - HTTPS - 5989\n')
 
@@ -902,9 +908,8 @@ Examples:
              'Default: %(default)s')
     server_arggroup.add_argument(
         '-t', '--timeout', dest='timeout', metavar='timeout',
-        default='root/cimv2',
-        help='R|Timeout in the WBEM server in seconds for operation to\n' \
-             'complete.\n' \
+        help='R|Timeout of the completion of WBEM Server operation\n' \
+             'in seconds.\n' \
              'Default: No timeout')
 
     security_arggroup = argparser.add_argument_group(
@@ -915,27 +920,25 @@ Examples:
         help='R|User name for authenticating with the WBEM server.\n' \
              'Default: No user name.')
     security_arggroup.add_argument(
-        '-p', '--password', dest='password', metavar='password',
+        '-p', '--password', dest='password', metavar='password', \
         help='R|Password for authenticating with the WBEM server.\n' \
              'Default: Will be prompted for, if user name\nspecified.')
     security_arggroup.add_argument(
         '-nvc', '--no-verify-cert', dest='no_verify_cert',
         action='store_true',
-        help='Client will not verify WBEM  returned by the WBEM server' \
-             ' against certificates in cacerts argument or system defined' \
-             ' certs. This bypasses the client-side verification of the' \
-             ' server identity, but allows encrypted communication' \
-             ' with a server for which the client does not have' \
-             ' certificates.')
+        help='Client will not verify certificate returned by the WBEM' \
+             ' server (see cacerts). This bypasses the client-side' \
+             ' verification of the server identity, but allows' \
+             ' encrypted communication with a server for which the' \
+             ' client does not have certificates.')
     security_arggroup.add_argument(
         '--cacerts', dest='ca_certs', metavar='cacerts',
         help='R|File or directory containing certificates that will be\n' \
              'matched against a certificate received from the WBEM\n' \
-             'server.\n' \
-             'The --no-verify-cert option must be set to bypass\n' \
-             'client verification of the WBEM server certificaties.\n' \
-             'The system directories searched for certificates are:\n'
-             'Default: Search for matching certificates in the\n'
+             'server. Set the --no-verify-cert option to bypass\n' \
+             'client verification of the WBEM server certificate.\n' \
+             'The system directories searched for certificates are:\n' \
+             'Default: Search for matching certificates in the\n' \
              'following system directories:\n'
         + ("\n".join("%s" % p for p in get_default_ca_cert_paths())))
 
@@ -949,8 +952,8 @@ Examples:
         '--keyfile', dest='key_file', metavar='keyfile',
         help='R|Client private key file for authenticating with the\n' \
              'WBEM server. Not required if private key is part of the\n' \
-             'certfile option. Not allowed if no certfile option.\n'
-             'Default: No client key file. Client private key should\n'
+             'certfile option. Not allowed if no certfile option.\n' \
+             'Default: No client key file. Client private key should\n' \
              'then be part  of the certfile')
 
     general_arggroup = argparser.add_argument_group(
