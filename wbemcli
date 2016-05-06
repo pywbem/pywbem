@@ -91,6 +91,9 @@ def _remote_connection(server, opts, argparser_):
     if opts.user is not None or opts.password is not None:
         creds = (opts.user, opts.password)
 
+    if opts.timeout < 0 or opts.timeout > 300:
+        argparser_.error('timeout option(%s) out of range' % opts.timeout)
+
     # if client cert and key provided, create dictionary for
     # wbem connection
     x509_dict = None
@@ -98,8 +101,6 @@ def _remote_connection(server, opts, argparser_):
         x509_dict = {"cert_file":opts.cert_file}
         if opts.key_file is not None:
             x509_dict.update({'key_file':opts.key_file})
-
-    print('opts %s' % opts)
 
     CONN = WBEMConnection(url, creds, default_namespace=opts.namespace,
                           no_verification=opts.no_verify_cert,
@@ -907,9 +908,9 @@ Examples:
              'operation request.\n'
              'Default: %(default)s')
     server_arggroup.add_argument(
-        '-t', '--timeout', dest='timeout', metavar='timeout',
+        '-t', '--timeout', dest='timeout', metavar='timeout', type=int,
         help='R|Timeout of the completion of WBEM Server operation\n' \
-             'in seconds.\n' \
+             'in seconds(integer between 0 and 300).\n' \
              'Default: No timeout')
 
     security_arggroup = argparser.add_argument_group(
