@@ -881,18 +881,18 @@ Examples:
         'server', metavar='server', nargs='?',
         help='R|Host name or url of the WBEM server in this format:\n' \
              '    [{scheme}://]{host}[:{port}]\n' \
-             '-scheme: Defines the protocol to use;\n'  \
+             '- scheme: Defines the protocol to use;\n'  \
              '    - "https" for HTTPs protocol\n'    \
-             '    - "http"" for HTTP protocol.\n' \
-             ' Default: "https".\n' \
-             '-host: Defines host name as follows:\n' \
+             '    - "http" for HTTP protocol.\n' \
+             '  Default: "https".\n' \
+             '- host: Defines host name as follows:\n' \
              '     - short or fully qualified DNS hostname,\n' \
              '     - literal IPV4 address(dotted)\n' \
              '     - literal IPV6 address (RFC 3986) with zone\n' \
              '       identifier extensions(RFC 6874)\n' \
              '       supporting "-" or %%25 for the delimiter.\n' \
-             '-port: Defines the WBEM server port to be us ed\n' \
-             ' Defaults:\n' \
+             '- port: Defines the WBEM server port to be used\n' \
+             '  Defaults:\n' \
              '     - HTTP  - 5988\n' \
              '     - HTTPS - 5989\n')
 
@@ -937,8 +937,7 @@ Examples:
              'matched against a certificate received from the WBEM\n' \
              'server. Set the --no-verify-cert option to bypass\n' \
              'client verification of the WBEM server certificate.\n' \
-             'The system directories searched for certificates are:\n' \
-             'Default: Search for matching certificates in the\n' \
+             'Default: Searches for matching certificates in the\n' \
              'following system directories:\n'
         + ("\n".join("%s" % p for p in get_default_ca_cert_paths())))
 

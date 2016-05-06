@@ -5,18 +5,18 @@ Provide an interactive shell for issuing operations against a WBEM server.
 Positional arguments:
   server                Host name or url of the WBEM server in this format:
                             [{scheme}://]{host}[:{port}]
-                        -scheme: Defines the protocol to use;
+                        - scheme: Defines the protocol to use;
                             - "https" for HTTPs protocol
-                            - "http"" for HTTP protocol.
-                         Default: "https".
-                        -host: Defines host name as follows:
+                            - "http" for HTTP protocol.
+                          Default: "https".
+                        - host: Defines host name as follows:
                              - short or fully qualified DNS hostname,
                              - literal IPV4 address(dotted)
                              - literal IPV6 address (RFC 3986) with zone
                                identifier extensions(RFC 6874)
                                supporting "-" or %25 for the delimiter.
-                        -port: Defines the WBEM server port to be us ed
-                         Defaults:
+                        - port: Defines the WBEM server port to be used
+                          Defaults:
                              - HTTP  - 5988
                              - HTTPS - 5989
 
@@ -29,8 +29,8 @@ Server related options:
                         operation request.
                         Default: root/cimv2
   -t timeout, --timeout timeout
-                        Timeout in the WBEM server in seconds for operation to
-                        complete.
+                        Timeout of the completion of WBEM Server operation
+                        in seconds.
                         Default: No timeout
 
 Connection security related options:
@@ -52,8 +52,7 @@ Connection security related options:
                         matched against a certificate received from the WBEM
                         server. Set the --no-verify-cert option to bypass
                         client verification of the WBEM server certificate.
-                        The system directories searched for certificates are:
-                        Default: Search for matching certificates in the
+                        Default: Searches for matching certificates in the
                         following system directories:
                         /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt
                         /etc/ssl/certs
