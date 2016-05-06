@@ -39,6 +39,7 @@ import re
 import errno as _errno
 import code as _code
 import argparse as _argparse
+from textwrap import fill
 
 # Additional symbols for use in the interactive session
 from pprint import pprint as pp # pylint: disable=unused-import
@@ -91,8 +92,9 @@ def _remote_connection(server, opts, argparser_):
     if opts.user is not None or opts.password is not None:
         creds = (opts.user, opts.password)
 
-    if opts.timeout < 0 or opts.timeout > 300:
-        argparser_.error('timeout option(%s) out of range' % opts.timeout)
+    if opts.timeout is not None:
+        if opts.timeout < 0 or opts.timeout > 300:
+            argparser_.error('timeout option(%s) out of range' % opts.timeout)
 
     # if client cert and key provided, create dictionary for
     # wbem connection
@@ -832,7 +834,7 @@ def _get_connection_info():
     if CONN.timeout is not None:
         info += ', timeout=%s' % CONN.timeout
 
-    return info
+    return fill(info, 78, subsequent_indent='    ')
 
 
 def _get_banner():
@@ -909,6 +911,7 @@ Examples:
              'Default: %(default)s')
     server_arggroup.add_argument(
         '-t', '--timeout', dest='timeout', metavar='timeout', type=int,
+        default=None,
         help='R|Timeout of the completion of WBEM Server operation\n' \
              'in seconds(integer between 0 and 300).\n' \
              'Default: No timeout')
