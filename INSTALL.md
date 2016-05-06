@@ -12,68 +12,83 @@ and it includes the usual install mode and development mode.
 OS-level prerequisites are installed using new setup.py commands `install_os`
 (for the usual install mode) and `develop_os` (for development mode). These
 commands perform the installation for a number of well-known Linux
-distributions, using `sudo` (so your userid needs to be authorized for `sudo`,
-if you run these commands). For other Linux distributions and operating
-systems, these setup.py commands just display the names of the OS-level
+distributions, using `sudo` under the covers (so your userid needs to be
+authorized for `sudo`, if you run these commands). For other Linux
+distributions and operating systems, these setup.py commands just display the
+names of the OS-level
 packages that would be needed on RHEL, leaving it to the user to
 translate the package names to the actual system, and to establish the
 prerequisites. This approach is compatible with PyPI because `pip install`
 invokes `setup.py install` but not the new commands. It is also compatible
 with packaging PyWBEM into OS-level Python packages, for the same reason.
 This approach is also compatible with 
-[virtual Python environments](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
+[virtual Python environments](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
+because `sudo` is invoked under the covers for installing the OS-level
+packages, so you can still invoke setup.py without sudo for targeting the
+current virtual Python environment.
 
 Examples
 --------
 
-* Install latest version from PyPI into default system Python (assuming
-  OS-level prerequisites are already satisfied):
+* Install latest version from PyPI into the current virtual Python:
+
+      pip install pywbem
+
+  If the OS-level prerequisites are not yet satisfied, then this command
+  will fail. You can then perform this sequence of commands to get the
+  the OS-level prerequisites installed in addition:
+
+      pip download pywbem
+      tar -xf pywbem-*.tar.gz
+      cd pywbem-*
+      python setup.py install_os install
+
+  Note that you do not need to use 'sudo' in the command line, because you
+  want to install the Python packages into the current virtual Python. The
+  OS-level packages are installed by invoking 'sudo' under the covers.
+
+  The OS-level prerequisites will be installed to the system, and the Python
+  prerequisites along with PyWBEM itself will be installed into the current
+  virtual Python environment.
+
+* Install latest version from PyPI into the system Python:
 
       sudo pip install pywbem
 
   If the OS-level prerequisites are not yet satisfied, then this command
-  will fail. You can then install the OS-level prerequisites and retry:
+  will fail. You can then perform this sequence of commands to get the
+  the OS-level prerequisites installed in addition:
 
+      pip download pywbem
+      tar -xf pywbem-*.tar.gz
+      cd pywbem-*
       sudo python setup.py install_os install
 
-* Install latest version from PyPI into new Python 2.7 virtual environment
-  (assuming OS-level prerequisites are already satisfied):
-
-      mkvirtualenv -p python2.7 pywbem27
-      pip install pywbem
-
-  Again, you can install the OS-level prerequisites and retry, if this fails:
-
-      python setup.py install_os install
-
   The OS-level prerequisites will be installed to the system, and the Python
-  prerequisites into the current Python environment.
+  prerequisites along with PyWBEM itself will be installed into the system
+  Python environment.
 
-* Install from master branch on GitHub into new Python 2.7 virtual environment,
-  installing OS-level prerequisites as needed:
+* Install the latest development version from GitHub into the current
+  virtual Python, installing OS-level prerequisites as needed:
 
       git clone git@github.com:pywbem/pywbem.git pywbem
       cd pywbem
-      mkvirtualenv -p python2.7 pywbem27
       python setup.py install_os install
 
-  Note that you do not need to use 'sudo' in the command line, because you
-  want to install into the current virtual Python. The OS-level packages are
-  installed by invoking 'sudo' under the covers.
+* Install from a particular distribution archive on GitHub into the current
+  virtual Python, installing OS-level prerequisites as needed:
 
-* Install from a particular distribution archive on GitHub into new Python 2.7
-  virtual environment, installing OS-level prerequisites as needed:
-
-      wget https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.8/pywbem-0.8.1.tar.gz
-      tar -vf pywbem-0.8.1.tar.gz
-      cd pywbem-0.8.1
-      mkvirtualenv -p python2.7 pywbem27
+      wget https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.8/pywbem-0.8.3.tar.gz
+      tar -xf pywbem-0.8.3.tar.gz
+      cd pywbem-0.8.3
       python setup.py install_os install
 
 * The installation of PyWBEM in development mode is supported as
   well:
 
-      python setup.py develop_os develop
+      git clone git@github.com:pywbem/pywbem.git pywbem
+      cd pywbem
+      make develop
 
   This will install additional OS-level and Python packages that are needed
   for development and test of PyWBEM.
