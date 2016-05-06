@@ -52,17 +52,10 @@ from os_setup import shell, shell_check, import_setuptools
 # Package version - Keep in sync with pywbem/__init__.py!
 _version = '0.8.4.dev0'  # pylint: disable=invalid-name
 
-def install_swig(installer, dry_run, verbose):
-    """Custom installer function for `os_setup` module.
-    This function makes sure that Swig is installed, either by installing the
-    corresponding OS-level package, or by downloading the source and building
-    it.
-
-    Parameters: see description of `os_setup` module.
+def _check_get_swig(swig_min_version, verbose):
+    """Chewck if Swig is available in the PATH in the right version.
+    Returns True if it needs to be installed/updated.
     """
-
-    swig_min_version = "2.0"
-
     if verbose:
         print("Testing for availability of Swig >=%s in PATH..." %\
               swig_min_version)
@@ -90,6 +83,20 @@ def install_swig(installer, dry_run, verbose):
             if verbose:
                 print("Installed Swig version is sufficient: %s" %\
                       swig_version)
+    return get_swig
+
+def install_swig(installer, dry_run, verbose):
+    """Custom installer function for `os_setup` module.
+    This function makes sure that Swig is installed, either by installing the
+    corresponding OS-level package, or by downloading the source and building
+    it.
+
+    Parameters: see description of `os_setup` module.
+    """
+
+    swig_min_version = "2.0"
+
+    get_swig = _check_get_swig(swig_min_version, verbose)
 
     if get_swig:
 
@@ -119,7 +126,16 @@ def install_swig(installer, dry_run, verbose):
             swig_pkg_name, swig_version_reqs, dry_run, verbose,
             ignore=True)
 
-        if not installed:
+        if installed and _check_get_swig(swig_min_version, verbose):
+            # Package was tampered with (e.g. swig command renamed)
+
+            if verbose:
+                print("Reinstalling Swig package over existing one...")
+
+            installer.do_install(swig_pkg_name, swig_version_reqs, dry_run,
+                                 reinstall=True)
+
+        elif not installed:
 
             # Build Swig from its source
             swig_build_version = "2.0.12"
@@ -406,7 +422,6 @@ def main():
                     ["python35-devel", "python35u-devel", "python3-devel"] \
                         if py_version_m_n == "3.5" else \
                     "python-devel",
-                    "git>=1.7",             # for retrieving fixed M2Crypto
                 ],
                 'centos': 'redhat',
                 'fedora': 'redhat',
@@ -416,7 +431,6 @@ def main():
                     install_swig,
                     "python-dev" if py_version_m == "2"
                     else "python%s-dev" % py_version_m,
-                    "git>=1.7",
                 ],
                 'debian': 'ubuntu',
                 'suse': [
@@ -424,7 +438,6 @@ def main():
                     "gcc-c++>=4.4",
                     install_swig,
                     "libpython%s-devel" % py_version_m_n,
-                    "git>=1.7",
                 ],
             },
             # TODO: Add support for Windows.
