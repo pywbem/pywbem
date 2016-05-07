@@ -119,6 +119,12 @@ Enhancements
 * Added the concept of a valid value range for the CIM integer data types, that
   is enforced at construction time.
 
+* Extended wbemcli arguments to include all possible arguments that would
+  be logical for a ssl or non-ssl client. This included arguments for
+  ca certificates, client keys and certificates, timeout. It also modifies
+  the server argument to use http:// or https:// prefix and suffix with
+  :<port number> and drops the old arguments of --port and --no-ssl
+
 Bug fixes
 ^^^^^^^^^
 

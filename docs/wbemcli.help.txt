@@ -3,24 +3,74 @@ usage: wbemcli [options] server
 Provide an interactive shell for issuing operations against a WBEM server.
 
 Positional arguments:
-  server                Host name or IP address of the WBEM server.
+  server                Host name or url of the WBEM server in this format:
+                            [{scheme}://]{host}[:{port}]
+                        - scheme: Defines the protocol to use;
+                            - "https" for HTTPs protocol
+                            - "http" for HTTP protocol.
+                          Default: "https".
+                        - host: Defines host name as follows:
+                             - short or fully qualified DNS hostname,
+                             - literal IPV4 address(dotted)
+                             - literal IPV6 address (RFC 3986) with zone
+                               identifier extensions(RFC 6874)
+                               supporting "-" or %25 for the delimiter.
+                        - port: Defines the WBEM server port to be used
+                          Defaults:
+                             - HTTP  - 5988
+                             - HTTPS - 5989
 
 Server related options:
-  Specify the WBEM server and namespace
+  Specify the WBEM server namespace and timeout
 
-  --port port           Port where the WBEM server listens
-  --no-ssl              Don't use SSL
   -n namespace, --namespace namespace
-                        Namespace in the WBEM server to work against.
+                        Default namespace in the WBEM server for operation
+                        requests when namespace option not supplied with
+                        operation request.
                         Default: root/cimv2
-  -u user, --user user  Username for authenticating with the WBEM server.
-                        Default: No username
+  -t timeout, --timeout timeout
+                        Timeout of the completion of WBEM Server operation
+                        in seconds.
+                        Default: No timeout
+
+Connection security related options:
+  Specify user name and password or certificates and keys
+
+  -u user, --user user  User name for authenticating with the WBEM server.
+                        Default: No user name.
   -p password, --password password
                         Password for authenticating with the WBEM server.
-                        Default: Will be prompted for, if username was specified.
+                        Default: Will be prompted for, if user name
+                        specified.
+  -nvc, --no-verify-cert
+                        Client will not verify certificate returned by the
+                        WBEM server (see cacerts). This bypasses the client-
+                        side verification of the server identity, but allows
+                        encrypted communication with a server for which the
+                        client does not have certificates.
+  --cacerts cacerts     File or directory containing certificates that will be
+                        matched against a certificate received from the WBEM
+                        server. Set the --no-verify-cert option to bypass
+                        client verification of the WBEM server certificate.
+                        Default: Searches for matching certificates in the
+                        following system directories:
+                        /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt
+                        /etc/ssl/certs
+                        /etc/ssl/certificates
+  --certfile certfile   Client certificate file for authenticating with the
+                        WBEM server. If option specified the client attempts
+                        to execute mutual authentication.
+                        Default: Simple authentication.
+  --keyfile keyfile     Client private key file for authenticating with the
+                        WBEM server. Not required if private key is part of the
+                        certfile option. Not allowed if no certfile option.
+                        Default: No client key file. Client private key should
+                        then be part  of the certfile
 
 General options:
   -v, --verbose         Print more messages while processing
   -h, --help            Show this help message and exit
 
-Example: wbemcli localhost --port 15989 -n root/cimv2 -u sheldon -p penny42
+Examples: wbemcli https://localhost:15345 -n vendor -u sheldon -p penny -
+(https localhost, port=15345, namespace=vendor user=sheldon password=penny)
+wbemcli http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
