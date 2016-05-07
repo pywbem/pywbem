@@ -7,8 +7,8 @@ listener service.
 
    At this point, the WBEM listener API is experimental.
 
-Example
--------
+Examples
+--------
 
 The following example code subscribes for a CIM alert indication
 on two WBEM servers and registers a callback function for indication
@@ -53,61 +53,320 @@ delivery:
                   "WHERE OwningEntity = 'DMTF' " \\
                   "AND MessageID LIKE 'SVPC0123|SVPC0124|SVPC0125'")
         listener.add_subscription(filter2_path)
+
+Another more practical example is in the script ``examples/listen.py``
+(when you clone the GitHub pywbem/pywbem project).
+It is an interactive Python shell that creates a WBEM listener and displays
+any indications it receives, in MOF format.
 """
 
 import os
 import sys
+import re
 import time
 from socket import getfqdn
-
 import six
+from six.moves import BaseHTTPServer, socketserver
+import threading
+import logging
+import ssl
+from xml.dom import minidom
+from xml.parsers.expat import ExpatError
 
-# pylint: disable=wrong-import-position
-_USE_TWISTED = sys.version_info[0:2] >= (2, 7)
-if _USE_TWISTED:
-    from twisted.web.resource import Resource
-    from twisted.web.server import Site
-    from twisted.internet import reactor
-    #from twisted.python import log
-
-_ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
-
-if six.PY2 and not _ON_RTD:  # RTD has no swig to install M2Crypto
-    from M2Crypto import SSL
-    from M2Crypto.Err import SSLError
-    _HAVE_M2CRYPTO = True
-else:
-    import ssl as SSL
-    from ssl import SSLError
-    _HAVE_M2CRYPTO = False
-
+from . import cim_xml
 from ._server import WBEMServer
-from .cim_obj import CIMInstance, CIMInstanceName
-# pylint: enable=wrong-import-position
+from .cim_obj import CIMInstance, CIMInstanceName, _ensure_unicode
+from .cim_operations import check_utf8_xml_chars
+from .cim_constants import CIM_ERR_FAILED, CIM_ERR_NOT_SUPPORTED, \
+                           CIM_ERR_INVALID_PARAMETER, _statuscode2name
+from .tupleparse import parse_cim
+from .tupletree import dom_to_tupletree
+from .exceptions import ParseError, VersionError
 
 DEFAULT_LISTENER_PORT_HTTP = 5988
 DEFAULT_LISTENER_PORT_HTTPS = 5989
 DEFAULT_QUERY_LANGUAGE = 'WQL'
 
+# CIM-XML protocol related versions implemented by the WBEM listener.
+# These are returned in export message responses.
+IMPLEMENTED_CIM_VERSION = '2.0'
+IMPLEMENTED_DTD_VERSION = '2.4'
+IMPLEMENTED_PROTOCOL_VERSION = '1.4'
+
+# CIM-XML protocol related versions supported by the WBEM listener
+# These are checked in export message requests.
+SUPPORTED_DTD_VERSION_PATTERN = r'2\.\d+'
+SUPPORTED_DTD_VERSION_STR = '2.x'
+SUPPORTED_PROTOCOL_VERSION_PATTERN = r'1\.\d+'
+SUPPORTED_PROTOCOL_VERSION_STR = '1.x'
+
 __all__ = ['WBEMListener', 'callback_interface']
+
+
+class ThreadedHTTPServer(socketserver.ThreadingMixIn,
+                         BaseHTTPServer.HTTPServer):
+    pass
+
+
+class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+    """
+    A request handler for the standard Python HTTP server, with a handler
+    method for the HTTP POST method, that acts as a WBEM listener.
+    """
+
+    def do_POST(self):
+        """
+        This method will be called for each POST request to one of the
+        listener ports.
+
+        It parses the CIM-XML export message and delivers the contained
+        CIM indication to the stored listener object.
+        """
+
+        content_len = int(self.headers.get('Content-Length', 0))
+        body = self.rfile.read(content_len)
+
+        try:
+            msgid, methodname, params = self.parse_export_request(body)
+        except ParseError as exc:
+            self.send_http_error("request-not-well-formed", str(exc))
+            return
+        except VersionError as exc:
+            if str(exc).startswith("DTD"):
+                self.send_http_error("unsupported-dtd-version", str(exc))
+            elif str(exc).startswith("Protocol"):
+                self.send_http_error("unsupported-protocol-version", str(exc))
+            else:
+                self.send_http_error("unsupported-version", str(exc))
+            return
+
+        if methodname == 'ExportIndication':
+
+            if len(params) != 1 or 'NewInstance' not in params:
+                self.send_error_response(msgid, methodname,
+                                         CIM_ERR_INVALID_PARAMETER,
+                                         'Expecting one parameter ' \
+                                         'NewInstance, got %s' % \
+                                         ','.join(params.keys()))
+                return
+
+            indication_inst = params['NewInstance']
+
+            if not isinstance(indication_inst, CIMInstance):
+                self.send_error_response(msgid, methodname,
+                                         CIM_ERR_INVALID_PARAMETER,
+                                         'NewInstance parameter is not a CIM ' \
+                                         'instance, but %r' % indication_inst)
+                return
+
+            self.server.listener._deliver_indication(indication_inst,
+                                                     self.client_address[0])
+
+            self.send_success_response(msgid, methodname)
+
+        else:
+            self.send_error_response(msgid, methodname,
+                                     CIM_ERR_NOT_SUPPORTED,
+                                     'Unknown export method: %s' % methodname)
+
+    def send_http_error(self, error, error_details):
+        """Send an HTTP response back to the WBEM server that indicates
+        a parsing error."""
+        http_code = 400
+        self.send_response(http_code, "Bad Request")
+        self.send_header("CIMExport", "MethodResponse")
+        self.send_header("CIMError", error)
+        self.send_header("CIMErrorDetails", error_details)
+        self.end_headers()
+        self.log_message('%s: HTTP status %s; CIMError: %s, ' \
+                         'CIMErrorDetails: %s',
+                         (self._get_log_prefix(), http_code, error,
+                          error_details),
+                         logging.WARNING)
+
+    def send_error_response(self, msgid, methodname, status_code, status_desc,
+                            error_insts=None):
+        """Send a CIM-XML response message back to the WBEM server that
+        indicates error."""
+
+        resp_xml = cim_xml.CIM(
+            cim_xml.MESSAGE(
+                cim_xml.SIMPLEEXPRSP(
+                    cim_xml.EXPMETHODRESPONSE(
+                        methodname,
+                        cim_xml.ERROR(
+                            str(status_code),
+                            status_desc,
+                            error_insts),
+                        ),
+                    ),
+                msgid, IMPLEMENTED_PROTOCOL_VERSION),
+            IMPLEMENTED_CIM_VERSION, IMPLEMENTED_DTD_VERSION)
+
+        resp_body = resp_xml.toxml()
+        if isinstance(resp_body, six.text_type):
+            resp_body = resp_body.encode("utf-8")
+
+        http_code = 200
+        self.send_response(http_code)
+        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Length", str(len(resp_body)))
+        self.send_header("CIMExport", "MethodResponse")
+        self.end_headers()
+        self.wfile.write(resp_body)
+        self.log_message('%s: HTTP status %s; CIM error response: %s: %s',
+                         (self._get_log_prefix(), http_code,
+                          _statuscode2name(status_code), status_desc),
+                         logging.WARNING)
+
+    def send_success_response(self, msgid, methodname):
+        """Send a CIM-XML response message back to the WBEM server that
+        indicates success."""
+
+        resp_xml = cim_xml.CIM(
+            cim_xml.MESSAGE(
+                cim_xml.SIMPLEEXPRSP(
+                    cim_xml.EXPMETHODRESPONSE(
+                        methodname),
+                    ),
+                msgid, IMPLEMENTED_PROTOCOL_VERSION),
+            IMPLEMENTED_CIM_VERSION, IMPLEMENTED_DTD_VERSION)
+
+        resp_body = resp_xml.toxml()
+        if isinstance(resp_body, six.text_type):
+            resp_body = resp_body.encode("utf-8")
+
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Length", str(len(resp_body)))
+        self.send_header("CIMExport", "MethodResponse")
+        self.end_headers()
+        self.wfile.write(resp_body)
+
+    def parse_export_request(self, request_str):
+        """Parse a CIM-XML export request message, and return
+        a tuple(msgid, methodname, params).
+        """
+
+        try:
+            request_dom = minidom.parseString(request_str)
+        except ParseError as exc:
+            msg = str(exc)
+            parsing_error = True
+        except ExpatError as exc:
+            # This is raised e.g. when XML numeric entity references of
+            # invalid XML characters are used (e.g. '&#0;').
+            # str(exc) is: "{message}, line {X}, offset {Y}"
+            xml_lines = _ensure_unicode(request_str).splitlines()
+            if len(xml_lines) >= exc.lineno:
+                parsed_line = xml_lines[exc.lineno - 1]
+            else:
+                parsed_line = "<error: Line number indicated in " \
+                              "ExpatError out of range: %s " \
+                              "(only %s lines in XML)>" % \
+                              (exc.lineno, len(xml_lines))
+            msg = "ExpatError %s: %s: %r" % \
+                  (str(exc.code), str(exc), parsed_line)
+            parsing_error = True
+        else:
+            parsing_error = False
+
+        if parsing_error:
+            # Here we just improve the quality of the exception information,
+            # so we do this only if it already has failed. Because the check
+            # function we invoke catches more errors than minidom.parseString,
+            # we call it also when debug is turned on.
+            try:
+                check_utf8_xml_chars(request_str, "CIM-XML export message")
+            except ParseError:
+                raise
+            raise ParseError(msg) # data from previous exception
+
+        # Parse response
+
+        tup_tree = parse_cim(dom_to_tupletree(request_dom))
+
+        if tup_tree[0] != 'CIM':
+            raise ParseError('Expecting CIM element, got %s' % \
+                             tup_tree[0])
+        dtd_version = tup_tree[1]['DTDVERSION']
+        if not re.match(SUPPORTED_DTD_VERSION_PATTERN, dtd_version):
+            raise VersionError('DTD version %s not supported. ' \
+                               'Supported versions are: %s' % \
+                               (dtd_version, SUPPORTED_DTD_VERSION_STR))
+        tup_tree = tup_tree[2]
+
+        if tup_tree[0] != 'MESSAGE':
+            raise ParseError('Expecting MESSAGE element, got %s' % \
+                             tup_tree[0])
+        msgid = tup_tree[1]['ID']
+        protocol_version = tup_tree[1]['PROTOCOLVERSION']
+        if not re.match(SUPPORTED_PROTOCOL_VERSION_PATTERN, protocol_version):
+            raise VersionError('Protocol version %s not supported. ' \
+                               'Supported versions are: %s' % \
+                               (protocol_version,
+                                SUPPORTED_PROTOCOL_VERSION_STR))
+        tup_tree = tup_tree[2]
+
+        if tup_tree[0] != 'SIMPLEEXPREQ':
+            raise ParseError('Expecting SIMPLEEXPREQ element, got %s' % \
+                             tup_tree[0])
+        tup_tree = tup_tree[2]
+
+        if tup_tree[0] != 'EXPMETHODCALL':
+            raise ParseError('Expecting EXPMETHODCALL element, ' \
+                             'got %s' % tup_tree[0])
+
+        methodname = tup_tree[1]['NAME']
+        params = {}
+        for name, obj in tup_tree[2]:
+            params[name] = obj
+
+        return (msgid, methodname, params)
+
+    def log_message(self, format, args, level=logging.INFO):
+        """
+        This function is called for anything that needs to get logged (e.g.
+        from :meth:`log_request`).
+
+        We override it in order to use the logger of the current listener.
+        """
+        self.server.listener.logger.log(level, format, *args)
+
+    def log_request(self, code='-', size='-'):
+        """
+        This function is called during :meth:`send_response`.
+
+        We override it to get a little more information logged in a somewhat
+        better format.
+        """
+        self.log_message('%s: HTTP status %s',
+                         (self._get_log_prefix(), code),
+                          logging.INFO)
+
+    def _get_log_prefix(self):
+        return '%s %s from %s' % \
+               (self.request_version, self.command, self.client_address[0])
 
 
 class WBEMListener(object):
     """
-    A WBEM listener, supporting the CIM-XML protocol for CIM indications.
+    A WBEM listener.
 
-    It supports starting and stopping a WBEM listener thread.
-    The WBEM listener thread is an HTTP/HTTPS server that listens for
-    CIM indications from one or more WBEM servers.
+    The listener supports starting and stopping threads that listen for
+    DeliverIndication CIM-XML export messages using HTTP and/or HTTPS,
+    and that pass any received indications on to registered callback
+    functions.
 
-    It also supports the management of subscriptions for CIM indications
-    from one or more WBEM servers, including the creation and deletion of
-    the necessary listener, filter and subscription instances in the WBEM
-    servers.
+    The listener also supports the management of subscriptions for CIM
+    indications from one or more WBEM servers, including the creation and
+    deletion of the necessary listener, filter and subscription instances in
+    the WBEM servers.
     """
 
     def __init__(self, host, http_port=DEFAULT_LISTENER_PORT_HTTP,
-                 https_port=DEFAULT_LISTENER_PORT_HTTPS):
+                 https_port=DEFAULT_LISTENER_PORT_HTTPS,
+                 certfile=None, keyfile=None):
         """
         Parameters:
 
@@ -123,6 +382,27 @@ class WBEMListener(object):
             HTTPS port this listener can be reached at.
 
             `None` means not to set up a port for HTTPS.
+
+          certfile (:term:`string`):
+            File path of certificate file to be used as server certificate
+            during SSL/TLS handshake when creating the secure HTTPS connection.
+
+            It is valid for the certificate file to contain a private key; the
+            server certificate sent during SSL/TLS handshake is sent without
+            the private key.
+
+            `None` means not to use a server certificate file. Setting up a port
+            for HTTPS requires specifying a certificate file.
+
+          keyfile (:term:`string`):
+            File path of private key file to be used by the server during
+            SSL/TLS handshake when creating the secure HTTPS connection.
+
+            It is valid to specify a certificate file that contains a private
+            key.
+
+            `None` means not to use a private key file. Setting up a port
+            for HTTPS requires specifying a private key file.
         """
 
         self._host = host
@@ -147,12 +427,45 @@ class WBEMListener(object):
             raise TypeError("Invalid type for https_port: %s" % \
                             type(https_port))
 
+        if self._https_port is not None:
+            if certfile is None:
+                raise ValueError("https_port requires certfile")
+            self._certfile = certfile
+            if keyfile is None:
+                raise ValueError("https_port requires keyfile")
+            self._keyfile = keyfile
+        else:
+            self._certfile = None
+            self._keyfile = None
+
+        self._http_server = None
+        self._http_thread = None
+        self._https_server = None
+        self._https_thread = None
+
+        self._logger = logging.getLogger('pywbem.listener.%s' % id(self))
+
         # The following dictionaries have the WBEM server URL as a key.
         self._servers = {}
         self._subscriptions = {}
         self._dynamic_filters = {}
         self._destinations = {}
         self._callbacks = []
+
+    def __repr__(self):
+        """
+        Return a representation of the :class:`~pywbem.WBEMListener` object
+        with all properties and instance variables that is suitable for
+        debugging.
+        """
+        return "%s(host=%r, http_port=%s, https_port=%s, " \
+               "certfile=%r, keyfile=%r, logger=%r, _servers=%r, " \
+               "_subscriptions=%r, _dynamic_filters=%r, _destinations=%r, " \
+               "_callbacks=%r)" % \
+               (self.__class__.__name__, self.host, self.http_port,
+                self.https_port, self.certfile, self.keyfile, self.logger,
+                self._servers, self._subscriptions, self._dynamic_filters,
+                self._destinations, self._callbacks)
 
     @property
     def host(self):
@@ -178,28 +491,115 @@ class WBEMListener(object):
         """
         return self._https_port
 
+    @property
+    def certfile(self):
+        """
+        The file path of the certificate file used as server certificate
+        during SSL/TLS handshake when creating the secure HTTPS connection.
+
+        `None` means there is no certificate file being used (that is, no port
+        is set up for HTTPS).
+        """
+        return self._certfile
+
+    @property
+    def keyfile(self):
+        """
+        The file path of the private key file used by the server during
+        SSL/TLS handshake when creating the secure HTTPS connection.
+
+        `None` means there is no certificate file being used (that is, no port
+        is set up for HTTPS).
+        """
+        return self._keyfile
+
+    @property
+    def logger(self):
+        """
+        The logger object for this listener.
+
+        Each listener object has its own separate logger object that is
+        created via :func:`py:logging.getLogger` and is not further configured.
+        As a result, this logger by default propagates its logging actions
+        up to the Python root logger.
+
+        The behavior of this logger can be changed by invoking its methods (see
+        :class:`py:logging.Logger`), or by global configuration via
+        :func:`py:logging.basicConfig`.
+        """
+        return self._logger
+
     def start(self):
         """
-        Start the WBEM listener thread.
+        Start the WBEM listener threads, if they are not yet running.
 
-        Once the WBEM listener thread is up and running, return.
+        A thread serving CIM-XML over HTTP is started if an HTTP port was
+        specified for the listener.
+        A thread serving CIM-XML over HTTPS is started if an HTTPS
+        port was specified for the listener.
+
+        These server threads will handle the ExportIndication export message
+        described in :term:`DSP0200` and they will invoke the registered
+        callback functions for any received CIM indications.
+
+        These server threads can be stopped using the :meth:`stop` method.
+        They will be automatically stopped when the main thread terminates.
         """
-        if _USE_TWISTED:
-            # TODO: Start logging
-            #log.startLogging(sys.stdout)
-            site = Site(_WBEMListenerResource(self))
-            if self.http_port:
-                reactor.listenTCP(self.http_port, site)
-            if self.https_port:
-                reactor.listenSSL(self.https_port, site,
-                                  _HTTPSServerContextFactory())
-            reactor.run()
+
+        if self._http_port:
+            if not self._http_server:
+                server = ThreadedHTTPServer((self._host, self._http_port),
+                                            ListenerRequestHandler)
+                server.listener = self
+                thread = threading.Thread(target=server.serve_forever)
+                thread.daemon = True  # Exit server thread upon main thread exit
+                self._http_server = server
+                self._http_thread = thread
+                thread.start()
+        else:
+            # Just in case someone changed self._http_port after init...
+            self._http_server = None
+            self._http_thread = None
+
+        if self._https_port:
+            if not self._https_server:
+                server = ThreadedHTTPServer((self._host, self._https_port),
+                                            ListenerRequestHandler)
+                server.listener = self
+                server.socket = ssl.wrap_socket(server.socket,
+                                                certfile=self._certfile,
+                                                keyfile=self._keyfile,
+                                                server_side=True)
+                thread = threading.Thread(target=server.serve_forever)
+                thread.daemon = True  # Exit server thread upon main thread exit
+                self._https_server = server
+                self._https_thread = thread
+                thread.start()
+        else:
+            # Just in case someone changed self._https_port after init...
+            self._https_server = None
+            self._https_thread = None
 
     def stop(self):
         """
-        Stop the WBEM listener thread.
+        Stop the WBEM listener threads, if they are running.
         """
-        raise NotImplementedError  # TODO: Implement
+
+        # Stopping the server will cause its `serve_forever()` method
+        # to return, which will cause the server thread to terminate.
+        # TODO: Describe how the processing threads terminate.
+
+        if self._http_server:
+            self._http_server.shutdown()
+            self._http_server.server_close()
+            self._http_server = None
+            self._http_thread = None
+
+        if self._https_server:
+            self._https_server.shutdown()
+            self._https_server.server_close()
+            self._https_server = None
+            self._https_thread = None
 
     def add_server(self, server):
         """
@@ -221,14 +621,12 @@ class WBEMListener(object):
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
 
+        if not isinstance(server, WBEMServer):
+            raise TypeError("server argument of add_server() must be a " \
+                            "WBEMServer object")
         if server.url in self._servers:
             raise ValueError("WBEM server already known by listener: %s" % \
                              server.url)
-        self._servers[server.url] = server
-        self._subscriptions[server.url] = []
-        self._dynamic_filters[server.url] = []
-        self._destinations[server.url] = []
-        self._callbacks[server.url] = []
 
         # We let the WBEM server use HTTP or HTTPS dependent on whether we
         # contact it using HTTP or HTTPS.
@@ -244,6 +642,11 @@ class WBEMListener(object):
 
         dest_url = '%s://%s:%s' % (scheme, self.host, port)
         dest_inst_path = _create_destination(server, dest_url)
+
+        self._servers[server.url] = server
+        self._subscriptions[server.url] = []
+        self._dynamic_filters[server.url] = []
+        self._destinations[server.url] = []
         self._destinations[server.url].append(dest_inst_path)
 
         return server.url
@@ -306,7 +709,7 @@ class WBEMListener(object):
         Indication filters that pre-exist in the WBEM server are termed
         *static indication filters* and cannot be created or deleted by
         clients. See :term:`DSP1054` for details about indication filters.
-        
+
         Parameters:
 
           server_url (:term:`string`):
@@ -516,28 +919,31 @@ class WBEMListener(object):
         sub_paths = self._subscriptions[server_url]
         return sub_paths
 
-    def _deliver_indication(self, indication):
+    def _deliver_indication(self, indication, host):
         """
-        Deliver an indication to a subscriber.
+        This function is called by the listener threads for each received
+        indication.
 
-        This function is called by the listener thread once it receives
-        an indication. It delivers the indication to the application by
-        calling the callback functions known to this listener.
+        It delivers the indication to all callback functions that have been
+        added to the listener.
 
         Parameters:
 
           indication (pywbem.CIMIndication):
             Representation of the CIM indication to be delivered.
+
+          host (:term:`string`):
+            Host name or IP address of WBEM server sending the indication.
         """
         for callback in self._callbacks:
-            callback(indication)
+            callback(indication, host)
 
     def add_callback(self, callback):
         """
         Add a callback function to the listener.
 
         The callback function will be called for each indication this listener
-        receives from the WBEM server.
+        receives from any WBEM server.
 
         If the callback function is already known to the listener, it will not
         be added.
@@ -546,10 +952,11 @@ class WBEMListener(object):
 
           callback (:func:`~pywbem.callback_interface`):
             Callable that is being called for each CIM indication that is
-            received while the listener thread is active.
+            received while the listener threads are running.
         """
         if callback not in self._callbacks:
             self._callbacks.append(callback)
+
 
 def _create_destination(server, dest_url):
     """
@@ -685,7 +1092,7 @@ def _create_subscription(server, dest_path, filter_path):
     return sub_path
 
 
-def callback_interface(indication):
+def callback_interface(indication, host):
     # pylint: disable=unused-argument
     """
     Interface of a function that is provided by the user of the API and
@@ -697,39 +1104,11 @@ def callback_interface(indication):
         Representation of the CIM indication that has been received.
         Its `path` component is not set.
 
+      host (:term:`string`):
+        Host name or IP address of WBEM server sending the indication.
+
     Raises:
       TBD
     """
     raise NotImplementedError
-
-
-if _USE_TWISTED:
-    class _WBEMListenerResource(Resource):
-
-        def __init__(self, listener):
-            """
-            Store the specified WBEMListener object for later use.
-            """
-            super(_WBEMListenerResource, self)
-            self._listener = listener
-
-        def render_POST(self, request):
-            """
-            Will be called for each POST to the WBEM listener. It handles
-            the CIM-XML export message and delivers the contained CIM
-            indication to the stored listener object.
-            """
-            # TODO: Convert CIM-XML payload into a CIMInstance
-            indication = CIMInstance('CIM_Indication') # dummy, for now
-            self._listener._deliver_indication(indication)
-
-
-class _HTTPSServerContextFactory:
-
-    def getContext(self):
-        """Create an SSL context with a dodgy certificate."""
-        ctx = SSL.Context(SSL.SSLv23_METHOD)
-        ctx.use_certificate_file('server.pem')
-        ctx.use_privatekey_file('server.pem')
-        return ctx
 

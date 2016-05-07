@@ -1292,7 +1292,9 @@ def parse_message(tup_tree):
     """
       ::
 
-        <!ELEMENT MESSAGE (SIMPLEREQ | MULTIREQ | SIMPLERSP | MULTIRSP)>
+        <!ELEMENT MESSAGE (SIMPLEREQ | MULTIREQ | SIMPLERSP | MULTIRSP |
+                           SIMPLEEXPREQ | MULTIEXPREQ | SIMPLEEXPRSP |
+                           MULTIEXPRSP)
         <!ATTLIST MESSAGE
             ID CDATA #REQUIRED
             PROTOCOLVERSION CDATA #REQUIRED>
@@ -1300,15 +1302,12 @@ def parse_message(tup_tree):
 
     check_node(tup_tree, 'MESSAGE', ['ID', 'PROTOCOLVERSION'])
 
-    messages = one_child(
-        tup_tree, ['SIMPLEREQ', 'MULTIREQ', 'SIMPLERSP', 'MULTIRSP',
-                   'SIMPLEEXPREQ'])
+    child = one_child(tup_tree,
+                      ['SIMPLEREQ', 'MULTIREQ', 'SIMPLERSP', 'MULTIRSP',
+                       'SIMPLEEXPREQ', 'MULTIEXPREQ', 'SIMPLEEXPRSP',
+                       'MULTIEXPRSP'])
 
-    if not isinstance(messages, list):
-        # make single and multi forms consistent
-        messages = [messages]
-
-    return name(tup_tree), attrs(tup_tree), messages
+    return name(tup_tree), attrs(tup_tree), child
 
 
 def parse_multireq(tup_tree):   #pylint: disable=unused-argument

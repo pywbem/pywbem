@@ -90,6 +90,7 @@ from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
                            CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND
 from .exceptions import CIMError
 from .cim_types import CIMInt, type_from_name
+from .cim_operations import WBEMConnection
 
 __all__ = ['WBEMServer', 'ValueMapping']
 
@@ -134,6 +135,9 @@ class WBEMServer(object):
           conn (:class:`~pywbem.WBEMConnection`):
             Connection to the WBEM server.
         """
+        if not isinstance(conn, WBEMConnection):
+            raise TypeError("conn argument of WBEMServer must be a " \
+                            "WBEMConnection object")
         self._conn = conn
         self._interop_ns = None
         self._namespaces = None
@@ -141,6 +145,19 @@ class WBEMServer(object):
         self._brand = None
         self._version = None
         self._profiles = None
+
+    def __repr__(self):
+        """
+        Return a representation of the :class:`~pywbem.WBEMServer` object
+        with all properties and instance variables that is suitable for
+        debugging.
+        """
+        return "%s(url=%r, conn=%r, interop_ns=%s, namespaces=%s, " \
+               "namespace_classname=%r, brand=%r, version=%r, " \
+               "profiles=%r)" % \
+               (self.__class__.__name__, self.url, self.conn, self.interop_ns,
+                self.namespaces, self.namespace_classname, self.brand,
+                self.version, self.profiles)
 
     @property
     def url(self):
@@ -166,6 +183,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be determined.
         """
         if self._interop_ns is None:
             self._determine_interop_ns()
@@ -180,6 +198,8 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be determined.
+            CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be determined.
         """
         if self._namespace_classname is None:
             self._determine_namespaces()
@@ -194,6 +214,8 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be determined.
+            CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be determined.
         """
         if self._namespaces is None:
             self._determine_namespaces()
@@ -215,6 +237,8 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be determined.
+            CIMError: CIM_ERR_NOT_FOUND, Unexpected number of CIM_ObjectManager instances.
         """
         if self._brand is None:
             self._determine_brand()
@@ -229,6 +253,8 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be determined.
+            CIMError: CIM_ERR_NOT_FOUND, Unexpected number of CIM_ObjectManager instances.
         """
         if self._version is None:
             self._determine_brand()
@@ -244,6 +270,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be determined.
         """
         if self._profiles is None:
             self._determine_profiles()
@@ -328,7 +355,8 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ValueError
+            ValueError: Various errors in scoping path traversal.
+            TypeError: profile_path must be a CIMInstanceName.
         """
         if not isinstance(profile_path, CIMInstanceName):
             raise TypeError("profile_path must be a CIMInstanceName, but is " \
@@ -417,7 +445,7 @@ class WBEMServer(object):
     def _determine_interop_ns(self):
         """
         Determine the name of the Interop namespace of the WBEM server, by
-        communicating with it and trying a number of possible Interop
+        trying to communicate with it on a number of possible Interop
         namespace names, that are defined in the :attr:`INTEROP_NAMESPACES`
         class variable.
 
@@ -429,6 +457,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be determined.
         """
         test_classname = 'CIM_Namespace'
         interop_ns = None
@@ -508,6 +537,8 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be determined.
+            CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be determined.
         """
         ns_insts = None
         ns_classname = None
@@ -548,6 +579,8 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be determined.
+            CIMError: CIM_ERR_NOT_FOUND, Unexpected number of CIM_ObjectManager instances.
         """
         cimom_insts = self._conn.EnumerateInstances(
             "CIM_ObjectManager", namespace=self.interop_ns)
@@ -595,6 +628,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be determined.
         """
         mp_insts = self._conn.EnumerateInstances("CIM_RegisteredProfile",
                                                  namespace=self.interop_ns)

@@ -5,6 +5,8 @@
 /.tox/
 *.pyc
 *.log
+*.tmp
+tmp.*
 pywbem.egg-info
 MANIFEST
 parser.out

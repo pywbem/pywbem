@@ -10,7 +10,7 @@ import unittest
 from mock import Mock
 
 from pywbem import CIMClass, CIMProperty, CIMQualifier, Uint8, WBEMServer, \
-                   ValueMapping
+                   WBEMConnection, ValueMapping
 
 CLASSNAME = 'C1'
 NAMESPACE = 'ns'
@@ -20,7 +20,7 @@ PROPNAME = 'p1'
 class TestAll(unittest.TestCase):
 
     def setUp(self):
-        self.conn = Mock()
+        self.conn = WBEMConnection('dummy')
         self.server = WBEMServer(self.conn)
 
     def setup_for_property(self, valuemap, values):
