@@ -160,6 +160,9 @@ Bug fixes
   on `CIMDateTime` interval objects contained incorrect values for the minutes
   and seconds fields on Python 3 (issue #275).
 
+* Added check for minimum Python version 3.4 when running on Python 3.
+  That requirement was already documented, now it is also enforced in the code.
+
 
 pywbem v0.8.2
 -------------
