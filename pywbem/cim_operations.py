@@ -593,7 +593,8 @@ class WBEMConnection(object):
                 verify_callback=self.verify_callback,
                 ca_certs=self.ca_certs,
                 no_verification=self.no_verification,
-                timeout=self.timeout)
+                timeout=self.timeout,
+                debug=self.debug)
         except (AuthError, ConnectionError, TimeoutError, Error):
             raise
         # TODO 3/16 AM: Clean up exception handling. The next two lines are a
@@ -820,7 +821,8 @@ class WBEMConnection(object):
                 verify_callback=self.verify_callback,
                 ca_certs=self.ca_certs,
                 no_verification=self.no_verification,
-                timeout=self.timeout)
+                timeout=self.timeout,
+                debug=self.debug)
         except (AuthError, ConnectionError, TimeoutError, Error):
             raise
         # TODO 3/16 AM: Clean up exception handling. The next two lines are a
