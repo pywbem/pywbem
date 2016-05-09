@@ -125,6 +125,22 @@ Enhancements
   the server argument to use http:// or https:// prefix and suffix with
   :<port number> and drops the old arguments of --port and --no-ssl
 
+* Fixed description in INSTALL.md to correctly describe how to establish
+  OS-level prerequisites.
+
+* Improved Swig installation code by reinstalling Swig if it was installed
+  but still cannot be found in PATH (e.g. if the installation was tampered
+  with).
+
+* Removed dependency on git (this was a leftover from when M2Crypto needed
+  to be obtained from its development repo).
+
+* Added debug prints for two probably legitimate situations where socket
+  errors are ignored when the server closes or resets the connection.
+  These debug prints can be enabled via the `debug` instance variable
+  of the WBEMConnection object; they are targeted at development for
+  investigating these situations.
+
 Bug fixes
 ^^^^^^^^^
 
@@ -162,6 +178,9 @@ Bug fixes
 
 * Added check for minimum Python version 3.4 when running on Python 3.
   That requirement was already documented, now it is also enforced in the code.
+
+* Fixed an IndexError in cim_http.wbem_request() that occurred during handling
+  of another exception.
 
 
 pywbem v0.8.2
