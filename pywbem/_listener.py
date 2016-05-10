@@ -66,7 +66,9 @@ import re
 import time
 from socket import getfqdn
 import six
-from six.moves import BaseHTTPServer, socketserver
+from six.moves import BaseHTTPServer
+from six.moves import socketserver
+from six.moves import http_client
 import threading
 import logging
 import ssl
@@ -75,6 +77,7 @@ from xml.parsers.expat import ExpatError
 
 from . import cim_xml
 from ._server import WBEMServer
+from ._version import __version__
 from .cim_obj import CIMInstance, CIMInstanceName, _ensure_unicode
 from .cim_operations import check_utf8_xml_chars
 from .cim_constants import CIM_ERR_FAILED, CIM_ERR_NOT_SUPPORTED, \
@@ -100,6 +103,19 @@ SUPPORTED_DTD_VERSION_STR = '2.x'
 SUPPORTED_PROTOCOL_VERSION_PATTERN = r'1\.\d+'
 SUPPORTED_PROTOCOL_VERSION_STR = '1.x'
 
+# Pattern for findall() for header values that are a list of tokens with
+# quality values (see RFC2616). The pattern does not verify conformance
+# to the valid characters for tokens, but does its job in parsing tokens
+# and q values.
+TOKEN_QUALITY_FINDALL_PATTERN = re.compile(
+    r'([^;, ]+)' \
+    r'(?:; *q=([01](?:\.[0-9]*)?))?' \
+    r'(?:, *)?')
+TOKEN_CHARSET_FINDALL_PATTERN = re.compile(
+    r'([^;, ]+)' \
+    r'(?:; *charset="?([^";, ]*)"?)?' \
+    r'(?:, *)?')
+
 __all__ = ['WBEMListener', 'callback_interface']
 
 
@@ -114,6 +130,40 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     method for the HTTP POST method, that acts as a WBEM listener.
     """
 
+    def invalid_method(self):
+        """
+        Handle invalid HTTP methods by sending HTTP status 405 "Method Not
+        Allowed" back to the server. See DSP0200 for details on this.
+        """
+        self.send_http_error(405, headers=[('Allow', 'POST')])
+
+    def do_OPTIONS(self):
+        self.invalid_method()
+
+    def do_HEAD(self):
+        self.invalid_method()
+
+    def do_GET(self):
+        self.invalid_method()
+
+    def do_PUT(self):
+        self.invalid_method()
+
+    def do_PATCH(self):
+        self.invalid_method()
+
+    def do_DELETE(self):
+        self.invalid_method()
+
+    def do_TRACE(self):
+        self.invalid_method()
+
+    def do_CONNECT(self):
+        self.invalid_method()
+
+    def do_M_POST(self):
+        self.invalid_method()
+
     def do_POST(self):
         """
         This method will be called for each POST request to one of the
@@ -123,21 +173,124 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         CIM indication to the stored listener object.
         """
 
+        # Accept header check described in DSP0200
+        accept = self.headers.get('Accept', 'text/xml')
+        if accept not in ('text/xml', 'application/xml', '*/*'):
+            self.send_http_error(406, 'header-mismatch',
+                                 'Invalid Accept header value: %s ' \
+                                 '(need text/xml, application/xml or */*)' % \
+                                 accept)
+            return
+
+        # Accept-Charset header check described in DSP0200
+        accept_charset = self.headers.get('Accept-Charset', 'UTF-8')
+        tq_list = re.findall(TOKEN_QUALITY_FINDALL_PATTERN, accept_charset)
+        found = False 
+        if tq_list is not None:
+            for token, quality in tq_list:
+                if token.lower() in ('utf-8', '*'):
+                    found = True
+                    break
+        if not found:
+            self.send_http_error(406, 'header-mismatch',
+                                 'Invalid Accept-Charset header value: %s ' \
+                                 '(need UTF-8 or *)' % \
+                                 accept_charset)
+            return
+
+        # Accept-Encoding header check described in DSP0200
+        accept_encoding = self.headers.get('Accept-Encoding', 'Identity')
+        tq_list = re.findall(TOKEN_QUALITY_FINDALL_PATTERN, accept_encoding)
+        identity_acceptable = False 
+        identity_found = False
+        if tq_list is not None:
+            for token, quality in tq_list:
+                quality = 1 if quality == '' else float(quality)
+                if token.lower() == 'identity':
+                    identity_found = True
+                    if quality > 0:
+                        identity_acceptable = True
+                    break
+            if not identity_found:
+                for token, quality in tq_list:
+                    quality = 1 if quality == '' else float(quality)
+                    if token == '*' and quality > 0:
+                        identity_acceptable = True
+                        break
+        if not identity_acceptable:
+            self.send_http_error(406, 'header-mismatch',
+                                 'Invalid Accept-Encoding header value: %s ' \
+                                 '(need Identity to be acceptable)' % \
+                                 accept_encoding)
+            return
+
+        # Accept-Language header check described in DSP0200.
+        # Ignored, because this WBEM listener does not support multiple
+        # languages, and hence any language is allowed to be returned.
+
+        # Accept-Range header check described in DSP0200
+        accept_range = self.headers.get('Accept-Range', None)
+        if accept_range is not None:
+            self.send_http_error(406, 'header-mismatch',
+                                 'Accept-Range header is not permitted %s' % \
+                                 accept_range)
+            return
+
+        # Content-Type header check described in DSP0200
+        content_type = self.headers.get('Content-Type', None)
+        if content_type is None:
+            self.send_http_error(406, 'header-mismatch',
+                                 'Content-Type header is required')
+            return
+        tc_list = re.findall(TOKEN_CHARSET_FINDALL_PATTERN, content_type)
+        found = False 
+        if tc_list is not None:
+            for token, charset in tc_list:
+                if token.lower() in ('text/xml', 'application/xml') and \
+                   (charset == '' or charset.lower() == 'utf-8'):
+                    found = True
+                    break
+        if not found:
+            self.send_http_error(406, 'header-mismatch',
+                                 'Invalid Content-Type header value: %s ' \
+                                 '(need text/xml or application/xml with ' \
+                                 'charset=utf-8 or empty)' % \
+                                 content_type)
+            return
+
+        # Content-Encoding header check described in DSP0200
+        content_encoding = self.headers.get('Content-Encoding', 'identity')
+        if content_encoding.lower() != 'identity':
+            self.send_http_error(406, 'header-mismatch',
+                                 'Invalid Content-Encoding header value: ' \
+                                 '%s (listener supports only identity)' % \
+                                 content_encoding)
+            return
+
+        # Content-Language header check described in DSP0200.
+        # Ignored, because this WBEM listener does not support multiple
+        # languages, and hence any language is allowed in the request.
+
+        # The following headers are ignored. They are not allowed to be used
+        # by servers, but listeners are not required to reject them:
+        # Content-Range, Expires, If-Range, Range.
+
+        # Start processing the request
         content_len = int(self.headers.get('Content-Length', 0))
         body = self.rfile.read(content_len)
 
         try:
             msgid, methodname, params = self.parse_export_request(body)
         except ParseError as exc:
-            self.send_http_error("request-not-well-formed", str(exc))
+            self.send_http_error(400, "request-not-well-formed", str(exc))
             return
         except VersionError as exc:
             if str(exc).startswith("DTD"):
-                self.send_http_error("unsupported-dtd-version", str(exc))
+                self.send_http_error(400, "unsupported-dtd-version", str(exc))
             elif str(exc).startswith("Protocol"):
-                self.send_http_error("unsupported-protocol-version", str(exc))
+                self.send_http_error(400, "unsupported-protocol-version", str(exc))
             else:
-                self.send_http_error("unsupported-version", str(exc))
+                self.send_http_error(400, "unsupported-version", str(exc))
             return
 
         if methodname == 'ExportIndication':
@@ -169,20 +322,27 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                                      CIM_ERR_NOT_SUPPORTED,
                                      'Unknown export method: %s' % methodname)
 
-    def send_http_error(self, error, error_details):
-        """Send an HTTP response back to the WBEM server that indicates
-        a parsing error."""
-        http_code = 400
-        self.send_response(http_code, "Bad Request")
+    def send_http_error(self, http_code, cim_error=None,
+                        cim_error_details=None, headers=None):
+        """
+        Send an HTTP response back to the WBEM server that indicates
+        an error at the HTTP level.
+        """
+        self.send_response(http_code, http_client.responses.get(http_code, ''))
         self.send_header("CIMExport", "MethodResponse")
-        self.send_header("CIMError", error)
-        self.send_header("CIMErrorDetails", error_details)
+        if cim_error is not None:
+            self.send_header("CIMError", cim_error)
+        if cim_error_details is not None:
+            self.send_header("CIMErrorDetails", cim_error_details)
+        if headers is not None:
+            for header, value in headers:
+                self.send_header(header, value)
         self.end_headers()
-        self.log_message('%s: HTTP status %s; CIMError: %s, ' \
-                         'CIMErrorDetails: %s',
-                         (self._get_log_prefix(), http_code, error,
-                          error_details),
-                         logging.WARNING)
+        self.log('%s: HTTP status %s; CIMError: %s, ' \
+                 'CIMErrorDetails: %s',
+                 (self._get_log_prefix(), http_code, cim_error,
+                  cim_error_details),
+                 logging.WARNING)
 
     def send_error_response(self, msgid, methodname, status_code, status_desc,
                             error_insts=None):
@@ -208,16 +368,16 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             resp_body = resp_body.encode("utf-8")
 
         http_code = 200
-        self.send_response(http_code)
+        self.send_response(http_code, http_client.responses.get(http_code, ''))
         self.send_header("Content-Type", "text/html")
         self.send_header("Content-Length", str(len(resp_body)))
         self.send_header("CIMExport", "MethodResponse")
         self.end_headers()
         self.wfile.write(resp_body)
-        self.log_message('%s: HTTP status %s; CIM error response: %s: %s',
-                         (self._get_log_prefix(), http_code,
-                          _statuscode2name(status_code), status_desc),
-                         logging.WARNING)
+        self.log('%s: HTTP status %s; CIM error response: %s: %s',
+                 (self._get_log_prefix(), http_code,
+                  _statuscode2name(status_code), status_desc),
+                  logging.WARNING)
 
     def send_success_response(self, msgid, methodname):
         """Send a CIM-XML response message back to the WBEM server that
@@ -236,7 +396,8 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if isinstance(resp_body, six.text_type):
             resp_body = resp_body.encode("utf-8")
 
-        self.send_response(200)
+        http_code = 200
+        self.send_response(http_code, http_client.responses.get(http_code, ''))
         self.send_header("Content-Type", "text/html")
         self.send_header("Content-Length", str(len(resp_body)))
         self.send_header("CIMExport", "MethodResponse")
@@ -324,14 +485,28 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         return (msgid, methodname, params)
 
-    def log_message(self, format, args, level=logging.INFO):
+    def log(self, format, args, level=logging.INFO):
         """
-        This function is called for anything that needs to get logged (e.g.
-        from :meth:`log_request`).
+        This function is called for anything that needs to get logged.
+        It logs to the logger of this listener.
 
-        We override it in order to use the logger of the current listener.
+        It is not defined in the standard handler class; our version
+        has an additional `level` argument that allows to control the
+        logging level in the standard Python logging support.
+
+        Another difference is that the variable arguments are passed
+        in as a tuple.
         """
         self.server.listener.logger.log(level, format, *args)
+
+    def log_message(self, format, *args):
+        """
+        In the standard handler class, this function is called for anything
+        that needs to get logged (e.g. from :meth:`log_request`).
+
+        We override it in order to use our own log function.
+        """
+        self.log(format, args, logging.INFO)
 
     def log_request(self, code='-', size='-'):
         """
@@ -340,13 +515,21 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         We override it to get a little more information logged in a somewhat
         better format.
         """
-        self.log_message('%s: HTTP status %s',
-                         (self._get_log_prefix(), code),
-                          logging.INFO)
+        self.log('%s: HTTP status %s',
+                 (self._get_log_prefix(), code),
+                 logging.INFO)
 
     def _get_log_prefix(self):
         return '%s %s from %s' % \
                (self.request_version, self.command, self.client_address[0])
+
+    def version_string(self):
+        """
+        Overrides the inherited method to add the pywbem listener version.
+        """
+        return 'PyWBEM-Listener/%s %s %s ' % \
+            (__version__, self.server_version, self.sys_version)
+
 
 
 class WBEMListener(object):
