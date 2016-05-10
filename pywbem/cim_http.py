@@ -81,6 +81,25 @@ class TimeoutError(Error):
     """This exception is raised when the client times out."""
     pass
 
+
+DEFAULT_PORT_HTTP = 5988        # default port for http
+DEFAULT_PORT_HTTPS = 5989       # default port for https
+
+#TODO 5/16 ks This is a linux based set of defaults.
+DEFAULT_CA_CERT_PATHS = \
+     ['/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt', \
+      '/etc/ssl/certs', '/etc/ssl/certificates']
+
+def get_default_ca_cert_paths():
+    """Return the list of default certificate paths defined for this
+       system environment. This is the list of directories that
+       should be searched to find a directory that contains
+       certificates possibly suitable for the ssl ca_certs parameter
+       in SSL connections.
+    """
+    return DEFAULT_CA_CERT_PATHS
+
+
 class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
     """HTTP timeout class that is a context manager (for use by 'with'
     statement).
@@ -190,8 +209,6 @@ def parse_url(url):
     `testsuite/test_cim_http.py`.
     """
 
-    default_port_http = 5988        # default port for http
-    default_port_https = 5989       # default port for https
     default_ssl = False             # default SSL use (for no or unknown scheme)
 
     # Look for scheme.
@@ -222,7 +239,7 @@ def parse_url(url):
         port = int(matches.group(1))
     else:
         host = hostport
-        port = default_port_https if ssl else default_port_http
+        port = DEFAULT_PORT_HTTPS if ssl else DEFAULT_PORT_HTTP
 
     # Reformat IPv6 addresses from RFC6874 URI syntax to RFC4007 text
     # representation syntax:
