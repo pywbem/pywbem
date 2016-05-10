@@ -1,5 +1,5 @@
 
-pywbem-0.8.4.dev0  2016-05-09
+pywbem-0.8.4.dev0  2016-05-10
 
   BUG FIXES:
 
@@ -10,6 +10,9 @@ pywbem-0.8.4.dev0  2016-05-09
       file would fail with "TypeError: 'FileNotFoundError' object is not
       subscriptable" (issue #302).
 
+    * Fixed issue with python 3 and https that was causing connect() to fail. 
+      This completely separates connect() code for python 3 ssl module from
+      python 2 m2cyrpto.
 
   ENHANCEMENTS:
 
@@ -68,7 +71,7 @@ pywbem-0.8.2  2016-03-20
         - M2Crypto
         - ply
         - six
-      
+ 
 
 pywbem-0.8.1  2016-03-18
 
