@@ -24,6 +24,10 @@ pywbem-0.8.4.dev0  2016-05-09
       of the WBEMConnection object; they are targeted at development for
       investigating these situations.
 
+    * Added check for minimum Python version 3.4 when running on Python 3.
+      That requirement was already documented, now it is also enforced in
+      the code.
+
 
 pywbem-0.8.3  2016-04-15
 

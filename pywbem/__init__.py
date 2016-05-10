@@ -204,5 +204,10 @@ from .cim_http import *
 #   M.N.U      : The final M.N.U release
 __version__ = '0.8.4.dev0'
 
-if sys.version_info < (2, 6, 0):
-    raise RuntimeError('PyWBEM requires Python 2.6.0 or higher')
+_python_m = sys.version_info[0]
+_python_n = sys.version_info[1]
+if _python_m == 2 and _python_n < 6:
+    raise RuntimeError('On Python 2, PyWBEM requires Python 2.6 or higher')
+elif _python_m == 3 and _python_n < 4:
+    raise RuntimeError('On Python 3, PyWBEM requires Python 3.4 or higher')
+
