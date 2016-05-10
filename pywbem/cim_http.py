@@ -502,6 +502,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                         ctx.load_verify_locations(cafile=self.ca_certs)
                     ctx.check_hostname = True
                 else:
+                    ctx.check_hostname = False
                     ctx.verify_mode = SSL.CERT_NONE
 
                 # setup the socket
@@ -509,7 +510,8 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                 sock.settimeout(self.timeout)
 
                 try:
-                    self.sock = ctx.wrap_socket(sock)
+                    self.sock = ctx.wrap_socket(sock,
+                                                server_hostname=self.host)
                     return self.sock.connect((self.host, self.port))
 
                 except SSLError as arg:
@@ -517,7 +519,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                         "SSL error %s: %s" % (arg.__class__, arg))
                 except CertificateError as arg:
                     raise ConnectionError(
-                        "SSL Certificateerror %s: %s" % (arg.__class__, arg))
+                        "SSL certificate error %s: %s" % (arg.__class__, arg))
 
     class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
         """Execute client connection based on a unix domain socket. """
