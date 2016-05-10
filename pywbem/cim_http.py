@@ -36,6 +36,7 @@ from __future__ import print_function, absolute_import
 import re
 import os
 import sys
+import errno
 import socket
 import getpass
 from stat import S_ISSOCK
@@ -295,7 +296,6 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
 
       debug (:class:`py:bool`):
         Boolean indicating whether to create debug information.
-        Not currently used.
 
       x509:
         Used for HTTPS with certificates.
@@ -342,21 +342,39 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
             the send method
         """
         # pylint: disable=old-style-class,too-few-public-methods
-        def send(self, strng):
-            """ Same as httplib.HTTPConnection.send(), except we don't
-            check for sigpipe and close the connection.  If the connection
-            gets closed, getresponse() fails.
-            """
 
+        def send(self, strng):
+            """
+            A copy of httplib.HTTPConnection.send(), with these fixes:
+
+            * We fix the problem that the connection gets closed upon error
+              32 (EPIPE), by not doing that (If the connection gets closed,
+              getresponse() fails). This problem was reported as Python issue
+              #5542, and the same fix we do here was integrated into Python
+              2.7 and 3.1 or 3.2, but not into Python 2.6 (so we still need
+              our fix here).
+
+            * Ensure that the data are bytes, not unicode.
+              TODO 2016-05 AM: Ensuring bytes at this level can only be a
+                               quick fix. Figure out a better approach.
+            """
             if self.sock is None:
                 if self.auto_open:
                     self.connect()
                 else:
                     raise httplib.NotConnected()
-            strng = _ensure_bytes(strng)
             if self.debuglevel > 0:
                 print("send: %r" % strng)
-            self.sock.sendall(strng)
+            blocksize = 8192
+            if hasattr(strng, 'read') and not isinstance(strng, array):
+                if self.debuglevel > 0:
+                    print("sendIng a read()able")
+                data = strng.read(blocksize)
+                while data:
+                    self.sock.sendall(_ensure_bytes(data))
+                    data = strng.read(blocksize)
+            else:
+                self.sock.sendall(_ensure_bytes(strng))
 
     class HTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
         """ Execute client connection without ssl using httplib. """
@@ -584,27 +602,34 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                  urllib.parse.quote(hdr_pieces[1]))
 
             try:
+
                 # See RFC 2616 section 8.2.2
                 # An http server is allowed to send back an error (presumably
                 # a 401), and close the connection without reading the entire
                 # request.  A server may do this to protect itself from a DoS
                 # attack.
                 #
-                # If the server closes the connection during our h.send(), we
-                # will either get a socket exception 104 (TCP RESET), or a
-                # socket exception 32 (broken pipe).  In either case, thanks
-                # to our fixed HTTPConnection classes, we'll still be able to
-                # retrieve the response so that we can read and respond to the
-                # authentication challenge.
-
+                # If the server closes the connection during our send(), we
+                # will either get a socket exception 104 (ECONNRESET:
+                # connection reset), or a socket exception 32 (EPIPE: broken
+                # pipe).  In either case, thanks to our fixed HTTPConnection
+                # classes, we'll still be able to retrieve the response so
+                # that we can read and respond to the authentication challenge.
                 try:
                     # endheaders() is the first method in this sequence that
-                    # actually sends something to the server.
+                    # actually sends something to the server (using send()).
                     client.endheaders()
                     client.send(data)
-                except Exception as exc: # socket.error as exc:
-                    # TODO AM: Verify these errno numbers on Windows vs. Linux.
-                    if exc.args[0] != 104 and exc.args[0] != 32:
+                except SocketErrors as exc:
+                    if exc.args[0] == errno.ECONNRESET:
+                        if debug:
+                            print("Debug: Ignoring socket error ECONNRESET " \
+                                  "(connection reset) returned by server.")
+                    elif exc.args[0] == errno.EPIPE:
+                        if debug:
+                            print("Debug: Ignoring socket error EPIPE " \
+                                  "(broken pipe) returned by server.")
+                    else:
                         raise ConnectionError("Socket error: %s" % exc)
 
                 response = client.getresponse()
@@ -652,7 +677,11 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                         'OWLocal nonce="%s", cookie="%s"' % \
                                         (nonce, cookie))
                                     continue
-                                except:    #pylint: disable=bare-except
+                                except Exception as exc:
+                                    if debug:
+                                        print("Debug: Ignoring exception %s " \
+                                              "in OpenWBEM auth challenge " \
+                                              "processing." % exc)
                                     local_auth_header = None
                                     continue
                         elif 'Local' in auth_chal:
