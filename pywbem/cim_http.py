@@ -56,8 +56,8 @@ if six.PY2:
     #pylint: disable=invalid-name
     SocketErrors = (socket.error, socket.sslerror)
 else:
-    import ssl as SSL
-    from ssl import SSLError
+    import ssl as SSL                  # pylint: disable=wrong-import-position
+    from ssl import SSLError, CertificateError # pylint: disable=wrong-import-position
     _HAVE_M2CRYPTO = False
     #pylint: disable=invalid-name
     SocketErrors = (socket.error,)
@@ -247,10 +247,7 @@ def get_default_ca_certs():
     returned. If no path is found out, None is returned.
     """
     if not hasattr(get_default_ca_certs, '_path'):
-        for path in (
-                '/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt',
-                '/etc/ssl/certs',
-                '/etc/ssl/certificates'):
+        for path in get_default_ca_cert_paths():
             if os.path.exists(path):
                 get_default_ca_certs._path = path
                 break
@@ -337,7 +334,6 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
             the send method
         """
         # pylint: disable=old-style-class,too-few-public-methods
-
         def send(self, strng):
             """
             A copy of httplib.HTTPConnection.send(), with these fixes:
@@ -395,91 +391,125 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
             # pylint: disable=too-many-branches
             """Connect to a host on a given (SSL) port."""
 
-            # Calling httplib.HTTPSConnection.connect(self) does not work
-            # because of its ssl.wrap_socket() call. So we copy the code of
-            # that connect() method modulo the ssl.wrap_socket() call.
-            #
-            # Another change is that we do not pass the timeout value
-            # on to the socket call, because that does not work with M2Crypto.
-            #
-            # TODO AM: Check out whether we can pass the timeout for Python 3
-            #          again, given that we use the standard SSL support again.
-            if sys.version_info[0:2] >= (2, 7):
-                # the source_address argument was added in 2.7
-                self.sock = socket.create_connection(
-                    (self.host, self.port), None, self.source_address)
-            else:
-                self.sock = socket.create_connection(
-                    (self.host, self.port), None)
-
-            if self._tunnel_host:
-                self._tunnel()
-            # End of code from httplib.HTTPSConnection.connect(self).
-
+            ## Connect for M2Crypto ssl package
             if _HAVE_M2CRYPTO:
-                ctx = SSL.Context('sslv23')
-            else:
-                ctx = SSL.create_default_context()
+                # Calling httplib.HTTPSConnection.connect(self) does not work
+                # because of its ssl.wrap_socket() call. So we copy the code of
+                # that connect() method modulo the ssl.wrap_socket() call.
 
-            if self.cert_file:
-                ctx.load_cert(self.cert_file, keyfile=self.key_file)
-            if self.ca_certs:
-                if _HAVE_M2CRYPTO:
+                # Another change is that we do not pass the timeout value
+                # on to the socket call, because that does not work with
+                # M2Crypto.
+
+
+                if sys.version_info[0:2] >= (2, 7):
+                    # the source_address argument was added in 2.7
+                    self.sock = socket.create_connection(
+                        (self.host, self.port), None, self.source_address)
+                else:
+                    self.sock = socket.create_connection(
+                        (self.host, self.port), None)
+
+                if self._tunnel_host:
+                    self._tunnel()
+                # End of code from httplib.HTTPSConnection.connect(self).
+
+                ctx = SSL.Context('sslv23')
+
+                if self.cert_file:
+                    ctx.load_cert(self.cert_file, keyfile=self.key_file)
+                if self.ca_certs:
                     ctx.set_verify(
                         SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
                         depth=9, callback=verify_callback)
-                else:
-                    ctx.verify_flags |= SSL.VERIFY_CRL_CHECK_CHAIN
-                if os.path.isdir(self.ca_certs):
-                    ctx.load_verify_locations(capath=self.ca_certs)
-                else:
-                    ctx.load_verify_locations(cafile=self.ca_certs)
-            try:
-                if _HAVE_M2CRYPTO:
+                    if os.path.isdir(self.ca_certs):
+                        ctx.load_verify_locations(capath=self.ca_certs)
+                    else:
+                        ctx.load_verify_locations(cafile=self.ca_certs)
+                try:
                     self.sock = SSL.Connection(ctx, self.sock)
-                else:
-                    self.sock = ctx.wrap_socket(self.sock)
 
-                # Below is a body of SSL.Connection.connect() method
-                # except for the first line (socket connection). We want to
-                # preserve tunneling ability.
+                    # Below is a body of SSL.Connection.connect() method
+                    # except for the first line (socket connection). We want to
+                    # preserve tunneling ability.
 
-                # Setting the timeout on the input socket does not work
-                # with M2Crypto, with such a timeout set it calls a different
-                # low level function (nbio instead of bio) that does not work.
-                # the symptom is that reading the response returns None.
-                # Therefore, we set the timeout at the level of the outer
-                # M2Crypto socket object.
-                # pylint: disable=using-constant-test
-                if False:
-                    # TODO 2/16 AM: Currently disabled, figure out how to
-                    #               reenable.
-                    if self.timeout is not None:
-                        self.sock.set_socket_read_timeout(
-                            SSL.timeout(self.timeout))
-                        self.sock.set_socket_write_timeout(
-                            SSL.timeout(self.timeout))
+                    # Setting the timeout on the input socket does not work
+                    # with M2Crypto, with such a timeout set it calls a
+                    # different low level function (nbio instead of bio)
+                    # that does not work. The symptom is that reading the
+                    # response returns None.
+                    # Therefore, we set the timeout at the level of the outer
+                    # M2Crypto socket object.
+                    # pylint: disable=using-constant-test
+                    if False:
+                        # TODO 2/16 AM: Currently disabled, figure out how to
+                        #               reenable.
+                        if self.timeout is not None:
+                            self.sock.set_socket_read_timeout(
+                                SSL.timeout(self.timeout))
+                            self.sock.set_socket_write_timeout(
+                                SSL.timeout(self.timeout))
 
-                self.sock.addr = (self.host, self.port)
-                self.sock.setup_ssl()
-                self.sock.set_connect_state()
-                ret = self.sock.connect_ssl()
+                    self.sock.addr = (self.host, self.port)
+                    self.sock.setup_ssl()
+                    self.sock.set_connect_state()
+                    ret = self.sock.connect_ssl()
+                    if self.ca_certs:
+                        check = getattr(self.sock, 'postConnectionCheck',
+                                        self.sock.clientPostConnectionCheck)
+                        if check is not None:
+                            if not check(self.sock.get_peer_cert(), self.host):
+                                raise ConnectionError(
+                                    'SSL error: post connection check failed')
+                    return ret
+
+                # TODO 2/16 AM: Verify whether the additional exceptions
+                #               in the M2Crypto code can
+                #               really be omitted:
+                #               Err.SSLError, SSL.SSLError, SSL.Checker.
+                #               WrongHost,
+                #               SSLTimeoutError
+                except SSLError as arg:
+                    raise ConnectionError(
+                        "SSL error %s: %s" % (arg.__class__, arg))
+
+            # Connect using Python SSL module
+            else:
+                # Setup the socket context
+                # TODO ks 4/16: confirm that we cannot use the default_context()
+                # Selects the highest protocol version that both the
+                # client and server support (SSLV23)
+                ctx = SSL.SSLContext(SSL.PROTOCOL_SSLv23)
+
+                # TODO ks 4/16: Is there a use for the CERT_OPTIONAL mode
+                if self.cert_file:
+                    ctx.load_cert(self.cert_file, keyfile=self.key_file)
                 if self.ca_certs:
-                    check = getattr(self.sock, 'postConnectionCheck',
-                                    self.sock.clientPostConnectionCheck)
-                    if check is not None:
-                        if not check(self.sock.get_peer_cert(), self.host):
-                            raise ConnectionError(
-                                'SSL error: post connection check failed')
-                return ret
+                    # CERT_REQUIRED validates server certificate:
+                    # against certificates in ca_certs
+                    ctx.verify_mode = SSL.CERT_REQUIRED
+                    if os.path.isdir(self.ca_certs):
+                        ctx.load_verify_locations(capath=self.ca_certs)
+                    else:
+                        ctx.load_verify_locations(cafile=self.ca_certs)
+                    ctx.check_hostname = True
+                else:
+                    ctx.verify_mode = SSL.CERT_NONE
 
-            # TODO 2/16 AM: Verify whether the additional exceptions in the
-            #               Python 2 and M2Crypto code can really be omitted:
-            #               Err.SSLError, SSL.SSLError, SSL.Checker.WrongHost,
-            #               SSLTimeoutError
-            except SSLError as arg:
-                raise ConnectionError(
-                    "SSL error %s: %s" % (arg.__class__, arg))
+                # setup the socket
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(self.timeout)
+
+                try:
+                    self.sock = ctx.wrap_socket(sock)
+                    return self.sock.connect((self.host, self.port))
+
+                except SSLError as arg:
+                    raise ConnectionError(
+                        "SSL error %s: %s" % (arg.__class__, arg))
+                except CertificateError as arg:
+                    raise ConnectionError(
+                        "SSL Certificateerror %s: %s" % (arg.__class__, arg))
 
     class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
         """Execute client connection based on a unix domain socket. """
@@ -519,6 +549,8 @@ def wbem_request(url, data, creds, headers=[], debug=0, x509=None,
 
     data = b'<?xml version="1.0" encoding="utf-8" ?>\n' + data
 
+    # Note that certs get passed even if ca_certs is None and
+    # no_verification=False
     if not no_verification and ca_certs is None:
         ca_certs = get_default_ca_certs()
     elif no_verification:
