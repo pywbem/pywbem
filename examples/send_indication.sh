@@ -27,7 +27,7 @@ data='<CIM CIMVERSION="2.0" DTDVERSION="2.4">
   <MESSAGE ID="42" PROTOCOLVERSION="1.4">
     <SIMPLEEXPREQ>
       <EXPMETHODCALL NAME="ExportIndication">
-        <EXPPARAMVALUE NAME="NewInstance">
+        <EXPPARAMVALUE NAME="NewIndication">
           <INSTANCE CLASSNAME="CIM_AlertIndication">
             <PROPERTY NAME="Severity" TYPE="string">
               <VALUE>high</VALUE>

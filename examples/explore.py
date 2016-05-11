@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function, absolute_import
 import sys
 
 from pywbem import WBEMConnection, WBEMServer, ValueMapping
@@ -21,7 +22,8 @@ def explore_server(server_url, username, password):
 
     print("Advertised management profiles:")
     org_vm = ValueMapping.for_property(server, server.interop_ns,
-        'CIM_RegisteredProfile', 'RegisteredOrganization')
+                                       'CIM_RegisteredProfile',
+                                       'RegisteredOrganization')
     indications_profile = None
     server_profile = None
     for inst in server.profiles:
