@@ -46,6 +46,8 @@ Clean Code
 
 * Moved the complete `pywbem/wbemcli.py` module into the `wbemcli` script.
 
+* Removed half-baked code for HTTP proxy/tunneling support.
+
 Enhancements
 ^^^^^^^^^^^^
 
