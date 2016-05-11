@@ -70,10 +70,11 @@ help(listener): Display help for using listener instance.
 
     # Read previous command line history
     if _HAVE_READLINE:
+        NotFoundError = getattr(__builtins__, 'FileNotFoundError', IOError)
         try:
             _readline.read_history_file(histfile)
-        except IOError as exc:
-            if exc.args[0] != _errno.ENOENT:
+        except NotFoundError as exc:
+            if exc.errno != _errno.ENOENT:
                 raise
 
     # Interact
