@@ -186,6 +186,10 @@ Bug fixes
   This completely separates connect() code for python 3 ssl module from
   python 2 m2cyrpto.
 
+* Fixed problem that wbemcli in Python 3 when used without existing history
+  file would fail with "TypeError: 'FileNotFoundError' object is not
+  subscriptable" (issue #302).
+
 
 pywbem v0.8.2
 -------------
