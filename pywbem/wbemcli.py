@@ -406,10 +406,11 @@ def main():
 
     # Read previous command line history
     if _HAVE_READLINE:
+        NotFoundError = getattr(__builtins__, 'FileNotFoundError', IOError)
         try:
-            readline.read_history_file(histfile)
-        except IOError as arg:
-            if arg[0] != errno.ENOENT:
+            _readline.read_history_file(histfile)
+        except NotFoundError as exc:
+            if exc.errno != _errno.ENOENT:
                 raise
 
     # Interact
