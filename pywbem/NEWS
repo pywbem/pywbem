@@ -6,6 +6,11 @@ pywbem-0.8.4.dev0  2016-05-09
     * Fixed an IndexError in cim_http.wbem_request() that occurred during
       handling of another exception.
 
+    * Fixed problem that wbemcli in Python 3 when used without existing history
+      file would fail with "TypeError: 'FileNotFoundError' object is not
+      subscriptable" (issue #302).
+
+
   ENHANCEMENTS:
 
     * Fixed description in INSTALL.md to correctly describe how to establish
