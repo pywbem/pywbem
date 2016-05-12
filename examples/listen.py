@@ -35,7 +35,8 @@ def _main():
               _sys.argv[0])
         _sys.exit(2)
 
-    _logging.basicConfig(stream=_sys.stderr, level=_logging.WARNING)
+    _logging.basicConfig(stream=_sys.stderr, level=_logging.WARNING,
+                         format='%(levelname)s: %(message)s')
 
     host = _get_argv(1)
     http_port = _get_argv(2)

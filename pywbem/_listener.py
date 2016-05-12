@@ -44,7 +44,8 @@ delivery:
 
     def main():
 
-        logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
+        logging.basicConfig(stream=sys.stderr, level=logging.WARNING,
+            format='%(asctime)s - %(levelname)s - %(message)s)
 
         certkeyfile = 'listener.pem'
 
@@ -575,9 +576,6 @@ class WBEMListener(object):
     indications from one or more WBEM servers, including the creation and
     deletion of the necessary listener, filter and subscription instances in
     the WBEM servers.
-
-    This class uses Python logging which needs to be configured by the user
-    (see the :attr:`logger` property).
     """
 
     def __init__(self, host, http_port=DEFAULT_LISTENER_PORT_HTTP,
@@ -660,6 +658,7 @@ class WBEMListener(object):
         self._https_thread = None  # Thread for HTTPS
 
         self._logger = logging.getLogger('pywbem.listener.%s' % id(self))
+        self._logger.addHandler(logging.NullHandler())
 
         # The following dictionaries have the WBEM server URL as a key.
         self._servers = {}  # WBEMServer objects for the WBEM servers
@@ -737,30 +736,29 @@ class WBEMListener(object):
         The logger object for this listener.
 
         Each listener object has its own separate logger object that is
-        created via :func:`py:logging.getLogger` and is not further configured.
-        As a result, this logger by default propagates its logging actions
-        up to the Python root logger.
+        created via :func:`py:logging.getLogger`.
 
-        The behavior of this logger can be changed by invoking its methods (see
-        :class:`py:logging.Logger`), or by global configuration via
-        :func:`py:logging.basicConfig`.
+        The name of this logger object is: `pywbem.listener.{id}` where `{id}`
+        is the :func:`id` value of the listener object. Users of the listener
+        should not look up the logger object by name, but should use this
+        property to get to it.
 
-        Note that the logger needs to be set up before using the listener
-        object. Missing to set up the logger typically results in a message:
+        By default, this logger uses the :class:`~py:logging.NullHandler` log
+        handler, and its log level is :attr:`~py:logging.NOTSET`. This causes
+        this logger not to emit any log messages and to propagate them to the
+        Python root logger.
 
-        ::
-
-            No handlers could be found for logger "pywbem.listener.NNN"
-
-        One way to set up the logger is to use the
-        :func:`py:logging.basicConfig` function, for example:
+        The behavior of this logger can be changed by invoking its methods
+        (see :class:`py:logging.Logger`). The behavior of the root logger can
+        for example be configured using :func:`py:logging.basicConfig`:
 
         ::
 
             import sys
             import logging
 
-            logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
+            logging.basicConfig(stream=sys.stderr, level=logging.WARNING,
+                format='%(asctime)s - %(levelname)s - %(message)s')
         """
         return self._logger
 
