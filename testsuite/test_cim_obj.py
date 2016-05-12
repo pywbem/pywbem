@@ -3221,10 +3221,10 @@ class MofStr(unittest.TestCase):
         self._run_single(' ', '" "')
         self._run_single('c  d', '"c  d"')
 
-        # Single quote (does not get escaped)
-        self._run_single('\'', '"\'"')
-        self._run_single('c\'d', '"c\'d"')
-        self._run_single('c\'\'d', '"c\'\'d"')
+        # Single quote (gets escaped)
+        self._run_single('\'', '"\\\'"')
+        self._run_single('c\'d', '"c\\\'d"')
+        self._run_single('c\'\'d', '"c\\\'\\\'d"')
 
         # Double quote (gets escaped)
         self._run_single('"', '"\\""')
@@ -3260,14 +3260,14 @@ class MofStr(unittest.TestCase):
         self._run_single('\\n', '"\\\\n"')
         self._run_single('\\f', '"\\\\f"')
         self._run_single('\\r', '"\\\\r"')
-        self._run_single('\\\'', '"\\\\\'"')
+        self._run_single('\\\'', '"\\\\\\\'"') # escape the following quote
         self._run_single('\\"', '"\\\\\\""') # escape the following quote
         self._run_single('c\\bd', '"c\\\\bd"')
         self._run_single('c\\td', '"c\\\\td"')
         self._run_single('c\\nd', '"c\\\\nd"')
         self._run_single('c\\fd', '"c\\\\fd"')
         self._run_single('c\\rd', '"c\\\\rd"')
-        self._run_single('c\\\'d', '"c\\\\\'d"')
+        self._run_single('c\\\'d', '"c\\\\\\\'d"') # escape the following quote
         self._run_single('c\\"d', '"c\\\\\\"d"') # escape the following quote
 
         # Backslash followed by MOF-escapable character (are treated separately)
