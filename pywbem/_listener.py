@@ -568,9 +568,8 @@ class WBEMListener(object):
     A WBEM listener.
 
     The listener supports starting and stopping threads that listen for
-    DeliverIndication CIM-XML export messages using HTTP and/or HTTPS,
-    and that pass any received indications on to registered callback
-    functions.
+    CIM-XML ExportIndication messages using HTTP and/or HTTPS, and that pass
+    any received indications on to registered callback functions.
 
     The listener also supports the management of subscriptions for CIM
     indications from one or more WBEM servers, including the creation and
@@ -655,20 +654,20 @@ class WBEMListener(object):
             self._certfile = None
             self._keyfile = None
 
-        self._http_server = None
-        self._http_thread = None
-        self._https_server = None
-        self._https_thread = None
+        self._http_server = None  # ThreadedHTTPServer for HTTP
+        self._http_thread = None  # Thread for HTTP
+        self._https_server = None  # ThreadedHTTPServer for HTTPS
+        self._https_thread = None  # Thread for HTTPS
 
         self._logger = logging.getLogger('pywbem.listener.%s' % id(self))
 
         # The following dictionaries have the WBEM server URL as a key.
-        self._servers = {}
-        self._subscription_paths = {}
-        self._dynamic_filter_paths = {}
-        self._destination_path = {}
+        self._servers = {}  # WBEMServer objects for the WBEM servers
+        self._subscription_paths = {}  # CIMInstanceName of subscriptions
+        self._dynamic_filter_paths = {}  # CIMInstanceName of dynamic filters
+        self._destination_path = {}  # CIMInstanceName of listener destination
 
-        self._callbacks = []
+        self._callbacks = []  # Registered callback functions
 
     def __repr__(self):
         """
