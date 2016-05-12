@@ -556,12 +556,12 @@ def EnumerateClasses(ns=None, cn=None, di=None, lo=None, iq=None, ico=None):
       list(string): The enumerated class names.
     """
 
-    return CONN.EnumerateClassNames(ns,
-                                    ClassName=cn,
-                                    DeepInheritance=di,
-                                    LocalOnly=lo,
-                                    IncludeQualifiers=iq,
-                                    IncludeClassOrigin=ico)
+    return CONN.EnumerateClass(ns,
+                               ClassName=cn,
+                               DeepInheritance=di,
+                               LocalOnly=lo,
+                               IncludeQualifiers=iq,
+                               IncludeClassOrigin=ico)
 
 
 def GetClass(cn, ns=None, lo=None, iq=None, ico=None, pl=None):
