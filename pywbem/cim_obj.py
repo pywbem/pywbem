@@ -2528,7 +2528,8 @@ class CIMProperty(_CIMComparisonMixin):
             else:
                 val_ = value_
             _mof = mofstr(val_, indent=indent)
-
+        elif self.type == 'datetime':
+            _mof = '"%s"' % str(value_)
         else:
             _mof = str(value_)
         return _mof
