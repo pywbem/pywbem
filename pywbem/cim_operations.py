@@ -735,9 +735,10 @@ class WBEMConnection(object):
             raise ParseError('Expecting MESSAGE element, got %s' % tup_tree[0])
         tup_tree = tup_tree[2]
 
-        if len(tup_tree) != 1 or tup_tree[0][0] != 'SIMPLERSP':
-            raise ParseError('Expecting one SIMPLERSP element')
-        tup_tree = tup_tree[0][2]
+        if tup_tree[0] != 'SIMPLERSP':
+            raise ParseError('Expecting SIMPLERSP element, got %s' %\
+                             tup_tree[0])
+        tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'IMETHODRESPONSE':
             raise ParseError('Expecting IMETHODRESPONSE element, got %s' %\
@@ -963,9 +964,9 @@ class WBEMConnection(object):
             raise ParseError('Expecting MESSAGE element, got %s' % tt[0])
         tt = tt[2]
 
-        if len(tt) != 1 or tt[0][0] != 'SIMPLERSP':
-            raise ParseError('Expecting one SIMPLERSP element')
-        tt = tt[0][2]
+        if tt[0] != 'SIMPLERSP':
+            raise ParseError('Expecting SIMPLERSP element, got %s' % tt[0])
+        tt = tt[2]
 
         if tt[0] != 'METHODRESPONSE':
             raise ParseError('Expecting METHODRESPONSE element, got %s' %\

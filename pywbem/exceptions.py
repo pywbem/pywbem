@@ -48,7 +48,14 @@ class TimeoutError(Error):
 
 class ParseError(Error):
     """This exception indicates a parsing error with the CIM-XML response
-    returned by the WBEM server. Derived from :exc:`~pywbem.Error`."""
+    returned by the WBEM server, or in the CIM-XML request sent by the WBEM
+    listener. Derived from :exc:`~pywbem.Error`."""
+    pass
+
+class VersionError(Error):
+    """This exception indicates an unsupported CIM, DTD or protocol version
+    with the CIM-XML response returned by the WBEM server, or in the CIM-XML
+    request sent by the WBEM listener. Derived from :exc:`~pywbem.Error`."""
     pass
 
 class CIMError(Error):

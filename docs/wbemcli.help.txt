@@ -30,7 +30,7 @@ Server related options:
                         Default: root/cimv2
   -t timeout, --timeout timeout
                         Timeout of the completion of WBEM Server operation
-                        in seconds.
+                        in seconds(integer between 0 and 300).
                         Default: No timeout
 
 Connection security related options:
