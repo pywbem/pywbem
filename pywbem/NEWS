@@ -36,6 +36,10 @@ pywbem-0.8.4.dev0  2016-05-10
       That requirement was already documented, now it is also enforced in
       the code.
 
+  CLEAN CODE:
+
+    * Removed half-baked code for HTTP proxy/tunneling support.
+
 
 pywbem-0.8.3  2016-04-15
 
