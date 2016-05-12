@@ -36,6 +36,11 @@ pywbem-0.8.4.dev0  2016-05-10
       That requirement was already documented, now it is also enforced in
       the code.
 
+    * Enhanced the wbemcli script with options supporting certificates.
+      For details, invoke with --help, or look at the online documentation.
+      NOTE: The --no-ssl and --port options have been removed. Specify
+      the protocol and port number in the server URL.
+
   CLEAN CODE:
 
     * Removed half-baked code for HTTP proxy/tunneling support.
