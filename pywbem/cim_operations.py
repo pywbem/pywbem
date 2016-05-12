@@ -561,7 +561,7 @@ class WBEMConnection(object):
         # Create parameter list
 
         plist = [cim_xml.IPARAMVALUE(x[0], tocimxml(x[1])) \
-                 for x in params.items()]
+                 for x in params.items() if x[1] is not None]
 
         # Build XML request
 
