@@ -418,8 +418,8 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                     self.sock = socket.create_connection(
                         (self.host, self.port), None)
 
-                if self._tunnel_host:
-                    self._tunnel()
+                # Removed code for tunneling support.
+
                 # End of code from httplib.HTTPSConnection.connect(self).
 
                 ctx = SSL.Context('sslv23')
@@ -438,8 +438,9 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                     self.sock = SSL.Connection(ctx, self.sock)
 
                     # Below is a body of SSL.Connection.connect() method
-                    # except for the first line (socket connection). We want to
-                    # preserve tunneling ability.
+                    # except for the first line (socket connection).
+
+                    # Removed code for tunneling support.
 
                     # Setting the timeout on the input socket does not work
                     # with M2Crypto, with such a timeout set it calls a
