@@ -2376,10 +2376,49 @@ class CIMClassToMOF(unittest.TestCase, RegexpMixin):
 
         imof = cl.tomof()
 
-        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{",)
+        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
 
-        self.assertRegexpContains(imof, r"\n\s*string\s+InstanceID",)
-        self.assertRegexpContains(imof, r"\n\};",)
+        self.assertRegexpContains(imof, r"\n\s*string\s+InstanceID")
+        self.assertRegexpContains(imof, r"\n\};")
+
+class CIMClassPropertyWithValueToMOF(unittest.TestCase, RegexpMixin):
+
+    def test_ScalarPropertyValues(self):
+
+        cl = CIMClass(
+            'CIM_Foo',
+            properties={'InstanceID': CIMProperty('InstanceID', None,
+                                                  type='string'),
+                        'MyUint8': CIMProperty('MyUint8', Uint8(99),
+                                               type='uint8'),
+                        'MyUint16': CIMProperty('MyUint16', Uint16(999),
+                                                type='uint16'),
+                        'MyUint32': CIMProperty('MyUint32', Uint32(12345),
+                                                type='uint32'),
+                        'MySint32': CIMProperty('MySint32', Sint32(-12345),
+                                                type='sint32'),
+                        'Mydatetime' : CIMProperty('Mydatetime',
+                                                   '12345678224455.654321:000',
+                                                   type='datetime'),
+                        'MyStr' : CIMProperty('MyStr', 'This is a test',
+                                              type='string')})
+
+        imof = cl.tomof()
+
+        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
+
+        self.assertRegexpContains(imof, r"\n\s*string\s+InstanceID")
+        self.assertRegexpContains(imof, r"\n\s*uint8\s+MyUint8\s+=\s+99;")
+        self.assertRegexpContains(imof, r"\n\s*uint16\s+MyUint16\s+=\s+999;")
+        self.assertRegexpContains(imof, r"\n\s*uint32\s+MyUint32\s+=\s+12345;")
+        self.assertRegexpContains(imof, r"\n\s*sint32\s+MySint32\s+=\s+" \
+                                        r"-12345;")
+        self.assertRegexpContains(imof, r"\n\s*datetime\s+Mydatetime\s+=\s+" \
+                                        r"\"12345678224455.654321:000\";")
+        self.assertRegexpContains(imof, r"\n\s*string\s+MyStr\s+=\s+" \
+                                        r"\"This is a test\";")
+
+        self.assertRegexpContains(imof, r"\n\};")
 
 class CIMClassToMofArrayProperty(unittest.TestCase, RegexpMixin):
     def test_ArrayDef32(self):

@@ -191,6 +191,9 @@ Bug fixes
 * Fixed problem that wbemcli in Python 3 when used without existing history
   file would fail with "TypeError: 'FileNotFoundError' object is not
   subscriptable" (issue #302).
+  
+* Fixed issue with tomof() output where datetime values were not quoted.
+  (issue #289)
 
 
 pywbem v0.8.2
