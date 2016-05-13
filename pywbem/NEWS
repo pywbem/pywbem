@@ -1,5 +1,5 @@
 
-pywbem-0.8.4.dev0  2016-05-10
+pywbem-0.8.4  2016-05-13
 
   BUG FIXES:
 
@@ -10,13 +10,14 @@ pywbem-0.8.4.dev0  2016-05-10
       file would fail with "TypeError: 'FileNotFoundError' object is not
       subscriptable" (issue #302).
 
-    * Fixed issue with python 3 and https that was causing connect() to fail. 
-      This completely separates connect() code for python 3 ssl module from
-      python 2 m2cyrpto.
+    * Fixed issues with Python 3 and HTTPS that were causing the connecttion
+      to fail. This completely separates the `connect()` code for Python 3
+      (using the Python SSL module) from the code for Python 2 (using
+      M2Crypto) (issues #150, #273, #274, #288).
 
   ENHANCEMENTS:
 
-    * Fixed description in INSTALL.md to correctly describe how to establish
+    * Improved description in INSTALL.md to better describe how to establish
       OS-level prerequisites.
 
     * Improved Swig installation code by reinstalling Swig if it was installed

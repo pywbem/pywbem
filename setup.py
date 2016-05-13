@@ -50,7 +50,7 @@ import os_setup
 from os_setup import shell, shell_check, import_setuptools
 
 # Package version - Keep in sync with pywbem/__init__.py!
-_version = '0.8.4.dev0'  # pylint: disable=invalid-name
+_version = '0.8.4'  # pylint: disable=invalid-name
 
 def _check_get_swig(swig_min_version, verbose):
     """Chewck if Swig is available in the PATH in the right version.
