@@ -738,8 +738,9 @@ def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
                               replace(u'\u001E', '\\x001E').\
                               replace(u'\u001F', '\\x001F')
 
-    # Escape double quote
+    # Escape single and double quote
     escaped_str = escaped_str.replace('"', '\\"')
+    escaped_str = escaped_str.replace("'", "\\'")
 
     # Break into multiple strings for better readability
     blankfind = maxline - indent - 2
