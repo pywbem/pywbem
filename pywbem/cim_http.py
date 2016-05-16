@@ -44,6 +44,7 @@ import platform
 import base64
 import threading
 from datetime import datetime
+import warnings
 
 import six
 from six.moves import http_client as httplib
@@ -303,7 +304,11 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
         :meth:`WBEMConnection.__init__`.
 
       verify_callback:
-        Used for HTTPS with certificates.
+        Used for HTTPS with certificates but only for python 2. Ignored with
+        python 3 since the  python 3 ssl implementation does not implement
+        any callback mechanism so setting this variable gains the
+        user nothing.
+
         For details, see the ``verify_callback`` parameter of
         :meth:`WBEMConnection.__init__`.
 
@@ -394,6 +399,10 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                              timeout=timeout)
             self.ca_certs = ca_certs
             self.verify_callback = verify_callback
+            # issue 297: Verify_callback is  not used in py 3
+            if verify_callback is not None and six.PY3:
+                warnings.warn("verify_callback parameter ignored",
+                              UserWarning)
 
         def connect(self):
             # pylint: disable=too-many-branches
