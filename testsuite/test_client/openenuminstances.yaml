@@ -1,4 +1,3 @@
-
 -
     name: OpenEnumerateInstances1
     description: OpenEnumerateInstances succeeds
@@ -9,41 +8,46 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: OpenEnumerateInstances
             ClassName: PyWBEM_Person
             LocalOnly: false
     pywbem_response:
-        result:
-            -
-                pywbem_object: CIMInstance
-                classname: PYWBEM_Person
-                properties:
-                    CreationClassName: PyWBEM_Person
-                    Name: Fritz
-                    Address: Fritz Town
-                path:
-                    pywbem_object: CIMInstanceName
+        pullresult:
+            context: null
+            eos: True
+            instances: 
+                -
+                    pywbem_object: CIMInstance
                     classname: PYWBEM_Person
-                    namespace: root/cimv2
-                    keybindings:
-                        CreationClassname: PyWBEM_Person
+                    properties:
+                        CreationClassName: PyWBEM_Person
                         Name: Fritz
-            -
-                pywbem_object: CIMInstance
-                classname: PyWBEM_Person
-                properties:
-                    CreationClassName: PyWBEM_Person
-                    Name: Alice
-                    Address: Alice Town
-                path:
-                    pywbem_object: CIMInstanceName
+                        Address: Fritz Town
+                    path:
+                        pywbem_object: CIMInstanceName
+                        classname: PYWBEM_Person
+                        host : Fred
+                        namespace: root/cimv2
+                        keybindings:
+                            CreationClassname: PyWBEM_Person
+                            Name: Fritz
+                -
+                    pywbem_object: CIMInstance
                     classname: PyWBEM_Person
-                    namespace: root/cimv2
-                    keybindings:
-                        CreationClassname: PyWBEM_Person
+                    properties:
+                        CreationClassName: PyWBEM_Person
                         Name: Alice
+                        Address: Alice Town
+                    path:
+                        pywbem_object: CIMInstanceName
+                        classname: PyWBEM_Person
+                        host: fred
+                        namespace: root/cimv2
+                        keybindings:
+                            CreationClassname: PyWBEM_Person
+                            Name: Alice
 
     http_request:
         verb: POST
@@ -86,7 +90,7 @@
                                 <VALUE.INSTANCEWITHPATH>
                                     <INSTANCEPATH>
                                         <NAMESPACEPATH>
-                                            <HOST>sheldon</HOST>
+                                            <HOST>fred</HOST>
                                             <LOCALNAMESPACEPATH>
                                                 <NAMESPACE NAME="root"/>
                                                 <NAMESPACE NAME="cimv2"/>
@@ -94,12 +98,10 @@
                                         </NAMESPACEPATH>
                                         <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                             <KEYBINDING NAME="CreationClassName">
-                                                <KEYVALUE VALUETYPE="string">
-                                                    PyWBEM_Person</KEYVALUE>
+                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
                                             </KEYBINDING>
                                             <KEYBINDING NAME="Name">
-                                                <KEYVALUE VALUETYPE="string">
-                                                    Fritz</KEYVALUE>
+                                                <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
                                             </KEYBINDING>
                                         </INSTANCENAME>
                                     </INSTANCEPATH>
@@ -118,7 +120,7 @@
                              <VALUE.INSTANCEWITHPATH>
                                     <INSTANCEPATH>
                                         <NAMESPACEPATH>
-                                            <HOST>sheldon</HOST>
+                                            <HOST>Fred</HOST>
                                             <LOCALNAMESPACEPATH>
                                                 <NAMESPACE NAME="root"/>
                                                 <NAMESPACE NAME="cimv2"/>
@@ -126,12 +128,10 @@
                                         </NAMESPACEPATH>
                                         <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                             <KEYBINDING NAME="CreationClassName">
-                                                <KEYVALUE VALUETYPE="string">
-                                                    PyWBEM_Person</KEYVALUE>
+                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
                                             </KEYBINDING>
                                             <KEYBINDING NAME="Name">
-                                                <KEYVALUE VALUETYPE="string">
-                                                    Alice</KEYVALUE>
+                                                <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
                                             </KEYBINDING>
                                         </INSTANCENAME>
                                     </INSTANCEPATH>
@@ -158,4 +158,4 @@
                     </SIMPLERSP>
                 </MESSAGE>
             </CIM>
--
+

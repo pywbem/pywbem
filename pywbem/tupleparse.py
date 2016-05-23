@@ -1639,8 +1639,9 @@ def parse_ireturnvalue(tup_tree):
                                 VALUE.OBJECTWITHLOCALPATH* | VALUE.OBJECT* |
                                 OBJECTPATH* | QUALIFIER.DECLARATION* |
                                 VALUE.ARRAY? | VALUE.REFERENCE? | CLASS* |
-                                INSTANCE* | VALUE.NAMEDINSTANCE* |
-                                VALUE.INSTANCEWITHPATH)>
+                                INSTANCE* | INSTANCEPATH* |
+                                VALUE.NAMEDINSTANCE* |
+                                VALUE.INSTANCEWITHPATH*)>
     """
 
     check_node(tup_tree, 'IRETURNVALUE', [], [])
@@ -1655,6 +1656,7 @@ def parse_ireturnvalue(tup_tree):
                                      'QUALIFIER.DECLARATION',
                                      'VALUE.ARRAY', 'VALUE.REFERENCE',
                                      'CLASS', 'INSTANCE',
+                                     'INSTANCEPATH',
                                      'VALUE.NAMEDINSTANCE',
                                      'VALUE.INSTANCEWITHPATH'])
 
