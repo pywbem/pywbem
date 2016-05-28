@@ -142,6 +142,12 @@ Enhancements
   These debug prints can be enabled via the `debug` instance variable
   of the WBEMConnection object; they are targeted at development for
   investigating these situations.
+  
+* Extended run_cim_operations.py which is a live test against a server.
+  It has only been tested against OpenPegasus but was extended to cover
+  more details on more of the operation types and to create a test
+  subclass to specifically test against OpenPegasus if OpenPegasus is
+  detected as the server.
 
 Bug fixes
 ^^^^^^^^^
