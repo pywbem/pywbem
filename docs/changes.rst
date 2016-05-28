@@ -201,6 +201,9 @@ Bug fixes
 * Fixed issue with tomof() output where datetime values were not quoted.
   (issue #289)
 
+* Fixed problem in class-level associator operations that namespace was classname
+  when classname was passed as a string (issue #322).
+
 
 pywbem v0.8.2
 -------------
