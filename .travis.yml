@@ -20,10 +20,16 @@ install:
   - pip list
   - make develop
   - pip list
+  - python -c "import setuptools,os; print('Version of GitPython package:'); sp=os.path.dirname(os.path.dirname(setuptools.__file__)); print(open(sp+'/git/__init__.py','r').read())"
+
+# TODO 2016-05 AM: Remove displaying of GitPython version, once GitPython 2.0.4 is released.
+
+# commands to run builds & tests
+script:
   - make check
   - make build
-  - make builddoc
-
-# commands to run tests
-script:
+  - if [[ $(python -c "import sys; print('%s.%s'%sys.version_info[0:2])") != 2.6 ]]; then make builddoc; fi
   - make test
+
+# TODO 2016-05 AM: Remove disabling of "make builddoc" for Python 2.6, once GitPython 2.0.4 is released.
+
