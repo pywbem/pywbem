@@ -988,10 +988,28 @@ class WBEMConnection(object):
 
         return tt
 
-    def _iparam_namespace_from(self, obj):
-        """Determine the namespace from an object that can be a namespace
-        string, a CIMClassName or CIMInstanceName object, or `None`. The
+    def _iparam_namespace_from_namespace(self, obj):
+        """Determine the namespace from a namespace string, or `None`. The
         default namespace of the connection object is used, if needed.
+
+        Return the so determined namespace for use as an argument to
+        imethodcall()."""
+
+        if isinstance(obj, six.string_types):
+            namespace = obj
+        elif obj is None:
+            namespace = obj
+        else:
+            raise TypeError('Expecting None (for default), or a namespace ' \
+                            'string, got: %s' % type(obj))
+        if namespace is None:
+            namespace = self.default_namespace
+        return namespace
+
+    def _iparam_namespace_from_objectname(self, obj):
+        """Determine the namespace from an object name, that can be a class
+        name string, a CIMClassName or CIMInstanceName object, or `None`.
+        The default namespace of the connection object is used, if needed.
 
         Return the so determined namespace for use as an argument to
         imethodcall()."""
@@ -999,13 +1017,13 @@ class WBEMConnection(object):
         if isinstance(obj, (CIMClassName, CIMInstanceName)):
             namespace = obj.namespace
         elif isinstance(obj, six.string_types):
-            namespace = obj
+            namespace = None
         elif obj is None:
             namespace = obj
         else:
-            raise TypeError('Expecting None (for default), a namespace ' \
-                            'string, a CIMClassName or CIMInstanceName ' \
-                            'object, got: %s' % type(obj))
+            raise TypeError('Expecting None (for default), a class name ' \
+                            'string, a CIMClassName object, or a ' \
+                            'CIMInstanceName object, got: %s' % type(obj))
         if namespace is None:
             namespace = self.default_namespace
         return namespace
@@ -1113,7 +1131,7 @@ class WBEMConnection(object):
 
         if namespace is None and isinstance(ClassName, CIMClassName):
             namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
         classname = self._iparam_classname(ClassName)
 
         result = self._imethodcall(
@@ -1240,7 +1258,7 @@ class WBEMConnection(object):
 
         if namespace is None and isinstance(ClassName, CIMClassName):
             namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
         classname = self._iparam_classname(ClassName)
 
         result = self._imethodcall(
@@ -1344,7 +1362,7 @@ class WBEMConnection(object):
 
         # Strip off host and namespace to make this a "local" object
 
-        namespace = self._iparam_namespace_from(InstanceName)
+        namespace = self._iparam_namespace_from_objectname(InstanceName)
         instancename = self._iparam_instancename(InstanceName)
 
         result = self._imethodcall(
@@ -1443,7 +1461,7 @@ class WBEMConnection(object):
                 'ModifiedInstance parameter must have classname set in ' \
                 'instance')
 
-        namespace = self._iparam_namespace_from(ModifiedInstance.path)
+        namespace = self._iparam_namespace_from_objectname(ModifiedInstance.path)
 
         # Strip off host and namespace to avoid producing an INSTANCEPATH or
         # LOCALINSTANCEPATH element instead of the desired INSTANCENAME element.
@@ -1521,7 +1539,7 @@ class WBEMConnection(object):
 
         if namespace is None and NewInstance.path.namespace is not None:
             namespace = NewInstance.path.namespace
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
 
         # Strip off path to avoid producing a VALUE.NAMEDINSTANCE element
         # instead of the desired INSTANCE element.
@@ -1567,7 +1585,7 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from(InstanceName)
+        namespace = self._iparam_namespace_from_objectname(InstanceName)
         instancename = self._iparam_instancename(InstanceName)
 
         self._imethodcall(
@@ -1661,7 +1679,7 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from(ObjectName)
+        namespace = self._iparam_namespace_from_objectname(ObjectName)
         objectname = self._iparam_objectname(ObjectName)
 
         result = self._imethodcall(
@@ -1791,7 +1809,7 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from(ObjectName)
+        namespace = self._iparam_namespace_from_objectname(ObjectName)
         objectname = self._iparam_objectname(ObjectName)
 
         result = self._imethodcall(
@@ -1881,7 +1899,7 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from(ObjectName)
+        namespace = self._iparam_namespace_from_objectname(ObjectName)
         objectname = self._iparam_objectname(ObjectName)
 
         result = self._imethodcall(
@@ -1997,7 +2015,7 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from(ObjectName)
+        namespace = self._iparam_namespace_from_objectname(ObjectName)
         objectname = self._iparam_objectname(ObjectName)
 
         result = self._imethodcall(
@@ -2194,7 +2212,7 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
 
         result = self._imethodcall(
             'ExecQuery',
@@ -2285,7 +2303,7 @@ class WBEMConnection(object):
 
         if namespace is None and isinstance(ClassName, CIMClassName):
             namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
         classname = self._iparam_classname(ClassName)
 
         result = self._imethodcall(
@@ -2400,7 +2418,7 @@ class WBEMConnection(object):
 
         if namespace is None and isinstance(ClassName, CIMClassName):
             namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
         classname = self._iparam_classname(ClassName)
 
         result = self._imethodcall(
@@ -2502,7 +2520,7 @@ class WBEMConnection(object):
 
         if namespace is None and isinstance(ClassName, CIMClassName):
             namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
         classname = self._iparam_classname(ClassName)
 
         result = self._imethodcall(
@@ -2558,7 +2576,7 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
 
         klass = ModifiedClass.copy()
         klass.path = None
@@ -2607,7 +2625,7 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
 
         klass = NewClass.copy()
         klass.path = None
@@ -2658,7 +2676,7 @@ class WBEMConnection(object):
 
         if namespace is None and isinstance(ClassName, CIMClassName):
             namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
         classname = self._iparam_classname(ClassName)
 
         self._imethodcall(
@@ -2708,7 +2726,7 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
 
         result = self._imethodcall(
             'EnumerateQualifiers',
@@ -2763,7 +2781,7 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
 
         result = self._imethodcall(
             'GetQualifier',
@@ -2812,7 +2830,7 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
 
         unused_result = self._imethodcall(
             'SetQualifier',
@@ -2856,7 +2874,7 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from(namespace)
+        namespace = self._iparam_namespace_from_namespace(namespace)
 
         unused_result = self._imethodcall(
             'DeleteQualifier',
