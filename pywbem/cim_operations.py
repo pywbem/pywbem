@@ -54,6 +54,30 @@ WBEMConnection method                                   Purpose
 :meth:`~pywbem.WBEMConnection.InvokeMethod`             Invoke a method on a target instance or on a target class
 ------------------------------------------------------  --------------------------------------------------------------
 :meth:`~pywbem.WBEMConnection.ExecQuery`                Execute a query in a namespace
+------------------------------------------------------- ---------------------------------------------------------
+:meth:`~pywbem.WBEMConnection.OpenEnumerateInstances`   Open enumeration session to retrieve instances of
+                                                        of a class (including instances of its subclass)
+:meth:`~pywbem.WBEMConnection.OpenAssocatorInstances`   Open enumeration session to retrieve the instances
+                                                        associated to a source instance
+:meth:`~pywbem.WBEMConnection.OpenReferenceInstances`   Open enumeration session to retrieve the instances
+                                                        that reference a source instance
+:meth:`~pywbem.WBEMConnection.PullInstancesWithPath`    Continue enumeration session opened with
+                                                        OpenEnumerateInstances, OpenAssociators, or
+                                                        OpenReferences
+:meth:`~pywbem.WBEMConnection.OpenEnumerateInstancePaths`  Open enumeration session to retrieve instances of
+                                                        of a class (including instances of its subclass)
+:meth:`~pywbem.WBEMConnection.OpenAssocatorPaths`       Open enumeration session to retrieve the instances
+                                                        associated to a source instance
+:meth:`~pywbem.WBEMConnection.OpenReferencePaths`       Open enumeration session to retrieve the instances
+                                                        that reference a source instance
+:meth:`~pywbem.WBEMConnection.PullInstancePaths`        Continue enumeration session opened with
+                                                        OpenEnumerateInstancePaths, OpenAssociatorInstancePaths,
+                                                        or OpenReferenceInstancePaths
+:meth:`~pywbem.WBEMConnection.OpenExecQuery`            Open query request to retrieve instances defined by
+                                                        the query parameter in a namespace
+:meth:`~pywbem.WBEMConnection.PullInstances`            Continue enumeration of enumeration session opened
+                                                        with OpenExecQuery
+:meth:`~pywbem.WBEMConnection.CloseEnumeration`         Close an enumeration session in process.
 ------------------------------------------------------  --------------------------------------------------------------
 :meth:`~pywbem.WBEMConnection.EnumerateClassNames`      Enumerate the names of subclasses of a class, or of the
                                                         top-level classes in a namespace
@@ -83,6 +107,7 @@ from datetime import datetime, timedelta
 from xml.dom import minidom
 from xml.parsers.expat import ExpatError
 import warnings
+from collections import namedtuple
 
 import six
 
@@ -97,6 +122,7 @@ from .tupleparse import parse_cim
 from .tupletree import dom_to_tupletree
 from .exceptions import Error, ParseError, AuthError, ConnectionError, \
                         TimeoutError, CIMError
+from .cim_constants import *  # pylint: disable=wildcard-import
 
 __all__ = ['WBEMConnection', 'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
@@ -341,9 +367,9 @@ class WBEMConnection(object):
 
       - :exc:`~pywbem.AuthError` - Authentication failed with the WBEM server.
 
-      - :exc:`~pywbem.ParseError` - The response from the WBEM server cannot be
-        parsed (for example, invalid characters or UTF-8 sequences, ill-formed
-        XML, or invalid CIM-XML).
+      - :exc:`~pywbem.ParseError` - The response from the WBEM server cannot
+        be parsed (for example, invalid characters or UTF-8 sequences,
+        ill-formed XML, or invalid CIM-XML).
 
       - :exc:`~pywbem.CIMError` - The WBEM server returned an error response
         with a CIM status code.
@@ -368,8 +394,8 @@ class WBEMConnection(object):
       ... : All parameters of the :class:`~pywbem.WBEMConnection` constructor
         are set as public instance variables with the same name.
 
-      debug (:class:`py:bool`): A boolean indicating whether logging of the last request
-        and last reply is enabled.
+      debug (:class:`py:bool`): A boolean indicating whether logging of
+        the last request and last reply is enabled.
 
         The initial value of this instance variable is `False`.
         Debug logging can be enabled for future operations by setting this
@@ -603,7 +629,8 @@ class WBEMConnection(object):
                 self.default_namespace, self.x509, self.verify_callback,
                 self.ca_certs, self.no_verification, self.timeout)
 
-    def imethodcall(self, methodname, namespace, **params):
+    def imethodcall(self, methodname, namespace, response_params_rqd=None, \
+                    **params):
         """
         This is a low-level method that is used by the operation-specific
         methods of this class
@@ -619,9 +646,12 @@ class WBEMConnection(object):
         warnings.warn(
             "Calling imethodcall() directly is deprecated",
             DeprecationWarning)
-        return self._imethodcall(methodname, namespace, **params)
+        return self._imethodcall(methodname, namespace,
+                                 response_params_rqd=response_params_rqd,
+                                 **params)
 
-    def _imethodcall(self, methodname, namespace, **params):
+    def _imethodcall(self, methodname, namespace, response_params_rqd=None, \
+                     **params):
         """
         Perform an intrinsic CIM-XML operation.
         """
@@ -755,18 +785,32 @@ class WBEMConnection(object):
 
         if tup_tree is None:
             return None
+        if len(tup_tree) == 0:
+            return None
 
-        if tup_tree[0] == 'ERROR':
-            code = int(tup_tree[1]['CODE'])
-            if 'DESCRIPTION' in tup_tree[1]:
-                raise CIMError(code, tup_tree[1]['DESCRIPTION'])
-            raise CIMError(code, 'Error code %s' % tup_tree[1]['CODE'])
+        # ERROR | ...
+        if tup_tree[0][0] == 'ERROR':
+            err = tup_tree[0]
+            code = int(err[1]['CODE'])
+            if 'DESCRIPTION' in err[1]:
+                raise CIMError(code, err[1]['DESCRIPTION'])
+            raise CIMError(code, 'Error code %s' % err[1]['CODE'])
+        if response_params_rqd is None:
+            #expect either ERROR | IRETURNVALUE*
+            err = tup_tree[0]
+            if err[0] != 'IRETURNVALUE':
+                raise ParseError('Expecting IRETURNVALUE element, got %s' \
+                                 % err[0])
+            return tup_tree
 
-        if tup_tree[0] != 'IRETURNVALUE':
-            raise ParseError('Expecting IRETURNVALUE element, got %s' \
-                             % tup_tree[0])
-
-        return tup_tree
+        # At this point should have optional RETURNVALUE and at maybe one
+        # paramvalue element representing the pull return parameters
+        # of end_of_sequence/enumeration_context
+        # (IRETURNVALUE*, PARAMVALUE?)
+        else:
+            # TODO Further tests on this IRETURN or PARAMVALUE
+            # Could be IRETURNVALUE or a PARAMVALUE
+            return tup_tree
 
     def methodcall(self, methodname, localobject, Params=None, **params):
         """
@@ -989,6 +1033,7 @@ class WBEMConnection(object):
         return tt
 
     def _iparam_namespace_from_namespace(self, obj):
+        # pylint: disable=invalid-name,
         """Determine the namespace from a namespace string, or `None`. The
         default namespace of the connection object is used, if needed.
 
@@ -1007,6 +1052,7 @@ class WBEMConnection(object):
         return namespace
 
     def _iparam_namespace_from_objectname(self, obj):
+        # pylint: disable=invalid-name,
         """Determine the namespace from an object name, that can be a class
         name string, a CIMClassName or CIMInstanceName object, or `None`.
         The default namespace of the connection object is used, if needed.
@@ -1142,7 +1188,7 @@ class WBEMConnection(object):
 
         instancenames = []
         if result is not None:
-            instancenames = result[2]
+            instancenames = result[0][2]
 
         for instancename in instancenames:
             instancename.namespace = namespace
@@ -1273,13 +1319,932 @@ class WBEMConnection(object):
             **extra)
 
         instances = []
+
         if result is not None:
-            instances = result[2]
+            instances = result[0][2]
 
         for instance in instances:
             instance.path.namespace = namespace
 
         return instances
+
+
+    def _proc_pull_rslt(self, result, namespace):
+        """Common processing for pull results to separate
+           end-of-sequence, enum-context, and endities in IRETURNVALUE.
+           Returns tuple of entities in IRETURNVALUE, end_of_sequence,
+           and enumeration_context)
+        """
+        #TODO make this None???
+        rtn_objects = []
+        end_of_sequence = False
+        enumeration_context = None
+        valid_result = False
+
+        for p in result:
+            if p[0] == 'EndOfSequence':
+                # TODO test for false also
+                valid_result = True if p[2] == 'TRUE' else False
+                end_of_sequence = valid_result
+            elif p[0] == 'EnumerationContext':
+                enumeration_context = p[2]
+                valid_result = True
+            elif p[0] == "IRETURNVALUE":
+                rtn_objects = p[2]
+            else:
+                # TODO ks 5/16 Invalid xml error or just ignore???
+                print('Nothing found at p0 %s ' % (p[0]))
+
+        if not valid_result:
+            raise CIMError(CIM_ERR_INVALID_PARAMETER, "EndOfSequence " \
+                           "or EnumerationContext required")
+
+        rtn_ctxt = None if end_of_sequence else (enumeration_context,
+                                                 namespace)
+
+        return (rtn_objects, end_of_sequence, rtn_ctxt)
+
+    def OpenEnumerateInstancePaths(self, ClassName, namespace=None,
+                                   FilterQueryLanguage=None, FilterQuery=None,
+                                   OperationTimeout=None, ContinueOnError=None,
+                                   MaxObjectCount=None, **extra):
+        # pylint: disable=invalid-name
+
+        """
+        Open an enumeration session to enumerate the instance paths of
+        instances of a class (including instances of its subclasses) in
+        a namespace.
+
+        This method performs the OpenEnumerateInstancePaths operation
+        (see :term:`DSP0200`).
+        If the operation succeeds, this method returns.
+        Otherwise, this method raises an exception.
+
+        The subsequent pull operation after this open is successful
+        must be either the PullInstancePaths request or the CloseEnumeration
+        request.
+
+        Parameters:
+
+          ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
+            Name of the class to be enumerated, in any lexical case.
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            namespace component will be used as a default namespace as
+            described for the namespace argument, and its host component
+            will be ignored.
+
+          namespace (:term:`string`):
+            Name of the CIM namespace to be used, in any lexical case.
+
+            If `None`, the namespace of the `ClassName` parameter will be used,
+            if specified as a :class:`~pywbem.CIMClassName` object. If that is
+            also `None`, the default namespace of the connection will be used.
+
+          FilterQueryLanguage (:term:`string`):
+            A string defining the name of the query language
+            used for the `FilterQuery` argument. The DMTF defined language
+            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
+
+          FilterQuery (:term:`string`):
+            A string defining the query that is to be sent
+            to the WBEM server using the query language defined by
+            the `FilterQueryLanguage` parameter.
+
+          OperationTimeout (:class:`~pywbem.Uint32`):
+            Minimum time in seconds the WBEM Server shall maintain an open
+            enumeration session after a previous Open or Pull request is
+            sent to the client. Once this timeout time has expired, the
+            WBEM server may close the enumeration session.
+
+            If provided it defines a timeout value to be sent to the WBEM
+            Server. If not provided, this parameter is not passed to the
+            WBEM server and the server uses its own default.
+
+            * If not `None`, this parameter is sent to the WBEM server as the
+              proposed timeout for the enumeration session. A value of 0
+              indicates that the server is expected to never time out. The
+              server may reject the proposed value, causing a
+              :class:`~pywbem.CIMError` to be raised with status code
+              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default timeout to be used.
+
+          ContinueOnError (:class:`py:bool`):
+            Indicates to the WBEM server to continue sending responses
+            after an error response has been sent.
+
+            * If `True`, the server is to continue sending responses after
+              sending an error response. Not all servers support continuation
+              on error; a server that does not support it must send an error
+              response if `True` was specified, causing
+              :class:`~pywbem.CIMError` to be raised with status code
+              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+            * If `False`, the server is requested to close the enumeration after
+              sending an error response.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default behaviour to be used.
+              :term:`DSP0200` defines that the server-implemented default is
+              `False`.
+
+          MaxObjectCount (:class:`~pywbem.Uint32`)
+            Maximum number of instances the WBEM server may return
+            for this request.
+
+            * If positive, the WBEM server is to return no more than the
+              specified number of instances.
+            * If zero, the WBEM server is to return no instances. This may
+              be used by a client to leave the handling of any returned
+              instances to a loop of Pull operations.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default behaviour to be used.
+              :term:`DSP0200` defines that the server-implemented default is
+              to return zero instances.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
+
+        :Returns:
+
+            A :class:`py:namedtuple` containing the following named elements:
+
+            * `paths` (list of :class:`~pywbem.CIMInstance`):
+              Representations of the initial set of enumerated instances.
+            * `eos` (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+            * `context` (tuple of (SvrCtxt, namespace)):
+               that identifies the opened enumeration session, and that the
+               client needs to provide for subsequent operations on this
+               enumeration session. The tuple items are:
+               - SvrCtxt (:term:`string`):
+                 Enumeration context string returned by the server if
+                 the session is not exhausted, or `None` otherwise. This string
+                 is opaque for the client.
+               - namespace (:term:`string`):
+                 Name of the CIM namespace that was used for this operation.
+               NOTE: This inner tuple hides the need for a CIM namespace
+               on subsequent operations in the enumeration session. CIM
+               operations always require target namespace, but it never
+               makes sense to specify a different one in subsequent
+               operations on the same enumeration session.
+
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
+        """
+        if namespace is None and isinstance(ClassName, CIMClassName):
+            namespace = ClassName.namespace
+        namespace = self._iparam_namespace_from_namespace(namespace)
+        classname = self._iparam_classname(ClassName)
+
+        result = self._imethodcall(
+            'OpenEnumerateInstancePaths',
+            namespace,
+            ClassName=classname,
+            FilterQueryLanguage=FilterQueryLanguage,
+            FilterQuery=FilterQuery,
+            OperationTimeout=OperationTimeout,
+            ContinueOnError=ContinueOnError,
+            MaxObjectCount=MaxObjectCount,
+            response_params_rqd=True,
+            **extra)
+
+        # TODO ks 5/16 why are we setting the namespace attribute??
+        #[setattr(i.path, 'namespace', namespace) for i in instances]
+
+        paths, end_of_sequence, enum_ctxt = \
+            self._proc_pull_rslt(result, namespace)
+
+        # return a namedtuple
+        result = namedtuple("result", ["paths", "eos", "context"])
+        return result(paths, end_of_sequence, enum_ctxt)
+
+    def OpenEnumerateInstances(self, ClassName, namespace=None, LocalOnly=None,
+                               DeepInheritance=None, IncludeQualifiers=None,
+                               IncludeClassOrigin=None, PropertyList=None,
+                               FilterQueryLanguage=None, FilterQuery=None,
+                               OperationTimeout=None, ContinueOnError=None,
+                               MaxObjectCount=None, **extra):
+        # pylint: disable=invalid-name
+        """
+        Open an enumeration session to get instances of a class
+        (including instances of its subclasses).
+
+        This method performs the OpenEnumerateInstances operation
+        (see :term:`DSP0200`)
+        .
+        If the operation succeeds, this method returns.
+        Otherwise, this method raises an exception.
+
+        :Parameters:
+
+          ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
+            Name of the class to be enumerated, in any lexical case.
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            namespace component will be used as a default namespace as
+            described for the namespace argument, and its host component
+            will be ignored.
+
+          namespace (:term:`string`):
+            Name of the CIM namespace to be used, in any lexical case.
+
+            If `None`, the namespace of the `ClassName` parameter will be used,
+            if specified as a :class:`~pywbem.CIMClassName` object. If that is
+            also `None`, the default namespace of the connection will be used.
+
+          LocalOnly (:class:`py:bool`):
+            Controls the exclusion of inherited properties from the returned
+            instances, as follows:
+
+            * If `False`, inherited properties are not excluded.
+            * If `True`, inherited properties are basically excluded, but the
+              behavior may be WBEM server specific.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. :term:`DSP0200`
+              defines that the server-implemented default is `True`.
+
+            This parameter has been deprecated in :term:`DSP0200` and should be
+            set to `False` by the caller.
+
+          DeepInheritance (:class:`py:bool`):
+            Indicates that properties added by subclasses of the specified
+            class are to be included in the returned instances, as follows:
+
+            * If `False`, properties added by subclasses are not included.
+            * If `True`, properties added by subclasses are included.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. :term:`DSP0200`
+              defines that the server-implemented default is `True`.
+
+            Note, the semantics of the `DeepInheritance` parameter in
+            :meth:`~pywbem.WBEMConnection.EnumerateClasses` and
+            :meth:`~pywbem.WBEMConnection.EnumerateClassNames`
+            is different.
+
+          IncludeQualifiers (:class:`py:bool`):
+            Indicates that qualifiers are to be included in the returned
+            instance, as follows:
+
+            * If `False`, qualifiers are not included.
+            * If `True`, qualifiers are included if the WBEM server implements
+              support for this parameter.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. :term:`DSP0200`
+              defines that the server-implemented default is `False`.
+
+            This parameter has been deprecated in :term:`DSP0200`. Clients
+            cannot rely on it being implemented by WBEM servers.
+
+          IncludeClassOrigin (:class:`py:bool`):
+            Indicates that class origin information is to be included on each
+            property in the returned instances, as follows:
+
+            * If `False`, class origin information is not included.
+            * If `True`, class origin information is included.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default to be used. :term:`DSP0200`
+              defines that the server-implemented default is `False`.
+
+          PropertyList (:term:`py:iterable` of :term:`string`):
+            An iterable specifying the names of the properties to be
+            included in the returned instances, in any lexical case.
+
+            An empty iterable indicates to include no properties.
+
+            If `None`, all properties are included.
+
+          FilterQueryLanguage (:term:`string`):
+            A string defining the name of the query language
+            used for the `FilterQuery` argument. The DMTF defined language
+            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
+
+          FilterQuery (:term:`string`):
+            A string defining the query that is to be sent
+            to the WBEM server using the query language defined by
+            the `FilterQueryLanguage` parameter.
+
+          OperationTimeout (:class:`~pywbem.Uint32`):
+            Minimum time in seconds the WBEM Server shall maintain an open
+            enumeration session after a previous Open or Pull request is
+            sent to the client. Once this timeout time has expired, the
+            WBEM server may close the enumeration session.
+
+            If provided it defines a timeout value to be sent to the WBEM
+            Server. If not provided, this parameter is not passed to the
+            WBEM server and the server uses its own default.
+
+            * If not `None`, this parameter is sent to the WBEM server as the
+              proposed timeout for the enumeration session. A value of 0
+              indicates that the server is expected to never time out. The
+              server may reject the proposed value, causing a
+              :class:`~pywbem.CIMError` to be raised with status code
+              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default timeout to be used.
+
+          ContinueOnError (:class:`py:bool`):
+            Indicates to the WBEM server to continue sending responses
+            after an error response has been sent.
+
+            * If `True`, the server is to continue sending responses after
+              sending an error response. Not all servers support continuation
+              on error; a server that does not support it must send an error
+              response if `True` was specified, causing
+              :class:`~pywbem.CIMError` to be raised with status code
+              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+            * If `False`, the server is requested to close the enumeration after
+              sending an error response.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default behaviour to be used.
+              :term:`DSP0200` defines that the server-implemented default is
+              `False`.
+
+          MaxObjectCount (:class:`~pywbem.Uint32`)
+            Maximum number of instances the WBEM server may return
+            for this request.
+
+            * If positive, the WBEM server is to return no more than the
+              specified number of instances.
+            * If zero, the WBEM server is to return no instances. This may
+              be used by a client to leave the handling of any returned
+              instances to a loop of Pull operations.
+            * If `None`, this parameter is not passed to the WBEM server, and
+              causes the server-implemented default behaviour to be used.
+              :term:`DSP0200` defines that the server-implemented default is
+              to return zero instances.
+
+        :Returns:
+
+            A :class:`py:namedtuple` containing the following named elements:
+
+            * `instances` (list of :class:`~pywbem.CIMInstance`):
+              Representations of the initial set of enumerated instances.
+             * `eos` (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+            * `context` (tuple of (SvrCtxt, namespace)):
+               that identifies the opened enumeration session, and that the
+               client needs to provide for subsequent operations on this
+               enumeration session. The tuple items are:
+               - SvrCtxt (:term:`string`):
+                 Enumeration context string returned by the server if
+                 the session is not exhausted, or `None` otherwise. This string
+                 is opaque for the client.
+               - namespace (:term:`string`):
+                 Name of the CIM namespace that was used for this operation.
+               NOTE: This inner tuple hides the need for a CIM namespace
+               on subsequent operations in the enumeration session. CIM
+               operations always require target namespace, but it never
+               makes sense to specify a different one in subsequent
+               operations on the same enumeration session.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
+
+        :Exceptions:
+
+            See the list of exceptions described in `WBEMConnection`.
+        """
+
+        if namespace is None and isinstance(ClassName, CIMClassName):
+            namespace = ClassName.namespace
+        namespace = self._iparam_namespace_from_namespace(ClassName)
+        classname = self._iparam_classname(ClassName)
+
+        result = self._imethodcall(
+            'OpenEnumerateInstances',
+            namespace,
+            ClassName=classname,
+            LocalOnly=LocalOnly,
+            DeepInheritance=DeepInheritance,
+            IncludeQualifiers=IncludeQualifiers,
+            IncludeClassOrigin=IncludeClassOrigin,
+            PropertyList=PropertyList,
+            FilterQueryLanguage=FilterQueryLanguage,
+            FilterQuery=FilterQuery,
+            OperationTimeout=OperationTimeout,
+            ContinueOnError=ContinueOnError,
+            MaxObjectCount=MaxObjectCount,
+            response_params_rqd=True,
+            **extra)
+
+        # TODO ks 5/16 why are we setting the namespace attribute??
+        #[setattr(i.path, 'namespace', namespace) for i in instances]
+
+        insts, end_of_sequence, enum_ctxt = \
+            self._proc_pull_rslt(result, namespace)
+
+        result = namedtuple("result", ["instances", "eos", "context"])
+        return result(insts, end_of_sequence, enum_ctxt)
+
+    def OpenReferencePaths(self, InstanceName, ResultClass=None,
+                           Role=None,
+                           FilterQueryLanguage=None, FilterQuery=None,
+                           OperationTimeout=None, ContinueOnError=None,
+                           MaxObjectCount=None, **extra):
+        # pylint: disable=invalid-name
+        """TODO add doc"""
+
+        #TODO Limit to instance name. No classname allowed.
+        namespace = self._iparam_namespace_from_objectname(InstanceName)
+        instancename = self._iparam_objectname(InstanceName)
+
+        result = self._imethodcall(
+            'OpenReferencePaths',
+            namespace,
+            InstanceName=instancename,
+            ResultClass=self._iparam_classname(ResultClass),
+            Role=Role,
+            FilterQueryLanguage=FilterQueryLanguage,
+            FilterQuery=FilterQuery,
+            OperationTimeout=OperationTimeout,
+            ContinueOnError=ContinueOnError,
+            MaxObjectCount=MaxObjectCount,
+            response_params_rqd=True,
+            **extra)
+
+        # TODO ks 5/16 why are we setting the namespace attribute??
+        #[setattr(i.path, 'namespace', namespace) for i in instances]
+
+        insts, end_of_sequence, enum_ctxt = \
+            self._proc_pull_rslt(result, namespace)
+
+        result = namedtuple("result", ["instances", "eos", "context"])
+        return result(insts, end_of_sequence, enum_ctxt)
+
+    def OpenReferenceInstances(self, InstanceName, ResultClass=None,
+                               Role=None, IncludeQualifiers=None,
+                               IncludeClassOrigin=None, PropertyList=None,
+                               FilterQueryLanguage=None, FilterQuery=None,
+                               OperationTimeout=None, ContinueOnError=None,
+                               MaxObjectCount=None, **extra):
+        # pylint: disable=invalid-name
+        """TODO add doc"""
+
+        #TODO Limit to instance name. No classname allowed.
+        namespace = self._iparam_namespace_from_objectname(InstanceName)
+        instancename = self._iparam_objectname(InstanceName)
+
+        result = self._imethodcall(
+            'OpenReferenceInstances',
+            namespace,
+            InstanceName=instancename,
+            ResultClass=self._iparam_classname(ResultClass),
+            Role=Role,
+            IncludeQualifiers=IncludeQualifiers,
+            IncludeClassOrigin=IncludeClassOrigin,
+            PropertyList=PropertyList,
+            FilterQueryLanguage=FilterQueryLanguage,
+            FilterQuery=FilterQuery,
+            OperationTimeout=OperationTimeout,
+            ContinueOnError=ContinueOnError,
+            MaxObjectCount=MaxObjectCount,
+            response_params_rqd=True,
+            **extra)
+
+        # TODO ks 5/16 why are we setting the namespace attribute??
+        #[setattr(i.path, 'namespace', namespace) for i in instances]
+
+        insts, end_of_sequence, enum_ctxt = \
+            self._proc_pull_rslt(result, namespace)
+
+        result = namedtuple("result", ["instances", "eos", "context"])
+        return result(insts, end_of_sequence, enum_ctxt)
+
+    def OpenAssociatorPaths(self, InstanceName, AssocClass=None,
+                            ResultClass=None, Role=None, ResultRole=None,
+                            FilterQueryLanguage=None, FilterQuery=None,
+                            OperationTimeout=None, ContinueOnError=None,
+                            MaxObjectCount=None, **extra):
+        # pylint: disable=invalid-name
+        """
+            TODO add doc
+        """
+
+        #TODO ks 5/16 Limit to instance name. No classname allowed.
+        namespace = self._iparam_namespace_from_objectname(InstanceName)
+        instancename = self._iparam_objectname(InstanceName)
+
+        result = self._imethodcall(
+            'OpenAssociatorPaths',
+            namespace,
+            InstanceName=instancename,
+            AssocClass=self._iparam_classname(AssocClass),
+            ResultClass=self._iparam_classname(ResultClass),
+            Role=Role,
+            ResultRole=ResultRole,
+            FilterQueryLanguage=FilterQueryLanguage,
+            FilterQuery=FilterQuery,
+            OperationTimeout=OperationTimeout,
+            ContinueOnError=ContinueOnError,
+            MaxObjectCount=MaxObjectCount,
+            response_params_rqd=True,
+            **extra)
+
+        # TODO ks 5/16 why are we setting the namespace attribute??
+        #[setattr(i.path, 'namespace', namespace) for i in instances]
+
+        insts, end_of_sequence, enum_ctxt = \
+            self._proc_pull_rslt(result, namespace)
+
+        result = namedtuple("result", ["instances", "eos", "context"])
+        return result(insts, end_of_sequence, enum_ctxt)
+
+    def OpenAssociatorInstances(self, InstanceName, AssocClass=None,
+                                ResultClass=None, Role=None, ResultRole=None,
+                                IncludeQualifiers=None,
+                                IncludeClassOrigin=None,
+                                PropertyList=None, FilterQueryLanguage=None,
+                                FilterQuery=None, OperationTimeout=None,
+                                ContinueOnError=None, MaxObjectCount=None,
+                                **extra):
+        # pylint: disable=invalid-name
+        """
+        TODO add doc
+        """
+
+        #TODO Limit to instance name. No classname allowed.
+        namespace = self._iparam_namespace_from_objectname(InstanceName)
+        instancename = self._iparam_objectname(InstanceName)
+
+        result = self._imethodcall(
+            'OpenAssociatorInstances',
+            namespace,
+            InstanceName=instancename,
+            AssocClass=self._iparam_classname(AssocClass),
+            ResultClass=self._iparam_classname(ResultClass),
+            Role=Role,
+            ResultRole=ResultRole,
+            IncludeQualifiers=IncludeQualifiers,
+            IncludeClassOrigin=IncludeClassOrigin,
+            PropertyList=PropertyList,
+            FilterQueryLanguage=FilterQueryLanguage,
+            FilterQuery=FilterQuery,
+            OperationTimeout=OperationTimeout,
+            ContinueOnError=ContinueOnError,
+            MaxObjectCount=MaxObjectCount,
+            response_params_rqd=True,
+            **extra)
+
+        # TODO ks 5/16 why are we setting the namespace attribute??
+        #[setattr(i.path, 'namespace', namespace) for i in instances]
+
+        insts, end_of_sequence, enum_ctxt = \
+            self._proc_pull_rslt(result, namespace)
+
+        result = namedtuple("result", ["instances", "eos", "context"])
+        return result(insts, end_of_sequence, enum_ctxt)
+
+    def OpenExecQuery(self, QueryLanguage, Query, namespace=None,
+                      FilterQueryLanguage=None, FilterQuery=None,
+                      OperationTimeout=None, ContinueOnError=None,
+                      MaxObjectCount=None, **extra):
+        # pylint: disable=invalid-name
+        """
+            TODO add help
+        """
+        namespace = self._iparam_namespace_from_objectname(namespace)
+
+        result = self._imethodcall(
+            'OpenExecQuery',
+            namespace,
+            QueryLanguage=QueryLanguage,
+            Query=Query,
+            FilterQueryLanguage=FilterQueryLanguage,
+            FilterQuery=FilterQuery,
+            OperationTimeout=OperationTimeout,
+            ContinueOnError=ContinueOnError,
+            MaxObjectCount=MaxObjectCount,
+            response_params_rqd=True,
+            **extra)
+
+        #TODO the execquery gets results from tt[2]
+        insts, end_of_sequence, enum_ctxt = \
+        self._proc_pull_rslt(result, namespace)
+
+        result = namedtuple("result", ["instances", "eos", "context"])
+        return result(insts, end_of_sequence, enum_ctxt)
+
+
+    def PullInstancesWithPath(self, enumeration_context, MaxObjectCount,
+                              **extra):
+        # pylint: disable=invalid-name
+
+        """
+        Retrieve the next set of instances with path from an open enumeraton
+        session defined by the `enumeration_context` parameter.  The retrieved
+        instances include their instance paths.
+
+        This method performs the PullInstanceWithPath operation
+        (see :term:`DSP0200`).
+
+        If the operation succeeds, this method returns.
+        Otherwise, this method raises an exception.
+
+        :Parameters:
+          enumeration_context (:term:`string`)
+            The enumeraton session state parameter returned from the previous
+            operation (open or pull) for this enumeration session.
+            This is the `enumeration_context` component of the operation
+            result `namedtuple`.
+
+          MaxObjectCount (:class:`~pywbem.Uint32`)
+            Maximum number of instances the WBEM server shall return
+            for this request. This parameter is required for each
+            Pull request.
+
+            * If positive, the WBEM server is to return no more than the
+              specified number of instances.
+            * If zero, the WBEM server is to return no instances. This may
+              be used by a client to leave the handling of any returned
+              instances to a loop of Pull operations.
+
+        :Returns:
+
+            A :class:`py:namedtuple` containing the following named elements:
+
+            * `instances` (list of :class:`~pywbem.CIMInstance`):
+              Representations of the initial set of enumerated instances.
+            * `eos` (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+            * `context` (tuple of (SvrCtxt, namespace)):
+               that identifies the opened enumeration session, and that the
+               client needs to provide for subsequent operations on this
+               enumeration session. The tuple items are:
+               - SvrCtxt (:term:`string`):
+                 Enumeration context string returned by the server if
+                 the session is not exhausted, or `None` otherwise. This string
+                 is opaque for the client.
+               - namespace (:term:`string`):
+                 Name of the CIM namespace that was used for this operation.
+               NOTE: This inner tuple hides the need for a CIM namespace
+               on subsequent operations in the enumeration session. CIM
+               operations always require target namespace, but it never
+               makes sense to specify a different one in subsequent
+               operations on the same enumeration session.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
+
+        :Exceptions:
+
+            See the list of exceptions described in `WBEMConnection`.
+        """
+        namespace = enumeration_context[1]
+
+        result = self._imethodcall(
+            'PullInstancesWithPath',
+            namespace=namespace,
+            EnumerationContext=enumeration_context[0],
+            MaxObjectCount=MaxObjectCount,
+            response_params_rqd=True,
+            **extra)
+
+        insts, end_of_sequence, enum_ctxt = \
+            self._proc_pull_rslt(result, namespace)
+
+        result = namedtuple("result", ["instances", "eos", "context"])
+        return result(insts, end_of_sequence, enum_ctxt)
+
+    def PullInstancePaths(self, enumeration_context, MaxObjectCount=None, \
+                          **extra):
+        # pylint: disable=invalid-name
+
+        """
+        Retrieve the next set of instance paths from an open enumeraton
+        session defined by the `enumeration_context` parameter.
+
+        This method performs the PullInstanceWithPath operation
+        (see :term:`DSP0200`).
+
+        If the operation succeeds, this method returns.
+        Otherwise, this method raises an exception.
+
+        :Parameters:
+          enumeration_context (:term:`string`)
+            The enumeraton session state parameter returned from the previous
+            operation (open or pull) for this enumeration session.
+            This is the `enumeration_context` component of the operation
+            result `namedtuple`.
+
+          MaxObjectCount (:class:`~pywbem.Uint32`)
+            Maximum number of instances the WBEM server shall return
+            for this request. This parameter is required for each
+            Pull request.
+
+            * If positive, the WBEM server is to return no more than the
+              specified number of instances.
+            * If zero, the WBEM server is to return no instances. This may
+              be used by a client to leave the handling of any returned
+              instances to a loop of Pull operations.
+
+        :Returns:
+
+            A :class:`py:namedtuple` containing the following named elements:
+
+            * `paths` (list of :class:`~pywbem.CIMInstance`):
+              Representations of the initial set of enumerated instances.
+            * `eos` (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+            * `context` (tuple of (SvrCtxt, namespace)):
+               that identifies the opened enumeration session, and that the
+               client needs to provide for subsequent operations on this
+               enumeration session. The tuple items are:
+               - SvrCtxt (:term:`string`):
+                 Enumeration context string returned by the server if
+                 the session is not exhausted, or `None` otherwise. This string
+                 is opaque for the client.
+               - namespace (:term:`string`):
+                 Name of the CIM namespace that was used for this operation.
+               NOTE: This inner tuple hides the need for a CIM namespace
+               on subsequent operations in the enumeration session. CIM
+               operations always require target namespace, but it never
+               makes sense to specify a different one in subsequent
+               operations on the same enumeration session.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
+
+        :Exceptions:
+
+            See the list of exceptions described in `WBEMConnection`.
+        """
+        namespace = enumeration_context[1]
+
+        result = self._imethodcall(
+            'PullInstancePaths',
+            namespace=namespace,
+            EnumerationContext=enumeration_context[0],
+            MaxObjectCount=MaxObjectCount,
+            response_params_rqd=True,
+            **extra)
+
+        paths, end_of_sequence, enum_ctxt = \
+            self._proc_pull_rslt(result, namespace)
+
+        result = namedtuple("result", ["paths", "eos", "context"])
+
+        return result(paths, end_of_sequence, enum_ctxt)
+
+    def PullInstances(self, enumeration_context, MaxObjectCount=None, \
+                          **extra):
+        # pylint: disable=invalid-name
+
+        """
+        Retrieve the next set of instances from an open enumeraton
+        session defined by the `enumeration_context` parameter.
+
+        This method performs the PullInstanceWithPath operation
+        (see :term:`DSP0200`).
+
+        If the operation succeeds, this method returns.
+        Otherwise, this method raises an exception.
+
+        :Parameters:
+          enumeration_context (:term:`string`)
+            The enumeraton session state parameter returned from the previous
+            operation (open or pull) for this enumeration session.
+            This is the `enumeration_context` component of the operation
+            result `namedtuple`.
+
+          MaxObjectCount (:class:`~pywbem.Uint32`)
+            Maximum number of instances the WBEM server shall return
+            for this request. This parameter is required for each
+            Pull request.
+
+            * If positive, the WBEM server is to return no more than the
+              specified number of instances.
+            * If zero, the WBEM server is to return no instances. This may
+              be used by a client to leave the handling of any returned
+              instances to a loop of Pull operations.
+
+        :Returns:
+
+            A :class:`py:namedtuple` containing the following named elements:
+
+            * `instances` (list of :class:`~pywbem.CIMInstance`):
+              Representations of the initial set of enumerated instances.
+            * `eos` (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+            * `context` (tuple of (SvrCtxt, namespace)):
+               that identifies the opened enumeration session, and that the
+               client needs to provide for subsequent operations on this
+               enumeration session. The tuple items are:
+               - SvrCtxt (:term:`string`):
+                 Enumeration context string returned by the server if
+                 the session is not exhausted, or `None` otherwise. This string
+                 is opaque for the client.
+               - namespace (:term:`string`):
+                 Name of the CIM namespace that was used for this operation.
+               NOTE: This inner tuple hides the need for a CIM namespace
+               on subsequent operations in the enumeration session. CIM
+               operations always require target namespace, but it never
+               makes sense to specify a different one in subsequent
+               operations on the same enumeration session.
+
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
+
+        :Exceptions:
+
+            See the list of exceptions described in `WBEMConnection`.
+        """
+        namespace = enumeration_context[1]
+
+        result = self._imethodcall(
+            'PullInstances',
+            namespace=namespace,
+            EnumerationContext=enumeration_context[0],
+            MaxObjectCount=MaxObjectCount,
+            response_params_rqd=True,
+            **extra)
+
+        paths, end_of_sequence, enum_ctxt = \
+            self._proc_pull_rslt(result, namespace)
+
+        result = namedtuple("result", ["paths", "eos", "context"])
+
+        return result(paths, end_of_sequence, enum_ctxt)
+
+    def CloseEnumeration(self, enumeration_context, **extra):
+        # pylint: disable=invalid-name
+        """
+        The CloseEnumeration closes an open enumeration sequence performing
+        and early termination of the enumeration sequence.
+
+        It passes the namespace defined in the enumeration_context to
+        the WBEM Server
+
+        This method performs the CloseEnumeration operation
+        (see :term:`DSP0200`).
+
+        This method should not used if the enumeration sequence terminates
+        normally.
+
+        If the operation succeeds, this method returns. Otherwise, it
+        raises an exception.
+
+        :Parameters:
+
+          EnumerationContext (:term: `string`)
+            The `EnumerationContext` paramater must contain the
+            `EnumerationContext` value returned by the WBEM server with the
+            response to the previous open or pull operation for this
+            enumeration sequence.
+
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
+        """
+
+        self._imethodcall(
+            'CloseEnumeration',
+            namespace=enumeration_context[1],
+            EnumerationContext=enumeration_context[0],
+            **extra)
 
     def GetInstance(self, InstanceName, LocalOnly=None, IncludeQualifiers=None,
                     IncludeClassOrigin=None, PropertyList=None, **extra):
@@ -1375,7 +2340,7 @@ class WBEMConnection(object):
             PropertyList=PropertyList,
             **extra)
 
-        instance = result[2][0]
+        instance = result[0][2][0]
         instance.path = instancename
         instance.path.namespace = namespace
 
@@ -1552,7 +2517,7 @@ class WBEMConnection(object):
             NewInstance=instance,
             **extra)
 
-        instancename = result[2][0]
+        instancename = result[0][2][0]
         instancename.namespace = namespace  # TODO: Why not accept returned ns?
 
         return instancename
@@ -1695,7 +2660,7 @@ class WBEMConnection(object):
         if result is None:
             return []
 
-        return [x[2] for x in result[2]]
+        return [x[2] for x in result[0][2]]
 
     def Associators(self, ObjectName, AssocClass=None, ResultClass=None,
                     Role=None, ResultRole=None, IncludeQualifiers=None,
@@ -1828,7 +2793,7 @@ class WBEMConnection(object):
         if result is None:
             return []
 
-        return [x[2] for x in result[2]]
+        return [x[2] for x in result[0][2]]
 
     def ReferenceNames(self, ObjectName, ResultClass=None, Role=None, **extra):
         # pylint: disable=invalid-name, line-too-long
@@ -1913,7 +2878,7 @@ class WBEMConnection(object):
         if result is None:
             return []
 
-        return [x[2] for x in result[2]]
+        return [x[2] for x in result[0][2]]
 
     def References(self, ObjectName, ResultClass=None, Role=None,
                    IncludeQualifiers=None, IncludeClassOrigin=None,
@@ -2032,7 +2997,7 @@ class WBEMConnection(object):
         if result is None:
             return []
 
-        return [x[2] for x in result[2]]
+        return [x[2] for x in result[0][2]]
 
     #
     # Method invocation operation
@@ -2224,7 +3189,7 @@ class WBEMConnection(object):
         instances = []
 
         if result is not None:
-            instances = [tt[2] for tt in result[2]]
+            instances = [tt[2] for tt in result[0][2]]
 
         for instance in instances:
             instance.path.namespace = namespace
@@ -2316,7 +3281,7 @@ class WBEMConnection(object):
         if result is None:
             return []
         else:
-            return [x.classname for x in result[2]]
+            return [x.classname for x in result[0][2]]
 
     def EnumerateClasses(self, namespace=None, ClassName=None,
                          DeepInheritance=None, LocalOnly=None,
@@ -2434,7 +3399,7 @@ class WBEMConnection(object):
         if result is None:
             return []
 
-        return result[2]
+        return result[0][2]
 
     def GetClass(self, ClassName, namespace=None, LocalOnly=None,
                  IncludeQualifiers=None, IncludeClassOrigin=None,
@@ -2533,7 +3498,7 @@ class WBEMConnection(object):
             PropertyList=PropertyList,
             **extra)
 
-        return result[2][0]
+        return result[0][2][0]
 
     def ModifyClass(self, ModifiedClass, namespace=None, **extra):
         # pylint: disable=invalid-name
@@ -2734,7 +3699,7 @@ class WBEMConnection(object):
             **extra)
 
         if result is not None:
-            qualifiers = result[2]
+            qualifiers = result[0][2]
         else:
             qualifiers = []
 
@@ -2790,7 +3755,7 @@ class WBEMConnection(object):
             **extra)
 
         if result is not None:
-            names = result[2][0]
+            names = result[0][2][0]
 
         return names
 
