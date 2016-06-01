@@ -441,7 +441,7 @@ class WBEMConnection(object):
                 address) using zone identifier eth0
 
           creds (:class:`py:tuple` of userid, password):
-            Credentials for authenticating with the WBEM server, as a
+            Credentials for HTTP authenticatiion with the WBEM server, as a
             tuple(userid, password), with:
 
               * userid (:term:`string`):
@@ -450,6 +450,12 @@ class WBEMConnection(object):
               * password (:term:`string`):
                 Password for that userid.
 
+            If `None`, the client will not generate ``Authenticate`` headers
+            in the HTTP request. Otherwise, the client will generate an 
+            ``Authenticate`` header using HTTP Basic Authentication.
+
+            See :ref:`Authentication types` for an overview.
+
           default_namespace (:term:`string`):
             Name of the CIM namespace to be used by default (if no namespace
             is specified for an operation).
@@ -457,30 +463,42 @@ class WBEMConnection(object):
             Default: :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`.
 
           x509 (:class:`py:dict`):
-            :term:`X.509` certificates for HTTPS to be used instead of the
-            credentials provided in the `creds` parameter.
-            This parameter is used only when the `url` parameter specifies
-            a scheme of ``"https"``.
+            :term:`X.509` client certificate and key file to be presented
+            to the WBEM server during the TLS/SSL handshake.
 
-            If `None`, certificates are not used (and credentials are used
-            instead).
+            This parameter is ignored when HTTP is used.
 
-            Otherwise, certificates are used instead of the credentials,
-            and this parameter must be a dictionary containing the following
+            If `None`, no client certificate is presented to the server,
+            resulting in 1-way authentication to be used.
+
+            Otherwise, the client certificate is presented to the server,
+            resulting in 2-way authentication to be used.
+            This parameter must be a dictionary containing the following
             two items:
 
-              * ``"cert_file"``: The file path of a file containing an
-                :term:`X.509` certificate, as a :term:`string` object.
+              * ``"cert_file"`` (:term:`string`):
+                The file path of a file containing an :term:`X.509` client
+                certificate.
 
-              * ``"key_file"``: The file path of a file containing the private
-                key belonging to the public key that is part of the
-                :term:`X.509` certificate file, as a :term:`string` object.
+              * ``"key_file"`` (:term:`string`):
+                The file path of a file containing the private key belonging to
+                the public key that is part of the :term:`X.509` certificate
+                file.
+
+            See :ref:`Authentication types` for an overview.
 
           verify_callback (:term:`callable`):
             Registers a callback function that will be called to verify the
-            certificate returned by the WBEM server during the SSL handshake,
-            in addition to the verification already performed by the SSL
-            support in the WBEM client.
+            X.509 server certificate returned by the WBEM server during the
+            TLS/SSL handshake, in addition to the validation already performed
+            by the TLS/SSL support in the PyWBEM client.
+
+            This parameter is ignored when HTTP is used.
+
+            Note that the validation performed by the TLS/SSL support already
+            includes the usual validation, so that normally a callback function
+            does not need to be used. See :ref:`Verification of the X.509 server
+            certificate` for details.
 
             If `None`, no such callback function will be registered.
 
@@ -520,22 +538,29 @@ class WBEMConnection(object):
 
           ca_certs (:term:`string`):
             Location of CA certificates (trusted certificates) for
-            verification purposes.
+            verifying the X.509 server certificate returned by the WBEM server.
+
+            This parameter is ignored when HTTP is used.
 
             The parameter value is either the directory path of a directory
             prepared using the ``c_rehash`` tool included with OpenSSL, or the
             file path of a file in PEM format.
 
-            If `None`, the default system path will be used.
+            If `None`, a default system path will be used.
 
           no_verification (:class:`py:bool`):
-            Indicates that verification of the certificate returned by the WBEM
-            server is disabled (both by `M2Crypto` and by the callback function
-            specified in `verify_callback`).
+            Disables verification of the X.509 server certificate returned by
+            the WBEM server during TLS/SSL handshake, and disables the
+            invocation of a verification function specified in
+            `verify_callback`.
 
-            Disabling the verification is insecure and should be avoided.
+            If `True`, verification is disabled; otherwise, verification is
+            enabled.
 
-            If `True`, verification is disabled; otherwise, it is enabled.
+            This parameter is ignored when HTTP is used.
+
+            Disabling the verification of the server certificate is insecure
+            and should be avoided!
 
           timeout (:term:`number`):
             Timeout in seconds, for requests sent to the server. If the server
