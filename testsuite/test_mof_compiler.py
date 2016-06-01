@@ -23,7 +23,8 @@ from ply import lex
 from pywbem.cim_operations import CIMError
 from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 from pywbem.cim_constants import *
-from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier
+from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
+                           CIMQualifierDeclaration
 from pywbem import mof_compiler
 
 from unittest_extensions import CIMObjectMixin
@@ -41,6 +42,7 @@ MOF_URL = 'http://www.dmtf.org/standards/cim/cim_schema_v2450/' \
 CIM_SCHEMA_MOF = 'cim_schema_2.45.0.mof'
 
 def setUpModule():
+    """ Get the DMTF schema if necessary from the DMTF site"""
 
     if not os.path.isdir(SCHEMA_DIR):
 
@@ -93,6 +95,7 @@ class MOFTest(unittest.TestCase):
 
         def moflog(msg):
             print(msg, file=self.logfile)
+
         moflog_file = os.path.join(SCRIPT_DIR, 'moflog.txt')
         self.logfile = open(moflog_file, 'w')
         self.mofcomp = MOFCompiler(
@@ -277,19 +280,20 @@ class TestTypes(MOFTest, CIMObjectMixin):
         # The expected representation of the class must match the MOF
         # in testmofs/test_types.mof.
         exp_ac_properties = {
+            #pylint: disable=bad-continuation
             'k1': CIMProperty('k1', None, type='uint32',
                 class_origin=test_class,
                 qualifiers={
                     # TODO: Apply issues #203, #205 to flavor parms.
                     'key': CIMQualifier('key', True, overridable=False,
-                                        tosubclass=True, toinstance=True)
+                                        tosubclass=True)
                 }),
             'k2': CIMProperty('k2', None, type='string',
                 class_origin=test_class,
                 qualifiers={
                     # TODO: Apply issues #203, #205 to flavor parms.
                     'key': CIMQualifier('key', True, overridable=False,
-                                        tosubclass=True, toinstance=True)
+                                        tosubclass=True)
                 }),
             'pui8': CIMProperty('pui8', None, type='uint8',
                                 class_origin=test_class),
@@ -321,7 +325,7 @@ class TestTypes(MOFTest, CIMObjectMixin):
                     # TODO: Apply issues #203, #205 to flavor parms.
                     'embeddedobject': CIMQualifier(
                         'embeddedobject', True, overridable=False,
-                        tosubclass=True, toinstance=True)
+                        tosubclass=True, toinstance=None)
                 }),
             'pei': CIMProperty('pei', None, type='string',
                                 class_origin=test_class,
@@ -337,6 +341,85 @@ class TestTypes(MOFTest, CIMObjectMixin):
             properties=exp_ac_properties
         )
         self.assertEqualCIMClass(ac_class, exp_ac_class)
+
+def _build_scope(set_true=None):
+    """ Build a basic scope dictionary to be used in building classes
+        for tests. Required because the compiler supplies all
+        values in the scope list whether true or false
+    """
+    dict_ = {'CLASS' : False, 'ANY' :False, 'ASSOCIATION' : False,
+             'INDICATION' : False, 'METHOD' : False,
+             'PARAMETER' : False, 'PROPERTY' : False,
+             'REFERENCE' : False}
+    for n in set_true:
+        dict_[n] = True
+    return dict_
+
+
+class TestToInstanceFlavor(MOFTest, CIMObjectMixin):
+    """ Test variations on use of ToInstance Flavor"""
+
+    def test_no_toinstance_flavor(self):
+        """ Test that this is not attached to tosubclass flavor by
+            compiler in qualifier decl or in class creation from that
+            qualifier.  """
+
+
+        mof_str = 'Qualifier Tst: boolean = true, Scope(class),'\
+                  ' Flavor(ToSubclass);\n' \
+                  '[Tst]\n' \
+                  'class Py_ToInst{\n' \
+                   '};'
+        self.mofcomp.compile_string(mof_str, NAME_SPACE)
+
+        # compare qualifier declaration
+        scope_def = _build_scope(set_true=['CLASS'])
+        qld = self.mofcomp.handle.GetQualifier('Tst')
+        cmp_qld = CIMQualifierDeclaration('Tst', 'boolean', value=True,
+                                          scopes=scope_def,
+                                          tosubclass=True)
+        self.assertEqual(qld, cmp_qld)
+
+        # compare classes
+        cl = self.mofcomp.handle.GetClass('Py_ToInst',
+                                          LocalOnly=False,
+                                          IncludeQualifiers=True)
+
+        cmp_cl = CIMClass('Py_ToInst',
+                          qualifiers={'Tst': CIMQualifier('Tst', True,
+                                                          tosubclass=True)})
+        self.assertEqual(cl, cmp_cl)
+
+    def test_no_toinstance_flavor(self):
+        """ Test that this is not attached to tosubclass flavor by
+            compiler in qualifier decl or in class creation from that
+            qualifier.  """
+
+        mof_str = 'Qualifier Tst: boolean = true, Scope(class),'\
+                  ' Flavor(ToSubclass, ToInstance);\n' \
+                  '[Tst]\n' \
+                  'class Py_ToInst{\n' \
+                   '};'
+        self.mofcomp.compile_string(mof_str, NAME_SPACE)
+
+        # compare qualifier declaration
+        scope_def = _build_scope(set_true=['CLASS'])
+        qld = self.mofcomp.handle.GetQualifier('Tst')
+        cmp_qld = CIMQualifierDeclaration('Tst', 'boolean', value=True,
+                                          scopes=scope_def,
+                                          tosubclass=True, toinstance=True)
+        self.assertEqual(qld, cmp_qld)
+
+        # compare classes
+        cl = self.mofcomp.handle.GetClass('Py_ToInst',
+                                          LocalOnly=False,
+                                          IncludeQualifiers=True)
+
+        cmp_cl = CIMClass('Py_ToInst',
+                          qualifiers={'Tst': CIMQualifier('Tst', True,
+                                                          tosubclass=True,
+                                                          toinstance=True)})
+        self.assertEqual(cl, cmp_cl)
 
 
 # pylint: disable=too-few-public-methods

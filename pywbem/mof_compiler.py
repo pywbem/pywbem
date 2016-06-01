@@ -135,6 +135,7 @@ reserved = {
     'schema':'SCHEMA',
     'scope':'SCOPE',
     'tosubclass':'TOSUBCLASS',
+    'toinstance':'TOINSTANCE',
     'translatable':'TRANSLATABLE',
     'true':'TRUE',
     }
@@ -835,6 +836,7 @@ def p_flavor(p):
               | DISABLEOVERRIDE
               | RESTRICTED
               | TOSUBCLASS
+              | TOINSTANCE
               | TRANSLATABLE
               """
     p[0] = p[1].lower()
@@ -1214,8 +1216,8 @@ def _build_flavors(flist, qualdecl=None):
     if qualdecl is not None:
         flavors = {'overridable':qualdecl.overridable,
                    'translatable':qualdecl.translatable,
-                   'toinstance':qualdecl.toinstance,
-                   'tosubclass':qualdecl.tosubclass}
+                   'tosubclass':qualdecl.tosubclass,
+                   'toinstance':qualdecl.toinstance}
     if 'disableoverride' in flist:
         flavors['overridable'] = False
     if 'enableoverride' in flist:
@@ -1226,11 +1228,10 @@ def _build_flavors(flist, qualdecl=None):
         flavors['tosubclass'] = False
     if 'tosubclass' in flist:
         flavors['tosubclass'] = True
-    try:
-        if flavors['tosubclass']:
-            flavors['toinstance'] = True
-    except KeyError:
-        pass
+    if 'toinstance' in flist:
+        flavors['toinstance'] = True
+    # issue #193 ks 5/16 removed tosubclass & set toinstance.
+
     return flavors
 
 def p_qualifierName(p):
@@ -1307,6 +1308,7 @@ def p_defaultFlavor(p):
     flist = p[4]
     flavors = {'ENABLEOVERRIDE':True,
                'TOSUBCLASS':True,
+               'TOINSTANCE':False,
                'DISABLEOVERRIDE':False,
                'RESTRICTED':False,
                'TRANSLATABLE':False}
@@ -1463,6 +1465,7 @@ def p_identifier(p):
                   | SCHEMA
                   | SCOPE
                   | TOSUBCLASS
+                  | TOINSTANCE
                   | TRANSLATABLE
                   """
                   #| ASSOCIATION

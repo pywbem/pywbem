@@ -27,7 +27,7 @@ with the result.
 
 Invoke with `-h` or `--help` for a help message.
 """
-
+import os
 import sys 
 import argparse
 from getpass import getpass

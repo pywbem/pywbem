@@ -136,7 +136,6 @@ class ClientTest(unittest.TestCase):
                 self.assertIsInstance(prop, CIMProperty)
 
 
-
 #################################################################
 # Instance provider interface tests
 #################################################################
@@ -214,7 +213,6 @@ class EnumerateInstances(ClientTest):
                     return value.class_origin is None
                 except KeyError:
                     return True
-
 
     def test_simple(self):
         """Simplest invocation of EnumerateInstances"""
@@ -958,6 +956,7 @@ class EnumerateClassNames(ClientTest):
             for n in sub_names:
                 self.assertTrue(isinstance(n, six.string_types))
             subname_list += sub_names
+
         full_name_list += subname_list
         self.assertTrue(TEST_CLASS in full_name_list,
                         'test class not found')
