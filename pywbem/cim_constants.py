@@ -146,9 +146,11 @@ CIM_ERR_PULL_CANNOT_BE_ABANDONED = 24
 
 #: Using a a filter query in pulled enumerations is not supported by the WBEM
 #: server.
+#pylint: disable=invalid-name
 CIM_ERR_FILTERED_ENUMERATION_NOT_SUPPORTED = 25
 
 #: The WBEM server does not support continuation on error.
+#pylint: disable=invalid-name
 CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED = 26
 
 #: The WBEM server has failed the operation based upon exceeding server limits.
@@ -157,7 +159,7 @@ CIM_ERR_SERVER_LIMITS_EXCEEDED = 27
 #: The WBEM server is shutting down and cannot process the operation.
 CIM_ERR_SERVER_IS_SHUTTING_DOWN = 28
 
-
+#pylint: disable=line-too-long
 _STATUSCODE2NAME = {
     CIM_ERR_FAILED                 : 'CIM_ERR_FAILED',
     CIM_ERR_ACCESS_DENIED          : 'CIM_ERR_ACCESS_DENIED',
