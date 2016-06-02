@@ -546,7 +546,8 @@ class WBEMConnection(object):
             prepared using the ``c_rehash`` tool included with OpenSSL, or the
             file path of a file in PEM format.
 
-            If `None`, a default system path will be used.
+            If `None`, default system paths will be used (see
+            `pywbem.cim_http.DEFAULT_CA_CERT_PATHS`)
 
           no_verification (:class:`py:bool`):
             Disables verification of the X.509 server certificate returned by
