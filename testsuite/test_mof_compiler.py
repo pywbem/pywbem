@@ -117,12 +117,16 @@ class TestFullSchema(MOFTest):
                          1621)
 
 class TestAliases(MOFTest):
+    """Test mof aliases function"""
 
     def test_all(self):
+        """Aliases defined in test.mof"""
+
         self.mofcomp.compile_file(
             os.path.join(SCRIPT_DIR, 'test.mof'), NAME_SPACE)
 
 class TestSchemaError(MOFTest):
+    """Test errors in schema compile"""
 
     def test_all(self):
         self.mofcomp.parser.search_paths = []
@@ -163,6 +167,9 @@ class TestSchemaError(MOFTest):
             self.assertEqual(ce.file_line[1], 179)
 
 class TestSchemaSearch(MOFTest):
+    """Test the search attribute for schema in a directory defined
+       by search attribute. Searches the SCHEMA_DIR
+    """
 
     def test_all(self):
         self.mofcomp.compile_file(os.path.join(SCHEMA_DIR,
@@ -181,6 +188,9 @@ class TestSchemaSearch(MOFTest):
 
 
 class TestParseError(MOFTest):
+    """
+        Test multiple mof snippets that have specific errors
+    """
 
     def test_all(self):
         _file = os.path.join(SCRIPT_DIR,
@@ -225,10 +235,12 @@ class TestParseError(MOFTest):
             self.assertEqual(str(pe), 'Unexpected end of file')
 
 class TestPropertyAlternatives(MOFTest):
-    """ Test compile of a class with individual property alternatives
+    """
+        Test compile of a class with individual property alternatives
     """
     def test_array_type(self):
         """ Test compile of class with array property"""
+
         mof_str = "class PyWBEM_TestArray{\n    Uint32 arrayprop[];\n};"
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
         cl = self.mofcomp.handle.GetClass(
@@ -390,7 +402,7 @@ class TestToInstanceFlavor(MOFTest, CIMObjectMixin):
                                                           tosubclass=True)})
         self.assertEqual(cl, cmp_cl)
 
-    def test_no_toinstance_flavor(self):
+    def test_no_toinstance_flavor2(self):
         """ Test that this is not attached to tosubclass flavor by
             compiler in qualifier decl or in class creation from that
             qualifier.  """
@@ -465,6 +477,7 @@ class BaseTestLexer(unittest.TestCase):
     def lex_error(value, lineno, lexpos):
         """Return an expected LEX error."""
         tok = LexErrorToken()
+        #pylint: disable=attribute-defined-outside-init
         tok.type = None
         tok.value = value
         tok.lineno = lineno
@@ -635,6 +648,7 @@ class TestLexerNumber(BaseTestLexer):
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_binary_0B(self):
+        #pylint: disable=invalid-name
         """Test a binary number 0B (upper case B)."""
         input_data = "0B"
         exp_tokens = [
@@ -759,6 +773,7 @@ class TestLexerNumber(BaseTestLexer):
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_hex_0X0(self):
+        #pylint: disable=invalid-name
         """Test hex number 0X0."""
         input_data = "0X0"
         exp_tokens = [
@@ -915,6 +930,7 @@ class TestLexerNumber(BaseTestLexer):
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_error_02B(self):
+        #pylint: disable=invalid-name
         """Test '02B' (decimal: B means binary; binary: digit out of range;
         octal: B means binary)."""
         input_data = "02B"

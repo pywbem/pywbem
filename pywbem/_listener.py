@@ -92,20 +92,18 @@ It is an interactive Python shell that creates a WBEM listener and displays
 any indications it receives, in MOF format.
 """
 
-import os
-import sys
 import re
 import time
 from socket import getfqdn
-import six
-from six.moves import BaseHTTPServer
-from six.moves import socketserver
-from six.moves import http_client
-import threading
 import logging
 import ssl
 from xml.dom import minidom
 from xml.parsers.expat import ExpatError
+import threading
+import six
+from six.moves import BaseHTTPServer
+from six.moves import socketserver
+from six.moves import http_client
 
 from . import cim_xml
 from ._server import WBEMServer
@@ -169,33 +167,43 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         self.send_http_error(405, headers=[('Allow', 'POST')])
 
+    #pylint: disable=invalid-name
     def do_OPTIONS(self):
         self.invalid_method()
 
+    #pylint: disable=invalid-name
     def do_HEAD(self):
         self.invalid_method()
 
+    #pylint: disable=invalid-name
     def do_GET(self):
         self.invalid_method()
 
+    #pylint: disable=invalid-name
     def do_PUT(self):
         self.invalid_method()
 
+    #pylint: disable=invalid-name
     def do_PATCH(self):
         self.invalid_method()
 
+    #pylint: disable=invalid-name
     def do_DELETE(self):
         self.invalid_method()
 
+    #pylint: disable=invalid-name
     def do_TRACE(self):
         self.invalid_method()
 
+    #pylint: disable=invalid-name
     def do_CONNECT(self):
         self.invalid_method()
 
+    #pylint: disable=invalid-name
     def do_M_POST(self):
         self.invalid_method()
 
+    #pylint: disable=invalid-name
     def do_POST(self):
         """
         This method will be called for each POST request to one of the
@@ -217,7 +225,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # Accept-Charset header check described in DSP0200
         accept_charset = self.headers.get('Accept-Charset', 'UTF-8')
         tq_list = re.findall(TOKEN_QUALITY_FINDALL_PATTERN, accept_charset)
-        found = False 
+        found = False
         if tq_list is not None:
             for token, quality in tq_list:
                 if token.lower() in ('utf-8', '*'):
@@ -233,7 +241,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # Accept-Encoding header check described in DSP0200
         accept_encoding = self.headers.get('Accept-Encoding', 'Identity')
         tq_list = re.findall(TOKEN_QUALITY_FINDALL_PATTERN, accept_encoding)
-        identity_acceptable = False 
+        identity_acceptable = False
         identity_found = False
         if tq_list is not None:
             for token, quality in tq_list:
@@ -275,7 +283,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                                  'Content-Type header is required')
             return
         tc_list = re.findall(TOKEN_CHARSET_FINDALL_PATTERN, content_type)
-        found = False 
+        found = False
         if tc_list is not None:
             for token, charset in tc_list:
                 if token.lower() in ('text/xml', 'application/xml') and \
@@ -318,9 +326,11 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return
         except VersionError as exc:
             if str(exc).startswith("DTD"):
-                self.send_http_error(400, "unsupported-dtd-version", str(exc))
+                self.send_http_error(400, "unsupported-dtd-version",
+                                     str(exc))
             elif str(exc).startswith("Protocol"):
-                self.send_http_error(400, "unsupported-protocol-version", str(exc))
+                self.send_http_error(400, "unsupported-protocol-version",
+                                     str(exc))
             else:
                 self.send_http_error(400, "unsupported-version", str(exc))
             return
@@ -340,8 +350,9 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if not isinstance(indication_inst, CIMInstance):
                 self.send_error_response(msgid, methodname,
                                          CIM_ERR_INVALID_PARAMETER,
-                                         'NewIndication parameter is not a CIM ' \
-                                         'instance, but %r' % indication_inst)
+                                         'NewIndication parameter is not ' \
+                                         'a CIM instance, but %r' %
+                                         indication_inst)
                 return
 
             self.server.listener._deliver_indication(indication_inst,
@@ -517,7 +528,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         return (msgid, methodname, params)
 
-    def log(self, format, args, level=logging.INFO):
+    def log(self, format_, args, level=logging.INFO):
         """
         This function is called for anything that needs to get logged.
         It logs to the logger of this listener.
@@ -529,16 +540,16 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         Another difference is that the variable arguments are passed
         in as a tuple.
         """
-        self.server.listener.logger.log(level, format, *args)
+        self.server.listener.logger.log(level, format_, *args)
 
-    def log_message(self, format, *args):
+    def log_message(self, format_, *args):
         """
         In the standard handler class, this function is called for anything
         that needs to get logged (e.g. from :meth:`log_request`).
 
         We override it in order to use our own log function.
         """
-        self.log(format, args, logging.INFO)
+        self.log(format_, args, logging.INFO)
 
     def log_request(self, code='-', size='-'):
         """
@@ -783,6 +794,8 @@ class WBEMListener(object):
             if not self._http_server:
                 server = ThreadedHTTPServer((self._host, self._http_port),
                                             ListenerRequestHandler)
+
+                #pylint: disable=attribute-defined-outside-init
                 server.listener = self
                 thread = threading.Thread(target=server.serve_forever)
                 thread.daemon = True  # Exit server thread upon main thread exit
@@ -798,6 +811,8 @@ class WBEMListener(object):
             if not self._https_server:
                 server = ThreadedHTTPServer((self._host, self._https_port),
                                             ListenerRequestHandler)
+
+                #pylint: disable=attribute-defined-outside-init
                 server.listener = self
                 server.socket = ssl.wrap_socket(server.socket,
                                                 certfile=self._certfile,
