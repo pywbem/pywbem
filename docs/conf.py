@@ -473,6 +473,6 @@ intersphinx_cache_limit = 5
 
 extlinks = {
   'nbview': ('http://nbviewer.jupyter.org/github/pywbem/pywbem/blob/master/docs/notebooks/%s', 'View '),
-  'nbdown': ('https://github.com/pywbem/pywbem/tree/master/docs/notebooks/%s', 'Download ')
+  'nbdown': ('https://github.com/pywbem/pywbem/raw/master/docs/notebooks/%s', '')
 }
 
