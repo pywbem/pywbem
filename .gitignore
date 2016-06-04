@@ -3,6 +3,7 @@
 .pydevproject
 /.cache/
 /.tox/
+.ipynb_checkpoints/
 *.pyc
 *.log
 *.tmp
