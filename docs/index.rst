@@ -19,6 +19,7 @@ Its general web site is: http://pywbem.github.io/pywbem/index.html.
    :numbered:
 
    intro.rst
+   tutorial.rst
    client.rst
    server.rst
    listener.rst

@@ -33,6 +33,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.extlinks',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',   # disabed, raises anexception
@@ -430,3 +431,48 @@ intersphinx_mapping = {
 }
 
 intersphinx_cache_limit = 5
+
+# -- Options for extlinks extension ---------------------------------------
+# For documentation, see
+# http://www.sphinx-doc.org/en/stable/ext/extlinks.html
+#
+# Defines aliases for external links that can be used as role names.
+#
+# This config value must be a dictionary of external sites, mapping unique
+# short alias names to a base URL and a prefix:
+# * key: alias-name
+# * value: tuple of (base-url, prefix)
+#
+# Example for the config value:
+#
+#   extlinks = {
+#     'issue': ('https://github.com/sphinx-doc/sphinx/issues/%s', 'Issue ')
+#   }
+#
+# The alias-name can be used as a role in links. In the example, alias name
+# 'issue' is used in RST as follows:
+#   :issue:`123`.
+# This then translates into a link:
+#   https://github.com/sphinx-doc/sphinx/issues/123
+# where the %s in the base-url was replaced with the value between back quotes.
+#
+# The prefix plays a role only for the link caption:
+# * If the prefix is None, the link caption is the full URL.
+# * If the prefix is the empty string, the link caption is the partial URL
+#   given in the role content ("123" in this case.)
+# * If the prefix is a non-empty string, the link caption is the partial URL,
+#   prepended by the prefix. In the above example, the link caption would be
+#   "Issue 123".
+#
+# You can also use the usual "explicit title" syntax supported by other roles
+# that generate links to set the caption. In this case, the prefix is not
+# relevant.
+# For example, this RST:
+#   :issue:`this issue <123>`
+# results in the link caption "this issue".
+
+extlinks = {
+  'nbview': ('http://nbviewer.jupyter.org/github/pywbem/pywbem/blob/master/docs/notebooks/%s', 'View '),
+  'nbdown': ('https://github.com/pywbem/pywbem/tree/master/docs/notebooks/%s', 'Download ')
+}
+
