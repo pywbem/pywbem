@@ -417,6 +417,9 @@ class NocaseDict(object):
 
     @staticmethod
     def __ordering_deprecated():
+        """Function to issue deprecation warning for ordered comparisons
+        """
+
         warnings.warn(
             "Ordering comparisons for pywbem.NocaseDict are deprecated",
             DeprecationWarning)
@@ -2700,6 +2703,7 @@ class CIMMethod(_CIMComparisonMixin):
           return_type (:term:`string`):
             Name of the CIM data type of the method return type
             (e.g. ``"uint32"``).
+            Must not be `None`
 
           parameters (:class:`py:dict` or `NocaseDict`_):
             Parameter declarations for the method declaration.
@@ -2744,6 +2748,10 @@ class CIMMethod(_CIMComparisonMixin):
         # TODO: Propagated is bool; _ensure_unicode() is unnecessary
         self.propagated = _ensure_unicode(propagated)
         self.qualifiers = NocaseDict(qualifiers)
+
+        # Check valid `return_type`
+        if return_type is None:
+            raise ValueError('return_type must not be None')
 
     def _cmp(self, other):
         """
