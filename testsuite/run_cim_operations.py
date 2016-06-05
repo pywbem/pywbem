@@ -25,7 +25,6 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
                    Uint8, Uint16, Uint32, Uint64, \
                    Sint8, Sint16, Sint32, Sint64, \
                    Real32, Real64, CIMDateTime
-from pywbem.cim_operations import CIMError
 
 # Test for decorator for unimplemented tests
 # decorator is @unittest.skip(UNIMPLEMENTED)
@@ -35,6 +34,7 @@ UNIMPLEMENTED = "test not implemented"
 # A class that should be implemented in a wbem server and is used
 # for testing
 TEST_CLASS = 'CIM_ComputerSystem'
+TEST_CLASS_NAMESPACE = 'root/cimv2'
 TEST_CLASS_PROPERTY1 = 'Name'
 TEST_CLASS_PROPERTY2 = 'CreationClassName'
 
@@ -122,8 +122,6 @@ class ClientTest(unittest.TestCase):
               - property_list - Test for existence of properties in list
         """
         self.assertTrue(isinstance(instance, CIMInstance))
-        self.assertTrue(isinstance(instance, CIMInstance))
-        self.assertTrue(isinstance(instance, CIMInstance))
         if includes_path:
             self.assertTrue(isinstance(instance.path, CIMInstanceName))
             self.assertTrue(len(instance.path.namespace) > 0)
@@ -135,6 +133,21 @@ class ClientTest(unittest.TestCase):
                 prop = instance.properties[p]
                 self.assertIsInstance(prop, CIMProperty)
 
+    def assertInstanceNameValid(self, path, includes_namespace=True, \
+                                includes_keybindings=True,
+                                namespace=None):
+        """
+        Validate that the path argument is a valid CIMInstanceName.
+        Default is to test for namespace existing and keybindings.
+        Optional is to compare namespace.
+        """
+        self.assertTrue(isinstance(path, CIMInstanceName))
+        if includes_namespace:
+            self.assertTrue(len(path.namespace) > 0)
+        if includes_keybindings:
+            self.assertTrue(path.keybindings is not None)
+        if namespace is not None:
+            self.assertTrue(path.namespace == namespace)
 
 #################################################################
 # Instance provider interface tests
@@ -152,9 +165,7 @@ class EnumerateInstanceNames(ClientTest):
         self.assertTrue(len(names) >= 1)
 
         for name in names:
-            self.assertTrue(isinstance(name, CIMInstanceName))
-            self.assertTrue(len(name.namespace) > 0)
-            self.assertTrue(name.namespace == self.namespace)
+            self.assertInstanceNameValid(name, namespace=self.namespace)
 
         # Call with explicit CIM namespace that exists
 
@@ -280,14 +291,63 @@ class EnumerateInstances(ClientTest):
             self.assertInstanceValid(i)
 
 
+    def test_propertylist(self):
+        """ Test with propertyList for class and instance op. Should
+            generate same number of properties
+        """
+        property_list = ('PowerManagementCapibilities')
+
+        cls = self.cimcall(self.conn.GetClass, TEST_CLASS,
+                           PropertyList=property_list)
+        property_count = len(cls.properties)
+
+
+        if self.verbose:
+            for p in cls.properties.values():
+                print('ClassPropertyName=%s' % p.name)
+
+        instances = self.cimcall(self.conn.EnumerateInstances,
+                                 TEST_CLASS,
+                                 DeepInheritance=True,
+                                 LocalOnly=False,
+                                 PropertyList=property_list)
+        for i in instances:
+            self.assertInstanceValid(i)
+            self.assertTrue(len(i.properties) >= property_count)
+
+        inst_property_count = None
+        for inst in instances:
+            self.assertInstanceValid(inst)
+            # confirm same number of properties
+            if inst_property_count is None:
+                inst_property_count = len(inst.properties)
+                if self.verbose:
+                    for p in inst.properties.values():
+                        print('ClassPropertyName=%s' % p.name)
+            else:
+                self.assertTrue(inst_property_count == len(inst.properties))
+
+        if property_count != inst_property_count:
+            print('ERROR: property_count %s != inst_property_count %s' % \
+                  (property_count, inst_property_count))
+            for p in cls.properties.values():
+                print('ClassPropertyName=%s' % p.name)
+            for p in instances[0].properties.values():
+                print('InstancePropertyName=%s' % p.name)
+
+        # TODO Apparently ks 5/16 Pegasus did not implement all properties
+        # now in the class
+        #self.assertTrue(property_count == inst_property_count)
+
     def test_deepinheritance(self):
         """Test with deep inheritance set true and then false"""
 
         cls = self.cimcall(self.conn.GetClass, TEST_CLASS)
         property_count = len(cls.properties)
 
-        for p in cls.properties.values():
-            print('ClassPropertyName=%s' % p.name)
+        if self.verbose:
+            for p in cls.properties.values():
+                print('ClassPropertyName=%s' % p.name)
 
         instances = self.cimcall(self.conn.EnumerateInstances,
                                  TEST_CLASS,
@@ -296,7 +356,6 @@ class EnumerateInstances(ClientTest):
         for i in instances:
             self.assertInstanceValid(i)
             self.assertTrue(len(i.properties) >= property_count)
-
 
         instances = self.cimcall(self.conn.EnumerateInstances,
                                  TEST_CLASS,
@@ -308,19 +367,19 @@ class EnumerateInstances(ClientTest):
             # confirm same number of
             if inst_property_count is None:
                 inst_property_count = len(inst.properties)
-                for p in inst.properties.values():
-                    print('ClassPropertyName=%s' % p.name)
+                if self.verbose:
+                    for p in inst.properties.values():
+                        print('ClassPropertyName=%s' % p.name)
             else:
                 self.assertTrue(inst_property_count == len(inst.properties))
 
         if property_count != inst_property_count:
+            print('ERROR: property_count %s != inst_property_count %s' % \
+                  (property_count, inst_property_count))
             for p in cls.properties.values():
                 print('ClassPropertyName=%s' % p.name)
             for p in instances[0].properties.values():
                 print('InstancePropertyName=%s' % p.name)
-        # TODO Apparently ks 5/16 Pegasus did not implement all properties
-        # now in the class
-        #self.assertTrue(property_count == inst_property_count)
 
     def test_includequalifiers_true(self):
         """Test Include qualifiers. No detailed added test because
@@ -382,7 +441,7 @@ class EnumerateInstances(ClientTest):
             if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                 raise
 
-    def test_nonexistent_nclassname(self):
+    def test_nonexistent_classname(self):
         """ Confirm correct error with nonexistent classname"""
         try:
             self.cimcall(self.conn.EnumerateInstances, 'CIM_BlahBlah')
@@ -402,6 +461,607 @@ class EnumerateInstances(ClientTest):
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_NOT_SUPPORTED:
                 raise
+
+#
+#   Test the Pull Operations
+#
+class PullEnumerateInstances(ClientTest):
+
+    def test_open_complete(self):
+        """Simplest invocation. Everything comes back in
+           initial response with end-of-sequence == True
+           Note that these tests include the while pull loop beause
+           in some cases OpenPegasus returns zero instances for the
+           open even if a MaxObjectCount > 0 is included.
+        """
+
+        result = self.cimcall(self.conn.OpenEnumerateInstances,
+                              TEST_CLASS,
+                              MaxObjectCount=100)
+        insts = result.instances
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancesWithPath, result.context,
+                MaxObjectCount=1)
+
+            self.assertTrue(len(result.instances) == 1)
+            insts.append(result.instances)
+
+        for inst in insts:
+            self.assertTrue(isinstance(inst, CIMInstance))
+            self.assertTrue(isinstance(inst.path, CIMInstanceName))
+            self.assertTrue(len(inst.path.namespace) > 0)
+
+        insts2 = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
+
+        self.assertTrue(len(result.instances) == len(insts2))
+
+    def test_open_deepinheritance(self):
+        """Simple OpenEnumerateInstances but with DeepInheritance set
+        """
+
+        result = self.cimcall(self.conn.OpenEnumerateInstances,
+                              TEST_CLASS,
+                              MaxObjectCount=100,
+                              DeepInheritance=True)
+        insts = result.instances
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancesWithPath, result.context,
+                MaxObjectCount=100)
+
+            insts.append(result.instances)
+
+        for inst in insts:
+            self.assertTrue(isinstance(inst, CIMInstance))
+            self.assertTrue(isinstance(inst.path, CIMInstanceName))
+            self.assertTrue(len(inst.path.namespace) > 0)
+
+        insts2 = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
+
+        self.assertTrue(len(result.instances) == len(insts2))
+
+    def test_open_includequalifiers(self):
+        """Simple OpenEnumerateInstances but with IncludeQualifiers set
+        """
+
+        result = self.cimcall(self.conn.OpenEnumerateInstances,
+                              TEST_CLASS,
+                              MaxObjectCount=100,
+                              IncludeQualifiers=True)
+
+        insts = result.instances
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancesWithPath, result.context,
+                MaxObjectCount=1)
+
+            self.assertTrue(len(result.instances) <= 1)
+            insts.append(result.instances)
+
+        for inst in insts:
+            self.assertTrue(isinstance(inst, CIMInstance))
+            self.assertTrue(isinstance(inst.path, CIMInstanceName))
+            self.assertTrue(len(inst.path.namespace) > 0)
+
+        insts2 = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
+
+        self.assertTrue(len(result.instances) == len(insts2))
+
+    def test_open_includeclassorigin(self):
+        """Simple OpenEnumerateInstances but with DeepInheritance set
+        """
+
+        result = self.cimcall(self.conn.OpenEnumerateInstances,
+                              TEST_CLASS,
+                              MaxObjectCount=100,
+                              IncludeClassOrigin=True)
+
+        insts = result.instances
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancesWithPath, result.context,
+                MaxObjectCount=1)
+
+            self.assertTrue(len(result.instances) <= 1)
+            insts.append(result.instances)
+
+        for inst in result.instances:
+            self.assertTrue(isinstance(inst, CIMInstance))
+            self.assertTrue(isinstance(inst.path, CIMInstanceName))
+            self.assertTrue(len(inst.path.namespace) > 0)
+
+        insts2 = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
+
+        self.assertTrue(len(result.instances) == len(insts2))
+
+    def test_open_complete_with_ns(self):
+        """Simple call that is complete with just the open and
+           with explicit namespace
+        """
+
+        result = self.cimcall(self.conn.OpenEnumerateInstances, TEST_CLASS,
+                              MaxObjectCount=100,
+                              namespace=TEST_CLASS_NAMESPACE)
+
+        insts = result.instances
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancesWithPath, result.context,
+                MaxObjectCount=1)
+
+            self.assertTrue(len(result.instances) <= 1)
+            insts.append(result.instances)
+
+        for inst in result.instances:
+            self.assertTrue(isinstance(inst, CIMInstance))
+            self.assertTrue(isinstance(inst.path, CIMInstanceName))
+            self.assertTrue(len(inst.path.namespace) > 0)
+
+        insts2 = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
+
+        if len(result.instances) != len(insts2):
+            print('Error len(result.instances=%s len(insts2=%s' %
+                  (len(result.instances), len(insts2)))
+
+        self.assertTrue(len(result.instances) == len(insts2))
+
+    def test_bad_namespace(self):
+        """Call with explicit CIM namespace that does not exist"""
+
+        try:
+            self.cimcall(self.conn.OpenEnumerateInstances,
+                         TEST_CLASS,
+                         namespace='root/blah')
+
+        except CIMError as arg:
+            if arg[0] != CIM_ERR_INVALID_NAMESPACE:
+                raise
+
+    def test_zero_open(self):
+        """ Test with default on open. Should return zero instances
+        """
+        result = self.cimcall(self.conn.OpenEnumerateInstances, TEST_CLASS)
+
+        self.assertTrue(result.eos is False)
+        self.assertTrue(len(result.instances) == 0)
+
+        result = self.cimcall(self.conn.PullInstancesWithPath,
+                              result.context,
+                              MaxObjectCount=100)
+
+        self.assertTrue(result.eos is True)
+
+    def test_close_early(self):
+        """"Close enumeration session after initial Open"""
+        result = self.cimcall(self.conn.OpenEnumerateInstances, TEST_CLASS)
+
+        self.assertFalse(result.eos)
+        self.assertTrue(len(result.instances) == 0)
+
+        self.cimcall(self.conn.CloseEnumeration, result.context)
+
+    def test_get_onebyone(self):
+        """Get instances with MaxObjectCount = 1)"""
+
+        result = self.cimcall(
+            self.conn.OpenEnumerateInstances, 'CIM_ManagedElement',
+            MaxObjectCount=1)
+
+        self.assertTrue(len(result.instances) <= 1)
+
+        self.assertFalse(result.eos)
+
+        insts = result.instances
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancesWithPath, result.context,
+                MaxObjectCount=1)
+
+            self.assertTrue(len(result.instances) <= 1)
+            insts.append(result.instances)
+
+        # get with EnumInstances and compare returns
+        insts2 = self.cimcall(self.conn.EnumerateInstances,
+                              'CIM_ManagedElement')
+
+        if (len(insts) != len(insts2)):
+            print('ERROR. rtn counts do not match insts=%s insts2=%s' % \
+                 (len(insts), len(insts2)))
+        self.assertTrue(len(insts) == len(insts2))
+
+    def test_open_continueonerror(self):
+        """ContinueOnError. Pegasus does not support this parameter
+        """
+        try:
+            self.cimcall(self.conn.OpenEnumerateInstances,
+                         TEST_CLASS,
+                         MaxObjectCount=100,
+                         ContinueOnError=True)
+
+        except CIMError as arg:
+            if arg[0] != CIM_ERR_NOT_SUPPORTED:
+                raise
+
+    def test_open_invalid_filterquerylanguage(self):
+        """Test invalid FilterQueryLanguage parameter """
+        try:
+            self.cimcall(self.conn.OpenEnumerateInstances,
+                         TEST_CLASS,
+                         MaxObjectCount=100,
+                         FilterQueryLanguage='BLAH')
+        # TODO why does pegasus return this
+        except CIMError as arg:
+            if arg[0] != CIM_ERR_FAILED:
+                raise
+
+    def test_open_invalid_filterquerylanguagewithfilter(self):
+        """Test valid filter but invalid FilterQueryLanguage"""
+        try:
+            self.cimcall(self.conn.OpenEnumerateInstances,
+                         TEST_CLASS,
+                         MaxObjectCount=100,
+                         FilterQueryLanguage='BLAH',
+                         FilterQuery="p = 4")
+
+        except CIMError as arg:
+            if arg[0] != CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
+                raise
+
+    def test_open_invalid_filterquery(self):
+        """Test Invalid FilterQuery
+        """
+        try:
+            self.cimcall(self.conn.OpenEnumerateInstances,
+                         TEST_CLASS,
+                         MaxObjectCount=100,
+                         FilterQueryLanguage='DMTF:FQL',
+                         FilterQuery="blah")
+
+        except CIMError as arg:
+            if arg[0] != CIM_ERR_INVALID_QUERY:
+                raise
+
+    def test_open_filter_returnsnone(self):
+        """Test with filter that filters out all responses
+        """
+
+        filter_statement = "%s = 'blah'" % TEST_CLASS_PROPERTY2
+        result = self.cimcall(self.conn.OpenEnumerateInstances,
+                              TEST_CLASS,
+                              MaxObjectCount=100,
+                              FilterQueryLanguage='DMTF:FQL',
+                              FilterQuery=filter_statement)
+        self.assertTrue(result.eos)
+        self.assertTrue(len(result.instances) == 0)
+
+    def test_open_timeoutset(self):
+        """Test with filter that filters out all responses
+        """
+
+        result = self.cimcall(self.conn.OpenEnumerateInstances,
+                              TEST_CLASS,
+                              MaxObjectCount=100,
+                              OperationTimeout=10)
+        self.assertTrue(result.eos)
+        self.assertTrue(len(result.instances) == 1)
+
+class PullEnumerateInstancePaths(ClientTest):
+
+    def test_open_complete(self):
+        """Simplest invocation. Everything comes back in
+           initial response with end-of-sequence == True
+           Cannot depend on open returning anything because of
+           server timing.
+        """
+
+        result = self.cimcall(self.conn.OpenEnumerateInstancePaths,
+                              TEST_CLASS,
+                              MaxObjectCount=100)
+
+        paths = result.paths
+
+        self.assertTrue(len(result.paths) <= 100)
+
+        if result.eos:
+            self.assertTrue(result.context is None)
+        else:
+            self.assertTrue(len(result.context) != 0)
+
+        while not result.eos:
+            result = self.cimcall(self.conn.PullInstancePaths,
+                                  result.context,
+                                  MaxObjectCount=1)
+
+            self.assertTrue(len(result.paths) <= 1)
+            paths.append(result.paths)
+
+        paths2 = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
+
+        self.assertTrue(len(result.paths) == len(paths2))
+
+    def test_open_complete_with_ns(self):
+        """Simplest invocation. Everything comes back in
+           initial response with end-of-sequence == True
+        """
+
+        result = self.cimcall(self.conn.OpenEnumerateInstancePaths,
+                              TEST_CLASS, namespace=TEST_CLASS_NAMESPACE,
+                              MaxObjectCount=100)
+
+        paths = result.paths
+        print('openenum pathslen = %s' % len(result.paths))
+        self.assertTrue(len(result.paths) <= 100)
+
+        if result.eos:
+            self.assertTrue(result.context is None)
+        else:
+            self.assertTrue(len(result.context) != 0)
+
+        while not result.eos:
+            result = self.cimcall(self.conn.PullInstancePaths,
+                                  result.context,
+                                  MaxObjectCount=1)
+
+            self.assertTrue(len(result.paths) <= 1)
+            paths.append(result.paths)
+            print('openenum while len=%s total=%s' % (len(result.paths),
+                                                      len(paths)))
+
+        # get with enum.
+        paths2 = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
+
+        if (len(paths) != len(paths2)):
+            print('ERROR result.paths len %s ne paths2 len %s' %  \
+                (len(paths), len(paths2)))
+        self.assertTrue(len(paths) == len(paths2))
+
+    def test_bad_namespace(self):
+        """Call with explicit CIM namespace that does not exist"""
+
+        try:
+            self.cimcall(self.conn.OpenEnumerateInstancePaths,
+                         TEST_CLASS,
+                         namespace='root/blah')
+
+        except CIMError as arg:
+            if arg[0] != CIM_ERR_INVALID_NAMESPACE:
+                raise
+
+    def test_zero_open(self):
+        """ TODO
+        """
+        result = self.cimcall(self.conn.OpenEnumerateInstancePaths, TEST_CLASS)
+
+        self.assertFalse(result.eos)
+
+        # Pull the remainder of the paths
+        result = self.cimcall(self.conn.PullInstancePaths,
+                              result.context,
+                              MaxObjectCount=100)
+
+        self.assertTrue(result.eos)
+
+    def test_close_early(self):
+        """"Close enumeration session after initial Open"""
+        result = self.cimcall(self.conn.OpenEnumerateInstancePaths, TEST_CLASS)
+
+        self.assertFalse(result.eos)
+        self.assertTrue(len(result.paths) == 0)
+
+        self.cimcall(self.conn.CloseEnumeration, result.context)
+
+    def test_get_onebyone(self):
+        """Get instances with MaxObjectCount = 1)"""
+
+        result = self.cimcall(
+            self.conn.OpenEnumerateInstancePaths, 'CIM_ManagedElement',
+            MaxObjectCount=1)
+
+        self.assertFalse(result.eos)
+
+        paths = result.paths
+
+        while not result.eos:
+            result = self.cimcall(self.conn.PullInstancePaths,
+                                  result.context,
+                                  MaxObjectCount=1)
+
+            self.assertTrue(len(result.paths) <= 1)
+            paths.append(result.paths)
+
+        # get with EnumInstanceNamess and compare returns
+        paths2 = self.cimcall(self.conn.EnumerateInstanceNames,
+                              'CIM_ManagedElement')
+
+        if (len(paths) != len(paths2)):
+            print('Error in length paths=%s, paths2=%s' % (len(paths),
+                                                           len(paths2)))
+        self.assertTrue(len(paths) == len(paths2))
+
+class PullReferences(ClientTest):
+
+    def test_all_instances_in_ns(self):
+        """Simplest invocation. Everything comes back in
+           initial response with end-of-sequence == True
+        """
+        # get all instances under CIM_ManagedElement
+        paths = self.cimcall(self.conn.EnumerateInstanceNames,
+                             'CIM_ManagedElement')
+
+        for pathi in paths:
+            result = self.cimcall(self.conn.OpenReferenceInstances,
+                                  pathi,
+                                  MaxObjectCount=100)
+
+            insts = result.instances
+
+            while not result.eos:
+                result = self.cimcall(
+                    self.conn.PullInstancesWithPath, result.context,
+                    MaxObjectCount=1)
+
+                self.assertTrue(len(result.instances) <= 1)
+                insts.append(result.instances)
+
+            for inst in result.instances:
+                self.assertTrue(isinstance(inst, CIMInstanceName))
+                self.assertTrue(len(inst.namespace) > 0)
+
+            insts2 = self.cimcall(self.conn.References, pathi)
+            if len(insts2) != 0:
+                print('References %s count %s' % (pathi, len(insts2)))
+            self.assertTrue(len(insts) == len(insts2))
+            #TODO ks 5/30 2016 add tests here
+            #Do this as a loop for all instances above.
+
+    def test_invalid_instance_name(self):
+        """Test with name that is invalid class Expects exception"""
+        foo_path = CIMInstanceName('CIM_Foo')
+
+        try:
+            self.cimcall(self.conn.OpenReferenceInstances,
+                         foo_path, MaxObjectCount=100)
+                         
+            # should never execute next line                      
+            self.assertTrue(False)
+            
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_PARAMETER:
+                raise
+
+class PullReferencePaths(ClientTest):
+    """Tests on OpenReferencePaths and pulling"""
+    
+    def test_all_instances_in_ns(self):
+        """
+            Simplest invocation. Execute and compae with results
+            of ReferenceNames
+        """
+        # get all instances under CIM_ManagedElement
+        paths = self.cimcall(self.conn.EnumerateInstanceNames,
+                             'CIM_ManagedElement')
+        # loop for all paths returned by EnumerateInstanceNames
+        for pathi in paths:
+            result = self.cimcall(self.conn.OpenReferenceInstancePaths,
+                                  pathi,
+                                  MaxObjectCount=100)
+
+            for path in result.paths:
+                self.assertInstanceNameValid(path)
+
+            paths = result.paths
+
+            while not result.eos:
+                result = self.cimcall(self.conn.PullInstancePaths,
+                                      result.context,
+                                      MaxObjectCount=1)
+
+                for path in result.path:
+                    self.assertInstanceNameValid(path)
+
+                paths.append(result.paths)
+
+            paths2 = self.cimcall(self.conn.ReferenceNames, pathi)
+            if len(paths2) != 0:
+                print('References %s count %s' % (pathi, len(paths2)))
+            self.assertTrue(len(paths) == len(paths2))
+            
+            #TODO ks 5/30 2016 add tests here
+            #Do this as a loop for all instances above.
+
+class PullAssociators(ClientTest):
+
+    def test_all_instances_in_ns(self):
+        """Simplest invocation. Everything comes back in
+           initial response with end-of-sequence == True
+        """
+        # get all instances under CIM_ManagedElement
+        paths = self.cimcall(self.conn.EnumerateInstanceNames,
+                             'CIM_ManagedElement')
+
+        for pathi in paths:
+            result = self.cimcall(self.conn.OpenAssociatorInstances,
+                                  pathi,
+                                  MaxObjectCount=100)
+
+            insts = result.instances
+
+            while not result.eos:
+                result = self.cimcall(
+                    self.conn.PullInstancesWithPath, result.context,
+                    MaxObjectCount=1)
+
+                self.assertTrue(len(result.instances) <= 1)
+                insts.append(result.instances)
+
+            for inst in result.instances:
+                self.assertTrue(isinstance(inst, CIMInstanceName))
+                self.assertTrue(len(inst.namespace) > 0)
+
+            insts2 = self.cimcall(self.conn.References, pathi)
+            if len(insts2) != 0:
+                print('Associators %s count %s' % (insts, len(insts2)))
+            self.assertTrue(len(insts) == len(insts2))
+            #TODO ks 5/30 2016 add tests here
+            #Do this as a loop for all instances above.
+
+    def test_invalid_instance_name(self):
+        """Test with name that is invalid class"""
+        foo_path = CIMInstanceName('CIM_Foo')
+
+        try:
+            self.cimcall(self.conn.OpenAssociatorInstances,
+                                  foo_path,
+                                  MaxObjectCount=100)
+            self.assertTrue(False)
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_PARAMETER:
+                raise
+
+
+class PullAssociatorPaths(ClientTest):
+
+    def test_all_instances_in_ns(self):
+        """Simplest invocation. Everything comes back in
+           initial response with end-of-sequence == True
+        """
+        # get all instances under CIM_ManagedElement
+        paths = self.cimcall(self.conn.EnumerateInstanceNames,
+                             'CIM_ManagedElement')
+        # loop for all paths returned by EnumerateInstanceNames
+        for pathi in paths:
+            result = self.cimcall(self.conn.OpenAssociatorInstancePaths,
+                                  pathi,
+                                  MaxObjectCount=100)
+
+            for path in result.paths:
+                self.assertInstanceNameValid(path)
+
+            paths = result.paths
+
+            while not result.eos:
+                result = self.cimcall(self.conn.PullInstancePaths,
+                                      result.context,
+                                      MaxObjectCount=1)
+
+                for path in result.path:
+                    self.assertInstanceNameValid(path)
+
+                paths.append(result.paths)
+
+            paths2 = self.cimcall(self.conn.AssociatorNames, pathi)
+            if len(paths2) != 0:
+                print('Associator Names %s count %s' % (pathi, len(paths2)))
+            self.assertTrue(len(paths) == len(paths2))
+            #TODO ks 5/30 2016 add tests here
+            #Do this as a loop for all instances above.
 
 class ExecQuery(ClientTest):
 
@@ -786,13 +1446,42 @@ class Associators(ClientTest):
 
         # TODO: check return values
 
+    def test_class_associator(self):
+        """
+            Test getting associator classes for defined class
+        """
+
+        assoc_classes = self.cimcall(self.conn.Associators, TEST_CLASS)
+
+        print('class assoc for %s' % TEST_CLASS)
+        for cls in assoc_classes:
+            #validate is class return
+            print('type %s' % type(cls))
+            #self.assertTrue(isinstance(cls, CIMClass))
+            print('%s\n' % repr(cls))
+
+    def test_class_associators(self):
+        """
+            Test getting associator classes for all classes in
+            namespace
+        """
+
+        classes = self.cimcall(self.conn.EnumerateClassNames,
+                               DeepInheritance=True)
+
+        for cls in classes:
+            assoc_classes = self.cimcall(self.conn.Associators, cls)
+
+            print('class assoc for %s \n%s' % (cls, assoc_classes))
+
 class AssociatorNames(ClientTest):
 
     def test_all(self):
 
         # Call on named instance
 
-        inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
         inst_name = inst_names[0] # Pick the first returned instance
 
@@ -944,7 +1633,8 @@ class EnumerateClassNames(ClientTest):
             for n in sub_names:
                 self.assertTrue(isinstance(n, six.string_types))
             class_names += sub_names
-        print('Found %s 1,2 level classes' % len(class_names))
+        if self.verbose:
+            print('Found %s 1,2 level classes' % len(class_names))
 
         # Test with DeepInheritance
         top_names = self.cimcall(self.conn.EnumerateClassNames)
@@ -962,8 +1652,8 @@ class EnumerateClassNames(ClientTest):
                         'test class not found')
         #TODO could we assert some size limit here. Probably Not
         # since this applies to any server.
-
-        print('end deep inheritance size %s' % len(full_name_list))
+        if self.verbose:
+            print('end deep inheritance size %s' % len(full_name_list))
 
 class EnumerateClasses(ClientClassTest):
 
@@ -1120,12 +1810,13 @@ class PegasusServerTestBase(ClientTest):
                                      namespace=interop,
                                      LocalOnly=True)
             self.assertTrue(len(instances) != 0)
-            print('Namespaces:')
-            for instance in instances:
-                prop = instance.properties['Name'].value
-                ascii = prop.encode()
-                print ('  %s' % (ascii))
-                namespaces.append(ascii)
+            if self.verbose:
+                print('Namespaces:')
+                for instance in instances:
+                    prop = instance.properties['Name'].value
+                    ascii = prop.encode()
+                    print ('  %s' % (ascii))
+                    namespaces.append(ascii)
 
             return namespaces
 
@@ -1152,7 +1843,6 @@ class PegasusServerTestBase(ClientTest):
             return False
 
         try:
-            print('is_pegasus_server before')
             instances_ = self.cimcall(self.conn.EnumerateInstances,
                                       "PG_ObjectManager",
                                       namespace=ns,)

@@ -149,6 +149,24 @@ Enhancements
   subclass to specifically test against OpenPegasus if OpenPegasus is
   detected as the server.
 
+* Implemented pull operations per DMTF specification DSP0200 and DSP0201.
+  This includes the following new client operations to execute enumeration
+  sequences:
+    - OpenEnumerateInstances
+    - OpenEnumerateInstancePaths
+    - OpenAssociatorInstances
+    - OpenAssociatorInstancePaths
+    - OpenReferenceInstances
+    - OpenReferenceInstancePaths
+    - OpenQueryInstances
+    - PullInstances
+    - PullInstancesWithPath
+    - PullInstancePaths
+    - CloseEnumeration
+  PyWBEM does NOT implement the EnumerationCount operation as it
+  is both deprecated and unusable. (Issue #9)
+  
+
 Bug fixes
 ^^^^^^^^^
 
@@ -207,6 +225,9 @@ Bug fixes
 
 * Fixed problem in class-level associator operations that namespace was classname
   when classname was passed as a string (issue #322).
+
+* Fixed hole in checking where class CIMMethod allowed None as a return_type.
+  (issue #264)
 
 
 pywbem v0.8.2
