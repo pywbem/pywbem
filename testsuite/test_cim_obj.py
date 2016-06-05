@@ -2248,9 +2248,10 @@ class InitCIMClass(unittest.TestCase):
                                         CIMProperty('InstanceID', None,
                                                     type='string')})
 
-        # Initialise with methods
+        # Initialise with method
 
-        CIMClass('CIM_Foo', methods={'Delete': CIMMethod('Delete')})
+        CIMClass('CIM_Foo', methods={'Delete': CIMMethod('Delete',
+                                                         'uint32')})
 
         # Initialise with qualifiers
 
@@ -2261,7 +2262,7 @@ class CopyCIMClass(unittest.TestCase):
     def test_all(self):
 
         c = CIMClass('CIM_Foo',
-                     methods={'Delete': CIMMethod('Delete')},
+                     methods={'Delete': CIMMethod('Delete', 'uint32')},
                      qualifiers={'Key': CIMQualifier('Value', True)})
 
         co = c.copy()
@@ -2303,7 +2304,7 @@ class CIMClassEquality(unittest.TestCase):
                       CIMProperty('InstanceID', None,
                                   type='string')}
 
-        methods = {'Delete': CIMMethod('Delete')}
+        methods = {'Delete': CIMMethod('Delete', 'uint32')}
 
         qualifiers = {'Key': CIMQualifier('Key', True)}
 
@@ -2358,7 +2359,8 @@ class CIMClassToXML(ValidateTest):
                       root_elem_CIMClass)
 
         self.validate(CIMClass('CIM_Foo',
-                               methods={'Delete': CIMMethod('Delete')}),
+                               methods={'Delete': CIMMethod('Delete',
+                                                            'uint32')}),
                       root_elem_CIMClass)
 
         self.validate(CIMClass('CIM_Foo',
@@ -2762,6 +2764,17 @@ class CIMMethodString(unittest.TestCase, RegexpMixin):
 
         self.assertRegexpContains(s, 'FooMethod')
         self.assertRegexpContains(s, 'uint32')
+
+class CIMMethodNoReturn(unittest.TestCase):
+    """Test that CIMMethod without return value fails"""
+
+    def test_all(self):
+        try:
+            str(CIMMethod('FooMethod'))
+            self.fail('Expected Exception')
+
+        except ValueError:
+            pass
 
 class CIMMethodToXML(ValidateTest):
 
