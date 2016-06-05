@@ -149,6 +149,8 @@ Enhancements
   subclass to specifically test against OpenPegasus if OpenPegasus is
   detected as the server.
 
+* Added description of supported authentication types in WBEM client API.
+
 Bug fixes
 ^^^^^^^^^
 
