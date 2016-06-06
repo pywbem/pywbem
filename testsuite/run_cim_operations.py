@@ -21,7 +21,7 @@ import six
 from pywbem.cim_constants import *
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
                    CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
-                   CIMMethod, WBEMConnection, CIMError, \
+                   CIMMethod, WBEMConnection, CIMError,\
                    Uint8, Uint16, Uint32, Uint64, \
                    Sint8, Sint16, Sint32, Sint64, \
                    Real32, Real64, CIMDateTime
@@ -280,6 +280,50 @@ class EnumerateInstances(ClientTest):
             self.assertInstanceValid(i)
 
 
+    def test_instance_propertylist(self):
+        """ Test property list on enumerate instances"""
+
+        property_list = ['PowerManagementCapibilities']
+
+        cls = self.cimcall(self.conn.GetClass, TEST_CLASS,
+                           PropertyList=property_list)
+        cls_property_count = len(cls.properties)
+
+        instances = self.cimcall(self.conn.EnumerateInstances,
+                                 TEST_CLASS,
+                                 DeepInheritance=True,
+                                 LocalOnly=False,
+                                 PropertyList=property_list)
+
+        for i in instances:
+            self.assertInstanceValid(i)
+            self.assertTrue(len(i.properties) >= cls_property_count)
+
+        inst_property_count = None
+        for inst in instances:
+            self.assertInstanceValid(inst)
+            # confirm same number of properties on each instance
+            if inst_property_count is None:
+                inst_property_count = len(inst.properties)
+            else:
+                self.assertTrue(inst_property_count == len(inst.properties))
+
+            if self.verbose:
+                for p in inst.properties.values():
+                    print('ClassPropertyName=%s' % p.name)
+
+        if cls_property_count != inst_property_count:
+            print('ERROR: classproperty_count %s != inst_property_count %s' % \
+                  (cls_property_count, inst_property_count))
+            for p in cls.properties.values():
+                print('ClassPropertyName=%s' % p.name)
+            for p in instances[0].properties.values():
+                print('InstancePropertyName=%s' % p.name)
+
+        # TODO Apparently ks 5/16 Pegasus did not implement all properties
+        # now in the class
+        #self.assertTrue(property_count == inst_property_count)
+
     def test_deepinheritance(self):
         """Test with deep inheritance set true and then false"""
 
@@ -405,7 +449,7 @@ class EnumerateInstances(ClientTest):
 
 class ExecQuery(ClientTest):
 
-    def test_simple_execquery(self):
+    def test_simple(self):
         try:
 
             # Simplest invocation
@@ -434,7 +478,7 @@ class ExecQuery(ClientTest):
                 raise
 
     # Call with explicit CIM namespace that does not exist
-    def test_execquery_namespace_error(self):
+    def test_namespace_error(self):
         try:
 
             self.cimcall(self.conn.ExecQuery,
@@ -446,7 +490,7 @@ class ExecQuery(ClientTest):
             if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                 raise
 
-    def test_execquery_invalid_querylang(self):
+    def test_invalid_querylang(self):
         """Test execquery with invalid query_lang parameter"""
         try:
 
@@ -459,7 +503,7 @@ class ExecQuery(ClientTest):
             if ce.args[0] != CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
                 raise
 
-    def test_execquery_invalid_query(self):
+    def test_invalid_query(self):
         """Test with invalid query syntax"""
         try:
 
@@ -474,7 +518,7 @@ class ExecQuery(ClientTest):
 
 class GetInstance(ClientTest):
 
-    def test_all(self):
+    def test_various(self):
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
                                   TEST_CLASS)
@@ -489,10 +533,10 @@ class GetInstance(ClientTest):
         self.assertTrue(isinstance(obj, CIMInstance))
         self.assertTrue(isinstance(obj.path, CIMInstanceName))
 
-        # Call with property list and localonly=False
+        # Call with propertylist and localonly=False
         obj = self.cimcall(self.conn.GetInstance,
-                           name, \
-                           PropertyList=[TEST_CLASS_PROPERTY1], \
+                           name,
+                           PropertyList=[TEST_CLASS_PROPERTY1],
                            LocalOnly=False)
 
         self.assertTrue(isinstance(obj, CIMInstance))
@@ -500,11 +544,24 @@ class GetInstance(ClientTest):
         self.assertTrue(obj.path.namespace == self.namespace)
         self.assertTrue(len(obj.properties) == 1)
 
+        # Call with propertylist (2 properties)
+
+        obj = self.cimcall(self.conn.GetInstance,
+                           name,
+                           PropertyList=[TEST_CLASS_PROPERTY1,
+                                         TEST_CLASS_PROPERTY2],
+                           LocalOnly=False)
+
+        self.assertTrue(isinstance(obj, CIMInstance))
+        self.assertTrue(isinstance(obj.path, CIMInstanceName))
+        self.assertTrue(obj.path.namespace == self.namespace)
+        self.assertTrue(len(obj.properties) == 2)
+
         # Call with property list empty
 
         obj = self.cimcall(self.conn.GetInstance,
-                           name, \
-                           PropertyList=[], \
+                           name,
+                           PropertyList=[],
                            LocalOnly=False)
 
         self.assertTrue(isinstance(obj, CIMInstance))
@@ -514,9 +571,46 @@ class GetInstance(ClientTest):
 
         # call with  IncludeQualifiers
 
+        obj = self.cimcall(self.conn.GetInstance,
+                           name,
+                           IncludeQualifiers=True)
+
+        self.assertTrue(isinstance(obj, CIMInstance))
+        self.assertTrue(isinstance(obj.path, CIMInstanceName))
+        self.assertTrue(obj.path.namespace == self.namespace)
+        #TODO confirm results.
+
         # Call with IncludeClassOrigin
 
+        obj = self.cimcall(self.conn.GetInstance,
+                           name,
+                           IncludeClassOrigin=True)
+
+        self.assertTrue(isinstance(obj, CIMInstance))
+        self.assertTrue(isinstance(obj.path, CIMInstanceName))
+        self.assertTrue(obj.path.namespace == self.namespace)
+        #confirm results
+
         # Call with IncludeQualifiers and IncludeClassOrigin
+
+        obj = self.cimcall(self.conn.GetInstance,
+                           name,
+                           IncludeClassOrigin=True,
+                           IncludeQualifiers=True)
+
+        self.assertTrue(isinstance(obj, CIMInstance))
+        self.assertTrue(isinstance(obj.path, CIMInstanceName))
+        self.assertTrue(obj.path.namespace == self.namespace)
+
+        # Call with LocalOnly
+
+        obj = self.cimcall(self.conn.GetInstance,
+                           name,
+                           LocalOnly=True)
+
+        self.assertTrue(isinstance(obj, CIMInstance))
+        self.assertTrue(isinstance(obj.path, CIMInstanceName))
+        self.assertTrue(obj.path.namespace == self.namespace)
 
         # Call with invalid namespace path
 
@@ -531,6 +625,33 @@ class GetInstance(ClientTest):
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                 raise
+
+    def test_propertylist_tuple(self):
+        """ Test property list as tuple instead of list"""
+
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+        name = inst_names[0] # Pick the first returned instance
+
+        obj = self.cimcall(self.conn.GetInstance,
+                           name,
+                           PropertyList=(TEST_CLASS_PROPERTY1,
+                                         TEST_CLASS_PROPERTY2),
+                           LocalOnly=False)
+        self.assertTrue(isinstance(obj, CIMInstance))
+        self.assertTrue(isinstance(obj.path, CIMInstanceName))
+        self.assertTrue(obj.path.namespace == self.namespace)
+        self.assertTrue(len(obj.properties) == 2)
+
+        obj = self.cimcall(self.conn.GetInstance,
+                           name,
+                           PropertyList=(TEST_CLASS_PROPERTY1,),
+                           LocalOnly=False)
+        self.assertTrue(isinstance(obj, CIMInstance))
+        self.assertTrue(isinstance(obj.path, CIMInstanceName))
+        self.assertTrue(obj.path.namespace == self.namespace)
+        self.assertTrue(len(obj.properties) == 1)
 
 class CreateInstance(ClientTest):
 
@@ -1003,6 +1124,20 @@ class GetClass(ClientClassTest):
         mof_output = cl.tomof()
         if self.verbose:
             print('MOF OUTPUT\n%s' % (mof_output))
+
+    def test_class_propertylist(self):
+        """ Test with propertyList for getClass
+        """
+        property_list = ['PowerManagementCapabilities']
+
+        cls = self.cimcall(self.conn.GetClass, TEST_CLASS,
+                           PropertyList=property_list, LocalOnly=False)
+
+        self.assertTrue(len(cls.properties) == len(property_list))
+
+        if self.verbose:
+            for p in cls.properties.values():
+                print('ClassPropertyName=%s' % p.name)
 
     def test_nonexistent_class(self):
         try:

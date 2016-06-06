@@ -3858,7 +3858,7 @@ def tocimxml(value):
 
     # List of values
 
-    if isinstance(value, list):
+    if isinstance(value, (list, tuple)):
         return cim_xml.VALUE_ARRAY([tocimxml(v) for v in value])
 
     raise ValueError("Can't convert %s (%s) to CIM XML" % \

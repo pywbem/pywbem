@@ -151,6 +151,10 @@ Enhancements
 
 * Added description of supported authentication types in WBEM client API.
 
+* Allow tuple as input for PropertyList parameter of cim_operations.
+  Documentation indicated that iterable was allowed but was limited
+  to list. (issue #347)
+
 Bug fixes
 ^^^^^^^^^
 
