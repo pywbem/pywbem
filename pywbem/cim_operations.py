@@ -368,8 +368,8 @@ class WBEMConnection(object):
       ... : All parameters of the :class:`~pywbem.WBEMConnection` constructor
         are set as public instance variables with the same name.
 
-      debug (:class:`py:bool`): A boolean indicating whether logging of the last request
-        and last reply is enabled.
+      debug (:class:`py:bool`): A boolean indicating whether logging of the
+        last request and last reply is enabled.
 
         The initial value of this instance variable is `False`.
         Debug logging can be enabled for future operations by setting this
@@ -451,7 +451,7 @@ class WBEMConnection(object):
                 Password for that userid.
 
             If `None`, the client will not generate ``Authenticate`` headers
-            in the HTTP request. Otherwise, the client will generate an 
+            in the HTTP request. Otherwise, the client will generate an
             ``Authenticate`` header using HTTP Basic Authentication.
 
             See :ref:`Authentication types` for an overview.
@@ -1693,11 +1693,13 @@ class WBEMConnection(object):
 
         Returns:
 
-            For instance level usage, a list of
+            Return data depends on `ObjectName` parameter:
+
+            **Instance level usage:** A list of
             :class:`~pywbem.CIMInstanceName` objects that are the instance
             paths of the associated instances.
 
-            For class level usage, a list of :class:`~pywbem.CIMClassName`
+            **Class level usage:** A list of :class:`~pywbem.CIMClassName`
             objects that are the class paths of the associated classes.
 
         Raises:
@@ -1824,11 +1826,21 @@ class WBEMConnection(object):
 
         Returns:
 
-            For instance level usage, a list of :class:`~pywbem.CIMInstance`
-            objects that are representations of the associated instances.
+            Return structure depends on whether class or instance
+            is provided in the `ObjectName` parameter.
 
-            For class level usage, a list of :class:`~pywbem.CIMClass` objects
-            that are representations the associated classes.
+            * **Instance level usage**: A list of
+                :class:`~pywbem.CIMInstance` objects that are representations
+                of the associated instances.
+
+            * **Class level usage**: `[(classname, class),...]`, a list of
+              tuples where each tuple contains:
+
+               *  **classname** (:class:`~pywbem.CIMClassName`): Host
+                  and namespace entities that are the representation of the
+                  name of the associated class.
+               *  **class** (:class:`~pywbem.CIMInstance`): The
+                  representation of the corresponding associated class
 
         Raises:
 
@@ -1912,11 +1924,13 @@ class WBEMConnection(object):
 
         Returns:
 
-            For instance level usage, a list of
+            Return data depends on `ObjectName` parameter:
+
+            **Instance level usage**: A list of
             :class:`~pywbem.CIMInstanceName` objects that are the instance
             paths of the referencing association instances.
 
-            For class level usage, a list of :class:`~pywbem.CIMClassName`
+            **Class level usage:** A list of :class:`~pywbem.CIMClassName`
             objects that are the class paths of the referencing association
             classes.
 
@@ -2029,12 +2043,21 @@ class WBEMConnection(object):
 
         Returns:
 
-            For instance level usage, a list of :class:`~pywbem.CIMInstance`
-            objects that are representations of the referencing association
-            instances.
+            Return structure depends on whether class or instance
+            is provided in the `ObjectName` parameter.
 
-            For class level usage, a list of :class:`~pywbem.CIMClass` objects
-            that are representations the referencing association classes.
+            * **Instance level usage**: A list of
+                :class:`~pywbem.CIMInstance` objects that are representations
+                of the associated instances.
+
+            * **Class level usage**: `[(classname, class),..]`, a list of
+              tuples where each tuple contains:
+
+               *  **classname** (:class:`~pywbem.CIMClassName`): Host
+                  and namespace entities that are the representation of the
+                  name of the associated class.
+               *  **class** (:class:`~pywbem.CIMInstance`): The
+                  representation of the corresponding associated class
 
         Raises:
 

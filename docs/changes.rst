@@ -212,6 +212,10 @@ Bug fixes
 
 * Fixed hole in checking where class CIMMethod allowed None as a return_type.
   (issue #264)
+  
+* Documentation issue with associators/references return. Was documented
+  as list of classes for class level return but it actually list of
+  tuples of classname,class. (issue #339)
 
 
 pywbem v0.8.2
