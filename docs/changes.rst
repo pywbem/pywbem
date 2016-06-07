@@ -221,6 +221,9 @@ Bug fixes
   as list of classes for class level return but it actually list of
   tuples of classname,class. (issue #339)
 
+* Extend PropertyList argument in request operations to be either list
+  or tuple. (issue #347)
+
 
 pywbem v0.8.2
 -------------

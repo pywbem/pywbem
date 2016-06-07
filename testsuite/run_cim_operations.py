@@ -21,7 +21,7 @@ import six
 from pywbem.cim_constants import *
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
                    CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
-                   CIMMethod, WBEMConnection, CIMError,\
+                   CIMMethod, WBEMConnection, CIMError, Error, \
                    Uint8, Uint16, Uint32, Uint64, \
                    Sint8, Sint16, Sint32, Sint64, \
                    Real32, Real64, CIMDateTime
@@ -652,6 +652,19 @@ class GetInstance(ClientTest):
         self.assertTrue(isinstance(obj.path, CIMInstanceName))
         self.assertTrue(obj.path.namespace == self.namespace)
         self.assertTrue(len(obj.properties) == 1)
+
+        try:
+            obj = self.cimcall(self.conn.GetInstance,
+                               name,
+                               PropertyList=TEST_CLASS_PROPERTY1,
+                               LocalOnly=False)
+            self.fail('Exception expected')
+            
+        # use Error since this generates a connection error and
+        # within it a CIMError.
+        except Error as ce:
+            pass
+        
 
 class CreateInstance(ClientTest):
 
