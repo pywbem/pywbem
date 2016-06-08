@@ -169,10 +169,12 @@ if sys.version_info[0] == 2:
     string_types = basestring,      # pylint: disable=invalid-name
     text_type = unicode             # pylint: disable=invalid-name
     binary_type = str               # pylint: disable=invalid-name
+    from xmlrpclib import ServerProxy as xmlrpc_ServerProxy 
 else:
     string_types = str,             # pylint: disable=invalid-name
     text_type = str                 # pylint: disable=invalid-name
     binary_type = bytes             # pylint: disable=invalid-name
+    from xmlrpc.client import ServerProxy as xmlrpc_ServerProxy 
 
 
 class OsDistribution(Distribution):
@@ -871,26 +873,22 @@ class PythonInstaller(BaseInstaller):
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.is_available()`.
         """
-        # We use the internal functions of the pip module, because the pip
-        # command line does not return version information from Pypi.
-        # TODO: This is not supported on older pip versions (e.g. 1.4).
-        search_command = pip.commands.search.SearchCommand()
-        options, _ = search_command.parse_args([pkg_name])
-        pypi_hits = search_command.search(pkg_name, options)
-        hits = pip.commands.search.transform_hits(pypi_hits)
-        for hit in hits:
-            if hit['name'] == pkg_name:
-                if not version_reqs:
-                    versions = hit['versions']
-                else:
-                    versions = []
-                    for _version in hit['versions']:
-                        if self.version_matches_req(_version, version_reqs):
-                            versions.append(_version)
-                version_sufficient = len(versions) > 0
-                return (True, version_sufficient, versions)
-
-        return (False, False, None)
+        # We use the XML-RPC API of the new Pypi warehouse site at https://pypi.io/pypi.
+        # The pip.commands.search.SearchCommand() API used before uses the
+        # old https://pypi.python.org/pypi site which has quite bogus search behaviour.
+        pypi_url = 'https://pypi.io/pypi'
+        pypi_rpc = xmlrpc_ServerProxy(pypi_url)
+        info_dicts = pypi_rpc.search(dict(name=pkg_name))  # Empty list, if not found.
+        versions = [d['version'] for d in info_dicts]
+        available = False
+        sufficient = False
+        for version in versions:
+            available = True
+            if self.version_matches_req(version, version_reqs) \
+               if version_reqs else True:
+                sufficient = True
+                break
+        return (available, sufficient, versions)
 
     def ensure_installed(self, pkg_name, version_reqs=None, dry_run=False,
                          verbose=True, ignore=False):
