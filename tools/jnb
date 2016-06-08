@@ -1,0 +1,31 @@
+#!/bin/bash
+# Invoke Jupyter Notebook for the PyWBEM notebooks directory,
+# and install it in a Python virtual environment, if necessary.
+
+mydir=$(dirname $0)
+
+# Directory with the Jupyter Notebook files:
+nb_dir=${mydir}/../docs/notebooks
+
+# Name of the Python virtual environment to be used:
+jnb_envname='jnb'
+
+vew=$(which virtualenvwrapper.sh 2>/dev/null)
+if [[ -z $vew ]]; then
+  echo "Error: virtualenvwrapper is not installed."
+  exit 2
+fi
+source $vew
+
+jnb_avail=$(workon |grep $jnb_envname)
+if [[ -z $jnb_avail ]]; then
+  echo "Creating Python virtual environment for Jupyter Notebook: $jnb_envname"
+  mkvirtualenv -p python2.7 $jnb_envname
+  pip install --upgrade pip
+  pip install jupyter
+fi
+echo "Switching to Python virtual environment for Jupyter Notebook: $jnb_envname"
+workon $jnb_envname
+
+echo "Invoking Jupyter notebook server for notebook directory: $nb_dir"
+jupyter notebook --notebook-dir=$nb_dir

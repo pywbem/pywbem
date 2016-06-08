@@ -16,24 +16,28 @@ This allows viewing them without having Jupyter installed locally.
 In order to run or modify the examples, Jupyter Notebook must be installed,
 and a running WBEM server should be available.
 
-The following table lists the tutorials:
+The following table lists the available tutorials:
 
 =======================================================  ==================================
 View the tutorial                                        Download the Jupyter notebook
 =======================================================  ==================================
 :nbview:`Making Connections <connections.ipynb>`         :nbdown:`connections.ipynb`
 :nbview:`Python Data Model for CIM <datamodel.ipynb>`    :nbdown:`datamodel.ipynb`
-:nbview:`EnumerateInstances <enumerateinstances.ipynb>`  :nbdown:`enumerateinstances.ipynb`
-EnumerateInstanceNames
-GetInstance
-DeleteInstance
-CreateInstance
-ModifyInstance
-ExecQuery
-Method Invocation
-Association Operations
-Class and Qualifier Operations
-WBEM Server
-WBEM Listener
+:nbview:`EnumerateInstances <enuminsts.ipynb>`           :nbdown:`enuminsts.ipynb`
+:nbview:`EnumerateInstanceNames <enuminstnames.ipynb>`   :nbdown:`enuminstnames.ipynb`
+:nbview:`GetInstance <getinstance.ipynb>`                :nbdown:`getinstance.ipynb`
+:nbview:`DeleteInstance <deleteinstance.ipynb>`          :nbdown:`deleteinstance.ipynb`
+:nbview:`CreateInstance <createinstance.ipynb>`          :nbdown:`createinstance.ipynb`
+:nbview:`ModifyInstance <modifyinstance.ipynb>`          :nbdown:`modifyinstance.ipynb`
+:nbview:`InvokeMethod <invokemethod.ipynb>`              :nbdown:`invokemethod.ipynb`
 =======================================================  ==================================
 
+For the following topics, tutorials are not yet available:
+
+* Pulled Enumerations
+* ExecQuery
+* Association Operations
+* Class Operations
+* Qualifier Operations
+* WBEM Server
+* WBEM Listener

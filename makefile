@@ -76,14 +76,8 @@ doc_utility_help_files := \
 # Dependents for Sphinx documentation build
 doc_dependent_files := \
     $(doc_conf_dir)/conf.py \
-    $(doc_conf_dir)/index.rst \
-    $(doc_conf_dir)/intro.rst \
-    $(doc_conf_dir)/client.rst \
-    $(doc_conf_dir)/server.rst \
-    $(doc_conf_dir)/listener.rst \
-    $(doc_conf_dir)/compiler.rst \
-    $(doc_conf_dir)/utilities.rst \
-    $(doc_conf_dir)/changes.rst \
+    $(wildcard $(doc_conf_dir)/*.rst) \
+    $(wildcard $(doc_conf_dir)/notebooks/*.ipynb) \
     $(package_name)/__init__.py \
     $(package_name)/cim_constants.py \
     $(package_name)/cim_obj.py \
