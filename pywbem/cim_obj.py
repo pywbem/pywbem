@@ -3856,12 +3856,12 @@ def tocimxml(value):
         else:
             return cim_xml.VALUE('FALSE')
 
-    # List of values
+    # Iterable of values
 
-    if isinstance(value, list):
+    try:
         return cim_xml.VALUE_ARRAY([tocimxml(v) for v in value])
-
-    raise ValueError("Can't convert %s (%s) to CIM XML" % \
+    except TypeError:
+        raise ValueError("Can't convert %s (%s) to CIM XML" % \
                      (value, builtin_type(value)))
 
 

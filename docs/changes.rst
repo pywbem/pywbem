@@ -151,6 +151,10 @@ Enhancements
 
 * Added description of supported authentication types in WBEM client API.
 
+* Allow tuple as input for PropertyList parameter of cim_operations.
+  Documentation indicated that iterable was allowed but was limited
+  to list. (issue #347)
+
 Bug fixes
 ^^^^^^^^^
 
@@ -216,6 +220,9 @@ Bug fixes
 * Documentation issue with associators/references return. Was documented
   as list of classes for class level return but it actually list of
   tuples of classname,class. (issue #339)
+
+* Extend PropertyList argument in request operations to be either list
+  or tuple. (issue #347)
 
 
 pywbem v0.8.2
