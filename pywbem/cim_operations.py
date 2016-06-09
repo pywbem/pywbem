@@ -360,7 +360,7 @@ class WBEMConnection(object):
 
     After creating a :class:`~pywbem.WBEMConnection` object, various methods
     may be called on the object, which cause WBEM operations to be issued to
-    the WBEM server.
+    the WBEM server. See :ref:`WBEM operations` for a list of these methods.
 
     CIM elements such as instances or classes are represented as Python objects
     (see :ref:`CIM objects`). The caller does not need to know about the CIM-XML
@@ -1186,7 +1186,9 @@ class WBEMConnection(object):
         instances of its subclasses) in a namespace.
 
         This method performs the EnumerateInstanceNames operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -1252,7 +1254,9 @@ class WBEMConnection(object):
         subclasses) in a namespace.
 
         This method performs the EnumerateInstances operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -1432,7 +1436,9 @@ class WBEMConnection(object):
         a namespace.
 
         This method performs the OpenEnumerateInstancePaths operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns status on the
         enumeration session and optionally instance paths.
         Otherwise, this method raises an exception.
@@ -1579,9 +1585,9 @@ class WBEMConnection(object):
             MaxObjectCount=MaxObjectCount,
             response_params_rqd=True,
             **extra)
-            
+
         return pull_path_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def OpenEnumerateInstances(self, ClassName, namespace=None, LocalOnly=None,
                                DeepInheritance=None, IncludeQualifiers=None,
@@ -1595,8 +1601,9 @@ class WBEMConnection(object):
         (including instances of its subclasses).
 
         This method performs the OpenEnumerateInstances operation
-        (see :term:`DSP0200`)
-        .
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns enumeration session
         status and optionally instances.
         Otherwise, this method raises an exception.
@@ -1807,7 +1814,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def OpenReferenceInstancePaths(self, InstanceName, ResultClass=None,
                                    Role=None,
@@ -1822,7 +1829,9 @@ class WBEMConnection(object):
         This method does not support retrieving classes
 
         This method performs the OpenReferenceInstancePaths operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns enumeration session
         status and optionally instance paths.
         Otherwise, this method raises an exception.
@@ -1976,7 +1985,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_path_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def OpenReferenceInstances(self, InstanceName, ResultClass=None,
                                Role=None, IncludeQualifiers=None,
@@ -1990,7 +1999,9 @@ class WBEMConnection(object):
         that reference a source instance.
 
         This method performs the OpenReferenceInstances operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns enumeration session
         status and optionally instances.
         Otherwise, this method raises an exception.
@@ -2178,7 +2189,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def OpenAssociatorInstancePaths(self, InstanceName, AssocClass=None,
                                     ResultClass=None, Role=None,
@@ -2192,7 +2203,9 @@ class WBEMConnection(object):
         instances associated to a source instance.
 
         This method performs the OpenAssociatorInstancePaths operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns enumeration session
         status and optionally instance paths.
         Otherwise, this method raises an exception.
@@ -2367,7 +2380,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_path_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def OpenAssociatorInstances(self, InstanceName, AssocClass=None,
                                 ResultClass=None, Role=None, ResultRole=None,
@@ -2383,7 +2396,9 @@ class WBEMConnection(object):
         to a source instance.
 
         This method performs the OpenAssociatorInstances operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns enumeration session
         status and optionally instances.
         Otherwise, this method raises an exception.
@@ -2589,7 +2604,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def OpenQueryInstances(self, FilterQueryLanguage, FilterQuery,
                            namespace=None, ReturnQueryResultClass=None,
@@ -2600,7 +2615,9 @@ class WBEMConnection(object):
         Open an enumeration session to execute a query in a namespace.
 
         This method performs the OpenQueryInstances operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns enumeration session
         status and optionally instances.
         Otherwise, this method raises an exception.
@@ -2761,7 +2778,7 @@ class WBEMConnection(object):
                           ReturnQueryResultClass else None
 
         return pull_query_result_tuple(insts, eos, enum_ctxt, query_class)
-        
+
 
 
     def PullInstancesWithPath(self, context, MaxObjectCount,
@@ -2774,7 +2791,8 @@ class WBEMConnection(object):
         instances include their instance paths.
 
         This method performs the PullInstanceWithPath operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
 
         If the operation succeeds, this method returns enumeration session
         status and optionally instances.
@@ -2861,7 +2879,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def PullInstancePaths(self, context, MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
@@ -2871,7 +2889,8 @@ class WBEMConnection(object):
         session defined by the `enumeration_context` parameter.
 
         This method performs the PullInstanceWithPath operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
 
         If the operation succeeds, this method returns enumeration session
         status and optionally instance paths.
@@ -2958,7 +2977,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_path_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def PullInstances(self, context, MaxObjectCount=None, \
                           **extra):
@@ -2969,7 +2988,8 @@ class WBEMConnection(object):
         session defined by the `enumeration_context` parameter.
 
         This method performs the PullInstanceWithPath operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
 
         If the operation succeeds, this method returns enumeration session
         status and optionally instances.
@@ -3056,7 +3076,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def CloseEnumeration(self, context, **extra):
         # pylint: disable=invalid-name
@@ -3065,7 +3085,8 @@ class WBEMConnection(object):
         an early termination of an incomplete enumeration session.
 
         This method performs the CloseEnumeration operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
 
         This method should not used if the enumeration session has
         terminated and will result in an exception response.
@@ -3099,7 +3120,9 @@ class WBEMConnection(object):
         Retrieve an instance.
 
         This method performs the GetInstance operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -3199,7 +3222,9 @@ class WBEMConnection(object):
         Modify the property values of an instance.
 
         This method performs the ModifyInstance operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -3294,7 +3319,9 @@ class WBEMConnection(object):
         Create an instance in a namespace.
 
         This method performs the CreateInstance operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -3374,7 +3401,9 @@ class WBEMConnection(object):
         Delete an instance.
 
         This method performs the DeleteInstance operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -3419,7 +3448,9 @@ class WBEMConnection(object):
         Retrieve the class paths of the classes associated to a source class.
 
         This method performs the AssociatorNames operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -3520,7 +3551,9 @@ class WBEMConnection(object):
         Retrieve the classes associated to a source class.
 
         This method performs the Associators operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -3663,7 +3696,9 @@ class WBEMConnection(object):
         source class.
 
         This method performs the ReferenceNames operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -3750,7 +3785,9 @@ class WBEMConnection(object):
         Retrieve the association classes that reference a source class.
 
         This method performs the References operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -3883,7 +3920,9 @@ class WBEMConnection(object):
         Non-static methods can be invoked only on instances.
 
         This method performs the extrinsic method invocation operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -4003,7 +4042,9 @@ class WBEMConnection(object):
         Execute a query in a namespace.
 
         This method performs the ExecQuery operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -4077,7 +4118,9 @@ class WBEMConnection(object):
         classes in a namespace.
 
         This method performs the EnumerateClassNames operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -4162,7 +4205,9 @@ class WBEMConnection(object):
         namespace.
 
         This method performs the EnumerateClasses operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -4278,7 +4323,9 @@ class WBEMConnection(object):
         Retrieve a class.
 
         This method performs the GetClass operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -4375,7 +4422,9 @@ class WBEMConnection(object):
         Modify a class in a namespace.
 
         This method performs the ModifyClass operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -4427,7 +4476,9 @@ class WBEMConnection(object):
         Create a class in a namespace.
 
         This method performs the CreateClass operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -4476,7 +4527,9 @@ class WBEMConnection(object):
         Delete a class.
 
         This method performs the DeleteClass operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -4529,7 +4582,9 @@ class WBEMConnection(object):
         Enumerate qualifier declarations in a namespace.
 
         This method performs the EnumerateQualifiers operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -4580,7 +4635,9 @@ class WBEMConnection(object):
         Retrieve a qualifier declaration in a namespace.
 
         This method performs the GetQualifier operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -4634,7 +4691,9 @@ class WBEMConnection(object):
         Create or modify a qualifier declaration in a namespace.
 
         This method performs the SetQualifier operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -4678,7 +4737,9 @@ class WBEMConnection(object):
         Delete a qualifier declaration in a namespace.
 
         This method performs the DeleteQualifier operation
-        (see :term:`DSP0200`).
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
+        methods performing such operations.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
