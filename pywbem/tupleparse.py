@@ -457,6 +457,27 @@ def parse_value_namedinstance(tup_tree):
 
     return instance
 
+def parse_value_instancewithpath(tup_tree):
+    """
+    The VALUE.INSTANCEWITHPATH is used to define a value that comprises
+    a single CIMInstance with additional information that defines the
+    absolute path to that object.
+
+      ::
+
+        <!ELEMENT VALUE.INSTANCEWITHPATH (INSTANCEPATH, INSTANCE)>
+    """
+
+    check_node(tup_tree, 'VALUE.INSTANCEWITHPATH')
+
+    k = kids(tup_tree)
+    if len(k) != 2:
+        raise ParseError('expecting (INSTANCEPATH, INSTANCE), got %r' % k)
+    path = parse_instancepath(k[0])
+    instance = parse_instance(k[1])
+
+    instance.path = path
+    return (instance)
 
 def parse_value_namedobject(tup_tree):
     """
@@ -1410,13 +1431,16 @@ def parse_paramvalue(tup_tree):
       ::
 
         <!ELEMENT PARAMVALUE (VALUE | VALUE.REFERENCE | VALUE.ARRAY |
-                              VALUE.REFARRAY)?>
+                              VALUE.REFARRAY | CLASSNAME | INSTANCENAME |
+                              CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
         <!ATTLIST PARAMVALUE
             %CIMName;
             %ParamType;  #IMPLIED
             %EmbeddedObject;>
     """
-
+    ## TODO ks 6/16 Extended per DSP0201 v 1.4 to include CLASSNAME,
+    #  INSTANCENAME, CLASS, INSTANCE, VALUE.NAMEDINSTANCE but not sure
+    #  we have tests for all of these.
     ## Version 2.1.1 of the DTD lacks the %ParamType attribute but it
     ## is present in version 2.2.  Make it optional to be backwards
     ## compatible.
@@ -1426,7 +1450,8 @@ def parse_paramvalue(tup_tree):
 
     child = optional_child(tup_tree,
                            ['VALUE', 'VALUE.REFERENCE', 'VALUE.ARRAY',
-                            'VALUE.REFARRAY',])
+                            'VALUE.REFARRAY', 'CLASSNAME', 'INSTANCENAME',
+                            'CLASS', 'INSTANCE', 'VALUE.NAMEDINSTANCE'])
 
     if 'PARAMTYPE' in attrs(tup_tree):
         paramtype = attrs(tup_tree)['PARAMTYPE']
@@ -1552,15 +1577,17 @@ def parse_imethodresponse(tup_tree):
 
       ::
 
-        <!ELEMENT IMETHODRESPONSE (ERROR | IRETURNVALUE?)>
+        <!ELEMENT IMETHODRESPONSE (ERROR | (IRETURNVALUE?, PARAMVALUE*))>
         <!ATTLIST IMETHODRESPONSE %CIMName;>
     """
 
     check_node(tup_tree, 'IMETHODRESPONSE', ['NAME'], [])
-
-    return name(tup_tree), attrs(tup_tree), optional_child(tup_tree,
-                                                           ['ERROR',
-                                                            'IRETURNVALUE'])
+    # TODO ks 5/16this would be more effective if we had a function that
+    # did list-of-A or list-of-B
+    return name(tup_tree), attrs(tup_tree), list_of_various(tup_tree,
+                                                            ['ERROR',
+                                                             'IRETURNVALUE',
+                                                             'PARAMVALUE'])
 
 
 def parse_error(tup_tree):
@@ -1615,7 +1642,9 @@ def parse_ireturnvalue(tup_tree):
                                 VALUE.OBJECTWITHLOCALPATH* | VALUE.OBJECT* |
                                 OBJECTPATH* | QUALIFIER.DECLARATION* |
                                 VALUE.ARRAY? | VALUE.REFERENCE? | CLASS* |
-                                INSTANCE* | VALUE.NAMEDINSTANCE*)>
+                                INSTANCE* | INSTANCEPATH* |
+                                VALUE.NAMEDINSTANCE* |
+                                VALUE.INSTANCEWITHPATH*)>
     """
 
     check_node(tup_tree, 'IRETURNVALUE', [], [])
@@ -1630,7 +1659,9 @@ def parse_ireturnvalue(tup_tree):
                                      'QUALIFIER.DECLARATION',
                                      'VALUE.ARRAY', 'VALUE.REFERENCE',
                                      'CLASS', 'INSTANCE',
-                                     'VALUE.NAMEDINSTANCE',])
+                                     'INSTANCEPATH',
+                                     'VALUE.NAMEDINSTANCE',
+                                     'VALUE.INSTANCEWITHPATH'])
 
     ## TODO: Call unpack_value if appropriate
 

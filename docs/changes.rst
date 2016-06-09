@@ -155,6 +155,24 @@ Enhancements
   Documentation indicated that iterable was allowed but was limited
   to list. (issue #347)
 
+* Implemented pull operations per DMTF specification DSP0200 and DSP0201.
+  This includes the following new client operations to execute enumeration
+  sequences:
+    - OpenEnumerateInstances
+    - OpenEnumerateInstancePaths
+    - OpenAssociatorInstances
+    - OpenAssociatorInstancePaths
+    - OpenReferenceInstances
+    - OpenReferenceInstancePaths
+    - OpenQueryInstances
+    - PullInstances
+    - PullInstancesWithPath
+    - PullInstancePaths
+    - CloseEnumeration
+  PyWBEM does NOT implement the EnumerationCount operation as it
+  is both deprecated and unusable. (Issue #9)
+  
+
 Bug fixes
 ^^^^^^^^^
 
