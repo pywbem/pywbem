@@ -18,19 +18,18 @@ and a running WBEM server should be available.
 
 The following table lists the available tutorials:
 
-=======================================================  ==================================
+======================================================== ==================================
 View the tutorial                                        Download the Jupyter notebook
-=======================================================  ==================================
+======================================================== ==================================
 :nbview:`Making Connections <connections.ipynb>`         :nbdown:`connections.ipynb`
 :nbview:`Python Data Model for CIM <datamodel.ipynb>`    :nbdown:`datamodel.ipynb`
 :nbview:`EnumerateInstances <enuminsts.ipynb>`           :nbdown:`enuminsts.ipynb`
 :nbview:`EnumerateInstanceNames <enuminstnames.ipynb>`   :nbdown:`enuminstnames.ipynb`
 :nbview:`GetInstance <getinstance.ipynb>`                :nbdown:`getinstance.ipynb`
-:nbview:`DeleteInstance <deleteinstance.ipynb>`          :nbdown:`deleteinstance.ipynb`
-:nbview:`CreateInstance <createinstance.ipynb>`          :nbdown:`createinstance.ipynb`
+:nbview:`Create+DeleteInstance <createdeleteinst.ipynb>` :nbdown:`createdeleteinst.ipynb`
 :nbview:`ModifyInstance <modifyinstance.ipynb>`          :nbdown:`modifyinstance.ipynb`
 :nbview:`InvokeMethod <invokemethod.ipynb>`              :nbdown:`invokemethod.ipynb`
-=======================================================  ==================================
+======================================================== ==================================
 
 For the following topics, tutorials are not yet available:
 
