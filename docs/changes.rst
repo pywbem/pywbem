@@ -51,6 +51,12 @@ Clean Code
 Enhancements
 ^^^^^^^^^^^^
 
+* The distribution formats have been extended. There are now:
+  - Source archive (existed)
+  - Universal wheel (new)
+  - Windows installable (new)
+  (issue #242)
+
 * Upgraded M2Crypto to use official 0.24.0 from PyPI.
 
 * Replaced `[]` and `{}` default arguments with None.

@@ -17,6 +17,14 @@
 # Prerequisites for usage will be installed by 'make install'.
 # ------------------------------------------------------------------------------
 
+# Determine OS platform make runs on
+ifeq ($(OS),Windows_NT)
+  PLATFORM := Windows
+else
+  # Values: Linux, Darwin
+  PLATFORM := $(shell uname -s)
+endif
+
 # Name of this Python package
 package_name := pywbem
 
@@ -41,11 +49,14 @@ python_version_fn := $(shell python -c "import sys; sys.stdout.write('%s%s'%(sys
 # Directory for the generated distribution files
 dist_dir := dist/$(package_name)-$(package_final_mn_version)
 
-# Distribution archive (as built by setup.py)
-dist_file := $(dist_dir)/$(package_name)-$(package_version).tar.gz
+# Distribution archives (as built by setup.py)
+bdist_file := $(dist_dir)/$(package_name)-$(package_version)-py2.py3-none-any.whl
+sdist_file := $(dist_dir)/$(package_name)-$(package_version).tar.gz
 
 # Windows installable (as built by setup.py)
 win64_dist_file := $(dist_dir)/$(package_name)-$(package_version).win-amd64.exe
+
+dist_files := $(bdist_file) $(sdist_file) $(win64_dist_file)
 
 # Lex/Yacc table files, generated from and by mof_compiler.py
 moftab_files := $(package_name)/mofparsetab.py $(package_name)/moflextab.py
@@ -95,7 +106,7 @@ pylint_rc_file := pylint.rc
 pylint_py_files := \
     setup.py \
     os_setup.py \
-    $(filter-out $(moftab_files), $(shell find $(package_name)/ -type f -name '*.py')) \
+    $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
     $(wildcard testsuite/test*.py) \
     testsuite/validate.py \
 
@@ -133,14 +144,14 @@ help:
 	@echo 'Uses the currently active Python environment: Python $(python_version_fn)'
 	@echo 'Valid targets are (they do just what is stated, i.e. no automatic prereq targets):'
 	@echo '  develop    - Prepare the development environment by installing prerequisites'
-	@echo '  build      - Build the distribution archive: $(dist_file)'
-	@echo '  buildwin   - Build the Windows installable: $(win64_dist_file) (requires Windows 64-bit)'
+	@echo '  build      - Build the distribution files in: $(dist_dir) (requires Linux or OSX)'
+	@echo '  buildwin   - Build the Windows installable in: $(dist_dir) (requires Windows 64-bit)'
 	@echo '  builddoc   - Build documentation in: $(doc_build_dir)'
 	@echo '  check      - Run PyLint on sources and save results in: pylint.log'
 	@echo '  test       - Run unit tests and save results in: $(test_log_file)'
 	@echo '  all        - Do all of the above (except buildwin when not on Windows)'
 	@echo '  install    - Install distribution archive to active Python environment'
-	@echo '  upload     - build + upload the distribution archive to PyPI: $(dist_file)'
+	@echo '  upload     - build + upload the distribution files to PyPI'
 	@echo '  clean      - Remove any temporary files'
 	@echo '  clobber    - Remove everything; ensure clean start like a fresh clone'
 
@@ -151,7 +162,7 @@ develop:
 	@echo '$@ done.'
 
 .PHONY: build
-build: $(dist_file)
+build: $(bdist_file) $(sdist_file)
 	@echo '$@ done.'
 
 .PHONY: buildwin
@@ -212,9 +223,9 @@ check: pylint.log
 	@echo '$@ done.'
 
 .PHONY: install
-install: $(dist_file)
+install: $(sdist_file)
 	mkdir tmp_install
-	tar -x -C tmp_install -f $(dist_file)
+	tar -x -C tmp_install -f $(sdist_file)
 	sh -c "cd tmp_install/$(package_name)-$(package_version) && python setup.py install_os && python setup.py install"
 	rm -Rf tmp_install
 	@echo 'Done: Installed pywbem into current Python environment.'
@@ -247,16 +258,10 @@ all: develop check build builddoc test
 	@echo '$@ done.'
 
 .PHONY: upload
-upload: setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
-ifeq ($(python_major_version), 2)
-	rm -f MANIFEST
-	python setup.py sdist -d $(dist_dir) register upload
-	@echo 'Done: Registered and uploaded package to PyPI.'
+upload:  $(dist_files)
+	twine upload $(dist_files)
+	@echo 'Done: Uploaded pywbem version to PyPI: $(package_version)'
 	@echo '$@ done.'
-else
-	@echo 'Error: Cannot upload development or release candidate version to PyPI: $(package_version)'
-	@false
-endif
 
 # Note: distutils depends on the right files specified in MANIFEST.in, even when
 # they are already specified e.g. in 'package_data' in setup.py.
@@ -270,15 +275,25 @@ MANIFEST.in: makefile
 # Distribution archives.
 # Note: Deleting MANIFEST causes distutils (setup.py) to read MANIFEST.in and to
 # regenerate MANIFEST. Otherwise, changes in MANIFEST.in will not be used.
-$(dist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
-	rm -f MANIFEST
-	python setup.py sdist -d $(dist_dir)
-	@echo 'Done: Created distribution archive: $@'
+$(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
+ifneq ($(PLATFORM),Windows)
+	rm -rf MANIFEST $(package_name).egg-info .eggs
+	python setup.py sdist -d $(dist_dir) bdist_wheel -d $(dist_dir) --universal
+	@echo 'Done: Created distribution files: $@'
+else
+	@echo 'Error: Creating distribution archives requires to run on Linux or OSX'
+	@false
+endif
 
 $(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
-	rm -f MANIFEST
+ifeq ($(PLATFORM),Windows)
+	rm -rf MANIFEST $(package_name).egg-info .eggs
 	python setup.py bdist_wininst -d $(dist_dir) -o -t "PyWBEM v$(package_version)"
 	@echo 'Done: Created Windows installable: $@'
+else
+	@echo 'Error: Creating Windows installable requires to run on Windows'
+	@false
+endif
 
 # Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)
 $(moftab_files): $(moftab_dependent_files) build_moftab.py

@@ -365,6 +365,7 @@ def main():
             "pylint" if sys.version_info[0:2] == (2, 7) else None,
             "mock",
             "pbr", # needed by mock
+            "twine", # needed for upload to Pypi
         ],
         'install_os_requires': {
             # OS-level prereqs for 'install_os' command. Handled by os_setup
@@ -454,14 +455,16 @@ def main():
             #   http://www.lfd.uci.edu/~gohlke/pythonlibs/#lxml
         },
         'classifiers' : [
-            'Development Status :: 6 - Mature',
+            'Development Status :: 5 - Production/Stable',
             'Intended Audience :: Developers',
             'Intended Audience :: System Administrators',
             'License :: OSI Approved :: '\
                 'GNU Lesser General Public License v2 or later (LGPLv2+)',
             'Operating System :: OS Independent',
+            'Programming Language :: Python :: 2',
             'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
             'Topic :: Software Development :: Libraries :: Python Modules',
