@@ -547,6 +547,9 @@ class WBEMConnection(object):
             does not need to be used. See :ref:`Verification of the X.509 server
             certificate` for details.
 
+            Warning: This parameter is not used when the python environment
+            is Python 3 because the ssl module does not support it.
+
             If `None`, no such callback function will be registered.
 
             The specified function will be called for the returned certificate,

@@ -233,7 +233,7 @@ Bug fixes
   
 * Fixed issue with tomof() output where datetime values were not quoted.
   (issue #289)
-  
+
 * Eliminate automatic setting of toinstance flavor in mof_compiler when
   tosubclass is set.  Also enabled use of toinstance flavor if defined
   in a class or qualifier declaration. (issue 193)
@@ -251,6 +251,9 @@ Bug fixes
 * Extend PropertyList argument in request operations to be either list
   or tuple. (issue #347)
 
+*  Added deprecated warning to WBEMConnection verify_callback parameter
+   since it is not used with python ssl module and will probably be 
+   removed completely in the future. (issue # 297)
 
 pywbem v0.8.2
 -------------
