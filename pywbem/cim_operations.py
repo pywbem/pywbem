@@ -1582,9 +1582,9 @@ class WBEMConnection(object):
             MaxObjectCount=MaxObjectCount,
             response_params_rqd=True,
             **extra)
-            
+
         return pull_path_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def OpenEnumerateInstances(self, ClassName, namespace=None, LocalOnly=None,
                                DeepInheritance=None, IncludeQualifiers=None,
@@ -1810,7 +1810,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def OpenReferenceInstancePaths(self, InstanceName, ResultClass=None,
                                    Role=None,
@@ -1979,7 +1979,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_path_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def OpenReferenceInstances(self, InstanceName, ResultClass=None,
                                Role=None, IncludeQualifiers=None,
@@ -2181,7 +2181,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def OpenAssociatorInstancePaths(self, InstanceName, AssocClass=None,
                                     ResultClass=None, Role=None,
@@ -2370,7 +2370,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_path_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def OpenAssociatorInstances(self, InstanceName, AssocClass=None,
                                 ResultClass=None, Role=None, ResultRole=None,
@@ -2592,7 +2592,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def OpenQueryInstances(self, FilterQueryLanguage, FilterQuery,
                            namespace=None, ReturnQueryResultClass=None,
@@ -2733,7 +2733,7 @@ class WBEMConnection(object):
         """
 
         @staticmethod
-        def _GetQueryyRsltClass(result):
+        def _GetQueryRsltClass(result):
             """ Get the QueryResultClass and return it or generate
                 exception.
             """
@@ -2760,11 +2760,11 @@ class WBEMConnection(object):
 
         insts, eos, enum_ctxt = self._get_rslt_params(result, namespace)
 
-        query_class = _GetQuerryRsltClass(result) if \
+        query_class = _GetQueryRsltClass(result) if \
                           ReturnQueryResultClass else None
 
         return pull_query_result_tuple(insts, eos, enum_ctxt, query_class)
-        
+
 
 
     def PullInstancesWithPath(self, context, MaxObjectCount,
@@ -2864,7 +2864,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def PullInstancePaths(self, context, MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
@@ -2961,7 +2961,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_path_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def PullInstances(self, context, MaxObjectCount=None, \
                           **extra):
@@ -3059,7 +3059,7 @@ class WBEMConnection(object):
             **extra)
 
         return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
-        
+
 
     def CloseEnumeration(self, context, **extra):
         # pylint: disable=invalid-name
