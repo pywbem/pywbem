@@ -459,14 +459,12 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                     # Therefore, we set the timeout at the level of the outer
                     # M2Crypto socket object.
                     # pylint: disable=using-constant-test
-                    if False:
-                        # TODO 2/16 AM: Currently disabled, figure out how to
-                        #               reenable.
-                        if self.timeout is not None:
-                            self.sock.set_socket_read_timeout(
-                                SSL.timeout(self.timeout))
-                            self.sock.set_socket_write_timeout(
-                                SSL.timeout(self.timeout))
+
+                    if self.timeout is not None:
+                        self.sock.set_socket_read_timeout(
+                            SSL.timeout(self.timeout))
+                        self.sock.set_socket_write_timeout(
+                            SSL.timeout(self.timeout))
 
                     self.sock.addr = (self.host, self.port)
                     self.sock.setup_ssl()
