@@ -266,7 +266,7 @@ def get_default_ca_certs():
 # pylint: disable=too-many-branches,too-many-statements,too-many-arguments
 def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                  verify_callback=None, ca_certs=None,
-                 no_verification=False, timeout=None):
+                 no_verification=False, timeout=None, recorder=None):
     # pylint: disable=too-many-arguments,unused-argument
     # pylint: disable=too-many-locals
     """
@@ -331,6 +331,10 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
         make any sense.
         Note that not all situations can be handled within this timeout, so
         for some issues, this method may take longer to raise an exception.
+
+      recorder (:class:`~pywbem.BaseOperationRecorder`):
+        Operation recorder, into which the HTTP request and HTTP response will
+        be staged as instance variables.
 
     Returns:
         The CIM-XML formatted response data from the WBEM server, as a
@@ -615,36 +619,49 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
         except (KeyError, ImportError):
             locallogin = None
 
+    method = 'POST'
+    target = '/cimom'
+
+    header_tuples = []
+    header_tuples.append(('Content-type', 'application/xml; charset="utf-8"'))
+    header_tuples.append(('Content-length', str(len(data))))
+    if local_auth_header is not None:
+        # The following pylint stmt disables a false positive, see
+        # https://github.com/PyCQA/pylint/issues/701
+        # TODO 3/16 AM: Track resolution of this Pylint bug.
+        # pylint: disable=not-an-iterable
+        header_tuples.append(*local_auth_header)
+    elif creds is not None:
+        auth = '%s:%s' % (creds[0], creds[1])
+        auth64 = _ensure_unicode(base64.b64encode(
+            _ensure_bytes(auth))).replace('\n', '')
+        header_tuples.append(('Authorization', 'Basic %s' % auth64))
+    elif locallogin is not None:
+        header_tuples.append(('PegasusAuthorization',
+                              'Local "%s"' % locallogin))
+    for hdr in headers:
+        hdr = _ensure_unicode(hdr)
+        hdr_pieces = [x.strip() for x in hdr.split(':', 1)]
+        header_tuples.append((urllib.parse.quote(hdr_pieces[0]),
+                              urllib.parse.quote(hdr_pieces[1])))
+
+    if recorder:
+        recorder.stage_http_request(11, method, target, dict(header_tuples),
+                                    data)
+        # We want clean response data when an exception is raised before
+        # the HTTP response comes in:
+        recorder.stage_http_response1(None, None, None, None)
+        recorder.stage_http_response2(None)
+
     with HTTPTimeout(timeout, client):
 
         while num_tries < try_limit:
             num_tries = num_tries + 1
 
-            client.putrequest('POST', '/cimom')
+            client.putrequest(method, target)
 
-            client.putheader('Content-type',
-                             'application/xml; charset="utf-8"')
-            client.putheader('Content-length', str(len(data)))
-            if local_auth_header is not None:
-                # The following pylint stmt disables a false positive, see
-                # https://github.com/PyCQA/pylint/issues/701
-                # TODO 3/16 AM: Track resolution of this Pylint bug.
-                # pylint: disable=not-an-iterable
-                client.putheader(*local_auth_header)
-            elif creds is not None:
-                auth = '%s:%s' % (creds[0], creds[1])
-                auth64 = _ensure_unicode(base64.b64encode(
-                    _ensure_bytes(auth))).replace('\n', '')
-                client.putheader('Authorization', 'Basic %s' % auth64)
-            elif locallogin is not None:
-                client.putheader('PegasusAuthorization',
-                                 'Local "%s"' % locallogin)
-
-            for hdr in headers:
-                hdr = _ensure_unicode(hdr)
-                hdr_pieces = [x.strip() for x in hdr.split(':', 1)]
-                client.putheader(urllib.parse.quote(hdr_pieces[0]),
-                                 urllib.parse.quote(hdr_pieces[1]))
+            for n, v in header_tuples:
+                client.putheader(n, v)
 
             try:
 
@@ -678,6 +695,13 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                         raise ConnectionError("Socket error: %s" % exc)
 
                 response = client.getresponse()
+
+                if recorder:
+                    recorder.stage_http_response1(
+                        response.version,
+                        response.status,
+                        response.reason,
+                        dict(response.getheaders()))
 
                 if response.status != 200:
                     if response.status == 401:
@@ -761,6 +785,9 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                     raise ConnectionError('HTTP error: %s' % response.reason)
 
                 body = response.read()
+
+                if recorder:
+                    recorder.stage_http_response2(body)
 
             except httplib.BadStatusLine as exc:
                 # Background: BadStatusLine is documented to be raised only

@@ -148,7 +148,7 @@ Enhancements
   These debug prints can be enabled via the `debug` instance variable
   of the WBEMConnection object; they are targeted at development for
   investigating these situations.
-  
+
 * Extended run_cim_operations.py which is a live test against a server.
   It has only been tested against OpenPegasus but was extended to cover
   more details on more of the operation types and to create a test
@@ -177,9 +177,14 @@ Enhancements
     - CloseEnumeration
   PyWBEM does NOT implement the EnumerationCount operation as it
   is both deprecated and unusable. (Issue #9)
-  
+
 * Added a tutorial section to the generated documentation, using
   Jupyter Notebooks for each tutorial page. (issue #324)
+
+* Added the concept of operation recording on WBEM connections, that supports
+  user-written operation recorders e.g. for tracing purposes. Added an
+  operation recorder that generates test cases for the `test_client`
+  unit test module. (issue #351)
 
 
 Bug fixes
@@ -223,14 +228,14 @@ Bug fixes
 * Fixed an IndexError in cim_http.wbem_request() that occurred during handling
   of another exception.
 
-* fixed issue with python 3 and https that was causing connect() to fail. 
+* fixed issue with python 3 and https that was causing connect() to fail.
   This completely separates connect() code for python 3 ssl module from
   python 2 m2cyrpto.
 
 * Fixed problem that wbemcli in Python 3 when used without existing history
   file would fail with "TypeError: 'FileNotFoundError' object is not
   subscriptable" (issue #302).
-  
+
 * Fixed issue with tomof() output where datetime values were not quoted.
   (issue #289)
 
@@ -243,7 +248,7 @@ Bug fixes
 
 * Fixed hole in checking where class CIMMethod allowed None as a return_type.
   (issue #264)
-  
+
 * Documentation issue with associators/references return. Was documented
   as list of classes for class level return but it actually list of
   tuples of classname,class. (issue #339)
