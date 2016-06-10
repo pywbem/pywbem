@@ -185,7 +185,7 @@ class Callback(object):
       * `headers`: list of strings with HTTP headers of request
 
     Return value:
-      * `status`: numeric with HTP status code for response
+      * `status`: numeric with HTTP status code for response
       * `headers`: list of strings with HTTP headers for response
       * `body`: response body / payload
 
@@ -208,6 +208,13 @@ class Callback(object):
     def socket_32(request, uri, headers): #pylint: disable=unused-argument
         """HTTPretty callback function that raises socket.error 32."""
         raise socket.error(32, "Broken pipe.")
+
+    @staticmethod
+    def socket_timeout(request, uri, headers): #pylint: disable=unused-argument
+        """HTTPretty callback function that raises socket.timeout error.
+           The socket.timeout is just a string, no status.
+        """
+        raise socket.timeout("Socket timeout.")
 
 class ClientTest(unittest.TestCase):
     """Test case for PyWBEM client testing."""
@@ -246,6 +253,10 @@ class ClientTest(unittest.TestCase):
         # Sort certain elements
 
         def sort_children(root, sort_elements):
+            """Sort the elements in the input parameter to facilite
+               checking
+            """
+
             for tag, attr in sort_elements:
                 # elems is a list of elements with this tag name
                 elems = root.xpath("//*[local-name() = $tag]", tag=tag)
@@ -278,6 +289,7 @@ class ClientTest(unittest.TestCase):
         ns2 = _ensure_unicode(etree.tostring(x2))
 
         checker = doctestcompare.LXMLOutputChecker()
+
         # This tolerates differences in whitespace and attribute order
         if not checker.check_output(ns1, ns2, 0):
             diff = checker.output_difference(doctest.Example("", ns1), ns2, 0)
@@ -383,6 +395,7 @@ class ClientTest(unittest.TestCase):
             op_args[arg_name] = obj(op[arg_name], tc_name)
         try:
             op_call = getattr(conn, op_name)
+
         except AttributeError as exc:
             raise ClientTestError("Error in definition of testcase %s: "\
                                   "Unknown operation name: %s" %\
@@ -392,7 +405,8 @@ class ClientTest(unittest.TestCase):
         try:
             result = op_call(**op_args)
             raised_exception = None
-        except Exception as exc:
+
+        except Exception as exc:      #pylint: disable=broad-except
             raised_exception = exc
             stringio = six.StringIO()
             traceback.print_exc(file=stringio)
@@ -573,7 +587,7 @@ class ClientTest(unittest.TestCase):
                 raise AssertionError("WBEMConnection operation method result " \
                      "is not as expected. No 'instances' " \
                      "or 'paths' component.")
-                
+
             # TODO redo as indexed loop to compare all items.
 
         else:
