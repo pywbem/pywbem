@@ -186,6 +186,9 @@ Enhancements
   operation recorder that generates test cases for the `test_client`
   unit test module. (issue #351)
 
+* Added example of inprocess indication subscription and handling in the
+  examples directory.
+
 
 Bug fixes
 ^^^^^^^^^
