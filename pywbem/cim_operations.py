@@ -3451,7 +3451,6 @@ class WBEMConnection(object):
             self.operation_recorder.stage_pywbem_args(
                 method='CloseEnumeration',
                 context=context,
-                MaxObjectCount=MaxObjectCount,
                 **extra)
 
         try:
