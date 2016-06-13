@@ -441,6 +441,15 @@ class WBEMConnection(object):
         CIM-XML data of the last response received from the WBEM server
         on this connection, formatted as it was received. Prior to receiving
         the very first response on this connection object, it is `None`.
+
+      operation_recorder (:class:`~pywbem.BaseOperationRecorder`):
+        This attribute provides for recording of the operations that are
+        executed on this connection. Initially, this attribute is `None`.
+        If `None`, no operations are recorded.
+        If set to an object of a subclass of
+        :class:`~pywbem.BaseOperationRecorder`, each operation
+        that is executed on this connection will be recorded by
+        invoking its :meth:`~pywbem.BaseOperationRecorder.record` method.
     """
 
     def __init__(self, url, creds=None, default_namespace=DEFAULT_NAMESPACE,
@@ -643,6 +652,8 @@ class WBEMConnection(object):
         self.last_raw_reply = None
         self.last_request = None
         self.last_reply = None
+        self.operation_recorder = None
+
 
     def __str__(self):
         """
@@ -748,7 +759,8 @@ class WBEMConnection(object):
                 ca_certs=self.ca_certs,
                 no_verification=self.no_verification,
                 timeout=self.timeout,
-                debug=self.debug)
+                debug=self.debug,
+                recorder=self.operation_recorder)
         except (AuthError, ConnectionError, TimeoutError, Error):
             raise
         # TODO 3/16 AM: Clean up exception handling. The next two lines are a
@@ -991,7 +1003,8 @@ class WBEMConnection(object):
                 ca_certs=self.ca_certs,
                 no_verification=self.no_verification,
                 timeout=self.timeout,
-                debug=self.debug)
+                debug=self.debug,
+                recorder=self.operation_recorder)
         except (AuthError, ConnectionError, TimeoutError, Error):
             raise
         # TODO 3/16 AM: Clean up exception handling. The next two lines are a
@@ -1227,25 +1240,45 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None and isinstance(ClassName, CIMClassName):
-            namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from_namespace(namespace)
-        classname = self._iparam_classname(ClassName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='EnumerateInstanceNames',
+                ClassName=ClassName,
+                namespace=namespace,
+                **extra)
 
-        result = self._imethodcall(
-            'EnumerateInstanceNames',
-            namespace,
-            ClassName=classname,
-            **extra)
+        try:
 
-        instancenames = []
-        if result is not None:
-            instancenames = result[0][2]
+            if namespace is None and isinstance(ClassName, CIMClassName):
+                namespace = ClassName.namespace
+            namespace = self._iparam_namespace_from_namespace(namespace)
+            classname = self._iparam_classname(ClassName)
 
-        for instancename in instancenames:
-            instancename.namespace = namespace
+            result = self._imethodcall(
+                'EnumerateInstanceNames',
+                namespace,
+                ClassName=classname,
+                **extra)
 
-        return instancenames
+            instancenames = []
+            if result is not None:
+                instancenames = result[0][2]
+
+            for instancename in instancenames:
+                instancename.namespace = namespace
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(instancenames, None)
+                self.operation_recorder.record_staged()
+            return instancenames
+
 
     def EnumerateInstances(self, ClassName, namespace=None, LocalOnly=None,
                            DeepInheritance=None, IncludeQualifiers=None,
@@ -1356,34 +1389,59 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None and isinstance(ClassName, CIMClassName):
-            namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from_namespace(namespace)
-        classname = self._iparam_classname(ClassName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='EnumerateInstances',
+                ClassName=ClassName,
+                namespace=namespace,
+                LocalOnly=LocalOnly,
+                DeepInheritance=DeepInheritance,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                **extra)
 
-        result = self._imethodcall(
-            'EnumerateInstances',
-            namespace,
-            ClassName=classname,
-            LocalOnly=LocalOnly,
-            DeepInheritance=DeepInheritance,
-            IncludeQualifiers=IncludeQualifiers,
-            IncludeClassOrigin=IncludeClassOrigin,
-            PropertyList=PropertyList,
-            **extra)
+        try:
 
-        instances = []
+            if namespace is None and isinstance(ClassName, CIMClassName):
+                namespace = ClassName.namespace
+            namespace = self._iparam_namespace_from_namespace(namespace)
+            classname = self._iparam_classname(ClassName)
 
-        if result is not None:
-            instances = result[0][2]
+            result = self._imethodcall(
+                'EnumerateInstances',
+                namespace,
+                ClassName=classname,
+                LocalOnly=LocalOnly,
+                DeepInheritance=DeepInheritance,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                **extra)
 
-        # TODO ks 6/16 would the setattr be faster?
-        # TODO: ks 6/16 should we check before setting?
-        #[setattr(i.path, 'namespace', namespace) for i in instances]
-        for instance in instances:
-            instance.path.namespace = namespace
+            if result is None:
+                instances = []
+            else:
+                instances = result[0][2]
 
-        return instances
+            # TODO ks 6/16 would the setattr be faster?
+            # TODO: ks 6/16 should we check before setting?
+            #[setattr(i.path, 'namespace', namespace) for i in instances]
+            for instance in instances:
+                instance.path.namespace = namespace
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(instances, None)
+                self.operation_recorder.record_staged()
+            return instances
+
 
     @staticmethod
     def _get_rslt_params(result, namespace):
@@ -1535,7 +1593,7 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        :Returns:
+        Returns:
 
             A :class:`py:namedtuple` containing the following named elements:
 
@@ -1572,24 +1630,52 @@ class WBEMConnection(object):
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
-        if namespace is None and isinstance(ClassName, CIMClassName):
-            namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from_namespace(namespace)
-        classname = self._iparam_classname(ClassName)
 
-        result = self._imethodcall(
-            'OpenEnumerateInstancePaths',
-            namespace,
-            ClassName=classname,
-            FilterQueryLanguage=FilterQueryLanguage,
-            FilterQuery=FilterQuery,
-            OperationTimeout=OperationTimeout,
-            ContinueOnError=ContinueOnError,
-            MaxObjectCount=MaxObjectCount,
-            response_params_rqd=True,
-            **extra)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='OpenEnumerateInstancePaths',
+                ClassName=ClassName,
+                namespace=namespace,
+                FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                **extra)
 
-        return pull_path_result_tuple(*self._get_rslt_params(result, namespace))
+        try:
+
+            if namespace is None and isinstance(ClassName, CIMClassName):
+                namespace = ClassName.namespace
+            namespace = self._iparam_namespace_from_namespace(namespace)
+            classname = self._iparam_classname(ClassName)
+
+            result = self._imethodcall(
+                'OpenEnumerateInstancePaths',
+                namespace,
+                ClassName=classname,
+                FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                response_params_rqd=True,
+                **extra)
+
+            result_tuple = pull_path_result_tuple(
+                *self._get_rslt_params(result, namespace))
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(result_tuple, None)
+                self.operation_recorder.record_staged()
+            return result_tuple
 
 
     def OpenEnumerateInstances(self, ClassName, namespace=None, LocalOnly=None,
@@ -1616,7 +1702,7 @@ class WBEMConnection(object):
         or the :meth:`~pywbem.WBEMConnection.CloseEnumeration`
         request to close the enumeration session early.
 
-        :Parameters:
+        Parameters:
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be enumerated, in any lexical case.
@@ -1749,7 +1835,7 @@ class WBEMConnection(object):
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        :Returns:
+        Returns:
 
             A :class:`py:namedtuple` containing the following named elements:
 
@@ -1789,34 +1875,66 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        :Exceptions:
+        Exceptions:
 
             See the list of exceptions described in `WBEMConnection`.
         """
 
-        if namespace is None and isinstance(ClassName, CIMClassName):
-            namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from_namespace(namespace)
-        classname = self._iparam_classname(ClassName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='OpenEnumerateInstances',
+                ClassName=ClassName,
+                namespace=namespace,
+                LocalOnly=LocalOnly,
+                DeepInheritance=DeepInheritance,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                **extra)
 
-        result = self._imethodcall(
-            'OpenEnumerateInstances',
-            namespace,
-            ClassName=classname,
-            LocalOnly=LocalOnly,
-            DeepInheritance=DeepInheritance,
-            IncludeQualifiers=IncludeQualifiers,
-            IncludeClassOrigin=IncludeClassOrigin,
-            PropertyList=PropertyList,
-            FilterQueryLanguage=FilterQueryLanguage,
-            FilterQuery=FilterQuery,
-            OperationTimeout=OperationTimeout,
-            ContinueOnError=ContinueOnError,
-            MaxObjectCount=MaxObjectCount,
-            response_params_rqd=True,
-            **extra)
+        try:
 
-        return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
+            if namespace is None and isinstance(ClassName, CIMClassName):
+                namespace = ClassName.namespace
+            namespace = self._iparam_namespace_from_namespace(namespace)
+            classname = self._iparam_classname(ClassName)
+
+            result = self._imethodcall(
+                'OpenEnumerateInstances',
+                namespace,
+                ClassName=classname,
+                LocalOnly=LocalOnly,
+                DeepInheritance=DeepInheritance,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                response_params_rqd=True,
+                **extra)
+
+            result_tuple = pull_inst_result_tuple(
+                *self._get_rslt_params(result, namespace))
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(result_tuple, None)
+                self.operation_recorder.record_staged()
+            return result_tuple
 
 
     def OpenReferenceInstancePaths(self, InstanceName, ResultClass=None,
@@ -1925,7 +2043,7 @@ class WBEMConnection(object):
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        :Returns:
+        Returns:
 
             A :class:`py:namedtuple` containing the following named elements:
 
@@ -1965,29 +2083,57 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        :Exceptions:
+        Exceptions:
 
             See the list of exceptions described in `WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_objectname(InstanceName)
-        instancename = self._iparam_instancename(InstanceName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='OpenReferenceInstancePaths',
+                InstanceName=InstanceName,
+                ResultClass=ResultClass,
+                Role=Role,
+                FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                **extra)
 
-        result = self._imethodcall(
-            'OpenReferenceInstancePaths',
-            namespace,
-            InstanceName=instancename,
-            ResultClass=self._iparam_classname(ResultClass),
-            Role=Role,
-            FilterQueryLanguage=FilterQueryLanguage,
-            FilterQuery=FilterQuery,
-            OperationTimeout=OperationTimeout,
-            ContinueOnError=ContinueOnError,
-            MaxObjectCount=MaxObjectCount,
-            response_params_rqd=True,
-            **extra)
+        try:
 
-        return pull_path_result_tuple(*self._get_rslt_params(result, namespace))
+            namespace = self._iparam_namespace_from_objectname(InstanceName)
+            instancename = self._iparam_instancename(InstanceName)
+
+            result = self._imethodcall(
+                'OpenReferenceInstancePaths',
+                namespace,
+                InstanceName=instancename,
+                ResultClass=self._iparam_classname(ResultClass),
+                Role=Role,
+                FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                response_params_rqd=True,
+                **extra)
+
+            result_tuple = pull_path_result_tuple(
+                *self._get_rslt_params(result, namespace))
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(result_tuple, None)
+                self.operation_recorder.record_staged()
+            return result_tuple
 
 
     def OpenReferenceInstances(self, InstanceName, ResultClass=None,
@@ -2124,7 +2270,7 @@ class WBEMConnection(object):
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        :Returns:
+        Returns:
 
             A :class:`py:namedtuple` containing the following named elements:
 
@@ -2164,34 +2310,65 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        :Exceptions:
+        Exceptions:
 
             See the list of exceptions described in `WBEMConnection`.
 
         """
 
-        #TODO ks 6/16 Limit to instance name. No classname allowed.
-        namespace = self._iparam_namespace_from_objectname(InstanceName)
-        instancename = self._iparam_instancename(InstanceName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='OpenReferenceInstances',
+                InstanceName=InstanceName,
+                ResultClass=ResultClass,
+                Role=Role,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                **extra)
 
-        result = self._imethodcall(
-            'OpenReferenceInstances',
-            namespace,
-            InstanceName=instancename,
-            ResultClass=self._iparam_classname(ResultClass),
-            Role=Role,
-            IncludeQualifiers=IncludeQualifiers,
-            IncludeClassOrigin=IncludeClassOrigin,
-            PropertyList=PropertyList,
-            FilterQueryLanguage=FilterQueryLanguage,
-            FilterQuery=FilterQuery,
-            OperationTimeout=OperationTimeout,
-            ContinueOnError=ContinueOnError,
-            MaxObjectCount=MaxObjectCount,
-            response_params_rqd=True,
-            **extra)
+        try:
 
-        return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
+            #TODO ks 6/16 Limit to instance name. No classname allowed.
+            namespace = self._iparam_namespace_from_objectname(InstanceName)
+            instancename = self._iparam_instancename(InstanceName)
+
+            result = self._imethodcall(
+                'OpenReferenceInstances',
+                namespace,
+                InstanceName=instancename,
+                ResultClass=self._iparam_classname(ResultClass),
+                Role=Role,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                response_params_rqd=True,
+                **extra)
+
+            result_tuple = pull_inst_result_tuple(
+                *self._get_rslt_params(result, namespace))
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(result_tuple, None)
+                self.operation_recorder.record_staged()
+            return result_tuple
 
 
     def OpenAssociatorInstancePaths(self, InstanceName, AssocClass=None,
@@ -2317,7 +2494,7 @@ class WBEMConnection(object):
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        :Returns:
+        Returns:
 
             A :class:`py:namedtuple` containing the following named elements:
 
@@ -2358,31 +2535,61 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        :Exceptions:
+        Exceptions:
 
             See the list of exceptions described in `WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_objectname(InstanceName)
-        instancename = self._iparam_instancename(InstanceName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='OpenAssociatorInstancePaths',
+                InstanceName=InstanceName,
+                AssocClass=AssocClass,
+                ResultClass=ResultClass,
+                Role=Role,
+                ResultRole=ResultRole,
+                FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                **extra)
 
-        result = self._imethodcall(
-            'OpenAssociatorInstancePaths',
-            namespace,
-            InstanceName=instancename,
-            AssocClass=self._iparam_classname(AssocClass),
-            ResultClass=self._iparam_classname(ResultClass),
-            Role=Role,
-            ResultRole=ResultRole,
-            FilterQueryLanguage=FilterQueryLanguage,
-            FilterQuery=FilterQuery,
-            OperationTimeout=OperationTimeout,
-            ContinueOnError=ContinueOnError,
-            MaxObjectCount=MaxObjectCount,
-            response_params_rqd=True,
-            **extra)
+        try:
 
-        return pull_path_result_tuple(*self._get_rslt_params(result, namespace))
+            namespace = self._iparam_namespace_from_objectname(InstanceName)
+            instancename = self._iparam_instancename(InstanceName)
+
+            result = self._imethodcall(
+                'OpenAssociatorInstancePaths',
+                namespace,
+                InstanceName=instancename,
+                AssocClass=self._iparam_classname(AssocClass),
+                ResultClass=self._iparam_classname(ResultClass),
+                Role=Role,
+                ResultRole=ResultRole,
+                FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                response_params_rqd=True,
+                **extra)
+
+            result_tuple = pull_path_result_tuple(
+                *self._get_rslt_params(result, namespace))
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(result_tuple, None)
+                self.operation_recorder.record_staged()
+            return result_tuple
 
 
     def OpenAssociatorInstances(self, InstanceName, AssocClass=None,
@@ -2539,7 +2746,7 @@ class WBEMConnection(object):
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        :Returns:
+        Returns:
 
             A :class:`py:namedtuple` containing the following named elements:
 
@@ -2579,34 +2786,67 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        :Exceptions:
+        Exceptions:
 
             See the list of exceptions described in `WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_objectname(InstanceName)
-        instancename = self._iparam_instancename(InstanceName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='OpenAssociatorInstances',
+                InstanceName=InstanceName,
+                AssocClass=AssocClass,
+                ResultClass=ResultClass,
+                Role=Role,
+                ResultRole=ResultRole,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                **extra)
 
-        result = self._imethodcall(
-            'OpenAssociatorInstances',
-            namespace,
-            InstanceName=instancename,
-            AssocClass=self._iparam_classname(AssocClass),
-            ResultClass=self._iparam_classname(ResultClass),
-            Role=Role,
-            ResultRole=ResultRole,
-            IncludeQualifiers=IncludeQualifiers,
-            IncludeClassOrigin=IncludeClassOrigin,
-            PropertyList=PropertyList,
-            FilterQueryLanguage=FilterQueryLanguage,
-            FilterQuery=FilterQuery,
-            OperationTimeout=OperationTimeout,
-            ContinueOnError=ContinueOnError,
-            MaxObjectCount=MaxObjectCount,
-            response_params_rqd=True,
-            **extra)
+        try:
 
-        return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
+            namespace = self._iparam_namespace_from_objectname(InstanceName)
+            instancename = self._iparam_instancename(InstanceName)
+
+            result = self._imethodcall(
+                'OpenAssociatorInstances',
+                namespace,
+                InstanceName=instancename,
+                AssocClass=self._iparam_classname(AssocClass),
+                ResultClass=self._iparam_classname(ResultClass),
+                Role=Role,
+                ResultRole=ResultRole,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                response_params_rqd=True,
+                **extra)
+
+            result_tuple = pull_inst_result_tuple(
+                *self._get_rslt_params(result, namespace))
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(result_tuple, None)
+                self.operation_recorder.record_staged()
+            return result_tuple
 
 
     def OpenQueryInstances(self, FilterQueryLanguage, FilterQuery,
@@ -2699,7 +2939,7 @@ class WBEMConnection(object):
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        :Returns:
+        Returns:
 
             A :class:`py:namedtuple` containing the following named elements:
 
@@ -2744,7 +2984,7 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        :Exceptions:
+        Exceptions:
 
             See the list of exceptions described in `WBEMConnection`.
         """
@@ -2761,27 +3001,53 @@ class WBEMConnection(object):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            "ReturnQueryResultClass invalid or missing.")
 
-        namespace = self._iparam_namespace_from_objectname(namespace)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='OpenQueryInstances',
+                FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
+                namespace=namespace,
+                ReturnQueryResultClass=ReturnQueryResultClass,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                **extra)
 
-        result = self._imethodcall(
-            'OpenQueryInstances',
-            namespace,
-            FilterQuery=FilterQuery,
-            FilterQueryLanguage=FilterQueryLanguage,
-            ReturnQueryResultClass=ReturnQueryResultClass,
-            OperationTimeout=OperationTimeout,
-            ContinueOnError=ContinueOnError,
-            MaxObjectCount=MaxObjectCount,
-            response_params_rqd=True,
-            **extra)
+        try:
 
-        insts, eos, enum_ctxt = self._get_rslt_params(result, namespace)
+            namespace = self._iparam_namespace_from_objectname(namespace)
 
-        query_class = _GetQueryRsltClass(result) if \
-                          ReturnQueryResultClass else None
+            result = self._imethodcall(
+                'OpenQueryInstances',
+                namespace,
+                FilterQuery=FilterQuery,
+                FilterQueryLanguage=FilterQueryLanguage,
+                ReturnQueryResultClass=ReturnQueryResultClass,
+                OperationTimeout=OperationTimeout,
+                ContinueOnError=ContinueOnError,
+                MaxObjectCount=MaxObjectCount,
+                response_params_rqd=True,
+                **extra)
 
-        return pull_query_result_tuple(insts, eos, enum_ctxt, query_class)
+            insts, eos, enum_ctxt = self._get_rslt_params(result, namespace)
 
+            query_class = _GetQueryRsltClass(result) if \
+                              ReturnQueryResultClass else None
+
+            result_tuple = pull_query_result_tuple(insts, eos, enum_ctxt,
+                                                   query_class)
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(result_tuple, None)
+                self.operation_recorder.record_staged()
+            return result_tuple
 
 
     def PullInstancesWithPath(self, context, MaxObjectCount,
@@ -2801,7 +3067,8 @@ class WBEMConnection(object):
         status and optionally instances.
         Otherwise, this method raises an exception.
 
-        :Parameters:
+        Parameters:
+
           context (:term:`string`)
             Identifies the enumeraton session, including its current
             enumeration state. This must be the value of the `context`
@@ -2827,7 +3094,7 @@ class WBEMConnection(object):
               be used by a client to leave the handling of any returned
               instances to a loop of Pull operations.
 
-        :Returns:
+        Returns:
 
             A :class:`py:namedtuple` containing the following named elements:
 
@@ -2867,21 +3134,44 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        :Exceptions:
+        Exceptions:
 
             See the list of exceptions described in `WBEMConnection`.
         """
-        namespace = context[1]
 
-        result = self._imethodcall(
-            'PullInstancesWithPath',
-            namespace=namespace,
-            EnumerationContext=context[0],
-            MaxObjectCount=MaxObjectCount,
-            response_params_rqd=True,
-            **extra)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='PullInstancesWithPath',
+                context=context,
+                MaxObjectCount=MaxObjectCount,
+                **extra)
 
-        return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
+        try:
+
+            namespace = context[1]
+
+            result = self._imethodcall(
+                'PullInstancesWithPath',
+                namespace=namespace,
+                EnumerationContext=context[0],
+                MaxObjectCount=MaxObjectCount,
+                response_params_rqd=True,
+                **extra)
+
+            result_tuple = pull_inst_result_tuple(
+                *self._get_rslt_params(result, namespace))
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(result_tuple, None)
+                self.operation_recorder.record_staged()
+            return result_tuple
 
 
     def PullInstancePaths(self, context, MaxObjectCount=None, **extra):
@@ -2899,7 +3189,8 @@ class WBEMConnection(object):
         status and optionally instance paths.
         Otherwise, this method raises an exception.
 
-        :Parameters:
+        Parameters:
+
           context (:term:`string`)
             Identifies the enumeraton session, including its current
             enumeration state. This must be the value of the `context`
@@ -2925,7 +3216,7 @@ class WBEMConnection(object):
               be used by a client to leave the handling of any returned
               instances to a loop of Pull operations.
 
-        :Returns:
+        Returns:
 
             A :class:`py:namedtuple` containing the following named elements:
 
@@ -2965,27 +3256,48 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        :Exceptions:
+        Exceptions:
 
             See the list of exceptions described in `WBEMConnection`.
         """
-        namespace = context[1]
 
-        result = self._imethodcall(
-            'PullInstancePaths',
-            namespace=namespace,
-            EnumerationContext=context[0],
-            MaxObjectCount=MaxObjectCount,
-            response_params_rqd=True,
-            **extra)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='PullInstancePaths',
+                context=context,
+                MaxObjectCount=MaxObjectCount,
+                **extra)
 
-        return pull_path_result_tuple(*self._get_rslt_params(result, namespace))
+        try:
+
+            namespace = context[1]
+
+            result = self._imethodcall(
+                'PullInstancePaths',
+                namespace=namespace,
+                EnumerationContext=context[0],
+                MaxObjectCount=MaxObjectCount,
+                response_params_rqd=True,
+                **extra)
+
+            result_tuple = pull_path_result_tuple(
+                *self._get_rslt_params(result, namespace))
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(result_tuple, None)
+                self.operation_recorder.record_staged()
+            return result_tuple
 
 
-    def PullInstances(self, context, MaxObjectCount=None, \
-                          **extra):
+    def PullInstances(self, context, MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
-
         """
         Retrieve the next set of instances from an open enumeraton
         session defined by the `enumeration_context` parameter.
@@ -2998,7 +3310,8 @@ class WBEMConnection(object):
         status and optionally instances.
         Otherwise, this method raises an exception.
 
-        :Parameters:
+        Parameters:
+
           context (:term:`string`)
             Identifies the enumeraton session, including its current
             enumeration state. This must be the value of the `context`
@@ -3024,7 +3337,7 @@ class WBEMConnection(object):
               be used by a client to leave the handling of any returned
               instances to a loop of Pull operations.
 
-        :Returns:
+        Returns:
 
             A :class:`py:namedtuple` containing the following named elements:
 
@@ -3064,21 +3377,44 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        :Exceptions:
+        Exceptions:
 
             See the list of exceptions described in `WBEMConnection`.
         """
-        namespace = context[1]
 
-        result = self._imethodcall(
-            'PullInstances',
-            namespace=namespace,
-            EnumerationContext=context[0],
-            MaxObjectCount=MaxObjectCount,
-            response_params_rqd=True,
-            **extra)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='PullInstances',
+                context=context,
+                MaxObjectCount=MaxObjectCount,
+                **extra)
 
-        return pull_inst_result_tuple(*self._get_rslt_params(result, namespace))
+        try:
+
+            namespace = context[1]
+
+            result = self._imethodcall(
+                'PullInstances',
+                namespace=namespace,
+                EnumerationContext=context[0],
+                MaxObjectCount=MaxObjectCount,
+                response_params_rqd=True,
+                **extra)
+
+            result_tuple = pull_inst_result_tuple(
+                *self._get_rslt_params(result, namespace))
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(result_tuple, None)
+                self.operation_recorder.record_staged()
+            return result_tuple
 
 
     def CloseEnumeration(self, context, **extra):
@@ -3097,7 +3433,7 @@ class WBEMConnection(object):
         If the operation succeeds, this method returns. Otherwise, it
         raises an exception.
 
-        :Parameters:
+        Parameters:
 
           context (:term: `string`)
             The `enumeration_context` paramater must contain the
@@ -3110,11 +3446,32 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        self._imethodcall(
-            'CloseEnumeration',
-            namespace=context[1],
-            EnumerationContext=context[0],
-            **extra)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='CloseEnumeration',
+                context=context,
+                **extra)
+
+        try:
+
+            self._imethodcall(
+                'CloseEnumeration',
+                namespace=context[1],
+                EnumerationContext=context[0],
+                **extra)
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, None)
+                self.operation_recorder.record_staged()
+            return
+
 
     def GetInstance(self, InstanceName, LocalOnly=None, IncludeQualifiers=None,
                     IncludeClassOrigin=None, PropertyList=None, **extra):
@@ -3197,26 +3554,48 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        # Strip off host and namespace to make this a "local" object
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='GetInstance',
+                InstanceName=InstanceName,
+                LocalOnly=LocalOnly,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                **extra)
 
-        namespace = self._iparam_namespace_from_objectname(InstanceName)
-        instancename = self._iparam_instancename(InstanceName)
+        try:
 
-        result = self._imethodcall(
-            'GetInstance',
-            namespace,
-            InstanceName=instancename,
-            LocalOnly=LocalOnly,
-            IncludeQualifiers=IncludeQualifiers,
-            IncludeClassOrigin=IncludeClassOrigin,
-            PropertyList=PropertyList,
-            **extra)
+            # Strip off host and namespace to make this a "local" object
+            namespace = self._iparam_namespace_from_objectname(InstanceName)
+            instancename = self._iparam_instancename(InstanceName)
 
-        instance = result[0][2][0]
-        instance.path = instancename
-        instance.path.namespace = namespace
+            result = self._imethodcall(
+                'GetInstance',
+                namespace,
+                InstanceName=instancename,
+                LocalOnly=LocalOnly,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                **extra)
 
-        return instance
+            instance = result[0][2][0]
+            instance.path = instancename
+            instance.path.namespace = namespace
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(instance, None)
+                self.operation_recorder.record_staged()
+            return instance
+
 
     def ModifyInstance(self, ModifiedInstance, IncludeQualifiers=None,
                        PropertyList=None, **extra):
@@ -3288,33 +3667,56 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        # Must pass a named CIMInstance here (i.e path attribute set)
-        if ModifiedInstance.path is None:
-            raise ValueError(
-                'ModifiedInstance parameter must have path attribute set')
-        if ModifiedInstance.path.classname is None:
-            raise ValueError(
-                'ModifiedInstance parameter must have classname set in path')
-        if ModifiedInstance.classname is None:
-            raise ValueError(
-                'ModifiedInstance parameter must have classname set in ' \
-                'instance')
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='ModifyInstance',
+                ModifiedInstance=ModifiedInstance,
+                IncludeQualifiers=IncludeQualifiers,
+                PropertyList=PropertyList,
+                **extra)
 
-        namespace = self._iparam_namespace_from_objectname(ModifiedInstance.path)
+        try:
 
-        # Strip off host and namespace to avoid producing an INSTANCEPATH or
-        # LOCALINSTANCEPATH element instead of the desired INSTANCENAME element.
-        instance = ModifiedInstance.copy()
-        instance.path.namespace = None
-        instance.path.host = None
+            # Must pass a named CIMInstance here (i.e path attribute set)
+            if ModifiedInstance.path is None:
+                raise ValueError(
+                    'ModifiedInstance parameter must have path attribute set')
+            if ModifiedInstance.path.classname is None:
+                raise ValueError(
+                    'ModifiedInstance parameter must have classname set in path')
+            if ModifiedInstance.classname is None:
+                raise ValueError(
+                    'ModifiedInstance parameter must have classname set in ' \
+                    'instance')
 
-        self._imethodcall(
-            'ModifyInstance',
-            namespace,
-            ModifiedInstance=instance,
-            IncludeQualifiers=IncludeQualifiers,
-            PropertyList=PropertyList,
-            **extra)
+            namespace = self._iparam_namespace_from_objectname(ModifiedInstance.path)
+
+            # Strip off host and namespace to avoid producing an INSTANCEPATH or
+            # LOCALINSTANCEPATH element instead of the desired INSTANCENAME element.
+            instance = ModifiedInstance.copy()
+            instance.path.namespace = None
+            instance.path.host = None
+
+            self._imethodcall(
+                'ModifyInstance',
+                namespace,
+                ModifiedInstance=instance,
+                IncludeQualifiers=IncludeQualifiers,
+                PropertyList=PropertyList,
+                **extra)
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, None)
+                self.operation_recorder.record_staged()
+            return
+
 
     def CreateInstance(self, NewInstance, namespace=None, **extra):
         # pylint: disable=invalid-name
@@ -3378,25 +3780,45 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None and NewInstance.path.namespace is not None:
-            namespace = NewInstance.path.namespace
-        namespace = self._iparam_namespace_from_namespace(namespace)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='CreateInstance',
+                NewInstance=NewInstance,
+                namespace=namespace,
+                **extra)
 
-        # Strip off path to avoid producing a VALUE.NAMEDINSTANCE element
-        # instead of the desired INSTANCE element.
-        instance = NewInstance.copy()
-        instance.path = None
+        try:
 
-        result = self._imethodcall(
-            'CreateInstance',
-            namespace,
-            NewInstance=instance,
-            **extra)
+            if namespace is None and NewInstance.path.namespace is not None:
+                namespace = NewInstance.path.namespace
+            namespace = self._iparam_namespace_from_namespace(namespace)
 
-        instancename = result[0][2][0]
-        instancename.namespace = namespace  # TODO: Why not accept returned ns?
+            # Strip off path to avoid producing a VALUE.NAMEDINSTANCE element
+            # instead of the desired INSTANCE element.
+            instance = NewInstance.copy()
+            instance.path = None
 
-        return instancename
+            result = self._imethodcall(
+                'CreateInstance',
+                namespace,
+                NewInstance=instance,
+                **extra)
+
+            instancename = result[0][2][0]
+            instancename.namespace = namespace  # TODO: Why not accept returned ns?
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(instancename, None)
+                self.operation_recorder.record_staged()
+            return instancename
+
 
     def DeleteInstance(self, InstanceName, **extra):
         # pylint: disable=invalid-name
@@ -3428,14 +3850,35 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_objectname(InstanceName)
-        instancename = self._iparam_instancename(InstanceName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='DeleteInstance',
+                InstanceName=InstanceName,
+                **extra)
 
-        self._imethodcall(
-            'DeleteInstance',
-            namespace,
-            InstanceName=instancename,
-            **extra)
+        try:
+
+            namespace = self._iparam_namespace_from_objectname(InstanceName)
+            instancename = self._iparam_instancename(InstanceName)
+
+            self._imethodcall(
+                'DeleteInstance',
+                namespace,
+                InstanceName=instancename,
+                **extra)
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, None)
+                self.operation_recorder.record_staged()
+            return
+
 
     #
     # Association operations
@@ -3526,23 +3969,48 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_objectname(ObjectName)
-        objectname = self._iparam_objectname(ObjectName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='AssociatorNames',
+                ObjectName=ObjectName,
+                AssocClass=AssocClass,
+                ResultClass=ResultClass,
+                Role=Role,
+                ResultRole=ResultRole,
+                **extra)
 
-        result = self._imethodcall(
-            'AssociatorNames',
-            namespace,
-            ObjectName=objectname,
-            AssocClass=self._iparam_classname(AssocClass),
-            ResultClass=self._iparam_classname(ResultClass),
-            Role=Role,
-            ResultRole=ResultRole,
-            **extra)
+        try:
 
-        if result is None:
-            return []
+            namespace = self._iparam_namespace_from_objectname(ObjectName)
+            objectname = self._iparam_objectname(ObjectName)
 
-        return [x[2] for x in result[0][2]]
+            result = self._imethodcall(
+                'AssociatorNames',
+                namespace,
+                ObjectName=objectname,
+                AssocClass=self._iparam_classname(AssocClass),
+                ResultClass=self._iparam_classname(ResultClass),
+                Role=Role,
+                ResultRole=ResultRole,
+                **extra)
+
+            if result is None:
+                objects = []
+            else:
+                objects = [x[2] for x in result[0][2]]
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(objects, None)
+                self.operation_recorder.record_staged()
+            return objects
+
 
     def Associators(self, ObjectName, AssocClass=None, ResultClass=None,
                     Role=None, ResultRole=None, IncludeQualifiers=None,
@@ -3668,26 +4136,54 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_objectname(ObjectName)
-        objectname = self._iparam_objectname(ObjectName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='Associators',
+                ObjectName=ObjectName,
+                AssocClass=AssocClass,
+                ResultClass=ResultClass,
+                Role=Role,
+                ResultRole=ResultRole,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                **extra)
 
-        result = self._imethodcall(
-            'Associators',
-            namespace,
-            ObjectName=objectname,
-            AssocClass=self._iparam_classname(AssocClass),
-            ResultClass=self._iparam_classname(ResultClass),
-            Role=Role,
-            ResultRole=ResultRole,
-            IncludeQualifiers=IncludeQualifiers,
-            IncludeClassOrigin=IncludeClassOrigin,
-            PropertyList=PropertyList,
-            **extra)
+        try:
 
-        if result is None:
-            return []
+            namespace = self._iparam_namespace_from_objectname(ObjectName)
+            objectname = self._iparam_objectname(ObjectName)
 
-        return [x[2] for x in result[0][2]]
+            result = self._imethodcall(
+                'Associators',
+                namespace,
+                ObjectName=objectname,
+                AssocClass=self._iparam_classname(AssocClass),
+                ResultClass=self._iparam_classname(ResultClass),
+                Role=Role,
+                ResultRole=ResultRole,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                **extra)
+
+            if result is None:
+                objects = []
+            else:
+                objects = [x[2] for x in result[0][2]]
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(objects, None)
+                self.operation_recorder.record_staged()
+            return objects
+
 
     def ReferenceNames(self, ObjectName, ResultClass=None, Role=None, **extra):
         # pylint: disable=invalid-name, line-too-long
@@ -3762,21 +4258,44 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_objectname(ObjectName)
-        objectname = self._iparam_objectname(ObjectName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='ReferenceNames',
+                ObjectName=ObjectName,
+                ResultClass=ResultClass,
+                Role=Role,
+                **extra)
 
-        result = self._imethodcall(
-            'ReferenceNames',
-            namespace,
-            ObjectName=objectname,
-            ResultClass=self._iparam_classname(ResultClass),
-            Role=Role,
-            **extra)
+        try:
 
-        if result is None:
-            return []
+            namespace = self._iparam_namespace_from_objectname(ObjectName)
+            objectname = self._iparam_objectname(ObjectName)
 
-        return [x[2] for x in result[0][2]]
+            result = self._imethodcall(
+                'ReferenceNames',
+                namespace,
+                ObjectName=objectname,
+                ResultClass=self._iparam_classname(ResultClass),
+                Role=Role,
+                **extra)
+
+            if result is None:
+                objects = []
+            else:
+                objects = [x[2] for x in result[0][2]]
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(objects, None)
+                self.operation_recorder.record_staged()
+            return objects
+
 
     def References(self, ObjectName, ResultClass=None, Role=None,
                    IncludeQualifiers=None, IncludeClassOrigin=None,
@@ -3889,24 +4408,50 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_objectname(ObjectName)
-        objectname = self._iparam_objectname(ObjectName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='References',
+                ObjectName=ObjectName,
+                ResultClass=ResultClass,
+                Role=Role,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                **extra)
 
-        result = self._imethodcall(
-            'References',
-            namespace,
-            ObjectName=objectname,
-            ResultClass=self._iparam_classname(ResultClass),
-            Role=Role,
-            IncludeQualifiers=IncludeQualifiers,
-            IncludeClassOrigin=IncludeClassOrigin,
-            PropertyList=PropertyList,
-            **extra)
+        try:
 
-        if result is None:
-            return []
+            namespace = self._iparam_namespace_from_objectname(ObjectName)
+            objectname = self._iparam_objectname(ObjectName)
 
-        return [x[2] for x in result[0][2]]
+            result = self._imethodcall(
+                'References',
+                namespace,
+                ObjectName=objectname,
+                ResultClass=self._iparam_classname(ResultClass),
+                Role=Role,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                **extra)
+
+            if result is None:
+                objects = []
+            else:
+                objects = [x[2] for x in result[0][2]]
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(objects, None)
+                self.operation_recorder.record_staged()
+            return objects
+
 
     #
     # Method invocation operation
@@ -3999,41 +4544,63 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        # Convert string to CIMClassName
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='InvokeMethod',
+                MethodName=MethodName,
+                ObjectName=ObjectName,
+                Params=Params,
+                **params)
 
-        obj = ObjectName
+        try:
 
-        if isinstance(obj, six.string_types):
-            obj = CIMClassName(obj, namespace=self.default_namespace)
+            # Convert string to CIMClassName
 
-        if isinstance(obj, CIMInstanceName) and obj.namespace is None:
-            obj = ObjectName.copy()
-            obj.namespace = self.default_namespace
+            obj = ObjectName
 
-        # Make the method call
+            if isinstance(obj, six.string_types):
+                obj = CIMClassName(obj, namespace=self.default_namespace)
 
-        result = self._methodcall(MethodName, obj, Params, **params)
+            if isinstance(obj, CIMInstanceName) and obj.namespace is None:
+                obj = ObjectName.copy()
+                obj.namespace = self.default_namespace
 
-        # Convert optional RETURNVALUE into a Python object
+            # Make the method call
+            result = self._methodcall(MethodName, obj, Params, **params)
 
-        returnvalue = None
+            # Convert optional RETURNVALUE into a Python object
 
-        if len(result) > 0 and result[0][0] == 'RETURNVALUE':
+            returnvalue = None
 
-            returnvalue = tocimobj(result[0][1]['PARAMTYPE'], result[0][2])
-            result = result[1:]
+            if len(result) > 0 and result[0][0] == 'RETURNVALUE':
 
-        # Convert zero or more PARAMVALUE elements into dictionary
+                returnvalue = tocimobj(result[0][1]['PARAMTYPE'], result[0][2])
+                result = result[1:]
 
-        output_params = NocaseDict()
+            # Convert zero or more PARAMVALUE elements into dictionary
 
-        for p in result:
-            if p[1] == 'reference':
-                output_params[p[0]] = p[2]
-            else:
-                output_params[p[0]] = tocimobj(p[1], p[2])
+            output_params = NocaseDict()
 
-        return returnvalue, output_params
+            for p in result:
+                if p[1] == 'reference':
+                    output_params[p[0]] = p[2]
+                else:
+                    output_params[p[0]] = tocimobj(p[1], p[2])
+
+            result_tuple = (returnvalue, output_params)
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(result_tuple, None)
+                self.operation_recorder.record_staged()
+            return result_tuple
+
 
     #
     # Query operations
@@ -4090,24 +4657,45 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_namespace(namespace)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='ExecQuery',
+                QueryLanguage=QueryLanguage,
+                Query=Query,
+                namespace=namespace,
+                **extra)
 
-        result = self._imethodcall(
-            'ExecQuery',
-            namespace,
-            QueryLanguage=QueryLanguage,
-            Query=Query,
-            **extra)
+        try:
 
-        instances = []
+            namespace = self._iparam_namespace_from_namespace(namespace)
 
-        if result is not None:
-            instances = [tt[2] for tt in result[0][2]]
+            result = self._imethodcall(
+                'ExecQuery',
+                namespace,
+                QueryLanguage=QueryLanguage,
+                Query=Query,
+                **extra)
 
-        for instance in instances:
-            instance.path.namespace = namespace
+            instances = []
 
-        return instances
+            if result is not None:
+                instances = [tt[2] for tt in result[0][2]]
+
+            for instance in instances:
+                instance.path.namespace = namespace
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(instances, None)
+                self.operation_recorder.record_staged()
+            return instances
+
 
     #
     # Class operations
@@ -4181,22 +4769,45 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None and isinstance(ClassName, CIMClassName):
-            namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from_namespace(namespace)
-        classname = self._iparam_classname(ClassName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='EnumerateClassNames',
+                namespace=namespace,
+                ClassName=ClassName,
+                DeepInheritance=DeepInheritance,
+                **extra)
 
-        result = self._imethodcall(
-            'EnumerateClassNames',
-            namespace,
-            ClassName=classname,
-            DeepInheritance=DeepInheritance,
-            **extra)
+        try:
 
-        if result is None:
-            return []
+            if namespace is None and isinstance(ClassName, CIMClassName):
+                namespace = ClassName.namespace
+            namespace = self._iparam_namespace_from_namespace(namespace)
+            classname = self._iparam_classname(ClassName)
+
+            result = self._imethodcall(
+                'EnumerateClassNames',
+                namespace,
+                ClassName=classname,
+                DeepInheritance=DeepInheritance,
+                **extra)
+
+            if result is None:
+                classnames = []
+            else:
+                classnames = [x.classname for x in result[0][2]]
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
         else:
-            return [x.classname for x in result[0][2]]
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(classnames, None)
+                self.operation_recorder.record_staged()
+            return classnames
+
 
     def EnumerateClasses(self, namespace=None, ClassName=None,
                          DeepInheritance=None, LocalOnly=None,
@@ -4298,25 +4909,51 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None and isinstance(ClassName, CIMClassName):
-            namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from_namespace(namespace)
-        classname = self._iparam_classname(ClassName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='EnumerateClasses',
+                namespace=namespace,
+                ClassName=ClassName,
+                DeepInheritance=DeepInheritance,
+                LocalOnly=LocalOnly,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                **extra)
 
-        result = self._imethodcall(
-            'EnumerateClasses',
-            namespace,
-            ClassName=classname,
-            DeepInheritance=DeepInheritance,
-            LocalOnly=LocalOnly,
-            IncludeQualifiers=IncludeQualifiers,
-            IncludeClassOrigin=IncludeClassOrigin,
-            **extra)
+        try:
 
-        if result is None:
-            return []
+            if namespace is None and isinstance(ClassName, CIMClassName):
+                namespace = ClassName.namespace
+            namespace = self._iparam_namespace_from_namespace(namespace)
+            classname = self._iparam_classname(ClassName)
 
-        return result[0][2]
+            result = self._imethodcall(
+                'EnumerateClasses',
+                namespace,
+                ClassName=classname,
+                DeepInheritance=DeepInheritance,
+                LocalOnly=LocalOnly,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                **extra)
+
+            if result is None:
+                classes = []
+            else:
+                classes = result[0][2]
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(classes, None)
+                self.operation_recorder.record_staged()
+            return classes
+
 
     def GetClass(self, ClassName, namespace=None, LocalOnly=None,
                  IncludeQualifiers=None, IncludeClassOrigin=None,
@@ -4402,22 +5039,48 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None and isinstance(ClassName, CIMClassName):
-            namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from_namespace(namespace)
-        classname = self._iparam_classname(ClassName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='GetClass',
+                ClassName=ClassName,
+                namespace=namespace,
+                LocalOnly=LocalOnly,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                **extra)
 
-        result = self._imethodcall(
-            'GetClass',
-            namespace,
-            ClassName=classname,
-            LocalOnly=LocalOnly,
-            IncludeQualifiers=IncludeQualifiers,
-            IncludeClassOrigin=IncludeClassOrigin,
-            PropertyList=PropertyList,
-            **extra)
+        try:
 
-        return result[0][2][0]
+            if namespace is None and isinstance(ClassName, CIMClassName):
+                namespace = ClassName.namespace
+            namespace = self._iparam_namespace_from_namespace(namespace)
+            classname = self._iparam_classname(ClassName)
+
+            result = self._imethodcall(
+                'GetClass',
+                namespace,
+                ClassName=classname,
+                LocalOnly=LocalOnly,
+                IncludeQualifiers=IncludeQualifiers,
+                IncludeClassOrigin=IncludeClassOrigin,
+                PropertyList=PropertyList,
+                **extra)
+
+            klass = result[0][2][0]
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(klass, None)
+                self.operation_recorder.record_staged()
+            return klass
+
 
     def ModifyClass(self, ModifiedClass, namespace=None, **extra):
         # pylint: disable=invalid-name
@@ -4462,16 +5125,38 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_namespace(namespace)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='ModifyClass',
+                ModifiedClass=ModifiedClass,
+                namespace=namespace,
+                **extra)
 
-        klass = ModifiedClass.copy()
-        klass.path = None
+        try:
 
-        self._imethodcall(
-            'ModifyClass',
-            namespace,
-            ModifiedClass=klass,
-            **extra)
+            namespace = self._iparam_namespace_from_namespace(namespace)
+
+            klass = ModifiedClass.copy()
+            klass.path = None
+
+            self._imethodcall(
+                'ModifyClass',
+                namespace,
+                ModifiedClass=klass,
+                **extra)
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, None)
+                self.operation_recorder.record_staged()
+            return
+
 
     def CreateClass(self, NewClass, namespace=None, **extra):
         # pylint: disable=invalid-name
@@ -4513,16 +5198,38 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_namespace(namespace)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='CreateClass',
+                NewClass=NewClass,
+                namespace=namespace,
+                **extra)
 
-        klass = NewClass.copy()
-        klass.path = None
+        try:
 
-        self._imethodcall(
-            'CreateClass',
-            namespace,
-            NewClass=klass,
-            **extra)
+            namespace = self._iparam_namespace_from_namespace(namespace)
+
+            klass = NewClass.copy()
+            klass.path = None
+
+            self._imethodcall(
+                'CreateClass',
+                namespace,
+                NewClass=klass,
+                **extra)
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, None)
+                self.operation_recorder.record_staged()
+            return
+
 
     def DeleteClass(self, ClassName, namespace=None, **extra):
         # pylint: disable=invalid-name,line-too-long
@@ -4564,16 +5271,38 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        if namespace is None and isinstance(ClassName, CIMClassName):
-            namespace = ClassName.namespace
-        namespace = self._iparam_namespace_from_namespace(namespace)
-        classname = self._iparam_classname(ClassName)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='DeleteClass',
+                ClassName=ClassName,
+                namespace=namespace,
+                **extra)
 
-        self._imethodcall(
-            'DeleteClass',
-            namespace,
-            ClassName=classname,
-            **extra)
+        try:
+
+            if namespace is None and isinstance(ClassName, CIMClassName):
+                namespace = ClassName.namespace
+            namespace = self._iparam_namespace_from_namespace(namespace)
+            classname = self._iparam_classname(ClassName)
+
+            self._imethodcall(
+                'DeleteClass',
+                namespace,
+                ClassName=classname,
+                **extra)
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, None)
+                self.operation_recorder.record_staged()
+            return
+
 
     #
     # Qualifier operations
@@ -4618,19 +5347,38 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_namespace(namespace)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='EnumerateQualifiers',
+                namespace=namespace,
+                **extra)
 
-        result = self._imethodcall(
-            'EnumerateQualifiers',
-            namespace,
-            **extra)
+        try:
 
-        if result is not None:
-            qualifiers = result[0][2]
+            namespace = self._iparam_namespace_from_namespace(namespace)
+
+            result = self._imethodcall(
+                'EnumerateQualifiers',
+                namespace,
+                **extra)
+
+            if result is not None:
+                qualifiers = result[0][2]
+            else:
+                qualifiers = []
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
         else:
-            qualifiers = []
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(qualifiers, None)
+                self.operation_recorder.record_staged()
+            return qualifiers
 
-        return qualifiers
 
     def GetQualifier(self, QualifierName, namespace=None, **extra):
         # pylint: disable=invalid-name
@@ -4646,7 +5394,7 @@ class WBEMConnection(object):
 
         Parameters:
 
-          Qualifier (:term:`string`):
+          QualifierName (:term:`string`):
             Name of the qualifier declaration to be retrieved, in any lexical
             case.
 
@@ -4675,18 +5423,39 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_namespace(namespace)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='GetQualifier',
+                QualifierName=QualifierName,
+                namespace=namespace,
+                **extra)
 
-        result = self._imethodcall(
-            'GetQualifier',
-            namespace,
-            QualifierName=QualifierName,
-            **extra)
+        try:
 
-        if result is not None:
-            names = result[0][2][0]
+            namespace = self._iparam_namespace_from_namespace(namespace)
 
-        return names
+            result = self._imethodcall(
+                'GetQualifier',
+                namespace,
+                QualifierName=QualifierName,
+                **extra)
+
+            # Must be present, if no exception was raised:
+            qualifiername = result[0][2][0]
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(qualifiername,
+                                                            None)
+                self.operation_recorder.record_staged()
+            return qualifiername
+
 
     def SetQualifier(self, QualifierDeclaration, namespace=None, **extra):
         # pylint: disable=invalid-name
@@ -4702,7 +5471,7 @@ class WBEMConnection(object):
 
         Parameters:
 
-          QualifierDeclaration (CIMQualifierDeclaration):
+          QualifierDeclaration (:class:`~pywbem.CIMQualifierDeclaration`):
             Representation of the qualifier declaration to be created or
             modified.
 
@@ -4726,13 +5495,35 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_namespace(namespace)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='SetQualifier',
+                QualifierDeclaration=QualifierDeclaration,
+                namespace=namespace,
+                **extra)
 
-        unused_result = self._imethodcall(
-            'SetQualifier',
-            namespace,
-            QualifierDeclaration=QualifierDeclaration,
-            **extra)
+        try:
+
+            namespace = self._iparam_namespace_from_namespace(namespace)
+
+            self._imethodcall(
+                'SetQualifier',
+                namespace,
+                QualifierDeclaration=QualifierDeclaration,
+                **extra)
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, None)
+                self.operation_recorder.record_staged()
+            return
+
 
     def DeleteQualifier(self, QualifierName, namespace=None, **extra):
         # pylint: disable=invalid-name
@@ -4748,7 +5539,7 @@ class WBEMConnection(object):
 
         Parameters:
 
-          Qualifier (:term:`string`):
+          QualifierName (:term:`string`):
             Name of the qualifier declaration to be deleted, in any lexical
             case.
 
@@ -4772,13 +5563,35 @@ class WBEMConnection(object):
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        namespace = self._iparam_namespace_from_namespace(namespace)
+        if self.operation_recorder:
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_args(
+                method='SetQualifier',
+                QualifierName=QualifierName,
+                namespace=namespace,
+                **extra)
 
-        unused_result = self._imethodcall(
-            'DeleteQualifier',
-            namespace,
-            QualifierName=QualifierName,
-            **extra)
+        try:
+
+            namespace = self._iparam_namespace_from_namespace(namespace)
+
+            self._imethodcall(
+                'DeleteQualifier',
+                namespace,
+                QualifierName=QualifierName,
+                **extra)
+
+        except Exception as exc:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, exc)
+                self.operation_recorder.record_staged()
+            raise
+        else:
+            if self.operation_recorder:
+                self.operation_recorder.stage_pywbem_result(None, None)
+                self.operation_recorder.record_staged()
+            return
+
 
 def is_subclass(ch, ns, super_class, sub):
     """Determine if one class is a subclass of another class.

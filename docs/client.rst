@@ -13,6 +13,9 @@ WBEM operations
 
 .. automodule:: pywbem.cim_operations
 
+WBEMConnection
+^^^^^^^^^^^^^^
+
 .. autoclass:: pywbem.WBEMConnection
    :members:
    :special-members: __str__, __repr__
@@ -31,6 +34,56 @@ WBEM operations
 .. #         ExecQuery, EnumerateClassNames, EnumerateClasses, GetClass,
 .. #         ModifyClass, CreateClass, DeleteClass, EnumerateQualifiers,
 .. #         GetQualifier, SetQualifier, DeleteQualifier
+
+Operation recording
+^^^^^^^^^^^^^^^^^^^
+
+The WBEM client library API provides the possibility to record the WBEM
+operations that are executed on a connection. This is disabled by default
+and can be enabled by setting the
+:attr:`~pywbem.WBEMConnection.operation_recorder` instance variable of the
+:class:`~pywbem.WBEMConnection` object to an operation recorder object,
+i.e. to an object of a subclass of :class:`~pywbem.BaseOperationRecorder`.
+
+Typical usage scenarios for operation recorders are the tracing of WBEM
+operations, or the generation of test cases.
+
+Users can write their own operation recorder classes based upon the
+abstract base class :class:`~pywbem.BaseOperationRecorder`.
+
+The WBEM client library API provides the following operation recorder classes:
+
+======================================== =======================================
+Class                                    Purpose
+======================================== =======================================
+:class:`~pywbem.TestClientRecorder`      Generate test cases for the
+                                         `test_client` unit test module.
+======================================== =======================================
+
+
+.. autoclass:: pywbem.BaseOperationRecorder
+   :members:
+   :special-members: __str__, __repr__
+
+.. autoclass:: pywbem.OpArgs
+   :members:
+   :special-members: __repr__
+
+.. autoclass:: pywbem.OpResult
+   :members:
+   :special-members: __repr__
+
+.. autoclass:: pywbem.HttpRequest
+   :members:
+   :special-members: __repr__
+
+.. autoclass:: pywbem.HttpResponse
+   :members:
+   :special-members: __repr__
+
+.. autoclass:: pywbem.TestClientRecorder
+   :members:
+   :special-members: __str__, __repr__
 
 .. _`CIM objects`:
 
