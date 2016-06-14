@@ -31,6 +31,8 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
 # decorator is @unittest.skip(UNIMPLEMENTED)
 UNIMPLEMENTED = "test not implemented"
 
+RUN_LONGRUNNING_TEST = False
+
 
 # A class that should be implemented in a wbem server and is used
 # for testing
@@ -182,6 +184,39 @@ class ClientTest(unittest.TestCase):
 
         self.assertTrue(isinstance(cls[1], CIMClass))
 
+    def assertInstancesEqual(self, insts1, insts2):
+        """Compare two lists of instances for equality of instances"""
+
+        ## do this for either instances or lists of instances
+
+        self.assertTrue(len(insts1) == len(insts2))
+
+        for inst1 in insts1:
+            path1 = inst1.path
+            for inst2 in insts2:
+                if path1 == inst2.path:
+                    self.assertTrue(inst1 == insts2)
+                    break
+            self.fail("No Matching instance found")
+        return
+
+    def assertPathsEqual(self, paths1, paths2):
+        """ Compare two lists of paths or paths for equality
+            assert if match cannot be found
+        """
+
+        if isinstance(paths1, list):
+            self.assertEqual(len(paths1), len(paths2))
+            for path1 in paths1:
+                for path2 in paths2:
+                    if path1 == path2:
+                        break
+                self.fail("No Matching path found")
+
+        else:
+            self.assertTrue(paths1 == paths2)
+
+
 
 #################################################################
 # Instance provider interface tests
@@ -210,7 +245,6 @@ class EnumerateInstanceNames(ClientTest):
         # Call with explicit CIM namespace that does not exist
 
         try:
-
             self.cimcall(self.conn.EnumerateInstanceNames,
                          TEST_CLASS,
                          namespace='root/blah')
@@ -222,7 +256,6 @@ class EnumerateInstanceNames(ClientTest):
         # Call with explicit class name that does not exist
 
         try:
-
             self.cimcall(self.conn.EnumerateInstanceNames,
                          'Blah_Blah')
 
@@ -322,14 +355,14 @@ class EnumerateInstances(ClientTest):
 
 
     def test_class_propertylist(self):
-        """ Test with propertyList for getClass
+        """ Test with propertyList for getClass to confirm property in class
         """
-        property_list = ['PowerManagementCapibilities']
+        property_list = [TEST_CLASS_PROPERTY2]
 
         cls = self.cimcall(self.conn.GetClass, TEST_CLASS,
-                           PropertyList=property_list)
+                           PropertyList=property_list, LocalOnly=False)
 
-        self.assertTrue(len(cls.properties) == len(property_list))
+        self.assertEqual(len(cls.properties), len(property_list))
 
         if self.verbose:
             for p in cls.properties.values():
@@ -339,10 +372,10 @@ class EnumerateInstances(ClientTest):
     def test_instance_propertylist(self):
         """ Test property list on enumerate instances"""
 
-        property_list = ['PowerManagementCapibilities']
+        property_list = [TEST_CLASS_PROPERTY2]
 
         cls = self.cimcall(self.conn.GetClass, TEST_CLASS,
-                           PropertyList=property_list)
+                           PropertyList=property_list, LocalOnly=False)
         cls_property_count = len(cls.properties)
 
         instances = self.cimcall(self.conn.EnumerateInstances,
@@ -580,7 +613,7 @@ class PullEnumerateInstances(ClientTest):
         result = self.cimcall(self.conn.OpenEnumerateInstances,
                               TEST_CLASS,
                               MaxObjectCount=100)
-        insts = result.instances
+        insts_pulled = result.instances
 
         self.assertInstancesValid(result.instances)
 
@@ -592,15 +625,15 @@ class PullEnumerateInstances(ClientTest):
             self.assertInstancesValid(result.instances)
 
             self.assertTrue(len(result.instances) == 1)
-            insts.extend(result.instances)
+            insts_pulled.extend(result.instances)
 
-        self.assertInstancesValid(insts)
+        self.assertInstancesValid(insts_pulled)
 
         insts2 = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
 
         self.assertInstancesValid(insts2)
 
-        self.assertTrue(len(result.instances) == len(insts2))
+        self.assertTrue(len(insts_pulled) == len(insts2))
 
         # TODO add test that actually compares instances
 
@@ -613,22 +646,23 @@ class PullEnumerateInstances(ClientTest):
                               TEST_CLASS,
                               MaxObjectCount=100,
                               DeepInheritance=True)
-        insts = result.instances
+        insts_pulled = result.instances
 
         while not result.eos:
             result = self.cimcall(
                 self.conn.PullInstancesWithPath, result.context,
                 MaxObjectCount=100)
 
-            insts.extend(result.instances)
+            insts_pulled.extend(result.instances)
 
-        self.assertInstancesValid(insts)
+        self.assertInstancesValid(insts_pulled)
 
         insts2 = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
 
         self.assertInstancesValid(insts2)
 
-        self.assertTrue(len(result.instances) == len(insts2))
+        self.assertTrue(len(insts_pulled) == len(insts2))
+        #todo call the instances compare function
 
 
     def test_open_includequalifiers(self):
@@ -640,7 +674,7 @@ class PullEnumerateInstances(ClientTest):
                               MaxObjectCount=100,
                               IncludeQualifiers=True)
 
-        insts = result.instances
+        insts_pulled = result.instances
 
         while not result.eos:
             result = self.cimcall(
@@ -648,13 +682,16 @@ class PullEnumerateInstances(ClientTest):
                 MaxObjectCount=1)
 
             self.assertTrue(len(result.instances) <= 1)
-            insts.append(result.instances)
+            insts_pulled.append(result.instances)
 
-        self.assertInstancesValid(insts)
+        self.assertInstancesValid(insts_pulled)
 
         insts2 = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
 
-        self.assertTrue(len(result.instances) == len(insts2))
+        self.assertInstancesValid(insts2)
+
+        self.assertTrue(len(insts_pulled) == len(insts2))
+        # TODO call the compare instances function
 
 
     def test_open_includeclassorigin(self):
@@ -692,7 +729,7 @@ class PullEnumerateInstances(ClientTest):
                               MaxObjectCount=100,
                               namespace=TEST_CLASS_NAMESPACE)
 
-        insts = result.instances
+        insts_pulled = result.instances
 
         while not result.eos:
             result = self.cimcall(
@@ -700,17 +737,17 @@ class PullEnumerateInstances(ClientTest):
                 MaxObjectCount=1)
 
             self.assertTrue(len(result.instances) <= 1)
-            insts.extend(result.instances)
+            insts_pulled.extend(result.instances)
 
-        self.assertInstancesValid(insts)
+        self.assertInstancesValid(insts_pulled)
 
         insts2 = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
 
-        if len(result.instances) != len(insts2):
+        if len(insts_pulled) != len(insts2):
             print('Error len(result.instances=%s len(insts2=%s' %
-                  (len(result.instances), len(insts2)))
+                  (len(insts_pulled), len(insts2)))
 
-        self.assertTrue(len(result.instances) == len(insts2))
+        self.assertEqual(len(insts_pulled), len(insts2))
 
 
     def test_bad_namespace(self):
@@ -734,9 +771,15 @@ class PullEnumerateInstances(ClientTest):
         self.assertTrue(result.eos is False)
         self.assertTrue(len(result.instances) == 0)
 
-        result = self.cimcall(self.conn.PullInstancesWithPath,
-                              result.context,
-                              MaxObjectCount=100)
+        insts_pulled = result.instances
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancesWithPath, result.context,
+                MaxObjectCount=100)
+
+            self.assertTrue(len(result.instances) <= 1)
+            insts_pulled.extend(result.instances)
 
         self.assertTrue(result.eos is True)
 
@@ -749,6 +792,13 @@ class PullEnumerateInstances(ClientTest):
         self.assertTrue(len(result.instances) == 0)
 
         self.cimcall(self.conn.CloseEnumeration, result.context)
+
+        try:
+            self.conn.PullInstancesWithPath(result.context, MaxObjectCount=10)
+
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_ENUMERATION_CONTEXT:
+                raise
 
 
     def test_get_onebyone(self):
@@ -851,17 +901,21 @@ class PullEnumerateInstances(ClientTest):
         self.assertTrue(len(result.instances) == 0)
 
     def test_open_timeoutset(self):
-        """Test with filter that filters out all responses
+        """Test with timeout set. Just open and if not finished, close
         """
 
         result = self.cimcall(self.conn.OpenEnumerateInstances,
                               TEST_CLASS,
-                              MaxObjectCount=100,
+                              MaxObjectCount=0,
                               OperationTimeout=10)
-        self.assertTrue(result.eos)
-        self.assertTrue(len(result.instances) == 1)
+
+        if result.eos is False:
+            self.cimcall(self.conn.CloseEnumeration, result.context)
+
 
 class PullEnumerateInstancePaths(ClientTest):
+    """ Tests on OpenEnumerateInstancePaths and PullInstancePaths sequences.
+    """
 
     def test_open_complete(self):
         """Simplest invocation. Everything comes back in
@@ -874,26 +928,29 @@ class PullEnumerateInstancePaths(ClientTest):
                               TEST_CLASS,
                               MaxObjectCount=100)
 
-        paths = result.paths
+        paths_pulled = result.paths
 
         self.assertTrue(len(result.paths) <= 100)
 
+        # Confirm that eos and context are mutually correct
         if result.eos:
             self.assertTrue(result.context is None)
         else:
             self.assertTrue(len(result.context) != 0)
 
+        # loop to complete the enumeration session
         while not result.eos:
             result = self.cimcall(self.conn.PullInstancePaths,
                                   result.context,
                                   MaxObjectCount=1)
 
             self.assertTrue(len(result.paths) <= 1)
-            paths.extend(result.paths)
+            paths_pulled.extend(result.paths)
 
         paths2 = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
 
-        self.assertTrue(len(result.paths) == len(paths2))
+        self.assertTrue(len(paths_pulled) == len(paths2))
+        # TODO add test for all paths equal
 
 
     def test_open_complete_with_ns(self):
@@ -905,7 +962,7 @@ class PullEnumerateInstancePaths(ClientTest):
                               TEST_CLASS, namespace=TEST_CLASS_NAMESPACE,
                               MaxObjectCount=100)
 
-        paths = result.paths
+        paths_pulled = result.paths
 
         self.assertTrue(len(result.paths) <= 100)
 
@@ -920,17 +977,17 @@ class PullEnumerateInstancePaths(ClientTest):
                                   MaxObjectCount=1)
 
             self.assertTrue(len(result.paths) <= 1)
-            paths.extend(result.paths)
-            print('openenum while len=%s total=%s' % (len(result.paths),
-                                                      len(paths)))
+            paths_pulled.extend(result.paths)
 
-        # get with enum.
+        # get with enum to confirm
         paths2 = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
 
-        if (len(paths) != len(paths2)):
+        if (len(paths_pulled) != len(paths2)):
             print('ERROR result.paths len %s ne paths2 len %s' %  \
-                (len(paths), len(paths2)))
-        self.assertTrue(len(paths) == len(paths2))
+                (len(paths_pulled), len(paths2)))
+
+        self.assertTrue(len(paths_pulled) == len(paths2))
+        # TODO add test to confirm they are the same
 
 
     def test_bad_namespace(self):
@@ -963,6 +1020,8 @@ class PullEnumerateInstancePaths(ClientTest):
 
     def test_close_early(self):
         """"Close enumeration session after initial Open"""
+
+        # open requesting zero instances
         result = self.cimcall(self.conn.OpenEnumerateInstancePaths, TEST_CLASS)
 
         self.assertFalse(result.eos)
@@ -1001,7 +1060,50 @@ class PullEnumerateInstancePaths(ClientTest):
 
 
 class PullReferences(ClientTest):
+    """Test OpenReferences and PullInstancesWithPath"""
 
+    def test_one_instance(self):
+        # Get one valid instance name
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+        inst_name = inst_names[0] # Pick the first returned instance
+
+
+        result = self.cimcall(self.conn.OpenReferenceInstances,
+                              inst_name,
+                              MaxObjectCount=0)
+
+        insts = result.instances
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancesWithPath, result.context,
+                MaxObjectCount=1)
+
+            self.assertTrue(len(result.instances) <= 1)
+            insts.extend(result.instances)
+
+
+        for inst in result.instances:
+            self.assertTrue(isinstance(inst, CIMInstanceName))
+            self.assertTrue(len(inst.namespace) > 0)
+
+        instances = self.cimcall(self.conn.References, inst_name)
+
+        for i in instances:
+            self.assertTrue(isinstance(i, CIMInstance))
+            self.assertTrue(isinstance(i.path, CIMInstanceName))
+
+            # TODO: For now, disabled test for class name of associated insts.
+            # self.assertTrue(i.classname == 'TBD')
+
+            self.assertTrue(i.path.namespace is not None)
+            self.assertTrue(i.path.host is not None)
+
+        self.assertInstancesEqual(insts, instances)
+
+    @unittest.skipIf(RUN_LONGRUNNING_TEST, 'skip long test')
     def test_all_instances_in_ns(self):
         """Simplest invocation. Everything comes back in
            initial response with end-of-sequence == True
@@ -1055,6 +1157,47 @@ class PullReferences(ClientTest):
 class PullReferencePaths(ClientTest):
     """Tests on OpenReferencePaths and pulling"""
 
+    def test_one_instance(self):
+
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+        inst_name = inst_names[0] # Pick the first returned instance
+
+
+        result = self.cimcall(self.conn.OpenReferenceInstancePaths,
+                              inst_name,
+                              MaxObjectCount=0)
+
+        paths_pulled = result.paths
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancePaths, result.context,
+                MaxObjectCount=1)
+
+            self.assertTrue(len(result.paths) <= 1)
+            paths_pulled.extend(result.paths)
+
+
+        for path in result.paths:
+            self.assertTrue(isinstance(path, CIMInstanceName))
+            self.assertTrue(len(path.namespace) > 0)
+
+        paths2 = self.cimcall(self.conn.ReferenceNames, inst_name)
+
+        for i in paths2:
+            self.assertTrue(isinstance(i, CIMInstanceName))
+
+            # TODO: For now, disabled test for class name of associated insts.
+            # self.assertTrue(i.classname == 'TBD')
+
+            self.assertTrue(i.namespace is not None)
+            self.assertTrue(i.host is not None)
+
+        self.assertPathsEqual(paths_pulled, paths2)
+
+    @unittest.skipIf(RUN_LONGRUNNING_TEST, 'skip long test')
     def test_all_instances_in_ns(self):
         """
             Simplest invocation. Execute and compae with results
@@ -1093,7 +1236,52 @@ class PullReferencePaths(ClientTest):
             #Do this as a loop for all instances above.
 
 class PullAssociators(ClientTest):
+    """Test the OpenAssociators and corresponding pull"""
 
+    def test_one_instance(self):
+        # Call on named instance
+
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+        inst_name = inst_names[0] # Pick the first returned instance
+
+
+        result = self.cimcall(self.conn.OpenAssociatorInstances,
+                              inst_name,
+                              MaxObjectCount=0)
+
+        insts = result.instances
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancesWithPath, result.context,
+                MaxObjectCount=1)
+
+            self.assertTrue(len(result.instances) <= 1)
+            insts.extend(result.instances)
+
+
+        for inst in result.instances:
+            self.assertTrue(isinstance(inst, CIMInstanceName))
+            self.assertTrue(len(inst.namespace) > 0)
+
+        instances = self.cimcall(self.conn.Associators, inst_name)
+
+        for i in instances:
+            self.assertTrue(isinstance(i, CIMInstance))
+            self.assertTrue(isinstance(i.path, CIMInstanceName))
+
+            # TODO: For now, disabled test for class name of associated insts.
+            # self.assertTrue(i.classname == 'TBD')
+
+            self.assertTrue(i.path.namespace is not None)
+            self.assertTrue(i.path.host is not None)
+
+        self.assertInstancesEqual(insts, instances)
+
+
+    @unittest.skipIf(RUN_LONGRUNNING_TEST, 'skip long test')
     def test_all_instances_in_ns(self):
         """Simplest invocation. Everything comes back in
            initial response with end-of-sequence == True
@@ -1146,10 +1334,57 @@ class PullAssociators(ClientTest):
 
 
 class PullAssociatorPaths(ClientTest):
+    """Test OpenAssociatorPaths and corresponding PullInstancePaths"""
 
+    def test_one_instance(self):
+
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+        inst_name = inst_names[0] # Pick the first returned instance
+
+
+        result = self.cimcall(self.conn.OpenAssociatorInstancePaths,
+                              inst_name,
+                              MaxObjectCount=0)
+
+        paths_pulled = result.paths
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancePaths, result.context,
+                MaxObjectCount=1)
+
+            self.assertTrue(len(result.paths) <= 1)
+            paths_pulled.extend(result.paths)
+
+
+        for path in result.paths:
+            self.assertTrue(isinstance(path, CIMInstanceName))
+            self.assertTrue(len(path.namespace) > 0)
+
+        # get same through associationNames and compare
+        paths2 = self.cimcall(self.conn.AssociatorNames, inst_name)
+
+        for i in paths2:
+            self.assertTrue(isinstance(i, CIMInstanceName))
+
+            # TODO: For now, disabled test for class name of associated insts.
+            # self.assertTrue(i.classname == 'TBD')
+
+            self.assertTrue(i.namespace is not None)
+            self.assertTrue(i.host is not None)
+
+        self.assertPathsEqual(paths_pulled, paths2)
+
+
+    @unittest.skipIf(RUN_LONGRUNNING_TEST, 'skip long test')
     def test_all_instances_in_ns(self):
         """Simplest invocation. Everything comes back in
-           initial response with end-of-sequence == True
+           initial response with end-of-sequence == True. Compare results
+           of complete pull sequence and original associators operation.
+           This test takes a long time because it tests every class in
+           the namespace.
         """
         # get all instances under CIM_ManagedElement
         paths = self.cimcall(self.conn.EnumerateInstanceNames,
@@ -1287,7 +1522,7 @@ class ExecQuery(ClientTest):
 
     def test_namespace_error(self):
         """Call with explicit CIM namespace that does not exist"""
-        
+
         try:
 
             self.cimcall(self.conn.ExecQuery,
@@ -1472,12 +1707,12 @@ class GetInstance(ClientTest):
                                PropertyList=TEST_CLASS_PROPERTY1,
                                LocalOnly=False)
             self.fail('Exception expected')
-            
+
         # use Error since this generates a connection error and
         # within it a CIMError.
-        except Error as ce:
+        except Error:
             pass
-        
+
 
 class CreateInstance(ClientTest):
 
@@ -1700,9 +1935,9 @@ class InvokeMethod(ClientTest):
 #################################################################
 
 class Associators(ClientTest):
-    """ Tests of the associators request operation"""
+    """ Tests of the associators instance request operation"""
 
-    def test_all(self):
+    def test_assoc_one_class(self):
 
         # Call on named instance
 
@@ -1723,17 +1958,10 @@ class Associators(ClientTest):
             self.assertTrue(i.path.namespace is not None)
             self.assertTrue(i.path.host is not None)
 
-        # Call on class name
-
-        classes = self.cimcall(self.conn.Associators, TEST_CLASS)
-        self.assertTrue(len(classes) > 0)
-        for cls in classes:
-            self.assertAssocRefClassRtnValid(cls)
-
         # TODO: check return values
 
 
-    def test_class_associator(self):
+    def test_one_class_associator(self):
         """
             Test getting associator classes for defined class
         """
@@ -1743,8 +1971,8 @@ class Associators(ClientTest):
         for cls in assoc_classes:
             self.assertAssocRefClassRtnValid(cls)
 
-
-    def test_class_associators(self):
+    @unittest.skipIf(RUN_LONGRUNNING_TEST, 'skip long test')
+    def test_all_class_associators(self):
         """
             Test getting associator classes for all classes in a
             namespace
@@ -1756,13 +1984,13 @@ class Associators(ClientTest):
         for cls in classes:
             assoc_classes = self.cimcall(self.conn.Associators, cls)
 
-            for cls in assoc_classes:
-                self.assertAssocRefClassRtnValid(cls)
+            for clsa in assoc_classes:
+                self.assertAssocRefClassRtnValid(clsa)
 
 
 class AssociatorNames(ClientTest):
 
-    def test_all(self):
+    def test_one_assocname(self):
 
         # Call on named instance
 
@@ -1782,7 +2010,10 @@ class AssociatorNames(ClientTest):
             self.assertTrue(n.namespace is not None)
             self.assertTrue(n.host is not None)
 
-        # Call on class name. Returns CIMClassName
+
+    def test_one_class_associatorname(self):
+        """Call on class name. Returns CIMClassName.
+           Test getting associator class names for defined class"""
 
         names = self.cimcall(self.conn.AssociatorNames, TEST_CLASS)
 
@@ -1791,9 +2022,25 @@ class AssociatorNames(ClientTest):
 
         # TODO: check return values, NS, etc.
 
+    @unittest.skipIf(RUN_LONGRUNNING_TEST, 'skip long test')
+    def test_all_class_associatornames(self):
+        """
+            Test getting associator classes for all classes in a
+            namespace
+        """
+
+        names = self.cimcall(self.conn.EnumerateClassNames,
+                             DeepInheritance=True)
+
+        for name in names:
+            assoc_classnames = self.cimcall(self.conn.AssociatorNames, name)
+
+            for n in assoc_classnames:
+                self.assertTrue(isinstance(n, CIMClassName))
+
 class References(ClientTest):
 
-    def test_all(self):
+    def test_one_ref(self):
 
         # Call on named instance
 
@@ -1813,10 +2060,13 @@ class References(ClientTest):
             self.assertTrue(i.path.namespace is not None)
             self.assertTrue(i.path.host is not None)
 
-        # Call on class name
+    def test_one_class_reference(self):
+        """Test call with classname that returns classes"""
 
         classes = self.cimcall(self.conn.References, TEST_CLASS)
+
         self.assertTrue(len(classes) > 0)
+
         for cl in classes:
             self.assertTrue(isinstance(cl, tuple))
             self.assertTrue(isinstance(cl[0], CIMClassName))
@@ -1825,7 +2075,7 @@ class References(ClientTest):
 
 class ReferenceNames(ClientTest):
 
-    def test_all(self):
+    def test_one_refname(self):
 
         # Call on instance name
 
@@ -1844,13 +2094,15 @@ class ReferenceNames(ClientTest):
             self.assertTrue(n.namespace is not None)
             self.assertTrue(n.host is not None)
 
-        # Call on class name
+    def test_one_class_referencename(self):
+        """Test call with classname"""
 
         names = self.cimcall(self.conn.ReferenceNames, TEST_CLASS)
 
-        for n in names:
-            self.assertTrue(isinstance(n, CIMClassName))
-        # TODO: further check return values
+        self.assertTrue(len(names) > 0)
+
+        for name in names:
+            self.assertTrue(isinstance(name, CIMClassName))
 
 #################################################################
 # Schema manipulation interface tests
@@ -2336,10 +2588,12 @@ class PegasusTestEmbeddedInstance(PegasusServerTestBase):
                                      cl1, namespace=ns,
                                      propertylist=property_list)
             for inst in instances:
+                str_mof = inst.tomof()
+                str_xml = inst.tocimxmlstr(2)
                 if self.verbose:
-                    print('====== %s MOF=====\n%s' %(inst.path, inst.tomof()))
-                    print('======%s XML=====\n%s' %(inst.path,
-                                                    inst.tocimxmlstr(2)))
+                    print('====== %s MOF=====\n%s' %(inst.path, str_mof))
+                    print('======%s XML=====\n%s' %(inst.path, str_xml))
+
                 prop = inst.properties[prop_name]
 
                 self.assertTrue(prop.embedded_object)
@@ -2472,6 +2726,7 @@ def parse_args(argv_):
               '                          - connection details,\n'
               '                          - details of tests')
         print('    -d                  Debug flag for extra displays')
+        print('    -l                  Do long running tests')
         print('    -hl                 List of indifidual tests')
 
         print('')
@@ -2498,6 +2753,7 @@ def parse_args(argv_):
     args_['password'] = None
     args_['cacerts'] = None
     args_['nvc'] = None
+    args_['long_running'] = None
 
     # options must proceed arguments
     while True:
@@ -2522,9 +2778,12 @@ def parse_args(argv_):
         elif argv[1] == '-d':
             args_['debug'] = True
             del argv[1:2]
+        elif argv[1] == '-l':
+            args_['long_running'] = True
+            del argv[1:2]
         elif argv[1] == '-hl':
             args_['debug'] = True
-            del argv[1:3]
+            del argv[1:2]
             print('List of tests: %s' % ", ".join(TEST_LIST))
             sys.exit(2)
         else:
@@ -2557,8 +2816,14 @@ if __name__ == '__main__':
     print("  timeout: %s" % args['timeout'])
     print("  verbose: %s" % args['verbose'])
     print("  debug: %s" % args['debug'])
+    print("  long_running: %s" % args['long_running'])
+
+    #global RUN_LONGRUNNING_TEST
+    if args['long_running'] is True:
+        RUN_LONGRUNNING_TEST = True
 
     # Note: unittest options are defined in separate args after
-    # the url argumentl.
+    # the url argument.
+
     unittest.main()
 
