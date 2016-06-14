@@ -181,7 +181,9 @@ Elements in `pywbem_response` element
 
 * `result`:
   A specification of the expected result (= return value) of the operation,
-  implying that the operation succeeded.
+  implying that the operation succeeded when this is not the result to one
+  of the pull operations (Open..., Pull...). Use the `pullresult` element to
+  define the results of the pull operations.
 
   If the Python type of the result is boolean, string, or numerical, the
   element's value is directly the desired argument value.
@@ -196,6 +198,32 @@ Elements in `pywbem_response` element
   * arguments for that constructor. Each element has the argument's name. This
     can be nested at arbitraty depth, see the description of the arguments one
     level up.
+
+* `pullresult`:
+  A specification of the expected result (=return values) of the operation
+  implying that the operation succeeded for any of the pull operation requests.
+  This is required because, unlike the original operations, the pull operations
+  return a tuple of information for every response including (context for the
+  enumeration session, end_of_sequence indicator, and the array of instances
+  that were included in the response by the server).
+
+  The return is a named tuple with the  element names defined as follows:
+  TBD
+
+  The subelements of pullresult are:
+
+  * `context` Specified either as a string or `null` if no context is to
+    be returned to the user
+
+  * `eos` Boolean `True` or `False` indicating whether this was the
+    final response of an enumeration session. To be correct the `context`
+    must be `null` if the `eos` is `True`.
+
+  * `instances` or `paths` depending on whether instances or instance names
+    are being returned. The chile element to this element specifies the
+    Python object to be constructed in the same manner as the child elements
+    of `result`.
+  
 
 Elements in `http_request` element
 ------------------------------------
