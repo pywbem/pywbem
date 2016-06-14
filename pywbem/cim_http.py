@@ -691,8 +691,8 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                               urllib.parse.quote(hdr_pieces[1])))
 
     if recorder:
-        recorder.stage_http_request(11, method, target, dict(header_tuples),
-                                    data)
+        recorder.stage_http_request(11, url, target, method,
+                                    dict(header_tuples), data)
         # We want clean response data when an exception is raised before
         # the HTTP response comes in:
         recorder.stage_http_response1(None, None, None, None)
