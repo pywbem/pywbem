@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 #
 
+""" Test the mof compiler against both locally defined mof and
+    a version of the DMTF released Schema.
+"""
+
 from __future__ import print_function, absolute_import
 
 import sys
@@ -40,9 +44,15 @@ SCHEMA_DIR = os.path.join(SCRIPT_DIR, 'schema')
 MOF_URL = 'http://www.dmtf.org/standards/cim/cim_schema_v2450/' \
          'cim_schema_2.45.0Final-MOFs.zip'
 CIM_SCHEMA_MOF = 'cim_schema_2.45.0.mof'
+TOTAL_QUALIFIERS = 70       # These may change for each schema release
+TOTAL_CLASSES = 1621
+
+TMP_FILE = 'test_mofRoundTripOutput.mof'
 
 def setUpModule():
-    """ Get the DMTF schema if necessary from the DMTF site"""
+    """ Setup the unittest. Includes possibly getting the
+        schema mof from DMTF web
+    """
 
     if not os.path.isdir(SCHEMA_DIR):
 
@@ -94,6 +104,7 @@ class MOFTest(unittest.TestCase):
         """Create the MOF compiler."""
 
         def moflog(msg):
+            """Display message to moflog"""
             print(msg, file=self.logfile)
 
         moflog_file = os.path.join(SCRIPT_DIR, 'moflog.txt')
@@ -103,32 +114,25 @@ class MOFTest(unittest.TestCase):
             search_paths=[SCHEMA_DIR], verbose=False,
             log_func=moflog)
 
-class TestFullSchema(MOFTest):
-
-    def test_all(self):
-        t = time()
-        self.mofcomp.compile_file(
-            os.path.join(SCHEMA_DIR, CIM_SCHEMA_MOF), NAME_SPACE)
-        print('elapsed: %f  ' % (time() - t))
-        # TODO The number of qualifiers and classes is version dependent
-        self.assertEqual(len(self.mofcomp.handle.qualifiers[NAME_SPACE]),
-                         70)
-        self.assertEqual(len(self.mofcomp.handle.classes[NAME_SPACE]),
-                         1621)
-
 class TestAliases(MOFTest):
-    """Test mof aliases function"""
+    """Test of a mof file that contains aliases"""
 
     def test_all(self):
-        """Aliases defined in test.mof"""
+        """Execute test using test.mof file"""
 
         self.mofcomp.compile_file(
             os.path.join(SCRIPT_DIR, 'test.mof'), NAME_SPACE)
 
+    # TODO: ks 4/16 confirm that this actually works other than just compile
+
 class TestSchemaError(MOFTest):
-    """Test errors in schema compile"""
+    """Test with errors in the schema"""
 
     def test_all(self):
+        """Test multiple errors. Each test tries to compile a
+           specific mof and should result in a specific error
+        """
+        # TODO ks 4/16 should these become individual tests
         self.mofcomp.parser.search_paths = []
         try:
             self.mofcomp.compile_file(os.path.join(SCHEMA_DIR,
@@ -172,6 +176,9 @@ class TestSchemaSearch(MOFTest):
     """
 
     def test_all(self):
+        """Test against schema single mof file that is dependent
+           on other files in the schema directory
+        """
         self.mofcomp.compile_file(os.path.join(SCHEMA_DIR,
                                                'System',
                                                'CIM_ComputerSystem.mof'),
@@ -186,13 +193,17 @@ class TestSchemaSearch(MOFTest):
             LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(cele.properties['RequestedState'].type, 'uint16')
 
+        # TODO ks 4/16 add error test for something not found
+        # in schema directory
+
 
 class TestParseError(MOFTest):
-    """
-        Test multiple mof snippets that have specific errors
+    """Test multiple mof compile errors. Each test should generate
+       a defined error.
     """
 
     def test_all(self):
+        """Run all parse error tests"""
         _file = os.path.join(SCRIPT_DIR,
                              'testmofs',
                              'parse_error01.mof')
@@ -265,6 +276,7 @@ class TestPropertyAlternatives(MOFTest):
     #     parameter alternatives one by one.
 
 class TestRefs(MOFTest):
+    """Test for valid References in mof"""
 
     def test_all(self):
         self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
@@ -273,8 +285,10 @@ class TestRefs(MOFTest):
                                   NAME_SPACE)
 
 class TestTypes(MOFTest, CIMObjectMixin):
+    """Test for all CIM data types"""
 
     def test_all(self):
+        """Execute test"""
         self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
                                                'testmofs',
                                                'test_types.mof'),
@@ -300,6 +314,7 @@ class TestTypes(MOFTest, CIMObjectMixin):
                     'key': CIMQualifier('key', True, overridable=False,
                                         tosubclass=True)
                 }),
+            # pylint: disable=bad-continuation
             'k2': CIMProperty('k2', None, type='string',
                 class_origin=test_class,
                 qualifiers={
@@ -1052,6 +1067,97 @@ class TestLexerChar(BaseTestLexer):
             self.lex_token('charValue', input_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
+
+
+class TestFullSchema(MOFTest):
+    """ Test the compile of a full DMTF schema and also
+        the recreation of the mof using tomof and recompile of this new
+        mof file. Tests have numbers to control ordering.
+    """
+
+    def setupCompilerForReCompile(self, debug=False):
+        """Setup a second compiler instance for recompile. Result is
+           mofcomp2
+        """
+        def moflog2(msg):
+            """Display message to moflog2"""
+            print(msg, file=self.logfile2)
+
+        moflog_file2 = os.path.join(SCRIPT_DIR, 'moflog2.txt')
+        self.logfile2 = open(moflog_file2, 'w')
+
+        self.mofcomp2 = MOFCompiler(
+            MOFWBEMConnection(),
+            search_paths=None, verbose=debug,
+            log_func=moflog2)
+
+    def test_mof_schema_roundtrip(self):
+        """ Test compile, of the schema, write of a new mof output file
+            and recompile of that file
+        """
+
+        # original compile and write of output mof
+        start_time = time()
+        self.mofcomp.compile_file(
+            os.path.join(SCHEMA_DIR, CIM_SCHEMA_MOF), NAME_SPACE)
+
+        print('elapsed compile: %f  ' % (time() - start_time))
+
+        repo = self.mofcomp.handle
+
+        # Create file for mof output
+        mofout_filename = os.path.join(SCRIPT_DIR, TMP_FILE)
+        mof_out_hndl = open(mofout_filename, 'w')
+        qual_decls = repo.qualifiers[NAME_SPACE]
+
+        for qd in sorted(repo.qualifiers[NAME_SPACE].values()):
+            print(qd.tomof(), file=mof_out_hndl)
+
+        orig_classes = repo.classes[NAME_SPACE]
+        for cl_ in repo.compile_ordered_classnames:
+            print(orig_classes[cl_].tomof(), file=mof_out_hndl)
+
+        mof_out_hndl.flush()
+        mof_out_hndl.close()
+
+        # Recompile the created mof output file.
+        # Setup new compiler instance to avoid changing the data in
+        # the first instance. Classes, etc. from the first are
+        # needed for compare with recompile
+        self.setupCompilerForReCompile(False)
+
+        repo2 = self.mofcomp2.handle
+
+        print   ('Start recompile file= %s' % mofout_filename)
+
+        self.mofcomp2.compile_file(mofout_filename, NAME_SPACE)
+
+        # Confirm lengths for qualifiers compiled, orig and recompile
+        # This always works so we fail if there is an error.
+        self.assertEqual(len(repo2.qualifiers[NAME_SPACE]),
+                         TOTAL_QUALIFIERS)
+        self.assertEqual(len(qual_decls),
+                         len(repo2.qualifiers[NAME_SPACE]))
+        # compare the qualifier declaractions. They must be the same
+        for qd in sorted(qual_decls.values()):
+            nextqd = repo2.qualifiers[NAME_SPACE][qd.name]
+            self.assertEqual(nextqd, qd)
+
+        self.assertEqual(len(repo2.classes[NAME_SPACE]),
+                         TOTAL_CLASSES)
+
+        self.assertEqual(len(orig_classes),
+                         len(repo2.classes[NAME_SPACE]))
+
+        for cl_ in orig_classes:
+            orig_class = orig_classes[cl_]
+            recompiled_class = repo2.classes[NAME_SPACE][cl_]
+            self.assertTrue(isinstance(recompiled_class, CIMClass))
+            self.assertTrue(isinstance(orig_class, CIMClass))
+            self.assertTrue(recompiled_class == orig_class)
+
+        print('elapsed recompile: %f  ' % (time() - start_time))
+        os.remove(mofout_filename)
 
 
 if __name__ == '__main__':
