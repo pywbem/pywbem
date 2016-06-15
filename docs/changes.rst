@@ -260,6 +260,11 @@ Bug fixes
    since it is not used with python ssl module and will probably be 
    removed completely in the future. (issue # 297)
 
+*  Created a common function for setting SSL defaults and tried to create
+   the same level of defaults for both Python2 (M2Crypto) and Python 3 (SSL
+   module).  The minimum level protocol set by the client is TLSV1 now whereas
+   in previous versions of pywbem it was SSLV23. (issue # 295)
+
 pywbem v0.8.2
 -------------
 
