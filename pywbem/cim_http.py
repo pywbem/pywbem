@@ -71,6 +71,51 @@ else:
 
 __all__ = []
 
+def create_pywbem_ssl_context():
+    """ Create an SSL context based on what is commonly accepted as the
+        required limitations. This code attempts to create the same context for
+        Python 2 and Python 3 except for the ciphers
+        This list is based on what is currently defined in the Python SSL
+        module create_default_context function
+        This includes:
+
+            * Disallow SSLV2 and SSLV3
+            * Allow TLSV1 TLSV1.1, TLSV1.2
+            * No compression
+            * Single DH Use and Single ECDH use
+        cacerts info is set independently so is not part of our context setter.
+    """
+
+    if six.PY2:
+        context = SSL.Context('sslv23')
+        # Many of the flags are not in the M2Crypto source so they were taken
+        # from OpenSSL SSL.h module as flags.
+        SSL.context.set_options(SSL.SSL_OP_NO_SSLv2 |
+                                0x02000000 |  # OP_NO_SSLV3
+                                0x00020000 |  # OP_NO_COMPRESSION
+                                0x00100000 |  # OP_SINGLE_DH_USE
+                                0x00400000 |  # OP_CIPHER_SERVER_PREFERENCE
+                                0x00080000)   # OP_SINGLE_ECDH_USE
+    else:
+        # The choice for the Python SSL module is whether to use the
+        # create_default directly and possibly have different limits depending
+        # on which version of Python you use or to set the attributes
+        # directly based on a currently used SSL
+        context = SSL.create_default_context(purpose=SSL.Purpose.CLIENT_AUTH)
+
+        # Variable settings per SSL create_default_context. These are what
+        # the function above sets for Python 3.4
+        #context = SSLContext(PROTOCOL_SSLv23)
+        #context.options |= OP_NO_SSLv2
+        #context.options |= OP_NO_SSLv3
+        #context.options |= getattr(SSL, "OP_NO_COMPRESSION", 0)
+        #context.options |= getattr(SSL, "OP_CIPHER_SERVER_PREFERENCE", 0)
+        #context.options |= getattr(SSL, "OP_SINGLE_DH_USE", 0)
+        #context.options |= getattr(SSL, "OP_SINGLE_ECDH_USE", 0)
+        #context.set_ciphers(_RESTRICTED_SERVER_CIPHERS)
+
+    return context
+
 DEFAULT_PORT_HTTP = 5988        # default port for http
 DEFAULT_PORT_HTTPS = 5989       # default port for https
 
