@@ -189,6 +189,8 @@ Enhancements
 * Added example of inprocess indication subscription and handling in the
   examples directory.
 
+* Extended wbemcli for all pull operations. (issue #341)
+
 
 Bug fixes
 ^^^^^^^^^
