@@ -22,7 +22,9 @@
 
 """
 wbemcli - Provide an interactive shell for issuing operations against a WBEM
-server.
+server. The server connection (WBEMConnection) is executed when during
+startup and any python statements including the pywbem wbem requests defined
+in cim_operaitons.py are executed from the python command line.
 
 Invoke with `-h` or `--help` for a help message.
 """
@@ -327,6 +329,7 @@ def AssociatorNames(op, ac=None, rc=None, r=None, rr=None):
                                 ResultRole=rr)
 
 
+# pylint: disable=too-many-arguments,redefined-outer-name
 def Associators(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None,
                 pl=None):
     """
@@ -472,6 +475,706 @@ def References(op, rc=None, r=None, iq=None, ico=None, pl=None):
                            PropertyList=pl)
 
 
+# pylint: disable=too-many-arguments,redefined-outer-name
+def OpenEnumerateInstances(cn, ns=None, lo=None, di=None, iq=None, ico=None,
+                           pl=None, fl=None, fq=None, ot=None, coe=None,
+                           moc=None):
+    """
+    Open an enumeration sequence to enumerate the instances of a class
+    (including instances of its subclasses) in a namespace. Subsequent to this
+    open response, additional instances may be pulled using the
+    `PullInstancesWithPath` request. The enumeration sequence may also be
+    closed before it is complete with the `CloseEnumeration` request
+
+    This operation returns a named tuple containing any instances returned and
+    status of the enumeration sequence.
+
+    Parameters:
+
+      cn (string): Class name.
+
+      ns (string): Namespace name. None will use the default namespace.
+
+      lo (bool):   LocalOnly flag: Exclude inherited properties.
+                   Deprecated: Server impls for True vary; Set to False.
+                   None causes it not to be included in request to server.
+                   Server default: True
+
+      di (bool):   DeepInheritance flag: Include properties added by subclasses.
+                   None causes it not to be included in request to server.
+                   Server default: True
+
+      iq (bool):   IncludeQualifiers flag: Include qualifiers.
+                   Deprecated: Instance qualifiers have been deprecated in CIM.
+                   None causes it not to be included in request to server.
+                   Server default: False
+
+      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
+                   Deprecated: Server may treat as False.
+                   None causes it not to be included in request to server.
+                   Server default: False
+
+      pl (iterable):
+                   Iterable of property names to be included. None means all.
+                   None causes it not to be included in the request to server.
+                   Server default: None
+
+      moc (integer) Maximum number of objects to return for this operation.
+                   Server default: zero
+
+      fl (string)  Filter query language to be used for the filter defined
+                   in the `fi` parameter.
+                   Server default: None
+
+      fq (string)  Filter to apply to objects to be returned. Based on
+                   filter query language defined by fl parameter
+                   Server Default: None
+
+      coe (bool)   Continue on error flag.
+                   Server Default: False
+
+      ot (integer) Operation timeout in seconds.  This is the maximum
+                   time the server must keep the enumerate session open
+                   between this open response and the next request.
+                   This must be a positive integer. Zero indicates that the
+                   server does not timeout but many servers do not accept this
+                   value.
+                   Server Default: Server selects timeout
+
+    Returns:
+
+      named tuple.  The named tuple contains the following elements:
+
+          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
+                        response to this request
+          'eos' (bool)  True if this response is the complete response to this
+                        request and there are no more instances to return.
+                        Otherwise `eos` is False and the `context` entity will
+                        define the context for the next operation.
+          `context` (string) A context string that must be supplied with any
+                        subsequent pull or CloseEnumeration operation on this
+                        enumeration sequence.
+    """
+    return CONN.OpenEnumerateInstances(cn, ns,
+                                       LocalOnly=lo,
+                                       DeepInheritance=di,
+                                       IncludeQualifiers=iq,
+                                       IncludeClassOrigin=ico,
+                                       PropertyList=pl,
+                                       FilterQueryLanguage=fl,
+                                       FilterQuery=fq,
+                                       OperationTimeout=ot,
+                                       ContinueOnError=coe,
+                                       MaxObjectCount=moc)
+
+
+# pylint: disable=too-many-arguments,redefined-outer-name
+def OpenEnumerateInstancePaths(cn, ns=None, fl=None, fq=None, ot=None,
+                               coe=None, moc=None):
+    """
+    Open an enumeration sequence to enumerate the instances of a class
+    (including instances of its subclasses) in a namespace. Subsequent to this
+    open response, additional instances may be pulled using the
+    `PullInstancesWithPath` request. The enumeration sequence may also be
+    closed before it is complete with the `CloseEnumeration` request
+
+    This operation returns a named tuple containing any instances returned and
+    status of the enumeration sequence.
+
+    Parameters:
+
+      cn (string): Class name.
+
+      ns (string): Namespace name. None will use the default namespace.
+
+      lo (bool):   LocalOnly flag: Exclude inherited properties.
+                   Deprecated: Server impls for True vary; Set to False.
+                   None causes it not to be included in request to server.
+                   Server default: True
+
+      moc (integer) Maximum number of objects to return for this operation.
+                   Server default: zero
+
+      fl (string)  Filter query language to be used for the filter defined
+                   in the `fi` parameter.
+                   wbemcli default: None
+
+      fq (string)  Filter to apply to objects to be returned. Based on
+                   filter query language defined by fl parameter
+                   Server Default: None
+
+      coe (bool)   Continue on error flag.
+                   Server Default: False
+
+      ot (integer) Operation timeout in seconds.  This is the maximum
+                   time the server must keep the enumerate session open
+                   between this open response and the next request.
+                   This must be a positive integer. Zero indicates that the
+                   server does not timeout but many servers do not accept this
+                   value.
+                   Server Default: Server selects timeout
+
+    Returns:
+
+      named tuple.  The named tuple contains the following elements:
+
+          `paths`  list(CIMInstance: ) Any enumeratedinstances received in
+                        response to this request
+          'eos' (bool)  True if this response is the complete response to this
+                        request and there are no more instances to return.
+                        Otherwise `eos` is False and the `context` entity will
+                        define the context for the next operation.
+          `context` (string) A context string that must be supplied with any
+                        subsequent pull or CloseEnumeration operation on this
+                        enumeration sequence.
+    """
+
+    return CONN.OpenEnumerateInstancePaths(cn, ns,
+                                           FilterQueryLanguage=fl,
+                                           FilterQuery=fq,
+                                           OperationTimeout=ot,
+                                           ContinueOnError=coe,
+                                           MaxObjectCount=moc)
+
+
+# pylint: disable=too-many-arguments,redefined-outer-name
+def OpenReferenceInstances(op, rc=None, r=None, iq=None, ico=None,
+                           pl=None, fl=None, fq=None, ot=None, coe=None,
+                           moc=None):
+    """
+    Open an enumeration sequence to enumerate the association instances of an
+    instance in a namespace. Subsequent to this open response, additional
+    instances may be pulled using the `PullInstancesWithPath` request. The
+    enumeration sequence may also be closed before it is complete with the
+    `CloseEnumeration` request.
+
+    This operation returns a named tuple containing any instances returned and
+    status of the enumeration sequence.
+
+    Parameters:
+
+      op (CIMInstanceName): Source instance path.
+
+
+      rc (string): ResultClass filter: Include only traversals across this
+                   association (result) class.
+                   None causes it not to be included in request to server.
+                   Server default: None
+
+      r (string):  Role filter: Include only traversals from this role
+                   (= reference name) in source object.
+                   None causes it not to be included in request to server.
+                   Server default: None
+
+      iq (bool):   IncludeQualifiers flag: Include qualifiers.
+                   Deprecated: Instance qualifiers have been deprecated in CIM.
+                   None causes it not to be included in request to server.
+                   Server default: False
+
+      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
+                   Deprecated:  Server impls. vary; Server may treat as False.
+                   None causes it not to be included in request to server.
+                   Server default: False
+
+      pl (iterable):
+                   Iterable of property names to be included. None means all.
+                   None causes it not to be included in request to server.
+                   Server default: None
+
+      moc (integer) Maximum number of objects to return for this operation.
+                   Server default: zero
+
+      fl (string)  Filter query language to be used for the filter defined
+                   in the `fi` parameter.
+                   Server default: None
+
+      fq (string)  Filter to apply to objects to be returned. Based on
+                   filter query language defined by fl parameter
+                   Server Default: None
+
+      coe (bool)   Continue on error flag.
+                   Server Default: False
+
+      ot (integer) Operation timeout in seconds.  This is the maximum
+                   time the server must keep the enumerate session open
+                   between this open response and the next request.
+                   This must be a positive integer. Zero indicates that the
+                   server does not timeout but many servers do not accept this
+                   value.
+                   Server Default: Server selects timeout
+
+    Returns:
+
+      named tuple.  The named tuple contains the following elements:
+
+          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
+                        response to this request
+          'eos' (bool)  True if this response is the complete response to this
+                        request and there are no more instances to return.
+                        Otherwise `eos` is False and the `context` entity will
+                        define the context for the next operation.
+          `context` (string) A context string that must be supplied with any
+                        subsequent pull or CloseEnumeration operation on this
+                        enumeration sequence.
+    """
+    return CONN.OpenReferenceInstances(op,
+                                       ResultClass=rc,
+                                       Role=r,
+                                       IncludeQualifiers=iq,
+                                       IncludeClassOrigin=ico,
+                                       PropertyList=pl,
+                                       FilterQueryLanguage=fl,
+                                       FilterQuery=fq,
+                                       OperationTimeout=ot,
+                                       ContinueOnError=coe,
+                                       MaxObjectCount=moc)
+
+
+# pylint: disable=too-many-arguments,redefined-outer-name
+def OpenReferenceInstancePaths(op, rc=None, r=None, fl=None, fq=None, ot=None,
+                               coe=None, moc=None):
+    """
+    Open an enumeration sequence to enumerate the association instance paths of
+    an instance in a namespace. Subsequent to this open response, additional
+    instances may be pulled using the `PullInstancesWithPath` request. The
+    enumeration sequence may also be closed before it is complete with the
+    `CloseEnumeration` request.
+
+    This operation returns a named tuple containing any instances returned and
+    status of the enumeration sequence.
+
+    Parameters:
+
+      op (CIMInstanceName): Source instance path.
+
+      rc (string): ResultClass filter: Include only traversals across this
+                   association (result) class.
+                   None causes it not to be included in request to server.
+                   Server default: None
+
+      r (string):  Role filter: Include only traversals from this role
+                   (= reference name) in source object.
+                   None causes it not to be included in request to server.
+                   Server default: None
+
+      moc (integer) Maximum number of objects to return for this operation.
+                   Server default: zero
+
+      fl (string)  Filter query language to be used for the filter defined
+                   in the `fi` parameter.
+                   Server default: None
+
+      fq (string)  Filter to apply to objects to be returned. Based on
+                   filter query language defined by fl parameter
+                   Server Default: None
+
+      coe (bool)   Continue on error flag.
+                   Server Default: False
+
+      ot (integer) Operation timeout in seconds.  This is the maximum
+                   time the server must keep the enumerate session open
+                   between this open response and the next request.
+                   This must be a positive integer. Zero indicates that the
+                   server does not timeout but many servers do not accept this
+                   value.
+                   Server Default: Server selects timeout
+
+    Returns:
+
+      named tuple.  The named tuple contains the following elements:
+
+          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
+                        response to this request
+          'eos' (bool)  True if this response is the complete response to this
+                        request and there are no more instances to return.
+                        Otherwise `eos` is False and the `context` entity will
+                        define the context for the next operation.
+          `context` (string) A context string that must be supplied with any
+                        subsequent pull or CloseEnumeration operation on this
+                        enumeration sequence.
+    """
+    return CONN.OpenReferenceInstances(op,
+                                       ResultClass=rc,
+                                       Role=r,
+                                       FilterQueryLanguage=fl,
+                                       FilterQuery=fq,
+                                       OperationTimeout=ot,
+                                       ContinueOnError=coe,
+                                       MaxObjectCount=moc)
+
+
+# pylint: disable=too-many-arguments,redefined-outer-name
+def OpenAssociatorInstances(op, ac=None, rc=None, r=None, rr=None, iq=None,
+                            ico=None, pl=None, fl=None, fq=None, ot=None,
+                            coe=None, moc=None):
+    """
+    Open an enumeration sequence to enumerate the associated instances of an
+    instance in a namespace. Subsequent to this open response, additional
+    instances may be pulled using the `PullInstancesWithPath` request. The
+    enumeration sequence may also be closed before it is complete with the
+    `CloseEnumeration` request.
+
+    This operation returns a named tuple containing any instances returned and
+    status of the enumeration sequence.
+
+    Parameters:
+
+      op (CIMInstanceName): Source instance path.
+
+      ac (string): AssociationClass filter: Include only traversals across
+                   this association class.
+                   None causes it not to be included in request to server.
+                   Server default: None
+
+      rc (string): ResultClass filter: Include only traversals to this
+                   associated (result) class.
+                   None causes it not to be included in request to server.
+                   Server default: None
+
+      r (string):  Role filter: Include only traversals from this role
+                   (= reference name) in source object.
+                   None causes it not to be included in request to server.
+                   Server default: None
+
+      rr (string): ResultRole filter: Include only traversals to this role
+                   (= reference name) in associated (=result) objects.
+                   None causes it not to be included in request to server.
+                   Server default: None
+
+      iq (bool):   IncludeQualifiers flag: Include qualifiers.
+                   Deprecated: Instance qualifiers have been deprecated in CIM.
+                   None causes it not to be included in request to server.
+                   Server default: False
+
+      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
+                   Deprecated:  Server impls. vary; Server may treat as False.
+                   None causes it not to be included in request to server.
+                   Server default: False
+
+      pl (iterable):
+                   Iterable of property names to be included. None means all.
+                   None causes it not to be included in request to server.
+                   Server default: None
+
+      moc (integer) Maximum number of objects to return for this operation.
+                   Server default: zero
+
+      fl (string)  Filter query language to be used for the filter defined
+                   in the `fi` parameter.
+                   Server default: None
+
+      fq (string)  Filter to apply to objects to be returned. Based on
+                   filter query language defined by fl parameter
+                   Server Default: None
+
+      coe (bool)   Continue on error flag.
+                   Server Default: False
+
+      ot (integer) Operation timeout in seconds.  This is the maximum
+                   time the server must keep the enumerate session open
+                   between this open response and the next request.
+                   This must be a positive integer. Zero indicates that the
+                   server does not timeout but many servers do not accept this
+                   value.
+                   Server Default: Server selects timeout
+
+    Returns:
+
+      named tuple.  The named tuple contains the following elements:
+
+          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
+                        response to this request
+          'eos' (bool)  True if this response is the complete response to this
+                        request and there are no more instances to return.
+                        Otherwise `eos` is False and the `context` entity will
+                        define the context for the next operation.
+          `context` (string) A context string that must be supplied with any
+                        subsequent pull or CloseEnumeration operation on this
+                        enumeration sequence.
+    """
+    return CONN.OpenAssociatorInstances(op,
+                                        AssocClass=ac,
+                                        ResultClass=rc,
+                                        Role=r,
+                                        ResultRole=rr,
+                                        IncludeQualifiers=iq,
+                                        IncludeClassOrigin=ico,
+                                        PropertyList=pl,
+                                        FilterQueryLanguage=fl,
+                                        FilterQuery=fq,
+                                        OperationTimeout=ot,
+                                        ContinueOnError=coe,
+                                        MaxObjectCount=moc)
+
+
+# pylint: disable=too-many-arguments,redefined-outer-name
+def OpenAssociatorInstancePaths(op, ac=None, rc=None, r=None, rr=None, iq=None,
+                                ico=None, pl=None, fl=None, fq=None, ot=None,
+                                coe=None, moc=None):
+    """
+    Open an enumeration sequence to enumerate the associated instance paths of
+    an instance in a namespace. Subsequent to this open response, additional
+    instances may be pulled using the `PullInstancesWithPath` request. The
+    enumeration sequence may also be closed before it is complete with the
+    `CloseEnumeration` request.
+
+    This operation returns a named tuple containing any instances returned and
+    status of the enumeration sequence.
+
+    Parameters:
+
+      op (CIMInstanceName): Source instance path.
+
+      rc (string): ResultClass filter: Include only traversals across this
+                   association (result) class.
+                   None causes it not to be included in request to server.
+                   Server default: None
+
+      r (string):  Role filter: Include only traversals from this role
+                   (= reference name) in source object.
+                   None causes it not to be included in request to server.
+                   Server default: None
+
+      iq (bool):   IncludeQualifiers flag: Include qualifiers.
+                   Deprecated: Instance qualifiers have been deprecated in CIM.
+                   None causes it not to be included in request to server.
+                   Server default: False
+
+      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
+                   Deprecated:  Server impls. vary; Server may treat as False.
+                   None causes it not to be included in request to server.
+                   Server default: False
+
+      pl (iterable):
+                   Iterable of property names to be included. None means all.
+                   None causes it not to be included in request to server.
+                   Server default: None
+
+      moc (integer) Maximum number of objects to return for this operation.
+                   Server default: zero
+
+      fl (string)  Filter query language to be used for the filter defined
+                   in the `fi` parameter.
+                   Server default: None
+
+      fq (string)  Filter to apply to objects to be returned. Based on
+                   filter query language defined by fl parameter
+                   Server Default: None
+
+      coe (bool)   Continue on error flag.
+                   Server Default: False
+
+      ot (integer) Operation timeout in seconds.  This is the maximum
+                   time the server must keep the enumerate session open
+                   between this open response and the next request.
+                   This must be a positive integer. Zero indicates that the
+                   server does not timeout but many servers do not accept this
+                   value.
+                   Server Default: Server selects timeout
+
+    Returns:
+
+      named tuple.  The named tuple contains the following elements:
+
+          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
+                        response to this request
+          'eos' (bool)  True if this response is the complete response to this
+                        request and there are no more instances to return.
+                        Otherwise `eos` is False and the `context` entity will
+                        define the context for the next operation.
+          `context` (string) A context string that must be supplied with any
+                        subsequent pull or CloseEnumeration operation on this
+                        enumeration sequence.
+    """
+    return CONN.OpenAssociatorInstances(op,
+                                        AssocClass=ac,
+                                        ResultClass=rc,
+                                        Role=r,
+                                        ResultRole=rr,
+                                        IncludeQualifiers=iq,
+                                        IncludeClassOrigin=ico,
+                                        PropertyList=pl,
+                                        FilterQueryLanguage=fl,
+                                        FilterQuery=fq,
+                                        OperationTimeout=ot,
+                                        ContinueOnError=coe,
+                                        MaxObjectCount=moc)
+
+
+def OpenQueryInstances(ql, qi, ns=None, ot=None, coe=None, moc=None):
+    """
+    Open an enumeration sequence to execute a query `fi` using the query
+    language `fl`.  If this operation returns `eos` == False, the
+    `PullInstances` operation is used to request additional instances.
+
+    This operation returns a named tuple containing any instances returned and
+    status of the enumeration sequence.
+
+    Parameters:
+
+      ql (string)  Filter query language to be used for the filter defined
+                   in the `fi` parameter. This must be a query language such
+                   as CQL or WQL but NOT FQL.
+
+      qi (string)  Filter to apply to objects to be returned. Based on
+                   filter query language defined by `fl` parameter
+
+      ns (string)  Namespace for the operation.
+                   Default: default namespace
+
+      coe (bool)   Continue on error flag.
+                   Server Default: None
+
+      ot (integer) Operation timeout in seconds.  This is the maximum
+                   time the server must keep the enumerate session open
+                   between this open response and the next request.
+                   This must be a positive integer. Zero indicates that the
+                   server does not timeout but many servers do not accept this
+                   value.
+                   Server Default: Server selects timeout
+
+      moc (integer) Maximum number of objects to return for this operation.
+                   This is a required parameter.
+
+    Returns:
+
+      named tuple.  The named tuple contains the following elements:
+
+          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
+                        response to this request
+          'eos' (bool)  True if this response is the complete response to this
+                        request and there are no more instances to return.
+                        Otherwise `eos` is False and the `context` entity will
+                        define the context for the next operation.
+          `context` (string) A context string that must be supplied with any
+                        subsequent pull or CloseEnumeration operation on this
+                        enumeration sequence.
+    """
+    return CONN.OpenQueryInstances(FilterQueryLanguage=ql,
+                                   FilterQuery=qi,
+                                   namespace=ns,
+                                   ReturnQueryResultClass=rc,
+                                   OperationTimeout=ot,
+                                   ContinueOnError=coe,
+                                   MaxObjectCount=moc)
+
+
+def PullInstancesWithPath(ec, moc):
+    """
+    Pull instances from the server as part of an already opened enumeration
+    sequence.  This operation can be used as the sequence continuation for
+    `OpenEnumerateInstancePaths`, `OpenAssociatorPaths` and
+    `OpenReferencePaths`.
+
+    Parameters:
+
+      ec (string): Enumeration context from previous operation response for
+                   this enumeration session.
+
+      moc (integer) Maximum number of objects to return for this operation.
+                   This is a required parameter.
+
+    Returns:
+
+      named tuple.  The named tuple contains the following elements:
+
+          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
+                        response to this request
+          'eos' (bool)  True if this response is the complete response to this
+                        request and there are no more instances to return.
+                        Otherwise `eos` is False and the `context` entity will
+                        define the context for the next operation.
+          `context` (string) A context string that must be supplied with any
+                        subsequent pull or CloseEnumeration operation on this
+                        enumeration sequence.
+    """
+
+    return CONN.PullInstancesWithPath(ec, moc)
+
+
+def PullInstancePaths(ec, moc):
+    """
+    Pull instance paths from the server as part of an already opened enumeration
+    sequence.  This operation can be used as the sequence continuation for
+    OpenEnumeratePaths, OpenAssociatorPaths and OpenReferencePaths.
+
+    Parameters:
+
+      ec (string): Enumeration context from previous operation response for
+                   this enumeration session.
+
+      moc (integer) Maximum number of objects to return for this operation.
+                   This is a required parameter.
+
+    Returns:
+
+      named tuple.  The named tuple contains the following elements:
+
+          `paths`       list(CIMInstance: ) Any enumeratedinstances received in
+                        response to this request
+          'eos' (bool)  True if this response is the complete response to this
+                        request and there are no more instances to return.
+                        Otherwise `eos` is False and the `context` entity will
+                        define the context for the next operation.
+          `context` (string) A context string that must be supplied with any
+                        subsequent pull or CloseEnumeration operation on this
+                        enumeration sequence.
+    """
+
+    return CONN.PullInstancePaths(ec, moc)
+
+
+def PullInstances(ec, moc):
+    """
+    Pull instances from the server as part of an already opened enumeration
+    sequence.  This operation can be used as the sequence continuation for
+    OpenQueryInstances.
+
+    Parameters:
+
+      ec (string): Enumeration context from previous operation response for
+                   this enumeration session.
+
+      moc (integer) Maximum number of objects to return for this operation.
+                   This is a required parameter.
+
+    Returns:
+
+      named tuple.  The named tuple contains the following elements:
+
+          `paths`       list(CIMInstance: ) Any enumeratedinstances received in
+                        response to this request
+          'eos' (bool)  True if this response is the complete response to this
+                        request and there are no more instances to return.
+                        Otherwise `eos` is False and the `context` entity will
+                        define the context for the next operation.
+          `context` (string) A context string that must be supplied with any
+                        subsequent pull or CloseEnumeration operation on this
+                        enumeration sequence.
+    """
+
+    return CONN.PullInstancePaths(ec, moc)
+
+
+def CloseEnumeration(ec):
+    """
+    Close an existing open enumeration context early.  Once the sequence is
+    complete, the `eos` flag is set in the last response.  Any time before
+    this, the sequence may be closed early with this operation.
+
+    Parameters:
+
+      ec (string): Enumeration context from previous operation response for
+                   this enumeration session.
+
+    Returns:
+
+        Nothing is returned.
+    """
+
+    return CONN.CloseEnumeration(ec)
+
+
 def InvokeMethod(mn, op, *params, **kwparams):
     """
     Invoke a method on a target instance or a static method on a target class.
@@ -556,12 +1259,12 @@ def EnumerateClasses(ns=None, cn=None, di=None, lo=None, iq=None, ico=None):
       list(string): The enumerated class names.
     """
 
-    return CONN.EnumerateClass(ns,
-                               ClassName=cn,
-                               DeepInheritance=di,
-                               LocalOnly=lo,
-                               IncludeQualifiers=iq,
-                               IncludeClassOrigin=ico)
+    return CONN.EnumerateClasses(ns,
+                                 ClassName=cn,
+                                 DeepInheritance=di,
+                                 LocalOnly=lo,
+                                 IncludeQualifiers=iq,
+                                 IncludeClassOrigin=ico)
 
 
 def GetClass(cn, ns=None, lo=None, iq=None, ico=None, pl=None):
@@ -723,6 +1426,17 @@ Short and long names of operation functions:
   a   = Associators
   rn  = ReferenceNames
   r   = References
+  oei = OpenEnumerateInstances
+  oeip = OpenEnumerateInstancePaths
+  oai  = OpenAssociatorInstances
+  oaip = OpenAssociatorInstancePaths
+  ori  = OpenReferenceInstances
+  orip = OpenReferenceInstancePaths
+  oqi - OpenQueryInstances
+  piwp  = PullInstancesWithPath
+  pip = PullInstancePaths
+  pi = PullInstances
+  ce  = CloseEnumeration
   im  = InvokeMethod
   ecn = EnumerateClassNames
   ec  = EnumerateClasses
@@ -776,6 +1490,7 @@ def pdb(stmt):
     import pdb
     pdb.set_trace()
 
+    #pylint: disable=exec-used
     exec(stmt) # Type 3 x "s" to get to stmt, and "cont" to end debugger.
 
 # Aliases for global functions above
@@ -791,6 +1506,18 @@ an = AssociatorNames
 a = Associators
 rn = ReferenceNames
 r = References
+
+oei = OpenEnumerateInstances
+oeip = OpenEnumerateInstancePaths
+oai = OpenAssociatorInstances
+oaip = OpenAssociatorInstancePaths
+ori = OpenReferenceInstances
+orip = OpenReferenceInstancePaths
+
+piwp = PullInstancesWithPath
+pip = PullInstancePaths
+pi = PullInstances
+ce = CloseEnumeration
 
 im = InvokeMethod
 
