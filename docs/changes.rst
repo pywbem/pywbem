@@ -191,6 +191,9 @@ Enhancements
 
 * Extended wbemcli for all pull operations. (issue #341)
 
+* extend live testing with cim_operation.py to include tests on the server
+  class (issue #346)
+
 
 Bug fixes
 ^^^^^^^^^

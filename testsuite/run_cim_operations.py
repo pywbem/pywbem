@@ -20,19 +20,18 @@ import warnings
 import six
 
 from pywbem.cim_constants import *
-from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
+from pywbem import WBEMConnection, WBEMServer, CIMError, Error, \
+                   CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
                    CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
-                   CIMMethod, WBEMConnection, CIMError, Error, \
-                   Uint8, Uint16, Uint32, Uint64, \
-                   Sint8, Sint16, Sint32, Sint64, \
-                   Real32, Real64, CIMDateTime
+                   CIMMethod, ValueMapping, \
+                   Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, Sint32, \
+                   Sint64, Real32, Real64, CIMDateTime
 
 # Test for decorator for unimplemented tests
 # decorator is @unittest.skip(UNIMPLEMENTED)
 UNIMPLEMENTED = "test not implemented"
 
-RUN_LONGRUNNING_TEST = False
-
+SKIP_LONGRUNNING_TEST = True
 
 # A class that should be implemented in a wbem server and is used
 # for testing
@@ -1103,7 +1102,7 @@ class PullReferences(ClientTest):
 
         self.assertInstancesEqual(insts, instances)
 
-    @unittest.skipIf(RUN_LONGRUNNING_TEST, 'skip long test')
+    @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
     def test_all_instances_in_ns(self):
         """Simplest invocation. Everything comes back in
            initial response with end-of-sequence == True
@@ -1197,7 +1196,7 @@ class PullReferencePaths(ClientTest):
 
         self.assertPathsEqual(paths_pulled, paths2)
 
-    @unittest.skipIf(RUN_LONGRUNNING_TEST, 'skip long test')
+    @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
     def test_all_instances_in_ns(self):
         """
             Simplest invocation. Execute and compae with results
@@ -1281,7 +1280,7 @@ class PullAssociators(ClientTest):
         self.assertInstancesEqual(insts, instances)
 
 
-    @unittest.skipIf(RUN_LONGRUNNING_TEST, 'skip long test')
+    @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
     def test_all_instances_in_ns(self):
         """Simplest invocation. Everything comes back in
            initial response with end-of-sequence == True
@@ -1378,7 +1377,7 @@ class PullAssociatorPaths(ClientTest):
         self.assertPathsEqual(paths_pulled, paths2)
 
 
-    @unittest.skipIf(RUN_LONGRUNNING_TEST, 'skip long test')
+    @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
     def test_all_instances_in_ns(self):
         """Simplest invocation. Everything comes back in
            initial response with end-of-sequence == True. Compare results
@@ -1971,7 +1970,7 @@ class Associators(ClientTest):
         for cls in assoc_classes:
             self.assertAssocRefClassRtnValid(cls)
 
-    @unittest.skipIf(RUN_LONGRUNNING_TEST, 'skip long test')
+    @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
     def test_all_class_associators(self):
         """
             Test getting associator classes for all classes in a
@@ -2022,7 +2021,7 @@ class AssociatorNames(ClientTest):
 
         # TODO: check return values, NS, etc.
 
-    @unittest.skipIf(RUN_LONGRUNNING_TEST, 'skip long test')
+    @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
     def test_all_class_associatornames(self):
         """
             Test getting associator classes for all classes in a
@@ -2367,11 +2366,15 @@ class PegasusServerTestBase(ClientTest):
             self.assertTrue(len(instances) != 0)
             if self.verbose:
                 print('Namespaces:')
-                for instance in instances:
-                    prop = instance.properties['Name'].value
-                    ascii = prop.encode()
-                    print ('  %s' % (ascii))
-                    namespaces.append(ascii)
+            for instance in instances:
+                prop = instance.properties['Name'].value
+                ascii = prop.encode()
+                namespaces.append(ascii)
+
+            if self.verbose:
+                print('Namespaces:')
+                for n in namespaces:
+                    print ('  %s' % (n))
 
             return namespaces
 
@@ -2393,6 +2396,7 @@ class PegasusServerTestBase(ClientTest):
         try:
             self.cimcall(self.conn.GetClass, "PG_ObjectManager",
                          namespace=ns)
+            return True
         except CIMError:
             print('Class PG_ObjectManager not found')
             return False
@@ -2414,7 +2418,6 @@ class PegasusServerTestBase(ClientTest):
                         print(i.properties["Description"])
                         # should say pegasus
                         print(i.properties["ElementName"])
-
 
         except CIMError:
             print('Class PG_ObjectManager not found')
@@ -2499,13 +2502,14 @@ class PegasusServerTestBase(ClientTest):
     def get_registered_profiles(self):
         """get the registered profile instances"""
 
-        interop = self.get_interop_namespace()
-        self.assertTrue(interop is not None)
-        profiles = self.get_instances(interop, 'CIM_RegisteredProfile')
+        interop_ns = self.get_interop_namespace()
+        self.assertTrue(interop_ns is not None)
+        profiles = self.get_instances(interop_ns, 'CIM_RegisteredProfile')
         self.assertTrue(len(profiles) != 0)
         if self.verbose:
             for i in profiles:
                 print(i.tomof())
+        return profiles
 
 class PegasusInteropTest(PegasusServerTestBase):
     """Test for valid interop namespace in a pegasus server"""
@@ -2523,6 +2527,27 @@ class PegasusInteropTest(PegasusServerTestBase):
 
         self.assertTrue(self.try_class(interop, 'CIM_RegisteredProfile'))
         self.assertTrue(self.try_class(interop, 'CIM_Namespace'))
+
+    def test_get_namespaces(self):
+        """Test getting list of namespaces"""
+
+        namespaces_ = self.get_namespaces()
+
+        self.assertTrue(len(namespaces_) != 0)
+
+        self.assertTrue(self.get_interop_namespace() in namespaces_)
+
+    def test_get_registered_profiles(self):
+        """ Test ability to get known profiles from server """
+
+        profiles = self.get_registered_profiles()
+        self.assertTrue(len(profiles) != 0)
+        if self.verbose:
+            for p in profiles:
+                print('org=%s RegisteredName=%s, RegisteredVersion=%s' %
+                      (p['RegisteredOrganization'], p['RegisteredName'],
+                       p['RegisteredVersion']))
+
 
 class PEGASUSCLITestClass(PegasusServerTestBase):
     """Test against a class that has all of the property types
@@ -2618,6 +2643,180 @@ class PegasusTestEmbeddedInstance(PegasusServerTestBase):
             # TODO Create a new instance on server and test return using
             # getInstance
 
+class PyWBEMServerClass(PegasusServerTestBase):
+    """
+       Test the components of the server class and compare with previous tests
+       for openpegasus.  This set of tests runs only on openpegasus.
+       Tests for valid namespaces, valid interop namespace, valid profiles,
+       pegasus brand information
+
+    """
+
+    def test_namespaces(self):
+        """ Compare namespaces from the pegasus function with those from
+            the server function
+        """
+
+        peg_namespaces = self.get_namespaces()
+
+        server = WBEMServer(self.conn)
+
+        self.assertEqual(len(server.namespaces), len(peg_namespaces))
+
+        for n in peg_namespaces:
+            self.assertTrue(n in server.namespaces)
+
+
+    def test_interop_namespace(self):
+        """Confirm that pegasus tests and Server class select same namespace
+           as interop namespace
+        """
+
+        server = WBEMServer(self.conn)
+
+        peg_interop = self.get_interop_namespace()
+
+        self.assertEqual(peg_interop.lower(), server.interop_ns.lower())
+
+
+    def test_registered_profiles(self):
+        """ Test getting profiles from server class against getting list
+            directly from server
+        """
+
+        server = WBEMServer(self.conn)
+
+        org_vm = ValueMapping.for_property(server, server.interop_ns,
+                                           'CIM_RegisteredProfile',
+                                           'RegisteredOrganization')
+
+        peg_profiles = self.get_registered_profiles()
+
+        self.assertEqual(len(peg_profiles), len(server.profiles))
+
+        for inst in peg_profiles:
+            self.assertTrue(inst in server.profiles)
+
+        if self.verbose:
+            print()
+            for inst in server.profiles:
+                org = org_vm.tovalues(inst['RegisteredOrganization'])
+                name = inst['RegisteredName']
+                vers = inst['RegisteredVersion']
+                print("  %s %s Profile %s" % (org, name, vers))
+
+
+    def test_get_brand(self):
+        """ Get brand info. If pegasus server test for correct response.
+            Otherwise display result
+        """
+
+        server = WBEMServer(self.conn)
+
+        if self.is_pegasus_server():
+            self.assertEqual(server.brand, 'OpenPegasus')
+            self.assertRegexpMatches(server.version, r"^2\.1[0-7]\.[0-7]$")
+        else:
+            # Do not know what server it is so just display
+            print("Brand: %s" % server.brand)
+            print("Server Version:\n  %s" % server.version)
+
+
+    def test_indication_profile_info(self):
+        """ Get the indications central class"""
+
+        server = WBEMServer(self.conn)
+
+        org_vm = ValueMapping.for_property(server, server.interop_ns,
+                                           'CIM_RegisteredProfile',
+                                           'RegisteredOrganization')
+
+        indications_profile = None
+
+        # find indication profiles
+        for inst in server.profiles:
+            org = org_vm.tovalues(inst['RegisteredOrganization'])
+            name = inst['RegisteredName']
+            vers = inst['RegisteredVersion']
+            if org == "DMTF" and name == "Indications" and vers == "1.1.0":
+                indications_profile = inst
+
+        try:
+            # get central class. Central_class = CIM_IndicationService
+            # scoping_class=CIM_System, scoping_path- association class is
+            # cim_HostedService
+            ci_paths = server.get_central_instances(
+                indications_profile.path,
+                "CIM_IndicationService", "CIM_System", ["CIM_HostedService"])
+        except Exception as exc:
+            print("Error: %s" % str(exc))
+            ci_paths = []
+            self.fail("No central class for indication profile")
+
+        for ip in ci_paths:
+            ind_svc_inst = self.cimcall(self.conn.GetInstance, ip)
+            if self.verbose:
+                print(ind_svc_inst.tomof())
+
+            # Search class hiearchy for CIM_IndicationService
+            # TODO change to create function to do the hiearchy search
+            cls_name = ind_svc_inst.classname
+            while cls_name != 'CIM_IndicationService':
+                cls = self.cimcall(self.conn.GetClass, cls_name,
+                                   namespace=ip.namespace)
+
+                if cls.superclass is not None:
+                    cls_name = cls.superclass
+                else:
+                    self.fail("Could not find CIM_IndicationService")
+
+
+    def test_server_profile(self):
+        """
+            Test getting the server profile
+        """
+
+        server = WBEMServer(self.conn)
+
+        org_vm = ValueMapping.for_property(server, server.interop_ns,
+                                           'CIM_RegisteredProfile',
+                                           'RegisteredOrganization')
+
+        server_profile = None
+
+        # find server profile
+        for inst in server.profiles:
+            org = org_vm.tovalues(inst['RegisteredOrganization'])
+            name = inst['RegisteredName']
+            vers = inst['RegisteredVersion']
+
+            if org == 'SNIA' and name == "Server" and vers == "1.2.0":
+                server_profile = inst
+
+        self.assertTrue(len(server_profile) is not None)
+        try:
+            ci_paths = server.get_central_instances(server_profile.path)
+
+            for ip in ci_paths:
+                server_inst = self.cimcall(self.conn.GetInstance, ip)
+                if self.verbose:
+                    print(server_inst.tomof())
+
+                cls_name = server_inst.classname
+
+                # Search class hiearchy for CIM_ObjectManager
+                while cls_name != 'CIM_ObjectManager':
+                    cls = self.cimcall(self.conn.GetClass, cls_name,
+                                       namespace=ip.namespace)
+
+                    if cls.superclass is not None:
+                        cls_name = cls.superclass
+                    else:
+                        self.fail("Could not find CIM_ObjectManager")
+        except Exception as exc:
+            print("Error: %s" % str(exc))
+            self.fail("No Server class")
+
 
 #################################################################
 # Main function
@@ -2673,6 +2872,9 @@ TEST_LIST = [
     'PullReferences',
     'PullReferencePaths',
 
+    # TestServerClass
+    'PyWBEMServerClass',
+
 
     # Pegasus only tests
     'PEGASUSCLITestClass',
@@ -2701,33 +2903,35 @@ def parse_args(argv_):
         print('    GEN_OPTS            General options (see below).')
         print('    URL                 URL of the target WBEM server.\n'\
               '                        http:// or https:// prefix'\
-              ' defines ssl usage')
+              '                        defines ssl usage')
         print('    USERNAME            Userid used to log into '\
-              'WBEM server.\n' \
+              '                        WBEM server.\n' \
               '                        Requests user input if not supplied')
         print('    PASSWORD            Password used to log into '\
-              'WBEM server.\n' \
+              '                        WBEM server.\n' \
               '                        Requests user input if not supplier')
         print('    -nvc                Do not verify server certificates.')
         print('    --cacerts           File/dir with ca certificate(s).')
 
         print('    UT_OPTS             Unittest options (see below).')
         print('    UT_CLASS            Name of testcase class (e.g. '\
-              'EnumerateInstances).')
+              '                        EnumerateInstances).')
         print('')
         print('General options[GEN_OPTS]:')
         print('    --help, -h          Display this help text.')
         print('    -n NAMESPACE        Use this CIM namespace instead of '\
               'default: %s' % DEFAULT_NAMESPACE)
         print('    -t TIMEOUT          Use this timeout (in seconds)'\
-              ' instead of no timeout')
+              '                        instead of no timeout')
         print('    -v                  Verbose output which includes:\n' \
               '                          - xml input and output,\n' \
               '                          - connection details,\n'
               '                          - details of tests')
         print('    -d                  Debug flag for extra displays')
-        print('    -l                  Do long running tests')
-        print('    -hl                 List of indifidual tests')
+        print('    -l                  Do long running tests. If not set, ' \
+              '                        skips a number of tests that take a ' \
+              '                        long time to run')
+        print('    -hl                 List of individual tests')
 
         print('')
         print('Examples:')
@@ -2818,9 +3022,8 @@ if __name__ == '__main__':
     print("  debug: %s" % args['debug'])
     print("  long_running: %s" % args['long_running'])
 
-    #global RUN_LONGRUNNING_TEST
     if args['long_running'] is True:
-        RUN_LONGRUNNING_TEST = True
+        SKIP_LONGRUNNING_TEST = False
 
     # Note: unittest options are defined in separate args after
     # the url argument.
