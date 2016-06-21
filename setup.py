@@ -348,10 +348,11 @@ def main():
             "Sphinx>=1.3",
             # The ordereddict package is a backport of collections.OrderedDict
             # to Python 2.6. OrderedDict is needed by the GitPython package
-            # since its 2.0.3 version (but only its 2.0.5 version uses it
-            # correctly). GitPython is needed by sphinx-git.
+            # since its 2.0.3 version (but only from 2.0.5 on it is used
+            # correctly, and only from 2.0.6 on does it work on Python 2.6).
+            # GitPython is needed by sphinx-git.
             "ordereddict" if sys.version_info[0:2] == (2, 6) else None,
-            "GitPython>=2.0.5",
+            "GitPython>=2.0.6",
             "sphinx-git",
             "httpretty",
             "lxml",
