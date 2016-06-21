@@ -101,7 +101,7 @@ from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
                            CIM_ERR_METHOD_NOT_AVAILABLE, \
                            CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND
 from .exceptions import CIMError
-from .cim_obj import CIMInstanceName
+from .cim_obj import CIMInstanceName, NocaseDict
 from .cim_types import CIMInt, type_from_name
 from .cim_operations import WBEMConnection
 
@@ -487,7 +487,8 @@ class WBEMServer(object):
         interop_ns = None
         for ns in self.INTEROP_NAMESPACES:
             try:
-                self._conn.EnumerateInstanceNames(test_classname, namespace=ns)
+                inst_paths = self._conn.EnumerateInstanceNames(test_classname,
+                                                               namespace=ns)
             except CIMError as exc:
                 if exc.status_code == CIM_ERR_INVALID_NAMESPACE:
                     # Current namespace does not exist.
@@ -502,7 +503,13 @@ class WBEMServer(object):
                     raise
             else:
                 # Namespace class is implemented in the current namespace.
-                interop_ns = ns
+                # Use the returned namespace name, if possible.
+                ns_names = [p.keybindings['name'] for p in inst_paths]
+                ns_dict = NocaseDict(zip(ns_names, ns_names))
+                try:
+                    interop_ns = ns_dict[ns]
+                except IndexError:
+                    interop_ns = ns
                 break
         if interop_ns is None:
             # Exhausted the possible namespaces

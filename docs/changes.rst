@@ -273,6 +273,10 @@ Bug fixes
    module).  The minimum level protocol set by the client is TLSV1 now whereas
    in previous versions of pywbem it was SSLV23. (issue # 295)
 
+* WBEMServer.interop_ns now contains the returned interop namespace name,
+  if possible, instead of the attempted one.
+
+
 pywbem v0.8.2
 -------------
 
