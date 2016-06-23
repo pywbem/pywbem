@@ -25,8 +25,6 @@ install:
 script:
   - make check
   - make build
-  - if [[ $(python -c "import sys; print('%s.%s'%sys.version_info[0:2])") != 2.6 ]]; then make builddoc; else echo "make builddoc is disabled on Python 2.6 until GitPython runs again (see its issue 457)"; fi
+  - make builddoc
   - make test
-
-# TODO 2016-05 AM: Remove disabling of "make builddoc" for Python 2.6, once GitPython runs on Python 2.6.
 
