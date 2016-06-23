@@ -125,7 +125,9 @@ Enhancements
   input parameters that are supported by `int()`.
 
 * Added the concept of a valid value range for the CIM integer data types, that
-  is enforced at construction time.
+  is enforced at construction time. For compatibility, this strict checking can
+  be turned off via a config variable:
+  `pywbem.config.ENFORCE_INTEGER_RANGE = False`.
 
 * Extended wbemcli arguments to include all possible arguments that would
   be logical for a ssl or non-ssl client. This included arguments for

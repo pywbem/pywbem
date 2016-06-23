@@ -99,6 +99,7 @@ doc_dependent_files := \
     $(package_name)/_listener.py \
     $(package_name)/_recorder.py \
     $(package_name)/_server.py \
+    $(package_name)/config.py \
 
 # PyLint config file
 pylint_rc_file := pylint.rc

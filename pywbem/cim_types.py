@@ -80,6 +80,8 @@ if six.PY2:
 else:
     _Longint = int
 
+from . import config
+
 __all__ = ['MinutesFromUTC', 'CIMType', 'CIMDateTime', 'CIMInt', 'Uint8',
            'Sint8', 'Uint16', 'Sint16', 'Uint32', 'Sint32', 'Uint64', 'Sint64',
            'CIMFloat', 'Real32', 'Real64']
@@ -570,9 +572,10 @@ class CIMInt(CIMType, _Longint):
 
     def __new__(cls, *args, **kwargs):
         value = _Longint(*args, **kwargs)
-        if value > cls.maxvalue or value < cls.minvalue:
-            raise ValueError("Integer value %s is out of range for CIM " \
-                             "datatype %s" % (value, cls.cimtype))
+        if config.ENFORCE_INTEGER_RANGE:
+            if value > cls.maxvalue or value < cls.minvalue:
+                raise ValueError("Integer value %s is out of range for CIM " \
+                                 "datatype %s" % (value, cls.cimtype))
         # The value needs to be processed here, because int/long is unmutable
         return super(CIMInt, cls).__new__(cls, *args, **kwargs)
 

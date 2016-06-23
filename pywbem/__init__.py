@@ -90,6 +90,7 @@ from .exceptions import *
 from ._server import *
 from ._listener import *
 from ._recorder import *
+from .config import *
 
 from ._version import __version__
 
