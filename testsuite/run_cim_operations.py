@@ -17,10 +17,13 @@ import unittest
 from getpass import getpass
 import warnings
 
+from socket import getfqdn
+import time
+
 import six
 
 from pywbem.cim_constants import *
-from pywbem import WBEMConnection, WBEMServer, CIMError, Error, \
+from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
                    CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
                    CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
                    CIMMethod, ValueMapping, \
@@ -2818,6 +2821,50 @@ class PyWBEMServerClass(PegasusServerTestBase):
             self.fail("No Server class")
 
 
+
+
+class PyWBEMListenerClass(PegasusServerTestBase):
+    """Test the management of indications"""
+
+    def test_create_delete_indication(self):
+        """
+        Create and delete a server and listener and create an indication.
+        Then delete everything
+        """
+        TEST_CLASS = 'Test_IndicationProviderClass'
+        TEST_CLASS_NAMESPACE = 'test/TestProvider'
+        TEST_QUERY = 'SELECT * from %s' % TEST_CLASS
+
+        server = WBEMServer(self.conn)
+        # Set arbitrary port for the http listener
+        http_listener_port = 50000
+
+        # Create the listener and listener call back and start the listener
+
+        listener = WBEMListener(getfqdn(), http_port=http_listener_port,
+                                https_port=None)
+        server_id = listener.add_server(server)
+        listener.start()
+
+        filter_path = listener.add_dynamic_filter(server_id,
+                                                  TEST_CLASS_NAMESPACE,
+                                                  TEST_QUERY,
+                                                  query_language="DMTF:CQL")
+
+        subscription_path = listener.add_subscription(server_id, filter_path)
+
+        host_filters = listener.get_dynamic_filters(server_id)
+        print('------------------------------------------------------------')
+        print(host_filters)
+
+
+        listener.remove_subscription(self.system_url, subscription_path)
+        listener.remove_dynamic_filter(server_id, filter_path)
+
+        time.sleep(2)
+        listener.stop()
+        listener.remove_server(server_id)
+
 #################################################################
 # Main function
 #################################################################
@@ -2874,6 +2921,7 @@ TEST_LIST = [
 
     # TestServerClass
     'PyWBEMServerClass',
+    'PyWEBEMListenerClass',
 
 
     # Pegasus only tests
