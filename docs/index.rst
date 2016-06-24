@@ -25,5 +25,6 @@ Its general web site is: http://pywbem.github.io/pywbem/index.html.
    listener.rst
    compiler.rst
    utilities.rst
+   config.rst
    changes.rst
 
