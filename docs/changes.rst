@@ -196,6 +196,12 @@ Enhancements
 * extend live testing with cim_operation.py to include tests on the server
   class (issue #346)
 
+* Changed command line options of `mof_compiler` command to be consistent
+  with `wbemcli`, and added support for specifying certificate related
+  options. use of the old options is checked and causes an according error
+  message to be displayed. Note, this is an incompatible change in the
+  command line options. (issue #216)
+
 
 Bug fixes
 ^^^^^^^^^

@@ -22,19 +22,21 @@
 #
  
 """
-mof_compiler - Compile MOF files, and update the repository of a WBEM server
-with the result.
+mof_compiler - Compile MOF files, and update a namespace in a WBEM server with
+the result.
 
 Invoke with `-h` or `--help` for a help message.
 """
 import os
 import sys 
+import re 
 import argparse
 from getpass import getpass
 
 from pywbem._cliutils import SmartFormatter
-from pywbem import WBEMConnection
+from pywbem import WBEMConnection, Error
 from pywbem.mof_compiler import MOFWBEMConnection, MOFCompiler, MOFParseError
+from pywbem.cim_http import get_default_ca_cert_paths
 
  
 def main():
@@ -44,11 +46,11 @@ def main():
 
     prog = "mof_compiler"  # Name of the script file invoking this module
     usage = '%(prog)s [options] moffile ...'
-    desc = 'Compile MOF files, and update the repository of a WBEM ' \
+    desc = 'Compile MOF files, and update a namespace in a WBEM ' \
            'server with the result.'
     epilog = """
 Example:
-  %s CIM_Schema_2.45.mof -u https://localhost:15989 -n root/cimv2 -l sheldon -p penny42
+  %s CIM_Schema_2.45.mof -s https://localhost:15989 -n root/cimv2 -u sheldon -p penny42
 """ % prog
     argparser = argparse.ArgumentParser(
         prog=prog, usage=usage, description=desc, epilog=epilog,
@@ -59,52 +61,105 @@ Example:
     pos_arggroup.add_argument(
         'mof_files', metavar='moffile',
         nargs='*',
-        help='R|Path name of the MOF file to be compiled.\n' \
+        help='R|Path name of the MOF file to be compiled.\n'
              'Can be specified multiple times.')
 
     server_arggroup = argparser.add_argument_group(
         'Server related options',
-        'Specify the WBEM server and namespace')
+        'Specify the WBEM server and namespace the MOF compiler '
+        'works against, for looking up existing elements, and '
+        'for applying the MOF compilation results to.')
     server_arggroup.add_argument(
-        '-u', '--url', dest='url', metavar='url',
-        default='/var/run/tog-pegasus/cimxml.socket',
-        help='R|URL of the WBEM server.\n' \
-             'Default: %(default)s')
+        '-s', '--server', dest='url', metavar='url',
+        help='R|Host name or URL of the WBEM server (required),\n'
+             'in this format:\n'
+             '    [scheme://]host[:port]\n'
+             '- scheme: Defines the protocol to use:\n'
+             '    - "https" for HTTPS protocol\n'
+             '    - "http" for HTTP protocol\n'
+             '  Default: "https".\n'
+             '- host: Defines host name as follows:\n'
+             '     - short or fully qualified DNS hostname\n'
+             '     - literal IPV4 address(dotted)\n'
+             '     - literal IPV6 address (RFC 3986) with zone\n'
+             '       identifier extensions(RFC 6874)\n'
+             '       supporting "-" or %%25 for the delimiter\n'
+             '- port: Defines the WBEM server port to be used.\n'
+             '  Defaults:\n'
+             '     - 5988, when using HTTP\n'
+             '     - 5989, whenusing HTTPS\n')
     server_arggroup.add_argument(
         '-n', '--namespace', dest='namespace', metavar='namespace',
-        help='Namespace in the WBEM server to work against (required)')
-    server_arggroup.add_argument(
-        '-l', '--username', dest='username', metavar='username',
-        help='R|Username for authenticating with the WBEM server.\n' \
-             'Default: No username')
-    server_arggroup.add_argument(
+        default='root/cimv2',
+        help='R|Namespace in the WBEM server.\n'
+             'Default: %(default)s')
+
+    security_arggroup = argparser.add_argument_group(
+        'Connection security related options',
+        'Specify user name and password or certificates and keys')
+    security_arggroup.add_argument(
+        '-u', '--user', dest='user', metavar='user',
+        help='R|User name for authenticating with the WBEM server.\n'
+             'Default: No user name.')
+    security_arggroup.add_argument(
         '-p', '--password', dest='password', metavar='password',
-        help='R|Password for authenticating with the WBEM server.\n' \
-             'Default: No password')
+        help='R|Password for authenticating with the WBEM server.\n'
+             'Default: Will be prompted for, if user name\nspecified.')
+    security_arggroup.add_argument(
+        '-nvc', '--no-verify-cert', dest='no_verify_cert',
+        action='store_true',
+        help='Client will not verify certificate returned by the WBEM'
+             ' server (see cacerts). This bypasses the client-side'
+             ' verification of the server identity, but allows'
+             ' encrypted communication with a server for which the'
+             ' client does not have certificates.')
+    security_arggroup.add_argument(
+        '--cacerts', dest='ca_certs', metavar='cacerts',
+        help='R|File or directory containing certificates that will be\n'
+             'matched against a certificate received from the WBEM\n'
+             'server. Set the --no-verify-cert option to bypass\n'
+             'client verification of the WBEM server certificate.\n'
+             'Default: Searches for matching certificates in the\n'
+             'following system directories:\n'
+        + ("\n".join("%s" % p for p in get_default_ca_cert_paths())))
+    security_arggroup.add_argument(
+        '--certfile', dest='cert_file', metavar='certfile',
+        help='R|Client certificate file for authenticating with the\n'
+             'WBEM server. If option specified the client attempts\n'
+             'to execute mutual authentication.\n'
+             'Default: Simple authentication.')
+    security_arggroup.add_argument(
+        '--keyfile', dest='key_file', metavar='keyfile',
+        help='R|Client private key file for authenticating with the\n'
+             'WBEM server. Not required if private key is part of the\n'
+             'certfile option. Not allowed if no certfile option.\n'
+             'Default: No client key file. Client private key should\n'
+             'then be part  of the certfile')
 
     action_arggroup = argparser.add_argument_group(
         'Action related options',
-        'Specify actions against the repository. Default: create/update ' \
-        'elements.')
+        'Specify actions against the WBEM server\'s namespace. '
+        'Default: Create/update elements.')
     action_arggroup.add_argument(
         '-r', '--remove', dest='remove',
         action='store_true', default=False,
-        help='Remove elements (found in the MOF files) from the repository, ' \
-             'instead of creating or updating them')
+        help='Remove elements (found in the MOF files) from the WBEM '
+             'server\'s namespace, instead of creating or updating them')
     action_arggroup.add_argument(
         '-d', '--dry-run', dest='dry_run',
         action='store_true', default=False,
-        help="Don't actually modify the repository, just check MOF syntax. " \
-             "Connection to WBEM server is still required to check " \
-             "qualifiers.")
+        help='Don\'t actually modify the WBEM server\'s namespace, just '
+             'check MOF syntax. '
+             'Connection to WBEM server is still required to check '
+             'qualifiers.')
 
     general_arggroup = argparser.add_argument_group(
         'General options')
     general_arggroup.add_argument(
-        '-s', '--search', dest='search_dirs', metavar='dir',
+        '-I', '--include', dest='include_dirs', metavar='dir',
         action='append',
-        help='Path name of an additional search directory for MOF include ' \
-             'files. Can be specified multiple times.')
+        help='Path name of a MOF include directory. Can be specified\n'
+             'multiple times.')
     general_arggroup.add_argument(
         '-v', '--verbose', dest='verbose',
         action='store_true', default=False,
@@ -113,21 +168,75 @@ Example:
         '-h', '--help', action='help',
         help='Show this help message and exit')
 
+    # Old options, to check whether they are used.
+    general_arggroup.add_argument(
+        '-l', dest='outdated_l',
+        nargs='?', action='store', const=True, default=False,
+        help=argparse.SUPPRESS)
+    general_arggroup.add_argument(
+        '--username', dest='outdated_username',
+        nargs='?', action='store', const=True, default=False,
+        help=argparse.SUPPRESS)
+    general_arggroup.add_argument(
+        '--url', dest='outdated_url',
+        nargs='?', action='store', const=True, default=False,
+        help=argparse.SUPPRESS)
+    general_arggroup.add_argument(
+        '--search', dest='outdated_search',
+        nargs='?', action='store', const=True, default=False,
+        help=argparse.SUPPRESS)
+
     args = argparser.parse_args()
 
     if not args.mof_files:
         argparser.error('No MOF files specified')
 
+    if not args.url:
+        argparser.error('No server specified (-s/--server option)')
+
     if not args.namespace:
         argparser.error('No namespace specified (-n/--namespace option)')
 
+    if args.outdated_l:
+        argparser.error('Outdated -l option used; '
+                        'Use -u/--user instead')
+
+    if args.outdated_username:
+        argparser.error('Outdated --username option used; '
+                        'Use -u/--user instead')
+
+    if args.outdated_url:
+        argparser.error('Outdated --url option used; '
+                        'Use -s/--server instead')
+
+    if args.outdated_search:
+        argparser.error('Outdated --search option used; '
+                        'Use -I/--include instead')
+
+    if args.user and re.search(r'[:/\[\]%]', args.user):
+        argparser.error('User name specified in -u/--user contains '
+                        'characters typical for URLs: %s' % args.user)
+
     passwd = args.password
-    if args.username and not passwd:
-        passwd = getpass('Enter password for %s: ' % args.username)
-    if args.username:
-        conn = WBEMConnection(args.url, (args.username, passwd))
+    if args.user and not passwd:
+        passwd = getpass('Enter password for %s: ' % args.user)
+
+    # if client cert and key provided, create dictionary for
+    # wbem connection
+    x509_dict = None
+    if args.cert_file is not None:
+        x509_dict = {"cert_file": args.cert_file}
+        if args.key_file is not None:
+            x509_dict.update({'key_file': args.key_file})
+
+    if args.user:
+        conn = WBEMConnection(args.url, (args.user, passwd),
+                              no_verification=args.no_verify_cert,
+                              x509=x509_dict, ca_certs=args.ca_certs)
     else:
-        conn = WBEMConnection(args.url)
+        conn = WBEMConnection(args.url,
+                              no_verification=args.no_verify_cert,
+                              x509=x509_dict, ca_certs=args.ca_certs)
 
     if args.remove or args.dry_run:
         # Only record the changes to the repository, but do not perform them.
@@ -136,24 +245,28 @@ Example:
     #conn.debug = True
     conn.default_namespace = args.namespace
 
-    search_dirs = args.search_dirs
-    if search_dirs is None:
-        search_dirs = []
-    search_dirs = [os.path.abspath(x) for x in search_dirs]
+    if args.verbose:
+        print('MOF repository: Namespace %s in WBEM server %s' % \
+            (conn.default_namespace, conn.url)) 
+
+    include_dirs = args.include_dirs
+    if include_dirs is None:
+        include_dirs = []
+    include_dirs = [os.path.abspath(x) for x in include_dirs]
 
     for fname in args.mof_files:
         path = os.path.abspath(os.path.dirname(fname))
-        for spath in search_dirs:
+        for spath in include_dirs:
             if path.startswith(spath):
                 break
         else:
-            search_dirs.append(path)
+            include_dirs.append(path)
 
     # If removing, we'll be verbose later when we actually remove stuff.
     # We don't want MOFCompiler to be verbose, as that would be confusing.
     verbose = args.verbose and not args.remove
 
-    mofcomp = MOFCompiler(handle=conn, search_paths=search_dirs,
+    mofcomp = MOFCompiler(handle=conn, search_paths=include_dirs,
                           verbose=verbose)
 
     try:
@@ -161,9 +274,8 @@ Example:
             if fname[0] != '/':
                 fname = os.path.curdir + '/' + fname
             mofcomp.compile_file(fname, args.namespace)
-    except MOFParseError:
-        sys.exit(1)
-    except Error:
+    except Error as exc:
+        print("%s: %s" % (exc.__class__.__name__, exc))
         sys.exit(1)
 
     if args.remove and not args.dry_run:
