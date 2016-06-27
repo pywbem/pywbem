@@ -671,7 +671,7 @@ class WBEMListener(object):
         self._logger = logging.getLogger('pywbem.listener.%s' % id(self))
         self._logger.addHandler(logging.NullHandler())
 
-        # The following dictionaries have the WBEM server URL as a key.
+        # The following dictionaries have the WBEM server ID as a key.
         self._servers = {}  # WBEMServer objects for the WBEM servers
         self._subscription_paths = {}  # CIMInstanceName of subscriptions
         self._dynamic_filter_paths = {}  # CIMInstanceName of dynamic filters
@@ -862,7 +862,8 @@ class WBEMListener(object):
 
         Returns:
 
-            :term:`string`: The URL of the WBEM server.
+            :term:`string`: An ID for the WBEM server, for use by other
+            methods of this class.
 
         Raises:
 
@@ -872,9 +873,10 @@ class WBEMListener(object):
         if not isinstance(server, WBEMServer):
             raise TypeError("server argument of add_server() must be a " \
                             "WBEMServer object")
-        if server.url in self._servers:
+        server_id = server.url
+        if server_id in self._servers:
             raise ValueError("WBEM server already known by listener: %s" % \
-                             server.url)
+                             server_id)
 
         # We let the WBEM server use HTTP or HTTPS dependent on whether we
         # contact it using HTTP or HTTPS.
@@ -891,14 +893,14 @@ class WBEMListener(object):
         dest_url = '%s://%s:%s' % (scheme, self.host, port)
         dest_path = _create_destination(server, dest_url)
 
-        self._servers[server.url] = server
-        self._subscription_paths[server.url] = []
-        self._dynamic_filter_paths[server.url] = []
-        self._destination_path[server.url] = dest_path
+        self._servers[server_id] = server
+        self._subscription_paths[server_id] = []
+        self._dynamic_filter_paths[server_id] = []
+        self._destination_path[server_id] = dest_path
 
-        return server.url
+        return server_id
 
-    def remove_server(self, server_url):
+    def remove_server(self, server_id):
         """
         Remove a WBEM server from the listener and unregister the listener
         from the server by deleting all indication subscriptions, dynamic
@@ -907,42 +909,42 @@ class WBEMListener(object):
 
         Parameters:
 
-          server_url (:term:`string`):
-            The URL of the WBEM server.
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
 
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
 
-        if server_url not in self._servers:
+        if server_id not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_url)
-        server = self._servers[server_url]
+                             server_id)
+        server = self._servers[server_id]
 
         # Delete any instances we recorded to be cleaned up
 
-        if server_url in self._subscription_paths:
-            paths = self._subscription_paths[server_url]
+        if server_id in self._subscription_paths:
+            paths = self._subscription_paths[server_id]
             for i, path in enumerate(paths):
                 server.conn.DeleteInstance(path)
-            del self._subscription_paths[server_url]
+            del self._subscription_paths[server_id]
 
-        if server_url in self._dynamic_filter_paths:
-            paths = self._dynamic_filter_paths[server_url]
+        if server_id in self._dynamic_filter_paths:
+            paths = self._dynamic_filter_paths[server_id]
             for i, path in enumerate(paths):
                 server.conn.DeleteInstance(path)
-            del self._dynamic_filter_paths[server_url]
+            del self._dynamic_filter_paths[server_id]
 
-        if server_url in self._destination_path:
-            path = self._destination_path[server_url]
+        if server_id in self._destination_path:
+            path = self._destination_path[server_id]
             server.conn.DeleteInstance(path)
-            del self._destination_path[server_url]
+            del self._destination_path[server_id]
 
         # Remove server from this listener
-        del self._servers[server_url]
+        del self._servers[server_id]
 
-    def add_dynamic_filter(self, server_url, source_namespace, query,
+    def add_dynamic_filter(self, server_id, source_namespace, query,
                            query_language=DEFAULT_QUERY_LANGUAGE):
         """
         Add a dynamic indication filter to a WBEM server, by creating an
@@ -955,8 +957,8 @@ class WBEMListener(object):
 
         Parameters:
 
-          server_url (:term:`string`):
-            The URL of the WBEM server.
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
 
           source_namespace (:term:`string`):
             Source namespace of the indication filter.
@@ -978,16 +980,16 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if server_url not in self._servers:
+        if server_id not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_url)
-        server = self._servers[server_url]
+                             server_id)
+        server = self._servers[server_id]
         filter_path = _create_filter(server, source_namespace, query,
                                      query_language)
-        self._dynamic_filter_paths[server_url].append(filter_path)
+        self._dynamic_filter_paths[server_id].append(filter_path)
         return filter_path
 
-    def remove_dynamic_filter(self, server_url, filter_path):
+    def remove_dynamic_filter(self, server_id, filter_path):
         """
         Remove a dynamic indication filter from a WBEM server, by deleting an
         indication filter instance in the WBEM server.
@@ -998,8 +1000,8 @@ class WBEMListener(object):
 
         Parameters:
 
-          server_url (:term:`string`):
-            The URL of the WBEM server.
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
 
           filter_path (:class:`~pywbem.CIMInstanceName`):
             Instance path of the indication filter instance in the WBEM
@@ -1009,27 +1011,27 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if server_url not in self._servers:
+        if server_id not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_url)
-        server = self._servers[server_url]
-        if server_url in self._dynamic_filter_paths:
-            paths = self._dynamic_filter_paths[server_url]
+                             server_id)
+        server = self._servers[server_id]
+        if server_id in self._dynamic_filter_paths:
+            paths = self._dynamic_filter_paths[server_id]
             for i, path in enumerate(paths):
                 if path == filter_path:
                     server.conn.DeleteInstance(path)
                     del paths[i]
                     break
 
-    def get_dynamic_filters(self, server_url):
+    def get_dynamic_filters(self, server_id):
         """
         Return the dynamic indication filters in a WBEM server that have been
         created by this listener.
 
         Parameters:
 
-          server_url (:term:`string`):
-            The URL of the WBEM server.
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
 
         Returns:
 
@@ -1040,19 +1042,19 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if server_url not in self._servers:
+        if server_id not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_url)
-        return self._dynamic_filter_paths[server_url]
+                             server_id)
+        return self._dynamic_filter_paths[server_id]
 
-    def get_filters(self, server_url):
+    def get_filters(self, server_id):
         """
         Return all (dynamic and static) indication filters in a WBEM server.
 
         Parameters:
 
-          server_url (:term:`string`):
-            The URL of the WBEM server.
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
 
         Returns:
 
@@ -1063,14 +1065,14 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if server_url not in self._servers:
+        if server_id not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_url)
-        server = self._servers[server_url]
+                             server_id)
+        server = self._servers[server_id]
         return server.conn.EnumerateInstanceNames('CIM_IndicationFilter',
                                                   namespace=server.interop_ns)
 
-    def add_subscription(self, server_url, filter_path):
+    def add_subscription(self, server_id, filter_path):
         """
         Add a subscription to a WBEM server for particular set of indications
         defined by an indication filter, by creating an indication subscription
@@ -1087,8 +1089,8 @@ class WBEMListener(object):
 
         Parameters:
 
-          server_url (:term:`string`):
-            The URL of the WBEM server.
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
 
           filter_path (:class:`~pywbem.CIMInstanceName`):
             Instance path of the indication filter instance in the WBEM
@@ -1103,24 +1105,24 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if server_url not in self._servers:
+        if server_id not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_url)
-        server = self._servers[server_url]
-        dest_path = self._destination_path[server_url]
+                             server_id)
+        server = self._servers[server_id]
+        dest_path = self._destination_path[server_id]
         sub_path = _create_subscription(server, dest_path, filter_path)
-        self._subscription_paths[server_url].append(sub_path)
+        self._subscription_paths[server_id].append(sub_path)
         return sub_path
 
-    def remove_subscription(self, server_url, sub_path):
+    def remove_subscription(self, server_id, sub_path):
         """
         Remove an indication subscription from a WBEM server, by deleting an
         indication subscription instance in the server.
 
         Parameters:
 
-          server_url (:term:`string`):
-            The URL of the WBEM server.
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
 
           sub_path (:class:`~pywbem.CIMInstanceName`):
             Instance path of the indication subscription instance in the WBEM
@@ -1130,27 +1132,27 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if server_url not in self._servers:
+        if server_id not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_url)
-        server = self._servers[server_url]
-        if server_url in self._subscription_paths:
-            sub_paths = self._subscription_paths[server_url]
+                             server_id)
+        server = self._servers[server_id]
+        if server_id in self._subscription_paths:
+            sub_paths = self._subscription_paths[server_id]
             for i, path in enumerate(sub_paths):
                 if path == sub_path:
                     server.conn.DeleteInstance(path)
                     del sub_paths[i]
                     break
 
-    def get_subscriptions(self, server_url):
+    def get_subscriptions(self, server_id):
         """
         Return the indication subscriptions in a WBEM server that have been
         created by this listener.
 
         Parameters:
 
-          server_url (:term:`string`):
-            The URL of the WBEM server.
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
 
         Returns:
 
@@ -1161,10 +1163,10 @@ class WBEMListener(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if server_url not in self._servers:
+        if server_id not in self._servers:
             raise ValueError("WBEM server not known by listener: %s" % \
-                             server_url)
-        return self._subscription_paths[server_url]
+                             server_id)
+        return self._subscription_paths[server_id]
 
     def _deliver_indication(self, indication, host):
         """
