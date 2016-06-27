@@ -419,7 +419,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
             if self.debuglevel > 0:
                 print("send: %r" % strng)
             blocksize = 8192
-            if hasattr(strng, 'read') and not isinstance(strng, array):
+            if hasattr(strng, 'read') and not isinstance(strng, list):
                 if self.debuglevel > 0:
                     print("sendIng a read()able")
                 data = strng.read(blocksize)
