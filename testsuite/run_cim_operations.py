@@ -186,25 +186,36 @@ class ClientTest(unittest.TestCase):
 
         self.assertTrue(isinstance(cls[1], CIMClass))
 
+    def inst_in_list(self, inst, list_):
+        """ Determine if an instance is in a list of instances. Return
+            True if the instance is in the list. Otherwise return False.
+        """
+        for i in list_:
+            if i.path == inst.path:
+                self.assertTrue(i == inst)
+            return True
+        return False
+
     def assertInstancesEqual(self, insts1, insts2):
-        """Compare two lists of instances for equality of instances"""
+        """Compare two lists of instances for equality of instances
+           The instances do not have to be in the same order in
+           the lists
+        """
 
-        ## do this for either instances or lists of instances
+        if isinstance(insts1, list):
+            self.assertTrue(len(insts1) == len(insts2))
+            for inst1 in insts1:
+                if not self.inst_in_list(inst1, insts2):
+                    self.fail("No Instance Lists do not match")
 
-        self.assertTrue(len(insts1) == len(insts2))
-
-        for inst1 in insts1:
-            path1 = inst1.path
-            for inst2 in insts2:
-                if path1 == inst2.path:
-                    self.assertTrue(inst1 == insts2)
-                    break
-            self.fail("No Matching instance found")
-        return
+            return
+        else:
+            self.assertTrue(isinstance(insts2, CIMInstance))
+            self.assertTrue(insts1 == insts2)
 
     def assertPathsEqual(self, paths1, paths2):
         """ Compare two lists of paths or paths for equality
-            assert if match cannot be found
+            assert if they are not the same
         """
 
         if isinstance(paths1, list):
@@ -216,6 +227,7 @@ class ClientTest(unittest.TestCase):
                 self.fail("No Matching path found")
 
         else:
+            self.assertTrue(isinstance(paths2, CIMInstanceName))
             self.assertTrue(paths1 == paths2)
 
 
@@ -2655,6 +2667,15 @@ class PyWBEMServerClass(PegasusServerTestBase):
 
     """
 
+    def print_profile_info(self, org_vm, inst):
+        """Print the registered org, name, version for the profile defined by
+           inst
+        """
+        org = org_vm.tovalues(inst['RegisteredOrganization'])
+        name = inst['RegisteredName']
+        vers = inst['RegisteredVersion']
+        print("  %s %s Profile %s" % (org, name, vers))
+
     def test_namespaces(self):
         """ Compare namespaces from the pegasus function with those from
             the server function
@@ -2820,6 +2841,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
             print("Error: %s" % str(exc))
             self.fail("No Server class")
 
+
 class PyWBEMListenerClass(PegasusServerTestBase):
     """Test the management of indications with the listener class"""
 
@@ -2881,6 +2903,69 @@ class PyWBEMListenerClass(PegasusServerTestBase):
         #TODO ks 6/16 add more tests including: multiple subscriptions, filters
         #     actual indication production, Errors. extend for ssl, test
         #     logging
+
+
+
+    def test_server_select_profiles(self):
+        """Test the select_profiles function"""
+
+        server = WBEMServer(self.conn)
+
+        org_vm = ValueMapping.for_property(server, server.interop_ns,
+                                           'CIM_RegisteredProfile',
+                                           'RegisteredOrganization')
+
+        if self.verbose:
+            for inst in server.profiles:
+                self.print_profile_info(org_vm, inst)
+
+        indication_profiles = server.get_selected_profiles('DMTF',
+                                                           'Indications')
+
+        if self.verbose:
+            print('Profiles for DMTF:Indications')
+            for inst in indication_profiles:
+                self.print_profile_info(org_vm, inst)
+
+        # Test for getting multiple profiles
+        # get without the function
+        indication_profiles2 = []
+        for inst in server.profiles:
+            org = org_vm.tovalues(inst['RegisteredOrganization'])
+            name = inst['RegisteredName']
+            vers = inst['RegisteredVersion']
+            if org == 'DMTF' and name == "Indications":
+                indication_profiles2.append(inst)
+
+        self.assertEqual(len(indication_profiles), len(indication_profiles2))
+
+        self.assertInstancesEqual(indication_profiles, indication_profiles2)
+
+        # test getting a single profile
+        indication_profile3 = []
+        for inst in server.profiles:
+            org = org_vm.tovalues(inst['RegisteredOrganization'])
+            name = inst['RegisteredName']
+            vers = inst['RegisteredVersion']
+        if org == 'DMTF' and name == "Indications" and vers == "1.1.0":
+            indication_profile3.append(inst)
+
+        if self.verbose:
+            for inst in indication_profile3:
+                self.print_profile_info(org_vm, inst)
+
+        # Must return only one since specifying all parameters
+        self.assertEqual(len(indication_profile3), 1)
+
+        self.assertInstancesEqual(indication_profile3,
+                                  server.get_selected_profiles('DMTF',
+                                                               'Indications',
+                                                               '1.1.0'))
+
+        # test getting nothing
+        self.assertEqual(len(server.get_selected_profiles('blah', 'blah')), 0)
+        self.assertEqual(len(server.get_selected_profiles('blah')), 0)
+
 
 #################################################################
 # Main function
