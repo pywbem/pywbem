@@ -202,6 +202,10 @@ Enhancements
   message to be displayed. Note, this is an incompatible change in the
   command line options. (issue #216)
 
+* Extended run_cimoperation.py to include basic listener test to create and
+  delete indication subscriptions in the server.  This test does not process
+  indicaitons from the server. (issue#379)
+
 
 Bug fixes
 ^^^^^^^^^

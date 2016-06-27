@@ -17,10 +17,13 @@ import unittest
 from getpass import getpass
 import warnings
 
+from socket import getfqdn
+import time
+
 import six
 
 from pywbem.cim_constants import *
-from pywbem import WBEMConnection, WBEMServer, CIMError, Error, \
+from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
                    CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
                    CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
                    CIMMethod, ValueMapping, \
@@ -1030,7 +1033,7 @@ class PullEnumerateInstancePaths(ClientTest):
 
 
     def test_get_onebyone(self):
-        """Get instances with MaxObjectCount = 1)"""
+        """Enumerate instances with MaxObjectCount = 1)"""
 
         result = self.cimcall(
             self.conn.OpenEnumerateInstancePaths, 'CIM_ManagedElement',
@@ -1102,7 +1105,7 @@ class PullReferences(ClientTest):
 
         self.assertInstancesEqual(insts, instances)
 
-    @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
+    @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip test against all instances')
     def test_all_instances_in_ns(self):
         """Simplest invocation. Everything comes back in
            initial response with end-of-sequence == True
@@ -1196,7 +1199,7 @@ class PullReferencePaths(ClientTest):
 
         self.assertPathsEqual(paths_pulled, paths2)
 
-    @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
+    @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test for all instances')
     def test_all_instances_in_ns(self):
         """
             Simplest invocation. Execute and compae with results
@@ -1280,7 +1283,7 @@ class PullAssociators(ClientTest):
         self.assertInstancesEqual(insts, instances)
 
 
-    @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
+    @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long  all instances test')
     def test_all_instances_in_ns(self):
         """Simplest invocation. Everything comes back in
            initial response with end-of-sequence == True
@@ -2817,6 +2820,67 @@ class PyWBEMServerClass(PegasusServerTestBase):
             print("Error: %s" % str(exc))
             self.fail("No Server class")
 
+class PyWBEMListenerClass(PegasusServerTestBase):
+    """Test the management of indications with the listener class"""
+
+    #pylint: disable=invalid-name
+    def test_create_delete_subscription(self):
+        """
+        Create and delete a server and listener and create an indication.
+        Then delete everything.
+        This is a pegasus specific test because it depends on the existence
+        of pegasus specific classes and providers.
+        """
+        # TODO modify this so it is not Pegasus dependent
+        if self.is_pegasus_test_build():
+            test_class = 'Test_IndicationProviderClass'
+            test_class_namespace = 'test/TestProvider'
+            test_query = 'SELECT * from %s' % test_class
+
+            server = WBEMServer(self.conn)
+
+            # Set arbitrary ports for the listener
+            http_listener_port = 50000
+            https_listener_port = 50001
+
+            # Create the listener and listener call back and start the listener
+
+            listener = WBEMListener(getfqdn(), http_port=http_listener_port,
+                                    https_port=https_listener_port)
+            server_id = listener.add_server(server)
+            listener.start()
+
+            filter_path = listener.add_dynamic_filter(server_id,
+                                                      test_class_namespace,
+                                                      test_query,
+                                                      query_language="DMTF:CQL")
+
+            subscription_path = listener.add_subscription(server_id,
+                                                          filter_path)
+
+            host_filters = listener.get_dynamic_filters(server_id)
+            self.assertTrue(filter_path in host_filters)
+
+            host_subscriptions = listener.get_subscriptions(server_id)
+            self.assertTrue(subscription_path in host_subscriptions)
+
+            listener.remove_subscription(server_id, subscription_path)
+            listener.remove_dynamic_filter(server_id, filter_path)
+
+            # confirm that filter and subscription were removed
+            host_filters = listener.get_dynamic_filters(server_id)
+            self.assertFalse(filter_path in host_filters)
+
+            host_subscriptions = listener.get_subscriptions(server_id)
+            self.assertFalse(subscription_path in host_subscriptions)
+
+            time.sleep(2)
+            listener.stop()
+            listener.remove_server(server_id)
+
+        #TODO ks 6/16 add more tests including: multiple subscriptions, filters
+        #     actual indication production, Errors. extend for ssl, test
+        #     logging
 
 #################################################################
 # Main function
@@ -2874,6 +2938,7 @@ TEST_LIST = [
 
     # TestServerClass
     'PyWBEMServerClass',
+    'PyWEBEMListenerClass',
 
 
     # Pegasus only tests
