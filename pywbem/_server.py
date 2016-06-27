@@ -299,6 +299,55 @@ class WBEMServer(object):
             self._determine_profiles()
         return self._profiles
 
+    def get_selected_profiles(self, registered_org=None, registered_name=None, \
+                    registered_version=None):
+        """
+        List of management profiles advertised by the WBEM server and
+        filtered by the input parameters for registered_org, registered_name,
+        and registered_version parameters. Each list
+        item is a :class:`~pywbem.CIMInstance` object representing a
+        CIM_RegisteredProfile instance.
+
+        Parameters:
+
+            profile_org (:term:`string`) or None: the `RegisteredOrganization`
+            to match the `RegisteredOrganization of the profile.
+            If None, this parameter is ignored in the filter
+
+            profile_name (:term:`string`) or None: the `RegisteredName`.
+            If None, this parameter is ignored in the filter
+
+            profile_version (:term:`string`) or None: the `RegisteredVersion`.
+            If None, this parameter is ignored in the filter
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
+            determined.
+            KeyError: If an instance in the list of profiles is incomplete
+            and does not include the required properties.
+
+        """
+
+        org_vm = ValueMapping.for_property(self, self.interop_ns,
+                                           'CIM_RegisteredProfile',
+                                           'RegisteredOrganization')
+        rtn = []
+        for inst in self.profiles:
+            inst_org = org_vm.tovalues(inst['RegisteredOrganization'])
+            inst_name = inst['RegisteredName']
+            inst_version = inst['RegisteredVersion']
+
+            #pylint: disable=too-many-boolean-expressions
+            if (registered_org is None or registered_org == inst_org) and \
+                    (registered_name is None or registered_name == inst_name) \
+                    and \
+                    (registered_version is None or \
+                    registered_version == inst_version):
+                rtn.append(inst)
+        return rtn
+
     def get_central_instances(self, profile_path, central_class=None,
                               scoping_class=None, scoping_path=None):
         # pylint: disable=line-too-long

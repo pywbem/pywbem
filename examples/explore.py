@@ -5,7 +5,19 @@ import sys
 
 from pywbem import WBEMConnection, WBEMServer, ValueMapping
 
+def print_profile_info(org_vm, inst):
+    """Print the registered org, name, version for the profile defined by
+       inst
+    """
+    org = org_vm.tovalues(inst['RegisteredOrganization'])
+    name = inst['RegisteredName']
+    vers = inst['RegisteredVersion']
+    print("  %s %s Profile %s" % (org, name, vers))
+
 def explore_server(server_url, username, password):
+    """ Demo of exploring a cim server for characteristics defined by
+        the server class
+    """
 
     print("WBEM server URL:\n  %s" % server_url)
 
@@ -24,23 +36,31 @@ def explore_server(server_url, username, password):
     org_vm = ValueMapping.for_property(server, server.interop_ns,
                                        'CIM_RegisteredProfile',
                                        'RegisteredOrganization')
-    indications_profile = None
-    server_profile = None
     for inst in server.profiles:
+        print_profile_info(org_vm, inst)
+
+    indication_profiles = server.get_selected_profiles( 'DMTF', 'Indications')
+    
+    print('Profiles for DMTF:Indications')
+    for inst in indication_profiles:
+        print_profile_info(org_vm, inst)
+
+    server_profiles = server.get_selected_profiles( 'SNIA', 'Server')
+    
+    print('Profiles for SNIA:Server')
+    for inst in server_profiles:
+        print_profile_info(org_vm, inst)
+
+    # get Central Instances
+    for inst in indication_profiles:
         org = org_vm.tovalues(inst['RegisteredOrganization'])
         name = inst['RegisteredName']
         vers = inst['RegisteredVersion']
-        print("  %s %s Profile %s" % (org, name, vers))
-        if org == "DMTF" and name == "Indications":
-            indications_profile = inst
-        if org == "SNIA" and name == "Server":
-            server_profile = inst
-
-    if indications_profile is not None:
-        print("Central instances for DMTF Indications profile (component):")
+        print("Central instances for profile %s:%s:%s (component):" % \
+              (org, name, vers))
         try:
             ci_paths = server.get_central_instances(
-                indications_profile.path,
+                inst.path,
                 "CIM_IndicationService", "CIM_System", ["CIM_HostedService"])
         except Exception as exc:
             print("Error: %s" % str(exc))
@@ -48,10 +68,15 @@ def explore_server(server_url, username, password):
         for ip in ci_paths:
             print("  %s" % str(ip))
 
-    if server_profile is not None:
-        print("Central instances for SNIA Server profile (autonomous):")
+    for inst in server_profiles:
+        org = org_vm.tovalues(inst['RegisteredOrganization'])
+        name = inst['RegisteredName']
+        vers = inst['RegisteredVersion']
+        print("Central instances for profile %s:%s:%s(autonomous):" %
+              (org, name, vers))
+
         try:
-            ci_paths = server.get_central_instances(server_profile.path)
+            ci_paths = server.get_central_instances(inst.path)
         except Exception as exc:
             print("Error: %s" % str(exc))
             ci_paths = []

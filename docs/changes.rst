@@ -206,6 +206,11 @@ Enhancements
   delete indication subscriptions in the server.  This test does not process
   indicaitons from the server. (issue#379)
 
+* Extend the server class with a function (filterProfiles) to select a
+  subset of profiles from the server based on organization, profile name,
+  and profile version (issue #378) with a demo in examples/explure.py and
+  tests in run_cim_operations.py
+
 
 Bug fixes
 ^^^^^^^^^
