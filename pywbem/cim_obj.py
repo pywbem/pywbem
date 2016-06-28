@@ -167,12 +167,12 @@ class NocaseDict(object):
                 pass
             else:
                 raise TypeError(
-                    "Invalid type for NocaseDict initialization: %s" %\
-                    repr(args[0]))
+                    "Invalid type for NocaseDict initialization: %s (%s)" % \
+                    (args[0].__class__.__name__, type(args[0])))
         elif len(args) > 1:
             raise TypeError(
                 "Too many positional arguments for NocaseDict initialization: "\
-                "%s" % repr(args))
+                "%s (1 allowed)" % len(args))
 
         # Step 2: Add any keyword arguments
         self.update(kwargs)
@@ -2653,7 +2653,7 @@ class CIMMethod(_CIMComparisonMixin):
 
     Attributes:
 
-      methodname (:term:`unicode string`):
+      name (:term:`unicode string`):
         Name of the method.
 
       return_type (:term:`unicode string`):
@@ -2686,8 +2686,9 @@ class CIMMethod(_CIMComparisonMixin):
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, methodname, return_type=None, parameters=None,
-                 class_origin=None, propagated=False, qualifiers=None):
+    def __init__(self, name=None, return_type=None, parameters=None,
+                 class_origin=None, propagated=False, qualifiers=None,
+                 methodname=None):
         """
         The constructor stores the input arguments as-is and does
         not infer unspecified arguments from the others
@@ -2695,10 +2696,14 @@ class CIMMethod(_CIMComparisonMixin):
 
         Parameters:
 
-          methodname (:term:`string`):
+          name (:term:`string`):
             Name of the method (just the method name, without class name
             or parenthesis).
             Must not be `None`.
+
+            Deprecated: This argument has been named `methodname` before
+            v0.9.0. Using `methodname` as a named argument still works,
+            but has been deprecated in v0.9.0.
 
           return_type (:term:`string`):
             Name of the CIM data type of the method return type
@@ -2740,8 +2745,15 @@ class CIMMethod(_CIMComparisonMixin):
 
             `None` is interpreted as an empty dictionary.
         """
-
-        self.name = _ensure_unicode(methodname)
+        if methodname is not None:
+            warnings.warn("methodname is deprecated; use name instead",
+                          DeprecationWarning)
+            if name is not None:
+                raise TypeError("name and methodname cannot be specified both")
+            name = methodname
+        if name is None:
+            raise TypeError("name must not be None")
+        self.name = _ensure_unicode(name)
         self.return_type = _ensure_unicode(return_type)
         self.parameters = NocaseDict(parameters)
         self.class_origin = _ensure_unicode(class_origin)

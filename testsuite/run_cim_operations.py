@@ -28,7 +28,7 @@ from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
                    CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
                    CIMMethod, ValueMapping, \
                    Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, Sint32, \
-                   Sint64, Real32, Real64, CIMDateTime
+                   Sint64, Real32, Real64, CIMDateTime, TestClientRecorder
 
 # Test for decorator for unimplemented tests
 # decorator is @unittest.skip(UNIMPLEMENTED)
@@ -62,6 +62,8 @@ class ClientTest(unittest.TestCase):
         self.namespace = args['namespace']
         self.verbose = args['verbose']
         self.debug = args['debug']
+        self.yamlfile = args['yamlfile']
+        self.yamlfp = None
 
         # set this because python 3 http libs generate many ResourceWarnings
         # and unittest enables these warnings.
@@ -81,9 +83,21 @@ class ClientTest(unittest.TestCase):
 
         # enable saving of xml for display
         self.conn.debug = args['verbose']
+
+        if self.yamlfile is not None:
+            self.yamlfp = open(self.yamlfile, 'a')
+            self.conn.operation_recorder = TestClientRecorder(self.yamlfp)
+
         self.log('Connected {}, ns {}'.format(self.system_url,
                                               args['namespace']))
 
+    def tearDown(self):
+        """Close the test_client YAML file."""
+        #pylint: disable=global-variable-not-assigned
+        global args                 # pylint: disable=invalid-name
+
+        if self.yamlfp is not None:
+            self.yamlfp.close()
 
     def cimcall(self, fn, *pargs, **kwargs):
         """Make a PyWBEM call, catch any exceptions, and log the
@@ -3062,6 +3076,7 @@ def parse_args(argv_):
               '                        Requests user input if not supplier')
         print('    -nvc                Do not verify server certificates.')
         print('    --cacerts           File/dir with ca certificate(s).')
+        print('    --yamlfile yamlfile   Test_client YAML file to be recorded.')
 
         print('    UT_OPTS             Unittest options (see below).')
         print('    UT_CLASS            Name of testcase class (e.g. '\
@@ -3140,6 +3155,9 @@ def parse_args(argv_):
             del argv[1:2]
             print('List of tests: %s' % ", ".join(TEST_LIST))
             sys.exit(2)
+        elif argv[1] == '--yamlfile':
+            args_['yamlfile'] = argv[2]
+            del argv[1:3]
         else:
             print("Error: Unknown option: %s" % argv[1])
             sys.exit(1)
@@ -3170,6 +3188,7 @@ if __name__ == '__main__':
     print("  timeout: %s" % args['timeout'])
     print("  verbose: %s" % args['verbose'])
     print("  debug: %s" % args['debug'])
+    print("  yamlfile: %s" % args['yamlfile'])
     print("  long_running: %s" % args['long_running'])
 
     if args['long_running'] is True:

@@ -28,6 +28,10 @@ Deprecations
   and CIMClass objects. This affects the ordering comparisons between two such
   objects, not the ordering of the items within such a dictionary.
 
+* Deprecated the `methodname` input argument of `CIMMethod()`, and renamed it
+  to `name`. `methodname` still works but its use causes a DeprecationWarning
+  to be issued.
+
 Clean Code
 ^^^^^^^^^^
 
