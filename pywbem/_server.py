@@ -554,7 +554,7 @@ class WBEMServer(object):
                 # Namespace class is implemented in the current namespace.
                 # Use the returned namespace name, if possible.
                 ns_names = [p.keybindings['name'] for p in inst_paths]
-                ns_dict = NocaseDict(zip(ns_names, ns_names))
+                ns_dict = NocaseDict(list(zip(ns_names, ns_names)))
                 try:
                     interop_ns = ns_dict[ns]
                 except IndexError:
