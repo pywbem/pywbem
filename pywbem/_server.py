@@ -167,10 +167,10 @@ class WBEMServer(object):
         """
         return "%s(url=%r, conn=%r, interop_ns=%s, namespaces=%s, " \
                "namespace_classname=%r, brand=%r, version=%r, " \
-               "profiles=%r)" % \
+               "profiles=[... %s instances])" % \
                (self.__class__.__name__, self.url, self.conn, self.interop_ns,
                 self.namespaces, self.namespace_classname, self.brand,
-                self.version, self.profiles)
+                self.version, len(self.profiles))
 
     @property
     def url(self):

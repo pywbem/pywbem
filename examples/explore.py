@@ -21,7 +21,8 @@ def explore_server(server_url, username, password):
 
     print("WBEM server URL:\n  %s" % server_url)
 
-    conn = WBEMConnection(server_url, (username, password), no_verification=True)
+    conn = WBEMConnection(server_url, (username, password),
+                          no_verification=True)
     server = WBEMServer(conn)
 
     print("Brand:\n  %s" % server.brand)
