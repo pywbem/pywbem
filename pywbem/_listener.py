@@ -682,8 +682,7 @@ class WBEMListener(object):
     def __repr__(self):
         """
         Return a representation of the :class:`~pywbem.WBEMListener` object
-        with all properties and instance variables that is suitable for
-        debugging.
+        with all attributes, that is suitable for debugging.
         """
         return "%s(host=%r, http_port=%s, https_port=%s, " \
                "certfile=%r, keyfile=%r, logger=%r, _servers=%r, " \
@@ -1355,7 +1354,7 @@ def callback_interface(indication, host):
 
       indication (:class:`~pywbem.CIMInstance`):
         Representation of the CIM indication that has been received.
-        Its `path` component is not set.
+        Its `path` attribute is `None`.
 
       host (:term:`string`):
         Host name or IP address of WBEM server sending the indication.

@@ -84,7 +84,7 @@ class OpArgs(OpArgs_tuple):
     """
     A named tuple representing the name and input arguments of the invocation
     of a :class:`~pywbem.WBEMConnection` method, with the following named fields
-    and instance variables:
+    and attributes:
 
     Attributes:
 
@@ -106,7 +106,7 @@ class OpResult(OpResult_tuple):
     """
     A named tuple representing the result of the invocation of a
     :class:`~pywbem.WBEMConnection` method, with the following named fields
-    and instance variables:
+    and attributes:
 
     Attributes:
 
@@ -134,7 +134,7 @@ HttpRequest_tuple = namedtuple("HttpRequest_tuple",
 class HttpRequest(HttpRequest_tuple):
     """
     A named tuple representing the HTTP request sent by the WBEM client, with
-    the following named fields and instance variables:
+    the following named fields and attributes:
 
     Attributes:
 
@@ -175,7 +175,7 @@ HttpResponse_tuple = namedtuple("HttpResponse_tuple",
 class HttpResponse(HttpResponse_tuple):
     """
     A named tuple representing the HTTP response received by the WBEM client,
-    with the following named fields and instance variables:
+    with the following named fields and attributes:
 
     Attributes:
 

@@ -69,7 +69,7 @@ else:
     #pylint: disable=invalid-name
     SocketErrors = (socket.error,)
 
-__all__ = []
+__all__ = ['DEFAULT_CA_CERT_PATHS']
 
 def create_pywbem_ssl_context():
     """ Create an SSL context based on what is commonly accepted as the
@@ -119,7 +119,9 @@ def create_pywbem_ssl_context():
 DEFAULT_PORT_HTTP = 5988        # default port for http
 DEFAULT_PORT_HTTPS = 5989       # default port for https
 
-#TODO 5/16 ks This is a linux based set of defaults.
+# TODO 5/16 ks This is a linux based set of defaults:
+
+#: Default directory paths for looking up CA certificates.
 DEFAULT_CA_CERT_PATHS = \
      ['/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt', \
       '/etc/ssl/certs', '/etc/ssl/certificates']
@@ -379,7 +381,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
 
       recorder (:class:`~pywbem.BaseOperationRecorder`):
         Operation recorder, into which the HTTP request and HTTP response will
-        be staged as instance variables.
+        be staged as attributes.
 
     Returns:
         The CIM-XML formatted response data from the WBEM server, as a
@@ -469,7 +471,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
 
 
                 if sys.version_info[0:2] >= (2, 7):
-                    # the source_address argument was added in 2.7
+                    # the source_address parameter was added in Python 2.7
                     self.sock = socket.create_connection(
                         (self.host, self.port), None, self.source_address)
                 else:
@@ -611,7 +613,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
     local_auth_header = None
     try_limit = 5
 
-    # Make sure the data argument is converted to a UTF-8 encoded byte string.
+    # Make sure the data parameter is converted to a UTF-8 encoded byte string.
     # This is important because according to RFC2616, the Content-Length HTTP
     # header must be measured in Bytes (and the Content-Type header will
     # indicate UTF-8).

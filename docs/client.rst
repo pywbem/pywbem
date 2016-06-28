@@ -456,3 +456,10 @@ The operation methods of :class:`~pywbem.WBEMConnection` raise
   - authentication failed
   - user is not authorized to access resource
 
+.. _`Default CA certificate paths`:
+
+Default CA certificate paths
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autodata:: pywbem.cim_http.DEFAULT_CA_CERT_PATHS
+

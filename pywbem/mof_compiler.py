@@ -330,8 +330,8 @@ def p_mofProduction(p):
 
 
 def _create_ns(p, handle, ns):
-    """Create a namespace in the target connection based on the handle
-       and ns arguments.
+    """Create a namespace in the target connection based on the `handle`
+       and `ns` parameters.
     """
 
     # Figure out the flavor of cim server
@@ -1208,8 +1208,9 @@ def p_qualifierDeclaration(p):
         scopes=scopes, **flavors)
 
 def _build_flavors(flist, qualdecl=None):
-    """Build and return a dictionary defining the flavors from the
-       flist argument
+    """
+    Build and return a dictionary defining the flavors from the `flist`
+    parameter.
     """
 
     flavors = {}
@@ -1706,7 +1707,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         self.classes = {}
         self.compile_ordered_classnames = []
         if conn is None:
-            # This instance variable is used only to make get/set
+            # This attribute is used only to make get/set
             # of 'default_namespace' behave as it should, in the case
             # of conn=None.
             self.__default_namespace = 'root/cimv2'
@@ -1949,7 +1950,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
 
 
 def _print_logger(msg):
-    """Print the msg argument to stdout."""
+    """Print the `msg` parameter to stdout."""
     print(msg)
 
 

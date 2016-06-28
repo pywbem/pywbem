@@ -146,7 +146,7 @@ pull_inst_result_tuple = namedtuple("pull_inst_result_tuple",
 # openqueryInstances and PullInstance responses
 pull_query_result_tuple = namedtuple("pull_query_result_tuple",
                                      ["instances", "eos", "context",
-                                      "QueryResultClass"])
+                                      "query_class"])
 
 # unicode test to set illegal xml char constant
 if len(u'\U00010122') == 2:
@@ -269,7 +269,7 @@ def check_utf8_xml_chars(utf8_xml, meaning):
     context_after = 16     # number of chars to print after any bad chars
 
     if not isinstance(utf8_xml, six.binary_type):
-        raise TypeError("utf8_xml argument is not a byte string, "\
+        raise TypeError("utf8_xml parameter is not a byte string, "\
                         "but has type %s" % type(utf8_xml))
 
     # Check for ill-formed UTF-8 sequences. This needs to be done
@@ -369,14 +369,14 @@ class WBEMConnection(object):
     disturbing any callers).
 
     The connection remembers the XML of the last request and last reply if
-    debugging is turned on via the :attr:`debug` instance variable of the
+    debugging is turned on via the :attr:`debug` attribute of the
     connection object.
     This may be useful in debugging: If a problem occurs, you can examine the
-    :attr:`last_request` and :attr:`last_reply` instance variables of the
+    :attr:`last_request` and :attr:`last_reply` attributes of the
     connection object.
     These are the prettified XML of request and response, respectively.
     The real request and response that are sent and received are available in
-    the :attr:`last_raw_request` and :attr:`last_raw_reply` instance variables
+    the :attr:`last_raw_request` and :attr:`last_raw_reply` attributes
     of the connection object.
 
     The methods of this class may raise the following exceptions:
@@ -413,14 +413,14 @@ class WBEMConnection(object):
     Attributes:
 
       ... : All parameters of the :class:`~pywbem.WBEMConnection` constructor
-        are set as public instance variables with the same name.
+        are set as public attribute with the same name.
 
       debug (:class:`py:bool`): A boolean indicating whether logging of
         the last request and last reply is enabled.
 
-        The initial value of this instance variable is `False`.
+        The initial value of this attribute is `False`.
         Debug logging can be enabled for future operations by setting this
-        instance variable to `True`.
+        attribute to `True`.
 
       last_request (:term:`unicode string`):
         CIM-XML data of the last request sent to the WBEM server
@@ -464,51 +464,55 @@ class WBEMConnection(object):
               ``[{scheme}://]{host}[:{port}]``
 
             The following URL schemes are supported:
-              * ``https``: Causes HTTPS to be used.
-              * ``http``: Causes HTTP to be used.
+
+            * ``https``: Causes HTTPS to be used.
+            * ``http``: Causes HTTP to be used.
 
             The host can be specified in any of the usual formats:
-              * a short or fully qualified DNS hostname
-              * a literal (= dotted) IPv4 address
-              * a literal IPv6 address, formatted as defined in :term:`RFC3986`
-                with the extensions for zone identifiers as defined in
-                :term:`RFC6874`, supporting ``-`` (minus) for the delimiter
-                before the zone ID string, as an additional choice to ``%25``.
+
+            * a short or fully qualified DNS hostname
+            * a literal (= dotted) IPv4 address
+            * a literal IPv6 address, formatted as defined in :term:`RFC3986`
+              with the extensions for zone identifiers as defined in
+              :term:`RFC6874`, supporting ``-`` (minus) for the delimiter
+              before the zone ID string, as an additional choice to ``%25``.
 
             If no port is specified in the URL, the default ports are:
-              * If HTTPS is used, port 5989.
-              * If HTTP is used, port 5988.
+
+            * If HTTPS is used, port 5989.
+            * If HTTP is used, port 5988.
 
             Examples for some URL formats:
-              * ``"https://10.11.12.13:6988"``:
-                Use HTTPS to port 6988 on host 10.11.12.13
-              * ``"https://mysystem.acme.org"``:
-                Use HTTPS to port 5989 on host mysystem.acme.org
-              * ``"10.11.12.13"``:
-                Use HTTP to port 5988 on host 10.11.12.13
-              * ``"http://[2001:db8::1234]:15988"``:
-                Use HTTP to port 15988 on host 2001:db8::1234
-              * ``"http://[::ffff.10.11.12.13]"``:
-                Use HTTP to port 5988 on host ::ffff.10.11.12.13 (an
-                IPv4-mapped IPv6 address)
-              * ``"http://[2001:db8::1234%25eth0]"`` or
-                ``"http://[2001:db8::1234-eth0]"``:
-                Use HTTP to port 5988 to host 2001:db8::1234 (a link-local IPv6
-                address) using zone identifier eth0
+
+            * ``"https://10.11.12.13:6988"``:
+              Use HTTPS to port 6988 on host 10.11.12.13
+            * ``"https://mysystem.acme.org"``:
+              Use HTTPS to port 5989 on host mysystem.acme.org
+            * ``"10.11.12.13"``:
+              Use HTTP to port 5988 on host 10.11.12.13
+            * ``"http://[2001:db8::1234]:15988"``:
+              Use HTTP to port 15988 on host 2001:db8::1234
+            * ``"http://[::ffff.10.11.12.13]"``:
+              Use HTTP to port 5988 on host ::ffff.10.11.12.13 (an
+              IPv4-mapped IPv6 address)
+            * ``"http://[2001:db8::1234%25eth0]"`` or
+              ``"http://[2001:db8::1234-eth0]"``:
+              Use HTTP to port 5988 to host 2001:db8::1234 (a link-local IPv6
+              address) using zone identifier eth0
 
           creds (:class:`py:tuple` of userid, password):
             Credentials for HTTP authenticatiion with the WBEM server, as a
             tuple(userid, password), with:
 
-              * userid (:term:`string`):
-                Userid for authenticating with the WBEM server.
+            * userid (:term:`string`):
+              Userid for authenticating with the WBEM server.
 
-              * password (:term:`string`):
-                Password for that userid.
+            * password (:term:`string`):
+              Password for that userid.
 
-            If `None`, the client will not generate ``Authenticate`` headers
+            If `None`, the client will not generate ``Authorization`` headers
             in the HTTP request. Otherwise, the client will generate an
-            ``Authenticate`` header using HTTP Basic Authentication.
+            ``Authorization`` header using HTTP Basic Authentication.
 
             See :ref:`Authentication types` for an overview.
 
@@ -588,7 +592,7 @@ class WBEMConnection(object):
               certificate to the returned certificate in its chain of trust.
 
             * an integer that indicates whether the validation of the
-              certificate specified in the second argument passed or did not
+              certificate specified in the second parameter passed or did not
               pass the validation by `M2Crypto`. A value of 1 indicates a
               successful validation and 0 an unsuccessful one.
 
@@ -605,8 +609,8 @@ class WBEMConnection(object):
             prepared using the ``c_rehash`` tool included with OpenSSL, or the
             file path of a file in PEM format.
 
-            If `None`, default system paths will be used (see
-            `pywbem.cim_http.DEFAULT_CA_CERT_PATHS`)
+            If `None`, default directory paths will be used to look up CA
+            certificates (see :data:`~pywbem.cim_http.DEFAULT_CA_CERT_PATHS`).
 
           no_verification (:class:`py:bool`):
             Disables verification of the X.509 server certificate returned by
@@ -674,7 +678,7 @@ class WBEMConnection(object):
     def __repr__(self):
         """
         Return a representation of the :class:`~pywbem.WBEMConnection` object
-        with all instance variables (except for the password in the
+        with all attributes (except for the password in the
         credentials) that is suitable for debugging.
         """
 
@@ -1212,8 +1216,8 @@ class WBEMConnection(object):
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be enumerated, in any lexical case.
-            If specified as a :class:`~pywbem.CIMClassName` object, its host
-            component will be ignored.
+            If specified as a :class:`~pywbem.CIMClassName` object, its `host`
+            attribute will be ignored.
 
           namespace (:term:`string`):
             Name of the CIM namespace to be used, in any lexical case.
@@ -1233,7 +1237,13 @@ class WBEMConnection(object):
         Returns:
 
             A list of :class:`~pywbem.CIMInstanceName` objects that are the
-            enumerated instance paths.
+            enumerated instance paths, with its attributes set
+            as follows:
+
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+            * `host`: `None`, indicating the WBEM server is unspecified.
 
         Raises:
 
@@ -1300,8 +1310,8 @@ class WBEMConnection(object):
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be enumerated, in any lexical case.
-            If specified as a :class:`~pywbem.CIMClassName` object, its host
-            component will be ignored.
+            If specified as a :class:`~pywbem.CIMClassName` object, its `host`
+            attribute will be ignored.
 
           namespace (:term:`string`):
             Name of the CIM namespace to be used, in any lexical case.
@@ -1383,6 +1393,15 @@ class WBEMConnection(object):
 
             A list of :class:`~pywbem.CIMInstance` objects that are
             representations of the enumerated instances.
+
+            The `path` attribute of each :class:`~pywbem.CIMInstance`
+            object is a :class:`~pywbem.CIMInstanceName` object with its
+            attributes set as follows:
+
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+            * `host`: `None`, indicating the WBEM server is unspecified.
 
         Raises:
 
@@ -1514,8 +1533,8 @@ class WBEMConnection(object):
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be enumerated, in any lexical case.
             If specified as a :class:`~pywbem.CIMClassName` object, its
-            namespace component will be used as a default namespace as
-            described for the namespace argument, and its host component
+            `namespace` attribute will be used as a default namespace as
+            described for the `namespace` parameter, and its `host` attribute
             will be ignored.
 
           namespace (:term:`string`):
@@ -1527,7 +1546,7 @@ class WBEMConnection(object):
 
           FilterQueryLanguage (:term:`string`):
             A string defining the name of the query language
-            used for the `FilterQuery` argument. The DMTF defined language
+            used for the `FilterQuery` parameter. The DMTF defined language
             (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
 
           FilterQuery (:term:`string`):
@@ -1595,12 +1614,20 @@ class WBEMConnection(object):
 
         Returns:
 
-            A :class:`py:namedtuple` containing the following named elements:
+            A :class:`py:namedtuple` object that contains the following named
+            items:
 
-            * `paths` (list of :class:`~pywbem.CIMInstanceName`):
-              Representations of the initial set of enumerated instance
-              paths.
-            * `eos` (:class:`py:bool`):
+            * **paths** (list of :class:`~pywbem.CIMInstanceName`):
+              Representations of the initial set of enumerated instance paths,
+              with their attributes set as follows:
+
+              * `classname`: Name of the creation class of the instance.
+              * `keybindings`: Keybindings of the instance.
+              * `namespace`: Name of the CIM namespace containing the instance.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace.
+
+            * **eos** (:class:`py:bool`):
               Indicates whether the enumeration session is exhausted
               after returning the initial set of enumerated instances.
 
@@ -1608,23 +1635,25 @@ class WBEMConnection(object):
                 server has closed the enumeration session.
               - If `False`, the enumeration session is not exhausted.
 
-            * `context` (tuple of (server_context, namespace)):
-               Identifies the opened enumeration session. The client must
-               provide this value for subsequent operations on this
-               enumeration session. The tuple items are:
+            * **context** (:class:`py:tuple` of server_context, namespace):
+              Identifies the opened enumeration session. The client must
+              provide this value for subsequent operations on this
+              enumeration session.
 
-               - server_context (:term:`string`):
-                 Enumeration context string returned by the server if
-                 the session is not exhausted, or `None` otherwise. This string
-                 is opaque for the client.
-               - namespace (:term:`string`):
-                 Name of the CIM namespace that was used for this operation.
+              The tuple items are:
 
-               NOTE: This inner tuple hides the need for a CIM namespace
-               on subsequent operations in the enumeration session. CIM
-               operations always require target namespace, but it never
-               makes sense to specify a different one in subsequent
-               operations on the same enumeration session.
+              * server_context (:term:`string`):
+                Enumeration context string returned by the server if
+                the session is not exhausted, or `None` otherwise. This string
+                is opaque for the client.
+              * namespace (:term:`string`):
+                Name of the CIM namespace that was used for this operation.
+
+              NOTE: This inner tuple hides the need for a CIM namespace
+              on subsequent operations in the enumeration session. CIM
+              operations always require target namespace, but it never
+              makes sense to specify a different one in subsequent
+              operations on the same enumeration session.
 
         Raises:
 
@@ -1707,8 +1736,8 @@ class WBEMConnection(object):
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be enumerated, in any lexical case.
             If specified as a :class:`~pywbem.CIMClassName` object, its
-            namespace component will be used as a default namespace as
-            described for the namespace argument, and its host component
+            `namespace` attribute will be used as a default namespace as
+            described for the `namespace` parameter, and its `host` attribute
             will be ignored.
 
           namespace (:term:`string`):
@@ -1781,7 +1810,7 @@ class WBEMConnection(object):
 
           FilterQueryLanguage (:term:`string`):
             A string defining the name of the query language
-            used for the `FilterQuery` argument. The DMTF defined language
+            used for the `FilterQuery` parameter. The DMTF defined language
             (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
 
           FilterQuery (:term:`string`):
@@ -1835,38 +1864,6 @@ class WBEMConnection(object):
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        Returns:
-
-            A :class:`py:namedtuple` containing the following named elements:
-
-            * `instances` (list of :class:`~pywbem.CIMInstance`):
-              Representations of the initial set of enumerated instances.
-            * `eos` (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
-
-              - If `True`, the enumeration session is exhausted, and the
-                server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
-
-            * `context` (tuple of (server_context, namespace)):
-               Identifies the opened enumeration session. The client must
-               provide this value for subsequent operations on this
-               enumeration session. The tuple items are:
-
-               - server_context (:term:`string`):
-                 Enumeration context string returned by the server if
-                 the session is not exhausted, or `None` otherwise. This string
-                 is opaque for the client.
-               - namespace (:term:`string`):
-                 Name of the CIM namespace that was used for this operation.
-
-               NOTE: This inner tuple hides the need for a CIM namespace
-               on subsequent operations in the enumeration session. CIM
-               operations always require target namespace, but it never
-               makes sense to specify a different one in subsequent
-               operations on the same enumeration session.
-
         Keyword Arguments:
 
           extra :
@@ -1875,9 +1872,55 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        Exceptions:
+        Returns:
 
-            See the list of exceptions described in `WBEMConnection`.
+            A :class:`py:namedtuple` object that contains the following named
+            items:
+
+            * **instances** (list of :class:`~pywbem.CIMInstance`):
+              Representations of the initial set of enumerated instances.
+
+              The `path` attribute of each :class:`~pywbem.CIMInstance`
+              object is a :class:`~pywbem.CIMInstanceName` object with its
+              attributes set as follows:
+
+              * `classname`: Name of the creation class of the instance.
+              * `keybindings`: Keybindings of the instance.
+              * `namespace`: Name of the CIM namespace containing the instance.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace.
+
+            * **eos** (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+
+            * **context** (:class:`py:tuple` of server_context, namespace):
+              Identifies the opened enumeration session. The client must
+              provide this value for subsequent operations on this
+              enumeration session.
+
+              The tuple items are:
+
+              * server_context (:term:`string`):
+                Enumeration context string returned by the server if
+                the session is not exhausted, or `None` otherwise. This string
+                is opaque for the client.
+              * namespace (:term:`string`):
+                Name of the CIM namespace that was used for this operation.
+
+              NOTE: This inner tuple hides the need for a CIM namespace
+              on subsequent operations in the enumeration session. CIM
+              operations always require target namespace, but it never
+              makes sense to specify a different one in subsequent
+              operations on the same enumeration session.
+
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
         if self.operation_recorder:
@@ -1947,7 +1990,7 @@ class WBEMConnection(object):
         Open an enumeration session to retrieve the instance paths of
         the association instances that reference a source instance.
 
-        This method does not support retrieving classes
+        This method does not support retrieving classes.
 
         This method performs the OpenReferenceInstancePaths operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -1964,11 +2007,11 @@ class WBEMConnection(object):
 
         Parameters:
 
-          InstanceName:
-            The instance path of the source instance,
-            as a :class:`~pywbem.CIMInstanceName` object. If that object does
-            not specify a namespace, the default namespace of the connection is
-            used.
+          InstanceName (CIMInstanceName):
+            The instance path of the source instance.
+            If this object does not specify a namespace, the default namespace
+            of the connection is used.
+            Its `host` attribute will be ignored.
 
           ResultClass (:term:`string` or :class:`~pywbem.CIMClassName`):
             Class name of an association class, in any lexical case,
@@ -1986,7 +2029,7 @@ class WBEMConnection(object):
 
           FilterQueryLanguage (:term:`string`):
             A string defining the name of the query language
-            used for the `FilterQuery` argument. The DMTF defined language
+            used for the `FilterQuery` parameter. The DMTF defined language
             (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
 
           FilterQuery (:term:`string`):
@@ -2043,38 +2086,6 @@ class WBEMConnection(object):
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        Returns:
-
-            A :class:`py:namedtuple` containing the following named elements:
-
-            * `paths` (list of :class:`~pywbem.CIMInstanceName`):
-              Representations of the initial set of enumerated instance paths.
-            * `eos` (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
-
-              - If `True`, the enumeration session is exhausted, and the
-                server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
-
-            * `context` (tuple of (server_context, namespace)):
-               Identifies the opened enumeration session. The client must
-               provide this value for subsequent operations on this
-               enumeration session. The tuple items are:
-
-               - server_context (:term:`string`):
-                 Enumeration context string returned by the server if
-                 the session is not exhausted, or `None` otherwise. This string
-                 is opaque for the client.
-               - namespace (:term:`string`):
-                 Name of the CIM namespace that was used for this operation.
-
-               NOTE: This inner tuple hides the need for a CIM namespace
-               on subsequent operations in the enumeration session. CIM
-               operations always require target namespace, but it never
-               makes sense to specify a different one in subsequent
-               operations on the same enumeration session.
-
         Keyword Arguments:
 
           extra :
@@ -2083,9 +2094,52 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        Exceptions:
+        Returns:
 
-            See the list of exceptions described in `WBEMConnection`.
+            A :class:`py:namedtuple` object that contains the following named
+            items:
+
+            * **paths** (list of :class:`~pywbem.CIMInstanceName`):
+              Representations of the initial set of enumerated instance paths,
+              with their attributes set as follows:
+
+              * `classname`: Name of the creation class of the instance.
+              * `keybindings`: Keybindings of the instance.
+              * `namespace`: Name of the CIM namespace containing the instance.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace.
+
+            * **eos** (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+
+            * **context** (:class:`py:tuple` of server_context, namespace):
+              Identifies the opened enumeration session. The client must
+              provide this value for subsequent operations on this
+              enumeration session.
+
+              The tuple items are:
+
+              * server_context (:term:`string`):
+                Enumeration context string returned by the server if
+                the session is not exhausted, or `None` otherwise. This string
+                is opaque for the client.
+              * namespace (:term:`string`):
+                Name of the CIM namespace that was used for this operation.
+
+              NOTE: This inner tuple hides the need for a CIM namespace
+              on subsequent operations in the enumeration session. CIM
+              operations always require target namespace, but it never
+              makes sense to specify a different one in subsequent
+              operations on the same enumeration session.
+
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
         if self.operation_recorder:
@@ -2147,6 +2201,8 @@ class WBEMConnection(object):
         Open an enumeration session to retrieve the association instances
         that reference a source instance.
 
+        This method does not support retrieving classes.
+
         This method performs the OpenReferenceInstances operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
         methods performing such operations.
@@ -2162,11 +2218,11 @@ class WBEMConnection(object):
 
         Parameters:
 
-          InstanceName:
-            The instance path of the source instance,
-            as a :class:`~pywbem.CIMInstanceName` object. If that object does
-            not specify a namespace, the default namespace of the connection is
-            used.
+          InstanceName (CIMInstanceName):
+            The instance path of the source instance.
+            If this object does not specify a namespace, the default namespace
+            of the connection is used.
+            Its `host` attribute will be ignored.
 
           ResultClass (:term:`string` or :class:`~pywbem.CIMClassName`):
             Class name of an association class, in any lexical case,
@@ -2216,7 +2272,7 @@ class WBEMConnection(object):
 
           FilterQueryLanguage (:term:`string`):
             A string defining the name of the query language
-            used for the `FilterQuery` argument. The DMTF defined language
+            used for the `FilterQuery` parameter. The DMTF defined language
             (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
 
           FilterQuery (:term:`string`):
@@ -2270,38 +2326,6 @@ class WBEMConnection(object):
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        Returns:
-
-            A :class:`py:namedtuple` containing the following named elements:
-
-            * `instances` (list of :class:`~pywbem.CIMInstance`):
-              Representations of the initial set of enumerated instance paths.
-            * `eos` (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
-
-              - If `True`, the enumeration session is exhausted, and the
-                server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
-
-            * `context` (tuple of (server_context, namespace)):
-               Identifies the opened enumeration session. The client must
-               provide this value for subsequent operations on this
-               enumeration session. The tuple items are:
-
-               - server_context (:term:`string`):
-                 Enumeration context string returned by the server if
-                 the session is not exhausted, or `None` otherwise. This string
-                 is opaque for the client.
-               - namespace (:term:`string`):
-                 Name of the CIM namespace that was used for this operation.
-
-               NOTE: This inner tuple hides the need for a CIM namespace
-               on subsequent operations in the enumeration session. CIM
-               operations always require target namespace, but it never
-               makes sense to specify a different one in subsequent
-               operations on the same enumeration session.
-
         Keyword Arguments:
 
           extra :
@@ -2310,10 +2334,55 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        Exceptions:
+        Returns:
 
-            See the list of exceptions described in `WBEMConnection`.
+            A :class:`py:namedtuple` object that contains the following named
+            items:
 
+            * **instances** (list of :class:`~pywbem.CIMInstance`):
+              Representations of the initial set of enumerated instances.
+
+              The `path` attribute of each :class:`~pywbem.CIMInstance`
+              object is a :class:`~pywbem.CIMInstanceName` object with its
+              attributes set as follows:
+
+              * `classname`: Name of the creation class of the instance.
+              * `keybindings`: Keybindings of the instance.
+              * `namespace`: Name of the CIM namespace containing the instance.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace.
+
+            * **eos** (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+
+            * **context** (:class:`py:tuple` of server_context, namespace):
+              Identifies the opened enumeration session. The client must
+              provide this value for subsequent operations on this
+              enumeration session.
+
+              The tuple items are:
+
+              * server_context (:term:`string`):
+                Enumeration context string returned by the server if
+                the session is not exhausted, or `None` otherwise. This string
+                is opaque for the client.
+              * namespace (:term:`string`):
+                Name of the CIM namespace that was used for this operation.
+
+              NOTE: This inner tuple hides the need for a CIM namespace
+              on subsequent operations in the enumeration session. CIM
+              operations always require target namespace, but it never
+              makes sense to specify a different one in subsequent
+              operations on the same enumeration session.
+
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
         if self.operation_recorder:
@@ -2382,6 +2451,8 @@ class WBEMConnection(object):
         Open an enumeration session to retrieve the instance paths of the
         instances associated to a source instance.
 
+        This method does not support retrieving classes.
+
         This method performs the OpenAssociatorInstancePaths operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
         methods performing such operations.
@@ -2390,9 +2461,6 @@ class WBEMConnection(object):
         status and optionally instance paths.
         Otherwise, this method raises an exception.
 
-        This method does not allow the option of defining `InstanceName`
-        as a class and retrieving associated classes.
-
         Use :meth:`~pywbem.WBEMConnection.PullInstancePaths` request to
         retrieve the next set of instance paths
         or the :meth:`~pywbem.WBEMConnection.CloseEnumeration`
@@ -2400,11 +2468,11 @@ class WBEMConnection(object):
 
         Parameters:
 
-          InstanceName:
-            The instance path of the source instance,
-            as a :class:`~pywbem.CIMInstanceName` object. If that object does
-            not specify a namespace, the default namespace of the connection is
-            used.
+          InstanceName (CIMInstanceName):
+            The instance path of the source instance.
+            If this object does not specify a namespace, the default namespace
+            of the connection is used.
+            Its `host` attribute will be ignored.
 
           AssocClass (:term:`string` or :class:`~pywbem.CIMClassName`):
             Class name of an association class, in any lexical case,
@@ -2436,7 +2504,7 @@ class WBEMConnection(object):
 
           FilterQueryLanguage (:term:`string`):
             A string defining the name of the query language
-            used for the `FilterQuery` argument. The DMTF defined language
+            used for the `FilterQuery` parameter. The DMTF defined language
             (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
 
           FilterQuery (:term:`string`):
@@ -2494,39 +2562,6 @@ class WBEMConnection(object):
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        Returns:
-
-            A :class:`py:namedtuple` containing the following named elements:
-
-            * `paths` (list of :class:`~pywbem.CIMInstanceName`):
-              Representations of the initial set of enumerated instance
-              names.
-            * `eos` (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
-
-              - If `True`, the enumeration session is exhausted, and the
-                server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
-
-            * `context` (tuple of (server_context, namespace)):
-               Identifies the opened enumeration session. The client must
-               provide this value for subsequent operations on this
-               enumeration session. The tuple items are:
-
-               - server_context (:term:`string`):
-                 Enumeration context string returned by the server if
-                 the session is not exhausted, or `None` otherwise. This string
-                 is opaque for the client.
-               - namespace (:term:`string`):
-                 Name of the CIM namespace that was used for this operation.
-
-               NOTE: This inner tuple hides the need for a CIM namespace
-               on subsequent operations in the enumeration session. CIM
-               operations always require target namespace, but it never
-               makes sense to specify a different one in subsequent
-               operations on the same enumeration session.
-
         Keyword Arguments:
 
           extra :
@@ -2535,9 +2570,52 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        Exceptions:
+        Returns:
 
-            See the list of exceptions described in `WBEMConnection`.
+            A :class:`py:namedtuple` object that contains the following named
+            items:
+
+            * **paths** (list of :class:`~pywbem.CIMInstanceName`):
+              Representations of the initial set of enumerated instance paths,
+              with their attributes set as follows:
+
+              * `classname`: Name of the creation class of the instance.
+              * `keybindings`: Keybindings of the instance.
+              * `namespace`: Name of the CIM namespace containing the instance.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace.
+
+            * **eos** (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+
+            * **context** (:class:`py:tuple` of server_context, namespace):
+              Identifies the opened enumeration session. The client must
+              provide this value for subsequent operations on this
+              enumeration session.
+
+              The tuple items are:
+
+              * server_context (:term:`string`):
+                Enumeration context string returned by the server if
+                the session is not exhausted, or `None` otherwise. This string
+                is opaque for the client.
+              * namespace (:term:`string`):
+                Name of the CIM namespace that was used for this operation.
+
+              NOTE: This inner tuple hides the need for a CIM namespace
+              on subsequent operations in the enumeration session. CIM
+              operations always require target namespace, but it never
+              makes sense to specify a different one in subsequent
+              operations on the same enumeration session.
+
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
         if self.operation_recorder:
@@ -2605,6 +2683,8 @@ class WBEMConnection(object):
         Open an enumeration session to retrieve the instances associated
         to a source instance.
 
+        This method does not support retrieving classes.
+
         This method performs the OpenAssociatorInstances operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
         methods performing such operations.
@@ -2612,9 +2692,6 @@ class WBEMConnection(object):
         If the operation succeeds, this method returns enumeration session
         status and optionally instances.
         Otherwise, this method raises an exception.
-
-        NOTE: This method does not allow the option of defined `InstanceName`
-        as a class and retrieving associated classes.
 
         The subsequent operation after this open is successful
         and result.eos = False must be either the
@@ -2624,11 +2701,11 @@ class WBEMConnection(object):
 
         Parameters:
 
-          InstanceName:
-            The instance path of the source instance,
-            as a :class:`~pywbem.CIMInstanceName` object. If that object does
-            not specify a namespace, the default namespace of the connection is
-            used.
+          InstanceName (CIMInstanceName):
+            The instance path of the source instance.
+            If this object does not specify a namespace, the default namespace
+            of the connection is used.
+            Its `host` attribute will be ignored.
 
           AssocClass (:term:`string` or :class:`~pywbem.CIMClassName`):
             Class name of an association class, in any lexical case,
@@ -2692,7 +2769,7 @@ class WBEMConnection(object):
 
           FilterQueryLanguage (:term:`string`):
             A string defining the name of the query language
-            used for the `FilterQuery` argument. The DMTF defined language
+            used for the `FilterQuery` parameter. The DMTF defined language
             (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
 
           FilterQuery (:term:`string`):
@@ -2746,38 +2823,6 @@ class WBEMConnection(object):
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        Returns:
-
-            A :class:`py:namedtuple` containing the following named elements:
-
-            * `instances` (list of :class:`~pywbem.CIMInstance`):
-              Representations of the initial set of enumerated instances.
-            * `eos` (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
-
-              - If `True`, the enumeration session is exhausted, and the
-                server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
-
-            * `context` (tuple of (server_context, namespace)):
-               Identifies the opened enumeration session. The client must
-               provide this value for subsequent operations on this
-               enumeration session. The tuple items are:
-
-               - server_context (:term:`string`):
-                 Enumeration context string returned by the server if
-                 the session is not exhausted, or `None` otherwise. This string
-                 is opaque for the client.
-               - namespace (:term:`string`):
-                 Name of the CIM namespace that was used for this operation.
-
-               NOTE: This inner tuple hides the need for a CIM namespace
-               on subsequent operations in the enumeration session. CIM
-               operations always require target namespace, but it never
-               makes sense to specify a different one in subsequent
-               operations on the same enumeration session.
-
         Keyword Arguments:
 
           extra :
@@ -2786,9 +2831,55 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        Exceptions:
+        Returns:
 
-            See the list of exceptions described in `WBEMConnection`.
+            A :class:`py:namedtuple` object that contains the following named
+            items:
+
+            * **instances** (list of :class:`~pywbem.CIMInstance`):
+              Representations of the initial set of enumerated instances.
+
+              The `path` attribute of each :class:`~pywbem.CIMInstance`
+              object is a :class:`~pywbem.CIMInstanceName` object with its
+              attributes set as follows:
+
+              * `classname`: Name of the creation class of the instance.
+              * `keybindings`: Keybindings of the instance.
+              * `namespace`: Name of the CIM namespace containing the instance.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace.
+
+            * **eos** (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+
+            * **context** (:class:`py:tuple` of server_context, namespace):
+              Identifies the opened enumeration session. The client must
+              provide this value for subsequent operations on this
+              enumeration session.
+
+              The tuple items are:
+
+              * server_context (:term:`string`):
+                Enumeration context string returned by the server if
+                the session is not exhausted, or `None` otherwise. This string
+                is opaque for the client.
+              * namespace (:term:`string`):
+                Name of the CIM namespace that was used for this operation.
+
+              NOTE: This inner tuple hides the need for a CIM namespace
+              on subsequent operations in the enumeration session. CIM
+              operations always require target namespace, but it never
+              makes sense to specify a different one in subsequent
+              operations on the same enumeration session.
+
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
         if self.operation_recorder:
@@ -2862,7 +2953,7 @@ class WBEMConnection(object):
         methods performing such operations.
 
         If the operation succeeds, this method returns enumeration session
-        status and optionally instances.
+        status and optionally CIM instances representing the query result.
         Otherwise, this method raises an exception.
 
         The subsequent operation after this open is successful
@@ -2890,8 +2981,7 @@ class WBEMConnection(object):
             used.
 
           ReturnQueryResultClass  (:class:`py:bool`):
-            Controls whether a class definition is returned in
-            `QueryResultClass`.
+            Controls whether a class definition is returned.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
@@ -2939,43 +3029,6 @@ class WBEMConnection(object):
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        Returns:
-
-            A :class:`py:namedtuple` containing the following named elements:
-
-            * `instances` (list of :class:`~pywbem.CIMInstance`):
-              Representations of the initial set of enumerated instances.
-            * `eos` (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
-
-              - If `True`, the enumeration session is exhausted, and the
-                server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
-
-            * `context` (tuple of (server_context, namespace)):
-               Identifies the opened enumeration session. The client must
-               provide this value for subsequent operations on this
-               enumeration session. The tuple items are:
-
-               - server_context (:term:`string`):
-                 Enumeration context string returned by the server if
-                 the session is not exhausted, or `None` otherwise. This string
-                 is opaque for the client.
-               - namespace (:term:`string`):
-                 Name of the CIM namespace that was used for this operation.
-
-            * `QueryResultClass` (:class:`pywbem.CIMClass`):
-              If ReturnQuerhResultClass is True, this return parameter
-              shall contain a class definition that defines the properties
-              of each row of the query result.
-
-              NOTE: The inner tuple hides the need for a CIM namespace
-              on subsequent operations in the enumeration session. CIM
-              operations always require target namespace, but it never
-              makes sense to specify a different one in subsequent
-              operations on the same enumeration session.
-
         Keyword Arguments:
 
           extra :
@@ -2984,9 +3037,54 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        Exceptions:
+        Returns:
 
-            See the list of exceptions described in `WBEMConnection`.
+            A :class:`py:namedtuple` object that contains the following named
+            items:
+
+            * **instances** (list of :class:`~pywbem.CIMInstance`):
+              Representations of the initial set of enumerated instances.
+
+              The `path` attribute of each :class:`~pywbem.CIMInstance`
+              object is `None`, because query results are not addressable
+              CIM instances.
+
+            * **eos** (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+
+            * **context** (:class:`py:tuple` of server_context, namespace):
+              Identifies the opened enumeration session. The client must
+              provide this value for subsequent operations on this
+              enumeration session.
+
+              The tuple items are:
+
+              * server_context (:term:`string`):
+                Enumeration context string returned by the server if
+                the session is not exhausted, or `None` otherwise. This string
+                is opaque for the client.
+              * namespace (:term:`string`):
+                Name of the CIM namespace that was used for this operation.
+
+              NOTE: The inner tuple hides the need for a CIM namespace
+              on subsequent operations in the enumeration session. CIM
+              operations always require target namespace, but it never
+              makes sense to specify a different one in subsequent
+              operations on the same enumeration session.
+
+            * **query_class** (:class:`~pywbem.CIMClass`):
+              If the `ReturnQueryResultClass` parameter is True, this tuple
+              item contains a class definition that defines the properties
+              of each row (instance) of the query result. Otherwise, `None`.
+
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
         @staticmethod
@@ -3059,7 +3157,7 @@ class WBEMConnection(object):
         session defined by the `enumeration_context` parameter.  The retrieved
         instances include their instance paths.
 
-        This method performs the PullInstanceWithPath operation
+        This method performs the PullInstancesWithPath operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
         methods performing such operations.
 
@@ -3070,17 +3168,17 @@ class WBEMConnection(object):
         Parameters:
 
           context (:term:`string`)
-            Identifies the enumeraton session, including its current
-            enumeration state. This must be the value of the `context`
-            item in the :class:`py:namedtuple` returned from the previous
+            Identifies the enumeration session, including its current
+            enumeration state. This must be the value of the `context` item in
+            the :class:`py:namedtuple` object returned from the previous
             open or pull operation for this enumeration.
 
             The tuple items are:
 
-            - server_context (:term:`string`):
+            * server_context (:term:`string`):
               Enumeration context string returned by the server. This
               string is opaque for the client.
-            - namespace (:term:`string`):
+            * namespace (:term:`string`):
               Name of the CIM namespace to be used for this operation.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
@@ -3094,38 +3192,6 @@ class WBEMConnection(object):
               be used by a client to leave the handling of any returned
               instances to a loop of Pull operations.
 
-        Returns:
-
-            A :class:`py:namedtuple` containing the following named elements:
-
-            * `instances` (list of :class:`~pywbem.CIMInstance`):
-              Representations of the initial set of enumerated instances.
-            * `eos` (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
-
-              - If `True`, the enumeration session is exhausted, and the
-                server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
-
-            * `context` (tuple of (server_context, namespace)):
-               Identifies the opened enumeration session. The client must
-               provide this value for subsequent operations on this
-               enumeration session. The tuple items are:
-
-               - server_context (:term:`string`):
-                 Enumeration context string returned by the server if
-                 the session is not exhausted, or `None` otherwise. This string
-                 is opaque for the client.
-               - namespace (:term:`string`):
-                 Name of the CIM namespace that was used for this operation.
-
-               NOTE: This inner tuple hides the need for a CIM namespace
-               on subsequent operations in the enumeration session. CIM
-               operations always require target namespace, but it never
-               makes sense to specify a different one in subsequent
-               operations on the same enumeration session.
-
         Keyword Arguments:
 
           extra :
@@ -3134,9 +3200,55 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        Exceptions:
+        Returns:
 
-            See the list of exceptions described in `WBEMConnection`.
+            A :class:`py:namedtuple` object that contains the following named
+            items:
+
+            * **instances** (list of :class:`~pywbem.CIMInstance`):
+              Representations of the next set of enumerated instances.
+
+              The `path` attribute of each :class:`~pywbem.CIMInstance`
+              object is a :class:`~pywbem.CIMInstanceName` object with its
+              attributes set as follows:
+
+              * `classname`: Name of the creation class of the instance.
+              * `keybindings`: Keybindings of the instance.
+              * `namespace`: Name of the CIM namespace containing the instance.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace.
+
+            * **eos** (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+
+            * **context** (:class:`py:tuple` of server_context, namespace):
+              Identifies the opened enumeration session. The client must
+              provide this value for subsequent operations on this
+              enumeration session.
+
+              The tuple items are:
+
+              * server_context (:term:`string`):
+                Enumeration context string returned by the server if
+                the session is not exhausted, or `None` otherwise. This string
+                is opaque for the client.
+              * namespace (:term:`string`):
+                Name of the CIM namespace that was used for this operation.
+
+              NOTE: This inner tuple hides the need for a CIM namespace
+              on subsequent operations in the enumeration session. CIM
+              operations always require target namespace, but it never
+              makes sense to specify a different one in subsequent
+              operations on the same enumeration session.
+
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
         if self.operation_recorder:
@@ -3181,7 +3293,7 @@ class WBEMConnection(object):
         Retrieve the next set of instance paths from an open enumeraton
         session defined by the `enumeration_context` parameter.
 
-        This method performs the PullInstanceWithPath operation
+        This method performs the PullInstancePaths operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
         methods performing such operations.
 
@@ -3192,17 +3304,17 @@ class WBEMConnection(object):
         Parameters:
 
           context (:term:`string`)
-            Identifies the enumeraton session, including its current
-            enumeration state. This must be the value of the `context`
-            item in the :class:`py:namedtuple` returned from the previous
+            Identifies the enumeration session, including its current
+            enumeration state. This must be the value of the `context` item in
+            the :class:`py:namedtuple` object returned from the previous
             open or pull operation for this enumeration.
 
             The tuple items are:
 
-            - server_context (:term:`string`):
+            * server_context (:term:`string`):
               Enumeration context string returned by the server. This
               string is opaque for the client.
-            - namespace (:term:`string`):
+            * namespace (:term:`string`):
               Name of the CIM namespace to be used for this operation.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
@@ -3216,38 +3328,6 @@ class WBEMConnection(object):
               be used by a client to leave the handling of any returned
               instances to a loop of Pull operations.
 
-        Returns:
-
-            A :class:`py:namedtuple` containing the following named elements:
-
-            * `paths` (list of :class:`~pywbem.CIMInstanceName`):
-              Representations of the initial set of enumerated instance paths.
-            * `eos` (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
-
-              - If `True`, the enumeration session is exhausted, and the
-                server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
-
-            * `context` (tuple of (server_context, namespace)):
-               Identifies the opened enumeration session. The client must
-               provide this value for subsequent operations on this
-               enumeration session. The tuple items are:
-
-               - server_context (:term:`string`):
-                 Enumeration context string returned by the server if
-                 the session is not exhausted, or `None` otherwise. This string
-                 is opaque for the client.
-               - namespace (:term:`string`):
-                 Name of the CIM namespace that was used for this operation.
-
-               NOTE: This inner tuple hides the need for a CIM namespace
-               on subsequent operations in the enumeration session. CIM
-               operations always require target namespace, but it never
-               makes sense to specify a different one in subsequent
-               operations on the same enumeration session.
-
         Keyword Arguments:
 
           extra :
@@ -3256,9 +3336,52 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        Exceptions:
+        Returns:
 
-            See the list of exceptions described in `WBEMConnection`.
+            A :class:`py:namedtuple` object that contains the following named
+            items:
+
+            * **paths** (list of :class:`~pywbem.CIMInstanceName`):
+              Representations of the next set of enumerated instance paths,
+              with their attributes set as follows:
+
+              * `classname`: Name of the creation class of the instance.
+              * `keybindings`: Keybindings of the instance.
+              * `namespace`: Name of the CIM namespace containing the instance.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace.
+
+            * **eos** (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+
+            * **context** (:class:`py:tuple` of server_context, namespace):
+              Identifies the opened enumeration session. The client must
+              provide this value for subsequent operations on this
+              enumeration session.
+
+              The tuple items are:
+
+              * server_context (:term:`string`):
+                Enumeration context string returned by the server if
+                the session is not exhausted, or `None` otherwise. This string
+                is opaque for the client.
+              * namespace (:term:`string`):
+                Name of the CIM namespace that was used for this operation.
+
+              NOTE: This inner tuple hides the need for a CIM namespace
+              on subsequent operations in the enumeration session. CIM
+              operations always require target namespace, but it never
+              makes sense to specify a different one in subsequent
+              operations on the same enumeration session.
+
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
         if self.operation_recorder:
@@ -3302,7 +3425,7 @@ class WBEMConnection(object):
         Retrieve the next set of instances from an open enumeraton
         session defined by the `enumeration_context` parameter.
 
-        This method performs the PullInstanceWithPath operation
+        This method performs the PullInstances operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
         methods performing such operations.
 
@@ -3313,17 +3436,17 @@ class WBEMConnection(object):
         Parameters:
 
           context (:term:`string`)
-            Identifies the enumeraton session, including its current
-            enumeration state. This must be the value of the `context`
-            item in the :class:`py:namedtuple` returned from the previous
+            Identifies the enumeration session, including its current
+            enumeration state. This must be the value of the `context` item in
+            the :class:`py:namedtuple` object returned from the previous
             open or pull operation for this enumeration.
 
             The tuple items are:
 
-            - server_context (:term:`string`):
+            * server_context (:term:`string`):
               Enumeration context string returned by the server. This
               string is opaque for the client.
-            - namespace (:term:`string`):
+            * namespace (:term:`string`):
               Name of the CIM namespace to be used for this operation.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
@@ -3337,38 +3460,6 @@ class WBEMConnection(object):
               be used by a client to leave the handling of any returned
               instances to a loop of Pull operations.
 
-        Returns:
-
-            A :class:`py:namedtuple` containing the following named elements:
-
-            * `instances` (list of :class:`~pywbem.CIMInstance`):
-              Representations of the initial set of enumerated instances.
-            * `eos` (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
-
-              - If `True`, the enumeration session is exhausted, and the
-                server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
-
-            * `context` (tuple of (server_context, namespace)):
-               Identifies the opened enumeration session. The client must
-               provide this value for subsequent operations on this
-               enumeration session. The tuple items are:
-
-               - server_context (:term:`string`):
-                 Enumeration context string returned by the server if
-                 the session is not exhausted, or `None` otherwise. This string
-                 is opaque for the client.
-               - namespace (:term:`string`):
-                 Name of the CIM namespace that was used for this operation.
-
-               NOTE: This inner tuple hides the need for a CIM namespace
-               on subsequent operations in the enumeration session. CIM
-               operations always require target namespace, but it never
-               makes sense to specify a different one in subsequent
-               operations on the same enumeration session.
-
         Keyword Arguments:
 
           extra :
@@ -3377,9 +3468,49 @@ class WBEMConnection(object):
             Note that :term:`DSP0200` does not define any additional parameters
             for this operation.
 
-        Exceptions:
+        Returns:
 
-            See the list of exceptions described in `WBEMConnection`.
+            A :class:`py:namedtuple` object that contains the following named
+            items:
+
+            * **instances** (list of :class:`~pywbem.CIMInstance`):
+              Representations of the next set of enumerated instances.
+
+              The `path` attribute of each :class:`~pywbem.CIMInstance`
+              object is `None`, because this operation does not return instance
+              paths.
+
+            * **eos** (:class:`py:bool`):
+              Indicates whether the enumeration session is exhausted
+              after returning the initial set of enumerated instances.
+
+              - If `True`, the enumeration session is exhausted, and the
+                server has closed the enumeration session.
+              - If `False`, the enumeration session is not exhausted.
+
+            * **context** (:class:`py:tuple` of server_context, namespace):
+              Identifies the opened enumeration session. The client must
+              provide this value for subsequent operations on this
+              enumeration session.
+
+              The tuple items are:
+
+              * server_context (:term:`string`):
+                Enumeration context string returned by the server if
+                the session is not exhausted, or `None` otherwise. This string
+                is opaque for the client.
+              * namespace (:term:`string`):
+                Name of the CIM namespace that was used for this operation.
+
+              NOTE: This inner tuple hides the need for a CIM namespace
+              on subsequent operations in the enumeration session. CIM
+              operations always require target namespace, but it never
+              makes sense to specify a different one in subsequent
+              operations on the same enumeration session.
+
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
         if self.operation_recorder:
@@ -3441,6 +3572,14 @@ class WBEMConnection(object):
             response to the previous open or pull operation for this
             enumeration sequence.
 
+        Keyword Arguments:
+
+          extra :
+            Additional keyword arguments are passed as additional operation
+            parameters to the WBEM server.
+            Note that :term:`DSP0200` does not define any additional parameters
+            for this operation.
+
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
@@ -3488,8 +3627,11 @@ class WBEMConnection(object):
 
         Parameters:
 
-          InstanceName (CIMInstanceName): Instance path of the instance to be
-            retrieved.
+          InstanceName (CIMInstanceName):
+            The instance path of the instance to be retrieved.
+            If this object does not specify a namespace, the default namespace
+            of the connection is used.
+            Its `host` attribute will be ignored.
 
           LocalOnly (:class:`py:bool`):
             Controls the exclusion of inherited properties from the returned
@@ -3548,6 +3690,13 @@ class WBEMConnection(object):
 
             A :class:`~pywbem.CIMInstance` object that is a representation of
             the retrieved instance.
+            Its `path` attribute is a :class:`~pywbem.CIMInstanceName` object
+            with its attributes set as follows:
+
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+            * `host`: `None`, indicating the WBEM server is unspecified.
 
         Raises:
 
@@ -3616,13 +3765,13 @@ class WBEMConnection(object):
             A representation of the modified instance, also indicating its
             instance path.
 
-            The `path` instance variable of this object identifies the instance
-            to be modified. Its keybindings component is required. If its
-            namespace component is `None`, the default namespace of the
-            connection will be used. Its host component will be ignored.
+            The `path` attribute of this object identifies the instance to be
+            modified. Its `keybindings` attribute is required. If its
+            `namespace` attribute is `None`, the default namespace of the
+            connection will be used. Its `host` attribute will be ignored.
 
-            The `classname` component of the path and the `classname` attribute
-            of the instance must specify the same class name.
+            The `classname` attribute of the instance path and the `classname`
+            attribute of the instance must specify the same class name.
 
             The properties defined in this object specify the new property
             values for the instance to be modified. Missing properties
@@ -3731,7 +3880,7 @@ class WBEMConnection(object):
         Otherwise, this method raises an exception.
 
         The creation class for the new instance is taken from the `classname`
-        instance variable of the `NewInstance` parameter.
+        attribute of the `NewInstance` parameter.
 
         The namespace for the new instance is taken from these sources, in
         decreasing order of priority:
@@ -3744,19 +3893,18 @@ class WBEMConnection(object):
         Parameters:
 
           NewInstance (CIMInstance):
-            A representation of the instance to be created.
+            A representation of the CIM instance to be created.
 
-            The `classname` instance variable of this object specifies the
-            creation class for the new instance.
+            The `classname` attribute of this object specifies the creation
+            class for the new instance.
 
-            Apart from utilizing its namespace, the `path` instance variable
-            is ignored.
+            Apart from utilizing its namespace, the `path` attribute is ignored.
 
-            The `properties` instance variable of this object specifies initial
-            property values for the new instance.
+            The `properties` attribute of this object specifies initial
+            property values for the new CIM instance.
 
             Instance-level qualifiers have been deprecated in CIM, so any
-            qualifier values specified using the `qualifiers` instance variable
+            qualifier values specified using the `qualifiers` attribute
             of this object will be ignored.
 
           namespace (:term:`string`):
@@ -3834,8 +3982,11 @@ class WBEMConnection(object):
 
         Parameters:
 
-          InstanceName (CIMInstanceName): Instance path of the instance to be
-            deleted.
+          InstanceName (CIMInstanceName):
+            The instance path of the instance to be deleted.
+            If this object does not specify a namespace, the default namespace
+            of the connection is used.
+            Its `host` attribute will be ignored.
 
         Keyword Arguments:
 
@@ -3903,19 +4054,24 @@ class WBEMConnection(object):
         Parameters:
 
           ObjectName:
-            For instance level usage: The instance path of the source instance,
-            as a :class:`~pywbem.CIMInstanceName` object. If that object does
-            not specify a namespace, the default namespace of the connection is
-            used.
+            The object path of the source object, as follows:
 
-            For class level usage: The class path of the source class, as a
-            :term:`string` or :class:`~pywbem.CIMClassName` object.
-            If specified as a string, the string is interpreted as a class name
-            in the default namespace of the connection, and can have any
-            lexical case.
-            If specified as a :class:`~pywbem.CIMClassName` object that does
-            not specify a namespace, the default namespace of the connection is
-            used.
+            * For instance level usage: The instance path of the source
+              instance, as a :class:`~pywbem.CIMInstanceName` object.
+              If this object does not specify a namespace, the default namespace
+              of the connection is used.
+              Its `host` attribute will be ignored.
+
+            * For class level usage: The class path of the source class, as a
+              :term:`string` or :class:`~pywbem.CIMClassName` object:
+
+              If specified as a string, the string is interpreted as a class
+              name in the default namespace of the connection, and can have any
+              lexical case.
+
+              If specified as a :class:`~pywbem.CIMClassName` object, its `host`
+              attribute will be ignored. If this object does not specify
+              a namespace, the default namespace of the connection is used.
 
           AssocClass (:term:`string` or :class:`~pywbem.CIMClassName`):
             Class name of an association class, in any lexical case,
@@ -3955,14 +4111,29 @@ class WBEMConnection(object):
 
         Returns:
 
-            Return data depends on `ObjectName` parameter:
+            : The returned list of objects depend on the usage:
 
-            **Instance level usage:** A list of
-            :class:`~pywbem.CIMInstanceName` objects that are the instance
-            paths of the associated instances.
+            * For instance level usage: A list of
+              :class:`~pywbem.CIMInstanceName` objects that are the instance
+              paths of the associated instances, with their attributes set as
+              follows:
 
-            **Class level usage:** A list of :class:`~pywbem.CIMClassName`
-            objects that are the class paths of the associated classes.
+              * `classname`: Name of the creation class of the instance.
+              * `keybindings`: Keybindings of the instance.
+              * `namespace`: Name of the CIM namespace containing the instance.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace, or `None` if the server did not return host
+                information.
+
+            * For class level usage: A list of :class:`~pywbem.CIMClassName`
+              objects that are the class paths of the associated classes, with
+              their attributes set as follows:
+
+              * `classname`: Name of the class.
+              * `namespace`: Name of the CIM namespace containing the class.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace, or `None` if the server did not return host
+                information.
 
         Raises:
 
@@ -4031,19 +4202,24 @@ class WBEMConnection(object):
         Parameters:
 
           ObjectName:
-            For instance level usage: The instance path of the source instance,
-            as a :class:`~pywbem.CIMInstanceName` object. If that object does
-            not specify a namespace, the default namespace of the connection is
-            used.
+            The object path of the source object, as follows:
 
-            For class level usage: The class path of the source class, as a
-            :term:`string` or :class:`~pywbem.CIMClassName` object.
-            If specified as a string, the string is interpreted as a class name
-            in the default namespace of the connection, and can have any
-            lexical case.
-            If specified as a :class:`~pywbem.CIMClassName` object, its
-            `namespace` attribute is used; if that is `None`, the default
-            namespace of the connection is used.
+            * For instance level usage: The instance path of the source
+              instance, as a :class:`~pywbem.CIMInstanceName` object.
+              If this object does not specify a namespace, the default namespace
+              of the connection is used.
+              Its `host` attribute will be ignored.
+
+            * For class level usage: The class path of the source class, as a
+              :term:`string` or :class:`~pywbem.CIMClassName` object:
+
+              If specified as a string, the string is interpreted as a class
+              name in the default namespace of the connection, and can have any
+              lexical case.
+
+              If specified as a :class:`~pywbem.CIMClassName` object, its `host`
+              attribute will be ignored. If this object does not specify
+              a namespace, the default namespace of the connection is used.
 
           AssocClass (:term:`string` or :class:`~pywbem.CIMClassName`):
             Class name of an association class, in any lexical case,
@@ -4115,21 +4291,40 @@ class WBEMConnection(object):
 
         Returns:
 
-            Return structure depends on whether class or instance
-            is provided in the `ObjectName` parameter.
+            : The returned list of objects depend on the usage:
 
-            * **Instance level usage**: A list of
-                :class:`~pywbem.CIMInstance` objects that are representations
-                of the associated instances.
+            * For instance level usage: A list of
+              :class:`~pywbem.CIMInstance` objects that are representations
+              of the associated instances.
 
-            * **Class level usage**: `[(classname, class),...]`, a list of
-              tuples where each tuple contains:
+              The `path` attribute of each :class:`~pywbem.CIMInstance`
+              object is a :class:`~pywbem.CIMInstanceName` object with its
+              attributes set as follows:
 
-               *  **classname** (:class:`~pywbem.CIMClassName`): Host
-                  and namespace entities that are the representation of the
-                  name of the associated class.
-               *  **class** (:class:`~pywbem.CIMInstance`): The
-                  representation of the corresponding associated class
+              * `classname`: Name of the creation class of the instance.
+              * `keybindings`: Keybindings of the instance.
+              * `namespace`: Name of the CIM namespace containing the instance.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace, or `None` if the server did not return host
+                information.
+
+            * For class level usage: A list of :class:`py:tuple` of
+              (classpath, class) objects that are representations of the
+              associated classes.
+
+              Each tuple represents one class and has these items:
+
+              * classpath (:class:`~pywbem.CIMClassName`): The class
+                path of the class, with its attributes set as follows:
+
+                * `classname`: Name of the class.
+                * `namespace`: Name of the CIM namespace containing the class.
+                * `host`: Host and optionally port of the WBEM server containing
+                  the CIM namespace, or `None` if the server did not return host
+                  information.
+
+              * class (:class:`~pywbem.CIMClass`): The representation of the
+                class.
 
         Raises:
 
@@ -4204,20 +4399,24 @@ class WBEMConnection(object):
         Parameters:
 
           ObjectName:
-            For instance level usage: The instance path of the source instance,
-            as a :class:`~pywbem.CIMInstanceName` object. If that object does
-            not specify a namespace, the default namespace of the connection is
-            used.
+            The object path of the source object, as follows:
 
-            For class level usage: The class path of the source class, as a
-            :term:`string` or :class:`~pywbem.CIMClassName`
-            object.
-            If specified as a string, the string is interpreted as a class name
-            in the default namespace of the connection, and can have any
-            lexical case.
-            If specified as a :class:`~pywbem.CIMClassName` object, its
-            `namespace` attribute is used; if that is `None`, the default
-            namespace of the connection is used.
+            * For instance level usage: The instance path of the source
+              instance, as a :class:`~pywbem.CIMInstanceName` object.
+              If this object does not specify a namespace, the default namespace
+              of the connection is used.
+              Its `host` attribute will be ignored.
+
+            * For class level usage: The class path of the source class, as a
+              :term:`string` or :class:`~pywbem.CIMClassName` object:
+
+              If specified as a string, the string is interpreted as a class
+              name in the default namespace of the connection, and can have any
+              lexical case.
+
+              If specified as a :class:`~pywbem.CIMClassName` object, its `host`
+              attribute will be ignored. If this object does not specify
+              a namespace, the default namespace of the connection is used.
 
           ResultClass (:term:`string` or :class:`~pywbem.CIMClassName`):
             Class name of an association class, in any lexical case,
@@ -4243,15 +4442,29 @@ class WBEMConnection(object):
 
         Returns:
 
-            Return data depends on `ObjectName` parameter:
+            : The returned list of objects depend on the usage:
 
-            **Instance level usage**: A list of
-            :class:`~pywbem.CIMInstanceName` objects that are the instance
-            paths of the referencing association instances.
+            * For instance level usage: A list of
+              :class:`~pywbem.CIMInstanceName` objects that are the instance
+              paths of the referencing association instances, with their
+              attributes set as follows:
 
-            **Class level usage:** A list of :class:`~pywbem.CIMClassName`
-            objects that are the class paths of the referencing association
-            classes.
+              * `classname`: Name of the creation class of the instance.
+              * `keybindings`: Keybindings of the instance.
+              * `namespace`: Name of the CIM namespace containing the instance.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace, or `None` if the server did not return host
+                information.
+
+            * For class level usage: A list of :class:`~pywbem.CIMClassName`
+              objects that are the class paths of the referencing association
+              classes, with their attributes set as follows:
+
+              * `classname`: Name of the class.
+              * `namespace`: Name of the CIM namespace containing the class.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace, or `None` if the server did not return host
+                information.
 
         Raises:
 
@@ -4316,20 +4529,24 @@ class WBEMConnection(object):
         Parameters:
 
           ObjectName:
-            For instance level usage: The instance path of the source instance,
-            as a :class:`~pywbem.CIMInstanceName` object. If that object does
-            not specify a namespace, the default namespace of the connection is
-            used.
+            The object path of the source object, as follows:
 
-            For class level usage: The class path of the source class, as a
-            :term:`string` or :class:`~pywbem.CIMClassName`
-            object.
-            If specified as a string, the string is interpreted as a class name
-            in the default namespace of the connection, and can have any
-            lexical case.
-            If specified as a :class:`~pywbem.CIMClassName` object, its
-            `namespace` attribute is used; if that is `None`, the default
-            namespace of the connection is used.
+            * For instance level usage: The instance path of the source
+              instance, as a :class:`~pywbem.CIMInstanceName` object.
+              If this object does not specify a namespace, the default namespace
+              of the connection is used.
+              Its `host` attribute will be ignored.
+
+            * For class level usage: The class path of the source class, as a
+              :term:`string` or :class:`~pywbem.CIMClassName` object:
+
+              If specified as a string, the string is interpreted as a class
+              name in the default namespace of the connection, and can have any
+              lexical case.
+
+              If specified as a :class:`~pywbem.CIMClassName` object, its `host`
+              attribute will be ignored. If this object does not specify
+              a namespace, the default namespace of the connection is used.
 
           ResultClass (:term:`string` or :class:`~pywbem.CIMClassName`):
             Class name of an association class, in any lexical case,
@@ -4387,21 +4604,40 @@ class WBEMConnection(object):
 
         Returns:
 
-            Return structure depends on whether class or instance
-            is provided in the `ObjectName` parameter.
+            : The returned list of objects depend on the usage:
 
-            * **Instance level usage**: A list of
-                :class:`~pywbem.CIMInstance` objects that are representations
-                of the associated instances.
+            * For instance level usage: A list of
+              :class:`~pywbem.CIMInstance` objects that are representations
+              of the referencing association instances.
 
-            * **Class level usage**: `[(classname, class),..]`, a list of
-              tuples where each tuple contains:
+              The `path` attribute of each :class:`~pywbem.CIMInstance`
+              object is a :class:`~pywbem.CIMInstanceName` object with its
+              attributes set as follows:
 
-               *  **classname** (:class:`~pywbem.CIMClassName`): Host
-                  and namespace entities that are the representation of the
-                  name of the associated class.
-               *  **class** (:class:`~pywbem.CIMInstance`): The
-                  representation of the corresponding associated class
+              * `classname`: Name of the creation class of the instance.
+              * `keybindings`: Keybindings of the instance.
+              * `namespace`: Name of the CIM namespace containing the instance.
+              * `host`: Host and optionally port of the WBEM server containing
+                the CIM namespace, or `None` if the server did not return host
+                information.
+
+            * For class level usage: A list of :class:`py:tuple` of
+              (classpath, class) objects that are representations of the
+              referencing association classes.
+
+              Each tuple represents one class and has these items:
+
+              * classpath (:class:`~pywbem.CIMClassName`): The class
+                path of the class, with its attributes set as follows:
+
+                * `classname`: Name of the class.
+                * `namespace`: Name of the CIM namespace containing the class.
+                * `host`: Host and optionally port of the WBEM server containing
+                  the CIM namespace, or `None` if the server did not return host
+                  information.
+
+              * class (:class:`~pywbem.CIMClass`): The representation of the
+                class.
 
         Raises:
 
@@ -4488,26 +4724,30 @@ class WBEMConnection(object):
             parameter signature), in any lexical case.
 
           ObjectName:
-            For instance level usage: The instance path of the target instance,
-            as a :class:`~pywbem.CIMInstanceName` object. If that object does
-            not specify a namespace, the default namespace of the connection is
-            used.
+            The object path of the target object, as follows:
 
-            For class level usage: The class path of the target class, as a
-            :term:`string` or
-            :class:`~pywbem.CIMClassName` object.
-            If specified as a string, the string is interpreted as a class name
-            in the default namespace of the connection, and can have any
-            lexical case.
-            If specified as a :class:`~pywbem.CIMClassName` object, its
-            `namespace` attribute is used; if that is `None`, the default
-            namespace of the connection is used.
+            * For instance level usage: The instance path of the target
+              instance, as a :class:`~pywbem.CIMInstanceName` object.
+              If this object does not specify a namespace, the default namespace
+              of the connection is used.
+              Its `host` attribute will be ignored.
+
+            * For class level usage: The class path of the target class, as a
+              :term:`string` or :class:`~pywbem.CIMClassName` object:
+
+              If specified as a string, the string is interpreted as a class
+              name in the default namespace of the connection, and can have any
+              lexical case.
+
+              If specified as a :class:`~pywbem.CIMClassName` object, its `host`
+              attribute will be ignored. If this object does not specify
+              a namespace, the default namespace of the connection is used.
 
           Params (:term:`py:iterable` of tuples of name,value):
             An iterable of input parameters for the CIM method.
 
             Each iterated item represents a single input parameter for the CIM
-            method and must be a `tuple(name, value)`, with:
+            method and must be a ``tuple(name, value)``, with these tuple items:
 
             * name (:term:`string`):
               Parameter name, in any lexical case
@@ -4526,18 +4766,19 @@ class WBEMConnection(object):
 
         Returns:
 
-            `tuple(returnvalue, outparams)`
+            A :class:`py:tuple` of (returnvalue, outparams), with these
+            tuple items:
 
             * returnvalue (:term:`CIM data type`):
               Return value of the CIM method.
-            * outparams (:ref:`NocaseDict`):
+            * outparams (`NocaseDict`_):
               Dictionary with all provided output parameters of the CIM method,
               with:
 
-                * key (:term:`unicode string`):
-                  Parameter name, preserving its lexical case
-                * value (:term:`CIM data type`):
-                  Parameter value
+              * key (:term:`unicode string`):
+                Parameter name, preserving its lexical case
+              * value (:term:`CIM data type`):
+                Parameter value
 
         Raises:
 
@@ -4648,7 +4889,7 @@ class WBEMConnection(object):
             A list of :class:`~pywbem.CIMInstance` objects that represents
             the query result.
 
-            These instances have their `path` instance variable set to identify
+            These instances have their `path` attribute set to identify
             their creation class and the target namespace of the query, but
             they are not addressable instances.
 
@@ -4729,7 +4970,7 @@ class WBEMConnection(object):
             Name of the class whose subclasses are to be retrieved, in any
             lexical case.
             If specified as a :class:`~pywbem.CIMClassName` object, its host
-            component will be ignored.
+            attribute will be ignored.
 
             If `None`, the top-level classes in the namespace will be
             retrieved.
@@ -4839,7 +5080,7 @@ class WBEMConnection(object):
             Name of the class whose subclasses are to be retrieved, in any
             lexical case.
             If specified as a :class:`~pywbem.CIMClassName` object, its host
-            component will be ignored.
+            attribute will be ignored.
 
             If `None`, the top-level classes in the namespace will be
             retrieved.
@@ -4973,8 +5214,8 @@ class WBEMConnection(object):
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be retrieved, in any lexical case.
-            If specified as a :class:`~pywbem.CIMClassName` object, its host
-            component will be ignored.
+            If specified as a :class:`~pywbem.CIMClassName` object, its `host`
+            attribute will be ignored.
 
           namespace (:term:`string`):
             Name of the namespace of the class to be retrieved, in any lexical
@@ -5178,6 +5419,8 @@ class WBEMConnection(object):
             The properties, methods and qualifiers defined in this object
             specify how the class is to be created.
 
+            Its `path` attribute is ignored.
+
           namespace (:term:`string`):
             Name of the namespace in which the class is to be created, in any
             lexical case.
@@ -5247,8 +5490,8 @@ class WBEMConnection(object):
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class to be deleted, in any lexical case.
-            If specified as a :class:`~pywbem.CIMClassName` object, its host
-            component will be ignored.
+            If specified as a :class:`~pywbem.CIMClassName` object, its `host`
+            attribute will be ignored.
 
           namespace (:term:`string`):
             Name of the namespace of the class to be deleted, in any lexical
