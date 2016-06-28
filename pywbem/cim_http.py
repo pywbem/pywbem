@@ -760,7 +760,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                 try:
                                     uid = os.getuid()
                                 except AttributeError:
-                                    raise ConnectionError(
+                                    raise AuthError(
                                         "OWLocal authorization for OpenWbem "\
                                         "server not supported on %s platform "\
                                         "due to missing os.getuid()" % \
@@ -818,16 +818,14 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
 
                     cimerror_hdr = response.getheader('CIMError', None)
                     if cimerror_hdr is not None:
-                        exc_str = 'CIMError: %s' % cimerror_hdr
-                        pgerrordetail_hdr = response.getheader('PGErrorDetail',
-                                                               None)
-                        if pgerrordetail_hdr is not None:
+                        cimdetails = {}
+                        pgdetails_hdr = response.getheader('PGErrorDetail', None)
+                        if pgdetails_hdr is not None:
+                            cimdetails['PGErrorDetail'] = urllib.parse.unquote(pgdetails_hdr)
                             #pylint: disable=too-many-function-args
-                            exc_str += ', PGErrorDetail: %s' %\
-                                urllib.parse.unquote(pgerrordetail_hdr)
-                        raise ConnectionError(exc_str)
+                        raise HTTPError(response.status, response.reason, cimerror_hdr, cimdetails)
 
-                    raise ConnectionError('HTTP error: %s' % response.reason)
+                    raise HTTPError(response.status, response.reason)
 
                 body = response.read()
 
