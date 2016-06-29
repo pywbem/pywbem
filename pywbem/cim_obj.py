@@ -1323,7 +1323,7 @@ class CIMInstance(_CIMComparisonMixin):
         """
 
         return '%s(classname=%r, path=%r, ' \
-               'properties=%r, property_list=%r' \
+               'properties=%r, property_list=%r, ' \
                'qualifiers=%r)' % \
                (self.__class__.__name__, self.classname, self.path,
                 self.properties, self.property_list,

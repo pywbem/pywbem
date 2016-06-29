@@ -904,9 +904,10 @@ class PROPERTY(CIMElement):
         <!ELEMENT PROPERTY (QUALIFIER*, VALUE?)>
         <!ATTLIST PROPERTY
             %CIMName;
+            %CIMType;           #REQUIRED
             %ClassOrigin;
             %Propagated;
-            %CIMType;           #REQUIRED
+            %EmbeddedObject;
             xml:lang   NMTOKEN  #IMPLIED>
     """
 
@@ -969,6 +970,7 @@ class PROPERTY_ARRAY(CIMElement):
             %ArraySize;
             %ClassOrigin;
             %Propagated;
+            %EmbeddedObject;
             xml:lang   NMTOKEN  #IMPLIED>
     """
 
@@ -1414,10 +1416,12 @@ class PARAMVALUE(CIMElement):
       ::
 
         <!ELEMENT PARAMVALUE (VALUE | VALUE.REFERENCE | VALUE.ARRAY |
-                              VALUE.REFARRAY)?>
+                              VALUE.REFARRAY | CLASSNAME | INSTANCENAME |
+                              CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
         <!ATTLIST PARAMVALUE
             %CIMName;
-            %ParamType;    #IMPLIED>
+            %ParamType;    #IMPLIED
+            %EmbeddedObject;>
     """
 
     def __init__(self, name, data=None, paramtype=None,
@@ -1634,15 +1638,18 @@ class RETURNVALUE(CIMElement):
 
       ::
 
-        <!ELEMENT RETURNVALUE (VALUE | VALUE.REFERENCE)>
+        <!ELEMENT RETURNVALUE (VALUE | VALUE.REFERENCE)?>
         <!ATTLIST RETURNVALUE
+            %EmbeddedObject;
             %ParamType;     #IMPLIED>
     """
 
-    def __init__(self, data, param_type=None):
+    def __init__(self, data, param_type=None, embedded_object=None):
         Element.__init__(self, 'RETURNVALUE')
         self.setOptionalAttribute('PARAMTYPE', param_type)
-        self.appendChild(data)
+        self.setOptionalAttribute('EmbeddedObject', embedded_object)
+        # See the note on EmbeddedObject in PROPERTY().
+        self.appendOptionalChild(data)
 
 class IRETURNVALUE(CIMElement):
     # pylint: disable=invalid-name

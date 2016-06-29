@@ -218,6 +218,137 @@ class Callback(object):
         """
         raise socket.timeout("Socket timeout.")
 
+def xml_embed(tree_elem):
+    """
+    Embed the CIM-XML representation of a CIM object.
+
+    This is done by converting the XML tree representing the CIM object into a
+    single XML element whose character text is the embedded representation,
+    which has some special XML characters (defined in DSP0201) replaced with
+    their character entity references (= XML escape sequences).
+
+    Parameters:
+      tree_elem (etree.Element):
+        XML tree of the CIM-XML representation of the CIM object that is to
+        be embedded.
+
+    Returns:
+      string: The embedded CIM-XML representation of the CIM object.
+    """
+    return xml_escape(etree.tostring(tree_elem))
+
+def xml_escape(s):
+    """
+    Return the XML-escaped input string.
+    """
+    if isinstance(s, six.text_type):
+        s = s.replace(u"&", u"&amp;")
+        s = s.replace(u"<", u"&lt;")
+        s = s.replace(u">", u"&gt;")
+        s = s.replace(u"\"", u"&quot;")
+        s = s.replace(u"'", u"&apos;")
+    else:
+        s = s.replace(b"&", b"&amp;")
+        s = s.replace(b"<", b"&lt;")
+        s = s.replace(b">", b"&gt;")
+        s = s.replace(b"\"", b"&quot;")
+        s = s.replace(b"'", b"&apos;")
+    return s
+
+def xml_unembed(emb_str):
+    """
+    Unembed the CIM-XML representation of a CIM object.
+
+    This is done by converting an XML element whose character text is the
+    embedded representation, into an XML tree representing the CIM object,
+    whereby the character entity references (= XML escape sequences) of
+    some special XML characters (defined in DSP0201) are replaced with
+    their characters.
+
+    Parameters:
+      emb_str (string):
+        The embedded CIM-XML representation of the CIM object that is to be
+        unembedded.
+
+    Returns:
+      etree.Element:
+        XML tree of the CIM-XML representation of the CIM object.
+    """
+    parser = etree.XMLParser(remove_blank_text=True)
+    return etree.XML(xml_unescape(emb_str), parser=parser)
+
+def xml_unescape(s):
+    """
+    Return the XML-unescaped input string.
+    """
+    if isinstance(s, six.text_type):
+        s = s.replace(u"&lt;", u"<")
+        s = s.replace(u"&gt;", u">")
+        s = s.replace(u"&quot;", u"\"")
+        s = s.replace(u"&apos;", u"'")
+        s = s.replace(u"&amp;", u"&")
+    else:
+        s = s.replace(b"&lt;", b"<")
+        s = s.replace(b"&gt;", b">")
+        s = s.replace(b"&quot;", b"\"")
+        s = s.replace(b"&apos;", b"'")
+        s = s.replace(b"&amp;", b"&")
+    return s
+
+
+class EmbedUnembedTest(unittest.TestCase):
+    """Test case for embed() / unembed() functions."""
+
+    def test_unembed_simple(self):
+        """Unembed a simple embedded instance string."""
+
+        emb_str = b'&lt;INSTANCE NAME=&quot;C1&quot;&gt;' \
+                  b'&lt;PROPERTY NAME=&quot;P1&quot;&gt;' \
+                  b'&lt;VALUE&gt;V1&lt;/VALUE&gt;' \
+                  b'&lt;/PROPERTY&gt;' \
+                  b'&lt;/INSTANCE&gt;'
+
+        instance_elem = xml_unembed(emb_str)
+
+        self.assertEqual(instance_elem.tag, 'INSTANCE')
+        self.assertEqual(len(instance_elem.attrib), 1)
+        self.assertTrue('NAME' in instance_elem.attrib)
+        self.assertEqual(instance_elem.attrib['NAME'], 'C1')
+
+        self.assertEqual(len(instance_elem), 1)
+        property_elem = instance_elem[0]
+        self.assertEqual(property_elem.tag, 'PROPERTY')
+        self.assertEqual(len(property_elem.attrib), 1)
+        self.assertTrue('NAME' in property_elem.attrib)
+        self.assertEqual(property_elem.attrib['NAME'], 'P1')
+
+        self.assertEqual(len(property_elem), 1)
+        value_elem = property_elem[0]
+        self.assertEqual(value_elem.tag, 'VALUE')
+        self.assertEqual(len(value_elem.attrib), 0)
+        self.assertEqual(value_elem.text, 'V1')
+
+    def test_embed_simple(self):
+        """Embed a simple instance."""
+
+        instance_elem = etree.Element('INSTANCE')
+        instance_elem.attrib['NAME'] = 'C1'
+        property_elem = etree.SubElement(instance_elem, 'PROPERTY')
+        property_elem.attrib['NAME'] = 'P1'
+        value_elem = etree.SubElement(property_elem, 'VALUE')
+        value_elem.text = 'V1'
+
+        emb_str = xml_embed(instance_elem)
+
+        exp_emb_str = b'&lt;INSTANCE NAME=&quot;C1&quot;&gt;' \
+                      b'&lt;PROPERTY NAME=&quot;P1&quot;&gt;' \
+                      b'&lt;VALUE&gt;V1&lt;/VALUE&gt;' \
+                      b'&lt;/PROPERTY&gt;' \
+                      b'&lt;/INSTANCE&gt;'
+
+        self.assertEqual(emb_str, exp_emb_str)
+
+
 class ClientTest(unittest.TestCase):
     """Test case for PyWBEM client testing."""
 
@@ -252,13 +383,35 @@ class ClientTest(unittest.TestCase):
         x1 = etree.XML(s1, parser=parser)
         x2 = etree.XML(s2, parser=parser)
 
-        # Sort certain elements
+        def sort_embedded(root, sort_elements):
+            """
+            Helper function for `sort_children()`, in support of embedded
+            objects. This function invokes sort_children() on each embedded
+            object in `root`, after unembedding the embedded object.
+
+            Parameters:
+              root (etree.Element):
+                XML tree of the CIM-XML representation of the CIM element that
+                contains an embedded CIM object (e.g. the CIM element may be
+                an INSTANCE XML element and one of its PROPERTY child elements
+                has a value that is an embedded CIM instance).
+            """
+            emb_elems = root.xpath("//*[@EmbeddedObject or @EMBEDDEDOBJECT]"
+                                   "/*[local-name() = 'VALUE' or "
+                                   "local-name() = 'VALUE.ARRAY']")
+            for emb_elem in emb_elems:
+                elem = xml_unembed(emb_elem.text)
+                sort_children(elem, sort_elements)
+                emb_elem.text = xml_embed(elem)
 
         def sort_children(root, sort_elements):
-            """Sort the elements in the input parameter to facilite
-               checking
-            """
+            """Sort certain elements in the `root` parameter to facilitate
+               comparison of two XML documents.
 
+               In addition, make sure this is also applied to any embedded
+               objects (in their unembedded state).
+            """
+            sort_embedded(root, sort_elements)
             for tag, attr in sort_elements:
                 # elems is a list of elements with this tag name
                 elems = root.xpath("//*[local-name() = $tag]", tag=tag)
@@ -534,6 +687,7 @@ class ClientTest(unittest.TestCase):
                                      " as expected.")
 
             if result != exp_result_obj:
+                # TODO 2016/07 AM: Improve the presentation of the difference
                 print("Details for the following assertion error:")
                 print("- Expected result: %r" % exp_result_obj)
                 print("- Actual result: %r" % result)
@@ -579,6 +733,7 @@ class ClientTest(unittest.TestCase):
 
             if "instances" in exp_pull_result:
                 if result.instances != exp_pull_result_obj.instances:
+                    # TODO 2016/07 AM: Improve the presentation of the difference
                     print("Details for the following assertion error:")
                     print("- Expected pull result: %r" % \
                           exp_pull_result_obj.instances)
@@ -589,6 +744,7 @@ class ClientTest(unittest.TestCase):
                                          "result is not as expected.")
             elif "paths" in exp_pull_result:
                 if result.paths != exp_pull_result_obj.paths:
+                    # TODO 2016/07 AM: Improve the presentation of the difference
                     print("Details for the following assertion error:")
                     print("- Expected pull result: %r" % \
                           exp_pull_result_obj.paths)
