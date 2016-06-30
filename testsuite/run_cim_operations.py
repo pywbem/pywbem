@@ -2856,7 +2856,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
             self.fail("No Server class")
 
 
-class PyWBEMListenerClass(PegasusServerTestBase):
+class PyWBEMListenerClass(PyWBEMServerClass):
     """Test the management of indications with the listener class"""
 
     #pylint: disable=invalid-name
@@ -2917,7 +2917,6 @@ class PyWBEMListenerClass(PegasusServerTestBase):
         #TODO ks 6/16 add more tests including: multiple subscriptions, filters
         #     actual indication production, Errors. extend for ssl, test
         #     logging
-
 
 
     def test_server_select_profiles(self):
@@ -3076,7 +3075,7 @@ def parse_args(argv_):
               '                        Requests user input if not supplier')
         print('    -nvc                Do not verify server certificates.')
         print('    --cacerts           File/dir with ca certificate(s).')
-        print('    --yamlfile yamlfile   Test_client YAML file to be recorded.')
+        print('    --yamlfile yamlfile  Test_client YAML file to be recorded.')
 
         print('    UT_OPTS             Unittest options (see below).')
         print('    UT_CLASS            Name of testcase class (e.g. '\
@@ -3122,6 +3121,7 @@ def parse_args(argv_):
     args_['password'] = None
     args_['cacerts'] = None
     args_['nvc'] = None
+    args_['yamlfile'] = None
     args_['long_running'] = None
 
     # options must proceed arguments
