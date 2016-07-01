@@ -297,6 +297,16 @@ Bug fixes
 * WBEMServer.interop_ns now contains the returned interop namespace name,
   if possible, instead of the attempted one.
 
+* Fix issue where mof_compiler was setting values for compile of instances into
+  the class object and also setting the values for the last compiled instance
+  in a compile unit into all other compiled instances for the same class. Since
+  the concept of compiling a path into compiled instances is flawed (there is
+  no requirement to include all properties into a instance to compile that code
+  was removed so that the path is NOT build into a compiled instance. Finally
+  the qualifiers from the class were also included in compiled instances which
+  was incorrect and an accident of the code.  They are no longer included into
+  the compiled instances.)  (issue # 402)
+
 
 pywbem v0.8.2
 -------------
