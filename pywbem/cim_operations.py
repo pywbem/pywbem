@@ -146,7 +146,7 @@ pull_inst_result_tuple = namedtuple("pull_inst_result_tuple",
 # openqueryInstances and PullInstance responses
 pull_query_result_tuple = namedtuple("pull_query_result_tuple",
                                      ["instances", "eos", "context",
-                                      "query_class"])
+                                      "query_result_class"])
 
 # unicode test to set illegal xml char constant
 if len(u'\U00010122') == 2:
@@ -1215,12 +1215,12 @@ class WBEMConnection(object):
         Parameters:
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Name of the class to be enumerated, in any lexical case.
+            Name of the class to be enumerated (case independent).
             If specified as a :class:`~pywbem.CIMClassName` object, its `host`
             attribute will be ignored.
 
           namespace (:term:`string`):
-            Name of the CIM namespace to be used, in any lexical case.
+            Name of the CIM namespace to be used (case independent).
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
@@ -1309,12 +1309,12 @@ class WBEMConnection(object):
         Parameters:
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Name of the class to be enumerated, in any lexical case.
+            Name of the class to be enumerated (case independent).
             If specified as a :class:`~pywbem.CIMClassName` object, its `host`
             attribute will be ignored.
 
           namespace (:term:`string`):
-            Name of the CIM namespace to be used, in any lexical case.
+            Name of the CIM namespace to be used (case independent).
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
@@ -1375,7 +1375,7 @@ class WBEMConnection(object):
 
           PropertyList (:term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties to be
-            included in the returned instances, in any lexical case.
+            included in the returned instances (case independent).
 
             An empty iterable indicates to include no properties.
 
@@ -1531,14 +1531,14 @@ class WBEMConnection(object):
         Parameters:
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Name of the class to be enumerated, in any lexical case.
+            Name of the class to be enumerated (case independent).
             If specified as a :class:`~pywbem.CIMClassName` object, its
             `namespace` attribute will be used as a default namespace as
             described for the `namespace` parameter, and its `host` attribute
             will be ignored.
 
           namespace (:term:`string`):
-            Name of the CIM namespace to be used, in any lexical case.
+            Name of the CIM namespace to be used (case independent).
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
@@ -1614,10 +1614,10 @@ class WBEMConnection(object):
 
         Returns:
 
-            A :class:`py:namedtuple` object that contains the following named
+            A :class:`py:namedtuple` object containing the following named
             items:
 
-            * **paths** (list of :class:`~pywbem.CIMInstanceName`):
+            * **paths** (:class:`py:list` of :class:`~pywbem.CIMInstanceName`):
               Representations of the initial set of enumerated instance paths,
               with their attributes set as follows:
 
@@ -1734,14 +1734,14 @@ class WBEMConnection(object):
         Parameters:
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Name of the class to be enumerated, in any lexical case.
+            Name of the class to be enumerated (case independent).
             If specified as a :class:`~pywbem.CIMClassName` object, its
             `namespace` attribute will be used as a default namespace as
             described for the `namespace` parameter, and its `host` attribute
             will be ignored.
 
           namespace (:term:`string`):
-            Name of the CIM namespace to be used, in any lexical case.
+            Name of the CIM namespace to be used (case independent).
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
@@ -1802,7 +1802,7 @@ class WBEMConnection(object):
 
           PropertyList (:term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties to be
-            included in the returned instances, in any lexical case.
+            included in the returned instances (case independent).
 
             An empty iterable indicates to include no properties.
 
@@ -1874,10 +1874,10 @@ class WBEMConnection(object):
 
         Returns:
 
-            A :class:`py:namedtuple` object that contains the following named
+            A :class:`py:namedtuple` object containing the following named
             items:
 
-            * **instances** (list of :class:`~pywbem.CIMInstance`):
+            * **instances** (:class:`py:list` of :class:`~pywbem.CIMInstance`):
               Representations of the initial set of enumerated instances.
 
               The `path` attribute of each :class:`~pywbem.CIMInstance`
@@ -2007,23 +2007,23 @@ class WBEMConnection(object):
 
         Parameters:
 
-          InstanceName (CIMInstanceName):
+          InstanceName (:class:`~pywbem.CIMInstanceName`):
             The instance path of the source instance.
             If this object does not specify a namespace, the default namespace
             of the connection is used.
             Its `host` attribute will be ignored.
 
           ResultClass (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Class name of an association class, in any lexical case,
+            Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
           Role (:term:`string`):
-            Role name (= property name) of the source end, in any
-            lexical case, to filter the result to include only traversals from
-            that source role.
+            Role name (= property name) of the source end (case independent),
+            to filter the result to include only traversals from that source
+            role.
 
             `None` means that no such filtering is peformed.
 
@@ -2096,10 +2096,10 @@ class WBEMConnection(object):
 
         Returns:
 
-            A :class:`py:namedtuple` object that contains the following named
+            A :class:`py:namedtuple` object containing the following named
             items:
 
-            * **paths** (list of :class:`~pywbem.CIMInstanceName`):
+            * **paths** (:class:`py:list` of :class:`~pywbem.CIMInstanceName`):
               Representations of the initial set of enumerated instance paths,
               with their attributes set as follows:
 
@@ -2218,23 +2218,23 @@ class WBEMConnection(object):
 
         Parameters:
 
-          InstanceName (CIMInstanceName):
+          InstanceName (:class:`~pywbem.CIMInstanceName`):
             The instance path of the source instance.
             If this object does not specify a namespace, the default namespace
             of the connection is used.
             Its `host` attribute will be ignored.
 
           ResultClass (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Class name of an association class, in any lexical case,
+            Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
           Role (:term:`string`):
-            Role name (= property name) of the source end, in any
-            lexical case, to filter the result to include only traversals from
-            that source role.
+            Role name (= property name) of the source end (case independent),
+            to filter the result to include only traversals from that source
+            role.
 
             `None` means that no such filtering is peformed.
 
@@ -2265,7 +2265,7 @@ class WBEMConnection(object):
 
           PropertyList (:term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties to be included
-            in the returned instances (or classes), in any lexical case.
+            in the returned instances (or classes) (case independent).
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -2336,10 +2336,10 @@ class WBEMConnection(object):
 
         Returns:
 
-            A :class:`py:namedtuple` object that contains the following named
+            A :class:`py:namedtuple` object containing the following named
             items:
 
-            * **instances** (list of :class:`~pywbem.CIMInstance`):
+            * **instances** (:class:`py:list` of :class:`~pywbem.CIMInstance`):
               Representations of the initial set of enumerated instances.
 
               The `path` attribute of each :class:`~pywbem.CIMInstance`
@@ -2468,37 +2468,37 @@ class WBEMConnection(object):
 
         Parameters:
 
-          InstanceName (CIMInstanceName):
+          InstanceName (:class:`~pywbem.CIMInstanceName`):
             The instance path of the source instance.
             If this object does not specify a namespace, the default namespace
             of the connection is used.
             Its `host` attribute will be ignored.
 
           AssocClass (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Class name of an association class, in any lexical case,
+            Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
           ResultClass (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Class name of an associated class, in any lexical case,
+            Class name of an associated class (case independent),
             to filter the result to include only traversals to that associated
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
           Role (:term:`string`):
-            Role name (= property name) of the source end, in any
-            lexical case, to filter the result to include only traversals from
-            that source role.
+            Role name (= property name) of the source end (case independent),
+            to filter the result to include only traversals from that source
+            role.
 
             `None` means that no such filtering is peformed.
 
           ResultRole (:term:`string`):
-            Role name (= property name) of the far end, in any
-            lexical case, to filter the result to include only traversals to
-            that far role.
+            Role name (= property name) of the far end (case independent),
+            to filter the result to include only traversals to that far
+            role.
 
             `None` means that no such filtering is peformed.
 
@@ -2572,10 +2572,10 @@ class WBEMConnection(object):
 
         Returns:
 
-            A :class:`py:namedtuple` object that contains the following named
+            A :class:`py:namedtuple` object containing the following named
             items:
 
-            * **paths** (list of :class:`~pywbem.CIMInstanceName`):
+            * **paths** (:class:`py:list` of :class:`~pywbem.CIMInstanceName`):
               Representations of the initial set of enumerated instance paths,
               with their attributes set as follows:
 
@@ -2701,37 +2701,37 @@ class WBEMConnection(object):
 
         Parameters:
 
-          InstanceName (CIMInstanceName):
+          InstanceName (:class:`~pywbem.CIMInstanceName`):
             The instance path of the source instance.
             If this object does not specify a namespace, the default namespace
             of the connection is used.
             Its `host` attribute will be ignored.
 
           AssocClass (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Class name of an association class, in any lexical case,
+            Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
           ResultClass (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Class name of an associated class, in any lexical case,
+            Class name of an associated class (case independent),
             to filter the result to include only traversals to that associated
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
           Role (:term:`string`):
-            Role name (= property name) of the source end, in any
-            lexical case, to filter the result to include only traversals from
-            that source role.
+            Role name (= property name) of the source end (case independent),
+            to filter the result to include only traversals from that source
+            role.
 
             `None` means that no such filtering is peformed.
 
           ResultRole (:term:`string`):
-            Role name (= property name) of the far end, in any
-            lexical case, to filter the result to include only traversals to
-            that far role.
+            Role name (= property name) of the far end (case independent),
+            to filter the result to include only traversals to that far
+            role.
 
             `None` means that no such filtering is peformed.
 
@@ -2762,7 +2762,7 @@ class WBEMConnection(object):
 
           PropertyList (:term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties to be included
-            in the returned instances (or classes), in any lexical case.
+            in the returned instances (or classes) (case independent).
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -2833,10 +2833,10 @@ class WBEMConnection(object):
 
         Returns:
 
-            A :class:`py:namedtuple` object that contains the following named
+            A :class:`py:namedtuple` object containing the following named
             items:
 
-            * **instances** (list of :class:`~pywbem.CIMInstance`):
+            * **instances** (:class:`py:list` of :class:`~pywbem.CIMInstance`):
               Representations of the initial set of enumerated instances.
 
               The `path` attribute of each :class:`~pywbem.CIMInstance`
@@ -2975,7 +2975,7 @@ class WBEMConnection(object):
             parameter.
 
           namespace (:term:`string`):
-            Name of the CIM namespace to be used, in any lexical case.
+            Name of the CIM namespace to be used (case independent).
 
             If `None`, the default namespace of the connection object will be
             used.
@@ -3039,10 +3039,10 @@ class WBEMConnection(object):
 
         Returns:
 
-            A :class:`py:namedtuple` object that contains the following named
+            A :class:`py:namedtuple` object containing the following named
             items:
 
-            * **instances** (list of :class:`~pywbem.CIMInstance`):
+            * **instances** (:class:`py:list` of :class:`~pywbem.CIMInstance`):
               Representations of the initial set of enumerated instances.
 
               The `path` attribute of each :class:`~pywbem.CIMInstance`
@@ -3077,7 +3077,7 @@ class WBEMConnection(object):
               makes sense to specify a different one in subsequent
               operations on the same enumeration session.
 
-            * **query_class** (:class:`~pywbem.CIMClass`):
+            * **query_result_class** (:class:`~pywbem.CIMClass`):
               If the `ReturnQueryResultClass` parameter is True, this tuple
               item contains a class definition that defines the properties
               of each row (instance) of the query result. Otherwise, `None`.
@@ -3130,11 +3130,11 @@ class WBEMConnection(object):
 
             insts, eos, enum_ctxt = self._get_rslt_params(result, namespace)
 
-            query_class = _GetQueryRsltClass(result) if \
-                              ReturnQueryResultClass else None
+            query_result_class = _GetQueryRsltClass(result) if \
+                                 ReturnQueryResultClass else None
 
             result_tuple = pull_query_result_tuple(insts, eos, enum_ctxt,
-                                                   query_class)
+                                                   query_result_class)
 
         except Exception as exc:
             if self.operation_recorder:
@@ -3202,10 +3202,10 @@ class WBEMConnection(object):
 
         Returns:
 
-            A :class:`py:namedtuple` object that contains the following named
+            A :class:`py:namedtuple` object containing the following named
             items:
 
-            * **instances** (list of :class:`~pywbem.CIMInstance`):
+            * **instances** (:class:`py:list` of :class:`~pywbem.CIMInstance`):
               Representations of the next set of enumerated instances.
 
               The `path` attribute of each :class:`~pywbem.CIMInstance`
@@ -3338,10 +3338,10 @@ class WBEMConnection(object):
 
         Returns:
 
-            A :class:`py:namedtuple` object that contains the following named
+            A :class:`py:namedtuple` object containing the following named
             items:
 
-            * **paths** (list of :class:`~pywbem.CIMInstanceName`):
+            * **paths** (:class:`py:list of` :class:`~pywbem.CIMInstanceName`):
               Representations of the next set of enumerated instance paths,
               with their attributes set as follows:
 
@@ -3470,10 +3470,10 @@ class WBEMConnection(object):
 
         Returns:
 
-            A :class:`py:namedtuple` object that contains the following named
+            A :class:`py:namedtuple` object containing the following named
             items:
 
-            * **instances** (list of :class:`~pywbem.CIMInstance`):
+            * **instances** (:class:`py:list` of :class:`~pywbem.CIMInstance`):
               Representations of the next set of enumerated instances.
 
               The `path` attribute of each :class:`~pywbem.CIMInstance`
@@ -3627,7 +3627,7 @@ class WBEMConnection(object):
 
         Parameters:
 
-          InstanceName (CIMInstanceName):
+          InstanceName (:class:`~pywbem.CIMInstanceName`):
             The instance path of the instance to be retrieved.
             If this object does not specify a namespace, the default namespace
             of the connection is used.
@@ -3673,7 +3673,7 @@ class WBEMConnection(object):
 
           PropertyList (:term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties to be
-            included in the returned instance, in any lexical case.
+            included in the returned instance (case independent).
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -3761,7 +3761,7 @@ class WBEMConnection(object):
 
         Parameters:
 
-          ModifiedInstance (CIMInstance):
+          ModifiedInstance (:class:`~pywbem.CIMInstance`):
             A representation of the modified instance, also indicating its
             instance path.
 
@@ -3797,7 +3797,7 @@ class WBEMConnection(object):
 
           PropertyList (:term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties to be
-            modified, in any lexical case.
+            modified (case independent).
 
             An empty iterable indicates to modify no properties.
 
@@ -3892,7 +3892,7 @@ class WBEMConnection(object):
 
         Parameters:
 
-          NewInstance (CIMInstance):
+          NewInstance (:class:`~pywbem.CIMInstance`):
             A representation of the CIM instance to be created.
 
             The `classname` attribute of this object specifies the creation
@@ -3908,7 +3908,7 @@ class WBEMConnection(object):
             of this object will be ignored.
 
           namespace (:term:`string`):
-            Name of the CIM namespace to be used, in any lexical case.
+            Name of the CIM namespace to be used (case independent).
 
         Keyword Arguments:
 
@@ -3982,7 +3982,7 @@ class WBEMConnection(object):
 
         Parameters:
 
-          InstanceName (CIMInstanceName):
+          InstanceName (:class:`~pywbem.CIMInstanceName`):
             The instance path of the instance to be deleted.
             If this object does not specify a namespace, the default namespace
             of the connection is used.
@@ -4056,48 +4056,48 @@ class WBEMConnection(object):
           ObjectName:
             The object path of the source object, as follows:
 
-            * For instance level usage: The instance path of the source
+            * For instance-level usage: The instance path of the source
               instance, as a :class:`~pywbem.CIMInstanceName` object.
               If this object does not specify a namespace, the default namespace
               of the connection is used.
               Its `host` attribute will be ignored.
 
-            * For class level usage: The class path of the source class, as a
+            * For class-level usage: The class path of the source class, as a
               :term:`string` or :class:`~pywbem.CIMClassName` object:
 
               If specified as a string, the string is interpreted as a class
-              name in the default namespace of the connection, and can have any
-              lexical case.
+              name in the default namespace of the connection
+              (case independent).
 
               If specified as a :class:`~pywbem.CIMClassName` object, its `host`
               attribute will be ignored. If this object does not specify
               a namespace, the default namespace of the connection is used.
 
           AssocClass (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Class name of an association class, in any lexical case,
+            Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
           ResultClass (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Class name of an associated class, in any lexical case,
+            Class name of an associated class (case independent),
             to filter the result to include only traversals to that associated
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
           Role (:term:`string`):
-            Role name (= property name) of the source end, in any
-            lexical case, to filter the result to include only traversals from
-            that source role.
+            Role name (= property name) of the source end (case independent),
+            to filter the result to include only traversals from that source
+            role.
 
             `None` means that no such filtering is peformed.
 
           ResultRole (:term:`string`):
-            Role name (= property name) of the far end, in any
-            lexical case, to filter the result to include only traversals to
-            that far role.
+            Role name (= property name) of the far end (case independent),
+            to filter the result to include only traversals to that far
+            role.
 
             `None` means that no such filtering is peformed.
 
@@ -4113,7 +4113,7 @@ class WBEMConnection(object):
 
             : The returned list of objects depend on the usage:
 
-            * For instance level usage: A list of
+            * For instance-level usage: A list of
               :class:`~pywbem.CIMInstanceName` objects that are the instance
               paths of the associated instances, with their attributes set as
               follows:
@@ -4125,7 +4125,7 @@ class WBEMConnection(object):
                 the CIM namespace, or `None` if the server did not return host
                 information.
 
-            * For class level usage: A list of :class:`~pywbem.CIMClassName`
+            * For class-level usage: A list of :class:`~pywbem.CIMClassName`
               objects that are the class paths of the associated classes, with
               their attributes set as follows:
 
@@ -4204,48 +4204,48 @@ class WBEMConnection(object):
           ObjectName:
             The object path of the source object, as follows:
 
-            * For instance level usage: The instance path of the source
+            * For instance-level usage: The instance path of the source
               instance, as a :class:`~pywbem.CIMInstanceName` object.
               If this object does not specify a namespace, the default namespace
               of the connection is used.
               Its `host` attribute will be ignored.
 
-            * For class level usage: The class path of the source class, as a
+            * For class-level usage: The class path of the source class, as a
               :term:`string` or :class:`~pywbem.CIMClassName` object:
 
               If specified as a string, the string is interpreted as a class
-              name in the default namespace of the connection, and can have any
-              lexical case.
+              name in the default namespace of the connection
+              (case independent).
 
               If specified as a :class:`~pywbem.CIMClassName` object, its `host`
               attribute will be ignored. If this object does not specify
               a namespace, the default namespace of the connection is used.
 
           AssocClass (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Class name of an association class, in any lexical case,
+            Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
           ResultClass (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Class name of an associated class, in any lexical case,
+            Class name of an associated class (case independent),
             to filter the result to include only traversals to that associated
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
           Role (:term:`string`):
-            Role name (= property name) of the source end, in any
-            lexical case, to filter the result to include only traversals from
-            that source role.
+            Role name (= property name) of the source end (case independent),
+            to filter the result to include only traversals from that source
+            role.
 
             `None` means that no such filtering is peformed.
 
           ResultRole (:term:`string`):
-            Role name (= property name) of the far end, in any
-            lexical case, to filter the result to include only traversals to
-            that far role.
+            Role name (= property name) of the far end (case independent),
+            to filter the result to include only traversals to that far
+            role.
 
             `None` means that no such filtering is peformed.
 
@@ -4276,7 +4276,7 @@ class WBEMConnection(object):
 
           PropertyList (:term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties to be included
-            in the returned instances (or classes), in any lexical case.
+            in the returned instances (or classes) (case independent).
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -4293,7 +4293,7 @@ class WBEMConnection(object):
 
             : The returned list of objects depend on the usage:
 
-            * For instance level usage: A list of
+            * For instance-level usage: A list of
               :class:`~pywbem.CIMInstance` objects that are representations
               of the associated instances.
 
@@ -4308,7 +4308,7 @@ class WBEMConnection(object):
                 the CIM namespace, or `None` if the server did not return host
                 information.
 
-            * For class level usage: A list of :class:`py:tuple` of
+            * For class-level usage: A list of :class:`py:tuple` of
               (classpath, class) objects that are representations of the
               associated classes.
 
@@ -4401,34 +4401,34 @@ class WBEMConnection(object):
           ObjectName:
             The object path of the source object, as follows:
 
-            * For instance level usage: The instance path of the source
+            * For instance-level usage: The instance path of the source
               instance, as a :class:`~pywbem.CIMInstanceName` object.
               If this object does not specify a namespace, the default namespace
               of the connection is used.
               Its `host` attribute will be ignored.
 
-            * For class level usage: The class path of the source class, as a
+            * For class-level usage: The class path of the source class, as a
               :term:`string` or :class:`~pywbem.CIMClassName` object:
 
               If specified as a string, the string is interpreted as a class
-              name in the default namespace of the connection, and can have any
-              lexical case.
+              name in the default namespace of the connection
+              (case independent).
 
               If specified as a :class:`~pywbem.CIMClassName` object, its `host`
               attribute will be ignored. If this object does not specify
               a namespace, the default namespace of the connection is used.
 
           ResultClass (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Class name of an association class, in any lexical case,
+            Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
           Role (:term:`string`):
-            Role name (= property name) of the source end, in any
-            lexical case, to filter the result to include only traversals from
-            that source role.
+            Role name (= property name) of the source end (case independent),
+            to filter the result to include only traversals from that source
+            role.
 
             `None` means that no such filtering is peformed.
 
@@ -4444,7 +4444,7 @@ class WBEMConnection(object):
 
             : The returned list of objects depend on the usage:
 
-            * For instance level usage: A list of
+            * For instance-level usage: A list of
               :class:`~pywbem.CIMInstanceName` objects that are the instance
               paths of the referencing association instances, with their
               attributes set as follows:
@@ -4456,7 +4456,7 @@ class WBEMConnection(object):
                 the CIM namespace, or `None` if the server did not return host
                 information.
 
-            * For class level usage: A list of :class:`~pywbem.CIMClassName`
+            * For class-level usage: A list of :class:`~pywbem.CIMClassName`
               objects that are the class paths of the referencing association
               classes, with their attributes set as follows:
 
@@ -4531,34 +4531,34 @@ class WBEMConnection(object):
           ObjectName:
             The object path of the source object, as follows:
 
-            * For instance level usage: The instance path of the source
+            * For instance-level usage: The instance path of the source
               instance, as a :class:`~pywbem.CIMInstanceName` object.
               If this object does not specify a namespace, the default namespace
               of the connection is used.
               Its `host` attribute will be ignored.
 
-            * For class level usage: The class path of the source class, as a
+            * For class-level usage: The class path of the source class, as a
               :term:`string` or :class:`~pywbem.CIMClassName` object:
 
               If specified as a string, the string is interpreted as a class
-              name in the default namespace of the connection, and can have any
-              lexical case.
+              name in the default namespace of the connection
+              (case independent).
 
               If specified as a :class:`~pywbem.CIMClassName` object, its `host`
               attribute will be ignored. If this object does not specify
               a namespace, the default namespace of the connection is used.
 
           ResultClass (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Class name of an association class, in any lexical case,
+            Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
           Role (:term:`string`):
-            Role name (= property name) of the source end, in any
-            lexical case, to filter the result to include only traversals from
-            that source role.
+            Role name (= property name) of the source end (case independent),
+            to filter the result to include only traversals from that source
+            role.
 
             `None` means that no such filtering is peformed.
 
@@ -4589,7 +4589,7 @@ class WBEMConnection(object):
 
           PropertyList (:term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties to be included
-            in the returned instances (or classes), in any lexical case.
+            in the returned instances (or classes) (case independent).
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -4606,7 +4606,7 @@ class WBEMConnection(object):
 
             : The returned list of objects depend on the usage:
 
-            * For instance level usage: A list of
+            * For instance-level usage: A list of
               :class:`~pywbem.CIMInstance` objects that are representations
               of the referencing association instances.
 
@@ -4621,7 +4621,7 @@ class WBEMConnection(object):
                 the CIM namespace, or `None` if the server did not return host
                 information.
 
-            * For class level usage: A list of :class:`py:tuple` of
+            * For class-level usage: A list of :class:`py:tuple` of
               (classpath, class) objects that are representations of the
               referencing association classes.
 
@@ -4720,24 +4720,23 @@ class WBEMConnection(object):
         Parameters:
 
           MethodName (:term:`string`):
-            Name of the method to be invoked (without parenthesis or any
-            parameter signature), in any lexical case.
+            Name of the method to be invoked (case independent).
 
           ObjectName:
             The object path of the target object, as follows:
 
-            * For instance level usage: The instance path of the target
+            * For instance-level usage: The instance path of the target
               instance, as a :class:`~pywbem.CIMInstanceName` object.
               If this object does not specify a namespace, the default namespace
               of the connection is used.
               Its `host` attribute will be ignored.
 
-            * For class level usage: The class path of the target class, as a
+            * For class-level usage: The class path of the target class, as a
               :term:`string` or :class:`~pywbem.CIMClassName` object:
 
               If specified as a string, the string is interpreted as a class
-              name in the default namespace of the connection, and can have any
-              lexical case.
+              name in the default namespace of the connection
+              (case independent).
 
               If specified as a :class:`~pywbem.CIMClassName` object, its `host`
               attribute will be ignored. If this object does not specify
@@ -4750,7 +4749,7 @@ class WBEMConnection(object):
             method and must be a ``tuple(name, value)``, with these tuple items:
 
             * name (:term:`string`):
-              Parameter name, in any lexical case
+              Parameter name (case independent)
             * value (:term:`CIM data type`):
               Parameter value
 
@@ -4760,7 +4759,7 @@ class WBEMConnection(object):
             CIM method, with:
 
             * key (:term:`string`):
-              Parameter name, in any lexical case
+              Parameter name (case independent)
             * value (:term:`CIM data type`):
               Parameter value
 
@@ -4871,7 +4870,7 @@ class WBEMConnection(object):
             parameter.
 
           namespace (:term:`string`):
-            Name of the CIM namespace to be used, in any lexical case.
+            Name of the CIM namespace to be used (case independent).
 
             If `None`, the default namespace of the connection object will be
             used.
@@ -4960,15 +4959,15 @@ class WBEMConnection(object):
 
           namespace (:term:`string`):
             Name of the namespace in which the class names are to be
-            enumerated, in any lexical case.
+            enumerated (case independent).
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
             also `None`, the default namespace of the connection will be used.
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Name of the class whose subclasses are to be retrieved, in any
-            lexical case.
+            Name of the class whose subclasses are to be retrieved
+            (case independent).
             If specified as a :class:`~pywbem.CIMClassName` object, its host
             attribute will be ignored.
 
@@ -5069,16 +5068,16 @@ class WBEMConnection(object):
         Parameters:
 
           namespace (:term:`string`):
-            Name of the namespace in which the classes are to be enumerated, in
-            any lexical case.
+            Name of the namespace in which the classes are to be enumerated
+            (case independent).
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
             also `None`, the default namespace of the connection will be used.
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Name of the class whose subclasses are to be retrieved, in any
-            lexical case.
+            Name of the class whose subclasses are to be retrieved
+            (case independent).
             If specified as a :class:`~pywbem.CIMClassName` object, its host
             attribute will be ignored.
 
@@ -5213,13 +5212,13 @@ class WBEMConnection(object):
         Parameters:
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Name of the class to be retrieved, in any lexical case.
+            Name of the class to be retrieved (case independent).
             If specified as a :class:`~pywbem.CIMClassName` object, its `host`
             attribute will be ignored.
 
           namespace (:term:`string`):
-            Name of the namespace of the class to be retrieved, in any lexical
-            case.
+            Name of the namespace of the class to be retrieved
+            (case independent).
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
@@ -5257,7 +5256,7 @@ class WBEMConnection(object):
 
           PropertyList (:term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties to be included
-            in the returned class, in any lexical case.
+            in the returned class (case independent).
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -5337,7 +5336,7 @@ class WBEMConnection(object):
 
         Parameters:
 
-          ModifiedClass (CIMClass):
+          ModifiedClass (:class:`~pywbem.CIMClass`):
             A representation of the modified class.
 
             The properties, methods and qualifiers defined in this object
@@ -5347,8 +5346,8 @@ class WBEMConnection(object):
             as :meth:`~pywbem.WBEMConnection.GetClass`.
 
           namespace (:term:`string`):
-            Name of the namespace in which the class is to be modified, in any
-            lexical case.
+            Name of the namespace in which the class is to be modified
+            (case independent).
 
             If `None`, the default namespace of the connection object will be
             used.
@@ -5413,7 +5412,7 @@ class WBEMConnection(object):
 
         Parameters:
 
-          NewClass (CIMClass):
+          NewClass (:class:`~pywbem.CIMClass`):
             A representation of the class to be created.
 
             The properties, methods and qualifiers defined in this object
@@ -5422,8 +5421,8 @@ class WBEMConnection(object):
             Its `path` attribute is ignored.
 
           namespace (:term:`string`):
-            Name of the namespace in which the class is to be created, in any
-            lexical case.
+            Name of the namespace in which the class is to be created
+            (case independent).
 
             If `None`, the default namespace of the connection object will be
             used.
@@ -5489,13 +5488,13 @@ class WBEMConnection(object):
         Parameters:
 
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
-            Name of the class to be deleted, in any lexical case.
+            Name of the class to be deleted (case independent).
             If specified as a :class:`~pywbem.CIMClassName` object, its `host`
             attribute will be ignored.
 
           namespace (:term:`string`):
-            Name of the namespace of the class to be deleted, in any lexical
-            case.
+            Name of the namespace of the class to be deleted
+            (case independent).
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
@@ -5567,7 +5566,7 @@ class WBEMConnection(object):
 
           namespace (:term:`string`):
             Name of the namespace in which the qualifier declarations are to be
-            enumerated, in any lexical case.
+            enumerated (case independent).
 
             If `None`, the default namespace of the connection object will be
             used.
@@ -5638,12 +5637,12 @@ class WBEMConnection(object):
         Parameters:
 
           QualifierName (:term:`string`):
-            Name of the qualifier declaration to be retrieved, in any lexical
-            case.
+            Name of the qualifier declaration to be retrieved
+            (case independent).
 
           namespace (:term:`string`):
-            Name of the namespace of the qualifier declaration, in any lexical
-            case.
+            Name of the namespace of the qualifier declaration
+            (case independent).
 
             If `None`, the default namespace of the connection object will be
             used.
@@ -5720,7 +5719,7 @@ class WBEMConnection(object):
 
           namespace (:term:`string`):
             Name of the namespace in which the qualifier declaration is to be
-            created or modified, in any lexical case.
+            created or modified (case independent).
 
             If `None`, the default namespace of the connection object will be
             used.
@@ -5783,12 +5782,11 @@ class WBEMConnection(object):
         Parameters:
 
           QualifierName (:term:`string`):
-            Name of the qualifier declaration to be deleted, in any lexical
-            case.
+            Name of the qualifier declaration to be deleted (case independent).
 
           namespace (:term:`string`):
             Name of the namespace in which the qualifier declaration is to be
-            deleted, in any lexical case.
+            deleted (case independent).
 
             If `None`, the default namespace of the connection object will be
             used.
@@ -5846,10 +5844,10 @@ def is_subclass(ch, ns, super_class, sub):
         :class:`~pywbem.WBEMConnection` object.
 
       ns (:term:`string`):
-        Namespace, in any lexical case.
+        Namespace (case independent).
 
       super_class (:term:`string`):
-        Super class name, in any lexical case.
+        Super class name (case independent).
 
       sub:
         The subclass.  This can either be a string or a
