@@ -1,0 +1,49 @@
+// A class with all CIM data types
+
+#pragma include ("qualifiers.mof")
+
+#pragma include("test_types.mof")
+
+
+// TODO: Uncomment this to work on issues with instance MOF
+instance of EX_AllTypes as $inner
+{
+    k1 = 9921;
+    k2 = "SampleLabelInner";
+    pui8  = 0;
+    pui16 = 0;
+    pui32 = 0;
+    pui64 = 0;
+    psi8  = +127;
+    psi16 = +32767;
+    psi32 = +2147483647;
+    psi64 = +9223372036854775807;
+    ps    = "abcdefg";
+    pc    = 'a';
+    pb    = false;
+    pdt   = "01234567061213.123456:000";
+    peo   = Null;
+    pei   = Null;
+};
+
+instance of EX_AllTypes as $outer
+{
+    k1 = 9922;
+    k2 = "SampleLabelOuter";
+    pui8  = 255;
+    pui16 = 65535;
+    pui32 = 4294967295;
+    pui64 = 18446744073709551615;
+    psi8  = -128;
+    psi16 = -32768;
+    psi32 = -2147483648;
+    psi64 = -9223372036854775808;
+    ps    = "abcdefg";
+    pc    = 'a';
+    pb    = true;
+    pdt   = "20160409061213.123456+120";
+//    peo   = $inner;
+//    pei   = $inner;
+};
+
+

@@ -28,7 +28,7 @@ from pywbem.cim_operations import CIMError
 from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 from pywbem.cim_constants import *
 from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
-                           CIMQualifierDeclaration
+                           CIMQualifierDeclaration, CIMDateTime
 from pywbem import mof_compiler
 
 from unittest_extensions import CIMObjectMixin
@@ -279,13 +279,154 @@ class TestRefs(MOFTest):
     """Test for valid References in mof"""
 
     def test_all(self):
+        """Execute test"""
         self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
                                                'testmofs',
                                                'test_refs.mof'),
                                   NAME_SPACE)
 
+class TestInstCompile(MOFTest, CIMObjectMixin):
+    """ Test the compile of instances defined with a class"""
+
+    def test_good_compile(self):
+        """Execute test with file containing class and two instances."""
+
+        self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
+                                               'testmofs',
+                                               'test_instance.mof'),
+                                  NAME_SPACE)
+        test_class = 'EX_AllTypes'
+        repo = self.mofcomp.handle
+
+        classes = repo.classes[NAME_SPACE]
+        self.assertTrue(test_class in classes)
+
+        ac_class = classes[test_class]
+        self.assertTrue(isinstance(ac_class, CIMClass))
+
+        instances = repo.instances[NAME_SPACE]
+
+        self.assertEqual(len(instances), 2)
+
+        for i in instances:
+            # both keys must exist
+            self.assertTrue(i.has_key('k1'))
+            self.assertTrue(i.has_key('k2'))
+
+            if i['k1'] == 9921 and i['k2'] == 'SampleLabelInner':
+                self.assertEqual(i['pui8'], 0)
+                self.assertEqual(i['pui16'], 0)
+                self.assertEqual(i['pui32'], 0)
+                self.assertEqual(i['pui64'], 0)
+                self.assertEqual(i['psi8'], 127)
+                self.assertEqual(i['psi16'], 32767)
+                self.assertEqual(i['psi32'], 2147483647)
+                self.assertEqual(i['psi64'], 9223372036854775807)
+                self.assertEqual(i['ps'], 'abcdefg')
+                self.assertEqual(i['pc'], u"'a'")
+                self.assertEqual(i['pb'], False)
+                self.assertEqual(i['pdt'],
+                                 CIMDateTime("01234567061213.123456:000"))
+                self.assertEqual(i['peo'], None)
+                self.assertEqual(i['pei'], None)
+
+            elif i['k1'] == 9922 and i['k2'] == 'SampleLabelOuter':
+                self.assertEqual(i['pui8'], 255)
+                self.assertEqual(i['pui16'], 65535)
+                self.assertEqual(i['pui32'], 4294967295)
+                self.assertEqual(i['pui64'], 18446744073709551615)
+                self.assertEqual(i['psi8'], -128)
+                self.assertEqual(i['psi16'], -32768)
+                self.assertEqual(i['psi32'], -2147483648)
+                self.assertEqual(i['psi64'], -9223372036854775808)
+                self.assertEqual(i['ps'], 'abcdefg')
+                self.assertEqual(i['pc'], u"'a'")
+                self.assertEqual(i['pb'], True)
+                self.assertEqual(i['pdt'],
+                                 CIMDateTime("20160409061213.123456+120"))
+                #self.assertEqual(i['peo'], None)
+                #self.assertEqual(i['pei'], None)
+            else:
+                self.fail('Cannot find required instance k1=%s, k2=%s' % \
+                          (i['k1'], i['k2']))
+
+
+    def test_invalid_property(self):
+        """Test compile of instance with duplicated property fails"""
+        self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
+                                               'testmofs',
+                                               'test_instance.mof'),
+                                  NAME_SPACE)
+        test_class = 'EX_AllTypes'
+        repo = self.mofcomp.handle
+
+        classes = repo.classes[NAME_SPACE]
+        self.assertTrue(test_class in classes)
+
+        third_instance = 'instance of EX_AllTypes\n' \
+                         '{\n' \
+                         'k1 = 9923;\n' \
+                         'k2 = "SampleLabeldupProperty";' \
+                         'pui8 = 0;\n' \
+                         'blah = 0;\n};'
+        try:
+            self.mofcomp.compile_string(third_instance, NAME_SPACE)
+            self.fail('Must fail compile with invalid property name')
+        except CIMError as ce:
+            self.assertEqual(ce.args[0], CIM_ERR_INVALID_PARAMETER)
+
+    def test_dup_property(self):
+        """Test compile of instance with duplicated property fails"""
+        self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
+                                               'testmofs',
+                                               'test_instance.mof'),
+                                  NAME_SPACE)
+        test_class = 'EX_AllTypes'
+        repo = self.mofcomp.handle
+
+        classes = repo.classes[NAME_SPACE]
+        self.assertTrue(test_class in classes)
+
+        third_instance = 'instance of EX_AllTypes\n' \
+                         '{\n' \
+                         'k1 = 9923;\n' \
+                         'k2 = "SampleLabeldupProperty";' \
+                         'pui8 = 0;\n' \
+                         'pui8 = 0;\n};'
+        try:
+            self.mofcomp.compile_string(third_instance, NAME_SPACE)
+            self.fail('Must fail compile with duplicate property name')
+        except CIMError as ce:
+            self.assertEqual(ce.args[0], CIM_ERR_INVALID_PARAMETER)
+
+    def test_mismatch_property(self):
+        """Test compile of instance with duplicated property fails"""
+        self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
+                                               'testmofs',
+                                               'test_instance.mof'),
+                                  NAME_SPACE)
+        test_class = 'EX_AllTypes'
+        repo = self.mofcomp.handle
+
+        classes = repo.classes[NAME_SPACE]
+        self.assertTrue(test_class in classes)
+
+        third_instance = 'instance of EX_AllTypes\n' \
+                         '{\n' \
+                         'k1 = 9923;\n' \
+                         'k2 = "SampleLabeldupProperty";' \
+                         'pui8 = "String for unit8";\n' \
+                         '};'
+        try:
+            self.mofcomp.compile_string(third_instance, NAME_SPACE)
+            self.fail('Must fail compile with mismatch property name')
+        except CIMError as ce:
+            self.assertEqual(ce.args[0], CIM_ERR_INVALID_PARAMETER)
+
+    # TODO add test for array value in inst, not scalar
+
 class TestTypes(MOFTest, CIMObjectMixin):
-    """Test for all CIM data types"""
+    """Test for all CIM data types in a class mof"""
 
     def test_all(self):
         """Execute test"""

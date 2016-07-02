@@ -1376,35 +1376,38 @@ def p_instanceDeclaration(p):
         else:
             raise
     path = CIMInstanceName(cname, namespace=ns)
-    inst = CIMInstance(cname, properties=cc.properties,
-                       qualifiers=quals, path=path)
+    inst = CIMInstance(cname, qualifiers=quals, path=path)
     for prop in props:
         pname = prop[1]
         pval = prop[2]
         try:
-            cprop = inst.properties[pname]
-            cprop.value = tocimobj(cprop.type, pval)
+            cprop = cc.properties[pname]
         except KeyError:
             ce = CIMError(CIM_ERR_INVALID_PARAMETER,
-                          'Invalid property: %s' % pname)
-            ce.file_line = (p.parser.file, p.lexer.lineno)
-            raise ce
-        except ValueError as ve:
-            ce = CIMError(CIM_ERR_INVALID_PARAMETER,
-                          'Invalid value for property %s: %s' % \
-                          (pname, ve.message))
+                          'Invalid property. Not in class: %s' % pname)
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
 
-    for prop in inst.properties.values():
-        if 'key' not in prop.qualifiers or not prop.qualifiers['key']:
-            continue
-        if prop.value is None:
-            ce = CIMError(CIM_ERR_FAILED,
-                          'Key property %s.%s is not set' % (cname, prop.name))
+        # confirm property name not duplicated.
+        if pname in inst.properties:
+            ce = CIMError(CIM_ERR_INVALID_PARAMETER,
+                          'Duplicate property: %s' % pname)
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
-        inst.path.keybindings[prop.name] = prop.value
+
+        try:
+            # build instance property from class property but without
+            # qualifiers, default value,
+            pprop = cprop.copy()
+            pprop.qualifiers = NocaseDict(None)
+            pprop.value = tocimobj(cprop.type, pval)
+            inst.properties[pname] = pprop
+        except ValueError as ve:
+            ce = CIMError(CIM_ERR_INVALID_PARAMETER,
+                          'Invalid value for property %s: %s' % \
+                          (pname, str(ve)))
+            ce.file_line = (p.parser.file, p.lexer.lineno)
+            raise ce
 
     if alias:
         p.parser.aliases[alias] = inst.path
@@ -1712,12 +1715,16 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             self.__default_namespace = 'root/cimv2'
 
     def _getns(self):
+        """Return either connection default or universal default namespace"""
         if self.conn is not None:
             return self.conn.default_namespace
         else:
             return self.__default_namespace
 
     def _setns(self, value):
+        """ Set the namespace in value into either the connection default or
+            package wide default namespace
+        """
         if self.conn is not None:
             self.conn.default_namespace = value
         else:
