@@ -388,6 +388,9 @@ class WBEMConnection(object):
 
       - :exc:`~pywbem.AuthError` - Authentication failed with the WBEM server.
 
+      - :exc:`~pywbem.HTTPError` - HTTP error (bad status code) received from
+        WBEM server.
+
       - :exc:`~pywbem.ParseError` - The response from the WBEM server cannot
         be parsed (for example, invalid characters or UTF-8 sequences,
         ill-formed XML, or invalid CIM-XML).

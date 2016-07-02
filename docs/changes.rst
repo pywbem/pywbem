@@ -215,6 +215,10 @@ Enhancements
   and profile version (issue #378) with a demo in examples/explure.py and
   tests in run_cim_operations.py
 
+* Cleaned up exception handling in `WBEMConnection` methods: Authentication
+  errors are now always raised as `pywbem.AuthError` (OpenWBEM raised
+  `pywbem.ConnectionError` in one case), and any other bad HTTP responses
+  are now raised as a new exception `pywbem.HTTPError`.
 
 Bug fixes
 ^^^^^^^^^

@@ -242,6 +242,10 @@ Exceptions
 
 .. autoclass:: pywbem.AuthError
 
+.. autoclass:: pywbem.HTTPError
+   :members:
+   :special-members: __str__
+
 .. autoclass:: pywbem.TimeoutError
 
 .. autoclass:: pywbem.ParseError
