@@ -52,7 +52,7 @@ from six.moves import urllib
 
 from .cim_obj import CIMClassName, CIMInstanceName, _ensure_unicode, \
                     _ensure_bytes
-from .exceptions import ConnectionError, AuthError, TimeoutError
+from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError
 
 _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
@@ -819,11 +819,14 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                     cimerror_hdr = response.getheader('CIMError', None)
                     if cimerror_hdr is not None:
                         cimdetails = {}
-                        pgdetails_hdr = response.getheader('PGErrorDetail', None)
+                        pgdetails_hdr = response.getheader('PGErrorDetail',
+                                                           None)
                         if pgdetails_hdr is not None:
-                            cimdetails['PGErrorDetail'] = urllib.parse.unquote(pgdetails_hdr)
                             #pylint: disable=too-many-function-args
-                        raise HTTPError(response.status, response.reason, cimerror_hdr, cimdetails)
+                            cimdetails['PGErrorDetail'] = \
+                                urllib.parse.unquote(pgdetails_hdr)
+                        raise HTTPError(response.status, response.reason,
+                                        cimerror_hdr, cimdetails)
 
                     raise HTTPError(response.status, response.reason)
 
