@@ -2,7 +2,7 @@
 
 """
 Example of handling subscriptions and indications from a particular
-provider in openpegasus. This example depends on a test class and
+provider in OpenPegasus. This example depends on a test class and
 method in OpenPegasus.  It creates a server and a listener, starts
 the listener and then requests the indications from the server.
 It waits for a defined time for all indications to be received and
@@ -14,7 +14,8 @@ from __future__ import print_function, absolute_import
 import sys
 import time
 import logging
-from socket import getfqdn
+import datetime
+from urlparse import urlparse
 from pywbem import WBEMConnection, WBEMServer, WBEMListener, CIMClassName, \
                    Error, Uint32
 
@@ -29,7 +30,34 @@ RECEIVED_INDICATION_COUNT = 0
 LISTENER = None
 
 
-def process_indication(indication, host):
+class ElapsedTimer(object):
+    """
+        Set up elapsed time timer. Calculates time between initiation
+        and access.
+    """
+    def __init__(self):
+        """ Initiate the object with current time"""
+        self.start_time = datetime.datetime.now()
+
+    def reset(self):
+        """ Reset the start time for the timer"""
+        self.start_time = datetime.datetime.now()
+
+    def elapsed_ms(self):
+        """ Get the elapsed time in milliseconds. returns floating
+            point representation of elapsed time in seconds.
+        """
+        dt = datetime.datetime.now() - self.start_time
+        return ((dt.days * 24 * 3600) + dt.seconds) * 1000  \
+                + dt.microseconds / 1000.0
+
+    def elapsed_sec(self):
+        """ get the elapsed time in seconds. Returns floating
+            point representation of time in seconds
+        """
+        return self.elapsed_ms() / 1000
+
+def consume_indication(indication, host):
     """This function gets called when an indication is received.
        Depends on logger inside listener for output
     """
@@ -39,11 +67,71 @@ def process_indication(indication, host):
     # increment count. This is thread safe because of GIL
     RECEIVED_INDICATION_COUNT += 1
 
-    LISTENER.logger.info("++++++++++Received CIM indication #%s: host=%s\n%s",
-                         RECEIVED_INDICATION_COUNT, host, indication)
+    LISTENER.logger.debug("Consumed CIM indication #%s: host=%s\n%s",
+                          RECEIVED_INDICATION_COUNT, host, indication.tomof())
+
+def wait_for_indications(requested_indications):
+    """
+    Wait for indications to be received Time depends on indication count
+    assume 5 per sec. Loop looks once per sec for all indications
+    received but terminates after wait_time seconds.
+    In addition it looks for idle indication count.  If the count has not
+    moved in 30 seconds, it breaks the wait loop.
+    Returns True if wait successful and counts match
+    """
+    last_indication_count = 0
+    counter = 0
+    starttime = ElapsedTimer()
+    try:
+        success = False
+        wait_time = int(requested_indications / 5) + 3
+        for i in range(wait_time):
+            if last_indication_count != RECEIVED_INDICATION_COUNT:
+                last_indication_count = RECEIVED_INDICATION_COUNT
+                counter = 0
+                
+            time.sleep(1)
+
+            # exit loop if all indications recieved.
+            if RECEIVED_INDICATION_COUNT >= requested_indications:
+                elapsed_time = starttime.elapsed_sec()
+                ind_per_sec = 0
+                if elapsed_time != 0:
+                    ind_per_sec = RECEIVED_INDICATION_COUNT/elapsed_time
+                print('Rcvd %s indications in %s sec; %02.f per sec. '\
+                      'Exit wait loop' % \
+                      (RECEIVED_INDICATION_COUNT, elapsed_time, ind_per_sec))
+                success = True
+                break
+            counter += 1
+            if counter > 30:
+                print('Indication reception stalled at received=%s' %
+                      RECEIVED_INDICATION_COUNT)
+                break
+
+    except KeyboardInterrupt:
+        print('Ctrl-C terminating wait loop early')
+
+    # If success, wait and recheck to be sure no extras received.
+    if success:
+        time.sleep(2)
+        if RECEIVED_INDICATION_COUNT != requested_indications:
+            print('ERROR. Extra indications received')
+    return success
 
 
-def run_test(url, user, password, requested_indication_count, verbose):
+def cleanup_listener(listener, server_id, subscription_path, filter_path):
+    """ Remove the subscription and filter and stop listener."""
+
+    listener.remove_subscription(server_id, subscription_path)
+    listener.remove_dynamic_filter(server_id, filter_path)
+
+    # Stop the listener and remove the server.
+    listener.stop()
+    listener.remove_server(server_id)
+
+def run_test(svr_url, listener_host, user, password, http_listener_port, \
+             https_listener_port, requested_indications):
     """
         Runs a test that:
         1. Creates a server
@@ -51,39 +139,44 @@ def run_test(url, user, password, requested_indication_count, verbose):
         3. Creates a filter and subscription
         4. Calls the server to execute a method that creates an indication
         5. waits for indications to be received.
-        6. Removes the filter and subscription, stop the listener, and stop
-           the server.
-
+        6. Removes the filter and subscription and stops the listener
     """
 
-    logging.basicConfig(stream=sys.stderr, level=logging.INFO,
-                        format= \
-                        '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    #logging.basicConfig(stream=sys.stderr, level=logging.INFO,
+    #                    format= \
+    #                    '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
 
-    conn = WBEMConnection(url, (user, password), no_verification=True)
+    conn = WBEMConnection(svr_url, (user, password), no_verification=True)
     server = WBEMServer(conn)
-
-    # Set arbitrary port for the http listener
-    http_listener_port = 50000
 
     # Create the listener and listener call back and start the listener
 
+    #pylint: disable=global-statement
     global LISTENER
-    LISTENER = WBEMListener(getfqdn(), http_port=http_listener_port,
-                            https_port=None)
 
-    # connect the listener callback, add to server, and start listener
-    LISTENER.add_callback(process_indication)
-    server_id = LISTENER.add_server(server)
-    LISTENER.start()
+    LISTENER = WBEMListener(listener_host, http_port=http_listener_port,
+                            https_port=https_listener_port)
 
     # set up listener logger.
-    LISTENER.logger.addHandler(logging.StreamHandler())
+    hdlr = logging.FileHandler('pegasusindications.log')
+    hdlr.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        '%(asctime)s %(name)-12s %(levelname)s %(message)s')
+    hdlr.setFormatter(formatter)
+    LISTENER.logger.addHandler(hdlr)
 
-    # define a logger for the client code below.
-    client_log = logging.getLogger("Client")
+    # connect the listener callback, add to server,
+    server_id = LISTENER.add_server(server)
 
-    client_log.info('WBEMListener started http port %s ', http_listener_port)
+    old_filters = LISTENER.get_dynamic_filters(server_id)
+    if len(old_filters) != 0:
+        print('%s filters exist in server' % len(old_filters))
+        for i in old_filters:
+            print('all filter %s', i.tomof())
+
+    #start connect and start listener. Comment next lines for separate listener
+    LISTENER.add_callback(consume_indication)
+    LISTENER.start()
 
     # Create a dynamic alert indication filter and subscribe for it
     filter_path = LISTENER.add_dynamic_filter(server_id, TEST_CLASS_NAMESPACE,
@@ -94,49 +187,35 @@ def run_test(url, user, password, requested_indication_count, verbose):
 
     # request server to create indications by invoking method
     class_name = CIMClassName(TEST_CLASS, namespace=TEST_CLASS_NAMESPACE)
+
     try:
-        # send method to server to create  required number of indications.
-        # This is a pegasus specific class and method
+        # Send method to pegasus server to create  required number of
+        # indications. This is a pegasus specific class and method
         result = conn.InvokeMethod("SendTestIndicationsCount", class_name,
                                    [('indicationSendCount',
-                                     Uint32(requested_indication_count))])
+                                     Uint32(requested_indications))])
 
         if result[0] != 0:
-            client_log.error('Method error. Nonzero return. %s', result[0])
+            print('Method error. Nonzero return. %s' % result[0])
             sys.exit(1)
 
     except Error as er:
-        client_log.error('Indication Method exception %s', er)
-        #TODO It would be more logical to eliminate the filter, subscription
-        #     and listener at this point before we exit.
+        print('Indication Method exception %s' % er)
+        cleanup_listener(LISTENER, server_id, subscription_path, filter_path)
         sys.exit(1)
 
-    # wait for indications to be received. Time depends on indication count
-    # assume 5 per sec. Loop looks once per sec for all indications
-    # received but terminates after wait_time seconds.
-    # TODO this is a primitive wait loop but sufficient for testing.
-    wait_time = int(requested_indication_count / 5) + 3
-    for i in range(wait_time):
-        time.sleep(1)
-        # exit the loop if all indications recieved.
-        if RECEIVED_INDICATION_COUNT == requested_indication_count:
-            break
+    # wait for indications to be received. Time based on number of indications
+    wait_for_indications(requested_indications)
 
-    # remove the subscription and filter
-    LISTENER.remove_subscription(url, subscription_path)
-    LISTENER.remove_dynamic_filter(server_id, filter_path)
-
-    # time for any final indications to be received before stopping listener
-    # Then stop the listener and remove the server.
-    time.sleep(2)
-    LISTENER.stop()
-    LISTENER.remove_server(server_id)
+    cleanup_listener(LISTENER, server_id, subscription_path, filter_path)
 
     # Test for all expected indications received.
-    if RECEIVED_INDICATION_COUNT != requested_indication_count:
-        client_log.error('Insufficient indications received exp=%s recvd=%s',
-                         requested_indication_count, RECEIVED_INDICATION_COUNT)
+    if RECEIVED_INDICATION_COUNT != requested_indications:
+        print('Incorrect count of indications received exp=%s recvd=%s' % \
+              (requested_indications, RECEIVED_INDICATION_COUNT))
         sys.exit(1)
+    else:
+        print('Success, %s indications' % requested_indications)
 
 
 def main():
@@ -146,31 +225,41 @@ def main():
         arguments
     """
 
-    if len(sys.argv) < 5:
+    if len(sys.argv) < 6:
         print("Requires fixed set of arguments or defaults to internally\n "
               "defined arguments.\n"
               "Usage: %s <url> <username> <password> <indication-count>" \
               "Where: <url> server url, ex. http://localhost\n" \
+              "       http listener port\n" \
               "       <username> username for authentication\n" \
               "       <password> password for authentication\n" \
               "       <indication-count> Number of indications to request.\n" \
-              "Ex: %s http://fred blah blah 100." \
+              "Ex: %s http://fred 5000 blah blah 100 " \
               % (sys.argv[0], sys.argv[0]))
-        sys.exit(2)
-        server_url = 'localhost'
+        server_url = 'http://localhost'
         username = 'blah'
         password = 'blah'
-        requested_indication_count = 10
+        http_listener_port = 5000
+        requested_indications = 100
     else:
         server_url = sys.argv[1]
-        username = sys.argv[2]
-        password = sys.argv[3]
-        requested_indication_count = int(sys.argv[4])
+        http_listener_port = int(sys.argv[2])
+        username = sys.argv[3]
+        password = sys.argv[4]
+        requested_indications = int(sys.argv[5])
 
-    verbose = True
+    listener_addr = urlparse(server_url).netloc
 
-    run_test(server_url, username, password, requested_indication_count,
-             verbose)
+    print('url=%s listener=%s port=%s usr=%s pw=%s cnt=%s' % \
+          (server_url, listener_addr, http_listener_port, \
+           username, password, requested_indications))
+
+    #https_listener_port = http_listener_port + 1
+    https_listener_port = None
+
+    run_test(server_url, listener_addr, username, password,
+             http_listener_port, https_listener_port,
+             requested_indications)
 
     return 0
 

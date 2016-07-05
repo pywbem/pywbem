@@ -17,11 +17,13 @@ import unittest
 from getpass import getpass
 import warnings
 
-from socket import getfqdn
 import time
+if sys.version_info >= (3, 0):
+    from urllib.parse import urlparse
+if sys.version_info < (3, 0) and sys.version_info >= (2, 5):
+    from urlparse import urlparse
 
 import six
-
 from pywbem.cim_constants import *
 from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
                    CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
@@ -718,7 +720,7 @@ class PullEnumerateInstances(ClientTest):
 
         self.assertInstancesValid(insts2)
 
-        self.assertTrue(len(insts_pulled) == len(insts2))
+        self.assertEqual(len(insts_pulled), len(insts2))
         # TODO call the compare instances function
 
 
@@ -2393,12 +2395,10 @@ class PegasusServerTestBase(ClientTest):
                                      namespace=interop,
                                      LocalOnly=True)
             self.assertTrue(len(instances) != 0)
-            if self.verbose:
-                print('Namespaces:')
+
             for instance in instances:
-                prop = instance.properties['Name'].value
-                ascii = prop.encode()
-                namespaces.append(ascii)
+                name = instance.properties['Name'].value
+                namespaces.append(name)
 
             if self.verbose:
                 print('Namespaces:')
@@ -2425,7 +2425,6 @@ class PegasusServerTestBase(ClientTest):
         try:
             self.cimcall(self.conn.GetClass, "PG_ObjectManager",
                          namespace=ns)
-            return True
         except CIMError:
             print('Class PG_ObjectManager not found')
             return False
@@ -2437,7 +2436,7 @@ class PegasusServerTestBase(ClientTest):
             # should be one instance of the class.
 
             if len(instances_) != 1:
-                print('No instances of PG_ObjectManager')
+                print('Not Pegasus Server. No instances of PG_ObjectManager')
                 return False
 
             if self.verbose:
@@ -2449,10 +2448,9 @@ class PegasusServerTestBase(ClientTest):
                         print(i.properties["ElementName"])
 
         except CIMError:
-            print('Class PG_ObjectManager not found')
             return False
 
-        return False
+        return True
 
     def is_pegasus_test_build(self):
         """Assure that this is a pegasus test build with the test
@@ -2462,9 +2460,11 @@ class PegasusServerTestBase(ClientTest):
         if self.is_pegasus_server():
             namespaces = self.get_namespaces()
 
-            if 'test/testprovider' in namespaces:
+            if 'test/TestProvider' in namespaces:
                 return True
+
             return False
+
         return False
 
 
@@ -2481,8 +2481,8 @@ class PegasusServerTestBase(ClientTest):
             try:
                 classes_ = self.cimcall(self.conn.EnumerateClassNames,
                                         namespace=ns,)
-                self.assertFalse((len(classes_) == 0),
-                                 'Interop namspace empty')
+                self.assertTrue((len(classes_) != 0),
+                                'Interop namspace empty')
                 return ns
             except CIMError as ce:
                 if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
@@ -2700,7 +2700,6 @@ class PyWBEMServerClass(PegasusServerTestBase):
         server = WBEMServer(self.conn)
 
         self.assertEqual(len(server.namespaces), len(peg_namespaces))
-
         for n in peg_namespaces:
             self.assertTrue(n in server.namespaces)
 
@@ -2855,70 +2854,6 @@ class PyWBEMServerClass(PegasusServerTestBase):
             print("Error: %s" % str(exc))
             self.fail("No Server class")
 
-
-class PyWBEMListenerClass(PyWBEMServerClass):
-    """Test the management of indications with the listener class"""
-
-    #pylint: disable=invalid-name
-    def test_create_delete_subscription(self):
-        """
-        Create and delete a server and listener and create an indication.
-        Then delete everything.
-        This is a pegasus specific test because it depends on the existence
-        of pegasus specific classes and providers.
-        """
-        # TODO modify this so it is not Pegasus dependent
-        if self.is_pegasus_test_build():
-            test_class = 'Test_IndicationProviderClass'
-            test_class_namespace = 'test/TestProvider'
-            test_query = 'SELECT * from %s' % test_class
-
-            server = WBEMServer(self.conn)
-
-            # Set arbitrary ports for the listener
-            http_listener_port = 50000
-            https_listener_port = 50001
-
-            # Create the listener and listener call back and start the listener
-
-            listener = WBEMListener(getfqdn(), http_port=http_listener_port,
-                                    https_port=https_listener_port)
-            server_id = listener.add_server(server)
-            listener.start()
-
-            filter_path = listener.add_dynamic_filter(server_id,
-                                                      test_class_namespace,
-                                                      test_query,
-                                                      query_language="DMTF:CQL")
-
-            subscription_path = listener.add_subscription(server_id,
-                                                          filter_path)
-
-            host_filters = listener.get_dynamic_filters(server_id)
-            self.assertTrue(filter_path in host_filters)
-
-            host_subscriptions = listener.get_subscriptions(server_id)
-            self.assertTrue(subscription_path in host_subscriptions)
-
-            listener.remove_subscription(server_id, subscription_path)
-            listener.remove_dynamic_filter(server_id, filter_path)
-
-            # confirm that filter and subscription were removed
-            host_filters = listener.get_dynamic_filters(server_id)
-            self.assertFalse(filter_path in host_filters)
-
-            host_subscriptions = listener.get_subscriptions(server_id)
-            self.assertFalse(subscription_path in host_subscriptions)
-
-            time.sleep(2)
-            listener.stop()
-            listener.remove_server(server_id)
-
-        #TODO ks 6/16 add more tests including: multiple subscriptions, filters
-        #     actual indication production, Errors. extend for ssl, test
-        #     logging
-
-
     def test_server_select_profiles(self):
         """Test the select_profiles function"""
 
@@ -2979,6 +2914,169 @@ class PyWBEMListenerClass(PyWBEMServerClass):
         self.assertEqual(len(server.get_selected_profiles('blah', 'blah')), 0)
         self.assertEqual(len(server.get_selected_profiles('blah')), 0)
 
+
+RECEIVED_INDICATION_COUNT = 0
+
+# pylint: disable=unused-argument
+def consume_indication(indication, host):
+    """This function is called when an indication is received.
+        It counts indications received into a global counter
+    """
+
+    #pylint: disable=global-variable-not-assigned
+    global RECEIVED_INDICATION_COUNT
+    # increment count. This is thread safe because of GIL
+    RECEIVED_INDICATION_COUNT += 1
+
+class PyWBEMListenerClass(PyWBEMServerClass):
+    """Test the management of indications with the listener class"""
+
+    #pylint: disable=invalid-name
+    def test_create_delete_subscription(self):
+        """
+        Create and delete a server and listener and create an indication.
+        Then delete everything.
+        This is a pegasus specific test because it depends on the existence
+        of pegasus specific classes and providers.
+        """
+        # TODO modify this so it is not Pegasus dependent
+        if self.is_pegasus_test_build():
+            test_class = 'Test_IndicationProviderClass'
+            test_class_namespace = 'test/TestProvider'
+            test_query = 'SELECT * from %s' % test_class
+
+            server = WBEMServer(self.conn)
+
+            # Set arbitrary ports for the listener
+            http_listener_port = 50000
+            https_listener_port = None
+
+            listener_addr = urlparse(self.system_url).netloc
+
+            # Create the listener and listener call back and start the listener
+            listener = WBEMListener(listener_addr, http_port=http_listener_port,
+                                    https_port=https_listener_port)
+
+            server_id = listener.add_server(server)
+            listener.start()
+
+            filter_path = listener.add_dynamic_filter(server_id,
+                                                      test_class_namespace,
+                                                      test_query,
+                                                      query_language="DMTF:CQL")
+
+            subscription_path = listener.add_subscription(server_id,
+                                                          filter_path)
+
+            host_filters = listener.get_dynamic_filters(server_id)
+            self.assertTrue(filter_path in host_filters)
+
+            host_subscriptions = listener.get_subscriptions(server_id)
+            self.assertTrue(subscription_path in host_subscriptions)
+
+            listener.remove_subscription(server_id, subscription_path)
+            listener.remove_dynamic_filter(server_id, filter_path)
+
+            # confirm that filter and subscription were removed
+            host_filters = listener.get_dynamic_filters(server_id)
+            self.assertFalse(filter_path in host_filters)
+
+            host_subscriptions = listener.get_subscriptions(server_id)
+            self.assertFalse(subscription_path in host_subscriptions)
+
+            listener.stop()
+            listener.remove_server(server_id)
+
+        #TODO ks 6/16 add more tests including: multiple subscriptions, filters
+        #     actual indication production, Errors. extend for ssl, test
+        #     logging
+
+    def test_create_indications(self):
+        """Create a server, listener, etc. create a filter  and subscription
+           and request OpenPegasus to send a set of indications to our
+           consumer.  Tests that the proper set of indications received
+           and then cleans up and shuts down
+        """
+
+        if self.is_pegasus_test_build():
+            requested_indications = 200
+            test_class = 'Test_IndicationProviderClass'
+            test_class_namespace = 'test/TestProvider'
+            test_query = 'SELECT * from %s' % test_class
+
+            server = WBEMServer(self.conn)
+
+            # Set arbitrary ports for the listener
+            http_listener_port = 50000
+            https_listener_port = None
+            listener_addr = urlparse(self.system_url).netloc
+
+            # Create the listener and listener call back and start the listener
+
+            listener = WBEMListener(listener_addr, http_port=http_listener_port,
+                                    https_port=https_listener_port)
+            server_id = listener.add_server(server)
+            listener.start()
+
+            listener.add_callback(consume_indication)
+            listener.start()
+
+            filter_path = listener.add_dynamic_filter(server_id,
+                                                      test_class_namespace,
+                                                      test_query,
+                                                      query_language="DMTF:CQL")
+
+            subscription_path = listener.add_subscription(server_id,
+                                                          filter_path)
+
+            host_filters = listener.get_dynamic_filters(server_id)
+            self.assertTrue(filter_path in host_filters)
+
+            host_subscriptions = listener.get_subscriptions(server_id)
+            self.assertTrue(subscription_path in host_subscriptions)
+
+            class_name = CIMClassName(test_class,
+                                      namespace=test_class_namespace)
+
+            # Send method to pegasus server to create  required number of
+            # indications. This is a pegasus specific class and method
+            result = self.cimcall(self.conn.InvokeMethod,
+                                  "SendTestIndicationsCount",
+                                  class_name,
+                                  [('indicationSendCount',
+                                    Uint32(requested_indications))])
+
+            if result[0] != 0:
+                self.fail('Error: invokemethod to create indication')
+
+            # wait for indications to be received
+            success = False
+            wait_time = int(requested_indications / 5) + 3
+            for i in range(wait_time):
+                time.sleep(1)
+                # exit the loop if all indications recieved.
+                if RECEIVED_INDICATION_COUNT >= requested_indications:
+                    success = True
+                    break
+
+            # If success, wait and recheck to be sure no extras received.
+            if success:
+                time.sleep(2)
+                self.assertEqual(RECEIVED_INDICATION_COUNT,
+                                 requested_indications)
+
+            listener.remove_subscription(server_id, subscription_path)
+            listener.remove_dynamic_filter(server_id, filter_path)
+
+            # confirm that filter and subscription were removed
+            host_filters = listener.get_dynamic_filters(server_id)
+            self.assertFalse(filter_path in host_filters)
+
+            host_subscriptions = listener.get_subscriptions(server_id)
+            self.assertFalse(subscription_path in host_subscriptions)
+
+            listener.stop()
+            listener.remove_server(server_id)
 
 #################################################################
 # Main function
