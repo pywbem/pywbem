@@ -151,6 +151,7 @@ __all__ = ['WBEMListener', 'callback_interface']
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn,
                          BaseHTTPServer.HTTPServer):
+    """Defines an HTTPServer class for indication reception"""
     pass
 
 
@@ -406,7 +407,9 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 msgid, IMPLEMENTED_PROTOCOL_VERSION),
             IMPLEMENTED_CIM_VERSION, IMPLEMENTED_DTD_VERSION)
 
-        resp_body = resp_xml.toxml()
+        resp_body = '<?xml version="1.0" encoding="utf-8" ?>\n' + \
+                    resp_xml.toxml()
+
         if isinstance(resp_body, six.text_type):
             resp_body = resp_body.encode("utf-8")
 
@@ -434,8 +437,9 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     ),
                 msgid, IMPLEMENTED_PROTOCOL_VERSION),
             IMPLEMENTED_CIM_VERSION, IMPLEMENTED_DTD_VERSION)
+        resp_body = '<?xml version="1.0" encoding="utf-8" ?>\n' + \
+                    resp_xml.toxml()
 
-        resp_body = resp_xml.toxml()
         if isinstance(resp_body, six.text_type):
             resp_body = resp_body.encode("utf-8")
 
