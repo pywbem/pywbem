@@ -142,9 +142,6 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
         6. Removes the filter and subscription and stops the listener
     """
 
-    #logging.basicConfig(stream=sys.stderr, level=logging.INFO,
-    #                    format= \
-    #                    '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
 
     conn = WBEMConnection(svr_url, (user, password), no_verification=True)
     server = WBEMServer(conn)
@@ -155,7 +152,8 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     global LISTENER
 
     LISTENER = WBEMListener(listener_host, http_port=http_listener_port,
-                            https_port=https_listener_port)
+                            https_port=https_listener_port,
+                            listener_id="pegindicationtest")
 
     # set up listener logger.
     hdlr = logging.FileHandler('pegasusindications.log')

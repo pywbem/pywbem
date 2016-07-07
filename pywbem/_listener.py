@@ -93,13 +93,13 @@ any indications it receives, in MOF format.
 """
 
 import re
-import time
 from socket import getfqdn
 import logging
 import ssl
 from xml.dom import minidom
 from xml.parsers.expat import ExpatError
 import threading
+import uuid
 import six
 from six.moves import BaseHTTPServer
 from six.moves import socketserver
@@ -110,7 +110,7 @@ from ._server import WBEMServer
 from ._version import __version__
 from .cim_obj import CIMInstance, CIMInstanceName, _ensure_unicode
 from .cim_operations import check_utf8_xml_chars
-from .cim_constants import CIM_ERR_FAILED, CIM_ERR_NOT_SUPPORTED, \
+from .cim_constants import CIM_ERR_NOT_SUPPORTED, \
                            CIM_ERR_INVALID_PARAMETER, _statuscode2name
 from .tupleparse import parse_cim
 from .tupletree import dom_to_tupletree
@@ -573,6 +573,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                  logging.INFO)
 
     def _get_log_prefix(self):
+        """Return the prefix components for a log entry"""
         return '%s %s from %s' % \
                (self.request_version, self.command, self.client_address[0])
 
@@ -584,7 +585,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             (__version__, self.server_version, self.sys_version)
 
 
-
+#pylint: disable=too-many-instance-attributes
 class WBEMListener(object):
     """
     A WBEM listener.
@@ -601,7 +602,7 @@ class WBEMListener(object):
 
     def __init__(self, host, http_port=DEFAULT_LISTENER_PORT_HTTP,
                  https_port=DEFAULT_LISTENER_PORT_HTTPS,
-                 certfile=None, keyfile=None):
+                 certfile=None, keyfile=None, listener_id=None):
         """
         Parameters:
 
@@ -638,6 +639,20 @@ class WBEMListener(object):
 
             `None` means not to use a private key file. Setting up a port
             for HTTPS requires specifying a private key file.
+
+          listener_id (:term:`string`):
+            If not `None` a string of printable characters to be inserted in
+            the name property of filter and listener destination instances
+            to help the listener identify its filters and destination instances
+            in a WBEM Server.
+
+            The string must not contain the character ':' since that
+            is the separator between components of the name property applied
+            to each filter.
+
+            The form for the name property of a PyWBEM of a filter is:
+
+        "pywbemfilter:" [<listener_id>  ":"] [<filter_id> ":"] <guid>
         """
 
         self._host = host
@@ -688,6 +703,15 @@ class WBEMListener(object):
         self._destination_path = {}  # CIMInstanceName of listener destination
 
         self._callbacks = []  # Registered callback functions
+
+        if listener_id is None:
+            self._listener_id = ''
+        elif isinstance(listener_id, six.string_types):
+            if ':' in listener_id:
+                raise ValueError("Invalid String: listener_id contains :")
+            self._listener_id = '%s:' % listener_id
+        else:
+            raise TypeError("invalid type for listener_id")
 
     def __repr__(self):
         """
@@ -900,7 +924,7 @@ class WBEMListener(object):
                              server.conn.url)
 
         dest_url = '%s://%s:%s' % (scheme, self.host, port)
-        dest_path = _create_destination(server, dest_url)
+        dest_path = _create_destination(server, dest_url, self._listener_id)
 
         self._servers[server_id] = server
         self._subscription_paths[server_id] = []
@@ -954,7 +978,8 @@ class WBEMListener(object):
         del self._servers[server_id]
 
     def add_dynamic_filter(self, server_id, source_namespace, query,
-                           query_language=DEFAULT_QUERY_LANGUAGE):
+                           query_language=DEFAULT_QUERY_LANGUAGE,
+                           filter_id=None):
         """
         Add a dynamic indication filter to a WBEM server, by creating an
         indication filter instance in the Interop namespace of the server.
@@ -980,6 +1005,20 @@ class WBEMListener(object):
 
             Examples: 'WQL', 'DMTF:CQL'.
 
+        filter_id(:term: `string`)
+            If not `None` a printable string that is incorporated into the name
+            property of the filter instance to help the listener identify
+            its filters and handler instances in a WBEM Server. The character
+            ":" is not allowed in this string since it is the separator between
+            components of the final filter_id.  Filter ids need not be
+            unique and can be used to identify groups of filters by applying
+            the same `filter_id` to them.
+
+            The form of the filter name property is:
+
+              "pywbemfilter:" [ <listener_id> ":"] [ <filter_id> ":" ] <guid>
+
+
         Returns:
 
             :class:`~pywbem.CIMInstanceName`: The instance path of the
@@ -994,7 +1033,8 @@ class WBEMListener(object):
                              server_id)
         server = self._servers[server_id]
         filter_path = _create_filter(server, source_namespace, query,
-                                     query_language)
+                                     query_language, self._listener_id,
+                                     filter_id)
         self._dynamic_filter_paths[server_id].append(filter_path)
         return filter_path
 
@@ -1034,8 +1074,10 @@ class WBEMListener(object):
 
     def get_dynamic_filters(self, server_id):
         """
-        Return the dynamic indication filters in a WBEM server that have been
-        created by this listener.
+        Return the dynamic indication filter instance paths in a WBEM server
+        that have been created by this listener. This function access only
+        the local list of dynamic filters. It does NOT contact the WBEM
+        server.
 
         Parameters:
 
@@ -1058,7 +1100,8 @@ class WBEMListener(object):
 
     def get_filters(self, server_id):
         """
-        Return all (dynamic and static) indication filters in a WBEM server.
+        Return all (dynamic and static) indication filter instance paths in
+        a WBEM server. This function requests filters from the WBEM server
 
         Parameters:
 
@@ -1179,7 +1222,8 @@ class WBEMListener(object):
 
     def get_all_destination_instances(self, server_id):
         """
-        Return all 'CIM_ListenerDestinationCIMXML' instances in a WBEM server.
+        Return all 'CIM_ListenerDestinationCIMXML' instance paths in a
+        WBEM server.
 
         Parameters:
 
@@ -1205,7 +1249,7 @@ class WBEMListener(object):
 
     def get_all_subscriptions(self, server_id):
         """
-        Return all CIM_IndicationSubscription instances in a WBEM server.
+        Return all CIM_IndicationSubscription instance paths in a WBEM server.
 
         Parameters:
 
@@ -1268,7 +1312,7 @@ class WBEMListener(object):
             self._callbacks.append(callback)
 
 
-def _create_destination(server, dest_url):
+def _create_destination(server, dest_url, listener_id=None):
     """
     Create a listener destination instance in the Interop namespace of a
     WBEM server and return its instance path.
@@ -1285,6 +1329,13 @@ def _create_destination(server, dest_url):
         The URL scheme (e.g. http/https) determines whether the WBEM server
         uses HTTP or HTTPS for sending the indication. Host and port in the
         URL specify the target location to be used by the WBEM server.
+
+    listener_id (:term: `string`)
+        If not `None` a string of printiable characters that prefixes the name
+        property of filters and listener destination instances to help the
+        listener identify its filters and handler instances in a WBEM Server.
+        This id is used as a component of the `Name` property of the
+        destination instance.
 
     Returns:
 
@@ -1305,13 +1356,14 @@ def _create_destination(server, dest_url):
     dest_inst['CreationClassName'] = DESTINATION_CLASSNAME
     dest_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
     dest_inst['SystemName'] = getfqdn()
-    dest_inst['Name'] = 'cimlistener%d' % time.time()
+    dest_inst['Name'] = 'pywbemlistener:%s%s' % (listener_id, uuid.uuid4())
     dest_inst['Destination'] = dest_url
 
     dest_path = server.conn.CreateInstance(dest_inst)
     return dest_path
 
-def _create_filter(server, source_namespace, query, query_language):
+def _create_filter(server, source_namespace, query, query_language, \
+                   listener_id=None, filter_id=None):
     """
     Create a dynamic indication filter instance in the Interop namespace
     of a WBEM server and return its instance path.
@@ -1332,6 +1384,21 @@ def _create_filter(server, source_namespace, query, query_language):
 
         Examples: 'WQL', 'DMTF:CQL'.
 
+      filter_id (:term:`string`):
+        String prefex that will be prepended to the created filter. Can
+        be used to help identify filters in the server. If `None` no prefix
+        is added to the system-defined name for this filter
+
+      listener_id (:term: `string`))
+        If not `None` a string of printable characters to be inserted in the
+        name property of filter and listener destination instances to help the
+        listener identify its filters and destination instances in a
+        WBEM Server. The string must not contain the ":" character.
+
+        The form for the name property of a PyWBEM of a filter is:
+
+        "pywbemfilter:" [<listener_id>  ":"] [<filter_id> ":"] <guid>
+
     Returns:
 
         :class:`~pywbem.CIMInstanceName`: The instance path of the created
@@ -1347,11 +1414,23 @@ def _create_filter(server, source_namespace, query, query_language):
     filter_path.namespace = server.interop_ns
 
     filter_inst = CIMInstance(FILTER_CLASSNAME)
+    if filter_id is None:
+        filter_id_ = ''
+    elif isinstance(filter_id, six.string_types):
+        if ':' in filter_id:
+            raise ValueError("Invalid String: filter_id %s contains ':'" % \
+                             filter_id)
+        filter_id_ = '%s:' % filter_id
+    else:
+        raise TypeError("invalid type for filter_id=%s" % filter_id)
+
     filter_inst.path = filter_path
     filter_inst['CreationClassName'] = FILTER_CLASSNAME
     filter_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
     filter_inst['SystemName'] = getfqdn()
-    filter_inst['Name'] = 'cimfilter%d' % time.time()
+    filter_inst['Name'] = 'pywbemfilter:%s%s%s' % (listener_id, \
+                                                   filter_id_, \
+                                                   uuid.uuid4())
     filter_inst['SourceNamespace'] = source_namespace
     filter_inst['Query'] = query
     filter_inst['QueryLanguage'] = query_language
