@@ -275,7 +275,7 @@ Example:
                 fname = os.path.curdir + '/' + fname
             mofcomp.compile_file(fname, args.namespace)
     except Error as exc:
-        print("%s: %s" % (exc.__class__.__name__, exc))
+        # mof compiler outputs its own error messages today.
         sys.exit(1)
 
     if args.remove and not args.dry_run:

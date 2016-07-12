@@ -114,6 +114,89 @@ class MOFTest(unittest.TestCase):
             search_paths=[SCHEMA_DIR], verbose=False,
             log_func=moflog)
 
+
+class TestFlavors(MOFTest):
+    """Test for the various combinations of valid and invalid flavors"""
+
+    def test_valid_flavors(self):
+        """Valid flavor combinations compile"""
+
+        mof_str = "Qualifier testoneflavor : boolean = false, scope(class), " \
+                  "Flavor(DisableOverride);\n"
+
+        self.mofcomp.compile_string(mof_str, NAME_SPACE)
+
+        mof_str = "Qualifier testtwoflav : boolean = false, scope(class), " \
+          "Flavor(DisableOverride, ToSubclass);\n"
+
+        self.mofcomp.compile_string(mof_str, NAME_SPACE)
+
+        mof_str = "Qualifier Version : string = null, \n" \
+                "Scope(class, association, indication),\n" \
+                "Flavor(EnableOverride, Restricted, Translatable);\n"
+        self.mofcomp.compile_string(mof_str, NAME_SPACE)
+
+
+    def test_valid_flavor2(self):
+        """Test for case independence of flavor keywords"""
+
+        mof_str = "Qualifier test1 : scope(class),\n" \
+                  "Flavor(enableoverride, RESTRICTED, Translatable);"
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+            self.fail("Test must generate exception")
+        except MOFParseError:
+            pass
+
+
+    def test_conflicting_flavors1(self):
+        """Conflicting flavors should cause exception"""
+
+        mof_str = "Qualifier test1 : scope(class),\n" \
+                  "Flavor(DisableOverride, EnableOverride);"
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+            self.fail("Test must generate exception")
+        except MOFParseError:
+            pass
+
+
+    def test_conflicting_flavors2(self):
+        """Conflicting flavors should cause exception"""
+
+        mof_str = "Qualifier test1 : scope(class),\n" \
+                  "Flavor(Restricted, ToSubclass);"
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+            self.fail("Test must generate exception")
+        except MOFParseError:
+            pass
+
+
+    def test_invalid_flavor1(self):
+        """Invalid flavor should cause exception"""
+
+        mof_str = "Qualifier test1 : scope(class),\n" \
+                  "Flavor(Restricted, ToSubclass, invalidflavor);"
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+            self.fail("Test must generate exception")
+        except MOFParseError:
+            pass
+
+
+    def test_invalid_flavor2(self):
+        """Invalid flavor should cause exception"""
+
+        mof_str = "Qualifier test1 : scope(class),\n" \
+                  "Flavor(invalidflavor);"
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+            self.fail("Test must generate exception")
+        except MOFParseError:
+            pass
+
+
 class TestAliases(MOFTest):
     """Test of a mof file that contains aliases"""
 
@@ -202,8 +285,9 @@ class TestParseError(MOFTest):
        a defined error.
     """
 
-    def test_all(self):
-        """Run all parse error tests"""
+    def test_error01(self):
+        """Test missing statement end comment"""
+
         _file = os.path.join(SCRIPT_DIR,
                              'testmofs',
                              'parse_error01.mof')
@@ -215,6 +299,9 @@ class TestParseError(MOFTest):
             self.assertEqual(pe.context[5][1:5], '^^^^')
             self.assertEqual(pe.context[4][1:5], 'size')
 
+
+    def test_error02(self):
+        """Test invalid instance def TODO what is error? ks 6/16"""
         _file = os.path.join(SCRIPT_DIR,
                              'testmofs',
                              'parse_error02.mof')
@@ -225,6 +312,10 @@ class TestParseError(MOFTest):
             self.assertEqual(pe.lineno, 6)
             self.assertEqual(pe.context[5][7:13], '^^^^^^')
             self.assertEqual(pe.context[4][7:13], 'weight')
+
+
+    def test_error03(self):
+        """Test invalid mof, extra } character"""
 
         _file = os.path.join(SCRIPT_DIR,
                              'testmofs',
@@ -237,13 +328,19 @@ class TestParseError(MOFTest):
             self.assertEqual(pe.context[5][53], '^')
             self.assertEqual(pe.context[4][53], '}')
 
+    def test_error04(self):
+        """Test invalid mof, Pragmas with invalid file definitions."""
+
+        # TODO ks 6/16why does this generate end-of-file rather than more
+        # logical error
         _file = os.path.join(SCRIPT_DIR,
                              'testmofs',
                              'parse_error04.mof')
         try:
             self.mofcomp.compile_file(_file, NAME_SPACE)
         except MOFParseError as pe:
-            self.assertEqual(str(pe), 'Unexpected end of file')
+            self.assertEqual(pe.msg, 'Unexpected end of file')
+
 
 class TestPropertyAlternatives(MOFTest):
     """
@@ -1225,8 +1322,10 @@ class TestFullSchema(MOFTest):
             print(msg, file=self.logfile2)
 
         moflog_file2 = os.path.join(SCRIPT_DIR, 'moflog2.txt')
+        #pylint: disable=attribute-defined-outside-init
         self.logfile2 = open(moflog_file2, 'w')
 
+        #pylint: disable=attribute-defined-outside-init
         self.mofcomp2 = MOFCompiler(
             MOFWBEMConnection(),
             search_paths=None, verbose=debug,
