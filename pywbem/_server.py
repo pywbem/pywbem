@@ -162,8 +162,7 @@ class WBEMServer(object):
     def __repr__(self):
         """
         Return a representation of the :class:`~pywbem.WBEMServer` object
-        with all properties and instance variables that is suitable for
-        debugging.
+        with all attributes, that is suitable for debugging.
         """
         return "%s(url=%r, conn=%r, interop_ns=%s, namespaces=%s, " \
                "namespace_classname=%r, brand=%r, version=%r, " \

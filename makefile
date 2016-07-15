@@ -94,6 +94,7 @@ doc_dependent_files := \
     $(package_name)/cim_obj.py \
     $(package_name)/cim_operations.py \
     $(package_name)/cim_types.py \
+    $(package_name)/cim_http.py \
     $(package_name)/mof_compiler.py \
     $(package_name)/exceptions.py \
     $(package_name)/_listener.py \

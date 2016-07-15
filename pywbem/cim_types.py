@@ -233,7 +233,7 @@ class MinutesFromUTC(tzinfo):
         to deal with it.
 
         This implementation returns the offset used to initialize the object,
-        for any specified `dt` argument.
+        for any specified `dt` parameter.
         """
         return self.__offset
 
@@ -247,7 +247,7 @@ class MinutesFromUTC(tzinfo):
         pywbem user normally does not have to deal with it.
 
         This implementation returns an offset of 0 (indicating that DST is not
-        in effect), for any specified `dt` argument, because CIM datetime
+        in effect), for any specified `dt` parameter, because CIM datetime
         values do not represent DST information.
         """
         return timedelta(0)

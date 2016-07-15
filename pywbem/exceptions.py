@@ -144,9 +144,9 @@ class CIMError(Error):
     This exception indicates that the WBEM server returned an error response
     with a CIM status code. Derived from :exc:`~pywbem.Error`.
 
-    The `args` instance variable is a `tuple(status_code, status_description)`.
+    The `args` attribute is a `tuple(status_code, status_description)`.
 
-    The `message` instance variable is not set.
+    The `message` attribute is not set.
     """
 
     def __init__(self, status_code, status_description=None):
