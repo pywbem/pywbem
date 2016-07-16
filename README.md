@@ -20,6 +20,17 @@ For information on how to use the PyWBEM Client for your own development
 projects, or how to contribute to it, go to the
 [PyWBEM Client page](http://pywbem.github.io/pywbem/)
 
+Project Plans
+-------------
+
+Version 0.9.0 - Now scheduled for release July 2016 (orignally scheduled for
+early June 2016).  See issue #163 and the issues for mileston 0.9.0 for details
+on what changes are done and planned for version 0.9.0.
+
+Version 0.10.0 - Next version after the version 0.9.0 release. See the issues
+for milestone 0.10.0 for current planning for this release. Generally release
+expected about 2 months after 0.9.0 but that is a very preliminary estimate.
+
 License
 -------
 
