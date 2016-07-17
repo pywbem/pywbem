@@ -23,6 +23,7 @@ Approach:
 from __future__ import print_function, absolute_import
 
 import os
+import sys
 import doctest
 import socket
 import unittest
@@ -45,6 +46,7 @@ from pywbem.cim_obj import _ensure_unicode
 # Directory with the JSON test case files, relative to this script:
 TESTCASE_DIR = os.path.join(os.path.dirname(__file__), "test_client")
 
+RUN_ONE_TESTCASE = None
 
 class ClientTestError(Exception):
     """Exception indicating an issue in the test case definition."""
@@ -327,6 +329,18 @@ class ClientTest(unittest.TestCase):
 
         tc_name = tc_getattr("", testcase, "name")
         tc_desc = tc_getattr(tc_name, testcase, "description", None)
+        tc_ignore = tc_getattr(tc_name, testcase, "ignore_python_version", None)
+
+        # Test to determine if execute this testcase
+        # 1. If the RUN_ONE_TESTCASE option set and this is not the one
+        # 2. if ingore_python_version set and version does not match
+        if RUN_ONE_TESTCASE is not None:
+            if tc_name != RUN_ONE_TESTCASE:
+                return
+        else:
+            if six.PY2 and tc_ignore == 2 or six.PY3 and tc_ignore == 3:
+                print("ignoring test case: %s: %s" % (tc_name, tc_desc))
+                return
 
         print("Processing test case: %s: %s" % (tc_name, tc_desc))
 
@@ -633,4 +647,17 @@ def result_tuple(value, tc_name):
 
 
 if __name__ == '__main__':
+    print('args %s len %s type %s' % (sys.argv, len(sys.argv), type(sys.argv)))
+
+    # NonDocumented option to run a single testcase if that testcase name
+    # is listed on the cmd line.
+    if len(sys.argv) > 1:
+        print('Running a single testcase: %s' % sys.argv[1])
+        RUN_ONE_TESTCASE = sys.argv[1]
+        del sys.argv[1:2]
+
+    elif len(sys.argv) > 2:
+        sys.exit('ERROR: too many cmd line args')
+
+
     unittest.main()

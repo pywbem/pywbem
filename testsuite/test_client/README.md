@@ -113,6 +113,12 @@ The top-level elements in the test case YAML are:
 * `description`:
   A short description of the testcase.
 
+* `ignore_python_version`
+  A single digit python version (2 or 3) that tells the client code to
+  ignore this test for that python version.  Should only be used in rare
+  cases where a test is really version dependent. To date the only case
+  is in HTTPS timeout processing where python 2 has an issue with mock.
+
 * `pywbem_request`:
   A specification of the PyWBEM client function to test, and the input
   arguments for its invocation.

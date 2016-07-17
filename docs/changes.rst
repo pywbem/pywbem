@@ -747,6 +747,20 @@ Testing
   'make test' for the current Python environment, or with 'tox' for all
   supported Python environments.  (Andreas Maier)
 
+* Added multiple tests for client connection timeout. A mock test was added
+  for both HTTP and HTTPs.  However, this causes an error in python 2 with
+  HTTPS so two new options were added to test_client.py. First, a new
+  parameter ignore_python_version was added to the yaml to define a major
+  version of python for which a particulare testcase would be ignored.  Second
+  a non-documente option was added to test_client.py to execute a single
+  testcase if the name of that testcase is the only parameter on the
+  test_client.py cmd line.
+  Finally a whole new run_operationtimeout.py file was added to testsuite to
+  throughly test for timeouts. This runs ONLY against particular versions of
+  OpenPegasus because it required adding a new method to OpenPegasus. However,
+  it established that the timeouts apparently now really do work in both
+  python 2 and python 3 with both http and https. (see issue #363)
+
 Clean Code
 ^^^^^^^^^^
 
