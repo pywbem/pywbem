@@ -234,6 +234,10 @@ Enhancements
   `pywbem.ConnectionError` in one case), and any other bad HTTP responses
   are now raised as a new exception `pywbem.HTTPError`.
 
+* Extend WBEMListener to get all ListenerDestination objects and
+  CIM_IndicationSubscription objects from WBEM Server. (issue #421).
+  )
+
 Bug fixes
 ^^^^^^^^^
 
