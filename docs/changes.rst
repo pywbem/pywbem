@@ -210,6 +210,20 @@ Enhancements
   delete indication subscriptions in the server.  This test does not process
   indicaitons from the server. (issue#379)
 
+* Implemented server and listener classes(issue #66) to provide the following:
+
+      - `WBEMServer` class for a WBEM server that uses a WBEMconnection. This
+      class provides access to the common elements of the WBEMServer profile
+      including namespaces, interop namespace, profile information, server
+      branding, central/scoping class algorithm, etc.
+      
+      - `WBEMListener` class that allows management of indication subscriptions
+      and the creation of a listener entity to receive indications.
+
+      **Experimental** -The WBEMServer and WBEMListener are experimental for
+      pywbem version 0.9.0 since this is the initial release of a significant
+      change and subject to changes to the API
+
 * Extend the server class with a function (filterProfiles) to select a
   subset of profiles from the server based on organization, profile name,
   and profile version (issue #378) with a demo in examples/explure.py and
