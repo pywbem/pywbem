@@ -16,8 +16,8 @@ from datetime import timedelta
 import unittest
 from getpass import getpass
 import warnings
-
 import time
+
 if sys.version_info >= (3, 0):
     from urllib.parse import urlparse
 if sys.version_info < (3, 0) and sys.version_info >= (2, 5):
@@ -2936,7 +2936,9 @@ def consume_indication(indication, host):
     RECEIVED_INDICATION_COUNT += 1
 
 class PyWBEMListenerClass(PyWBEMServerClass):
-    """Test the management of indications with the listener class"""
+    """Test the management of indications with the listener class.
+       All of these functions depend on existence of a WBEM server to
+       which subscriptions/filters are sent."""
 
     #pylint: disable=invalid-name
     def test_create_delete_subscription(self):
@@ -2944,7 +2946,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
         Create and delete a server and listener and create an indication.
         Then delete everything.
         This is a pegasus specific test because it depends on the existence
-        of pegasus specific classes and providers.
+        of pegasus specific classes and providers for subscriptions.
         """
         # TODO modify this so it is not Pegasus dependent
         if self.is_pegasus_test_build():
@@ -2975,6 +2977,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             subscription_path = listener.add_subscription(server_id,
                                                           filter_path)
 
+            # test get_dynamic_filters and subscriptions
             my_filters = listener.get_dynamic_filters(server_id)
             self.assertTrue(filter_path in my_filters)
 
@@ -2983,15 +2986,17 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             all_subscriptions = listener.get_all_subscriptions(server_id)
 
-            ## confirm all my_filters are in server subscriptions
+            # Confirm all my_filters are in server subscriptions. gets the
+            # Filter key binding from the subscription
             my_rtn_filters = [sub["Filter"] for sub in all_subscriptions if \
                                 sub['Filter'] in my_filters]
             self.assertPathsEqual(my_rtn_filters, my_filters)
 
-            # confirm destination instances match
+            # confirm destination instance paths match
             dests = listener.get_all_destination_instances(server_id)
             self.assertTrue(len(dests) > 0)
             #TODO: ks Finish this test completely when we add other changes
+            #for filter ids
 
             listener.remove_subscription(server_id, subscription_path)
             listener.remove_dynamic_filter(server_id, filter_path)
@@ -3045,6 +3050,11 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                                       test_query,
                                                       query_language="DMTF:CQL")
 
+            # confirm structure of the name element without any id components
+            # NOTE: The uuid from uuid4 is actually 36 char but not we made it
+            # 30-40 in case format changes in future.
+            self.assertRegexpMatches(filter_path.keybindings['Name'],
+                                     r'^pywbemfilter:[^:][0-9a-f-]{30,40}\Z')
             subscription_path = listener.add_subscription(server_id,
                                                           filter_path)
 
@@ -3083,6 +3093,155 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 time.sleep(2)
                 self.assertEqual(RECEIVED_INDICATION_COUNT,
                                  requested_indications)
+
+            listener.remove_subscription(server_id, subscription_path)
+            listener.remove_dynamic_filter(server_id, filter_path)
+
+            # confirm that filter and subscription were removed
+            host_filters = listener.get_dynamic_filters(server_id)
+            self.assertFalse(filter_path in host_filters)
+
+            host_subscriptions = listener.get_subscriptions(server_id)
+            self.assertFalse(subscription_path in host_subscriptions)
+
+            listener.stop()
+            listener.remove_server(server_id)
+
+    def test_id_attributes(self):
+        """
+        est the use of listener_id and filter_id identifiers.
+        """
+        # TODO modify this so it is not Pegasus dependent
+        if self.is_pegasus_test_build():
+            test_class = 'Test_IndicationProviderClass'
+            test_class_namespace = 'test/TestProvider'
+            test_query = 'SELECT * from %s' % test_class
+
+            server = WBEMServer(self.conn)
+
+            # Set arbitrary ports for the listener
+            http_listener_port = 50000
+            https_listener_port = None
+
+            listener_addr = urlparse(self.system_url).netloc
+
+            # Create the listener and listener call back and start the listener
+            listener = WBEMListener(listener_addr, http_port=http_listener_port,
+                                    https_port=https_listener_port,
+                                    listener_id='pegTestListener')
+
+            server_id = listener.add_server(server)
+            listener.start()
+
+            filter_path = listener.add_dynamic_filter(server_id,
+                                                      test_class_namespace,
+                                                      test_query,
+                                                      query_language="DMTF:CQL",
+                                                      filter_id='fred')
+
+            subscription_path = listener.add_subscription(server_id,
+                                                          filter_path)
+
+            host_filters = listener.get_dynamic_filters(server_id)
+
+            self.assertEqual(len(host_filters), 1)
+            for path in host_filters:
+                name = path.keybindings['Name']
+                self.assertRegexpMatches(
+                    name,
+                    r'^pywbemfilter:pegTestListener:fred:[0-9a-f-]{30,40}\Z')
+            self.assertTrue(filter_path in host_filters)
+
+            # Confirm format of second dynamic filter name property
+            filter_path2 = listener.add_dynamic_filter(
+                server_id, test_class_namespace, test_query,
+                query_language="DMTF:CQL", filter_id='john')
+
+            self.assertRegexpMatches(
+                filter_path2.keybindings['Name'],
+                r'^pywbemfilter:pegTestListener:john:[0-9a-f-]{30,40}\Z')
+
+            # Confirm valid id with filter that contains no name
+            filter_path3 = listener.add_dynamic_filter(
+                server_id, test_class_namespace, test_query,
+                query_language="DMTF:CQL")
+
+            self.assertRegexpMatches(
+                filter_path3.keybindings['Name'],
+                r'^pywbemfilter:pegTestListener:[0-9a-f-]{30,40}\Z')
+
+            # test to confirm fails on bad name (i.e. with : character)
+            try:
+                filter_path = listener.add_dynamic_filter(
+                    server_id, test_class_namespace, test_query,
+                    query_language="DMTF:CQL", filter_id='fr:ed')
+                self.fail("Should fail this operation")
+            except ValueError:
+                pass
+
+            host_filters = listener.get_dynamic_filters(server_id)
+            self.assertEqual(len(host_filters), 3)
+
+            host_subscriptions = listener.get_subscriptions(server_id)
+            self.assertTrue(subscription_path in host_subscriptions)
+
+            listener.remove_subscription(server_id, subscription_path)
+            listener.remove_dynamic_filter(server_id, filter_path)
+
+            # confirm that filter and subscription were removed
+            host_filters = listener.get_dynamic_filters(server_id)
+            self.assertFalse(filter_path in host_filters)
+
+            host_subscriptions = listener.get_subscriptions(server_id)
+            self.assertFalse(subscription_path in host_subscriptions)
+
+            listener.stop()
+            listener.remove_server(server_id)
+
+    def test_id_attributes2(self):
+        """
+        Test the use of filter_id identifiers. Test filter it with no
+        listener id
+        """
+        # TODO Future: modify this so it is not Pegasus dependent
+        if self.is_pegasus_test_build():
+            test_class = 'Test_IndicationProviderClass'
+            test_class_namespace = 'test/TestProvider'
+            test_query = 'SELECT * from %s' % test_class
+
+            server = WBEMServer(self.conn)
+
+            # Set arbitrary ports for the listener
+            http_listener_port = 50000
+            https_listener_port = None
+
+            listener_addr = urlparse(self.system_url).netloc
+
+            # Create the listener and listener call back and start the listener
+            listener = WBEMListener(listener_addr, http_port=http_listener_port,
+                                    https_port=https_listener_port)
+
+            server_id = listener.add_server(server)
+            listener.start()
+
+            filter_path = listener.add_dynamic_filter(server_id,
+                                                      test_class_namespace,
+                                                      test_query,
+                                                      query_language="DMTF:CQL",
+                                                      filter_id='fred')
+
+            subscription_path = listener.add_subscription(server_id,
+                                                          filter_path)
+
+            host_filters = listener.get_dynamic_filters(server_id)
+
+            self.assertEqual(len(host_filters), 1)
+            for path in host_filters:
+                name = path.keybindings['Name']
+                self.assertRegexpMatches(
+                    name,
+                    r'^pywbemfilter:fred:[0-9a-f-]{30,40}\Z')
+            self.assertTrue(filter_path in host_filters)
 
             listener.remove_subscription(server_id, subscription_path)
             listener.remove_dynamic_filter(server_id, filter_path)
