@@ -212,6 +212,15 @@ class ClientTest(unittest.TestCase):
             return True
         return False
 
+    def path_in_list(self, path, list_):
+        """ Determine if an instance is in a list of instances. Return
+            True if the instance is in the list. Otherwise return False.
+        """
+        for i in list_:
+            if i == path:
+                return True
+        return False
+
     def assertInstancesEqual(self, insts1, insts2):
         """Compare two lists of instances for equality of instances
            The instances do not have to be in the same order in
@@ -223,7 +232,6 @@ class ClientTest(unittest.TestCase):
             for inst1 in insts1:
                 if not self.inst_in_list(inst1, insts2):
                     self.fail("No Instance Lists do not match")
-
             return
         else:
             self.assertTrue(isinstance(insts2, CIMInstance))
@@ -235,13 +243,11 @@ class ClientTest(unittest.TestCase):
         """
 
         if isinstance(paths1, list):
-            self.assertEqual(len(paths1), len(paths2))
+            self.assertTrue(len(paths1) == len(paths2))
             for path1 in paths1:
-                for path2 in paths2:
-                    if path1 == path2:
-                        break
-                self.fail("No Matching path found")
-
+                if not self.path_in_list(path1, paths2):
+                    self.fail("Instance paths lists do not match")
+            return
         else:
             self.assertTrue(isinstance(paths2, CIMInstanceName))
             self.assertTrue(paths1 == paths2)
@@ -2920,7 +2926,8 @@ RECEIVED_INDICATION_COUNT = 0
 # pylint: disable=unused-argument
 def consume_indication(indication, host):
     """This function is called when an indication is received.
-        It counts indications received into a global counter
+        It counts indications received into a global counter. It is used by
+        tests in the PyWBEMListenerClass
     """
 
     #pylint: disable=global-variable-not-assigned
@@ -2968,11 +2975,23 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             subscription_path = listener.add_subscription(server_id,
                                                           filter_path)
 
-            host_filters = listener.get_dynamic_filters(server_id)
-            self.assertTrue(filter_path in host_filters)
+            my_filters = listener.get_dynamic_filters(server_id)
+            self.assertTrue(filter_path in my_filters)
 
-            host_subscriptions = listener.get_subscriptions(server_id)
-            self.assertTrue(subscription_path in host_subscriptions)
+            my_subscriptions = listener.get_subscriptions(server_id)
+            self.assertTrue(subscription_path in my_subscriptions)
+
+            all_subscriptions = listener.get_all_subscriptions(server_id)
+
+            ## confirm all my_filters are in server subscriptions
+            my_rtn_filters = [sub["Filter"] for sub in all_subscriptions if \
+                                sub['Filter'] in my_filters]
+            self.assertPathsEqual(my_rtn_filters, my_filters)
+
+            # confirm destination instances match
+            dests = listener.get_all_destination_instances(server_id)
+            self.assertTrue(len(dests) > 0)
+            #TODO: ks Finish this test completely when we add other changes
 
             listener.remove_subscription(server_id, subscription_path)
             listener.remove_dynamic_filter(server_id, filter_path)

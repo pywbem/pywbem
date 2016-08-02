@@ -126,6 +126,12 @@ IMPLEMENTED_CIM_VERSION = '2.0'
 IMPLEMENTED_DTD_VERSION = '2.4'
 IMPLEMENTED_PROTOCOL_VERSION = '1.4'
 
+#CIM model classnames for subscription components
+SUBSCRIPTION_CLASSNAME = 'CIM_IndicationSubscription'
+DESTINATION_CLASSNAME = 'CIM_ListenerDestinationCIMXML'
+FILTER_CLASSNAME = 'CIM_IndicationFilter'
+SYSTEM_CREATION_CLASSNAME = 'CIM_ComputerSystem'
+
 # CIM-XML protocol related versions supported by the WBEM listener
 # These are checked in export message requests.
 SUPPORTED_DTD_VERSION_PATTERN = r'2\.\d+'
@@ -1171,6 +1177,58 @@ class WBEMListener(object):
                              server_id)
         return self._subscription_paths[server_id]
 
+    def get_all_destination_instances(self, server_id):
+        """
+        Return all 'CIM_ListenerDestinationCIMXML' instances in a WBEM server.
+
+        Parameters:
+
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
+
+        Returns:
+
+          List of :class:`~pywbem.CIMInstanceName`: The
+          CIM_ListenerDestinationCIMXML instance paths.
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+        """
+
+        if server_id not in self._servers:
+            raise ValueError("WBEM server not known by listener: %s" % \
+                             server_id)
+        server = self._servers[server_id]
+        return server.conn.EnumerateInstanceNames(DESTINATION_CLASSNAME,
+                                                  namespace=server.interop_ns)
+
+    def get_all_subscriptions(self, server_id):
+        """
+        Return all CIM_IndicationSubscription instances in a WBEM server.
+
+        Parameters:
+
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
+
+        Returns:
+
+          List of :class:`~pywbem.CIMInstanceName`: The subscription
+          instance paths.
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+        """
+
+        if server_id not in self._servers:
+            raise ValueError("WBEM server not known by listener: %s" % \
+                             server_id)
+        server = self._servers[server_id]
+        return server.conn.EnumerateInstanceNames(SUBSCRIPTION_CLASSNAME,
+                                                  namespace=server.interop_ns)
+
     def _deliver_indication(self, indication, host):
         """
         This function is called by the listener threads for each received
@@ -1238,16 +1296,14 @@ def _create_destination(server, dest_url):
         Exceptions raised by :class:`~pywbem.WBEMConnection`.
     """
 
-    classname = 'CIM_ListenerDestinationCIMXML'
-
-    dest_path = CIMInstanceName(classname)
-    dest_path.classname = classname
+    dest_path = CIMInstanceName(DESTINATION_CLASSNAME)
+    dest_path.classname = DESTINATION_CLASSNAME
     dest_path.namespace = server.interop_ns
 
-    dest_inst = CIMInstance(classname)
+    dest_inst = CIMInstance(DESTINATION_CLASSNAME)
     dest_inst.path = dest_path
-    dest_inst['CreationClassName'] = classname
-    dest_inst['SystemCreationClassName'] = 'CIM_ComputerSystem'
+    dest_inst['CreationClassName'] = DESTINATION_CLASSNAME
+    dest_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
     dest_inst['SystemName'] = getfqdn()
     dest_inst['Name'] = 'cimlistener%d' % time.time()
     dest_inst['Destination'] = dest_url
@@ -1286,16 +1342,14 @@ def _create_filter(server, source_namespace, query, query_language):
         Exceptions raised by :class:`~pywbem.WBEMConnection`.
     """
 
-    classname = 'CIM_IndicationFilter'
-
-    filter_path = CIMInstanceName(classname)
-    filter_path.classname = classname
+    filter_path = CIMInstanceName(FILTER_CLASSNAME)
+    filter_path.classname = FILTER_CLASSNAME
     filter_path.namespace = server.interop_ns
 
-    filter_inst = CIMInstance(classname)
+    filter_inst = CIMInstance(FILTER_CLASSNAME)
     filter_inst.path = filter_path
-    filter_inst['CreationClassName'] = classname
-    filter_inst['SystemCreationClassName'] = 'CIM_ComputerSystem'
+    filter_inst['CreationClassName'] = FILTER_CLASSNAME
+    filter_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
     filter_inst['SystemName'] = getfqdn()
     filter_inst['Name'] = 'cimfilter%d' % time.time()
     filter_inst['SourceNamespace'] = source_namespace
@@ -1333,13 +1387,12 @@ def _create_subscription(server, dest_path, filter_path):
         Exceptions raised by :class:`~pywbem.WBEMConnection`.
     """
 
-    classname = 'CIM_IndicationSubscription'
 
-    sub_path = CIMInstanceName(classname)
-    sub_path.classname = classname
+    sub_path = CIMInstanceName(SUBSCRIPTION_CLASSNAME)
+    sub_path.classname = SUBSCRIPTION_CLASSNAME
     sub_path.namespace = server.interop_ns
 
-    sub_inst = CIMInstance(classname)
+    sub_inst = CIMInstance(SUBSCRIPTION_CLASSNAME)
     sub_inst.path = sub_path
     sub_inst['Filter'] = filter_path
     sub_inst['Handler'] = dest_path
