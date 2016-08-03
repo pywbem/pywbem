@@ -23,8 +23,16 @@ projects, or how to contribute to it, go to the
 Project Plans
 -------------
 
-**Version 0.9.0** - Now scheduled for release July 2016 (orignally scheduled for
-early June 2016).  See issue #163 for an overview of version 0.9.0 goalsand the
+**Version 0.9.0** - (UPDATE 2 Aug. 2016) The PyWBEM team has concluded that
+we will delay the release of version 0.9.0 to 20 August 2016 because of a couple
+of open issues, in particular, the new listener. While the current listener in
+the development code works we feel we should restructure it to allow indication
+listeners to be independent of the functions of subscription management.
+Otherwise, anybody who uses the existing code could be subjected to a major
+rewrite in version 0.10.0.
+
+This release was orignally scheduled for
+early June 2016.  See issue #163 for an overview of version 0.9.0 goal sand the
 github issues for milestone 0.9.0 for details on what changes are done and
 planned for PyWBEM version 0.9.0.
 
