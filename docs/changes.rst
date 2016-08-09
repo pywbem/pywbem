@@ -238,6 +238,15 @@ Enhancements
   CIM_IndicationSubscription objects from WBEM Server. (issue #421).
   )
 
+* Clarify MofParseError by defining attributes as part of the class init and
+  moving some code from productions to the class itself (issue #169). This
+  make MofParseError exception more suitable for use from the productions
+  themselves. The original definition was really only for use as a call from
+  ply. Add tests for invalid qualifier flavors to unit tests and add test in
+  mof_compiler.py for conflicting flavors ex. tosubclass and restricted in
+  the same definition. This test uses the new MofParseError (issue #204)
+
+
 Bug fixes
 ^^^^^^^^^
 

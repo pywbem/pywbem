@@ -23,6 +23,7 @@ class Novell_DHCPSubnetInfo
 
 	[Description ("Number of defined IP's in the range" }]
 	uint16 DefinedIPs;
+    // Error is extra } above
 
 	[Description("Number of used IP's in the range")]
 	uint16 UsedIPs;

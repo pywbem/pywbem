@@ -276,8 +276,10 @@ def t_newline(t):
 
 t_ignore = ' \r\t'
 
-# LEX error handling
+
 def t_error(t):
+    """ Lexer error callback from PLY Lexer with token in error.
+    """
 
     msg = "Skipping first character of invalid token '%s' in line %d" % \
         (t.value, t.lineno)
@@ -288,27 +290,115 @@ def t_error(t):
     t.lexer.parser.log(msg)
     t.lexer.skip(1)
 
+
 class MOFParseError(Error):
     """
-    This exception is raised when MOF cannot be parsed correctly, e.g. for
-    syntax errors. Derived from :exc:`~pywbem.Error`.
+        Exception raised when MOF cannot be parsed correctly, e.g. for
+        syntax errors. Derived from :exc:`~pywbem.Error`.
     """
-    pass
 
-# YACC error handling
+    # pylint: disable=super-init-not-called
+    def __init__(self, parser_token=None, msg=None):
+        """
+        Parameters:
+
+            parser_token (PLY.ParserToken):
+                Parser token for the error. This token contains information on
+                the location of the error in the mof file. Details of the
+                token are set into the MofParseError object.
+
+            msg  (:term:`string`):
+              Message text supplied by the creator of the error
+        """
+
+        if parser_token is None:
+            self.args = (None, None, None, None)
+        else:
+            mof_ = parser_token.lexer.parser.mof
+            self.args = (parser_token.lineno,
+                         _find_column(mof_, parser_token),
+                         parser_token.lexer.parser.file,
+                         _get_error_context(mof_, parser_token))
+        self._msg = msg
+
+    @property
+    def lineno(self):
+        """ line number in file where error occurred
+        """
+        return self.args[0]
+
+    @property
+    def column(self):
+        """ Column in file line where error occurred
+        """
+        return self.args[1]
+
+    @property
+    def file(self):
+        """ Name of file where error occurred
+        """
+        return self.args[2]
+
+    @property
+    def context(self):
+        """ Context string that is inserted in output display on line below
+            file line.  Consists of a segment of the mof surrounding the
+            error position with a second line that uses the '^' char to
+            locate the token in error.
+        """
+        return self.args[3]
+
+    @property
+    def msg(self):
+        """ Message that may be part of error. Generally this is produced when
+            the actual error position is not known but may be added by
+            some production errors
+        """
+        return self._msg
+
+    def __str__(self):
+        ret_str = 'MOFParseError: '
+        if self.lineno is not None:
+            ret_str += '%s:%s: %smsg=%s\n%s' % \
+                         (self.file, self.lineno, self.column, self.msg, \
+                          self.context)
+        else:
+            ret_str += '%s' % self.msg
+        return ret_str
+
+    def get_err_msg(self):
+        """
+            Generate string defining compiler error message. Generates a
+            string that defines an error message in the form
+
+            Syntax error: <file> : <line> : <msg>
+
+            context string mof text with error
+
+            context indicator of location of error in text.
+        """
+        ret_str = 'Syntax error:'
+        if self.file is not None and self.lineno is not None:
+            ret_str += '%s:%s:' % (self.file, self.lineno)
+        if self.msg:
+            ret_str += " %s" % self.msg
+        if self.context is not None:
+            ret_str += '\n'.join(self.context)
+        return ret_str
+
+
 def p_error(p):
+    """
+        YACC Error Callback from the parser.  The parameter is the token
+        in error and contains information on the file and position of the
+        error. If p is `None`, PLY is returning eof error.
+    """
 
-    ex = MOFParseError()
     if p is None:
-        ex.args = ('Unexpected end of file',)
-        raise ex
+        raise MOFParseError(msg='Unexpected end of file')
 
-    # pylint: disable=attribute-defined-outside-init
-    ex.file = p.lexer.parser.file
-    ex.lineno = p.lineno
-    ex.column = _find_column(p.lexer.parser.mof, p)
-    ex.context = _get_error_context(p.lexer.parser.mof, p)
-    raise ex
+    raise MOFParseError(parser_token=p)
+
 
 # pylint: disable=unused-argument
 def p_mofSpecification(p):
@@ -802,7 +892,7 @@ def p_qualifier(p):
         ce.file_line = (p.parser.file, p.lexer.lineno)
         raise ce
 
-    flavors = _build_flavors(flavorlist, qualdecl)
+    flavors = _build_flavors(p[0], flavorlist, qualdecl)
     if qval is None:
         if qualdecl.type == 'boolean':
             qval = True
@@ -1139,7 +1229,6 @@ def _fixStringValue(s):
     return rv
 
 
-
 def p_stringValueList(p):
     """stringValueList : stringValue
                        | stringValueList stringValue
@@ -1201,19 +1290,27 @@ def p_qualifierDeclaration(p):
         flist = []
     else:
         flist = p[5]
-    flavors = _build_flavors(flist)
+
+    flavors = _build_flavors(p[0], flist)
 
     p[0] = CIMQualifierDeclaration(
         qualname, dt, value=value, is_array=is_array, array_size=array_size,
         scopes=scopes, **flavors)
 
-def _build_flavors(flist, qualdecl=None):
+def _build_flavors(p, flist, qualdecl=None):
     """
-    Build and return a dictionary defining the flavors from the `flist`
-    parameter.
+        Build and return a dictionary defining the flavors from the
+        flist argument
     """
 
     flavors = {}
+    if ('disableoverride' in flist and 'enableoverride' in flist) \
+        or \
+        ('restricted' in flist and 'tosubclass' in flist):
+
+        raise MOFParseError(parser_token=p, msg="Conflicting flavors are" \
+                            "invalid")
+
     if qualdecl is not None:
         flavors = {'overridable':qualdecl.overridable,
                    'translatable':qualdecl.translatable,
@@ -1481,6 +1578,12 @@ def p_empty(p):
     pass
 
 def _find_column(input_, token):
+    """ 
+        Find the column in file where error occured. This is taken from
+        token.lexpos converted to the position on the current line by
+        finding the previous EOL.
+    """
+
     i = token.lexpos
     while i > 0:
         if input_[i] == '\n':
@@ -1490,10 +1593,17 @@ def _find_column(input_, token):
     return column
 
 def _get_error_context(input_, token):
+    """
+        Build a context string that defines where on the line the defined
+        error occurs.  This consists of the characters ^ at the position
+        and for the length defined by the lexer position and token length
+    """
+
     try:
         line = input_[token.lexpos : input_.index('\n', token.lexpos)]
     except ValueError:
         line = input_[token.lexpos:]
+
     i = input_.rfind('\n', 0, token.lexpos)
     if i < 0:
         i = 0
@@ -2070,21 +2180,19 @@ class MOFCompiler(object):
             self.parser.file = oldfile
             self.parser.mof = oldmof
             return rv
+
         except MOFParseError as pe:
-            self.parser.log('Syntax error:')
-            if hasattr(pe, 'file') and hasattr(pe, 'lineno'):
-                self.parser.log('%s:%s:' % (pe.file, pe.lineno))
-            if hasattr(pe, 'context'):
-                self.parser.log('\n'.join(pe.context))
-            if str(pe):
-                self.parser.log(str(pe))
+            # Generate the error message into log and reraise error
+            self.parser.log(pe.get_err_msg())
             raise
+
         except CIMError as ce:
             if hasattr(ce, 'file_line'):
                 self.parser.log('Fatal Error: %s:%s' % (ce.file_line[0],
                                                         ce.file_line[1]))
             else:
                 self.parser.log('Fatal Error:')
+
             self.parser.log('%s%s' % (_statuscode2string(ce.args[0]),
                                       ce.args[1] and ': '+ce.args[1] or ''))
             raise
