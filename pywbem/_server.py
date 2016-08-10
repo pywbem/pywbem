@@ -556,7 +556,7 @@ class WBEMServer(object):
                 ns_dict = NocaseDict(list(zip(ns_names, ns_names)))
                 try:
                     interop_ns = ns_dict[ns]
-                except IndexError:
+                except KeyError:
                     interop_ns = ns
                 break
         if interop_ns is None:
