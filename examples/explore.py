@@ -40,14 +40,14 @@ def explore_server(server_url, username, password):
     for inst in server.profiles:
         print_profile_info(org_vm, inst)
 
-    indication_profiles = server.get_selected_profiles( 'DMTF', 'Indications')
-    
+    indication_profiles = server.get_selected_profiles('DMTF', 'Indications')
+
     print('Profiles for DMTF:Indications')
     for inst in indication_profiles:
         print_profile_info(org_vm, inst)
 
-    server_profiles = server.get_selected_profiles( 'SNIA', 'Server')
-    
+    server_profiles = server.get_selected_profiles('SNIA', 'Server')
+
     print('Profiles for SNIA:Server')
     for inst in server_profiles:
         print_profile_info(org_vm, inst)
