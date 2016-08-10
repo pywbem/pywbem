@@ -873,10 +873,10 @@ class PythonInstaller(BaseInstaller):
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.is_available()`.
         """
-        # We use the XML-RPC API of the new Pypi warehouse site at https://pypi.io/pypi.
+        # The new Pypi warehouse is at this URL.
         # The pip.commands.search.SearchCommand() API used before uses the
         # old https://pypi.python.org/pypi site which has quite bogus search behaviour.
-        pypi_url = 'https://pypi.io/pypi'
+        pypi_url = 'https://pypi.org/pypi'
         pypi_rpc = xmlrpc_ServerProxy(pypi_url)
         info_dicts = pypi_rpc.search(dict(name=pkg_name))  # Empty list, if not found.
         versions = [d['version'] for d in info_dicts]
