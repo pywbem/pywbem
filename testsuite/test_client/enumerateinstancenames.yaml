@@ -1,0 +1,949 @@
+-
+    name: EnumerateInstanceNames1
+    description: EnumerateInstanceNames succeeds returning 3 instance paths; test that returned instance paths get namespace in set.
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        result:
+            -
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    CreationClassname: PyWBEM_Person
+                    Name: Fritz
+            -
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    CreationClassname: PyWBEM_Person
+                    Name: Alice
+            -
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    CreationClassname: PyWBEM_Person
+                    Name: Charlie
+
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstanceNames">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="cimv2"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Person"/>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                            <IRETURNVALUE>
+                                <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                    <KEYBINDING NAME="CreationClassName">
+                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                    </KEYBINDING>
+                                    <KEYBINDING NAME="Name">
+                                        <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                    </KEYBINDING>
+                                </INSTANCENAME>
+                                <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                    <KEYBINDING NAME="CreationClassName">
+                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                    </KEYBINDING>
+                                    <KEYBINDING NAME="Name">
+                                        <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+                                    </KEYBINDING>
+                                </INSTANCENAME>
+                                <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                    <KEYBINDING NAME="CreationClassName">
+                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                    </KEYBINDING>
+                                    <KEYBINDING NAME="Name">
+                                        <KEYVALUE VALUETYPE="string">Charlie</KEYVALUE>
+                                    </KEYBINDING>
+                                </INSTANCENAME>
+                            </IRETURNVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNames2
+    description: EnumerateInstanceNames succeeds returning 1 instance path; test that returned instance path gets namespace set.
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        result:
+            -
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    CreationClassname: PyWBEM_Person
+                    Name: Fritz
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstanceNames">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="cimv2"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Person"/>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                            <IRETURNVALUE>
+                                <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                    <KEYBINDING NAME="CreationClassName">
+                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                    </KEYBINDING>
+                                    <KEYBINDING NAME="Name">
+                                        <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                    </KEYBINDING>
+                                </INSTANCENAME>
+                            </IRETURNVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNames3
+    description: EnumerateInstanceNames with cn=str succeeds returning 0 instances
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            ClassName: PyWBEM_Nothing
+    pywbem_response:
+        result: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstanceNames">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="cimv2"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Nothing"/>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNames4
+    description: EnumerateInstanceNames, test that namespace arg has precedence over conn. default namespace
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            namespace: root/interop
+            ClassName: PyWBEM_Nothing
+    pywbem_response:
+        result: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/interop
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstanceNames">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="interop"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Nothing"/>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNames5
+    description: EnumerateInstanceNames, test that namespace in ClassName object arg has precedence over conn. default namespace
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            ClassName:
+                pywbem_object: CIMClassName
+                classname: PyWBEM_Nothing
+                namespace: root/interop
+    pywbem_response:
+        result: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/interop
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstanceNames">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="interop"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Nothing"/>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNames6
+    description: EnumerateInstanceNames, test that namespace arg has precedence over namespace in ClassName object arg
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            namespace: root/myspace
+            ClassName:
+                pywbem_object: CIMClassName
+                classname: PyWBEM_Nothing
+                namespace: root/interop
+    pywbem_response:
+        result: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/myspace
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstanceNames">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="myspace"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Nothing"/>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNames7
+    description: EnumerateInstanceNames with all input parms succeeds returning 2 instance paths
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/interop
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            namespace: root/cimv2
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        result:
+            -
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    CreationClassname: PyWBEM_Person
+                    Name: Fritz
+            -
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    CreationClassname: PyWBEM_Person
+                    Name: Alice
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstanceNames">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="cimv2"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Person"/>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                            <IRETURNVALUE>
+                                <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                    <KEYBINDING NAME="CreationClassName">
+                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                    </KEYBINDING>
+                                    <KEYBINDING NAME="Name">
+                                        <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                    </KEYBINDING>
+                                </INSTANCENAME>
+                                <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                    <KEYBINDING NAME="CreationClassName">
+                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                    </KEYBINDING>
+                                    <KEYBINDING NAME="Name">
+                                        <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+                                    </KEYBINDING>
+                                </INSTANCENAME>
+                            </IRETURNVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNames8
+    description: EnumerateInstanceNames with all input parms set to default, succeeds returning 1 instance path
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            namespace:
+            # specifying no value in yaml means None in Python
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        result:
+            -
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    CreationClassname: PyWBEM_Person
+                    Name: Fritz
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstanceNames">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="cimv2"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Person"/>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                            <IRETURNVALUE>
+                                <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                    <KEYBINDING NAME="CreationClassName">
+                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                    </KEYBINDING>
+                                    <KEYBINDING NAME="Name">
+                                        <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                    </KEYBINDING>
+                                </INSTANCENAME>
+                            </IRETURNVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNames9
+    description: EnumerateInstanceNames, extra arg causes no server failure
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            ClassName: PyWBEM_Person
+            ExtraParam: false
+    pywbem_response:
+        result: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="EnumerateInstanceNames">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ClassName">
+                        <CLASSNAME NAME="PyWBEM_Person"/>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="ExtraParam">
+                      <VALUE>False</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNamesF1
+    description: EnumerateInstanceNames, server fails with CIM_ERR_ACCESS_DENIED
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        cim_status: 2
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="EnumerateInstanceNames">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ClassName">
+                        <CLASSNAME NAME="PyWBEM_Person"/>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                    <ERROR CODE="2" DESCRIPTION="CIM_ERR_ACCESS_DENIED: Invalid userid or password."/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNamesF2
+    description: EnumerateInstanceNames, server fails with CIM_ERR_NOT_SUPPORTED
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        cim_status: 7
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="EnumerateInstanceNames">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ClassName">
+                        <CLASSNAME NAME="PyWBEM_Person"/>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                    <ERROR CODE="7" DESCRIPTION="CIM_ERR_NOT_SUPPORTED: The requested operation is not supported on behalf of the WBEM server."/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNamesF3
+    description: EnumerateInstanceNames, server fails with CIM_ERR_INVALID_NAMESPACE
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: blah/blah
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        cim_status: 3
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: blah/blah
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstanceNames">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="blah"/>
+                                <NAMESPACE NAME="blah"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Person"/>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                    <ERROR CODE="3" DESCRIPTION="CIM_ERR_INVALID_NAMESPACE: Namespace blah/blah not found"/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNamesF4
+    description: EnumerateInstanceNames, server fails with CIM_ERR_INVALID_PARAMETER due to extra parm
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            ClassName: PyWBEM_Person
+            ExtraParam: false
+    pywbem_response:
+        cim_status: 4
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="EnumerateInstanceNames">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ClassName">
+                        <CLASSNAME NAME="PyWBEM_Person"/>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="ExtraParam">
+                      <VALUE>False</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                    <ERROR CODE="4" DESCRIPTION="CIM_ERR_INVALID_PARAMETER: Parameter ExtraParam is invalid"/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNamesF5
+    description: EnumerateInstanceNames, server fails with CIM_ERR_INVALID_CLASS
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            ClassName: PyWBEM_Bad
+    pywbem_response:
+        cim_status: 5
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="EnumerateInstanceNames">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ClassName">
+                        <CLASSNAME NAME="PyWBEM_Bad"/>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                    <ERROR CODE="5" DESCRIPTION="CIM_ERR_INVALID_CLASS: The specified class does not exist."/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EnumerateInstanceNamesF6
+    description: EnumerateInstanceNames, server fails with CIM_ERR_FAILED
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: EnumerateInstanceNames
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        cim_status: 1
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstanceNames
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="EnumerateInstanceNames">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ClassName">
+                        <CLASSNAME NAME="PyWBEM_Person"/>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+                    <ERROR CODE="1" DESCRIPTION="CIM_ERR_FAILED: Internal server error."/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
