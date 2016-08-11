@@ -317,7 +317,7 @@ endif
 
 $(test_log_file): makefile $(package_name)/*.py testsuite/*.py coveragerc
 	rm -f $(test_log_file)
-	bash -c "set -o pipefail; PYTHONWARNINGS=default PYTHONPATH=. py.test --cov $(package_name) --cov-config coveragerc --ignore=attic --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
+	bash -c "set -o pipefail; PYTHONWARNINGS=default PYTHONPATH=. py.test --cov $(package_name) --cov-config coveragerc --ignore=attic --ignore=releases --ignore=testsuite/testclient -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
 	@echo 'Done: Created test log file: $@'
 

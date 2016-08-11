@@ -17,7 +17,7 @@ import logging
 import datetime
 from urlparse import urlparse
 from pywbem import WBEMConnection, WBEMServer, WBEMListener, CIMClassName, \
-                   Error, Uint32
+                   Error, Uint32, WBEMSubscriptionManager
 
 # definition of the filter.  This is openpegasus specific and uses
 # a class that generates one indication for each call of a method
@@ -85,11 +85,11 @@ def wait_for_indications(requested_indications):
     try:
         success = False
         wait_time = int(requested_indications / 5) + 3
-        for i in range(wait_time):
+        for _ in range(wait_time):
             if last_indication_count != RECEIVED_INDICATION_COUNT:
                 last_indication_count = RECEIVED_INDICATION_COUNT
                 counter = 0
-                
+
             time.sleep(1)
 
             # exit loop if all indications recieved.
@@ -120,16 +120,6 @@ def wait_for_indications(requested_indications):
     return success
 
 
-def cleanup_listener(listener, server_id, subscription_path, filter_path):
-    """ Remove the subscription and filter and stop listener."""
-
-    listener.remove_subscription(server_id, subscription_path)
-    listener.remove_dynamic_filter(server_id, filter_path)
-
-    # Stop the listener and remove the server.
-    listener.stop()
-    listener.remove_server(server_id)
-
 def run_test(svr_url, listener_host, user, password, http_listener_port, \
              https_listener_port, requested_indications):
     """
@@ -154,6 +144,11 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     LISTENER = WBEMListener(listener_host, http_port=http_listener_port,
                             https_port=https_listener_port,
                             listener_id="pegindicationtest")
+    #start connect and start listener. Comment next lines for separate listener
+    LISTENER.add_callback(consume_indication)
+    LISTENER.start()
+
+    subscription_manager = WBEMSubscriptionManager(listener=LISTENER)
 
     # set up listener logger.
     hdlr = logging.FileHandler('pegasusindications.log')
@@ -163,25 +158,23 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     hdlr.setFormatter(formatter)
     LISTENER.logger.addHandler(hdlr)
 
-    # connect the listener callback, add to server,
-    server_id = LISTENER.add_server(server)
+    # add server to subscription manager
+    server_id = subscription_manager.add_server(server)
 
-    old_filters = LISTENER.get_dynamic_filters(server_id)
+    old_filters = subscription_manager.get_dynamic_filters(server_id)
     if len(old_filters) != 0:
         print('%s filters exist in server' % len(old_filters))
         for i in old_filters:
             print('all filter %s', i.tomof())
 
-    #start connect and start listener. Comment next lines for separate listener
-    LISTENER.add_callback(consume_indication)
-    LISTENER.start()
-
     # Create a dynamic alert indication filter and subscribe for it
-    filter_path = LISTENER.add_dynamic_filter(server_id, TEST_CLASS_NAMESPACE,
-                                              TEST_QUERY,
-                                              query_language="DMTF:CQL")
+    filter_path = subscription_manager.add_filter(
+        server_id, TEST_CLASS_NAMESPACE,
+        TEST_QUERY,
+        query_language="DMTF:CQL")
 
-    subscription_path = LISTENER.add_subscription(server_id, filter_path)
+    subscription_path = subscription_manager.add_subscription(server_id,
+                                                              filter_path)
 
     # request server to create indications by invoking method
     class_name = CIMClassName(TEST_CLASS, namespace=TEST_CLASS_NAMESPACE)
@@ -199,13 +192,21 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
 
     except Error as er:
         print('Indication Method exception %s' % er)
-        cleanup_listener(LISTENER, server_id, subscription_path, filter_path)
+        LISTENER.stop()
+        subscription_manager.remove_dynamic_subscription(server_id,
+                                                         subscription_path)
+        subscription_manager.remove_dynamic_filter(server_id, filter_path)
+        subscription_manager.remove_server(server_id)
         sys.exit(1)
 
     # wait for indications to be received. Time based on number of indications
     wait_for_indications(requested_indications)
 
-    cleanup_listener(LISTENER, server_id, subscription_path, filter_path)
+    LISTENER.stop()
+    subscription_manager.remove_dynamic_subscription(server_id,
+                                                     subscription_path)
+    subscription_manager.remove_dynamic_filter(server_id, filter_path)
+    subscription_manager.remove_server(server_id)
 
     # Test for all expected indications received.
     if RECEIVED_INDICATION_COUNT != requested_indications:
@@ -228,7 +229,7 @@ def main():
               "defined arguments.\n"
               "Usage: %s <url> <username> <password> <indication-count>" \
               "Where: <url> server url, ex. http://localhost\n" \
-              "       http listener port\n" \
+              "       <port> http listener port, ex. 5000\n" \
               "       <username> username for authentication\n" \
               "       <password> password for authentication\n" \
               "       <indication-count> Number of indications to request.\n" \
