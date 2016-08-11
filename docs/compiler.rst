@@ -6,9 +6,9 @@ MOF compiler API
 
 .. automodule:: pywbem.mof_compiler
 
-.. _`MOF compiler`:
+.. _`MOFCompiler`:
 
-MOF compiler
+MOFCompiler
 ------------
 
 .. autoclass:: pywbem.mof_compiler.MOFCompiler
@@ -31,4 +31,5 @@ Exceptions
 ----------
 
 .. autoclass:: pywbem.mof_compiler.MOFParseError
+   :members:
 

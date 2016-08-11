@@ -15,21 +15,28 @@
 #
 
 """
-The `WBEM server API`_ provides basic functionality of a WBEM server that is
-relevant for a client:
+The WBEM server API encapsulates certain functionality of a WBEM server for use
+by a WBEM client application, such as determining the Interop namespace of the
+server, or the management profiles advertised by the server.
 
-* The :class:`~pywbem.WBEMServer` class serves as a general access point for
-  clients. It provides an API for applications that for example allows
-  determining the Interop namespace of the server, or the advertised
-  management profiles.
+This chapter has the following sections:
 
-* The :class:`~pywbem.ValueMapping` class maps corresponding entries in
-  Values and ValueMap qualifiers of a CIM element and supports a
-  translation between the two.
+* :ref:`Example <Server Example>` - An example on how to use the API.
+
+* :ref:`WBEMServer` - The :class:`~pywbem.WBEMServer` class serves as a general
+  access point for clients to WBEM servers. It allows determining the Interop
+  namespace of the server, or the advertised management profiles.
+
+* :ref:`ValueMapping` - The :class:`~pywbem.ValueMapping` class maps
+  corresponding values of the `Values` and `ValueMap` qualifiers of a CIM
+  element and supports the translation of the actual value (often an integer)
+  to the corresponding value of the `Values` qualifier.
 
 .. note::
 
-   At this point, the WBEM listener API is experimental.
+   At this point, the WBEM server API is experimental.
+
+.. _`Server Example`:
 
 Example
 -------
@@ -196,7 +203,7 @@ class WBEMServer(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-            determined.
+              determined.
         """
         if self._interop_ns is None:
             self._determine_interop_ns()
@@ -212,9 +219,9 @@ class WBEMServer(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-            determined.
+              determined.
             CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be
-            determined.
+              determined.
         """
         if self._namespace_classname is None:
             self._determine_namespaces()
@@ -230,9 +237,9 @@ class WBEMServer(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-            determined.
+              determined.
             CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be
-            determined.
+              determined.
         """
         if self._namespaces is None:
             self._determine_namespaces()
@@ -255,9 +262,9 @@ class WBEMServer(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-            determined.
+              determined.
             CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
-            CIM_ObjectManager instances.
+              CIM_ObjectManager instances.
         """
         if self._brand is None:
             self._determine_brand()
@@ -273,9 +280,9 @@ class WBEMServer(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-            determined.
+              determined.
             CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
-            CIM_ObjectManager instances.
+              CIM_ObjectManager instances.
         """
         if self._version is None:
             self._determine_brand()
@@ -292,7 +299,7 @@ class WBEMServer(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-            determined.
+              determined.
         """
         if self._profiles is None:
             self._determine_profiles()
@@ -310,23 +317,22 @@ class WBEMServer(object):
         Parameters:
 
             profile_org (:term:`string`) or None: the `RegisteredOrganization`
-            to match the `RegisteredOrganization of the profile.
-            If None, this parameter is ignored in the filter
+              to match the `RegisteredOrganization` of the profile.
+              If None, this parameter is ignored in the filter
 
             profile_name (:term:`string`) or None: the `RegisteredName`.
-            If None, this parameter is ignored in the filter
+              If None, this parameter is ignored in the filter
 
             profile_version (:term:`string`) or None: the `RegisteredVersion`.
-            If None, this parameter is ignored in the filter
+              If None, this parameter is ignored in the filter
 
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-            determined.
+              determined.
             KeyError: If an instance in the list of profiles is incomplete
-            and does not include the required properties.
-
+              and does not include the required properties.
         """
 
         org_vm = ValueMapping.for_property(self, self.interop_ns,
@@ -358,9 +364,9 @@ class WBEMServer(object):
         This method supports the following profile advertisement methodologies
         (see :term:`DSP1033`), and attempts them in this order:
 
-          * GetCentralInstances methodology (new in :term:`DSP1033` 1.1)
-          * Central class methodology
-          * Scoping class methodology
+        * GetCentralInstances methodology (new in :term:`DSP1033` 1.1)
+        * Central class methodology
+        * Scoping class methodology
 
         Use of the scoping class methodology requires specifying the central
         class, scoping class and scoping path defined by the profile. If any
@@ -529,7 +535,7 @@ class WBEMServer(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-            determined.
+              determined.
         """
         test_classname = 'CIM_Namespace'
         interop_ns = None
@@ -617,9 +623,9 @@ class WBEMServer(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-            determined.
+              determined.
             CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be
-            determined.
+              determined.
         """
         ns_insts = None
         ns_classname = None
@@ -661,9 +667,9 @@ class WBEMServer(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-            determined.
+              determined.
             CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
-            CIM_ObjectManager instances.
+              CIM_ObjectManager instances.
         """
         cimom_insts = self._conn.EnumerateInstances(
             "CIM_ObjectManager", namespace=self.interop_ns)
@@ -712,7 +718,7 @@ class WBEMServer(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-            determined.
+              determined.
         """
         mp_insts = self._conn.EnumerateInstances("CIM_RegisteredProfile",
                                                  namespace=self.interop_ns)
@@ -730,11 +736,13 @@ class ValueMapping(object):
     This is done by retrieving the CIM class definition defining the CIM
     element in question, and by inspecting its ValueMap and Values qualifiers.
 
-    The actual translation of the values is performed by the :meth:`tovalues`
-    method.
+    The actual translation of the values is performed by the
+    :meth:`~pywbem.ValueMapping.tovalues` method.
 
     Instances of this class should be created through one of the factory class
-    methods: :meth:`for_property`, :meth:`for_method`, or :meth:`for_parameter`.
+    methods: :meth:`~pywbem.ValueMapping.for_property`,
+    :meth:`~pywbem.ValueMapping.for_method`, or
+    :meth:`~pywbem.ValueMapping.for_parameter`.
 
     Value ranges (``"2..4"``) and the indicator for unclaimed values (``".."``)
     in the ValueMap qualifier are supported.

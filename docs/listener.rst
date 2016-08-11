@@ -4,6 +4,8 @@
 WBEM listener API
 =================
 
+.. _`WBEMListener`:
+
 WBEMListener
 ^^^^^^^^^^^^
 
@@ -13,6 +15,8 @@ WBEMListener
    :members:
 
 .. autofunction:: pywbem.callback_interface
+
+.. _`WBEMSubscriptionManager`:
 
 WBEMSubscriptionManager
 ^^^^^^^^^^^^^^^^^^^^^^^

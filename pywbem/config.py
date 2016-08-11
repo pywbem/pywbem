@@ -15,20 +15,25 @@
 #
 
 """
-The :mod:`pywbem.config` module sets configuration variables for PyWBEM.
+The **pywbem** package supports a very limited number of configuration
+variables that influence certain specific behavior.
 
-These configuration variables are used by PyWBEM only after its modules
+These configuration variables are read by **pywbem** only after its modules
 have been loaded, so they can be modified by the user directly after
-importing :mod:`pywbem`. For example:
+importing ``pywbem``. For example:
 
 ::
 
     import pywbem
-    pywbem.config.ENFORCE_INTEGER_RANGE = False
+    pywbem.ENFORCE_INTEGER_RANGE = False
 
-Note that the source file of the :mod:`pywbem.config` module should not be
-changed by the user. Instead, use the technique described above to modify
-the variables.
+Note that the source file defining these variables should not be changed by the
+user. Instead, use the technique described above to modify the configuration
+variables.
+
+Note: Due to limitations of the documentatin tooling, the following
+configuration variables are shown in the ``pywbem.config`` namespace. However,
+they should be used from the ``pywbem`` namespace.
 """
 
 # This module is meant to be safe for 'import *'.
@@ -36,6 +41,7 @@ the variables.
 __all__ = ['ENFORCE_INTEGER_RANGE']
 
 #: Enforce the value range in CIM integer types (e.g. :class:`~pywbem.Uint8`).
+#: For details, see the :class:`~pywbem.CIMInt` base class.
 #:
 #: * True (default): Enforce the value range; Assigning values out of range
 #:   causes :exc:`~py:exceptions.ValueError` to be raised.

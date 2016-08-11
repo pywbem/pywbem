@@ -4,7 +4,27 @@
 WBEM client library API
 =======================
 
-.. automodule:: pywbem
+The WBEM client library API supports issuing WBEM operations to a WBEM server,
+using the CIM operations over HTTP (CIM-XML) protocol defined in the DMTF
+standards :term:`DSP0200` and :term:`DSP0201`.
+
+This chapter has the following sections:
+
+* :ref:`WBEM operations` - Class :class:`~pywbem.WBEMConnection` is the main
+  class of the WBEM client library API and is used to issue WBEM operations to
+  a WBEM server.
+* :ref:`CIM objects` - Python classes for representing CIM objects (instances,
+  classes, properties, etc.) that are used by the WBEM operations as input or
+  output.
+* :ref:`CIM data types` - Python classes for representing values of CIM data
+  types.
+* :ref:`CIM status codes` - CIM status codes returned by failing WBEM
+  operations.
+* :ref:`Exceptions` - Exceptions specific to **pywbem** that may be raised.
+* :ref:`Security considerations` - Information about authentication types and
+  certificates.
+
+A number of these topics apply also to the other APIs of the **pywbem** package.
 
 .. _`WBEM operations`:
 

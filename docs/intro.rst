@@ -4,57 +4,78 @@
 Introduction
 ============
 
-.. _`Contents of the package`:
+.. _`Functionality`:
 
 Functionality
 -------------
 
-The **pywbem** PyPI package provides the following functionality:
+The WBEM client provided in the pywbem package supports the following
+functionality:
 
-* WBEM client library API
+* :ref:`WBEM client library API`
 
-  The :ref:`WBEM client library API` supports issuing WBEM operations to a
-  WBEM server, using the CIM operations over HTTP (CIM-XML) protocol defined
-  in the DMTF standards :term:`DSP0200` and :term:`DSP0201`.
+  This API supports issuing WBEM operations to a WBEM server, using the CIM
+  operations over HTTP (CIM-XML) protocol defined in the DMTF standards
+  :term:`DSP0200` and :term:`DSP0201`.
 
-* WBEM listener API
+* :ref:`WBEM server API`
 
-  The :ref:`WBEM listener API` supports starting and stopping a WBEM listener
-  thread that waits for indications (i.e. events) emitted by a WBEM server
-  using the CIM-XML protocol. The API also supports managing subscriptions
-  for such indications.
+  This API encapsulates certain functionality of a WBEM server for use by a
+  WBEM client application, such as determining the Interop namespace of the
+  server, or the management profiles advertised by the server.
 
-* WBEM server API
+* :ref:`WBEM listener API`
 
-  The :ref:`WBEM server API` represents a general access point for basic server
-  functionality to a client, such as determining the Interop namespace of the
-  server, or the advertised management profiles.
+  This API supports starting and stopping a WBEM listener that waits for
+  indications (i.e. events) emitted by a WBEM server using the CIM-XML
+  protocol. The API also supports managing subscriptions for such indications.
 
-* WBEM utility commands
+* :ref:`MOF compiler API`
 
-  * :ref:`mof_compiler` - A MOF compiler that takes MOF files as input and
-    creates, updates or removes CIM instances, classes or qualifier types in a
-    CIM repository.
+  This API provides for invoking the MOF compiler and for plugging in your own
+  CIM repository into the MOF compiler.
+
+* :ref:`WBEM utility commands`
+
+  The pywbem package provides a few utility commands:
+
+  * :ref:`mof_compiler`
+
+    A MOF compiler that takes MOF files as input and creates, updates or
+    removes CIM instances, classes or qualifier types in a CIM repository.
 
     See :term:`DSP0004` for a description of MOF (Managed Object Format).
 
-    The MOF compiler has an API for using it from within a program.
-
     By default, the CIM repository used by the MOF compiler is in a WBEM
-    server. The MOF compiler API provides for plugging in your own CIM
+    server. The :ref:`MOF compiler API` provides for plugging in your own CIM
     repository the compiler can work against.
 
-    See :ref:`MOF compiler API` for a description of the API.
+  * :ref:`wbemcli`
 
-  * :ref:`wbemcli` - A WBEM command line interface that provides an interactive
-    Python environment for issuing WBEM operations to a WBEM server.
+    A WBEM command line interface that provides an interactive Python
+    environment for issuing WBEM operations to a WBEM server.
+
+.. _`Package version`:
+
+Package version
+---------------
+
+The version of the **pywbem** package can be accessed by programs using the
+``pywbem.__version__`` variable:
+
+.. autodata:: pywbem._version.__version__
+
+Note: For tooling reasons, the variable is shown as
+``pywbem._version.__version__``, but it should be used as
+``pywbem.__version__``.
 
 .. _`Compatibility`:
+.. _`Supported environments`:
 
-Compatibility
--------------
+Supported environments
+----------------------
 
-The ``pywbem`` PyPI package is supported in these environments:
+The **pywbem** package is supported in these environments:
 
 * on Windows, with Python 2.6, 2.7, 3.4, 3.5, and higher 3.x
 
@@ -63,72 +84,65 @@ The ``pywbem`` PyPI package is supported in these environments:
 OS X has not been tested and is therefore not listed, above. You are welcome to
 try it out and `report any issues <https://github.com/pywbem/pywbem/issues>`_.
 
-.. _`Deprecation policy`:
+.. _`Standards conformance`:
 
 Standards conformance
 ---------------------
 
-The ``pywbem`` package conforms to the following CIM and WBEM standards,
+The **pywbem** package conforms to the following CIM and WBEM standards,
 in the version specified when following the links to the standards:
 
-* The protocol supported by the PyWBEM client and listener is CIM-XML; it
-  conforms to :term:`DSP0200` and :term:`DSP0201`.
+* The supported WBEM protocol is CIM-XML; it conforms to :term:`DSP0200` and
+  :term:`DSP0201`.
 
-  Limitations:
+* The CIM-XML representation of :ref:`CIM objects` as produced by their
+  ``tocimxml()`` and ``tocimxmlstr()`` methods conforms to :term:`DSP0201`.
 
-  - Pulled enumeration operations are not currently supported.
-  - Indication delivery and the WBEM listener support is experimental (see
-    :ref:`WBEM listener API`).
-
-* The support for the CIM-XML representation of :ref:`CIM objects`, as
-  produced by their ``tocimxml()`` and ``tocimxmlstr()`` methods
-  conforms to :term:`DSP0201`.
-
-* The CIM metamodel implemented by ``pywbem`` (e.g. in its :ref:`CIM objects`)
-  conforms to :term:`DSP0004`.
-
-* The support for MOF as produced by the ``tomof()`` methods on
-  :ref:`CIM objects` and as parsed by the :class:`MOFCompiler` class conforms
-  to :term:`DSP0004`.
+* The MOF as produced by the ``tomof()`` methods on :ref:`CIM objects` and as
+  parsed by the MOF compiler conforms to :term:`DSP0004`.
 
   Limitations:
 
   - Several `issues in the MOF compiler
     <https://github.com/pywbem/pywbem/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+MOF>`_.
 
+* The implemented CIM metamodel (e.g. in the :ref:`CIM objects`) conforms to
+  :term:`DSP0004`.
+
 * The WBEM URIs produced by the :meth:`pywbem.CIMInstanceName.__str__` and
   :meth:`pywbem.CIMClassName.__str__` methods conform to :term:`DSP0207`.
 
-TODO: The following applies to the ``listener`` branch; remove this todo if merged:
+* The mechanisms for discovering the Interop namespace of a WBEM server and the
+  management profiles advertised by a WBEM server and their central instances
+  in the :ref:`WBEM server API` conforms to :term:`DSP1033`.
 
-* The support for discovering the Interop namespace, management profiles and
-  their central instances in the :ref:`WBEM server API` conforms to
-  :term:`DSP1033`.
+* The mechanisms for subscribing for CIM indications in the
+  :ref:`WBEM listener API` conforms to :term:`DSP1054`.
 
-* The support for subscribing for CIM indications conforms to :term:`DSP1054`.
+.. _`Deprecation policy`:
 
 Deprecation policy
 ------------------
 
-Since its v0.7.0, the ``pywbem`` package attempts to be as backwards compatible
+Since its v0.7.0, the **pywbem** package attempts to be as backwards compatible
 as possible.
 
 However, in an attempt to clean up some of its history, and in order to prepare
-for future additions, the Python namespaces visible to users of ``pywbem`` need
-to be cleaned up.
+for future additions, the Python namespaces visible to users of the **pywbem**
+package need to be cleaned up.
 
 Also, occasionally functionality needs to be retired, because it is flawed and
 a better but incompatible replacement has emerged.
 
-In ``pywbem``, such changes are done by deprecating existing functionality,
-without removing it. The deprecated functionality is still supported throughout
-new minor releases. Eventually, a new major release will break compatibility and
-will remove the deprecated functionality.
+In the **pywbem** package, such changes are done by deprecating existing
+functionality, without removing it. The deprecated functionality is still
+supported throughout new minor releases. Eventually, a new major release will
+break compatibility and will remove the deprecated functionality.
 
-In order to prepare users of ``pywbem`` for that, deprecation of functionality
-is stated in the API documentation, and is made visible at runtime by issuing
-Python warnings of type ``DeprecationWarning`` (see the Python
-:mod:`py:warnings` module).
+In order to prepare users of the **pywbem** package for that, deprecation of
+functionality is stated in the API documentation, and is made visible at
+runtime by issuing Python warnings of type ``DeprecationWarning`` (see the
+Python :mod:`py:warnings` module).
 
 Since Python 2.7, ``DeprecationWarning`` messages are suppressed by default.
 They can be shown for example in any of these ways:
@@ -136,12 +150,12 @@ They can be shown for example in any of these ways:
 * By specifying the Python command line option: ``-W default``
 * By invoking Python with the environment variable: ``PYTHONWARNINGS=default``
 
-It is recommended that users of ``pywbem`` run their test code with
+It is recommended that users of the **pywbem** package run their test code with
 ``DeprecationWarning`` messages being shown, so they become aware of any use of
-deprecated functionality in ``pywbem``.
+deprecated functionality.
 
 Here is a summary of the deprecation and compatibility policy used by
-``pywbem``, by release type:
+the **pywbem** package, by release type:
 
 * New update release (M.N.U -> M.N.U+1): No new deprecations; fully backwards
   compatible.
@@ -150,9 +164,49 @@ Here is a summary of the deprecation and compatibility policy used by
 * New major release (M.N.U -> M+1.0.0): Deprecated functionality may get
   removed; backwards compatibility may be broken.
 
-Compatibility is always seen from the perspective of the user of ``pywbem``, so
-a backwards compatible new ``pywbem`` release means that the user can safely
-upgrade to that new release without encountering compatibility issues.
+Compatibility is always seen from the perspective of the user of the **pywbem**
+package, so a backwards compatible new **pywbem** release means that the user
+can safely upgrade to that new release without encountering compatibility
+issues.
+
+.. _'Python namespaces`:
+
+Python namespaces
+-----------------
+
+The external APIs of the **pywbem** package are defined by the symbols in the
+``pywbem`` namespace. With a few exceptions, that is the only Python namespace
+that needs to be imported by users.
+
+With **pywbem** versions prior to v0.8, it was common for users to import the
+sub-modules of pywbem (e.g. ``pywbem.cim_obj``). The sub-modules that existed
+prior to v0.8 are still available for compatibility reasons.
+Starting with v0.8, the ``pywbem`` namespace was cleaned up, and not all public
+symbols available in the sub-module namespaces are available in the ``pywbem``
+namespace anymore. The symbols in the sub-module namespaces are still available
+for compatibility, including those that are no longer available in the
+``pywbem`` namespace. However, any use of symbols from the sub-module namespaces
+is deprecated starting with v0.8, and you should assume that a future version of
+**pywbem** will remove them. If you miss any symbol you were used to use, please
+`open an issue <https://github.com/pywbem/pywbem/issues>`_.
+
+New sub-modules added since v0.8 have a leading underscore in their name in
+order to document that they are considered an implementation detail and that
+they should not be imported by users.
+
+The only exception to the single-namespace rule stated above, is the
+:ref:`MOF compiler API`, which uses the ``pywbem.mof_compiler`` namespace.
+
+This documentation describes only the external APIs of the **pywbem** package,
+and omits any internal symbols and any sub-modules.
+
+.. _`Configuration variables`:
+
+Configuration variables
+-----------------------
+
+.. automodule:: pywbem.config
+      :members:
 
 .. _'Special type names`:
 
@@ -247,3 +301,6 @@ References
 
    RFC6874
       `IETF RFC6874, Representing IPv6 Zone Identifiers in Address Literals and Uniform Resource Identifiers, February 2013 <https://tools.ietf.org/html/rfc6874>`_
+
+   WBEM Standards
+      `DMTF WBEM Standards <http://www.dmtf.org/standards/wbem>`_

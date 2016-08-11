@@ -6,11 +6,15 @@ WBEM server API
 
 .. automodule:: pywbem._server
 
+.. _`WBEMServer`:
+
 WBEMServer
 ^^^^^^^^^^
 
 .. autoclass:: pywbem.WBEMServer
    :members:
+
+.. _`ValueMapping`:
 
 ValueMapping
 ^^^^^^^^^^^^
