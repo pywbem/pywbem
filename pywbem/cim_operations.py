@@ -3941,7 +3941,8 @@ class WBEMConnection(object):
 
         try:
 
-            if namespace is None and NewInstance.path.namespace is not None:
+            if namespace is None and \
+               getattr(NewInstance.path, 'namespace', None) is not None:
                 namespace = NewInstance.path.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
 

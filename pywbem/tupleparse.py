@@ -726,7 +726,8 @@ def parse_instancename(tup_tree):
       ::
 
         <!ELEMENT INSTANCENAME (KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?)>
-        <!ATTLIST INSTANCENAME %ClassName;>
+        <!ATTLIST INSTANCENAME
+            %ClassName;>
     """
 
 
@@ -991,7 +992,8 @@ def parse_qualifier(tup_tree):
       ::
 
         <!ELEMENT QUALIFIER (VALUE | VALUE.ARRAY)>
-        <!ATTLIST QUALIFIER %CIMName;
+        <!ATTLIST QUALIFIER
+            %CIMName;
             %CIMType;              #REQUIRED
             %Propagated;
             %QualifierFlavor;>
@@ -1032,11 +1034,12 @@ def parse_property(tup_tree):
       ::
 
         <!ELEMENT PROPERTY (QUALIFIER*, VALUE?)>
-        <!ATTLIST PROPERTY %CIMName;
+        <!ATTLIST PROPERTY
+            %CIMName;
+            %CIMType;              #REQUIRED
             %ClassOrigin;
             %Propagated;
-            %CIMType;              #REQUIRED>
-            %EMBEDDEDOBJECT
+            %EmbeddedObject;>
     """
 
     ## TODO: Parse this into NAME, VALUE, where the value contains
@@ -1082,11 +1085,13 @@ def parse_property_array(tup_tree):
       ::
 
         <!ELEMENT PROPERTY.ARRAY (QUALIFIER*, VALUE.ARRAY?)>
-        <!ATTLIST PROPERTY.ARRAY %CIMName;
+        <!ATTLIST PROPERTY.ARRAY
+            %CIMName;
             %CIMType;              #REQUIRED
             %ArraySize;
             %ClassOrigin;
-            %Propagated;>
+            %Propagated;
+            %EmbeddedObject;>
     """
 
     check_node(tup_tree, 'PROPERTY.ARRAY', ['NAME', 'TYPE'],
@@ -1170,7 +1175,8 @@ def parse_method(tup_tree):
 
         <!ELEMENT METHOD (QUALIFIER*, (PARAMETER | PARAMETER.REFERENCE |
                                        PARAMETER.ARRAY | PARAMETER.REFARRAY)*)>
-        <!ATTLIST METHOD %CIMName;
+        <!ATTLIST METHOD
+            %CIMName;
             %CIMType;              #IMPLIED
             %ClassOrigin;
             %Propagated;>
@@ -1452,17 +1458,17 @@ def parse_paramvalue(tup_tree):
                            ['VALUE', 'VALUE.REFERENCE', 'VALUE.ARRAY',
                             'VALUE.REFARRAY', 'CLASSNAME', 'INSTANCENAME',
                             'CLASS', 'INSTANCE', 'VALUE.NAMEDINSTANCE'])
+    attrl = attrs(tup_tree)
 
-    if 'PARAMTYPE' in attrs(tup_tree):
-        paramtype = attrs(tup_tree)['PARAMTYPE']
+    if 'PARAMTYPE' in attrl:
+        paramtype = attrl['PARAMTYPE']
     else:
         paramtype = None
 
-    #pylint: disable=line-too-long
-    if 'EmbeddedObject' in attrs(tup_tree) or 'EMBEDDEDOBJECT' in attrs(tup_tree):
+    if 'EmbeddedObject' in attrl or 'EMBEDDEDOBJECT' in attrl:
         child = parse_embeddedObject(child)
 
-    return attrs(tup_tree)['NAME'], paramtype, child
+    return attrl['NAME'], paramtype, child
 
 
 def parse_iparamvalue(tup_tree):
@@ -1474,7 +1480,8 @@ def parse_iparamvalue(tup_tree):
                               INSTANCENAME | CLASSNAME |
                               QUALIFIER.DECLARATION |
                               CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
-        <!ATTLIST IPARAMVALUE %CIMName;>
+        <!ATTLIST IPARAMVALUE
+            %CIMName;>
 
     :return: NAME, VALUE pair.
     """
@@ -1578,7 +1585,8 @@ def parse_imethodresponse(tup_tree):
       ::
 
         <!ELEMENT IMETHODRESPONSE (ERROR | (IRETURNVALUE?, PARAMVALUE*))>
-        <!ATTLIST IMETHODRESPONSE %CIMName;>
+        <!ATTLIST IMETHODRESPONSE
+            %CIMName;>
     """
 
     check_node(tup_tree, 'IMETHODRESPONSE', ['NAME'], [])
@@ -1614,22 +1622,27 @@ def parse_returnvalue(tup_tree):
 
       ::
 
-        <!ELEMENT RETURNVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
-                               VALUE.REFARRAY)>
-        <!ATTLIST RETURNVALUE %ParamType;       #IMPLIED>
+        <!ELEMENT RETURNVALUE (VALUE | VALUE.REFERENCE)?>
+        <!ATTLIST RETURNVALUE
+            %EmbeddedObject;
+            %ParamType;       #IMPLIED>
     """
 
     ## Version 2.1.1 of the DTD lacks the %ParamType attribute but it
     ## is present in version 2.2.  Make it optional to be backwards
     ## compatible.
 
-    check_node(tup_tree, 'RETURNVALUE', [], ['PARAMTYPE'])
+    check_node(tup_tree, 'RETURNVALUE', [],
+               ['PARAMTYPE', 'EmbeddedObject', 'EMBEDDEDOBJECT'])
 
-    return name(tup_tree), attrs(tup_tree), one_child(tup_tree,
-                                                      ['VALUE',
-                                                       'VALUE.ARRAY',
-                                                       'VALUE.REFERENCE',
-                                                       'VALUE.REFARRAY'])
+    child = optional_child(tup_tree, ['VALUE', 'VALUE.REFERENCE'])
+    attrl = attrs(tup_tree)
+
+    if 'EmbeddedObject' in attrl or 'EMBEDDEDOBJECT' in attrl:
+        child = parse_embeddedObject(child)
+
+    return name(tup_tree), attrl, child
+
 
 def parse_ireturnvalue(tup_tree):
     """Parse IRETURNVALUE element. Returns name, attributes and
@@ -1694,18 +1707,48 @@ def parse_embeddedObject(val): # pylint: disable=invalid-name
     """Parse and embedded instance or class and return the
     CIMInstance or CIMClass.
 
-    :Returns:
-      None if val is None. Returns either CIMClass or CIMInstance or a list of
-      them.
+    Parameters:
 
-    :Raises ParseError: There is an error in the XML.
+      val (string):
+        The string value that contains the embedded object in CIM-XML format.
+        One level of XML entity references have already been unescaped.
+
+        Example string value, for a doubly nested embedded instance. Note that
+        in the CIM-XML payload, this string value is escaped one more level.
+
+        ::
+
+            <INSTANCE CLASSNAME="PyWBEM_Address">
+              <PROPERTY NAME="Street" TYPE="string">
+                <VALUE>Fritz &amp; &lt;the cat&gt; Ave</VALUE>
+              </PROPERTY>
+              <PROPERTY NAME="Town" TYPE="string" EmbeddedObject="instance">
+                <VALUE>
+                  &lt;INSTANCE CLASSNAME="PyWBEM_Town"&gt;
+                    &lt;PROPERTY NAME="Name" TYPE="string"&gt;
+                      &lt;VALUE&gt;Fritz &amp;amp; &amp;lt;the cat&amp;gt; Town&lt;/VALUE&gt;
+                    &lt;/PROPERTY&gt;
+                    &lt;PROPERTY NAME="Zip" TYPE="string"&gt;
+                      &lt;VALUE&gt;z12345&lt;/VALUE&gt;
+                    &lt;/PROPERTY&gt;
+                  &lt;/INSTANCE&gt;
+                </VALUE>
+              </PROPERTY>
+            </INSTANCE>
+
+    Returns:
+      `None` if `val` is `None`.
+      `CIMClass` or `CIMInstance` or a list of them, otherwise.
+
+    Raises:
+      ParseError: There is an error in the XML.
     """
 
     if isinstance(val, list):
         return [parse_embeddedObject(obj) for obj in val]
     if val is None:
         return None
-    tuptree = xml_to_tupletree(val)
+    tuptree = xml_to_tupletree(val)  # This performs the un-embedding
     if tuptree[0] == 'INSTANCE':
         return parse_instance(tuptree)
     elif tuptree[0] == 'CLASS':
