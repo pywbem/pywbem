@@ -44,7 +44,7 @@ import pywbem
 from pywbem.cim_obj import _ensure_unicode, NocaseDict
 
 # Directory with the JSON test case files, relative to this script:
-TESTCASE_DIR = os.path.join(os.path.dirname(__file__), "test_client")
+TESTCASE_DIR = os.path.join(os.path.dirname(__file__), "testclient")
 
 RUN_ONE_TESTCASE = None
 
