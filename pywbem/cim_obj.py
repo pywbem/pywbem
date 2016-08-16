@@ -640,7 +640,7 @@ def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
     This function handles MOF escaping and breaking the string into multiple
     lines according to the `maxline` and `indent` parameters.
 
-    DSP0004 defines that the character repertoire for MOF string constants
+    `DSP0004` defines that the character repertoire for MOF string constants
     is the entire repertoire for the CIM string datatype. That is, the entire
     Unicode character repertoire except for U+0000.
 
@@ -660,7 +660,7 @@ def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
     U+0001..U+001F, it uses generic MOF escape sequences (e.g. U+0001 becomes
     "\x0001")
 
-    The following table shows the MOF escape sequences defined in DSP0004:
+    The following table shows the MOF escape sequences defined in `DSP0004`:
 
     ============  =============================================================
     MOF escape    Character
@@ -3277,6 +3277,35 @@ class CIMQualifier(_CIMComparisonMixin):
     specifies information such as a documentation string or whether a property
     is a key.
 
+    :class:`CIMQualifier` objects can be used to represent the qualifier values
+    that are specified on a CIM element (e.g. on a CIM class). In that case, the
+    :attr:`propagated` property is always `False`, and the effective values of
+    applicable but unspecified qualifiers need to be determined by users, by
+    considering the default value of the corresponding qualifier type, the
+    propagation and override flavors of the qualifier, and the qualifier values
+    that have been specified in the class ancestry of the CIM element in
+    question.
+
+    :class:`CIMQualifier` objects can also be used to represent the effective
+    values of all applicable qualifiers on a CIM element, including those that
+    have not been specified, e.g. in the MOF declaration of the CIM element.
+    In this case, the :class:`CIMQualifier` objects for qualifier values that
+    are specified in MOF represent the specified values, and their
+    :attr:`propagated` property is `False`. The :class:`CIMQualifier` objects
+    for qualifier values that are not specified in MOF represent the effective
+    values, and their :attr:`propagated` property is `True`.
+
+    Whether a set of :class:`CIMQualifier` objects on a CIM object represents
+    just the specified qualifiers or all applicable qualifiers needs to be known
+    from the context.
+
+    :class:`CIMQualifier` has properties that represent qualifier flavors
+    (:attr:`tosubclass`, :attr:`toinstance`, :attr:`overridable`, and
+    :attr:`translatable`). If any of these flavor properties is not `None`, the
+    qualifier value represented by the :class:`CIMQualifier` object implicitly
+    defines a qualifier type. Implicitly defined qualifier types have been
+    deprecated in :term:`DSP0004`.
+
     Attributes:
 
       name (:term:`unicode string`):
@@ -3305,12 +3334,21 @@ class CIMQualifier(_CIMComparisonMixin):
         `None` means that this information is not available.
 
       tosubclass (:class:`py:bool`):
-        Indicates whether the qualifier value propagates to subclasses.
+        If not `None`, defines that there is an implicit qualifier type for
+        this qualifier.
+
+        If `True`, specifies the ToSubclass flavor (the qualifier value
+        propagates to subclasses); if `False` specifies the Restricted flavor
+        (the qualifier values does not propagate to subclasses).
 
         `None` means that this information is not available.
 
       toinstance (:class:`py:bool`):
-        Indicates whether the qualifier value propagates to instances.
+        If not None, defines that there is an implicit qualifier type for
+        this qualifier.
+
+        If `True` specifies the ToInstance flavor(the qualifier value
+        propagates to instances.
 
         `None` means that this information is not available.
 
@@ -3318,12 +3356,23 @@ class CIMQualifier(_CIMComparisonMixin):
         values on CIM instances.
 
       overridable (:class:`py:bool`):
-        Indicates whether the qualifier value is overridable in subclasses.
+        If not None, defines that there is an implicit qualifier type for
+        this qualifier.
+
+        If `True`, specifies the  EnableOverride flavor(the qualifier value is
+        overridable in subclasses); if `False` specifies the DisableOverride
+        flavor(the qualifier value is not overridable in subclasses).
 
         `None` means that this information is not available.
 
       translatable (:class:`py:bool`):
-        Indicates whether the qualifier is translatable.
+        If not None, defines that there is an implicit qualifier type for
+        this qualifier.
+
+        If `True`, specifies the Translatable flavor (the qualifier is
+        translatable); if `False` specifies that the qualfier is
+        not translatable. There is no flavor corresponding to
+        translatable=False.
 
         `None` means that this information is not available.
     """
@@ -3601,9 +3650,44 @@ class CIMQualifier(_CIMComparisonMixin):
 #pylint: disable=too-many-instance-attributes
 class CIMQualifierDeclaration(_CIMComparisonMixin):
     """
-    A CIM qualifier type.
 
-    A qualifier type is the declaration of a qualifier.
+    A CIM qualifier type is the declaration of a qualifier and defines the
+    attributes of qualifier name, qualifier type, value, scopes, and flavors
+    for the qualifier.
+
+    The scope of a qualifer determines the kinds of schema elements on which
+    it can be specified.
+
+    Value specifies the default value for the qualifier.
+
+    Flavors specify certain characteristics of the qualifier such as its
+    value propagation from the ancestry of the qualified element and its
+    translatability.
+
+    Flavors attributes must be specifically set on construction of the
+    :class:`CIMQualifierDeclaration` or they will be set to `None`. This
+    differs from the DMTF specification :term:`DSP0004` where tdefault values
+    are defined as follows:
+
+        - EnableOverride flavor, overridable attribute = True
+
+        - ToSubClass flavor, tosubclass attribute = True
+
+        - Translatable flavor,translatable attribute = False
+
+        - ToInstance flavor, toinstance flavor = False.
+          Not defined in :term:`DSP0004` and as deprecated in the DMTF protocol
+          specification :TERM:`DSP0200`
+
+    Because `None` is allowed as a value for the flavors attributes in
+    constructing a CIMQualifierDeclaration, the user must insure that any
+    flavor which has the value `None` is set to its default value if required
+    for subsequent processing.
+
+    The pywbem MOF compiler supplies all of the flavor values so that
+    those which were not specified in the MOF are set to the DMTF defined
+    default values.
+
 
     Attributes:
 
@@ -3655,14 +3739,15 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         This variable will never be `None`.
 
       tosubclass (:class:`py:bool`):
-        If not `None`, specifies whether the qualifier value propagates
-        to subclasses.
+        If `True` specifies the ToSubclass flavor(the qualifier value
+        propagates to subclasses); if `False` specifies the Restricted
+        flavor(the qualifier value does not propagate to subclasses).
 
         `None` means that this information is not available.
 
       toinstance (:class:`py:bool`):
-        If not `None`, specifies whether the qualifier value propagates
-        to instances.
+        If `True`, specifies the ToInstance flavor. This flavor defines
+        whether the qualifier value propagates to instances.
 
         `None` means that this information is not available.
 
@@ -3670,18 +3755,24 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         values on CIM instances.
 
       overridable (:class:`py:bool`):
-        If not `None`, specifies whether the qualifier value is overridable
-        in subclasses.
+        If `True`, specifies the  EnableOverride flavor(the qualifier value is
+        overridable in subclasses); if `False` specifies the DisableOverride
+        flavor(the qualifier value is not overridable in subclasses).
 
         `None` means that this information is not available.
 
       translatable (:class:`py:bool`):
-        If not `None`, specifies whether the qualifier is translatable.
+        If `True`, specifies the  Translatable flavor. This flavor defines
+        whether the qualifier is translatable.
 
         `None` means that this information is not available.
     """
 
-    # TODO: Scope and qualifier flavors
+    # TODO: Extend so that we allow the user to get effective flavors, values,
+    #        etc.
+
+    # TODO: 8/16 ks Consider removing toinstance completely from object since
+    # it is not a viable part of specs any more.
 
     # pylint: disable=too-many-arguments
     def __init__(self, name, type, value=None, is_array=False,
@@ -3708,8 +3799,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             `None` means a default value of Null.
 
           is_array (:class:`py:bool`):
-            A boolean indicating whether the qualifier is an array (`True`) or a
-            scalar (`False`).
+            A boolean indicating whether the qualifier is an array (`True`) or
+            a scalar (`False`).
 
             Must not be `None`.
 
@@ -3725,28 +3816,30 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             attribute.
 
           overridable (:class:`py:bool`):
-            If not `None`, specifies whether the qualifier value is overridable
-            in subclasses.
+            If not `None`, defines the flavor that defines whether the
+            qualifier value is overridable in subclasses.
 
             `None` means that this information is not available.
 
           tosubclass (:class:`py:bool`):
-            If not `None`, specifies whether the qualifier value propagates
-            to subclasses.
+            If not `None`, specifies the flavor that defines whether the
+            qualifier value propagates to subclasses.
 
             `None` means that this information is not available.
 
           toinstance (:class:`py:bool`):
-            If not `None`, specifies whether the qualifier value propagates
-            to instances.
+            If not `None`, specifies the flavor that defines whether the
+            qualifier value propagates to instances.
 
             `None` means that this information is not available.
 
             Note that :term:`DSP0200` has deprecated the presence of qualifier
-            values on CIM instances.
+            values on CIM instances and this flavor is not defined in
+            :term:`DSP0004`
 
           translatable (:class:`py:bool`):
-            If not `None`, specifies whether the qualifier is translatable.
+            If not `None`, specifies  the flavor that defines whether the
+            qualifier is translatable.
 
             `None` means that this information is not available.
         """

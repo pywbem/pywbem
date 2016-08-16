@@ -940,6 +940,7 @@ def p_qualifierParameter(p):
     else:
         p[0] = p[2]
 
+#TODO 8/16 ks Consider complete removed of TOINSTANCE from compiler
 def p_flavor(p):
     """flavor : ENABLEOVERRIDE
               | DISABLEOVERRIDE
@@ -1319,7 +1320,22 @@ def p_qualifierDeclaration(p):
 def _build_flavors(p, flist, qualdecl=None):
     """
         Build and return a dictionary defining the flavors from the
-        flist argument
+        flist argument.
+
+        This function maps from the input keyword definitions for the flavors
+        (ex. enableoverride) to the PyWBEM internal definitions
+        (ex. overridable)
+
+        Uses the qualdecl argument as a basis if it exists. This is to define
+        qualifier flavors if qualfier declaractions exist.
+
+        This applies the values from the qualifierDecl to the the qualifier
+        flavor list.
+
+        This function and the defaultflavor function insure that all
+        flavors are defined in the created dictionary that is returned. This
+        is important because the PyWBEM classes allow `None` as a flavor
+        definition.
     """
 
     flavors = {}
@@ -1423,6 +1439,9 @@ def p_metaElement(p):
 def p_defaultFlavor(p):
     """defaultFlavor : ',' FLAVOR '(' flavorListWithComma ')'"""
     flist = p[4]
+    # Create dictionary of default flavors based on DSP0004 definition
+    # of defaults for flavors. This insures that all possible flavors keywords
+    # are defined in the created dictionary.
     flavors = {'ENABLEOVERRIDE':True,
                'TOSUBCLASS':True,
                'TOINSTANCE':False,
@@ -1597,7 +1616,7 @@ def p_empty(p):
     pass
 
 def _find_column(input_, token):
-    """ 
+    """
         Find the column in file where error occured. This is taken from
         token.lexpos converted to the position on the current line by
         finding the previous EOL.
