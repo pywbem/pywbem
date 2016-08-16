@@ -15,6 +15,7 @@ import sys
 import time
 import logging
 import datetime
+from socket import getfqdn
 from urlparse import urlparse
 from pywbem import WBEMConnection, WBEMServer, WBEMListener, CIMClassName, \
                    Error, Uint32, WBEMSubscriptionManager
@@ -28,7 +29,6 @@ TEST_QUERY = 'SELECT * from %s' % TEST_CLASS
 # global count of indications recived by the local indication processor
 RECEIVED_INDICATION_COUNT = 0
 LISTENER = None
-
 
 class ElapsedTimer(object):
     """
@@ -141,15 +141,12 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     #pylint: disable=global-statement
     global LISTENER
 
+    # Create and start local listener
     LISTENER = WBEMListener(listener_host, http_port=http_listener_port,
-                            https_port=https_listener_port,
-                            listener_id="pegindicationtest")
+                            https_port=https_listener_port)
     #start connect and start listener. Comment next lines for separate listener
     LISTENER.add_callback(consume_indication)
     LISTENER.start()
-
-    subscription_manager = WBEMSubscriptionManager(listener=LISTENER)
-
     # set up listener logger.
     hdlr = logging.FileHandler('pegasusindications.log')
     hdlr.setLevel(logging.INFO)
@@ -158,25 +155,31 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     hdlr.setFormatter(formatter)
     LISTENER.logger.addHandler(hdlr)
 
+    #create subscription_manager
+    subscription_manager = WBEMSubscriptionManager(
+        subscription_manager_id='fred')
+
+    subscription_manager.add_listener_url('http', getfqdn(), http_listener_port)
+
     # add server to subscription manager
     server_id = subscription_manager.add_server(server)
 
-    old_filters = subscription_manager.get_dynamic_filters(server_id)
-    if len(old_filters) != 0:
-        print('%s filters exist in server' % len(old_filters))
-        for i in old_filters:
-            print('all filter %s', i.tomof())
+    #determine if there are any existing filters and display them
+    existing_filters = subscription_manager.get_owned_filters(server_id)
+    if len(existing_filters) != 0:
+        print('%s filters exist in server' % len(existing_filters))
+        for _filter in existing_filters:
+            print('existing filter %s', _filter.tomof())
 
     # Create a dynamic alert indication filter and subscribe for it
     filter_path = subscription_manager.add_filter(
         server_id, TEST_CLASS_NAMESPACE,
         TEST_QUERY,
         query_language="DMTF:CQL")
-
-    subscription_path = subscription_manager.add_subscription(server_id,
-                                                              filter_path)
-
+    subscription_paths = subscription_manager.add_subscription(server_id,
+                                                               filter_path)
     # request server to create indications by invoking method
+    # This is pegasus specific
     class_name = CIMClassName(TEST_CLASS, namespace=TEST_CLASS_NAMESPACE)
 
     try:
@@ -187,26 +190,26 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
                                      Uint32(requested_indications))])
 
         if result[0] != 0:
-            print('Method error. Nonzero return. %s' % result[0])
+            print('SendTestIndicationCount Method error. Nonzero return=%s' \
+                  % result[0])
             sys.exit(1)
 
     except Error as er:
         print('Indication Method exception %s' % er)
-        LISTENER.stop()
-        subscription_manager.remove_dynamic_subscription(server_id,
-                                                         subscription_path)
-        subscription_manager.remove_dynamic_filter(server_id, filter_path)
+        subscription_manager.remove_subscription(server_id,
+                                                 subscription_paths)
+        subscription_manager.remove_filter(server_id, filter_path)
         subscription_manager.remove_server(server_id)
+        LISTENER.stop()
         sys.exit(1)
 
     # wait for indications to be received. Time based on number of indications
     wait_for_indications(requested_indications)
 
-    LISTENER.stop()
-    subscription_manager.remove_dynamic_subscription(server_id,
-                                                     subscription_path)
-    subscription_manager.remove_dynamic_filter(server_id, filter_path)
+    subscription_manager.remove_subscription(server_id, subscription_paths)
+    subscription_manager.remove_filter(server_id, filter_path)
     subscription_manager.remove_server(server_id)
+    LISTENER.stop()
 
     # Test for all expected indications received.
     if RECEIVED_INDICATION_COUNT != requested_indications:

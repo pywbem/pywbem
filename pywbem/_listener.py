@@ -25,17 +25,15 @@ listener service.
 
 Examples
 --------
+See _subscription_manager.py and the examples directory for an example of
+a subscription_manager and listener defined in the same executable.
 
-The following example code subscribes for a CIM alert indication
-on two WBEM servers and registers a callback function for indication
-delivery:
-
-::
+The following example creates and runs a listener
 
     import sys
     import logging
     from socket import getfqdn
-    from pywbem import WBEMConnection, WBEMListener, WBEMServer
+    from pywbem import WBEMListener
 
     def process_indication(indication, host):
         '''This function gets called when an indication is received.'''
@@ -59,47 +57,28 @@ delivery:
         server2 = WBEMServer(conn2)
         server2.validate_interop_ns('root/PG_InterOp')
 
-        listener = WBEMListener(host=getfqdn()
+        my_listener = WBEMListener(host=getfqdn()
                                 http_port=5988,
                                 https_port=5989,
                                 certfile=certkeyfile,
                                 keyfile=certkeyfile)
-        listener.add_callback(process_indication)
-        listener.add_server(server1)
-        listener.add_server(server2)
+        my_listener.add_callback(process_indication)
         listener.start()
 
-        # Subscribe for a static filter of a given name
-        filter1_paths = listener.get_filters(url1)
-        for fp in filter1_paths:
-            if fp.keybindings['Name'] == \\
-               "DMTF:Indications:GlobalAlertIndicationFilter":
-                listener.add_subscription(url1, fp)
-                break
-
-        # Create a dynamic alert indication filter and subscribe for it
-        filter2_path = listener.add_dynamic_filter(
-            url2,
-            query_language="DMTF:CQL"
-            query="SELECT * FROM CIM_AlertIndication " \\
-                  "WHERE OwningEntity = 'DMTF' " \\
-                  "AND MessageID LIKE 'SVPC0123|SVPC0124|SVPC0125'")
-        listener.add_subscription(url2, filter2_path)
+        # listener runs until executable terminated
 
 Another more practical example is in the script ``examples/listen.py``
 (when you clone the GitHub pywbem/pywbem project).
 It is an interactive Python shell that creates a WBEM listener and displays
-any indications it receives, in MOF format.
+any indications it receives, in MOF format.        
 """
 
 import re
-from socket import getfqdn
 import logging
 import ssl
 from xml.dom import minidom
 from xml.parsers.expat import ExpatError
 import threading
-import uuid
 import six
 from six.moves import BaseHTTPServer
 from six.moves import socketserver
@@ -117,7 +96,6 @@ from .exceptions import ParseError, VersionError
 
 DEFAULT_LISTENER_PORT_HTTP = 5988
 DEFAULT_LISTENER_PORT_HTTPS = 5989
-DEFAULT_QUERY_LANGUAGE = 'WQL'
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
 # These are returned in export message responses.
@@ -125,11 +103,6 @@ IMPLEMENTED_CIM_VERSION = '2.0'
 IMPLEMENTED_DTD_VERSION = '2.4'
 IMPLEMENTED_PROTOCOL_VERSION = '1.4'
 
-#CIM model classnames for subscription components
-SUBSCRIPTION_CLASSNAME = 'CIM_IndicationSubscription'
-DESTINATION_CLASSNAME = 'CIM_ListenerDestinationCIMXML'
-FILTER_CLASSNAME = 'CIM_IndicationFilter'
-SYSTEM_CREATION_CLASSNAME = 'CIM_ComputerSystem'
 
 # CIM-XML protocol related versions supported by the WBEM listener
 # These are checked in export message requests.
@@ -601,8 +574,7 @@ class WBEMListener(object):
 
     def __init__(self, host, http_port=DEFAULT_LISTENER_PORT_HTTP,
                  https_port=DEFAULT_LISTENER_PORT_HTTPS,
-                 certfile=None, keyfile=None, listener_id=None):
-## TODO eliminate listener_id from here unless there is a need
+                 certfile=None, keyfile=None):
         """
         Parameters:
 
@@ -639,20 +611,6 @@ class WBEMListener(object):
 
             `None` means not to use a private key file. Setting up a port
             for HTTPS requires specifying a private key file.
-
-          listener_id (:term:`string`):
-            If not `None` a string of printable characters to be inserted in
-            the name property of filter and listener destination instances
-            to help the listener identify its filters and destination instances
-            in a WBEM Server.
-
-            The string must not contain the character ':' since that
-            is the separator between components of the name property applied
-            to each filter.
-
-            The form for the name property of a PyWBEM of a filter is:
-
-        "pywbemfilter:" [<listener_id>  ":"] [<filter_id> ":"] <guid>
         """
 
         self._host = host
@@ -696,23 +654,7 @@ class WBEMListener(object):
         self._logger = logging.getLogger('pywbem.listener.%s' % id(self))
         self._logger.addHandler(logging.NullHandler())
 
-        # The following dictionaries have the WBEM server ID as a key.
-        self._servers = {}  # WBEMServer objects for the WBEM servers
-        self._subscription_paths = {}  # CIMInstanceName of subscriptions
-        self._dynamic_filter_paths = {}  # CIMInstanceName of dynamic filters
-        self._destination_path = {}  # CIMInstanceName of listener destination
-
         self._callbacks = []  # Registered callback functions
-
-        if listener_id is None:
-            self._listener_id = ''
-        elif isinstance(listener_id, six.string_types):
-            if ':' in listener_id:
-                raise ValueError("Invalid String: listener_id contains :")
-            self._listener_id = '%s:' % listener_id
-        else:
-            raise TypeError("invalid type for listener_id")
-
     def __repr__(self):
         """
         Return a representation of the :class:`~pywbem.WBEMListener` object
