@@ -147,6 +147,7 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     #start connect and start listener. Comment next lines for separate listener
     LISTENER.add_callback(consume_indication)
     LISTENER.start()
+
     # set up listener logger.
     hdlr = logging.FileHandler('pegasusindications.log')
     hdlr.setLevel(logging.INFO)
@@ -159,10 +160,10 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     subscription_manager = WBEMSubscriptionManager(
         subscription_manager_id='fred')
 
-    subscription_manager.add_listener_url('http', getfqdn(), http_listener_port)
-
     # add server to subscription manager
     server_id = subscription_manager.add_server(server)
+    listener_url = '%s://%s:%s' % ('http', 'localhost', http_listener_port)
+    subscription_manager.add_listener_destinations(server_id, listener_url)
 
     #determine if there are any existing filters and display them
     existing_filters = subscription_manager.get_owned_filters(server_id)
@@ -176,8 +177,8 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
         server_id, TEST_CLASS_NAMESPACE,
         TEST_QUERY,
         query_language="DMTF:CQL")
-    subscription_paths = subscription_manager.add_subscription(server_id,
-                                                               filter_path)
+    subscription_paths = subscription_manager.add_subscriptions(server_id,
+                                                                filter_path)
     # request server to create indications by invoking method
     # This is pegasus specific
     class_name = CIMClassName(TEST_CLASS, namespace=TEST_CLASS_NAMESPACE)
@@ -196,8 +197,8 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
 
     except Error as er:
         print('Indication Method exception %s' % er)
-        subscription_manager.remove_subscription(server_id,
-                                                 subscription_paths)
+        subscription_manager.remove_subscriptions(server_id,
+                                                  subscription_paths)
         subscription_manager.remove_filter(server_id, filter_path)
         subscription_manager.remove_server(server_id)
         LISTENER.stop()
@@ -206,15 +207,15 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     # wait for indications to be received. Time based on number of indications
     wait_for_indications(requested_indications)
 
-    subscription_manager.remove_subscription(server_id, subscription_paths)
+    subscription_manager.remove_subscriptions(server_id, subscription_paths)
     subscription_manager.remove_filter(server_id, filter_path)
     subscription_manager.remove_server(server_id)
     LISTENER.stop()
 
     # Test for all expected indications received.
     if RECEIVED_INDICATION_COUNT != requested_indications:
-        print('Incorrect count of indications received exp=%s recvd=%s' % \
-              (requested_indications, RECEIVED_INDICATION_COUNT))
+        print('Incorrect count of indications received expected=%s, received'
+              '=%s' % (requested_indications, RECEIVED_INDICATION_COUNT))
         sys.exit(1)
     else:
         print('Success, %s indications' % requested_indications)

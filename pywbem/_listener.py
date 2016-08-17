@@ -70,7 +70,7 @@ The following example creates and runs a listener
 Another more practical example is in the script ``examples/listen.py``
 (when you clone the GitHub pywbem/pywbem project).
 It is an interactive Python shell that creates a WBEM listener and displays
-any indications it receives, in MOF format.        
+any indications it receives, in MOF format.
 """
 
 import re
@@ -86,7 +86,7 @@ from six.moves import http_client
 
 from . import cim_xml
 from ._version import __version__
-from .cim_obj import CIMInstance, CIMInstanceName, _ensure_unicode
+from .cim_obj import CIMInstance, _ensure_unicode
 from .cim_operations import check_utf8_xml_chars
 from .cim_constants import CIM_ERR_NOT_SUPPORTED, \
                            CIM_ERR_INVALID_PARAMETER, _statuscode2name
@@ -334,8 +334,8 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                                          indication_inst)
                 return
 
-            self.server.listener._deliver_indication(indication_inst,
-                                                     self.client_address[0])
+            self.server.listener.deliver_indication(indication_inst,
+                                                    self.client_address[0])
 
             self.send_success_response(msgid, methodname)
 
@@ -820,7 +820,7 @@ class WBEMListener(object):
             self._https_server = None
             self._https_thread = None
 
-    def _deliver_indication(self, indication, host):
+    def deliver_indication(self, indication, host):
         """
         This function is called by the listener threads for each received
         indication.

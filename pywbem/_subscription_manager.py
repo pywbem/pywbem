@@ -66,10 +66,16 @@ callback function for indication delivery:
         my_listener.add_callback(process_indication)
         listener.start()
 
-        subscription_manager = WBEMSubscriptionManager(listener=my_listener)
-        subscription_manager.add_listener('http', getfqdn(), 5988)
-        subscription_manager.add_server(server1)
-        subscription_manager.add_server(server2)
+        subscription_manager = WBEMSubscriptionManager(
+            subscription_manager_id='fred')
+
+        server1_id = subscription_manager.add_server(server1)
+        subscription_manager.add_listener_destinations(server1_id,
+                                                      'http://localhost:5988')
+
+        server2_id = subscription_manager.add_server(server2_id)
+        subscription_manager.add_listener_destinations(server2,
+                                                      'https://localhost:5989')
 
 
         # Subscribe for a static filter of a given name
@@ -87,7 +93,8 @@ callback function for indication delivery:
             query="SELECT * FROM CIM_AlertIndication " \\
                   "WHERE OwningEntity = 'DMTF' " \\
                   "AND MessageID LIKE 'SVPC0123|SVPC0124|SVPC0125'")
-        subscription_manager.add_subscription(url2, filter2_path)
+
+        subscription_manager.add_subscription(server2_id, filter2_path)
 
 Another more practical example is in the script ``examples/listen.py``
 (when you clone the GitHub pywbem/pywbem project).
@@ -148,8 +155,6 @@ class WBEMSubscriptionManager(object):
                                          id(self))
         self._logger.addHandler(logging.NullHandler())
 
-        self._listener_urls = []     # list of listeners for this server
-
         # The following dictionaries have the WBEM server ID as a key.
         self._servers = {}  # WBEMServer objects for the WBEM servers
         self._owned_subscription_paths = {}  # CIMInstanceName of subscriptions
@@ -174,12 +179,36 @@ class WBEMSubscriptionManager(object):
         """
         return "%s(host=%r, _servers=%r, " \
                "_owned_subscription_paths=%r, _owned_filter_paths=%r, " \
-               "_ listener_urls=%s, _destination_paths=%r)" % \
+               "_destination_paths=%r)" % \
                (self.__class__.__name__,
                 self.logger,
                 self._servers, self._owned_subscription_paths,
-                self._owned_filter_paths, self._listener_urls,
-                self._server_dest_tuples)
+                self._owned_filter_paths, self._server_dest_tuples)
+
+    def _get_server(self, server_id):
+        """
+            Internal method to get the server object given a server_id.
+
+        Parameters:
+
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
+
+        Returns:
+
+             server (:class:`~pywbem.WBEMServer`):
+             The WBEM server.
+
+        Raises:
+
+            ValueError: server_id not known to subscription manager.
+        """
+
+        if server_id not in self._servers:
+            raise ValueError('WBEM server %s not known by subscription '
+                             'manager' % server_id)
+
+        return self._servers[server_id]
 
     @property
     def logger(self):
@@ -213,59 +242,79 @@ class WBEMSubscriptionManager(object):
         """
         return self._logger
 
-    def add_listener_url(self, scheme, hostname, port):
+    def add_listener_destinations(self, server_id, listener_urls):
         """
         Add the url of a WBEM listener to  the set of listeners for which
-        indications will be targeted. This url must include scheme, address,
-        and port components.
-        FUTURE TODO: we could leave off port and use defaults. based on scheme
+        indications will be targeted for the defined WBEM Server.
+        This url must include scheme, address, and port components.
+
+        This function creates a destination instance for each listener_url
+        in listener_urls and registers that instance with the WBEM server
+        defined by server_id.
 
         Parameters:
-          host (:term:`string`):
-            IP address or host name this listener can be reached at.
 
-          port (:term:`string` or :term:`integer`):
-            port the listener can be reached at.
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
 
+          listener_urls ((list of :term:`string`) or (:term:`string`)):
+            Either a  single listener url or list of listener
+            urls. This represents the listeners for which indications will
+            be routed and for which destinations instances are registered
+            with the WBEM server.
+
+            Each listener_url is defined in the format:
+
+              ``[{scheme}://]{host}[:{port}]``
+
+            The following URL schemes are supported:
+
+            * ``https``: Causes HTTPS to be used.
+            * ``http``: Causes HTTP to be used.
+
+            The host can be specified in any of the usual formats:
+
+            * a short or fully qualified DNS hostname
+            * a literal (= dotted) IPv4 address
+            * a literal IPv6 address, formatted as defined in :term:`RFC3986`
+              with the extensions for zone identifiers as defined in
+              :term:`RFC6874`, supporting ``-`` (minus) for the delimiter
+              before the zone ID string, as an additional choice to ``%25``.
+
+            If no port is specified in the URL, the default ports are:
+
+            * If HTTPS is used, port 5989.
+            * If HTTP is used, port 5988.
+
+        See `WBEMConnection` for examples of valid urls.
         """
 
-        if scheme != "http" and scheme != 'https':
-            raise ValueError('Invalid Listener scheme %s' %  scheme)
+        if isinstance(listener_urls, list):
+            for listener_url in listener_urls:
+                self.add_listener_destinations(server_id, listener_url)
 
-        if isinstance(port, six.integer_types):
-            _port = int(port)  # Convert Python 2 long to int
-        elif isinstance(port, six.string_types):
-            _port = int(port)
+        # process a single listener_url
         else:
-            raise TypeError("Invalid type for port: %s" % type(port))
+            server = self._get_server(server_id)
 
-        # listeners must be set before servers defined
-        if len(self._servers) != 0:
-            raise ValueError('Listeners must be defined before servers')
+            dest_path = _create_destination(server, listener_urls,
+                                            self._subscription_manager_id)
 
-        listener_url = '%s.//%s:%s' %(scheme, hostname, _port)
+            # Put the listener url and dest path into a tuple and save
+            # in a dictionary
+            dest_tuple = (listener_urls, dest_path)
+            self._server_dest_tuples[server_id].append(dest_tuple)
 
-        self._listener_urls.append(listener_url)
-
-    def add_server(self, server, listener_urls=None):
+    def add_server(self, server):
         """
-        Add a WBEM server to the subscription manager and register the
-        listeners defined by listener_urls with the server by creating an
-        indication listener instance referencing each         listener in the
-        Interop namespace of the server.
+        Add a WBEM server to the subscription manager. The WBEM server
+        is the target for filters and subscriptions and generates
+        indications.
 
         Parameters:
 
           server (:class:`~pywbem.WBEMServer`):
             The WBEM server.
-
-          listener_urls TODO may be single listener url or list of listener
-            urls. This represents the subset of the listener urls defined
-            with the add_listener function for which indications from this
-            web server are to be handled.
-
-            If `None` the full set of listeners defined with the add_listener
-            method is used.
 
         Returns:
 
@@ -278,7 +327,7 @@ class WBEMSubscriptionManager(object):
         """
 
         if not isinstance(server, WBEMServer):
-            raise TypeError("server argument of add_server() must be a " \
+            raise TypeError("Server argument of add_server() must be a " \
                             "WBEMServer object")
         server_id = server.url
         if server_id in self._servers:
@@ -290,25 +339,6 @@ class WBEMSubscriptionManager(object):
         self._owned_subscription_paths[server_id] = []
         self._owned_filter_paths[server_id] = []
         self._server_dest_tuples[server_id] = []
-        _listener_urls = listener_urls
-        if listener_urls is None:
-            _listener_urls = self._listener_urls
-
-        if isinstance(_listener_urls, list):
-            for url in _listener_urls:
-                dest_path = _create_destination(server, url,
-                                                self._subscription_manager_id)
-
-                #put the listener url and dest path into a tuple
-                self._server_dest_tuples[server_id].append((url, dest_path))
-
-        else:
-            dest_path = _create_destination(server, _listener_urls,
-                                            self._subscription_manager_id)
-
-            #put the listener url and dest path into a tuple
-            self._server_dest_tuples[server_id].append((_listener_urls,
-                                                        dest_path))
 
         return server_id
 
@@ -329,10 +359,7 @@ class WBEMSubscriptionManager(object):
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
 
-        if server_id not in self._servers:
-            raise ValueError("WBEM server not known by listener: %s" % \
-                             server_id)
-        server = self._servers[server_id]
+        server = self._get_server(server_id)
 
         # Delete any instances we recorded to be cleaned up
 
@@ -348,10 +375,9 @@ class WBEMSubscriptionManager(object):
                 server.conn.DeleteInstance(path)
             del self._owned_filter_paths[server_id]
 
-        # TODO change this one
         if server_id in self._server_dest_tuples:
-            for tup in self._server_dest_tuples[server_id]:
-                path = tup[1]
+            for dest_tuple in self._server_dest_tuples[server_id]:
+                path = dest_tuple[1]
                 server.conn.DeleteInstance(path)
 
             del self._server_dest_tuples[server_id]
@@ -422,20 +448,19 @@ class WBEMSubscriptionManager(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if server_id not in self._servers:
-            raise ValueError("WBEM server not known by listener: %s" % \
-                             server_id)
-        server = self._servers[server_id]
+        server = self._get_server(server_id)
+
         # create a single filter for a server.
         filter_path = _create_filter(server, source_namespace, query,
                                      query_language,
                                      self._subscription_manager_id,
                                      filter_id)
+
         if owned:
             self._owned_filter_paths[server_id].append(filter_path)
+
         return filter_path
 
-    # TODO do we need to do this via a listener list???
     def remove_filter(self, server_id, filter_path):
         """
         Remove an indication filter from a WBEM server, by deleting an
@@ -458,10 +483,8 @@ class WBEMSubscriptionManager(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if server_id not in self._servers:
-            raise ValueError("WBEM server not known by listener: %s" % \
-                             server_id)
-        server = self._servers[server_id]
+        server = self._get_server(server_id)
+
         if server_id in self._owned_filter_paths:
             paths = self._owned_filter_paths[server_id]
             for i, path in enumerate(paths):
@@ -476,9 +499,9 @@ class WBEMSubscriptionManager(object):
     def get_owned_filters(self, server_id):
         """
         Return the owned indication filter instance paths in a WBEM server
-        that have been created by this listener. This function access only
-        the local list of dynamic filters. It does NOT contact the WBEM
-        server.
+        that have been created by this subscription manager for server_id.
+        This function access only the local list of owned filters.
+        It does NOT contact the WBEM server.
 
         Parameters:
 
@@ -494,9 +517,8 @@ class WBEMSubscriptionManager(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if server_id not in self._servers:
-            raise ValueError("WBEM server not known by listener: %s" % \
-                             server_id)
+        _ = self._get_server(server_id)
+
         return self._owned_filter_paths[server_id]
 
     def get_filters(self, server_id):
@@ -519,14 +541,13 @@ class WBEMSubscriptionManager(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if server_id not in self._servers:
-            raise ValueError("WBEM server not known by listener: %s" % \
-                             server_id)
-        server = self._servers[server_id]
+        server = self._get_server(server_id)
+
         return server.conn.EnumerateInstanceNames('CIM_IndicationFilter',
                                                   namespace=server.interop_ns)
 
-    def add_subscription(self, server_id, filter_path, owned=True):
+    def add_subscriptions(self, server_id, filter_path,
+                          listener_urls=None, owned=True):
         """
         Add subscriptions to a WBEM server for particular set of indications
         defined by an indication filter and listener as defined by a
@@ -554,8 +575,15 @@ class WBEMSubscriptionManager(object):
             Instance path of the indication filter instance in the WBEM
             server that specifies the indications to be sent.
 
+          listener_urls (list of :term:`string` or single :term:`string`):
+              Create subscriptions only for the lintener_urls defined in
+              this list or single entry.
+
+              If `None`, create subscriptions for all listeners defined by
+              :meth: add_listener_destinations for this server_id
+
           owned (:class:`py:bool`) If True, this owned subscriptions life
-            cycle is controled by the lifecycle of the server to which it
+            cycle is controlled by the lifecycle of the server to which it
             is attached. If False, the filter is created and registered with
             the server but not recorded in the local subscription manager
             for removal.
@@ -569,12 +597,15 @@ class WBEMSubscriptionManager(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if server_id not in self._servers:
-            raise ValueError("WBEM server not known by listener: %s" % \
-                             server_id)
-        server = self._servers[server_id]
 
-        # Create a subscription for every entry in the dest_tuples list.
+        server = self._get_server(server_id)
+
+        # force the listener_urls into a list
+        _filter_list = listener_urls if isinstance(listener_urls, list) \
+            else [listener_urls]
+
+        # Create a subscription for every entry in the dest_tuples list
+        # unless filtered by listener_urls
         # This subscribes the filter for each listener as defined by its
         # destination path
         dest_tuples = self._server_dest_tuples[server_id]
@@ -582,15 +613,16 @@ class WBEMSubscriptionManager(object):
         for dest_tuple in dest_tuples:
             listener_url = dest_tuple[0]
             dest_path = dest_tuple[1]
-            _create_destination(server, listener_url,
-                                self._subscription_manager_id)
-            sub_path = _create_subscription(server, dest_path, filter_path)
-            sub_paths.append(sub_path)
-            if owned:
-                self._owned_subscription_paths[server_id].append(sub_path)
+            if listener_urls is None or listener_url in _filter_list:
+                _create_destination(server, listener_url,
+                                    self._subscription_manager_id)
+                sub_path = _create_subscription(server, dest_path, filter_path)
+                sub_paths.append(sub_path)
+                if owned:
+                    self._owned_subscription_paths[server_id].append(sub_path)
         return sub_paths
 
-    def remove_subscription(self, server_id, sub_paths):
+    def remove_subscriptions(self, server_id, sub_paths):
         """
         Remove an indication subscription or list of subscriptions from a
         WBEM server, by deleting an indication subscription instance in the
@@ -612,13 +644,11 @@ class WBEMSubscriptionManager(object):
         """
         if isinstance(sub_paths, list):
             for sub_path in sub_paths:
-                self.remove_subscription(server_id, sub_path)
+                self.remove_subscriptions(server_id, sub_path)
 
         else:
-            if server_id not in self._servers:
-                raise ValueError("WBEM server not known by listener: %s" % \
-                                 server_id)
-            server = self._servers[server_id]
+            server = self._get_server(server_id)
+
             if server_id in self._owned_subscription_paths:
                 sub_path_list = self._owned_subscription_paths[server_id]
                 for i, path in enumerate(sub_path_list):
@@ -633,7 +663,8 @@ class WBEMSubscriptionManager(object):
     def get_subscriptions(self, server_id):
         """
         Return the indication subscriptions in a WBEM server that have been
-        created by this listener.
+        created by this listener. Retrievies all subscriptions registered
+        with the WBEM server and in the interop namespace.
 
         Parameters:
 
@@ -649,9 +680,10 @@ class WBEMSubscriptionManager(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        if server_id not in self._servers:
-            raise ValueError("WBEM server not known by listener: %s" % \
-                             server_id)
+
+        # validate that this server exists.
+        _ = self._get_server(server_id)
+
         return self._owned_subscription_paths[server_id]
 
     def get_all_destination_instances(self, server_id):
@@ -674,10 +706,8 @@ class WBEMSubscriptionManager(object):
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
 
-        if server_id not in self._servers:
-            raise ValueError("WBEM server not known by listener: %s" % \
-                             server_id)
-        server = self._servers[server_id]
+        server = self._get_server(server_id)
+
         return server.conn.EnumerateInstanceNames(DESTINATION_CLASSNAME,
                                                   namespace=server.interop_ns)
 
@@ -699,11 +729,8 @@ class WBEMSubscriptionManager(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
+        server = self._get_server(server_id)
 
-        if server_id not in self._servers:
-            raise ValueError("WBEM server not known by listener: %s" % \
-                             server_id)
-        server = self._servers[server_id]
         return server.conn.EnumerateInstanceNames(SUBSCRIPTION_CLASSNAME,
                                                   namespace=server.interop_ns)
 
@@ -726,6 +753,15 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
         uses HTTP or HTTPS for sending the indication. Host and port in the
         URL specify the target location to be used by the WBEM server.
 
+      subscription_manager_id (:term:`string`):
+        String to be incorporated into the name property of the destination
+        instance.
+
+        The form for the name property of a PyWBEM of a destination instance is:
+
+        "pywbemdestination:" [<subscription_manager_id>  ":"]
+            [<fsubscription_manager_id> ":"] <guid>
+
     Returns:
 
         :class:`~pywbem.CIMInstanceName`: The instance path of the created
@@ -745,10 +781,9 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
     dest_inst['CreationClassName'] = DESTINATION_CLASSNAME
     dest_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
     dest_inst['SystemName'] = getfqdn()
-    dest_inst['Name'] = 'pywbemlistener:%s%s' % (subscription_manager_id,
-                                                 uuid.uuid4())
+    dest_inst['Name'] = 'pywbemdestination%s%s' % (subscription_manager_id,
+                                                   uuid.uuid4())
     dest_inst['Destination'] = dest_url
-    print('create dest_inst %s' % dest_inst)
     dest_path = server.conn.CreateInstance(dest_inst)
     return dest_path
 
@@ -826,9 +861,7 @@ def _create_filter(server, source_namespace, query, query_language, \
     filter_inst['Query'] = query
     filter_inst['QueryLanguage'] = query_language
 
-    print('Create filter instance=%s' % filter_inst)
     filter_path = server.conn.CreateInstance(filter_inst)
-    print('Created filter')
     return filter_path
 
 def _create_subscription(server, dest_path, filter_path):
