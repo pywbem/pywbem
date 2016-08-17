@@ -185,8 +185,8 @@ Enhancements
   - PullInstancePaths
   - CloseEnumeration
 
-  PyWBEM does NOT implement the EnumerationCount operation as it
-  is both deprecated and unusable. (Issue #9)
+  The EnumerationCount operation is NOT implemented, because it is both
+  deprecated and unusable. (Issue #9)
 
 * Added a tutorial section to the generated documentation, using
   Jupyter Notebooks for each tutorial page. (issue #324)

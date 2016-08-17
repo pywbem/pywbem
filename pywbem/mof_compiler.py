@@ -23,7 +23,7 @@
 The language in which CIM classes are specified, is called `MOF` (for Managed
 Object Format). It is defined in :term:`DSP0004`.
 
-The **pywbem** package includes a MOF compiler.
+The pywbem package includes a MOF compiler.
 
 MOF compilers take MOF files as input, compile them and the result is used to
 update a target CIM repository. The repository may initially be empty, or may

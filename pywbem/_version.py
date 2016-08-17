@@ -22,7 +22,7 @@
 Version of the pywbem package.
 """
 
-#: Version of the **pywbem** package, as a :term:`string`.
+#: Version of the pywbem package, as a :term:`string`.
 #:
 #: Possible formats for the version string are:
 #:

@@ -4,7 +4,7 @@
 WBEM utility commands
 =====================
 
-The **pywbem** package provides a number of WBEM utility commands.
+The pywbem package provides a number of WBEM utility commands.
 They are all implemented as pure-Python scripts.
 
 These commands are installed into the Python script directory and should

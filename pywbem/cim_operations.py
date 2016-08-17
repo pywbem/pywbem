@@ -554,7 +554,7 @@ class WBEMConnection(object):
             Registers a callback function that will be called to verify the
             X.509 server certificate returned by the WBEM server during the
             TLS/SSL handshake, in addition to the validation already performed
-            by the TLS/SSL support in the PyWBEM client.
+            by the TLS/SSL support.
 
             This parameter is ignored when HTTP is used.
 

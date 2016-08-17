@@ -1352,8 +1352,8 @@ class CIMInstance(_CIMComparisonMixin):
                 self.property_list:
             if self.path is not None and key not in self.path.keybindings:
                 return
-        # Convert value to appropriate PyWBEM type
 
+        # Convert value to appropriate pywbem type
         if isinstance(value, CIMProperty):
             val = value
         else:

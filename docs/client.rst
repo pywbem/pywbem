@@ -20,11 +20,11 @@ This chapter has the following sections:
   types.
 * :ref:`CIM status codes` - CIM status codes returned by failing WBEM
   operations.
-* :ref:`Exceptions` - Exceptions specific to **pywbem** that may be raised.
+* :ref:`Exceptions` - Exceptions specific to pywbem that may be raised.
 * :ref:`Security considerations` - Information about authentication types and
   certificates.
 
-A number of these topics apply also to the other APIs of the **pywbem** package.
+A number of these topics apply also to the other APIs of the pywbem package.
 
 .. _`WBEM operations`:
 
@@ -335,20 +335,19 @@ There are two levels of authentication in CIM-XML:
   supported authentication types.
 
   HTTP is extensible w.r.t. authentication schemes, and so is CIM-XML.
-  However, the PyWBEM client only supports Basic Authentication and no
-  authentication.
+  However, pywbem only supports Basic Authentication and no authentication.
 
   X.509 certificates do not play any role in HTTP level authentication.
 
 HTTP/HTTPS knows a third level of authentication by the use of *session
-cookies*. CIM-XML does not define how cookies would be used, and the
-PyWBEM client does not deal with cookies in any way (i.e. it does not
-pass cookies provided in a response into the next request).
+cookies*. CIM-XML does not define how cookies would be used, and pywbem does
+not deal with cookies in any way (i.e. it does not pass cookies provided in a
+response into the next request).
 
 The following table shows the possible combinations of protocol, TLS/SSL level
 and HTTP level authentication schemes, which information items need to be
 provided to the WBEM client API, and whether the combination is supported
-by the PyWBEM client:
+by pywbem:
 
 ======== ========== =========== =========== ============ ======== =========
 Protocol SSL auth.  HTTP auth.  Credentials Client cert. CA cert. Supported
@@ -384,17 +383,16 @@ WBEM server are set by the user when creating the
 * The scheme of the URL in the `url` parameter controls whether the HTTP or
   HTTPS protocol is used.
 * The `cred` parameter may specify credentials (userid/password). If specified,
-  the PyWBEM client uses them for Basic Authentication at the HTTP level.
-  The PyWBEM client provides an ``Authenticate`` HTTP header on each request,
-  and also handles server challenges transparently to the user of the
-  WBEM client API, by retrying the original request.
+  pywbem uses them for Basic Authentication at the HTTP level. Pywbem provides
+  an ``Authenticate`` HTTP header on each request, and also handles server
+  challenges transparently to the user of the WBEM client API, by retrying the
+  original request.
 * The `x509` parameter may specify an X.509 client certificate and key. If
-  specified, the PyWBEM client uses 2-way authentication; otherwise it uses
-  1-way authentication at the TLS/SSL level.
+  specified, pywbem uses 2-way authentication; otherwise it uses 1-way
+  authentication at the TLS/SSL level.
 * The `ca_certs` parameter may specify the location of X.509 CA certificates
   that are used to validate the X.509 server certificate returned by the WBEM
-  server.
-  If not specified, the PyWBEM client assumes default locations for these
+  server. If not specified, pywbem assumes default locations for these
   certificates.
 
 It is important to understand which side actually makes decisions about
@@ -407,8 +405,8 @@ is used, the client proposes cipher suites it supports, and the server picks
 one of them.
 
 Therefore, the `cred` and `x509` parameters do not control the authentication
-scheme that is actually used, but merely prepare the PyWBEM client to deal with
-whatever authentication scheme the WBEM server elects to use.
+scheme that is actually used, but merely prepare pywbem to deal with whatever
+authentication scheme the WBEM server elects to use.
 
 WBEM servers typically support corresponding configuration parameters.
 
@@ -421,8 +419,8 @@ When using HTTPS, the TLS/SSL handshake protocol requires that the server always
 returns an :term:`X.509` server certificate to the client (unless anonymous
 ciphers are used, which is not recommended).
 
-The PyWBEM client performs the following verifications on the server certificate
-returned by the WBEM server:
+Pywbem performs the following verifications on the server certificate returned
+by the WBEM server:
 
 * Validation of the server certificate against the CA certificates specified in
   the `ca_certs` parameter. This is done by the TLS/SSL components used by
@@ -452,10 +450,10 @@ certificate).
 
 This procedure is initiated by the server, by requesting that the client
 present a client certificate. If the client does not have one (for example,
-because the `x509` parameter was not specified in the PyWBEM client), it
-must send an empty list of certificates to the server. Depending on
-the server configuration, the server may or may not accept an empty list.
-If a client certificate is presented, the server must validate it.
+because the `x509` parameter was not specified in pywbem), it must send an
+empty list of certificates to the server. Depending on the server
+configuration, the server may or may not accept an empty list. If a client
+certificate is presented, the server must validate it.
 
 The server can support to accept the user identity specified in the client
 certificate as the user's identity, and refrain from sending HTTP challenges

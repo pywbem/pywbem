@@ -15,12 +15,12 @@
 #
 
 """
-The **pywbem** package supports a very limited number of configuration
-variables that influence certain specific behavior.
+Pywbem supports a very limited number of configuration variables that influence
+certain specific behavior.
 
-These configuration variables are read by **pywbem** only after its modules
-have been loaded, so they can be modified by the user directly after
-importing ``pywbem``. For example:
+These configuration variables are read by pywbem only after its modules have
+been loaded, so they can be modified by the user directly after importing
+pywbem. For example:
 
 ::
 

@@ -4,7 +4,7 @@
 Tutorial
 ========
 
-This is a short tutorial about using PyWBEM. It is intended to be enough to get
+This is a short tutorial about using pywbem. It is intended to be enough to get
 people up and going who already know a bit about WBEM and CIM.
 
 Python code examples this tutorial are shown using

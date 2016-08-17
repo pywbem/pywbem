@@ -2,7 +2,7 @@
 pywbem - A WBEM client
 **********************
 
-The **pywbem** package provides a WBEM client, written in pure Python.
+The pywbem package provides a WBEM client, written in pure Python.
 It supports Python 2 and Python 3.
 
 A WBEM client allows issuing operations to a WBEM server, using the CIM
@@ -17,7 +17,7 @@ and not necessarily require a large amount of programming knowledge. It is
 suitable for a large range of tasks from simply poking around to writing web
 and GUI applications.
 
-The general **pywbem** web site is: http://pywbem.github.io/pywbem/index.html.
+The general pywbem web site is: http://pywbem.github.io/pywbem/index.html.
 
 .. toctree::
    :maxdepth: 2
