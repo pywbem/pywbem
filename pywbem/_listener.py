@@ -66,6 +66,7 @@ The following example creates and runs a listener
         listener.start()
 
         # listener runs until executable terminated
+        # or listener.stop()
 
 Another more practical example is in the script ``examples/listen.py``
 (when you clone the GitHub pywbem/pywbem project).

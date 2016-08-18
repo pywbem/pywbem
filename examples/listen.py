@@ -18,15 +18,15 @@ import pywbem
 # For creating a self-signed certificate file with private key inside, issue:
 #    openssl req -new -x509 -keyout server.pem -out server.pem -days 365 -nodes
 
-COUNT = 1
+COUNT = 0
 
 
 def _process_indication(indication, host):
     '''This function gets called when an indication is received.'''
     global COUNT
-    print("Received indication %s from %s:\n%s" % (COUNT, host,
-                                                   indication.tomof()))
     COUNT += 1
+    #print("Received indication %s from %s:\n%s" % (COUNT, host,
+    #                                               indication.tomof()))
 
 def _get_argv(index, default=None):
     return _sys.argv[index] if len(_sys.argv) > index else default
