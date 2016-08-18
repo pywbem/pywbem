@@ -27,9 +27,9 @@ pywbem. For example:
     import pywbem
     pywbem.ENFORCE_INTEGER_RANGE = False
 
-Note that the source file defining these variables should not be changed by the
-user. Instead, use the technique described above to modify the configuration
-variables.
+Note that the pywbem source file defining these variables should not be changed
+by the user. Instead, the technique shown in the example above should be used to
+modify the configuration variables.
 
 Note: Due to limitations of the documentatin tooling, the following
 configuration variables are shown in the ``pywbem.config`` namespace. However,
@@ -40,12 +40,14 @@ they should be used from the ``pywbem`` namespace.
 
 __all__ = ['ENFORCE_INTEGER_RANGE']
 
-#: Enforce the value range in CIM integer types (e.g. :class:`~pywbem.Uint8`).
-#: For details, see the :class:`~pywbem.CIMInt` base class.
+#: Enforce the allowable value range for CIM integer types (e.g.
+#: :class:`~pywbem.Uint8`). For details, see the :class:`~pywbem.CIMInt` base
+#: class.
 #:
-#: * True (default): Enforce the value range; Assigning values out of range
-#:   causes :exc:`~py:exceptions.ValueError` to be raised.
-#: * False: Do not enforce the value range; Assigning values out of range
-#:   works.
+#: * True (default): Pywbem enforces the allowable value range; Assigning
+#:   values out of range causes :exc:`~py:exceptions.ValueError` to be raised.
+#: * False: Pywbem does not enforce the allowable value range; Assigning values
+#:   out of range works in pywbem. Note that a WBEM server may or may not
+#:   reject such out-of-range values.
 ENFORCE_INTEGER_RANGE = True
 

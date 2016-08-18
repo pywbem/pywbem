@@ -1,15 +1,15 @@
 
-pywbem - A WBEM client
+Pywbem - A WBEM client
 **********************
 
-The pywbem package provides a WBEM client, written in pure Python.
-It supports Python 2 and Python 3.
+Pywbem is a WBEM client, written in pure Python. It supports Python 2 and
+Python 3.
 
 A WBEM client allows issuing operations to a WBEM server, using the CIM
 operations over HTTP (CIM-XML) protocol defined in the DMTF standards
 :term:`DSP0200` and :term:`DSP0201`.
-This is used for all kinds of systems management tasks that are supported by
-the system running the WBEM server.
+The CIM/WBEM infrastructure is used for a wide variety of systems
+management tasks supported by systems running WBEM servers.
 See :term:`WBEM Standards` for more information about WBEM.
 
 This package is based on the idea that a good WBEM client should be easy to use

@@ -19,14 +19,16 @@
 # Author: Tim Potter <tpot@hp.com>
 #
 
+# The module docstring is used as the long package description:
 """
-PyWBEM is a WBEM client and some related utilities, written in pure Python.
+Pywbem is a WBEM client, written in pure Python. It supports Python 2 and
+Python 3.
 
 A WBEM client allows issuing operations to a WBEM server, using the CIM
-operations over HTTP (CIM-XML) protocol defined in the DMTF standards DSP0200
-and DSP0201. See http://www.dmtf.org/standards/wbem for information about
-WBEM. This is used for all kinds of systems management tasks that are
-supported by the system running the WBEM server.
+operations over HTTP (CIM-XML) protocol defined in the DMTF standards
+DSP0200 and DSP0201. The CIM/WBEM infrastructure is used for a wide variety of
+systems management tasks supported by systems running WBEM servers.
+See http://www.dmtf.org/standards/wbem for more information about WBEM.
 """
 
 from __future__ import print_function, absolute_import
@@ -307,7 +309,7 @@ def main():
         'author_email': 'tpot@hp.com',
         'maintainer': 'Andreas Maier',
         'maintainer_email': 'maiera@de.ibm.com',
-        'description': 'PyWBEM Client - A WBEM client and related utilities',
+        'description': 'pywbem - A WBEM client',
         'long_description': __doc__,
         'platforms': ['any'],
         'url': 'http://pywbem.github.io/pywbem/',

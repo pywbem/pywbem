@@ -9,8 +9,7 @@ Introduction
 Functionality
 -------------
 
-The WBEM client provided in the pywbem package supports the following
-functionality:
+Pywbem supports the following functionality:
 
 * :ref:`WBEM client library API`
 
@@ -37,7 +36,7 @@ functionality:
 
 * :ref:`WBEM utility commands`
 
-  The pywbem package provides a few utility commands:
+  Pywbem includes a few utility commands:
 
   * :ref:`mof_compiler`
 
@@ -75,7 +74,7 @@ Note: For tooling reasons, the variable is shown as
 Supported environments
 ----------------------
 
-The pywbem package is supported in these environments:
+Pywbem is supported in these environments:
 
 * on Windows, with Python 2.6, 2.7, 3.4, 3.5, and higher 3.x
 
@@ -89,8 +88,8 @@ try it out and `report any issues <https://github.com/pywbem/pywbem/issues>`_.
 Standards conformance
 ---------------------
 
-The pywbem package conforms to the following CIM and WBEM standards,
-in the version specified when following the links to the standards:
+Pywbem conforms to the following CIM and WBEM standards, in the version
+specified when following the links to the standards:
 
 * The supported WBEM protocol is CIM-XML; it conforms to :term:`DSP0200` and
   :term:`DSP0201`.
@@ -124,25 +123,24 @@ in the version specified when following the links to the standards:
 Deprecation policy
 ------------------
 
-Since its v0.7.0, the pywbem package attempts to be as backwards compatible
-as possible.
+Since its v0.7.0, Pywbem attempts to be as backwards compatible as possible.
 
 However, in an attempt to clean up some of its history, and in order to prepare
-for future additions, the Python namespaces visible to users of the pywbem
-package need to be cleaned up.
+for future additions, the Python namespaces visible to users of pywbem need to
+be cleaned up.
 
 Also, occasionally functionality needs to be retired, because it is flawed and
 a better but incompatible replacement has emerged.
 
-In the pywbem package, such changes are done by deprecating existing
-functionality, without removing it. The deprecated functionality is still
-supported throughout new minor releases. Eventually, a new major release will
-break compatibility and will remove the deprecated functionality.
+In pywbem, such changes are done by deprecating existing functionality, without
+removing it. The deprecated functionality is still supported throughout new
+minor releases. Eventually, a new major release will break compatibility and
+will remove the deprecated functionality.
 
-In order to prepare users of the pywbem package for that, deprecation of
-functionality is stated in the API documentation, and is made visible at
-runtime by issuing Python warnings of type ``DeprecationWarning`` (see the
-Python :mod:`py:warnings` module).
+In order to prepare users of pywbem for that, deprecation of functionality is
+stated in the API documentation, and is made visible at runtime by issuing
+Python warnings of type ``DeprecationWarning`` (see the Python
+:mod:`py:warnings` module).
 
 Since Python 2.7, ``DeprecationWarning`` messages are suppressed by default.
 They can be shown for example in any of these ways:
@@ -154,8 +152,8 @@ It is recommended that users of the pywbem package run their test code with
 ``DeprecationWarning`` messages being shown, so they become aware of any use of
 deprecated functionality.
 
-Here is a summary of the deprecation and compatibility policy used by
-the pywbem package, by release type:
+Here is a summary of the deprecation and compatibility policy used by pywbem,
+by release type:
 
 * New update release (M.N.U -> M.N.U+1): No new deprecations; fully backwards
   compatible.
@@ -164,19 +162,18 @@ the pywbem package, by release type:
 * New major release (M.N.U -> M+1.0.0): Deprecated functionality may get
   removed; backwards compatibility may be broken.
 
-Compatibility is always seen from the perspective of the user of the pywbem
-package, so a backwards compatible new pywbem release means that the user
-can safely upgrade to that new release without encountering compatibility
-issues.
+Compatibility is always seen from the perspective of the user of pywbem, so a
+backwards compatible new pywbem release means that the user can safely upgrade
+to that new release without encountering compatibility issues.
 
 .. _'Python namespaces`:
 
 Python namespaces
 -----------------
 
-The external APIs of the pywbem package are defined by the symbols in the
-``pywbem`` namespace. With a few exceptions, that is the only Python namespace
-that needs to be imported by users.
+The external APIs of pywbem are defined by the symbols in the ``pywbem``
+namespace. With a few exceptions, that is the only Python namespace that needs
+to be imported by users.
 
 With pywbem versions prior to v0.8, it was common for users to import the
 sub-modules of pywbem (e.g. ``pywbem.cim_obj``). The sub-modules that existed
@@ -190,15 +187,15 @@ is deprecated starting with v0.8, and you should assume that a future version of
 pywbem will remove them. If you miss any symbol you were used to use, please
 `open an issue <https://github.com/pywbem/pywbem/issues>`_.
 
-New sub-modules added since v0.8 have a leading underscore in their name in
-order to document that they are considered an implementation detail and that
+New sub-modules added since pywbem v0.8 have a leading underscore in their name
+in order to document that they are considered an implementation detail and that
 they should not be imported by users.
 
 The only exception to the single-namespace rule stated above, is the
 :ref:`MOF compiler API`, which uses the ``pywbem.mof_compiler`` namespace.
 
-This documentation describes only the external APIs of the pywbem package,
-and omits any internal symbols and any sub-modules.
+This documentation describes only the external APIs of pywbem, and omits any
+internal symbols and any sub-modules.
 
 .. _`Configuration variables`:
 
