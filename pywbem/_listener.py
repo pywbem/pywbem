@@ -74,6 +74,7 @@ It is an interactive Python shell that creates a WBEM listener and displays
 any indications it receives, in MOF format.
 """
 
+import sys
 import re
 import logging
 import ssl
@@ -95,6 +96,14 @@ from .tupleparse import parse_cim
 from .tupletree import dom_to_tupletree
 from .exceptions import ParseError, VersionError
 
+# python 2.6 does not include null handler.
+if sys.version_info < (2, 7):
+    class NullHandler(logging.Handler):
+        """Implement logging NullHandler for python 2.6"""
+        
+        def emit(self, record):
+            pass
+
 DEFAULT_LISTENER_PORT_HTTP = 5988
 DEFAULT_LISTENER_PORT_HTTPS = 5989
 
@@ -103,7 +112,6 @@ DEFAULT_LISTENER_PORT_HTTPS = 5989
 IMPLEMENTED_CIM_VERSION = '2.0'
 IMPLEMENTED_DTD_VERSION = '2.4'
 IMPLEMENTED_PROTOCOL_VERSION = '1.4'
-
 
 # CIM-XML protocol related versions supported by the WBEM listener
 # These are checked in export message requests.

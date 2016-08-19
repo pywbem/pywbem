@@ -2948,6 +2948,24 @@ class PyWBEMListenerClass(PyWBEMServerClass):
        All of these functions depend on existence of a WBEM server to
        which subscriptions/filters are sent."""
 
+    def create_listener(self, http_port=None, https_port=None):
+        """ standard function to start the listener"""
+
+        
+        listener_addr = urlparse(self.system_url).netloc
+        # Create the listener and listener call back and start the listener
+        my_listener = WBEMListener(listener_addr,
+                                   http_port=http_port,
+                                   https_port=https_port)
+
+        # do not create consumer since we will never send indications in
+        # this test.
+        my_listener.add_callback(consume_indication)
+        my_listener.start()
+
+        return my_listener
+        
+
     #pylint: disable=invalid-name
     def test_create_delete_subscription(self):
         """
@@ -2968,35 +2986,31 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             http_listener_port = 50000
             https_listener_port = None
 
-            listener_addr = urlparse(self.system_url).netloc
+            my_listener =self.create_listener(http_port=http_listener_port,
+                                              https_port=https_listener_port)
 
-            # Create the listener and listener call back and start the listener
-            my_listener = WBEMListener(listener_addr,
-                                       http_port=http_listener_port,
-                                       https_port=https_listener_port)
-
-            # do not create consumer since we will never send indications in
-            # this test.
-            my_listener.start()
-
-            sub_mgr = WBEMSubscriptionManager(listener=my_listener)
+            sub_mgr = WBEMSubscriptionManager(subscription_manager_id='sub_mgr')
 
             server_id = sub_mgr.add_server(server)
+            listener_url = '%s://%s:%s' % ('http', 'localhost',
+                                           http_listener_port)
+            sub_mgr.add_listener_destinations(server_id, listener_url)
 
             filter_path = sub_mgr.add_filter(server_id,
                                              test_class_namespace,
                                              test_query,
                                              query_language="DMTF:CQL")
 
-            subscription_path = sub_mgr.add_subscription(server_id,
-                                                         filter_path)
+            subscription_paths = sub_mgr.add_subscriptions(server_id,
+                                                           filter_path)
 
             # test get_dynamic_filters and subscriptions
-            my_filters = sub_mgr.get_dynamic_filters(server_id)
+            my_filters = sub_mgr.get_filters(server_id)
             self.assertTrue(filter_path in my_filters)
 
             my_subscriptions = sub_mgr.get_subscriptions(server_id)
-            self.assertTrue(subscription_path in my_subscriptions)
+            for subscription_path in subscription_paths:
+                self.assertTrue(subscription_path in my_subscriptions)
 
             all_subscriptions = sub_mgr.get_all_subscriptions(server_id)
 
@@ -3012,16 +3026,16 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             #TODO: ks Finish this test completely when we add other changes
             #for filter ids
 
-            sub_mgr.remove_dynamic_subscription(server_id, subscription_path)
-            sub_mgr.remove_dynamic_filter(server_id, filter_path)
+            sub_mgr.remove_subscriptions(server_id, subscription_paths)
+            sub_mgr.remove_filter(server_id, filter_path)
 
             # confirm that filter and subscription were removed
-            host_filters = sub_mgr.get_dynamic_filters(server_id)
+            host_filters = sub_mgr.get_filters(server_id)
             self.assertFalse(filter_path in host_filters)
 
             host_subscriptions = sub_mgr.get_subscriptions(server_id)
-            self.assertFalse(subscription_path in host_subscriptions)
-
+            for subscription_path in subscription_paths:
+                self.assertTrue(subscription_path in host_subscriptions)
             my_listener.stop()
             sub_mgr.remove_server(server_id)
 
@@ -3047,19 +3061,16 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             # Set arbitrary ports for the listener
             http_listener_port = 50000
             https_listener_port = None
-            listener_addr = urlparse(self.system_url).netloc
+            
+            my_listener =self.create_listener(http_port=http_listener_port,
+                                              https_port=https_listener_port)
 
-            # Create the listener and listener call back and start the listener
-
-            my_listener = WBEMListener(listener_addr,
-                                       http_port=http_listener_port,
-                                       https_port=https_listener_port)
-
-            my_listener.add_callback(consume_indication)
-            my_listener.start()
-
-            sub_mgr = WBEMSubscriptionManager(listener=my_listener)
+            sub_mgr = WBEMSubscriptionManager()
             server_id = sub_mgr.add_server(server)
+            listener_url = '%s://%s:%s' % ('http', 'localhost',
+                                           http_listener_port)
+
+            sub_mgr.add_listener_destinations(server_id, listener_url)
 
             filter_path = sub_mgr.add_filter(server_id,
                                              test_class_namespace,
@@ -3071,14 +3082,15 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             # 30-40 in case format changes in future.
             self.assertRegexpMatches(filter_path.keybindings['Name'],
                                      r'^pywbemfilter:[^:][0-9a-f-]{30,40}\Z')
-            subscription_path = sub_mgr.add_subscription(server_id,
-                                                         filter_path)
+            subscription_paths = sub_mgr.add_subscriptions(server_id,
+                                                           filter_path)
 
-            host_filters = sub_mgr.get_dynamic_filters(server_id)
+            host_filters = sub_mgr.get_filters(server_id)
             self.assertTrue(filter_path in host_filters)
 
             host_subscriptions = sub_mgr.get_subscriptions(server_id)
-            self.assertTrue(subscription_path in host_subscriptions)
+            for subscription_path in subscription_paths:
+                self.assertTrue(subscription_path in host_subscriptions)
 
             class_name = CIMClassName(test_class,
                                       namespace=test_class_namespace)
@@ -3110,15 +3122,16 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 self.assertEqual(RECEIVED_INDICATION_COUNT,
                                  requested_indications)
 
-            sub_mgr.remove_dynamic_subscription(server_id, subscription_path)
-            sub_mgr.remove_dynamic_filter(server_id, filter_path)
+            sub_mgr.remove_subscriptions(server_id, subscription_paths)
+            sub_mgr.remove_filter(server_id, filter_path)
 
             # confirm that filter and subscription were removed
-            host_filters = sub_mgr.get_dynamic_filters(server_id)
+            host_filters = sub_mgr.get_filters(server_id)
             self.assertFalse(filter_path in host_filters)
 
             host_subscriptions = sub_mgr.get_subscriptions(server_id)
-            self.assertFalse(subscription_path in host_subscriptions)
+            for subscription_path in subscription_paths:
+                self.assertTrue(subscription_path in host_subscriptions)
             sub_mgr.remove_server(server_id)
 
             my_listener.stop()
@@ -3139,18 +3152,14 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             http_listener_port = 50000
             https_listener_port = None
 
-            listener_addr = urlparse(self.system_url).netloc
+            my_listener =self.create_listener(http_port=http_listener_port,
+                                              https_port=https_listener_port)
 
-            # Create the listener & listener call back and start the listener
-            my_listener = WBEMListener(listener_addr,
-                                       http_port=http_listener_port,
-                                       https_port=https_listener_port,
-                                       listener_id='pegTestListener')
-            my_listener.add_callback(consume_indication)
-            my_listener.start()
-
-            sub_mgr = WBEMSubscriptionManager(listener=my_listener)
+            sub_mgr = WBEMSubscriptionManager()
             server_id = sub_mgr.add_server(server)
+            listener_url = '%s://%s:%s' % ('http', 'localhost',
+                                           http_listener_port)
+            sub_mgr.add_listener_destinations(server_id, listener_url)
 
             filter_path = sub_mgr.add_filter(server_id,
                                              test_class_namespace,
@@ -3158,10 +3167,10 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                              query_language="DMTF:CQL",
                                              filter_id='fred')
 
-            subscription_path = sub_mgr.add_subscription(server_id,
-                                                         filter_path)
+            subscription_paths = sub_mgr.add_subscriptions(server_id,
+                                                           filter_path)
 
-            host_filters = sub_mgr.get_dynamic_filters(server_id)
+            host_filters = sub_mgr.get_filters(server_id)
 
             self.assertEqual(len(host_filters), 1)
             for path in host_filters:
@@ -3198,21 +3207,24 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             except ValueError:
                 pass
 
-            host_filters = sub_mgr.get_dynamic_filters(server_id)
+            host_filters = sub_mgr.get_filters(server_id)
             self.assertEqual(len(host_filters), 3)
 
             host_subscriptions = sub_mgr.get_subscriptions(server_id)
-            self.assertTrue(subscription_path in host_subscriptions)
+            for subscription_path in subscription_paths:
+                self.assertTrue(subscription_path in host_subscriptions)
 
-            sub_mgr.remove_dynamic_subscription(server_id, subscription_path)
-            sub_mgr.remove_dynamic_filter(server_id, filter_path)
+            sub_mgr.remove_subscriptions(server_id, subscription_paths)
+            sub_mgr.remove_filter(server_id, filter_path)
 
             # confirm that filter and subscription were removed
-            host_filters = sub_mgr.get_dynamic_filters(server_id)
+            host_filters = sub_mgr.get_filters(server_id)
             self.assertFalse(filter_path in host_filters)
 
             host_subscriptions = sub_mgr.get_subscriptions(server_id)
-            self.assertFalse(subscription_path in host_subscriptions)
+            for subscription_path in subscription_paths:
+                self.assertTrue(subscription_path in host_subscriptions)
+
             sub_mgr.remove_server(server_id)
 
             my_listener.stop()
@@ -3234,18 +3246,14 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             http_listener_port = 50000
             https_listener_port = None
 
-            listener_addr = urlparse(self.system_url).netloc
+            my_listener =self.create_listener(http_port=http_listener_port,
+                                              https_port=https_listener_port)
 
-            # Create the listener & listener call back and start the listener
-            my_listener = WBEMListener(listener_addr,
-                                       http_port=http_listener_port,
-                                       https_port=https_listener_port,
-                                       listener_id='pegTestListener')
-            my_listener.add_callback(consume_indication)
-            my_listener.start()
-
-            sub_mgr = WBEMSubscriptionManager(listener=my_listener)
+            sub_mgr = WBEMSubscriptionManager()
             server_id = sub_mgr.add_server(server)
+            listener_url = '%s://%s:%s' % ('http', 'localhost',
+                                           http_listener_port)
+            sub_mgr.add_listener_destinations(server_id, listener_url)
 
             filter_path = sub_mgr.add_filter(server_id,
                                              test_class_namespace,
@@ -3253,10 +3261,10 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                              query_language="DMTF:CQL",
                                              filter_id='fred')
 
-            subscription_path = sub_mgr.add_subscription(server_id,
-                                                         filter_path)
+            subscription_paths = sub_mgr.add_subscriptions(server_id,
+                                                           filter_path)
 
-            host_filters = sub_mgr.get_dynamic_filters(server_id)
+            host_filters = sub_mgr.get_filters(server_id)
 
             self.assertEqual(len(host_filters), 1)
             for path in host_filters:
@@ -3266,15 +3274,17 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                     r'^pywbemfilter:fred:[0-9a-f-]{30,40}\Z')
             self.assertTrue(filter_path in host_filters)
 
-            sub_mgr.remove_dynamic_subscription(server_id, subscription_path)
-            sub_mgr.remove_dynamic_filter(server_id, filter_path)
+            sub_mgr.remove_subscriptions(server_id, subscription_paths)
+            sub_mgr.remove_filter(server_id, filter_path)
 
             # confirm that filter and subscription were removed
-            host_filters = sub_mgr.get_dynamic_filters(server_id)
+            host_filters = sub_mgr.get_filters(server_id)
+
             self.assertFalse(filter_path in host_filters)
 
             host_subscriptions = sub_mgr.get_subscriptions(server_id)
-            self.assertFalse(subscription_path in host_subscriptions)
+            for subscription_path in subscription_paths:
+                self.assertTrue(subscription_path in host_subscriptions)
 
             my_listener.stop()
             sub_mgr.remove_server(server_id)

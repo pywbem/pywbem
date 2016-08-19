@@ -102,7 +102,7 @@ It is an interactive Python shell that creates a WBEM listener and displays
 any indications it receives, in MOF format.
 """
 
-####import re
+import sys
 from socket import getfqdn
 import logging
 import uuid
@@ -112,6 +112,12 @@ from ._server import WBEMServer
 from ._version import __version__
 from .cim_obj import CIMInstance, CIMInstanceName
 
+# python 2.6 does not include null handler.
+if sys.version_info < (2, 7):
+    class NullHandler(logging.Handler):
+        """Implement logging NullHandler for python 2.6"""
+        def emit(self, record):
+            pass
 
 #CIM model classnames for subscription components
 SUBSCRIPTION_CLASSNAME = 'CIM_IndicationSubscription'
