@@ -2951,7 +2951,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
     def create_listener(self, http_port=None, https_port=None):
         """ standard function to start the listener"""
 
-        
+
         listener_addr = urlparse(self.system_url).netloc
         # Create the listener and listener call back and start the listener
         my_listener = WBEMListener(listener_addr,
@@ -2964,7 +2964,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
         my_listener.start()
 
         return my_listener
-        
+
 
     #pylint: disable=invalid-name
     def test_create_delete_subscription(self):
@@ -2986,7 +2986,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             http_listener_port = 50000
             https_listener_port = None
 
-            my_listener =self.create_listener(http_port=http_listener_port,
+            my_listener = self.create_listener(http_port=http_listener_port,
                                               https_port=https_listener_port)
 
             sub_mgr = WBEMSubscriptionManager(subscription_manager_id='sub_mgr')
@@ -3061,8 +3061,8 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             # Set arbitrary ports for the listener
             http_listener_port = 50000
             https_listener_port = None
-            
-            my_listener =self.create_listener(http_port=http_listener_port,
+
+            my_listener = self.create_listener(http_port=http_listener_port,
                                               https_port=https_listener_port)
 
             sub_mgr = WBEMSubscriptionManager()
@@ -3152,7 +3152,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             http_listener_port = 50000
             https_listener_port = None
 
-            my_listener =self.create_listener(http_port=http_listener_port,
+            my_listener = self.create_listener(http_port=http_listener_port,
                                               https_port=https_listener_port)
 
             sub_mgr = WBEMSubscriptionManager()
@@ -3246,7 +3246,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             http_listener_port = 50000
             https_listener_port = None
 
-            my_listener =self.create_listener(http_port=http_listener_port,
+            my_listener = self.create_listener(http_port=http_listener_port,
                                               https_port=https_listener_port)
 
             sub_mgr = WBEMSubscriptionManager()

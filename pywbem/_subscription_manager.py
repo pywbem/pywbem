@@ -31,7 +31,6 @@ callback function for indication delivery:
 ::
 
     import sys
-    import logging
     from socket import getfqdn
     from pywbem import WBEMConnection, WBEMListener, WBEMServer,
                        WBEMSubscriptionManager
@@ -42,9 +41,6 @@ callback function for indication delivery:
             format(host=host, ind=indication))
 
     def main():
-
-        logging.basicConfig(stream=sys.stderr, level=logging.WARNING,
-            format='%(asctime)s - %(levelname)s - %(message)s)
 
         certkeyfile = 'listener.pem'
 
@@ -104,7 +100,6 @@ any indications it receives, in MOF format.
 
 import sys
 from socket import getfqdn
-import logging
 import uuid
 import six
 
@@ -112,14 +107,7 @@ from ._server import WBEMServer
 from ._version import __version__
 from .cim_obj import CIMInstance, CIMInstanceName
 
-# python 2.6 does not include null handler.
-if sys.version_info < (2, 7):
-    class NullHandler(logging.Handler):
-        """Implement logging NullHandler for python 2.6"""
-        def emit(self, record):
-            pass
-
-#CIM model classnames for subscription components
+# CIM model classnames for subscription components
 SUBSCRIPTION_CLASSNAME = 'CIM_IndicationSubscription'
 DESTINATION_CLASSNAME = 'CIM_ListenerDestinationCIMXML'
 FILTER_CLASSNAME = 'CIM_IndicationFilter'
@@ -143,12 +131,14 @@ class WBEMSubscriptionManager(object):
           subscription_manager_id (:term:`string`):
             If not `None` a string of printable characters to be inserted in
             the name property of filter and listener destination instances
-            to help the subscription manager identify its filters and
-            destination instances in a WBEM Server.
+            to help the user identify its filters and destination instances
+            in a WBEM Server.
 
             The string must not contain the character ':' since that
             is the separator between components of the name property applied
             to each filter.
+
+            There is no requirement that the subscription manager id be unique.
 
             The form for the name property of a PyWBEM of a filter is:
 
@@ -156,10 +146,6 @@ class WBEMSubscriptionManager(object):
                             [<filter_id> ":"] <guid>
 
         """
-
-        self._logger = logging.getLogger('pywbem.SubscriptionManager.%s' %
-                                         id(self))
-        self._logger.addHandler(logging.NullHandler())
 
         # The following dictionaries have the WBEM server ID as a key.
         self._servers = {}  # WBEMServer objects for the WBEM servers
@@ -173,7 +159,7 @@ class WBEMSubscriptionManager(object):
             if ':' in subscription_manager_id:
                 raise ValueError("Invalid String: subscription_manager_id %s" \
                                  " contains ':'" % subscription_manager_id)
-            self._subscription_manager_id = '%s:' % subscription_manager_id
+            self._subscription_manager_id = subscription_manager_id
         else:
             raise TypeError("invalid type for subscription_manager_id=%s" % \
                             subscription_manager_id)
@@ -183,13 +169,14 @@ class WBEMSubscriptionManager(object):
         Return a representation of the :class:`~pywbem.WBEMSubscriptionManager`
         object with all attributes, that is suitable for debugging.
         """
-        return "%s(host=%r, _servers=%r, " \
+        return "%s(subscription_manager_id=%s, _servers=%r, " \
                "_owned_subscription_paths=%r, _owned_filter_paths=%r, " \
                "_destination_paths=%r)" % \
                (self.__class__.__name__,
-                self.logger,
+                self.self.subscription_manager_id,
                 self._servers, self._owned_subscription_paths,
-                self._owned_filter_paths, self._server_dest_tuples)
+                self._owned_filter_paths, self._server_dest_tuples,
+                subscription_manager_id)
 
     def _get_server(self, server_id):
         """
@@ -216,45 +203,13 @@ class WBEMSubscriptionManager(object):
 
         return self._servers[server_id]
 
-    @property
-    def logger(self):
+
+    def add_listener_destinations(self, server_id, listener_urls, owned=True):
         """
-        The logger object for this listener.
-
-        Each listener object has its own separate logger object that is
-        created via :func:`py:logging.getLogger`.
-
-        The name of this logger object is: `pywbem.listener.{id}` where `{id}`
-        is the :func:`id` value of the listener object. Users of the listener
-        should not look up the logger object by name, but should use this
-        property to get to it.
-
-        By default, this logger uses the :class:`~py:logging.NullHandler` log
-        handler, and its log level is :attr:`~py:logging.NOTSET`. This causes
-        this logger not to emit any log messages and to propagate them to the
-        Python root logger.
-
-        The behavior of this logger can be changed by invoking its methods
-        (see :class:`py:logging.Logger`). The behavior of the root logger can
-        for example be configured using :func:`py:logging.basicConfig`:
-
-        ::
-
-            import sys
-            import logging
-
-            logging.basicConfig(stream=sys.stderr, level=logging.WARNING,
-                format='%(asctime)s - %(levelname)s - %(message)s')
-        """
-        return self._logger
-
-    def add_listener_destinations(self, server_id, listener_urls):
-        """
-        Add the url of a WBEM listener to  the set of listeners for which
+        Add the URL of a WBEM listener to  the set of listeners for which
         indications will be targeted for the defined WBEM Server.
-        This url must include scheme, address, and port components.
 
-        This function creates a destination instance for each listener_url
+        This function creates a destination instance for each specified listener
         in listener_urls and registers that instance with the WBEM server
         defined by server_id.
 
@@ -264,19 +219,19 @@ class WBEMSubscriptionManager(object):
             The server ID for the WBEM server, returned by :meth:`add_server`.
 
           listener_urls ((list of :term:`string`) or (:term:`string`)):
-            Either a  single listener url or list of listener
+            Either a  single listener URL or list of listener
             urls. This represents the listeners for which indications will
             be routed and for which destinations instances are registered
             with the WBEM server.
 
-            Each listener_url is defined in the format:
+            Each listener URL is defined in the format:
 
               ``[{scheme}://]{host}[:{port}]``
 
             The following URL schemes are supported:
 
             * ``https``: Causes HTTPS to be used.
-            * ``http``: Causes HTTP to be used.
+            * ``http``: Causes HTTP to be used. This is the default
 
             The host can be specified in any of the usual formats:
 
@@ -294,21 +249,23 @@ class WBEMSubscriptionManager(object):
 
         See `WBEMConnection` for examples of valid urls.
         """
-
+        
+        # if list, recursively call this function with each entry
         if isinstance(listener_urls, list):
             for listener_url in listener_urls:
                 self.add_listener_destinations(server_id, listener_url)
+            return
 
-        # process a single listener_url
-        else:
-            server = self._get_server(server_id)
+        # process a single URL 
+        listener_url = listener_urls    # documents that this is single URL
+        server = self._get_server(server_id)
 
-            dest_path = _create_destination(server, listener_urls,
-                                            self._subscription_manager_id)
+        dest_path = _create_destination(server, listener_url,
+                                        self._subscription_manager_id)
 
-            # Put the listener url and dest path into a tuple and save
-            # in a dictionary
-            dest_tuple = (listener_urls, dest_path)
+        # Put listener URL and dest path into a tuple and save in a dictionary
+        if owned:
+            dest_tuple = (listener_url, dest_path)
             self._server_dest_tuples[server_id].append(dest_tuple)
 
     def add_server(self, server):
@@ -340,7 +297,7 @@ class WBEMSubscriptionManager(object):
             raise ValueError("WBEM server already known by listener: %s" % \
                              server_id)
 
-        #Create a new dictionary for this server
+        # Create dictionary entries for this server
         self._servers[server_id] = server
         self._owned_subscription_paths[server_id] = []
         self._owned_filter_paths[server_id] = []
@@ -350,10 +307,10 @@ class WBEMSubscriptionManager(object):
 
     def remove_server(self, server_id):
         """
-        Remove a WBEM server from the listener and unregister the listener
-        from the server by deleting all indication subscriptions, dynamic
-        indication filters and listener destinations in the server that were
-        created by this listener.
+        Remove a WBEM server from the subscription manager and unregister the
+        listeners from the server by deleting all indication subscriptions,
+        owned indication filters and ownedlistener destinations in the server
+        that were created by this subscription manager.
 
         Parameters:
 
@@ -397,13 +354,12 @@ class WBEMSubscriptionManager(object):
                    owned=True,
                    filter_id=None):
         """
-        Add an indication filter to a WBEM server, by creating an
+        Add a dynamic indication filter to a WBEM server, by creating an
         indication filter instance in the Interop namespace of the server.
 
         Dynamic indication filters are those that are created by clients.
-        Indication filters that pre-exist in the WBEM server or are created
-        without the dynamic flag are termed *static indication filters* and
-        must be removed manually (or possibly cannot be removed by clients)
+        Indication filters that pre-exist in the WBEM server are termed
+        *static indication filters* and cannot be removed by clients.
         See :term:`DSP1054` for details about indication filters.
 
         Parameters:
@@ -417,21 +373,22 @@ class WBEMSubscriptionManager(object):
           query (:term:`string`):
             Filter query in the specified query language.
 
-          owned (:class: `pybool`) Defines whether a filter whose lifecycle
-            is owned by this server or not is to be created.
-            If True, a filter is
-            created that is defined by the life cycle of this server instance
-            within this subscription manager.  If False a  filter is created
-            that it may outlive the lifecycle of the server instance
-            and must be removed manually by the user (for example using
-            the `remove_filter` function.
 
           query_language (:term:`string`):
             Query language for the specified filter query.
 
             Examples: 'WQL', 'DMTF:CQL'.
 
-        filter_id(:term: `string`)
+          owned (:class:`py:bool`)
+            Defines whether a filter whose lifecycle is owned by this server
+            or not is to be created. If True, a filter is 
+            created that is defined by the life cycle of this server instance
+            within this subscription manager.  If False a  filter is created
+            that it may outlive the lifecycle of the server instance
+            and must be removed manually by the user (for example using
+            the `remove_filter` function.
+
+          filter_id (:term:`string`)
             If not `None` a printable string that is incorporated into the name
             property of the filter instance to help the listener identify
             its filters and handler instances in a WBEM Server. The character
@@ -472,10 +429,6 @@ class WBEMSubscriptionManager(object):
         Remove an indication filter from a WBEM server, by deleting an
         indication filter instance in the WBEM server.
 
-        If the filter is owned by this subscription manager, it is deleted
-        from the local list and the WBEM Server. Otherwise it is just deleted
-        from the server defined by server_id
-
         Parameters:
 
           server_id (:term:`string`):
@@ -490,17 +443,13 @@ class WBEMSubscriptionManager(object):
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
         server = self._get_server(server_id)
+        server.conn.DeleteInstance(filter_path)
 
-        if server_id in self._owned_filter_paths:
-            paths = self._owned_filter_paths[server_id]
-            for i, path in enumerate(paths):
-                if path == filter_path:
-                    server.conn.DeleteInstance(path)
-                    del paths[i]
-                    break
-        else:
-            server.conn.DeleteInstance(path)
-
+        paths = self._owned_filter_paths[server_id]
+        for i, path in enumerate(paths):
+            if path == filter_path:
+                del paths[i]
+                # continue look to find any possible duplicate entries
 
     def get_owned_filters(self, server_id):
         """
@@ -529,7 +478,7 @@ class WBEMSubscriptionManager(object):
 
     def get_filters(self, server_id):
         """
-        Return all owned and remote indication filter instance paths for the
+        Return the instance paths of all filter instance paths inthe
         defined WBEM server. This function requests filters from the
         WBEM server defined by server_id
 
@@ -568,7 +517,7 @@ class WBEMSubscriptionManager(object):
         be retrieved via :meth:`get_filters`.
 
         This may create multiple subscription instances if there are multiple
-        listeners related to a server through the :meth:`add.server` method.
+        listeners related to a server through :meth:`add.server`.
 
         Upon successful return of this method, the subscriptions are active.
 
@@ -588,7 +537,8 @@ class WBEMSubscriptionManager(object):
               If `None`, create subscriptions for all listeners defined by
               :meth: add_listener_destinations for this server_id
 
-          owned (:class:`py:bool`) If True, this owned subscriptions life
+          owned (:class:`py:bool`)
+            If True, this owned subscriptions life
             cycle is controlled by the lifecycle of the server to which it
             is attached. If False, the filter is created and registered with
             the server but not recorded in the local subscription manager
@@ -607,7 +557,7 @@ class WBEMSubscriptionManager(object):
         server = self._get_server(server_id)
 
         # force the listener_urls into a list
-        _filter_list = listener_urls if isinstance(listener_urls, list) \
+        listener_urls = listener_urls if isinstance(listener_urls, list) \
             else [listener_urls]
 
         # Create a subscription for every entry in the dest_tuples list
@@ -619,19 +569,20 @@ class WBEMSubscriptionManager(object):
         for dest_tuple in dest_tuples:
             listener_url = dest_tuple[0]
             dest_path = dest_tuple[1]
-            if listener_urls is None or listener_url in _filter_list:
+            if listener_urls is None or listener_url in listener_urls:
                 _create_destination(server, listener_url,
                                     self._subscription_manager_id)
                 sub_path = _create_subscription(server, dest_path, filter_path)
                 sub_paths.append(sub_path)
                 if owned:
                     self._owned_subscription_paths[server_id].append(sub_path)
+                    
         return sub_paths
 
     def remove_subscriptions(self, server_id, sub_paths):
         """
         Remove an indication subscription or list of subscriptions from a
-        WBEM server, by deleting an indication subscription instance in the
+        WBEM server, by deleting the indication subscription instances in the
         server.
 
         Parameters:
@@ -648,25 +599,27 @@ class WBEMSubscriptionManager(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
+
+        # if list, recursively call this remove subscriptions for each entry
         if isinstance(sub_paths, list):
             for sub_path in sub_paths:
                 self.remove_subscriptions(server_id, sub_path)
+            return
 
-        else:
-            server = self._get_server(server_id)
+        # Here sub_paths will contain only a single path entry
+        server = self._get_server(server_id)
+        
+        sub_path = sub_paths        # assign to internal variable for clarity
+        server.conn.DeleteInstance(sub_path)
+        
+        sub_path_list = self._owned_subscription_paths[server_id]
+        for i, path in enumerate(sub_path_list):
+            if path == sub_path:
+                del sub_path_list[i]
+                # continue to end of list to pick up any duplicates
+                    
 
-            if server_id in self._owned_subscription_paths:
-                sub_path_list = self._owned_subscription_paths[server_id]
-                for i, path in enumerate(sub_path_list):
-                    if path == sub_paths:
-                        server.conn.DeleteInstance(path)
-                        del sub_path_list[i]
-                        break
-            else:
-                server.conn.DeleteInstance(path)
-
-
-    def get_subscriptions(self, server_id):
+    def get_owned_subscriptions(self, server_id):
         """
         Return the indication subscriptions in a WBEM server that have been
         created by this listener. Retrievies all subscriptions registered
@@ -692,7 +645,7 @@ class WBEMSubscriptionManager(object):
 
         return self._owned_subscription_paths[server_id]
 
-    def get_all_destination_instances(self, server_id):
+    def get_all_listener_destination_instances(self, server_id):
         """
         Return all 'CIM_ListenerDestinationCIMXML' instance paths in a
         WBEM server.
@@ -787,7 +740,7 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
     dest_inst['CreationClassName'] = DESTINATION_CLASSNAME
     dest_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
     dest_inst['SystemName'] = getfqdn()
-    dest_inst['Name'] = 'pywbemdestination%s%s' % (subscription_manager_id,
+    dest_inst['Name'] = 'pywbemdestination:%s:%s' % (subscription_manager_id,
                                                    uuid.uuid4())
     dest_inst['Destination'] = dest_url
     dest_path = server.conn.CreateInstance(dest_inst)
@@ -820,7 +773,7 @@ def _create_filter(server, source_namespace, query, query_language, \
         be used to help identify filters in the server. If `None` no prefix
         is added to the system-defined name for this filter
 
-      subscription_manager_id (:term: `string`))
+      subscription_manager_id (:term:`string`))
         If not `None` a string of printable characters to be inserted in the
         name property of filter and listener destination instances to help the
         listener identify its filters and destination instances in a
@@ -860,7 +813,7 @@ def _create_filter(server, source_namespace, query, query_language, \
     filter_inst['CreationClassName'] = FILTER_CLASSNAME
     filter_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
     filter_inst['SystemName'] = getfqdn()
-    filter_inst['Name'] = 'pywbemfilter:%s%s%s' % (subscription_manager_id, \
+    filter_inst['Name'] = 'pywbemfilter:%s:%s:%s' % (subscription_manager_id, \
                                                    filter_id_, \
                                                    uuid.uuid4())
     filter_inst['SourceNamespace'] = source_namespace

@@ -148,7 +148,7 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     LISTENER.add_callback(consume_indication)
     LISTENER.start()
 
-    # set up listener logger.
+    # set up listener logger
     hdlr = logging.FileHandler('pegasusindications.log')
     hdlr.setLevel(logging.INFO)
     formatter = logging.Formatter(
