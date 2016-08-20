@@ -88,6 +88,7 @@ from .tupleparse import *
 from .cim_http import *
 from .exceptions import *
 from ._server import *
+from ._subscription_manager import *
 from ._listener import *
 from ._recorder import *
 from .config import *

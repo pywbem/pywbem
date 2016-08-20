@@ -4,16 +4,21 @@
 WBEM listener API
 =================
 
-.. automodule:: pywbem._listener
-
 WBEMListener
 ^^^^^^^^^^^^
+
+.. automodule:: pywbem._listener
 
 .. autoclass:: pywbem.WBEMListener
    :members:
 
-Indication callback function
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 .. autofunction:: pywbem.callback_interface
+
+WBEMSubscriptionManager
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: pywbem._subscription_manager
+
+.. autoclass:: pywbem.WBEMSubscriptionManager
+   :members:
 

@@ -31,10 +31,10 @@ def _process_indication(indication, host):
 def _get_argv(index, default=None):
     return _sys.argv[index] if len(_sys.argv) > index else default
 
-listener = None
+LISTENER = None
 
 def _main():
-    global listener
+    global LISTENER
 
     if len(_sys.argv) < 2:
         print("Usage: %s host http_port [https_port certfile keyfile]" % \
@@ -50,13 +50,13 @@ def _main():
     certfile = _get_argv(4)
     keyfile = _get_argv(5)
 
-    listener = pywbem.WBEMListener(host=host,
+    LISTENER = pywbem.WBEMListener(host=host,
                                    http_port=http_port,
                                    https_port=https_port,
                                    certfile=certfile,
                                    keyfile=keyfile)
-    listener.add_callback(_process_indication)
-    listener.start()
+    LISTENER.add_callback(_process_indication)
+    LISTENER.start()
 
 
     banner = """
