@@ -144,7 +144,7 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     # Create and start local listener
     LISTENER = WBEMListener(listener_host, http_port=http_listener_port,
                             https_port=https_listener_port)
-    #start connect and start listener. Comment next lines for separate listener
+    # Start connect and start listener.
     LISTENER.add_callback(consume_indication)
     LISTENER.start()
 
@@ -156,21 +156,14 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     hdlr.setFormatter(formatter)
     LISTENER.logger.addHandler(hdlr)
 
-    #create subscription_manager
+    # Create subscription_manager
     subscription_manager = WBEMSubscriptionManager(
         subscription_manager_id='fred')
 
-    # add server to subscription manager
+    # Add server to subscription manager
     server_id = subscription_manager.add_server(server)
     listener_url = '%s://%s:%s' % ('http', 'localhost', http_listener_port)
     subscription_manager.add_listener_destinations(server_id, listener_url)
-
-    #determine if there are any existing filters and display them
-    existing_filters = subscription_manager.get_owned_filters(server_id)
-    if len(existing_filters) != 0:
-        print('%s filters exist in server' % len(existing_filters))
-        for _filter in existing_filters:
-            print('existing filter %s', _filter.tomof())
 
     # Create a dynamic alert indication filter and subscribe for it
     filter_path = subscription_manager.add_filter(
@@ -179,7 +172,7 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
         query_language="DMTF:CQL")
     subscription_paths = subscription_manager.add_subscriptions(server_id,
                                                                 filter_path)
-    # request server to create indications by invoking method
+    # Request server to create indications by invoking method
     # This is pegasus specific
     class_name = CIMClassName(TEST_CLASS, namespace=TEST_CLASS_NAMESPACE)
 
@@ -204,7 +197,7 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
         LISTENER.stop()
         sys.exit(1)
 
-    # wait for indications to be received. Time based on number of indications
+    # Wait for indications to be received. Time based on number of indications
     wait_for_indications(requested_indications)
 
     subscription_manager.remove_subscriptions(server_id, subscription_paths)

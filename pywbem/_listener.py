@@ -96,13 +96,15 @@ from .tupleparse import parse_cim
 from .tupletree import dom_to_tupletree
 from .exceptions import ParseError, VersionError
 
-# python 2.6 does not include null handler.
-if sys.version_info < (2, 7):
+
+try: # Python 2.7+
+    from logging import NullHandler
+except ImportError:
     class NullHandler(logging.Handler):
-        """Implement logging NullHandler for python 2.6"""
-        
+        """Implement logging NullHandler for python 2.6"""        
         def emit(self, record):
             pass
+    logging.NullHandler = NullHandler
 
 DEFAULT_LISTENER_PORT_HTTP = 5988
 DEFAULT_LISTENER_PORT_HTTPS = 5989
@@ -342,7 +344,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                                          'a CIM instance, but %r' %
                                          indication_inst)
                 return
-
+            # server.listener created in WBEMListener.start function
             self.server.listener.deliver_indication(indication_inst,
                                                     self.client_address[0])
 

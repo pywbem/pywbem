@@ -60,6 +60,8 @@ class ElapsedTimer(object):
         return self.elapsed_ms() / 1000
 
 def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
+    """Create a test indication from the template and input attributes"""
+
     data_template = """<?xml version="1.0" encoding="utf-8" ?>
     <CIM CIMVERSION="2.0" DTDVERSION="2.4">
       <MESSAGE ID="%(msg_id)s" PROTOCOLVERSION="%(protocol_ver)s">
@@ -88,6 +90,7 @@ def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
     return data_template%data
 
 def send_indication(url, headers, payload, verbose):
+    """Send a single indication using Python requests"""
 
     try:
         response = requests.post(url, headers=headers, data=payload, timeout=4)
@@ -103,7 +106,8 @@ def send_indication(url, headers, payload, verbose):
     return True if(response.status_code == 200) else False
 
 def _process_indication(indication, host):
-    '''This function gets called when an indication is received.
+    """
+    This function gets called when an indication is received.
     It receives each indication on a separate thread so the only communication
     with the rest of the program is RCV_COUNT which it increments for each
     received indication
@@ -114,9 +118,11 @@ def _process_indication(indication, host):
 
     NOTE: Since this is a standalone function, it does not do an assert fail
     if there is a mismatch.
-    '''
+    """
+
     global RCV_COUNT
     global RCV_FAIL
+
     counter = indication.properties['SequenceNumber'].value
     if int(counter) != RCV_COUNT:
         RCV_FAIL = True
@@ -155,7 +161,7 @@ class TestIndications(unittest.TestCase):
         LISTENER.add_callback(_process_indication)
         LISTENER.start()
 
-    def send_indications(self, send_count):
+    def send_indications(self, send_count, http_port, https_port):
         """
         Send the number of indications defined by the send_count attribute
         Creates the listener, starts the listener, creates the
@@ -169,8 +175,6 @@ class TestIndications(unittest.TestCase):
         global VERBOSE
         global RCV_FAIL
         RCV_FAIL = False
-        http_port = 5000
-        https_port = None
         host = 'localhost'
 
         self.createlistener(host, http_port)
@@ -223,20 +227,18 @@ class TestIndications(unittest.TestCase):
         LISTENER.stop()
 
 #TODO issue 452. Reuse of the indication listener fails at least in python 3
-# Therefore we disable all but one test in python 3 for the moment
+# Therefore we duse different port for each test
     def test_send_10(self):
         """Test with sending 10 indications"""
-        if six.PY2:
-            self.send_indications(10)
+        self.send_indications(10, 5000, None)
 
     def test_send_100(self):
         """Test sending 100 indications"""
-        if six.PY2:
-            self.send_indications(100)
+        self.send_indications(100, 5001, None)
 
     def test_send_1000(self):
         """Test sending 1000 indications"""
-        self.send_indications(1000)
+        self.send_indications(1000, 5002, None)
 
 #    This test takes about 60 seconds and so is disabled for now
 #    def test_send_10000(self):

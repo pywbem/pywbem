@@ -2965,6 +2965,49 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
         return my_listener
 
+    def confirm_removed(self, sub_mgr, server_id, filter_path,
+                        subscription_paths):
+        """
+        When owned filter_path and subscription path are removed, this
+        confirms that results are correct both int the local subscription
+        manager and the remote WBEM server.
+        """
+
+        owned_filters = sub_mgr.get_owned_filters(server_id)
+        self.assertFalse(filter_path in owned_filters)
+
+        owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
+        for subscription_path in owned_subscriptions:
+            self.assertFalse(subscription_path in owned_subscriptions)
+
+        all_filters = sub_mgr.get_all_filters(server_id)
+        self.assertFalse(filter_path in all_filters)
+
+        all_subscriptions = sub_mgr.get_all_subscriptions(server_id)
+        for subscription_path in subscription_paths:
+            self.assertFalse(subscription_path in all_subscriptions)
+
+    def confirm_created(self, sub_mgr, server_id, filter_path,
+                        subscription_paths):
+        """
+        When owned filter_path and subscription path are removed, this
+        confirms that results are correct both int the local subscription
+        manager and the remote WBEM server.
+        """
+
+        owned_filters = sub_mgr.get_owned_filters(server_id)
+        self.assertTrue(filter_path in owned_filters)
+
+        owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
+        for subscription_path in subscription_paths:
+            self.assertTrue(subscription_path in owned_subscriptions)
+
+        all_filters = sub_mgr.get_all_filters(server_id)
+        self.assertTrue(filter_path in all_filters)
+
+        all_subscriptions = sub_mgr.get_all_subscriptions(server_id)
+        for subscription_path in subscription_paths:
+            self.assertTrue(subscription_path in all_subscriptions)
 
     #pylint: disable=invalid-name
     def test_create_delete_subscription(self):
@@ -3004,38 +3047,21 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             subscription_paths = sub_mgr.add_subscriptions(server_id,
                                                            filter_path)
 
-            # test get_dynamic_filters and subscriptions
-            my_filters = sub_mgr.get_filters(server_id)
-            self.assertTrue(filter_path in my_filters)
+            self.confirm_created(sub_mgr, server_id, filter_path,
+                                 subscription_paths)
 
-            my_subscriptions = sub_mgr.get_subscriptions(server_id)
-            for subscription_path in subscription_paths:
-                self.assertTrue(subscription_path in my_subscriptions)
-
-            all_subscriptions = sub_mgr.get_all_subscriptions(server_id)
-
-            # Confirm all my_filters are in server subscriptions. gets the
-            # Filter key binding from the subscription
-            my_rtn_filters = [sub["Filter"] for sub in all_subscriptions if \
-                                sub['Filter'] in my_filters]
-            self.assertPathsEqual(my_rtn_filters, my_filters)
 
             # confirm destination instance paths match
-            dests = sub_mgr.get_all_destination_instances(server_id)
-            self.assertTrue(len(dests) > 0)
-            #TODO: ks Finish this test completely when we add other changes
-            #for filter ids
+            self.assertTrue(len(sub_mgr.get_all_destinations(server_id)) > 0)
+            ##TODO: ks Finish this test completely when we add other changes
+            ##for filter ids
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
 
-            # confirm that filter and subscription were removed
-            host_filters = sub_mgr.get_filters(server_id)
-            self.assertFalse(filter_path in host_filters)
+            self.confirm_removed(sub_mgr, server_id, filter_path,
+                                 subscription_paths)
 
-            host_subscriptions = sub_mgr.get_subscriptions(server_id)
-            for subscription_path in subscription_paths:
-                self.assertTrue(subscription_path in host_subscriptions)
             my_listener.stop()
             sub_mgr.remove_server(server_id)
 
@@ -3063,7 +3089,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             https_listener_port = None
 
             my_listener = self.create_listener(http_port=http_listener_port,
-                                              https_port=https_listener_port)
+                                               https_port=https_listener_port)
 
             sub_mgr = WBEMSubscriptionManager()
             server_id = sub_mgr.add_server(server)
@@ -3085,12 +3111,9 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             subscription_paths = sub_mgr.add_subscriptions(server_id,
                                                            filter_path)
 
-            host_filters = sub_mgr.get_filters(server_id)
-            self.assertTrue(filter_path in host_filters)
 
-            host_subscriptions = sub_mgr.get_subscriptions(server_id)
-            for subscription_path in subscription_paths:
-                self.assertTrue(subscription_path in host_subscriptions)
+            self.confirm_created(sub_mgr, server_id, filter_path,
+                                 subscription_paths)
 
             class_name = CIMClassName(test_class,
                                       namespace=test_class_namespace)
@@ -3125,13 +3148,9 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
 
-            # confirm that filter and subscription were removed
-            host_filters = sub_mgr.get_filters(server_id)
-            self.assertFalse(filter_path in host_filters)
+            self.confirm_removed(sub_mgr, server_id, filter_path,
+                                 subscription_paths)
 
-            host_subscriptions = sub_mgr.get_subscriptions(server_id)
-            for subscription_path in subscription_paths:
-                self.assertTrue(subscription_path in host_subscriptions)
             sub_mgr.remove_server(server_id)
 
             my_listener.stop()
@@ -3153,7 +3172,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             https_listener_port = None
 
             my_listener = self.create_listener(http_port=http_listener_port,
-                                              https_port=https_listener_port)
+                                               https_port=https_listener_port)
 
             sub_mgr = WBEMSubscriptionManager()
             server_id = sub_mgr.add_server(server)
@@ -3170,15 +3189,15 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             subscription_paths = sub_mgr.add_subscriptions(server_id,
                                                            filter_path)
 
-            host_filters = sub_mgr.get_filters(server_id)
+            owned_filters = sub_mgr.get_owned_filters(server_id)
 
-            self.assertEqual(len(host_filters), 1)
-            for path in host_filters:
+            self.assertEqual(len(owned_filters), 1)
+            for path in owned_filters:
                 name = path.keybindings['Name']
                 self.assertRegexpMatches(
                     name,
                     r'^pywbemfilter:pegTestListener:fred:[0-9a-f-]{30,40}\Z')
-            self.assertTrue(filter_path in host_filters)
+            self.assertTrue(filter_path in owned_filters)
 
             # Confirm format of second dynamic filter name property
             filter_path2 = sub_mgr.add_filter(
@@ -3207,23 +3226,23 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             except ValueError:
                 pass
 
-            host_filters = sub_mgr.get_filters(server_id)
-            self.assertEqual(len(host_filters), 3)
+            owned_filters = sub_mgr.get_owned_filters(server_id)
+            self.assertEqual(len(owned_filters), 3)
 
-            host_subscriptions = sub_mgr.get_subscriptions(server_id)
+            owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
             for subscription_path in subscription_paths:
-                self.assertTrue(subscription_path in host_subscriptions)
+                self.assertTrue(subscription_path in owned_subscriptions)
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
 
             # confirm that filter and subscription were removed
-            host_filters = sub_mgr.get_filters(server_id)
-            self.assertFalse(filter_path in host_filters)
+            owned_filters = sub_mgr.get_owned_filters(server_id)
+            self.assertFalse(filter_path in owned_filters)
 
-            host_subscriptions = sub_mgr.get_subscriptions(server_id)
+            owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
             for subscription_path in subscription_paths:
-                self.assertTrue(subscription_path in host_subscriptions)
+                self.assertTrue(subscription_path in owned_subscriptions)
 
             sub_mgr.remove_server(server_id)
 
@@ -3247,7 +3266,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             https_listener_port = None
 
             my_listener = self.create_listener(http_port=http_listener_port,
-                                              https_port=https_listener_port)
+                                               https_port=https_listener_port)
 
             sub_mgr = WBEMSubscriptionManager()
             server_id = sub_mgr.add_server(server)
@@ -3264,27 +3283,27 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             subscription_paths = sub_mgr.add_subscriptions(server_id,
                                                            filter_path)
 
-            host_filters = sub_mgr.get_filters(server_id)
+            owned_filters = sub_mgr.get_owned_filters(server_id)
 
-            self.assertEqual(len(host_filters), 1)
-            for path in host_filters:
+            self.assertEqual(len(owned_filters), 1)
+            for path in owned_filters:
                 name = path.keybindings['Name']
                 self.assertRegexpMatches(
                     name,
                     r'^pywbemfilter:fred:[0-9a-f-]{30,40}\Z')
-            self.assertTrue(filter_path in host_filters)
+            self.assertTrue(filter_path in owned_filters)
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
 
             # confirm that filter and subscription were removed
-            host_filters = sub_mgr.get_filters(server_id)
+            owned_filters = sub_mgr.get_owned_filters(server_id)
 
-            self.assertFalse(filter_path in host_filters)
+            self.assertFalse(filter_path in owned_filters)
 
-            host_subscriptions = sub_mgr.get_subscriptions(server_id)
+            owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
             for subscription_path in subscription_paths:
-                self.assertTrue(subscription_path in host_subscriptions)
+                self.assertTrue(subscription_path in owned_subscriptions)
 
             my_listener.stop()
             sub_mgr.remove_server(server_id)
