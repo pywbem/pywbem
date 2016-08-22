@@ -23,20 +23,36 @@
 The language in which CIM classes are specified, is called `MOF` (for Managed
 Object Format). It is defined in :term:`DSP0004`.
 
-The ``pywbem.mof_compiler`` module provides a MOF compiler.
+The pywbem package includes a MOF compiler.
 
-MOF compilers are not operating just on its MOF input. In most cases, the CIM
-elements defined in the MOF input will have dependencies on other CIM elements.
-For this reason, most MOF compilers (and this one as well) need access to
-a CIM repository that contains all the CIM elements that can be used as
-dependencies. The result of the MOF compilation is again applied to that
-repository. So except for the very first time when the repository is still
-empty, a MOF compiler always operates against existing CIM elements and
-performs some kind of delta update, creating new elements, or updating existing
-elements.
+MOF compilers take MOF files as input, compile them and the result is used to
+update a target CIM repository. The repository may initially be empty, or may
+contain the result of earlier MOF compilations that are used to resolve
+dependencies the new MOF compilation may have.
 
 The MOF compiler in this package also has an option to remove CIM elements
 from the repository it has a definition for in the MOF files it processes.
+
+The MOF compiler API provides for invoking the MOF compiler and for plugging in
+your own CIM repository into the MOF compiler.
+
+The MOF compiler API is available in the ``pywbem.mof_compiler`` module.
+
+This chapter has the following sections:
+
+* :ref:`MOFCompiler` - Describes the :class:`~pywbem.mof_compiler.MOFCompiler`
+  class, which allows invoking the MOF compiler programmatically.
+
+* :ref:`Repository connections` - Describes the
+  :class:`~pywbem.mof_compiler.BaseRepositoryConnection` class that defines
+  the interface for connecting to a CIM repository, and the
+  :class:`~pywbem.mof_compiler.MOFWBEMConnection` class that is a connection
+  to an in-memory repository on top of an underlying repository, and is used
+  by the MOF compiler to provide rollback support.
+
+* :ref:`Exceptions <MOF compiler exceptions>` - Describes the exceptions
+  that can be raised by the MOF compiler, in addition to the exceptions
+  that can be raised by the :ref:`WBEM client library API`.
 """
 
 from __future__ import print_function, absolute_import
@@ -302,13 +318,14 @@ class MOFParseError(Error):
         """
         Parameters:
 
-            parser_token (PLY.ParserToken):
-                Parser token for the error. This token contains information on
-                the location of the error in the mof file. Details of the
-                token are set into the MofParseError object.
+          parser_token:
+            PLY parser token for the error (that is, the ``p`` argument
+            of a PLY parser function). This token contains information on
+            the location of the error in the MOF file, which is copied
+            into this object, and is accessible via properties.
 
-            msg  (:term:`string`):
-              Message text supplied by the creator of the error
+          msg (:term:`string`):
+            Message text supplied by the creator of the error
         """
 
         if parser_token is None:
@@ -323,36 +340,38 @@ class MOFParseError(Error):
 
     @property
     def lineno(self):
-        """ line number in file where error occurred
-        """
+        """Line number in the MOF file where the error occurred."""
         return self.args[0]
 
     @property
     def column(self):
-        """ Column in file line where error occurred
-        """
+        """Position within the line where the error occurred."""
         return self.args[1]
 
     @property
     def file(self):
-        """ Name of file where error occurred
+        """
+        File name of the MOF file where the error occurred, as a
+        :term:`string`.
         """
         return self.args[2]
 
     @property
     def context(self):
-        """ Context string that is inserted in output display on line below
-            file line.  Consists of a segment of the mof surrounding the
-            error position with a second line that uses the '^' char to
-            locate the token in error.
+        """
+        Context string that can be inserted when printing the error message.
+        The context string consists of a first line with a segment of the MOF
+        surrounding the error position, and a second line that uses the '^'
+        character to indicate the token in error.
         """
         return self.args[3]
 
     @property
     def msg(self):
-        """ Message that may be part of error. Generally this is produced when
-            the actual error position is not known but may be added by
-            some production errors
+        """
+        Message that may be part of the error, as a :term:`string`. Generally,
+        this is produced when the actual error position is not known but may be
+        added by some production errors.
         """
         return self._msg
 
@@ -368,14 +387,14 @@ class MOFParseError(Error):
 
     def get_err_msg(self):
         """
-            Generate string defining compiler error message. Generates a
-            string that defines an error message in the form
+        Return the MOF compiler error message as a :term:`string`, in the
+        format (assuming all components are provided):
 
-            Syntax error: <file> : <line> : <msg>
+        ::
 
-            context string mof text with error
-
-            context indicator of location of error in text.
+            Syntax error:<file>:<lineno>: <msg>
+            <context - MOF segment>
+            <context - location indicator>
         """
         ret_str = 'Syntax error:'
         if self.file is not None and self.lineno is not None:

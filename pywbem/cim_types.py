@@ -534,7 +534,9 @@ class CIMInt(CIMType, _Longint):
     The valid value range is enforced when an instance of a subclass of this
     class (e.g. :class:`~pywbem.Uint8`) is created. Values outside of the
     valid range raise a :exc:`ValueError`.
-
+    The enforcement of the valid value range can be disabled via the
+    configuration variable :data:`~pywbem.config.ENFORCE_INTEGER_RANGE`.
+    
     Instances of subclasses of this class can be initialized with the usual
     input arguments supported by :term:`integer`, for example:
 

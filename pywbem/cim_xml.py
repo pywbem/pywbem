@@ -68,7 +68,7 @@ def _text(data):
 
     Note: The API for the minidom text node function has changed in
     Python 2.3.  The code for older Python versions has been removed from this
-    function in PyWBEM 0.8; the Python version check is now done in
+    function in pywbem v0.8; the Python version check is now done in
     __init__.py.
     """
 
@@ -942,7 +942,7 @@ class PROPERTY(CIMElement):
         # work unfortunately, because SFCB supports either form but not both
         # attributes in the same request.
         # As a result, the best choice is to use only the standards-conforming
-        # mixed case form in any requests sent by PyWBEM.
+        # mixed case form in any requests sent by pywbem.
 
         if qualifiers:
             self.appendChildren(qualifiers)

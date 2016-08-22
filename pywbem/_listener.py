@@ -553,7 +553,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         Overrides the inherited method to add the pywbem listener version.
         """
-        return 'PyWBEM-Listener/%s %s %s ' % \
+        return 'pywbem-listener/%s %s %s ' % \
             (__version__, self.server_version, self.sys_version)
 
 

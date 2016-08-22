@@ -56,9 +56,11 @@ Enhancements
 ^^^^^^^^^^^^
 
 * The distribution formats have been extended. There are now:
+
   - Source archive (existed)
   - Universal wheel (new)
   - Windows installable (new)
+
   (issue #242)
 
 * Upgraded M2Crypto to use official 0.24.0 from PyPI.
@@ -170,19 +172,21 @@ Enhancements
 * Implemented pull operations per DMTF specification DSP0200 and DSP0201.
   This includes the following new client operations to execute enumeration
   sequences:
-    - OpenEnumerateInstances
-    - OpenEnumerateInstancePaths
-    - OpenAssociatorInstances
-    - OpenAssociatorInstancePaths
-    - OpenReferenceInstances
-    - OpenReferenceInstancePaths
-    - OpenQueryInstances
-    - PullInstances
-    - PullInstancesWithPath
-    - PullInstancePaths
-    - CloseEnumeration
-  PyWBEM does NOT implement the EnumerationCount operation as it
-  is both deprecated and unusable. (Issue #9)
+
+  - OpenEnumerateInstances
+  - OpenEnumerateInstancePaths
+  - OpenAssociatorInstances
+  - OpenAssociatorInstancePaths
+  - OpenReferenceInstances
+  - OpenReferenceInstancePaths
+  - OpenQueryInstances
+  - PullInstances
+  - PullInstancesWithPath
+  - PullInstancePaths
+  - CloseEnumeration
+
+  The EnumerationCount operation is NOT implemented, because it is both
+  deprecated and unusable. (Issue #9)
 
 * Added a tutorial section to the generated documentation, using
   Jupyter Notebooks for each tutorial page. (issue #324)
@@ -212,17 +216,17 @@ Enhancements
 
 * Implemented server and listener classes(issue #66) to provide the following:
 
-      - `WBEMServer` class for a WBEM server that uses a WBEMconnection. This
-      class provides access to the common elements of the WBEMServer profile
-      including namespaces, interop namespace, profile information, server
-      branding, central/scoping class algorithm, etc.
+  - `WBEMServer` class for a WBEM server that uses a WBEMconnection. This
+    class provides access to the common elements of the WBEMServer profile
+    including namespaces, interop namespace, profile information, server
+    branding, central/scoping class algorithm, etc.
       
-      - `WBEMListener` class that allows management of indication subscriptions
-      and the creation of a listener entity to receive indications.
+  - `WBEMListener` class that allows management of indication subscriptions
+    and the creation of a listener entity to receive indications.
 
-      **Experimental** -The WBEMServer and WBEMListener are experimental for
-      pywbem version 0.9.0 since this is the initial release of a significant
-      change and subject to changes to the API
+  **Experimental** - The WBEMServer and WBEMListener are experimental for
+  pywbem version 0.9.0 since this is the initial release of a significant
+  change and subject to changes to the API
 
 * Extend the server class with a function (filterProfiles) to select a
   subset of profiles from the server based on organization, profile name,
@@ -236,7 +240,6 @@ Enhancements
 
 * Extend WBEMListener to get all ListenerDestination objects and
   CIM_IndicationSubscription objects from WBEM Server. (issue #421).
-  )
 
 * Clarify MofParseError by defining attributes as part of the class init and
   moving some code from productions to the class itself (issue #169). This
@@ -316,14 +319,14 @@ Bug fixes
 * Extend PropertyList argument in request operations to be either list
   or tuple. (issue #347)
 
-*  Added deprecated warning to WBEMConnection verify_callback parameter
-   since it is not used with python ssl module and will probably be 
-   removed completely in the future. (issue # 297)
+* Added deprecated warning to WBEMConnection verify_callback parameter
+  since it is not used with python ssl module and will probably be 
+  removed completely in the future. (issue # 297)
 
-*  Created a common function for setting SSL defaults and tried to create
-   the same level of defaults for both Python2 (M2Crypto) and Python 3 (SSL
-   module).  The minimum level protocol set by the client is TLSV1 now whereas
-   in previous versions of pywbem it was SSLV23. (issue # 295)
+* Created a common function for setting SSL defaults and tried to create
+  the same level of defaults for both Python2 (M2Crypto) and Python 3 (SSL
+  module).  The minimum level protocol set by the client is TLSV1 now whereas
+  in previous versions of pywbem it was SSLV23. (issue # 295)
 
 * WBEMServer.interop_ns now contains the returned interop namespace name,
   if possible, instead of the attempted one.
