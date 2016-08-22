@@ -169,10 +169,10 @@ class WBEMSubscriptionManager(object):
         self._servers = {}  # WBEMServer objects for the WBEM servers
         self._owned_subscription_paths = {}  # CIMInstanceName of subscriptions
         self._owned_filter_paths = {}  # CIMInstanceName of dynamic filters
-        self._server_destinations = {}  #tuple of listener_url and dest_path
+        self._owned_server_destinations = {}  #destination paths for server
 
         if subscription_manager_id is None:
-            self._subscription_manager_id = ''
+            self._subscription_manager_id = subscription_manager_id
         elif isinstance(subscription_manager_id, six.string_types):
             if ':' in subscription_manager_id:
                 raise ValueError("Invalid String: subscription_manager_id %s" \
@@ -187,12 +187,12 @@ class WBEMSubscriptionManager(object):
         Return a representation of the :class:`~pywbem.WBEMSubscriptionManager`
         object with all attributes, that is suitable for debugging.
         """
-        return "%s(subscription_manager_id=%s, _servers=%r, " \
+        return "%s(_subscription_manager_id=%s, _servers=%r, " \
                "_owned_subscription_paths=%r, _owned_filter_paths=%r, " \
-               "_server_destinations=%s" % \
+               "_server_owned_destinations=%s" % \
                (self.__class__.__name__, self._subscription_manager_id,
                 self._servers, self._owned_subscription_paths,
-                self._owned_filter_paths, self._server_destinations)
+                self._owned_filter_paths, self._owned_server_destinations)
 
     def _get_server(self, server_id):
         """
@@ -276,12 +276,12 @@ class WBEMSubscriptionManager(object):
 
         Returns:
 
-            :class:`~pywbem.CIMInstanceName`: The owned indication
-            destination instance path. If this is an owned destination this
-            recorded in the server so is not needed by the user.   However
-            if this destination is not owned, it is the users responsibility
-            to eventually remove this instance from the WBEM Server
-
+            list of :class:`~pywbem.CIMInstanceName`: The indication
+            destination instance paths for the defined listener_urls.
+            `Owned` destinations are recorded in the subscription manager for
+            the target 1server_id` so is not needed by the user. However
+            if a destinations are not owned, it is the users responsibility
+            to eventually remove this instance from the WBEM Server.
 
         Raises:
 
@@ -291,27 +291,25 @@ class WBEMSubscriptionManager(object):
 
         # If list, recursively call this function with each entry
         if isinstance(listener_urls, list):
+            dest_paths = []
             for listener_url in listener_urls:
-                self.add_listener_destinations(server_id, listener_url)
-            return
+                dest_path = self.add_listener_destinations(server_id,
+                                                           listener_url)
+                dest_paths.extend(dest_path)
+            return dest_paths
 
         # Process a single URL
         listener_url = listener_urls    # documents that this is single URL
-
-        # validate the url
-        _ = parse_url(listener_url)
 
         server = self._get_server(server_id)
 
         dest_path = _create_destination(server, listener_url,
                                         self._subscription_manager_id)
 
-        # Put listener URL and dest path into a tuple and save in a dictionary
         if owned:
-            dest_tuple = (listener_url, dest_path)
-            self._server_destinations[server_id].append(dest_tuple)
+            self._owned_server_destinations[server_id].append(dest_path)
 
-        return dest_path
+        return [dest_path]
 
     def add_server(self, server):
         """
@@ -346,7 +344,7 @@ class WBEMSubscriptionManager(object):
         self._servers[server_id] = server
         self._owned_subscription_paths[server_id] = []
         self._owned_filter_paths[server_id] = []
-        self._server_destinations[server_id] = []
+        self._owned_server_destinations[server_id] = []
 
         return server_id
 
@@ -383,12 +381,12 @@ class WBEMSubscriptionManager(object):
                 server.conn.DeleteInstance(path)
             del self._owned_filter_paths[server_id]
 
-        if server_id in self._server_destinations:
-            for dest_tuple in self._server_destinations[server_id]:
+        if server_id in self._owned_server_destinations:
+            for dest_tuple in self._owned_server_destinations[server_id]:
                 path = dest_tuple[1]
                 server.conn.DeleteInstance(path)
 
-            del self._server_destinations[server_id]
+            del self._owned_server_destinations[server_id]
 
         # Remove server from this listener
         del self._servers[server_id]
@@ -548,7 +546,7 @@ class WBEMSubscriptionManager(object):
 
     def add_subscriptions(self, server_id, filter_path,
                           listener_urls=None, owned=True,
-                          destination_instance_path=None):
+                          destination_instance_paths=None):
         """
         Add subscriptions to a WBEM server for particular set of indications
         defined by an indication filter and listener as defined by a
@@ -590,7 +588,8 @@ class WBEMSubscriptionManager(object):
             filter is created and registered with the server but not recorded
             in the local subscription manager for removal.
 
-          destination_instance_path (:class:`~pywbem.CIMInstanceName`):
+          destination_instance_paths (:class:`~pywbem.CIMInstanceName` or
+            list of :class:`~pywbem.CIMInstanceName`):
             If not `None`, the path of a destination instance object that
             will become the destination for this subscription association.
             This attribute is allowed only if the filter_path defines a
@@ -615,8 +614,9 @@ class WBEMSubscriptionManager(object):
         listener_urls = listener_urls if isinstance(listener_urls, list) \
             else [listener_urls]
 
+        sub_paths = []
         if owned:
-            if destination_instance_path is not None:
+            if destination_instance_paths is not None:
                 raise ValueError('owned flag and a destination_instance_path '
                                  'not allowed together')
 
@@ -625,39 +625,36 @@ class WBEMSubscriptionManager(object):
             # This subscribes the filter for each listener as defined by its
             # destination path
 
-            # test if the filter is owned
-
             if filter_path not in self._owned_filter_paths[server_id]:
                 raise ValueError('Owned subscription must subscribe for '
                                  ' owned filter')
 
-            dest_tuples = self._server_destinations[server_id]
-            sub_paths = []
-            for dest_tuple in dest_tuples:
-                listener_url = dest_tuple[0]
-                dest_path = dest_tuple[1]
-                if listener_urls is None or listener_url in listener_urls:
-                    _create_destination(server, listener_url,
-                                        self._subscription_manager_id)
-                    sub_path = _create_subscription(server, dest_path,
-                                                    filter_path)
-                    sub_paths.append(sub_path)
-                    if owned:
-                        self._owned_subscription_paths[server_id].append(
-                            sub_path)
-
-            return sub_paths
+            destinations = self._owned_server_destinations[server_id]
+            for dest_path in destinations:
+                sub_path = _create_subscription(server, dest_path,
+                                                filter_path)
+                sub_paths.append(sub_path)
+                self._owned_subscription_paths[server_id].append(sub_path)
 
         else:
             # Create subscription for input filter and destination attribute
-            if destination_instance_path is None:
+            if destination_instance_paths is None:
                 ValueError('Non-Owned add subscriptions MUST include '
                            'destination_instance_path')
 
             #TODO ks 8/16. Should we validate that filter and dest exist?
-            sub_path = _create_subscription(server, destination_instance_path,
-                                            filter_path)
-            return [sub_path]
+            if not isinstance(destination_instance_paths, list):
+                destination_instance_paths = [destination_instance_paths]
+
+            for path in destination_instance_paths:
+                if path in self._owned_server_destinations[server_id]:
+                    raise ValueError('Non-owned subscriptions must subscribe '
+                                     'for non-owned destination')
+
+                sub_path = _create_subscription(server, path, filter_path)
+                sub_paths.append(sub_path)
+
+        return sub_paths
 
     def remove_subscriptions(self, server_id, sub_paths):
         """
@@ -812,6 +809,11 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
         Exceptions raised by :class:`~pywbem.WBEMConnection`.
     """
 
+    # validate the url by reconstructing it
+    host, port, ssl = parse_url(dest_url)
+    schema = 'https' if ssl else 'http'
+    listener_url = '{}.//{}:{}'.format(schema, host, port)
+
     dest_path = CIMInstanceName(DESTINATION_CLASSNAME)
     dest_path.classname = DESTINATION_CLASSNAME
     dest_path.namespace = server.interop_ns
@@ -821,9 +823,14 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
     dest_inst['CreationClassName'] = DESTINATION_CLASSNAME
     dest_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
     dest_inst['SystemName'] = getfqdn()
-    dest_inst['Name'] = 'pywbemdestination:%s:%s' % (subscription_manager_id,
-                                                     uuid.uuid4())
-    dest_inst['Destination'] = dest_url
+
+    sub_mgr_id = ''
+    if subscription_manager_id is not None:
+        sub_mgr_id = '%s:' % subscription_manager_id
+
+    dest_inst['Name'] = 'pywbemdestination:%s%s' % (sub_mgr_id,
+                                                    uuid.uuid4())
+    dest_inst['Destination'] = listener_url
     dest_path = server.conn.CreateInstance(dest_inst)
     return dest_path
 
@@ -894,9 +901,11 @@ def _create_filter(server, source_namespace, query, query_language, \
     filter_inst['CreationClassName'] = FILTER_CLASSNAME
     filter_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
     filter_inst['SystemName'] = getfqdn()
+
     sub_mgr_id = ''
-    if subscription_manager_id is None:
+    if subscription_manager_id is not None:
         sub_mgr_id = '%s:' % (subscription_manager_id)
+
     filter_inst['Name'] = 'pywbemfilter:%s%s%s' % (sub_mgr_id, \
                                                    filter_id_, \
                                                    uuid.uuid4())

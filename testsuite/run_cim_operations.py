@@ -3032,7 +3032,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             my_listener = self.create_listener(http_port=http_listener_port,
                                               https_port=https_listener_port)
 
-            sub_mgr = WBEMSubscriptionManager(subscription_manager_id='sub_mgr')
+            sub_mgr = WBEMSubscriptionManager(subscription_manager_id='fred')
 
             server_id = sub_mgr.add_server(server)
             listener_url = '%s://%s:%s' % ('http', 'localhost',
@@ -3049,7 +3049,6 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             self.confirm_created(sub_mgr, server_id, filter_path,
                                  subscription_paths)
-
 
             # confirm destination instance paths match
             self.assertTrue(len(sub_mgr.get_all_destinations(server_id)) > 0)
