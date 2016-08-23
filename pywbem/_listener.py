@@ -74,9 +74,16 @@ It is an interactive Python shell that creates a WBEM listener and displays
 any indications it receives, in MOF format.
 """
 
-import sys
 import re
 import logging
+try: # Python 2.7+
+    from logging import NullHandler
+except ImportError:
+    class NullHandler(logging.Handler):
+        """Implement logging NullHandler for python 2.6"""
+        def emit(self, record):
+            pass
+    logging.NullHandler = NullHandler
 import ssl
 from xml.dom import minidom
 from xml.parsers.expat import ExpatError
@@ -97,17 +104,7 @@ from .tupletree import dom_to_tupletree
 from .exceptions import ParseError, VersionError
 
 
-try: # Python 2.7+
-    from logging import NullHandler
-except ImportError:
-    class NullHandler(logging.Handler):
-        """Implement logging NullHandler for python 2.6"""        
-        def emit(self, record):
-            pass
-    logging.NullHandler = NullHandler
 
-DEFAULT_LISTENER_PORT_HTTP = 5988
-DEFAULT_LISTENER_PORT_HTTPS = 5989
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
 # These are returned in export message responses.
@@ -583,8 +580,7 @@ class WBEMListener(object):
     the WBEM servers.
     """
 
-    def __init__(self, host, http_port=DEFAULT_LISTENER_PORT_HTTP,
-                 https_port=DEFAULT_LISTENER_PORT_HTTPS,
+    def __init__(self, host, http_port=None, https_port=None,
                  certfile=None, keyfile=None):
         """
         Parameters:
@@ -593,7 +589,8 @@ class WBEMListener(object):
             IP address or host name this listener can be reached at.
 
           http_port (:term:`string` or :term:`integer`):
-            HTTP port this listener can be reached at.
+            HTTP port this listener can be reached at. Note that at least one
+            port (HTTP or HTTPS) must be set
 
             `None` means not to set up a port for HTTP.
 
@@ -656,6 +653,9 @@ class WBEMListener(object):
         else:
             self._certfile = None
             self._keyfile = None
+
+        if self._http_port is None and self._https_port is None:
+            ValueError('Listener requires at least one active port')
 
         self._http_server = None  # ThreadedHTTPServer for HTTP
         self._http_thread = None  # Thread for HTTP

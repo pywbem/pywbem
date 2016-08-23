@@ -16,7 +16,10 @@ import time
 import logging
 import datetime
 from socket import getfqdn
-from urlparse import urlparse
+if sys.version_info >= (3, 0):
+    from urllib.parse import urlparse
+if sys.version_info < (3, 0) and sys.version_info >= (2, 5):
+    from urlparse import urlparse
 from pywbem import WBEMConnection, WBEMServer, WBEMListener, CIMClassName, \
                    Error, Uint32, WBEMSubscriptionManager
 
