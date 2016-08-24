@@ -31,6 +31,23 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
                          "Unexpected ssl: %r, expected: %r" %\
                          (ssl, exp_ssl))
 
+    def _run_single_defaults_false(self, url, exp_host, exp_port, exp_ssl):
+        '''
+        Test function for single invocation of parse_url() with the default
+        attribute set false
+        '''
+
+        host, port, ssl = cim_http.parse_url(url, allow_defaults=False)
+
+        self.assertEqual(host, exp_host,
+                         "Unexpected host: %r, expected: %r" %\
+                         (host, exp_host))
+        self.assertEqual(port, exp_port,
+                         "Unexpected port: %r, expected: %r" %\
+                         (port, exp_port))
+        self.assertEqual(ssl, exp_ssl,
+                         "Unexpected ssl: %r, expected: %r" %\
+                         (ssl, exp_ssl))
 
     def test_all(self):
         '''
@@ -195,6 +212,43 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
                          default_port_http,
                          default_ssl)
 
+    def test_all_no_defaults(self):
+        self._run_single_defaults_false("http://my.host.com:5988",
+                                        "my.host.com",
+                                        5988,
+                                        False)
+
+        self._run_single_defaults_false("https://my.host.com:5989",
+                                        "my.host.com",
+                                        5989,
+                                        True)
+
+        try:
+            self._run_single_defaults_false("my.host.com",
+                                            "my.host.com",
+                                            5988,
+                                            False)
+            self.fail('Expecting exception')
+        except ValueError:
+            pass
+
+        try:
+            self._run_single_defaults_false("my.host.com",
+                                            "my.host.com",
+                                            5988,
+                                            False)
+            self.fail('Expecting exception')
+        except ValueError:
+            pass
+
+        try:
+            self._run_single_defaults_false("blah://my.host.com",
+                                            "my.host.com",
+                                            5988,
+                                            False)
+            self.fail('Expecting exception')
+        except ValueError:
+            pass
 
 if __name__ == '__main__':
     unittest.main()

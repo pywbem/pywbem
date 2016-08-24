@@ -293,9 +293,9 @@ class WBEMSubscriptionManager(object):
         if isinstance(listener_urls, list):
             dest_paths = []
             for listener_url in listener_urls:
-                dest_path = self.add_listener_destinations(server_id,
-                                                           listener_url)
-                dest_paths.extend(dest_path)
+                listener_dest_paths = self.add_listener_destinations(
+                    server_id, listener_url)
+                dest_paths.extend(listener_dest_paths)
             return dest_paths
 
         # Process a single URL
@@ -348,12 +348,30 @@ class WBEMSubscriptionManager(object):
 
         return server_id
 
+    def remove_all_servers(self):
+        """
+        Remove all registered WBEM servers from the subscription manager. This
+        also unregisters listeners from the servers and removes all owned
+        indication subscriptions, owned filters, and owned listener
+        destinations for all servers in this subscription manager.
+
+        This is, in effect, a complete shutdown of the subscription manager.
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+        """
+
+        for server in self._servers:
+            # This depends on server.url same as server_id
+            self.remove_server(server.url)
+
     def remove_server(self, server_id):
         """
         Remove a WBEM server from the subscription manager and unregister the
-        listeners from the server by deleting all indication subscriptions,
-        owned indication filters and ownedlistener destinations in the server
-        that were created by this subscription manager.
+        listeners from the server by deleting all owned indication
+        subscriptions, owned indication filters and ownedlistener destinations
+        in the server that were created by this subscription manager.
 
         Parameters:
 
@@ -384,7 +402,6 @@ class WBEMSubscriptionManager(object):
         if server_id in self._owned_destination_paths:
             for path in self._owned_destination_paths[server_id]:
                 server.conn.DeleteInstance(path)
-
             del self._owned_destination_paths[server_id]
 
         # Remove server from this listener
@@ -543,8 +560,8 @@ class WBEMSubscriptionManager(object):
         return server.conn.EnumerateInstanceNames('CIM_IndicationFilter',
                                                   namespace=server.interop_ns)
 
-    def add_subscriptions(self, server_id, filter_path, owned=True,
-                          destination_paths=None):
+    def add_subscriptions(self, server_id, filter_path, destination_paths=None,
+                          owned=True):
         """
         Add subscriptions to a WBEM server for particular set of indications
         defined by an indication filter and listener as defined by a
@@ -573,12 +590,6 @@ class WBEMSubscriptionManager(object):
             server that specifies the indications to be sent. If the `owned`
             flag is set, this MUST be an owned filter.
 
-          owned (:class:`py:bool`)
-            If True, this owned subscriptions life cycle is controlled by the
-            lifecycle of the server to which it is attached. If False, the
-            filter is created and registered with the server but not recorded
-            in the local subscription manager for removal.
-
           destination_paths (:class:`~pywbem.CIMInstanceName` or
             list of :class:`~pywbem.CIMInstanceName`):
             If not `None`, the path of a destination instance object that
@@ -587,6 +598,12 @@ class WBEMSubscriptionManager(object):
             filter which is not owned (see `add_filter`)
             This instance MUST NOT be an `owned` destination and it will be
             the users responsibility to remove this object from the server.
+
+          owned (:class:`py:bool`)
+            If True, this owned subscriptions life cycle is controlled by the
+            lifecycle of the server to which it is attached. If False, the
+            filter is created and registered with the server but not recorded
+            in the local subscription manager for removal.
 
         Returns:
 
@@ -597,7 +614,7 @@ class WBEMSubscriptionManager(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-
+        # validate server_id
         server = self._get_server(server_id)
 
         sub_paths = []
@@ -611,15 +628,14 @@ class WBEMSubscriptionManager(object):
         # verify owned and filter_path owned status match
         if not owned and filter_path in self._owned_filter_paths[server_id]:
             raise ValueError('owned flag and owned filter mismatch')
-            
-        for path in destination_paths:
-            # if not owned, validate that destinationspaths not owned
-            if not owned:
-                if path in self._owned_destination_paths[server_id]:
-                    raise ValueError('owned flag and owned destination_path '
-                                     'mismatch')
 
-            sub_path = _create_subscription(server, path, filter_path)
+        for d_path in destination_paths:
+            # validate that owned flag destinations paths owned status match
+            if not owned and d_path in self._owned_destination_paths[server_id]:
+                raise ValueError('owned flag and owned destination_path '
+                                 'mismatch')
+
+            sub_path = _create_subscription(server, d_path, filter_path)
             sub_paths.append(sub_path)
             if owned:
                 self._owned_subscription_paths[server_id].append(sub_path)
@@ -766,8 +782,7 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
 
         The form for the name property of a PyWBEM of a destination instance is:
 
-        "pywbemdestination:" [<subscription_manager_id>  ":"]
-            [<fsubscription_manager_id> ":"] <guid>
+        "pywbemdestination:" [<subscription_manager_id>  ":"] <guid>
 
     Returns:
 
@@ -779,8 +794,8 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
         Exceptions raised by :class:`~pywbem.WBEMConnection`.
     """
 
-    # validate the url by reconstructing it
-    host, port, ssl = parse_url(dest_url)
+    # validate the url by reconstructing it. Do not allow defaults
+    host, port, ssl = parse_url(dest_url, allow_defaults=False)
     schema = 'https' if ssl else 'http'
     listener_url = '{}://{}:{}'.format(schema, host, port)
 
