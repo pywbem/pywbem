@@ -382,8 +382,7 @@ class WBEMSubscriptionManager(object):
             del self._owned_filter_paths[server_id]
 
         if server_id in self._owned_destination_paths:
-            for dest_tuple in self._owned_destination_paths[server_id]:
-                path = dest_tuple[1]
+            for path in self._owned_destination_paths[server_id]:
                 server.conn.DeleteInstance(path)
 
             del self._owned_destination_paths[server_id]
@@ -609,22 +608,21 @@ class WBEMSubscriptionManager(object):
         elif not isinstance(destination_paths, list):
             destination_paths = [destination_paths]
 
+        # verify owned and filter_path owned status match
+        if not owned and filter_path in self._owned_filter_paths[server_id]:
+            raise ValueError('owned flag and owned filter mismatch')
+            
         for path in destination_paths:
             # if not owned, validate that destinationspaths not owned
             if not owned:
                 if path in self._owned_destination_paths[server_id]:
                     raise ValueError('owned flag and owned destination_path '
                                      'mismatch')
-                                     
-        # verify owned and filter_path owned status match
-        if not owned and filter_path in self._owned_filter_paths[server_id]:
-            raise ValueError('owned flag and owned filter '
-                             'mismatch')
 
-        sub_path = _create_subscription(server, path, filter_path)
-        sub_paths.append(sub_path)
-        if owned:
-            self._owned_subscription_paths[server_id].append(sub_path)
+            sub_path = _create_subscription(server, path, filter_path)
+            sub_paths.append(sub_path)
+            if owned:
+                self._owned_subscription_paths[server_id].append(sub_path)
 
         return sub_paths
 
@@ -784,7 +782,7 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
     # validate the url by reconstructing it
     host, port, ssl = parse_url(dest_url)
     schema = 'https' if ssl else 'http'
-    listener_url = '{}.//{}:{}'.format(schema, host, port)
+    listener_url = '{}://{}:{}'.format(schema, host, port)
 
     dest_path = CIMInstanceName(DESTINATION_CLASSNAME)
     dest_path.classname = DESTINATION_CLASSNAME

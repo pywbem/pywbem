@@ -11,8 +11,10 @@ not all were received.
 
 """
 from __future__ import print_function, absolute_import
+
 import sys
 import time
+import threading
 import logging
 import datetime
 from socket import getfqdn
@@ -31,6 +33,7 @@ TEST_QUERY = 'SELECT * from %s' % TEST_CLASS
 
 # global count of indications recived by the local indication processor
 RECEIVED_INDICATION_COUNT = 0
+COUNTER_LOCK = threading.Lock()
 LISTENER = None
 
 class ElapsedTimer(object):
@@ -67,8 +70,10 @@ def consume_indication(indication, host):
 
     #pylint: disable=global-variable-not-assigned
     global RECEIVED_INDICATION_COUNT, LISTENER
-    # increment count. This is thread safe because of GIL
+    # increment count.
+    COUNTER_LOCK.acquire()
     RECEIVED_INDICATION_COUNT += 1
+    COUNTER_LOCK.release()
 
     LISTENER.logger.debug("Consumed CIM indication #%s: host=%s\n%s",
                           RECEIVED_INDICATION_COUNT, host, indication.tomof())

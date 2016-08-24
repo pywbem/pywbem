@@ -12,6 +12,7 @@ from __future__ import absolute_import
 
 # pylint: disable=missing-docstring,superfluous-parens,no-self-use
 import sys
+import threading
 from datetime import timedelta
 import unittest
 from getpass import getpass
@@ -2930,6 +2931,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
 
 
 RECEIVED_INDICATION_COUNT = 0
+COUNTER_LOCK = threading.Lock()
 
 # pylint: disable=unused-argument
 def consume_indication(indication, host):
@@ -2940,8 +2942,10 @@ def consume_indication(indication, host):
 
     #pylint: disable=global-variable-not-assigned
     global RECEIVED_INDICATION_COUNT
-    # increment count. This is thread safe because of GIL
+    # increment count. 
+    COUNTER_LOCK.acquire()
     RECEIVED_INDICATION_COUNT += 1
+    COUNTER_LOCK.release()
 
 class PyWBEMListenerClass(PyWBEMServerClass):
     """Test the management of indications with the listener class.
