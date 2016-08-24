@@ -342,23 +342,19 @@ def main():
             # at Python startup time).
             'six',
             'ply',
+            # The PyYAML package contains the "yaml" Python package. yaml is
+            # needed by the pywbem._recorder module.
+            'PyYAML',
         ],
         'develop_requires' : [
             # Python prereqs for 'develop' command. Handled by os_setup module.
             "pytest>=2.4",
             "pytest-cov",
             "Sphinx>=1.3",
-            # The ordereddict package is a backport of collections.OrderedDict
-            # to Python 2.6. OrderedDict is needed by the GitPython package
-            # since its 2.0.3 version (but only from 2.0.5 on it is used
-            # correctly, and only from 2.0.6 on does it work on Python 2.6).
-            # GitPython is needed by sphinx-git.
-            "ordereddict" if sys.version_info[0:2] == (2, 6) else None,
             "GitPython>=2.0.6",
             "sphinx-git",
             "httpretty",
             "lxml",
-            "PyYAML",   # Pypi package name of "yaml" package.
             # Astroid is used by Pylint. Astroid 1.3 and above, and Pylint 1.4
             # and above no longer work with Python 2.6, and have been removed
             # from Pypi in 2/2016 after being available for some time.
@@ -490,9 +486,16 @@ def main():
                 m2crypto_req = 'M2CryptoWin32>=0.21'
         else:
             m2crypto_req = 'M2Crypto>=0.24'
-        args['install_requires'] += [
-            m2crypto_req,
-        ]
+        args['install_requires'].append(m2crypto_req)
+
+    # The ordereddict package is a backport of collections.OrderedDict
+    # to Python 2.6. OrderedDict is needed by the GitPython package
+    # since its 2.0.3 version (but only from 2.0.5 on it is used
+    # correctly, and only from 2.0.6 on does it work on Python 2.6).
+    # GitPython is needed by sphinx-git. OrderedDict is also needed
+    # by the pywbem._recorder module.
+    if sys.version_info[0:2] == (2, 6):
+        args['install_requires'].append('ordereddict')
 
     setup(**args)
 
