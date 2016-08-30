@@ -757,6 +757,39 @@ class WBEMSubscriptionManager(object):
         return server.conn.EnumerateInstanceNames(DESTINATION_CLASSNAME,
                                                   namespace=server.interop_ns)
 
+    def create_not_owned_destination(server_id, dest_url):
+        """Create a non-owned destination.  This function only used when
+           creating a subscription for a non-owned filter.  In that case
+           the subscription manager does not automatically create the
+           destination
+
+        Parameters:
+
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
+
+          dest_url (:term:`string`):
+            URL of the listener that is used by the WBEM server to send any
+            indications to.
+
+            The URL scheme (e.g. http/https) determines whether the WBEM server
+            uses HTTP or HTTPS for sending the indication. Host and port in the
+            URL specify the target location to be used by the WBEM server.
+
+    Returns:
+
+        :class:`~pywbem.CIMInstanceName`: The instance path of the created
+        instance.
+
+    Raises:
+
+        Exceptions raised by :class:`~pywbem.WBEMConnection`.
+        """
+
+        server = self._get_server(server_id)
+        return _create_destination(server, listener_url,
+                                   self._subscription_manager_id)
+
 def _create_destination(server, dest_url, subscription_manager_id=None):
     """
     Create a listener destination instance in the Interop namespace of a

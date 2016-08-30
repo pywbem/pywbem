@@ -2942,7 +2942,7 @@ def consume_indication(indication, host):
 
     #pylint: disable=global-variable-not-assigned
     global RECEIVED_INDICATION_COUNT
-    # increment count. 
+    # increment count.
     COUNTER_LOCK.acquire()
     RECEIVED_INDICATION_COUNT += 1
     COUNTER_LOCK.release()
@@ -3034,7 +3034,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             https_listener_port = None
 
             my_listener = self.create_listener(http_port=http_listener_port,
-                                              https_port=https_listener_port)
+                                               https_port=https_listener_port)
 
             sub_mgr = WBEMSubscriptionManager(subscription_manager_id='fred')
 
@@ -3312,6 +3312,111 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             my_listener.stop()
             sub_mgr.remove_server(server_id)
+
+    def test_not_owned_indications(self):
+        """Create a server, listener, etc. create a filter  and subscription
+           and request OpenPegasus to send a set of indications to our
+           consumer.  Tests that the proper set of indications received
+           and then cleans up and shuts down
+        """
+
+        if self.is_pegasus_test_build():
+            requested_indications = 20
+            test_class = 'Test_IndicationProviderClass'
+            test_class_namespace = 'test/TestProvider'
+            test_query = 'SELECT * from %s' % test_class
+
+            server = WBEMServer(self.conn)
+
+            # Set arbitrary ports for the listener
+            http_listener_port = 50000
+            https_listener_port = None
+
+            my_listener = self.create_listener(http_port=http_listener_port,
+                                               https_port=https_listener_port)
+
+            sub_mgr = WBEMSubscriptionManager(
+                subscription_manager_id='testNotOwned')
+            server_id = sub_mgr.add_server(server)
+            listener_url = '%s://%s:%s' % ('http', 'localhost',
+                                           http_listener_port)
+
+            sub_mgr.add_listener_destinations(server_id, listener_url)
+
+            filter_path_owned = sub_mgr.add_filter(server_id,
+                                                   test_class_namespace,
+                                                   test_query,
+                                                   query_language="DMTF:CQL",
+                                                   filter_id='owned')
+
+            subscription_paths_owned = sub_mgr.add_subscriptions(
+                server_id, filter_path_owned)
+
+
+            self.confirm_created(sub_mgr, server_id, filter_path_owned,
+                                 subscription_paths_owned)
+
+            class_name = CIMClassName(test_class,
+                                      namespace=test_class_namespace)
+
+            # Create non-owned subscription
+
+
+            n_owned_dest = sub_mgr.create_not_owned_destination(server_id,
+                                                                listener_url)
+
+            n_owned_filter_path = sub_mgr.add_filter(server_id,
+                                                     test_class_namespace,
+                                                     test_query,
+                                                     query_language="DMTF:CQL",
+                                                     filter_id='notowned')
+
+            n_owned_subscription_paths = sub_mgr.add_subscriptions(
+                server_id,
+                n_owned_filter_path,
+                destination_paths=n_owned_dest,
+                owned=False)
+
+            # Send method to pegasus server to create  required number of
+            # indications. This is a pegasus specific class and method
+            result = self.cimcall(self.conn.InvokeMethod,
+                                  "SendTestIndicationsCount",
+                                  class_name,
+                                  [('indicationSendCount',
+                                    Uint32(requested_indications))])
+
+            if result[0] != 0:
+                self.fail('Error: invokemethod to create indication')
+
+            # wait for indications to be received
+            success = False
+            wait_time = int(requested_indications / 5) + 3
+            for i in range(wait_time):
+                time.sleep(1)
+                # exit the loop if all indications recieved.
+                if RECEIVED_INDICATION_COUNT >= requested_indications:
+                    success = True
+                    break
+
+            # If success, wait and recheck to be sure no extras received.
+            if success:
+                time.sleep(2)
+                self.assertEqual(RECEIVED_INDICATION_COUNT,
+                                 requested_indications)
+
+            sub_mgr.remove_subscriptions(server_id, subscription_paths_owned)
+            sub_mgr.remove_filter(server_id, filter_path_owned)
+
+            self.confirm_removed(sub_mgr, server_id, filter_path_owned,
+                                 subscription_paths_owned)
+
+            n_list = sub_mgr.get_all_subscriptions(server_id)
+
+            print('n_list %s' % n_list)
+
+            sub_mgr.remove_server(server_id)
+
+            my_listener.stop()
 
 #################################################################
 # Main function
