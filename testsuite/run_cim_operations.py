@@ -2953,7 +2953,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
        which subscriptions/filters are sent."""
 
     def create_listener(self, http_port=None, https_port=None):
-        """ standard function to start the listener"""
+        """ Standard function to start a listener"""
 
 
         listener_addr = urlparse(self.system_url).netloc
@@ -2973,7 +2973,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                         subscription_paths):
         """
         When owned filter_path and subscription path are removed, this
-        confirms that results are correct both int the local subscription
+        confirms that results are correct both in the local subscription
         manager and the remote WBEM server.
         """
 
@@ -3160,7 +3160,8 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
     def test_id_attributes(self):
         """
-        est the use of listener_id and filter_id identifiers.
+        Test the use of listener_id and filter_id identifiers. Validates
+        that they are created correctly
         """
         # TODO modify this so it is not Pegasus dependent
         if self.is_pegasus_test_build():
@@ -3177,7 +3178,8 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             my_listener = self.create_listener(http_port=http_listener_port,
                                                https_port=https_listener_port)
 
-            sub_mgr = WBEMSubscriptionManager()
+            sub_mgr = WBEMSubscriptionManager(
+                subscription_manager_id='pegTestListener')
             server_id = sub_mgr.add_server(server)
             listener_url = '%s://%s:%s' % ('http', 'localhost',
                                            http_listener_port)
@@ -3245,7 +3247,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
             for subscription_path in subscription_paths:
-                self.assertTrue(subscription_path in owned_subscriptions)
+                self.assertFalse(subscription_path in owned_subscriptions)
 
             sub_mgr.remove_server(server_id)
 
@@ -3253,7 +3255,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
     def test_id_attributes2(self):
         """
-        Test the use of filter_id identifiers. Test filter it with no
+        Test the use of filter_id identifiers. Test filter id with no
         listener id
         """
         # TODO Future: modify this so it is not Pegasus dependent
@@ -3306,7 +3308,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
             for subscription_path in subscription_paths:
-                self.assertTrue(subscription_path in owned_subscriptions)
+                self.assertFalse(subscription_path in owned_subscriptions)
 
             my_listener.stop()
             sub_mgr.remove_server(server_id)

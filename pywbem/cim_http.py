@@ -274,7 +274,7 @@ def parse_url(url, allow_defaults=True):
         hostport = matches.group(2)
         ssl = (_scheme == 'https')
     else:
-        if not allow_defaults and _scheme != 'http':
+        if not allow_defaults:
             raise ValueError('URL %s  invalid scheme component')
         # The URL specified no scheme (or a scheme other than the expected
         # schemes, but we don't check)

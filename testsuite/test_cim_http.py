@@ -16,7 +16,8 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
 
     def _run_single(self, url, exp_host, exp_port, exp_ssl):
         '''
-        Test function for single invocation of parse_url()
+        Test function for single invocation of parse_url() and
+        allow_defaults attribute =True(default)
         '''
 
         host, port, ssl = cim_http.parse_url(url)
@@ -154,6 +155,11 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
                          default_port_http,
                          False)
 
+        self._run_single("http://[2001:db8::7348-eth1]:5900",
+                         "2001:db8::7348%eth1",
+                         5900,
+                         False)
+
         # Toleration of (incorrect) IPv6 URI format supported by PyWBEM:
         # Must specify port; zone index must be specified with % if used
 
@@ -213,6 +219,9 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
                          default_ssl)
 
     def test_all_no_defaults(self):
+        """ Test urls agains parse_url with allow_defaults=False"""
+
+        # The following tests expect good return
         self._run_single_defaults_false("http://my.host.com:5988",
                                         "my.host.com",
                                         5988,
@@ -223,30 +232,119 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
                                         5989,
                                         True)
 
+        self._run_single("HTTP://my.host.com:50000",
+                         "my.host.com",
+                         50000,
+                         False)
+
+        self._run_single("HTTPS://my.host.com:49000",
+                         "my.host.com",
+                         49000,
+                         True)
+
+        self._run_single("http://[2001:db8::7348-eth1]:5900",
+                         "2001:db8::7348%eth1",
+                         5900,
+                         False)
+                         
+        self._run_single("https://[2001:db8::7348-eth1]:5901",
+                         "2001:db8::7348%eth1",
+                         5901,
+                         True)
+
+        # The following tests expect errors
         try:
-            self._run_single_defaults_false("my.host.com",
-                                            "my.host.com",
+            self._run_single_defaults_false("my.host.com:5988",
+                                            "my.host.com:5988",
                                             5988,
                                             False)
-            self.fail('Expecting exception')
+            self.fail('No Scheme: Expecting exception')
         except ValueError:
             pass
 
         try:
-            self._run_single_defaults_false("my.host.com",
+            self._run_single_defaults_false("http://my.host.com",
                                             "my.host.com",
                                             5988,
                                             False)
-            self.fail('Expecting exception')
+            self.fail('No port: Expecting exception')
         except ValueError:
             pass
 
         try:
-            self._run_single_defaults_false("blah://my.host.com",
+            self._run_single_defaults_false("blah://my.host.com:5988",
                                             "my.host.com",
                                             5988,
                                             False)
-            self.fail('Expecting exception')
+            self.fail('Invalid Scheme: Expecting exception')
+        except ValueError:
+            pass
+            
+        try:
+            self._run_single_defaults_false("http://my.host.com:5a98",
+                                            "my.host.com",
+                                            5988,
+                                            False)
+            self.fail('Invalid Port: Expecting exception')
+        except ValueError:
+            pass
+
+        try:
+            self._run_single_defaults_false("[2001:db8::7348-eth1]:5900",
+                             "2001:db8::7348%eth1",
+                             5900,
+                             False)
+            self.fail('Invalid Scheme: Expecting exception')
+        except ValueError:
+            pass
+
+
+        try:
+            self._run_single_defaults_false("://[2001:db8::7348-eth1]:5900",
+                             "2001:db8::7348%eth1",
+                             5900,
+                             False)
+            self.fail('Invalid Scheme: Expecting exception')
+        except ValueError:
+            pass
+
+        try:
+            self._run_single_defaults_false(
+                "httpsx://[2001:db8::7348-eth1]:5900",
+                "2001:db8::7348%eth1",
+                5900,
+                False)
+            self.fail('Invalid Scheme: Expecting exception')
+        except ValueError:
+            pass
+
+        try:
+            self._run_single_defaults_false(
+                "https://[2001:db8::7348-eth1]",
+                "2001:db8::7348%eth1",
+                5900,
+                False)
+            self.fail('No Port: Expecting exception')
+        except ValueError:
+            pass
+
+        try:
+            self._run_single_defaults_false(
+                "https://2001:db8::7348-eth1",
+                "2001:db8::7348%eth1",
+                5900,
+                False)
+            self.fail('No Port: Expecting exception')
+        except ValueError:
+            pass
+
+        try:
+            self._run_single_defaults_false(
+                "httpsx://[2001:db8::7348-eth1]:59x0",
+                "2001:db8::7348%eth1",
+                5900,
+                False)
+            self.fail('Invalid Port: Expecting exception')
         except ValueError:
             pass
 
