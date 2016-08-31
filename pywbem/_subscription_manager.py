@@ -682,6 +682,41 @@ class WBEMSubscriptionManager(object):
                 del sub_path_list[i]
                 # continue to end of list to pick up any duplicates
 
+    def remove_destinations(self, server_id, destination_paths):
+        """ Remove a destination instance from a wbem server. The
+            Instance to be removed MUST BE a non-owned instance since
+            the subscription manager automatically removes all owned
+            destination instances.
+
+        Parameters:
+
+          server_id (:term:`string`):
+            The server ID for the WBEM server, returned by :meth:`add_server`.
+
+          sub_paths (list of :class:`~pywbem.CIMInstanceName`) or
+              (:class:`~pywbem.CIMInstanceName`):
+            List of instance paths or instance path of the destination
+            instance(s) in the WBEM server.
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+        """
+
+        # if list, recursively call this remove subscriptions for each entry
+        if isinstance(destination_paths, list):
+            for dest_path in destination_paths:
+                self.remove_destinations(server_id, dest_path)
+            return
+
+        # Here sub_paths will contain only a single path entry
+        server = self._get_server(server_id)
+
+        dest_path = destination_paths  # assign to internal variable for clarity
+        if dest_path in self._owned_destination_paths:
+            raise ValueError('Not allowed to delete owned destinations')
+
+        server.conn.DeleteInstance(dest_path)
 
     def get_owned_subscriptions(self, server_id):
         """
@@ -756,39 +791,6 @@ class WBEMSubscriptionManager(object):
 
         return server.conn.EnumerateInstanceNames(DESTINATION_CLASSNAME,
                                                   namespace=server.interop_ns)
-
-    def create_not_owned_destination(server_id, dest_url):
-        """Create a non-owned destination.  This function only used when
-           creating a subscription for a non-owned filter.  In that case
-           the subscription manager does not automatically create the
-           destination
-
-        Parameters:
-
-          server_id (:term:`string`):
-            The server ID for the WBEM server, returned by :meth:`add_server`.
-
-          dest_url (:term:`string`):
-            URL of the listener that is used by the WBEM server to send any
-            indications to.
-
-            The URL scheme (e.g. http/https) determines whether the WBEM server
-            uses HTTP or HTTPS for sending the indication. Host and port in the
-            URL specify the target location to be used by the WBEM server.
-
-    Returns:
-
-        :class:`~pywbem.CIMInstanceName`: The instance path of the created
-        instance.
-
-    Raises:
-
-        Exceptions raised by :class:`~pywbem.WBEMConnection`.
-        """
-
-        server = self._get_server(server_id)
-        return _create_destination(server, listener_url,
-                                   self._subscription_manager_id)
 
 def _create_destination(server, dest_url, subscription_manager_id=None):
     """

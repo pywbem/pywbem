@@ -286,6 +286,7 @@ class EnumerateInstanceNames(ClientTest):
             self.cimcall(self.conn.EnumerateInstanceNames,
                          TEST_CLASS,
                          namespace='root/blah')
+            self.fail('Expected CIMError')
 
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
@@ -296,6 +297,7 @@ class EnumerateInstanceNames(ClientTest):
         try:
             self.cimcall(self.conn.EnumerateInstanceNames,
                          'Blah_Blah')
+            self.fail('Expected CIMError')
 
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_CLASS:
@@ -833,6 +835,7 @@ class PullEnumerateInstances(ClientTest):
 
         try:
             self.conn.PullInstancesWithPath(result.context, MaxObjectCount=10)
+            self.fail('Expected CIMError')
 
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_ENUMERATION_CONTEXT:
@@ -878,6 +881,7 @@ class PullEnumerateInstances(ClientTest):
                          TEST_CLASS,
                          MaxObjectCount=100,
                          ContinueOnError=True)
+            self.fail('Expected CIMError')
 
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_NOT_SUPPORTED:
@@ -1183,8 +1187,6 @@ class PullReferences(ClientTest):
         try:
             self.cimcall(self.conn.OpenReferenceInstances,
                          foo_path, MaxObjectCount=100)
-
-            # should never execute next line
             self.fail("Expected exception response")
 
         except CIMError as ce:
@@ -2952,9 +2954,40 @@ class PyWBEMListenerClass(PyWBEMServerClass):
        All of these functions depend on existence of a WBEM server to
        which subscriptions/filters are sent."""
 
+    def pegasus_send_indications(self, class_name, requested_count):
+        """
+        Send method to OpenPegasus server to create  required number of
+        indications. This is a pegasus specific class and method
+        """
+
+        result = self.cimcall(self.conn.InvokeMethod,
+                              "SendTestIndicationsCount",
+                              class_name,
+                              [('indicationSendCount',
+                                Uint32(requested_count))])
+
+        if result[0] != 0:
+            self.fail('Error: invokemethod to create indication')
+
+        # wait for indications to be received
+        success = False
+        wait_time = int(requested_count / 5) + 3
+        for i in range(wait_time):
+            time.sleep(1)
+            # exit the loop if all indications recieved.
+            if RECEIVED_INDICATION_COUNT >= requested_count:
+                success = True
+                break
+
+        # If success, wait and recheck to be sure no extra indications received.
+        if success:
+            time.sleep(2)
+            self.assertEqual(RECEIVED_INDICATION_COUNT,
+                             requested_count)
+        return success
+
     def create_listener(self, http_port=None, https_port=None):
         """ Standard function to start a listener"""
-
 
         listener_addr = urlparse(self.system_url).netloc
         # Create the listener and listener call back and start the listener
@@ -2962,49 +2995,54 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                    http_port=http_port,
                                    https_port=https_port)
 
-        # do not create consumer since we will never send indications in
-        # this test.
         my_listener.add_callback(consume_indication)
         my_listener.start()
 
         return my_listener
 
-    def confirm_removed(self, sub_mgr, server_id, filter_path,
+    def confirm_removed(self, sub_mgr, server_id, filter_paths,
                         subscription_paths):
         """
-        When owned filter_path and subscription path are removed, this
+        When filter_path and subscription path are removed, this
         confirms that results are correct both in the local subscription
         manager and the remote WBEM server.
         """
-
+        if not isinstance(filter_paths, list):
+            filter_paths = [filter_paths]
         owned_filters = sub_mgr.get_owned_filters(server_id)
-        self.assertFalse(filter_path in owned_filters)
+        for filter_path in filter_paths:
+            self.assertFalse(filter_path in owned_filters)
 
+        # confirm not in owned subscriptions
+        if not isinstance(subscription_paths, list):
+            subscription_paths = [subscription_paths]
         owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
-        for subscription_path in owned_subscriptions:
+        for subscription_path in subscription_paths:
             self.assertFalse(subscription_path in owned_subscriptions)
 
         all_filters = sub_mgr.get_all_filters(server_id)
-        self.assertFalse(filter_path in all_filters)
+        for filter_path in filter_paths:
+            self.assertFalse(filter_path in all_filters)
 
         all_subscriptions = sub_mgr.get_all_subscriptions(server_id)
         for subscription_path in subscription_paths:
             self.assertFalse(subscription_path in all_subscriptions)
 
     def confirm_created(self, sub_mgr, server_id, filter_path,
-                        subscription_paths):
+                        subscription_paths, owned=True):
         """
         When owned filter_path and subscription path are removed, this
         confirms that results are correct both int the local subscription
         manager and the remote WBEM server.
         """
 
-        owned_filters = sub_mgr.get_owned_filters(server_id)
-        self.assertTrue(filter_path in owned_filters)
+        if owned:
+            owned_filters = sub_mgr.get_owned_filters(server_id)
+            self.assertTrue(filter_path in owned_filters)
 
-        owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
-        for subscription_path in subscription_paths:
-            self.assertTrue(subscription_path in owned_subscriptions)
+            owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
+            for subscription_path in subscription_paths:
+                self.assertTrue(subscription_path in owned_subscriptions)
 
         all_filters = sub_mgr.get_all_filters(server_id)
         self.assertTrue(filter_path in all_filters)
@@ -3012,6 +3050,33 @@ class PyWBEMListenerClass(PyWBEMServerClass):
         all_subscriptions = sub_mgr.get_all_subscriptions(server_id)
         for subscription_path in subscription_paths:
             self.assertTrue(subscription_path in all_subscriptions)
+
+    def display_all(self, sub_mgr, server_id):
+        """Display all filters, subscriptions, and destinations in the
+           defined server_id
+        """
+        def is_owned(item, list_):
+            return "owned" if item in list_ else "not owned"
+
+        filters = sub_mgr.get_all_filters(server_id)
+        owned_filters = sub_mgr.get_owned_filters(server_id)
+        if len(filters) != 0:
+            for filter_ in filters:
+                ##owned = "owned" if filter in owned_filters else "not owned"
+                print('filter %s %s', (filter_,
+                                       is_owned(filter_, owned_filters)))
+
+        subscriptions = sub_mgr.get_all_subscriptions(server_id)
+        owned_subs = sub_mgr.get_owned_subscriptions(server_id)
+        if len(subscriptions) != 0:
+            for subscription in subscriptions:
+                owned = "owned" if subscription in owned_subs else "not owned"
+                print('subscription %s %s', (subscription, owned))
+
+        dests = sub_mgr.get_all_subscriptions(server_id)
+        if len(dests) != 0:
+            for dest in dests:
+                print('destinations %s %s' % dest)
 
     #pylint: disable=invalid-name
     def test_create_delete_subscription(self):
@@ -3084,6 +3149,8 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             test_class = 'Test_IndicationProviderClass'
             test_class_namespace = 'test/TestProvider'
             test_query = 'SELECT * from %s' % test_class
+            class_name = CIMClassName(test_class,
+                                      namespace=test_class_namespace)
 
             server = WBEMServer(self.conn)
 
@@ -3118,35 +3185,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             self.confirm_created(sub_mgr, server_id, filter_path,
                                  subscription_paths)
 
-            class_name = CIMClassName(test_class,
-                                      namespace=test_class_namespace)
-
-            # Send method to pegasus server to create  required number of
-            # indications. This is a pegasus specific class and method
-            result = self.cimcall(self.conn.InvokeMethod,
-                                  "SendTestIndicationsCount",
-                                  class_name,
-                                  [('indicationSendCount',
-                                    Uint32(requested_indications))])
-
-            if result[0] != 0:
-                self.fail('Error: invokemethod to create indication')
-
-            # wait for indications to be received
-            success = False
-            wait_time = int(requested_indications / 5) + 3
-            for i in range(wait_time):
-                time.sleep(1)
-                # exit the loop if all indications recieved.
-                if RECEIVED_INDICATION_COUNT >= requested_indications:
-                    success = True
-                    break
-
-            # If success, wait and recheck to be sure no extras received.
-            if success:
-                time.sleep(2)
-                self.assertEqual(RECEIVED_INDICATION_COUNT,
-                                 requested_indications)
+            self.pegasus_send_indications(class_name, requested_indications)
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
@@ -3160,10 +3199,10 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
     def test_id_attributes(self):
         """
-        Test the use of listener_id and filter_id identifiers. Validates
-        that they are created correctly
+        Test the use of subscription_manager_id and filter_id identifiers.
+        Validates that they are created correctly
         """
-        # TODO modify this so it is not Pegasus dependent
+
         if self.is_pegasus_test_build():
             test_class = 'Test_IndicationProviderClass'
             test_class_namespace = 'test/TestProvider'
@@ -3255,8 +3294,8 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
     def test_id_attributes2(self):
         """
-        Test the use of filter_id identifiers. Test filter id with no
-        listener id
+        Test the use of filter_id identifiers. Test filter_id with no
+        subscription_manager.id
         """
         # TODO Future: modify this so it is not Pegasus dependent
         if self.is_pegasus_test_build():
@@ -3325,6 +3364,69 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             test_class = 'Test_IndicationProviderClass'
             test_class_namespace = 'test/TestProvider'
             test_query = 'SELECT * from %s' % test_class
+            class_name = CIMClassName(test_class,
+                                      namespace=test_class_namespace)
+
+            server = WBEMServer(self.conn)
+
+            # Set arbitrary ports for the listener
+            http_listener_port = 50000
+            https_listener_port = None
+            listener_url = '%s://%s:%s' % ('http', 'localhost',
+                                           http_listener_port)
+
+            my_listener = self.create_listener(http_port=http_listener_port,
+                                               https_port=https_listener_port)
+
+            sub_mgr = WBEMSubscriptionManager(
+                subscription_manager_id='testNotOwned')
+            server_id = sub_mgr.add_server(server)
+
+            # Create non-owned subscription
+            dest = sub_mgr.add_listener_destinations(server_id, listener_url,
+                                                     owned=False)
+            filter_path = sub_mgr.add_filter(server_id,
+                                             test_class_namespace,
+                                             test_query,
+                                             query_language="DMTF:CQL",
+                                             filter_id='notowned',
+                                             owned=False)
+            subscription_paths = sub_mgr.add_subscriptions(
+                server_id,
+                filter_path,
+                destination_paths=dest,
+                owned=False)
+
+            self.confirm_created(sub_mgr, server_id, filter_path,
+                                 subscription_paths, owned=False)
+
+            self.pegasus_send_indications(class_name, requested_indications)
+
+            sub_mgr.remove_subscriptions(server_id, subscription_paths)
+            sub_mgr.remove_filter(server_id, filter_path)
+            sub_mgr.remove_destinations(server_id, dest)
+
+            self.confirm_removed(sub_mgr, server_id, filter_path,
+                                 subscription_paths)
+
+            sub_mgr.remove_server(server_id)
+
+            my_listener.stop()
+
+    def test_both_indications(self):
+        """Create a server, listener, etc. create a filter  and subscription
+           and request OpenPegasus to send a set of indications to our
+           consumer.  Tests that the proper set of indications received
+           and then cleans up and shuts down
+        """
+
+        if self.is_pegasus_test_build():
+            requested_indications = 20
+            test_class = 'Test_IndicationProviderClass'
+            test_class_namespace = 'test/TestProvider'
+            test_query = 'SELECT * from %s' % test_class
+            class_name = CIMClassName(test_class,
+                                      namespace=test_class_namespace)
 
             server = WBEMServer(self.conn)
 
@@ -3356,20 +3458,18 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             self.confirm_created(sub_mgr, server_id, filter_path_owned,
                                  subscription_paths_owned)
 
-            class_name = CIMClassName(test_class,
-                                      namespace=test_class_namespace)
+            # Create non-owned dest, filter, subscription
 
-            # Create non-owned subscription
-
-
-            n_owned_dest = sub_mgr.create_not_owned_destination(server_id,
-                                                                listener_url)
+            n_owned_dest = sub_mgr.add_listener_destinations(server_id,
+                                                             listener_url,
+                                                             owned=False)
 
             n_owned_filter_path = sub_mgr.add_filter(server_id,
                                                      test_class_namespace,
                                                      test_query,
                                                      query_language="DMTF:CQL",
-                                                     filter_id='notowned')
+                                                     filter_id='notowned',
+                                                     owned=False)
 
             n_owned_subscription_paths = sub_mgr.add_subscriptions(
                 server_id,
@@ -3377,42 +3477,26 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 destination_paths=n_owned_dest,
                 owned=False)
 
-            # Send method to pegasus server to create  required number of
-            # indications. This is a pegasus specific class and method
-            result = self.cimcall(self.conn.InvokeMethod,
-                                  "SendTestIndicationsCount",
-                                  class_name,
-                                  [('indicationSendCount',
-                                    Uint32(requested_indications))])
+            self.confirm_created(sub_mgr, server_id, n_owned_filter_path,
+                                 n_owned_subscription_paths, owned=False)
 
-            if result[0] != 0:
-                self.fail('Error: invokemethod to create indication')
+            self.pegasus_send_indications(class_name, requested_indications)
 
-            # wait for indications to be received
-            success = False
-            wait_time = int(requested_indications / 5) + 3
-            for i in range(wait_time):
-                time.sleep(1)
-                # exit the loop if all indications recieved.
-                if RECEIVED_INDICATION_COUNT >= requested_indications:
-                    success = True
-                    break
-
-            # If success, wait and recheck to be sure no extras received.
-            if success:
-                time.sleep(2)
-                self.assertEqual(RECEIVED_INDICATION_COUNT,
-                                 requested_indications)
-
+            # Remove owned subscriptions
             sub_mgr.remove_subscriptions(server_id, subscription_paths_owned)
             sub_mgr.remove_filter(server_id, filter_path_owned)
 
             self.confirm_removed(sub_mgr, server_id, filter_path_owned,
                                  subscription_paths_owned)
 
-            n_list = sub_mgr.get_all_subscriptions(server_id)
+            # remove not owned subscriptions, etc.
 
-            print('n_list %s' % n_list)
+            sub_mgr.remove_subscriptions(server_id, n_owned_subscription_paths)
+            sub_mgr.remove_filter(server_id, n_owned_filter_path)
+            sub_mgr.remove_destinations(server_id, n_owned_dest)
+
+            self.confirm_removed(sub_mgr, server_id, n_owned_filter_path,
+                                 n_owned_subscription_paths)
 
             sub_mgr.remove_server(server_id)
 
