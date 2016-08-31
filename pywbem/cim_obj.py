@@ -2589,7 +2589,9 @@ class CIMProperty(_CIMComparisonMixin):
 
         if self.type == 'string':
             if self.embedded_object is not None:
-                val_ = value_.tocimxml().toxml()
+                # TODO ks 8/16 do special formatting for this so output
+                # sort of looks like mof, not just a string with lfs
+                val_ = value_.tomof()
             else:
                 val_ = value_
             _mof = mofstr(val_, indent=indent)

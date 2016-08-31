@@ -17,7 +17,7 @@ import unittest
 from getpass import getpass
 import warnings
 import time
-
+from unittest_extensions import RegexpMixin
 if sys.version_info >= (3, 0):
     from urllib.parse import urlparse
 if sys.version_info < (3, 0) and sys.version_info >= (2, 5):
@@ -1791,6 +1791,7 @@ class CreateInstance(ClientTest):
 
         try:
             self.cimcall(self.conn.GetInstance(instance.path))
+            #TODO ks 8/16 extend to match the get and create
         except CIMError as arg:
             if arg == CIM_ERR_NOT_FOUND:
                 pass
@@ -2630,19 +2631,17 @@ class PEGASUSCLITestClass(PegasusServerTestBase):
         # TODO create an instance write it, get it and test results
 
 
-class PegasusTestEmbeddedInstance(PegasusServerTestBase):
+class PegasusTestEmbeddedInstance(PegasusServerTestBase, RegexpMixin):
     """Tests a specific provider implemented pegasus class that
         includes an embedded instance
     """
 
-    def test_all(self):
+    def test_receive(self):
         if self.is_pegasus_test_build():
             # test class with embedded instance
             cl1 = 'Test_CLITestEmbeddedClass'
             ns = 'test/TestProvider'
             prop_name = 'embeddedInst'
-            property_list = ['embeddedInst']
-            #property_list = ['comment', 'Id']
             property_list = [prop_name]
 
             instances = self.cimcall(self.conn.EnumerateInstances,
@@ -2655,8 +2654,15 @@ class PegasusTestEmbeddedInstance(PegasusServerTestBase):
                     print('====== %s MOF=====\n%s' %(inst.path, str_mof))
                     print('======%s XML=====\n%s' %(inst.path, str_xml))
 
-                prop = inst.properties[prop_name]
+                # confirm general characteristics of mof output
+                self.assertRegexpMatches(
+                    str_mof, r"instance of Test_CLITestEmbeddedClass {")
+                self.assertRegexpContains(
+                    str_mof,
+                    r"embeddedInst = \"instance of Test_CLITestEmbedded1 {")
 
+                # get the embedded instance property
+                prop = inst.properties[prop_name]
                 self.assertTrue(prop.embedded_object)
 
                 embedded_inst = prop.value
@@ -2667,6 +2673,7 @@ class PegasusTestEmbeddedInstance(PegasusServerTestBase):
                 self.assertIsInstance(embedded_inst, CIMInstance,
                                       msg='Embedded Inst must be CIMInstance')
 
+                # confirm that a valid instance is in embedded_inst
                 if embedded_inst.path is not None:
                     self.assertIsInstance(embedded_inst.path, CIMInstanceName)
                 if self.verbose:
