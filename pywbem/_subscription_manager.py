@@ -909,8 +909,8 @@ def _create_filter(server, source_namespace, query, query_language, \
 
         The form for the name property of a PyWBEM of a filter is:
 
-        "pywbemfilter:" [{subscription_manager_id}  ":"]
-            [{filter_id} ":"] {guid}
+          "pywbemfilter:" [{subscription_manager_id}  ":"]
+              [{filter_id} ":"] {guid}
 
     Returns:
 

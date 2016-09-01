@@ -25,7 +25,7 @@ if sys.version_info >= (3, 0):
     from urllib.parse import urlparse
 if sys.version_info < (3, 0) and sys.version_info >= (2, 5):
     from urlparse import urlparse
-    
+
 from unittest_extensions import RegexpMixin
 import six
 from pywbem.cim_constants import *
@@ -2981,7 +2981,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
         # wait for indications to be received
         success = False
         wait_time = int(requested_count / 5) + 3
-        for i in range(wait_time):
+        for _ in range(wait_time):
             time.sleep(1)
             # exit the loop if all indications recieved.
             if RECEIVED_INDICATION_COUNT >= requested_count:
@@ -3018,7 +3018,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
         COUNTER_LOCK.acquire()
         RECEIVED_INDICATION_COUNT = 0
         COUNTER_LOCK.release()
-        
+
         my_listener.start()
 
         return my_listener
@@ -3085,8 +3085,8 @@ class PyWBEMListenerClass(PyWBEMServerClass):
         owned_filters = sub_mgr.get_owned_filters(server_id)
         if len(filters) != 0:
             for i, filter_ in enumerate(filters):
-                 print('filter %s %s %s', (i,filter_,
-                                       is_owned(filter_, owned_filters)))
+                print('filter %s %s %s', (i, filter_,
+                                          is_owned(filter_, owned_filters)))
 
         subscriptions = sub_mgr.get_all_subscriptions(server_id)
         owned_subs = sub_mgr.get_owned_subscriptions(server_id)
