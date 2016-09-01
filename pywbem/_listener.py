@@ -28,7 +28,7 @@ Examples
 See _subscription_manager.py and the examples directory for an example of
 a subscription_manager and listener defined in the same executable.
 
-The following example creates and runs a listener
+The following example creates and runs a listener::
 
     import sys
     import logging
@@ -37,6 +37,7 @@ The following example creates and runs a listener
 
     def process_indication(indication, host):
         '''This function gets called when an indication is received.'''
+
         print("Received CIM indication from {host}: {ind!r}". \\
             format(host=host, ind=indication))
 
@@ -65,10 +66,10 @@ The following example creates and runs a listener
         my_listener.add_callback(process_indication)
         listener.start()
 
-        # listener runs until executable terminated
-        # or listener.stop()
+            # listener runs until executable terminated
+            # or listener.stop()
 
-Another more practical example is in the script ``examples/listen.py``
+Another more practical listener example is in the script ``examples/listen.py``
 (when you clone the GitHub pywbem/pywbem project).
 It is an interactive Python shell that creates a WBEM listener and displays
 any indications it receives, in MOF format.
@@ -156,38 +157,47 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     #pylint: disable=invalid-name
     def do_OPTIONS(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_HEAD(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_GET(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_PUT(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_PATCH(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_DELETE(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_TRACE(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_CONNECT(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_M_POST(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
@@ -574,10 +584,6 @@ class WBEMListener(object):
     CIM-XML ExportIndication messages using HTTP and/or HTTPS, and that pass
     any received indications on to registered callback functions.
 
-    The listener also supports the management of subscriptions for CIM
-    indications from one or more WBEM servers, including the creation and
-    deletion of the necessary listener, filter and subscription instances in
-    the WBEM servers.
     """
 
     def __init__(self, host, http_port=None, https_port=None,
@@ -841,7 +847,7 @@ class WBEMListener(object):
 
         Parameters:
 
-          indication (pywbem.CIMIndication):
+          indication (:class:`~pywbem.CIMIndication):
             Representation of the CIM indication to be delivered.
 
           host (:term:`string`):
@@ -885,7 +891,7 @@ def callback_interface(indication, host):
         Host name or IP address of WBEM server sending the indication.
 
     Raises:
-      TBD
+      TODO
     """
     raise NotImplementedError
 
