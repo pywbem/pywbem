@@ -1323,7 +1323,7 @@ def _build_flavors(p, flist, qualdecl=None):
         flist argument.
 
         This function maps from the input keyword definitions for the flavors
-        (ex. enableoverride) to the PyWBEM internal definitions
+        (ex. EnableOverride) to the PyWBEM internal definitions
         (ex. overridable)
 
         Uses the qualdecl argument as a basis if it exists. This is to define

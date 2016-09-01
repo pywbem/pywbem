@@ -3277,20 +3277,20 @@ class CIMQualifier(_CIMComparisonMixin):
     specifies information such as a documentation string or whether a property
     is a key.
 
-    :class:`CIMQualifier` objects can be used to represent the qualifier values
-    that are specified on a CIM element (e.g. on a CIM class). In that case, the
-    :attr:`propagated` property is always `False`, and the effective values of
-    applicable but unspecified qualifiers need to be determined by users, by
-    considering the default value of the corresponding qualifier type, the
-    propagation and override flavors of the qualifier, and the qualifier values
-    that have been specified in the class ancestry of the CIM element in
+    :class:`~pywbem.CIMQualifier` objects can be used to represent the qualifier
+    values that are specified on a CIM element (e.g. on a CIM class). In that
+    case, the :attr:`propagated` property is always `False`, and the effective
+    values of applicable but unspecified qualifiers need to be determined by
+    users, by considering the default value of the corresponding qualifier type,
+    the propagation and override flavors of the qualifier, and the qualifier
+    values that have been specified in the class ancestry of the CIM element in
     question.
 
-    :class:`CIMQualifier` objects can also be used to represent the effective
-    values of all applicable qualifiers on a CIM element, including those that
-    have not been specified, e.g. in the MOF declaration of the CIM element.
-    In this case, the :class:`CIMQualifier` objects for qualifier values that
-    are specified in MOF represent the specified values, and their
+    :class:`~pywbem.CIMQualifier` objects can also be used to represent the
+    effective values of all applicable qualifiers on a CIM element, including
+    those that have not been specified, e.g. in the MOF declaration of the CIM
+    element. In this case, the :class:`CIMQualifier` objects for qualifier
+    values that are specified in MOF represent the specified values, and their
     :attr:`propagated` property is `False`. The :class:`CIMQualifier` objects
     for qualifier values that are not specified in MOF represent the effective
     values, and their :attr:`propagated` property is `True`.
@@ -3299,12 +3299,14 @@ class CIMQualifier(_CIMComparisonMixin):
     just the specified qualifiers or all applicable qualifiers needs to be known
     from the context.
 
-    :class:`CIMQualifier` has properties that represent qualifier flavors
-    (:attr:`tosubclass`, :attr:`toinstance`, :attr:`overridable`, and
+    :class:`~pywbem.CIMQualifier` has properties that represent qualifier
+    flavors (:attr:`tosubclass`, :attr:`toinstance`, :attr:`overridable`, and
     :attr:`translatable`). If any of these flavor properties is not `None`, the
-    qualifier value represented by the :class:`CIMQualifier` object implicitly
-    defines a qualifier type. Implicitly defined qualifier types have been
-    deprecated in :term:`DSP0004`.
+    qualifier value represented by the :class:`~pywbem.CIMQualifier` object
+    implicitly defines a qualifier type. Implicitly defined qualifier types have
+    been deprecated in :term:`DSP0004`. The implicitly defined qualifier type is
+    conceptual and is not materialized as a
+    :class:`~pywbem.CIMQualifierDeclaration` object.
 
     Attributes:
 
@@ -3334,8 +3336,8 @@ class CIMQualifier(_CIMComparisonMixin):
         `None` means that this information is not available.
 
       tosubclass (:class:`py:bool`):
-        If not `None`, defines that there is an implicit qualifier type for
-        this qualifier.
+        If not `None`, causes an implicit qualifier type to be defined for this
+        qualifier that has the specified flavor.
 
         If `True`, specifies the ToSubclass flavor (the qualifier value
         propagates to subclasses); if `False` specifies the Restricted flavor
@@ -3344,11 +3346,13 @@ class CIMQualifier(_CIMComparisonMixin):
         `None` means that this information is not available.
 
       toinstance (:class:`py:bool`):
-        If not None, defines that there is an implicit qualifier type for
-        this qualifier.
+        If not `None`, causes an implicit qualifier type to be defined for this
+        qualifier that has the specified flavor.
 
         If `True` specifies the ToInstance flavor(the qualifier value
-        propagates to instances.
+        propagates to instances. If `False`, specifies that qualifier values
+        do not propagate to instances. There is no flavor corresponding to
+        `toinstance=False`.
 
         `None` means that this information is not available.
 
@@ -3356,8 +3360,8 @@ class CIMQualifier(_CIMComparisonMixin):
         values on CIM instances.
 
       overridable (:class:`py:bool`):
-        If not None, defines that there is an implicit qualifier type for
-        this qualifier.
+        If not `None`, causes an implicit qualifier type to be defined for this
+        qualifier that has the specified flavor.
 
         If `True`, specifies the  EnableOverride flavor(the qualifier value is
         overridable in subclasses); if `False` specifies the DisableOverride
@@ -3366,8 +3370,8 @@ class CIMQualifier(_CIMComparisonMixin):
         `None` means that this information is not available.
 
       translatable (:class:`py:bool`):
-        If not None, defines that there is an implicit qualifier type for
-        this qualifier.
+        If not `None`, causes an implicit qualifier type to be defined for this
+        qualifier that has the specified flavor.
 
         If `True`, specifies the Translatable flavor (the qualifier is
         translatable); if `False` specifies that the qualfier is
@@ -3666,17 +3670,17 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     Flavors attributes must be specifically set on construction of the
     :class:`CIMQualifierDeclaration` or they will be set to `None`. This
-    differs from the DMTF specification :term:`DSP0004` where tdefault values
+    differs from the DMTF specification :term:`DSP0004` where default values
     are defined as follows:
 
-        - EnableOverride flavor, overridable attribute = True
+        - Has the EnableOverride flavor;  ``overridable = True``
 
-        - ToSubClass flavor, tosubclass attribute = True
+        - Has the ToSubClass flavor;  ``tosubclass = True``
 
-        - Translatable flavor,translatable attribute = False
+        - Does not have theTranslatable flavor; ``translatable = False``
 
-        - ToInstance flavor, toinstance flavor = False.
-          Not defined in :term:`DSP0004` and as deprecated in the DMTF protocol
+        - Does not have ToInstance flavor;  ``toinstance = False.``
+          Not defined in :term:`DSP0004` and deprecated in the DMTF protocol
           specification :TERM:`DSP0200`
 
     Because `None` is allowed as a value for the flavors attributes in
@@ -3746,8 +3750,10 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         `None` means that this information is not available.
 
       toinstance (:class:`py:bool`):
-        If `True`, specifies the ToInstance flavor. This flavor defines
-        whether the qualifier value propagates to instances.
+        If `True`, specifies the ToInstance flavor. This flavor specifies
+        that the qualifier value propagates to instances. If `False`,
+        specifies that qualifier values do not propagate to instances.
+        There is no flavor corresponding to `toinstance=False`.
 
         `None` means that this information is not available.
 
@@ -3762,14 +3768,13 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         `None` means that this information is not available.
 
       translatable (:class:`py:bool`):
-        If `True`, specifies the  Translatable flavor. This flavor defines
-        whether the qualifier is translatable.
+        If `True`, specifies the  Translatable flavor. This flavor specifies
+        that the qualifier is translatable. If `False`, specifies that the
+        qualfier is not translatable. There is no flavor corresponding to
+        `translatable=False`.
 
         `None` means that this information is not available.
     """
-
-    # TODO: Extend so that we allow the user to get effective flavors, values,
-    #        etc.
 
     # TODO: 8/16 ks Consider removing toinstance completely from object since
     # it is not a viable part of specs any more.
