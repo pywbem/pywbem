@@ -249,6 +249,9 @@ Enhancements
   mof_compiler.py for conflicting flavors ex. tosubclass and restricted in
   the same definition. This test uses the new MofParseError (issue #204)
 
+* Separate _listener from the client part which is moved to a new class,
+  in subscription_manager.py (see issue #414)
+
 
 Bug fixes
 ^^^^^^^^^

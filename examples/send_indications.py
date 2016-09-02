@@ -7,13 +7,41 @@
 from __future__ import print_function, absolute_import
 import sys
 from time import time
+import datetime
 import argparse as _argparse
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 import requests
 import re
 from random import randint
 
+class ElapsedTimer(object):
+    """
+        Set up elapsed time timer. Calculates time between initiation
+        and access.
+    """
+    def __init__(self):
+        """ Initiate the object with current time"""
+        self.start_time = datetime.datetime.now()
 
+    def reset(self):
+        """ Reset the start time for the timer"""
+        self.start_time = datetime.datetime.now()
+
+    def elapsed_ms(self):
+        """ Get the elapsed time in milliseconds. returns floating
+            point representation of elapsed time in seconds.
+        """
+        dt = datetime.datetime.now() - self.start_time
+        return ((dt.days * 24 * 3600) + dt.seconds) * 1000  \
+                + dt.microseconds / 1000.0
+
+    def elapsed_sec(self):
+        """ get the elapsed time in seconds. Returns floating
+            point representation of time in seconds
+        """
+        return self.elapsed_ms() / 1000
+
+        
 def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
     data_template = """<?xml version="1.0" encoding="utf-8" ?>
     <CIM CIMVERSION="2.0" DTDVERSION="2.4">
@@ -163,8 +191,8 @@ def main():
 
     delta_time = time() - start_time
     rand_base = randint(1, 1000)
-
-    for i in xrange(opts.count):
+    timer = ElapsedTimer()
+    for i in range(opts.count):
 
         msg_id = '%s' % (i + rand_base)
         payload = create_indication_data(msg_id, i, delta_time,
@@ -176,12 +204,18 @@ def main():
         success = send_indication(full_url, headers, payload, opts.verbose)
 
         if success:
-            print('sent # %s' % i)
+            if opts.verbose:
+                print('sent # %s' % i)
+            else:
+                if i % 100 == 0:
+                    sys.stdout.write('.')
+                    sys.stdout.flush()
         else:
             print('Error return from send. Terminating.')
             return
-
-
+    endtime = timer.elapsed_sec()
+    print('Sent %s in %s sec or %.2f ind/sec' % (opts.count, endtime ,
+                                               (opts.count/endtime)))
 
 if __name__ == '__main__':
     sys.exit(main())

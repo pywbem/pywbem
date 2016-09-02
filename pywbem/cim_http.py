@@ -222,7 +222,7 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
                                           HTTPTimeout.timer_expired, [self])
             self._timer.start()
 
-def parse_url(url):
+def parse_url(url, allow_defaults=True):
     """Return a tuple of ``(host, port, ssl)`` from the URL specified in the
     ``url`` parameter.
 
@@ -245,17 +245,37 @@ def parse_url(url):
 
     Examples for valid URLs can be found in the test program
     `testsuite/test_cim_http.py`.
+
+        Parameters:
+
+          url:
+
+          allow_defaults - If True (default) allow defaults for scheme and
+            port. If false, raise exception for invalid or missing scheme or
+            port.
+
+        Returns:
+
+          tuple of host, port, ssl
+
+    Raises:
+
+        ValueError Exception raised if allow_defaults = False and either
+        scheme or port are invalid or missing
     """
 
     default_ssl = False             # default SSL use (for no or unknown scheme)
 
     # Look for scheme.
     matches = re.match(r"^(https?)://(.*)$", url, re.I)
+    _scheme = None
     if matches:
         _scheme = matches.group(1).lower()
         hostport = matches.group(2)
         ssl = (_scheme == 'https')
     else:
+        if not allow_defaults:
+            raise ValueError('URL %s  invalid scheme component')
         # The URL specified no scheme (or a scheme other than the expected
         # schemes, but we don't check)
         ssl = default_ssl
@@ -276,6 +296,8 @@ def parse_url(url):
         host = hostport[0:matches.start(0)]
         port = int(matches.group(1))
     else:
+        if not allow_defaults:
+            raise ValueError('URL %s  invalid port component')
         host = hostport
         port = DEFAULT_PORT_HTTPS if ssl else DEFAULT_PORT_HTTP
 

@@ -28,7 +28,7 @@ Examples
 See _subscription_manager.py and the examples directory for an example of
 a subscription_manager and listener defined in the same executable.
 
-The following example creates and runs a listener
+The following example creates and runs a listener::
 
     import sys
     import logging
@@ -37,6 +37,7 @@ The following example creates and runs a listener
 
     def process_indication(indication, host):
         '''This function gets called when an indication is received.'''
+
         print("Received CIM indication from {host}: {ind!r}". \\
             format(host=host, ind=indication))
 
@@ -65,16 +66,25 @@ The following example creates and runs a listener
         my_listener.add_callback(process_indication)
         listener.start()
 
-        # listener runs until executable terminated
+            # listener runs until executable terminated
+            # or listener.stop()
 
-Another more practical example is in the script ``examples/listen.py``
+Another more practical listener example is in the script ``examples/listen.py``
 (when you clone the GitHub pywbem/pywbem project).
 It is an interactive Python shell that creates a WBEM listener and displays
-any indications it receives, in MOF format.        
+any indications it receives, in MOF format.
 """
 
 import re
 import logging
+try: # Python 2.7+
+    from logging import NullHandler
+except ImportError:
+    class NullHandler(logging.Handler):
+        """Implement logging NullHandler for python 2.6"""
+        def emit(self, record):
+            pass
+    logging.NullHandler = NullHandler
 import ssl
 from xml.dom import minidom
 from xml.parsers.expat import ExpatError
@@ -86,7 +96,7 @@ from six.moves import http_client
 
 from . import cim_xml
 from ._version import __version__
-from .cim_obj import CIMInstance, CIMInstanceName, _ensure_unicode
+from .cim_obj import CIMInstance, _ensure_unicode
 from .cim_operations import check_utf8_xml_chars
 from .cim_constants import CIM_ERR_NOT_SUPPORTED, \
                            CIM_ERR_INVALID_PARAMETER, _statuscode2name
@@ -94,15 +104,14 @@ from .tupleparse import parse_cim
 from .tupletree import dom_to_tupletree
 from .exceptions import ParseError, VersionError
 
-DEFAULT_LISTENER_PORT_HTTP = 5988
-DEFAULT_LISTENER_PORT_HTTPS = 5989
+
+
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
 # These are returned in export message responses.
 IMPLEMENTED_CIM_VERSION = '2.0'
 IMPLEMENTED_DTD_VERSION = '2.4'
 IMPLEMENTED_PROTOCOL_VERSION = '1.4'
-
 
 # CIM-XML protocol related versions supported by the WBEM listener
 # These are checked in export message requests.
@@ -148,38 +157,47 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     #pylint: disable=invalid-name
     def do_OPTIONS(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_HEAD(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_GET(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_PUT(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_PATCH(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_DELETE(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_TRACE(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_CONNECT(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
     def do_M_POST(self):
+        """Invalid method for listener"""
         self.invalid_method()
 
     #pylint: disable=invalid-name
@@ -333,9 +351,9 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                                          'a CIM instance, but %r' %
                                          indication_inst)
                 return
-
-            self.server.listener._deliver_indication(indication_inst,
-                                                     self.client_address[0])
+            # server.listener created in WBEMListener.start function
+            self.server.listener.deliver_indication(indication_inst,
+                                                    self.client_address[0])
 
             self.send_success_response(msgid, methodname)
 
@@ -566,14 +584,9 @@ class WBEMListener(object):
     CIM-XML ExportIndication messages using HTTP and/or HTTPS, and that pass
     any received indications on to registered callback functions.
 
-    The listener also supports the management of subscriptions for CIM
-    indications from one or more WBEM servers, including the creation and
-    deletion of the necessary listener, filter and subscription instances in
-    the WBEM servers.
     """
 
-    def __init__(self, host, http_port=DEFAULT_LISTENER_PORT_HTTP,
-                 https_port=DEFAULT_LISTENER_PORT_HTTPS,
+    def __init__(self, host, http_port=None, https_port=None,
                  certfile=None, keyfile=None):
         """
         Parameters:
@@ -582,7 +595,8 @@ class WBEMListener(object):
             IP address or host name this listener can be reached at.
 
           http_port (:term:`string` or :term:`integer`):
-            HTTP port this listener can be reached at.
+            HTTP port this listener can be reached at. Note that at least one
+            port (HTTP or HTTPS) must be set
 
             `None` means not to set up a port for HTTP.
 
@@ -645,6 +659,9 @@ class WBEMListener(object):
         else:
             self._certfile = None
             self._keyfile = None
+
+        if self._http_port is None and self._https_port is None:
+            ValueError('Listener requires at least one active port')
 
         self._http_server = None  # ThreadedHTTPServer for HTTP
         self._http_thread = None  # Thread for HTTP
@@ -820,7 +837,7 @@ class WBEMListener(object):
             self._https_server = None
             self._https_thread = None
 
-    def _deliver_indication(self, indication, host):
+    def deliver_indication(self, indication, host):
         """
         This function is called by the listener threads for each received
         indication.
@@ -830,7 +847,7 @@ class WBEMListener(object):
 
         Parameters:
 
-          indication (pywbem.CIMIndication):
+          indication (:class:`~pywbem.CIMIndication):
             Representation of the CIM indication to be delivered.
 
           host (:term:`string`):
@@ -874,7 +891,7 @@ def callback_interface(indication, host):
         Host name or IP address of WBEM server sending the indication.
 
     Raises:
-      TBD
+      TODO
     """
     raise NotImplementedError
 

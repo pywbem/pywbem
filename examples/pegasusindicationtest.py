@@ -11,12 +11,17 @@ not all were received.
 
 """
 from __future__ import print_function, absolute_import
+
 import sys
 import time
+import threading
 import logging
 import datetime
 from socket import getfqdn
-from urlparse import urlparse
+if sys.version_info >= (3, 0):
+    from urllib.parse import urlparse
+if sys.version_info < (3, 0) and sys.version_info >= (2, 5):
+    from urlparse import urlparse
 from pywbem import WBEMConnection, WBEMServer, WBEMListener, CIMClassName, \
                    Error, Uint32, WBEMSubscriptionManager
 
@@ -28,6 +33,7 @@ TEST_QUERY = 'SELECT * from %s' % TEST_CLASS
 
 # global count of indications recived by the local indication processor
 RECEIVED_INDICATION_COUNT = 0
+COUNTER_LOCK = threading.Lock()
 LISTENER = None
 
 class ElapsedTimer(object):
@@ -64,8 +70,10 @@ def consume_indication(indication, host):
 
     #pylint: disable=global-variable-not-assigned
     global RECEIVED_INDICATION_COUNT, LISTENER
-    # increment count. This is thread safe because of GIL
+    # increment count.
+    COUNTER_LOCK.acquire()
     RECEIVED_INDICATION_COUNT += 1
+    COUNTER_LOCK.release()
 
     LISTENER.logger.debug("Consumed CIM indication #%s: host=%s\n%s",
                           RECEIVED_INDICATION_COUNT, host, indication.tomof())
@@ -144,10 +152,11 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     # Create and start local listener
     LISTENER = WBEMListener(listener_host, http_port=http_listener_port,
                             https_port=https_listener_port)
-    #start connect and start listener. Comment next lines for separate listener
+    # Start connect and start listener.
     LISTENER.add_callback(consume_indication)
     LISTENER.start()
-    # set up listener logger.
+
+    # set up listener logger
     hdlr = logging.FileHandler('pegasusindications.log')
     hdlr.setLevel(logging.INFO)
     formatter = logging.Formatter(
@@ -155,30 +164,23 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     hdlr.setFormatter(formatter)
     LISTENER.logger.addHandler(hdlr)
 
-    #create subscription_manager
+    # Create subscription_manager
     subscription_manager = WBEMSubscriptionManager(
         subscription_manager_id='fred')
 
-    subscription_manager.add_listener_url('http', getfqdn(), http_listener_port)
-
-    # add server to subscription manager
+    # Add server to subscription manager
     server_id = subscription_manager.add_server(server)
-
-    #determine if there are any existing filters and display them
-    existing_filters = subscription_manager.get_owned_filters(server_id)
-    if len(existing_filters) != 0:
-        print('%s filters exist in server' % len(existing_filters))
-        for _filter in existing_filters:
-            print('existing filter %s', _filter.tomof())
+    listener_url = '%s://%s:%s' % ('http', 'localhost', http_listener_port)
+    subscription_manager.add_listener_destinations(server_id, listener_url)
 
     # Create a dynamic alert indication filter and subscribe for it
     filter_path = subscription_manager.add_filter(
         server_id, TEST_CLASS_NAMESPACE,
         TEST_QUERY,
         query_language="DMTF:CQL")
-    subscription_paths = subscription_manager.add_subscription(server_id,
-                                                               filter_path)
-    # request server to create indications by invoking method
+    subscription_paths = subscription_manager.add_subscriptions(server_id,
+                                                                filter_path)
+    # Request server to create indications by invoking method
     # This is pegasus specific
     class_name = CIMClassName(TEST_CLASS, namespace=TEST_CLASS_NAMESPACE)
 
@@ -196,25 +198,25 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
 
     except Error as er:
         print('Indication Method exception %s' % er)
-        subscription_manager.remove_subscription(server_id,
-                                                 subscription_paths)
+        subscription_manager.remove_subscriptions(server_id,
+                                                  subscription_paths)
         subscription_manager.remove_filter(server_id, filter_path)
         subscription_manager.remove_server(server_id)
         LISTENER.stop()
         sys.exit(1)
 
-    # wait for indications to be received. Time based on number of indications
+    # Wait for indications to be received. Time based on number of indications
     wait_for_indications(requested_indications)
 
-    subscription_manager.remove_subscription(server_id, subscription_paths)
+    subscription_manager.remove_subscriptions(server_id, subscription_paths)
     subscription_manager.remove_filter(server_id, filter_path)
     subscription_manager.remove_server(server_id)
     LISTENER.stop()
 
     # Test for all expected indications received.
     if RECEIVED_INDICATION_COUNT != requested_indications:
-        print('Incorrect count of indications received exp=%s recvd=%s' % \
-              (requested_indications, RECEIVED_INDICATION_COUNT))
+        print('Incorrect count of indications received expected=%s, received'
+              '=%s' % (requested_indications, RECEIVED_INDICATION_COUNT))
         sys.exit(1)
     else:
         print('Success, %s indications' % requested_indications)
