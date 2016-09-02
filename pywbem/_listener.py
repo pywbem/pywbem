@@ -15,18 +15,12 @@
 #
 
 """
-The `WBEM listener API`_ provides functionality for managing subscriptions for
-indications from one or more WBEM servers, and implements a thread-based WBEM
-listener service.
-
-.. note::
-
-   At this point, the WBEM listener API is experimental.
+The :class:`~pywbem.WBEMListener` class provides a thread-based WBEM listener
+service that can receive CIM indications from multiple WBEM servers and that
+calls registered callback functions to deliver the received indications.
 
 Examples
 --------
-See _subscription_manager.py and the examples directory for an example of
-a subscription_manager and listener defined in the same executable.
 
 The following example creates and runs a listener::
 
@@ -69,10 +63,12 @@ The following example creates and runs a listener::
             # listener runs until executable terminated
             # or listener.stop()
 
-Another more practical listener example is in the script ``examples/listen.py``
-(when you clone the GitHub pywbem/pywbem project).
-It is an interactive Python shell that creates a WBEM listener and displays
-any indications it receives, in MOF format.
+See the example in section :ref:`WBEMSubscriptionManager` for an example of
+using a listener in combination with a subscription manager.
+
+Another listener example is in the script ``examples/listen.py`` (when you
+clone the GitHub pywbem/pywbem project). It is an interactive Python shell that
+creates a listener and displays any indications it receives, in MOF format.
 """
 
 import re
@@ -103,8 +99,6 @@ from .cim_constants import CIM_ERR_NOT_SUPPORTED, \
 from .tupleparse import parse_cim
 from .tupletree import dom_to_tupletree
 from .exceptions import ParseError, VersionError
-
-
 
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
@@ -583,7 +577,6 @@ class WBEMListener(object):
     The listener supports starting and stopping threads that listen for
     CIM-XML ExportIndication messages using HTTP and/or HTTPS, and that pass
     any received indications on to registered callback functions.
-
     """
 
     def __init__(self, host, http_port=None, https_port=None,
@@ -847,7 +840,7 @@ class WBEMListener(object):
 
         Parameters:
 
-          indication (:class:`~pywbem.CIMIndication):
+          indication (:class:`~pywbem.CIMIndication`):
             Representation of the CIM indication to be delivered.
 
           host (:term:`string`):

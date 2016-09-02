@@ -98,6 +98,7 @@ doc_dependent_files := \
     $(package_name)/mof_compiler.py \
     $(package_name)/exceptions.py \
     $(package_name)/_listener.py \
+    $(package_name)/_subscription_manager.py \
     $(package_name)/_recorder.py \
     $(package_name)/_server.py \
     $(package_name)/config.py \
