@@ -3127,10 +3127,10 @@ class CIMParameter(_CIMComparisonMixin):
         Return a short string representation of the
         :class:`~pywbem.CIMParameter` object for human consumption.
         """
-        return '%s(name=%r, value=%r, type=%r, ' \
+        return '%s(name=%r, type=%r, ' \
                'reference_class=%r, ' \
                'is_array=%r, ...)' % \
-               (self.__class__.__name__, self.name, self.value, self.type,
+               (self.__class__.__name__, self.name, self.type,
                 self.reference_class,
                 self.is_array)
 
@@ -3139,11 +3139,11 @@ class CIMParameter(_CIMComparisonMixin):
         Return a string representation of the :class:`~pywbem.CIMParameter`
         object that is suitable for debugging.
         """
-        return '%s(name=%r, value=%r, type=%r, ' \
+        return '%s(name=%r, type=%r, ' \
                'reference_class=%r, ' \
                'is_array=%r, array_size=%r, ' \
                'qualifiers=%r)' % \
-               (self.__class__.__name__, self.name, self.value, self.type,
+               (self.__class__.__name__, self.name, self.type,
                 self.reference_class,
                 self.is_array, self.array_size,
                 self.qualifiers)
