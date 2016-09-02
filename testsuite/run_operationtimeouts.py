@@ -21,6 +21,7 @@ import sys
 import unittest
 import warnings
 import datetime
+from getpass import getpass
 
 import six
 
@@ -29,7 +30,7 @@ from pywbem import WBEMConnection, Uint32, ConnectionError, TimeoutError
 
 
 # Identity of the OpenPegasus namespace, class, and method that implements
-# the delayed response. NOTE: This is only available on OpenPegasus 2.16.
+# the delayed response. NOTE: This is only available on OpenPegasus 2.15+.
 NAMESPACE = 'test/testprovider'
 TESTCLASS = 'Test_CLITestProviderClass'
 TESTMETHOD = 'delayedMethodResponse'
@@ -132,7 +133,7 @@ class ServerTimeoutTest(ClientTest):
         try:
             # Confirm server working with a simple request.
             conn.GetClass('CIM_ManagedElement')
-            rslt = 0
+            request_result = 0     # good response
             err_flag = ""
             opttimer = ElapsedTimer()
             conn.InvokeMethod(TESTMETHOD, TESTCLASS,
@@ -148,14 +149,17 @@ class ServerTimeoutTest(ClientTest):
             if delay == timeout:
                 err_flag = "Good when timeout matches delay"
 
+        # This exception terminates the test
         except ConnectionError as ce:
-            rslt = 2
+            request_result = 2    # Connection error received
 
             self.fail('%s exception %s' % ('Failed ConnectionError)', ce))
 
+        # this exception tests against expected result. It terminates the
+        # test only if the timeout is not expected
         except TimeoutError as ce:
             execution_time = opttimer.elapsed_sec()
-            rslt = 1
+            request_result = 1    # timeout error received
             # error if the operation delay is lt timeout value and we get
             # a timeout
             if delay < timeout:
@@ -166,22 +170,26 @@ class ServerTimeoutTest(ClientTest):
             if delay == timeout:
                 err_flag = "Timeout when timeout matches delay"
 
+        # This exception terminates the test if stop_on_err set.
         except Exception as ec:      #pylint: disable=broad-except
-            err_flag = "Test Failed"
-            rslt = 2
-            self.fail('%s exception %s' % ('Failed(Exception)', ec))
+            err_flag = "Test Failed.General Exception"
+            request_result = 2
+            if self.stop_on_err:
+                self.fail('%s exception %s' % ('Failed(Exception)', ec))
 
         # generate table entry if verbose. This defines result for this
         # test
         if self.verbose:
-            rslt_txt = ['Good Rtn', 'Timeout ', 'Failure']
+            request_result_txt = ['Good Rtn', 'Timeout ', 'Failure']
 
-            print('%-5s %-7s %7d %5d %10.2f  %s' % (url_type, rslt_txt[rslt],
-                                                    timeout, delay,
-                                                    execution_time,
-                                                    err_flag))
+            print('%-5s %-7s %7d %5d %10.2f  %s' % (
+                url_type,
+                request_result_txt[request_result],
+                timeout, delay,
+                execution_time,
+                err_flag))
 
-        return (True if rslt == 1 else False)
+        return (True if request_result == 1 else False)
 
     def test_all(self):
         """ Tests all of the variations in a loop."""
@@ -228,7 +236,9 @@ def parse_args(argv_):
     elif argv[1] == '--help' or argv[1] == '-h':
         print('')
         print('Test program for client timeout of cim operations.\n')
-        print('Pegasus only. Tests a range of timeout values against http\n ')
+        print('Requires OpenPegasus because it uses a special method\n')
+        print('that delays the response for a defined time.\n')
+        print('Tests a range of timeout values against http\n ')
         print('and https with operation that generates known delay.\n')
         print('Complete test is in a single unittest function')
         print('')
@@ -239,29 +249,29 @@ def parse_args(argv_):
         print('Where:')
         print('    GEN_OPTS            General options (see below).')
         print('    HOST                Name of the target WBEM server.\n'\
-              '                        No Scheme prefix'\
+              '                        No Scheme prefix\n'\
               '                        defines ssl usage')
-        print('    USERNAME            Userid used to log into '\
+        print('    USERNAME            Userid used to log into\n'\
               '                        WBEM server.\n' \
               '                        Requests user input if not supplied')
-        print('    PASSWORD            Password used to log into '\
+        print('    PASSWORD            Password used to log into\n'\
               '                        WBEM server.\n' \
               '                        Requests user input if not supplier')
         print('')
         print('General options[GEN_OPTS]:')
         print('    --help, -h          Display this help text.')
         print('    -t MAXTIMEOUT       Maximum timout value in sec. to test.\n'\
-              '                        default is 20 sec')
+              '                        default is 20 sec.')
         print('    -v                  Verbose output which includes\n' \
-              '                        result of each test')
+              '                        result of each test.')
         print('    -s                  Stop test on first timeout error.\n' \
-              '                        Otherwise errors in timeout are just ' \
+              '                        Otherwise errors in timeout are just\n' \
               '                        reported. Other errors stop test.')
         print('    -d                  Debug flag for extra displays')
 
-        #print('------------------------')
-        #print('Unittest arguments[UT_OPTS]:')
-        #print('')
+        print('------------------------')
+        print('Unittest arguments[UT_OPTS]:')
+        print('')
         sys.argv[1:] = ['--help']
         unittest.main()
         sys.exit(2)
@@ -308,25 +318,27 @@ def parse_args(argv_):
     if len(argv) >= 2:
         args_['username'], args_['password'] = argv[1].split('%')
         del argv[1:2]
-    #else:
-        ## Get user name and pw from console
-        #sys.stdout.write('Username: ')
-        #sys.stdout.flush()
-        #args_['username'] = sys.stdin.readline().strip()
-        #args_['password'] = getpass()
+    else:
+        # Get user name and pw from console
+        sys.stdout.write('Username: ')
+        sys.stdout.flush()
+        args_['username'] = sys.stdin.readline().strip()
+        args_['password'] = getpass()
     return args_, argv
 
 if __name__ == '__main__':
     args, sys.argv = parse_args(sys.argv) # pylint: disable=invalid-name
-    print("Using WBEM Server:")
-    print("  host: %s" % args['host'])
-    print("  username: %s" % args['username'])
-    if args['password'] is not None:
-        print("  password: %s" % ("*"*len(args['password'])))
-    print("  maxtimeout: %s" % args['maxtimeout'])
-    print("  verbose: %s" % args['verbose'])
-    print("  stopOnErr: %s" % args['stopOnErr'])
-    print("  debug: %s" % args['debug'])
+
+    if args['verbose'] in args:
+        print("Using WBEM Server:")
+        print("  host: %s" % args['host'])
+        print("  username: %s" % args['username'])
+        if args['password'] is not None:
+            print("  password: %s" % ("*"*len(args['password'])))
+        print("  maxtimeout: %s" % args['maxtimeout'])
+        print("  verbose: %s" % args['verbose'])
+        print("  stopOnErr: %s" % args['stopOnErr'])
+        print("  debug: %s" % args['debug'])
 
     # Note: unittest options are defined in separate args after
     # the url argument.
