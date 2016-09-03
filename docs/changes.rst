@@ -84,24 +84,43 @@ Enhancements
   The EnumerationCount operation is NOT implemented, because it is both
   deprecated and unusable. (Issue #9)
 
-* Implemented support for CIM indications:
+  Unit tests of the pull operations are included and mock tests are written
+  for at least some parts of the pull operations.
 
-  - Added a `WBEMServer` class, providing convenient access to the common
-    elements of the WBEM Server Profile, including namespaces, interop
-    namespace, profile information, server branding, central/scoping class
-    algorithm, etc. This class can be used independently of indications.
+* Implemented support for reading information from WBEM servers according to
+  the DMTF WBEM Server Profile (DSP1071) and DMTF Profile Registration Profile
+  (DSP1033) with a new `WBEMServer` class. Note that not everyhting in these
+  profiles needs to be implemented in the WBEM server for this to work:
+
+  - The `WBEMServer` class is a client's view on a WBEM server and provides
+    consistent and convenient access to the common elements of the server,
+    including namespace names, interop namespace name, registered profile
+    information, server branding, and central/scoping class algorithms.
+
+  - Added unit tests for this new class in `run_cim_operations.py` and
+    `test_client.py`.
+
+  - Added a demo of the discovery abilities of the `WBEMServer` class in the
+    `examples/explore.py` script.
+
+  **Experimental** - This new class is experimental for pywbem version 0.9.0
+  because this is the initial release of a significant change and subject to
+  changes to the API.
+
+  (Issues #9, #346, #468)
+
+* Implemented support for WBEM subscription management and a WBEM indication
+  listener:
 
   - Added a `WBEMListener` class that allows the creation of a listener entity
     to receive indications.
 
   - Added a `WBEMSubscriptionManager` class that allows management of
-    indication subscriptions.
+    indication subscriptions, indication filters, and listener destination
+    instances on the WBEM Server using the new WBEMServer class.
 
   - Added unit tests for these new classes and extended other existing tests
     accordingly, e.g. `run_cim_operations.py`.
-
-  - Added a demo of the discovery abilities of the `WBEMServer` class in
-    the `examples/explore.py` script.
 
   **Experimental** - These new classes are experimental for pywbem version
   0.9.0 because this is the initial release of a significant change and subject
@@ -157,7 +176,7 @@ Enhancements
   - Updated the documentation to no longer show the unused third tuple element
     `exception_obj`. It was never created, so this is only a doc change.
 
-* Added CIM status codes 20 to 28.
+* Added CIM status codes 20 to 28, specifically to support the pull operations.
 
 * Changed the `ParseError` exception to be derived from the `Error` base
   exception, so that now all pywbem specific exceptions are derived from
@@ -230,13 +249,7 @@ Enhancements
   operation recorder that generates test cases for the `test_client`
   unit test module. (Issue #351)
 
-* Added example of inprocess indication subscription and handling in the
-  examples directory.
-
 * Extended `wbemcli` for all pull operations. (Issue #341)
-
-* Extended live testing with `cim_operation.py` to include tests on the
-  `WBEMServer` class (Issue #346)
 
 * Changed command line options of `mof_compiler` command to be consistent
   with `wbemcli`, and added support for specifying certificate related
@@ -342,6 +355,9 @@ Bug fixes
 
 * Fixed description in INSTALL.md to correctly describe how to establish
   OS-level prerequisites.
+
+* Cleaned up the timeouts on SSL and created specific tests for timeouts
+  against a live server. (Issues #363, #364)
 
 
 pywbem v0.8.2
