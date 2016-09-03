@@ -24,7 +24,8 @@ subscriptions.
 The WBEM listener is identified through its URL, so it may be a
 :class:`~pywbem.WBEMListener` object or any external WBEM listener.
 
-This subscription manager supports two types of subscriptions:
+This subscription manager supports two types of subscriptions, filters and
+listener destinations:
 
 * **Owned subscriptions, filters, and listener destinations** -
   These are indication subscription, indication filter and listener destination
@@ -50,12 +51,22 @@ This subscription manager supports two types of subscriptions:
   client may want to use them but not delete them.
 
 Owned and not-owned subscriptions, filters, and listener destinations can be
-arbitrarily mixed, with one exception: A not-owned subscription can only be
-created between a not-owned filter and a not-owned listener destination.
-This restriction is motivated by the fact that an indication subscription
-depends on the indication filter and on the listener destination it relates.
-The automatic removal of an owned filter or an owned listener destination
-would therefore not be possible if a subscription relating them was not-owned.
+arbitrarily mixed, with one exception:
+
+* A not-owned subscription cannot be created with an owned filter and/or an
+  owned listener destination because that would prevent the automatic life
+  cycle management of the owned filter or listener destination by the
+  subscription manager. This restriction is enforced by the
+  :class:`~pywbem.WBEMSubscriptionManager` class.
+
+The :class:`~pywbem.WBEMSubscriptionManager` object remembers owned
+subscriptions, filters, and listener destinations. If for some reason that
+object gets deleted (e.g. because the Python program aborts) before all servers
+could be removed, the corresponding CIM instances in the WBEM server still
+exist, but the knowledge that these instances were owned by that subscription
+manager, is lost. Therefore, these instances will be considered not-owned
+by any other subscription managers, including a restarted instance of the
+subscription manager that went away.
 
 Examples
 --------
@@ -153,8 +164,7 @@ __all__ = ['WBEMSubscriptionManager']
 
 class WBEMSubscriptionManager(object):
     """
-    A Client to manage subscriptions to indications and optionally control
-    the existence of a listener.
+    A class for managing subscriptions for CIM indications in a WBEM server.
 
     """
 
@@ -475,7 +485,7 @@ class WBEMSubscriptionManager(object):
         The listener destination instances must be not-owned. Owned listener
         destination instances are not allowed to be removed using this method,
         because the subscription manager will automatically remove them when
-        the WBEM server is deregistered from it.
+        the WBEM server is deregistered.
 
         Parameters:
 
