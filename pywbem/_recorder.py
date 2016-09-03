@@ -24,9 +24,9 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+from datetime import datetime, timedelta
 import yaml
 import six
-from datetime import datetime, timedelta
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
                      CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
@@ -62,9 +62,11 @@ def _represent_ordereddict(dump, tag, mapping, flow_style=None):
     for item_key, item_value in mapping:
         node_key = dump.represent_data(item_key)
         node_value = dump.represent_data(item_value)
-        if not (isinstance(node_key, yaml.ScalarNode) and not node_key.style):
+        if not (isinstance(node_key, yaml.ScalarNode) \
+           and not node_key.style):
             best_style = False
-        if not (isinstance(node_value, yaml.ScalarNode) and not node_value.style):
+        if not (isinstance(node_value, yaml.ScalarNode) \
+           and not node_value.style):
             best_style = False
         value.append((node_key, node_value))
     if flow_style is None:
@@ -77,7 +79,7 @@ def _represent_ordereddict(dump, tag, mapping, flow_style=None):
 yaml.SafeDumper.add_representer(
     OrderedDict,
     lambda dumper, value:
-        _represent_ordereddict(dumper, u'tag:yaml.org,2002:map', value))
+    _represent_ordereddict(dumper, u'tag:yaml.org,2002:map', value))
 
 
 class OpArgs(OpArgs_tuple):
@@ -169,8 +171,8 @@ class HttpRequest(HttpRequest_tuple):
 
 
 HttpResponse_tuple = namedtuple("HttpResponse_tuple",
-                               ["version", "status", "reason", "headers",
-                                "payload"])
+                                ["version", "status", "reason", "headers",
+                                 "payload"])
 
 class HttpResponse(HttpResponse_tuple):
     """

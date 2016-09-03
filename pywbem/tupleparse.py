@@ -1726,7 +1726,8 @@ def parse_embeddedObject(val): # pylint: disable=invalid-name
                 <VALUE>
                   &lt;INSTANCE CLASSNAME="PyWBEM_Town"&gt;
                     &lt;PROPERTY NAME="Name" TYPE="string"&gt;
-                      &lt;VALUE&gt;Fritz &amp;amp; &amp;lt;the cat&amp;gt; Town&lt;/VALUE&gt;
+                      &lt;VALUE&gt;Fritz &amp;amp; &amp;lt;the cat&amp;gt;
+                        Town&lt;/VALUE&gt;
                     &lt;/PROPERTY&gt;
                     &lt;PROPERTY NAME="Zip" TYPE="string"&gt;
                       &lt;VALUE&gt;z12345&lt;/VALUE&gt;

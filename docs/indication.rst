@@ -1,23 +1,23 @@
 
-.. _`WBEM listener API`:
+.. _`WBEM indication API`:
 
-WBEM listener API
-=================
+WBEM indication API
+===================
 
-The WBEM listener API supports subscription for and receiving of CIM
+The WBEM indication API supports subscription for and receiving of CIM
 indications.
 
 This chapter has the following sections:
 
 * :ref:`WBEMListener` - The :class:`~pywbem.WBEMListener` class provides a
-  thread-based WBEM listener service.
+  thread-based WBEM listener service for receiving indications.
 
 * :ref:`WBEMSubscriptionManager` - The :class:`~pywbem.WBEMSubscriptionManager`
   class provides for managing subscriptions for indications.
 
 .. note::
 
-   At this point, the WBEM listener API is experimental.
+   At this point, the WBEM indication API is experimental.
 
 
 .. _`WBEMListener`:

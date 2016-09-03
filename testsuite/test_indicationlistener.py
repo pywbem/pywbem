@@ -16,14 +16,10 @@ from __future__ import absolute_import
 import unittest
 import sys as _sys
 import logging as _logging
-
-
 from time import time
 import datetime
 from random import randint
-import six
 import requests
-
 
 from pywbem import WBEMListener
 
@@ -141,7 +137,8 @@ class TestIndications(unittest.TestCase):
     count of indications actually received.
     """
 
-    def createlistener(self, host, http_port=None, https_port=None,
+    @staticmethod
+    def createlistener(host, http_port=None, https_port=None,
                        certfile=None, keyfile=None):
 
         global RCV_COUNT

@@ -352,7 +352,8 @@ class EmbedUnembedTest(unittest.TestCase):
 class ClientTest(unittest.TestCase):
     """Test case for PyWBEM client testing."""
 
-    def assertXMLEqual(self, s_act, s_exp, entity=None):
+    @staticmethod
+    def assertXMLEqual(s_act, s_exp, entity=None):
         """Assert that the two XML fragments are equal, tolerating the following
         variations:
           * whitespace outside of element content and attribute values.
@@ -751,7 +752,7 @@ class ClientTest(unittest.TestCase):
 
             if "instances" in exp_pull_result:
                 if result.instances != exp_pull_result_obj.instances:
-                    # TODO 2016/07 AM: Improve the presentation of the difference
+                    # TODO 2016/07 AM: Improve the presentation of the diff.
                     print("Details for the following assertion error:")
                     print("- Expected pull result: %r" % \
                           exp_pull_result_obj.instances)
@@ -762,7 +763,7 @@ class ClientTest(unittest.TestCase):
                                          "result is not as expected.")
             elif "paths" in exp_pull_result:
                 if result.paths != exp_pull_result_obj.paths:
-                    # TODO 2016/07 AM: Improve the presentation of the difference
+                    # TODO 2016/07 AM: Improve the presentation of the diff.
                     print("Details for the following assertion error:")
                     print("- Expected pull result: %r" % \
                           exp_pull_result_obj.paths)

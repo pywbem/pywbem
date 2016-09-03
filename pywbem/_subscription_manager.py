@@ -44,17 +44,15 @@ This subscription manager supports two types of subscriptions:
   Such not-owned CIM instances are not deleted automatically when their WBEM
   server is deregistered from the subscription manager. Instead, the user
   needs to take care of deleting them (if they can and should be deleted).
-  For example, static indication filters can be used for subscribing to them
-  using this subscription manager, but they cannot be deleted (static
-  indication filters are those that by definition pre-exist in the WBEM
-  server). Also, if some other entity has created such CIM instances in a WBEM
-  server, this client may want to use them but not delete them.
+  For example, a :term:`static indication filter` can be used for subscribing
+  to it using this subscription manager, but it cannot be deleted. Also, if
+  some other entity has created such CIM instances in a WBEM server, this
+  client may want to use them but not delete them.
 
 Owned and not-owned subscriptions, filters, and listener destinations can be
 arbitrarily mixed, with one exception: A not-owned subscription can only be
 created between a not-owned filter and a not-owned listener destination.
-This restriction is enforced by the :class:`~pywbem.WBEMSubscriptionManager`
-class, and it is motivated by the fact that an indication subscription
+This restriction is motivated by the fact that an indication subscription
 depends on the indication filter and on the listener destination it relates.
 The automatic removal of an owned filter or an owned listener destination
 would therefore not be possible if a subscription relating them was not-owned.
@@ -245,8 +243,8 @@ class WBEMSubscriptionManager(object):
     def add_server(self, server):
         """
         Register a WBEM server with the subscription manager. This is a
-        prerequisite for lateron adding listener destinations, indication
-        filters and indication subscriptions to the server.
+        prerequisite for adding listener destinations, indication filters and
+        indication subscriptions to the server.
 
         Parameters:
 
@@ -364,7 +362,7 @@ class WBEMSubscriptionManager(object):
 
             Each listener URL string must have the format:
 
-              ``[{scheme}://]{host}[:{port}]``
+              ``[{scheme}://]{host}:{port}``
 
             The following URL schemes are supported:
 
@@ -380,12 +378,10 @@ class WBEMSubscriptionManager(object):
               :term:`RFC6874`, supporting ``-`` (minus) for the delimiter
               before the zone ID string, as an additional choice to ``%25``.
 
-            If no port is specified in the URL, the default ports are:
+            Note that the port is required in listener URLs.
 
-            * If HTTPS is used, port 5989.
-            * If HTTP is used, port 5988.
-
-            See :class:`~pywbem.WBEMConnection` for examples of valid URLs.
+            See :class:`~pywbem.WBEMConnection` for examples of valid URLs,
+            with the caveat that the port in server URLs is optional.
 
           owned (:class:`py:bool`)
             Defines whether or not the listener destination instances that are
@@ -518,14 +514,9 @@ class WBEMSubscriptionManager(object):
                    filter_id=None):
         #pylint: disable=line-too-long
         """
-        Add a dynamic indication filter to a WBEM server, by creating an
-        indication filter instance (of CIM class "CIM_IndicationFilter") in the
-        Interop namespace of the server.
-
-        Dynamic indication filters are those that are created by clients.
-        Indication filters that pre-exist in the WBEM server are termed
-        *static indication filters* and cannot be created or removed by
-        clients. See :term:`DSP1054` for details about indication filters.
+        Add a :term:`dynamic indication filter` to a WBEM server, by creating
+        an indication filter instance (of CIM class "CIM_IndicationFilter") in
+        the Interop namespace of the server.
 
         Parameters:
 
@@ -556,8 +547,8 @@ class WBEMSubscriptionManager(object):
             (see :meth:`~pywbem.WBEMSubscriptionManager.remove_server` and
             :meth:`~pywbem.WBEMSubscriptionManager.remove_all_servers`), these
             filter instances will be automatically deleted in the WBEM server.
-            Of course, the user may still delete these filter instances
-            explicitly (for example by using
+            The user may also delete these filter instances explicitly (for
+            example by using
             :meth:`~pywbem.WBEMSubscriptionManager.remove_filter`).
 
             If `False`, these filter instances are not-owned and will have a
@@ -570,7 +561,7 @@ class WBEMSubscriptionManager(object):
             A filter ID string that is used as a component in the value of the
             `Name` properties of filter instances to help the user identify
             these instances in a WBEM server.
-            
+
             There is no requirement that the filter ID be unique. This can be
             used to identify groups of filters by using the same value for
             multiple filters.
@@ -669,8 +660,8 @@ class WBEMSubscriptionManager(object):
         Remove an indication filter from a WBEM server, by deleting the
         indication filter instance in the WBEM server.
 
-        The indication filter must be a dynamic filter (static filters
-        cannot be removed by clients) but may be owned or not-owned.
+        The indication filter must be a :term:`dynamic filter` but may be owned
+        or not-owned.
 
         Parameters:
 
@@ -705,9 +696,10 @@ class WBEMSubscriptionManager(object):
         instances (of CIM class "CIM_IndicationSubscription") in the Interop
         namespace of that server.
 
-        The indication filter can be an (owned or not-owned) dynamic filter
-        created via :meth:`~pywbem.WBEMSubscriptionManager.add_filter`,
-        or a dynamic or static filter that already exists in the WBEM server.
+        The indication filter can be an (owned or not-owned)
+        :term:`dynamic filter` created via
+        :meth:`~pywbem.WBEMSubscriptionManager.add_filter`, or a dynamic or
+        :term:`static filter` that already exists in the WBEM server.
         Existing filters in the WBEM server can be retrieved via
         :meth:`~pywbem.WBEMSubscriptionManager.get_all_filters`.
 
@@ -731,7 +723,7 @@ class WBEMSubscriptionManager(object):
             instances in the specified WBEM server that will become the
             destinations for the created subscriptions. When creating not-owned
             subscriptions, this must be a not-owned listener destination.
-            
+
           owned (:class:`py:bool`)
             Defines whether or not the subscription instances that are created
             in the WBEM server are *owned* by the subscription manager.
@@ -744,8 +736,8 @@ class WBEMSubscriptionManager(object):
             manager (see :meth:`~pywbem.WBEMSubscriptionManager.remove_server`
             and :meth:`~pywbem.WBEMSubscriptionManager.remove_all_servers`),
             these subscription instances will be automatically deleted in the
-            WBEM server. Of course, the user may still delete these
-            subscription instances explicitly (for example by using
+            WBEM server. The user may also delete these subscription instances
+            explicitly (for example by using
             :meth:`~pywbem.WBEMSubscriptionManager.remove_subscriptions`).
 
             If `False`, these subscription instances are not-owned and will
@@ -920,7 +912,7 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
         If `None`, the corresponding component is not added.
 
         The form of the `Name` property of the created destination instance is:
-        
+
           ``"pywbemdestination:" [{subscription_manager_id} ":"]
           {guid}``
 
@@ -962,8 +954,8 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
 def _create_filter(server, source_namespace, query, query_language, \
                    subscription_manager_id=None, filter_id=None):
     """
-    Create a dynamic indication filter instance in the Interop namespace
-    of a WBEM server and return its instance path.
+    Create a :term:`dynamic indication filter` instance in the Interop
+    namespace of a WBEM server and return its instance path.
 
     Parameters:
 
@@ -992,7 +984,7 @@ def _create_filter(server, source_namespace, query, query_language, \
         If `None`, the corresponding component is not added.
 
         The form of the `Name` property of the created filter instance is:
-        
+
           ``"pywbemfilter:" [{subscription_manager_id} ":"]
           [{filter_id} ":"] {guid}``
 

@@ -6,13 +6,8 @@ Test CIM types.
 
 from __future__ import absolute_import, print_function
 
-import re
-import os.path
 from datetime import timedelta, datetime
-import unittest
-
 import pytest
-import six
 
 from pywbem import CIMType, CIMInt, CIMFloat, Uint8, Uint16, Uint32, Uint64, \
                    Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime, \
@@ -52,14 +47,16 @@ class TestIntegers:
     Test CIM integer data type classes.
     """
 
-    def test_class_attrs_class(self, integer_tuple):
+    @staticmethod
+    def test_class_attrs_class(integer_tuple):
         """Test class attrs via class level"""
         obj_type, exp_cimtype, exp_minvalue, exp_maxvalue = integer_tuple
         assert obj_type.cimtype == exp_cimtype
         assert obj_type.minvalue == exp_minvalue
         assert obj_type.maxvalue == exp_maxvalue
 
-    def test_class_attrs_inst(self, integer_tuple):
+    @staticmethod
+    def test_class_attrs_inst(integer_tuple):
         """Test class attrs via instance level"""
         obj_type, exp_cimtype, exp_minvalue, exp_maxvalue = integer_tuple
         obj = obj_type(42)
@@ -67,67 +64,80 @@ class TestIntegers:
         assert obj.minvalue == exp_minvalue
         assert obj.maxvalue == exp_maxvalue
 
-    def test_inheritance(self, integer_tuple):
+    @staticmethod
+    def test_inheritance(integer_tuple):
         """Test inheritance"""
-        obj_type, exp_cimtype, exp_minvalue, exp_maxvalue = integer_tuple
+        obj_type = integer_tuple[0]
         obj = obj_type(42)
         assert isinstance(obj, obj_type)
         assert isinstance(obj, CIMType)
         assert isinstance(obj, CIMInt)
         assert not isinstance(obj, CIMFloat)
 
-    def test_init_int(self, integer_tuple):
+    @staticmethod
+    def test_init_int(integer_tuple):
         """Test initialization from integer value"""
-        obj_type, exp_cimtype, exp_minvalue, exp_maxvalue = integer_tuple
+        obj_type = integer_tuple[0]
         obj = obj_type(42)
         assert obj == 42
 
-    def test_init_str(self, integer_tuple):
+    @staticmethod
+    def test_init_str(integer_tuple):
         """Test initialization from string value"""
-        obj_type, exp_cimtype, exp_minvalue, exp_maxvalue = integer_tuple
+        obj_type = integer_tuple[0]
         obj = obj_type('42')
         assert obj == 42
 
-    def test_init_str_base10(self, integer_tuple):
+    @staticmethod
+    def test_init_str_base10(integer_tuple):
         """Test initialization from string value with base 10"""
-        obj_type, exp_cimtype, exp_minvalue, exp_maxvalue = integer_tuple
+        obj_type = integer_tuple[0]
         obj = obj_type('42', 10)
         assert obj == 42
 
-    def test_init_str_base16(self, integer_tuple):
+    @staticmethod
+    def test_init_str_base16(integer_tuple):
         """Test initialization from string value with base 16"""
-        obj_type, exp_cimtype, exp_minvalue, exp_maxvalue = integer_tuple
+        obj_type = integer_tuple[0]
         obj = obj_type('2A', 16)
         assert obj == 42
 
-    def test_init_minimum(self, integer_tuple):
+    @staticmethod
+    def test_init_minimum(integer_tuple):
         """Test initialization from integer value at minimum"""
-        obj_type, exp_cimtype, exp_minvalue, exp_maxvalue = integer_tuple
+        obj_type = integer_tuple[0]
+        exp_minvalue = integer_tuple[2]
         obj = obj_type(exp_minvalue)
         assert obj == exp_minvalue
 
-    def test_init_maximum(self, integer_tuple):
+    @staticmethod
+    def test_init_maximum(integer_tuple):
         """Test initialization from integer value at maximum"""
-        obj_type, exp_cimtype, exp_minvalue, exp_maxvalue = integer_tuple
+        obj_type = integer_tuple[0]
+        exp_maxvalue = integer_tuple[3]
         obj = obj_type(exp_maxvalue)
         assert obj == exp_maxvalue
 
-    def test_init_too_low(self, integer_tuple):
+    @staticmethod
+    def test_init_too_low(integer_tuple):
         """Test initialization from integer value below minimum"""
-        obj_type, exp_cimtype, exp_minvalue, exp_maxvalue = integer_tuple
+        obj_type = integer_tuple[0]
+        exp_minvalue = integer_tuple[2]
         try:
-            obj = obj_type(exp_minvalue - 1)
-        except ValueError as exc:
+            obj_type(exp_minvalue - 1)
+        except ValueError:
             pass
         else:
             raise AssertionError("ValueError was not raised.")
 
-    def test_init_too_high(self, integer_tuple):
+    @staticmethod
+    def test_init_too_high(integer_tuple):
         """Test initialization from integer value above maximum"""
-        obj_type, exp_cimtype, exp_minvalue, exp_maxvalue = integer_tuple
+        obj_type = integer_tuple[0]
+        exp_maxvalue = integer_tuple[3]
         try:
-            obj = obj_type(exp_maxvalue + 1)
-        except ValueError as exc:
+            obj_type(exp_maxvalue + 1)
+        except ValueError:
             pass
         else:
             raise AssertionError("ValueError was not raised.")
@@ -156,35 +166,40 @@ class TestReals:
     Test CIM real data type classes.
     """
 
-    def test_class_attrs_class(self, real_tuple):
+    @staticmethod
+    def test_class_attrs_class(real_tuple):
         """Test class attrs via class level"""
         obj_type, exp_cimtype = real_tuple
         assert obj_type.cimtype == exp_cimtype
 
-    def test_class_attrs_inst(self, real_tuple):
+    @staticmethod
+    def test_class_attrs_inst(real_tuple):
         """Test class attrs via instance level"""
         obj_type, exp_cimtype = real_tuple
         obj = obj_type(42)
         assert obj.cimtype == exp_cimtype
 
-    def test_inheritance(self, real_tuple):
+    @staticmethod
+    def test_inheritance(real_tuple):
         """Test inheritance"""
-        obj_type, exp_cimtype = real_tuple
+        obj_type = real_tuple[0]
         obj = obj_type(42)
         assert isinstance(obj, obj_type)
         assert isinstance(obj, CIMType)
         assert isinstance(obj, CIMFloat)
         assert not isinstance(obj, CIMInt)
 
-    def test_init_float(self, real_tuple):
+    @staticmethod
+    def test_init_float(real_tuple):
         """Test initialization from floating point value"""
-        obj_type, exp_cimtype = real_tuple
+        obj_type = real_tuple[0]
         obj = obj_type(42.0)
         assert obj == 42.0
 
-    def test_init_str(self, real_tuple):
+    @staticmethod
+    def test_init_str(real_tuple):
         """Test initialization from string value"""
-        obj_type, exp_cimtype = real_tuple
+        obj_type = real_tuple[0]
         obj = obj_type('42.0')
         assert obj == 42.0
 
@@ -310,16 +325,19 @@ class TestDatetime:
     Test CIM real data type classes.
     """
 
-    def test_class_attrs_class(self):
+    @staticmethod
+    def test_class_attrs_class():
         """Test class attrs via class level"""
         assert CIMDateTime.cimtype == 'datetime'
 
-    def test_class_attrs_inst(self):
+    @staticmethod
+    def test_class_attrs_inst():
         """Test class attrs via instance level"""
         obj = CIMDateTime('00000000000000.000000:000')
-        assert CIMDateTime.cimtype == 'datetime'
+        assert obj.cimtype == 'datetime'
 
-    def test_inheritance(self):
+    @staticmethod
+    def test_inheritance():
         """Test inheritance"""
         obj = CIMDateTime('00000000000000.000000:000')
         assert isinstance(obj, CIMDateTime)
@@ -327,7 +345,8 @@ class TestDatetime:
         assert not isinstance(obj, CIMFloat)
         assert not isinstance(obj, CIMInt)
 
-    def test_init(self, datetime_init_tuple):
+    @staticmethod
+    def test_init(datetime_init_tuple):
         """Test initialization from all input types"""
         (dtarg, exp_kind, exp_datetime, exp_timedelta, exp_minutesfromutc,
          exp_str) = datetime_init_tuple

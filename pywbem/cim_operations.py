@@ -3958,7 +3958,8 @@ class WBEMConnection(object):
                 **extra)
 
             instancename = result[0][2][0]
-            instancename.namespace = namespace  # TODO: Why not accept returned ns?
+            instancename.namespace = namespace
+            # TODO: Why not accept returned namespace?
 
         except Exception as exc:
             if self.operation_recorder:

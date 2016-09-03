@@ -23,7 +23,7 @@ Pywbem supports the following functionality:
   WBEM client application, such as determining the Interop namespace of the
   server, or the management profiles advertised by the server.
 
-* :ref:`WBEM listener API`
+* :ref:`WBEM indication API`
 
   This API supports starting and stopping a WBEM listener that waits for
   indications (i.e. events) emitted by a WBEM server using the CIM-XML
@@ -116,7 +116,7 @@ specified when following the links to the standards:
   in the :ref:`WBEM server API` conforms to :term:`DSP1033`.
 
 * The mechanisms for subscribing for CIM indications in the
-  :ref:`WBEM listener API` conforms to :term:`DSP1054`.
+  :ref:`WBEM indication API` conforms to :term:`DSP1054`.
 
 .. _`Deprecation policy`:
 
@@ -256,6 +256,27 @@ This documentation uses a few special terms to refer to Python types:
    CIM object
       one of the types listed in :ref:`CIM objects`.
 
+
+.. _'Glossary`:
+
+Glossary
+--------
+
+.. glossary::
+
+   dynamic indication filter
+   dynamic filter
+      An indication filter in a WBEM server whose life cycle is managed by a
+      client.
+      See :term:`DSP1054` for an authoritative definition and for details.
+
+   static indication filter
+   static filter
+      An indication filter in a WBEM server that pre-exists and whose life
+      cycle cannot be managed by a client.
+      See :term:`DSP1054` for an authoritative definition and for details.
+
+   
 .. _`References`:
 
 References

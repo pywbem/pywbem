@@ -169,12 +169,12 @@ if sys.version_info[0] == 2:
     string_types = basestring,      # pylint: disable=invalid-name
     text_type = unicode             # pylint: disable=invalid-name
     binary_type = str               # pylint: disable=invalid-name
-    from xmlrpclib import ServerProxy as xmlrpc_ServerProxy 
+    from xmlrpclib import ServerProxy as xmlrpc_ServerProxy
 else:
     string_types = str,             # pylint: disable=invalid-name
     text_type = str                 # pylint: disable=invalid-name
     binary_type = bytes             # pylint: disable=invalid-name
-    from xmlrpc.client import ServerProxy as xmlrpc_ServerProxy 
+    from xmlrpc.client import ServerProxy as xmlrpc_ServerProxy
 
 
 class OsDistribution(Distribution):
@@ -641,7 +641,8 @@ class BaseInstaller(object):
                 (self.env, pkg_req)
             )
 
-    def version_matches_req(self, version, req_list=None):
+    @staticmethod
+    def version_matches_req(version, req_list=None):
         """Test whether a version matches all version requirements in a list.
         This can be used for OS packages and for Python packages.
 
@@ -705,7 +706,8 @@ class BaseInstaller(object):
                 )
         return True
 
-    def pkg_req(self, pkg_name, version_reqs):
+    @staticmethod
+    def pkg_req(pkg_name, version_reqs):
         """Return a string from package name and list of version requirements.
         """
         req = pkg_name
@@ -875,10 +877,12 @@ class PythonInstaller(BaseInstaller):
         """
         # The new Pypi warehouse is at this URL.
         # The pip.commands.search.SearchCommand() API used before uses the
-        # old https://pypi.python.org/pypi site which has quite bogus search behaviour.
+        # old https://pypi.python.org/pypi site which has quite bogus search
+        # behaviour.
         pypi_url = 'https://pypi.org/pypi'
         pypi_rpc = xmlrpc_ServerProxy(pypi_url)
-        info_dicts = pypi_rpc.search(dict(name=pkg_name))  # Empty list, if not found.
+        info_dicts = pypi_rpc.search(dict(name=pkg_name))
+        # The above returns an empty list, if not found.
         versions = [d['version'] for d in info_dicts]
         available = False
         sufficient = False

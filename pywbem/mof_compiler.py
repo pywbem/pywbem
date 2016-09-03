@@ -1695,10 +1695,12 @@ class BaseRepositoryConnection(object):
       errors.
     """
 
-    def _get_not_impl(self):
+    # See below
+    def _getns(self):
         raise NotImplementedError
 
-    def _set_not_impl(self, value):
+    # See below
+    def _setns(self, value):
         raise NotImplementedError
 
     # Ideally this property would be created via abstractproperty(), but then
@@ -1706,7 +1708,7 @@ class BaseRepositoryConnection(object):
     # property() and raise NotImplementedError exceptions in the default
     # implementations of the getter/setter methods.
     default_namespace = property(
-        _get_not_impl, _set_not_impl, None,
+        _getns, _setns, None,
         """The default repository namespace, as a string (readable and
         writeable).""")
 

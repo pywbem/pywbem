@@ -80,7 +80,8 @@ class CIMXMLTest(unittest.TestCase):
         self.xml_str = []   # List of expected XML strings resulting from each
                             # test case.
 
-    def validate(self, xml, expectedResult=0):
+    @staticmethod
+    def validate(xml, expectedResult=0):
         # pylint: disable=unused-argument
         """xml is a string with the CIM-XML."""
         validate_xml(xml, dtd_directory='../..')
@@ -106,8 +107,11 @@ class CIMXMLTest(unittest.TestCase):
 
 # pylint: disable=too-few-public-methods
 class UnimplementedTest(object):
-    def test_all(self):
+
+    @staticmethod
+    def test_all():
         raise AssertionError('Unimplemented test')
+
 
 #################################################################
 #     3.2.1. Top Level Elements
