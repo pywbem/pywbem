@@ -731,10 +731,13 @@ class WBEMListener(object):
         Each listener object has its own separate logger object that is
         created via :func:`py:logging.getLogger`.
 
-        The name of this logger object is: `pywbem.listener.{id}` where `{id}`
-        is the :func:`id` value of the listener object. Users of the listener
-        should not look up the logger object by name, but should use this
-        property to get to it.
+        The name of this logger object is:
+
+          ``pywbem.listener.{id}``
+
+        where ``{id}`` is the :func:`id` value of the listener object. Users
+        of the listener should not look up the logger object by name, but
+        should use this property to get to it.
 
         By default, this logger uses the :class:`~py:logging.NullHandler` log
         handler, and its log level is :attr:`~py:logging.NOTSET`. This causes
@@ -743,9 +746,7 @@ class WBEMListener(object):
 
         The behavior of this logger can be changed by invoking its methods
         (see :class:`py:logging.Logger`). The behavior of the root logger can
-        for example be configured using :func:`py:logging.basicConfig`:
-
-        ::
+        for example be configured using :func:`py:logging.basicConfig`::
 
             import sys
             import logging
@@ -846,7 +847,7 @@ class WBEMListener(object):
 
         Parameters:
 
-          indication (:class:`~pywbem.CIMIndication`):
+          indication (:class:`~pywbem.CIMInstance`):
             Representation of the CIM indication to be delivered.
 
           host (:term:`string`):
@@ -897,8 +898,8 @@ def callback_interface(indication, host):
     Raises:
 
         Exception: If a callback function raises any exception this is logged
-        as an error using the listener logger and the next registered callback
-        function is called.
+          as an error using the listener logger and the next registered
+          callback function is called.
     """
     raise NotImplementedError
 

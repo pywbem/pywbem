@@ -221,7 +221,7 @@ class WBEMSubscriptionManager(object):
         Parameters:
 
           server_id (:term:`string`):
-            The server ID for the WBEM server, returned by
+            The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
         Returns:
@@ -288,7 +288,7 @@ class WBEMSubscriptionManager(object):
         Parameters:
 
           server_id (:term:`string`):
-            The server ID for the WBEM server, returned by
+            The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
         Raises:
@@ -341,17 +341,17 @@ class WBEMSubscriptionManager(object):
     #pylint: disable=line-too-long
     def add_listener_destinations(self, server_id, listener_urls, owned=True):
         """
-        Register a WBEM listener to be the target of indications sent by a
+        Register WBEM listeners to be the target of indications sent by a
         WBEM server.
 
         This function automatically creates a listener destination instance
         (of CIM class "CIM_ListenerDestinationCIMXML") for each specified
-        listener in the Interop namespace of the specified WBEM server.
+        listener URL in the Interop namespace of the specified WBEM server.
 
         Parameters:
 
           server_id (:term:`string`):
-            The server ID for the WBEM server, returned by
+            The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
           listener_urls (:term:`string` or list of :term:`string`):
@@ -449,7 +449,7 @@ class WBEMSubscriptionManager(object):
         Parameters:
 
           server_id (:term:`string`):
-            The server ID for the WBEM server, returned by
+            The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
         Returns:
@@ -480,7 +480,7 @@ class WBEMSubscriptionManager(object):
         Parameters:
 
           server_id (:term:`string`):
-            The server ID for the WBEM server, returned by
+            The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
           destination_paths (:class:`~pywbem.CIMInstanceName` or list of :class:`~pywbem.CIMInstanceName`):
@@ -521,7 +521,7 @@ class WBEMSubscriptionManager(object):
         Parameters:
 
           server_id (:term:`string`):
-            The server ID for the WBEM server, returned by
+            The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
           source_namespace (:term:`string`):
@@ -611,7 +611,7 @@ class WBEMSubscriptionManager(object):
         Parameters:
 
           server_id (:term:`string`):
-            The server ID for the WBEM server, returned by
+            The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
         Returns:
@@ -638,7 +638,7 @@ class WBEMSubscriptionManager(object):
         Parameters:
 
           server_id (:term:`string`):
-            The server ID for the WBEM server, returned by
+            The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
         Returns:
@@ -666,7 +666,7 @@ class WBEMSubscriptionManager(object):
         Parameters:
 
           server_id (:term:`string`):
-            The server ID for the WBEM server, returned by
+            The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
           filter_path (:class:`~pywbem.CIMInstanceName`):
@@ -710,19 +710,25 @@ class WBEMSubscriptionManager(object):
         Parameters:
 
           server_id (:term:`string`):
-            The server ID for the WBEM server, returned by
+            The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
           filter_path (:class:`~pywbem.CIMInstanceName`):
             Instance path of the indication filter instance in the WBEM
-            server that specifies the indications to be sent. When creating
-            not-owned subscriptions, this must be a not-owned filter.
+            server that specifies the indications to be sent.
+
+            When creating not-owned subscriptions, this filter also must be
+            not-owned.
 
           destination_paths (:class:`~pywbem.CIMInstanceName` or list of :class:`~pywbem.CIMInstanceName`):
-            If not `None`, the instance paths of the listener destination
-            instances in the specified WBEM server that will become the
-            destinations for the created subscriptions. When creating not-owned
-            subscriptions, this must be a not-owned listener destination.
+            If not `None`, subscriptions will be created for the listener
+            destinations whose instance paths are specified in this argument.
+
+            If `None`, subscriptions will be created for all owned listener
+            destinations registered to this subscription manager.
+
+            When creating not-owned subscriptions, all involved listener
+            destinations must be not-owned, too.
 
           owned (:class:`py:bool`)
             Defines whether or not the subscription instances that are created
@@ -800,7 +806,7 @@ class WBEMSubscriptionManager(object):
         Parameters:
 
           server_id (:term:`string`):
-            The server ID for the WBEM server, returned by
+            The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
         Returns:
@@ -830,7 +836,7 @@ class WBEMSubscriptionManager(object):
         Parameters:
 
           server_id (:term:`string`):
-            The server ID for the WBEM server, returned by
+            The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
         Returns:
@@ -857,7 +863,7 @@ class WBEMSubscriptionManager(object):
         Parameters:
 
           server_id (:term:`string`):
-            The server ID for the WBEM server, returned by
+            The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
           sub_paths (:class:`~pywbem.CIMInstanceName` or list of :class:`~pywbem.CIMInstanceName`):
