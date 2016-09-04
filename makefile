@@ -1,9 +1,10 @@
 # ------------------------------------------------------------------------------
 # Makefile for pywbem
 #
-# Supported platforms:
+# Supported platforms for this makefile:
 #   Windows
 #   Linux
+#   OS-X
 #
 # Basic prerequisites for running this makefile:
 #   bash, sh
@@ -53,10 +54,7 @@ dist_dir := dist/$(package_name)-$(package_final_mn_version)
 bdist_file := $(dist_dir)/$(package_name)-$(package_version)-py2.py3-none-any.whl
 sdist_file := $(dist_dir)/$(package_name)-$(package_version).tar.gz
 
-# Windows installable (as built by setup.py)
-win64_dist_file := $(dist_dir)/$(package_name)-$(package_version).win-amd64.exe
-
-dist_files := $(bdist_file) $(sdist_file) $(win64_dist_file)
+dist_files := $(bdist_file) $(sdist_file)
 
 # Lex/Yacc table files, generated from and by mof_compiler.py
 moftab_files := $(package_name)/mofparsetab.py $(package_name)/moflextab.py
@@ -147,12 +145,11 @@ help:
 	@echo 'Uses the currently active Python environment: Python $(python_version_fn)'
 	@echo 'Valid targets are (they do just what is stated, i.e. no automatic prereq targets):'
 	@echo '  develop    - Prepare the development environment by installing prerequisites'
-	@echo '  build      - Build the distribution files in: $(dist_dir) (requires Linux or OSX)'
-	@echo '  buildwin   - Build the Windows installable in: $(dist_dir) (requires Windows 64-bit)'
+	@echo '  build      - Build the distribution files in: $(dist_dir) (requires to run on Linux or OS-X)'
 	@echo '  builddoc   - Build documentation in: $(doc_build_dir)'
 	@echo '  check      - Run PyLint on sources and save results in: pylint.log'
 	@echo '  test       - Run unit tests and save results in: $(test_log_file)'
-	@echo '  all        - Do all of the above (except buildwin when not on Windows)'
+	@echo '  all        - Do all of the above'
 	@echo '  install    - Install distribution archive to active Python environment'
 	@echo '  upload     - build + upload the distribution files to PyPI'
 	@echo '  clean      - Remove any temporary files'
@@ -166,10 +163,6 @@ develop:
 
 .PHONY: build
 build: $(bdist_file) $(sdist_file)
-	@echo '$@ done.'
-
-.PHONY: buildwin
-buildwin: $(win64_dist_file)
 	@echo '$@ done.'
 
 .PHONY: builddoc
@@ -284,17 +277,7 @@ ifneq ($(PLATFORM),Windows)
 	python setup.py sdist -d $(dist_dir) bdist_wheel -d $(dist_dir) --universal
 	@echo 'Done: Created distribution files: $@'
 else
-	@echo 'Error: Creating distribution archives requires to run on Linux or OSX'
-	@false
-endif
-
-$(win64_dist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
-ifeq ($(PLATFORM),Windows)
-	rm -rf MANIFEST $(package_name).egg-info .eggs
-	python setup.py bdist_wininst -d $(dist_dir) -o -t "PyWBEM v$(package_version)"
-	@echo 'Done: Created Windows installable: $@'
-else
-	@echo 'Error: Creating Windows installable requires to run on Windows'
+	@echo 'Error: Creating distribution archives requires to run on Linux or OS-X'
 	@false
 endif
 
