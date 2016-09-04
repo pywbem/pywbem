@@ -132,7 +132,6 @@ Enhancements
 
   - Source archive (existed)
   - Universal wheel (new)
-  - Windows installable (new)
 
   (Issue #242)
 

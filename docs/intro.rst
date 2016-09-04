@@ -76,12 +76,8 @@ Supported environments
 
 Pywbem is supported in these environments:
 
-* on Windows, with Python 2.6, 2.7, 3.4, 3.5, and higher 3.x
-
-* on Linux, with Python 2.6, 2.7, 3.4, 3.5, and higher 3.x
-
-OS X has not been tested and is therefore not listed, above. You are welcome to
-try it out and `report any issues <https://github.com/pywbem/pywbem/issues>`_.
+* Operating Systems: Linux, Windows, OS-X (testing has mostly happened on Linux)
+* Python: 2.6, 2.7, 3.4, 3.5, and higher 3.x
 
 .. _`Standards conformance`:
 
