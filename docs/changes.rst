@@ -12,6 +12,7 @@ Change log
    .. git_changelog::
       :revisions: 1
 
+
 pywbem v0.9.0.dev0
 ------------------
 
@@ -22,15 +23,24 @@ Deprecations
 
 * Deprecated the use of the `value` instance variable and ctor parameter
   of the `CIMParameter` class, because that class represents CIM parameter
-  declarations, which do not have a default value.
+  declarations, which do not have a default value. Accessing this instance
+  variable and specifying an initial value other than `None` now causes a
+  `DeprecationWarning` to be issued.
 
-* Deprecated ordering comparisons for NocaseDict, CIMInstance, CIMInstanceName,
-  and CIMClass objects. This affects the ordering comparisons between two such
-  objects, not the ordering of the items within such a dictionary.
+* Deprecated ordering comparisons for `NocaseDict`, `CIMInstance`,
+  `CIMInstanceName`, and `CIMClass` objects. This affects the ordering
+  comparisons between two such objects, not the ordering of the items within
+  such a dictionary. Use of ordering operators on objects of these classes
+  now causes a `DeprecationWarning` to be issued.
 
 * Deprecated the `methodname` input argument of `CIMMethod()`, and renamed it
-  to `name`. `methodname` still works but its use causes a DeprecationWarning
+  to `name`. `methodname` still works but its use causes a `DeprecationWarning`
   to be issued.
+
+* Deprecated the use of the `verify_callback` parameter of `WBEMConnection`.
+  because it is not used with the Python ssl module and will probably be
+  removed completely in the future.  Its use now causes a `DeprecationWarning`
+  to be issued. (Issue #297)
 
 Clean Code
 ^^^^^^^^^^
@@ -55,15 +65,85 @@ Clean Code
 Enhancements
 ^^^^^^^^^^^^
 
+* Implemented pull operations per DMTF specification DSP0200 and DSP0201.
+  This includes the following new client operations to execute enumeration
+  sequences:
+
+  - OpenEnumerateInstances
+  - OpenEnumerateInstancePaths
+  - OpenAssociatorInstances
+  - OpenAssociatorInstancePaths
+  - OpenReferenceInstances
+  - OpenReferenceInstancePaths
+  - OpenQueryInstances
+  - PullInstances
+  - PullInstancesWithPath
+  - PullInstancePaths
+  - CloseEnumeration
+
+  The EnumerationCount operation is NOT implemented, because it is both
+  deprecated and unusable. (Issue #9)
+
+  Unit tests of the pull operations are included and mock tests are written
+  for at least some parts of the pull operations.
+
+* Implemented support for reading information from WBEM servers according to
+  the DMTF WBEM Server Profile (DSP1071) and DMTF Profile Registration Profile
+  (DSP1033) with a new `WBEMServer` class. Note that not everyhting in these
+  profiles needs to be implemented in the WBEM server for this to work:
+
+  - The `WBEMServer` class is a client's view on a WBEM server and provides
+    consistent and convenient access to the common elements of the server,
+    including namespace names, interop namespace name, registered profile
+    information, server branding, and central/scoping class algorithms.
+
+  - Added unit tests for this new class in `run_cim_operations.py` and
+    `test_client.py`.
+
+  - Added a demo of the discovery abilities of the `WBEMServer` class in the
+    `examples/explore.py` script.
+
+  **Experimental** - This new class is experimental for pywbem version 0.9.0
+  because this is the initial release of a significant change and subject to
+  changes to the API.
+
+  (Issues #9, #346, #468)
+
+* Implemented support for WBEM subscription management and a WBEM indication
+  listener:
+
+  - Added a `WBEMListener` class that allows the creation of a listener entity
+    to receive indications.
+
+  - Added a `WBEMSubscriptionManager` class that allows management of
+    indication subscriptions, indication filters, and listener destination
+    instances on the WBEM Server using the new WBEMServer class.
+
+  - Added unit tests for these new classes and extended other existing tests
+    accordingly, e.g. `run_cim_operations.py`.
+
+  **Experimental** - These new classes are experimental for pywbem version
+  0.9.0 because this is the initial release of a significant change and subject
+  to changes to the API.
+
+  (Issues #66, #421, #414, #379, #378)
+
 * The distribution formats have been extended. There are now:
 
   - Source archive (existed)
   - Universal wheel (new)
   - Windows installable (new)
 
-  (issue #242)
+  (Issue #242)
 
 * Upgraded M2Crypto to use official 0.24.0 from PyPI.
+
+* Added check for minimum Python version 3.4 when running on Python 3.
+  That requirement was already documented, now it is also enforced in the code.
+
+* Migrated API documentation to Sphinx.
+
+* Improved documentation of many classes of the external API.
 
 * Replaced `[]` and `{}` default arguments with None.
 
@@ -82,7 +162,6 @@ Enhancements
   Specifically, this resulted in the following changes:
 
   - For `CIMProperty`, reduced the complete set of attributes to a short set.
-  - For `CIMParameter`, added the attribute `value`.
   - For `CIMQualifierDeclaration`, added the attribute `value`.
 
 * Changes in the `CIMError` exception class:
@@ -97,11 +176,7 @@ Enhancements
   - Updated the documentation to no longer show the unused third tuple element
     `exception_obj`. It was never created, so this is only a doc change.
 
-* Migrated API documentation to Sphinx.
-
-* Improved documentation of many classes of the external API.
-
-* Added CIM status codes 20 to 28.
+* Added CIM status codes 20 to 28, specifically to support the pull operations.
 
 * Changed the `ParseError` exception to be derived from the `Error` base
   exception, so that now all pywbem specific exceptions are derived from
@@ -112,8 +187,8 @@ Enhancements
   as a unicode string either in a single-line variant, or in a prettified
   multi-line variant.
 
-* Created tomof() for CIMProperty making common functionality available
-  to both class and instance tomof() pr # 151
+* Created `tomof()` for `CIMProperty` making common functionality available
+  to both class and instance `tomof()` (PR #151)
 
 * Added an optional `namespace` parameter to the
   `WBEMConnection.CreateInstance()` method, for consistency with other methods,
@@ -135,14 +210,11 @@ Enhancements
   be turned off via a config variable:
   `pywbem.config.ENFORCE_INTEGER_RANGE = False`.
 
-* Extended wbemcli arguments to include all possible arguments that would
+* Extended `wbemcli` arguments to include all possible arguments that would
   be logical for a ssl or non-ssl client. This included arguments for
   ca certificates, client keys and certificates, timeout. It also modifies
   the server argument to use http:// or https:// prefix and suffix with
-  :<port number> and drops the old arguments of --port and --no-ssl
-
-* Fixed description in INSTALL.md to correctly describe how to establish
-  OS-level prerequisites.
+  :<port number> and drops the old arguments of `--port` and `--no-ssl`
 
 * Improved Swig installation code by reinstalling Swig if it was installed
   but still cannot be found in PATH (e.g. if the installation was tampered
@@ -154,7 +226,7 @@ Enhancements
 * Added debug prints for two probably legitimate situations where socket
   errors are ignored when the server closes or resets the connection.
   These debug prints can be enabled via the `debug` instance variable
-  of the WBEMConnection object; they are targeted at development for
+  of the `WBEMConnection` object; they are targeted at development for
   investigating these situations.
 
 * Extended run_cim_operations.py which is a live test against a server.
@@ -165,115 +237,65 @@ Enhancements
 
 * Added description of supported authentication types in WBEM client API.
 
-* Allow tuple as input for PropertyList parameter of cim_operations.
-  Documentation indicated that iterable was allowed but was limited
-  to list. (issue #347)
-
-* Implemented pull operations per DMTF specification DSP0200 and DSP0201.
-  This includes the following new client operations to execute enumeration
-  sequences:
-
-  - OpenEnumerateInstances
-  - OpenEnumerateInstancePaths
-  - OpenAssociatorInstances
-  - OpenAssociatorInstancePaths
-  - OpenReferenceInstances
-  - OpenReferenceInstancePaths
-  - OpenQueryInstances
-  - PullInstances
-  - PullInstancesWithPath
-  - PullInstancePaths
-  - CloseEnumeration
-
-  The EnumerationCount operation is NOT implemented, because it is both
-  deprecated and unusable. (Issue #9)
+* Allowed tuple as input for `PropertyList` parameter of `WBEMConnection`
+  operation methods. Documentation indicated that iterable was allowed but was
+  limited to list. (Issue #347)
 
 * Added a tutorial section to the generated documentation, using
-  Jupyter Notebooks for each tutorial page. (issue #324)
+  Jupyter Notebooks for each tutorial page. (Issue #324)
 
 * Added the concept of operation recording on WBEM connections, that supports
   user-written operation recorders e.g. for tracing purposes. Added an
   operation recorder that generates test cases for the `test_client`
-  unit test module. (issue #351)
+  unit test module. (Issue #351)
 
-* Added example of inprocess indication subscription and handling in the
-  examples directory.
-
-* Extended wbemcli for all pull operations. (issue #341)
-
-* extend live testing with cim_operation.py to include tests on the server
-  class (issue #346)
+* Extended `wbemcli` for all pull operations. (Issue #341)
 
 * Changed command line options of `mof_compiler` command to be consistent
   with `wbemcli`, and added support for specifying certificate related
   options. use of the old options is checked and causes an according error
   message to be displayed. Note, this is an incompatible change in the
-  command line options. (issue #216)
-
-* Extended run_cimoperation.py to include basic listener test to create and
-  delete indication subscriptions in the server.  This test does not process
-  indicaitons from the server. (issue#379)
-
-* Implemented server and listener classes(issue #66) to provide the following:
-
-  - `WBEMServer` class for a WBEM server that uses a WBEMconnection. This
-    class provides access to the common elements of the WBEMServer profile
-    including namespaces, interop namespace, profile information, server
-    branding, central/scoping class algorithm, etc.
-      
-  - `WBEMListener` class that allows management of indication subscriptions
-    and the creation of a listener entity to receive indications.
-
-  **Experimental** - The WBEMServer and WBEMListener are experimental for
-  pywbem version 0.9.0 since this is the initial release of a significant
-  change and subject to changes to the API
-
-* Extend the server class with a function (filterProfiles) to select a
-  subset of profiles from the server based on organization, profile name,
-  and profile version (issue #378) with a demo in examples/explure.py and
-  tests in run_cim_operations.py
+  command line options. (Issue #216)
 
 * Cleaned up exception handling in `WBEMConnection` methods: Authentication
   errors are now always raised as `pywbem.AuthError` (OpenWBEM raised
   `pywbem.ConnectionError` in one case), and any other bad HTTP responses
   are now raised as a new exception `pywbem.HTTPError`.
 
-* Extend WBEMListener to get all ListenerDestination objects and
-  CIM_IndicationSubscription objects from WBEM Server. (issue #421).
-
-* Clarify MofParseError by defining attributes as part of the class init and
-  moving some code from productions to the class itself (issue #169). This
-  make MofParseError exception more suitable for use from the productions
+* Clarified `MofParseError` by defining attributes as part of the class init
+  and moving some code from productions to the class itself (Issue #169). This
+  makes the `MofParseError` exception more suitable for use from the productions
   themselves. The original definition was really only for use as a call from
   ply. Add tests for invalid qualifier flavors to unit tests and add test in
   mof_compiler.py for conflicting flavors ex. tosubclass and restricted in
-  the same definition. This test uses the new MofParseError (issue #204)
+  the same definition. This test uses the new `MofParseError`. (Issue #204)
 
-* Separate _listener from the client part which is moved to a new class,
-  in subscription_manager.py (see issue #414)
-
-
-Bug fixes
-^^^^^^^^^
-
-* In `CIMInstance` and `CIMInstanceName`, fixed KeyError when iterating
-  over the objects.
+* Extended PropertyList argument in request operations to be either list
+  or tuple. (Issue #347)
 
 * Added support for representing control characters in MOF strings using MOF
   escape sequences, e.g. U+0001 becomes `"\x0001"`.
 
+* Modified qualifier MOF output to stay within 80 column limits.
+  (Issue #35)
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed `KeyError` when iterating over `CIMInstance` and `CIMInstanceName`
+  objects.
+
 * Fixed bug that MOF escape sequences in strings were passed through
   unchanged, into generated MOF, by removing needless special-casing code.
 
-* fix bug with class mof generation where output was not including array
-  indicator ([]). Issue #233
+* Fixed bug with class MOF generation where output was not including array
+  indicator ([]). (Issue #233)
 
-* Move class.property tomof processing to CIMProperty and fix issue
-  where default values not being generated. Issue 223 and #231.
+* Moved class property MOF output processing to `CIMProperty` and fixed issue
+  where default values were not being generated. (Issues #223 and #231)
 
-* Modify qualifier.tomof processing to stay within 80 column limits. Issue #35
-
-* fix bug in method mof output where array flag "[]" left off array parameters.
+* Fixed bug in method MOF output where array flag "[]" was left off array
+  parameters.
 
 * In the `WBEMConnection.ModifyInstance()` method, the class names in the
   instance and path component of the `ModifiedInstance` parameter are required,
@@ -286,63 +308,56 @@ Bug fixes
 
 * Fixed a bug where the CIM datetime string returned by the `str()` function
   on `CIMDateTime` interval objects contained incorrect values for the minutes
-  and seconds fields on Python 3 (issue #275).
-
-* Added check for minimum Python version 3.4 when running on Python 3.
-  That requirement was already documented, now it is also enforced in the code.
+  and seconds fields on Python 3. (Issue #275).
 
 * Fixed an IndexError in cim_http.wbem_request() that occurred during handling
   of another exception.
 
-* fixed issue with python 3 and https that was causing connect() to fail.
-  This completely separates connect() code for python 3 ssl module from
-  python 2 m2cyrpto.
+* Fixed issue with Python 3 and https that was causing connect() to fail.
+  This completely separates connect() code for Python 3 ssl module from
+  Python 2 M2Crypto.
 
 * Fixed problem that wbemcli in Python 3 when used without existing history
   file would fail with "TypeError: 'FileNotFoundError' object is not
-  subscriptable" (issue #302).
+  subscriptable". (Issue #302)
 
 * Fixed issue with tomof() output where datetime values were not quoted.
-  (issue #289)
+  (Issue #289)
 
-* Eliminate automatic setting of toinstance flavor in mof_compiler when
+* Eliminated automatic setting of toinstance flavor in mof_compiler when
   tosubclass is set.  Also enabled use of toinstance flavor if defined
-  in a class or qualifier declaration. (issue 193)
+  in a class or qualifier declaration. (Issue #193)
 
-* Fixed problem in class-level associator operations that namespace was classname
-  when classname was passed as a string (issue #322).
+* Fixed problem in class-level associator operations that namespace was
+  classname when classname was passed as a string. (Issue #322)
 
 * Fixed hole in checking where class CIMMethod allowed None as a return_type.
-  (issue #264)
+  (Issue #264)
 
-* Documentation issue with associators/references return. Was documented
-  as list of classes for class level return but it actually list of
-  tuples of classname,class. (issue #339)
-
-* Extend PropertyList argument in request operations to be either list
-  or tuple. (issue #347)
-
-* Added deprecated warning to WBEMConnection verify_callback parameter
-  since it is not used with python ssl module and will probably be 
-  removed completely in the future. (issue # 297)
+* Fixed a documentation issue with associators/references return types. It was
+  documented as a list of classes for class level return, but it actually is a
+  list of tuples of classname, class. (Issue #339)
 
 * Created a common function for setting SSL defaults and tried to create
   the same level of defaults for both Python2 (M2Crypto) and Python 3 (SSL
   module).  The minimum level protocol set by the client is TLSV1 now whereas
-  in previous versions of pywbem it was SSLV23. (issue # 295)
+  in previous versions of pywbem it was SSLV23. (Issue #295)
 
-* WBEMServer.interop_ns now contains the returned interop namespace name,
-  if possible, instead of the attempted one.
+* Fixed issue where mof_compiler was setting values for compile of instances
+  into the class object and also setting the values for the last compiled
+  instance in a compile unit into all other compiled instances for the same
+  class. Since the concept of compiling a path into compiled instances is
+  flawed (there is no requirement to include all properties into a instance to
+  compile that code was removed so that the path is NOT build into a compiled
+  instance. Finally the qualifiers from the class were also included in
+  compiled instances which was incorrect and an accident of the code. They are
+  no longer included into the compiled instances.) (Issue #402)
 
-* Fix issue where mof_compiler was setting values for compile of instances into
-  the class object and also setting the values for the last compiled instance
-  in a compile unit into all other compiled instances for the same class. Since
-  the concept of compiling a path into compiled instances is flawed (there is
-  no requirement to include all properties into a instance to compile that code
-  was removed so that the path is NOT build into a compiled instance. Finally
-  the qualifiers from the class were also included in compiled instances which
-  was incorrect and an accident of the code.  They are no longer included into
-  the compiled instances.)  (issue # 402)
+* Fixed description in INSTALL.md to correctly describe how to establish
+  OS-level prerequisites.
+
+* Cleaned up the timeouts on SSL and created specific tests for timeouts
+  against a live server. (Issues #363, #364)
 
 
 pywbem v0.8.2
