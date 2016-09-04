@@ -2,9 +2,9 @@
 # Makefile for pywbem
 #
 # Supported platforms for this makefile:
-#   Windows
 #   Linux
 #   OS-X
+#   Windows (with CygWin)
 #
 # Basic prerequisites for running this makefile:
 #   bash, sh
@@ -145,7 +145,7 @@ help:
 	@echo 'Uses the currently active Python environment: Python $(python_version_fn)'
 	@echo 'Valid targets are (they do just what is stated, i.e. no automatic prereq targets):'
 	@echo '  develop    - Prepare the development environment by installing prerequisites'
-	@echo '  build      - Build the distribution files in: $(dist_dir) (requires to run on Linux or OS-X)'
+	@echo '  build      - Build the distribution files in: $(dist_dir)'
 	@echo '  builddoc   - Build documentation in: $(doc_build_dir)'
 	@echo '  check      - Run PyLint on sources and save results in: pylint.log'
 	@echo '  test       - Run unit tests and save results in: $(test_log_file)'
@@ -272,14 +272,9 @@ MANIFEST.in: makefile
 # Note: Deleting MANIFEST causes distutils (setup.py) to read MANIFEST.in and to
 # regenerate MANIFEST. Otherwise, changes in MANIFEST.in will not be used.
 $(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
-ifneq ($(PLATFORM),Windows)
 	rm -rf MANIFEST $(package_name).egg-info .eggs
 	python setup.py sdist -d $(dist_dir) bdist_wheel -d $(dist_dir) --universal
 	@echo 'Done: Created distribution files: $@'
-else
-	@echo 'Error: Creating distribution archives requires to run on Linux or OS-X'
-	@false
-endif
 
 # Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)
 $(moftab_files): $(moftab_dependent_files) build_moftab.py
