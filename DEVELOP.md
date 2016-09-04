@@ -31,10 +31,8 @@ The following description applies to v0.9.0 and above.
 A shell variable `$MNU` is used in the description to refer to the `M.N.U`
 version (e.g. `0.9.4`) that is to be released.
 
-1.  Switch to the directory of the `pywbem` repo, and perform the following
-    steps in that directory.
-
-    - `cd pywbem` - this is where the `makefile` is.
+1.  Switch to your work directory of the `pywbem/pywbem` repo (this is where
+    the `makefile` is), and perform the following steps in that directory.
 
 2.  Set a shell variable for the version to be released:
 
@@ -44,14 +42,13 @@ version (e.g. `0.9.4`) that is to be released.
 
     - `git status`
 
-4.  Check out the `master` branch, because that will be the basis for the
-    topic branch (this description applies to the development release), and
-    update from upstream:
+4.  Check out the `master` branch (because that will be the basis for the
+    topic branch used to release the package), and update it from upstream:
 
     - `git checkout master`
     - `git pull`
 
-5.  Create a topic branch for the changes:
+5.  Create a topic branch for the changes to release the package:
 
     - `git checkout -b release_$MNU`
 
@@ -75,9 +72,10 @@ version (e.g. `0.9.4`) that is to be released.
     - `MN=${MNU%.*}`
     - `mkdir dist/pywbem-$MN`
     - `find dist -name README.md | sort | tail | xargs cp -t dist/pywbem-$MN/`
-    - # Edit the file and adjust to this new `M.N` release:
 
-      - `vi dist/pywbem-$MN/README.md`
+    Edit the file and adjust it to this new `M.N` release:
+
+    - `vi dist/pywbem-$MN/README.md`
 
 9.  Perform a complete build (in your favorite Python virtual environment):
 
@@ -94,7 +92,8 @@ version (e.g. `0.9.4`) that is to be released.
     - `git commit -a -m "Release v$MNU"`
     - Push the commit upstream, using one of:
 
-      - `git push --set-upstream origin release_$MNU` - if branch is pushed for the first time
+      - `git push --set-upstream origin release_$MNU` - if branch is pushed for
+        the first time
       - `git push` - after first time, for normal additional commit
       - `git push -f` - after first time, if a rebase was used
 
@@ -127,8 +126,8 @@ version (e.g. `0.9.4`) that is to be released.
 
     - Post the results to the release PR.
 
-16. If any of the tests (including the Travis CI run of the Pull Request) fails,
-    fix the problem and iterate back to step 8. until they all succeed.
+16. If any of the tests (including the Travis CI run of the Pull Request)
+    fails, fix the problem and iterate back to step 8. until they all succeed.
 
 17. Once all tests succeed:
 
@@ -208,7 +207,8 @@ version (e.g. `0.9.4`) that is to be released.
     - `git checkout master`
     - `git pull`
 
-26. Update the download table in `pywbem/installation.html` for the new release.
+26. Update the download table in `pywbem/installation.html` for the new
+    release.
     For a new M.N release, insert a new row.
     For a new M.N.U release on an existing M.N release, update the row for the
     M.N.U-1 release.
@@ -218,8 +218,8 @@ version (e.g. `0.9.4`) that is to be released.
 27. Verify that the installation page (`pywbem/installation.html` in your web
     browser) shows the new release correctly, and that all of its links work.
 
-28. Commit the changes and push to the upstream repo (we dont use a topic branch
-    for this):
+28. Commit the changes and push to the upstream repo (we dont use a topic
+    branch for this):
 
     - `git add --all`
     - `git commit -m "Release v$MNU"`
@@ -227,7 +227,8 @@ version (e.g. `0.9.4`) that is to be released.
 
 29. Verify that the
     [PyWBEM installation page](http://pywbem.github.io/pywbem/installation.html)
-    has been updated, and that all the links work and show the intended version.
+    has been updated, and that all the links work and show the intended
+    version.
 
 30. Announce the new release on the
     [pywbem-devel mailing list](http://sourceforge.net/p/pywbem/mailman/pywbem-devel/).
@@ -279,16 +280,18 @@ version (e.g. `0.9.4`) whose development is started.
     - `MN=${MNU%.*}`
     - `mkdir dist/pywbem-$MN`
     - `find dist -name README.md | sort | tail | xargs cp -t dist/pywbem-$MN/`
-    - # Edit the file and adjust to this new `M.N` release:
 
-      - `vi dist/pywbem-$MN/README.md`
+    Edit the file and adjust to this new `M.N` release:
+
+    - `vi dist/pywbem-$MN/README.md`
 
 8. Commit the changes and push to upstream:
 
     - `git commit -a -m "Start development of v$MNU"`
     - Push the commit upstream, using one of:
 
-      - `git push --set-upstream origin start_$MNU` - if branch is pushed for the first time
+      - `git push --set-upstream origin start_$MNU` - if branch is pushed for
+        the first time
       - `git push` - after first time, for normal additional commit
       - `git push -f` - after first time, if a rebase was used
 
@@ -299,8 +302,8 @@ version (e.g. `0.9.4`) whose development is started.
     will by default target the `master` branch for the merge. This is correct
     for what we do here.
 
-10. If the Travis CI run fails (should not happen) fix it and go back to step 8,
-    until it succeeds.
+10. If the Travis CI run fails (should not happen) fix it and go back to step
+    8, until it succeeds.
 
 11. Once the Travis CI run for this PR succeeds:
 
@@ -336,56 +339,33 @@ version (e.g. `0.9.4`) whose development is started.
 Use of Python namespaces
 ========================
 
-This section describes how Python namespaces are used by the PyWBEM Client project.
+This section describes how Python namespaces are used by the pywbem package.
 
-There is obviously a history of namespace usage in pywbem that is different, and
-that we try to still support for compatibility. This section describes both the
-future use and the historical use.
+There is obviously a history of namespace usage in pywbem that is different,
+and that we try to still support for compatibility. This section describes both
+the future use and the historical use.
 
-The PyWBEM Client project corresponds 1:1 to:
+The pywbem package corresponds 1:1 to:
 
 * GitHub repository `pywbem/pywbem`
 * Pypi package `pywbem`
 * Python namespace `pywbem` and its sub-namespaces.
 
-The following sub-namespaces are used:
+The following namespaces are used (as of v0.9.0):
 
-* `pywbem.client`: WBEM client API.
+* `pywbem`: WBEM client API, WBEM indication API.
 
   It provides the traditional PyWBEM stuff, minus the MOF compiler and any
   stuff that was moved to the attic (e.g. `cim_provider`):
 
-  - `WBEMConnection` class
-  - CIM object classes (e.g. `CIMInstance`)
-  - CIM data type classes (e.g. `Uint8`)
-  - constants for CIM status codes (`CIM_ERR_*`)
+  Note that the `irecv` namespace was always experimental and will be go to
+  the attic.
 
-  The content of this namespace is also available in the `pywbem` namespace,
-  and in the historical `pywbem.cim_obj` etc. namespaces, for backwards
-  compatibility.
-
-* `pywbem.listener`: WBEM listener API.
-
-   It provides:
-
-   - `WBEMListener` class
-
-   Note that the `irecv` namespace was always experimental and will be go to
-   the attic.
+  For backwards compatibility, some content of this namespace is also available
+  in the historical `pywbem.cim_obj` etc. namespaces.
 
 * `pywbem.mof_compiler`: MOF compiler API.
 
    It provides:
 
    - `MOFCompiler` class etc.
-
-* `pywbem.server`: WBEM server API (what the client side know about the server).
-
-   It provides:
-
-   - `WBEMServer` class etc.
-
-* Further namespaces that are to be discussed, for higher level management
-  functionality (e.g. for management profiles, SLP discovery, more from Interop
-  namespace).
-
