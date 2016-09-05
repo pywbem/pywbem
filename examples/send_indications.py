@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 """
-    Python script to create and send indications to a listener
+    Python script to create and send indications to a listener. Allows sending
+    either http or https requests.  Note that the verify is forced to
+    false for this version so that certificates or keys are not required.
 """
 
 from __future__ import print_function, absolute_import
@@ -9,10 +11,10 @@ import sys
 from time import time
 import datetime
 import argparse as _argparse
-from pywbem._cliutils import SmartFormatter as _SmartFormatter
-import requests
 import re
 from random import randint
+from pywbem._cliutils import SmartFormatter as _SmartFormatter
+import requests
 
 class ElapsedTimer(object):
     """
@@ -41,8 +43,15 @@ class ElapsedTimer(object):
         """
         return self.elapsed_ms() / 1000
 
-        
+
 def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
+    '''
+    Create a singled indication XML from the template and the included
+    sequence_number, delta_time, and protocol_ver
+
+    Returns the completed indication XML
+    '''
+
     data_template = """<?xml version="1.0" encoding="utf-8" ?>
     <CIM CIMVERSION="2.0" DTDVERSION="2.4">
       <MESSAGE ID="%(msg_id)s" PROTOCOLVERSION="%(protocol_ver)s">
@@ -71,10 +80,17 @@ def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
     return data_template%data
 
 
-def send_indication(url, headers, payload, verbose):
+def send_indication(url, headers, payload, verbose, cert=None, verify=None,
+                    timeout=4):
+    '''
+    Send indication using requests.
+    Return True if response code = 200. Otherwise return False
+    '''
 
     try:
-        response = requests.post(url, headers=headers, data=payload, timeout=4)
+        response = requests.post(url, headers=headers, data=payload,
+                                 timeout=timeout,
+                                 verify=verify)
     except Exception as ex:
         print('Exception %s' % ex)
         return False
@@ -94,10 +110,10 @@ def get_args():
 
     prog = "sendIndications"
     usage = '%(prog)s [options] listener-url'
-    desc = 'Send indications to a listener.'
+    desc = 'Send indications to a listener. Verify set to False'
     epilog = """
 Examples:
-  %s https://127.0.0.1 -p 5000 -u sheldon -p penny
+  %s https://127.0.0.1 -p 5001
 
   %s http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
 """ % (prog, prog)
@@ -128,7 +144,7 @@ Examples:
         type=int,
         help='Integer argument defines listener port.')
     general_arggroup.add_argument(
-        '--count', '-c', default=1,
+        '--deliver', '-d', default=1,
         metavar='integer',
         type=int,
         help='Integer argument defines number of indications to send.')
@@ -140,19 +156,19 @@ Examples:
     security_arggroup = argparser.add_argument_group(
         'Connection security related options',
         'Specify user name and password or certificates and keys')
-    security_arggroup.add_argument(
-        '--certfile', dest='cert_file', metavar='certfile',
-        help='R|Client certificate file for authenticating with the\n' \
-             'WBEM server. If option specified the client attempts\n' \
-             'to execute mutual authentication.\n'
-             'Default: Simple authentication.')
-    security_arggroup.add_argument(
-        '--keyfile', dest='key_file', metavar='keyfile',
-        help='R|Client private key file for authenticating with the\n' \
-             'WBEM server. Not required if private key is part of the\n' \
-             'certfile option. Not allowed if no certfile option.\n' \
-             'Default: No client key file. Client private key should\n' \
-             'then be part  of the certfile')
+    #security_arggroup.add_argument(
+        #'--certfile', '-c', dest='cert_file', metavar='certfile',
+        #help='R|Client certificate file for authenticating with the\n' \
+             #'WBEM listener. If option specified the client attempts\n' \
+             #'to execute mutual authentication.\n'
+             #'Default: Simple authentication.')
+    #security_arggroup.add_argument(
+        #'--keyfile', '-k', dest='key_file', metavar='keyfile',
+        #help='R|Client private key file for authenticating with the\n' \
+             #'WBEM listener. Not required if private key is part of the\n' \
+             #'certfile option. Not allowed if no certfile option.\n' \
+             #'Default: No client key file. Client private key should\n' \
+             #'then be part  of the certfile')
 
     args = argparser.parse_args()
 
@@ -166,7 +182,9 @@ Examples:
     return args
 
 def main():
-    """
+    """ Get arguments from get_args and create/send the number
+        of indications defined.  Each indication is created from a
+        template.
     """
     opts = get_args()
 
@@ -192,7 +210,7 @@ def main():
     delta_time = time() - start_time
     rand_base = randint(1, 1000)
     timer = ElapsedTimer()
-    for i in range(opts.count):
+    for i in range(opts.deliver):
 
         msg_id = '%s' % (i + rand_base)
         payload = create_indication_data(msg_id, i, delta_time,
@@ -201,7 +219,8 @@ def main():
         if opts.verbose:
             print('headers=%s\n\npayload=%s' % (headers, payload))
 
-        success = send_indication(full_url, headers, payload, opts.verbose)
+        success = send_indication(full_url, headers, payload, opts.verbose,
+                                  verify=False)
 
         if success:
             if opts.verbose:
@@ -214,8 +233,8 @@ def main():
             print('Error return from send. Terminating.')
             return
     endtime = timer.elapsed_sec()
-    print('Sent %s in %s sec or %.2f ind/sec' % (opts.count, endtime ,
-                                               (opts.count/endtime)))
+    print('Sent %s in %s sec or %.2f ind/sec' % (opts.deliver, endtime,
+                                                 (opts.deliver/endtime)))
 
 if __name__ == '__main__':
     sys.exit(main())
