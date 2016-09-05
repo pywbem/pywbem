@@ -482,10 +482,7 @@ class WBEMSubscriptionManager(object):
         Remove listener destinations from a WBEM server, by deleting the
         listener destination instances in the server.
 
-        The listener destination instances must be not-owned. Owned listener
-        destination instances are not allowed to be removed using this method,
-        because the subscription manager will automatically remove them when
-        the WBEM server is deregistered.
+        The listener destinations may be owned or not-owned.
 
         Parameters:
 
@@ -508,15 +505,17 @@ class WBEMSubscriptionManager(object):
                 self.remove_destinations(server_id, dest_path)
             return
 
-        # Here sub_paths will contain only a single path entry
         server = self._get_server(server_id)
-
-        dest_path = destination_paths  # assign to internal variable for clarity
-        if dest_path in self._owned_destination_paths:
-            raise ValueError("Not allowed to remove owned listener "\
-                             "destination: %s" % dest_path)
-
         server.conn.DeleteInstance(dest_path)
+
+        # Here destination_paths will contain only a single path entry.
+        # Assign to internal variable for clarity
+        dest_path = destination_paths
+        paths = self._owned_destination_paths[server_id]
+        for i, path in enumerate(paths):
+            if path == dest_path:
+                del paths[i]
+                # continue look to find any possible duplicate entries
 
     def add_filter(self, server_id, source_namespace, query,
                    query_language=DEFAULT_QUERY_LANGUAGE,
