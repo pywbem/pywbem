@@ -43,6 +43,20 @@ Deprecations
   removed completely in the future.  Its use now causes a `DeprecationWarning`
   to be issued. (Issue #297)
 
+Known Issues
+^^^^^^^^^^^^
+
+* Installing PyWBEM on Python 2.6 has a conflict with the `pbr` package
+  from PyPI, resulting in a TypeError: "dist must be a Distribution
+  instance". This issue is specific to Python 2.6 and does not occur in
+  any of the other supported Python versions (2.7, 3.4, 3.5). This issue
+  can be mitigated by uninstalling the `pbr` package, or if that is not
+  possible, by migrating to Python 2.7. See issue #26 on GitHub.
+
+* MOF using names that are reserved keywords will fail to compile in the
+  MOF compiler. For example, a CIM property named 'indication'.
+  See issue #62 on GitHub.
+
 Clean Code
 ^^^^^^^^^^
 
