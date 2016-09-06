@@ -380,6 +380,85 @@ Bug fixes
   against a live server. (Issues #363, #364)
 
 
+pywbem-0.8.4
+^^^^^^^^^^^^
+
+Released: 2016-05-13
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed an IndexError in cim_http.wbem_request() that occurred during
+  handling of another exception.
+
+* Fixed problem that wbemcli in Python 3 when used without existing history
+  file would fail with "TypeError: 'FileNotFoundError' object is not
+  subscriptable" (issue #302).
+
+* Fixed issues with Python 3 and HTTPS that were causing the connecttion
+  to fail. This completely separates the `connect()` code for Python 3
+  (using the Python SSL module) from the code for Python 2 (using
+  M2Crypto) (issues #150, #273, #274, #288).
+
+Enhancements
+^^^^^^^^^^^^
+
+* Improved description in INSTALL.md to better describe how to establish
+  OS-level prerequisites.
+
+* Improved Swig installation code by reinstalling Swig if it was installed
+  but still cannot be found in PATH (e.g. if the installation was tampered
+  with).
+
+* Removed dependency on git (this was a leftover from when M2Crypto needed
+  to be obtained from its development repo).
+
+* Added debug prints for two probably legitimate situations where socket
+  errors are ignored when the server closes or resets the connection.
+  These debug prints can be enabled via the `debug` instance variable
+  of the WBEMConnection object; they are targeted at development for
+  investigating these situations.
+
+* Added check for minimum Python version 3.4 when running on Python 3.
+  That requirement was already documented, now it is also enforced in
+  the code.
+
+* Enhanced the wbemcli script with options supporting certificates.
+  For details, invoke with --help, or look at the online documentation.
+  NOTE: The --no-ssl and --port options have been removed. Specify
+  the protocol and port number in the server URL.
+
+Clean code
+^^^^^^^^^^
+
+* Removed half-baked code for HTTP proxy/tunneling support.
+
+
+pywbem-0.8.3
+------------
+
+Released: 2016-04-15
+
+Bug fixes
+^^^^^^^^^
+
+* To address some M2Crypto issues, upgraded to use M2Crypto >=0.24 from
+  PyPI.
+
+* For Windows, using M2CryptoWin32/64 >=0.21 from PyPI, in order to
+  avoid the Swig-based build in Windows.
+
+* Improved the mechanism to build the LEX/YACC table modules, so that
+  import errors for freshly installed packages (e.g. M2Crypto) no longer
+  occur.
+
+Enhancements
+^^^^^^^^^^^^
+
+* Added Windows versions of WBEM utility commands: wbemcli.bat,
+  mof_compiler.bat.
+
+
 pywbem v0.8.2
 -------------
 
