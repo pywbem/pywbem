@@ -15,18 +15,12 @@
 #
 
 """
-The `WBEM listener API`_ provides functionality for managing subscriptions for
-indications from one or more WBEM servers, and implements a thread-based WBEM
-listener service.
-
-.. note::
-
-   At this point, the WBEM listener API is experimental.
+The :class:`~pywbem.WBEMListener` class provides a thread-based WBEM listener
+service that can receive CIM indications from multiple WBEM servers and that
+calls registered callback functions to deliver the received indications.
 
 Examples
 --------
-See _subscription_manager.py and the examples directory for an example of
-a subscription_manager and listener defined in the same executable.
 
 The following example creates and runs a listener::
 
@@ -69,10 +63,12 @@ The following example creates and runs a listener::
             # listener runs until executable terminated
             # or listener.stop()
 
-Another more practical listener example is in the script ``examples/listen.py``
-(when you clone the GitHub pywbem/pywbem project).
-It is an interactive Python shell that creates a WBEM listener and displays
-any indications it receives, in MOF format.
+See the example in section :ref:`WBEMSubscriptionManager` for an example of
+using a listener in combination with a subscription manager.
+
+Another listener example is in the script ``examples/listen.py`` (when you
+clone the GitHub pywbem/pywbem project). It is an interactive Python shell that
+creates a listener and displays any indications it receives, in MOF format.
 """
 
 import re
@@ -102,9 +98,7 @@ from .cim_constants import CIM_ERR_NOT_SUPPORTED, \
                            CIM_ERR_INVALID_PARAMETER, _statuscode2name
 from .tupleparse import parse_cim
 from .tupletree import dom_to_tupletree
-from .exceptions import ParseError, VersionError
-
-
+from .exceptions import ParseError, VersionError, Error
 
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
@@ -447,7 +441,8 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(resp_body)
 
-    def parse_export_request(self, request_str):
+    @staticmethod
+    def parse_export_request(request_str):
         """Parse a CIM-XML export request message, and return
         a tuple(msgid, methodname, params).
         """
@@ -583,7 +578,6 @@ class WBEMListener(object):
     The listener supports starting and stopping threads that listen for
     CIM-XML ExportIndication messages using HTTP and/or HTTPS, and that pass
     any received indications on to registered callback functions.
-
     """
 
     def __init__(self, host, http_port=None, https_port=None,
@@ -737,10 +731,13 @@ class WBEMListener(object):
         Each listener object has its own separate logger object that is
         created via :func:`py:logging.getLogger`.
 
-        The name of this logger object is: `pywbem.listener.{id}` where `{id}`
-        is the :func:`id` value of the listener object. Users of the listener
-        should not look up the logger object by name, but should use this
-        property to get to it.
+        The name of this logger object is:
+
+          ``pywbem.listener.{id}``
+
+        where ``{id}`` is the :func:`id` value of the listener object. Users
+        of the listener should not look up the logger object by name, but
+        should use this property to get to it.
 
         By default, this logger uses the :class:`~py:logging.NullHandler` log
         handler, and its log level is :attr:`~py:logging.NOTSET`. This causes
@@ -749,9 +746,7 @@ class WBEMListener(object):
 
         The behavior of this logger can be changed by invoking its methods
         (see :class:`py:logging.Logger`). The behavior of the root logger can
-        for example be configured using :func:`py:logging.basicConfig`:
-
-        ::
+        for example be configured using :func:`py:logging.basicConfig`::
 
             import sys
             import logging
@@ -774,7 +769,8 @@ class WBEMListener(object):
         described in :term:`DSP0200` and they will invoke the registered
         callback functions for any received CIM indications.
 
-        These server threads can be stopped using the :meth:`stop` method.
+        These server threads can be stopped using the
+        :meth:`~pywbem.WBEMListener.stop` method.
         They will be automatically stopped when the main thread terminates.
         """
 
@@ -840,21 +836,30 @@ class WBEMListener(object):
     def deliver_indication(self, indication, host):
         """
         This function is called by the listener threads for each received
-        indication.
+        indication. It is not supposed to be called by the user.
 
         It delivers the indication to all callback functions that have been
         added to the listener.
 
+        If a callback function raises any exception this is logged as an error
+        using the listener logger and the next registered callback function is
+        called.
+
         Parameters:
 
-          indication (:class:`~pywbem.CIMIndication):
+          indication (:class:`~pywbem.CIMInstance`):
             Representation of the CIM indication to be delivered.
 
           host (:term:`string`):
             Host name or IP address of WBEM server sending the indication.
         """
         for callback in self._callbacks:
-            callback(indication, host)
+            try:
+                callback(indication, host)
+            except Exception as exc:
+                self.logger.log(logging.ERROR, "Indication delivery callback "\
+                                "function raised %s: %s",
+                                exc.__class__.__name__, exc)
 
     def add_callback(self, callback):
         """
@@ -878,8 +883,8 @@ class WBEMListener(object):
 def callback_interface(indication, host):
     # pylint: disable=unused-argument
     """
-    Interface of a function that is provided by the user of the API and
-    that will be called by the listener for each received CIM indication.
+    Interface of a callback function that is provided by the user of the API
+    and that will be called by the listener for each received CIM indication.
 
     Parameters:
 
@@ -891,7 +896,10 @@ def callback_interface(indication, host):
         Host name or IP address of WBEM server sending the indication.
 
     Raises:
-      TODO
+
+        Exception: If a callback function raises any exception this is logged
+          as an error using the listener logger and the next registered
+          callback function is called.
     """
     raise NotImplementedError
 

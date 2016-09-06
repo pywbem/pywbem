@@ -73,14 +73,15 @@ from __future__ import absolute_import
 from datetime import tzinfo, datetime, timedelta
 import re
 import warnings
-
 import six
+
+from . import config
+
 if six.PY2:
     _Longint = long
 else:
     _Longint = int
 
-from . import config
 
 __all__ = ['MinutesFromUTC', 'CIMType', 'CIMDateTime', 'CIMInt', 'Uint8',
            'Sint8', 'Uint16', 'Sint16', 'Uint32', 'Sint32', 'Uint64', 'Sint64',
@@ -536,7 +537,7 @@ class CIMInt(CIMType, _Longint):
     valid range raise a :exc:`ValueError`.
     The enforcement of the valid value range can be disabled via the
     configuration variable :data:`~pywbem.config.ENFORCE_INTEGER_RANGE`.
-    
+
     Instances of subclasses of this class can be initialized with the usual
     input arguments supported by :term:`integer`, for example:
 

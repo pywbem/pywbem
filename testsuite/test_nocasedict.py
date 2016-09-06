@@ -78,7 +78,7 @@ class TestInit(unittest.TestCase):
 
         try:
             dic = NocaseDict('illegal')
-        except TypeError as exc:
+        except TypeError:
             pass
         else:
             self.fail("TypeError was unexpectedly not thrown.")
@@ -87,7 +87,7 @@ class TestInit(unittest.TestCase):
 
         try:
             dic = NocaseDict(list(), list())
-        except TypeError as exc:
+        except TypeError:
             pass
         else:
             self.fail("TypeError was unexpectedly not thrown.")
@@ -106,8 +106,8 @@ class TestGetitem(BaseTest):
         self.assertTrue(self.dic['DOG'] == 'Cat')
 
         try:
-            x = self.dic['notfound']
-        except KeyError as exc:
+            self.dic['notfound']
+        except KeyError:
             pass
         else:
             self.fail("KeyError was unexpectedly not thrown.")
@@ -144,7 +144,7 @@ class TestDelitem(BaseTest):
 
         try:
             del self.dic['notfound']
-        except KeyError as exc:
+        except KeyError:
             pass
         else:
             self.fail("KeyError was unexpectedly not thrown.")
@@ -285,18 +285,18 @@ class TestEqual(BaseTest):
         for test_dict, relation, comment in test_dicts:
             if relation == 'eq':
                 self.assertDictEqual(test_dict, base_dict,
-                                "Expected test_dict == base_dict:\n" \
-                                "  test case: %s\n" \
-                                "  test_dict: %r\n" \
-                                "  base_dict: %r" % \
-                                (comment, test_dict, base_dict))
+                                     "Expected test_dict == base_dict:\n" \
+                                     "  test case: %s\n" \
+                                     "  test_dict: %r\n" \
+                                     "  base_dict: %r" % \
+                                     (comment, test_dict, base_dict))
             elif relation == 'ne':
                 self.assertDictNotEqual(test_dict, base_dict,
-                                "Expected test_dict != base_dict:\n" \
-                                "  test case: %s\n" \
-                                "  test_dict: %r\n" \
-                                "  base_dict: %r" % \
-                                (comment, test_dict, base_dict))
+                                        "Expected test_dict != base_dict:\n" \
+                                        "  test case: %s\n" \
+                                        "  test_dict: %r\n" \
+                                        "  base_dict: %r" % \
+                                        (comment, test_dict, base_dict))
             else:
                 raise AssertionError("Internal Error: Invalid relation %s" \
                                      "specified in testcase: %s" % \

@@ -246,7 +246,7 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
                          "2001:db8::7348%eth1",
                          5900,
                          False)
-                         
+
         self._run_single("https://[2001:db8::7348-eth1]:5901",
                          "2001:db8::7348%eth1",
                          5901,
@@ -279,7 +279,7 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
             self.fail('Invalid Scheme: Expecting exception')
         except ValueError:
             pass
-            
+
         try:
             self._run_single_defaults_false("http://my.host.com:5a98",
                                             "my.host.com",
@@ -291,9 +291,9 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
 
         try:
             self._run_single_defaults_false("[2001:db8::7348-eth1]:5900",
-                             "2001:db8::7348%eth1",
-                             5900,
-                             False)
+                                            "2001:db8::7348%eth1",
+                                            5900,
+                                            False)
             self.fail('Invalid Scheme: Expecting exception')
         except ValueError:
             pass
@@ -301,9 +301,9 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
 
         try:
             self._run_single_defaults_false("://[2001:db8::7348-eth1]:5900",
-                             "2001:db8::7348%eth1",
-                             5900,
-                             False)
+                                            "2001:db8::7348%eth1",
+                                            5900,
+                                            False)
             self.fail('Invalid Scheme: Expecting exception')
         except ValueError:
             pass
