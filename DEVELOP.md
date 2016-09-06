@@ -29,14 +29,15 @@ The upstream repos are assumed to have the remote name `origin`.
 The following description applies to v0.9.0 and above.
 
 A shell variable `$MNU` is used in the description to refer to the `M.N.U`
-version (e.g. `0.9.4`) that is to be released.
+version (e.g. `0.9.x`) that is to be released.
 
 1.  Switch to your work directory of the `pywbem/pywbem` repo (this is where
     the `makefile` is), and perform the following steps in that directory.
 
-2.  Set a shell variable for the version to be released:
+2.  Set shell variables for the version to be released:
 
     - `MNU='0.9.x'`
+    - `MN='0.9'`
 
 3.  Verify that your working directory is in a git-wise clean state:
 
@@ -56,7 +57,14 @@ version (e.g. `0.9.4`) that is to be released.
 
     - `vi docs/changes.rst`
 
-7.  Finalize the package versions in the following files by changing the
+    If this is a new minor release, reflect the changes in the fix releases
+    since the minor release was spawned off the earlier fix stream.
+
+7.  Edit the README file to remove any release planning info for the release:
+
+    - `vi README.md`
+
+8.  Finalize the package versions in the following files by changing the
     development version `M.N.U.dev0` to the final version `M.N.U`:
 
     - `vi pywbem/_version.py`
@@ -66,59 +74,59 @@ version (e.g. `0.9.4`) that is to be released.
     version at run time from `pywbem/__init__.py`, so they do not need to be
     updated.
 
-8.  Perform a complete build (in your favorite Python virtual environment):
+9.  Perform a complete build (in your favorite Python virtual environment):
 
     - `make clobber all`
 
     If this fails, fix and iterate over this step until it succeeds.
 
-    Note: This is for a quick turnaround when fixing issues. In Step 11, Tox is
+    Note: This is for a quick turnaround when fixing issues. In Step 12, Tox is
     used to run `make test` in multiple Python environments, for a complete
     Python environment coverage.
 
-9. Commit the changes and push to upstream:
+10. Commit the changes and push to upstream:
 
-   - `git commit -a -m "Release v$MNU"`
-   - Push the commit upstream, using one of:
+    - `git commit -a -m "Release v$MNU"`
+    - Push the commit upstream, using one of:
 
-     - `git push --set-upstream origin release_$MNU` - if branch is pushed for
-       the first time
-     - `git push` - after first time, for normal additional commit
-     - `git push -f` - after first time, if a rebase was used
+      - `git push --set-upstream origin release_$MNU` - if branch is pushed for
+        the first time
+      - `git push` - after first time, for normal additional commit
+      - `git push -f` - after first time, if a rebase was used
 
-10. On Github, create a Pull Request for the target branch. This will trigger
+11. On Github, create a Pull Request for the target branch. This will trigger
     the Travis CI run.
 
     **Important:** Regardless of which branch the commit was based upon, GitHub
     will by default target the `master` branch for the merge. This is correct
     for what we do here.
 
-11. Perform a complete test using Tox:
+12. Perform a complete test using Tox:
 
     - `tox`
 
     This single command will run `make test` in all supported Python
     environments.
 
-12. Perform an install test:
+13. Perform an install test:
 
     - `cd testsuite; ./test_install.sh`
 
     Note: The changed directory is necessary so that the locally available
     package directory is not used.
 
-13. Perform a test in a CI environment (Andy):
+14. Perform a test in a CI environment (Andy):
 
     - Post the results to the release PR.
 
-14. Perform a test against a real WBEM server (Karl):
+15. Perform a test against a real WBEM server (Karl):
 
     - Post the results to the release PR.
 
-15. If any of the tests (including the Travis CI run of the Pull Request)
-    fails, fix the problem and iterate back to step 8. until they all succeed.
+16. If any of the tests (including the Travis CI run of the Pull Request)
+    fails, fix the problem and iterate back to step 9. until they all succeed.
 
-16. Once all tests succeed:
+17. Once all tests succeed:
 
     - Merge the PR (no review is needed)
     - Delete the PR (which also deletes the branch in the GitHub repo)
@@ -126,7 +134,7 @@ version (e.g. `0.9.4`) that is to be released.
     Note: Dont do this before the Travis run succeeds, because the Travis run
     needs to still have the branch for checking out the code under test.
 
-17. Clean up local branches:
+18. Clean up local branches:
 
     - `git-prune origin` (From `andy-maier/gitsurvival`)
 
@@ -144,7 +152,7 @@ version (e.g. `0.9.4`) that is to be released.
 
       - `git branch -D <branch>`
 
-18. Tag the release:
+19. Tag the release:
 
     - Delete any preliminary M.N* tags, if any:
 
@@ -155,7 +163,7 @@ version (e.g. `0.9.4`) that is to be released.
 
       - `git tag -d v$MNU`
 
-    - Push these tag deletions upstream:
+    - If there were any tag deletions, push these tag deletions upstream:
 
       - `git push --tags`
 
@@ -163,16 +171,25 @@ version (e.g. `0.9.4`) that is to be released.
 
       - `git tag v$MNU`
 
-    - Push the final tag upstream:
+    - Push the added tag upstream:
 
       - `git push --tags`
 
-19. On GitHub, edit the new tag, and create a release description on it. This
+20. If this is a new minor release, create a branch for its fix stream:
+
+    - `git checkout master`
+    - `git pull`
+    - `git checkout -b stable_$MN`
+    - `git push --set-upstream origin stable_$MN`
+
+21. On RTD, activate the new branch stable_$MN as a version to be built.
+
+22. On GitHub, edit the new tag, and create a release description on it. This
     will cause it to appear in the Release tab.
 
-20. Close milestone `M.N.U` on GitHub.
+23. Close milestone `M.N.U` on GitHub.
 
-21. Upload the package to PyPI:
+24. Upload the package to PyPI:
 
     **Attention!!** This only works once. You cannot re-release the same
     version to PyPI.
@@ -181,22 +198,22 @@ version (e.g. `0.9.4`) that is to be released.
 
     Verify that it arrived on PyPI: https://pypi.python.org/pypi/pywbem/
 
-22. Switch to the directory of the `pywbem.github.io` repo and perform the
+25. Switch to the directory of the `pywbem.github.io` repo and perform the
     following steps from that directory:
 
     - `cd ../pywbem.github.io`
 
-23. Verify that your working directory is in a git-wise clean state:
+26. Verify that your working directory is in a git-wise clean state:
 
     - `git status`
 
-24. Check out the `master` branch (on `pywbem.github.io`, we only have that one
+27. Check out the `master` branch (on `pywbem.github.io`, we only have that one
     long-lived branch), and update it from upstream:
 
     - `git checkout master`
     - `git pull`
 
-25. Update the download table in `pywbem/installation.html` for the new
+28. Update the download table in `pywbem/installation.html` for the new
     release.
     For a new M.N release, insert a new row.
     For a new M.N.U release on an existing M.N release, update the row for the
@@ -204,22 +221,22 @@ version (e.g. `0.9.4`) that is to be released.
 
     - `vi pywbem/installation.html`
 
-26. Verify that the installation page (`pywbem/installation.html` in your web
+29. Verify that the installation page (`pywbem/installation.html` in your web
     browser) shows the new release correctly, and that all of its links work.
 
-27. Commit the changes and push to the upstream repo (we dont use a topic
+30. Commit the changes and push to the upstream repo (we dont use a topic
     branch for this):
 
     - `git add --all`
     - `git commit -m "Release v$MNU"`
     - `git push`
 
-28. Verify that the
+31. Verify that the
     [PyWBEM installation page](http://pywbem.github.io/pywbem/installation.html)
     has been updated, and that all the links work and show the intended
     version.
 
-29. Announce the new release on the
+32. Announce the new release on the
     [pywbem-devel mailing list](http://sourceforge.net/p/pywbem/mailman/pywbem-devel/).
 
 Starting development of a new release
@@ -229,14 +246,14 @@ This description applies to a new release, and not to a new topic branch
 within a release. It applies to the master branch only!
 
 A shell variable `$MNU` is used in the description to refer to the `M.N.U`
-version (e.g. `0.9.4`) whose development is started.
+version (e.g. `0.10.x`) whose development is started.
 
 1.  Switch to the directory of the `pywbem` repo, and perform the following
     steps in that directory.
 
 2.  Set a shell variable for the new version to be developed:
 
-    - `MNU='0.9.x'`
+    - `MNU='0.10.x'`
 
 3.  Verify that your working directory is in a git-wise clean state:
 
