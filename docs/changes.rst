@@ -6,17 +6,18 @@ Change log
 
 .. ifconfig:: version.endswith('dev0')
 
-   This version of the documentation is development version |version| and
-   contains the `master` branch up to this commit:
+.. # Reenable the following lines when working on a development version:
+.. # This version of the documentation is development version |version| and
+.. # contains the `master` branch up to this commit:
+.. #
+.. # .. git_changelog::
+.. #    :revisions: 1
 
-   .. git_changelog::
-      :revisions: 1
 
+pywbem v0.9.0
+-------------
 
-pywbem v0.9.0.dev0
-------------------
-
-Released: Not yet
+Released: 2016-09-06
 
 Deprecations
 ^^^^^^^^^^^^
@@ -41,6 +42,20 @@ Deprecations
   because it is not used with the Python ssl module and will probably be
   removed completely in the future.  Its use now causes a `DeprecationWarning`
   to be issued. (Issue #297)
+
+Known Issues
+^^^^^^^^^^^^
+
+* Installing PyWBEM on Python 2.6 has a conflict with the `pbr` package
+  from PyPI, resulting in a TypeError: "dist must be a Distribution
+  instance". This issue is specific to Python 2.6 and does not occur in
+  any of the other supported Python versions (2.7, 3.4, 3.5). This issue
+  can be mitigated by uninstalling the `pbr` package, or if that is not
+  possible, by migrating to Python 2.7. See issue #26 on GitHub.
+
+* MOF using names that are reserved keywords will fail to compile in the
+  MOF compiler. For example, a CIM property named 'indication'.
+  See issue #62 on GitHub.
 
 Clean Code
 ^^^^^^^^^^
@@ -128,12 +143,18 @@ Enhancements
 
   (Issues #66, #421, #414, #379, #378)
 
-* The distribution formats have been extended. There are now:
+* The distribution formats released to PyPI have been extended. There are now:
 
   - Source archive (existed)
   - Universal wheel (new)
 
   (Issue #242)
+
+* Starting with v0.9.0, pywbem no longer stores the distribution archives
+  in the repository, because the process for releasing to PyPI creates new
+  distribution archives instead of using the created ones. This makes it
+  difficult to ensure that the archives stored in the repository are the
+  same.
 
 * Upgraded M2Crypto to use official 0.24.0 from PyPI.
 

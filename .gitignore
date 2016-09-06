@@ -28,3 +28,5 @@ swig-2.0*.tar.gz
 setuptools-*.egg
 setuptools-*.zip
 /tmp_*/
+/dist/pywbem*.tar.gz
+/dist/pywbem*.whl
