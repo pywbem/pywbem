@@ -7,11 +7,33 @@ Change log
 .. ifconfig:: version.endswith('dev0')
 
 .. # Reenable the following lines when working on a development version:
-.. # This version of the documentation is development version |version| and
-.. # contains the `master` branch up to this commit:
-.. #
-.. # .. git_changelog::
-.. #    :revisions: 1
+This version of the documentation is development version |version| and
+contains the `master` branch up to this commit:
+
+.. git_changelog::
+   :revisions: 1
+
+
+pywbem v0.10.0.dev0
+-------------------
+
+Released: Not yet
+
+Deprecations
+^^^^^^^^^^^^
+
+
+Known Issues
+^^^^^^^^^^^^
+
+
+Enhancements
+^^^^^^^^^^^^
+
+
+Bug fixes
+^^^^^^^^^
+
 
 
 pywbem v0.9.0
@@ -380,8 +402,8 @@ Bug fixes
   against a live server. (Issues #363, #364)
 
 
-pywbem-0.8.4
-^^^^^^^^^^^^
+pywbem v0.8.4
+-------------
 
 Released: 2016-05-13
 
@@ -434,8 +456,8 @@ Clean code
 * Removed half-baked code for HTTP proxy/tunneling support.
 
 
-pywbem-0.8.3
-------------
+pywbem v0.8.3
+-------------
 
 Released: 2016-04-15
 
