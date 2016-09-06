@@ -38,9 +38,6 @@ package_version := $(shell sh -c "echo $(package_specified_version) |sed 's/[.-]
 # Final version of this package (M.N.U)
 package_final_version := $(shell sh -c "echo $(package_version) |sed 's/rc[0-9]\+$$//' |sed 's/\.dev0$$//'")
 
-# Final version of this package (M.N)
-package_final_mn_version := $(shell sh -c "echo $(package_final_version) |sed 's/\([0-9]\+\.[0-9]\+\).\+$$/\1/'")
-
 # Python major version
 python_major_version := $(shell python -c "import sys; sys.stdout.write('%s'%sys.version_info[0])")
 
@@ -48,9 +45,9 @@ python_major_version := $(shell python -c "import sys; sys.stdout.write('%s'%sys
 python_version_fn := $(shell python -c "import sys; sys.stdout.write('%s%s'%(sys.version_info[0],sys.version_info[1]))")
 
 # Directory for the generated distribution files
-dist_dir := dist/$(package_name)-$(package_final_mn_version)
+dist_dir := dist
 
-# Distribution archives (as built by setup.py)
+# Distribution archives
 bdist_file := $(dist_dir)/$(package_name)-$(package_version)-py2.py3-none-any.whl
 sdist_file := $(dist_dir)/$(package_name)-$(package_version).tar.gz
 
@@ -233,7 +230,7 @@ test: $(test_log_file)
 
 .PHONY: clobber
 clobber: clean
-	rm -f pylint.log epydoc.log test_*.log $(moftab_files)
+	rm -f pylint.log epydoc.log test_*.log $(moftab_files) $(dist_files)
 	rm -Rf $(doc_build_dir) .tox
 	@echo 'Done: Removed everything to get to a fresh state.'
 	@echo '$@ done.'

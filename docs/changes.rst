@@ -143,12 +143,18 @@ Enhancements
 
   (Issues #66, #421, #414, #379, #378)
 
-* The distribution formats have been extended. There are now:
+* The distribution formats released to PyPI have been extended. There are now:
 
   - Source archive (existed)
   - Universal wheel (new)
 
   (Issue #242)
+
+* Starting with v0.9.0, pywbem no longer stores the distribution archives
+  in the repository, because the process for releasing to PyPI creates new
+  distribution archives instead of using the created ones. This makes it
+  difficult to ensure that the archives stored in the repository are the
+  same.
 
 * Upgraded M2Crypto to use official 0.24.0 from PyPI.
 
