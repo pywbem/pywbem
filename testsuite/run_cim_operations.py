@@ -10,10 +10,14 @@ The return codes here may be specific to OpenPegasus.
 
 from __future__ import absolute_import
 
+# Can be used with pb.set_trace() to debug really nasty issues.
+# import pdb
+
 # pylint: disable=missing-docstring,superfluous-parens,no-self-use
 import sys
 import os.path
 import threading
+import types
 from datetime import timedelta
 import unittest
 from getpass import getpass
@@ -52,6 +56,13 @@ TEST_CLASS = 'CIM_ComputerSystem'
 TEST_CLASS_NAMESPACE = 'root/cimv2'
 TEST_CLASS_PROPERTY1 = 'Name'
 TEST_CLASS_PROPERTY2 = 'CreationClassName'
+TEST_CLASS_CIMNAME = CIMInstanceName(TEST_CLASS,
+                                     namespace=TEST_CLASS_NAMESPACE)
+
+# Pegasus class/namespace to use for some tests.  This is pegasus only but
+# allows the client to define the number of response objects.
+TEST_PEG_STRESS_NAMESPACE = "test/TestProvider"
+TEST_PEG_STRESS_CLASSNAME = "TST_ResponseStressTestCxx"
 
 # definition of a standard class defined in PyWBEM package that can be
 # used.  Any test should first confirm that the primary class exists
@@ -80,8 +91,8 @@ class ClientTest(unittest.TestCase):
         a common cimcall method that executes test calls and logs
         results
     """
-
-    def setUp(self):
+    # pylint: disable=arguments-differ
+    def setUp(self, use_pull_operations=None):
         """Create a connection."""
         # pylint: disable=global-variable-not-assigned
         global CLI_ARGS
@@ -101,13 +112,15 @@ class ClientTest(unittest.TestCase):
 
         self.log('setup connection {} ns {}'.format(self.system_url,
                                                     self.namespace))
+
         self.conn = WBEMConnection(
             self.system_url,
             (CLI_ARGS['username'], CLI_ARGS['password']),
             self.namespace,
             timeout=CLI_ARGS['timeout'],
             no_verification=CLI_ARGS['nvc'],
-            ca_certs=CLI_ARGS['cacerts'])
+            ca_certs=CLI_ARGS['cacerts'],
+            use_pull_operations=use_pull_operations)
 
         # enable saving of xml for display
         self.conn.debug = CLI_ARGS['debug']
@@ -189,8 +202,31 @@ class ClientTest(unittest.TestCase):
             name = classnames
             self.assertTrue(isinstance(name, CIMClassName))
 
+    def assertPathsValid(self, paths, namespace=None):
+        """
+        Test for valid path or list of paths.
+
+        Tests for type, and namespace info in path
+        TODO: Test for alid keybindings
+        """
+        # if list, recurse this function
+        if isinstance(paths, list):
+            for path in paths:
+                self.assertPathsValid(path, namespace=namespace)
+
+        else:
+            path = paths
+            self.assertTrue(isinstance(path, CIMInstanceName))
+            self.assertTrue(len(path.namespace) > 0)
+
+            if namespace is None:
+                self.assertTrue(paths.namespace == self.namespace)
+            else:
+                self.assertTrue(path.namespace == namespace)
+
     def assertInstancesValid(self, instances, includes_path=True,
-                             prop_count=None, property_list=None):
+                             prop_count=None, property_list=None,
+                             namespace=None):
         """ Test for valid basic characteristics of an instance or list
             of instances.
 
@@ -199,14 +235,18 @@ class ClientTest(unittest.TestCase):
               - includes_path - Test for path component if true. default=true
               - prop_count - test for number of properties in instance
               - property_list - Test for existence of properties in list
-              - namespace - Test for valid namespace in path
+              - namespace - Test for valid namespace in path. If none test
+                against default namespace. Otherwise test against provided
+                namespace name
         """
 
+        # if list, recurse this function
         if isinstance(instances, list):
             for inst in instances:
                 self.assertInstancesValid(inst, includes_path=True,
-                                          prop_count=None,
-                                          property_list=None)
+                                          prop_count=prop_count,
+                                          property_list=property_list,
+                                          namespace=namespace)
         else:
             instance = instances
             self.assertTrue(isinstance(instance, CIMInstance))
@@ -214,7 +254,11 @@ class ClientTest(unittest.TestCase):
             if includes_path:
                 self.assertTrue(isinstance(instance.path, CIMInstanceName))
                 self.assertTrue(len(instance.path.namespace) > 0)
-                self.assertTrue(instance.path.namespace == self.namespace)
+
+                if namespace is None:
+                    self.assertTrue(instance.path.namespace == self.namespace)
+                else:
+                    self.assertTrue(instance.path.namespace == namespace)
 
             if prop_count is not None:
                 self.assertTrue(len(instance.properties) == prop_count)
@@ -223,14 +267,6 @@ class ClientTest(unittest.TestCase):
                 for p in property_list:
                     prop = instance.properties[p]
                     self.assertIsInstance(prop, CIMProperty)
-
-    def assertPathsValid(self, paths, namespace=None):
-        """
-        Test for valid paths.
-        Separate this from InstanceNamesValid since they are reallyd
-        different in definition. This assumes namespace exists.
-        """
-        self.assertInstanceNamesValid(paths, namespace=namespace)
 
     def assertInstanceNamesValid(self, paths, includes_namespace=True,
                                  includes_keybindings=True,
@@ -277,24 +313,24 @@ class ClientTest(unittest.TestCase):
 
             self.assertTrue(isinstance(op_result[1], CIMClass))
 
-    def inst_in_list(self, inst, instances, ignorehost=False):
+    def inst_in_list(self, inst, instances, ignore_host=False):
         """ Determine if an instance is in a list of instances.
             Return:
             True if the instance is in the list. Otherwise return False.
             Tests on path only.
         """
         for i in instances:
-            if self.pathsEqual(i.path, inst.path, ignorehost=ignorehost):
+            if self.pathsEqual(i.path, inst.path, ignore_host=ignore_host):
                 return True
         return False
 
-    def pathsEqual(self, path1, path2, ignorehost=False):
+    def pathsEqual(self, path1, path2, ignore_host=False):
         """Test for paths equal. Test ignoring the host component if
-           ignorehost = True. Allows us to test without the host
+           ignore_host = True. Allows us to test without the host
            comonent since that is a difference between pull and not
            pull responses, at least on pegasus
         """
-        if ignorehost:
+        if ignore_host:
             if path1.host is not None:
                 path1 = path1
                 path1.host = None
@@ -304,19 +340,55 @@ class ClientTest(unittest.TestCase):
 
         return path1 == path2
 
-    def path_in_list(self, path, paths, ignorehost=False):
+    def path_in_list(self, path, paths, ignore_host=False):
         """ Determine if an path is in a list of paths. Return
             True if the instance is in the list. Otherwise return False.
         """
         for i in paths:
-            if self.pathsEqual(i, path, ignorehost=ignorehost):
+            if self.pathsEqual(i, path, ignore_host=ignore_host):
                 return True
         return False
 
-    def assertInstancesEqual(self, insts1, insts2, ignorehost=False):
+    def cmpitem(self, item1, item2):
+        """
+        Compare two items (CIM values, CIM objects, or NocaseDict objects) for
+        unequality.
+
+        Note: Support for comparing the order of the items has been removed
+        in pywbem v0.9.0.
+
+        One or both of the items may be `None`.
+
+        The implementation uses the '==' operator of the item datatypes.
+
+        If value1 == value2, 0 is returned.
+        If value1 != value2, 1 is returned.
+        """
+        if item1 is None and item2 is None:
+            return 0
+        if item1 is None or item2 is None:
+            return 1
+        if item1 == item2:
+            return 0
+        return 1
+
+    def assertInstancesEqual(self, insts1, insts2, ignore_host=False,
+                             ignore_value_diff=False):
         """Compare two lists of instances for equality of instances
            The instances do not have to be in the same order in
            the lists. The lists must be of equal length.
+
+           Parameters:
+
+             insts1: list of instances or single instance for compare
+
+             insts2: list of instances or single instance for compare to insts1
+
+             ignore_host: Boolean. If true, test for equal host values in\
+             path
+
+             ignore_value_diff: Boolean. If True, compare the value of each
+             property. If false ignore value differences.
         """
 
         if not isinstance(insts1, list):
@@ -327,26 +399,72 @@ class ClientTest(unittest.TestCase):
 
         for inst1 in insts1:
             self.assertTrue(isinstance(inst1, CIMInstance))
-            if not self.inst_in_list(inst1, insts2, ignorehost=ignorehost):
-                self.fail("Instance Lists do not match")
+            if not self.inst_in_list(inst1, insts2, ignore_host=ignore_host):
+                inst2pathlist = [inst.path for inst in insts2]
+                self.fail('Instance Lists do not match. %s not in other list'
+                          ' %s' % (inst1.path, inst2pathlist))
             else:
                 for inst2 in insts2:
                     if self.pathsEqual(inst1.path, inst2.path,
-                                       ignorehost=ignorehost):
+                                       ignore_host=ignore_host):
 
                         self.assertTrue(isinstance(inst2, CIMInstance))
-                        if ignorehost:
+                        if ignore_host:
                             if inst1.path.host is not None:
                                 inst1 = inst1
                                 inst1.path.host = None
                             if inst2.path.host is not None:
                                 inst2 = inst2
                                 inst2.path.host = None
-                        self.assertEqual(inst1, inst2)
-                        return
-                self.fail('assertInstancesEqual fail')
+                        # detailed test of instance components if not equal
+                        if inst1 != inst2:
+                            self.assertEqual(inst1.classname, inst2.classname)
+                            self.assertEqual(inst1.path, inst2.path)
+                            self.assertEqual(inst1.qualifiers, inst2.qualifiers)
 
-    def assertPathsEqual(self, paths1, paths2, ignorehost=False):
+                            # test of equality of each property. We do this
+                            # in detail because there are cases where the
+                            # property values differ but we test everything
+                            # else
+                            if inst1.properties != inst2.properties:
+                                for k1 in inst1:
+                                    p2 = inst2.properties[k1]
+                                    p1 = inst1.properties[k1]
+                                    self.assertEqual(p1.name, p2.name)
+                                    self.assertEqual(p1.type, p2.type)
+                                    self.assertEqual(p1.class_origin,
+                                                     p2.class_origin)
+                                    self.assertEqual(p1.propagated,
+                                                     p2.propagated)
+                                    self.assertEqual(p1.reference_class,
+                                                     p2.reference_class)
+                                    self.assertEqual(p1.embedded_object,
+                                                     p2.embedded_object)
+
+                                    if p1.value != p2.value:
+                                        if not ignore_value_diff:
+                                            self.assertEqual(p1.value,
+                                                             p2.value)
+                                        else:
+                                            if self.verbose:
+                                                print(
+                                                    'Property %s values differ.'
+                                                    ' v1=%s\nv2=%s' %
+                                                    (p1.name, p1.value,
+                                                     p2.value))
+                                            continue
+
+                                    self.assertEqual(p1, p2)
+
+                            self.assertEqual(inst1.qualifiers, inst2.qualifiers)
+                        # retest to confirm
+                        if not ignore_value_diff:
+                            self.assertEqual(inst1, inst2)
+                        return
+
+                self.fail('assertInstancesEqual fail.')
+
+    def assertPathsEqual(self, paths1, paths2, ignore_host=False):
         """ Compare two lists of paths or paths for equality
             assert if they are not the same
         """
@@ -358,11 +476,12 @@ class ClientTest(unittest.TestCase):
 
         for path1 in paths1:
             self.assertTrue(isinstance(path1, CIMInstanceName))
-            if not self.path_in_list(path1, paths2, ignorehost=ignorehost):
-                self.fail("Path Lists do not match")
+            if not self.path_in_list(path1, paths2, ignore_host=ignore_host):
+                self.fail("Path Lists do not match. %s not in %s" %
+                          (path1, paths2))
             else:
                 for path2 in paths2:
-                    if self.pathsEqual(path2, path1, ignorehost=ignorehost):
+                    if self.pathsEqual(path2, path1, ignore_host=ignore_host):
                         return
                 self.fail('assertPathsEqual fail')
 
@@ -800,7 +919,7 @@ class PullEnumerateInstances(ClientTest):
 
         self.assertInstancesValid(insts_enum)
 
-        self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
+        self.assertInstancesEqual(insts_pulled, insts_enum, ignore_host=True)
 
     def test_open_deepinheritance(self):
         """Simple OpenEnumerateInstances but with DeepInheritance set."""
@@ -823,7 +942,7 @@ class PullEnumerateInstances(ClientTest):
 
         self.assertInstancesValid(insts_enum)
 
-        self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
+        self.assertInstancesEqual(insts_pulled, insts_enum, ignore_host=True)
 
     def test_open_includequalifiers(self):
         """Simple OpenEnumerateInstances but with IncludeQualifiers set."""
@@ -850,7 +969,7 @@ class PullEnumerateInstances(ClientTest):
 
         self.assertInstancesValid(insts_enum)
 
-        self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
+        self.assertInstancesEqual(insts_pulled, insts_enum, ignore_host=True)
 
     def test_open_includeclassorigin(self):
         """Simple OpenEnumerateInstances but with DeepInheritance set."""
@@ -874,7 +993,7 @@ class PullEnumerateInstances(ClientTest):
 
         insts_enum = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
 
-        self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
+        self.assertInstancesEqual(insts_pulled, insts_enum, ignore_host=True)
 
     def test_open_complete_with_ns(self):
         """Simple call that is complete with just the open and
@@ -899,7 +1018,7 @@ class PullEnumerateInstances(ClientTest):
 
         insts_enum = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
 
-        self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
+        self.assertInstancesEqual(insts_pulled, insts_enum, ignore_host=True)
 
     def test_zero_open(self):
         """ Test with default on open. Should return zero instances.
@@ -948,10 +1067,10 @@ class PullEnumerateInstances(ClientTest):
 
         try:
             self.cimcall(self.conn.CloseEnumeration, result.context)
-            self.fail('Expected CIMError')
-        except CIMError as ce:
-            if ce.args[0] != CIM_ERR_INVALID_ENUMERATION_CONTEXT:
-                raise
+            self.fail('Expected Value Error')
+
+        except ValueError:
+            pass
 
     # TODO. This one is subject to errors because compare may not return
     #       same info.  Recheck all the TOP_CLASS calls for same issue
@@ -1228,7 +1347,7 @@ class PullEnumerateInstancePaths(ClientTest):
         # compare
         diff = abs(len(paths_pulled) - len(paths_enum))
         if diff == 0:
-            self.assertPathsEqual(paths_pulled, paths_enum, ignorehost=True)
+            self.assertPathsEqual(paths_pulled, paths_enum, ignore_host=True)
         elif paths_pulled / diff < 10:
             print('Return diff count %s of total %s ignored' %
                   (diff, paths_pulled))
@@ -1867,7 +1986,7 @@ class ExecQuery(ClientTest):
 
 
 class GetInstance(ClientTest):
-
+    """Test getclass operation"""
     def test_various(self):
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
@@ -2003,17 +2122,15 @@ class GetInstance(ClientTest):
         self.assertTrue(obj.path.namespace == self.namespace)
         self.assertTrue(len(obj.properties) == 1)
 
-        try:
-            obj = self.cimcall(self.conn.GetInstance,
-                               name,
-                               PropertyList=TEST_CLASS_PROPERTY1,
-                               LocalOnly=False)
-            self.fail('Exception expected')
-
-        # use Error since this generates a connection error and
-        # within it a CIMError.
-        except Error:
-            pass
+        # test with single property.
+        obj = self.cimcall(self.conn.GetInstance,
+                           name,
+                           PropertyList=TEST_CLASS_PROPERTY1,
+                           LocalOnly=False)
+        self.assertTrue(isinstance(obj, CIMInstance))
+        self.assertTrue(isinstance(obj.path, CIMInstanceName))
+        self.assertTrue(obj.path.namespace == self.namespace)
+        self.assertTrue(len(obj.properties) == 1)
 
 
 class CreateInstance(ClientTest):
@@ -2376,7 +2493,7 @@ class Associators(ClientTest):
 
     def test_pywbem_person_inst_associator_fail(self):
         # pylint: disable=invalid-name
-        """Get Class Associator for PyWBEM_Person source instance."""
+        """Fail get of associator instance because namespace fails."""
         if not self.pywbem_person_class_exists():
             return
 
@@ -2386,8 +2503,9 @@ class Associators(ClientTest):
 
         try:
             for path in inst_names:
+                path.namespace = 'blah'
                 ref_insts = self.cimcall(
-                    self.conn.Associators, path, namespace='blah',
+                    self.conn.Associators, path,
                     AssocClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
                     Role=PYWBEM_SOURCE_ROLE)
                 self.assertTrue(len(ref_insts) > 0)
@@ -2421,7 +2539,7 @@ class Associators(ClientTest):
                 ResultRole='Collection')
 
             self.assertTrue(len(ref_insts) > 0)
-            self.assertInstancesValid(ref_insts)
+            self.assertPathsValid(ref_insts)
             for inst in ref_insts:
                 self.assertEqual(inst.classname, 'PyWBEM_PersonCollection')
 
@@ -2507,9 +2625,6 @@ class AssociatorNames(ClientTest):
         self.assertClassNamesValid(names)
 
         self.assertEqual(len(names), 1)
-
-        for name in names:
-            print(name)
 
     def test_pywbem_person_class_associatorname4(self):
         # pylint: disable=invalid-name
@@ -3022,26 +3137,32 @@ class QualifierDeclClientTest(ClientTest):
     """Base class for QualifierDeclaration tests. Adds specific
        tests.
     """
-    def verify_qual_decl(self, ql, test_name=None):
+    def verify_qual_decls(self, qls, test_name=None):
         """Verify simple qualifier decl attributes."""
-        self.assertTrue(isinstance(ql, CIMQualifierDeclaration))
+        if isinstance(qls, list):
+            for ql in qls:
+                self.verify_qual_decls(ql, test_name=None)
 
-        if test_name is not None:
-            self.assertTrue(ql.name == test_name)
+        else:
+            ql = qls
+            self.assertTrue(isinstance(ql, CIMQualifierDeclaration))
 
-        # TODO expand the verification of qual decls
+            if test_name is not None:
+                self.assertTrue(ql.name == test_name)
 
 
 class EnumerateQualifiers(QualifierDeclClientTest):
     """Test enumerating all qualifiers"""
     def test_get_all(self):
-        qual_decl = self.cimcall(self.conn.EnumerateQualifiers())
-        self.verify_qual_decl(qual_decl, test_name='Abstract')
+        qual_decls = self.cimcall(self.conn.EnumerateQualifiers)
+        self.verify_qual_decls(qual_decls)
+        my_qls = [ql for ql in qual_decls if ql.name == 'Abstract']
+        self.assertEqual(len(my_qls), 1)
 
     def test_fail_namespace(self):
         try:
-            self.cimcall(self.conn.EnumerateQualifiers(namespace='xx'))
-            self.assertfail('Should get exception')
+            self.cimcall(self.conn.EnumerateQualifiers, namespace='xx')
+            self.fail('Should get exception')
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                 raise
@@ -3051,7 +3172,7 @@ class GetQualifier(QualifierDeclClientTest):
     def test_get_one(self):
         """Test getqualifier with valid qualifier name"""
         qual_decl = self.cimcall(self.conn.GetQualifier, 'Abstract')
-        self.verify_qual_decl(qual_decl, test_name='Abstract')
+        self.verify_qual_decls(qual_decl, test_name='Abstract')
 
     def test_get_badname(self):
         """Test getqualifier with invalid qualifier name"""
@@ -3085,7 +3206,6 @@ class ExecuteQuery(ClientTest):
     @unittest.skip(UNIMPLEMENTED)
     def test_all(self):
         raise AssertionError("test not implemented")
-
 
 #################################################################
 # Open pegasus tests
@@ -3255,6 +3375,25 @@ class PegasusServerTestBase(ClientTest):
             for i in profiles:
                 print(i.tomof())
         return profiles
+
+    def set_stress_provider_parameters(self, count, size):
+        """
+        Set the pegasus stress provider parameters with InvokeMethod.
+        This controls how many instances are returned for each enumerate
+        response and the size of the responses.
+        """
+        try:
+            invoke_classname = CIMClassName(TEST_PEG_STRESS_CLASSNAME,
+                                            namespace=TEST_PEG_STRESS_NAMESPACE)
+            result = self.conn.InvokeMethod("Set", invoke_classname,
+                                            [('ResponseCount', Uint64(count)),
+                                             ('Size', Uint64(size))])
+            self.assertEqual(result[0], 0,
+                             'SendTestIndicationCount Method error.')
+
+        except Error as er:
+            print('Error: Invoke Method exception %s' % er)
+            raise
 
 
 class PegasusInteropTest(PegasusServerTestBase):
@@ -3629,6 +3768,1163 @@ class PyWBEMServerClass(PegasusServerTestBase):
         # test getting nothing
         self.assertEqual(len(server.get_selected_profiles('blah', 'blah')), 0)
         self.assertEqual(len(server.get_selected_profiles('blah')), 0)
+
+
+##################################################################
+# Iter method tests
+##################################################################
+
+MAX_OBJECT_COUNT = 100
+
+
+class IterEnumerateInstances(PegasusServerTestBase):
+    """Test IterEnumerateInstances methods"""
+
+    def run_enum_test(self, ClassName, namespace=None, LocalOnly=None,
+                      DeepInheritance=None, IncludeQualifiers=None,
+                      IncludeClassOrigin=None, PropertyList=None,
+                      FilterQueryLanguage=None, FilterQuery=None,
+                      OperationTimeout=None, ContinueOnError=None,
+                      MaxObjectCount=None, ignore_value_diff=False,
+                      expected_response_count=None, pull_disabled=False):
+        # pylint: disable=invalid-name,
+        """
+        Run test by executing interEnumInstances, open/pull instance,
+        and EnumerateInstance and compare the results.
+        """
+
+        # account for possible non unicode namespace.  Test fails in compare
+        # of unicode and non-unicode namespaces otherwise.
+        if namespace is not None:
+            namespace = namespace.encode('utf-8')
+
+        # execute iterator operation
+        generator = self.cimcall(self.conn.IterEnumerateInstances, ClassName,
+                                 namespace=namespace, LocalOnly=LocalOnly,
+                                 DeepInheritance=DeepInheritance,
+                                 IncludeQualifiers=IncludeQualifiers,
+                                 IncludeClassOrigin=IncludeClassOrigin,
+                                 PropertyList=PropertyList,
+                                 FilterQueryLanguage=FilterQueryLanguage,
+                                 FilterQuery=FilterQuery,
+                                 OperationTimeout=OperationTimeout,
+                                 ContinueOnError=ContinueOnError,
+                                 MaxObjectCount=MaxObjectCount)
+        self.assertTrue(isinstance(generator, types.GeneratorType))
+        iter_instances = []
+        for inst in generator:
+            iter_instances.append(inst)
+
+        if expected_response_count is not None:
+            self.assertEqual(len(iter_instances), expected_response_count)
+
+        # execute pull operation
+        result = self.cimcall(self.conn.OpenEnumerateInstances, ClassName,
+                              namespace=namespace, LocalOnly=LocalOnly,
+                              DeepInheritance=DeepInheritance,
+                              IncludeQualifiers=IncludeQualifiers,
+                              IncludeClassOrigin=IncludeClassOrigin,
+                              PropertyList=PropertyList,
+                              FilterQueryLanguage=FilterQueryLanguage,
+                              FilterQuery=FilterQuery,
+                              OperationTimeout=OperationTimeout,
+                              ContinueOnError=ContinueOnError,
+                              MaxObjectCount=MaxObjectCount)
+        pulled_instances = result.instances
+        self.assertInstancesValid(result.instances, namespace=namespace)
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancesWithPath, result.context,
+                MaxObjectCount=MAX_OBJECT_COUNT)
+
+            self.assertInstancesValid(result.instances, namespace=namespace)
+
+            pulled_instances.extend(result.instances)
+
+        if expected_response_count is not None:
+            self.assertEqual(len(pulled_instances), expected_response_count)
+
+        # ignore host if test is for pull operations disabled.
+        self.assertInstancesEqual(iter_instances, pulled_instances,
+                                  ignore_value_diff=ignore_value_diff)
+
+        # execute original enumerate instances operation
+        orig_instances = self.cimcall(self.conn.EnumerateInstances, ClassName,
+                                      namespace=namespace, LocalOnly=LocalOnly,
+                                      DeepInheritance=DeepInheritance,
+                                      IncludeQualifiers=IncludeQualifiers,
+                                      IncludeClassOrigin=IncludeClassOrigin,
+                                      PropertyList=PropertyList)
+
+        # compare with original instances. Ignore host here because
+        # EnumerateInstances does NOT return host info
+        self.assertInstancesEqual(pulled_instances, orig_instances,
+                                  ignore_host=True,
+                                  ignore_value_diff=ignore_value_diff)
+
+    def test_simple_iter_enum(self):
+        """
+        Test iter class api by itself.
+        Test only for valid instances.
+        """
+        iterator = self.cimcall(self.conn.IterEnumerateInstances, TEST_CLASS,
+                                namespace=TEST_CLASS_NAMESPACE)
+        iter_instances = []
+        for inst in iterator:
+            iter_instances.append(inst)
+
+        self.assertInstancesValid(iter_instances,
+                                  namespace=TEST_CLASS_NAMESPACE)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, True)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
+        self.assertEqual(self.conn._use_query_pull_operations, None)
+
+    def test_live_class_compare(self):
+        """Test without extra request parameters"""
+        test_class = 'CIM_ComputerSystem'
+        self.run_enum_test(test_class, MaxObjectCount=100)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, True)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
+        self.assertEqual(self.conn._use_query_pull_operations, None)
+
+    def test_compare_ok_returns(self):
+        """
+        Test class that returns defined number of objects.
+
+        All the methods should return the same thing except for the issue
+        of host in the path.
+        """
+        expected_response_count = 200
+        self.set_stress_provider_parameters(expected_response_count, 200)
+
+        # we ignore value differences because there is at least one property
+        # that changes value with time (interval)
+        self.run_enum_test(TEST_PEG_STRESS_CLASSNAME,
+                           namespace=TEST_PEG_STRESS_NAMESPACE,
+                           MaxObjectCount=100, ignore_value_diff=True,
+                           expected_response_count=expected_response_count)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, True)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
+        self.assertEqual(self.conn._use_query_pull_operations, None)
+
+    def test_propertylist(self):
+        """Test with a propertylist."""
+        expected_response_count = 200
+        self.set_stress_provider_parameters(expected_response_count, 200)
+
+        # use property list to avoide properties that change value between
+        # operations
+        property_list = ['Id', 'SequenceNumber', 'ResponseCount', 'S1']
+        self.run_enum_test(TEST_PEG_STRESS_CLASSNAME,
+                           namespace=TEST_PEG_STRESS_NAMESPACE,
+                           MaxObjectCount=100, PropertyList=property_list)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, True)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
+        self.assertEqual(self.conn._use_query_pull_operations, None)
+
+    def test_force_original_operation(self):
+        """
+        Test where we force the use of the original operation.
+
+        To force the original operation, recall self.setup with
+        has_pull_operation = False
+
+        """
+
+        # Force a new setup to set the use_pull_operations False.
+        self.setUp(use_pull_operations=False)
+
+        expected_response_count = 10
+        self.set_stress_provider_parameters(expected_response_count, 200)
+
+        # use property list to avoid properties that change value between
+        # operations
+        property_list = ['Id', 'SequenceNumber', 'ResponseCount', 'S1']
+        self.run_enum_test(TEST_PEG_STRESS_CLASSNAME,
+                           namespace=TEST_PEG_STRESS_NAMESPACE,
+                           MaxObjectCount=100, PropertyList=property_list,
+                           pull_disabled=True)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn.use_pull_operations, False)
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, False)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, False)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, False)
+        self.assertEqual(self.conn._use_query_pull_operations, False)
+
+    def test_propertylist2(self):
+        """Test withone item property list."""
+        expected_response_count = 200
+        self.set_stress_provider_parameters(expected_response_count, 200)
+
+        # use property list to avoide properties that change value between
+        # operations
+        property_list = ['Id']
+        self.run_enum_test(TEST_PEG_STRESS_CLASSNAME,
+                           namespace=TEST_PEG_STRESS_NAMESPACE,
+                           MaxObjectCount=100, PropertyList=property_list)
+
+    def test_includequalifiers(self):
+        """Test without extra request parameters"""
+        expected_response_count = 200
+        self.set_stress_provider_parameters(expected_response_count, 200)
+
+        property_list = ['Id', 'SequenceNumber', 'ResponseCount', 'S1']
+        self.run_enum_test(TEST_PEG_STRESS_CLASSNAME,
+                           namespace=TEST_PEG_STRESS_NAMESPACE,
+                           MaxObjectCount=100, PropertyList=property_list,
+                           IncludeQualifiers=True)
+
+    def test_IncludeClassOrigin(self):  # pylint: disable=invalid-name
+        """Test without extra request parameters"""
+        expected_response_count = 200
+        self.set_stress_provider_parameters(expected_response_count, 200)
+
+        property_list = ['Id', 'SequenceNumber', 'ResponseCount', 'S1']
+        self.run_enum_test(TEST_PEG_STRESS_CLASSNAME,
+                           namespace=TEST_PEG_STRESS_NAMESPACE,
+                           MaxObjectCount=100, PropertyList=property_list,
+                           IncludeClassOrigin=True)
+
+    def test_minMaxObjectCount(self):  # pylint: disable=invalid-name
+        """Test without extra request parameters"""
+        expected_response_count = 200
+        self.set_stress_provider_parameters(expected_response_count, 200)
+
+        # we ignore value differences because there is at least one property
+        # that changes value with time (interval)
+        property_list = ['Id', 'SequenceNumber', 'ResponseCount', 'S1']
+        self.run_enum_test(TEST_PEG_STRESS_CLASSNAME,
+                           namespace=TEST_PEG_STRESS_NAMESPACE,
+                           MaxObjectCount=1, PropertyList=property_list,
+                           IncludeClassOrigin=True)
+
+    def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+        """
+        Test iter function with dZero MaxObjectCount.
+
+        Use TEST_CLASS for this test.
+        """
+        try:
+            self.run_enum_test(TEST_CLASS,
+                               namespace=TEST_CLASS_NAMESPACE,
+                               MaxObjectCount=0)
+            self.fail('Expected exception: Non-zero MaxObjectCount required')
+        except ValueError:
+            pass
+
+    # There is something broken in the following code.  It does an exception
+    # on the call to the Iter... call apparently but that does not show up
+    # as an exception. Traced it and the fn(...) either does not go to the
+    # function or trace does not work.  In any case, this executes a good
+    # response where it should fail.  It is clear that the code is not called
+    # because print statements are not executed from within iter...
+    # The MaxObjectCount=0 is the one difference in this code.
+    # The code above works ks Nov 2016)
+    # def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+        # print('test_zero_maxobjcnt')
+        # pdb.set_trace()
+        # try:
+            # self.cimcall(self.conn.IterEnumerateInstances, TEST_CLASS,
+            #     MaxObjectCount=0)
+            # self.fail('Expected exception: Non-zero MaxObjectCount required')
+        # except ValueError:
+            # pass
+
+    def test_no_MaxObjectCount(self):  # pylint: disable=invalid-name
+        """
+        Test iter function with default MaxObjectCount.
+
+        Use TEST_CLASS for this test.  Note that we do not use the function
+        that executes all 3 calls because it does not handle the default
+        MaxObjectCount.
+        """
+        iterator = self.cimcall(self.conn.IterEnumerateInstances,
+                                TEST_CLASS, namespace=TEST_CLASS_NAMESPACE)
+        iter_instances = []
+        for inst in iterator:
+            iter_instances.append(inst)
+
+        self.assertInstancesValid(iter_instances)
+
+    def test_invalid_namespace(self):
+        try:
+            self.run_enum_test(TEST_PEG_STRESS_CLASSNAME,
+                               MaxObjectCount=1, namespace='BLAH')
+            self.fail('Expected exception: invalid namespace')
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
+                raise
+
+    def test_classname_not_found(self):
+        try:
+            self.run_enum_test('blah', MaxObjectCount=1,
+                               namespace=TEST_PEG_STRESS_NAMESPACE)
+            self.fail('Expected exception: class not found')
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_CLASS:
+                raise
+
+
+class IterEnumerateInstancePaths(PegasusServerTestBase):
+    """Test IterEnumerateInstancePaths methods"""
+
+    def run_enumpath_test(self, ClassName, namespace=None,
+                          FilterQueryLanguage=None, FilterQuery=None,
+                          OperationTimeout=None, ContinueOnError=None,
+                          MaxObjectCount=None, pull_disabled=False):
+        # pylint: disable=invalid-name,
+        """
+        Run test by executing interEnumInstances, open/pull instance,
+        and EnumerateInstance and compare the results.
+
+        This is a common function used by other tests in this class.
+        """
+        if namespace is not None:
+            namespace = namespace.encode('utf-8')
+
+        # execute iterator operation
+        generator = self.cimcall(self.conn.IterEnumerateInstancePaths,
+                                 ClassName,
+                                 namespace=namespace,
+                                 FilterQueryLanguage=FilterQueryLanguage,
+                                 FilterQuery=FilterQuery,
+                                 OperationTimeout=OperationTimeout,
+                                 ContinueOnError=ContinueOnError,
+                                 MaxObjectCount=MaxObjectCount)
+        self.assertTrue(isinstance(generator, types.GeneratorType))
+        iter_paths = []
+        for path in generator:
+            iter_paths.append(path)
+
+        # execute pull operation
+        result = self.cimcall(self.conn.OpenEnumerateInstancePaths, ClassName,
+                              namespace=namespace,
+                              FilterQueryLanguage=FilterQueryLanguage,
+                              FilterQuery=FilterQuery,
+                              OperationTimeout=OperationTimeout,
+                              ContinueOnError=ContinueOnError,
+                              MaxObjectCount=MaxObjectCount)
+        pulled_paths = result.paths
+        self.assertPathsValid(result.paths, namespace=namespace)
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancePaths, result.context,
+                MaxObjectCount=MAX_OBJECT_COUNT)
+
+            self.assertPathsValid(result.paths, namespace=namespace)
+
+            pulled_paths.extend(result.paths)
+
+        self.assertPathsEqual(iter_paths, pulled_paths)
+
+        # execute original enumerate instance paths operation
+        # Ignore host here because EnumerateInstanceNames does not return
+        # it.
+        orig_paths = self.cimcall(self.conn.EnumerateInstanceNames, ClassName,
+                                  namespace=namespace)
+
+        self.assertPathsEqual(pulled_paths, orig_paths, ignore_host=True)
+
+    def test_compare_returns(self):
+        """Test without extra request parameters"""
+        self.set_stress_provider_parameters(200, 200)
+        self.run_enumpath_test(TEST_PEG_STRESS_CLASSNAME,
+                               namespace=TEST_PEG_STRESS_NAMESPACE,
+                               MaxObjectCount=100)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, True)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
+        self.assertEqual(self.conn._use_query_pull_operations, None)
+
+    def test_force_original_operation(self):
+        """
+        Test where we force the use of the original operation.
+
+        To force the original operation, recall self.setup with
+        has_pull_operation = False
+
+        """
+
+        # Force a new setup to set the use_pull_operations False.
+        self.setUp(use_pull_operations=False)
+
+        expected_response_count = 10
+        self.set_stress_provider_parameters(expected_response_count, 200)
+
+        self.run_enumpath_test(TEST_PEG_STRESS_CLASSNAME,
+                               namespace=TEST_PEG_STRESS_NAMESPACE,
+                               MaxObjectCount=100, pull_disabled=True)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn.use_pull_operations, False)
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, False)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, False)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, False)
+        self.assertEqual(self.conn._use_query_pull_operations, False)
+
+    def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+        """
+        Test iter function with dZero MaxObjectCount.
+
+        Use TEST_CLASS for this test.
+        """
+        try:
+            self.run_enumpath_test(TEST_CLASS,
+                                   namespace=TEST_CLASS_NAMESPACE,
+                                   MaxObjectCount=0)
+            self.fail('Expected exception: Non-zero MaxObjectCount required')
+        except ValueError:
+            pass
+
+    def test_no_MaxObjectCount(self):  # pylint: disable=invalid-name
+        """
+        Test iter function with default MaxObjectCount.
+
+        Use TEST_CLASS for this test.  Note that we do not use the function
+        that executes all 3 calls because it does not handle the default
+        MaxObjectCount.
+        """
+        iterator = self.cimcall(self.conn.IterEnumerateInstancePaths,
+                                TEST_CLASS, namespace=TEST_CLASS_NAMESPACE)
+        iter_paths = []
+        for path in iterator:
+            iter_paths.append(path)
+
+        self.assertPathsValid(iter_paths)
+
+    def test_invalid_namespace(self):
+        try:
+            self.run_enumpath_test(TEST_PEG_STRESS_CLASSNAME,
+                                   MaxObjectCount=1, namespace='BLAH')
+            self.fail('Expected exception: invalid namespace')
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
+                raise
+
+    def test_classname_not_found(self):
+        try:
+            self.run_enumpath_test('blah', MaxObjectCount=1,
+                                   namespace=TEST_PEG_STRESS_NAMESPACE)
+            self.fail('Expected exception: class not found')
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_CLASS:
+                raise
+
+
+class IterReferenceInstances(PegasusServerTestBase):
+    """Test IterReferenceInstancePaths methods"""
+
+    def get_source_name(self):
+        """
+        Get a reference source path
+        """
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+        return inst_names[0]  # Pick the first returned instance
+
+    def run_enum_test(self, InstanceName, ResultClass=None, Role=None,
+                      IncludeQualifiers=None, IncludeClassOrigin=None,
+                      PropertyList=None,
+                      FilterQueryLanguage=None, FilterQuery=None,
+                      OperationTimeout=None, ContinueOnError=None,
+                      MaxObjectCount=None, pull_disabled=False):
+        # pylint: disable=invalid-name,
+        """
+        Run test by executing interReferenceInstances, open/pull
+        References, and References and compare the results.
+
+        This is a common function used by other tests in this class.
+        """
+        # execute iterator operation
+        generator = self.cimcall(self.conn.IterReferenceInstances,
+                                 InstanceName, ResultClass=ResultClass,
+                                 Role=Role, IncludeQualifiers=IncludeQualifiers,
+                                 IncludeClassOrigin=IncludeClassOrigin,
+                                 PropertyList=PropertyList,
+                                 FilterQueryLanguage=FilterQueryLanguage,
+                                 FilterQuery=FilterQuery,
+                                 OperationTimeout=OperationTimeout,
+                                 ContinueOnError=ContinueOnError,
+                                 MaxObjectCount=MaxObjectCount)
+        self.assertTrue(isinstance(generator, types.GeneratorType))
+        iter_instances = []
+        for instance in generator:
+            iter_instances.append(instance)
+
+        # execute pull operation
+        result = self.cimcall(self.conn.OpenReferenceInstances,
+                              InstanceName, ResultClass=ResultClass, Role=Role,
+                              IncludeQualifiers=IncludeQualifiers,
+                              IncludeClassOrigin=IncludeClassOrigin,
+                              PropertyList=PropertyList,
+                              FilterQueryLanguage=FilterQueryLanguage,
+                              FilterQuery=FilterQuery,
+                              OperationTimeout=OperationTimeout,
+                              ContinueOnError=ContinueOnError,
+                              MaxObjectCount=MaxObjectCount)
+        pulled_instances = result.instances
+        self.assertInstancesValid(result.instances)
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancesWithPath, result.context,
+                MaxObjectCount=MAX_OBJECT_COUNT)
+
+            self.assertInstancesValid(result.instances)
+            pulled_instances.extend(result.instances)
+
+        self.assertInstancesEqual(iter_instances, pulled_instances,
+                                  ignore_host=pull_disabled)
+
+        # execute original enumerate instance paths operation
+        orig_instances = self.cimcall(self.conn.References, InstanceName,
+                                      ResultClass=ResultClass, Role=Role,
+                                      IncludeQualifiers=IncludeQualifiers,
+                                      IncludeClassOrigin=IncludeClassOrigin,
+                                      PropertyList=PropertyList)
+        self.assertInstancesEqual(pulled_instances, orig_instances)
+
+    def test_compare_returns(self):
+        """Test without extra request parameters"""
+        self.run_enum_test(self.get_source_name(), MaxObjectCount=100)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, True)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
+        self.assertEqual(self.conn._use_query_pull_operations, None)
+
+    def test_force_original_operation(self):
+        """
+        Test where we force the use of the original operation.
+
+        To force the original operation, recall self.setup with
+        has_pull_operation = False
+
+        """
+
+        # Force a new setup to set the use_pull_operations False.
+        self.setUp(use_pull_operations=False)
+
+        self.run_enum_test(self.get_source_name(),
+                           MaxObjectCount=100, pull_disabled=True)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn.use_pull_operations, False)
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, False)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, False)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, False)
+        self.assertEqual(self.conn._use_query_pull_operations, False)
+
+    def test_propertylist(self):
+        """Test with a propertylist."""
+
+        # use property list to avoide properties that change value between
+        # operations
+        property_list = ['CreationClassName', 'Name', 'PrimaryOwnerName']
+        self.run_enum_test(self.get_source_name(),
+                           MaxObjectCount=100, PropertyList=property_list)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, True)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
+        self.assertEqual(self.conn._use_query_pull_operations, None)
+
+    def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+        """
+        Test iter function with dZero MaxObjectCount.
+
+        Use TEST_CLASS for this test.
+        """
+        try:
+            self.run_enum_test(self.get_source_name(), MaxObjectCount=0)
+            self.fail('Expected exception: Non-zero MaxObjectCount required')
+        except ValueError:
+            pass
+
+    def test_no_MaxObjectCount(self):  # pylint: disable=invalid-name
+        """Test without extra request parameters"""
+
+        try:
+            self.run_enum_test(self.get_source_name())
+            self.fail('Expected exception: MaxObjectCount required')
+        except ValueError:
+            pass
+
+    def test_pywbem_person_noparams(self):
+        """
+        Test OpenReferencesWithPath PyWBEM_Person class
+        and no associator filter parameters
+        """
+        if not self.pywbem_person_class_exists():
+            return
+
+        # get all instances of the class
+        inst_paths = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_paths) >= 1)
+
+        # for each returned instance, execute  test sequence to get
+        # all instances
+        for path in inst_paths:
+            self.run_enum_test(path, MaxObjectCount=100)
+
+
+class IterReferenceInstancePaths(PegasusServerTestBase):
+    """Test IterReferenceInstancePaths methods"""
+
+    def get_source_name(self):
+        """
+        Get a reference source path
+        """
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+        return inst_names[0]  # Pick the first returned instance
+
+    def run_enumpath_test(self, InstanceName, ResultClass=None, Role=None,
+                          FilterQueryLanguage=None, FilterQuery=None,
+                          OperationTimeout=None, ContinueOnError=None,
+                          MaxObjectCount=None, pull_disabled=False):
+        # pylint: disable=invalid-name,
+        """
+        Run test by executing interEnumInstances, open/pull instance,
+        and EnumerateInstance and compare the results.
+
+        This is a common function used by other tests in this class.
+        """
+        # execute iterator operation
+        generator = self.cimcall(self.conn.IterReferenceInstancePaths,
+                                 InstanceName, ResultClass=ResultClass,
+                                 Role=Role,
+                                 FilterQueryLanguage=FilterQueryLanguage,
+                                 FilterQuery=FilterQuery,
+                                 OperationTimeout=OperationTimeout,
+                                 ContinueOnError=ContinueOnError,
+                                 MaxObjectCount=MaxObjectCount)
+        self.assertTrue(isinstance(generator, types.GeneratorType))
+        iter_paths = []
+        for path in generator:
+            iter_paths.append(path)
+
+        # execute pull operation
+        result = self.cimcall(self.conn.OpenReferenceInstancePaths,
+                              InstanceName, ResultClass=ResultClass, Role=Role,
+                              FilterQueryLanguage=FilterQueryLanguage,
+                              FilterQuery=FilterQuery,
+                              OperationTimeout=OperationTimeout,
+                              ContinueOnError=ContinueOnError,
+                              MaxObjectCount=MaxObjectCount)
+        pulled_paths = result.paths
+        self.assertPathsValid(result.paths)
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancePaths, result.context,
+                MaxObjectCount=MAX_OBJECT_COUNT)
+
+            self.assertPathsValid(result.paths)
+
+            pulled_paths.extend(result.paths)
+
+        self.assertPathsEqual(iter_paths, pulled_paths,
+                              ignore_host=pull_disabled)
+
+        # execute original enumerate instance paths operation
+        orig_paths = self.cimcall(self.conn.ReferenceNames, InstanceName,
+                                  ResultClass=ResultClass, Role=Role)
+
+        self.assertPathsEqual(pulled_paths, orig_paths)
+
+    def test_compare_returns(self):
+        """Test without extra request parameters"""
+        instance_name = self.get_source_name()
+
+        self.run_enumpath_test(instance_name, MaxObjectCount=100)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, True)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
+        self.assertEqual(self.conn._use_query_pull_operations, None)
+
+    def test_force_original_operation(self):
+        """
+        Test where we force the use of the original operation.
+
+        To force the original operation, recall self.setup with
+        has_pull_operation = False
+
+        """
+
+        # Force a new setup to set the use_pull_operations False.
+        self.setUp(use_pull_operations=False)
+
+        instance_name = self.get_source_name()
+
+        self.run_enumpath_test(instance_name,
+                               MaxObjectCount=100, pull_disabled=True)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn.use_pull_operations, False)
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, False)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, False)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, False)
+        self.assertEqual(self.conn._use_query_pull_operations, False)
+
+    def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+        """
+        Test iter function with dZero MaxObjectCount.
+
+        Use TEST_CLASS for this test.
+        """
+        try:
+            self.run_enumpath_test(TEST_CLASS_CIMNAME, MaxObjectCount=0)
+            self.fail('Expected exception: Non-zero MaxObjectCount required')
+        except ValueError:
+            pass
+
+    def test_no_MaxObjectCount(self):  # pylint: disable=invalid-name
+        """Test without extra request parameters"""
+        instance_name = self.get_source_name()
+
+        try:
+            self.run_enumpath_test(instance_name)
+            self.fail('Expected exception: MaxObjectCount required')
+        except ValueError:
+            pass
+
+    def test_classname_not_found(self):
+        kb = {'Name': 'Foo', 'Chicken': 'Ham'}
+        obj = CIMInstanceName(classname='CIM_Foo', keybindings=kb,
+                              namespace='root/cimv2')
+        try:
+            self.run_enumpath_test(obj, MaxObjectCount=1)
+            self.fail('Expected exception: class not found')
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_PARAMETER:
+                raise
+
+    def test_pywbem_person_noparams(self):
+        """
+        Test OpenReferencesWithPath PyWBEM_Person class
+        and no associator filter parameters
+        """
+        if not self.pywbem_person_class_exists():
+            return
+
+        # get all instances of the class
+        inst_paths = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_paths) >= 1)
+
+        # for each returned instance, execute  test sequence to get
+        # all instances
+        for path in inst_paths:
+            self.run_enumpath_test(path, MaxObjectCount=100)
+
+
+class IterAssociatorInstances(PegasusServerTestBase):
+    """Test IterAssociatorInstancePaths methods"""
+
+    def get_source_name(self):
+        """
+        Get a reference source path
+        """
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+        return inst_names[0]  # Pick the first returned instance
+
+    def run_enum_test(self, InstanceName, AssocClass=None,
+                      ResultClass=None, Role=None,
+                      ResultRole=None,
+                      IncludeQualifiers=None, IncludeClassOrigin=None,
+                      PropertyList=None,
+                      FilterQueryLanguage=None, FilterQuery=None,
+                      OperationTimeout=None, ContinueOnError=None,
+                      MaxObjectCount=None, pull_disabled=False):
+        # pylint: disable=invalid-name,
+        """
+        Run test by executing interAssociatorInstances, open/pull
+        Associators, and Associators and compare the results.
+
+        This is a common function used by other tests in this class.
+        """
+        # execute iterator operation
+        generator = self.cimcall(self.conn.IterAssociatorInstances,
+                                 InstanceName, AssocClass=AssocClass,
+                                 ResultClass=ResultClass, Role=Role,
+                                 ResultRole=ResultRole,
+                                 IncludeQualifiers=IncludeQualifiers,
+                                 IncludeClassOrigin=IncludeClassOrigin,
+                                 PropertyList=PropertyList,
+                                 FilterQueryLanguage=FilterQueryLanguage,
+                                 FilterQuery=FilterQuery,
+                                 OperationTimeout=OperationTimeout,
+                                 ContinueOnError=ContinueOnError,
+                                 MaxObjectCount=MaxObjectCount)
+        self.assertTrue(isinstance(generator, types.GeneratorType))
+        iter_instances = []
+        for instance in generator:
+            iter_instances.append(instance)
+
+        # execute pull operation
+        result = self.cimcall(self.conn.OpenAssociatorInstances,
+                              InstanceName, AssocClass=AssocClass,
+                              ResultClass=ResultClass, Role=Role,
+                              ResultRole=ResultRole,
+                              IncludeQualifiers=IncludeQualifiers,
+                              IncludeClassOrigin=IncludeClassOrigin,
+                              PropertyList=PropertyList,
+                              FilterQueryLanguage=FilterQueryLanguage,
+                              FilterQuery=FilterQuery,
+                              OperationTimeout=OperationTimeout,
+                              ContinueOnError=ContinueOnError,
+                              MaxObjectCount=MaxObjectCount)
+        pulled_instances = result.instances
+        self.assertInstancesValid(result.instances)
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancesWithPath, result.context,
+                MaxObjectCount=MAX_OBJECT_COUNT)
+
+            self.assertInstancesValid(result.instances)
+            pulled_instances.extend(result.instances)
+
+        self.assertInstancesEqual(iter_instances, pulled_instances,
+                                  ignore_host=pull_disabled)
+
+        # execute original enumerate instance paths operation
+        orig_instances = self.cimcall(self.conn.Associators, InstanceName,
+                                      ResultClass=ResultClass, Role=Role,
+                                      ResultRole=ResultRole,
+                                      IncludeQualifiers=IncludeQualifiers,
+                                      IncludeClassOrigin=IncludeClassOrigin,
+                                      PropertyList=PropertyList)
+
+        self.assertInstancesEqual(pulled_instances, orig_instances)
+
+    def test_compare_returns(self):
+        """
+        Test simple IterReferenceInstances request.
+        This request has no extra parameters
+        """
+        self.run_enum_test(self.get_source_name(), MaxObjectCount=100)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, True)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
+        self.assertEqual(self.conn._use_query_pull_operations, None)
+
+    def test_force_original_operation(self):
+        """
+        Test where we force the use of the original operation.
+
+        To force the original operation, recall self.setup with
+        has_pull_operation = False
+
+        """
+
+        # Force a new setup to set the use_pull_operations False.
+        self.setUp(use_pull_operations=False)
+
+        self.run_enum_test(self.get_source_name(),
+                           MaxObjectCount=100, pull_disabled=True)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn.use_pull_operations, False)
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, False)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, False)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, False)
+        self.assertEqual(self.conn._use_query_pull_operations, False)
+
+    def test_propertylist(self):
+        """Test with a propertylist."""
+
+        # use property list to avoide properties that change value between
+        # operations
+        property_list = ['CreationClassName', 'Name', 'PrimaryOwnerName']
+        self.run_enum_test(self.get_source_name(),
+                           MaxObjectCount=100, PropertyList=property_list)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, True)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
+        self.assertEqual(self.conn._use_query_pull_operations, None)
+
+    def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+        """
+        Test iter function with dZero MaxObjectCount.
+
+        Use TEST_CLASS for this test.
+        """
+        try:
+            self.run_enum_test(self.get_source_name(), MaxObjectCount=0)
+            self.fail('Expected exception: Non-zero MaxObjectCount required')
+        except ValueError:
+            pass
+
+    def test_no_MaxObjectCount(self):  # pylint: disable=invalid-name
+        """Test without extra request parameters"""
+
+        try:
+            self.run_enum_test(self.get_source_name())
+            self.fail('Expected exception: MaxObjectCount required')
+        except ValueError:
+            pass
+
+    def test_pywbem_person_noparams(self):
+        """
+        Test OpenReferencesWithPath PyWBEM_Person class
+        and no associator filter parameters
+        """
+        if not self.pywbem_person_class_exists():
+            return
+
+        # get all instances of the class
+        inst_paths = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_paths) >= 1)
+
+        # for each returned instance, execute  test sequence to get
+        # all instances
+        for path in inst_paths:
+            self.run_enum_test(path, MaxObjectCount=100)
+
+
+class IterAssociatorInstancePaths(PegasusServerTestBase):
+    """Test IterAssociatorInstancePaths methods"""
+
+    def get_source_name(self):
+        """
+        Get a reference source path
+        """
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+        return inst_names[0]  # Pick the first returned instance
+
+    def run_enumpath_test(self, InstanceName, AssocClass=None,
+                          ResultClass=None, Role=None,
+                          ResultRole=None,
+                          FilterQueryLanguage=None, FilterQuery=None,
+                          OperationTimeout=None, ContinueOnError=None,
+                          MaxObjectCount=None, pull_disabled=False):
+        # pylint: disable=invalid-name,
+        """
+        Run test by executing interAssociatorInstancePaths, open/pull
+        AssociatorPaths, and AssociatorNames and compare the results.
+
+        This is a common function used by other tests in this class.
+        """
+        # execute iterator operation
+        generator = self.cimcall(self.conn.IterAssociatorInstancePaths,
+                                 InstanceName, AssocClass=AssocClass,
+                                 ResultClass=ResultClass, Role=Role,
+                                 ResultRole=Role,
+                                 FilterQueryLanguage=FilterQueryLanguage,
+                                 FilterQuery=FilterQuery,
+                                 OperationTimeout=OperationTimeout,
+                                 ContinueOnError=ContinueOnError,
+                                 MaxObjectCount=MaxObjectCount)
+        self.assertTrue(isinstance(generator, types.GeneratorType))
+        iter_paths = []
+        for path in generator:
+            iter_paths.append(path)
+
+        # execute pull operation
+        result = self.cimcall(self.conn.OpenAssociatorInstancePaths,
+                              InstanceName, AssocClass=AssocClass,
+                              ResultClass=ResultClass, Role=Role,
+                              ResultRole=ResultRole,
+                              FilterQueryLanguage=FilterQueryLanguage,
+                              FilterQuery=FilterQuery,
+                              OperationTimeout=OperationTimeout,
+                              ContinueOnError=ContinueOnError,
+                              MaxObjectCount=MaxObjectCount)
+        pulled_paths = result.paths
+        self.assertPathsValid(result.paths)
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancePaths, result.context,
+                MaxObjectCount=MAX_OBJECT_COUNT)
+
+            self.assertPathsValid(result.paths)
+
+            pulled_paths.extend(result.paths)
+
+        self.assertPathsEqual(iter_paths, pulled_paths,
+                              ignore_host=pull_disabled)
+
+        # execute original enumerate instance paths operation
+        orig_paths = self.cimcall(self.conn.AssociatorNames, InstanceName,
+                                  AssocClass=ResultRole,
+                                  ResultClass=ResultClass, Role=Role,
+                                  ResultRole=ResultRole)
+
+        self.assertPathsEqual(pulled_paths, orig_paths)
+
+    def test_compare_returns(self):
+        """Test without extra request parameters"""
+        instance_name = self.get_source_name()
+
+        self.run_enumpath_test(instance_name, MaxObjectCount=100)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, None)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, True)
+        self.assertEqual(self.conn._use_query_pull_operations, None)
+
+    def test_force_original_operation(self):
+        """
+        Test where we force the use of the original operation.
+
+        To force the original operation, recall self.setup with
+        has_pull_operation = False
+
+        """
+
+        # Force a new setup to set the use_pull_operations False.
+        self.setUp(use_pull_operations=False)
+
+        instance_name = self.get_source_name()
+
+        self.run_enumpath_test(instance_name,
+                               MaxObjectCount=100, pull_disabled=True)
+
+        # pylint: disable=protected-access
+        self.assertEqual(self.conn.use_pull_operations, False)
+        self.assertEqual(self.conn._use_enum_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_enum_path_pull_operations, False)
+        self.assertEqual(self.conn._use_ref_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_ref_path_pull_operations, False)
+        self.assertEqual(self.conn._use_assoc_inst_pull_operations, False)
+        self.assertEqual(self.conn._use_assoc_path_pull_operations, False)
+        self.assertEqual(self.conn._use_query_pull_operations, False)
+
+    def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+        """
+        Test iter function with dZero MaxObjectCount.
+
+        Use TEST_CLASS for this test.
+        """
+        try:
+            self.run_enumpath_test(TEST_CLASS_CIMNAME, MaxObjectCount=0)
+            self.fail('Expected exception: Non-zero MaxObjectCount required')
+        except ValueError:
+            pass
+
+    def test_no_MaxObjectCount(self):  # pylint: disable=invalid-name
+        """Test without extra request parameters"""
+        instance_name = self.get_source_name()
+
+        try:
+            self.run_enumpath_test(instance_name)
+            self.fail('Expected exception: MaxObjectCount required')
+        except ValueError:
+            pass
+
+    def test_classname_not_found(self):
+        kb = {'Name': 'Foo', 'Chicken': 'Ham'}
+        obj = CIMInstanceName(classname='CIM_Foo', keybindings=kb,
+                              namespace='root/cimv2')
+        try:
+            self.run_enumpath_test(obj, MaxObjectCount=1)
+            self.fail('Expected exception: class not found')
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_PARAMETER:
+                raise
+
+    def test_pywbem_person_noparams(self):
+        """
+        Test OpenReferencesWithPath PyWBEM_Person class
+        and no associator filter parameters
+        """
+        if not self.pywbem_person_class_exists():
+            return
+
+        # get all instances of the class
+        inst_paths = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_paths) >= 1)
+
+        # for each returned instance, execute  test sequence to get
+        # all instances
+        for path in inst_paths:
+            self.run_enumpath_test(path, MaxObjectCount=100)
 
 
 RECEIVED_INDICATION_COUNT = 0
@@ -4462,6 +5758,16 @@ TEST_LIST = [
     'PullAssociatorPaths',
     'PullReferences',
     'PullReferencePaths',
+    'PullQueryInstances',
+
+    # iter operations
+    'IterEnumerateInstancePaths',
+    'IterEnumerateInstances',
+    'IterAssociators',
+    'IterAssociatorPaths',
+    'IterReferences',
+    'IterReferencePaths',
+    'IterQueryInstances',
 
     # TestServerClass
     'PyWBEMServerClass',
