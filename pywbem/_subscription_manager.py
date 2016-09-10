@@ -506,11 +506,11 @@ class WBEMSubscriptionManager(object):
             return
 
         server = self._get_server(server_id)
-        server.conn.DeleteInstance(dest_path)
 
         # Here destination_paths will contain only a single path entry.
         # Assign to internal variable for clarity
         dest_path = destination_paths
+        server.conn.DeleteInstance(dest_path)
         paths = self._owned_destination_paths[server_id]
         for i, path in enumerate(paths):
             if path == dest_path:
