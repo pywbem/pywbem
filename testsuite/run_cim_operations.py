@@ -213,27 +213,42 @@ class ClientTest(unittest.TestCase):
 
         self.assertTrue(isinstance(cls[1], CIMClass))
 
-    def inst_in_list(self, inst, list_):
+    def inst_in_list(self, inst, instances, ignorehost=False):
         """ Determine if an instance is in a list of instances. Return
             True if the instance is in the list. Otherwise return False.
             Tests on path only.
-
         """
-        for i in list_:
-            if i.path == inst.path:
+        for i in instances:
+            if self.pathsEqual(i.path, inst.path, ignorehost=ignorehost):
                 return True
         return False
 
-    def path_in_list(self, path, list_):
-        """ Determine if an instance is in a list of instances. Return
+    def pathsEqual(self, path1, path2, ignorehost=False):
+        """Test for paths equal. Test ignoring the host component if
+           ignorehost = True. Allows us to test without the host
+           comonent since that is a difference between pull and not
+           pull responses, at least on pegasus
+        """
+        if ignorehost:
+            if path1.host is not None:
+                path1 = path1
+                path1.host = None
+            if path2.host is not None:
+                path2 = path2
+                path2.host = None
+
+        return path1 == path2
+
+    def path_in_list(self, path, paths, ignorehost=False):
+        """ Determine if an path is in a list of paths. Return
             True if the instance is in the list. Otherwise return False.
         """
-        for i in list_:
-            if i == path:
+        for i in paths:
+            if self.pathsEqual(i, path, ignorehost=ignorehost):
                 return True
         return False
 
-    def assertInstancesEqual(self, insts1, insts2):
+    def assertInstancesEqual(self, insts1, insts2, ignorehost=False):
         """Compare two lists of instances for equality of instances
            The instances do not have to be in the same order in
            the lists. The lists must be of equal length.
@@ -243,21 +258,31 @@ class ClientTest(unittest.TestCase):
             insts1 = [insts1]
         if not isinstance(insts2, list):
             insts2 = [insts2]
-        self.assertEqual(len(insts1),len(insts2))
+        self.assertEqual(len(insts1), len(insts2))
 
         for inst1 in insts1:
             self.assertTrue(isinstance(inst1, CIMInstance))
-            if not self.inst_in_list(inst1, insts2):
+            if not self.inst_in_list(inst1, insts2, ignorehost=ignorehost):
                 self.fail("Instance Lists do not match")
             else:
                 for inst2 in insts2:
-                    if inst2.path == inst1.path:
+                    if self.pathsEqual(inst1.path, inst2.path, \
+                        ignorehost=ignorehost):
+
                         self.assertTrue(isinstance(inst2, CIMInstance))
+                        if ignorehost:
+                            if inst1.path.host is not None:
+                                inst1 = inst1
+                                inst1.path.host = None
+                            if inst2.path.host is not None:
+                                inst2 = inst2
+                                inst2.path.host = None                                
                         self.assertEqual(inst1, inst2)
                         return
                 self.fail('assertInstancesEqual fail')
 
-    def assertPathsEqual(self, paths1, paths2):
+
+    def assertPathsEqual(self, paths1, paths2, ignorehost=False):
         """ Compare two lists of paths or paths for equality
             assert if they are not the same
         """
@@ -265,49 +290,17 @@ class ClientTest(unittest.TestCase):
             paths1 = [paths1]
         if not isinstance(paths2, list):
             paths2 = [paths2]
-        self.assertEqual(len(paths1),len(paths2))
+        self.assertEqual(len(paths1), len(paths2))
 
         for path1 in paths1:
             self.assertTrue(isinstance(path1, CIMInstanceName))
-            if not self.path_in_list(path1, paths2):
+            if not self.path_in_list(path1, paths2, ignorehost=ignorehost):
                 self.fail("Path Lists do not match")
             else:
                 for path2 in paths2:
-                    if path2 == path1:
+                    if self.pathsEqual(path2, path1, ignorehost=ignorehost):
                         return
                 self.fail('assertPathsEqual fail')
-
-    def assertPulledInstsEqual(self, insts_pulled, insts_enum):
-        """ compare pulled instances to instances received throught
-            EnumerateInstances. Note that there is one core difference
-            in that pulled instances include host in path. We clean
-            the paths for this test.
-        """
-        
-        insts_pulled_clean = []
-        # create a copy without the host name in path
-        for inst in insts_pulled:
-            inst2 = inst.copy()
-            p = inst.path
-            p.host = None
-            inst2.path = p
-            insts_pulled_clean.append(inst2)
-        self.assertInstancesEqual(insts_pulled_clean, insts_enum)
-
-    def assertPulledPathsEqual(self, paths_pulled, paths_enum):
-        """ compare pulled paths to paths received throught
-            EnumerateInstances. Note that there is one core difference
-            in that pulled paths include host in path. We clean
-            the paths for this test.
-        """
-        
-        paths_pulled_clean = []
-        # create a copy without the host name in path
-        for path in paths_pulled:
-            path2 = path.copy()
-            path2.host = None
-            paths_pulled_clean.append(path2)
-        self.assertPathsEqual(paths_pulled_clean, paths_enum)
 
 #################################################################
 # Instance provider interface tests
@@ -726,7 +719,7 @@ class PullEnumerateInstances(ClientTest):
 
         self.assertInstancesValid(insts_enum)
 
-        self.assertPulledInstsEqual(insts_pulled, insts_enum)
+        self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
 
 
     def test_open_deepinheritance(self):
@@ -751,7 +744,7 @@ class PullEnumerateInstances(ClientTest):
 
         self.assertInstancesValid(insts_enum)
 
-        self.assertPulledInstsEqual(insts_pulled, insts_enum)
+        self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
 
 
     def test_open_includequalifiers(self):
@@ -780,7 +773,7 @@ class PullEnumerateInstances(ClientTest):
 
         self.assertInstancesValid(insts_enum)
 
-        self.assertPulledInstsEqual(insts_pulled, insts_enum)
+        self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
 
 
     def test_open_includeclassorigin(self):
@@ -806,7 +799,7 @@ class PullEnumerateInstances(ClientTest):
 
         insts_enum = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
 
-        self.assertPulledInstsEqual(insts_pulled, insts_enum)
+        self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
 
 
     def test_open_complete_with_ns(self):
@@ -832,7 +825,7 @@ class PullEnumerateInstances(ClientTest):
 
         insts_enum = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
 
-        self.assertPulledInstsEqual(insts_pulled, insts_enum)
+        self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
 
 
     def test_zero_open(self):
@@ -875,7 +868,7 @@ class PullEnumerateInstances(ClientTest):
     def test_get_onebyone(self):
         """Get instances with MaxObjectCount = 1)"""
 
-        result = self.cimcall(self.conn.OpenEnumerateInstances,  TOP_CLASS,
+        result = self.cimcall(self.conn.OpenEnumerateInstances, TOP_CLASS,
                               MaxObjectCount=1)
 
         self.assertTrue(len(result.instances) <= 1)
@@ -892,7 +885,7 @@ class PullEnumerateInstances(ClientTest):
         # get with EnumInstances and compare returns
         insts_enum = self.cimcall(self.conn.EnumerateInstances, TOP_CLASS)
 
-        
+
 
     def test_bad_namespace(self):
         """Call with explicit CIM namespace that does not exist"""
@@ -1128,7 +1121,7 @@ class PullEnumerateInstancePaths(ClientTest):
         """Enumerate instances with MaxObjectCount = 1)"""
 
         result = self.cimcall(
-            self.conn.OpenEnumerateInstancePaths,  TEST_CLASS,
+            self.conn.OpenEnumerateInstancePaths, TEST_CLASS,
             MaxObjectCount=1)
 
         self.assertTrue(len(result.paths) <= 1)
@@ -1145,15 +1138,15 @@ class PullEnumerateInstancePaths(ClientTest):
 
         # get with EnumInstanceNames and compare returns
         paths_enum = self.cimcall(self.conn.EnumerateInstanceNames,
-                                   TEST_CLASS)
+                                  TEST_CLASS)
 
         # This test does NOT always deliver the same number of instances.
         # Therefore we do an initial test with a range and if that range is
         # to large, fail the test.  If the results are equal, we to the
         # compare
         diff = abs(len(paths_pulled) - len(paths_enum))
-        if diff == 0 :
-            self.assertPulledPathsEqual(paths_pulled, paths_enum)
+        if diff == 0:
+            self.assertPathsEqual(paths_pulled, paths_enum, ignorehost=True)
         elif paths_pulled/diff < 10:
             print('Return diff count %s of total %s ignored' % \
                   (diff, paths_pulled))
