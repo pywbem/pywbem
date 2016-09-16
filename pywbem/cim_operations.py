@@ -824,7 +824,7 @@ class WBEMConnection(object):
         if self.debug:
             # remove extra empty lines
             self.last_reply = re.sub(r'>( *[\r\n]+)+( *)<', r'>\n\2<',
-                                     reply_xml)
+                                     _ensure_unicode(reply_xml))
 
         # Parse response
 
@@ -1069,7 +1069,7 @@ class WBEMConnection(object):
         if self.debug:
             # remove extra empty lines
             self.last_reply = re.sub(r'>( *[\r\n]+)+( *)<', r'>\n\2<',
-                                     reply_xml)
+                                     _ensure_unicode(reply_xml))
 
         # Parse response
 
