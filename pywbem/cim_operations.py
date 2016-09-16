@@ -123,7 +123,7 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      tocimobj
 from .cim_http import get_object_header, wbem_request
 from .tupleparse import parse_cim
-from .tupletree import dom_to_tupletree
+from .tupletree import dom_to_tupletree, xml_to_tupletree_sax
 from .exceptions import Error, ParseError, AuthError, ConnectionError, \
                         TimeoutError, CIMError
 
@@ -781,7 +781,7 @@ class WBEMConnection(object):
             self.last_raw_reply = reply_xml
 
         try:
-            reply_dom = minidom.parseString(reply_xml)
+            tup_tree = parse_cim(xml_to_tupletree_sax(reply_xml))
         except ParseError as exc:
             msg = str(exc)
             parsing_error = True
@@ -814,17 +814,15 @@ class WBEMConnection(object):
             else:
                 if parsing_error:
                     # We did not catch it in the check function, but
-                    # minidom.parseString() failed.
+                    # parsing failed.
                     raise ParseError(msg) # data from previous exception
 
         if self.debug:
-            pretty_reply = reply_dom.toprettyxml(indent='  ')
+            # remove extra empty lines
             self.last_reply = re.sub(r'>( *[\r\n]+)+( *)<', r'>\n\2<',
-                                     pretty_reply) # remove extra empty lines
+                                     reply_xml)
 
         # Parse response
-
-        tup_tree = parse_cim(dom_to_tupletree(reply_dom))
 
         if tup_tree[0] != 'CIM':
             raise ParseError('Expecting CIM element, got %s' % tup_tree[0])
@@ -1025,7 +1023,7 @@ class WBEMConnection(object):
             self.last_raw_reply = reply_xml
 
         try:
-            reply_dom = minidom.parseString(reply_xml)
+            tt = parse_cim(xml_to_tupletree_sax(reply_xml))
         except ParseError as exc:
             msg = str(exc)
             parsing_error = True
@@ -1058,17 +1056,15 @@ class WBEMConnection(object):
             else:
                 if parsing_error:
                     # We did not catch it in the check function, but
-                    # minidom.parseString() failed.
+                    # parsing failed.
                     raise ParseError(msg) # data from previous exception
 
         if self.debug:
-            pretty_reply = reply_dom.toprettyxml(indent='  ')
+            # remove extra empty lines
             self.last_reply = re.sub(r'>( *[\r\n]+)+( *)<', r'>\n\2<',
-                                     pretty_reply) # remove extra empty lines
+                                     reply_xml)
 
         # Parse response
-
-        tt = parse_cim(dom_to_tupletree(reply_dom))
 
         if tt[0] != 'CIM':
             raise ParseError('Expecting CIM element, got %s' % tt[0])
