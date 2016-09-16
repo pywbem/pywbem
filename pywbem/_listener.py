@@ -82,8 +82,8 @@ except ImportError:
             pass
     logging.NullHandler = NullHandler
 import ssl
-from xml.dom import minidom
 from xml.parsers.expat import ExpatError
+from xml.sax import SAXParseException
 import threading
 import six
 from six.moves import BaseHTTPServer
@@ -97,7 +97,7 @@ from .cim_operations import check_utf8_xml_chars
 from .cim_constants import CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_PARAMETER, \
     _statuscode2name
 from .tupleparse import parse_cim
-from .tupletree import dom_to_tupletree
+from .tupletree import xml_to_tupletree_sax
 from .exceptions import ParseError, VersionError
 
 
@@ -448,8 +448,11 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
 
         try:
-            request_dom = minidom.parseString(request_str)
+            tup_tree = parse_cim(xml_to_tupletree_sax(request_str))
         except ParseError as exc:
+            msg = str(exc)
+            parsing_error = True
+        except SAXParseException as exc:
             msg = str(exc)
             parsing_error = True
         except ExpatError as exc:
@@ -482,8 +485,6 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             raise ParseError(msg)  # data from previous exception
 
         # Parse response
-
-        tup_tree = parse_cim(dom_to_tupletree(request_dom))
 
         if tup_tree[0] != 'CIM':
             raise ParseError('Expecting CIM element, got %s' %
@@ -857,7 +858,7 @@ class WBEMListener(object):
         for callback in self._callbacks:
             try:
                 callback(indication, host)
-            except Exception as exc:
+            except Exception as exc:  # pylint: disable=broad-except
                 self.logger.log(logging.ERROR, "Indication delivery callback "
                                 "function raised %s: %s",
                                 exc.__class__.__name__, exc)

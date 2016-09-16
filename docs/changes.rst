@@ -44,6 +44,10 @@ Enhancements
 * Added a section "Prerequisite operating system packages" to the documentation
   that describes the prerequisite packages by distribution.
 
+* Modified xml parser to use sax parser in place of DOM parser for response
+  processing.   This is a significant reduction in memory usage.
+  See issue # 498.
+
 
 Bug fixes
 ^^^^^^^^^

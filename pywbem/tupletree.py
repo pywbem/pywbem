@@ -48,55 +48,79 @@ The CONTENTS is a list of child elements.
 The fourth element is reserved.
 """
 
+# NOTE: The original dom based parsers have been replaced with a sax parser
+#       in Nov. 2016. The dom tupletree code is in the file
+#       testsuite/test_tupletree.py
+
 from __future__ import absolute_import
 
 import xml.dom.minidom
-
-import six
+import xml.sax
+import re
 
 __all__ = []
 
 
-def dom_to_tupletree(node):
-    """Convert a DOM object to a pyRXP-style tuple tree.
+class CIMContentHandler(xml.sax.ContentHandler):
+    """SAX handler for CIM XML.
 
-    Each element is a 4-tuple of (NAME, ATTRS, CONTENTS, None).
+    Similar to dom_to_tupletree, the handler creates a tree of tuples,
+    where the elements are the XML element name, the attributes, and the
+    children.
 
-    Very nice for processing complex nested trees.
+    The handler pushes and pops the list of elements, building the child
+    list as it goes.
+
+    The end result is that the root node is left in the list and available
+    as the root attribute of the object.
     """
 
-    if node.nodeType == node.DOCUMENT_NODE:
-        # boring; pop down one level
-        return dom_to_tupletree(node.firstChild)
-    assert node.nodeType == node.ELEMENT_NODE
+    def __init__(self):
+        xml.sax.ContentHandler.__init__(self)
+        self.root = None
+        self.elements = []
+        self.element = []
 
-    name = node.nodeName
-    attrs = {}
-    contents = []
+    def startDocument(self):
+        assert self.elements == []
 
-    for child in node.childNodes:
-        if child.nodeType == child.ELEMENT_NODE:
-            contents.append(dom_to_tupletree(child))
-        elif child.nodeType == child.TEXT_NODE:
-            assert isinstance(child.nodeValue, six.string_types), \
-                "text node %s is not a string %r" % child
-            contents.append(child.nodeValue)
-        elif child.nodeType == child.CDATA_SECTION_NODE:
-            contents.append(child.nodeValue)
-        else:
-            raise RuntimeError("can't handle %r" % child)
+    def endDocument(self):
+        assert self.elements == []
+        self.root = self.element
 
-    for i in range(node.attributes.length):
-        attr_node = node.attributes.item(i)
-        attrs[attr_node.nodeName] = attr_node.nodeValue
+    def startElement(self, name, attrs):
+        if self.element:
+            self.elements.append(self.element)
+        # Avoid dict comprehension to support python2.6.
+        attr_dict = {}
+        for k, v in attrs.items():
+            attr_dict[k] = v
+        element = (name, attr_dict, list(), None)
+        if self.element:
+            self.element[2].append(element)
+        self.element = element
 
-    # XXX: Cannot handle comments, cdata, processing instructions, etc.
+    def endElement(self, name):
+        if self.elements:
+            self.element = self.elements.pop()
 
-    # it's so easy in retrospect!
-    return (name, attrs, contents, None)
+    def characters(self, content):
+        if self.element[2]:
+            try:
+                re.match(r'\s+', self.element[2][-1])
+            except TypeError:
+                pass
+            else:
+                ws = self.element[2].pop()
+                content = '%s%s' % (ws, content)
+        self.element[2].append(content)
 
 
-def xml_to_tupletree(xml_string):
-    """Parse XML straight into tupletree."""
-    dom_xml = xml.dom.minidom.parseString(xml_string)
-    return dom_to_tupletree(dom_xml)
+def xml_to_tupletree_sax(xml_string):
+    """
+    Parse an XML string into tupletree with SAX.
+    Returns the root.
+    """
+    handler = CIMContentHandler()
+    xml.sax.parseString(xml_string, handler, None)
+    return handler.root
