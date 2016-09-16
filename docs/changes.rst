@@ -14,6 +14,18 @@ Change log
 .. #    :revisions: 1
 
 
+pywbem v0.9.1.dev0
+------------------
+
+Released: Not yet
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed the use of a variable before it was set in the `remove_destinations()`
+  method of class `WBEMSubscriptionManager`.
+
+
 pywbem v0.9.0
 -------------
 
@@ -381,7 +393,7 @@ Bug fixes
 
 
 pywbem-0.8.4
-^^^^^^^^^^^^
+------------
 
 Released: 2016-05-13
 
