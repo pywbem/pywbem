@@ -9,7 +9,7 @@ import sys as _sys
 import os as _os
 import code as _code
 import errno as _errno
-import logging as _logging
+import logging
 import threading
 # Conditional support of readline module
 try:
@@ -17,13 +17,15 @@ try:
     _HAVE_READLINE = True
 except ImportError as arg:
     _HAVE_READLINE = False
+import six
 
 import pywbem
 
 # For creating a self-signed certificate file with private key inside, issue:
 #    openssl req -new -x509 -keyout server.pem -out server.pem -days 365 -nodes
 
-RECEIVED_INDICATION_COUNT = 0
+# Dictionary to count indications received by host
+RECEIVED_INDICATION_DICT = {}
 COUNTER_LOCK = threading.Lock()
 
 #pylint: disable=invalid-name
@@ -32,13 +34,16 @@ listener = None
 def _process_indication(indication, host):
     '''This function gets called when an indication is received.'''
 
-    global RECEIVED_INDICATION_COUNT
+    global RECEIVED_INDICATION_DICT
     COUNTER_LOCK.acquire()
-    RECEIVED_INDICATION_COUNT += 1
+    if host in RECEIVED_INDICATION_DICT:
+        RECEIVED_INDICATION_DICT[host] += 1
+    else:
+        RECEIVED_INDICATION_DICT[host] = 1
     COUNTER_LOCK.release()
 
     listener.logger.info("Consumed CIM indication #%s: host=%s\n%s",
-                         RECEIVED_INDICATION_COUNT, host, indication.tomof())
+                         RECEIVED_INDICATION_DICT, host, indication.tomof())
 
 def _get_argv(index, default=None):
     ''' get the argv input argument defined by index. Return the default
@@ -52,11 +57,16 @@ def status(reset=None):
         Show status of indications received. If optional reset attribute
         is True, reset the counter.
     '''
-    global RECEIVED_INDICATION_COUNT
-    print('Received %s indications' % RECEIVED_INDICATION_COUNT)
+    global RECEIVED_INDICATION_DICT
+    for host, count in six.iteritems(RECEIVED_INDICATION_DICT):
+        print('Host %s Received %s indications' % (host, count))
+        
     if reset:
-        RECEIVED_INDICATION_COUNT = 0
-        print('count reset to 0')
+        for host in RECEIVED_INDICATION_DICT:
+            RECEIVED_INDICATION_DICT[host] = 0
+            print('Host %s Reset: Received %s indications' %
+                  (host, RECEIVED_INDICATION_DICT[host]))
+        print('counts reset to 0')
 
 
 def _main():
@@ -70,8 +80,8 @@ def _main():
               _sys.argv[0])
         _sys.exit(2)
 
-    _logging.basicConfig(stream=_sys.stderr, level=_logging.INFO,
-                         format='%(asctime)s %(levelname)s: %(message)s')
+    logging.basicConfig(stream=_sys.stderr, level=logging.INFO,
+                        format='%(asctime)s %(levelname)s: %(message)s')
 
     host = _get_argv(1)
     http_port = _get_argv(2)
@@ -91,12 +101,19 @@ def _main():
 
     banner = """
 WBEM listener started on host %s (HTTP port: %s, HTTPS port: %s).
-This Python console displays any indications received by this listener.
+This Python console displays any indications received by this listener as
+logger outputs (Level=INFO) to the console by default.
 
 listener: WBEMListener instance that has been started.
+
 help(listener): Display help for using listener instance.
-status() : display number of indications received. status(reset=True) to reset
-           counter
+
+status() : Display count of indications received; status(reset=True) to reset
+           counters
+
+Modify logger characteristics through listener.logger:
+     (ex. listener.logger.setLevel(logging.ERROR))
+
 Ctrl-d to exit
 """ % (host, http_port, https_port)
 

@@ -15,6 +15,10 @@ import re
 from random import randint
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 import requests
+# The following disables the urllib3 InsecureRequestWarning that gets
+# generated for every send when server cert verification is disabled.
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class ElapsedTimer(object):
     """
@@ -44,7 +48,8 @@ class ElapsedTimer(object):
         return self.elapsed_ms() / 1000
 
 
-def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
+def create_indication_data(msg_id, sequence_number, source_id, delta_time, \
+                           protocol_ver):
     '''
     Create a singled indication XML from the template and the included
     sequence_number, delta_time, and protocol_ver
@@ -65,6 +70,9 @@ def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
                 <PROPERTY NAME="SequenceNumber" TYPE="string">
                   <VALUE>%(sequence_number)s</VALUE>
                 </PROPERTY>
+                <PROPERTY NAME="SourceId" TYPE="string">
+                  <VALUE>%(source_id)s</VALUE>
+                </PROPERTY>
                 <PROPERTY NAME="DELTA_TIME" TYPE="string">
                   <VALUE>%(delta_time)s</VALUE>
                 </PROPERTY>
@@ -75,16 +83,44 @@ def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
       </MESSAGE>
     </CIM>"""
 
-    data = {'sequence_number' : sequence_number, 'delta_time' : delta_time,
-            'protocol_ver' : protocol_ver, 'msg_id' : msg_id}
+    data = {'sequence_number' : sequence_number, 'source_id' : source_id,
+            'delta_time' : delta_time, 'protocol_ver' : protocol_ver,
+            'msg_id' : msg_id}
     return data_template%data
 
 
-def send_indication(url, headers, payload, verbose, cert=None, verify=None,
+def send_indication(url, headers, payload, verbose, verify=None, keyfile=None,
                     timeout=4):
     '''
-    Send indication using requests.
-    Return True if response code = 200. Otherwise return False
+    Send indication using requests module.
+
+    Parameters:
+
+    url(:term:`string):
+      listener url including scheme, host name, port
+
+    headers:
+      All headers for the request
+
+    pyload:
+       XML payload containing the indication
+
+    verbose:
+      Flag for verbose responses
+
+    verify:
+      Either False or file of cert for verification of host. Note that
+      this combination is unique to the requests module in place of using
+      a no_verification flag.
+
+    keyfile:
+      None if there is no client verification or either a single
+      file containing the cert amd private key file or a pair of files
+      containing both (key, cert)
+    
+    Returns:
+
+      True if response code = 200. Otherwise False
     '''
 
     try:
@@ -114,9 +150,9 @@ def get_args():
     epilog = """
 Examples:
   %s https://127.0.0.1 -p 5001
-
+  %s http://localhost:5000
   %s http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
-""" % (prog, prog)
+""" % (prog, prog, prog)
 
     argparser = _argparse.ArgumentParser(
         prog=prog, usage=usage, description=desc, epilog=epilog,
@@ -139,7 +175,7 @@ Examples:
         help='Print more messages while processing')
 
     general_arggroup.add_argument(
-        '--listenerPort', '-p', default=5000,
+        '--listenerPort', '-p', default=None,
         metavar="port",
         type=int,
         help='Integer argument defines listener port.')
@@ -156,19 +192,17 @@ Examples:
     security_arggroup = argparser.add_argument_group(
         'Connection security related options',
         'Specify user name and password or certificates and keys')
-    #security_arggroup.add_argument(
-        #'--certfile', '-c', dest='cert_file', metavar='certfile',
-        #help='R|Client certificate file for authenticating with the\n' \
-             #'WBEM listener. If option specified the client attempts\n' \
-             #'to execute mutual authentication.\n'
-             #'Default: Simple authentication.')
-    #security_arggroup.add_argument(
-        #'--keyfile', '-k', dest='key_file', metavar='keyfile',
-        #help='R|Client private key file for authenticating with the\n' \
-             #'WBEM listener. Not required if private key is part of the\n' \
-             #'certfile option. Not allowed if no certfile option.\n' \
-             #'Default: No client key file. Client private key should\n' \
-             #'then be part  of the certfile')
+    security_arggroup.add_argument(
+        '--certfile', '-c', dest='cert_file', metavar='certfile',
+        help='R|Client certificate file for authenticating with the\n' \
+             'WBEM listener. If option specified the client attempts\n' \
+             'to execute server authentication.\n'
+             'Default: None so that there is no verification of server cert.')
+    security_arggroup.add_argument(
+        '--keyfile', '-k', dest='key_file', metavar='keyfile',
+        help='R|Client private key file for authenticating with the\n' \
+             'WBEM listener. Specify as a single file (containing private ' \
+             ' key and certificate or a tuple of key and certificate files')
 
     args = argparser.parse_args()
 
@@ -177,27 +211,40 @@ Examples:
         sys.exit(1)
 
     if args.verbose:
-        print('args %s' % args)
+        print('args: %s' % args)
 
-    return args
+    return args, argparser
 
 def main():
     """ Get arguments from get_args and create/send the number
         of indications defined.  Each indication is created from a
         template.
     """
-    opts = get_args()
+    opts, argparser = get_args()
 
     start_time = time()
 
-    full_url = opts.url
-    if opts.listenerPort is not None:
-        full_url = '%s:%s' % (opts.url, opts.listenerPort)
+    url = opts.url
+    if re.search(r":([0-9]+)$", opts.url):
+        if opts.listenerPort is not None:
+            argparser.error('Simultaneous url with port and -p port option '
+                            'invalid')
+    else:
+        if opts.listenerPort is None:
+            url = '%s:%s' % (opts.url, 5000)
+        else:
+            url = '%s:%s' % (opts.url, opts.listenerPort)
 
     if opts.verbose:
-        print('full_url=%s' % full_url)
+        print('url=%s' % url)
 
     cim_protocol_version = '1.4'
+
+    # requests module combines the verification flag and certfile attribute
+    # If verify=False, there is no verification of the server cert. If
+    # verify=<file_name or dir name> it is the directory of the cert to
+    # use for verification.
+    verification = False if opts.cert_file is None else opts.cert_file
 
     headers = {'content-type' : 'application/xml; charset=utf-8',
                'CIMExport' : 'MethodRequest',
@@ -205,22 +252,23 @@ def main():
                'Accept-Encoding' : 'Identity',
                'CIMProtocolVersion' : cim_protocol_version}
     # includes accept-encoding because of requests issue.  He supplies it if
-    # we don't TOD try None
+    # we don't TODO try None
 
     delta_time = time() - start_time
     rand_base = randint(1, 1000)
     timer = ElapsedTimer()
+    source_id = 'send_indications.py'
     for i in range(opts.deliver):
 
         msg_id = '%s' % (i + rand_base)
-        payload = create_indication_data(msg_id, i, delta_time,
+        payload = create_indication_data(msg_id, i, source_id, delta_time,
                                          cim_protocol_version)
 
         if opts.verbose:
             print('headers=%s\n\npayload=%s' % (headers, payload))
 
-        success = send_indication(full_url, headers, payload, opts.verbose,
-                                  verify=False)
+        success = send_indication(url, headers, payload, opts.verbose,
+                                  verify=verification)
 
         if success:
             if opts.verbose:
