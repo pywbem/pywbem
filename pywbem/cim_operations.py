@@ -108,21 +108,20 @@ from __future__ import absolute_import
 
 import re
 from datetime import datetime, timedelta
-from xml.dom import minidom
 from xml.parsers.expat import ExpatError
+from xml.sax import SAXParseException
 import warnings
 from collections import namedtuple
 
 import six
 from . import cim_xml
-from .cim_constants import DEFAULT_NAMESPACE
 from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      CIMClassName, NocaseDict, _ensure_unicode, tocimxml, \
                      tocimobj
 from .cim_http import get_object_header, wbem_request
 from .tupleparse import parse_cim
-from .tupletree import dom_to_tupletree, xml_to_tupletree_sax
+from .tupletree import xml_to_tupletree_sax
 from .exceptions import Error, ParseError, AuthError, ConnectionError, \
                         TimeoutError, CIMError
 from .cim_constants import *  # pylint: disable=wildcard-import
@@ -785,6 +784,9 @@ class WBEMConnection(object):
         except ParseError as exc:
             msg = str(exc)
             parsing_error = True
+        except SAXParseException as exc:
+            msg = str(exc)
+            parsing_error = True
         except ExpatError as exc:
             # This is raised e.g. when XML numeric entity references of
             # invalid XML characters are used (e.g. '&#0;').
@@ -1025,6 +1027,9 @@ class WBEMConnection(object):
         try:
             tt = parse_cim(xml_to_tupletree_sax(reply_xml))
         except ParseError as exc:
+            msg = str(exc)
+            parsing_error = True
+        except SAXParseException as exc:
             msg = str(exc)
             parsing_error = True
         except ExpatError as exc:
