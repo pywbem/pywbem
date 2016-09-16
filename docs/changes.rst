@@ -30,10 +30,14 @@ Known Issues
 Enhancements
 ^^^^^^^^^^^^
 
+* Improved usage information for Tutorial section, to make usage of Jupyter
+  tutorials more obvious.
 
 Bug fixes
 ^^^^^^^^^
 
+* Fixed the use of a variable before it was set in the `remove_destinations()`
+  method of class `WBEMSubscriptionManager`.
 
 
 pywbem v0.9.0
