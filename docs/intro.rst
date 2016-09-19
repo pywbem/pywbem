@@ -78,24 +78,17 @@ that would be needed on RHEL, leaving it to the user to translate them
 accordingly. When installing such packages on Linux, the setup script uses
 the `sudo` command, so your userid needs to be authorized accordingly.
 
-Installation of pywbem is supported into the default system Python, and
-(preferrable) into a `virtual Python environment`_. The OS-level packages
-always go into the operating system, independent of the Python environment
-that is chosen.
-
-.. _virtual Python environment: http://docs.python-guide.org/en/latest/dev/virtualenvs/
-
 .. _repository: https://github.com/pywbem/pywbem
 
 The following examples show different ways to install pywbem:
 
-1. Install the latest released version into the currently active Python
-   environment, assuming the OS-level prerequisites are already satisfied::
+1. Install the latest released version, assuming the OS-level prerequisites are
+   already satisfied::
 
        $ pip install pywbem
 
-2. Install the latest released version into the currently active Python
-   environment, and also install (or display) any OS-level prerequisites::
+2. Install the latest released version and also install (or display) any
+   OS-level prerequisites::
 
        $ pip download --no-deps --no-binary :all: pywbem
        $ gzip -d pywbem-*.tar.gz
@@ -105,19 +98,21 @@ The following examples show different ways to install pywbem:
 
 3. Install a particular branch from the Git repository::
 
-       $ git clone git@github.com:pywbem/pywbem.git
-       $ cd pywbem
-       $ git checkout <desired-branch>
-       $ pip install .
+       $ pip install git+https://github.com/pywbem/pywbem.git@<branch-name>
 
 These examples install pywbem and its prerequisite Python packages into the
-currently active Python environment. If the system Python environment is active
-(e.g. when no virtual Python environment is active), you need to prepend the
+currently active Python environment. By default, the system Python environment
+is active. This is probably the right choice if you just want to use the
+scripts that come with pywbem. In that case, you need to prepend the
 installation commands shown above (i.e. `pip` and `python setup.py`) with
-`sudo`, and your userid needs to be authorized accordingly.
+`sudo`, and your Linux userid needs to be authorized accordingly.
+If your intention is to write code against the pywbem APIs, installation into
+a `virtual Python environment`_ is recommended).
+
+.. _virtual Python environment: http://docs.python-guide.org/en/latest/dev/virtualenvs/
 
 The second example installs the OS-level prerequisites always into the system,
-regardless of whether or not you have a virtual python environment active.
+regardless of whether or not you have a virtual Python environment active.
 The setup script uses `sudo` under the covers. This means that you don't need
 to take care about that and can use `sudo` to control whether you install
 the Python packages into a virtual or system Python environment.
