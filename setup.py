@@ -363,6 +363,7 @@ def main():
             "astroid" if sys.version_info[0:2] == (2, 7) else None,
             "pylint" if sys.version_info[0:2] == (2, 7) else None,
             "mock",
+            'flake8',
             "pbr", # needed by mock
             "twine", # needed for upload to Pypi
         ],
