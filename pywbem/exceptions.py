@@ -144,16 +144,32 @@ class CIMError(Error):
     This exception indicates that the WBEM server returned an error response
     with a CIM status code. Derived from :exc:`~pywbem.Error`.
 
-    A :class:`CIMError` exception object can be accessed by index and slice and
-    will delegate such access to its :attr:`~pywbem.CIMError.args` instance
-    variable.
-    For example, the numeric CIM status code of a :class:`CIMError` object can
-    be accessed in any of these ways::
+    In Python 2, any :class:`py:Exception` object can be accessed by index
+    and slice and will delegate such access to its :attr:`Exception.args`
+    instance variable. In Python 3, that ability has been removed.
+
+    In its version 0.9, pywbem has added the
+    :attr:`~pywbem.CIMError.status_code` and
+    :attr:`~pywbem.CIMError.status_description` properties.
+
+    With all these variations, the following approach for accessesing the CIM
+    status code a :class:`CIMError` object works for all pywbem versions since
+    0.7.0 and for Python 2 and 3::
 
         except CIMError as exc:
-            status_code = exc.status_code  # access by property
-            status_code = exc[0]           # access the object by index
-            status_code = exc.args[0]      # access the args attribute by index
+            status_code = exc.args[0]
+
+    The following approach is recommended when using pywbem 0.9 or newer, and
+    it works for Python 2 and 3::
+
+        except CIMError as exc:
+            status_code = exc.status_code
+
+    The following approach is limited to Python 2 and will not work on
+    Python 3, and is therefore not recommended::
+
+        except CIMError as exc:
+            status_code = exc[0]
     """
 
     def __init__(self, status_code, status_description=None):
