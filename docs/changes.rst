@@ -45,6 +45,15 @@ Bug fixes
 * Fixed the use of a variable before it was set in the `remove_destinations()`
   method of class `WBEMSubscriptionManager`.
 
+* Fixed a compatibility issue relative to pywbem 0.7.0, where the
+  `pywbem.Error` class was no longer available in the `pywbem.cim_http`
+  namespace. It has been made available in that namespace again, for
+  compatibility reasons. Note that using sub-namespaces of the `pywbem`
+  namespace such as `pywbem.cim_http` has been deprecated in pywbem 0.8.0.
+
+* Fixed a documentation issue where the description of `CIMError` was not
+  clear that the exception object itself can be accessed by index and slice.
+
 
 pywbem v0.9.0
 -------------
