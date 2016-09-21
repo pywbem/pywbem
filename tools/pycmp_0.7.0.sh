@@ -1,6 +1,8 @@
 #!/bin/bash
 # Simply invoke this script in root directory of the repo, without any args
 
+opts=$*
+
 version="0.7.0"
 distfile="dist/pywbem-0.7/pywbem-${version}.tar.gz"
 
@@ -36,6 +38,6 @@ rm $tmpdir/pywbem/wbemcli.py # cannot be imported, in 0.7.0
 # twisted is needed for pywbem/twisted_client.py
 pip install twisted
 
-$pycmp -e $tmpdir/pywbem pywbem >$reportfile
+$pycmp -e -i $opts $tmpdir/pywbem pywbem >$reportfile
 
 echo "Success: Generated report: $reportfile"
