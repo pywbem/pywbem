@@ -7,6 +7,7 @@ Change log
 .. ifconfig:: version.endswith('dev0')
 
 .. # Reenable the following lines when working on a development version:
+
 This version of the documentation is development version |version| and
 contains the `master` branch up to this commit:
 
@@ -32,6 +33,11 @@ Enhancements
 
 * Improved usage information for Tutorial section, to make usage of Jupyter
   tutorials more obvious.
+
+* Added Installation and Development sections to the documentation, and moved
+  some content from the Introduction section into a new Appendix. Added
+  an installation trouble shooting section to the Appendix.
+
 
 Bug fixes
 ^^^^^^^^^
