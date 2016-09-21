@@ -63,11 +63,11 @@ Installation
 Pywbem is a pure Python package that can be installed from PyPi or from
 its `repository`_ by the usual means for installing Python packages.
 
-However, some of the Python packages used by pywbem have dependencies on
-operating-system packages (e.g. M2Crypto, or some packages when developing on
-pywbem). As of pywbem v0.8, its setup script has support for installing
-prerequisite OS-level packages, and installing (or in some cases, building)
-Swig, if needed. Swig is needed during installation of the M2Crypto package.
+Some of the Python packages used by pywbem have dependencies on
+operating system packages (e.g. M2Crypto, or some packages when developing on
+pywbem). As of pywbem v0.8, the setup script has support for installing
+prerequisite operating system packages, and building them if needed (e.g. Swig
+which is needed during installation of the M2Crypto package).
 
 OS-level prerequisites are installed by the pywbem setup script using a new
 setup.py command `install_os`. For a number of well-known Linux distributions,
