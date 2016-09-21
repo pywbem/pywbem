@@ -144,9 +144,16 @@ class CIMError(Error):
     This exception indicates that the WBEM server returned an error response
     with a CIM status code. Derived from :exc:`~pywbem.Error`.
 
-    The `args` attribute is a `tuple(status_code, status_description)`.
+    A :class:`CIMError` exception object can be accessed by index and slice and
+    will delegate such access to its :attr:`~pywbem.CIMError.args` instance
+    variable.
+    For example, the numeric CIM status code of a :class:`CIMError` object can
+    be accessed in any of these ways::
 
-    The `message` attribute is not set.
+        except CIMError as exc:
+            status_code = exc.status_code  # access by property
+            status_code = exc[0]           # access the object by index
+            status_code = exc.args[0]      # access the args attribute by index
     """
 
     def __init__(self, status_code, status_description=None):
@@ -157,7 +164,11 @@ class CIMError(Error):
 
           status_description (:term:`string`): CIM status description text
             returned by the server, representing a human readable message
-            describing the error.
+            describing the error. `None`, if the server did not return
+            a description text.
+
+        :ivar args: A tuple(status_code, status_description) set from the
+              corresponding init arguments.
         """
         self.args = (status_code, status_description)
 
@@ -184,7 +195,11 @@ class CIMError(Error):
 
         If the server did not return a description, a short default text for
         the CIM status code is returned. If the CIM status code is invalid,
-        the string ``"Invalid status code <code>"`` is returned."""
+        the string ``"Invalid status code <code>"`` is returned.
+
+        Note that ``args[1]`` is always the ``status_description`` init
+        argument, without defaulting it to a standard text in case of `None`.
+        """
         return self.args[1] or _statuscode2string(self.status_code)
 
     def __str__(self):
