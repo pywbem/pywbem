@@ -4,18 +4,14 @@
 # Supported platforms for this makefile:
 #   Linux
 #   OS-X
-#   Windows (with CygWin)
+#   Windows (with CygWin, MinGW, etc.)
 #
-# Basic prerequisites for running this makefile:
-#   bash, sh
-#   rm, find, xargs, grep, sed, tar
+# Prerequisite commands for this makefile:
+#   make
+#   bash, sh, rm, mv, mkdir, echo
+#   find, xargs, grep, sed, tar
 #   python (Some active Python version, virtualenv is supported)
 #   pip (in the active Python environment)
-#
-# Additional prerequisites for development and for running some parts of this
-# makefile will be installed by 'make develop'.
-#
-# Prerequisites for usage will be installed by 'make install'.
 # ------------------------------------------------------------------------------
 
 # Determine OS platform make runs on
