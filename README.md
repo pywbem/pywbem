@@ -1,6 +1,7 @@
-[![Test on master](https://img.shields.io/travis/pywbem/pywbem/master.svg?style=plastic&label=test%20on%20master)](https://travis-ci.org/pywbem/pywbem/branches)
+
 [![PyPI version](https://img.shields.io/pypi/v/pywbem.svg?style=plastic&label=PyPI%20version)](https://pypi.python.org/pypi/pywbem)
-[![Test coverage](https://img.shields.io/coveralls/pywbem/pywbem.svg?style=plastic&label=Coverage)](https://coveralls.io/r/pywbem/pywbem)
+[![Test on master](https://img.shields.io/travis/pywbem/pywbem/master.svg?style=plastic&label=test%20on%20master)](https://travis-ci.org/pywbem/pywbem/branches)
+[![Coverage on master](https://img.shields.io/coveralls/pywbem/pywbem.svg?style=plastic&label=Coverage)](https://coveralls.io/r/pywbem/pywbem?branch=master)
 
 About this project
 ------------------
