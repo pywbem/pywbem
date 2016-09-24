@@ -102,7 +102,18 @@ pylint_py_files := \
     setup.py \
     os_setup.py \
     $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
-    $(wildcard testsuite/test*.py) \
+    $(wildcard testsuite/*.py) \
+    testsuite/validate.py \
+
+# Flake8 config file
+flake8_rc_file := flake8.rc
+
+# Flake8 source files to check
+flake8_py_files := \
+    setup.py \
+    os_setup.py \
+    $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
+    $(wildcard testsuite/*.py) \
     testsuite/validate.py \
 
 # Test log
@@ -141,7 +152,7 @@ help:
 	@echo '  develop    - Prepare the development environment by installing prerequisites'
 	@echo '  build      - Build the distribution files in: $(dist_dir)'
 	@echo '  builddoc   - Build documentation in: $(doc_build_dir)'
-	@echo '  check      - Run PyLint on sources and save results in: pylint.log'
+	@echo '  check      - Run PyLint&Flake8 on sources and save results in: pylint.log&flake8.log'
 	@echo '  test       - Run unit tests and save results in: $(test_log_file)'
 	@echo '  all        - Do all of the above'
 	@echo '  install    - Install distribution archive to active Python environment'
@@ -209,7 +220,7 @@ doccoverage:
 	@echo '$@ done.'
 
 .PHONY: check
-check: pylint.log
+check: pylint.log flake8.log
 	@echo '$@ done.'
 
 .PHONY: install
@@ -227,7 +238,7 @@ test: $(test_log_file)
 
 .PHONY: clobber
 clobber: clean
-	rm -f pylint.log epydoc.log test_*.log $(moftab_files) $(dist_files)
+	rm -f pylint.log  flake8.log epydoc.log test_*.log $(moftab_files) $(dist_files)
 	rm -Rf $(doc_build_dir) .tox
 	@echo 'Done: Removed everything to get to a fresh state.'
 	@echo '$@ done.'
@@ -286,6 +297,13 @@ ifeq ($(python_major_version), 2)
 else
 	@echo 'Info: Pylint requires Python 2; skipping this step on Python $(python_major_version)'
 endif
+
+flake8.log: makefile $(flake8_rc_file) $(flake8_py_files)
+	rm -f flake8.log
+	-bash -c "set -o pipefail; PYTHONPATH=. flake8 --config=$(flake8_rc_file) $(flake8_py_files) 2>&1 |tee flake8.tmp.log"
+	mv -f flake8.tmp.log flake8.log
+	@echo 'Done: Created flake8 log file: $@'
+
 
 $(test_log_file): makefile $(package_name)/*.py testsuite/*.py coveragerc
 	rm -f $(test_log_file)

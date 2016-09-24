@@ -1,0 +1,32 @@
+[flake8]
+max_line_length = 80
+
+exclude =
+    .git,
+    .tox,
+    __pycache__,
+    *.pyc,
+    attic,
+    packaging,
+    build_doc,
+    docs,
+    dist,
+    pywbem.egg-info,
+    
+ignore =
+    # Ignore extra blank lines
+    E302,
+    # the backslash is redundant between brackets
+    E502,
+    # E303 too many blank lines
+    E303,
+    # E265 block comment should start with #
+    E265,
+    # E128 continuation line under-indented for visual indent
+    E128,
+    # E261 at least two spaces before inline comment
+    E261,
+    # E203 whitespace before ':'
+    E203,
+    # E231 missing whitespace after ':'
+    E231
