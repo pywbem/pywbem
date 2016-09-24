@@ -53,6 +53,11 @@ if sys.version_info[0:2] == (2, 6):
 import os_setup
 from os_setup import shell, shell_check, import_setuptools
 
+if sys.version_info[0] == 2:
+    from xmlrpclib import Fault
+else:
+    from xmlrpc.client import Fault
+
 _VERBOSE = True
 
 def package_version(filename, varname):
@@ -498,7 +503,20 @@ def main():
     if sys.version_info[0:2] == (2, 6):
         args['install_requires'].append('ordereddict')
 
-    setup(**args)
+    # The following retry logic attempts to handle the frequent xmlrpc
+    # errors that recently (9/2016) have shown up with Pypi.
+    tries = 2
+    while True:
+        tries -= 1
+        try:
+            setup(**args)
+        except Fault as exc:
+            if tries == 0:
+                raise
+        else:
+            break
+        print("Warning: Retrying setup() because %s was raised: %s"\
+              (exc.__class__.__name__, exc))
 
     if 'install' in sys.argv or 'develop' in sys.argv:
         build_moftab(_VERBOSE)
