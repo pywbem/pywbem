@@ -95,6 +95,11 @@ def compare_package_dirs(old_pkgdir, new_pkgdir):
     old_modnames = old_modinfos.keys()
     new_modnames = new_modinfos.keys()
 
+    #print("Debug: Old module infos:")
+    #pprint(old_modinfos)
+    #print("Debug: New module infos:")
+    #pprint(new_modinfos)
+
     added_modnames = set(new_modnames) - set(old_modnames)
     removed_modnames = set(old_modnames) - set(new_modnames)
     same_modnames = set(new_modnames).intersection(set(old_modnames))
@@ -105,15 +110,19 @@ def compare_package_dirs(old_pkgdir, new_pkgdir):
         print("    Added module: %s" % mn)
         if ARGS.full:
             modinfo = new_modinfos[mn]
-            for si in sorted(modinfo['syminfos']):
-                print("        Symbol: {0:30} ({1}, {2})".format(si['name'], si['typename'], si['modname']))
+            syminfos = modinfo['syminfos']
+            for sn in sorted(syminfos):
+                si = syminfos[sn]
+                print("        Symbol: {name} ({typename}, {modname})".format(**si))
 
     for mn in sorted(removed_modnames):
         print("    Removed module: %s" % mn)
         if ARGS.full:
             modinfo = old_modinfos[mn]
-            for si in sorted(modinfo['syminfos']):
-                print("        Symbol: {0:30} ({1}, {2})".format(si['name'], si['typename'], si['modname']))
+            syminfos = modinfo['syminfos']
+            for sn in sorted(syminfos):
+                si = syminfos[sn]
+                print("        Symbol: {name} ({typename}, {modname})".format(**si))
 
     for mn in sorted(same_modnames):
         compare_modules(old_modinfos[mn], new_modinfos[mn], pkgname)
@@ -127,26 +136,44 @@ def compare_modules(old_modinfo, new_modinfo, pkgname):
     old_syminfos = {}
     for sym in old_modinfo['syminfos']:
         si = old_modinfo['syminfos'][sym]
-        sym_pkgname = None if si['modname'] is None else si['modname'].split('.')[0]
-        if not exclude(si) \
-           and (sym_pkgname is None or sym_pkgname == pkgname or ARGS.others) \
-           and (si['modname'] is None or si['modname'] == mod_name or ARGS.imported):
+        sym_modname = si['modname']
+        sym_pkgname = None if sym_modname is None else sym_modname.split('.')[0]
+        exclude_reason = None
+        if exclude(si):
+            exclude_reason = EXCLUDE_REASON
+        elif sym_pkgname is not None and sym_pkgname != pkgname and not ARGS.others:
+            # None means unknown package origin, so we are not sure and don't exclude it
+            exclude_reason = "imported from other package %s" % sym_pkgname
+        elif sym_modname is not None and sym_modname != mod_name and not ARGS.imported:
+            # None means unknown package origin, so we are not sure and don't exclude it
+            exclude_reason = "imported from other module %s of this package" % sym_modname
+        if not exclude_reason:
             old_syminfos[sym] = si
         else:
             if ARGS.debug:
-                print("Debug: Excluding symbol %s in old module %s (symbol from module: %s)" % (sym, mod_name, si['modname']))
+                print("Debug: Excluding symbol %s defined in old module %s because: %s" % \
+                      (sym, mod_name, exclude_reason))
 
     new_syminfos = {}
     for sym in new_modinfo['syminfos']:
         si = new_modinfo['syminfos'][sym]
-        sym_pkgname = None if si['modname'] is None else si['modname'].split('.')[0]
-        if not exclude(si) \
-           and (sym_pkgname is None or sym_pkgname == pkgname or ARGS.others) \
-           and (si['modname'] is None or si['modname'] == mod_name or ARGS.imported):
+        sym_modname = si['modname']
+        sym_pkgname = None if sym_modname is None else sym_modname.split('.')[0]
+        exclude_reason = None
+        if exclude(si):
+            exclude_reason = EXCLUDE_REASON
+        elif sym_pkgname is not None and sym_pkgname != pkgname and not ARGS.others:
+            # None means unknown package origin, so we are not sure and don't exclude it
+            exclude_reason = "imported from other package %s" % sym_pkgname
+        elif sym_modname is not None and sym_modname != mod_name and not ARGS.imported:
+            # None means unknown package origin, so we are not sure and don't exclude it
+            exclude_reason = "imported from other module %s of this package" % sym_modname
+        if not exclude_reason:
             new_syminfos[sym] = si
         else:
             if ARGS.debug:
-                print("Debug: Excluding symbol %s in new module %s (symbol from module: %s)" % (sym, mod_name, si['modname']))
+                print("Debug: Excluding symbol %s defined in new module %s because: %s" % \
+                      (sym, mod_name, exclude_reason))
 
     added_symbols = set(new_syminfos.keys()) - set(old_syminfos.keys())
     removed_symbols = set(old_syminfos.keys()) - set(new_syminfos.keys())
@@ -194,7 +221,9 @@ def compare_modules(old_modinfo, new_modinfo, pkgname):
             si = old_syminfos[sym]
             print("    Removed exported symbol: {0:30} ({1}, {2})".format(sym, si['typename'], where(si['modname'], mod_name)))
 
+EXCLUDE_REASON = "non-public symbol"
 def exclude(syminfo):
+
     sym = syminfo['name']
     if re.match(r'^__.+__$', sym): # special symbols
         return False
