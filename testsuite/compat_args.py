@@ -35,55 +35,55 @@ def func_new(a, b=None, c=None):
 
 def test_func_args(func_args):
     """Examine all possible ways to invoke a function defined with *args."""
-    
-    a,b,c = func_args(1)
-    assert (a,b,c) == (1,None,None) 
 
-    a,b,c = func_args(1,2)
-    assert (a,b,c) == (1,2,None) 
+    a, b, c = func_args(1)
+    assert (a, b, c) == (1, None, None)
 
-    a,b,c = func_args(1,2,3)
-    assert (a,b,c) == (1,2,3) 
+    a, b, c = func_args(1, 2)
+    assert (a, b, c) == (1, 2, None)
 
-    lis = [3,]
-    a,b,c = func_args(1,2,*lis)
-    assert (a,b,c) == (1,2,3) 
+    a, b, c = func_args(1, 2, 3)
+    assert (a, b, c) == (1, 2, 3)
+
+    lis = [3, ]
+    a, b, c = func_args(1, 2, *lis)
+    assert (a, b, c) == (1, 2, 3)
 
     # The list can even be used for the named args:
 
-    lis = [2,3]
-    a,b,c = func_args(1,*lis)
-    assert (a,b,c) == (1,2,3) 
+    lis = [2, 3]
+    a, b, c = func_args(1, *lis)
+    assert (a, b, c) == (1, 2, 3)
 
-    lis = [1,2,3]
-    a,b,c = func_args(*lis)
-    assert (a,b,c) == (1,2,3) 
+    lis = [1, 2, 3]
+    a, b, c = func_args(*lis)
+    assert (a, b, c) == (1, 2, 3)
 
 def test_func_kwargs(func_kwargs):
     """Examine all possible ways to invoke a function defined with **kwargs."""
 
-    a,b,c = func_kwargs(1)
-    assert (a,b,c) == (1,None,None) 
+    a, b, c = func_kwargs(1)
+    assert (a, b, c) == (1, None, None)
 
-    a,b,c = func_kwargs(1,2)
-    assert (a,b,c) == (1,2,None) 
+    a, b, c = func_kwargs(1, 2)
+    assert (a, b, c) == (1, 2, None)
 
-    a,b,c = func_kwargs(1,2,c=3)
-    assert (a,b,c) == (1,2,3) 
+    a, b, c = func_kwargs(1, 2, c=3)
+    assert (a, b, c) == (1, 2, 3)
 
     dic = dict(c=3)
-    a,b,c = func_kwargs(1,2,**dic)
-    assert (a,b,c) == (1,2,3) 
+    a, b, c = func_kwargs(1, 2, **dic)
+    assert (a, b, c) == (1, 2, 3)
 
     # The dict can even be used for the named args:
 
-    dic = dict(b=2,c=3)
-    a,b,c = func_kwargs(1,**dic)
-    assert (a,b,c) == (1,2,3) 
+    dic = dict(b=2, c=3)
+    a, b, c = func_kwargs(1, **dic)
+    assert (a, b, c) == (1, 2, 3)
 
-    dic = dict(a=1,b=2,c=3)
-    a,b,c = func_kwargs(**dic)
-    assert (a,b,c) == (1,2,3) 
+    dic = dict(a=1, b=2, c=3)
+    a, b, c = func_kwargs(**dic)
+    assert (a, b, c) == (1, 2, 3)
 
 
 def main():
@@ -98,7 +98,8 @@ def main():
     test_func_kwargs(func_old_kwargs)
     test_func_kwargs(func_new)
 
-    print("All tests successful - we can change *args and **kwargs to named args.")
+    print("All tests successful - we can change *args and **kwargs to' \
+          ' named args.")
     return 0
 
 if __name__ == '__main__':

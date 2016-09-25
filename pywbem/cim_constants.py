@@ -32,6 +32,9 @@ Note: For tooling reasons, the constants are shown in the namespace
 namespace and should be used from there.
 """
 
+# disable flake8 tests for no whitespace before : and line too long
+# flake8: noqa: E203, E501
+
 # This module is meant to be safe for 'import *'.
 
 __all__ = [

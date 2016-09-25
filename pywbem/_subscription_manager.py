@@ -199,7 +199,7 @@ class WBEMSubscriptionManager(object):
         self._servers = {}  # WBEMServer objects for the WBEM servers
         self._owned_subscription_paths = {}  # CIMInstanceName of subscriptions
         self._owned_filter_paths = {}  # CIMInstanceName of dynamic filters
-        self._owned_destination_paths = {}  #destination paths for server
+        self._owned_destination_paths = {}  # destination paths for server
 
         if subscription_manager_id is None:
             self._subscription_manager_id = subscription_manager_id
@@ -632,7 +632,7 @@ class WBEMSubscriptionManager(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-        _ = self._get_server(server_id)
+        self._get_server(server_id)
 
         return self._owned_filter_paths[server_id]
 
@@ -829,7 +829,7 @@ class WBEMSubscriptionManager(object):
         """
 
         # validate that this server exists.
-        _ = self._get_server(server_id)
+        self._get_server(server_id)
 
         return self._owned_subscription_paths[server_id]
 

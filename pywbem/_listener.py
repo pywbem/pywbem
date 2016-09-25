@@ -666,6 +666,7 @@ class WBEMListener(object):
         self._logger.addHandler(logging.NullHandler())
 
         self._callbacks = []  # Registered callback functions
+
     def __repr__(self):
         """
         Return a representation of the :class:`~pywbem.WBEMListener` object

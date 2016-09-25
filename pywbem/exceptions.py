@@ -53,6 +53,7 @@ class HTTPError(Error):
     The `message` instance variable is not set.
     """
 
+    # pylint: disable=super-init-not-called
     def __init__(self, status, reason, cimerror=None, cimdetails=None):
         """
         Parameters:
@@ -172,6 +173,7 @@ class CIMError(Error):
             status_code = exc[0]
     """
 
+    # pylint: disable=super-init-not-called
     def __init__(self, status_code, status_description=None):
         """
         Parameters:

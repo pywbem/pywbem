@@ -780,7 +780,7 @@ class KEYVALUE(CIMElement):
 
         self.setOptionalAttribute('TYPE', cim_type)
 
-        if data != None:
+        if data is not None:
             self.appendChild(_text(data))
 
 # Object definition elements
@@ -1169,7 +1169,7 @@ class PARAMETER_REFARRAY(CIMElement):
         if qualifiers:
             self.appendChildren(qualifiers)
 
-class TABLECELL_DECLARATION(CIMElement): #pylint: disable=invalid-name
+class TABLECELL_DECLARATION(CIMElement): # pylint: disable=invalid-name
     # pylint: disable=invalid-name
     """
     The TABLECELL.DECLARATION element describes a TABLECELL that is

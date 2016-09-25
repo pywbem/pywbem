@@ -302,14 +302,14 @@ def _assert_req_list(dist, attr, value): # pylint: disable=unused-argument
                 if not isinstance(single_req, string_types):
                     raise DistutilsSetupError(
                         "'%s' attribute: Requirement list must contain "\
-                        "strings (got list item %r of type %s)"%\
+                        "strings (got list item %r of type %s)" % \
                         (attr, single_req, type(single_req))
                     )
         elif not isinstance(req, (string_types, types.FunctionType,
                                   type(None))):
             raise DistutilsSetupError(
                 "'%s' attribute: Requirement must be a string, a function, "\
-                "or None (got requirement %r of type %s)"%\
+                "or None (got requirement %r of type %s)" % \
                 (attr, req, type(req))
             )
 
@@ -1236,7 +1236,7 @@ class YumInstaller(OSInstaller):
             return (False, False, None)
 
         info = out.splitlines()[-1].strip("\n").split()
-        if not info[0].startswith(pkg_name+"."):
+        if not info[0].startswith(pkg_name + "."):
             raise DistutilsSetupError(
                 "Unexpected output from command '%s':\n%s%s" %\
                 (cmd, out, err))
@@ -1376,7 +1376,7 @@ class ZypperInstaller(OSInstaller):
             return (False, False, None)
 
         info = out.splitlines()[-1].strip("\n").split()
-        if not info[0].startswith(pkg_name+"."):
+        if not info[0].startswith(pkg_name + "."):
             raise DistutilsSetupError(
                 "Unexpected output from command '%s':\n%s%s" %\
                 (cmd, out, err))

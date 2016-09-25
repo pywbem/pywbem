@@ -18,17 +18,19 @@ import unittest
 from getpass import getpass
 import warnings
 import time
-
-
-
-if sys.version_info >= (3, 0):
-    from urllib.parse import urlparse
-if sys.version_info < (3, 0) and sys.version_info >= (2, 5):
-    from urlparse import urlparse
-
-from unittest_extensions import RegexpMixin
+from six.moves.urllib.parse import urlparse
 import six
-from pywbem.cim_constants import *
+from unittest_extensions import RegexpMixin
+
+from pywbem import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
+                   CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
+                   CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS, \
+                   CIM_ERR_METHOD_NOT_AVAILABLE, CIM_ERR_INVALID_QUERY, \
+                   CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, \
+                   CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
+                   CIM_ERR_METHOD_NOT_FOUND, \
+                   DEFAULT_NAMESPACE
+
 from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
                    WBEMSubscriptionManager, \
                    CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
@@ -82,7 +84,7 @@ class ClientTest(unittest.TestCase):
         # and unittest enables these warnings.
         if not six.PY2:
             #pylint: disable=ResourceWarning, undefined-variable
-            warnings.simplefilter("ignore", ResourceWarning)
+            warnings.simplefilter("ignore", ResourceWarning)  # NOQA
 
         self.log('setup connection {} ns {}'.format(self.system_url,
                                                     self.namespace))
@@ -144,7 +146,7 @@ class ClientTest(unittest.TestCase):
 
 
     def log(self, data_):
-        """Display log entry if verbose"""
+        """Display log entry if verbose."""
         if self.verbose:
             print('{}'.format(data_))
 
@@ -204,7 +206,7 @@ class ClientTest(unittest.TestCase):
 
     def assertAssocRefClassRtnValid(self, cls):
         """ Confirm that an associator or Reference class response
-            returns a tuple of (classname, class)
+            returns a tuple of (classname, class).
         """
         self.assertTrue(isinstance(cls, tuple))
 
@@ -214,7 +216,8 @@ class ClientTest(unittest.TestCase):
         self.assertTrue(isinstance(cls[1], CIMClass))
 
     def inst_in_list(self, inst, instances, ignorehost=False):
-        """ Determine if an instance is in a list of instances. Return
+        """ Determine if an instance is in a list of instances.
+            Return:
             True if the instance is in the list. Otherwise return False.
             Tests on path only.
         """
@@ -267,7 +270,7 @@ class ClientTest(unittest.TestCase):
             else:
                 for inst2 in insts2:
                     if self.pathsEqual(inst1.path, inst2.path, \
-                        ignorehost=ignorehost):
+                                       ignorehost=ignorehost):
 
                         self.assertTrue(isinstance(inst2, CIMInstance))
                         if ignorehost:
@@ -276,7 +279,7 @@ class ClientTest(unittest.TestCase):
                                 inst1.path.host = None
                             if inst2.path.host is not None:
                                 inst2 = inst2
-                                inst2.path.host = None                                
+                                inst2.path.host = None
                         self.assertEqual(inst1, inst2)
                         return
                 self.fail('assertInstancesEqual fail')
@@ -350,9 +353,10 @@ class EnumerateInstanceNames(ClientTest):
                 raise
 
 class EnumerateInstances(ClientTest):
-    """Test enumerateInstance variations against the server"""
+    """Test enumerateInstance variations against the server."""
+
     def display_response(self, instances):
-        """Display the response instances as mof output"""
+        """Display the response instances as mof output."""
         if self.verbose:
             print('instance count = %s' % (len(instances)))
             for inst in instances:
@@ -379,7 +383,7 @@ class EnumerateInstances(ClientTest):
                     return True
 
     def test_simple(self):
-        """Simplest invocation of EnumerateInstances"""
+        """Simplest invocation of EnumerateInstances."""
 
         instances = self.cimcall(self.conn.EnumerateInstances,
                                  TEST_CLASS)
@@ -389,7 +393,7 @@ class EnumerateInstances(ClientTest):
         self.assertInstancesValid(instances)
 
     def test_with_propertylist(self):
-        """Add property list to simple invocation"""
+        """Add property list to simple invocation."""
 
         self.cimcall(self.conn.EnumerateInstances,
                      TEST_CLASS,
@@ -410,7 +414,7 @@ class EnumerateInstances(ClientTest):
         self.display_response(instances)
 
     def test_with_explicit_namespace(self):
-        """Call with explicit CIM namespace that exists"""
+        """Call with explicit CIM namespace that exists."""
 
         instances = self.cimcall(self.conn.EnumerateInstances,
                                  TEST_CLASS,
@@ -421,8 +425,8 @@ class EnumerateInstances(ClientTest):
 
 
     def test_with_localonly(self):
-        """Test LocalOnly specifically. Note that open pegasus ignores
-        this one so cannot really test"""
+        """Test LocalOnly specifically.
+        Open pegasus ignores this one so cannot really test."""
 
         instances = self.cimcall(self.conn.EnumerateInstances,
                                  TEST_CLASS,
@@ -441,7 +445,7 @@ class EnumerateInstances(ClientTest):
 
 
     def test_class_propertylist(self):
-        """ Test with propertyList for getClass to confirm property in class
+        """ Test with propertyList for getClass to confirm property in class.
         """
         property_list = [TEST_CLASS_PROPERTY2]
 
@@ -456,7 +460,7 @@ class EnumerateInstances(ClientTest):
 
 
     def test_instance_propertylist(self):
-        """ Test property list on enumerate instances"""
+        """ Test property list on enumerate instances."""
 
         property_list = [TEST_CLASS_PROPERTY2]
 
@@ -503,7 +507,7 @@ class EnumerateInstances(ClientTest):
 
 
     def test_instance_propertylist2(self):
-        """ Test property list on enumerate instances"""
+        """ Test property list on enumerate instances."""
 
         property_list = ['PowerManagementCapibilities']
 
@@ -547,7 +551,7 @@ class EnumerateInstances(ClientTest):
         #self.assertTrue(property_count == inst_property_count)
 
     def test_deepinheritance(self):
-        """Test with deep inheritance set true and then false"""
+        """Test with deep inheritance set true and then false."""
 
         cls = self.cimcall(self.conn.GetClass, TEST_CLASS)
         property_count = len(cls.properties)
@@ -595,7 +599,7 @@ class EnumerateInstances(ClientTest):
 
     def test_includequalifiers_true(self):
         """Test Include qualifiers. No detailed added test because
-           most servers ignore this"""
+           most servers ignore this."""
 
         prop_list = [TEST_CLASS_PROPERTY1, TEST_CLASS_PROPERTY2]
         instances = self.cimcall(self.conn.EnumerateInstances,
@@ -608,7 +612,7 @@ class EnumerateInstances(ClientTest):
 
 
     def test_includequalifiers_false(self):
-        """ Can only test if works wnen set"""
+        """ Can only test if works wnen set."""
         prop_list = [TEST_CLASS_PROPERTY1, TEST_CLASS_PROPERTY2]
         instances = self.cimcall(self.conn.EnumerateInstances,
                                  TEST_CLASS,
@@ -622,7 +626,7 @@ class EnumerateInstances(ClientTest):
 
 
     def test_includeclassorigin(self):
-        """test with includeclassorigin"""
+        """test with includeclassorigin."""
         prop_list = [TEST_CLASS_PROPERTY1, TEST_CLASS_PROPERTY2]
         instances = self.cimcall(self.conn.EnumerateInstances,
                                  TEST_CLASS,
@@ -645,7 +649,7 @@ class EnumerateInstances(ClientTest):
 
 
     def test_nonexistent_namespace(self):
-        """ Confirm correct error with nonexistent namespace"""
+        """ Confirm correct error with nonexistent namespace."""
 
         try:
             self.cimcall(self.conn.EnumerateInstances,
@@ -659,7 +663,7 @@ class EnumerateInstances(ClientTest):
 
 
     def test_nonexistent_classname(self):
-        """ Confirm correct error with nonexistent classname"""
+        """ Confirm correct error with nonexistent classname."""
         try:
             self.cimcall(self.conn.EnumerateInstances, 'CIM_BlahBlah')
             self.failIf(True)
@@ -670,7 +674,7 @@ class EnumerateInstances(ClientTest):
 
 
     def test_invalid_request_parameter(self):
-        """Should return error if invalid parameter"""
+        """Should return error if invalid parameter."""
         try:
             self.cimcall(self.conn.EnumerateInstances, TEST_CLASS,
                          blablah=3)
@@ -723,8 +727,7 @@ class PullEnumerateInstances(ClientTest):
 
 
     def test_open_deepinheritance(self):
-        """Simple OpenEnumerateInstances but with DeepInheritance set
-        """
+        """Simple OpenEnumerateInstances but with DeepInheritance set."""
 
         result = self.cimcall(self.conn.OpenEnumerateInstances,
                               TEST_CLASS,
@@ -748,8 +751,7 @@ class PullEnumerateInstances(ClientTest):
 
 
     def test_open_includequalifiers(self):
-        """Simple OpenEnumerateInstances but with IncludeQualifiers set
-        """
+        """Simple OpenEnumerateInstances but with IncludeQualifiers set."""
 
         result = self.cimcall(self.conn.OpenEnumerateInstances,
                               TEST_CLASS,
@@ -777,8 +779,7 @@ class PullEnumerateInstances(ClientTest):
 
 
     def test_open_includeclassorigin(self):
-        """Simple OpenEnumerateInstances but with DeepInheritance set
-        """
+        """Simple OpenEnumerateInstances but with DeepInheritance set."""
 
         result = self.cimcall(self.conn.OpenEnumerateInstances,
                               TEST_CLASS,
@@ -804,7 +805,7 @@ class PullEnumerateInstances(ClientTest):
 
     def test_open_complete_with_ns(self):
         """Simple call that is complete with just the open and
-           with explicit namespace
+           with explicit namespace.
         """
 
         result = self.cimcall(self.conn.OpenEnumerateInstances, TEST_CLASS,
@@ -829,7 +830,7 @@ class PullEnumerateInstances(ClientTest):
 
 
     def test_zero_open(self):
-        """ Test with default on open. Should return zero instances
+        """ Test with default on open. Should return zero instances.
         """
         result = self.cimcall(self.conn.OpenEnumerateInstances, TEST_CLASS)
 
@@ -849,7 +850,7 @@ class PullEnumerateInstances(ClientTest):
 
 
     def test_close_early(self):
-        """"Close enumeration session after initial Open"""
+        """"Close enumeration session after initial Open."""
         result = self.cimcall(self.conn.OpenEnumerateInstances, TEST_CLASS)
 
         self.assertFalse(result.eos)
@@ -866,7 +867,7 @@ class PullEnumerateInstances(ClientTest):
 
 
     def test_get_onebyone(self):
-        """Get instances with MaxObjectCount = 1)"""
+        """Get instances with MaxObjectCount = 1)."""
 
         result = self.cimcall(self.conn.OpenEnumerateInstances, TOP_CLASS,
                               MaxObjectCount=1)
@@ -888,7 +889,7 @@ class PullEnumerateInstances(ClientTest):
 
 
     def test_bad_namespace(self):
-        """Call with explicit CIM namespace that does not exist"""
+        """Call with explicit CIM namespace that does not exist."""
 
         try:
             self.cimcall(self.conn.OpenEnumerateInstances,
@@ -901,8 +902,8 @@ class PullEnumerateInstances(ClientTest):
                 raise
 
     def test_open_continueonerror(self):
-        """ContinueOnError. Pegasus does not support this parameter
-        """
+        """ContinueOnError. Pegasus does not support this parameter."""
+
         try:
             self.cimcall(self.conn.OpenEnumerateInstances,
                          TEST_CLASS,
@@ -917,7 +918,7 @@ class PullEnumerateInstances(ClientTest):
 
     #pylint: disable=invalid-name
     def test_open_invalid_filterquerylanguage(self):
-        """Test invalid FilterQueryLanguage parameter """
+        """Test invalid FilterQueryLanguage parameter."""
         try:
             self.cimcall(self.conn.OpenEnumerateInstances,
                          TEST_CLASS,
@@ -931,7 +932,7 @@ class PullEnumerateInstances(ClientTest):
 
     #pylint: disable=invalid-name
     def test_open_invalid_filterquerylanguagewithfilter(self):
-        """Test valid filter but invalid FilterQueryLanguage"""
+        """Test valid filter but invalid FilterQueryLanguage."""
         try:
             self.cimcall(self.conn.OpenEnumerateInstances,
                          TEST_CLASS,
@@ -941,12 +942,12 @@ class PullEnumerateInstances(ClientTest):
             self.fail('Expected CIMError')
 
         except CIMError as ce:
-            self.assertEqual(ce.args[0], CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED)
+            self.assertEqual(ce.args[0],
+                             CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED)
 
 
     def test_open_invalid_filterquery(self):
-        """Test Invalid FilterQuery
-        """
+        """Test Invalid FilterQuery."""
         try:
             self.cimcall(self.conn.OpenEnumerateInstances,
                          TEST_CLASS,
@@ -960,8 +961,7 @@ class PullEnumerateInstances(ClientTest):
                 raise
 
     def test_open_filter_returnsnone(self):
-        """Test with filter that filters out all responses
-        """
+        """Test with filter that filters out all responses."""
 
         filter_statement = "%s = 'blah'" % TEST_CLASS_PROPERTY2
         result = self.cimcall(self.conn.OpenEnumerateInstances,
@@ -973,8 +973,7 @@ class PullEnumerateInstances(ClientTest):
         self.assertTrue(len(result.instances) == 0)
 
     def test_open_timeoutset(self):
-        """Test with timeout set. Just open and if not finished, close
-        """
+        """Test with timeout set. Just open and if not finished, close."""
 
         result = self.cimcall(self.conn.OpenEnumerateInstances,
                               TEST_CLASS,
@@ -1063,7 +1062,7 @@ class PullEnumerateInstancePaths(ClientTest):
 
 
     def test_bad_namespace(self):
-        """Call with explicit CIM namespace that does not exist"""
+        """Call with explicit CIM namespace that does not exist."""
 
         try:
             self.cimcall(self.conn.OpenEnumerateInstancePaths,
@@ -1093,7 +1092,7 @@ class PullEnumerateInstancePaths(ClientTest):
 
 
     def test_close_early(self):
-        """"Close enumeration session after initial Open"""
+        """"Close enumeration session after initial Open."""
 
         # open requesting zero instances
         result = self.cimcall(self.conn.OpenEnumerateInstancePaths, TEST_CLASS)
@@ -1118,7 +1117,7 @@ class PullEnumerateInstancePaths(ClientTest):
             print([path for path in paths2 if path not in paths1])
 
     def test_get_onebyone(self):
-        """Enumerate instances with MaxObjectCount = 1)"""
+        """Enumerate instances with MaxObjectCount = 1)."""
 
         result = self.cimcall(
             self.conn.OpenEnumerateInstancePaths, TEST_CLASS,
@@ -1147,14 +1146,14 @@ class PullEnumerateInstancePaths(ClientTest):
         diff = abs(len(paths_pulled) - len(paths_enum))
         if diff == 0:
             self.assertPathsEqual(paths_pulled, paths_enum, ignorehost=True)
-        elif paths_pulled/diff < 10:
+        elif paths_pulled / diff < 10:
             print('Return diff count %s of total %s ignored' % \
                   (diff, paths_pulled))
         else:
             self.fail('Issues with pull vs non-pull responses')
 
 class PullReferences(ClientTest):
-    """Test OpenReferences and PullInstancesWithPath"""
+    """Test OpenReferences and PullInstancesWithPath."""
 
     def test_one_instance(self):
         # Get one valid instance name
@@ -1248,7 +1247,7 @@ class PullReferences(ClientTest):
 
 
 class PullReferencePaths(ClientTest):
-    """Tests on OpenReferencePaths and PullInstancePaths"""
+    """Tests on OpenReferencePaths and PullInstancePaths."""
 
     def test_one_instance(self):
 
@@ -1329,7 +1328,7 @@ class PullReferencePaths(ClientTest):
             #Do this as a loop for all instances above.
 
 class PullAssociators(ClientTest):
-    """Test the OpenAssociators and corresponding pull"""
+    """Test the OpenAssociators and corresponding pull."""
 
     def test_one_instance(self):
         # Call on named instance
@@ -1413,7 +1412,8 @@ class PullAssociators(ClientTest):
 
 
     def test_invalid_instance_name(self):
-        """Test with name that is invalid class"""
+        """Test with name that is invalid class."""
+
         foo_path = CIMInstanceName('CIM_Foo')
 
         try:
@@ -1428,7 +1428,7 @@ class PullAssociators(ClientTest):
 
 
 class PullAssociatorPaths(ClientTest):
-    """Test OpenAssociatorPaths and corresponding PullInstancePaths"""
+    """Test OpenAssociatorPaths and corresponding PullInstancePaths."""
 
     def test_one_instance(self):
 
@@ -1510,7 +1510,7 @@ class PullAssociatorPaths(ClientTest):
             #Do this as a loop for all instances above.
 
 class PullQueryInstances(ClientTest):
-    """Test of openexecquery and pullinstances"""
+    """Test of openexecquery and pullinstances."""
 
     def test_simple_pullexecquery(self):
         try:
@@ -1615,7 +1615,7 @@ class ExecQuery(ClientTest):
 
 
     def test_namespace_error(self):
-        """Call with explicit CIM namespace that does not exist"""
+        """Call with explicit CIM namespace that does not exist."""
 
         try:
 
@@ -1630,7 +1630,7 @@ class ExecQuery(ClientTest):
 
 
     def test_invalid_querylang(self):
-        """Test execquery with invalid query_lang parameter"""
+        """Test execquery with invalid query_lang parameter."""
         try:
 
             self.cimcall(self.conn.ExecQuery,
@@ -1644,7 +1644,7 @@ class ExecQuery(ClientTest):
 
 
     def test_invalid_query(self):
-        """Test with invalid query syntax"""
+        """Test with invalid query syntax."""
         try:
 
             self.cimcall(self.conn.ExecQuery,
@@ -1769,7 +1769,7 @@ class GetInstance(ClientTest):
 
 
     def test_propertylist_tuple(self):
-        """ Test property list as tuple instead of list"""
+        """ Test property list as tuple instead of list."""
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
                                   TEST_CLASS)
@@ -2030,7 +2030,7 @@ class InvokeMethod(ClientTest):
 #################################################################
 
 class Associators(ClientTest):
-    """ Tests of the associators instance request operation"""
+    """ Tests of the associators instance request operation."""
 
     def test_assoc_one_class(self):
 
@@ -2058,8 +2058,7 @@ class Associators(ClientTest):
 
     def test_one_class_associator(self):
         """
-            Test getting associator classes for defined class
-        """
+            Test getting associator classes for defined class."""
 
         assoc_classes = self.cimcall(self.conn.Associators, TEST_CLASS)
 
@@ -2068,10 +2067,7 @@ class Associators(ClientTest):
 
     @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
     def test_all_class_associators(self):
-        """
-            Test getting associator classes for all classes in a
-            namespace
-        """
+        """Test getting associator classes for all classes in a namespace."""
 
         classes = self.cimcall(self.conn.EnumerateClassNames,
                                DeepInheritance=True)
@@ -2119,10 +2115,7 @@ class AssociatorNames(ClientTest):
 
     @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
     def test_all_class_associatornames(self):
-        """
-            Test getting associator classes for all classes in a
-            namespace
-        """
+        """Test getting associator classes for all classes in a namespace."""
 
         names = self.cimcall(self.conn.EnumerateClassNames,
                              DeepInheritance=True)
@@ -2156,7 +2149,7 @@ class References(ClientTest):
             self.assertTrue(i.path.host is not None)
 
     def test_one_class_reference(self):
-        """Test call with classname that returns classes"""
+        """Test call with classname that returns classes."""
 
         classes = self.cimcall(self.conn.References, TEST_CLASS)
 
@@ -2190,7 +2183,7 @@ class ReferenceNames(ClientTest):
             self.assertTrue(n.host is not None)
 
     def test_one_class_referencename(self):
-        """Test call with classname"""
+        """Test call with classname."""
 
         names = self.cimcall(self.conn.ReferenceNames, TEST_CLASS)
 
@@ -2208,26 +2201,27 @@ class ClientClassTest(ClientTest):
        Class operations subclass from this class"""
 
     def verify_property(self, prop):
-        """Verify that this a cim property and verify attributes"""
+        """Verify that this a cim property and verify attributes."""
+
         self.assertTrue(isinstance(prop, CIMProperty))
 
 
     def verify_qualifier(self, qualifier):
-        """Verify qualifier attributes"""
+        """Verify qualifier attributes."""
         self.assertTrue(isinstance(qualifier, CIMQualifier))
         self.assertTrue(qualifier.name)
         self.assertTrue(qualifier.value)
 
 
     def verify_method(self, method):
-        """Verify method attributes"""
+        """Verify method attributes."""
         self.assertTrue(isinstance(method, CIMMethod))
         # TODO add these tests
         ##pass
 
 
     def verify_class(self, cl):
-        """Verify simple class attributes"""
+        """Verify simple class attributes."""
         self.assertTrue(isinstance(cl, CIMClass))
 
         self.assertTrue(cl.classname)
@@ -2319,7 +2313,7 @@ class GetClass(ClientClassTest):
     """Test the get Class request operation"""
 
     def test_simple(self):
-        """Get a classname from server and then get class"""
+        """Get a classname from server and then get class."""
 
         name = self.cimcall(self.conn.EnumerateClassNames)[0]
         cl = self.cimcall(self.conn.GetClass, name)
@@ -2331,8 +2325,8 @@ class GetClass(ClientClassTest):
             print('MOF OUTPUT\n%s' % (mof_output))
 
     def test_class_propertylist(self):
-        """ Test with propertyList for getClass
-        """
+        """ Test with propertyList for getClass."""
+
         property_list = ['PowerManagementCapabilities']
 
         cls = self.cimcall(self.conn.GetClass, TEST_CLASS,
@@ -2379,10 +2373,10 @@ class ModifyClass(ClientClassTest):
 
 class QualifierDeclClientTest(ClientTest):
     """Base class for QualifierDeclaration tests. Adds specific
-       tests
+       tests.
     """
     def verify_qual_decl(self, ql, test_name=None):
-        """Verify simple class attributes"""
+        """Verify simple class attributes."""
         self.assertTrue(isinstance(ql, CIMQualifierDeclaration))
 
         if test_name is not None:
@@ -2448,7 +2442,7 @@ class PegasusServerTestBase(ClientTest):
 
     def get_namespaces(self):
         """ Return list of namespaces found converted to strings
-            from utf-8 strings using CIM_Namespace class as source
+            from utf-8 strings using CIM_Namespace class as source.
         """
 
         interop = self.get_interop_namespace()
@@ -2480,7 +2474,7 @@ class PegasusServerTestBase(ClientTest):
     def is_pegasus_server(self):
         """ Test to determine if this the OpenPegasus server.
             Test for valid interop namespace, and the existence of
-            PG_ObjectManager in that namespace
+            PG_ObjectManager in that namespace.
 
             :returns: True if the server being tested is open pegasus
         """
@@ -2519,7 +2513,7 @@ class PegasusServerTestBase(ClientTest):
 
     def is_pegasus_test_build(self):
         """Assure that this is a pegasus test build with the test
-           namespace. Tests the test/testprovider namespace existence
+           namespace. Tests the test/testprovider namespace existence.
         """
 
         if self.is_pegasus_server():
@@ -2555,8 +2549,8 @@ class PegasusServerTestBase(ClientTest):
         return None
 
     def try_class(self, ns, class_name):
-        """Test if class exists
-           returns true if `class_name` exists
+        """Test if class exists.
+           Returns true if `class_name` exists
         """
         try:
             my_class = self.cimcall(self.conn.GetClass, class_name,
@@ -2578,8 +2572,7 @@ class PegasusServerTestBase(ClientTest):
         return False
 
     def get_instances(self, ns, class_name):
-        """Enum Instances of the defined class. returns instances.
-           """
+        """Enum Instances of the defined class. returns instances. """
 
         try:
             instances = self.cimcall(self.conn.EnumerateInstances,
@@ -2594,7 +2587,7 @@ class PegasusServerTestBase(ClientTest):
             raise
 
     def get_registered_profiles(self):
-        """get the registered profile instances"""
+        """get the registered profile instances."""
 
         interop_ns = self.get_interop_namespace()
         self.assertTrue(interop_ns is not None)
@@ -2606,7 +2599,7 @@ class PegasusServerTestBase(ClientTest):
         return profiles
 
 class PegasusInteropTest(PegasusServerTestBase):
-    """Test for valid interop namespace in a pegasus server"""
+    """Test for valid interop namespace in a pegasus server."""
 
     def test_interop_namespace(self):
         interop = self.get_interop_namespace()
@@ -2623,7 +2616,7 @@ class PegasusInteropTest(PegasusServerTestBase):
         self.assertTrue(self.try_class(interop, 'CIM_Namespace'))
 
     def test_get_namespaces(self):
-        """Test getting list of namespaces"""
+        """Test getting list of namespaces."""
 
         namespaces_ = self.get_namespaces()
 
@@ -2632,7 +2625,7 @@ class PegasusInteropTest(PegasusServerTestBase):
         self.assertTrue(self.get_interop_namespace() in namespaces_)
 
     def test_get_registered_profiles(self):
-        """ Test ability to get known profiles from server """
+        """ Test ability to get known profiles from server. """
 
         profiles = self.get_registered_profiles()
         self.assertTrue(len(profiles) != 0)
@@ -2645,7 +2638,7 @@ class PegasusInteropTest(PegasusServerTestBase):
 
 class PEGASUSCLITestClass(PegasusServerTestBase):
     """Test against a class that has all of the property types
-       defined
+       defined.
     """
 
     def test_all(self):
@@ -2690,7 +2683,7 @@ class PEGASUSCLITestClass(PegasusServerTestBase):
 
 class PegasusTestEmbeddedInstance(PegasusServerTestBase, RegexpMixin):
     """Tests a specific provider implemented pegasus class that
-        includes an embedded instance
+        includes an embedded instance.
     """
 
     def test_receive(self):
@@ -2708,8 +2701,8 @@ class PegasusTestEmbeddedInstance(PegasusServerTestBase, RegexpMixin):
                 str_mof = inst.tomof()
                 str_xml = inst.tocimxmlstr(2)
                 if self.verbose:
-                    print('====== %s MOF=====\n%s' %(inst.path, str_mof))
-                    print('======%s XML=====\n%s' %(inst.path, str_xml))
+                    print('====== %s MOF=====\n%s' % (inst.path, str_mof))
+                    print('======%s XML=====\n%s' % (inst.path, str_xml))
 
                 # confirm general characteristics of mof output
                 self.assertRegexpMatches(
@@ -2748,13 +2741,12 @@ class PyWBEMServerClass(PegasusServerTestBase):
        Test the components of the server class and compare with previous tests
        for openpegasus.  This set of tests runs only on openpegasus.
        Tests for valid namespaces, valid interop namespace, valid profiles,
-       pegasus brand information
-
+       pegasus brand information.
     """
 
     def print_profile_info(self, org_vm, inst):
         """Print the registered org, name, version for the profile defined by
-           inst
+           inst.
         """
         org = org_vm.tovalues(inst['RegisteredOrganization'])
         name = inst['RegisteredName']
@@ -2763,7 +2755,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
 
     def test_namespaces(self):
         """ Compare namespaces from the pegasus function with those from
-            the server function
+            the server function.
         """
 
         peg_namespaces = self.get_namespaces()
@@ -2777,7 +2769,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
 
     def test_interop_namespace(self):
         """Confirm that pegasus tests and Server class select same namespace
-           as interop namespace
+           as interop namespace.
         """
 
         server = WBEMServer(self.conn)
@@ -2789,7 +2781,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
 
     def test_registered_profiles(self):
         """ Test getting profiles from server class against getting list
-            directly from server
+            directly from server.
         """
 
         server = WBEMServer(self.conn)
@@ -2816,7 +2808,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
 
     def test_get_brand(self):
         """ Get brand info. If pegasus server test for correct response.
-            Otherwise display result
+            Otherwise display result.
         """
 
         server = WBEMServer(self.conn)
@@ -2831,7 +2823,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
 
 
     def test_indication_profile_info(self):
-        """ Get the indications central class"""
+        """ Get the indications central class."""
 
         server = WBEMServer(self.conn)
 
@@ -2880,9 +2872,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
 
 
     def test_server_profile(self):
-        """
-            Test getting the server profile
-        """
+        """Test getting the server profile."""
 
         server = WBEMServer(self.conn)
 
@@ -2926,7 +2916,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
             self.fail("No Server class")
 
     def test_server_select_profiles(self):
-        """Test the select_profiles function"""
+        """Test the select_profiles function."""
 
         server = WBEMServer(self.conn)
 
@@ -3861,8 +3851,8 @@ if __name__ == '__main__':
         print("  server url: %s" % args['url'])
         print("  namespace: %s" % args['namespace'])
         print("  username: %s" % args['username'])
-        print("  password: %s" % ("*"*len(args['password'])))
-        print("  nvc: %s"      % args['nvc'])
+        print("  password: %s" % ("*" * len(args['password'])))
+        print("  nvc: %s" % args['nvc'])
         print("  cacerts: %s" % args['cacerts'])
         print("  timeout: %s" % args['timeout'])
         print("  verbose: %s" % args['verbose'])

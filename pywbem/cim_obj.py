@@ -208,7 +208,7 @@ class NocaseDict(object):
         """
         if not isinstance(key, six.string_types):
             raise TypeError('NocaseDict key %s must be string type, ' \
-                            'but is %s' %  (key, builtin_type(key)))
+                            'but is %s' % (key, builtin_type(key)))
         k = key.lower()
         self._data[k] = (key, value)
 
@@ -763,11 +763,11 @@ def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
             else:
                 splitpos = escaped_str.rfind(' ', 0, blankfind)
                 if splitpos < 0:
-                    splitpos = blankfind-1
-                ret_str_list.append('"' + escaped_str[0:splitpos+1] + '"')
-                escaped_str = escaped_str[splitpos+1:]
+                    splitpos = blankfind - 1
+                ret_str_list.append('"' + escaped_str[0:splitpos + 1] + '"')
+                escaped_str = escaped_str[splitpos + 1:]
 
-    ret_str = ('\n'+_is).join(ret_str_list)
+    ret_str = ('\n' + _is).join(ret_str_list)
     return ret_str
 
 def moftype(cim_type, refclass):
@@ -1558,7 +1558,7 @@ class CIMInstance(_CIMComparisonMixin):
 
         ret_str = 'instance of %s {\n' % self.classname
         for prop in self.properties.values():
-            ret_str += prop.tomof(True, (indent+MOF_INDENT))
+            ret_str += prop.tomof(True, (indent + MOF_INDENT))
 
         ret_str += '};\n'
         return ret_str
@@ -2324,7 +2324,7 @@ class CIMProperty(_CIMComparisonMixin):
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
             elif type_ == 'datetime':
-                value = [CIMDateTime(val) if val is not None
+                value = [CIMDateTime(val) if val is not None \
                          and not isinstance(val, CIMDateTime)
                          else val for val in value]
                 msg = 'Array property %r specifies CIM data type %r' % \
@@ -2374,7 +2374,7 @@ class CIMProperty(_CIMComparisonMixin):
                                      'property %r that is Null' % name)
             elif isinstance(value, CIMInstanceName):
                 msg = 'Property %r has a CIMInstanceName value with ' \
-                        'classname=%r' % (name, value.classname)
+                      'classname=%r' % (name, value.classname)
                 reference_class = _intended_value(
                     value.classname, None, reference_class, 'reference_class',
                     msg)
@@ -2426,7 +2426,7 @@ class CIMProperty(_CIMComparisonMixin):
                 _type_obj = type_from_name(type_)
                 value = _type_obj(value)  # pylint: disable=redefined-variable-type
                 msg = 'Property %r has a simple typed value ' \
-                        'and specifies CIM data type %r' % (name, type_)
+                      'and specifies CIM data type %r' % (name, type_)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
                 reference_class = _intended_value(
@@ -2668,8 +2668,8 @@ class CIMProperty(_CIMComparisonMixin):
             arr_str = self._array_val2mof(indent, False)
             # If too large, redo with on array element per line
             if len(arr_str) > (MAX_MOF_LINE - indent):
-                arr_str = '\n' + _indent_str(indent+MOF_INDENT)
-                arr_str += self._array_val2mof((indent+MOF_INDENT), True)
+                arr_str = '\n' + _indent_str(indent + MOF_INDENT)
+                arr_str += self._array_val2mof((indent + MOF_INDENT), True)
             mof += arr_str + '}'
         else:
             if not is_instance:
@@ -2946,7 +2946,7 @@ class CIMMethod(_CIMComparisonMixin):
 
         if len(self.qualifiers) != 0:
             ret_str += '%s\n' % (_makequalifiers(self.qualifiers,
-                                                 (indent+MOF_INDENT)))
+                                                 (indent + MOF_INDENT)))
         # TODO is None allowed for return type.
         ret_str += _indent_str(indent)
         if self.return_type is not None:
@@ -2956,8 +2956,9 @@ class CIMMethod(_CIMComparisonMixin):
 
         if len(self.parameters.values()) != 0:
             ret_str += '%s(\n' % (self.name)
-            ret_str += ',\n'.join(
-                [p.tomof(indent+MOF_INDENT) for p in self.parameters.values()])
+            ret_str += ',\n'.join([
+                p.tomof(indent + MOF_INDENT)
+                for p in self.parameters.values()])
             ret_str += ');\n'
         else:
             ret_str += '%s();\n' % (self.name)
@@ -4098,7 +4099,7 @@ def tocimxmlstr(value, indent=None):
         if isinstance(indent, six.string_types):
             pass  # use indent, as specified
         elif isinstance(indent, six.integer_types):
-            indent = ' '*indent
+            indent = ' ' * indent
         else:
             raise TypeError("Type of indent must be string or integer, " \
                             "but is: %s" % type(indent))
@@ -4244,7 +4245,7 @@ def tocimobj(type_, value):
                 idx = str_arg.index(seq)
             except ValueError:
                 return (str_arg, '', '')
-            return (str_arg[:idx], seq, str_arg[idx+len(seq):])
+            return (str_arg[:idx], seq, str_arg[idx + len(seq):])
 
     if type_ == 'reference': # pylint: disable=too-many-nested-blocks
         # pylint: disable=too-many-return-statements,too-many-branches

@@ -102,8 +102,7 @@ pylint_py_files := \
     setup.py \
     os_setup.py \
     $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
-    $(wildcard testsuite/*.py) \
-    testsuite/validate.py \
+    $(wildcard testsuite/*.py)
 
 # Flake8 config file
 flake8_rc_file := flake8.rc
@@ -113,8 +112,7 @@ flake8_py_files := \
     setup.py \
     os_setup.py \
     $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
-    $(wildcard testsuite/*.py) \
-    testsuite/validate.py \
+    $(wildcard testsuite/*.py)
 
 # Test log
 test_log_file := test_$(python_version_fn).log
@@ -223,6 +221,10 @@ doccoverage:
 check: pylint.log flake8.log
 	@echo '$@ done.'
 
+.PHONY: flake8
+flake8: flake8.log
+	@echo '$@ done.'
+
 .PHONY: install
 install: $(sdist_file)
 	mkdir tmp_install
@@ -300,7 +302,7 @@ endif
 
 flake8.log: makefile $(flake8_rc_file) $(flake8_py_files)
 	rm -f flake8.log
-	-bash -c "set -o pipefail; PYTHONPATH=. flake8 --config=$(flake8_rc_file) $(flake8_py_files) 2>&1 |tee flake8.tmp.log"
+	-bash -c "set -o pipefail; PYTHONPATH=. flake8 --statistics --config=$(flake8_rc_file) $(flake8_py_files) 2>&1 |tee flake8.tmp.log"
 	mv -f flake8.tmp.log flake8.log
 	@echo 'Done: Created flake8 log file: $@'
 
