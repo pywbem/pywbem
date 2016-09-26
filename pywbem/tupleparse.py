@@ -893,12 +893,12 @@ def parse_instance(tup_tree):
                ['QUALIFIER', 'PROPERTY', 'PROPERTY.ARRAY',
                 'PROPERTY.REFERENCE'])
 
-    ## XXX: This does not enforce ordering constraint
+    # XXX: This does not enforce ordering constraint
 
-    ## XXX: This does not enforce the constraint that there be only
-    ## one PROPERTY or PROPERTY.ARRAY.
+    # XXX: This does not enforce the constraint that there be only
+    # one PROPERTY or PROPERTY.ARRAY.
 
-    ## TODO: Parse instance qualifiers
+    # TODO: Parse instance qualifiers
     qualifiers = {}
     props = list_of_matching(tup_tree, ['PROPERTY.REFERENCE', 'PROPERTY',
                                         'PROPERTY.ARRAY'])
@@ -1009,7 +1009,7 @@ def parse_qualifier(tup_tree):
     qual = CIMQualifier(attrl['NAME'], unpack_value(tup_tree),
                         type=attrl['TYPE'])
 
-    ## TODO: Lift this out?
+    # TODO: Lift this out?
     for i in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE',
               'TRANSLATABLE', 'PROPAGATED']:
         rtn_val = attrl.get(i)
@@ -1042,8 +1042,8 @@ def parse_property(tup_tree):
             %EmbeddedObject;>
     """
 
-    ## TODO: Parse this into NAME, VALUE, where the value contains
-    ## magic fields for the qualifiers and the propagated flag.
+    # TODO: Parse this into NAME, VALUE, where the value contains
+    # magic fields for the qualifiers and the propagated flag.
 
     check_node(tup_tree, 'PROPERTY', ['TYPE', 'NAME'],
                ['NAME', 'CLASSORIGIN', 'PROPAGATED', 'EmbeddedObject',
@@ -1123,7 +1123,7 @@ def parse_property_array(tup_tree):
                       is_array=True,
                       embedded_object=embedded_object)
 
-    ## TODO: qualifiers, other attributes
+    # TODO: qualifiers, other attributes
     return obj
 
 
@@ -1192,7 +1192,7 @@ def parse_method(tup_tree):
     parameters = byname(list_of_matching(tup_tree, ['PARAMETER',
                                                     'PARAMETER.REFERENCE',
                                                     'PARAMETER.ARRAY',
-                                                    'PARAMETER.REFARRAY',]))
+                                                    'PARAMETER.REFARRAY', ]))
 
     attrl = attrs(tup_tree)
 
@@ -1337,13 +1337,13 @@ def parse_message(tup_tree):
     return name(tup_tree), attrs(tup_tree), child
 
 
-def parse_multireq(tup_tree):   #pylint: disable=unused-argument
+def parse_multireq(tup_tree):   # pylint: disable=unused-argument
     """Not Implemented"""
     # TODO: Implement MULTIREQ parser
     raise ParseError('MULTIREQ parser not implemented')
 
 
-def parse_multiexpreq(tup_tree):   #pylint: disable=unused-argument
+def parse_multiexpreq(tup_tree):   # pylint: disable=unused-argument
     """Not Implemented"""
     # TODO: Implement MULTIEXPREQ parser
     raise ParseError('MULTIEXPREQ parser not implemented')
@@ -1444,12 +1444,12 @@ def parse_paramvalue(tup_tree):
             %ParamType;  #IMPLIED
             %EmbeddedObject;>
     """
-    ## TODO ks 6/16 Extended per DSP0201 v 1.4 to include CLASSNAME,
+    # TODO ks 6/16 Extended per DSP0201 v 1.4 to include CLASSNAME,
     #  INSTANCENAME, CLASS, INSTANCE, VALUE.NAMEDINSTANCE but not sure
     #  we have tests for all of these.
-    ## Version 2.1.1 of the DTD lacks the %ParamType attribute but it
-    ## is present in version 2.2.  Make it optional to be backwards
-    ## compatible.
+    # Version 2.1.1 of the DTD lacks the %ParamType attribute but it
+    # is present in version 2.2.  Make it optional to be backwards
+    # compatible.
 
     check_node(tup_tree, 'PARAMVALUE', ['NAME'],
                ['PARAMTYPE', 'EmbeddedObject', 'EMBEDDEDOBJECT'])
@@ -1522,13 +1522,13 @@ def parse_expparamvalue(tup_tree):
     return _name, child
 
 
-def parse_multirsp(tup_tree):   #pylint: disable=unused-argument
+def parse_multirsp(tup_tree):   # pylint: disable=unused-argument
     """This Function not implemented"""
     # TODO: Implement MULTIRSP parser
     raise ParseError('MULTIRSP parser not implemented')
 
 
-def parse_multiexprsp(tup_tree):   #pylint: disable=unused-argument
+def parse_multiexprsp(tup_tree):   # pylint: disable=unused-argument
     """This Function not implemented"""
     # TODO: Implement MULTIEXPRSP parser
     raise ParseError('MULTIEXPRSP parser not implemented')
@@ -1549,7 +1549,7 @@ def parse_simplersp(tup_tree):
     return name(tup_tree), attrs(tup_tree), child
 
 
-def parse_simpleexprsp(tup_tree):   #pylint: disable=unused-argument
+def parse_simpleexprsp(tup_tree):   # pylint: disable=unused-argument
     """This Function not implemented"""
     # TODO: Implement SIMPLEEXPRSP parser
     raise ParseError('SIMPLEEXPRSP parser not implemented')
@@ -1573,7 +1573,7 @@ def parse_methodresponse(tup_tree):
                                                              'PARAMVALUE'])
 
 
-def parse_expmethodresponse(tup_tree):  #pylint: disable=unused-argument
+def parse_expmethodresponse(tup_tree):  # pylint: disable=unused-argument
     """This function not implemented"""
     # TODO: Implement EXPMETHODRESPONSE parser
     raise ParseError('EXPMETHODRESPONSE parser not implemented')
@@ -1609,7 +1609,7 @@ def parse_error(tup_tree):
             DESCRIPTION CDATA #IMPLIED>
     """
 
-    ## TODO: Return a CIMError object, not a tuple
+    # TODO: Return a CIMError object, not a tuple
 
     check_node(tup_tree, 'ERROR', ['CODE'], ['DESCRIPTION'])
 
@@ -1628,9 +1628,9 @@ def parse_returnvalue(tup_tree):
             %ParamType;       #IMPLIED>
     """
 
-    ## Version 2.1.1 of the DTD lacks the %ParamType attribute but it
-    ## is present in version 2.2.  Make it optional to be backwards
-    ## compatible.
+    # Version 2.1.1 of the DTD lacks the %ParamType attribute but it
+    # is present in version 2.2.  Make it optional to be backwards
+    # compatible.
 
     check_node(tup_tree, 'RETURNVALUE', [],
                ['PARAMTYPE', 'EmbeddedObject', 'EMBEDDEDOBJECT'])
@@ -1676,7 +1676,7 @@ def parse_ireturnvalue(tup_tree):
                                      'VALUE.NAMEDINSTANCE',
                                      'VALUE.INSTANCEWITHPATH'])
 
-    ## TODO: Call unpack_value if appropriate
+    # TODO: Call unpack_value if appropriate
 
     return name(tup_tree), attrs(tup_tree), values
 
@@ -1765,7 +1765,7 @@ def unpack_value(tup_tree):
     Looks at the TYPE of the node to work out how to decode it.
     Handles nodes with no value (e.g. in CLASS.)
     """
-    ## TODO: Handle VALUE.REFERENCE, VALUE.REFARRAY
+    # TODO: Handle VALUE.REFERENCE, VALUE.REFARRAY
 
     valtype = attrs(tup_tree)['TYPE']
 
@@ -1791,8 +1791,8 @@ def unpack_boolean(data):
     if data is None:
         return None
 
-    ## CIM-XML says "These values MUST be treated as case-insensitive"
-    ## (even though the XML definition requires them to be lowercase.)
+    # CIM-XML says "These values MUST be treated as case-insensitive"
+    # (even though the XML definition requires them to be lowercase.)
 
     data = data.strip().lower()                   # ignore space
     if data == 'true':

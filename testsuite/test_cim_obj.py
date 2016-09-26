@@ -244,14 +244,14 @@ class DictTest(unittest.TestCase):
 
         # Test update()
 
-        obj.update({'One':'1', 'Two': '2'})
+        obj.update({'One': '1', 'Two': '2'})
         self.assertEqual(obj['one'], '1')
         self.assertEqual(obj['two'], '2')
         for key in exp_dict:
             self.assertEqual(obj[key], exp_dict[key])
         self.assertEqual(len(obj), 4)
 
-        obj.update({'Three':'3', 'Four': '4'}, [('Five', '5')])
+        obj.update({'Three': '3', 'Four': '4'}, [('Five', '5')])
         self.assertEqual(obj['three'], '3')
         self.assertEqual(obj['four'], '4')
         self.assertEqual(obj['five'], '5')
@@ -1216,22 +1216,22 @@ class CIMInstanceWithEmbeddedInstToMOF(unittest.TestCase):
                              'EbStrArray': [str_data, str_data, str_data],
                              'EbUint8array': [Uint8(1), Uint8(2)],
                              'EbRef': CIMInstanceName('CIM_Bar'),
-                             'EbUint64Array' : [Uint64(123456789),
-                                                Uint64(123456789),
-                                                Uint64(123456789)]})
+                             'EbUint64Array': [Uint64(123456789),
+                                               Uint64(123456789),
+                                               Uint64(123456789)]})
 
         i = CIMInstance('CIM_Foo',
                         {'MyString': 'string',
                          'MyUint8': Uint8(0),
                          'MyUint8Array': [Uint8(1), Uint8(2)],
-                         'MyUint64Array' : [Uint64(123456789),
-                                            Uint64(123456789),
-                                            Uint64(123456789)],
+                         'MyUint64Array': [Uint64(123456789),
+                                           Uint64(123456789),
+                                           Uint64(123456789)],
                          'MyRef': CIMInstanceName('CIM_Bar'),
-                         'MyEmbed' : embed,
-                         'MyUint32' : Uint32(9999),
-                         'MyDateTimeArray' : [dt, dt, dt],
-                         'MyStrLongArray' : [str_data, str_data, str_data]})
+                         'MyEmbed': embed,
+                         'MyUint32': Uint32(9999),
+                         'MyDateTimeArray': [dt, dt, dt],
+                         'MyStrLongArray': [str_data, str_data, str_data]})
 
         imof = i.tomof()
 
@@ -1365,7 +1365,7 @@ class CIMInstanceUpdateExisting(unittest.TestCase):
         self.assertTrue(isinstance(i['uint8array'][0], Uint8))
 
         name = CIMInstanceName('CIM_Foo',
-                               keybindings={'string':'STRING', 'one':'1'})
+                               keybindings={'string': 'STRING', 'one': '1'})
 
         i.update_existing(name)
         self.assertTrue('one' not in i)
@@ -2399,11 +2399,11 @@ class CIMClassPropertyWithValueToMOF(unittest.TestCase, RegexpMixin):
                                                 type='uint32'),
                         'MySint32': CIMProperty('MySint32', Sint32(-12345),
                                                 type='sint32'),
-                        'Mydatetime' : CIMProperty('Mydatetime',
-                                                   '12345678224455.654321:000',
-                                                   type='datetime'),
-                        'MyStr' : CIMProperty('MyStr', 'This is a test',
-                                              type='string')})
+                        'Mydatetime': CIMProperty('Mydatetime',
+                                                  '12345678224455.654321:000',
+                                                  type='datetime'),
+                        'MyStr': CIMProperty('MyStr', 'This is a test',
+                                             type='string')})
 
         imof = cl.tomof()
 
@@ -2507,8 +2507,8 @@ class CIMClassMethodsToMOF(unittest.TestCase, RegexpMixin):
         cl = CIMClass(
             'CIM_FooSimple',
             methods={'Simple': CIMMethod('Simple', 'uint32'),
-                     'WithParams' : CIMMethod('WithParams', 'uint32',
-                                              parameters=params)})
+                     'WithParams': CIMMethod('WithParams', 'uint32',
+                                             parameters=params)})
         imof = cl.tomof()
 
         self.assertRegexpContains(imof, r"^\s*class\s+CIM_FooSimple\s*\{")
@@ -2527,10 +2527,10 @@ class CIMClassMethodsToMOF(unittest.TestCase, RegexpMixin):
 
         cl = CIMClass(
             'CIM_FooArray',
-            methods={'ArrayP1' : CIMMethod('ArrayP1', 'uint32',
-                                           parameters=array_p1),
-                     'ArrayP2' : CIMMethod('ArrayP2', 'uint32',
-                                           parameters=array_p2)})
+            methods={'ArrayP1': CIMMethod('ArrayP1', 'uint32',
+                                          parameters=array_p1),
+                     'ArrayP2': CIMMethod('ArrayP2', 'uint32',
+                                          parameters=array_p2)})
 
         imof = cl.tomof()
 
@@ -2549,36 +2549,36 @@ class CIMClassWQualToMOF(unittest.TestCase):
         # predefine qualifiers, params
         pquals = {'ModelCorresponse': CIMQualifier('ModelCorrespondense',
                                                    'BlahBlahClass'),
-                  'Description' : CIMQualifier('Description', "This is a" \
+                  'Description': CIMQualifier('Description', "This is a" \
                                                " description for a property" \
                                                " that serves no purpose" \
                                                " but is multiline.")}
-        pquals2 = {'ValueMap' : CIMQualifier('ValueMap',
-                                             ["0", "1", "2", "3", "4",
-                                              "5", "6"]),
-                   'Values' : CIMQualifier('Values',
-                                           ["Unknown", "value1", "value2",
-                                            "value3", "value4", "value5",
-                                            "value6"])}
-        mquals = {'Description' : CIMQualifier('Description', "blah blah")}
+        pquals2 = {'ValueMap': CIMQualifier('ValueMap',
+                                            ["0", "1", "2", "3", "4",
+                                             "5", "6"]),
+                   'Values': CIMQualifier('Values',
+                                          ["Unknown", "value1", "value2",
+                                           "value3", "value4", "value5",
+                                           "value6"])}
+        mquals = {'Description': CIMQualifier('Description', "blah blah")}
 
-        prquals = {'Description' : CIMQualifier('Description', "more blah"),
-                   'IN' : CIMQualifier('in', False)}
+        prquals = {'Description': CIMQualifier('Description', "more blah"),
+                   'IN': CIMQualifier('in', False)}
 
         params = {'Param1': CIMParameter('Param1', 'string',
                                          qualifiers=prquals),
                   'Param2': CIMParameter('Param2', 'uint32')}
-        embedqual = {'Description' : CIMQualifier('Description',
-                                                  "An embedded instance"),
-                     'EmbeddedInstance' : CIMQualifier('EmbeddedInstance',
-                                                       "My_Embedded")}
+        embedqual = {'Description': CIMQualifier('Description',
+                                                 "An embedded instance"),
+                     'EmbeddedInstance': CIMQualifier('EmbeddedInstance',
+                                                      "My_Embedded")}
         #define the target class
         cl = CIMClass(
             'CIM_Foo', superclass='CIM_Bar',
             qualifiers={'Abstract': CIMQualifier('Abstract', True),
-                        'Description' : CIMQualifier('Description',
-                                                     'This is a class ' \
-                                                     'description')},
+                        'Description': CIMQualifier('Description',
+                                                    'This is a class ' \
+                                                    'description')},
 
             properties={'InstanceID': CIMProperty('InstanceID', None,
                                                   type='string',
@@ -2596,15 +2596,15 @@ class CIMClassWQualToMOF(unittest.TestCase):
                                                   type='uint32',
                                                   is_array=True,
                                                   qualifiers=pquals),
-                        'MyEmbedded' : CIMProperty('MyEmbedded', None,
-                                                   type='string',
-                                                   qualifiers=embedqual)},
+                        'MyEmbedded': CIMProperty('MyEmbedded', None,
+                                                  type='string',
+                                                  qualifiers=embedqual)},
 
             methods={'Delete': CIMMethod('Delete', 'uint32',
                                          qualifiers=mquals),
-                     'FooMethod' : CIMMethod('FooMethod', 'uint32',
-                                             parameters=params,
-                                             qualifiers=mquals)}
+                     'FooMethod': CIMMethod('FooMethod', 'uint32',
+                                            parameters=params,
+                                            qualifiers=mquals)}
             )
 
         clmof = cl.tomof()
@@ -2616,7 +2616,7 @@ class CIMClassWQualToMOF(unittest.TestCase):
                       "Class: %r\n"\
                       "Generated MOF: \n%s" % (cl, clmof))
 
-        # search for class CIM_Foo : CIM_Bar {
+        # search for class CIM_Foo: CIM_Bar {
         s = re.search(r"\s*class\s+CIM_Foo\s*:\s*CIM_Bar\s*\{", clmof)
 
         if s is None:
@@ -2661,15 +2661,15 @@ class CIMClassWoQualifiersToMof(unittest.TestCase, RegexpMixin):
                                                 type='uint16'),
                        },
             methods={'Delete': CIMMethod('Delete', 'uint32'),
-                     'FooMethod' : CIMMethod('FooMethod', 'uint32',
-                                             parameters=params)
+                     'FooMethod': CIMMethod('FooMethod', 'uint32',
+                                            parameters=params)
                     }
             )
 
         # Generate the mof. Does not really test result
         clmof = cl.tomof()
 
-        # search for class CIM_Foo : CIM_Bar {
+        # search for class CIM_Foo: CIM_Bar {
         self.assertRegexpContains(clmof,
                                   r"^\s*class\s+CIM_FooNoQual\s*:\s*" \
                                   r"CIM_Bar\s*\{")

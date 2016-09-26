@@ -81,8 +81,8 @@ def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
       </MESSAGE>
     </CIM>"""
 
-    data = {'sequence_number' : sequence_number, 'delta_time' : delta_time,
-            'protocol_ver' : protocol_ver, 'msg_id' : msg_id}
+    data = {'sequence_number': sequence_number, 'delta_time': delta_time,
+            'protocol_ver': protocol_ver, 'msg_id': msg_id}
     return data_template%data
 
 def send_indication(url, headers, payload, verbose):
@@ -185,11 +185,11 @@ class TestIndications(unittest.TestCase):
 
         cim_protocol_version = '1.4'
 
-        headers = {'content-type' : 'application/xml; charset=utf-8',
-                   'CIMExport' : 'MethodRequest',
-                   'CIMExportMethod' : 'ExportIndication',
-                   'Accept-Encoding' : 'Identity',
-                   'CIMProtocolVersion' : cim_protocol_version}
+        headers = {'content-type': 'application/xml; charset=utf-8',
+                   'CIMExport': 'MethodRequest',
+                   'CIMExportMethod': 'ExportIndication',
+                   'Accept-Encoding': 'Identity',
+                   'CIMProtocolVersion': cim_protocol_version}
         # includes accept-encoding because of requests issue.
         #He supplies it if don't TODO try None
 
@@ -224,7 +224,7 @@ class TestIndications(unittest.TestCase):
         LISTENER.stop()
 
 #TODO issue 452. Reuse of the indication listener fails at least in python 3
-# Therefore we duse different port for each test
+# Therefore we use different port for each test
     def test_send_10(self):
         """Test with sending 10 indications"""
         self.send_indications(10, 5000, None)

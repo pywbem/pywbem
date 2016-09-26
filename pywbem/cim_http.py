@@ -196,8 +196,8 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
                 # exceptions that may be pending.
                 ts2 = datetime.now()
                 duration = ts2 - self._ts1
-                duration_sec = float(duration.microseconds)/1000000 +\
-                               duration.seconds + duration.days*24*3600
+                duration_sec = (float(duration.microseconds) / 1000000) +\
+                               duration.seconds + (duration.days * 24 * 3600)
                 raise TimeoutError("The client timed out and closed the "\
                                    "socket after %.0fs." % duration_sec)
         return False # re-raise any other exceptions
@@ -482,7 +482,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
             # pylint: disable=too-many-branches
             """Connect to a host on a given (SSL) port."""
 
-            ## Connect for M2Crypto ssl package
+            # Connect for M2Crypto ssl package
             if _HAVE_M2CRYPTO:
                 # Calling httplib.HTTPSConnection.connect(self) does not work
                 # because of its ssl.wrap_socket() call. So we copy the code of
@@ -800,14 +800,14 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                                                   nonce_idx)
                                     nonce_end = auth_chal.index('"',
                                                                 nonce_begin+1)
-                                    nonce = auth_chal[nonce_begin+1:nonce_end]
+                                    nonce = auth_chal[nonce_begin + 1:nonce_end]
                                     cookie_idx = auth_chal.index('cookiefile=')
                                     cookie_begin = auth_chal.index('"',
                                                                    cookie_idx)
                                     cookie_end = auth_chal.index(
-                                        '"', cookie_begin+1)
+                                        '"', cookie_begin + 1)
                                     cookie_file = auth_chal[
-                                        cookie_begin+1:cookie_end]
+                                        cookie_begin + 1: cookie_end]
                                     file_hndl = open(cookie_file, 'r')
                                     cookie = file_hndl.read().strip()
                                     file_hndl.close()

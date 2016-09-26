@@ -87,7 +87,7 @@ __all__ = ['MinutesFromUTC', 'CIMType', 'CIMDateTime', 'CIMInt', 'Uint8',
            'Sint8', 'Uint16', 'Sint16', 'Uint32', 'Sint32', 'Uint64', 'Sint64',
            'CIMFloat', 'Real32', 'Real64']
 
-class _CIMComparisonMixin(object): #pylint: disable=too-few-public-methods
+class _CIMComparisonMixin(object): # pylint: disable=too-few-public-methods
     """Mixin class providing default implementations for rich comparison
     operators.
 

@@ -70,8 +70,11 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      CIMQualifier, CIMQualifierDeclaration, NocaseDict, \
                      tocimobj
 from .cim_operations import WBEMConnection
-from .cim_constants import *  # pylint: disable=wildcard-import
-from .cim_constants import _statuscode2string
+from .cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
+                     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_NAMESPACE, \
+                     CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_PARAMETER, \
+                     CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS, \
+                     _statuscode2string
 from .exceptions import Error, CIMError
 
 __all__ = ['MOFParseError', 'MOFWBEMConnection', 'MOFCompiler',
@@ -114,46 +117,46 @@ _tabdir = os.path.dirname(os.path.abspath(__file__))
 #------------------------------------------------------------------------------
 
 reserved = {
-    'any':'ANY',
-    'as':'AS',
-    'association':'ASSOCIATION',
-    'class':'CLASS',
-    'disableoverride':'DISABLEOVERRIDE',
-    'boolean':'DT_BOOL',
-    'char16':'DT_CHAR16',
-    'datetime':'DT_DATETIME',
-    'pragma':'PRAGMA',
-    'real32':'DT_REAL32',
-    'real64':'DT_REAL64',
-    'sint16':'DT_SINT16',
-    'sint32':'DT_SINT32',
-    'sint64':'DT_SINT64',
-    'sint8':'DT_SINT8',
-    'string':'DT_STR',
-    'uint16':'DT_UINT16',
-    'uint32':'DT_UINT32',
-    'uint64':'DT_UINT64',
-    'uint8':'DT_UINT8',
-    'enableoverride':'ENABLEOVERRIDE',
-    'false':'FALSE',
-    'flavor':'FLAVOR',
-    'indication':'INDICATION',
-    'instance':'INSTANCE',
-    'method':'METHOD',
-    'null':'NULL',
-    'of':'OF',
-    'parameter':'PARAMETER',
-    'property':'PROPERTY',
-    'qualifier':'QUALIFIER',
-    'ref':'REF',
-    'reference':'REFERENCE',
-    'restricted':'RESTRICTED',
-    'schema':'SCHEMA',
-    'scope':'SCOPE',
-    'tosubclass':'TOSUBCLASS',
-    'toinstance':'TOINSTANCE',
-    'translatable':'TRANSLATABLE',
-    'true':'TRUE',
+    'any': 'ANY',
+    'as': 'AS',
+    'association': 'ASSOCIATION',
+    'class': 'CLASS',
+    'disableoverride': 'DISABLEOVERRIDE',
+    'boolean': 'DT_BOOL',
+    'char16': 'DT_CHAR16',
+    'datetime': 'DT_DATETIME',
+    'pragma': 'PRAGMA',
+    'real32': 'DT_REAL32',
+    'real64': 'DT_REAL64',
+    'sint16': 'DT_SINT16',
+    'sint32': 'DT_SINT32',
+    'sint64': 'DT_SINT64',
+    'sint8': 'DT_SINT8',
+    'string': 'DT_STR',
+    'uint16': 'DT_UINT16',
+    'uint32': 'DT_UINT32',
+    'uint64': 'DT_UINT64',
+    'uint8': 'DT_UINT8',
+    'enableoverride': 'ENABLEOVERRIDE',
+    'false': 'FALSE',
+    'flavor': 'FLAVOR',
+    'indication': 'INDICATION',
+    'instance': 'INSTANCE',
+    'method': 'METHOD',
+    'null': 'NULL',
+    'of': 'OF',
+    'parameter': 'PARAMETER',
+    'property': 'PROPERTY',
+    'qualifier': 'QUALIFIER',
+    'ref': 'REF',
+    'reference': 'REFERENCE',
+    'restricted': 'RESTRICTED',
+    'schema': 'SCHEMA',
+    'scope': 'SCOPE',
+    'tosubclass': 'TOSUBCLASS',
+    'toinstance': 'TOINSTANCE',
+    'translatable': 'TRANSLATABLE',
+    'true': 'TRUE',
     }
 
 tokens = list(reserved.values()) + [
@@ -476,10 +479,10 @@ def _create_ns(p, handle, ns):
         # the target namespace to be created.
         inst = CIMInstance(
             '__Namespace',
-            properties={'Name':''},
+            properties={'Name': ''},
             path=CIMInstanceName(
                 '__Namespace',
-                keybindings={'Name':''},
+                keybindings={'Name': ''},
                 namespace=ns))
         try:
             handle.CreateInstance(inst)
@@ -495,7 +498,7 @@ def _create_ns(p, handle, ns):
             path=CIMInstanceName(
                 'CIM_Namespace',
                 namespace='root',
-                keybindings={'Name':ns}))
+                keybindings={'Name': ns}))
         handle.CreateInstance(inst)
 
 
@@ -1202,7 +1205,7 @@ def _fixStringValue(s):
     rv = ''
     esc = False
     i = -1
-    while i < len(s) -1:
+    while i < len(s) - 1:
         i += 1
         ch = s[i]
         if ch == '\\' and not esc:
@@ -1231,7 +1234,7 @@ def _fixStringValue(s):
             j = 0
             i += 1
             while j < 4:
-                c = s[i+j]
+                c = s[i + j]
                 c = c.upper()
                 if not c.isdigit() and not c in 'ABCDEF':
                     break
@@ -1242,7 +1245,7 @@ def _fixStringValue(s):
                     hexc |= ord(c) - ord('A') + 0XA
                 j += 1
             rv += chr(hexc)
-            i += j-1
+            i += j - 1
 
         esc = False
 
@@ -1347,10 +1350,10 @@ def _build_flavors(p, flist, qualdecl=None):
                             "invalid")
 
     if qualdecl is not None:
-        flavors = {'overridable':qualdecl.overridable,
-                   'translatable':qualdecl.translatable,
-                   'tosubclass':qualdecl.tosubclass,
-                   'toinstance':qualdecl.toinstance}
+        flavors = {'overridable': qualdecl.overridable,
+                   'translatable': qualdecl.translatable,
+                   'tosubclass': qualdecl.tosubclass,
+                   'toinstance': qualdecl.toinstance}
     if 'disableoverride' in flist:
         flavors['overridable'] = False
     if 'enableoverride' in flist:
@@ -1442,12 +1445,12 @@ def p_defaultFlavor(p):
     # Create dictionary of default flavors based on DSP0004 definition
     # of defaults for flavors. This insures that all possible flavors keywords
     # are defined in the created dictionary.
-    flavors = {'ENABLEOVERRIDE':True,
-               'TOSUBCLASS':True,
-               'TOINSTANCE':False,
-               'DISABLEOVERRIDE':False,
-               'RESTRICTED':False,
-               'TRANSLATABLE':False}
+    flavors = {'ENABLEOVERRIDE': True,
+               'TOSUBCLASS': True,
+               'TOINSTANCE': False,
+               'DISABLEOVERRIDE': False,
+               'RESTRICTED': False,
+               'TRANSLATABLE': False}
     for i in flist:
         flavors[i] = True
     p[0] = flavors
@@ -1627,7 +1630,7 @@ def _find_column(input_, token):
         if input_[i] == '\n':
             break
         i -= 1
-    column = (token.lexpos - i)+1
+    column = (token.lexpos - i) + 1
     return column
 
 def _get_error_context(input_, token):
@@ -1638,7 +1641,7 @@ def _get_error_context(input_, token):
     """
 
     try:
-        line = input_[token.lexpos : input_.index('\n', token.lexpos)]
+        line = input_[token.lexpos: input_.index('\n', token.lexpos)]
     except ValueError:
         line = input_[token.lexpos:]
 
@@ -1659,7 +1662,7 @@ def _get_error_context(input_, token):
         pointer += '^'
     pointline = ''
     i = 0
-    while i < col -1:
+    while i < col - 1:
         if lines[-1][i].isspace():
             pointline += lines[-1][i]
             # otherwise, tabs complicate the alignment
@@ -1948,7 +1951,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                 self.classes[self.default_namespace][cc.classname] = cc
             except KeyError:
                 self.classes[self.default_namespace] = \
-                        NocaseDict({cc.classname:cc})
+                        NocaseDict({cc.classname: cc})
         if 'LocalOnly' in kwargs and not kwargs['LocalOnly']:
             if cc.superclass:
                 try:
@@ -1966,7 +1969,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                         cc.methods[meth.name] = meth
         return cc
 
-    def ModifyClass(self, *args, **kwargs): #pylint: disable=no-self-use
+    def ModifyClass(self, *args, **kwargs): # pylint: disable=no-self-use
         """This method is used by the MOF compiler only in the course of
         handling CIM_ERR_ALREADY_EXISTS after trying to create a class.
         Because :meth:`CreateClass` overwrites existing classes, this method
@@ -2002,7 +2005,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             self.classes[self.default_namespace][cc.classname] = cc
         except KeyError:
             self.classes[self.default_namespace] = \
-                    NocaseDict({cc.classname:cc})
+                    NocaseDict({cc.classname: cc})
 
         # TODO: should we see if it exists first with
         # self.conn.GetClass()?  Do we want to create a class
@@ -2065,7 +2068,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             self.qualifiers[self.default_namespace][qual.name] = qual
         except KeyError:
             self.qualifiers[self.default_namespace] = \
-                    NocaseDict({qual.name:qual})
+                    NocaseDict({qual.name: qual})
 
     def DeleteQualifier(self, *args, **kwargs):
         """This method is only invoked by :meth:`rollback` (on the underlying
@@ -2234,7 +2237,7 @@ class MOFCompiler(object):
                 self.parser.log('Fatal Error:')
 
             self.parser.log('%s%s' % (_statuscode2string(ce.args[0]),
-                                      ce.args[1] and ': '+ce.args[1] or ''))
+                                      ce.args[1] and ': ' + ce.args[1] or ''))
             raise
 
     def compile_file(self, filename, ns):

@@ -12,12 +12,13 @@ exclude =
     docs,
     dist,
     pywbem.egg-info,
+
+# remove the comment and it will ignore noga entries at least in files.
+#disable_noqa
     
 ignore =
-    # Ignore extra blank lines
+    # E302 expected 2 blank lines, found 1. Too many right now, 400+
     E302,
-    # the backslash is redundant between brackets
-    E502,
     # E303 too many blank lines
     E303,
     # E265 block comment should start with #
@@ -26,7 +27,20 @@ ignore =
     E128,
     # E261 at least two spaces before inline comment
     E261,
-    # E203 whitespace before ':'
-    E203,
-    # E231 missing whitespace after ':'
-    E231
+    # E502 the backslash is redundant between brackets. Remove when cleaner
+    # Right now about 500 of these
+    E502,
+    # W391 Blank line at end of file
+    W391,
+    # E127 continuation line over-indented for visual indent.
+    # Disabled because does not appear to match pylint rules
+    E127,
+    # W391 blank line at end of file
+    W391,
+    # E126 continuation line over-indented for hanging indent
+    # Currently does not appear to match our style
+    E126,
+    # D400  First line should end with a period (not 'd')
+    # Defines docstring format for first line. Too many for now
+    D400
+    

@@ -46,7 +46,7 @@ from distutils.errors import DistutilsSetupError
 # unloading and subsequent garbage collection causing the error.
 if sys.version_info[0:2] == (2, 6):
     try:
-        import multiprocessing #pylint: disable=unused-import
+        import multiprocessing # pylint: disable=unused-import
     except ImportError:
         pass
 
@@ -291,7 +291,7 @@ def main():
     from setuptools.command.build_py import build_py as _build_py
 
     class build_py(_build_py):
-    # pylint: disable=invalid-name,too-few-public-methods
+        # pylint: disable=invalid-name,too-few-public-methods
         """Custom command that extends the setuptools `build_py` command,
         which prepares the Python files before they are being installed.
         This command is used by `setup.py install` and `pip install`.
@@ -299,7 +299,7 @@ def main():
         We use this only to pick up the verbosity level.
         """
         def run(self):
-            global _VERBOSE  #pylint: disable=global-statement
+            global _VERBOSE  # pylint: disable=global-statement
             _VERBOSE = self.verbose
             _build_py.run(self)
 
@@ -351,7 +351,7 @@ def main():
             # needed by the pywbem._recorder module.
             'PyYAML',
         ],
-        'develop_requires' : [
+        'develop_requires': [
             # Python prereqs for 'develop' command. Handled by os_setup module.
             "pytest>=2.4",
             "pytest-cov",
@@ -459,7 +459,7 @@ def main():
             # - install lxml from its binaries at:
             #   http://www.lfd.uci.edu/~gohlke/pythonlibs/#lxml
         },
-        'classifiers' : [
+        'classifiers': [
             'Development Status :: 5 - Production/Stable',
             'Intended Audience :: Developers',
             'Intended Audience :: System Administrators',
@@ -515,7 +515,7 @@ def main():
                 raise
         else:
             break
-        print("Warning: Retrying setup() because %s was raised: %s"\
+        print("Warning: Retrying setup() because %s was raised: %s" % \
               (exc.__class__.__name__, exc))
 
     if 'install' in sys.argv or 'develop' in sys.argv:

@@ -227,6 +227,7 @@ class BaseOperationRecorder(object):
         self.reset()
 
     def reset(self):
+        """Reset all the attributes in the class"""
         self._pywbem_method = None
         self._pywbem_args = None
 

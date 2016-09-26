@@ -288,8 +288,8 @@ def check_utf8_xml_chars(utf8_xml, meaning):
             exc_txt += "\n  At offset %d:" % ifs_pos
             for ifs_ord in six.iterbytes(ifs_seq):
                 exc_txt += " 0x%02X" % ifs_ord
-            cpos1 = max(ifs_pos-context_before, 0)
-            cpos2 = min(ifs_pos+context_after, len(utf8_xml))
+            cpos1 = max(ifs_pos - context_before, 0)
+            cpos2 = min(ifs_pos + context_after, len(utf8_xml))
             exc_txt += ", CIM-XML snippet: %r" % utf8_xml[cpos1:cpos2]
         raise ParseError(exc_txt)
 
@@ -308,11 +308,11 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         exc_txt = "Incorrectly encoded UTF-8 Byte sequences found in %s" %\
                   meaning
         exc_txt += "\n  At offset %d:" % _p1
-        ies_seq = utf8_xml[_p1:_p2+1]
+        ies_seq = utf8_xml[_p1:_p2 + 1]
         for ies_ord in six.iterbytes(ies_seq):
             exc_txt += " 0x%02X" % ies_ord
-        cpos1 = max(_p1-context_before, 0)
-        cpos2 = min(_p2+context_after, len(utf8_xml))
+        cpos1 = max(_p1 - context_before, 0)
+        cpos2 = min(_p2 + context_after, len(utf8_xml))
         exc_txt += ", CIM-XML snippet: %r" % utf8_xml[cpos1:cpos2]
         raise ParseError(exc_txt)
 
@@ -330,8 +330,8 @@ def check_utf8_xml_chars(utf8_xml, meaning):
     if len(ixc_list) > 0:
         exc_txt = "Invalid XML characters found in %s:" % meaning
         for (ixc_pos, ixc_char_u) in ixc_list:
-            cpos1 = max(ixc_pos-context_before, 0)
-            cpos2 = min(ixc_pos+context_after, len(utf8_xml_u))
+            cpos1 = max(ixc_pos - context_before, 0)
+            cpos2 = min(ixc_pos + context_after, len(utf8_xml_u))
             exc_txt += "\n  At offset %d: U+%04X, CIM-XML snippet: %r" % \
                 (ixc_pos, ord(ixc_char_u), utf8_xml_u[cpos1:cpos2])
         raise ParseError(exc_txt)

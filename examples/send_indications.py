@@ -19,6 +19,8 @@ import requests
 # generated for every send when server cert verification is disabled.
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+import xml.etree.ElementTree as ET
+import json
 
 class ElapsedTimer(object):
     """
@@ -127,14 +129,28 @@ def send_indication(url, headers, payload, verbose, verify=None, keyfile=None,
         response = requests.post(url, headers=headers, data=payload,
                                  timeout=timeout,
                                  verify=verify)
+
     except Exception as ex:
         print('Exception %s' % ex)
         return False
 
-    if verbose:
+    # validate response status code and xml
+    if verbose or response.status_code != 200:
         print('\nResponse code=%s headers=%s data=%s' % (response.status_code,
                                                          response.headers,
                                                          response.text))
+    root = ET.fromstring(response.text)
+    if (root.tag != 'CIM') or (root.attrib['CIMVERSION'] != '2.0') \
+                           or (root.attrib['DTDVERSION'] != '2.4'):
+
+        print('Invalid XML\nResponse code=%s headers=%s data=%s' % \
+            (response.status_code, response.headers, response.text))
+        return False
+    for child in root:
+        if child.tag != 'MESSAGE' or child.attrib['PROTOCOLVERSION'] != '1.4':
+            print('Invalid child\nResponse code=%s headers=%s data=%s' % \
+                  (response.status_code, response.headers, response.text))
+            return False
 
     return True if(response.status_code == 200) else False
 

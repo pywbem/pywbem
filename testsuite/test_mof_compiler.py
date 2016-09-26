@@ -26,14 +26,15 @@ from ply import lex
 
 from pywbem.cim_operations import CIMError
 from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
-from pywbem.cim_constants import *
+from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_INVALID_PARAMETER, \
+                                 CIM_ERR_INVALID_SUPERCLASS
 from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
                            CIMQualifierDeclaration, CIMDateTime
 from pywbem import mof_compiler
 
 from unittest_extensions import CIMObjectMixin
 
-## Constants
+# Constants
 NAME_SPACE = 'root/test'
 
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -69,7 +70,7 @@ def setUpModule():
         ppct = -1
         for data in ufo:
             offset += len(data)
-            pct = 100*offset/clen
+            pct = 100 * offset/clen
             if pct > ppct:
                 ppct = pct
                 sys.stdout.write('\rDownloading %s: %d%% ' % (mofbname, pct))
@@ -612,10 +613,10 @@ def _build_scope(set_true=None):
         for tests. Required because the compiler supplies all
         values in the scope list whether true or false
     """
-    dict_ = {'CLASS' : False, 'ANY' :False, 'ASSOCIATION' : False,
-             'INDICATION' : False, 'METHOD' : False,
-             'PARAMETER' : False, 'PROPERTY' : False,
-             'REFERENCE' : False}
+    dict_ = {'CLASS': False, 'ANY': False, 'ASSOCIATION': False,
+             'INDICATION': False, 'METHOD': False,
+             'PARAMETER': False, 'PROPERTY': False,
+             'REFERENCE': False}
     for n in set_true:
         dict_[n] = True
     return dict_
@@ -693,7 +694,7 @@ class LexErrorToken(lex.LexToken):
     # Like lex.LexToken, we set its instance variables from outside
     pass
 
-def _test_log(msg):     #pylint: disable=unused-argument
+def _test_log(msg):     # pylint: disable=unused-argument
     """Our log function when testing."""
     pass
 
@@ -1368,7 +1369,7 @@ class TestFullSchema(MOFTest):
 
         repo2 = self.mofcomp2.handle
 
-        print   ('Start recompile file= %s' % mofout_filename)
+        print('Start recompile file= %s' % mofout_filename)
 
         self.mofcomp2.compile_file(mofout_filename, NAME_SPACE)
 

@@ -39,7 +39,7 @@ class RegexpMixin(object):
 
         Note: This method is provided by unittest starting from Python 2.7.
         For Python 2.6, we need this function here.
-        
+
         Parameters:
             text         string: string text to be matched
             pattern      string: regular expression
@@ -92,16 +92,16 @@ class CIMObjectMixin(object):
         self.assertEqual(obj.value, value, "value attribute")
         self.assertEqual(obj.type, type_, "type attribute")
         self.assertEqual(obj.class_origin, class_origin,
-                          "class_origin attribute")
+                         "class_origin attribute")
         self.assertEqual(obj.array_size, array_size, "array_size attribute")
         self.assertEqual(obj.propagated, propagated, "propagated attribute")
         self.assertEqual(obj.is_array, is_array, "is_array attribute")
         self.assertEqual(obj.reference_class, reference_class,
-                          "reference_class attribute")
+                         "reference_class attribute")
         self.assertEqual(obj.qualifiers, NocaseDict(qualifiers),
-                          "qualifiers attribute")
+                         "qualifiers attribute")
         self.assertEqual(obj.embedded_object, embedded_object,
-                          "embedded_object attribute")
+                         "embedded_object attribute")
 
     def assertEqualCIMClass(self, act_class, exp_class):
         """
@@ -239,22 +239,22 @@ class CIMObjectMixin(object):
             act_method.name, exp_method.name,
             "%s (dict key), name attribute: %s (expected: %s)" % \
             (context,
-             act_property.name, exp_property.name))
+             act_method.name, exp_method.name))
         self.assertEqual(
             act_method.return_type, exp_method.return_type,
             "%s, return_type attribute: %s (expected: %s)" % \
             (context,
-             act_property.return_type, exp_property.return_type))
+             act_method.return_type, exp_method.return_type))
         self.assertEqual(
             act_method.class_origin, exp_method.class_origin,
             "%s, class_origin attribute: %s (expected: %s)" % \
             (context,
-             act_property.class_origin, exp_property.class_origin))
+             act_method.class_origin, exp_method.class_origin))
         self.assertEqual(
             act_method.propagated, exp_method.propagated,
-            "%s, propagated attribute: %s (expected: %s)" % \
+            "%s, propagated attribute: %s methodmethod (expected: %s)" % \
             (context,
-             act_property.propagated, exp_property.propagated))
+             act_method.propagated, exp_method.propagated))
         self.assertEqualParameters(
             act_method.parameters, exp_method.parameters,
             context)
@@ -349,11 +349,11 @@ class CIMObjectMixin(object):
         act_keys = set(act_dict.keys())
         exp_keys = set(exp_dict.keys())
         if act_keys != exp_keys:
-          missing_keys = exp_keys - act_keys
-          added_keys = act_keys - exp_keys
-          msg = "Different sets of %s" % context
-          if missing_keys:
-              msg += ", missing: %s" % list(missing_keys)
-          if added_keys:
-              msg += ", added: %s" % list(added_keys)
-          self.fail(msg)
+            missing_keys = exp_keys - act_keys
+            added_keys = act_keys - exp_keys
+            msg = "Different sets of %s" % context
+            if missing_keys:
+                msg += ", missing: %s" % list(missing_keys)
+            if added_keys:
+                msg += ", added: %s" % list(added_keys)
+            self.fail(msg)
