@@ -151,6 +151,8 @@ from ._server import WBEMServer
 from ._version import __version__
 from .cim_obj import CIMInstance, CIMInstanceName
 from .cim_http import parse_url
+from .cim_constants import CIM_ERR_NOT_FOUND
+from .exceptions import CIMError
 
 # CIM model classnames for subscription components
 SUBSCRIPTION_CLASSNAME = 'CIM_IndicationSubscription'
@@ -484,6 +486,11 @@ class WBEMSubscriptionManager(object):
 
         The listener destinations may be owned or not-owned.
 
+        This method verifies that there are not currently any subscriptions on
+        the specified listener destination, in order to handle server
+        implementations that do not ensure that on the server side as required
+        by :ref:`DSP1054`.
+
         Parameters:
 
           server_id (:term:`string`):
@@ -497,6 +504,7 @@ class WBEMSubscriptionManager(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError(CIM_ERR_FAILED) if there are referencing subscriptions.
         """
 
         # if list, recursively call this remove subscriptions for each entry
@@ -510,7 +518,19 @@ class WBEMSubscriptionManager(object):
         # Here destination_paths will contain only a single path entry.
         # Assign to internal variable for clarity
         dest_path = destination_paths
+
+        # Verify referencing subscriptions.
+        ref_paths = server.conn.ReferenceNames(
+            dest_path, ResultClass=SUBSCRIPTION_CLASSNAME)
+        if len(ref_paths) > 0:
+            # DSP1054 1.2 defines that this CIM error is raised by the server
+            # in that case, so we simulate that behavior on the client side.
+            raise CIMError(CIM_ERR_FAILED,
+                           "The listener destination is referenced by "
+                           "subscriptions.")
+
         server.conn.DeleteInstance(dest_path)
+
         paths = self._owned_destination_paths[server_id]
         for i, path in enumerate(paths):
             if path == dest_path:
@@ -672,6 +692,11 @@ class WBEMSubscriptionManager(object):
         The indication filter must be a :term:`dynamic filter` but may be owned
         or not-owned.
 
+        This method verifies that there are not currently any subscriptions on
+        the specified indication filter, in order to handle server
+        implementations that do not ensure that on the server side as required
+        by :ref:`DSP1054`.
+
         Parameters:
 
           server_id (:term:`string`):
@@ -685,8 +710,20 @@ class WBEMSubscriptionManager(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError(CIM_ERR_FAILED) if there are referencing subscriptions.
         """
         server = self._get_server(server_id)
+
+        # Verify referencing subscriptions.
+        ref_paths = server.conn.ReferenceNames(
+            filter_path, ResultClass=SUBSCRIPTION_CLASSNAME)
+        if len(ref_paths) > 0:
+            # DSP1054 1.2 defines that this CIM error is raised by the server
+            # in that case, so we simulate that behavior on the client side.
+            raise CIMError(CIM_ERR_FAILED,
+                           "The indication filter is referenced by "
+                           "subscriptions.")
+
         server.conn.DeleteInstance(filter_path)
 
         paths = self._owned_filter_paths[server_id]
@@ -893,7 +930,9 @@ class WBEMSubscriptionManager(object):
         # Here sub_paths will contain only a single path entry
         server = self._get_server(server_id)
 
-        sub_path = sub_paths        # assign to internal variable for clarity
+        # Assign to internal variable for clarity
+        sub_path = sub_paths
+
         server.conn.DeleteInstance(sub_path)
 
         sub_path_list = self._owned_subscription_paths[server_id]
