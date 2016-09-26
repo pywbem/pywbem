@@ -1,0 +1,147 @@
+
+environment:
+  matrix:
+    - PYTHON: C:\Python27
+      PYTHON_VERSION: 2.7.12
+      PYTHON_ARCH: 32
+
+install:
+
+  # Examine the environment
+  - echo %PATH%
+  - echo %INCLUDE%
+  - echo %LIB%
+  - choco source list
+  - dir C:\
+  - dir
+
+  # Add Python
+  - reg ADD HKCU\Software\Python\PythonCore\2.7\InstallPath /ve /d "C:\Python27" /t REG_SZ /f
+  - reg ADD HKLM\Software\Python\PythonCore\2.7\InstallPath /ve /d "C:\Python27" /t REG_SZ /f
+  - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+
+  ## Install InnoSetup - disabled because it is not needed
+  #- choco install -y InnoSetup
+  #- set PATH="C:\Program Files (x86)\Inno Setup 5";%PATH%
+
+  ## Install pip - disabled because pip is already installed
+  #- ps: (new-object System.Net.WebClient).Downloadfile('https://bootstrap.pypa.io/get-pip.py', 'C:\Users\appveyor\get-pip.py')
+  #- ps: Start-Process -FilePath "C:\Python27\python.exe" -ArgumentList "C:\Users\appveyor\get-pip.py" -Wait -Passthru
+
+  # Add CygWin
+  - set PATH=C:\cygwin\bin;%PATH%
+
+  ## Disabled: The following is an attempt to install the lxml installation
+  ## prereqs with choco. The lxml installation currently fails with unresolved
+  ## symbols at the link step. Reported the issue to the Appveyor Problems forum:
+  ## http://help.appveyor.com/discussions/problems/5330-pip-install-lxml-fails-with-missing-symbols
+  ##
+  ## Install OS-level prereqs for lxml installation: libxml2, libxslt, zlib,
+  ## libiconv (needs iconv.lib).
+  #- choco source add -n=nuget -s="https://www.nuget.org/api/v2/"
+  #- set PATH=C:\Users\appveyor\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\VC\Bin;%PATH%
+  #- choco install -y -v libxml2
+  #- set INCLUDE=C:\ProgramData\chocolatey\lib\libxml2\build\native\include;%INCLUDE%
+  #- set _LIB_XML2=C:\ProgramData\chocolatey\lib\libxml2\build\native\lib\v110\Win32\Release\static\cdecl
+  #- set LIB=%_LIB_XML2%;%LIB%
+  #- dir %_LIB_XML2%
+  #- dumpbin /symbols %_LIB_XML2%\libxml2.lib
+  #- dumpbin /exports %_LIB_XML2%\libxml2.lib
+  #- choco install -y -v libxslt
+  #- set INCLUDE=C:\ProgramData\chocolatey\lib\libxslt\build\native\include;%INCLUDE%
+  #- set _LIB_XSLT=C:\ProgramData\chocolatey\lib\libxslt\build\native\lib\v110\Win32\Release\static
+  #- set LIB=%_LIB_XSLT%;%LIB%
+  #- dir %_LIB_XSLT%
+  #- choco install -y -v zlib
+  #- set INCLUDE=C:\ProgramData\chocolatey\lib\zlib.v120.windesktop.msvcstl.dyn.rt-dyn\build\native\include;%INCLUDE%
+  #- set _LIB_ZLIB=C:\ProgramData\chocolatey\lib\zlib.v120.windesktop.msvcstl.dyn.rt-dyn\lib\native\v120\windesktop\msvcstl\dyn\rt-dyn\Win32\Release
+  #- set LIB=%_LIB_ZLIB%;%LIB%
+  #- dir %_LIB_ZLIB%
+  #- choco install -y -v libiconv
+  #- set INCLUDE=C:\ProgramData\chocolatey\lib\libiconv\build\native\include;%INCLUDE%
+  #- set _LIB_ICONV=C:\ProgramData\chocolatey\lib\libiconv\build\native\lib\v110\Win32\Release\static\cdecl
+  #- set LIB=%_LIB_ICONV%;%LIB%
+  #- copy %_LIB_ICONV%\libiconv.lib %_LIB_ICONV%\iconv.lib 
+  #- dir %_LIB_ICONV%
+  #- find c:/ProgramData/chocolatey -name "*.h"
+  #- find c:/ProgramData/chocolatey -name "*.lib"
+  #- find c:/ProgramData/chocolatey -name "*.dll"
+
+  # Install OS-level prereqs for lxml installation: libxml2, libxslt, zlib,
+  # libiconv (needs iconv.lib). This approach uses the binary libraries
+  # that are linked from the lxml site.
+
+  - echo set _PWD=%%%%~dp0>tmp_prereq_dir.bat
+  - call tmp_prereq_dir.bat
+  - rm tmp_prereq_dir.bat
+
+  - set _PREREQ_DIR=prereqs
+  - set _PREREQ_ABSDIR=%_PWD%%_PREREQ_DIR%
+  - echo Installing lxml prereqs into %_PREREQ_ABSDIR%
+  - mkdir %_PREREQ_DIR%
+
+  - set _PKGFILE=libxml2-2.7.8.win32.zip
+  - set _PKGDIR=libxml2-2.7.8.win32
+  - wget -q -P %_PREREQ_DIR% ftp://ftp.zlatkovic.com/libxml/%_PKGFILE%
+  - unzip -q -d %_PREREQ_DIR% %_PREREQ_DIR%/%_PKGFILE%
+  - set INCLUDE=%_PREREQ_ABSDIR%\%_PKGDIR%\include;%INCLUDE%
+  - set LIB=%_PREREQ_ABSDIR%\%_PKGDIR%\lib;%LIB%
+  - set PATH=%_PREREQ_ABSDIR%\%_PKGDIR%\bin;%PATH%
+
+  - set _PKGFILE=libxslt-1.1.26.win32.zip
+  - set _PKGDIR=libxslt-1.1.26.win32
+  - wget -q -P %_PREREQ_DIR% ftp://ftp.zlatkovic.com/libxml/%_PKGFILE%
+  - unzip -q -d %_PREREQ_DIR% %_PREREQ_DIR%/%_PKGFILE%
+  - set INCLUDE=%_PREREQ_ABSDIR%\%_PKGDIR%\include;%INCLUDE%
+  - set LIB=%_PREREQ_ABSDIR%\%_PKGDIR%\lib;%LIB%
+  - set PATH=%_PREREQ_ABSDIR%\%_PKGDIR%\bin;%PATH%
+
+  - set _PKGFILE=zlib-1.2.5.win32.zip
+  - set _PKGDIR=zlib-1.2.5
+  - wget -q -P %_PREREQ_DIR% ftp://ftp.zlatkovic.com/libxml/%_PKGFILE%
+  - unzip -q -d %_PREREQ_DIR% %_PREREQ_DIR%/%_PKGFILE%
+  - set INCLUDE=%_PREREQ_ABSDIR%\%_PKGDIR%\include;%INCLUDE%
+  - set LIB=%_PREREQ_ABSDIR%\%_PKGDIR%\lib;%LIB%
+  - set PATH=%_PREREQ_ABSDIR%\%_PKGDIR%\bin;%PATH%
+
+  - set _PKGFILE=iconv-1.9.2.win32.zip
+  - set _PKGDIR=iconv-1.9.2.win32
+  - wget -q -P %_PREREQ_DIR% ftp://ftp.zlatkovic.com/libxml/%_PKGFILE%
+  - unzip -q -d %_PREREQ_DIR% %_PREREQ_DIR%/%_PKGFILE%
+  - set INCLUDE=%_PREREQ_ABSDIR%\%_PKGDIR%\include;%INCLUDE%
+  - set LIB=%_PREREQ_ABSDIR%\%_PKGDIR%\lib;%LIB%
+  - set PATH=%_PREREQ_ABSDIR%\%_PKGDIR%\bin;%PATH%
+
+  - find %_PREREQ_DIR%
+  - echo %PATH%
+  - echo %INCLUDE%
+  - echo %LIB%
+
+  # Install tox
+  - pip install tox==2.0.0
+
+  # Verify that the commands used in tox.ini are available
+  - tox --version
+  - make --version
+  - pip --version
+  - python --version
+
+  # Verify that the commands used in makefile are available
+  - sh --version
+  - bash --version
+  - rm --version
+  - mv --version
+  #- mkdir --version
+  - xargs --version
+  - grep --version
+  - sed --version
+  - tar --version
+  - find --version
+
+build: false # Not a C# project, build stuff at the test step instead.
+
+before_test:
+
+test_script:
+  - tox -e pywin
+

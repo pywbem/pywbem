@@ -233,9 +233,10 @@ class TestIndications(unittest.TestCase):
         """Test sending 100 indications"""
         self.send_indications(100, 5001, None)
 
-    def test_send_1000(self):
-        """Test sending 1000 indications"""
-        self.send_indications(1000, 5002, None)
+    # Disabled the following test, because in some environments it takes 30min.
+    #def test_send_1000(self):
+    #    """Test sending 1000 indications"""
+    #    self.send_indications(1000, 5002, None)
 
 #    This test takes about 60 seconds and so is disabled for now
 #    def test_send_10000(self):

@@ -19,6 +19,7 @@ install:
   - make clobber
   - pip list
   - make develop
+  - pip install python-coveralls
   - pip list
 
 # commands to run builds & tests
@@ -28,3 +29,5 @@ script:
   - make builddoc
   - make test
 
+after_success:
+  - coveralls

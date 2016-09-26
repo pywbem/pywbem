@@ -1,5 +1,8 @@
-[![Test on master](https://img.shields.io/travis/pywbem/pywbem/master.svg?style=plastic&label=test%20on%20master)](https://travis-ci.org/pywbem/pywbem/branches)
+
 [![PyPI version](https://img.shields.io/pypi/v/pywbem.svg?style=plastic&label=PyPI%20version)](https://pypi.python.org/pypi/pywbem)
+[![Travis Test](https://img.shields.io/travis/pywbem/pywbem/master.svg?style=plastic&label=Travis%20Test)](https://travis-ci.org/pywbem/pywbem/branches)
+[![Appveyor Test](https://img.shields.io/appveyor/ci/andy-maier/pywbem.svg?style=plastic&label=Appveyor%20Test)](https://ci.appveyor.com/project/andy-maier/pywbem)
+[![Coverage](https://img.shields.io/coveralls/pywbem/pywbem.svg?style=plastic&label=Coverage)](https://coveralls.io/r/pywbem/pywbem?branch=master)
 
 About this project
 ------------------
