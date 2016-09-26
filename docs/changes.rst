@@ -31,6 +31,9 @@ Known Issues
 Enhancements
 ^^^^^^^^^^^^
 
+* add flake8 as a lint tool.  It is executed with makefile check target.
+  see issues $512, cd
+
 * Improved usage information for Tutorial section, to make usage of Jupyter
   tutorials more obvious.
 
