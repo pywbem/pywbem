@@ -53,6 +53,7 @@ from __future__ import absolute_import
 import xml.dom.minidom
 import xml.sax
 import re
+import copy
 
 import six
 
@@ -89,8 +90,11 @@ class CIMContentHandler(xml.sax.ContentHandler):
     def startElement(self, name, attrs):
         if self.element:
             self.elements.append(self.element)
-        element = (name, {k: v for k, v in attrs.items()},
-                   list(), None)
+        # Avoid dict comprehension to support python2.6.
+        attr_dict = {}
+        for k, v in attrs.items():
+            attr_dict[k] = v
+        element = (name, attr_dict, list(), None)
         if self.element:
             self.element[2].append(element)
         self.element = element
