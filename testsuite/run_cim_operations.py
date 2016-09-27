@@ -12,6 +12,7 @@ from __future__ import absolute_import
 
 # pylint: disable=missing-docstring,superfluous-parens,no-self-use
 import sys
+import os.path
 import threading
 from datetime import timedelta
 import unittest
@@ -3862,6 +3863,15 @@ if __name__ == '__main__':
 
         if args['long_running'] is True:
             SKIP_LONGRUNNING_TEST = False
+
+    # if yamlfile exists rename it to yamlfile.bak
+    if args['yamlfile']:
+        yamlfile_name = args['yamlfile']
+        if os.path.isfile(yamlfile_name):
+            backupfile_name = '%s.bak' % yamlfile_name
+            if os.path.isfile(backupfile_name):
+                os.remove(backupfile_name)
+            os.rename(yamlfile_name, backupfile_name)
 
     # Note: unittest options are defined in separate args after
     # the url argument.
