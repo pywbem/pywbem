@@ -128,7 +128,7 @@ class TestTupleTreeRegression(unittest.TestCase):
     def test_to_tupletree(self):
         """SAX parsing replicates DOM parsing to the tupletree."""
         for fn in self.filenames:
-            with open(fn, 'r') as fh:
+            with open(fn, 'rb') as fh:
                 xml_str = fh.read()
             tree_dom = tupletree.xml_to_tupletree(xml_str)
             tree_sax = tupletree.xml_to_tupletree_sax(xml_str)
@@ -145,7 +145,7 @@ class TestTupleTreeError(unittest.TestCase):
     def test_to_tupletree_error(self):
         """SAX parsing generates errors."""
         filename = os.path.join(self.data_dir, 'Associators_error.xml')
-        with open(filename, 'r') as fh:
+        with open(filename, 'rb') as fh:
             xml_str = fh.read()
             self.assertRaises(xml.sax.SAXParseException,
                               tupletree.xml_to_tupletree_sax, xml_str)
@@ -157,7 +157,7 @@ class TestTupleTreeSax(unittest.TestCase):
         """XML to tupletree with SAX is accurate."""
         data_dir = resource_filename(__name__, 'tupletree_ok')
         path = os.path.join(data_dir, 'Associators_StorageVolume_small.xml')
-        with open(path, 'r') as fh:
+        with open(path, 'rb') as fh:
             xml_str = fh.read()
         tree_sax = tupletree.xml_to_tupletree_sax(xml_str)
         self.assertEqual(test_tuple, tree_sax,
