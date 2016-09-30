@@ -413,7 +413,9 @@ class TestClientRecorder(BaseOperationRecorder):
                         tc_request_headers[hdr_name] = \
                             http_request.headers[hdr_name]
             tc_http_request['headers'] = tc_request_headers
-            tc_http_request['data'] = http_request.payload
+            data = http_request.payload.decode('utf-8')
+            data = data.replace('><', '>\n<').strip()
+            tc_http_request['data'] = data
         testcase['http_request'] = tc_http_request
 
         tc_http_response = OrderedDict()
@@ -428,7 +430,8 @@ class TestClientRecorder(BaseOperationRecorder):
                             http_response.headers[hdr_name]
             tc_http_response['headers'] = tc_response_headers
             if http_response.payload is not None:
-                data = http_response.payload.replace("\n\n", "\n")
+                data = http_response.payload.decode('utf-8')
+                data = data.replace('><', '>\n<').strip()
             else:
                 data = None
             tc_http_response['data'] = data
@@ -441,10 +444,12 @@ class TestClientRecorder(BaseOperationRecorder):
         testcases = []
         testcases.append(testcase)
 
-        self._fp.write(yaml.safe_dump(testcases,
-                                      encoding='utf-8',
-                                      allow_unicode=True,
-                                      default_flow_style=False))
+        # The file is open in text mode, so we produce a unicode string
+        data = yaml.safe_dump(testcases, encoding=None, allow_unicode=True,
+                              default_flow_style=False)
+        data = data.replace('\n\n', '\n')  # YAML dump duplicates newlines
+
+        self._fp.write(data)
         self._fp.flush()
 
     def toyaml(self, obj):
@@ -469,10 +474,11 @@ class TestClientRecorder(BaseOperationRecorder):
             return obj.decode("utf-8")
         elif isinstance(obj, six.text_type):
             return obj
-        elif isinstance(obj, (bool, int)):
-            return obj
         elif isinstance(obj, CIMInt):
             return _Longint(obj)
+        elif isinstance(obj, (bool, int)):
+            # The check for int must be after CIMInt, because CIMInt is int.
+            return obj
         elif isinstance(obj, CIMFloat):
             return float(obj)
         elif isinstance(obj, CIMDateTime):
