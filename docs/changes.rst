@@ -57,6 +57,9 @@ Bug fixes
 * Fixed a documentation issue where the description of `CIMError` was not
   clear that the exception object itself can be accessed by index and slice.
 
+* Changed names of the pylint and flake8 config files to match the
+  default names defined for these utilities (pylintrc and .flak8). Issue 534
+
 
 pywbem v0.9.0
 -------------

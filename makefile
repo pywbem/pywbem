@@ -93,7 +93,7 @@ doc_dependent_files := \
     $(package_name)/config.py \
 
 # PyLint config file
-pylint_rc_file := pylint.rc
+pylint_rc_file := pylintrc
 
 # PyLint source files to check
 pylint_py_files := \
@@ -103,7 +103,7 @@ pylint_py_files := \
     $(wildcard testsuite/*.py)
 
 # Flake8 config file
-flake8_rc_file := flake8.rc
+flake8_rc_file := .flake8
 
 # Flake8 source files to check
 flake8_py_files := \
