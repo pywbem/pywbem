@@ -34,11 +34,9 @@ package_version := $(shell sh -c "echo $(package_specified_version) |sed 's/[.-]
 # Final version of this package (M.N.U)
 package_final_version := $(shell sh -c "echo $(package_version) |sed 's/rc[0-9]\+$$//' |sed 's/\.dev0$$//'")
 
-# Python major version
-python_major_version := $(shell python -c "import sys; sys.stdout.write('%s'%sys.version_info[0])")
-
-# Python version for use in file names
-python_version_fn := $(shell python -c "import sys; sys.stdout.write('%s%s'%(sys.version_info[0],sys.version_info[1]))")
+# Python versions
+python_version := $(shell python -c "import sys; sys.stdout.write('%s.%s.%s'%sys.version_info[0:3])")
+python_mn_version := $(shell python -c "import sys; sys.stdout.write('%s%s'%sys.version_info[0:2])")
 
 # Directory for the generated distribution files
 dist_dir := dist
@@ -115,8 +113,8 @@ flake8_py_files := \
     $(wildcard testsuite/*.py)
 
 # Test log
-test_log_file := test_$(python_version_fn).log
-test_tmp_file := test_$(python_version_fn).tmp.log
+test_log_file := test_$(python_mn_version).log
+test_tmp_file := test_$(python_mn_version).tmp.log
 
 # Files to be put into distribution archive.
 # Keep in sync with dist_dependent_files.
@@ -145,7 +143,7 @@ dist_dependent_files := \
 help:
 	@echo 'makefile for $(package_name)'
 	@echo 'Package version will be: $(package_version)'
-	@echo 'Uses the currently active Python environment: Python $(python_version_fn)'
+	@echo 'Uses the currently active Python environment: Python $(python_version)'
 	@echo 'Valid targets are (they do just what is stated, i.e. no automatic prereq targets):'
 	@echo '  develop    - Prepare the development environment by installing prerequisites'
 	@echo '  build      - Build the distribution files in: $(dist_dir)'
@@ -291,21 +289,25 @@ $(moftab_files): $(moftab_dependent_files) build_moftab.py
 
 # TODO: Once pylint has no more errors, remove the dash "-"
 pylint.log: makefile $(pylint_rc_file) $(pylint_py_files)
-ifeq ($(python_major_version), 2)
+ifeq ($(python_mn_version),27)
 	rm -f pylint.log
 	-bash -c "set -o pipefail; PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --output-format=text $(pylint_py_files) 2>&1 |tee pylint.tmp.log"
 	mv -f pylint.tmp.log pylint.log
 	@echo 'Done: Created Pylint log file: $@'
 else
-	@echo 'Info: Pylint requires Python 2; skipping this step on Python $(python_major_version)'
+	@echo 'Info: Pylint requires Python 2.7; skipping this step on Python $(python_version)'
 endif
 
+# TODO: Once flake8 has no more errors, remove the dash "-"
 flake8.log: makefile $(flake8_rc_file) $(flake8_py_files)
+ifeq ($(python_mn_version),26)
+	@echo 'Info: Flake8 requires Python 2.7 or Python 3; skipping this step on Python $(python_version)'
+else
 	rm -f flake8.log
 	-bash -c "set -o pipefail; PYTHONPATH=. flake8 --statistics --config=$(flake8_rc_file) $(flake8_py_files) 2>&1 |tee flake8.tmp.log"
 	mv -f flake8.tmp.log flake8.log
 	@echo 'Done: Created flake8 log file: $@'
-
+endif
 
 $(test_log_file): makefile $(package_name)/*.py testsuite/*.py coveragerc
 	rm -f $(test_log_file)
