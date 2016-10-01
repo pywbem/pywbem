@@ -288,10 +288,20 @@ $(moftab_files): $(moftab_dependent_files) build_moftab.py
 	@echo 'Done: Created LEX/YACC table modules: $@'
 
 # TODO: Once pylint has no more errors, remove the dash "-"
+# PyLint status codes:
+# * 0 if everything went fine
+# * 1 if fatal messages issued
+# * 2 if error messages issued
+# * 4 if warning messages issued
+# * 8 if refactor messages issued
+# * 16 if convention messages issued
+# * 32 on usage error
+# Status 1 to 16 will be bit-ORed.
+# The make command checks for statuses: 1,2,32
 pylint.log: makefile $(pylint_rc_file) $(pylint_py_files)
 ifeq ($(python_mn_version),27)
 	rm -f pylint.log
-	-bash -c "set -o pipefail; PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --output-format=text $(pylint_py_files) 2>&1 |tee pylint.tmp.log"
+	-bash -c 'set -o pipefail; PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --output-format=text $(pylint_py_files) 2>&1 |tee pylint.tmp.log; rc=$$?; if (($$rc >= 32 || $$rc & 0x03)); then exit $$rc; fi'
 	mv -f pylint.tmp.log pylint.log
 	@echo 'Done: Created Pylint log file: $@'
 else
