@@ -25,9 +25,7 @@ from getpass import getpass
 
 import six
 
-from pywbem.cim_constants import *
 from pywbem import WBEMConnection, Uint32, ConnectionError, TimeoutError
-
 
 # Identity of the OpenPegasus namespace, class, and method that implements
 # the delayed response. NOTE: This is only available on OpenPegasus 2.15+.
@@ -171,7 +169,7 @@ class ServerTimeoutTest(ClientTest):
                 err_flag = "Timeout when timeout matches delay"
 
         # This exception terminates the test if stop_on_err set.
-        except Exception as ec:      #pylint: disable=broad-except
+        except Exception as ec:      # pylint: disable=broad-except
             err_flag = "Test Failed.General Exception"
             request_result = 2
             if self.stop_on_err:
@@ -334,7 +332,7 @@ if __name__ == '__main__':
         print("  host: %s" % args['host'])
         print("  username: %s" % args['username'])
         if args['password'] is not None:
-            print("  password: %s" % ("*"*len(args['password'])))
+            print("  password: %s" % ("*" * len(args['password'])))
         print("  maxtimeout: %s" % args['maxtimeout'])
         print("  verbose: %s" % args['verbose'])
         print("  stopOnErr: %s" % args['stopOnErr'])

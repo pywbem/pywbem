@@ -70,8 +70,9 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
         self._run_single(b'<V>a\xED\xA0\x80\xED\xB4\xA2b</V>', False)
         # combo of U+D800,U+DD22 and combo of U+D800,U+DD23:
         # pylint: disable=line-too-long
-        self._run_single(b'<V>a\xED\xA0\x80\xED\xB4\xA2b\xED\xA0\x80\xED\xB4\xA3</V>',
-                         False)
+        self._run_single(
+            b'<V>a\xED\xA0\x80\xED\xB4\xA2b\xED\xA0\x80\xED\xB4\xA3</V>',
+            False)
 
         # incorrectly encoded UTF-8
         if self.VERBOSE:

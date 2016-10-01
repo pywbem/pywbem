@@ -196,23 +196,23 @@ class Callback(object):
     """
 
     @staticmethod
-    def socket_ssl(request, uri, headers): #pylint: disable=unused-argument
+    def socket_ssl(request, uri, headers): # pylint: disable=unused-argument
         """HTTPretty callback function that raises an arbitrary
         SSLError."""
         raise SSLError(1, "Arbitrary SSL error.")
 
     @staticmethod
-    def socket_104(request, uri, headers): #pylint: disable=unused-argument
+    def socket_104(request, uri, headers): # pylint: disable=unused-argument
         """HTTPretty callback function that raises socket.error 104."""
         raise socket.error(104, "Connection reset by peer.")
 
     @staticmethod
-    def socket_32(request, uri, headers): #pylint: disable=unused-argument
+    def socket_32(request, uri, headers): # pylint: disable=unused-argument
         """HTTPretty callback function that raises socket.error 32."""
         raise socket.error(32, "Broken pipe.")
 
     @staticmethod
-    def socket_timeout(request, uri, headers): #pylint: disable=unused-argument
+    def socket_timeout(request, uri, headers): # pylint: disable=unused-argument
         """HTTPretty callback function that raises socket.timeout error.
            The socket.timeout is just a string, no status.
         """
@@ -450,7 +450,7 @@ class ClientTest(unittest.TestCase):
         if not checker.check_output(ns_act, ns_exp, 0):
             diff = checker.output_difference(doctest.Example("", ns_exp),
                                              ns_act, 0)
-            raise AssertionError("XML is not as expected in %s: %s"%\
+            raise AssertionError("XML is not as expected in %s: %s" % \
                                  (entity, diff))
 
     def test_all(self):
@@ -523,7 +523,7 @@ class ClientTest(unittest.TestCase):
                     callback_func = getattr(Callback(), callback_name)
                 except AttributeError:
                     raise ClientTestError("Error in testcase %s: Unknown "\
-                                          "exception callback specified: %s"%\
+                                          "exception callback specified: %s" % \
                                           (tc_name, callback_name))
                 params = {
                     "body": callback_func
@@ -575,7 +575,7 @@ class ClientTest(unittest.TestCase):
             result = op_call(**op_args)
             raised_exception = None
 
-        except Exception as exc:      #pylint: disable=broad-except
+        except Exception as exc:      # pylint: disable=broad-except
             raised_exception = exc
             stringio = six.StringIO()
             traceback.print_exc(file=stringio)
@@ -704,6 +704,7 @@ class ClientTest(unittest.TestCase):
                     NocaseDict(exp_result_obj[1])
                 )
             else:
+                # pylint: disable=redefined-variable-type
                 _exp_result_obj = exp_result_obj
             if result != _exp_result_obj:
                 # TODO 2016/07 AM: Improve the presentation of the difference

@@ -131,7 +131,7 @@ def _pcdata_nodes(pcdata):
     if _CDATA_ESCAPING and isinstance(pcdata, six.string_types) and \
        (pcdata.find("<") >= 0 or \
         pcdata.find(">") >= 0 or \
-        pcdata.find("&") >= 0):
+        pcdata.find("&") >= 0):  # noqa: E129
 
         # In order to support nesting of CDATA sections, we represent pcdata
         # that already contains CDATA sections by multiple new CDATA sections
@@ -161,8 +161,8 @@ def _pcdata_nodes(pcdata):
     else:
         # The following automatically uses XML entity references
         # for escaping.
-        # pylint: disable=redefined-variable-type
-        node = _text(pcdata)
+
+        node = _text(pcdata) # pylint: disable=redefined-variable-type
 
         nodelist.append(node)
 
@@ -335,7 +335,7 @@ class QUALIFIER_DECLARATION(CIMElement):
             if is_array:
                 xval = VALUE_ARRAY(value)
             else:
-                xval = VALUE(value)
+                xval = VALUE(value) # pylint: disable=redefined-variable-type
             self.appendOptionalChild(xval)
 
 class SCOPE(CIMElement):

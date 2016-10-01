@@ -52,8 +52,7 @@ from six.moves import urllib
 
 from .cim_obj import CIMClassName, CIMInstanceName, _ensure_unicode, \
                      _ensure_bytes
-from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError, \
-                        Error
+from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError
 
 _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
@@ -65,7 +64,8 @@ if six.PY2 and not _ON_RTD:  # RTD has no swig to install M2Crypto
     SocketErrors = (socket.error, socket.sslerror)
 else:
     import ssl as SSL                  # pylint: disable=wrong-import-position
-    from ssl import SSLError, CertificateError # pylint: disable=wrong-import-position
+    # pylint: disable=wrong-import-position
+    from ssl import SSLError, CertificateError
     _HAVE_M2CRYPTO = False
     #pylint: disable=invalid-name
     SocketErrors = (socket.error,)
@@ -168,18 +168,17 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
 
         self._timeout = timeout
         self._http_conn = http_conn
-        self._retrytime = 5     # time in seconds after which a retry of the
-                                # socket shutdown is scheduled if the socket
-                                # is not yet on the connection when the
-                                # timeout expires initially.
+        # time in seconds after which a retry of socket shutdown is scheduled
+        # if the socket is not yet connected when timeout expires
+        self._retrytime = 5
+
         self._timer = None      # the timer object
         self._ts1 = None        # timestamp when timer was started
-        self._shutdown = None   # flag indicating that the timer handler has
-                                # shut down the socket
+        self._shutdown = None   # flag indicating timer handler shutdown socket
         return
 
     def __enter__(self):
-        if self._timeout != None:
+        if self._timeout is not None:
             self._timer = threading.Timer(self._timeout,
                                           HTTPTimeout.timer_expired, [self])
             self._timer.start()
@@ -188,7 +187,7 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
         return
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if self._timeout != None:
+        if self._timeout is not None:
             self._timer.cancel()
             if self._shutdown:
                 # If the timer handler has shut down the socket, we
@@ -213,7 +212,7 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
         So we do not guarantee in all cases that the overall operation times
         out after the specified timeout.
         """
-        if self._http_conn.sock != None:
+        if self._http_conn.sock is not None:
             self._shutdown = True
             self._http_conn.sock.shutdown(socket.SHUT_RDWR)
         else:
@@ -313,7 +312,7 @@ def parse_url(url, allow_defaults=True):
     if matches:
         # It is an IPv6 address
         host = matches.group(1)
-        if matches.group(2) != None:
+        if matches.group(2) is not None:
             # The zone index is present
             host += "%" + matches.group(2)
 
@@ -662,9 +661,8 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                  timeout=timeout)
     else:
         if url.startswith('http'):
-            client = HTTPConnection(host=host,  # pylint: disable=redefined-variable-type
-                                    port=port,
-                                    timeout=timeout)
+            # pylint: disable=redefined-variable-type
+            client = HTTPConnection(host=host, port=port, timeout=timeout)
         else:
             if url.startswith('file:'):
                 url_ = url[5:]
@@ -799,7 +797,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                     nonce_begin = auth_chal.index('"',
                                                                   nonce_idx)
                                     nonce_end = auth_chal.index('"',
-                                                                nonce_begin+1)
+                                                                nonce_begin + 1)
                                     nonce = auth_chal[nonce_begin + 1:nonce_end]
                                     cookie_idx = auth_chal.index('cookiefile=')
                                     cookie_begin = auth_chal.index('"',

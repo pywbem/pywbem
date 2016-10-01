@@ -98,7 +98,7 @@ from .cim_constants import CIM_ERR_NOT_SUPPORTED, \
                            CIM_ERR_INVALID_PARAMETER, _statuscode2name
 from .tupleparse import parse_cim
 from .tupletree import dom_to_tupletree
-from .exceptions import ParseError, VersionError, Error
+from .exceptions import ParseError, VersionError
 
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
@@ -392,8 +392,8 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                             str(status_code),
                             status_desc,
                             error_insts),
-                        ),
-                    ),
+                        ),  # noqa: E123
+                    ),  # noqa: E123
                 msgid, IMPLEMENTED_PROTOCOL_VERSION),
             IMPLEMENTED_CIM_VERSION, IMPLEMENTED_DTD_VERSION)
 
@@ -424,7 +424,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 cim_xml.SIMPLEEXPRSP(
                     cim_xml.EXPMETHODRESPONSE(
                         methodname),
-                    ),
+                    ),  # noqa: E123
                 msgid, IMPLEMENTED_PROTOCOL_VERSION),
             IMPLEMENTED_CIM_VERSION, IMPLEMENTED_DTD_VERSION)
         resp_body = '<?xml version="1.0" encoding="utf-8" ?>\n' + \

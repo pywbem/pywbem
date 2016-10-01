@@ -60,7 +60,7 @@ class TestInit(unittest.TestCase):
 
         # Initialise from iterable and kwargs
 
-        dic = NocaseDict([('Dog', 'Cat'),], Budgie='Fish')
+        dic = NocaseDict([('Dog', 'Cat'), ], Budgie='Fish')
         self.assertTrue(len(dic) == 2)
         self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
 

@@ -161,7 +161,8 @@ class NocaseDict(object):
                 self.update(args[0])
             elif isinstance(args[0], NocaseDict):
                 # Initialize from another NocaseDict object
-                self._data = args[0]._data.copy() # pylint: disable=protected-access
+                # pylint: disable=protected-access
+                self._data = args[0]._data.copy()
             elif args[0] is None:
                 # Leave empty
                 pass
@@ -267,7 +268,7 @@ class NocaseDict(object):
 
         The key is looked up case-insensitively.
         """
-        if not key in self:
+        if key not in self:
             self[key] = default
         return self[key]
 
@@ -397,7 +398,7 @@ class NocaseDict(object):
         The keys are looked up case-insensitively.
         """
         for key, self_value in self.iteritems():
-            if not key in other:
+            if key not in other:
                 return False
             other_value = other[key]
             try:
@@ -616,8 +617,8 @@ def _makequalifiers(qualifiers, indent):
     if len(qualifiers) == 0:
         return ''
 
-    return '%s[%s]' % (_indent_str(indent), ',\n '.ljust(indent+2).\
-        join([q.tomof(indent+2) for q in sorted(qualifiers.values())]))
+    return '%s[%s]' % (_indent_str(indent), ',\n '.ljust(indent + 2).\
+        join([q.tomof(indent + 2) for q in sorted(qualifiers.values())]))
 
 def _indent_str(indent):
     """
@@ -2368,7 +2369,7 @@ class CIMProperty(_CIMComparisonMixin):
                         'reference', None, type_, 'type', msg)
                 elif type_ is not None:
                     # Leave type as specified, but check it for validity
-                    dummy_type_obj = type_from_name(type_)
+                    dummy_type_obj = type_from_name(type_)  # noqa: F841
                 else:
                     raise ValueError('Cannot infer type of simple ' \
                                      'property %r that is Null' % name)
@@ -2424,7 +2425,8 @@ class CIMProperty(_CIMComparisonMixin):
             else: # type is specified and value is not Null
                 # Make sure the value is of the corresponding Python type.
                 _type_obj = type_from_name(type_)
-                value = _type_obj(value)  # pylint: disable=redefined-variable-type
+                # pylint: disable=redefined-variable-type
+                value = _type_obj(value)
                 msg = 'Property %r has a simple typed value ' \
                       'and specifies CIM data type %r' % (name, type_)
                 embedded_object = _intended_value(
@@ -2537,7 +2539,8 @@ class CIMProperty(_CIMComparisonMixin):
                     value = value.tocimxml().toxml()
                 else:
                     value = atomic_to_cim_xml(value)
-                value = cim_xml.VALUE(value) # pylint: disable=redefined-variable-type
+                # pylint: disable=redefined-variable-type
+                value = cim_xml.VALUE(value)
 
             return cim_xml.PROPERTY(
                 self.name,

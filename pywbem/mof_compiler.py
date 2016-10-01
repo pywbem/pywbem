@@ -157,7 +157,7 @@ reserved = {
     'toinstance': 'TOINSTANCE',
     'translatable': 'TRANSLATABLE',
     'true': 'TRUE',
-    }
+    }  # noqa: E123
 
 tokens = list(reserved.values()) + [
     'IDENTIFIER',
@@ -740,6 +740,7 @@ def p_classDeclaration(p):
             else: # superclass
                 superclass = p[4]
                 cfl = p[6]
+    # pylint: disable=redefined-variable-type
     quals = dict([(x.name, x) for x in quals])
     methods = {}
     props = {}
@@ -1030,6 +1031,7 @@ def p_referenceDeclaration(p):
         pname = p[2]
         if len(p) == 5:
             dv = p[3]
+    # pylint: disable=redefined-variable-type
     quals = dict([(x.name, x) for x in quals])
     p[0] = CIMProperty(pname, dv, type='reference',
                        reference_class=cname, qualifiers=quals)
@@ -1054,6 +1056,7 @@ def p_methodDeclaration(p):
         mname = p[3]
         if p[5] != ')':
             paramlist = p[5]
+    # pylint: disable=redefined-variable-type
     params = dict([(param.name, param) for param in paramlist])
     quals = dict([(q.name, q) for q in quals])
     p[0] = CIMMethod(mname, return_type=dt, parameters=params,
@@ -1236,7 +1239,7 @@ def _fixStringValue(s):
             while j < 4:
                 c = s[i + j]
                 c = c.upper()
-                if not c.isdigit() and not c in 'ABCDEF':
+                if not c.isdigit() and c not in 'ABCDEF':
                     break
                 hexc <<= 4
                 if c.isdigit():
@@ -1344,7 +1347,7 @@ def _build_flavors(p, flist, qualdecl=None):
     flavors = {}
     if ('disableoverride' in flist and 'enableoverride' in flist) \
         or \
-        ('restricted' in flist and 'tosubclass' in flist):
+        ('restricted' in flist and 'tosubclass' in flist):  # noqa: E125
 
         raise MOFParseError(parser_token=p, msg="Conflicting flavors are" \
                             "invalid")
@@ -1609,9 +1612,7 @@ def p_identifier(p):
                   | TOSUBCLASS
                   | TOINSTANCE
                   | TRANSLATABLE
-                  """
-                  #| ASSOCIATION
-                  #| INDICATION
+    """
     p[0] = p[1]
 
 def p_empty(p):
@@ -1989,8 +1990,8 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         # TODO 2016/03 AM: Dubious stmt above.
         if cc.superclass:
             try:
-                dummy_super = self.GetClass(cc.superclass, LocalOnly=True,
-                                            IncludeQualifiers=False)
+                _ = self.GetClass(cc.superclass, LocalOnly=True,  # noqa: F841
+                                  IncludeQualifiers=False)
             except CIMError as ce:
                 if ce.args[0] == CIM_ERR_NOT_FOUND:
                     ce.args = (CIM_ERR_INVALID_SUPERCLASS, cc.superclass)

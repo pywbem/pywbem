@@ -73,12 +73,12 @@ class CIMXMLTest(unittest.TestCase):
 
     def setUp(self):
 
-        self.xml = []       # List of test cases, each list item being an
-                            # xml.dom.minidom node representing some element
-                            # from the CIM-XML payload.
+        # List of test cases, each list item being an xml.dom.minidom node
+        # representing some element from the CIM-XML payload.
+        self.xml = []
 
-        self.xml_str = []   # List of expected XML strings resulting from each
-                            # test case.
+        # List of expected XML strings resulting from each test case.
+        self.xml_str = []
 
     @staticmethod
     def validate(xml, expectedResult=0):

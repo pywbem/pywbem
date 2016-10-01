@@ -85,7 +85,7 @@ class ClientTest(unittest.TestCase):
         # and unittest enables these warnings.
         if not six.PY2:
             #pylint: disable=ResourceWarning, undefined-variable
-            warnings.simplefilter("ignore", ResourceWarning)  # NOQA
+            warnings.simplefilter("ignore", ResourceWarning)
 
         self.log('setup connection {} ns {}'.format(self.system_url,
                                                     self.namespace))
@@ -885,8 +885,9 @@ class PullEnumerateInstances(ClientTest):
             insts_pulled.extend(result.instances)
 
         # get with EnumInstances and compare returns
-        insts_enum = self.cimcall(self.conn.EnumerateInstances, TOP_CLASS)
-
+        insts_enum = \
+            self.cimcall(self.conn.EnumerateInstances, TOP_CLASS)  # noqa: F841
+        # TODO finish the compare
 
 
     def test_bad_namespace(self):
@@ -2463,7 +2464,7 @@ class PegasusServerTestBase(ClientTest):
             if self.verbose:
                 print('Namespaces:')
                 for n in namespaces:
-                    print ('  %s' % (n))
+                    print('  %s' % (n))
 
             return namespaces
 
@@ -3713,7 +3714,7 @@ TEST_LIST = [
     'PegasusTestEmbeddedInstance',
     'PegasusInteropTest',
     'PegasusTestEmbeddedInstance'
-    ]
+    ]  # noqa: E123
 
 
 def parse_args(argv_):

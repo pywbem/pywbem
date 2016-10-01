@@ -394,7 +394,8 @@ class WBEMServer(object):
         Example for a 2-hop traversal:
 
         * central class: ``"CIM_Sensor"``
-        * scoping path: ``["CIM_AssociatedSensor", "CIM_Fan", "CIM_SystemDevice"]``
+        * scoping path: ``["CIM_AssociatedSensor", "CIM_Fan", \
+                           "CIM_SystemDevice"]``
         * scoping class: ``"CIM_ComputerSystem"``
 
         Parameters:
@@ -752,7 +753,8 @@ class ValueMapping(object):
     ::
 
         [ValueMap{ "0", "2..4", "..6", "7..", "9", ".." },
-         Values{ "zero", "two-four", "five-six", "seven-eight", "nine", "unclaimed"}]
+         Values{ "zero", "two-four", "five-six", "seven-eight", "nine", \
+             "unclaimed"}]
         uint16 MyProp;
 
     The following code will create a value mapping for this property and will
@@ -760,9 +762,12 @@ class ValueMapping(object):
 
     ::
 
-        >>> vm = pywbem.ValueMapping.for_property(server, namespace, classname, "MyProp")
-        >>> for value in range(0, 12):
-        >>>    print("value: %s, Values string: %r" % (value, vm.tovalues(value))
+        vm = pywbem.ValueMapping.for_property(server, namespace, classname,\
+                "MyProp")
+        for value in range(0, 12):
+            print("value: %s, Values string: %r" % (value, vm.tovalues(value))
+
+        Results:
         value: 0, Values string: 'zero'
         value: 1, Values string: 'unclaimed'
         value: 2, Values string: 'two-four'

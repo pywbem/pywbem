@@ -31,24 +31,23 @@ It supports Python 2 and Python 3.
 from __future__ import absolute_import
 
 import sys
-
-from .cim_types import *
-from .cim_constants import *
-from .cim_operations import *
-from .cim_obj import *
-from .tupleparse import *
-from .cim_http import *
-from .exceptions import *
-from ._server import *
-from ._subscription_manager import *
-from ._listener import *
-from ._recorder import *
-from .config import *
+from .cim_types import *  # noqa: F403,F401
+from .cim_constants import *  # noqa: F403,F401
+from .cim_operations import *  # noqa: F403,F401
+from .cim_obj import *  # noqa: F403,F401
+from .tupleparse import *  # noqa: F403,F401
+from .cim_http import *  # noqa: F403,F401
+from .exceptions import *  # noqa: F403,F401
+from ._server import *  # noqa: F403,F401
+from ._subscription_manager import *  # noqa: F403,F401
+from ._listener import *  # noqa: F403,F401
+from ._recorder import *  # noqa: F403,F401
+from .config import *  # noqa: F403,F401
 
 from ._version import __version__
 
-_python_m = sys.version_info[0]
-_python_n = sys.version_info[1]
+_python_m = sys.version_info[0]  # pylint: disable=invalid-name
+_python_n = sys.version_info[1]  # pylint: disable=invalid-name
 if _python_m == 2 and _python_n < 6:
     raise RuntimeError('On Python 2, pywbem requires Python 2.6 or higher')
 elif _python_m == 3 and _python_n < 4:

@@ -70,7 +70,7 @@ def setUpModule():
         ppct = -1
         for data in ufo:
             offset += len(data)
-            pct = 100 * offset/clen
+            pct = 100 * offset / clen
             if pct > ppct:
                 ppct = pct
                 sys.stdout.write('\rDownloading %s: %d%% ' % (mofbname, pct))
@@ -82,8 +82,8 @@ def setUpModule():
         zf = ZipFile(tfo, 'r')
         nlist = zf.namelist()
         for i in range(0, len(nlist)):
-            sys.stdout.write('\rUnpacking %s: %d%% ' % (mofbname,
-                                                        100*(i+1)/len(nlist)))
+            sys.stdout.write('\rUnpacking %s: %d%% ' % \
+                             (mofbname, 100 * (i + 1) / len(nlist)))
             sys.stdout.flush()
             file_ = nlist[i]
             dfile = os.path.join(SCHEMA_DIR, file_)

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-#
-# Test compatibility when changing *args and **kwargs to named args.
-#
+"""
+    Test compatibility when changing *args and **kwargs to named args.
+"""
 
 import sys
 
-def func_old_args(a, b=None, *args):
+def func_old_args(a, b=None, *args): # pylint: disable=invalid-name
     """Old function, defined with *args."""
 
     # We extract a specific optional parameter from *args
@@ -16,7 +16,7 @@ def func_old_args(a, b=None, *args):
 
     return a, b, c
 
-def func_old_kwargs(a, b=None, **kwargs):
+def func_old_kwargs(a, b=None, **kwargs): # pylint: disable=invalid-name
     """Old function, defined with **kwargs."""
 
     # We extract a specific optional parameter from **kwargs
@@ -27,7 +27,7 @@ def func_old_kwargs(a, b=None, **kwargs):
 
     return a, b, c
 
-def func_new(a, b=None, c=None):
+def func_new(a, b=None, c=None): # pylint: disable=invalid-name
     """New function, replacing any of the old functions."""
 
     return a, b, c
@@ -87,6 +87,7 @@ def test_func_kwargs(func_kwargs):
 
 
 def main():
+    """Main function calls the test functs"""
 
     print("Python version %s" % sys.version)
 
