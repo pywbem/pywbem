@@ -269,7 +269,7 @@ def check_utf8_xml_chars(utf8_xml, meaning):
     context_after = 16     # number of chars to print after any bad chars
 
     if not isinstance(utf8_xml, six.binary_type):
-        raise TypeError("utf8_xml parameter is not a byte string, "\
+        raise TypeError("utf8_xml parameter is not a byte string, "
                         "but has type %s" % type(utf8_xml))
 
     # Check for ill-formed UTF-8 sequences. This needs to be done
@@ -697,7 +697,7 @@ class WBEMConnection(object):
                 self.default_namespace, self.x509, self.verify_callback,
                 self.ca_certs, self.no_verification, self.timeout)
 
-    def imethodcall(self, methodname, namespace, response_params_rqd=None, \
+    def imethodcall(self, methodname, namespace, response_params_rqd=None,
                     **params):
         """
         This is a low-level method that is used by the operation-specific
@@ -718,7 +718,7 @@ class WBEMConnection(object):
                                  response_params_rqd=response_params_rqd,
                                  **params)
 
-    def _imethodcall(self, methodname, namespace, response_params_rqd=None, \
+    def _imethodcall(self, methodname, namespace, response_params_rqd=None,
                      **params):
         """
         Perform an intrinsic CIM-XML operation.
@@ -732,7 +732,7 @@ class WBEMConnection(object):
 
         # Create parameter list
 
-        plist = [cim_xml.IPARAMVALUE(x[0], tocimxml(x[1])) \
+        plist = [cim_xml.IPARAMVALUE(x[0], tocimxml(x[1]))
                  for x in params.items() if x[1] is not None]
 
         # Build XML request
@@ -835,16 +835,16 @@ class WBEMConnection(object):
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'SIMPLERSP':
-            raise ParseError('Expecting SIMPLERSP element, got %s' %\
+            raise ParseError('Expecting SIMPLERSP element, got %s' %
                              tup_tree[0])
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'IMETHODRESPONSE':
-            raise ParseError('Expecting IMETHODRESPONSE element, got %s' %\
+            raise ParseError('Expecting IMETHODRESPONSE element, got %s' %
                              tup_tree[0])
 
         if tup_tree[1]['NAME'] != methodname:
-            raise ParseError('Expecting attribute NAME=%s, got %s' %\
+            raise ParseError('Expecting attribute NAME=%s, got %s' %
                              (methodname, tup_tree[1]['NAME']))
         tup_tree = tup_tree[2]
 
@@ -868,7 +868,7 @@ class WBEMConnection(object):
             #expect either ERROR | IRETURNVALUE*
             err = tup_tree[0]
             if err[0] != 'IRETURNVALUE':
-                raise ParseError('Expecting IRETURNVALUE element, got %s' \
+                raise ParseError('Expecting IRETURNVALUE element, got %s'
                                  % err[0])
             return tup_tree
 
@@ -1083,11 +1083,11 @@ class WBEMConnection(object):
         tt = tt[2]
 
         if tt[0] != 'METHODRESPONSE':
-            raise ParseError('Expecting METHODRESPONSE element, got %s' %\
+            raise ParseError('Expecting METHODRESPONSE element, got %s' %
                              tt[0])
 
         if tt[1]['NAME'] != methodname:
-            raise ParseError('Expecting attribute NAME=%s, got %s' %\
+            raise ParseError('Expecting attribute NAME=%s, got %s' %
                              (methodname, tt[1]['NAME']))
         tt = tt[2]
 
@@ -1115,7 +1115,7 @@ class WBEMConnection(object):
         elif obj is None:
             namespace = obj
         else:
-            raise TypeError('Expecting None (for default), or a namespace ' \
+            raise TypeError('Expecting None (for default), or a namespace '
                             'string, got: %s' % type(obj))
         if namespace is None:
             namespace = self.default_namespace
@@ -1137,8 +1137,8 @@ class WBEMConnection(object):
         elif obj is None:
             namespace = obj
         else:
-            raise TypeError('Expecting None (for default), a class name ' \
-                            'string, a CIMClassName object, or a ' \
+            raise TypeError('Expecting None (for default), a class name '
+                            'string, a CIMClassName object, or a '
                             'CIMInstanceName object, got: %s' % type(obj))
         if namespace is None:
             namespace = self.default_namespace
@@ -1159,8 +1159,8 @@ class WBEMConnection(object):
         elif objectname is None:
             pass
         else:
-            raise TypeError('Expecting None, a classname string, a ' \
-                            'CIMClassName or CIMInstanceName object, ' \
+            raise TypeError('Expecting None, a classname string, a '
+                            'CIMClassName or CIMInstanceName object, '
                             'got: %s' % type(objectname))
         return objectname
 
@@ -1178,7 +1178,7 @@ class WBEMConnection(object):
         elif classname is None:
             pass
         else:
-            raise TypeError('Expecting None, a classname string or a ' \
+            raise TypeError('Expecting None, a classname string or a '
                             'CIMClassName object, got: %s' % type(classname))
         return classname
 
@@ -1194,7 +1194,7 @@ class WBEMConnection(object):
         elif instancename is None:
             pass
         else:
-            raise TypeError('Expecting None or a CIMInstanceName object, ' \
+            raise TypeError('Expecting None or a CIMInstanceName object, '
                             'got: %s' % type(instancename))
         return instancename
 
@@ -3840,7 +3840,7 @@ class WBEMConnection(object):
                     ' path')
             if ModifiedInstance.classname is None:
                 raise ValueError(
-                    'ModifiedInstance parameter must have classname set in ' \
+                    'ModifiedInstance parameter must have classname set in '
                     'instance')
 
             namespace = self._iparam_namespace_from_objectname(

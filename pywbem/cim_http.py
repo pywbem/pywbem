@@ -124,7 +124,7 @@ DEFAULT_PORT_HTTPS = 5989       # default port for https
 
 #: Default directory paths for looking up CA certificates.
 DEFAULT_CA_CERT_PATHS = \
-     ['/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt', \
+     ['/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt',
       '/etc/ssl/certs', '/etc/ssl/certificates']
 
 def get_default_ca_cert_paths():
@@ -197,7 +197,7 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
                 duration = ts2 - self._ts1
                 duration_sec = (float(duration.microseconds) / 1000000) +\
                                duration.seconds + (duration.days * 24 * 3600)
-                raise TimeoutError("The client timed out and closed the "\
+                raise TimeoutError("The client timed out and closed the "
                                    "socket after %.0fs." % duration_sec)
         return False # re-raise any other exceptions
 
@@ -614,7 +614,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                 socket_af = socket.AF_UNIX
             except AttributeError:
                 raise ConnectionError(
-                    'file URLs not supported on %s platform due '\
+                    'file URLs not supported on %s platform due '
                     'to missing AF_UNIX support' % platform.system())
             self.sock = socket.socket(socket_af, socket.SOCK_STREAM)
             self.sock.connect(self.uds_path)
@@ -753,11 +753,11 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                 except SocketErrors as exc:
                     if exc.args[0] == errno.ECONNRESET:
                         if debug:
-                            print("Debug: Ignoring socket error ECONNRESET " \
+                            print("Debug: Ignoring socket error ECONNRESET "
                                   "(connection reset) returned by server.")
                     elif exc.args[0] == errno.EPIPE:
                         if debug:
-                            print("Debug: Ignoring socket error EPIPE " \
+                            print("Debug: Ignoring socket error EPIPE "
                                   "(broken pipe) returned by server.")
                     else:
                         raise ConnectionError("Socket error: %s" % exc)
@@ -784,9 +784,9 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                     uid = os.getuid()
                                 except AttributeError:
                                     raise AuthError(
-                                        "OWLocal authorization for OpenWbem "\
-                                        "server not supported on %s platform "\
-                                        "due to missing os.getuid()" % \
+                                        "OWLocal authorization for OpenWbem "
+                                        "server not supported on %s platform "
+                                        "due to missing os.getuid()" %
                                         platform.system())
                                 local_auth_header = ('Authorization',
                                                      'OWLocal uid="%d"' % uid)
@@ -811,13 +811,13 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                     file_hndl.close()
                                     local_auth_header = (
                                         'Authorization',
-                                        'OWLocal nonce="%s", cookie="%s"' % \
+                                        'OWLocal nonce="%s", cookie="%s"' %
                                         (nonce, cookie))
                                     continue
                                 except Exception as exc:
                                     if debug:
-                                        print("Debug: Ignoring exception %s " \
-                                              "in OpenWBEM auth challenge " \
+                                        print("Debug: Ignoring exception %s "
+                                              "in OpenWBEM auth challenge "
                                               "processing." % exc)
                                     local_auth_header = None
                                     continue
@@ -832,7 +832,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                     file_hndl.close()
                                     local_auth_header = (
                                         'PegasusAuthorization',
-                                        'Local "%s:%s:%s"' % \
+                                        'Local "%s:%s:%s"' %
                                         (locallogin, _file, cookie))
                                     continue
                             except ValueError:
@@ -867,11 +867,11 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                 # See http://bugs.python.org/issue8450.
                 if exc.line is None or exc.line.strip().strip("'") in \
                                        ('', 'None'):
-                    raise ConnectionError("The server closed the "\
-                        "connection without returning any data, or the "\
+                    raise ConnectionError("The server closed the "
+                        "connection without returning any data, or the "
                         "client timed out")
                 else:
-                    raise ConnectionError("The server returned a bad "\
+                    raise ConnectionError("The server returned a bad "
                         "HTTP status line: %r" % exc.line)
             except httplib.IncompleteRead as exc:
                 raise ConnectionError("HTTP incomplete read: %s" % exc)

@@ -29,8 +29,8 @@ class RegexpMixin(object):
           """
         if not re.search(pattern, text):
             raise AssertionError(
-                "String text does not contain regexp pattern\n"\
-                "    text:    %r\n"\
+                "String text does not contain regexp pattern\n"
+                "    text:    %r\n"
                 "    pattern: %r" % (text, pattern))
 
     def assertRegexpMatches(self, text, pattern, msg=None):
@@ -49,8 +49,8 @@ class RegexpMixin(object):
           """
         if not re.match(pattern, text):
             raise AssertionError(
-                "String text does not match regexp pattern\n"\
-                "    text:    %r\n"\
+                "String text does not match regexp pattern\n"
+                "    text:    %r\n"
                 "    pattern: %r" % (text, pattern))
 
 class FileMixin(object):
@@ -183,47 +183,47 @@ class CIMObjectMixin(object):
 
         self.assertEqual(
             act_property.name, exp_property.name,
-            "%s (dict key), name attribute: %s (expected: %s)" % \
+            "%s (dict key), name attribute: %s (expected: %s)" %
             (context,
              act_property.name, exp_property.name))
         self.assertEqual(
             act_property.value, exp_property.value,
-            "%s, value attribute: %s (expected: %s)" % \
+            "%s, value attribute: %s (expected: %s)" %
             (context,
              act_property.value, exp_property.value))
         self.assertEqual(
             act_property.type, exp_property.type,
-            "%s, type attribute: %s (expected: %s)" % \
+            "%s, type attribute: %s (expected: %s)" %
             (context,
              act_property.type, exp_property.type))
         self.assertEqual(
             act_property.reference_class, exp_property.reference_class,
-            "%s, reference_class attribute: %s (expected: %s)" % \
+            "%s, reference_class attribute: %s (expected: %s)" %
             (context,
              act_property.reference_class, exp_property.reference_class))
         self.assertEqual(
             act_property.embedded_object, exp_property.embedded_object,
-            "%s, embedded_object attribute: %s (expected: %s)" % \
+            "%s, embedded_object attribute: %s (expected: %s)" %
             (context,
              act_property.embedded_object, exp_property.embedded_object))
         self.assertEqual(
             act_property.is_array, exp_property.is_array,
-            "%s, is_array attribute: %s (expected: %s)" % \
+            "%s, is_array attribute: %s (expected: %s)" %
             (context,
              act_property.is_array, exp_property.is_array))
         self.assertEqual(
             act_property.array_size, exp_property.array_size,
-            "%s, array_size attribute: %s (expected: %s)" % \
+            "%s, array_size attribute: %s (expected: %s)" %
             (context,
              act_property.array_size, exp_property.array_size))
         self.assertEqual(
             act_property.class_origin, exp_property.class_origin,
-            "%s, class_origin attribute: %s (expected: %s)" % \
+            "%s, class_origin attribute: %s (expected: %s)" %
             (context,
              act_property.class_origin, exp_property.class_origin))
         self.assertEqual(
             act_property.propagated, exp_property.propagated,
-            "%s, propagated attribute: %s (expected: %s)" % \
+            "%s, propagated attribute: %s (expected: %s)" %
             (context,
              act_property.propagated, exp_property.propagated))
         self.assertEqualQualifiers(
@@ -237,22 +237,22 @@ class CIMObjectMixin(object):
 
         self.assertEqual(
             act_method.name, exp_method.name,
-            "%s (dict key), name attribute: %s (expected: %s)" % \
+            "%s (dict key), name attribute: %s (expected: %s)" %
             (context,
              act_method.name, exp_method.name))
         self.assertEqual(
             act_method.return_type, exp_method.return_type,
-            "%s, return_type attribute: %s (expected: %s)" % \
+            "%s, return_type attribute: %s (expected: %s)" %
             (context,
              act_method.return_type, exp_method.return_type))
         self.assertEqual(
             act_method.class_origin, exp_method.class_origin,
-            "%s, class_origin attribute: %s (expected: %s)" % \
+            "%s, class_origin attribute: %s (expected: %s)" %
             (context,
              act_method.class_origin, exp_method.class_origin))
         self.assertEqual(
             act_method.propagated, exp_method.propagated,
-            "%s, propagated attribute: %s methodmethod (expected: %s)" % \
+            "%s, propagated attribute: %s methodmethod (expected: %s)" %
             (context,
              act_method.propagated, exp_method.propagated))
         self.assertEqualParameters(
@@ -269,27 +269,27 @@ class CIMObjectMixin(object):
 
         self.assertEqual(
             act_parameter.name, exp_parameter.name,
-            "%s (dict key), name attribute: %s (expected: %s)" % \
+            "%s (dict key), name attribute: %s (expected: %s)" %
             (context,
              act_parameter.name, exp_parameter.name))
         self.assertEqual(
             act_parameter.type, exp_parameter.type,
-            "%s, type attribute: %s (expected: %s)" % \
+            "%s, type attribute: %s (expected: %s)" %
             (context,
              act_parameter.type, exp_parameter.type))
         self.assertEqual(
             act_parameter.reference_class, exp_parameter.reference_class,
-            "%s, reference_class attribute: %s (expected: %s)" % \
+            "%s, reference_class attribute: %s (expected: %s)" %
             (context,
              act_parameter.reference_class, exp_parameter.reference_class))
         self.assertEqual(
             act_parameter.is_array, exp_parameter.is_array,
-            "%s, is_array attribute: %s (expected: %s)" % \
+            "%s, is_array attribute: %s (expected: %s)" %
             (context,
              act_parameter.is_array, exp_parameter.is_array))
         self.assertEqual(
             act_parameter.array_size, exp_parameter.array_size,
-            "%s, array_size attribute: %s (expected: %s)" % \
+            "%s, array_size attribute: %s (expected: %s)" %
             (context,
              act_parameter.array_size, exp_parameter.array_size))
         self.assertEqualQualifiers(
@@ -303,42 +303,42 @@ class CIMObjectMixin(object):
 
         self.assertEqual(
             act_qualifier.name, exp_qualifier.name,
-            "%s (dict key), name attribute: %s (expected: %s)" % \
+            "%s (dict key), name attribute: %s (expected: %s)" %
             (context,
              act_qualifier.name, exp_qualifier.name))
         self.assertEqual(
             act_qualifier.value, exp_qualifier.value,
-            "%s, value attribute: %s (expected: %s)" % \
+            "%s, value attribute: %s (expected: %s)" %
             (context,
              act_qualifier.value, exp_qualifier.value))
         self.assertEqual(
             act_qualifier.type, exp_qualifier.type,
-            "%s, type attribute: %s (expected: %s)" % \
+            "%s, type attribute: %s (expected: %s)" %
             (context,
              act_qualifier.type, exp_qualifier.type))
         self.assertEqual(
             act_qualifier.propagated, exp_qualifier.propagated,
-            "%s, propagated attribute: %s (expected: %s)" % \
+            "%s, propagated attribute: %s (expected: %s)" %
             (context,
              act_qualifier.propagated, exp_qualifier.propagated))
         self.assertEqual(
             act_qualifier.overridable, exp_qualifier.overridable,
-            "%s, overridable attribute: %s (expected: %s)" % \
+            "%s, overridable attribute: %s (expected: %s)" %
             (context,
              act_qualifier.overridable, exp_qualifier.overridable))
         self.assertEqual(
             act_qualifier.tosubclass, exp_qualifier.tosubclass,
-            "%s, tosubclass attribute: %s (expected: %s)" % \
+            "%s, tosubclass attribute: %s (expected: %s)" %
             (context,
              act_qualifier.tosubclass, exp_qualifier.tosubclass))
         self.assertEqual(
             act_qualifier.toinstance, exp_qualifier.toinstance,
-            "%s, toinstance attribute: %s (expected: %s)" % \
+            "%s, toinstance attribute: %s (expected: %s)" %
             (context,
              act_qualifier.toinstance, exp_qualifier.toinstance))
         self.assertEqual(
             act_qualifier.translatable, exp_qualifier.translatable,
-            "%s, translatable attribute: %s (expected: %s)" % \
+            "%s, translatable attribute: %s (expected: %s)" %
             (context,
              act_qualifier.translatable, exp_qualifier.translatable))
 
