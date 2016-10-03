@@ -255,7 +255,7 @@ def _assert_system_dict(dist, attr, value):
                 elif isinstance(distro_item, string_types):
                     # The distro refers to another distro
                     referenced_distro = distro_item
-                    if not referenced_distro in distro_dict:
+                    if referenced_distro not in distro_dict:
                         raise DistutilsSetupError(
                             "'%s' attribute: Referenced distribution does not "\
                             "exist in distribution dictionary "\
@@ -1260,7 +1260,7 @@ class YumInstaller(OSInstaller):
             return (False, False, None)
 
         info = out.splitlines()[-1].strip("\n").split()
-        if not info[0].startswith(pkg_name+"."):
+        if not info[0].startswith(pkg_name + "."):
             raise DistutilsSetupError(
                 "Unexpected output from command '%s':\n%s%s" %\
                 (cmd, out, err))

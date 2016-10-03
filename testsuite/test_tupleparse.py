@@ -152,9 +152,9 @@ class ParseCIMClass(TupleTest):
                             qualifiers={'Key':
                                         CIMQualifier('Key', True,
                                                      overridable=False)}
-                            )
-                       }
-            ))
+                            )  # noqa: E123
+                       }  # noqa: E124
+            ))  # noqa: E123
 
 # TODO 2/16 KS: Extend to all property data types.
 class ParseCIMProperty(TupleTest):

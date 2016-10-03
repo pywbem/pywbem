@@ -113,7 +113,7 @@ class DictTest(unittest.TestCase):
     interface, such as class `CIMInstance` that provides a dictionary interface
     for its properties.
     """
-
+    # pylint: disable=too-many-branches
     def runtest_dict(self, obj, exp_dict):
         """
         Treat obj as a dict and run dictionary tests, and compare the
@@ -135,7 +135,7 @@ class DictTest(unittest.TestCase):
             self.assertEqual(obj[swapcase2(key)], exp_dict[key])
 
         try:
-            dummy_val = obj['Cheepy']
+            dummy_val = obj['Cheepy']  # noqa: F841
         except KeyError:
             pass
         else:
@@ -155,15 +155,15 @@ class DictTest(unittest.TestCase):
 
         # Test has_key()
 
-        self.assertTrue(obj.has_key(new_key))
-        self.assertTrue(obj.has_key(swapcase2(new_key)))
+        self.assertTrue(obj.has_key(new_key))  # noqa: W601
+        self.assertTrue(obj.has_key(swapcase2(new_key)))  # noqa: W601
 
         # Test __delitem__()
 
         del obj[swapcase2(new_key)]
 
-        self.assertTrue(not obj.has_key(new_key))
-        self.assertTrue(not obj.has_key(swapcase2(new_key)))
+        self.assertTrue(not obj.has_key(new_key))  # noqa: W601
+        self.assertTrue(not obj.has_key(swapcase2(new_key)))  # noqa: W601
 
         # Test __len__()
 
@@ -1006,7 +1006,7 @@ class CIMInstanceEquality(unittest.TestCase):
                                                    [Uint8(1), Uint8(2)]),
                          'ref': CIMProperty('ref',
                                             CIMInstanceName('CIM_Bar'))})
-            )
+            )  # noqa: E123
 
 class CIMInstanceCompare(unittest.TestCase):
     """
@@ -1387,6 +1387,7 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
                   'sint8', 'sint16', 'sint32', 'sint64']
     _REAL_TYPES = ['real32', 'real64']
 
+    # pylint: disable=too-many-branches
     def test_all(self):
 
         quals = {'Key': CIMQualifier('Key', True)}
@@ -2605,7 +2606,7 @@ class CIMClassWQualToMOF(unittest.TestCase):
                      'FooMethod': CIMMethod('FooMethod', 'uint32',
                                             parameters=params,
                                             qualifiers=mquals)}
-            )
+            )  # noqa: E123
 
         clmof = cl.tomof()
 
@@ -2659,12 +2660,12 @@ class CIMClassWoQualifiersToMof(unittest.TestCase, RegexpMixin):
                                                type='uint8'),
                         'MyUint16': CIMProperty('MyUint16', None,
                                                 type='uint16'),
-                       },
+                       },  # noqa: E124
             methods={'Delete': CIMMethod('Delete', 'uint32'),
                      'FooMethod': CIMMethod('FooMethod', 'uint32',
                                             parameters=params)
-                    }
-            )
+                    }  # noqa: E124
+            )  # noqa: E123
 
         # Generate the mof. Does not really test result
         clmof = cl.tomof()
@@ -2963,9 +2964,9 @@ class CIMParameterEquality(unittest.TestCase):
                                          reference_class='CIM_Foo'),
                             CIMParameter('RefParam', 'reference',
                                          reference_class='CIM_Foo',
-                                         qualifiers=
-                                         {'Key': CIMQualifier('Key',
-                                                              True)}))
+                                         qualifiers={'Key': CIMQualifier('Key',
+                                                                         True)})
+                           )  # noqa: E124
 
         # Reference array parameters
 

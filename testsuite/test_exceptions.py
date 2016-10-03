@@ -30,7 +30,7 @@ def _assert_subscription(exc):
             assert False, "Access by slice did not fail in Python 3"
         for i, _ in enumerate(exc.args):
             try:
-                _ = exc[i]
+                _ = exc[i]  # noqa: F841
             except TypeError:
                 pass
             else:
@@ -83,7 +83,7 @@ def test_httperror(httperror_args):
     assert exc.status == httperror_args[0]
     assert exc.reason == httperror_args[1]
     if len(httperror_args) < 3:
-        assert exc.cimerror == None  # default value
+        assert exc.cimerror is None  # default value
     else:
         assert exc.cimerror == httperror_args[2]
     if len(httperror_args) < 4:
@@ -169,7 +169,7 @@ def test_cimerror_2(status_tuple):
     status_code_name = status_tuple[1]
 
     invalid_code_name = 'Invalid status code %s' % status_code
-    invalid_code_desc = 'Invalid status code %s' % status_code
+    _invalid_code_desc = 'Invalid status code %s' % status_code  # noqa: F841
 
     input_desc = 'foo'
 

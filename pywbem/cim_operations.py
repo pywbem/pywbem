@@ -29,6 +29,7 @@ a WBEM server.
 All WBEM operations defined in :term:`DSP0200` can be issued across this connection.
 Each method of this class corresponds directly to a WBEM operation.
 
+# noqa: E501
 ==========================================================  ==============================================================
 WBEMConnection method                                       Purpose
 ==========================================================  ==============================================================
@@ -115,7 +116,7 @@ from collections import namedtuple
 
 import six
 from . import cim_xml
-from .cim_constants import DEFAULT_NAMESPACE
+from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_INVALID_PARAMETER
 from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      CIMClassName, NocaseDict, _ensure_unicode, tocimxml, \
@@ -125,7 +126,6 @@ from .tupleparse import parse_cim
 from .tupletree import dom_to_tupletree
 from .exceptions import Error, ParseError, AuthError, ConnectionError, \
                         TimeoutError, CIMError
-from .cim_constants import *  # pylint: disable=wildcard-import
 
 __all__ = ['WBEMConnection', 'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
@@ -1483,7 +1483,7 @@ class WBEMConnection(object):
                 if p[2] is None:
                     valid_result = True
                 elif isinstance(p[2], six.string_types) and \
-                    p[2].lower() in ['true', 'false']:
+                    p[2].lower() in ['true', 'false']:  # noqa: E125
                     valid_result = True if p[2].lower() == 'true' else False
                     end_of_sequence = valid_result
 
@@ -3836,16 +3836,19 @@ class WBEMConnection(object):
                     'ModifiedInstance parameter must have path attribute set')
             if ModifiedInstance.path.classname is None:
                 raise ValueError(
-                    'ModifiedInstance parameter must have classname set in path')
+                    'ModifiedInstance parameter must have classname set in '
+                    ' path')
             if ModifiedInstance.classname is None:
                 raise ValueError(
                     'ModifiedInstance parameter must have classname set in ' \
                     'instance')
 
-            namespace = self._iparam_namespace_from_objectname(ModifiedInstance.path)
+            namespace = self._iparam_namespace_from_objectname(
+                ModifiedInstance.path)
 
             # Strip off host and namespace to avoid producing an INSTANCEPATH or
-            # LOCALINSTANCEPATH element instead of the desired INSTANCENAME element.
+            # LOCALINSTANCEPATH element instead of the desired INSTANCENAME
+            # element.
             instance = ModifiedInstance.copy()
             instance.path.namespace = None
             instance.path.host = None
@@ -4578,8 +4581,8 @@ class WBEMConnection(object):
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-            This parameter has been deprecated in :term:`DSP0200`. Clients cannot
-            rely on it being implemented by WBEM servers.
+            This parameter has been deprecated in :term:`DSP0200`. Clients
+            cannot rely on it being implemented by WBEM servers.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each

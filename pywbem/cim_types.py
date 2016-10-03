@@ -120,6 +120,7 @@ class _CIMComparisonMixin(object): # pylint: disable=too-few-public-methods
 
     @staticmethod
     def __ordering_deprecated():
+        """Deprecated warning for pywbem CIM Objects"""
         warnings.warn(
             "Ordering comparisons for pywbem CIM objects are deprecated",
             DeprecationWarning)
@@ -344,8 +345,10 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         elif isinstance(dtarg, timedelta):
             self.__timedelta = dtarg
         elif isinstance(dtarg, CIMDateTime):
-            self.__datetime = dtarg.__datetime   # pylint: disable=protected-access
-            self.__timedelta = dtarg.__timedelta # pylint: disable=protected-access
+            # pylint: disable=protected-access
+            self.__datetime = dtarg.__datetime
+            # pylint: disable=protected-access
+            self.__timedelta = dtarg.__timedelta
         else:
             raise TypeError('dtarg argument "%s" has an invalid type: %s '\
                             '(expected datetime, timedelta, string, or '\
@@ -367,7 +370,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
                 self.__datetime.utcoffset() is not None:
             offset = self.__datetime.utcoffset().seconds / 60
             if self.__datetime.utcoffset().days == -1:
-                offset = -(60*24 - offset)
+                offset = -((60 * 24) - offset)
         return offset
 
     @property
@@ -606,8 +609,8 @@ class Sint8(CIMInt):
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
     cimtype = 'sint8'
-    minvalue = -2**(8-1)
-    maxvalue = 2**(8-1) - 1
+    minvalue = -2 ** (8 - 1)
+    maxvalue = 2 ** (8 - 1) - 1
 
 class Uint16(CIMInt):
     """
@@ -626,8 +629,8 @@ class Sint16(CIMInt):
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
     cimtype = 'sint16'
-    minvalue = -2**(16-1)
-    maxvalue = 2**(16-1) - 1
+    minvalue = -2 ** (16 - 1)
+    maxvalue = 2 ** (16 - 1) - 1
 
 class Uint32(CIMInt):
     """
@@ -637,7 +640,7 @@ class Uint32(CIMInt):
     """
     cimtype = 'uint32'
     minvalue = 0
-    maxvalue = 2**32 - 1
+    maxvalue = 2 ** 32 - 1
 
 class Sint32(CIMInt):
     """
@@ -646,8 +649,8 @@ class Sint32(CIMInt):
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
     cimtype = 'sint32'
-    minvalue = -2**(32-1)
-    maxvalue = 2**(32-1) - 1
+    minvalue = -2 ** (32 - 1)
+    maxvalue = 2 ** (32 - 1) - 1
 
 class Uint64(CIMInt):
     """
@@ -657,7 +660,7 @@ class Uint64(CIMInt):
     """
     cimtype = 'uint64'
     minvalue = 0
-    maxvalue = 2**64 - 1
+    maxvalue = 2 ** 64 - 1
 
 class Sint64(CIMInt):
     """
@@ -666,8 +669,8 @@ class Sint64(CIMInt):
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
     cimtype = 'sint64'
-    minvalue = -2**(64-1)
-    maxvalue = 2**(64-1) - 1
+    minvalue = -2 ** (64 - 1)
+    maxvalue = 2 ** (64 - 1) - 1
 
 # CIM float types
 

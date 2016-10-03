@@ -83,7 +83,7 @@ def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
 
     data = {'sequence_number': sequence_number, 'delta_time': delta_time,
             'protocol_ver': protocol_ver, 'msg_id': msg_id}
-    return data_template%data
+    return data_template % data
 
 def send_indication(url, headers, payload, verbose):
     """Send a single indication using Python requests"""
@@ -215,7 +215,7 @@ class TestIndications(unittest.TestCase):
 
         endtime = timer.elapsed_sec()
         print('Sent %s in %s sec or %.2f ind/sec' % (send_count, endtime,
-                                                     (send_count/endtime)))
+                                                     (send_count / endtime)))
 
         self.assertEqual(send_count, RCV_COUNT,
                          'Mismatch between sent and rcvd')

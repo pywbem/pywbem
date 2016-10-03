@@ -17,30 +17,37 @@ exclude =
 #disable_noqa
     
 ignore =
+    # E126 continuation line over-indented for hanging indent
+    # Currently does not appear to match our style
+    E126,
+    # E127 continuation line over-indented for visual indent.
+    # Disabled because does not appear to match pylint rules
+    E127,
+    # E128 continuation line under-indented for visual indent
+    E128,
+    # E261 at least two spaces before inline comment
+    # Not sure it matches our style and generates many of these messages
+    E261,
+    # E265 block comment should start with '# '
+    # over 100 of these messages right now
+    E265,
     # E302 expected 2 blank lines, found 1. Too many right now, 400+
     E302,
     # E303 too many blank lines
     E303,
-    # E265 block comment should start with #
-    E265,
-    # E128 continuation line under-indented for visual indent
-    E128,
-    # E261 at least two spaces before inline comment
-    E261,
-    # E502 the backslash is redundant between brackets. Remove when cleaner
-    # Right now about 500 of these
-    E502,
     # W391 Blank line at end of file
+    # Many of our files have this so ignore for now
     W391,
-    # E127 continuation line over-indented for visual indent.
-    # Disabled because does not appear to match pylint rules
-    E127,
-    # W391 blank line at end of file
-    W391,
-    # E126 continuation line over-indented for hanging indent
-    # Currently does not appear to match our style
-    E126,
     # D400  First line should end with a period (not 'd')
     # Defines docstring format for first line. Too many for now
-    D400
+    D400,
+    # E402 module level import not at top of file
+    # This occurs primarily because of conditonal imports including six
+    # ex. if six...
+    E402,
+    # E502 the backslash is redundant between brackets. Remove when cleaner
+    # Right now about 500 of these messages
+    E502,  
+    # E265 block comment should start with #
+    E562
     

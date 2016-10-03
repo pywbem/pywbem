@@ -46,7 +46,8 @@ from distutils.errors import DistutilsSetupError
 # unloading and subsequent garbage collection causing the error.
 if sys.version_info[0:2] == (2, 6):
     try:
-        import multiprocessing # pylint: disable=unused-import
+        # pylint: disable=unused-import
+        import multiprocessing  # noqa: F401
     except ImportError:
         pass
 
