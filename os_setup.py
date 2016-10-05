@@ -225,14 +225,14 @@ def _assert_system_dict(dist, attr, value):
     system_dict = value
     if not isinstance(system_dict, dict):
         raise DistutilsSetupError(
-            "'%s' attribute: Value must be a dictionary of systems "\
+            "'%s' attribute: Value must be a dictionary of systems "
             "(got type %s)" % (attr, type(system_dict))
         )
     for system in system_dict:
         if not isinstance(system, string_types):
             raise DistutilsSetupError(
-                "'%s' attribute: Key in system dictionary must be a string "\
-                "(got key %r of type %s)" %\
+                "'%s' attribute: Key in system dictionary must be a string "
+                "(got key %r of type %s)" %
                 (attr, system, type(system))
             )
         system_item = system_dict[system]
@@ -242,9 +242,9 @@ def _assert_system_dict(dist, attr, value):
             for distro in distro_dict:
                 if not isinstance(distro, string_types):
                     raise DistutilsSetupError(
-                        "'%s' attribute: Key in distribution dictionary must "\
-                        "be a string "\
-                        "(for system '%s', got key %r of type %s)" %\
+                        "'%s' attribute: Key in distribution dictionary must "
+                        "be a string "
+                        "(for system '%s', got key %r of type %s)" %
                         (attr, system, distro, type(distro))
                     )
                 distro_item = distro_dict[distro]
@@ -257,16 +257,16 @@ def _assert_system_dict(dist, attr, value):
                     referenced_distro = distro_item
                     if referenced_distro not in distro_dict:
                         raise DistutilsSetupError(
-                            "'%s' attribute: Referenced distribution does not "\
-                            "exist in distribution dictionary "\
-                            "(for system '%s' distro '%s', got "\
-                            "referenced distro '%s')" %\
+                            "'%s' attribute: Referenced distribution does not "
+                            "exist in distribution dictionary "
+                            "(for system '%s' distro '%s', got "
+                            "referenced distro '%s')" %
                             (attr, system, distro, referenced_distro)
                         )
                 else:
                     raise DistutilsSetupError(
-                        "Invalid type %s for value in distribution dictionary "\
-                        ": %r" %\
+                        "Invalid type %s for value in distribution dictionary "
+                        ": %r" %
                         (type(distro_item), distro_item)
                     )
         elif isinstance(system_item, list):
@@ -275,9 +275,9 @@ def _assert_system_dict(dist, attr, value):
             _assert_req_list(dist, attr, req_list)
         else:
             raise DistutilsSetupError(
-                "'%s' attribute: Value in system dictionary must be "\
-                "a dictionary of distributions or a list "\
-                "(for system '%s', got type %s)" %\
+                "'%s' attribute: Value in system dictionary must be "
+                "a dictionary of distributions or a list "
+                "(for system '%s', got type %s)" %
                 (attr, system, type(system_item))
             )
 
@@ -301,15 +301,15 @@ def _assert_req_list(dist, attr, value): # pylint: disable=unused-argument
             for single_req in req:
                 if not isinstance(single_req, string_types):
                     raise DistutilsSetupError(
-                        "'%s' attribute: Requirement list must contain "\
-                        "strings (got list item %r of type %s)" % \
+                        "'%s' attribute: Requirement list must contain "
+                        "strings (got list item %r of type %s)" %
                         (attr, single_req, type(single_req))
                     )
         elif not isinstance(req, (string_types, types.FunctionType,
                                   type(None))):
             raise DistutilsSetupError(
-                "'%s' attribute: Requirement must be a string, a function, "\
-                "or None (got requirement %r of type %s)" % \
+                "'%s' attribute: Requirement must be a string, a function, "
+                "or None (got requirement %r of type %s)" %
                 (attr, req, type(req))
             )
 
@@ -351,7 +351,7 @@ class install_os(BaseOsCommand): # pylint: disable=invalid-name
         """
 
         if self.verbose:
-            print("install_os: Installing prerequisite OS packages for "\
+            print("install_os: Installing prerequisite OS packages for "
                   "platform: %s" % self.installer.platform)
 
         self.installer.install_system(
@@ -385,7 +385,7 @@ class develop_os(BaseOsCommand): # pylint: disable=invalid-name
         """
 
         if self.verbose:
-            print("develop_os: Installing prerequisite OS packages for "\
+            print("develop_os: Installing prerequisite OS packages for "
                   "platform: %s" % self.installer.platform)
 
         self.installer.install_system(
@@ -637,7 +637,7 @@ class BaseInstaller(object):
             return pkg_name, req_list
         else:
             raise DistutilsSetupError(
-                "%s package requirement has an invalid syntax: %r" %\
+                "%s package requirement has an invalid syntax: %r" %
                 (self.env, pkg_req)
             )
 
@@ -665,14 +665,14 @@ class BaseInstaller(object):
                          req_string)
             if m is None:
                 raise DistutilsSetupError(
-                    "Version requirement has an invalid syntax: %r" %\
+                    "Version requirement has an invalid syntax: %r" %
                     req_string
                 )
             req_op = m.group(1)
             req_version_info = m.group(2).split(".")
             if len(req_version_info) > len(version_info):
                 raise DistutilsSetupError(
-                    "Version requirement specifies too many version number "\
+                    "Version requirement specifies too many version number "
                     "components for the actual package: %r" % req_string
                 )
             if req_op == '<':
@@ -701,7 +701,7 @@ class BaseInstaller(object):
                     return False
             else:
                 raise DistutilsSetupError(
-                    "Version requirement has an invalid syntax: %r" %\
+                    "Version requirement has an invalid syntax: %r" %
                     req_string
                 )
         return True
@@ -803,7 +803,7 @@ class PythonInstaller(BaseInstaller):
             success = False
             for single_req in req:
                 if verbose:
-                    print("Processing requirement choice item: %s" %\
+                    print("Processing requirement choice item: %s" %
                           single_req)
                 pkg_name, version_reqs = self.parse_pkg_req(single_req)
                 installed = self.ensure_installed(
@@ -813,7 +813,7 @@ class PythonInstaller(BaseInstaller):
                     break
             if not success:
                 if verbose:
-                    print("No package of Python package req choice is "\
+                    print("No package of Python package req choice is "
                           "available in Pypi: %s" % req)
                 self.record_error(req, None, self.MSG_PKG_NOT_IN_REPOS)
         else: # requirements string
@@ -907,7 +907,7 @@ class PythonInstaller(BaseInstaller):
 
         if inst_sufficient:
             if verbose:
-                print("Installed Python package version is sufficient: "\
+                print("Installed Python package version is sufficient: "
                       "%s %s" % (pkg_name, inst_version))
             return True
 
@@ -917,7 +917,7 @@ class PythonInstaller(BaseInstaller):
         if not avail:
             if not ignore:
                 if verbose:
-                    print("Python package is not available in Pypi: %s" %\
+                    print("Python package is not available in Pypi: %s" %
                           (pkg_name,))
                 self.record_error(pkg_name, version_reqs,
                                   self.MSG_PKG_NOT_IN_REPOS)
@@ -926,8 +926,8 @@ class PythonInstaller(BaseInstaller):
         if not avail_sufficient:
             if not ignore:
                 if verbose:
-                    print("Python package is available in Pypi, but its "\
-                          "versions are not sufficient: %s" %\
+                    print("Python package is available in Pypi, but its "
+                          "versions are not sufficient: %s" %
                           (pkg_name,))
                 self.record_error(pkg_name, version_reqs,
                                   self.MSG_PKG_NOT_IN_REPOS)
@@ -1011,7 +1011,7 @@ class OSInstaller(BaseInstaller):
                     self.install_reqlist(req_list, dry_run, verbose)
                 else:
                     raise DistutilsSetupError(
-                        "Invalid type %s for system entry: %r" %\
+                        "Invalid type %s for system entry: %r" %
                         (type(system_item), system_item)
                     )
 
@@ -1040,7 +1040,7 @@ class OSInstaller(BaseInstaller):
                 self.install_distro(distro, distro_dict, dry_run, verbose)
             else:
                 raise DistutilsSetupError(
-                    "Invalid type %s for distro entry: %r" %\
+                    "Invalid type %s for distro entry: %r" %
                     (type(distro_item), distro_item)
                 )
 
@@ -1080,7 +1080,7 @@ class OSInstaller(BaseInstaller):
             success = False
             for single_req in req:
                 if verbose:
-                    print("Processing requirement choice item: %s" %\
+                    print("Processing requirement choice item: %s" %
                           single_req)
                 pkg_name, version_reqs = self.parse_pkg_req(single_req)
                 installed = self.ensure_installed(
@@ -1090,7 +1090,7 @@ class OSInstaller(BaseInstaller):
                     break
             if not success:
                 if verbose:
-                    print("No package of OS package req choice is "\
+                    print("No package of OS package req choice is "
                           "available in the repos: %s" % req)
                 self.record_error(req, None, self.MSG_PKG_NOT_IN_REPOS)
         else: # requirements string
@@ -1165,7 +1165,7 @@ class OSInstaller(BaseInstaller):
 
         if inst_sufficient:
             if verbose:
-                print("Installed OS package version is sufficient: "\
+                print("Installed OS package version is sufficient: "
                       "%s %s" % (pkg_name, inst_version))
             return True
 
@@ -1175,7 +1175,7 @@ class OSInstaller(BaseInstaller):
         if not avail:
             if not ignore:
                 if verbose:
-                    print("OS package is not available in repos: %s" %\
+                    print("OS package is not available in repos: %s" %
                           (pkg_name,))
                 self.record_error(pkg_name, version_reqs,
                                   self.MSG_PKG_NOT_IN_REPOS)
@@ -1184,8 +1184,8 @@ class OSInstaller(BaseInstaller):
         if not avail_sufficient:
             if not ignore:
                 if verbose:
-                    print("OS package is available in repos, but its "\
-                          "versions are not sufficient: %s" %\
+                    print("OS package is available in repos, but its "
+                          "versions are not sufficient: %s" %
                           (pkg_name,))
                 self.record_error(pkg_name, version_reqs,
                                   self.MSG_PKG_NOT_IN_REPOS)
@@ -1238,7 +1238,7 @@ class YumInstaller(OSInstaller):
         info = out.splitlines()[-1].strip("\n").split()
         if not info[0].startswith(pkg_name + "."):
             raise DistutilsSetupError(
-                "Unexpected output from command '%s':\n%s%s" %\
+                "Unexpected output from command '%s':\n%s%s" %
                 (cmd, out, err))
         version = info[1].split("-")[0]
         version_sufficient = self.version_matches_req(version, version_reqs) \
@@ -1262,7 +1262,7 @@ class YumInstaller(OSInstaller):
         info = out.splitlines()[-1].strip("\n").split()
         if not info[0].startswith(pkg_name + "."):
             raise DistutilsSetupError(
-                "Unexpected output from command '%s':\n%s%s" %\
+                "Unexpected output from command '%s':\n%s%s" %
                 (cmd, out, err))
         version = info[1].split("-")[0]
         version_sufficient = self.version_matches_req(version, version_reqs) \
@@ -1309,7 +1309,7 @@ class AptInstaller(OSInstaller):
                         if line.startswith("Version:")][0]
         if status_line != "Status: install ok installed":
             raise DistutilsSetupError(
-                "Unexpected status output from command '%s':\n"\
+                "Unexpected status output from command '%s':\n"
                 "%s%s" % (cmd, out, err))
         version = version_line.split()[1].split("-")[0]
         if ":" in version:
@@ -1378,7 +1378,7 @@ class ZypperInstaller(OSInstaller):
         info = out.splitlines()[-1].strip("\n").split()
         if not info[0].startswith(pkg_name + "."):
             raise DistutilsSetupError(
-                "Unexpected output from command '%s':\n%s%s" %\
+                "Unexpected output from command '%s':\n%s%s" %
                 (cmd, out, err))
         version = info[1].split("-")[0]
         version_sufficient = self.version_matches_req(version, version_reqs) \
@@ -1530,13 +1530,13 @@ def import_setuptools(min_version="12.0"):
     else:
         if setuptools.__version__.split(".") < min_version.split("."):
             raise DistutilsSetupError(
-                "The required version of setuptools (>=%s) is not available, "\
-                "and can't be\n"\
-                "installed while this script is running. Please install the "\
-                "required version\n"\
-                "first, using:\n"\
-                "\n"\
-                "    pip install --upgrade 'setuptools>=%s'\n" %\
+                "The required version of setuptools (>=%s) is not available, "
+                "and can't be\n"
+                "installed while this script is running. Please install the "
+                "required version\n"
+                "first, using:\n"
+                "\n"
+                "    pip install --upgrade 'setuptools>=%s'\n" %
                 (min_version, min_version)
             )
 

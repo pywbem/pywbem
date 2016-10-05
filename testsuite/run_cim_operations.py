@@ -129,7 +129,7 @@ class ClientTest(unittest.TestCase):
         try:
             result = fn(*pargs, **kwargs)
         except Exception as exc:
-            self.log('Operation %s failed with %s: %s\n' % \
+            self.log('Operation %s failed with %s: %s\n' %
                      (fn.__name__, exc.__class__.__name__, str(exc)))
             last_request = self.conn.last_request or self.conn.last_raw_request
             self.log('Request:\n\n%s\n' % last_request)
@@ -188,7 +188,7 @@ class ClientTest(unittest.TestCase):
                     self.assertIsInstance(prop, CIMProperty)
 
 
-    def assertInstanceNameValid(self, path, includes_namespace=True, \
+    def assertInstanceNameValid(self, path, includes_namespace=True,
                                 includes_keybindings=True,
                                 namespace=None):
         """
@@ -270,7 +270,7 @@ class ClientTest(unittest.TestCase):
                 self.fail("Instance Lists do not match")
             else:
                 for inst2 in insts2:
-                    if self.pathsEqual(inst1.path, inst2.path, \
+                    if self.pathsEqual(inst1.path, inst2.path,
                                        ignorehost=ignorehost):
 
                         self.assertTrue(isinstance(inst2, CIMInstance))
@@ -495,7 +495,7 @@ class EnumerateInstances(ClientTest):
                     print('ClassPropertyName=%s' % p.name)
 
         if cls_property_count != inst_property_count:
-            print('ERROR: classproperty_count %s != inst_property_count %s' % \
+            print('ERROR: classproperty_count %s != inst_property_count %s' %
                   (cls_property_count, inst_property_count))
             for p in cls.properties.values():
                 print('ClassPropertyName=%s' % p.name)
@@ -540,7 +540,7 @@ class EnumerateInstances(ClientTest):
                     print('ClassPropertyName=%s' % p.name)
 
         if cls_property_count != inst_property_count:
-            print('ERROR: classproperty_count %s != inst_property_count %s' % \
+            print('ERROR: classproperty_count %s != inst_property_count %s' %
                   (cls_property_count, inst_property_count))
             for p in cls.properties.values():
                 print('ClassPropertyName=%s' % p.name)
@@ -590,7 +590,7 @@ class EnumerateInstances(ClientTest):
                 self.assertTrue(inst_property_count == len(inst.properties))
 
         if property_count != inst_property_count:
-            print('\nERROR: cls property_count %s != inst_property_count %s' % \
+            print('\nERROR: cls property_count %s != inst_property_count %s' %
                   (property_count, inst_property_count))
             for p in cls.properties.values():
                 print('ClassPropertyName=%s' % p.name)
@@ -1056,8 +1056,8 @@ class PullEnumerateInstancePaths(ClientTest):
         paths_enum = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
 
         if (len(paths_pulled) != len(paths_enum)):
-            print('ERROR result.paths len %s ne paths_enum len %s' %  \
-                (len(paths_pulled), len(paths_enum)))
+            print('ERROR result.paths len %s ne paths_enum len %s' %
+                  (len(paths_pulled), len(paths_enum)))
 
         self.assertTrue(len(paths_pulled) == len(paths_enum))
         # TODO add test to confirm they are the same
@@ -1149,7 +1149,7 @@ class PullEnumerateInstancePaths(ClientTest):
         if diff == 0:
             self.assertPathsEqual(paths_pulled, paths_enum, ignorehost=True)
         elif paths_pulled / diff < 10:
-            print('Return diff count %s of total %s ignored' % \
+            print('Return diff count %s of total %s ignored' %
                   (diff, paths_pulled))
         else:
             self.fail('Issues with pull vs non-pull responses')
@@ -1542,11 +1542,11 @@ class PullQueryInstances(ClientTest):
         except CIMError as ce:
             if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
                 raise AssertionError(
-                    "CIM_ERR_NOT_SUPPORTED: The WBEM server doesn't" \
+                    "CIM_ERR_NOT_SUPPORTED: The WBEM server doesn't"
                     " support OpenQueryInstances for this query")
             if ce.args[0] == CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
                 raise AssertionError(
-                    "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM" \
+                    "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM"
                     " server doesn't support WQL for ExecQuery")
             else:
                 raise
@@ -1576,11 +1576,11 @@ class PullQueryInstances(ClientTest):
         except CIMError as ce:
             if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
                 raise AssertionError(
-                    "CIM_ERR_NOT_SUPPORTED: The WBEM server doesn't" \
+                    "CIM_ERR_NOT_SUPPORTED: The WBEM server doesn't"
                     " support OpenQueryInstances for this query")
             if ce.args[0] == CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
                 raise AssertionError(
-                    "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM" \
+                    "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM"
                     " server doesn't support WQL for ExecQuery")
             else:
                 raise
@@ -1606,11 +1606,11 @@ class ExecQuery(ClientTest):
         except CIMError as ce:
             if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
                 raise AssertionError(
-                    "CIM_ERR_NOT_SUPPORTED: The WBEM server doesn't" \
+                    "CIM_ERR_NOT_SUPPORTED: The WBEM server doesn't"
                     " support ExecQuery for this query")
             if ce.args[0] == CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
                 raise AssertionError(
-                    "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM" \
+                    "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM"
                     " server doesn't support WQL for ExecQuery")
             else:
                 raise
@@ -3721,7 +3721,7 @@ def parse_args(argv_):
     argv = list(argv_)
 
     if len(argv) <= 1:
-        print('Error: No arguments specified; Call with --help or -h for '\
+        print('Error: No arguments specified; Call with --help or -h for '
               'usage.')
         sys.exit(2)
     elif argv[1] == '--help' or argv[1] == '-h':
@@ -3729,41 +3729,41 @@ def parse_args(argv_):
         print('Test program for CIM operations.')
         print('')
         print('Usage:')
-        print('    %s [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '\
+        print('    %s [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '
               '[UT_CLASS ...]]] ' % argv[0])
         print('')
         print('Where:')
         print('    GEN_OPTS            General options (see below).')
-        print('    URL                 URL of the target WBEM server.\n'\
-              '                        http:// or https:// prefix'\
+        print('    URL                 URL of the target WBEM server.\n'
+              '                        http:// or https:// prefix'
               '                        defines ssl usage')
-        print('    USERNAME            Userid used to log into '\
-              '                        WBEM server.\n' \
+        print('    USERNAME            Userid used to log into '
+              '                        WBEM server.\n'
               '                        Requests user input if not supplied')
-        print('    PASSWORD            Password used to log into '\
-              '                        WBEM server.\n' \
+        print('    PASSWORD            Password used to log into '
+              '                        WBEM server.\n'
               '                        Requests user input if not supplier')
         print('    -nvc                Do not verify server certificates.')
         print('    --cacerts           File/dir with ca certificate(s).')
         print('    --yamlfile yamlfile  Test_client YAML file to be recorded.')
 
         print('    UT_OPTS             Unittest options (see below).')
-        print('    UT_CLASS            Name of testcase class (e.g. '\
+        print('    UT_CLASS            Name of testcase class (e.g. '
               '                        EnumerateInstances).')
         print('')
         print('General options[GEN_OPTS]:')
         print('    --help, -h          Display this help text.')
-        print('    -n NAMESPACE        Use this CIM namespace instead of '\
+        print('    -n NAMESPACE        Use this CIM namespace instead of '
               'default: %s' % DEFAULT_NAMESPACE)
-        print('    -t TIMEOUT          Use this timeout (in seconds)'\
+        print('    -t TIMEOUT          Use this timeout (in seconds)'
               '                        instead of no timeout')
-        print('    -v                  Verbose output which includes:\n' \
-              '                          - connection details,\n' \
+        print('    -v                  Verbose output which includes:\n'
+              '                          - connection details,\n'
               '                          - details of tests')
-        print('    -d                  Debug flag for extra displays:\n' \
+        print('    -d                  Debug flag for extra displays:\n'
               '                          - xml input and output,\n')
-        print('    -l                  Do long running tests. If not set, ' \
-              '                        skips a number of tests that take a ' \
+        print('    -l                  Do long running tests. If not set, '
+              '                        skips a number of tests that take a '
               '                        long time to run')
         print('    -hl                 List of individual tests')
 
@@ -3771,7 +3771,7 @@ def parse_args(argv_):
         print('Examples:')
         print('    %s https://9.10.11.12 username%%password' % argv[0])
         print('    %s https://myhost -v username%%password' % argv[0])
-        print('    %s http://localhost -v username%%password' \
+        print('    %s http://localhost -v username%%password'
               ' GetQualifier' % argv[0])
 
         print('------------------------')

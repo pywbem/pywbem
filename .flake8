@@ -44,10 +44,7 @@ ignore =
     # E402 module level import not at top of file
     # This occurs primarily because of conditonal imports including six
     # ex. if six...
-    E402,
-    # E502 the backslash is redundant between brackets. Remove when cleaner
-    # Right now about 500 of these messages
-    E502,  
+    E402, 
     # E265 block comment should start with #
     E562
     

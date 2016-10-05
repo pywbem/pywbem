@@ -129,8 +129,8 @@ def _pcdata_nodes(pcdata):
     nodelist = []
 
     if _CDATA_ESCAPING and isinstance(pcdata, six.string_types) and \
-       (pcdata.find("<") >= 0 or \
-        pcdata.find(">") >= 0 or \
+       (pcdata.find("<") >= 0 or
+        pcdata.find(">") >= 0 or
         pcdata.find("&") >= 0):  # noqa: E129
 
         # In order to support nesting of CDATA sections, we represent pcdata

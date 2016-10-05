@@ -1498,7 +1498,7 @@ class WBEMConnection(object):
                 rtn_objects = p[2]
 
         if not valid_result:
-            raise CIMError(CIM_ERR_INVALID_PARAMETER, "EndOfSequence " \
+            raise CIMError(CIM_ERR_INVALID_PARAMETER, "EndOfSequence "
                            "or EnumerationContext required")
 
         # convert enum context if eos is True

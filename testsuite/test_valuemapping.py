@@ -41,7 +41,7 @@ class TestAll(unittest.TestCase):
         try:
             vm.tovalues(value)
         except ValueError as exc:
-            if re.match("Element value outside of the set defined by " \
+            if re.match("Element value outside of the set defined by "
                         "ValueMap.*", str(exc)) is None:
                 self.fail("ValueError has unexpected text: %s" % str(exc))
         else:

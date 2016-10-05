@@ -618,7 +618,7 @@ def _makequalifiers(qualifiers, indent):
         return ''
 
     return '%s[%s]' % (_indent_str(indent), ',\n '.ljust(indent + 2).
-        join([q.tomof(indent+2) for q in sorted(qualifiers.values())]))
+        join([q.tomof(indent + 2) for q in sorted(qualifiers.values())]))
 
 def _indent_str(indent):
     """
@@ -2325,8 +2325,8 @@ class CIMProperty(_CIMComparisonMixin):
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
             elif type_ == 'datetime':
-                value = [CIMDateTime(val) if val is not None
-                         and not isinstance(val, CIMDateTime)
+                value = [CIMDateTime(val) if val is not None and
+                         not isinstance(val, CIMDateTime)
                          else val for val in value]
                 msg = 'Array property %r specifies CIM data type %r' % \
                       (name, type_)

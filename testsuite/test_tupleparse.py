@@ -35,7 +35,7 @@ class TupleTest(unittest.TestCase):
         # Assert that the before and after objects should be equal
 
         self.assertEqual(obj, result,
-                         '\nbefore: %s\nafter:  %s' %\
+                         '\nbefore: %s\nafter:  %s' %
                          (xml, result.tocimxml().toxml()))
 
 class RawXMLTest(unittest.TestCase):
@@ -123,14 +123,14 @@ class ParseCIMClass(TupleTest):
                                      translatable=False),
                         'Description':
                         CIMQualifier('Description',
-                                     'CIM_CollectionInSystem is an ' \
-                                     'association used to establish a ' \
-                                     'parent-child relationship between a ' \
-                                     'collection and an \'owning\' System ' \
-                                     'such as an AdminDomain or '\
-                                     'ComputerSystem. A single collection '\
-                                     'should not have both a ' \
-                                     'CollectionInOrganization and a ' \
+                                     'CIM_CollectionInSystem is an '
+                                     'association used to establish a '
+                                     'parent-child relationship between a '
+                                     'collection and an \'owning\' System '
+                                     'such as an AdminDomain or '
+                                     'ComputerSystem. A single collection '
+                                     'should not have both a '
+                                     'CollectionInOrganization and a '
                                      'CollectionInSystem association.',
                                      translatable=True)},
             properties={'Parent':

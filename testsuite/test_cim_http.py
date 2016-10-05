@@ -23,13 +23,13 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
         host, port, ssl = cim_http.parse_url(url)
 
         self.assertEqual(host, exp_host,
-                         "Unexpected host: %r, expected: %r" %\
+                         "Unexpected host: %r, expected: %r" %
                          (host, exp_host))
         self.assertEqual(port, exp_port,
-                         "Unexpected port: %r, expected: %r" %\
+                         "Unexpected port: %r, expected: %r" %
                          (port, exp_port))
         self.assertEqual(ssl, exp_ssl,
-                         "Unexpected ssl: %r, expected: %r" %\
+                         "Unexpected ssl: %r, expected: %r" %
                          (ssl, exp_ssl))
 
     def _run_single_defaults_false(self, url, exp_host, exp_port, exp_ssl):
@@ -41,13 +41,13 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
         host, port, ssl = cim_http.parse_url(url, allow_defaults=False)
 
         self.assertEqual(host, exp_host,
-                         "Unexpected host: %r, expected: %r" %\
+                         "Unexpected host: %r, expected: %r" %
                          (host, exp_host))
         self.assertEqual(port, exp_port,
-                         "Unexpected port: %r, expected: %r" %\
+                         "Unexpected port: %r, expected: %r" %
                          (port, exp_port))
         self.assertEqual(ssl, exp_ssl,
-                         "Unexpected ssl: %r, expected: %r" %\
+                         "Unexpected ssl: %r, expected: %r" %
                          (ssl, exp_ssl))
 
     def test_all(self):
