@@ -59,7 +59,7 @@ in detail in this documentation.
 
 Deprecated: In v0.9.0, support for comparing two NocaseDict instances with the
 ``>``, ``>``, ``<=``, ``>=`` operators has been deprecated.
-"""
+"""  # noqa: E501
 # pylint: enable=line-too-long
 # Note: When used before module docstrings, Pylint scopes the disable statement
 #       to the whole rest of the file, so we need an enable statement.
@@ -72,18 +72,18 @@ from datetime import datetime, timedelta
 import warnings
 
 import six
+
+from . import cim_xml
+from .cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
+    atomic_to_cim_xml, CIMType, CIMDateTime, Uint8, Sint8, Uint16, Sint16, \
+    Uint32, Sint32, Uint64, Sint64, Real32, Real64
+
 if six.PY2:
     # pylint: disable=wrong-import-order
     from __builtin__ import type as builtin_type
 else:
     # pylint: disable=wrong-import-order
     from builtins import type as builtin_type  # pylint: disable=import-error
-
-from . import cim_xml
-from .cim_types import _CIMComparisonMixin, type_from_name, \
-                       cimtype, atomic_to_cim_xml, CIMType, \
-                       CIMDateTime, Uint8, Sint8, Uint16, Sint16, Uint32, \
-                       Sint32, Uint64, Sint64, Real32, Real64
 
 __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
@@ -93,8 +93,9 @@ __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
 MOF_INDENT = 4
 MAX_MOF_LINE = 79   # use 79 because comma separator sometimes runs over
 
-# pylint: disable=too-many-lines
+
 class NocaseDict(object):
+    # pylint: disable=too-many-lines
     """
     Yet another implementation of a case-insensitive dictionary.
 
@@ -387,7 +388,7 @@ class NocaseDict(object):
         not copied).
         """
         result = NocaseDict()
-        result._data = self._data.copy() # pylint: disable=protected-access
+        result._data = self._data.copy()  # pylint: disable=protected-access
         return result
 
     def __eq__(self, other):
@@ -405,7 +406,7 @@ class NocaseDict(object):
                 if not self_value == other_value:
                     return False
             except TypeError:
-                return False # not comparable -> considered not equal
+                return False  # not comparable -> considered not equal
         return len(self) == len(other)
 
     def __ne__(self, other):
@@ -460,6 +461,7 @@ class NocaseDict(object):
         self.__ordering_deprecated()
         return (self < other) or (self == other)
 
+
 def _intended_value(intended, unspecified, actual, name, msg):
     """
     Return the intended value if the actual value is unspecified or has
@@ -480,7 +482,7 @@ def _intended_value(intended, unspecified, actual, name, msg):
 
     if isinstance(intended, (tuple, list)):
         if actual == unspecified:
-            return intended[0] # the default
+            return intended[0]  # the default
         elif actual in intended:
             return actual
         else:
@@ -494,6 +496,7 @@ def _intended_value(intended, unspecified, actual, name, msg):
         else:
             raise ValueError(msg + ", but specifies %s=%r (must be %r)"
                              % (name, actual, intended))
+
 
 def cmpname(name1, name2):
     """
@@ -524,6 +527,7 @@ def cmpname(name1, name2):
     else:
         return 1
 
+
 def cmpitem(item1, item2):
     """
     Compare two items (CIM values, CIM objects, or NocaseDict objects) for
@@ -547,6 +551,7 @@ def cmpitem(item1, item2):
         return 0
     return 1
 
+
 def _convert_unicode(obj):
     """
     Convert the input object into a Unicode string (`unicode`for Python 2,
@@ -562,6 +567,7 @@ def _convert_unicode(obj):
         return obj.decode("utf-8")
     return six.text_type(obj)
 
+
 def _ensure_unicode(obj):
     """
     Return the input object, ensuring that a byte string is decoded into a
@@ -573,6 +579,7 @@ def _ensure_unicode(obj):
     if isinstance(obj, six.binary_type):
         return obj.decode("utf-8")
     return obj
+
 
 def _convert_bytes(obj):
     """
@@ -589,6 +596,7 @@ def _convert_bytes(obj):
         return obj.encode("utf-8")
     return six.binary_type(obj)
 
+
 def _ensure_bytes(obj):
     """
     Return the input object, ensuring that a Unicode string is decoded into a
@@ -600,6 +608,7 @@ def _ensure_bytes(obj):
     if isinstance(obj, six.text_type):
         return obj.encode("utf-8")
     return obj
+
 
 def _makequalifiers(qualifiers, indent):
     """
@@ -613,12 +622,12 @@ def _makequalifiers(qualifiers, indent):
 
       indent (:term:`integer): Indent level for this set of qualifiers.
     """
-
     if len(qualifiers) == 0:
         return ''
+    qual_list = [q.tomof(indent + 2) for q in sorted(qualifiers.values())]
+    qual_str = ',\n '.ljust(indent + 2).join(qual_list)
+    return '%s[%s]' % (_indent_str(indent), qual_str)
 
-    return '%s[%s]' % (_indent_str(indent), ',\n '.ljust(indent + 2).
-        join([q.tomof(indent + 2) for q in sorted(qualifiers.values())]))
 
 def _indent_str(indent):
     """
@@ -626,6 +635,7 @@ def _indent_str(indent):
     that defines number of spaces to indent. Used to format MOF output
     """
     return ' '.ljust(indent, ' ')
+
 
 def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
     # Note: This is a raw docstring because it shows many backslashes, and
@@ -700,11 +710,12 @@ def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
 
     # Escape \b, \t, \n, \f, \r
     # Note, the Python escape sequences happen to be the same as in MOF
-    escaped_str = escaped_str.replace('\b', '\\b').\
-                              replace('\t', '\\t').\
-                              replace('\n', '\\n').\
-                              replace('\f', '\\f').\
-                              replace('\r', '\\r')
+    escaped_str = escaped_str.\
+        replace('\b', '\\b').\
+        replace('\t', '\\t').\
+        replace('\n', '\\n').\
+        replace('\f', '\\f').\
+        replace('\r', '\\r')
 
     # Escape remaining control characters (U+0001...U+001F), skipping
     # U+0008, U+0009, U+000A, U+000C, U+000D that are already handled.
@@ -715,32 +726,33 @@ def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
     #         c = six.unichr(cp)
     #         esc = '\\x%04X' % cp
     #         escaped_str = escaped_str.replace(c, esc)
-    escaped_str = escaped_str.replace(u'\u0001', '\\x0001').\
-                              replace(u'\u0002', '\\x0002').\
-                              replace(u'\u0003', '\\x0003').\
-                              replace(u'\u0004', '\\x0004').\
-                              replace(u'\u0005', '\\x0005').\
-                              replace(u'\u0006', '\\x0006').\
-                              replace(u'\u0007', '\\x0007').\
-                              replace(u'\u000B', '\\x000B').\
-                              replace(u'\u000E', '\\x000E').\
-                              replace(u'\u000F', '\\x000F').\
-                              replace(u'\u0010', '\\x0010').\
-                              replace(u'\u0011', '\\x0011').\
-                              replace(u'\u0012', '\\x0012').\
-                              replace(u'\u0013', '\\x0013').\
-                              replace(u'\u0014', '\\x0014').\
-                              replace(u'\u0015', '\\x0015').\
-                              replace(u'\u0016', '\\x0016').\
-                              replace(u'\u0017', '\\x0017').\
-                              replace(u'\u0018', '\\x0018').\
-                              replace(u'\u0019', '\\x0019').\
-                              replace(u'\u001A', '\\x001A').\
-                              replace(u'\u001B', '\\x001B').\
-                              replace(u'\u001C', '\\x001C').\
-                              replace(u'\u001D', '\\x001D').\
-                              replace(u'\u001E', '\\x001E').\
-                              replace(u'\u001F', '\\x001F')
+    escaped_str = escaped_str.\
+        replace(u'\u0001', '\\x0001').\
+        replace(u'\u0002', '\\x0002').\
+        replace(u'\u0003', '\\x0003').\
+        replace(u'\u0004', '\\x0004').\
+        replace(u'\u0005', '\\x0005').\
+        replace(u'\u0006', '\\x0006').\
+        replace(u'\u0007', '\\x0007').\
+        replace(u'\u000B', '\\x000B').\
+        replace(u'\u000E', '\\x000E').\
+        replace(u'\u000F', '\\x000F').\
+        replace(u'\u0010', '\\x0010').\
+        replace(u'\u0011', '\\x0011').\
+        replace(u'\u0012', '\\x0012').\
+        replace(u'\u0013', '\\x0013').\
+        replace(u'\u0014', '\\x0014').\
+        replace(u'\u0015', '\\x0015').\
+        replace(u'\u0016', '\\x0016').\
+        replace(u'\u0017', '\\x0017').\
+        replace(u'\u0018', '\\x0018').\
+        replace(u'\u0019', '\\x0019').\
+        replace(u'\u001A', '\\x001A').\
+        replace(u'\u001B', '\\x001B').\
+        replace(u'\u001C', '\\x001C').\
+        replace(u'\u001D', '\\x001D').\
+        replace(u'\u001E', '\\x001E').\
+        replace(u'\u001F', '\\x001F')
 
     # Escape single and double quote
     escaped_str = escaped_str.replace('"', '\\"')
@@ -770,6 +782,7 @@ def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
 
     ret_str = ('\n' + _is).join(ret_str_list)
     return ret_str
+
 
 def moftype(cim_type, refclass):
     """
@@ -1109,7 +1122,8 @@ class CIMInstanceName(_CIMComparisonMixin):
                     value = _ensure_unicode(key_bind[1])
                 else:
                     raise TypeError('Invalid keybinding type for keybinding '
-                            '%s: %s' % (key_bind[0], builtin_type(key_bind[1])))
+                                    '%s: %s' %
+                                    (key_bind[0], builtin_type(key_bind[1])))
 
                 kbs.append(cim_xml.KEYBINDING(
                     key_bind[0],
@@ -1277,7 +1291,7 @@ class CIMInstance(_CIMComparisonMixin):
         self.path = path
         if property_list is not None:
             self.property_list = [_ensure_unicode(x).lower()
-                for x in property_list]
+                                  for x in property_list]
         else:
             self.property_list = None
 
@@ -2269,14 +2283,14 @@ class CIMProperty(_CIMComparisonMixin):
                 True, None, is_array, 'is_array',
                 'Property %r has a value that is an array (%s)' %
                 (name, builtin_type(value)))
-        elif value is not None: # Scalar value
+        elif value is not None:  # Scalar value
             is_array = _intended_value(
                 False, None, is_array, 'is_array',
                 'Property %r has a value that is a scalar (%s)' %
                 (name, builtin_type(value)))
-        else: # Null value
+        else:  # Null value
             if is_array is None:
-                is_array = False # For compatibility with old default
+                is_array = False  # For compatibility with old default
 
         if not is_array and array_size is not None:
             raise ValueError('Scalar property %r specifies array_size=%r '
@@ -2285,7 +2299,7 @@ class CIMProperty(_CIMComparisonMixin):
         # Determine type, embedded_object, and reference_class attributes.
         # Make sure value is CIM-typed.
 
-        if is_array: # Array property
+        if is_array:  # Array property
             if reference_class is not None:
                 raise ValueError(
                     'Array property %r cannot specify reference_class' % name)
@@ -2339,16 +2353,16 @@ class CIMProperty(_CIMComparisonMixin):
                       'with no CIM data type specified' % name
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
-            else: # type is specified and value (= entire array) is not Null
+            else:  # type is specified and value (= entire array) is not Null
                 # Make sure the array elements are of the corresponding Python
                 # type.
                 value = [type_from_name(type_)(val) if val is not None
                          else val for val in value]
                 msg = 'Array property %r contains simple typed values ' \
-                        'and specifies CIM data type %r' % (name, type_)
+                      'and specifies CIM data type %r' % (name, type_)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
-        else: # Scalar property
+        else:  # Scalar property
             if value is None:
                 # Try to infer from embedded_object, reference_class, and type
                 if embedded_object == 'instance':
@@ -2422,7 +2436,7 @@ class CIMProperty(_CIMComparisonMixin):
                     None, None, embedded_object, 'embedded_object', msg)
                 reference_class = _intended_value(
                     None, None, reference_class, 'reference_class', msg)
-            else: # type is specified and value is not Null
+            else:  # type is specified and value is not Null
                 # Make sure the value is of the corresponding Python type.
                 _type_obj = type_from_name(type_)
                 # pylint: disable=redefined-variable-type
@@ -3385,7 +3399,7 @@ class CIMQualifier(_CIMComparisonMixin):
         `None` means that this information is not available.
     """
 
-    #pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments
     def __init__(self, name, value, type=None, propagated=None,
                  overridable=None, tosubclass=None, toinstance=None,
                  translatable=None):
@@ -3655,7 +3669,8 @@ class CIMQualifier(_CIMComparisonMixin):
                 mof = '%s (%s)' % (self.name, val)
         return mof
 
-#pylint: disable=too-many-instance-attributes
+
+# pylint: disable=too-many-instance-attributes
 class CIMQualifierDeclaration(_CIMComparisonMixin):
     """
 
@@ -4067,7 +4082,7 @@ def tocimxml(value):
         return cim_xml.VALUE_ARRAY([tocimxml(v) for v in value])
     except TypeError:
         raise ValueError("Can't convert %s (%s) to CIM XML" %
-                     (value, builtin_type(value)))
+                         (value, builtin_type(value)))
 
 
 def tocimxmlstr(value, indent=None):
@@ -4111,7 +4126,7 @@ def tocimxmlstr(value, indent=None):
     return _ensure_unicode(xml_str)
 
 
-#pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
+# pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
 def tocimobj(type_, value):
     """
     Return a CIM object representing the specified value and
@@ -4250,7 +4265,7 @@ def tocimobj(type_, value):
                 return (str_arg, '', '')
             return (str_arg[:idx], seq, str_arg[idx + len(seq):])
 
-    if type_ == 'reference': # pylint: disable=too-many-nested-blocks
+    if type_ == 'reference':  # pylint: disable=too-many-nested-blocks
         # pylint: disable=too-many-return-statements,too-many-branches
         # TODO doesn't handle double-quoting, as in refs to refs.  Example:
         # r'ex_composedof.composer="ex_sampleClass.label1=9921,' +
@@ -4280,7 +4295,7 @@ def tocimobj(type_, value):
             key_bindings = {}
             while tail:
                 head, sep, tail = partition(tail, ',')
-                if head.count('"') == 1: # quoted string contains comma
+                if head.count('"') == 1:  # quoted string contains comma
                     tmp, sep, tail = partition(tail, '"')
                     head = '%s,%s' % (head, tmp)
                     tail = partition(tail, ',')[2]
@@ -4309,8 +4324,7 @@ def tocimobj(type_, value):
                                     val = CIMDateTime(val)
                                 except ValueError:
                                     raise ValueError('Invalid key binding: %s'
-                                            % val)
-
+                                                     % val)
 
                     key_bindings[key] = val
             return CIMInstanceName(classname, host=host, namespace=nm_space,
@@ -4326,4 +4340,3 @@ def byname(nlist):
     Convert a list of named objects into a map indexed by name
     """
     return dict([(x.name, x) for x in nlist])
-

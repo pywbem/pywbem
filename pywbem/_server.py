@@ -105,8 +105,7 @@ import re
 import six
 
 from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
-                           CIM_ERR_METHOD_NOT_AVAILABLE, \
-                           CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND
+    CIM_ERR_METHOD_NOT_AVAILABLE, CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND
 from .exceptions import CIMError
 from .cim_obj import CIMInstanceName, NocaseDict
 from .cim_types import CIMInt, type_from_name
@@ -306,7 +305,7 @@ class WBEMServer(object):
         return self._profiles
 
     def get_selected_profiles(self, registered_org=None, registered_name=None,
-                    registered_version=None):
+                              registered_version=None):
         """
         List of management profiles advertised by the WBEM server and
         filtered by the input parameters for registered_org, registered_name,
@@ -344,18 +343,17 @@ class WBEMServer(object):
             inst_name = inst['RegisteredName']
             inst_version = inst['RegisteredVersion']
 
-            #pylint: disable=too-many-boolean-expressions
+            # pylint: disable=too-many-boolean-expressions
             if (registered_org is None or registered_org == inst_org) and \
                     (registered_name is None or registered_name == inst_name) \
                     and \
                     (registered_version is None or
-                    registered_version == inst_version):
+                     registered_version == inst_version):
                 rtn.append(inst)
         return rtn
 
     def get_central_instances(self, profile_path, central_class=None,
                               scoping_class=None, scoping_path=None):
-        # pylint: disable=line-too-long
         """
         Determine the central instances for a management profile, and return
         their instance paths as a list of :class:`~pywbem.CIMInstanceName`
@@ -727,7 +725,6 @@ class WBEMServer(object):
 
 
 class ValueMapping(object):
-    # pylint: disable=line-too-long
     """
     A utility class that translates the values of a corresponding integer-typed
     CIM element (property, method, parameter) that is qualified with the
@@ -1004,7 +1001,7 @@ class ValueMapping(object):
             ValueError: No Values qualifier defined.
             ValueError: Invalid ValueMap entry.
             TypeError: The CIM element is not integer-typed.
-        """
+        """  # noqa: E501
 
         # pylint: disable=protected-access
 
@@ -1062,7 +1059,6 @@ class ValueMapping(object):
         return self._element_obj
 
     def tovalues(self, element_value):
-        # pylint: disable=line-too-long
         """
         Return the Values string for an element value, based on the ValueMap /
         Values qualifiers of the corresponding CIM element.
@@ -1108,4 +1104,3 @@ class ValueMapping(object):
 
         raise ValueError("Element value outside of the set defined by "
                          "ValueMap: %r" % element_value)
-

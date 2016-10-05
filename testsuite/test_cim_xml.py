@@ -20,6 +20,7 @@ from pywbem.cim_obj import _ensure_bytes
 
 DTD_FILE = 'CIM_DTD_V22.dtd'
 
+
 def validate_xml(data, dtd_directory=None):
 
     from subprocess import Popen, PIPE
@@ -49,16 +50,20 @@ def validate_xml(data, dtd_directory=None):
 
 # Test data to save typing
 
+
 def LOCALNAMESPACEPATH():   # pylint: disable=invalid-name
     return cim_xml.LOCALNAMESPACEPATH([cim_xml.NAMESPACE('root'),
                                        cim_xml.NAMESPACE('cimv2')])
+
 
 def NAMESPACEPATH():   # pylint: disable=invalid-name
     return cim_xml.NAMESPACEPATH(
         cim_xml.HOST('leonardo'), LOCALNAMESPACEPATH())
 
+
 def CLASSNAME():  # pylint: disable=invalid-name
     return cim_xml.CLASSNAME('CIM_Foo')
+
 
 def INSTANCENAME():  # pylint: disable=invalid-name
     return cim_xml.INSTANCENAME(
@@ -67,6 +72,7 @@ def INSTANCENAME():  # pylint: disable=invalid-name
          cim_xml.KEYBINDING('age', cim_xml.KEYVALUE('2', 'numeric'))])
 
 # Base classes
+
 
 class CIMXMLTest(unittest.TestCase):
     """Run validate.py script against an xml document fragment."""
@@ -119,6 +125,7 @@ class UnimplementedTest(object):
 
 #     3.2.1.1. CIM
 
+
 class CIM(CIMXMLTest):
     def setUp(self):
         super(CIM, self).setUp()
@@ -131,6 +138,7 @@ class CIM(CIMXMLTest):
                 '1001', '1.0'),
             '2.0', '2.0'))
 
+
 #################################################################
 #     3.2.2. Declaration Elements
 #################################################################
@@ -142,11 +150,13 @@ class CIM(CIMXMLTest):
 #     3.2.2.5. QUALIFIER.DECLARATION
 #     3.2.2.6. SCOPE
 
+
 # pylint: disable=too-few-public-methods
 class Declaration(UnimplementedTest):
     """
     <!ELEMENT DECLARATION  (DECLGROUP|DECLGROUP.WITHNAME|DECLGROUP.WITHPATH)+>
     """
+
 
 # pylint: disable=too-few-public-methods
 class DeclGroup(UnimplementedTest):
@@ -154,8 +164,8 @@ class DeclGroup(UnimplementedTest):
     <!ELEMENT DECLGROUP  ((LOCALNAMESPACEPATH|NAMESPACEPATH)?,
                           QUALIFIER.DECLARATION*,VALUE.OBJECT*)>
     """
-
     pass
+
 
 # pylint: disable=too-few-public-methods
 class DeclGroupWithName(UnimplementedTest):
@@ -164,12 +174,14 @@ class DeclGroupWithName(UnimplementedTest):
                                    QUALIFIER.DECLARATION*,VALUE.NAMEDOBJECT*)>
     """
 
+
 # pylint: disable=too-few-public-methods
 class DeclGroupWithPath(UnimplementedTest):
     """
     <!ELEMENT DECLGROUP.WITHPATH  (VALUE.OBJECTWITHPATH|
                                    VALUE.OBJECTWITHLOCALPATH)*>
     """
+
 
 # pylint: disable=too-few-public-methods
 class QualifierDeclaration(UnimplementedTest):
@@ -182,6 +194,7 @@ class QualifierDeclaration(UnimplementedTest):
         %ArraySize;
         %QualifierFlavor;>
     """
+
 
 class Scope(CIMXMLTest):
     """
@@ -200,6 +213,7 @@ class Scope(CIMXMLTest):
         super(Scope, self).setUp()
         self.xml.append(cim_xml.SCOPE())
 
+
 #################################################################
 #     3.2.3. Value Elements
 #################################################################
@@ -214,6 +228,7 @@ class Scope(CIMXMLTest):
 #     3.2.3.8. VALUE.OBJECTWITHPATH
 #     3.2.3.9. VALUE.OBJECTWITHLOCALPATH
 #     3.2.3.10. VALUE.NULL
+
 
 class Value(CIMXMLTest):
     """
@@ -237,11 +252,11 @@ class Value(CIMXMLTest):
         # Note: This is illegal, Value.Null should be used instead.
 
         self.xml.append(cim_xml.VALUE(''))
-        self.xml_str.append('<VALUE></VALUE>') # Assuming not folded to <VALUE/>
+        self.xml_str.append('<VALUE></VALUE>')  # Assum. not folded to <VALUE/>
 
         # Some control characters
         self.xml.append(cim_xml.VALUE('a\nb\rc\td'))
-        self.xml_str.append('<VALUE>a\nb\rc\td</VALUE>') # Assuming XML 1.1
+        self.xml_str.append('<VALUE>a\nb\rc\td</VALUE>')  # Assuming XML 1.1
 
         # Some XML special characters
         self.xml.append(cim_xml.VALUE('a&b<c>d'))
@@ -256,7 +271,7 @@ class Value(CIMXMLTest):
         self.xml_str.append(
             '<VALUE><![CDATA[<![CDATA[a&b<c>d]]]><![CDATA[]>]]></VALUE>')
 
-        cim_xml._CDATA_ESCAPING = False # Back to its default
+        cim_xml._CDATA_ESCAPING = False  # Back to its default
 
         self.xml.append(cim_xml.VALUE('dog'))
         self.xml_str.append('<VALUE>dog</VALUE>')
@@ -265,11 +280,11 @@ class Value(CIMXMLTest):
         # Note: This is illegal, Value.Null is used instead.
 
         self.xml.append(cim_xml.VALUE(''))
-        self.xml_str.append('<VALUE></VALUE>') # Assuming not folded to <VALUE/>
+        self.xml_str.append('<VALUE></VALUE>')  # Assum. not folded to <VALUE/>
 
         # Some control characters
         self.xml.append(cim_xml.VALUE('a\nb\rc\td'))
-        self.xml_str.append('<VALUE>a\nb\rc\td</VALUE>') # Assuming XML 1.1
+        self.xml_str.append('<VALUE>a\nb\rc\td</VALUE>')  # Assuming XML 1.1
 
         # Some XML special characters
         self.xml.append(cim_xml.VALUE('a&b<c>d'))
@@ -284,6 +299,7 @@ class Value(CIMXMLTest):
         self.xml_str.append(
             '<VALUE>&lt;![CDATA[a&amp;b&lt;c&gt;d]]&gt;</VALUE>')
 
+
 class ValueArray(CIMXMLTest):
     """
     <!ELEMENT VALUE.ARRAY (VALUE*)>
@@ -296,6 +312,7 @@ class ValueArray(CIMXMLTest):
 
         self.xml.append(cim_xml.VALUE_ARRAY([cim_xml.VALUE('cat'),
                                              cim_xml.VALUE('dog')]))
+
 
 class ValueReference(CIMXMLTest):
     """
@@ -336,6 +353,7 @@ class ValueReference(CIMXMLTest):
 
         self.xml.append(cim_xml.VALUE_REFERENCE(INSTANCENAME()))
 
+
 class ValueRefArray(CIMXMLTest):
     """
     <!ELEMENT VALUE.REFARRAY (VALUE.REFERENCE*)>
@@ -355,6 +373,7 @@ class ValueRefArray(CIMXMLTest):
              cim_xml.VALUE_REFERENCE(cim_xml.LOCALCLASSPATH(
                  LOCALNAMESPACEPATH(), CLASSNAME()))]))
 
+
 class ValueObject(CIMXMLTest):
     """
     <!ELEMENT VALUE.OBJECT (CLASS|INSTANCE)>
@@ -371,6 +390,7 @@ class ValueObject(CIMXMLTest):
 
         self.xml.append(cim_xml.VALUE_OBJECT(cim_xml.INSTANCE('CIM_Pet', [])))
 
+
 class ValueNamedInstance(CIMXMLTest):
     """
     <!ELEMENT VALUE.NAMEDINSTANCE (INSTANCENAME,INSTANCE)>
@@ -382,6 +402,7 @@ class ValueNamedInstance(CIMXMLTest):
         self.xml.append(cim_xml.VALUE_NAMEDINSTANCE(
             INSTANCENAME(),
             cim_xml.INSTANCE('CIM_Pet', [])))
+
 
 class ValueNamedObject(CIMXMLTest):
     """
@@ -401,6 +422,7 @@ class ValueNamedObject(CIMXMLTest):
         self.xml.append(cim_xml.VALUE_NAMEDOBJECT(
             (INSTANCENAME(),
              cim_xml.INSTANCE('CIM_Pet', []))))
+
 
 class ValueObjectWithPath(CIMXMLTest):
     """
@@ -424,6 +446,7 @@ class ValueObjectWithPath(CIMXMLTest):
                 NAMESPACEPATH(), INSTANCENAME()),
             cim_xml.INSTANCE('CIM_Pet', [])))
 
+
 class ValueObjectWithLocalPath(CIMXMLTest):
     """
     <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH,CLASS)|
@@ -446,6 +469,7 @@ class ValueObjectWithLocalPath(CIMXMLTest):
                 LOCALNAMESPACEPATH(),
                 INSTANCENAME()),
             cim_xml.INSTANCE('CIM_Pet', [])))
+
 
 # pylint: disable=too-few-public-methods
 class ValueNull(UnimplementedTest):
@@ -473,6 +497,7 @@ class ValueNull(UnimplementedTest):
 #     3.2.4.12. KEYBINDING
 #     3.2.4.13. KEYVALUE
 
+
 class NamespacePath(CIMXMLTest):
     """
     <!ELEMENT NAMESPACEPATH (HOST,LOCALNAMESPACEPATH)>
@@ -482,6 +507,7 @@ class NamespacePath(CIMXMLTest):
         super(NamespacePath, self).setUp()
 
         self.xml.append(NAMESPACEPATH())
+
 
 class LocalNamespacePath(CIMXMLTest):
     """
@@ -493,6 +519,7 @@ class LocalNamespacePath(CIMXMLTest):
 
         self.xml.append(LOCALNAMESPACEPATH())
 
+
 class Host(CIMXMLTest):
     """
     <!ELEMENT HOST (#PCDATA)>
@@ -502,6 +529,7 @@ class Host(CIMXMLTest):
         super(Host, self).setUp()
 
         self.xml.append(cim_xml.HOST('leonardo'))
+
 
 class Namespace(CIMXMLTest):
     """
@@ -515,6 +543,7 @@ class Namespace(CIMXMLTest):
 
         self.xml.append(cim_xml.NAMESPACE('root'))
 
+
 class ClassPath(CIMXMLTest):
     """
     <!ELEMENT CLASSPATH (NAMESPACEPATH,CLASSNAME)>
@@ -524,6 +553,7 @@ class ClassPath(CIMXMLTest):
         super(ClassPath, self).setUp()
 
         self.xml.append(cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()))
+
 
 class LocalClassPath(CIMXMLTest):
     """
@@ -535,6 +565,7 @@ class LocalClassPath(CIMXMLTest):
 
         self.xml.append(cim_xml.LOCALCLASSPATH(
             LOCALNAMESPACEPATH(), CLASSNAME()))
+
 
 class ClassName(CIMXMLTest):
     """
@@ -548,6 +579,7 @@ class ClassName(CIMXMLTest):
 
         self.xml.append(CLASSNAME())
 
+
 class InstancePath(CIMXMLTest):
     """
     <!ELEMENT INSTANCEPATH (NAMESPACEPATH,INSTANCENAME)>
@@ -559,6 +591,7 @@ class InstancePath(CIMXMLTest):
         self.xml.append(cim_xml.INSTANCEPATH(
             NAMESPACEPATH(), INSTANCENAME()))
 
+
 class LocalInstancePath(CIMXMLTest):
     """
     <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH,INSTANCENAME)>
@@ -569,6 +602,7 @@ class LocalInstancePath(CIMXMLTest):
 
         self.xml.append(cim_xml.LOCALINSTANCEPATH(
             LOCALNAMESPACEPATH(), INSTANCENAME()))
+
 
 class InstanceName(CIMXMLTest):
     """
@@ -599,6 +633,7 @@ class InstanceName(CIMXMLTest):
             'CIM_Pet',
             cim_xml.VALUE_REFERENCE(INSTANCENAME())))
 
+
 class ObjectPath(CIMXMLTest):
     """
     <!ELEMENT OBJECTPATH (INSTANCEPATH|CLASSPATH)>
@@ -613,6 +648,7 @@ class ObjectPath(CIMXMLTest):
 
         self.xml.append(cim_xml.OBJECTPATH(
             cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME())))
+
 
 class KeyBinding(CIMXMLTest):
     """
@@ -632,6 +668,7 @@ class KeyBinding(CIMXMLTest):
             cim_xml.VALUE_REFERENCE(
                 cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()))))
 
+
 class KeyValue(CIMXMLTest):
     """
     <!ELEMENT KEYVALUE (#PCDATA)>
@@ -648,6 +685,7 @@ class KeyValue(CIMXMLTest):
         self.xml.append(cim_xml.KEYVALUE('FALSE', 'boolean'))
         self.xml.append(cim_xml.KEYVALUE('2', 'numeric', 'uint16'))
         self.xml.append(cim_xml.KEYVALUE(None))
+
 
 #################################################################
 #     3.2.5. Object Definition Elements
@@ -669,6 +707,7 @@ class KeyValue(CIMXMLTest):
 #     3.2.5.14. TABLEROW.DECLARATION
 #     3.2.5.15. TABLE
 #     3.2.5.16. TABLEROW
+
 
 class Class(CIMXMLTest):
     """
@@ -719,6 +758,7 @@ class Class(CIMXMLTest):
         self.xml.append(cim_xml.CLASS(
             'CIM_Foo',
             methods=[cim_xml.METHOD('FooMethod')]))
+
 
 class Instance(CIMXMLTest):
     """
@@ -779,6 +819,7 @@ class Instance(CIMXMLTest):
              cim_xml.PROPERTY_REFERENCE(
                  'Cat',
                  cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Cat')))]))
+
 
 class Qualifier(CIMXMLTest):
     """
@@ -864,6 +905,7 @@ class Property(CIMXMLTest):
             qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
                                           cim_xml.VALUE('true'))]))
 
+
 class PropertyArray(CIMXMLTest):
     """
     <!ELEMENT PROPERTY.ARRAY (QUALIFIER*,VALUE.ARRAY?)>
@@ -913,6 +955,7 @@ class PropertyArray(CIMXMLTest):
             qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
                                           cim_xml.VALUE('true'))]))
 
+
 class PropertyReference(CIMXMLTest):
     """
     <!ELEMENT PROPERTY.REFERENCE (QUALIFIER*,VALUE.REFERENCE?)>
@@ -951,6 +994,7 @@ class PropertyReference(CIMXMLTest):
             cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Dog')),
             qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
                                           cim_xml.VALUE('true'))]))
+
 
 class Method(CIMXMLTest):
     """
@@ -1035,6 +1079,7 @@ class Parameter(CIMXMLTest):
             qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
                                           cim_xml.VALUE('true'))]))
 
+
 class ParameterReference(CIMXMLTest):
     """
     <!ELEMENT PARAMETER.REFERENCE (QUALIFIER*)>
@@ -1057,6 +1102,7 @@ class ParameterReference(CIMXMLTest):
             reference_class='CIM_Foo',
             qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
                                           cim_xml.VALUE('true'))]))
+
 
 class ParameterArray(CIMXMLTest):
     """
@@ -1083,6 +1129,7 @@ class ParameterArray(CIMXMLTest):
             qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
                                           cim_xml.VALUE('true'))]))
 
+
 class ParameterReferenceArray(CIMXMLTest):
     """
     <!ELEMENT PARAMETER.REFARRAY (QUALIFIER*)>
@@ -1108,6 +1155,7 @@ class ParameterReferenceArray(CIMXMLTest):
             qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
                                           cim_xml.VALUE('true'))]))
 
+
 # New in v2.2 of the DTD
 
 # TABLECELL.DECLARATION
@@ -1115,6 +1163,7 @@ class ParameterReferenceArray(CIMXMLTest):
 # TABLEROW.DECLARATION
 # TABLE
 # TABLEROW
+
 
 #################################################################
 #     3.2.6. Message Elements
@@ -1143,6 +1192,7 @@ class ParameterReferenceArray(CIMXMLTest):
 #     3.2.6.21 EXPPARAMVALUE
 #     3.2.6.22 RESPONSEDESTINATION
 #     3.2.6.23 SIMPLEREQACK
+
 
 class Message(CIMXMLTest):
     """
@@ -1198,6 +1248,7 @@ class Message(CIMXMLTest):
         # SIMPLEEXPRSP
         # MULTIEXPRSP
 
+
 class MultiReq(CIMXMLTest):
     """
     <!ELEMENT MULTIREQ (SIMPLEREQ, SIMPLEREQ+)>
@@ -1212,6 +1263,7 @@ class MultiReq(CIMXMLTest):
              cim_xml.SIMPLEREQ(cim_xml.IMETHODCALL('FooMethod',
                                                    LOCALNAMESPACEPATH()))]))
 
+
 class MultiExpReq(CIMXMLTest):
     """
     <!ELEMENT MULTIEXPREQ (SIMPLEEXPREQ, SIMPLEEXPREQ+)>
@@ -1223,6 +1275,7 @@ class MultiExpReq(CIMXMLTest):
         self.xml.append(cim_xml.MULTIEXPREQ(
             [cim_xml.SIMPLEEXPREQ(cim_xml.EXPMETHODCALL('FooMethod')),
              cim_xml.SIMPLEEXPREQ(cim_xml.EXPMETHODCALL('FooMethod'))]))
+
 
 class SimpleReq(CIMXMLTest):
     """
@@ -1244,6 +1297,7 @@ class SimpleReq(CIMXMLTest):
                 'FooMethod',
                 cim_xml.LOCALCLASSPATH(LOCALNAMESPACEPATH(), CLASSNAME()))))
 
+
 class SimpleExpReq(CIMXMLTest):
     """
     <!ELEMENT SIMPLEEXPREQ (EXPMETHODCALL)>
@@ -1254,6 +1308,7 @@ class SimpleExpReq(CIMXMLTest):
 
         self.xml.append(cim_xml.SIMPLEEXPREQ(
             cim_xml.EXPMETHODCALL('FooMethod')))
+
 
 class IMethodCall(CIMXMLTest):
     """
@@ -1274,6 +1329,7 @@ class IMethodCall(CIMXMLTest):
             [cim_xml.IPARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot'))]))
 
         # TODO: RESPONSEDESTINATION
+
 
 class MethodCall(CIMXMLTest):
     """
@@ -1306,6 +1362,7 @@ class MethodCall(CIMXMLTest):
             [cim_xml.PARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot'))]))
 
         # TODO: RESPONSEDESTINATION
+
 
 class ExpMethodCall(CIMXMLTest):
     """
@@ -1483,6 +1540,7 @@ class MultiExpRsp(CIMXMLTest):
                 [cim_xml.SIMPLEEXPRSP(cim_xml.EXPMETHODRESPONSE('FooMethod')),
                  cim_xml.SIMPLEEXPRSP(cim_xml.EXPMETHODRESPONSE('FooMethod'))]))
 
+
 class SimpleRsp(CIMXMLTest):
     """
     <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE | SIMPLEREQACK>
@@ -1503,6 +1561,7 @@ class SimpleRsp(CIMXMLTest):
 
         # TODO: SIMPLEREQACK
 
+
 class SimpleExpRsp(CIMXMLTest):
     """
     <!ELEMENT SIMPLEEXPRSP (EXPMETHODRESPONSE)>
@@ -1513,6 +1572,7 @@ class SimpleExpRsp(CIMXMLTest):
 
         self.xml.append(
             cim_xml.SIMPLEEXPRSP(cim_xml.EXPMETHODRESPONSE('FooMethod')))
+
 
 class MethodResponse(CIMXMLTest):
     """
@@ -1557,6 +1617,7 @@ class MethodResponse(CIMXMLTest):
                 (cim_xml.RETURNVALUE(cim_xml.VALUE('Dog')),
                  cim_xml.PARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot')))))
 
+
 class ExpMethodResponse(CIMXMLTest):
     """
     <!ELEMENT EXPMETHODRESPONSE (ERROR | IRETURNVALUE?)>
@@ -1582,6 +1643,7 @@ class ExpMethodResponse(CIMXMLTest):
         self.xml.append(cim_xml.EXPMETHODRESPONSE(
             'FooMethod',
             cim_xml.IRETURNVALUE(cim_xml.VALUE('Dog'))))
+
 
 class IMethodResponse(CIMXMLTest):
     """
@@ -1609,6 +1671,7 @@ class IMethodResponse(CIMXMLTest):
             'FooMethod',
             cim_xml.IRETURNVALUE(cim_xml.VALUE('Dog'))))
 
+
 class Error(CIMXMLTest):
     """
     <!ELEMENT ERROR (INSTANCE*)>
@@ -1623,6 +1686,7 @@ class Error(CIMXMLTest):
         self.xml.append(cim_xml.ERROR('1'))
         self.xml.append(cim_xml.ERROR('1', 'Foo not found'))
         # TODO: INSTANCE*
+
 
 class ReturnValue(CIMXMLTest):
     """
@@ -1644,6 +1708,7 @@ class ReturnValue(CIMXMLTest):
             cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()))))
 
         # TODO: PARAMTYPE
+
 
 class IReturnValue(CIMXMLTest):
     """
@@ -1732,6 +1797,7 @@ class IReturnValue(CIMXMLTest):
                 INSTANCENAME(),
                 cim_xml.INSTANCE('CIM_Pet', []))))
 
+
 # pylint: disable=too-few-public-methods
 class ResponseDestination(UnimplementedTest):
     """
@@ -1740,6 +1806,8 @@ class ResponseDestination(UnimplementedTest):
 
     <!ELEMENT RESPONSEDESTINATON (INSTANCE)>
     """
+
+
 # pylint: disable=too-few-public-methods
 class SimpleReqAck(UnimplementedTest):
     """

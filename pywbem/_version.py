@@ -32,4 +32,3 @@ Version of the pywbem package.
 #:   PyPI)
 #: * "M.N.U": The final M.N.U release
 __version__ = '0.10.0.dev0'
-

@@ -164,6 +164,7 @@ DEFAULT_QUERY_LANGUAGE = 'WQL'
 
 __all__ = ['WBEMSubscriptionManager']
 
+
 class WBEMSubscriptionManager(object):
     """
     A class for managing subscriptions for CIM indications in a WBEM server.
@@ -171,7 +172,7 @@ class WBEMSubscriptionManager(object):
     """
 
     def __init__(self, subscription_manager_id=None):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         Parameters:
 
@@ -305,7 +306,7 @@ class WBEMSubscriptionManager(object):
         this_host = getfqdn()
 
         dest_name_pattern = re.compile(
-            r'^pywbemdestination:owned:%s:[^:]*$' %
+            r'^pywbemdestination:owned:%s:%s:[^:]*$' %
             (this_host, self._subscription_manager_id))
         dest_inst_paths = server.conn.EnumerateInstanceNames(
             DESTINATION_CLASSNAME, namespace=server.interop_ns)
@@ -396,7 +397,7 @@ class WBEMSubscriptionManager(object):
             # This depends on server.url same as server_id
             self.remove_server(server.url)
 
-    #pylint: disable=line-too-long
+    # pylint: disable=line-too-long
     def add_listener_destinations(self, server_id, listener_urls, owned=True):
         """
         Register WBEM listeners to be the target of indications sent by a
@@ -561,7 +562,7 @@ class WBEMSubscriptionManager(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError(CIM_ERR_FAILED) if there are referencing subscriptions.
-        """
+        """  # noqa: E501
 
         # if list, recursively call this remove subscriptions for each entry
         if isinstance(destination_paths, list):
@@ -597,7 +598,7 @@ class WBEMSubscriptionManager(object):
                    query_language=DEFAULT_QUERY_LANGUAGE,
                    owned=True,
                    filter_id=None):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         Add a :term:`dynamic indication filter` to a WBEM server, by creating
         an indication filter instance (of CIM class "CIM_IndicationFilter") in
@@ -875,7 +876,7 @@ class WBEMSubscriptionManager(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-        """
+        """  # noqa: E501
         # validate server_id
         server = self._get_server(server_id)
 
@@ -986,7 +987,7 @@ class WBEMSubscriptionManager(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-        """
+        """  # noqa: E501
 
         # if list, recursively call this remove subscriptions for each entry
         if isinstance(sub_paths, list):
@@ -1007,6 +1008,7 @@ class WBEMSubscriptionManager(object):
             if path == sub_path:
                 del sub_path_list[i]
                 # continue to end of list to pick up any duplicates
+
 
 def _create_destination(server, dest_url, subscription_manager_id, owned):
     """
@@ -1069,6 +1071,7 @@ def _create_destination(server, dest_url, subscription_manager_id, owned):
     dest_path = server.conn.CreateInstance(dest_inst)
     return dest_path
 
+
 def _create_filter(server, source_namespace, query, query_language,
                    subscription_manager_id, filter_id, owned):
     """
@@ -1129,14 +1132,15 @@ def _create_filter(server, source_namespace, query, query_language,
     filter_inst['SystemName'] = this_host
     # TODO: We should not set the `Name` property of filters, because it
     # needs to be user-defined. See issue #540.
-    filter_inst['Name'] = 'pywbemfilter:%s:%s:%s:%s' % (ownership,
-                          subscription_manager_id, filter_id, uuid.uuid4())
+    filter_inst['Name'] = 'pywbemfilter:%s:%s:%s:%s' % \
+        (ownership, subscription_manager_id, filter_id, uuid.uuid4())
     filter_inst['SourceNamespace'] = source_namespace
     filter_inst['Query'] = query
     filter_inst['QueryLanguage'] = query_language
 
     filter_path = server.conn.CreateInstance(filter_inst)
     return filter_path
+
 
 def _create_subscription(server, dest_path, filter_path):
     """

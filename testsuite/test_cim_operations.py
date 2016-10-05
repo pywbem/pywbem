@@ -11,9 +11,11 @@ import unittest
 
 from pywbem.cim_operations import check_utf8_xml_chars, ParseError
 
+
 #################################################################
 # Test check_utf8_xml_chars function
 #################################################################
+
 
 # pylint: disable=invalid-name
 class Test_check_utf8_xml_chars(unittest.TestCase):
@@ -94,4 +96,3 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

@@ -50,4 +50,3 @@ __all__ = ['ENFORCE_INTEGER_RANGE']
 #:   out of range works in pywbem. Note that a WBEM server may or may not
 #:   reject such out-of-range values.
 ENFORCE_INTEGER_RANGE = True
-

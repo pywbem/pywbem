@@ -92,12 +92,14 @@ class TestInit(unittest.TestCase):
         else:
             self.fail("TypeError was unexpectedly not thrown.")
 
+
 class BaseTest(unittest.TestCase):
 
     def setUp(self):
         self.dic = NocaseDict()
         self.dic['Dog'] = 'Cat'
         self.dic['Budgie'] = 'Fish'
+
 
 class TestGetitem(BaseTest):
 
@@ -112,10 +114,12 @@ class TestGetitem(BaseTest):
         else:
             self.fail("KeyError was unexpectedly not thrown.")
 
+
 class TestLen(BaseTest):
 
     def test_all(self):
         self.assertTrue(len(self.dic) == 2)
+
 
 class TestSetitem(BaseTest):
 
@@ -135,6 +139,7 @@ class TestSetitem(BaseTest):
         else:
             self.fail('TypeError expected')
 
+
 class TestDelitem(BaseTest):
 
     def test_all(self):
@@ -149,12 +154,14 @@ class TestDelitem(BaseTest):
         else:
             self.fail("KeyError was unexpectedly not thrown.")
 
+
 class TestHasKey(BaseTest):
 
     def test_all(self):
         self.assertTrue('DOG' in self.dic)
         self.assertTrue('budgie' in self.dic)
         self.assertTrue(1234 not in self.dic)
+
 
 class TestKeys(BaseTest):
 
@@ -166,6 +173,7 @@ class TestKeys(BaseTest):
             keys.remove(ani)
         self.assertTrue(keys == [])
 
+
 class TestValues(BaseTest):
 
     def test_all(self):
@@ -175,6 +183,7 @@ class TestValues(BaseTest):
             self.assertTrue(ani in values)
             values.remove(ani)
         self.assertTrue(values == [])
+
 
 class TestItems(BaseTest):
 
@@ -186,11 +195,13 @@ class TestItems(BaseTest):
             items.remove(ani)
         self.assertTrue(items == [])
 
+
 class TestClear(BaseTest):
 
     def test_all(self):
         self.dic.clear()
         self.assertTrue(len(self.dic) == 0)
+
 
 class TestUpdate(BaseTest):
 
@@ -218,6 +229,7 @@ class TestUpdate(BaseTest):
         self.assertTrue(self.dic['COW'] == 'Beef')
         self.assertTrue(self.dic['cow'] == 'Beef')
 
+
 class TestCopy(BaseTest):
 
     def test_all(self):
@@ -228,12 +240,14 @@ class TestCopy(BaseTest):
         self.assertTrue(self.dic['Dog'] == 'Cat')
         self.assertTrue(cp['Dog'] == 'Kitten')
 
+
 class TestGet(BaseTest):
 
     def test_all(self):
         self.assertTrue(self.dic.get('Dog', 'Chicken') == 'Cat')
         self.assertTrue(self.dic.get('Ningaui') is None)
         self.assertTrue(self.dic.get('Ningaui', 'Chicken') == 'Chicken')
+
 
 class TestSetDefault(BaseTest):
 
@@ -243,10 +257,12 @@ class TestSetDefault(BaseTest):
         self.dic.setdefault('Ningaui', 'Chicken')
         self.assertTrue(self.dic['Ningaui'] == 'Chicken')
 
+
 class TestPopItem(BaseTest):
 
     def test_all(self):
         pass
+
 
 # TODO: swapcase2() is also defined in test_cim_obj.py. Consolidate.
 def swapcase2(text):
@@ -261,6 +277,7 @@ def swapcase2(text):
         text_cs += c
         i += 1
     return text_cs
+
 
 class TestEqual(BaseTest):
 
@@ -380,6 +397,7 @@ class TestEqual(BaseTest):
             test_ncdicts.append((test_ncdict, relation, comment))
         self.run_test_dicts(base_ncdict, test_ncdicts)
 
+
 class TestOrdering(BaseTest):
     """Verify that ordering comparisons between NocaseDict instances
     issue a deprecation warning, and for Python 3, in addition the usual
@@ -408,12 +426,14 @@ class TestOrdering(BaseTest):
         self.assertWarning("self.dic > self.dic")
         self.assertWarning("self.dic >= self.dic")
 
+
 class TestContains(BaseTest):
 
     def test_all(self):
         self.assertTrue('dog' in self.dic)
         self.assertTrue('Dog' in self.dic)
         self.assertTrue('Cat' not in self.dic)
+
 
 class TestForLoop(BaseTest):
 
@@ -423,6 +443,7 @@ class TestForLoop(BaseTest):
             keys.add(key)
         self.assertTrue(keys, set(['Budgie', 'Dog']))
 
+
 class TestIterkeys(BaseTest):
 
     def test_all(self):
@@ -431,6 +452,7 @@ class TestIterkeys(BaseTest):
             keys.add(key)
         self.assertTrue(keys, set(['Budgie', 'Dog']))
 
+
 class TestItervalues(BaseTest):
 
     def test_all(self):
@@ -438,6 +460,7 @@ class TestItervalues(BaseTest):
         for val in self.dic.itervalues():
             vals.add(val)
         self.assertTrue(vals, set(['Cat', 'Fish']))
+
 
 class TestIteritems(BaseTest):
 

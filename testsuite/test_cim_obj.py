@@ -28,10 +28,8 @@ import six
 
 from pywbem import cim_obj, cim_types
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
-                   CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
-                   Uint8, Uint16, Uint32, Uint64, \
-                   Sint8, Sint16, Sint32, Sint64,\
-                   Real32, Real64, CIMDateTime
+    CIMProperty, CIMMethod, CIMParameter, CIMQualifier, Uint8, Uint16, Uint32, \
+    Uint64, Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime
 from pywbem.cim_obj import NocaseDict
 
 from validate import validate_xml
@@ -58,7 +56,7 @@ class ValidateTest(unittest.TestCase):
             representing the CIM object. `None` means that no test for an
             expected XML root element will happen.
         """
-        global _MODULE_PATH # pylint: disable=global-variable-not-assigned
+        global _MODULE_PATH  # pylint: disable=global-variable-not-assigned
         xml_str = obj.tocimxml().toxml()
         self.assertTrue(
             validate_xml(xml_str,
@@ -94,6 +92,7 @@ class ValidateTest(unittest.TestCase):
                          'XML string returned by tocimxmlstr(indent) is not '
                          'equal to tocimxml().toprettyxml(indent).')
 
+
 def swapcase2(text):
     """Returns text, where every other character has been changed to swap
     its lexical case. For strings that contain at least one letter, the
@@ -106,6 +105,7 @@ def swapcase2(text):
         text_cs += c
         i += 1
     return text_cs
+
 
 class DictTest(unittest.TestCase):
     """
@@ -352,6 +352,7 @@ class InitCIMInstanceName(unittest.TestCase, CIMObjectMixin):
         self.assertCIMInstanceName(obj, 'CIM_Foo', kb4, 'woot.com',
                                    'root/cimv2')
 
+
 class CopyCIMInstanceName(unittest.TestCase, CIMObjectMixin):
     """
     Test the copy() method of `CIMInstanceName` objects.
@@ -378,6 +379,7 @@ class CopyCIMInstanceName(unittest.TestCase, CIMObjectMixin):
 
         self.assertCIMInstanceName(i, 'CIM_Foo', {'InstanceID': '1234'},
                                    'woot.com', 'root/cimv2')
+
 
 class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
     """
@@ -407,6 +409,7 @@ class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
         self.assertCIMInstanceName(obj, 'CIM_Bar', kb2,
                                    'woom.com', 'root/interop')
 
+
 class CIMInstanceNameDict(DictTest):
     """
     Test the dictionary interface of `CIMInstanceName` objects.
@@ -418,6 +421,7 @@ class CIMInstanceNameDict(DictTest):
         obj = CIMInstanceName('CIM_Foo', kb)
 
         self.runtest_dict(obj, kb)
+
 
 class CIMInstanceNameEquality(unittest.TestCase):
     """
@@ -482,6 +486,7 @@ class CIMInstanceNameEquality(unittest.TestCase):
         self.assertEqual(CIMInstanceName('CIM_Foo', namespace='root/cimv2'),
                          CIMInstanceName('CIM_Foo', namespace='Root/CIMv2'))
 
+
 class CIMInstanceNameCompare(unittest.TestCase):
     """
     Test the ordering comparison of `CIMInstanceName` objects.
@@ -492,6 +497,7 @@ class CIMInstanceNameCompare(unittest.TestCase):
         # TODO Implement ordering comparison test for CIMInstanceName
         raise AssertionError("test not implemented")
 
+
 class CIMInstanceNameSort(unittest.TestCase):
     """
     Test the sorting of `CIMInstanceName` objects.
@@ -501,6 +507,7 @@ class CIMInstanceNameSort(unittest.TestCase):
     def test_all(self):
         # TODO Implement sorting test for CIMInstanceName
         raise AssertionError("test not implemented")
+
 
 class CIMInstanceNameString(unittest.TestCase, RegexpMixin):
     """
@@ -556,6 +563,7 @@ class CIMInstanceNameString(unittest.TestCase, RegexpMixin):
 
         self.assertEqual(str(obj),
                          '//woot.com/root/InterOp:CIM_Foo.InstanceID="1234"')
+
 
 class CIMInstanceNameToXML(ValidateTest):
     """
@@ -644,7 +652,7 @@ class InitCIMInstance(unittest.TestCase):
         props_input = {}
         props_input[1] = {
             'S1': b'Ham',
-            'S2': u'H\u00E4m', # U+00E4 = lower case a umlaut
+            'S2': u'H\u00E4m',  # U+00E4 = lower case a umlaut
             'B': True,
             'UI8': Uint8(42),
             'UI16': Uint16(4216),
@@ -664,7 +672,7 @@ class InitCIMInstance(unittest.TestCase):
             'S1': CIMProperty(name='S1', type='string',
                               value=b'Ham', is_array=False),
             'S2': CIMProperty(name='S2', type='string',
-                              value=u'H\u00E4m', is_array=False), # a umlaut
+                              value=u'H\u00E4m', is_array=False),  # a umlaut
             'B': CIMProperty(name='B', type='boolean',
                              value=True, is_array=False),
             'UI8': CIMProperty(name='UI8', type='uint8',
@@ -696,7 +704,7 @@ class InitCIMInstance(unittest.TestCase):
                                is_array=False),
         }
         props_input[4] = NocaseDict(props_input[3])
-        props_obj = props_input[4] # for all kinds of input
+        props_obj = props_input[4]  # for all kinds of input
 
         for i in props_input:
 
@@ -721,7 +729,7 @@ class InitCIMInstance(unittest.TestCase):
 
         num_values = [42, 42.1]
         if six.PY2:
-            num_values.append(long(42))
+            num_values.append(long(42))  # noqa: F821
         for num_value in num_values:
             try:
                 inst = CIMInstance('CIM_Foo',
@@ -762,7 +770,7 @@ class InitCIMInstance(unittest.TestCase):
         #      e.g. quals_input = {'Key': True}
         quals_input[1] = {'Key': CIMQualifier('Key', True)}
         quals_input[2] = NocaseDict(quals_input[1])
-        quals_obj = quals_input[2] # for all kinds of input
+        quals_obj = quals_input[2]  # for all kinds of input
 
         for i in quals_input:
 
@@ -810,6 +818,7 @@ class InitCIMInstance(unittest.TestCase):
 
         # Note: Tests for initializing CIMInstance with property_list are
         #       handled in class CIMInstancePropertyList.
+
 
 class CopyCIMInstance(unittest.TestCase):
     """
@@ -863,6 +872,7 @@ class CopyCIMInstance(unittest.TestCase):
         self.assertEqual(i.qualifiers['Key'], CIMQualifier('Key', True))
         self.assertEqual(i.path, None)
 
+
 class CIMInstanceAttrs(unittest.TestCase):
     """
     Test that the public data attributes of `CIMInstance` objects can be
@@ -900,6 +910,7 @@ class CIMInstanceAttrs(unittest.TestCase):
         self.assertEqual(obj.qualifiers, quals)
         self.assertEqual(obj.path, path)
 
+
 class CIMInstanceDict(DictTest):
     """Test the Python dictionary interface for CIMInstance."""
 
@@ -924,6 +935,7 @@ class CIMInstanceDict(DictTest):
                       (obj.properties,))
 
         obj['Foo'] = Uint32(43)
+
 
 class CIMInstanceEquality(unittest.TestCase):
     """Test comparing CIMInstance objects."""
@@ -1008,6 +1020,7 @@ class CIMInstanceEquality(unittest.TestCase):
                                             CIMInstanceName('CIM_Bar'))})
             )  # noqa: E123
 
+
 class CIMInstanceCompare(unittest.TestCase):
     """
     Test the ordering comparison of `CIMInstance` objects.
@@ -1018,6 +1031,7 @@ class CIMInstanceCompare(unittest.TestCase):
         # TODO Implement ordering comparison test for CIMInstance
         raise AssertionError("test not implemented")
 
+
 class CIMInstanceSort(unittest.TestCase):
     """
     Test the sorting of `CIMInstance` objects.
@@ -1027,6 +1041,7 @@ class CIMInstanceSort(unittest.TestCase):
     def test_all(self):
         # TODO Implement sorting test for CIMInstance
         raise AssertionError("test not implemented")
+
 
 class CIMInstanceString(unittest.TestCase, RegexpMixin):
     """
@@ -1055,6 +1070,7 @@ class CIMInstanceString(unittest.TestCase, RegexpMixin):
         self.assertRegexpContains(r, 'classname=u?[\'"]CIM_Foo[\'"]')
         self.assertNotEqual(r.find('Name'), -1)
         self.assertNotEqual(r.find('Ref1'), -1)
+
 
 class CIMInstanceToXML(ValidateTest):
     """
@@ -1170,6 +1186,7 @@ class CIMInstanceToXML(ValidateTest):
 
         self.validate(obj, root_elem_CIMInstance_noname)
 
+
 class CIMInstanceToMOF(unittest.TestCase):
     """
     Test that valid MOF is generated for `CIMInstance` objects.
@@ -1188,7 +1205,7 @@ class CIMInstanceToMOF(unittest.TestCase):
         # match first line
         m = re.match(
             r"^\s*instance\s+of\s+CIM_Foo\s*\{"
-            r"(?:\s*(\w+)\s*=\s*.*;){4,4}" # just match the general syntax
+            r"(?:\s*(\w+)\s*=\s*.*;){4,4}"  # just match the general syntax
             r"\s*\}\s*;\s*$", imof)
         if m is None:
             self.fail("Invalid MOF generated.\n"
@@ -1201,6 +1218,7 @@ class CIMInstanceToMOF(unittest.TestCase):
             self.fail("Invalid MOF generated. No MyRef.\n"
                       "Instance: %r\n"
                       "Generated MOF: %r" % (i, imof))
+
 
 class CIMInstanceWithEmbeddedInstToMOF(unittest.TestCase):
     """Test that MOF with valid embedded insance is generated for instance"""
@@ -1269,16 +1287,17 @@ class CIMInstanceUpdatePath(unittest.TestCase):
         i['k1'] = 'key1'
         self.assertEqual(i['k1'], 'key1')
         self.assertTrue('k1' in i)
-        self.assertEqual(i.path['k1'], 'key1') # also updates the path
+        self.assertEqual(i.path['k1'], 'key1')  # also updates the path
 
         i['k2'] = 'key2'
         self.assertEqual(i['k2'], 'key2')
         self.assertTrue('k2' in i)
-        self.assertEqual(i.path['k2'], 'key2') # also updates the path
+        self.assertEqual(i.path['k2'], 'key2')  # also updates the path
 
         i['p1'] = 'prop1'
         self.assertEqual(len(i.path.keybindings), 2)
-        self.assertTrue('p1' not in i.path) # no key, does not update the path
+        self.assertTrue('p1' not in i.path)  # no key, does not update the path
+
 
 class CIMInstancePropertyList(unittest.TestCase):
     """
@@ -1298,12 +1317,12 @@ class CIMInstancePropertyList(unittest.TestCase):
         i['k1'] = 'key1'
         self.assertEqual(i['k1'], 'key1')
         self.assertTrue('k1' in i)
-        self.assertEqual(i.path['k1'], 'key1') # also updates the path
+        self.assertEqual(i.path['k1'], 'key1')  # also updates the path
 
         i['k2'] = 'key2'
         self.assertEqual(i['k2'], 'key2')
         self.assertTrue('k2' in i)
-        self.assertEqual(i.path['k2'], 'key2') # also updates the path
+        self.assertEqual(i.path['k2'], 'key2')  # also updates the path
 
         i['p1'] = 'prop1'
         self.assertEqual(i['p1'], 'prop1')
@@ -1318,7 +1337,8 @@ class CIMInstancePropertyList(unittest.TestCase):
         self.assertTrue('p2' not in i.path)
 
         i['p3'] = 'prop3'
-        self.assertTrue('p3' not in i) # the effect of property list
+        self.assertTrue('p3' not in i)  # the effect of property list
+
 
 class CIMInstanceUpdateExisting(unittest.TestCase):
     """
@@ -1680,7 +1700,7 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
 
         num_values = [42, 42.0]
         if six.PY2:
-            num_values.append(long(42))
+            num_values.append(long(42))  # noqa: F821
         for val in num_values:
             try:
                 CIMProperty('Age', val)
@@ -1945,6 +1965,7 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
             else:
                 self.fail('ValueError or TypeError not raised')
 
+
 class CopyCIMProperty(unittest.TestCase, CIMObjectMixin):
 
     def test_all(self):
@@ -1960,6 +1981,7 @@ class CopyCIMProperty(unittest.TestCase, CIMObjectMixin):
 
         self.assertCIMProperty(p, 'Spotty', 'Foot', type_='string',
                                qualifiers={})
+
 
 class CIMPropertyAttrs(unittest.TestCase, CIMObjectMixin):
 
@@ -1984,6 +2006,7 @@ class CIMPropertyAttrs(unittest.TestCase, CIMObjectMixin):
         obj = CIMProperty('Foo', v)
         self.assertCIMProperty(obj, 'Foo', v, type_='reference',
                                reference_class='CIM_Bar')
+
 
 class CIMPropertyEquality(unittest.TestCase):
 
@@ -2050,17 +2073,20 @@ class CIMPropertyEquality(unittest.TestCase):
             CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
                         qualifiers={'Key': CIMQualifier('Key', True)}))
 
+
 class CIMPropertyCompare(unittest.TestCase):
 
     @unimplemented
     def test_all(self):
         raise AssertionError("test not implemented")
 
+
 class CIMPropertySort(unittest.TestCase):
 
     @unimplemented
     def test_all(self):
         raise AssertionError("test not implemented")
+
 
 class CIMPropertyString(unittest.TestCase, RegexpMixin):
 
@@ -2069,6 +2095,7 @@ class CIMPropertyString(unittest.TestCase, RegexpMixin):
         r = repr(CIMProperty('Spotty', 'Foot', type='string'))
 
         self.assertRegexpMatches(r, '^CIMProperty')
+
 
 class CIMPropertyToXML(ValidateTest):
     """Test valid XML is generated for various CIMProperty objects."""
@@ -2136,6 +2163,7 @@ class InitCIMQualifier(unittest.TestCase):
         CIMQualifier('RevisionList', ['1', '2', '3'], propagated=False)
         CIMQualifier('Null', None, 'string')
 
+
 class CopyCIMQualifier(unittest.TestCase):
 
     def test_all(self):
@@ -2149,6 +2177,7 @@ class CopyCIMQualifier(unittest.TestCase):
         c.value = 'eep'
 
         self.assertEqual(q.name, 'Revision')
+
 
 class CIMQualifierAttrs(unittest.TestCase):
     """Test attributes of CIMQualifier object."""
@@ -2174,6 +2203,7 @@ class CIMQualifierAttrs(unittest.TestCase):
         self.assertEqual(q.value, [1, 2, 3])
         self.assertEqual(q.propagated, False)
 
+
 class CIMQualifierEquality(unittest.TestCase):
     """Compare CIMQualifier objects."""
 
@@ -2191,17 +2221,20 @@ class CIMQualifierEquality(unittest.TestCase):
         self.assertNotEqual(CIMQualifier('Null', None, type='string'),
                             CIMQualifier('Null', ''))
 
+
 class CIMQualifierCompare(unittest.TestCase):
 
     @unimplemented
     def test_all(self):
         raise AssertionError("test not implemented")
 
+
 class CIMQualifierSort(unittest.TestCase):
 
     @unimplemented
     def test_all(self):
         raise AssertionError("test not implemented")
+
 
 class CIMQualifierString(unittest.TestCase, RegexpMixin):
 
@@ -2211,6 +2244,7 @@ class CIMQualifierString(unittest.TestCase, RegexpMixin):
                              propagated=False))
 
         self.assertRegexpContains(s, 'RevisionList')
+
 
 class CIMQualifierToXML(ValidateTest):
 
@@ -2258,6 +2292,7 @@ class InitCIMClass(unittest.TestCase):
 
         CIMClass('CIM_Foo', qualifiers={'Key': CIMQualifier('Key', True)})
 
+
 class CopyCIMClass(unittest.TestCase):
 
     def test_all(self):
@@ -2278,6 +2313,7 @@ class CopyCIMClass(unittest.TestCase):
         self.assertTrue(c.methods['Delete'])
         self.assertTrue(c.qualifiers['Key'])
 
+
 class CIMClassAttrs(unittest.TestCase):
 
     def test_all(self):
@@ -2290,6 +2326,7 @@ class CIMClassAttrs(unittest.TestCase):
         self.assertEqual(obj.qualifiers, {})
         self.assertEqual(obj.methods, {})
         self.assertEqual(obj.qualifiers, {})
+
 
 class CIMClassEquality(unittest.TestCase):
 
@@ -2321,11 +2358,13 @@ class CIMClassEquality(unittest.TestCase):
         self.assertEqual(CIMClass('CIM_Foo', superclass='CIM_Bar'),
                          CIMClass('CIM_Foo', superclass='cim_bar'))
 
+
 class CIMClassCompare(unittest.TestCase):
 
     @unimplemented
     def test_all(self):
         raise AssertionError("test not implemented")
+
 
 class CIMClassSort(unittest.TestCase):
 
@@ -2333,12 +2372,14 @@ class CIMClassSort(unittest.TestCase):
     def test_all(self):
         raise AssertionError("test not implemented")
 
+
 class CIMClassString(unittest.TestCase, RegexpMixin):
 
     def test_all(self):
 
         s = str(CIMClass('CIM_Foo'))
         self.assertRegexpContains(s, 'CIM_Foo')
+
 
 class CIMClassToXML(ValidateTest):
 
@@ -2368,6 +2409,7 @@ class CIMClassToXML(ValidateTest):
                                qualifiers={'Key': CIMQualifier('Key', True)}),
                       root_elem_CIMClass)
 
+
 class CIMClassToMOF(unittest.TestCase, RegexpMixin):
 
     def test_all(self):
@@ -2383,6 +2425,7 @@ class CIMClassToMOF(unittest.TestCase, RegexpMixin):
 
         self.assertRegexpContains(imof, r"\n\s*string\s+InstanceID")
         self.assertRegexpContains(imof, r"\n\};")
+
 
 class CIMClassPropertyWithValueToMOF(unittest.TestCase, RegexpMixin):
 
@@ -2422,6 +2465,7 @@ class CIMClassPropertyWithValueToMOF(unittest.TestCase, RegexpMixin):
                                         r"\"This is a test\";")
 
         self.assertRegexpContains(imof, r"\n\};")
+
 
 class CIMClassToMofArrayProperty(unittest.TestCase, RegexpMixin):
     def test_ArrayDef32(self):
@@ -2484,6 +2528,7 @@ class CIMClassToMofArrayProperty(unittest.TestCase, RegexpMixin):
     # TODO ks apr 16: extend this test for other alternatives for mof output
     # of property parameters.
 
+
 class CIMClassMethodsToMOF(unittest.TestCase, RegexpMixin):
     """Test variations of class method mof output"""
 
@@ -2498,7 +2543,6 @@ class CIMClassMethodsToMOF(unittest.TestCase, RegexpMixin):
         self.assertRegexpContains(imof, r"^\s*class\s+CIM_FooOneMethod\s*\{")
         self.assertRegexpContains(imof, r"\s*uint32\s+Simple\(\);")
         self.assertRegexpContains(imof, r"\n\};",)
-
 
     def test_SimpleMethod(self):
         """Test multiple methods some with parameters"""
@@ -2540,6 +2584,7 @@ class CIMClassMethodsToMOF(unittest.TestCase, RegexpMixin):
         self.assertRegexpContains(imof, r"\n\s*sint32\s+Param4\[9\]\);")
         self.assertRegexpContains(imof, r"\n\};",)
 
+
 class CIMClassWQualToMOF(unittest.TestCase):
     """Generate mof output for a a class with a qualifiers, multiple
        properties and methods
@@ -2551,9 +2596,9 @@ class CIMClassWQualToMOF(unittest.TestCase):
         pquals = {'ModelCorresponse': CIMQualifier('ModelCorrespondense',
                                                    'BlahBlahClass'),
                   'Description': CIMQualifier('Description', "This is a"
-                                               " description for a property"
-                                               " that serves no purpose"
-                                               " but is multiline.")}
+                                              " description for a property"
+                                              " that serves no purpose"
+                                              " but is multiline.")}
         pquals2 = {'ValueMap': CIMQualifier('ValueMap',
                                             ["0", "1", "2", "3", "4",
                                              "5", "6"]),
@@ -2573,7 +2618,7 @@ class CIMClassWQualToMOF(unittest.TestCase):
                                                  "An embedded instance"),
                      'EmbeddedInstance': CIMQualifier('EmbeddedInstance',
                                                       "My_Embedded")}
-        #define the target class
+        # define the target class
         cl = CIMClass(
             'CIM_Foo', superclass='CIM_Bar',
             qualifiers={'Abstract': CIMQualifier('Abstract', True),
@@ -2679,6 +2724,7 @@ class CIMClassWoQualifiersToMof(unittest.TestCase, RegexpMixin):
         self.assertRegexpContains(clmof, r"\n\s*uint32\s+Delete\(\);\n")
         self.assertRegexpContains(clmof, r"\n\};",)
 
+
 class InitCIMMethod(unittest.TestCase):
 
     def test_all(self):
@@ -2693,6 +2739,7 @@ class InitCIMMethod(unittest.TestCase):
                   parameters={'Param1': CIMParameter('Param1', 'uint32'),
                               'Param2': CIMParameter('Param2', 'string')},
                   qualifiers={'Key': CIMQualifier('Key', True)})
+
 
 class CopyCIMMethod(unittest.TestCase):
 
@@ -2717,6 +2764,7 @@ class CopyCIMMethod(unittest.TestCase):
         self.assertTrue(m.parameters['P1'])
         self.assertTrue(m.qualifiers['Key'])
 
+
 class CIMMethodAttrs(unittest.TestCase):
 
     def test_all(self):
@@ -2729,6 +2777,7 @@ class CIMMethodAttrs(unittest.TestCase):
         self.assertEqual(m.return_type, 'uint32')
         self.assertEqual(len(m.parameters), 2)
         self.assertEqual(m.qualifiers, {})
+
 
 class CIMMethodEquality(unittest.TestCase):
 
@@ -2745,17 +2794,20 @@ class CIMMethodEquality(unittest.TestCase):
                                       qualifiers={'Key': CIMQualifier('Key',
                                                                       True)}))
 
+
 class CIMMethodCompare(unittest.TestCase):
 
     @unimplemented
     def test_all(self):
         raise AssertionError("test not implemented")
 
+
 class CIMMethodSort(unittest.TestCase):
 
     @unimplemented
     def test_all(self):
         raise AssertionError("test not implemented")
+
 
 class CIMMethodString(unittest.TestCase, RegexpMixin):
 
@@ -2765,6 +2817,7 @@ class CIMMethodString(unittest.TestCase, RegexpMixin):
 
         self.assertRegexpContains(s, 'FooMethod')
         self.assertRegexpContains(s, 'uint32')
+
 
 class CIMMethodNoReturn(unittest.TestCase):
     """Test that CIMMethod without return value fails"""
@@ -2776,6 +2829,7 @@ class CIMMethodNoReturn(unittest.TestCase):
 
         except ValueError:
             pass
+
 
 class CIMMethodToXML(ValidateTest):
 
@@ -2830,6 +2884,7 @@ class InitCIMParameter(unittest.TestCase):
                      reference_class='CIM_Foo', array_size=10,
                      qualifiers={'Key': CIMQualifier('Key', True)})
 
+
 class CopyCIMParameter(unittest.TestCase):
 
     def test_all(self):
@@ -2851,6 +2906,7 @@ class CopyCIMParameter(unittest.TestCase):
         self.assertEqual(p.type, 'reference')
         self.assertEqual(p.reference_class, 'CIM_Foo')
         self.assertTrue(p.qualifiers['Key'])
+
 
 class CIMParameterAttrs(unittest.TestCase):
 
@@ -2892,6 +2948,7 @@ class CIMParameterAttrs(unittest.TestCase):
         self.assertEqual(p.array_size, 10)
         self.assertEqual(p.is_array, True)
         self.assertEqual(p.qualifiers, {})
+
 
 class CIMParameterEquality(unittest.TestCase):
 
@@ -3002,17 +3059,20 @@ class CIMParameterEquality(unittest.TestCase):
                                                      CIMQualifier('Key',
                                                                   True)}))
 
+
 class CIMParameterCompare(unittest.TestCase):
 
     @unimplemented
     def test_all(self):
         raise AssertionError("test not implemented")
 
+
 class CIMParameterSort(unittest.TestCase):
 
     @unimplemented
     def test_all(self):
         raise AssertionError("test not implemented")
+
 
 class CIMParameterString(unittest.TestCase, RegexpMixin):
 
@@ -3022,6 +3082,7 @@ class CIMParameterString(unittest.TestCase, RegexpMixin):
 
         self.assertRegexpContains(s, 'Param1')
         self.assertRegexpContains(s, 'uint32')
+
 
 class CIMParameterToXML(ValidateTest):
 
@@ -3094,25 +3155,32 @@ class CIMParameterToXML(ValidateTest):
 class InitCIMQualifierDeclaration(unittest.TestCase):
     pass
 
+
 class CopyCIMQualifierDeclaration(unittest.TestCase):
     pass
 
+
 class CIMQualifierDeclarationAttrs(unittest.TestCase):
     pass
+
 
 class CIMQualifierDeclarationEquality(unittest.TestCase):
     # pylint: disable=invalid-name
     pass
 
+
 class CIMQualifierDeclarationCompare(unittest.TestCase):
     # pylint: disable=invalid-name
     pass
 
+
 class CIMQualifierDeclarationSort(unittest.TestCase):
     pass
 
+
 class CIMQualifierDeclarationString(unittest.TestCase):
     pass
+
 
 class CIMQualifierDeclarationToXML(unittest.TestCase):
     pass
@@ -3194,15 +3262,14 @@ class ToCIMObj(unittest.TestCase):
         self.assertEqual(path['key1'], 'John Smith')
         self.assertEqual(path['key2'], 33.3)
 
-
         path = cim_obj.tocimobj(
             'reference',
             "//./root/default:NetworkCard=2")
         # TODO How should pywbem deal with a single, unnamed, keybinding?
-        #self.assertTrue(isinstance(path, CIMInstanceName))
-        #self.assertEqual(path.namespace, 'root/default')
-        #self.assertEqual(path.host, '.')
-        #self.assertEqual(path.classname, 'NetworkCard')
+        # self.assertTrue(isinstance(path, CIMInstanceName))
+        # self.assertEqual(path.namespace, 'root/default')
+        # self.assertEqual(path.host, '.')
+        # self.assertEqual(path.classname, 'NetworkCard')
 
 
 class MofStr(unittest.TestCase):
@@ -3274,15 +3341,15 @@ class MofStr(unittest.TestCase):
         self._run_single('\\n', '"\\\\n"')
         self._run_single('\\f', '"\\\\f"')
         self._run_single('\\r', '"\\\\r"')
-        self._run_single('\\\'', '"\\\\\\\'"') # escape the following quote
-        self._run_single('\\"', '"\\\\\\""') # escape the following quote
+        self._run_single('\\\'', '"\\\\\\\'"')  # escape the following quote
+        self._run_single('\\"', '"\\\\\\""')  # escape the following quote
         self._run_single('c\\bd', '"c\\\\bd"')
         self._run_single('c\\td', '"c\\\\td"')
         self._run_single('c\\nd', '"c\\\\nd"')
         self._run_single('c\\fd', '"c\\\\fd"')
         self._run_single('c\\rd', '"c\\\\rd"')
-        self._run_single('c\\\'d', '"c\\\\\\\'d"') # escape the following quote
-        self._run_single('c\\"d', '"c\\\\\\"d"') # escape the following quote
+        self._run_single('c\\\'d', '"c\\\\\\\'d"')  # escape the following quote
+        self._run_single('c\\"d', '"c\\\\\\"d"')  # escape the following quote
 
         # Backslash followed by MOF-escapable character (are treated separately)
         self._run_single('\\\b', '"\\\\\\b"')
@@ -3333,7 +3400,7 @@ class MofStr(unittest.TestCase):
         # Line break cases
 
         self._run_single(
-            #|1                                                          |60
+            # |2                                                          |60
             'the big brown fox jumps over a big brown fox jumps over a big' \
             ' brown f jumps over a big brown fox', \
             '"the big brown fox jumps over a big brown fox jumps over a big' \
@@ -3341,7 +3408,7 @@ class MofStr(unittest.TestCase):
             '    "jumps over a big brown fox"')
 
         self._run_single(
-            #|1                                                          |60
+            # |2                                                          |60
             'the big brown fox jumps over a big brown fox jumps over a big' \
             ' brown fo jumps over a big brown fox', \
             '"the big brown fox jumps over a big brown fox jumps over a big' \
@@ -3349,7 +3416,7 @@ class MofStr(unittest.TestCase):
             '    "jumps over a big brown fox"')
 
         self._run_single(
-            #|1                                                          |60
+            # |2                                                          |60
             'the big brown fox jumps over a big brown fox jumps over a big' \
             ' brown fox jumps over a big brown fox', \
             '"the big brown fox jumps over a big brown fox jumps over a big' \
@@ -3357,14 +3424,14 @@ class MofStr(unittest.TestCase):
             '    "jumps over a big brown fox"')
 
         self._run_single(
-            #|1                                                          |60
+            # |2                                                          |60
             'the big brown fox jumps over a big brown fox jumps over a big' \
             ' brown foxx jumps over a big brown fox', \
             '"the big brown fox jumps over a big brown fox jumps over a big' \
             ' brown foxx "\n' \
             '    "jumps over a big brown fox"')
         self._run_single(
-            #|1                                                          |60
+            # |2                                                          |60
             'the big brown fox jumps over a big brown fox jumps over a big' \
             ' brown foxxx jumps over a big brown fox', \
             '"the big brown fox jumps over a big brown fox jumps over a big' \
@@ -3373,7 +3440,7 @@ class MofStr(unittest.TestCase):
 
         # TODO: This may be wrong in that it breaks a word, not between words.
         self._run_single(
-            #|1                                                          |60
+            # |2                                                          |60
             'the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big' \
             '_brown_fox_jumps_over a big brown fox', \
             '"the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big' \
@@ -3381,7 +3448,7 @@ class MofStr(unittest.TestCase):
             '    "umps_over a big brown fox"')
 
         self._run_single(
-            #|1                                                          |60
+            # |2                                                          |60
             'the big brown fox jumps over a big brown fox jumps over a big' \
             ' brown fox_jumps_over_a_big_brown_fox', \
             '"the big brown fox jumps over a big brown fox jumps over a big' \

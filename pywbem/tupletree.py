@@ -56,6 +56,7 @@ import six
 
 __all__ = []
 
+
 def dom_to_tupletree(node):
     """Convert a DOM object to a pyRXP-style tuple tree.
 
@@ -78,7 +79,7 @@ def dom_to_tupletree(node):
             contents.append(dom_to_tupletree(child))
         elif child.nodeType == child.TEXT_NODE:
             assert isinstance(child.nodeValue, six.string_types), \
-                   "text node %s is not a string %r" % child
+                "text node %s is not a string %r" % child
             contents.append(child.nodeValue)
         elif child.nodeType == child.CDATA_SECTION_NODE:
             contents.append(child.nodeValue)

@@ -28,11 +28,13 @@ RCV_FAIL = False
 VERBOSE = False
 LISTENER = None
 
+
 class ElapsedTimer(object):
     """
         Set up elapsed time timer. Calculates time between initiation
         and access.
     """
+
     def __init__(self):
         """ Initiate the object with current time"""
         self.start_time = datetime.datetime.now()
@@ -46,14 +48,15 @@ class ElapsedTimer(object):
             point representation of elapsed time in seconds.
         """
         dt = datetime.datetime.now() - self.start_time
-        return ((dt.days * 24 * 3600) + dt.seconds) * 1000  \
-                + dt.microseconds / 1000.0
+        return ((dt.days * 24 * 3600) + dt.seconds) * 1000 + \
+            dt.microseconds / 1000.0
 
     def elapsed_sec(self):
         """ get the elapsed time in seconds. Returns floating
             point representation of time in seconds
         """
         return self.elapsed_ms() / 1000
+
 
 def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
     """Create a test indication from the template and input attributes"""
@@ -85,6 +88,7 @@ def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
             'protocol_ver': protocol_ver, 'msg_id': msg_id}
     return data_template % data
 
+
 def send_indication(url, headers, payload, verbose):
     """Send a single indication using Python requests"""
 
@@ -100,6 +104,7 @@ def send_indication(url, headers, payload, verbose):
                                                          response.text))
 
     return True if(response.status_code == 200) else False
+
 
 def _process_indication(indication, host):
     """
@@ -124,11 +129,12 @@ def _process_indication(indication, host):
         RCV_FAIL = True
         print('ERROR in process indication counter=%s, COUNT=%s' % (counter,
                                                                     RCV_COUNT))
-    #print('counter %s COUNT %s' % (counter, RCV_COUNT))
+    # print('counter %s COUNT %s' % (counter, RCV_COUNT))
     RCV_COUNT += 1
     if VERBOSE:
         print("Received indication %s from %s:\n%s" % (RCV_COUNT, host,
                                                        indication.tomof()))
+
 
 class TestIndications(unittest.TestCase):
     """
@@ -158,6 +164,7 @@ class TestIndications(unittest.TestCase):
         LISTENER.add_callback(_process_indication)
         LISTENER.start()
 
+    # pylint: disable=unused-argument
     def send_indications(self, send_count, http_port, https_port):
         """
         Send the number of indications defined by the send_count attribute
@@ -168,7 +175,7 @@ class TestIndications(unittest.TestCase):
         that each carries its own sequence number
         """
 
-        #pylint: disable=global-variable-not-assigned
+        # pylint: disable=global-variable-not-assigned
         global VERBOSE
         global RCV_FAIL
         RCV_FAIL = False
@@ -191,7 +198,7 @@ class TestIndications(unittest.TestCase):
                    'Accept-Encoding': 'Identity',
                    'CIMProtocolVersion': cim_protocol_version}
         # includes accept-encoding because of requests issue.
-        #He supplies it if don't TODO try None
+        # He supplies it if don't TODO try None
 
         delta_time = time() - start_time
         rand_base = randint(1, 10000)
@@ -223,8 +230,8 @@ class TestIndications(unittest.TestCase):
         RCV_FAIL = False
         LISTENER.stop()
 
-#TODO issue 452. Reuse of the indication listener fails at least in python 3
-# Therefore we use different port for each test
+    # TODO issue 452. Reuse of the indication listener fails at least in py3,
+    # therefore we use different port for each test.
     def test_send_10(self):
         """Test with sending 10 indications"""
         self.send_indications(10, 5000, None)
@@ -234,13 +241,14 @@ class TestIndications(unittest.TestCase):
         self.send_indications(100, 5001, None)
 
     # Disabled the following test, because in some environments it takes 30min.
-    #def test_send_1000(self):
-    #    """Test sending 1000 indications"""
-    #    self.send_indications(1000, 5002, None)
+    # def test_send_1000(self):
+    #     """Test sending 1000 indications"""
+    #     self.send_indications(1000, 5002, None)
 
-#    This test takes about 60 seconds and so is disabled for now
-#    def test_send_10000(self):
-#        self.send_indications(10000)
+    # This test takes about 60 seconds and so is disabled for now
+    # def test_send_10000(self):
+    #     self.send_indications(10000)
+
 
 if __name__ == '__main__':
     VERBOSE = False

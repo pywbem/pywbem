@@ -51,7 +51,7 @@ from six.moves import http_client as httplib
 from six.moves import urllib
 
 from .cim_obj import CIMClassName, CIMInstanceName, _ensure_unicode, \
-                     _ensure_bytes
+    _ensure_bytes
 from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError
 
 _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
@@ -60,17 +60,18 @@ if six.PY2 and not _ON_RTD:  # RTD has no swig to install M2Crypto
     from M2Crypto import SSL           # pylint: disable=wrong-import-position
     from M2Crypto.Err import SSLError  # pylint: disable=wrong-import-position
     _HAVE_M2CRYPTO = True
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     SocketErrors = (socket.error, socket.sslerror)
 else:
     import ssl as SSL                  # pylint: disable=wrong-import-position
     # pylint: disable=wrong-import-position
     from ssl import SSLError, CertificateError
     _HAVE_M2CRYPTO = False
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     SocketErrors = (socket.error,)
 
 __all__ = ['DEFAULT_CA_CERT_PATHS']
+
 
 def create_pywbem_ssl_context():
     """ Create an SSL context based on what is commonly accepted as the
@@ -106,14 +107,14 @@ def create_pywbem_ssl_context():
 
         # Variable settings per SSL create_default_context. These are what
         # the function above sets for Python 3.4
-        #context = SSLContext(PROTOCOL_SSLv23)
-        #context.options |= OP_NO_SSLv2
-        #context.options |= OP_NO_SSLv3
-        #context.options |= getattr(SSL, "OP_NO_COMPRESSION", 0)
-        #context.options |= getattr(SSL, "OP_CIPHER_SERVER_PREFERENCE", 0)
-        #context.options |= getattr(SSL, "OP_SINGLE_DH_USE", 0)
-        #context.options |= getattr(SSL, "OP_SINGLE_ECDH_USE", 0)
-        #context.set_ciphers(_RESTRICTED_SERVER_CIPHERS)
+        # context = SSLContext(PROTOCOL_SSLv23)
+        # context.options |= OP_NO_SSLv2
+        # context.options |= OP_NO_SSLv3
+        # context.options |= getattr(SSL, "OP_NO_COMPRESSION", 0)
+        # context.options |= getattr(SSL, "OP_CIPHER_SERVER_PREFERENCE", 0)
+        # context.options |= getattr(SSL, "OP_SINGLE_DH_USE", 0)
+        # context.options |= getattr(SSL, "OP_SINGLE_ECDH_USE", 0)
+        # context.set_ciphers(_RESTRICTED_SERVER_CIPHERS)
 
     return context
 
@@ -124,8 +125,9 @@ DEFAULT_PORT_HTTPS = 5989       # default port for https
 
 #: Default directory paths for looking up CA certificates.
 DEFAULT_CA_CERT_PATHS = \
-     ['/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt',
-      '/etc/ssl/certs', '/etc/ssl/certificates']
+    ['/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt',
+     '/etc/ssl/certs', '/etc/ssl/certificates']
+
 
 def get_default_ca_cert_paths():
     """Return the list of default certificate paths defined for this
@@ -195,11 +197,11 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
                 # exceptions that may be pending.
                 ts2 = datetime.now()
                 duration = ts2 - self._ts1
-                duration_sec = (float(duration.microseconds) / 1000000) +\
-                               duration.seconds + (duration.days * 24 * 3600)
+                duration_sec = (float(duration.microseconds) / 1000000) + \
+                    duration.seconds + (duration.days * 24 * 3600)
                 raise TimeoutError("The client timed out and closed the "
                                    "socket after %.0fs." % duration_sec)
-        return False # re-raise any other exceptions
+        return False  # re-raise any other exceptions
 
     def timer_expired(self):
         """
@@ -221,6 +223,7 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
             self._timer = threading.Timer(self._retrytime,
                                           HTTPTimeout.timer_expired, [self])
             self._timer.start()
+
 
 def parse_url(url, allow_defaults=True):
     """Return a tuple of ``(host, port, ssl)`` from the URL specified in the
@@ -318,6 +321,7 @@ def parse_url(url, allow_defaults=True):
 
     return host, port, ssl
 
+
 def get_default_ca_certs():
     """
     Try to find out system path with ca certificates. This path is cached and
@@ -331,6 +335,7 @@ def get_default_ca_certs():
         else:
             get_default_ca_certs._path = None
     return get_default_ca_certs._path
+
 
 # pylint: disable=too-many-branches,too-many-statements,too-many-arguments
 def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
@@ -490,7 +495,6 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                 # Another change is that we do not pass the timeout value
                 # on to the socket call, because that does not work with
                 # M2Crypto.
-
 
                 if sys.version_info[0:2] >= (2, 7):
                     # the source_address parameter was added in Python 2.7
@@ -845,7 +849,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                         pgdetails_hdr = response.getheader('PGErrorDetail',
                                                            None)
                         if pgdetails_hdr is not None:
-                            #pylint: disable=too-many-function-args
+                            # pylint: disable=too-many-function-args
                             cimdetails['PGErrorDetail'] = \
                                 urllib.parse.unquote(pgdetails_hdr)
                         raise HTTPError(response.status, response.reason,
@@ -866,13 +870,13 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                 # (e.g. because the server went down).
                 # See http://bugs.python.org/issue8450.
                 if exc.line is None or exc.line.strip().strip("'") in \
-                                       ('', 'None'):
-                    raise ConnectionError("The server closed the "
-                        "connection without returning any data, or the "
-                        "client timed out")
+                        ('', 'None'):
+                    raise ConnectionError("The server closed the connection "
+                                          "without returning any data, or the "
+                                          "client timed out")
                 else:
-                    raise ConnectionError("The server returned a bad "
-                        "HTTP status line: %r" % exc.line)
+                    raise ConnectionError("The server returned a bad HTTP "
+                                          "status line: %r" % exc.line)
             except httplib.IncompleteRead as exc:
                 raise ConnectionError("HTTP incomplete read: %s" % exc)
             except httplib.NotConnected as exc:

@@ -9,8 +9,9 @@ from __future__ import absolute_import, print_function
 import six
 import pytest
 
-from pywbem import Error, ConnectionError, AuthError, HTTPError, \
-                   TimeoutError, ParseError, VersionError, CIMError
+from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError,\
+    ParseError, VersionError, CIMError
+
 
 def _assert_subscription(exc):
 
@@ -36,12 +37,14 @@ def _assert_subscription(exc):
             else:
                 assert False, "Access by index did not fail in Python 3"
 
+
 # The exception classes for which the simple test should be done:
 @pytest.fixture(params=[
     Error, ConnectionError, AuthError, TimeoutError, ParseError, VersionError
 ], scope='module')
 def simple_class(request):
     return request.param
+
 
 # The init arguments for the simple exception classes:
 @pytest.fixture(params=[
@@ -51,6 +54,7 @@ def simple_class(request):
 ], scope='module')
 def simple_args(request):
     return request.param
+
 
 def test_simple(simple_class, simple_args):
 
@@ -66,6 +70,7 @@ def test_simple(simple_class, simple_args):
 
     _assert_subscription(exc)
 
+
 # The init arguments for the HTTPError exception class:
 @pytest.fixture(params=[
     # (status, reason, cimerror=None, cimdetails={})
@@ -75,6 +80,7 @@ def test_simple(simple_class, simple_args):
 ], scope='module')
 def httperror_args(request):
     return request.param
+
 
 def test_httperror(httperror_args):
 
@@ -98,6 +104,7 @@ def test_httperror(httperror_args):
     assert len(exc.args) == 4
 
     _assert_subscription(exc)
+
 
 # The CIM status codes for the CIMError exception class:
 @pytest.fixture(params=[
@@ -139,6 +146,7 @@ def test_httperror(httperror_args):
 def status_tuple(request):
     return request.param
 
+
 def test_cimerror_1(status_tuple):
 
     status_code = status_tuple[0]
@@ -162,6 +170,7 @@ def test_cimerror_1(status_tuple):
     assert len(exc.args) == 2
 
     _assert_subscription(exc)
+
 
 def test_cimerror_2(status_tuple):
 

@@ -71,6 +71,9 @@ General options:
   -v, --verbose         Print more messages while processing
   -h, --help            Show this help message and exit
 
-Examples: wbemcli https://localhost:15345 -n vendor -u sheldon -p penny -
-(https localhost, port=15345, namespace=vendor user=sheldon password=penny)
-wbemcli http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
+Examples:
+  wbemcli https://localhost:15345 -n vendor -u sheldon -p penny
+          - (https localhost, port=15345, namespace=vendor user=sheldon
+         password=penny)
+
+  wbemcli http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
