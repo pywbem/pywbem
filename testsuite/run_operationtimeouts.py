@@ -142,7 +142,7 @@ class ServerTimeoutTest(ClientTest):
             if delay > timeout:
                 err_flag = "Timeout Error: delay gt timeout"
                 if self.stop_on_err:
-                    self.fail('should not get good response for %delay > %s' % \
+                    self.fail('should not get good response for %delay > %s' %
                               (delay, timeout))
             if delay == timeout:
                 err_flag = "Good when timeout matches delay"
@@ -163,7 +163,7 @@ class ServerTimeoutTest(ClientTest):
             if delay < timeout:
                 err_flag = 'Error. delay < timeout'
                 if self.stop_on_err:
-                    self.fail('should not get timeout for %delay < %s' % \
+                    self.fail('should not get timeout for %delay < %s' %
                               (delay, timeout))
             if delay == timeout:
                 err_flag = "Timeout when timeout matches delay"
@@ -228,7 +228,7 @@ def parse_args(argv_):
     argv = list(argv_)
 
     if len(argv) <= 1:
-        print('Error: No arguments specified; Call with --help or -h for '\
+        print('Error: No arguments specified; Call with --help or -h for '
               'usage.')
         sys.exit(2)
     elif argv[1] == '--help' or argv[1] == '-h':
@@ -241,29 +241,29 @@ def parse_args(argv_):
         print('Complete test is in a single unittest function')
         print('')
         print('Usage:')
-        print('    %s [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '\
+        print('    %s [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '
               '[UT_CLASS ...]]] ' % argv[0])
         print('')
         print('Where:')
         print('    GEN_OPTS            General options (see below).')
-        print('    HOST                Name of the target WBEM server.\n'\
-              '                        No Scheme prefix\n'\
+        print('    HOST                Name of the target WBEM server.\n'
+              '                        No Scheme prefix\n'
               '                        defines ssl usage')
-        print('    USERNAME            Userid used to log into\n'\
-              '                        WBEM server.\n' \
+        print('    USERNAME            Userid used to log into\n'
+              '                        WBEM server.\n'
               '                        Requests user input if not supplied')
-        print('    PASSWORD            Password used to log into\n'\
-              '                        WBEM server.\n' \
+        print('    PASSWORD            Password used to log into\n'
+              '                        WBEM server.\n'
               '                        Requests user input if not supplier')
         print('')
         print('General options[GEN_OPTS]:')
         print('    --help, -h          Display this help text.')
-        print('    -t MAXTIMEOUT       Maximum timout value in sec. to test.\n'\
+        print('    -t MAXTIMEOUT       Maximum timout value in sec. to test.\n'
               '                        default is 20 sec.')
-        print('    -v                  Verbose output which includes\n' \
+        print('    -v                  Verbose output which includes\n'
               '                        result of each test.')
-        print('    -s                  Stop test on first timeout error.\n' \
-              '                        Otherwise errors in timeout are just\n' \
+        print('    -s                  Stop test on first timeout error.\n'
+              '                        Otherwise errors in timeout are just\n'
               '                        reported. Other errors stop test.')
         print('    -d                  Debug flag for extra displays')
 

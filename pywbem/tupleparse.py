@@ -197,17 +197,18 @@ def one_child(tup_tree, acceptable):
     k = kids(tup_tree)
 
     if len(k) != 1:
-        raise ParseError('In element %s with attributes %s, expected '\
-                'just one child element %s, but got child elements %s' %\
-                (name(tup_tree), attrs(tup_tree), acceptable,
-                 [t[0] for t in k]))
+        raise ParseError('In element %s with attributes %s, expected just '
+                         'one child element %s, but got child elements %s' %
+                         (name(tup_tree), attrs(tup_tree), acceptable,
+                          [t[0] for t in k]))
 
     child = k[0]
 
     if name(child) not in acceptable:
-        raise ParseError('In element %s with attributes %s, expected one '\
-                'child element %s, but got child element %s' %\
-                (name(tup_tree), attrs(tup_tree), acceptable, name(child)))
+        raise ParseError('In element %s with attributes %s, expected one '
+                         'child element %s, but got child element %s' %
+                         (name(tup_tree), attrs(tup_tree), acceptable,
+                          name(child)))
 
     return parse_any(child)
 
@@ -219,9 +220,10 @@ def optional_child(tup_tree, allowed):
     k = kids(tup_tree)
 
     if len(k) > 1:
-        raise ParseError('In element %s with attributes %s, expected zero or '\
-                'one child element %s, but got child elements %s' %\
-                (name(tup_tree), attrs(tup_tree), allowed, [t[0] for t in k]))
+        raise ParseError('In element %s with attributes %s, expected zero or '
+                         'one child element %s, but got child elements %s' %
+                         (name(tup_tree), attrs(tup_tree), allowed,
+                          [t[0] for t in k]))
     elif len(k) == 1:
         return one_child(tup_tree, allowed)
     else:
@@ -238,9 +240,11 @@ def list_of_various(tup_tree, acceptable):
 
     for child in kids(tup_tree):
         if name(child) not in acceptable:
-            raise ParseError('In element %s with attributes %s, expected zero '\
-                    'or more child elements %s, but got child element %s' %\
-                    (name(tup_tree), attrs(tup_tree), acceptable, name(child)))
+            raise ParseError('In element %s with attributes %s, expected zero '
+                             'or more child elements %s, but got child element '
+                             ' %s' %
+                             (name(tup_tree), attrs(tup_tree), acceptable,
+                              name(child)))
         result.append(parse_any(child))
 
     return result
@@ -274,16 +278,17 @@ def list_of_same(tup_tree, acceptable):
 
     a_child = name(kid[0])
     if a_child not in acceptable:
-        raise ParseError('In element %s with attributes %s, expected '\
-                'child elements %s, but got child element %s' %\
-                (name(tup_tree), attrs(tup_tree), acceptable, a_child))
+        raise ParseError('In element %s with attributes %s, expected '
+                         'child elements %s, but got child element %s' %
+                         (name(tup_tree), attrs(tup_tree), acceptable,
+                          a_child))
     result = []
     for child in kid:
         if name(child) != a_child:
-            raise ParseError('In element %s with attributes %s, expected '\
-                    'sequence of only child elements %s, but got child '\
-                    'element %s' % (name(tup_tree), attrs(tup_tree), a_child, \
-                     name(child)))
+            raise ParseError('In element %s with attributes %s, expected '
+                             'sequence of only child elements %s, but got child'
+                             ' element %s' % (name(tup_tree), attrs(tup_tree),
+                                              a_child, name(child)))
         result.append(parse_any(child))
 
     return result
@@ -1059,7 +1064,7 @@ def parse_property(tup_tree):
         val = unpack_value(tup_tree)
     except ValueError as exc:
         msg = str(exc)
-        raise ParseError('Cannot parse value for property "%s": %s' %\
+        raise ParseError('Cannot parse value for property "%s": %s' %
                          (attrl['NAME'], msg))
 
     embedded_object = None
@@ -1407,7 +1412,7 @@ def parse_methodcall(tup_tree):
                ['LOCALCLASSPATH', 'LOCALINSTANCEPATH', 'PARAMVALUE'])
     path = list_of_matching(tup_tree, ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
     if len(path) != 1:
-        raise ParseError('Expecting one of LOCALCLASSPATH or ' \
+        raise ParseError('Expecting one of LOCALCLASSPATH or '
                          'LOCALINSTANCEPATH, got %r' % path)
     path = path[0]
     params = list_of_matching(tup_tree, ['PARAMVALUE'])
@@ -1773,7 +1778,7 @@ def unpack_value(tup_tree):
     if len(raw_val) == 0:
         return None
     elif len(raw_val) > 1:
-        raise ParseError('more than one VALUE or VALUE.ARRAY under %s' % \
+        raise ParseError('more than one VALUE or VALUE.ARRAY under %s' %
                          name(tup_tree))
 
     raw_val = raw_val[0]

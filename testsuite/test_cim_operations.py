@@ -32,7 +32,7 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
             check_utf8_xml_chars(utf8_xml, "Test XML")
         except ParseError as exc:
             if self.VERBOSE:
-                print("Verify manually: Input XML: %r, ParseError: %s" %\
+                print("Verify manually: Input XML: %r, ParseError: %s" %
                       (utf8_xml, exc))
             self.assertFalse(expected_ok,
                              "ParseError unexpectedly raised: %s" % exc)
@@ -53,7 +53,7 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
 
         # invalid XML characters
         if self.VERBOSE:
-            print("From here on, the only expected exception is ParseError "\
+            print("From here on, the only expected exception is ParseError "
                   "for invalid XML characters...")
         self._run_single(b'<V>a\bb</V>', False)
         self._run_single(b'<V>a\x08b</V>', False)
@@ -64,7 +64,7 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
 
         # correctly encoded but ill-formed UTF-8
         if self.VERBOSE:
-            print("From here on, the only expected exception is ParseError "\
+            print("From here on, the only expected exception is ParseError "
                   "for ill-formed UTF-8 Byte sequences...")
         # combo of U+D800,U+DD22:
         self._run_single(b'<V>a\xED\xA0\x80\xED\xB4\xA2b</V>', False)
@@ -76,7 +76,7 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
 
         # incorrectly encoded UTF-8
         if self.VERBOSE:
-            print("From here on, the only expected exception is ParseError "\
+            print("From here on, the only expected exception is ParseError "
                   "for invalid UTF-8 Byte sequences...")
         # incorrect 1-byte sequence:
         self._run_single(b'<V>a\x80b</V>', False)

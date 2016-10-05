@@ -64,34 +64,34 @@ class ValidateTest(unittest.TestCase):
             validate_xml(xml_str,
                          dtd_directory=os.path.relpath(_MODULE_PATH),
                          root_elem=root_elem),
-            'DTD validation of CIM-XML for %s object failed\n'\
-            '  Required XML root element: %s\n'\
+            'DTD validation of CIM-XML for %s object failed\n'
+            '  Required XML root element: %s\n'
             '  Generated CIM-XML: %s' % (type(obj), root_elem, xml_str))
 
         xml_str2 = obj.tocimxmlstr()
         self.assertTrue(isinstance(xml_str2, six.text_type),
-                        'XML string returned by tocimxmlstr() is not ' \
+                        'XML string returned by tocimxmlstr() is not '
                         'a unicode type, but: %s' % type(xml_str2))
         self.assertEqual(xml_str2, xml_str,
-                         'XML string returned by tocimxmlstr() is not ' \
+                         'XML string returned by tocimxmlstr() is not '
                          'equal to tocimxml().toxml().')
 
         xml_pretty_str = obj.tocimxml().toprettyxml(indent='    ')
         xml_pretty_str2 = obj.tocimxmlstr(indent='    ')
         self.assertTrue(isinstance(xml_pretty_str2, six.text_type),
-                        'XML string returned by tocimxmlstr() is not ' \
+                        'XML string returned by tocimxmlstr() is not '
                         'a unicode type, but: %s' % type(xml_pretty_str2))
         self.assertEqual(xml_pretty_str2, xml_pretty_str,
-                         'XML string returned by tocimxmlstr(indent) is not ' \
+                         'XML string returned by tocimxmlstr(indent) is not '
                          'equal to tocimxml().toprettyxml(indent).')
 
         xml_pretty_str = obj.tocimxml().toprettyxml(indent='  ')
         xml_pretty_str2 = obj.tocimxmlstr(indent=2)
         self.assertTrue(isinstance(xml_pretty_str2, six.text_type),
-                        'XML string returned by tocimxmlstr() is not ' \
+                        'XML string returned by tocimxmlstr() is not '
                         'a unicode type, but: %s' % type(xml_pretty_str2))
         self.assertEqual(xml_pretty_str2, xml_pretty_str,
-                         'XML string returned by tocimxmlstr(indent) is not ' \
+                         'XML string returned by tocimxmlstr(indent) is not '
                          'equal to tocimxml().toprettyxml(indent).')
 
 def swapcase2(text):
@@ -139,8 +139,8 @@ class DictTest(unittest.TestCase):
         except KeyError:
             pass
         else:
-            self.fail('KeyError not thrown when accessing undefined key '\
-                      '\'Cheepy\'\n'\
+            self.fail('KeyError not thrown when accessing undefined key '
+                      '\'Cheepy\'\n'
                       'Object: %r' % obj)
 
         # Test __setitem__()
@@ -238,8 +238,8 @@ class DictTest(unittest.TestCase):
                              default_value)
         except Exception as exc:
             self.fail('%s thrown in exception-free get() when accessing '
-                      'undefined key %s\n'\
-                      'Object: %r' % \
+                      'undefined key %s\n'
+                      'Object: %r' %
                       (exc.__class__.__name__, invalid_propname, obj))
 
         # Test update()
@@ -731,8 +731,8 @@ class InitCIMInstance(unittest.TestCase):
                 pass
             else:
                 self.fail('TypeError not raised for invalid value %s '
-                          '(type %s) for property of unspecified type\n'\
-                          'Instance properties: %r' %\
+                          '(type %s) for property of unspecified type\n'
+                          'Instance properties: %r' %
                           (num_value, type(num_value), inst.properties))
 
         # Check that initialization with string values for boolean types
@@ -750,9 +750,9 @@ class InitCIMInstance(unittest.TestCase):
             except TypeError:
                 pass
             else:
-                self.fail('TypeError not raised for invalid value \'TRUE\' '\
-                          '(type string) for property of type boolean'\
-                          'Instance properties: %r' %\
+                self.fail('TypeError not raised for invalid value \'TRUE\' '
+                          '(type string) for property of type boolean'
+                          'Instance properties: %r' %
                           (inst.properties,))
 
         # Initialize with some qualifiers
@@ -918,9 +918,9 @@ class CIMInstanceDict(DictTest):
         except TypeError:
             pass
         else:
-            self.fail('TypeError not raised for invalid value 43 '\
-                      '(type int) for property of unspecified type'\
-                      'Instance properties: %r' %\
+            self.fail('TypeError not raised for invalid value 43 '
+                      '(type int) for property of unspecified type'
+                      'Instance properties: %r' %
                       (obj.properties,))
 
         obj['Foo'] = Uint32(43)
@@ -1191,15 +1191,15 @@ class CIMInstanceToMOF(unittest.TestCase):
             r"(?:\s*(\w+)\s*=\s*.*;){4,4}" # just match the general syntax
             r"\s*\}\s*;\s*$", imof)
         if m is None:
-            self.fail("Invalid MOF generated.\n"\
-                      "Instance: %r\n"\
+            self.fail("Invalid MOF generated.\n"
+                      "Instance: %r\n"
                       "Generated MOF: %r" % (i, imof))
 
         # search for one property
         s = re.search(r"\n\s*MyRef\s*=\s*CIM_Bar;\n", imof)
         if s is None:
-            self.fail("Invalid MOF generated. No MyRef.\n"\
-                      "Instance: %r\n"\
+            self.fail("Invalid MOF generated. No MyRef.\n"
+                      "Instance: %r\n"
                       "Generated MOF: %r" % (i, imof))
 
 class CIMInstanceWithEmbeddedInstToMOF(unittest.TestCase):
@@ -1240,16 +1240,16 @@ class CIMInstanceWithEmbeddedInstToMOF(unittest.TestCase):
             imof)
 
         if m is None:
-            self.fail("Invalid MOF generated.\n"\
-                      "Instance: %r\n"\
+            self.fail("Invalid MOF generated.\n"
+                      "Instance: %r\n"
                       "Generated MOF: %r" % (i, imof))
 
         # search for the CIM_Embedded instance.
         s = re.search(r"CIM_Embedded", imof)
 
         if s is None:
-            self.fail("Invalid MOF embedded generated.\n"\
-                      "Instance: %r\n"\
+            self.fail("Invalid MOF embedded generated.\n"
+                      "Instance: %r\n"
                       "Generated MOF: %r" % (i, imof))
         # TODO this test only catchs existence of the embedded instance
 
@@ -2414,11 +2414,11 @@ class CIMClassPropertyWithValueToMOF(unittest.TestCase, RegexpMixin):
         self.assertRegexpContains(imof, r"\n\s*uint8\s+MyUint8\s+=\s+99;")
         self.assertRegexpContains(imof, r"\n\s*uint16\s+MyUint16\s+=\s+999;")
         self.assertRegexpContains(imof, r"\n\s*uint32\s+MyUint32\s+=\s+12345;")
-        self.assertRegexpContains(imof, r"\n\s*sint32\s+MySint32\s+=\s+" \
+        self.assertRegexpContains(imof, r"\n\s*sint32\s+MySint32\s+=\s+"
                                         r"-12345;")
-        self.assertRegexpContains(imof, r"\n\s*datetime\s+Mydatetime\s+=\s+" \
+        self.assertRegexpContains(imof, r"\n\s*datetime\s+Mydatetime\s+=\s+"
                                         r"\"12345678224455.654321:000\";")
-        self.assertRegexpContains(imof, r"\n\s*string\s+MyStr\s+=\s+" \
+        self.assertRegexpContains(imof, r"\n\s*string\s+MyStr\s+=\s+"
                                         r"\"This is a test\";")
 
         self.assertRegexpContains(imof, r"\n\};")
@@ -2550,9 +2550,9 @@ class CIMClassWQualToMOF(unittest.TestCase):
         # predefine qualifiers, params
         pquals = {'ModelCorresponse': CIMQualifier('ModelCorrespondense',
                                                    'BlahBlahClass'),
-                  'Description': CIMQualifier('Description', "This is a" \
-                                               " description for a property" \
-                                               " that serves no purpose" \
+                  'Description': CIMQualifier('Description', "This is a"
+                                               " description for a property"
+                                               " that serves no purpose"
                                                " but is multiline.")}
         pquals2 = {'ValueMap': CIMQualifier('ValueMap',
                                             ["0", "1", "2", "3", "4",
@@ -2578,7 +2578,7 @@ class CIMClassWQualToMOF(unittest.TestCase):
             'CIM_Foo', superclass='CIM_Bar',
             qualifiers={'Abstract': CIMQualifier('Abstract', True),
                         'Description': CIMQualifier('Description',
-                                                    'This is a class ' \
+                                                    'This is a class '
                                                     'description')},
 
             properties={'InstanceID': CIMProperty('InstanceID', None,
@@ -2613,32 +2613,32 @@ class CIMClassWQualToMOF(unittest.TestCase):
         # match first line for [Abstract (True),
         m = re.match(r"^\s*\[Abstract", clmof)
         if m is None:
-            self.fail("Invalid MOF generated. First line\n"\
-                      "Class: %r\n"\
+            self.fail("Invalid MOF generated. First line\n"
+                      "Class: %r\n"
                       "Generated MOF: \n%s" % (cl, clmof))
 
         # search for class CIM_Foo: CIM_Bar {
         s = re.search(r"\s*class\s+CIM_Foo\s*:\s*CIM_Bar\s*\{", clmof)
 
         if s is None:
-            self.fail("Invalid MOF generated. Class name line.\n"\
-                      "Class: %r\n"\
+            self.fail("Invalid MOF generated. Class name line.\n"
+                      "Class: %r\n"
                       "Generated MOF: \n%s" % (cl, clmof))
 
         # search for EmbeddedInstance ("My_Embedded")]
         s = re.search(r"\s*EmbeddedInstance\s+\(\"My_Embedded\"\)\]", clmof)
 
         if s is None:
-            self.fail("Invalid MOF generated. EmbeddedInstance.\n"\
-                      "Class: %r\n"\
+            self.fail("Invalid MOF generated. EmbeddedInstance.\n"
+                      "Class: %r\n"
                       "Generated MOF: \n%s" % (cl, clmof))
 
         # search for 'string MyEmbedded;'
         s = re.search(r"\s*string\s+MyEmbedded;", clmof)
 
         if s is None:
-            self.fail("Invalid MOF generated. property string MyEmbedded.\n"\
-                      "Class: %r\n"\
+            self.fail("Invalid MOF generated. property string MyEmbedded.\n"
+                      "Class: %r\n"
                       "Generated MOF: \n%s" % (cl, clmof))
 
 
@@ -2672,7 +2672,7 @@ class CIMClassWoQualifiersToMof(unittest.TestCase, RegexpMixin):
 
         # search for class CIM_Foo: CIM_Bar {
         self.assertRegexpContains(clmof,
-                                  r"^\s*class\s+CIM_FooNoQual\s*:\s*" \
+                                  r"^\s*class\s+CIM_FooNoQual\s*:\s*"
                                   r"CIM_Bar\s*\{")
 
         # match method Delete,
@@ -3134,7 +3134,7 @@ class ToCIMObj(unittest.TestCase):
 
         path = cim_obj.tocimobj(
             'reference',
-            "Acme_User.uid=33,OSName=\"acmeunit\"," \
+            "Acme_User.uid=33,OSName=\"acmeunit\","
             "SystemName=\"UnixHost\"")
         self.assertTrue(isinstance(path, CIMInstanceName))
         self.assertTrue(path.namespace is None)
@@ -3174,7 +3174,7 @@ class ToCIMObj(unittest.TestCase):
 
         path = cim_obj.tocimobj(
             'reference',
-            '//./root/default:LogicalDisk.SystemName="acme",' \
+            '//./root/default:LogicalDisk.SystemName="acme",'
             'LogicalDisk.Drive="C"')
         self.assertTrue(isinstance(path, CIMInstanceName))
         self.assertEqual(path.namespace, 'root/default')

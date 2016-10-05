@@ -62,12 +62,12 @@ def _represent_ordereddict(dump, tag, mapping, flow_style=None):
     for item_key, item_value in mapping:
         node_key = dump.represent_data(item_key)
         node_value = dump.represent_data(item_value)
-        if not (isinstance(node_key, yaml.ScalarNode) \
-           and not node_key.style):
-            best_style = False
-        if not (isinstance(node_value, yaml.ScalarNode) \
-           and not node_value.style):
-            best_style = False
+        if not (isinstance(node_key, yaml.ScalarNode) and
+                not node_key.style):
+                    best_style = False    # pylint: disable=bad-indentation
+        if not (isinstance(node_value, yaml.ScalarNode) and
+                not node_value.style):
+                    best_style = False    # pylint: disable=bad-indentation
         value.append((node_key, node_value))
     if flow_style is None:
         if dump.default_flow_style is not None:
@@ -576,6 +576,6 @@ class TestClientRecorder(BaseOperationRecorder):
             ret['translatable'] = self.toyaml(obj.translatable)
             return ret
         else:
-            raise TypeError("Invalid type in TestClientRecorder.toyaml(): " \
+            raise TypeError("Invalid type in TestClientRecorder.toyaml(): "
                             "%s %s" % (obj.__class__.__name__, type(obj)))
 

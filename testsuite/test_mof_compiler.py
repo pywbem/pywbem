@@ -82,7 +82,7 @@ def setUpModule():
         zf = ZipFile(tfo, 'r')
         nlist = zf.namelist()
         for i in range(0, len(nlist)):
-            sys.stdout.write('\rUnpacking %s: %d%% ' % \
+            sys.stdout.write('\rUnpacking %s: %d%% ' %
                              (mofbname, 100 * (i + 1) / len(nlist)))
             sys.stdout.flush()
             file_ = nlist[i]
@@ -445,7 +445,7 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
                 #self.assertEqual(i['peo'], None)
                 #self.assertEqual(i['pei'], None)
             else:
-                self.fail('Cannot find required instance k1=%s, k2=%s' % \
+                self.fail('Cannot find required instance k1=%s, k2=%s' %
                           (i['k1'], i['k2']))
 
 
@@ -777,41 +777,41 @@ class BaseTestLexer(unittest.TestCase):
                 if isinstance(exp_token, LexErrorToken):
                     # We expect an error
                     if self.last_error_t is None:
-                        self.fail("t_error() was not called as expected, " \
+                        self.fail("t_error() was not called as expected, "
                                   "actual token: %r" % act_token)
                     else:
                         self.assertTrue(
-                            self.last_error_t.type == exp_token.type and \
+                            self.last_error_t.type == exp_token.type and
                             self.last_error_t.value == exp_token.value,
-                            "t_error() was called with an unexpected " \
-                            "token: %r (expected: %r)" % \
+                            "t_error() was called with an unexpected "
+                            "token: %r (expected: %r)" %
                             (self.last_error_t, exp_token))
                 else:
                     # We do not expect an error
                     if self.last_error_t is not None:
                         self.fail(
-                            "t_error() was unexpectedly called with " \
+                            "t_error() was unexpectedly called with "
                             "token: %r" % self.last_error_t)
                     else:
                         self.assertTrue(
                             act_token.type == exp_token.type,
-                            "Unexpected token type: %s (expected: %s) " \
-                            "in token: %r" % \
+                            "Unexpected token type: %s (expected: %s) "
+                            "in token: %r" %
                             (act_token.type, exp_token.type, act_token))
                         self.assertTrue(
                             act_token.value == exp_token.value,
-                            "Unexpected token value: %s (expected: %s) " \
-                            "in token: %r" % \
+                            "Unexpected token value: %s (expected: %s) "
+                            "in token: %r" %
                             (act_token.value, exp_token.value, act_token))
                         self.assertTrue(
                             act_token.lineno == exp_token.lineno,
-                            "Unexpected token lineno: %s (expected: %s) " \
-                            "in token: %r" % \
+                            "Unexpected token lineno: %s (expected: %s) "
+                            "in token: %r" %
                             (act_token.lineno, exp_token.lineno, act_token))
                         self.assertTrue(
                             act_token.lexpos == exp_token.lexpos,
-                            "Unexpected token lexpos: %s (expected: %s) " \
-                            "in token: %r" % \
+                            "Unexpected token lexpos: %s (expected: %s) "
+                            "in token: %r" %
                             (act_token.lexpos, exp_token.lexpos, act_token))
 
 class TestLexerSimple(BaseTestLexer):

@@ -106,9 +106,9 @@ def obj(value, tc_name):
             try:
                 ctor_call = getattr(pywbem, ctor_name)
             except AttributeError:
-                raise ClientTestError("Error in definition of testcase %s: "\
-                                      "Unknown type specified in " \
-                                      "'pywbem_object' attribute: %s" % \
+                raise ClientTestError("Error in definition of testcase %s: "
+                                      "Unknown type specified in "
+                                      "'pywbem_object' attribute: %s" %
                                       (tc_name, ctor_name))
             ctor_args = {}
             for arg_name in value:
@@ -143,7 +143,7 @@ def tc_getattr(tc_name, dict_, key, default=-1):
     except (KeyError, IndexError):
         if default != -1:
             return default
-        raise ClientTestError("Error in definition of testcase %s: "\
+        raise ClientTestError("Error in definition of testcase %s: "
                               "'%s' attribute missing" % (tc_name, key))
     return value
 
@@ -162,7 +162,7 @@ def tc_getattr_list(tc_name, dict_, key, default=-1):
     except KeyError:
         if default != -1:
             return default
-        raise ClientTestError("Error in definition of testcase %s: "\
+        raise ClientTestError("Error in definition of testcase %s: "
                               "'%s' attribute missing" % (tc_name, key))
     return value
 
@@ -450,7 +450,7 @@ class ClientTest(unittest.TestCase):
         if not checker.check_output(ns_act, ns_exp, 0):
             diff = checker.output_difference(doctest.Example("", ns_exp),
                                              ns_act, 0)
-            raise AssertionError("XML is not as expected in %s: %s" % \
+            raise AssertionError("XML is not as expected in %s: %s" %
                                  (entity, diff))
 
     def test_all(self):
@@ -522,8 +522,8 @@ class ClientTest(unittest.TestCase):
                 try:
                     callback_func = getattr(Callback(), callback_name)
                 except AttributeError:
-                    raise ClientTestError("Error in testcase %s: Unknown "\
-                                          "exception callback specified: %s" % \
+                    raise ClientTestError("Error in testcase %s: Unknown "
+                                          "exception callback specified: %s" %
                                           (tc_name, callback_name))
                 params = {
                     "body": callback_func
@@ -566,8 +566,8 @@ class ClientTest(unittest.TestCase):
             op_call = getattr(conn, op_name)
 
         except AttributeError as exc:
-            raise ClientTestError("Error in definition of testcase %s: "\
-                                  "Unknown operation name: %s" %\
+            raise ClientTestError("Error in definition of testcase %s: "
+                                  "Unknown operation name: %s" %
                                   (tc_name, op_name))
 
         # Invoke the PyWBEM operation to be tested
@@ -602,19 +602,19 @@ class ClientTest(unittest.TestCase):
                                      None)
 
         if exp_pull_result and exp_result:
-            raise ClientTestError("Error in definition of testcase %s: "\
-                                  "result and pull result attributes "\
+            raise ClientTestError("Error in definition of testcase %s: "
+                                  "result and pull result attributes "
                                   "are exclusive.")
 
         if exp_exception is not None and exp_result is not None:
-            raise ClientTestError("Error in definition of testcase %s: "\
-                                  "'result' and 'exception' attributes in "\
-                                  "'pywbem_result' are not compatible." %\
+            raise ClientTestError("Error in definition of testcase %s: "
+                                  "'result' and 'exception' attributes in "
+                                  "'pywbem_result' are not compatible." %
                                   tc_name)
         if exp_cim_status != 0 and exp_result is not None:
-            raise ClientTestError("Error in definition of testcase %s: "\
-                                  "'result' and 'cim_status' attributes in "\
-                                  "'pywbem_result' are not compatible." %\
+            raise ClientTestError("Error in definition of testcase %s: "
+                                  "'result' and 'cim_status' attributes in "
+                                  "'pywbem_result' are not compatible." %
                                   tc_name)
 
         if exp_cim_status != 0:
@@ -622,26 +622,26 @@ class ClientTest(unittest.TestCase):
 
         if exp_exception is not None:
             if raised_exception is None:
-                raise AssertionError("Testcase %s: A %s exception was "\
-                                     "expected to be raised by PyWBEM "\
-                                     "operation %s, but no exception was "\
-                                     "actually raised." %\
+                raise AssertionError("Testcase %s: A %s exception was "
+                                     "expected to be raised by PyWBEM "
+                                     "operation %s, but no exception was "
+                                     "actually raised." %
                                      (tc_name, exp_exception, op_name))
             elif raised_exception.__class__.__name__ != exp_exception:
-                raise AssertionError("Testcase %s: A %s exception was "\
-                                     "expected to be raised by PyWBEM "\
-                                     "operation %s, but a different "\
-                                     "exception was actually raised:\n"\
-                                     "%s\n" %\
+                raise AssertionError("Testcase %s: A %s exception was "
+                                     "expected to be raised by PyWBEM "
+                                     "operation %s, but a different "
+                                     "exception was actually raised:\n"
+                                     "%s\n" %
                                      (tc_name, exp_exception, op_name,
                                       raised_traceback_str))
         else:
             if raised_exception is not None:
-                raise AssertionError("Testcase %s: No exception was "\
-                                     "expected to be raised by PyWBEM "\
-                                     "operation %s, but an exception was "\
-                                     "actually raised:\n"\
-                                     "%s\n" %\
+                raise AssertionError("Testcase %s: No exception was "
+                                     "expected to be raised by PyWBEM "
+                                     "operation %s, but an exception was "
+                                     "actually raised:\n"
+                                     "%s\n" %
                                      (tc_name, op_name, raised_traceback_str))
 
         # Validate HTTP request produced by PyWBEM
@@ -653,14 +653,14 @@ class ClientTest(unittest.TestCase):
                             "HTTP request is empty")
             exp_verb = tc_getattr(tc_name, exp_http_request, "verb")
             self.assertEqual(http_request.method, exp_verb,
-                             "Verb in HTTP request is: %s (expected: %s)" % \
+                             "Verb in HTTP request is: %s (expected: %s)" %
                              (http_request.method, exp_verb))
             exp_headers = tc_getattr(tc_name, exp_http_request, "headers", {})
             for header_name in exp_headers:
                 self.assertEqual(http_request.headers[header_name],
                                  exp_headers[header_name],
-                                 "Value of %s header in HTTP request is: %s " \
-                                 "(expected: %s)" % \
+                                 "Value of %s header in HTTP request is: %s "
+                                 "(expected: %s)" %
                                  (header_name,
                                   http_request.headers[header_name],
                                   exp_headers[header_name]))
@@ -691,7 +691,7 @@ class ClientTest(unittest.TestCase):
                 print("Details for the following assertion error:")
                 print("- Expected result type: %s" % type(exp_result_obj))
                 print("- Actual result type: %s" % type(result))
-                raise AssertionError("PyWBEM CIM result type is not" \
+                raise AssertionError("PyWBEM CIM result type is not"
                                      " as expected.")
 
             # The testcase can only specify dicts but not NocaseDicts, so we
@@ -713,7 +713,7 @@ class ClientTest(unittest.TestCase):
                 print("- Actual result: %s" % repr(result))
                 if conn.debug:
                     print("- HTTP response data: %r" % conn.last_raw_reply)
-                raise AssertionError("WBEMConnection operation method result " \
+                raise AssertionError("WBEMConnection operation method result "
                                      "is not as expected.")
 
         # if this is a pull result, compare the components of expected
@@ -724,58 +724,58 @@ class ClientTest(unittest.TestCase):
             # Length should be the same
             if len(result) != len(exp_pull_result_obj):
                 print("Details for the following assertion error:")
-                print("- Expected pull_result tuple size: %s" % \
+                print("- Expected pull_result tuple size: %s" %
                       len(exp_pull_result_obj))
                 print("- Actual result len: %s" % len(result))
-                raise AssertionError("PyWBEM CIM result type is not" \
+                raise AssertionError("PyWBEM CIM result type is not"
                                      " as expected.")
             #eos is required result
             if result.eos != exp_pull_result_obj.eos:
                 print("Details for the following assertion error:")
-                print("- Expected pull result.eos: %r" % \
+                print("- Expected pull result.eos: %r" %
                       exp_pull_result_obj.eos)
                 print("- Actual pull result.eos: %r" % result.eos)
                 if conn.debug:
                     print("- HTTP response data: %r" % conn.last_raw_reply)
-                raise AssertionError("WBEMConnection operation method result " \
+                raise AssertionError("WBEMConnection operation method result "
                                      "is not as expected.")
 
             # context is required result
             if result.context != exp_pull_result_obj.context:
                 print("Details for the following assertion error:")
-                print("- Expected pull result.context: %r" % \
+                print("- Expected pull result.context: %r" %
                     exp_pull_result_obj.context)
                 print("- Actual pull result.context: %r" % result.context)
                 if conn.debug:
                     print("- HTTP response data: %r" % conn.last_raw_reply)
-                raise AssertionError("WBEMConnection operation method result " \
+                raise AssertionError("WBEMConnection operation method result "
                                      "is not as expected.")
 
             if "instances" in exp_pull_result:
                 if result.instances != exp_pull_result_obj.instances:
                     # TODO 2016/07 AM: Improve the presentation of the diff.
                     print("Details for the following assertion error:")
-                    print("- Expected pull result: %r" % \
+                    print("- Expected pull result: %r" %
                           exp_pull_result_obj.instances)
                     print("- Actual pull result: %r" % result.instances)
                     if conn.debug:
                         print("- HTTP response data: %r" % conn.last_raw_reply)
-                    raise AssertionError("WBEMConnection operation method " \
+                    raise AssertionError("WBEMConnection operation method "
                                          "result is not as expected.")
             elif "paths" in exp_pull_result:
                 if result.paths != exp_pull_result_obj.paths:
                     # TODO 2016/07 AM: Improve the presentation of the diff.
                     print("Details for the following assertion error:")
-                    print("- Expected pull result: %r" % \
+                    print("- Expected pull result: %r" %
                           exp_pull_result_obj.paths)
                     print("- Actual pull result: %r" % result.paths)
                     if conn.debug:
                         print("- HTTP response data: %r" % conn.last_raw_reply)
-                    raise AssertionError("WBEMConnection operation method " \
+                    raise AssertionError("WBEMConnection operation method "
                                          "result is not as expected.")
             else:
-                raise AssertionError("WBEMConnection operation method result " \
-                     "is not as expected. No 'instances' " \
+                raise AssertionError("WBEMConnection operation method result "
+                     "is not as expected. No 'instances' "
                      "or 'paths' component.")
 
             # TODO redo as indexed loop to compare all items.
@@ -803,8 +803,8 @@ def result_tuple(value, tc_name):
             instances = value["instances"]
             objs = obj(instances, tc_name)
             if 'paths' in value:
-                raise AssertionError("WBEMConnection operation method " \
-                                     "result is not as expected. Both " \
+                raise AssertionError("WBEMConnection operation method "
+                                     "result is not as expected. Both "
                                      "'instances' and 'paths' component.")
 
         elif "paths" in value:
@@ -812,14 +812,14 @@ def result_tuple(value, tc_name):
             objs = obj(paths, tc_name)
             result = namedtuple("result", ["paths", "eos", "context"])
         else:
-            raise AssertionError("WBEMConnection operation method result " \
-                                 "is not as expected. No 'instances' " \
+            raise AssertionError("WBEMConnection operation method result "
+                                 "is not as expected. No 'instances' "
                                  "or 'paths' component.")
 
         return result(objs, value["eos"], value["context"])
 
     else:
-        raise AssertionError("WBEMConnection operation invalid tuple " \
+        raise AssertionError("WBEMConnection operation invalid tuple "
                                  "definition.")
 
 

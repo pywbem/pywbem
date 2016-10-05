@@ -382,7 +382,7 @@ class MOFParseError(Error):
         ret_str = 'MOFParseError: '
         if self.lineno is not None:
             ret_str += '%s:%s: %smsg=%s\n%s' % \
-                         (self.file, self.lineno, self.column, self.msg, \
+                         (self.file, self.lineno, self.column, self.msg,
                           self.context)
         else:
             ret_str += '%s' % self.msg
@@ -610,7 +610,7 @@ def p_mp_createClass(p):
         try:
             p.parser.handle.ModifyClass(cc, ns)
         except CIMError as ce:
-            p.parser.log('Error Modifying class %s: %s, %s' % \
+            p.parser.log('Error Modifying class %s: %s, %s' %
                          (cc.classname, ce.args[0], ce.args[1]))
 
 def p_mp_createInstance(p):
@@ -623,19 +623,19 @@ def p_mp_createInstance(p):
     except CIMError as ce:
         if ce.args[0] == CIM_ERR_ALREADY_EXISTS:
             if p.parser.verbose:
-                p.parser.log('Instance of class %s already exist.  ' \
+                p.parser.log('Instance of class %s already exist.  '
                              'Modifying...' % inst.classname)
             try:
                 p.parser.handle.ModifyInstance(inst)
             except CIMError as ce:
                 if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
                     if p.parser.verbose:
-                        p.parser.log('ModifyInstance not supported.  ' \
-                                     'Deleting instance of %s: %s' % \
+                        p.parser.log('ModifyInstance not supported.  '
+                                     'Deleting instance of %s: %s' %
                                      (inst.classname, inst.path))
                     p.parser.handle.DeleteInstance(inst.path)
                     if p.parser.verbose:
-                        p.parser.log('Creating instance of %s.' % \
+                        p.parser.log('Creating instance of %s.' %
                                      inst.classname)
                     p.parser.handle.CreateInstance(inst)
         else:
@@ -660,7 +660,7 @@ def p_mp_setQualifier(p):
             p.parser.handle.SetQualifier(qualdecl)
         elif ce.args[0] == CIM_ERR_NOT_SUPPORTED:
             if p.parser.verbose:
-                p.parser.log('Qualifier %s already exists.  Deleting...' % \
+                p.parser.log('Qualifier %s already exists.  Deleting...' %
                              qualdecl.name)
             p.parser.handle.DeleteQualifier(qualdecl.name)
             if p.parser.verbose:
@@ -1349,7 +1349,7 @@ def _build_flavors(p, flist, qualdecl=None):
         or \
         ('restricted' in flist and 'tosubclass' in flist):  # noqa: E125
 
-        raise MOFParseError(parser_token=p, msg="Conflicting flavors are" \
+        raise MOFParseError(parser_token=p, msg="Conflicting flavors are"
                             "invalid")
 
     if qualdecl is not None:
@@ -1546,7 +1546,7 @@ def p_instanceDeclaration(p):
             inst.properties[pname] = pprop
         except ValueError as ve:
             ce = CIMError(CIM_ERR_INVALID_PARAMETER,
-                          'Invalid value for property %s: %s' % \
+                          'Invalid value for property %s: %s' %
                           (pname, str(ve)))
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce

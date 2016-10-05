@@ -101,7 +101,7 @@ class CIMXMLTest(unittest.TestCase):
                 exp_xml_str = self.xml_str[i]
                 if exp_xml_str is not None:
                     self.assertEqual(act_xml_str, exp_xml_str,
-                                     "CIM-XML fragment to be tested: %r" %\
+                                     "CIM-XML fragment to be tested: %r" %
                                      act_xml_str)
 
 

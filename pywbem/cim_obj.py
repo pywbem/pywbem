@@ -168,11 +168,11 @@ class NocaseDict(object):
                 pass
             else:
                 raise TypeError(
-                    "Invalid type for NocaseDict initialization: %s (%s)" % \
+                    "Invalid type for NocaseDict initialization: %s (%s)" %
                     (args[0].__class__.__name__, type(args[0])))
         elif len(args) > 1:
             raise TypeError(
-                "Too many positional arguments for NocaseDict initialization: "\
+                "Too many positional arguments for NocaseDict initialization: "
                 "%s (1 allowed)" % len(args))
 
         # Step 2: Add any keyword arguments
@@ -208,7 +208,7 @@ class NocaseDict(object):
         Raises `TypeError` if the specified key does not have string type.
         """
         if not isinstance(key, six.string_types):
-            raise TypeError('NocaseDict key %s must be string type, ' \
+            raise TypeError('NocaseDict key %s must be string type, '
                             'but is %s' % (key, builtin_type(key)))
         k = key.lower()
         self._data[k] = (key, value)
@@ -484,7 +484,7 @@ def _intended_value(intended, unspecified, actual, name, msg):
         elif actual in intended:
             return actual
         else:
-            raise ValueError(msg + ", but specifies %s=%r (must be one of %r)"\
+            raise ValueError(msg + ", but specifies %s=%r (must be one of %r)"
                              % (name, actual, intended))
     else:
         if actual == unspecified:
@@ -492,7 +492,7 @@ def _intended_value(intended, unspecified, actual, name, msg):
         elif actual == intended:
             return actual
         else:
-            raise ValueError(msg + ", but specifies %s=%r (must be %r)"\
+            raise ValueError(msg + ", but specifies %s=%r (must be %r)"
                              % (name, actual, intended))
 
 def cmpname(name1, name2):
@@ -617,7 +617,7 @@ def _makequalifiers(qualifiers, indent):
     if len(qualifiers) == 0:
         return ''
 
-    return '%s[%s]' % (_indent_str(indent), ',\n '.ljust(indent + 2).\
+    return '%s[%s]' % (_indent_str(indent), ',\n '.ljust(indent + 2).
         join([q.tomof(indent + 2) for q in sorted(qualifiers.values())]))
 
 def _indent_str(indent):
@@ -896,7 +896,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMInstanceName):
-            raise TypeError("other must be CIMInstanceName, but is: %s" %\
+            raise TypeError("other must be CIMInstanceName, but is: %s" %
                             type(other))
         return (cmpname(self.host, other.host) or
                 cmpname(self.namespace, other.namespace) or
@@ -1053,7 +1053,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         if isinstance(self.keybindings, str):
 
             # This cannot happen; self.keybindings is always a NocaseDict:
-            raise TypeError("Unexpected: keybindings has string type: %s" % \
+            raise TypeError("Unexpected: keybindings has string type: %s" %
                             repr(self.keybindings))
 
             # TODO: Remove this old code after verifying that it works.
@@ -1068,7 +1068,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         elif builtin_type(self.keybindings) in six.integer_types + (float,):
 
             # This cannot happen; self.keybindings is always a NocaseDict:
-            raise TypeError("Unexpected: keybindings has numeric type: %s" % \
+            raise TypeError("Unexpected: keybindings has numeric type: %s" %
                             repr(self.keybindings))
 
             # TODO: Remove this old code after verifying that it works.
@@ -1108,7 +1108,7 @@ class CIMInstanceName(_CIMComparisonMixin):
                     type_ = 'string'
                     value = _ensure_unicode(key_bind[1])
                 else:
-                    raise TypeError('Invalid keybinding type for keybinding '\
+                    raise TypeError('Invalid keybinding type for keybinding '
                             '%s: %s' % (key_bind[0], builtin_type(key_bind[1])))
 
                 kbs.append(cim_xml.KEYBINDING(
@@ -1120,7 +1120,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         else:
 
             # This cannot happen; self.keybindings is always a NocaseDict:
-            raise TypeError("Unexpected: keybindings has type: %s" % \
+            raise TypeError("Unexpected: keybindings has type: %s" %
                             repr(self.keybindings))
 
             # TODO: Remove this old code after verifying that it works.
@@ -1276,7 +1276,7 @@ class CIMInstance(_CIMComparisonMixin):
         # TODO: Add support for accepting qualifiers as plain dict
         self.path = path
         if property_list is not None:
-            self.property_list = [_ensure_unicode(x).lower() \
+            self.property_list = [_ensure_unicode(x).lower()
                 for x in property_list]
         else:
             self.property_list = None
@@ -1301,7 +1301,7 @@ class CIMInstance(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMInstance):
-            raise TypeError("other must be CIMInstance, but is: %s" %\
+            raise TypeError("other must be CIMInstance, but is: %s" %
                             type(other))
         return (cmpname(self.classname, other.classname) or
                 cmpitem(self.path, other.path) or
@@ -1346,7 +1346,7 @@ class CIMInstance(_CIMComparisonMixin):
         # pylint: disable=unidiomatic-typecheck
         if builtin_type(value) in six.integer_types + (float,):
             raise TypeError(
-                "Type of numeric value for a property must be a "\
+                "Type of numeric value for a property must be a "
                 "CIM data type, but is %s" % builtin_type(value))
 
         if self.property_list is not None and key.lower() not in \
@@ -1381,7 +1381,7 @@ class CIMInstance(_CIMComparisonMixin):
         result = CIMInstance(self.classname)
         result.properties = self.properties.copy()
         result.qualifiers = self.qualifiers.copy()
-        result.path = (self.path is not None and \
+        result.path = (self.path is not None and
                        [self.path.copy()] or [None])[0]
 
         return result
@@ -1636,7 +1636,7 @@ class CIMClassName(_CIMComparisonMixin):
 
         if not isinstance(classname, six.string_types):
             raise TypeError(
-                "classname argument has an invalid type: %s "\
+                "classname argument has an invalid type: %s "
                 "(expected string)" % builtin_type(classname))
 
         # TODO: There are some odd restrictions on what a CIM
@@ -1667,7 +1667,7 @@ class CIMClassName(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMClassName):
-            raise TypeError("other must be CIMClassName, but is: %s" %\
+            raise TypeError("other must be CIMClassName, but is: %s" %
                             type(other))
         return (cmpname(self.host, other.host) or
                 cmpname(self.namespace, other.namespace) or
@@ -1870,7 +1870,7 @@ class CIMClass(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMClass):
-            raise TypeError("other must be CIMClass, but is: %s" %\
+            raise TypeError("other must be CIMClass, but is: %s" %
                             type(other))
         return (cmpname(self.classname, other.classname) or
                 cmpname(self.superclass, other.superclass) or
@@ -2255,11 +2255,11 @@ class CIMProperty(_CIMComparisonMixin):
         # General checks:
 
         if embedded_object not in (None, 'instance', 'object'):
-            raise ValueError('Property %r specifies an invalid ' \
+            raise ValueError('Property %r specifies an invalid '
                              'embedded_object=%r' % (name, embedded_object))
 
         if is_array not in (None, True, False):
-            raise ValueError('Property %r specifies an invalid ' \
+            raise ValueError('Property %r specifies an invalid '
                              'is_array=%r' % (name, is_array))
 
         # Set up is_array
@@ -2267,19 +2267,19 @@ class CIMProperty(_CIMComparisonMixin):
         if isinstance(value, (list, tuple)):
             is_array = _intended_value(
                 True, None, is_array, 'is_array',
-                'Property %r has a value that is an array (%s)' % \
+                'Property %r has a value that is an array (%s)' %
                 (name, builtin_type(value)))
         elif value is not None: # Scalar value
             is_array = _intended_value(
                 False, None, is_array, 'is_array',
-                'Property %r has a value that is a scalar (%s)' % \
+                'Property %r has a value that is a scalar (%s)' %
                 (name, builtin_type(value)))
         else: # Null value
             if is_array is None:
                 is_array = False # For compatibility with old default
 
         if not is_array and array_size is not None:
-            raise ValueError('Scalar property %r specifies array_size=%r ' \
+            raise ValueError('Scalar property %r specifies array_size=%r '
                              '(must be None)' % (name, array_size))
 
         # Determine type, embedded_object, and reference_class attributes.
@@ -2302,8 +2302,8 @@ class CIMProperty(_CIMComparisonMixin):
                     dummy_type_obj = type_from_name(type_)
                 else:
                     raise ValueError(
-                        'Cannot infer type of array property %r that is ' \
-                        'Null, empty, or has Null as its first element' % \
+                        'Cannot infer type of array property %r that is '
+                        'Null, empty, or has Null as its first element' %
                         name)
             elif isinstance(value[0], CIMInstance):
                 msg = 'Array property %r contains CIMInstance values' % name
@@ -2325,8 +2325,8 @@ class CIMProperty(_CIMComparisonMixin):
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
             elif type_ == 'datetime':
-                value = [CIMDateTime(val) if val is not None \
-                         and not isinstance(val, CIMDateTime)
+                value = [CIMDateTime(val) if val is not None and
+                         not isinstance(val, CIMDateTime)
                          else val for val in value]
                 msg = 'Array property %r specifies CIM data type %r' % \
                       (name, type_)
@@ -2371,7 +2371,7 @@ class CIMProperty(_CIMComparisonMixin):
                     # Leave type as specified, but check it for validity
                     dummy_type_obj = type_from_name(type_)  # noqa: F841
                 else:
-                    raise ValueError('Cannot infer type of simple ' \
+                    raise ValueError('Cannot infer type of simple '
                                      'property %r that is Null' % name)
             elif isinstance(value, CIMInstanceName):
                 msg = 'Property %r has a CIMInstanceName value with ' \
@@ -2700,7 +2700,7 @@ class CIMProperty(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMProperty):
-            raise TypeError("other must be CIMProperty, but is: %s" %\
+            raise TypeError("other must be CIMProperty, but is: %s" %
                             type(other))
         return (cmpname(self.name, other.name) or
                 cmpitem(self.value, other.value) or
@@ -2854,7 +2854,7 @@ class CIMMethod(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMMethod):
-            raise TypeError("other must be CIMMethod, but is: %s" %\
+            raise TypeError("other must be CIMMethod, but is: %s" %
                             type(other))
         return (cmpname(self.name, other.name) or
                 cmpitem(self.qualifiers, other.qualifiers) or
@@ -3116,7 +3116,7 @@ class CIMParameter(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMParameter):
-            raise TypeError("other must be CIMParameter, but is: %s" %\
+            raise TypeError("other must be CIMParameter, but is: %s" %
                             type(other))
         return (cmpname(self.name, other.name) or
                 cmpitem(self.type, other.type) or
@@ -3494,7 +3494,7 @@ class CIMQualifier(_CIMComparisonMixin):
         # pylint: disable=unidiomatic-typecheck
         if builtin_type(value) in six.integer_types + (float,):
             raise TypeError(
-                "Type of numeric value for a qualifier must be a "\
+                "Type of numeric value for a qualifier must be a "
                 "CIM data type, but is %s" % builtin_type(value))
 
         self.value = value
@@ -3512,7 +3512,7 @@ class CIMQualifier(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMQualifier):
-            raise TypeError("other must be CIMQualifier, but is: %s" %\
+            raise TypeError("other must be CIMQualifier, but is: %s" %
                             type(other))
         return (cmpname(self.name, other.name) or
                 cmpitem(self.type, other.type) or
@@ -3880,7 +3880,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMQualifierDeclaration):
-            raise TypeError("other must be CIMQualifierDeclaration, "\
+            raise TypeError("other must be CIMQualifierDeclaration, "
                             "but is: %s" % type(other))
         return (cmpname(self.name, other.name) or
                 cmpitem(self.type, other.type) or
@@ -4066,7 +4066,7 @@ def tocimxml(value):
     try:
         return cim_xml.VALUE_ARRAY([tocimxml(v) for v in value])
     except TypeError:
-        raise ValueError("Can't convert %s (%s) to CIM XML" % \
+        raise ValueError("Can't convert %s (%s) to CIM XML" %
                      (value, builtin_type(value)))
 
 
@@ -4104,7 +4104,7 @@ def tocimxmlstr(value, indent=None):
         elif isinstance(indent, six.integer_types):
             indent = ' ' * indent
         else:
-            raise TypeError("Type of indent must be string or integer, " \
+            raise TypeError("Type of indent must be string or integer, "
                             "but is: %s" % type(indent))
         xml_str = xml_elem.toprettyxml(indent=indent)
     # xml_str is a unicode string if required based upon its content.
@@ -4290,7 +4290,7 @@ def tocimobj(type_, value):
                     cl_name, s, k = partition(key, '.')
                     if s:
                         if cl_name != classname:
-                            raise ValueError('Invalid object path: "%s"' % \
+                            raise ValueError('Invalid object path: "%s"' %
                                              value)
                         key = k
                     val = val.strip()
@@ -4308,7 +4308,7 @@ def tocimobj(type_, value):
                                 try:
                                     val = CIMDateTime(val)
                                 except ValueError:
-                                    raise ValueError('Invalid key binding: %s'\
+                                    raise ValueError('Invalid key binding: %s'
                                             % val)
 
 

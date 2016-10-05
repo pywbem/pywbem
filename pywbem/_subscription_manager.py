@@ -206,11 +206,11 @@ class WBEMSubscriptionManager(object):
             self._subscription_manager_id = subscription_manager_id
         elif isinstance(subscription_manager_id, six.string_types):
             if ':' in subscription_manager_id:
-                raise ValueError("Subscription manager ID contains ':': %s" % \
+                raise ValueError("Subscription manager ID contains ':': %s" %
                                  subscription_manager_id)
             self._subscription_manager_id = subscription_manager_id
         else:
-            raise TypeError("Invalid type for subscription manager ID: %r" % \
+            raise TypeError("Invalid type for subscription manager ID: %r" %
                             subscription_manager_id)
 
     def __repr__(self):
@@ -273,11 +273,11 @@ class WBEMSubscriptionManager(object):
         """
 
         if not isinstance(server, WBEMServer):
-            raise TypeError("Server argument of add_server() must be a " \
+            raise TypeError("Server argument of add_server() must be a "
                             "WBEMServer object")
         server_id = server.url
         if server_id in self._servers:
-            raise ValueError("WBEM server already known by listener: %s" % \
+            raise ValueError("WBEM server already known by listener: %s" %
                              server_id)
 
         # Create dictionary entries for this server
@@ -821,7 +821,7 @@ class WBEMSubscriptionManager(object):
 
         # Validate that owned flag and owned status of path matches
         if not owned and filter_path in self._owned_filter_paths[server_id]:
-            raise ValueError("Not-owned subscription cannot be created on "\
+            raise ValueError("Not-owned subscription cannot be created on "
                              "owned filter: %s" % filter_path)
 
         for dest_path in destination_paths:
@@ -829,8 +829,8 @@ class WBEMSubscriptionManager(object):
             # Validate that owned flag and owned status of paths match
             if not owned and \
                dest_path in self._owned_destination_paths[server_id]:
-                raise ValueError("Not-owned subscription cannot be created "\
-                                 "on owned listener destination: %s" % \
+                raise ValueError("Not-owned subscription cannot be created "
+                                 "on owned listener destination: %s" %
                                  dest_path)
 
             sub_path = _create_subscription(server, dest_path, filter_path)
@@ -1004,7 +1004,7 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
     dest_path = server.conn.CreateInstance(dest_inst)
     return dest_path
 
-def _create_filter(server, source_namespace, query, query_language, \
+def _create_filter(server, source_namespace, query, query_language,
                    subscription_manager_id=None, filter_id=None):
     """
     Create a :term:`dynamic indication filter` instance in the Interop
@@ -1074,8 +1074,8 @@ def _create_filter(server, source_namespace, query, query_language, \
     if subscription_manager_id is not None:
         sub_mgr_id = '%s:' % (subscription_manager_id)
 
-    filter_inst['Name'] = 'pywbemfilter:%s%s%s' % (sub_mgr_id, \
-                                                   filter_id_, \
+    filter_inst['Name'] = 'pywbemfilter:%s%s%s' % (sub_mgr_id,
+                                                   filter_id_,
                                                    uuid.uuid4())
     filter_inst['SourceNamespace'] = source_namespace
     filter_inst['Query'] = query

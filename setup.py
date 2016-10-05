@@ -75,7 +75,7 @@ def _check_get_swig(swig_min_version, verbose):
     Returns True if it needs to be installed/updated.
     """
     if verbose:
-        print("Testing for availability of Swig >=%s in PATH..." %\
+        print("Testing for availability of Swig >=%s in PATH..." %
               swig_min_version)
     get_swig = False
     rc, out, _ = shell("which swig")
@@ -94,12 +94,12 @@ def _check_get_swig(swig_min_version, verbose):
         swig_version = m.group(1)
         if swig_version.split(".") < swig_min_version.split("."):
             if verbose:
-                print("Installed Swig version is too old: %s; "\
+                print("Installed Swig version is too old: %s; "
                       "need to get Swig" % swig_version)
             get_swig = True
         else:
             if verbose:
-                print("Installed Swig version is sufficient: %s" %\
+                print("Installed Swig version is sufficient: %s" %
                       swig_version)
     return get_swig
 
@@ -163,7 +163,7 @@ def install_swig(installer, dry_run, verbose):
             swig_install_root = "/usr"
 
             if verbose:
-                print("Installing prerequisite OS-level packages for building "\
+                print("Installing prerequisite OS-level packages for building "
                       "Swig...")
 
             swig_prereq_pkg_dict = {
@@ -212,37 +212,37 @@ def install_swig(installer, dry_run, verbose):
 
             if dry_run:
                 if verbose:
-                    print("Dry-running: Building Swig version %s from "\
-                          "downloaded source, and installing to %s tree" %\
+                    print("Dry-running: Building Swig version %s from "
+                          "downloaded source, and installing to %s tree" %
                           (swig_build_version, swig_install_root))
             else:
                 if verbose:
-                    print("Building Swig version %s from "\
-                          "downloaded source, and installing to %s tree" %\
+                    print("Building Swig version %s from "
+                          "downloaded source, and installing to %s tree" %
                           (swig_build_version, swig_install_root))
 
                 if os.path.exists(swig_dir):
                     if verbose:
-                        print("Removing previously downloaded Swig directory: "\
+                        print("Removing previously downloaded Swig directory: "
                               "%s" % swig_dir)
                     shutil.rmtree(swig_dir)
 
                 if verbose:
                     print("Downloading Swig source archive: %s" % swig_tar_file)
                 shell_check(
-                    "wget -q -O %s http://sourceforge.net/projects/swig/files"\
-                    "/swig/%s/%s/download" %\
+                    "wget -q -O %s http://sourceforge.net/projects/swig/files"
+                    "/swig/%s/%s/download" %
                     (swig_tar_file, swig_dir, swig_tar_file), display=True)
                 if verbose:
                     print("Unpacking Swig source archive: %s" % swig_tar_file)
                 shell_check("tar -xf %s" % swig_tar_file, display=True)
 
                 if verbose:
-                    print("Configuring Swig build process for installing to "\
+                    print("Configuring Swig build process for installing to "
                           "%s tree..." % swig_install_root)
-                shell_check(["sh", "-c", "cd %s; ./configure --prefix=%s" %\
-                            (swig_dir, swig_install_root)],
-                            display=True)
+                shell_check(["sh", "-c", "cd %s; ./configure --prefix=%s" %
+                             (swig_dir, swig_install_root)],
+                              display=True)
 
                 if verbose:
                     print("Building Swig...")
@@ -255,7 +255,7 @@ def install_swig(installer, dry_run, verbose):
                             display=True)
 
                 if verbose:
-                    print("Done downloading, building and installing Swig "\
+                    print("Done downloading, building and installing Swig "
                           "version %s" % swig_build_version)
 
 
@@ -281,7 +281,7 @@ def build_moftab(verbose):
     if rc != 0:
         # Because this does not work on pip, the best compromise is to
         # tolerate a failure:
-        print("Warning: build_moftab.py failed with rc=%s; the PyWBEM " \
+        print("Warning: build_moftab.py failed with rc=%s; the PyWBEM "
               "LEX/YACC table modules may be rebuilt on first use" % rc)
 
 def main():
@@ -516,7 +516,7 @@ def main():
                 raise
         else:
             break
-        print("Warning: Retrying setup() because %s was raised: %s" % \
+        print("Warning: Retrying setup() because %s was raised: %s" %
               (exc.__class__.__name__, exc))
 
     if 'install' in sys.argv or 'develop' in sys.argv:

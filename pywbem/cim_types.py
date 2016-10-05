@@ -306,7 +306,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         dtarg = _ensure_unicode(dtarg)
         if isinstance(dtarg, six.text_type):
             date_pattern = re.compile(
-                r'^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.' \
+                r'^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.'
                 r'(\d{6})([+|-])(\d{3})')
             srch_result = date_pattern.search(dtarg)
             if srch_result is not None:
@@ -321,8 +321,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
                                                int(parts[6]),
                                                MinutesFromUTC(offset))
                 except ValueError as exc:
-                    raise ValueError('dtarg argument "%s" has invalid field '\
-                                     'values for CIM datetime timestamp '\
+                    raise ValueError('dtarg argument "%s" has invalid field '
+                                     'values for CIM datetime timestamp '
                                      'format: %s' % (dtarg, exc))
             else:
                 tv_pattern = re.compile(
@@ -338,7 +338,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
                                                  seconds=int(parts[3]),
                                                  microseconds=int(parts[4]))
                 else:
-                    raise ValueError('dtarg argument "%s" has an invalid CIM '\
+                    raise ValueError('dtarg argument "%s" has an invalid CIM '
                                      'datetime format' % dtarg)
         elif isinstance(dtarg, datetime):
             self.__datetime = dtarg
@@ -350,8 +350,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             # pylint: disable=protected-access
             self.__timedelta = dtarg.__timedelta
         else:
-            raise TypeError('dtarg argument "%s" has an invalid type: %s '\
-                            '(expected datetime, timedelta, string, or '\
+            raise TypeError('dtarg argument "%s" has an invalid type: %s '
+                            '(expected datetime, timedelta, string, or '
                             'CIMDateTime)' % (dtarg, type(dtarg)))
 
     @property
@@ -580,7 +580,7 @@ class CIMInt(CIMType, _Longint):
         value = _Longint(*args, **kwargs)
         if config.ENFORCE_INTEGER_RANGE:
             if value > cls.maxvalue or value < cls.minvalue:
-                raise ValueError("Integer value %s is out of range for CIM " \
+                raise ValueError("Integer value %s is out of range for CIM "
                                  "datatype %s" % (value, cls.cimtype))
         # The value needs to be processed here, because int/long is unmutable
         return super(CIMInt, cls).__new__(cls, *args, **kwargs)
@@ -725,7 +725,7 @@ def cimtype(obj):
         return cimtype(obj[0])
     if isinstance(obj, (datetime, timedelta)):
         return 'datetime'
-    raise TypeError("Type %s of this object is not a CIM data type: %r" % \
+    raise TypeError("Type %s of this object is not a CIM data type: %r" %
                     (type(obj), obj))
 
 _TYPE_FROM_NAME = {
