@@ -512,12 +512,14 @@ def main():
         try:
             setup(**args)
         except Fault as exc:
-            if tries == 0:
+            if tries > 0:
+                print("Warning: Retrying setup() because %s was raised: %s" %
+                      (exc.__class__.__name__, exc))
+                continue
+            else:
                 raise
         else:
             break
-        print("Warning: Retrying setup() because %s was raised: %s" %
-              (exc.__class__.__name__, exc))
 
     if 'install' in sys.argv or 'develop' in sys.argv:
         build_moftab(_VERBOSE)
