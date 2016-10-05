@@ -308,13 +308,12 @@ else
 	@echo 'Info: Pylint requires Python 2.7; skipping this step on Python $(python_version)'
 endif
 
-# TODO: Once flake8 has no more errors, remove the dash "-"
 flake8.log: makefile $(flake8_rc_file) $(flake8_py_files)
 ifeq ($(python_mn_version),26)
 	@echo 'Info: Flake8 requires Python 2.7 or Python 3; skipping this step on Python $(python_version)'
 else
 	rm -f flake8.log
-	-bash -c "set -o pipefail; PYTHONPATH=. flake8 --statistics --config=$(flake8_rc_file) $(flake8_py_files) 2>&1 |tee flake8.tmp.log"
+	bash -c "set -o pipefail; PYTHONPATH=. flake8 --statistics --config=$(flake8_rc_file) $(flake8_py_files) 2>&1 |tee flake8.tmp.log"
 	mv -f flake8.tmp.log flake8.log
 	@echo 'Done: Created flake8 log file: $@'
 endif

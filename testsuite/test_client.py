@@ -35,18 +35,18 @@ import yaml
 import httpretty
 from httpretty.core import HTTPrettyRequestEmpty
 from lxml import etree, doctestcompare
+import pywbem
+from pywbem.cim_obj import _ensure_unicode, NocaseDict
 if six.PY2:
     from M2Crypto.Err import SSLError
 else:
     from ssl import SSLError
 
-import pywbem
-from pywbem.cim_obj import _ensure_unicode, NocaseDict
-
 # Directory with the JSON test case files, relative to this script:
 TESTCASE_DIR = os.path.join(os.path.dirname(__file__), "testclient")
 
 RUN_ONE_TESTCASE = None
+
 
 class ClientTestError(Exception):
     """Exception indicating an issue in the test case definition."""
@@ -147,6 +147,7 @@ def tc_getattr(tc_name, dict_, key, default=-1):
                               "'%s' attribute missing" % (tc_name, key))
     return value
 
+
 def tc_getattr_list(tc_name, dict_, key, default=-1):
     """ Gets the attribute of a name/value pair defined by key in dictionary
         defined by dict_. The entry may be dictionary, ordinary value or
@@ -170,6 +171,7 @@ def tc_getattr_list(tc_name, dict_, key, default=-1):
 def tc_hasattr(dict_, key):
     """Return true if key is in dict_"""
     return key in dict_
+
 
 class Callback(object):
     """A class with static methods that are HTTPretty callback functions for
@@ -196,27 +198,28 @@ class Callback(object):
     """
 
     @staticmethod
-    def socket_ssl(request, uri, headers): # pylint: disable=unused-argument
+    def socket_ssl(request, uri, headers):  # pylint: disable=unused-argument
         """HTTPretty callback function that raises an arbitrary
         SSLError."""
         raise SSLError(1, "Arbitrary SSL error.")
 
     @staticmethod
-    def socket_104(request, uri, headers): # pylint: disable=unused-argument
+    def socket_104(request, uri, headers):  # pylint: disable=unused-argument
         """HTTPretty callback function that raises socket.error 104."""
         raise socket.error(104, "Connection reset by peer.")
 
     @staticmethod
-    def socket_32(request, uri, headers): # pylint: disable=unused-argument
+    def socket_32(request, uri, headers):  # pylint: disable=unused-argument
         """HTTPretty callback function that raises socket.error 32."""
         raise socket.error(32, "Broken pipe.")
 
     @staticmethod
-    def socket_timeout(request, uri, headers): # pylint: disable=unused-argument
+    def socket_timeout(request, uri, headers):  # pylint: disable=unused-argument # noqa: E501
         """HTTPretty callback function that raises socket.timeout error.
            The socket.timeout is just a string, no status.
         """
         raise socket.timeout("Socket timeout.")
+
 
 def xml_embed(tree_elem):
     """
@@ -237,6 +240,7 @@ def xml_embed(tree_elem):
     """
     return xml_escape(etree.tostring(tree_elem))
 
+
 def xml_escape(s):
     """
     Return the XML-escaped input string.
@@ -254,6 +258,7 @@ def xml_escape(s):
         s = s.replace(b"\"", b"&quot;")
         s = s.replace(b"'", b"&apos;")
     return s
+
 
 def xml_unembed(emb_str):
     """
@@ -276,6 +281,7 @@ def xml_unembed(emb_str):
     """
     parser = etree.XMLParser(remove_blank_text=True)
     return etree.XML(xml_unescape(emb_str), parser=parser)
+
 
 def xml_unescape(s):
     """
@@ -729,7 +735,7 @@ class ClientTest(unittest.TestCase):
                 print("- Actual result len: %s" % len(result))
                 raise AssertionError("PyWBEM CIM result type is not"
                                      " as expected.")
-            #eos is required result
+            # eos is required result
             if result.eos != exp_pull_result_obj.eos:
                 print("Details for the following assertion error:")
                 print("- Expected pull result.eos: %r" %
@@ -744,7 +750,7 @@ class ClientTest(unittest.TestCase):
             if result.context != exp_pull_result_obj.context:
                 print("Details for the following assertion error:")
                 print("- Expected pull result.context: %r" %
-                    exp_pull_result_obj.context)
+                      exp_pull_result_obj.context)
                 print("- Actual pull result.context: %r" % result.context)
                 if conn.debug:
                     print("- HTTP response data: %r" % conn.last_raw_reply)
@@ -775,14 +781,15 @@ class ClientTest(unittest.TestCase):
                                          "result is not as expected.")
             else:
                 raise AssertionError("WBEMConnection operation method result "
-                     "is not as expected. No 'instances' "
-                     "or 'paths' component.")
+                                     "is not as expected. No 'instances' "
+                                     "or 'paths' component.")
 
             # TODO redo as indexed loop to compare all items.
 
         else:
             self.assertEqual(result, None,
                              "PyWBEM CIM result is not None: %s" % repr(result))
+
 
 def result_tuple(value, tc_name):
     """ Process the value (a dictionary) to create a named tuple of
@@ -820,7 +827,7 @@ def result_tuple(value, tc_name):
 
     else:
         raise AssertionError("WBEMConnection operation invalid tuple "
-                                 "definition.")
+                             "definition.")
 
 
 if __name__ == '__main__':
@@ -835,6 +842,5 @@ if __name__ == '__main__':
 
     elif len(sys.argv) > 2:
         sys.exit('ERROR: too many cmd line args')
-
 
     unittest.main()

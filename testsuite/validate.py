@@ -37,6 +37,7 @@ from pywbem.cim_obj import _ensure_bytes
 
 DTD_FILE = 'CIM_DTD_V22.dtd'
 
+
 def validate_xml(data, dtd_directory=None, root_elem=None):
     """
     Validate the provided XML instance data against a CIM-XML DTD, optionally

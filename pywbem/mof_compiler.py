@@ -65,16 +65,14 @@ from abc import ABCMeta, abstractmethod
 import six
 from ply import yacc, lex
 
-from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
-                     CIMProperty, CIMMethod, CIMParameter, \
-                     CIMQualifier, CIMQualifierDeclaration, NocaseDict, \
-                     tocimobj
+from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
+    CIMMethod, CIMParameter, CIMQualifier, CIMQualifierDeclaration, \
+    NocaseDict, tocimobj
 from .cim_operations import WBEMConnection
 from .cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
-                     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_NAMESPACE, \
-                     CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_PARAMETER, \
-                     CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS, \
-                     _statuscode2string
+    CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_NAMESPACE, \
+    CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_PARAMETER, \
+    CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS, _statuscode2string
 from .exceptions import Error, CIMError
 
 __all__ = ['MOFParseError', 'MOFWBEMConnection', 'MOFCompiler',
@@ -93,7 +91,7 @@ _lextab = 'moflextab'
 # Directory for _tabmodule and _lextab
 _tabdir = os.path.dirname(os.path.abspath(__file__))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #
 # IMPORTANT NOTE:
 #
@@ -114,7 +112,7 @@ _tabdir = os.path.dirname(os.path.abspath(__file__))
 #
 # The YACC parser functions are all named "p_*".
 #
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 reserved = {
     'any': 'ANY',
@@ -198,10 +196,12 @@ utf8Char = r'(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)' % \
            (utf8_2, utf8_3_1, utf8_3_2, utf8_3_3, utf8_3_4, utf8_4_1,
             utf8_4_2, utf8_4_3)
 
+
 # pylint: disable=unused-argument
 def t_COMMENT(t):
     r'//.*'
     return  # discard token
+
 
 def t_MCOMMENT(t):
     r'/\*(.|\n)*?\*/'
@@ -211,13 +211,16 @@ def t_MCOMMENT(t):
 # These simple tokens must also be defined as functions, in order to control
 # the order of evaluation.
 
+
 def t_floatValue(t):
     r'[+-]?[0-9]*\.[0-9]+([eE][+-]?[0-9]+)?'
     return t
 
+
 def t_hexValue(t):
     r'[+-]?0[xX][0-9a-fA-F]+'
     return t
+
 
 def t_binaryValue(t):
     r'[+-]?[0-9]+[bB]'
@@ -237,6 +240,7 @@ def t_binaryValue(t):
         t.lexer.skip(len(t.value))
     return t
 
+
 def t_octalValue(t):
     r'[+-]?0[0-9]+'
     # We must match [0-9], and then check the validity of the octal number.
@@ -255,6 +259,7 @@ def t_octalValue(t):
         t.lexer.skip(len(t.value))
     return t
 
+
 # Matching for decimal must be at the end of the other numerics because of
 # the 0. If not at the end, 0 would match at the begin of e.g. an octal value.
 def t_decimalValue(t):
@@ -269,11 +274,13 @@ sChar = r'[^"\\\n\r]|(%s)' % escapeSequence
 
 charvalue_re = r"'(%s)'" % cChar
 
+
 @lex.TOKEN(charvalue_re)
 def t_charValue(t):
     return t
 
 stringvalue_re = r'"(%s)*"' % sChar
+
 
 @lex.TOKEN(stringvalue_re)
 def t_stringValue(t):
@@ -281,10 +288,12 @@ def t_stringValue(t):
 
 identifier_re = r'([a-zA-Z_]|(%s))([0-9a-zA-Z_]|(%s))*' % (utf8Char, utf8Char)
 
+
 @lex.TOKEN(identifier_re)
 def t_IDENTIFIER(t):
     t.type = reserved.get(t.value.lower(), 'IDENTIFIER')
     return t
+
 
 # Define a rule so we can track line numbers
 def t_newline(t):
@@ -382,8 +391,7 @@ class MOFParseError(Error):
         ret_str = 'MOFParseError: '
         if self.lineno is not None:
             ret_str += '%s:%s: %smsg=%s\n%s' % \
-                         (self.file, self.lineno, self.column, self.msg,
-                          self.context)
+                (self.file, self.lineno, self.column, self.msg, self.context)
         else:
             ret_str += '%s' % self.msg
         return ret_str
@@ -426,11 +434,13 @@ def p_error(p):
 def p_mofSpecification(p):
     """mofSpecification : mofProductionList"""
 
+
 # pylint: disable=unused-argument
 def p_mofProductionList(p):
     """mofProductionList : empty
                          | mofProductionList mofProduction
                          """
+
 
 # pylint: disable=unused-argument
 def p_mofProduction(p):
@@ -502,15 +512,13 @@ def _create_ns(p, handle, ns):
         handle.CreateInstance(inst)
 
 
-
-
 def p_mp_createClass(p):
     """mp_createClass : classDeclaration
                       | assocDeclaration
                       | indicDeclaration
                       """
 
-    #pylint: disable=too-many-branches,too-many-statements,too-many-locals
+    # pylint: disable=too-many-branches,too-many-statements,too-many-locals
     ns = p.parser.handle.default_namespace
     cc = p[1]
     try:
@@ -613,6 +621,7 @@ def p_mp_createClass(p):
             p.parser.log('Error Modifying class %s: %s, %s' %
                          (cc.classname, ce.args[0], ce.args[1]))
 
+
 def p_mp_createInstance(p):
     """mp_createInstance : instanceDeclaration"""
     inst = p[1]
@@ -641,6 +650,7 @@ def p_mp_createInstance(p):
         else:
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise
+
 
 def p_mp_setQualifier(p):
     """mp_setQualifier : qualifierDeclaration"""
@@ -671,6 +681,7 @@ def p_mp_setQualifier(p):
             raise
     p.parser.qualcache[ns][qualdecl.name] = qualdecl
 
+
 def p_compilerDirective(p):
     """compilerDirective : '#' PRAGMA pragmaName '(' pragmaParameter ')'"""
     directive = p[3].lower()
@@ -687,13 +698,16 @@ def p_compilerDirective(p):
 
     p[0] = None
 
+
 def p_pragmaName(p):
     """pragmaName : identifier"""
     p[0] = p[1]
 
+
 def p_pragmaParameter(p):
     """pragmaParameter : stringValue"""
     p[0] = _fixStringValue(p[1])
+
 
 def p_classDeclaration(p):
     # pylint: disable=line-too-long
@@ -705,39 +719,39 @@ def p_classDeclaration(p):
                         | qualifierList CLASS className superClass '{' classFeatureList '}' ';'
                         | qualifierList CLASS className alias '{' classFeatureList '}' ';'
                         | qualifierList CLASS className alias superClass '{' classFeatureList '}' ';'
-                        """
+                        """  # noqa: E501
     superclass = None
     alias = None
     quals = []
     if isinstance(p[1], six.string_types):  # no class qualifiers
         cname = p[2]
-        if p[3][0] == '$': # alias present
+        if p[3][0] == '$':  # alias present
             alias = p[3]
-            if p[4] == '{': # no superclass
+            if p[4] == '{':  # no superclass
                 cfl = p[5]
-            else: # superclass
+            else:  # superclass
                 superclass = p[4]
                 cfl = p[6]
-        else: # no alias
-            if p[3] == '{': # no superclass
+        else:  # no alias
+            if p[3] == '{':  # no superclass
                 cfl = p[4]
-            else: # superclass
+            else:  # superclass
                 superclass = p[3]
                 cfl = p[5]
-    else: # class qualifiers
+    else:  # class qualifiers
         quals = p[1]
         cname = p[3]
-        if p[4][0] == '$': # alias present
+        if p[4][0] == '$':  # alias present
             alias = p[4]
-            if p[5] == '{': # no superclass
+            if p[5] == '{':  # no superclass
                 cfl = p[6]
-            else: # superclass
+            else:  # superclass
                 superclass = p[5]
                 cfl = p[7]
-        else: # no alias
-            if p[4] == '{': # no superclass
+        else:  # no alias
+            if p[4] == '{':  # no superclass
                 cfl = p[5]
-            else: # superclass
+            else:  # superclass
                 superclass = p[4]
                 cfl = p[6]
     # pylint: disable=redefined-variable-type
@@ -755,6 +769,7 @@ def p_classDeclaration(p):
     if alias:
         p.parser.aliases[alias] = p[0]
 
+
 def p_classFeatureList(p):
     """classFeatureList : empty
                         | classFeatureList classFeature
@@ -764,17 +779,19 @@ def p_classFeatureList(p):
     else:
         p[0] = p[1] + [p[2]]
 
+
 def p_assocDeclaration(p):
     # pylint: disable=line-too-long
     """assocDeclaration : '[' ASSOCIATION qualifierListEmpty ']' CLASS className '{' associationFeatureList '}' ';'
                         | '[' ASSOCIATION qualifierListEmpty ']' CLASS className superClass '{' associationFeatureList '}' ';'
                         | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias '{' associationFeatureList '}' ';'
                         | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias superClass '{' associationFeatureList '}' ';'
-                        """
+                        """  # noqa: E501
     aqual = CIMQualifier('ASSOCIATION', True, type='boolean')
     # TODO flavor trash.
     quals = [aqual] + p[3]
     p[0] = _assoc_or_indic_decl(quals, p)
+
 
 def p_indicDeclaration(p):
     # pylint: disable=line-too-long
@@ -782,11 +799,12 @@ def p_indicDeclaration(p):
                         | '[' INDICATION qualifierListEmpty ']' CLASS className superClass '{' classFeatureList '}' ';'
                         | '[' INDICATION qualifierListEmpty ']' CLASS className alias '{' classFeatureList '}' ';'
                         | '[' INDICATION qualifierListEmpty ']' CLASS className alias superClass '{' classFeatureList '}' ';'
-                        """
+                        """  # noqa: E501
     iqual = CIMQualifier('INDICATION', True, type='boolean')
     # TODO flavor trash.
     quals = [iqual] + p[3]
     p[0] = _assoc_or_indic_decl(quals, p)
+
 
 def _assoc_or_indic_decl(quals, p):
     """(refer to grammer rules on p_assocDeclaration and p_indicDeclaration)"""
@@ -795,7 +813,7 @@ def _assoc_or_indic_decl(quals, p):
     cname = p[6]
     if p[7] == '{':
         cfl = p[8]
-    elif p[7][0] == '$': # alias
+    elif p[7][0] == '$':  # alias
         alias = p[7]
         if p[8] == '{':
             cfl = p[9]
@@ -820,6 +838,7 @@ def _assoc_or_indic_decl(quals, p):
         p.parser.aliases[alias] = cc
     return cc
 
+
 def p_qualifierListEmpty(p):
     """qualifierListEmpty : empty
                           | qualifierListEmpty ',' qualifier
@@ -828,6 +847,7 @@ def p_qualifierListEmpty(p):
         p[0] = []
     else:
         p[0] = p[1] + [p[3]]
+
 
 def p_associationFeatureList(p):
     """associationFeatureList : empty
@@ -838,21 +858,26 @@ def p_associationFeatureList(p):
     else:
         p[0] = p[1] + [p[2]]
 
+
 def p_className(p):
     """className : identifier"""
     p[0] = p[1]
+
 
 def p_alias(p):
     """alias : AS aliasIdentifier"""
     p[0] = p[2]
 
+
 def p_aliasIdentifier(p):
     """aliasIdentifier : '$' identifier"""
     p[0] = '$%s' % p[2]
 
+
 def p_superClass(p):
     """superClass : ':' className"""
     p[0] = p[2]
+
 
 def p_classFeature(p):
     """classFeature : propertyDeclaration
@@ -861,13 +886,16 @@ def p_classFeature(p):
                     """
     p[0] = p[1]
 
+
 def p_associationFeature(p):
     """associationFeature : classFeature"""
     p[0] = p[1]
 
+
 def p_qualifierList(p):
     """qualifierList : '[' qualifier qualifierListEmpty ']'"""
     p[0] = [p[2]] + p[3]
+
 
 def p_qualifier(p):
     """qualifier : qualifierName
@@ -876,7 +904,7 @@ def p_qualifier(p):
                  | qualifierName qualifierParameter ':' flavorList
                  """
 
-    #pylint: disable=too-many-branches
+    # pylint: disable=too-many-branches
     qname = p[1]
     ns = p.parser.handle.default_namespace
     qval = None
@@ -920,11 +948,12 @@ def p_qualifier(p):
         if qualdecl.type == 'boolean':
             qval = True
         else:
-            qval = qualdecl.value # default value
+            qval = qualdecl.value  # default value
     else:
         qval = tocimobj(qualdecl.type, qval)
     p[0] = CIMQualifier(qname, qval, type=qualdecl.type, **flavors)
     # TODO propagated?
+
 
 def p_flavorList(p):
     """flavorList : flavor
@@ -935,6 +964,7 @@ def p_flavorList(p):
     else:
         p[0] = p[1] + [p[2]]
 
+
 def p_qualifierParameter(p):
     """qualifierParameter : '(' constantValue ')'
                           | arrayInitializer
@@ -944,7 +974,8 @@ def p_qualifierParameter(p):
     else:
         p[0] = p[2]
 
-#TODO 8/16 ks Consider complete removed of TOINSTANCE from compiler
+
+# TODO 8/16 ks Consider complete removed of TOINSTANCE from compiler
 def p_flavor(p):
     """flavor : ENABLEOVERRIDE
               | DISABLEOVERRIDE
@@ -954,6 +985,7 @@ def p_flavor(p):
               | TRANSLATABLE
               """
     p[0] = p[1].lower()
+
 
 def p_propertyDeclaration(p):
     """propertyDeclaration : propertyDeclaration_1
@@ -967,35 +999,42 @@ def p_propertyDeclaration(p):
                            """
     p[0] = p[1]
 
+
 def p_propertyDeclaration_1(p):
     """propertyDeclaration_1 : dataType propertyName ';'"""
     p[0] = CIMProperty(p[2], None, type=p[1])
 
+
 def p_propertyDeclaration_2(p):
     """propertyDeclaration_2 : dataType propertyName defaultValue ';'"""
     p[0] = CIMProperty(p[2], p[3], type=p[1])
+
 
 def p_propertyDeclaration_3(p):
     """propertyDeclaration_3 : dataType propertyName array ';'"""
     p[0] = CIMProperty(p[2], None, type=p[1], is_array=True,
                        array_size=p[3])
 
+
 def p_propertyDeclaration_4(p):
     """propertyDeclaration_4 : dataType propertyName array defaultValue ';'"""
     p[0] = CIMProperty(p[2], p[4], type=p[1], is_array=True,
                        array_size=p[3])
+
 
 def p_propertyDeclaration_5(p):
     """propertyDeclaration_5 : qualifierList dataType propertyName ';'"""
     quals = dict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], None, type=p[2], qualifiers=quals)
 
+
 def p_propertyDeclaration_6(p):
     # pylint: disable=line-too-long
-    """propertyDeclaration_6 : qualifierList dataType propertyName defaultValue ';'"""
+    """propertyDeclaration_6 : qualifierList dataType propertyName defaultValue ';'"""  # noqa: E501
     quals = dict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], tocimobj(p[2], p[4]),
                        type=p[2], qualifiers=quals)
+
 
 def p_propertyDeclaration_7(p):
     """propertyDeclaration_7 : qualifierList dataType propertyName array ';'"""
@@ -1003,13 +1042,15 @@ def p_propertyDeclaration_7(p):
     p[0] = CIMProperty(p[3], None, type=p[2], qualifiers=quals,
                        is_array=True, array_size=p[4])
 
+
 def p_propertyDeclaration_8(p):
     # pylint: disable=line-too-long
-    """propertyDeclaration_8 : qualifierList dataType propertyName array defaultValue ';'"""
+    """propertyDeclaration_8 : qualifierList dataType propertyName array defaultValue ';'"""  # noqa: E501
     quals = dict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], tocimobj(p[2], p[5]),
                        type=p[2], qualifiers=quals, is_array=True,
                        array_size=p[4])
+
 
 def p_referenceDeclaration(p):
     # pylint: disable=line-too-long
@@ -1017,10 +1058,10 @@ def p_referenceDeclaration(p):
                             | objectRef referenceName defaultValue ';'
                             | qualifierList objectRef referenceName ';'
                             | qualifierList objectRef referenceName defaultValue ';'
-                            """
+                            """  # noqa: E501
     quals = []
     dv = None
-    if isinstance(p[1], list): # qualifiers
+    if isinstance(p[1], list):  # qualifiers
         quals = p[1]
         cname = p[2]
         pname = p[3]
@@ -1036,13 +1077,14 @@ def p_referenceDeclaration(p):
     p[0] = CIMProperty(pname, dv, type='reference',
                        reference_class=cname, qualifiers=quals)
 
+
 def p_methodDeclaration(p):
     # pylint: disable=line-too-long
     """methodDeclaration : dataType methodName '(' ')' ';'
                          | dataType methodName '(' parameterList ')' ';'
                          | qualifierList dataType methodName '(' ')' ';'
                          | qualifierList dataType methodName '(' parameterList ')' ';'
-                         """
+                         """  # noqa: E501
     paramlist = []
     quals = []
     if isinstance(p[1], six.string_types):  # no quals
@@ -1050,7 +1092,7 @@ def p_methodDeclaration(p):
         mname = p[2]
         if p[4] != ')':
             paramlist = p[4]
-    else: # quals present
+    else:  # quals present
         quals = p[1]
         dt = p[2]
         mname = p[3]
@@ -1064,17 +1106,21 @@ def p_methodDeclaration(p):
     # note: class_origin is set when adding method to class.
     # TODO what to do with propagated?
 
+
 def p_propertyName(p):
     """propertyName : identifier"""
     p[0] = p[1]
+
 
 def p_referenceName(p):
     """referenceName : identifier"""
     p[0] = p[1]
 
+
 def p_methodName(p):
     """methodName : identifier"""
     p[0] = p[1]
+
 
 def p_dataType(p):
     """dataType : DT_UINT8
@@ -1094,9 +1140,11 @@ def p_dataType(p):
                 """
     p[0] = p[1].lower()
 
+
 def p_objectRef(p):
     """objectRef : className REF"""
     p[0] = p[1]
+
 
 def p_parameterList(p):
     """parameterList : parameter
@@ -1107,6 +1155,7 @@ def p_parameterList(p):
     else:
         p[0] = p[1] + [p[3]]
 
+
 def p_parameter(p):
     """parameter : parameter_1
                  | parameter_2
@@ -1114,6 +1163,7 @@ def p_parameter(p):
                  | parameter_4
                  """
     p[0] = p[1]
+
 
 def p_parameter_1(p):
     """parameter_1 : dataType parameterName
@@ -1124,6 +1174,7 @@ def p_parameter_1(p):
         args['is_array'] = True
         args['array_size'] = p[3]
     p[0] = CIMParameter(p[2], p[1], **args)
+
 
 def p_parameter_2(p):
     """parameter_2 : qualifierList dataType parameterName
@@ -1136,6 +1187,7 @@ def p_parameter_2(p):
     quals = dict([(x.name, x) for x in p[1]])
     p[0] = CIMParameter(p[3], p[2], qualifiers=quals, **args)
 
+
 def p_parameter_3(p):
     """parameter_3 : objectRef parameterName
                    | objectRef parameterName array
@@ -1145,6 +1197,7 @@ def p_parameter_3(p):
         args['is_array'] = True
         args['array_size'] = p[3]
     p[0] = CIMParameter(p[2], 'reference', reference_class=p[1], **args)
+
 
 def p_parameter_4(p):
     """parameter_4 : qualifierList objectRef parameterName
@@ -1158,9 +1211,11 @@ def p_parameter_4(p):
     p[0] = CIMParameter(p[3], 'reference', qualifiers=quals,
                         reference_class=p[2], **args)
 
+
 def p_parameterName(p):
     """parameterName : identifier"""
     p[0] = p[1]
+
 
 def p_array(p):
     """array : '[' ']'
@@ -1171,9 +1226,11 @@ def p_array(p):
     else:
         p[0] = p[2]
 
+
 def p_defaultValue(p):
     """defaultValue : '=' initializer"""
     p[0] = p[2]
+
 
 def p_initializer(p):
     """initializer : constantValue
@@ -1181,6 +1238,7 @@ def p_initializer(p):
                    | referenceInitializer
                    """
     p[0] = p[1]
+
 
 def p_arrayInitializer(p):
     """arrayInitializer : '{' constantValueList '}'
@@ -1191,6 +1249,7 @@ def p_arrayInitializer(p):
     else:
         p[0] = p[2]
 
+
 def p_constantValueList(p):
     """constantValueList : constantValue
                          | constantValueList ',' constantValue
@@ -1200,10 +1259,11 @@ def p_constantValueList(p):
     else:
         p[0] = p[1] + [p[3]]
 
+
 def _fixStringValue(s):
     """Clean up string value including special characters, etc."""
 
-    #pylint: disable=too-many-branches
+    # pylint: disable=too-many-branches
     s = s[1:-1]
     rv = ''
     esc = False
@@ -1275,6 +1335,7 @@ def p_constantValue(p):
                      """
     p[0] = p[1]
 
+
 def p_integerValue(p):
     """integerValue : binaryValue
                     | octalValue
@@ -1283,6 +1344,7 @@ def p_integerValue(p):
                     """
     p[0] = int(p[1])
     # TODO deal with non-decimal values.
+
 
 def p_referenceInitializer(p):
     """referenceInitializer : objectHandle
@@ -1299,15 +1361,17 @@ def p_referenceInitializer(p):
     else:
         p[0] = p[1]
 
+
 def p_objectHandle(p):
     """objectHandle : identifier"""
     p[0] = p[1]
+
 
 def p_qualifierDeclaration(p):
     # pylint: disable=line-too-long
     """qualifierDeclaration : QUALIFIER qualifierName qualifierType scope ';'
                             | QUALIFIER qualifierName qualifierType scope defaultFlavor ';'
-                            """
+                            """  # noqa: E501
     qualtype = p[3]
     dt, is_array, array_size, value = qualtype
     qualname = p[2]
@@ -1322,6 +1386,7 @@ def p_qualifierDeclaration(p):
     p[0] = CIMQualifierDeclaration(
         qualname, dt, value=value, is_array=is_array, array_size=array_size,
         scopes=scopes, **flavors)
+
 
 def _build_flavors(p, flist, qualdecl=None):
     """
@@ -1373,6 +1438,7 @@ def _build_flavors(p, flist, qualdecl=None):
 
     return flavors
 
+
 def p_qualifierName(p):
     """qualifierName : identifier
                      | ASSOCIATION
@@ -1380,11 +1446,13 @@ def p_qualifierName(p):
                      """
     p[0] = p[1]
 
+
 def p_qualifierType(p):
     """qualifierType : qualifierType_1
                      | qualifierType_2
                      """
     p[0] = p[1]
+
 
 def p_qualifierType_1(p):
     """qualifierType_1 : ':' dataType array
@@ -1395,6 +1463,7 @@ def p_qualifierType_1(p):
         dv = p[4]
     p[0] = (p[2], True, p[3], dv)
 
+
 def p_qualifierType_2(p):
     """qualifierType_2 : ':' dataType
                        | ':' dataType defaultValue
@@ -1403,6 +1472,7 @@ def p_qualifierType_2(p):
     if len(p) == 4:
         dv = p[3]
     p[0] = (p[2], False, None, dv)
+
 
 def p_scope(p):
     """scope : ',' SCOPE '(' metaElementList ')'"""
@@ -1419,6 +1489,7 @@ def p_scope(p):
         scopes[i] = i in slist
     p[0] = scopes
 
+
 def p_metaElementList(p):
     """metaElementList : metaElement
                        | metaElementList ',' metaElement
@@ -1427,6 +1498,7 @@ def p_metaElementList(p):
         p[0] = [p[1]]
     else:
         p[0] = p[1] + [p[3]]
+
 
 def p_metaElement(p):
     """metaElement : SCHEMA
@@ -1441,6 +1513,7 @@ def p_metaElement(p):
                    | ANY
                    """
     p[0] = p[1].upper()
+
 
 def p_defaultFlavor(p):
     """defaultFlavor : ',' FLAVOR '(' flavorListWithComma ')'"""
@@ -1468,13 +1541,14 @@ def p_flavorListWithComma(p):
     else:
         p[0] = p[1] + [p[3]]
 
+
 def p_instanceDeclaration(p):
     # pylint: disable=line-too-long
     """instanceDeclaration : INSTANCE OF className '{' valueInitializerList '}' ';'
                            | INSTANCE OF className alias '{' valueInitializerList '}' ';'
                            | qualifierList INSTANCE OF className '{' valueInitializerList '}' ';'
                            | qualifierList INSTANCE OF className alias '{' valueInitializerList '}' ';'
-                           """
+                           """  # noqa: E501
     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     alias = None
     quals = {}
@@ -1488,7 +1562,7 @@ def p_instanceDeclaration(p):
             alias = p[4]
     else:
         cname = p[4]
-        #quals = p[1] # qualifiers on instances are deprecated -- rightly so.
+        # quals = p[1]  # qualifiers on instances are deprecated -- rightly so.
         if p[5] == '{':
             props = p[6]
         else:
@@ -1555,6 +1629,7 @@ def p_instanceDeclaration(p):
         p.parser.aliases[alias] = inst.path
     p[0] = inst
 
+
 def p_valueInitializerList(p):
     """valueInitializerList : valueInitializer
                             | valueInitializerList valueInitializer
@@ -1579,15 +1654,18 @@ def p_valueInitializer(p):
         val = p[3]
     p[0] = (quals, id_, val)
 
+
 def p_booleanValue(p):
     """booleanValue : FALSE
                     | TRUE
                     """
     p[0] = p[1].lower() == 'true'
 
+
 def p_nullValue(p):
     """nullValue : NULL"""
     p[0] = None
+
 
 def p_identifier(p):
     """identifier : IDENTIFIER
@@ -1615,9 +1693,11 @@ def p_identifier(p):
     """
     p[0] = p[1]
 
+
 def p_empty(p):
     'empty :'
     pass
+
 
 def _find_column(input_, token):
     """
@@ -1633,6 +1713,7 @@ def _find_column(input_, token):
         i -= 1
     column = (token.lexpos - i) + 1
     return column
+
 
 def _get_error_context(input_, token):
     """
@@ -1672,6 +1753,7 @@ def _get_error_context(input_, token):
         i += 1
     lines.append(pointline + pointer)
     return lines
+
 
 @six.add_metaclass(ABCMeta)
 class BaseRepositoryConnection(object):
@@ -1952,7 +2034,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                 self.classes[self.default_namespace][cc.classname] = cc
             except KeyError:
                 self.classes[self.default_namespace] = \
-                        NocaseDict({cc.classname: cc})
+                    NocaseDict({cc.classname: cc})
         if 'LocalOnly' in kwargs and not kwargs['LocalOnly']:
             if cc.superclass:
                 try:
@@ -1970,7 +2052,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                         cc.methods[meth.name] = meth
         return cc
 
-    def ModifyClass(self, *args, **kwargs): # pylint: disable=no-self-use
+    def ModifyClass(self, *args, **kwargs):  # pylint: disable=no-self-use
         """This method is used by the MOF compiler only in the course of
         handling CIM_ERR_ALREADY_EXISTS after trying to create a class.
         Because :meth:`CreateClass` overwrites existing classes, this method
@@ -2006,7 +2088,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             self.classes[self.default_namespace][cc.classname] = cc
         except KeyError:
             self.classes[self.default_namespace] = \
-                    NocaseDict({cc.classname: cc})
+                NocaseDict({cc.classname: cc})
 
         # TODO: should we see if it exists first with
         # self.conn.GetClass()?  Do we want to create a class
@@ -2069,7 +2151,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             self.qualifiers[self.default_namespace][qual.name] = qual
         except KeyError:
             self.qualifiers[self.default_namespace] = \
-                    NocaseDict({qual.name: qual})
+                NocaseDict({qual.name: qual})
 
     def DeleteQualifier(self, *args, **kwargs):
         """This method is only invoked by :meth:`rollback` (on the underlying
@@ -2325,6 +2407,7 @@ def _build(verbose=False):
     _yacc(verbose)
     _lex(verbose)
 
+
 def _yacc(verbose=False):
     """Return YACC parser object for the MOF compiler.
 
@@ -2344,6 +2427,7 @@ def _yacc(verbose=False):
                      debuglog=yacc.NullLogger(),
                      errorlog=yacc.PlyLogger(sys.stdout))
 
+
 def _lex(verbose=False):
     """Return LEX analyzer object for the MOF Compiler.
 
@@ -2357,4 +2441,3 @@ def _lex(verbose=False):
                    outputdir=_tabdir,
                    debug=False,
                    errorlog=lex.PlyLogger(sys.stdout))
-

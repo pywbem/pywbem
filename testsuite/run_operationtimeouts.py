@@ -33,11 +33,13 @@ NAMESPACE = 'test/testprovider'
 TESTCLASS = 'Test_CLITestProviderClass'
 TESTMETHOD = 'delayedMethodResponse'
 
+
 class ElapsedTimer(object):
     """
         Set up elapsed time timer. Calculates time between initiation
         and access.
     """
+
     def __init__(self):
         """ Initiate the object with current time"""
         self.start_time = datetime.datetime.now()
@@ -51,14 +53,15 @@ class ElapsedTimer(object):
             point representation of elapsed time in seconds.
         """
         dt = datetime.datetime.now() - self.start_time
-        return ((dt.days * 24 * 3600) + dt.seconds) * 1000  \
-                + dt.microseconds / 1000.0
+        return ((dt.days * 24 * 3600) + dt.seconds) * 1000 + \
+            dt.microseconds / 1000.0
 
     def elapsed_sec(self):
         """ get the elapsed time in seconds. Returns floating
             point representation of time in seconds
         """
         return self.elapsed_ms() / 1000
+
 
 class ClientTest(unittest.TestCase):
     """ Base class that creates a pywbem.WBEMConnection for
@@ -69,7 +72,7 @@ class ClientTest(unittest.TestCase):
 
     def setUp(self):
         """Create a connection."""
-        #pylint: disable=global-variable-not-assigned
+        # pylint: disable=global-variable-not-assigned
         global args                 # pylint: disable=invalid-name
 
         self.host = args['host']
@@ -82,8 +85,8 @@ class ClientTest(unittest.TestCase):
         # set this because python 3 http libs generate many ResourceWarnings
         # and unittest enables these warnings.
         if not six.PY2:
-            #pylint: disable=undefined-variable
-            warnings.simplefilter("ignore", ResourceWarning)
+            # pylint: disable=undefined-variable
+            warnings.simplefilter("ignore", ResourceWarning)  # noqa: F821
 
     def connect(self, url, timeout=None):
 
@@ -101,11 +104,11 @@ class ClientTest(unittest.TestCase):
         self.log('Connected {}'.format(url))
         return conn
 
-
     def log(self, data_):
         """Display log entry if verbose"""
         if self.debug:
             print('{}'.format(data_))
+
 
 class ServerTimeoutTest(ClientTest):
 
@@ -324,8 +327,9 @@ def parse_args(argv_):
         args_['password'] = getpass()
     return args_, argv
 
+
 if __name__ == '__main__':
-    args, sys.argv = parse_args(sys.argv) # pylint: disable=invalid-name
+    args, sys.argv = parse_args(sys.argv)  # pylint: disable=invalid-name
 
     if args['verbose'] in args:
         print("Using WBEM Server:")

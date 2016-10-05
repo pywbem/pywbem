@@ -73,7 +73,7 @@ creates a listener and displays any indications it receives, in MOF format.
 
 import re
 import logging
-try: # Python 2.7+
+try:  # Python 2.7+
     from logging import NullHandler
 except ImportError:
     class NullHandler(logging.Handler):
@@ -94,8 +94,8 @@ from . import cim_xml
 from ._version import __version__
 from .cim_obj import CIMInstance, _ensure_unicode
 from .cim_operations import check_utf8_xml_chars
-from .cim_constants import CIM_ERR_NOT_SUPPORTED, \
-                           CIM_ERR_INVALID_PARAMETER, _statuscode2name
+from .cim_constants import CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_PARAMETER, \
+    _statuscode2name
 from .tupleparse import parse_cim
 from .tupletree import dom_to_tupletree
 from .exceptions import ParseError, VersionError
@@ -149,52 +149,52 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         self.send_http_error(405, headers=[('Allow', 'POST')])
 
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def do_OPTIONS(self):
         """Invalid method for listener"""
         self.invalid_method()
 
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def do_HEAD(self):
         """Invalid method for listener"""
         self.invalid_method()
 
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def do_GET(self):
         """Invalid method for listener"""
         self.invalid_method()
 
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def do_PUT(self):
         """Invalid method for listener"""
         self.invalid_method()
 
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def do_PATCH(self):
         """Invalid method for listener"""
         self.invalid_method()
 
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def do_DELETE(self):
         """Invalid method for listener"""
         self.invalid_method()
 
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def do_TRACE(self):
         """Invalid method for listener"""
         self.invalid_method()
 
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def do_CONNECT(self):
         """Invalid method for listener"""
         self.invalid_method()
 
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def do_M_POST(self):
         """Invalid method for listener"""
         self.invalid_method()
 
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def do_POST(self):
         """
         This method will be called for each POST request to one of the
@@ -479,7 +479,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 check_utf8_xml_chars(request_str, "CIM-XML export message")
             except ParseError:
                 raise
-            raise ParseError(msg) # data from previous exception
+            raise ParseError(msg)  # data from previous exception
 
         # Parse response
 
@@ -570,7 +570,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             (__version__, self.server_version, self.sys_version)
 
 
-#pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-instance-attributes
 class WBEMListener(object):
     """
     A WBEM listener.
@@ -780,7 +780,7 @@ class WBEMListener(object):
                 server = ThreadedHTTPServer((self._host, self._http_port),
                                             ListenerRequestHandler)
 
-                #pylint: disable=attribute-defined-outside-init
+                # pylint: disable=attribute-defined-outside-init
                 server.listener = self
                 thread = threading.Thread(target=server.serve_forever)
                 thread.daemon = True  # Exit server thread upon main thread exit
@@ -797,7 +797,7 @@ class WBEMListener(object):
                 server = ThreadedHTTPServer((self._host, self._https_port),
                                             ListenerRequestHandler)
 
-                #pylint: disable=attribute-defined-outside-init
+                # pylint: disable=attribute-defined-outside-init
                 server.listener = self
                 server.socket = ssl.wrap_socket(server.socket,
                                                 certfile=self._certfile,
@@ -881,6 +881,7 @@ class WBEMListener(object):
         if callback not in self._callbacks:
             self._callbacks.append(callback)
 
+
 def callback_interface(indication, host):
     # pylint: disable=unused-argument
     """
@@ -903,4 +904,3 @@ def callback_interface(indication, host):
           callback function is called.
     """
     raise NotImplementedError
-

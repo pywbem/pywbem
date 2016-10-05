@@ -10,7 +10,7 @@ import unittest
 from mock import Mock
 
 from pywbem import CIMClass, CIMProperty, CIMQualifier, Uint8, WBEMServer, \
-                   WBEMConnection, ValueMapping
+    WBEMConnection, ValueMapping
 
 CLASSNAME = 'C1'
 NAMESPACE = 'ns'

@@ -166,14 +166,14 @@ import pip
 
 # Some types to avoid dependency on "six" package during installation.
 if sys.version_info[0] == 2:
-    string_types = basestring,      # pylint: disable=invalid-name
-    text_type = unicode             # pylint: disable=invalid-name
-    binary_type = str               # pylint: disable=invalid-name
+    string_types = basestring,      # pylint: disable=invalid-name # noqa: F821
+    text_type = unicode             # pylint: disable=invalid-name # noqa: F821
+    binary_type = str               # pylint: disable=invalid-name # noqa: F821
     from xmlrpclib import ServerProxy as xmlrpc_ServerProxy
 else:
-    string_types = str,             # pylint: disable=invalid-name
-    text_type = str                 # pylint: disable=invalid-name
-    binary_type = bytes             # pylint: disable=invalid-name
+    string_types = str,             # pylint: disable=invalid-name # noqa: F821
+    text_type = str                 # pylint: disable=invalid-name # noqa: F821
+    binary_type = bytes             # pylint: disable=invalid-name # noqa: F821
     from xmlrpc.client import ServerProxy as xmlrpc_ServerProxy
 
 
@@ -208,6 +208,7 @@ class OsDistribution(Distribution):
 
         # Distribution is an old-style class in Python 2.6:
         Distribution.__init__(self, attrs)
+
 
 def _assert_system_dict(dist, attr, value):
     """Validate the value of the 'install_os_requires' and
@@ -281,7 +282,8 @@ def _assert_system_dict(dist, attr, value):
                 (attr, system, type(system_item))
             )
 
-def _assert_req_list(dist, attr, value): # pylint: disable=unused-argument
+
+def _assert_req_list(dist, attr, value):  # pylint: disable=unused-argument
     """Validate the value of a requirements list (e.g. the 'develop_requires'
     attribute, or the requirement lists for a distro or system in the
     'install_os_requires' attribute).
@@ -330,7 +332,7 @@ class BaseOsCommand(Command):
         pass
 
 
-class install_os(BaseOsCommand): # pylint: disable=invalid-name
+class install_os(BaseOsCommand):  # pylint: disable=invalid-name
     """Setuptools/distutils command class for installing OS packages
     in 'normal mode', i.e. when the user specifies the 'install_os' command.
     """
@@ -363,7 +365,8 @@ class install_os(BaseOsCommand): # pylint: disable=invalid-name
                 "Errors occurred (see previous messages)"
             )
 
-class develop_os(BaseOsCommand): # pylint: disable=invalid-name
+
+class develop_os(BaseOsCommand):  # pylint: disable=invalid-name
     """Setuptools/distutils command class for installing OS packages for
     'development mode', i.e. when the user specifies the 'develop_os' command.
     """
@@ -399,7 +402,8 @@ class develop_os(BaseOsCommand): # pylint: disable=invalid-name
                 "Errors occurred (see previous messages)"
             )
 
-class develop(_develop): # pylint: disable=invalid-name
+
+class develop(_develop):  # pylint: disable=invalid-name
     """Setuptools/distutils command class extending the setuptools 'develop'
     command with the ability to process the 'develop_requires' attribute
     of the setup() function.
@@ -457,6 +461,7 @@ def _linux_distribution():
     )
     return distro
 
+
 class BaseInstaller(object):
     """Base class for installing OS packages and Python packages."""
 
@@ -500,7 +505,6 @@ class BaseInstaller(object):
 
         self.userid = getpass.getuser()
         self.env = None
-
 
     def do_install(self, pkg_name, version_reqs=None, dry_run=False,
                    reinstall=False):
@@ -630,9 +634,9 @@ class BaseInstaller(object):
                 for req in req_string.split(','):
                     req = req.strip()
                     if len(req) == 0:
-                        continue # ignore empty requirements
+                        continue  # ignore empty requirements
                     if req[0] not in "<=>!":
-                        req = '==' + req # add default operator
+                        req = '==' + req  # add default operator
                     req_list.append(req)
             return pkg_name, req_list
         else:
@@ -654,7 +658,7 @@ class BaseInstaller(object):
           <op><version> (e.g. '>=1.0').
         """
         if not req_list:
-            return True # no requirement -> version always matches
+            return True  # no requirement -> version always matches
 
         if not isinstance(req_list, (list, tuple)):
             req_list = list(req_list)
@@ -751,13 +755,14 @@ class BaseInstaller(object):
                 msg = "Error: The following %s packages are not in the "\
                       "repositories or do not have a sufficient version "\
                       "there and need to be obtained otherwise:\n"\
-                       "    %s" %\
-                       (self.env, "\n    ".join(pkg_reqs))
+                      "    %s" %\
+                      (self.env, "\n    ".join(pkg_reqs))
             else:
                 raise DistutilsSetupError(
                     "Internal Error: Unexpected message ID: %s" % msg_id
                 )
             print(msg)
+
 
 class PythonInstaller(BaseInstaller):
     """Support for installing Python packages."""
@@ -794,7 +799,7 @@ class PythonInstaller(BaseInstaller):
               printed.
         """
         if req is None:
-            pass # ignore
+            pass  # ignore
         elif isinstance(req, types.FunctionType):
             req(self, dry_run, verbose)
         elif isinstance(req, (list, tuple)):  # requirements choice
@@ -816,7 +821,7 @@ class PythonInstaller(BaseInstaller):
                     print("No package of Python package req choice is "
                           "available in Pypi: %s" % req)
                 self.record_error(req, None, self.MSG_PKG_NOT_IN_REPOS)
-        else: # requirements string
+        else:  # requirements string
             if verbose:
                 print("Processing Python package requirement: %s" % req)
             pkg_name, version_reqs = self.parse_pkg_req(req)
@@ -863,7 +868,7 @@ class PythonInstaller(BaseInstaller):
                         if line.startswith("Version:")][0]
         version = version_line.split()[1]
         version_sufficient = self.version_matches_req(version, version_reqs) \
-                             if version_reqs else True
+            if version_reqs else True
         return (True, version_sufficient, version)
 
     def is_available(self, pkg_name, version_reqs=None):
@@ -964,7 +969,7 @@ class OSInstaller(BaseInstaller):
             platform_installer = self.installers[self.platform]
             return platform_installer()
         except KeyError:
-            return self # limited function, i.e. it cannot install
+            return self  # limited function, i.e. it cannot install
 
     def supported(self):
         """Determine whether this operating system platform is supported for
@@ -977,9 +982,9 @@ class OSInstaller(BaseInstaller):
         if self.system == "Linux":
             # TODO: Using sudo may ask for the sudo password. Find a better
             #       way of testing for authorization to install packages.
-            #rc, _, _ = shell("sudo echo ok")
-            #authorized = (rc == 0)
-            authorized = True # For now...
+            # rc, _, _ = shell("sudo echo ok")
+            # authorized = (rc == 0)
+            authorized = True  # For now...
         else:
             authorized = True
         return authorized
@@ -1071,7 +1076,7 @@ class OSInstaller(BaseInstaller):
               printed.
         """
         if req is None:
-            pass # ignore
+            pass  # ignore
         elif isinstance(req, types.FunctionType):
             req(self, dry_run, verbose)
         elif isinstance(req, (list, tuple)):  # requirements choice
@@ -1093,7 +1098,7 @@ class OSInstaller(BaseInstaller):
                     print("No package of OS package req choice is "
                           "available in the repos: %s" % req)
                 self.record_error(req, None, self.MSG_PKG_NOT_IN_REPOS)
-        else: # requirements string
+        else:  # requirements string
             if verbose:
                 print("Processing OS package requirement: %s" % req)
             pkg_name, version_reqs = self.parse_pkg_req(req)
@@ -1242,7 +1247,7 @@ class YumInstaller(OSInstaller):
                 (cmd, out, err))
         version = info[1].split("-")[0]
         version_sufficient = self.version_matches_req(version, version_reqs) \
-                             if version_reqs else True
+            if version_reqs else True
         return (True, version_sufficient, version)
 
     def is_available(self, pkg_name, version_reqs=None):
@@ -1266,8 +1271,9 @@ class YumInstaller(OSInstaller):
                 (cmd, out, err))
         version = info[1].split("-")[0]
         version_sufficient = self.version_matches_req(version, version_reqs) \
-                             if version_reqs else True
+            if version_reqs else True
         return (True, version_sufficient, [version])
+
 
 class AptInstaller(OSInstaller):
     """Installer for apt tool (e.g. Debian, Ubuntu)."""
@@ -1316,7 +1322,7 @@ class AptInstaller(OSInstaller):
             version = version.split(":")[1]
             # TODO: Add support for epoch number in the version
         version_sufficient = self.version_matches_req(version, version_reqs) \
-                             if version_reqs else True
+            if version_reqs else True
         return (True, version_sufficient, version)
 
     def is_available(self, pkg_name, version_reqs=None):
@@ -1338,8 +1344,9 @@ class AptInstaller(OSInstaller):
                         if line.startswith("Version:")][0]
         version = version_line.split()[1].split("-")[0]
         version_sufficient = self.version_matches_req(version, version_reqs) \
-                             if version_reqs else True
+            if version_reqs else True
         return (True, version_sufficient, [version])
+
 
 class ZypperInstaller(OSInstaller):
     """Installer for zypper tool (e.g. SLES, openSUSE)."""
@@ -1382,7 +1389,7 @@ class ZypperInstaller(OSInstaller):
                 (cmd, out, err))
         version = info[1].split("-")[0]
         version_sufficient = self.version_matches_req(version, version_reqs) \
-                             if version_reqs else True
+            if version_reqs else True
         return (True, version_sufficient, version)
 
     def is_available(self, pkg_name, version_reqs=None):
@@ -1405,8 +1412,9 @@ class ZypperInstaller(OSInstaller):
         version_line = version_lines[0]
         version = version_line.split()[1].split("-")[0]
         version_sufficient = self.version_matches_req(version, version_reqs) \
-                             if version_reqs else True
+            if version_reqs else True
         return (True, version_sufficient, [version])
+
 
 def shell(command, display=False, ignore_notfound=False):
     """Execute a shell command and return its return code, stdout and stderr.
@@ -1465,6 +1473,7 @@ def shell(command, display=False, ignore_notfound=False):
 
     return p.returncode, stdout, stderr
 
+
 def shell_check(command, display=False, exp_rc=0):
     """Execute a shell command, check if its return code is 0, and if not,
     raise an exception.
@@ -1500,6 +1509,7 @@ def shell_check(command, display=False, exp_rc=0):
             "%s returns rc=%d: %s" % (command[0], rc, msg))
 
     return out
+
 
 def import_setuptools(min_version="12.0"):
     """Import the `setuptools` package.
@@ -1539,4 +1549,3 @@ def import_setuptools(min_version="12.0"):
                 "    pip install --upgrade 'setuptools>=%s'\n" %
                 (min_version, min_version)
             )
-

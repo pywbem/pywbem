@@ -41,18 +41,18 @@ import subprocess
 import platform
 from distutils.errors import DistutilsSetupError
 
+import os_setup
+from os_setup import shell, shell_check, import_setuptools
+
 # Workaround for Python 2.6 issue https://bugs.python.org/issue15881
 # This causes this module to be referenced and prevents the premature
 # unloading and subsequent garbage collection causing the error.
 if sys.version_info[0:2] == (2, 6):
     try:
         # pylint: disable=unused-import
-        import multiprocessing  # noqa: F401
+        import multiprocessing  # noqa: E402, F401
     except ImportError:
         pass
-
-import os_setup
-from os_setup import shell, shell_check, import_setuptools
 
 if sys.version_info[0] == 2:
     from xmlrpclib import Fault
@@ -60,6 +60,7 @@ else:
     from xmlrpc.client import Fault
 
 _VERBOSE = True
+
 
 def package_version(filename, varname):
     """Return package version string by reading `filename` and retrieving its
@@ -102,6 +103,7 @@ def _check_get_swig(swig_min_version, verbose):
                 print("Installed Swig version is sufficient: %s" %
                       swig_version)
     return get_swig
+
 
 def install_swig(installer, dry_run, verbose):
     """Custom installer function for `os_setup` module.
@@ -240,26 +242,27 @@ def install_swig(installer, dry_run, verbose):
                 if verbose:
                     print("Configuring Swig build process for installing to "
                           "%s tree..." % swig_install_root)
-                shell_check(["sh", "-c", "cd %s; ./configure --prefix=%s" %
-                             (swig_dir, swig_install_root)],
-                              display=True)
+                shell_check(
+                    ["sh", "-c", "cd %s; ./configure --prefix=%s" %
+                     (swig_dir, swig_install_root)], display=True)
 
                 if verbose:
                     print("Building Swig...")
-                shell_check(["sh", "-c", "cd %s; make swig" % swig_dir],
-                            display=True)
+                shell_check(
+                    ["sh", "-c", "cd %s; make swig" % swig_dir], display=True)
 
                 if verbose:
                     print("Installing Swig to %s tree..." % swig_install_root)
-                shell_check(["sh", "-c", "cd %s; sudo make install" % swig_dir],
-                            display=True)
+                shell_check(
+                    ["sh", "-c", "cd %s; sudo make install" % swig_dir],
+                    display=True)
 
                 if verbose:
                     print("Done downloading, building and installing Swig "
                           "version %s" % swig_build_version)
 
 
-def build_moftab(verbose):
+def build_moftab(verbose):  # pylint: disable=unused-argument
     """Generate the moftab modules.
 
     This function is called after the installation of the `pywbem`package
@@ -283,6 +286,7 @@ def build_moftab(verbose):
         # tolerate a failure:
         print("Warning: build_moftab.py failed with rc=%s; the PyWBEM "
               "LEX/YACC table modules may be rebuilt on first use" % rc)
+
 
 def main():
     """Main function of this script."""
@@ -374,23 +378,23 @@ def main():
             "pylint" if sys.version_info[0:2] == (2, 7) else None,
             "mock",
             'flake8',
-            "pbr", # needed by mock
-            "twine", # needed for upload to Pypi
+            "pbr",  # needed by mock
+            "twine",  # needed for upload to Pypi
         ],
         'install_os_requires': {
             # OS-level prereqs for 'install_os' command. Handled by os_setup
             # module.
             'Linux': {
                 'redhat': [
-                    "openssl-devel>=1.0.1", # for M2Crypto installation
+                    "openssl-devel>=1.0.1",  # for M2Crypto installation
                     "gcc-c++>=4.4",         # for building Swig and for running
                                             #   Swig in M2Crypto install
                     install_swig,           # for running Swig in M2Crypto inst.
                     # Python-devel provides Python.h for Swig run.
                     ["python34-devel", "python34u-devel", "python3-devel"] \
-                        if py_version_m_n == "3.4" else \
+                    if py_version_m_n == "3.4" else \
                     ["python35-devel", "python35u-devel", "python3-devel"] \
-                        if py_version_m_n == "3.5" else \
+                    if py_version_m_n == "3.5" else \
                     "python-devel",
                 ],
                 'centos': 'redhat',
@@ -469,7 +473,7 @@ def main():
             'Intended Audience :: Developers',
             'Intended Audience :: System Administrators',
             'License :: OSI Approved :: '\
-                'GNU Lesser General Public License v2 or later (LGPLv2+)',
+            'GNU Lesser General Public License v2 or later (LGPLv2+)',
             'Operating System :: OS Independent',
             'Programming Language :: Python :: 2',
             'Programming Language :: Python :: 2.6',

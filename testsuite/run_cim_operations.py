@@ -24,21 +24,17 @@ import six
 from unittest_extensions import RegexpMixin
 
 from pywbem import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
-                   CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
-                   CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS, \
-                   CIM_ERR_METHOD_NOT_AVAILABLE, CIM_ERR_INVALID_QUERY, \
-                   CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, \
-                   CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
-                   CIM_ERR_METHOD_NOT_FOUND, \
-                   DEFAULT_NAMESPACE
+    CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
+    CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS, \
+    CIM_ERR_METHOD_NOT_AVAILABLE, CIM_ERR_INVALID_QUERY, \
+    CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
+    CIM_ERR_METHOD_NOT_FOUND, DEFAULT_NAMESPACE
 
 from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
-                   WBEMSubscriptionManager, \
-                   CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
-                   CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
-                   CIMMethod, ValueMapping, \
-                   Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, Sint32, \
-                   Sint64, Real32, Real64, CIMDateTime, TestClientRecorder
+    WBEMSubscriptionManager, CIMInstance, CIMInstanceName, CIMClass, \
+    CIMClassName, CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
+    CIMMethod, ValueMapping, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
+    Sint32, Sint64, Real32, Real64, CIMDateTime, TestClientRecorder
 
 # Test for decorator for unimplemented tests
 # decorator is @unittest.skip(UNIMPLEMENTED)
@@ -71,7 +67,7 @@ class ClientTest(unittest.TestCase):
 
     def setUp(self):
         """Create a connection."""
-        #pylint: disable=global-variable-not-assigned
+        # pylint: disable=global-variable-not-assigned
         global args                 # pylint: disable=invalid-name
 
         self.system_url = args['url']
@@ -84,8 +80,8 @@ class ClientTest(unittest.TestCase):
         # set this because python 3 http libs generate many ResourceWarnings
         # and unittest enables these warnings.
         if not six.PY2:
-            #pylint: disable=ResourceWarning, undefined-variable
-            warnings.simplefilter("ignore", ResourceWarning)
+            # pylint: disable=ResourceWarning, undefined-variable
+            warnings.simplefilter("ignore", ResourceWarning)  # noqa: F821
 
         self.log('setup connection {} ns {}'.format(self.system_url,
                                                     self.namespace))
@@ -109,7 +105,7 @@ class ClientTest(unittest.TestCase):
 
     def tearDown(self):
         """Close the test_client YAML file."""
-        #pylint: disable=global-variable-not-assigned
+        # pylint: disable=global-variable-not-assigned
         global args                 # pylint: disable=invalid-name
 
         if self.yamlfp is not None:
@@ -145,12 +141,10 @@ class ClientTest(unittest.TestCase):
 
         return result
 
-
     def log(self, data_):
         """Display log entry if verbose."""
         if self.verbose:
             print('{}'.format(data_))
-
 
     def assertInstancesValid(self, instances, includes_path=True,
                              prop_count=None, property_list=None):
@@ -187,7 +181,6 @@ class ClientTest(unittest.TestCase):
                     prop = instance.properties[p]
                     self.assertIsInstance(prop, CIMProperty)
 
-
     def assertInstanceNameValid(self, path, includes_namespace=True,
                                 includes_keybindings=True,
                                 namespace=None):
@@ -203,7 +196,6 @@ class ClientTest(unittest.TestCase):
             self.assertTrue(path.keybindings is not None)
         if namespace is not None:
             self.assertTrue(path.namespace == namespace)
-
 
     def assertAssocRefClassRtnValid(self, cls):
         """ Confirm that an associator or Reference class response
@@ -285,7 +277,6 @@ class ClientTest(unittest.TestCase):
                         return
                 self.fail('assertInstancesEqual fail')
 
-
     def assertPathsEqual(self, paths1, paths2, ignorehost=False):
         """ Compare two lists of paths or paths for equality
             assert if they are not the same
@@ -306,9 +297,11 @@ class ClientTest(unittest.TestCase):
                         return
                 self.fail('assertPathsEqual fail')
 
+
 #################################################################
 # Instance provider interface tests
 #################################################################
+
 
 class EnumerateInstanceNames(ClientTest):
 
@@ -352,6 +345,7 @@ class EnumerateInstanceNames(ClientTest):
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_CLASS:
                 raise
+
 
 class EnumerateInstances(ClientTest):
     """Test enumerateInstance variations against the server."""
@@ -424,7 +418,6 @@ class EnumerateInstances(ClientTest):
 
         self.assertInstancesValid(instances)
 
-
     def test_with_localonly(self):
         """Test LocalOnly specifically.
         Open pegasus ignores this one so cannot really test."""
@@ -437,13 +430,12 @@ class EnumerateInstances(ClientTest):
 
         self.display_response(instances)
 
-        #Add specific response tests to the following
+        # Add specific response tests to the following
         instances = self.cimcall(self.conn.EnumerateInstances,
                                  TEST_CLASS,
                                  LocalOnly=False)
 
         self.assertInstancesValid(instances)
-
 
     def test_class_propertylist(self):
         """ Test with propertyList for getClass to confirm property in class.
@@ -458,7 +450,6 @@ class EnumerateInstances(ClientTest):
         if self.verbose:
             for p in cls.properties.values():
                 print('ClassPropertyName=%s' % p.name)
-
 
     def test_instance_propertylist(self):
         """ Test property list on enumerate instances."""
@@ -476,7 +467,6 @@ class EnumerateInstances(ClientTest):
                                  PropertyList=property_list)
 
         self.assertInstancesValid(instances)
-
 
         for i in instances:
             self.assertTrue(len(i.properties) >= cls_property_count)
@@ -504,8 +494,7 @@ class EnumerateInstances(ClientTest):
 
         # TODO Apparently ks 5/16 Pegasus did not implement all properties
         # now in the class
-        #self.assertTrue(property_count == inst_property_count)
-
+        # self.assertTrue(property_count == inst_property_count)
 
     def test_instance_propertylist2(self):
         """ Test property list on enumerate instances."""
@@ -549,7 +538,7 @@ class EnumerateInstances(ClientTest):
 
         # TODO Apparently ks 5/16 Pegasus did not implement all properties
         # now in the class
-        #self.assertTrue(property_count == inst_property_count)
+        # self.assertTrue(property_count == inst_property_count)
 
     def test_deepinheritance(self):
         """Test with deep inheritance set true and then false."""
@@ -597,7 +586,6 @@ class EnumerateInstances(ClientTest):
             for p in instances[0].properties.values():
                 print('InstancePropertyName=%s' % p.name)
 
-
     def test_includequalifiers_true(self):
         """Test Include qualifiers. No detailed added test because
            most servers ignore this."""
@@ -610,7 +598,6 @@ class EnumerateInstances(ClientTest):
 
         self.assertInstancesValid(instances, prop_count=2,
                                   property_list=prop_list)
-
 
     def test_includequalifiers_false(self):
         """ Can only test if works wnen set."""
@@ -625,7 +612,6 @@ class EnumerateInstances(ClientTest):
 
         self.display_response(instances)
 
-
     def test_includeclassorigin(self):
         """test with includeclassorigin."""
         prop_list = [TEST_CLASS_PROPERTY1, TEST_CLASS_PROPERTY2]
@@ -637,7 +623,7 @@ class EnumerateInstances(ClientTest):
         self.assertInstancesValid(instances, prop_count=2,
                                   property_list=prop_list)
 
-        #self.assertTrue(self.instance_classorigin(i, True))
+        # self.assertTrue(self.instance_classorigin(i, True))
 
         instances = self.cimcall(self.conn.EnumerateInstances,
                                  TEST_CLASS,
@@ -647,7 +633,6 @@ class EnumerateInstances(ClientTest):
             self.assertInstancesValid(i, prop_count=2,
                                       property_list=prop_list)
             self.assertTrue(self.instance_classorigin(i, False))
-
 
     def test_nonexistent_namespace(self):
         """ Confirm correct error with nonexistent namespace."""
@@ -662,7 +647,6 @@ class EnumerateInstances(ClientTest):
             if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                 raise
 
-
     def test_nonexistent_classname(self):
         """ Confirm correct error with nonexistent classname."""
         try:
@@ -672,7 +656,6 @@ class EnumerateInstances(ClientTest):
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_CLASS:
                 raise
-
 
     def test_invalid_request_parameter(self):
         """Should return error if invalid parameter."""
@@ -685,9 +668,12 @@ class EnumerateInstances(ClientTest):
             if ce.args[0] != CIM_ERR_NOT_SUPPORTED:
                 raise
 
+
 #
 #   Test the Pull Operations
 #
+
+
 class PullEnumerateInstances(ClientTest):
     """
         Tests on OpenEnumerateInstances and corresponding PullInstancesWithPath
@@ -726,7 +712,6 @@ class PullEnumerateInstances(ClientTest):
 
         self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
 
-
     def test_open_deepinheritance(self):
         """Simple OpenEnumerateInstances but with DeepInheritance set."""
 
@@ -749,7 +734,6 @@ class PullEnumerateInstances(ClientTest):
         self.assertInstancesValid(insts_enum)
 
         self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
-
 
     def test_open_includequalifiers(self):
         """Simple OpenEnumerateInstances but with IncludeQualifiers set."""
@@ -778,7 +762,6 @@ class PullEnumerateInstances(ClientTest):
 
         self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
 
-
     def test_open_includeclassorigin(self):
         """Simple OpenEnumerateInstances but with DeepInheritance set."""
 
@@ -802,7 +785,6 @@ class PullEnumerateInstances(ClientTest):
         insts_enum = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
 
         self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
-
 
     def test_open_complete_with_ns(self):
         """Simple call that is complete with just the open and
@@ -829,7 +811,6 @@ class PullEnumerateInstances(ClientTest):
 
         self.assertInstancesEqual(insts_pulled, insts_enum, ignorehost=True)
 
-
     def test_zero_open(self):
         """ Test with default on open. Should return zero instances.
         """
@@ -849,7 +830,6 @@ class PullEnumerateInstances(ClientTest):
 
         self.assertTrue(result.eos is True)
 
-
     def test_close_early(self):
         """"Close enumeration session after initial Open."""
         result = self.cimcall(self.conn.OpenEnumerateInstances, TEST_CLASS)
@@ -865,7 +845,6 @@ class PullEnumerateInstances(ClientTest):
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_ENUMERATION_CONTEXT:
                 raise
-
 
     def test_get_onebyone(self):
         """Get instances with MaxObjectCount = 1)."""
@@ -885,10 +864,9 @@ class PullEnumerateInstances(ClientTest):
             insts_pulled.extend(result.instances)
 
         # get with EnumInstances and compare returns
-        insts_enum = \
-            self.cimcall(self.conn.EnumerateInstances, TOP_CLASS)  # noqa: F841
-        # TODO finish the compare
-
+        insts_enum = self.cimcall(  # noqa: F841
+            self.conn.EnumerateInstances, TOP_CLASS)
+        # TODO finish the compare (and remove the noqa F841)
 
     def test_bad_namespace(self):
         """Call with explicit CIM namespace that does not exist."""
@@ -917,8 +895,7 @@ class PullEnumerateInstances(ClientTest):
             if ce.args[0] != CIM_ERR_NOT_SUPPORTED:
                 raise
 
-
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def test_open_invalid_filterquerylanguage(self):
         """Test invalid FilterQueryLanguage parameter."""
         try:
@@ -931,8 +908,7 @@ class PullEnumerateInstances(ClientTest):
         except CIMError as ce:
             self.assertEqual(ce.args[0], CIM_ERR_FAILED)
 
-
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def test_open_invalid_filterquerylanguagewithfilter(self):
         """Test valid filter but invalid FilterQueryLanguage."""
         try:
@@ -946,7 +922,6 @@ class PullEnumerateInstances(ClientTest):
         except CIMError as ce:
             self.assertEqual(ce.args[0],
                              CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED)
-
 
     def test_open_invalid_filterquery(self):
         """Test Invalid FilterQuery."""
@@ -1025,7 +1000,6 @@ class PullEnumerateInstancePaths(ClientTest):
         self.assertTrue(len(paths_pulled) == len(paths_enum))
         # TODO add test for all paths equal
 
-
     def test_open_complete_with_ns(self):
         """Simplest invocation. Everything comes back in
            initial response with end-of-sequence == True
@@ -1062,7 +1036,6 @@ class PullEnumerateInstancePaths(ClientTest):
         self.assertTrue(len(paths_pulled) == len(paths_enum))
         # TODO add test to confirm they are the same
 
-
     def test_bad_namespace(self):
         """Call with explicit CIM namespace that does not exist."""
 
@@ -1075,7 +1048,6 @@ class PullEnumerateInstancePaths(ClientTest):
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                 raise
-
 
     def test_zero_open(self):
         """ Test for request with MaxObjectCount default on open. This
@@ -1091,7 +1063,6 @@ class PullEnumerateInstancePaths(ClientTest):
                               MaxObjectCount=100)
 
         self.assertTrue(result.eos)
-
 
     def test_close_early(self):
         """"Close enumeration session after initial Open."""
@@ -1154,6 +1125,7 @@ class PullEnumerateInstancePaths(ClientTest):
         else:
             self.fail('Issues with pull vs non-pull responses')
 
+
 class PullReferences(ClientTest):
     """Test OpenReferences and PullInstancesWithPath."""
 
@@ -1162,8 +1134,7 @@ class PullReferences(ClientTest):
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
                                   TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
-        inst_name = inst_names[0] # Pick the first returned instance
-
+        inst_name = inst_names[0]  # Pick the first returned instance
 
         result = self.cimcall(self.conn.OpenReferenceInstances,
                               inst_name,
@@ -1197,7 +1168,6 @@ class PullReferences(ClientTest):
 
         self.assertInstancesEqual(insts_pulled, insts_enum)
 
-
     @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip test against all instances')
     def test_all_instances_in_ns(self):
         """Simplest invocation. Everything comes back in
@@ -1230,9 +1200,8 @@ class PullReferences(ClientTest):
                 print('References %s count %s' % (pathi, len(insts_enum)))
             self.assertTrue(len(insts_pulled) == len(insts_enum))
 
-            #TODO ks 5/30 2016 add tests here
-            #Do this as a loop for all instances above.
-
+            # TODO ks 5/30 2016 add tests here
+            # Do this as a loop for all instances above.
 
     def test_invalid_instance_name(self):
         """Test with name that is invalid class Expects exception"""
@@ -1256,8 +1225,7 @@ class PullReferencePaths(ClientTest):
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
                                   TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
-        inst_name = inst_names[0] # Pick the first returned instance
-
+        inst_name = inst_names[0]  # Pick the first returned instance
 
         result = self.cimcall(self.conn.OpenReferenceInstancePaths,
                               inst_name,
@@ -1272,7 +1240,6 @@ class PullReferencePaths(ClientTest):
 
             self.assertTrue(len(result.paths) <= 1)
             paths_pulled.extend(result.paths)
-
 
         for path in result.paths:
             self.assertTrue(isinstance(path, CIMInstanceName))
@@ -1326,8 +1293,9 @@ class PullReferencePaths(ClientTest):
                 print('References %s count %s' % (pathi, len(paths_enum)))
             self.assertTrue(len(paths) == len(paths_enum))
 
-            #TODO ks 5/30 2016 add tests here
-            #Do this as a loop for all instances above.
+            # TODO ks 5/30 2016 add tests here
+            # Do this as a loop for all instances above.
+
 
 class PullAssociators(ClientTest):
     """Test the OpenAssociators and corresponding pull."""
@@ -1338,8 +1306,7 @@ class PullAssociators(ClientTest):
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
                                   TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
-        inst_name = inst_names[0] # Pick the first returned instance
-
+        inst_name = inst_names[0]  # Pick the first returned instance
 
         result = self.cimcall(self.conn.OpenAssociatorInstances,
                               inst_name,
@@ -1354,7 +1321,6 @@ class PullAssociators(ClientTest):
 
             self.assertTrue(len(result.instances) <= 1)
             insts_pulled.extend(result.instances)
-
 
         for inst in insts_pulled:
             self.assertTrue(isinstance(inst, CIMInstanceName))
@@ -1373,7 +1339,6 @@ class PullAssociators(ClientTest):
             self.assertTrue(i.path.host is not None)
 
         self.assertInstancesEqual(insts_pulled, insts_enum)
-
 
     @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long  all instances test')
     def test_all_instances_in_ns(self):
@@ -1409,9 +1374,8 @@ class PullAssociators(ClientTest):
                 print('Associators %s count %s' % (insts_pulled,
                                                    len(insts_enum)))
             self.assertTrue(len(insts_pulled) == len(insts_enum))
-            #TODO ks 5/30 2016 add tests here
-            #Do this as a loop for all instances above.
-
+            # TODO ks 5/30 2016 add tests here
+            # Do this as a loop for all instances above.
 
     def test_invalid_instance_name(self):
         """Test with name that is invalid class."""
@@ -1437,8 +1401,7 @@ class PullAssociatorPaths(ClientTest):
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
                                   TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
-        inst_name = inst_names[0] # Pick the first returned instance
-
+        inst_name = inst_names[0]  # Pick the first returned instance
 
         result = self.cimcall(self.conn.OpenAssociatorInstancePaths,
                               inst_name,
@@ -1453,7 +1416,6 @@ class PullAssociatorPaths(ClientTest):
 
             self.assertTrue(len(result.paths) <= 1)
             paths_pulled.extend(result.paths)
-
 
         for path in paths_pulled:
             self.assertTrue(isinstance(path, CIMInstanceName))
@@ -1472,7 +1434,6 @@ class PullAssociatorPaths(ClientTest):
             self.assertTrue(i.host is not None)
 
         self.assertPathsEqual(paths_pulled, paths_enum)
-
 
     @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
     def test_all_instances_in_ns(self):
@@ -1508,8 +1469,9 @@ class PullAssociatorPaths(ClientTest):
             if len(paths_enum) != 0:
                 print('Associator Names %s count %s' % (pathi, len(paths_enum)))
             self.assertTrue(len(paths_pulled) == len(paths_enum))
-            #TODO ks 5/30 2016 add tests here
-            #Do this as a loop for all instances above.
+            # TODO ks 5/30 2016 add tests here
+            # Do this as a loop for all instances above.
+
 
 class PullQueryInstances(ClientTest):
     """Test of openexecquery and pullinstances."""
@@ -1537,7 +1499,7 @@ class PullQueryInstances(ClientTest):
                 insts_pulled.extend(result.instances)
                 eos = op_result.eos
 
-            #TODO ks extend this test
+            # TODO ks extend this test
 
         except CIMError as ce:
             if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
@@ -1550,7 +1512,6 @@ class PullQueryInstances(ClientTest):
                     " server doesn't support WQL for ExecQuery")
             else:
                 raise
-
 
     def test_zeroopen_pullexecquery(self):
         try:
@@ -1585,6 +1546,7 @@ class PullQueryInstances(ClientTest):
             else:
                 raise
 
+
 class ExecQuery(ClientTest):
 
     def test_simple(self):
@@ -1615,7 +1577,6 @@ class ExecQuery(ClientTest):
             else:
                 raise
 
-
     def test_namespace_error(self):
         """Call with explicit CIM namespace that does not exist."""
 
@@ -1630,7 +1591,6 @@ class ExecQuery(ClientTest):
             if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                 raise
 
-
     def test_invalid_querylang(self):
         """Test execquery with invalid query_lang parameter."""
         try:
@@ -1643,7 +1603,6 @@ class ExecQuery(ClientTest):
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
                 raise
-
 
     def test_invalid_query(self):
         """Test with invalid query syntax."""
@@ -1666,7 +1625,7 @@ class GetInstance(ClientTest):
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
                                   TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
-        name = inst_names[0] # Pick the first returned instance
+        name = inst_names[0]  # Pick the first returned instance
 
         # Simple invocation
 
@@ -1721,7 +1680,7 @@ class GetInstance(ClientTest):
         self.assertTrue(isinstance(obj, CIMInstance))
         self.assertTrue(isinstance(obj.path, CIMInstanceName))
         self.assertTrue(obj.path.namespace == self.namespace)
-        #TODO confirm results.
+        # TODO confirm results.
 
         # Call with IncludeClassOrigin
 
@@ -1732,7 +1691,7 @@ class GetInstance(ClientTest):
         self.assertTrue(isinstance(obj, CIMInstance))
         self.assertTrue(isinstance(obj.path, CIMInstanceName))
         self.assertTrue(obj.path.namespace == self.namespace)
-        #confirm results
+        # confirm results
 
         # Call with IncludeQualifiers and IncludeClassOrigin
 
@@ -1769,14 +1728,13 @@ class GetInstance(ClientTest):
             if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                 raise
 
-
     def test_propertylist_tuple(self):
         """ Test property list as tuple instead of list."""
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
                                   TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
-        name = inst_names[0] # Pick the first returned instance
+        name = inst_names[0]  # Pick the first returned instance
 
         obj = self.cimcall(self.conn.GetInstance,
                            name,
@@ -1850,10 +1808,11 @@ class CreateInstance(ClientTest):
 
         try:
             self.cimcall(self.conn.GetInstance(instance.path))
-            #TODO ks 8/16 extend to match the get and create
+            # TODO ks 8/16 extend to match the get and create
         except CIMError as arg:
             if arg == CIM_ERR_NOT_FOUND:
                 pass
+
 
 class ModifyInstance(ClientTest):
 
@@ -1906,6 +1865,7 @@ class ModifyInstance(ClientTest):
 # Method provider interface tests
 #################################################################
 
+
 class InvokeMethod(ClientTest):
 
     def test_all(self):
@@ -1927,7 +1887,7 @@ class InvokeMethod(ClientTest):
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
                                   TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
-        name = inst_names[0] # Pick the first returned instance
+        name = inst_names[0]  # Pick the first returned instance
 
         try:
 
@@ -2014,8 +1974,8 @@ class InvokeMethod(ClientTest):
             self.cimcall(self.conn.InvokeMethod,
                          'FooMethod',
                          TEST_CLASS,
-                         [('Spam', Uint16(1)), ('Ham', Uint16(2))], # Params
-                         Drink=Uint16(3), # begin of **params
+                         [('Spam', Uint16(1)), ('Ham', Uint16(2))],  # Params
+                         Drink=Uint16(3),  # begin of **params
                          Beer=Uint16(4))
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
@@ -2031,6 +1991,7 @@ class InvokeMethod(ClientTest):
 # Associators request interface tests
 #################################################################
 
+
 class Associators(ClientTest):
     """ Tests of the associators instance request operation."""
 
@@ -2041,7 +2002,7 @@ class Associators(ClientTest):
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
                                   TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
-        inst_name = inst_names[0] # Pick the first returned instance
+        inst_name = inst_names[0]  # Pick the first returned instance
 
         instances = self.cimcall(self.conn.Associators, inst_name)
 
@@ -2056,7 +2017,6 @@ class Associators(ClientTest):
             self.assertTrue(i.path.host is not None)
 
         # TODO: check return values
-
 
     def test_one_class_associator(self):
         """
@@ -2090,7 +2050,7 @@ class AssociatorNames(ClientTest):
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
                                   TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
-        inst_name = inst_names[0] # Pick the first returned instance
+        inst_name = inst_names[0]  # Pick the first returned instance
 
         names = self.cimcall(self.conn.AssociatorNames, inst_name)
 
@@ -2102,7 +2062,6 @@ class AssociatorNames(ClientTest):
 
             self.assertTrue(n.namespace is not None)
             self.assertTrue(n.host is not None)
-
 
     def test_one_class_associatorname(self):
         """Call on class name. Returns CIMClassName.
@@ -2128,6 +2087,7 @@ class AssociatorNames(ClientTest):
             for n in assoc_classnames:
                 self.assertTrue(isinstance(n, CIMClassName))
 
+
 class References(ClientTest):
 
     def test_one_ref(self):
@@ -2136,7 +2096,7 @@ class References(ClientTest):
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
-        inst_name = inst_names[0] # Pick the first returned instance
+        inst_name = inst_names[0]  # Pick the first returned instance
 
         instances = self.cimcall(self.conn.References, inst_name)
 
@@ -2163,6 +2123,7 @@ class References(ClientTest):
             self.assertTrue(isinstance(cl[1], CIMClass))
         # TODO: check return values
 
+
 class ReferenceNames(ClientTest):
 
     def test_one_refname(self):
@@ -2171,7 +2132,7 @@ class ReferenceNames(ClientTest):
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
-        inst_name = inst_names[0] # Pick the first returned instance
+        inst_name = inst_names[0]  # Pick the first returned instance
 
         names = self.cimcall(self.conn.ReferenceNames, inst_name)
 
@@ -2198,6 +2159,7 @@ class ReferenceNames(ClientTest):
 # Schema manipulation interface tests
 #################################################################
 
+
 class ClientClassTest(ClientTest):
     """Intermediate class for testing CIMClass instances.
        Class operations subclass from this class"""
@@ -2207,20 +2169,17 @@ class ClientClassTest(ClientTest):
 
         self.assertTrue(isinstance(prop, CIMProperty))
 
-
     def verify_qualifier(self, qualifier):
         """Verify qualifier attributes."""
         self.assertTrue(isinstance(qualifier, CIMQualifier))
         self.assertTrue(qualifier.name)
         self.assertTrue(qualifier.value)
 
-
     def verify_method(self, method):
         """Verify method attributes."""
         self.assertTrue(isinstance(method, CIMMethod))
         # TODO add these tests
-        ##pass
-
+        # #pass
 
     def verify_class(self, cl):
         """Verify simple class attributes."""
@@ -2241,6 +2200,7 @@ class ClientClassTest(ClientTest):
         for m in cl.methods.values():
             self.verify_method(m)
         # TODO validate parameters in methods
+
 
 class EnumerateClassNames(ClientTest):
 
@@ -2282,10 +2242,11 @@ class EnumerateClassNames(ClientTest):
         full_name_list += subname_list
         self.assertTrue(TEST_CLASS in full_name_list,
                         'test class not found')
-        #TODO could we assert some size limit here. Probably Not
+        # TODO could we assert some size limit here. Probably Not
         # since this applies to any server.
         if self.verbose:
             print('end deep inheritance size %s' % len(full_name_list))
+
 
 class EnumerateClasses(ClientClassTest):
 
@@ -2308,8 +2269,9 @@ class EnumerateClasses(ClientClassTest):
             self.assertTrue(isinstance(cl, CIMClass))
             self.verify_class(cl)
 
-        #TODO extend for options of Deepinheritance, LocalOnly,
+        # TODO extend for options of Deepinheritance, LocalOnly,
         # IncludeQualifiers, IncludeClassOrigin
+
 
 class GetClass(ClientClassTest):
     """Test the get Class request operation"""
@@ -2347,7 +2309,7 @@ class GetClass(ClientClassTest):
             if ce.args[0] != CIM_ERR_NOT_FOUND:
                 raise
 
-        #TODO extend for options of Deepinheritance, LocalOnly,
+        # TODO extend for options of Deepinheritance, LocalOnly,
         # IncludeQualifiers, IncludeClassOrigin
 
 
@@ -2357,11 +2319,13 @@ class CreateClass(ClientClassTest):
     def test_all(self):
         raise AssertionError("test not implemented")
 
+
 class DeleteClass(ClientClassTest):
 
     @unittest.skip(UNIMPLEMENTED)
     def test_all(self):
         raise AssertionError("test not implemented")
+
 
 class ModifyClass(ClientClassTest):
 
@@ -2372,6 +2336,7 @@ class ModifyClass(ClientClassTest):
 #################################################################
 # Qualifier Declaration provider interface tests
 #################################################################
+
 
 class QualifierDeclClientTest(ClientTest):
     """Base class for QualifierDeclaration tests. Adds specific
@@ -2386,6 +2351,7 @@ class QualifierDeclClientTest(ClientTest):
 
         # TODO expand the verification of qual decls
 
+
 class EnumerateQualifiers(QualifierDeclClientTest):
 
     def test_all(self):
@@ -2394,6 +2360,7 @@ class EnumerateQualifiers(QualifierDeclClientTest):
 
         for qual_decl in qual_decls:
             self.verify_qual_decl(qual_decl)
+
 
 class GetQualifier(QualifierDeclClientTest):
 
@@ -2408,11 +2375,13 @@ class GetQualifier(QualifierDeclClientTest):
             if ce.args[0] != CIM_ERR_NOT_FOUND:
                 raise
 
+
 class SetQualifier(QualifierDeclClientTest):
 
     @unittest.skip(UNIMPLEMENTED)
     def test_all(self):
         raise AssertionError("test not implemented")
+
 
 class DeleteQualifier(QualifierDeclClientTest):
 
@@ -2424,6 +2393,7 @@ class DeleteQualifier(QualifierDeclClientTest):
 # Query provider interface
 #################################################################
 
+
 class ExecuteQuery(ClientTest):
 
     @unittest.skip(UNIMPLEMENTED)
@@ -2434,6 +2404,7 @@ class ExecuteQuery(ClientTest):
 #################################################################
 # Open pegasus tests
 #################################################################
+
 
 class PegasusServerTestBase(ClientTest):
     """ Common superclass for all tests run against OpenPegasus
@@ -2528,7 +2499,6 @@ class PegasusServerTestBase(ClientTest):
 
         return False
 
-
     def get_interop_namespace(self):
         """Return the namespace used by this pegasus as interop
            If one of the listed namespaces is interop, return
@@ -2599,6 +2569,7 @@ class PegasusServerTestBase(ClientTest):
             for i in profiles:
                 print(i.tomof())
         return profiles
+
 
 class PegasusInteropTest(PegasusServerTestBase):
     """Test for valid interop namespace in a pegasus server."""
@@ -2738,6 +2709,7 @@ class PegasusTestEmbeddedInstance(PegasusServerTestBase, RegexpMixin):
             # TODO Create a new instance on server and test return using
             # getInstance
 
+
 class PyWBEMServerClass(PegasusServerTestBase):
     """
        Test the components of the server class and compare with previous tests
@@ -2768,7 +2740,6 @@ class PyWBEMServerClass(PegasusServerTestBase):
         for n in peg_namespaces:
             self.assertTrue(n in server.namespaces)
 
-
     def test_interop_namespace(self):
         """Confirm that pegasus tests and Server class select same namespace
            as interop namespace.
@@ -2779,7 +2750,6 @@ class PyWBEMServerClass(PegasusServerTestBase):
         peg_interop = self.get_interop_namespace()
 
         self.assertEqual(peg_interop.lower(), server.interop_ns.lower())
-
 
     def test_registered_profiles(self):
         """ Test getting profiles from server class against getting list
@@ -2807,7 +2777,6 @@ class PyWBEMServerClass(PegasusServerTestBase):
                 vers = inst['RegisteredVersion']
                 print("  %s %s Profile %s" % (org, name, vers))
 
-
     def test_get_brand(self):
         """ Get brand info. If pegasus server test for correct response.
             Otherwise display result.
@@ -2822,7 +2791,6 @@ class PyWBEMServerClass(PegasusServerTestBase):
             # Do not know what server it is so just display
             print("Brand: %s" % server.brand)
             print("Server Version:\n  %s" % server.version)
-
 
     def test_indication_profile_info(self):
         """ Get the indications central class."""
@@ -2871,7 +2839,6 @@ class PyWBEMServerClass(PegasusServerTestBase):
                     cls_name = cls.superclass
                 else:
                     self.fail("Could not find CIM_IndicationService")
-
 
     def test_server_profile(self):
         """Test getting the server profile."""
@@ -2981,6 +2948,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
 RECEIVED_INDICATION_COUNT = 0
 COUNTER_LOCK = threading.Lock()
 
+
 # pylint: disable=unused-argument
 def consume_indication(indication, host):
     """This function is called when an indication is received.
@@ -2988,12 +2956,13 @@ def consume_indication(indication, host):
         tests in the PyWBEMListenerClass
     """
 
-    #pylint: disable=global-variable-not-assigned
+    # pylint: disable=global-variable-not-assigned
     global RECEIVED_INDICATION_COUNT
     # increment count.
     COUNTER_LOCK.acquire()
     RECEIVED_INDICATION_COUNT += 1
     COUNTER_LOCK.release()
+
 
 class PyWBEMListenerClass(PyWBEMServerClass):
     """Test the management of indications with the listener class.
@@ -3034,7 +3003,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
         # If success, wait and recheck to be sure no extra indications received.
         if success:
             time.sleep(2)
-            #self.assertEqual(RECEIVED_INDICATION_COUNT, requested_count)
+            # self.assertEqual(RECEIVED_INDICATION_COUNT, requested_count)
         if requested_count != RECEIVED_INDICATION_COUNT:
             print('Error receiving indications. Expected=%s Received=%s' %
                   (requested_count, RECEIVED_INDICATION_COUNT))
@@ -3144,7 +3113,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             for i, dest in enumerate(dests):
                 print('destination %s %s' % (i, dest))
 
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def test_create_delete_subscription(self):
         """
         Create and delete a server and listener and create an indication.
@@ -3187,8 +3156,8 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             # confirm destination instance paths match
             self.assertTrue(len(sub_mgr.get_all_destinations(server_id)) > 0)
-            ##TODO: ks Finish this test completely when we add other changes
-            ##for filter ids
+            # #TODO: ks Finish this test completely when we add other changes
+            # #for filter ids
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
@@ -3199,7 +3168,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             my_listener.stop()
             sub_mgr.remove_server(server_id)
 
-        #TODO ks 6/16 add more tests including: multiple subscriptions, filters
+        # TODO ks 6/16 add more tests including: multiple subscriptions, filters
         #     actual indication production, Errors. extend for ssl, test
         #     logging
 
@@ -3598,7 +3567,6 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             subscription_paths_owned = sub_mgr.add_subscriptions(
                 server_id, filter_path_owned)
 
-
             self.confirm_created(sub_mgr, server_id, filter_path_owned,
                                  subscription_paths_owned)
 
@@ -3696,7 +3664,7 @@ TEST_LIST = [
     'ExecQuery',
     'ExecuteQuery',
 
-    #PullOperations
+    # PullOperations
     'PullEnumerateInstancePaths',
     'PullEnumerateInstances',
     'PullAssociators',
@@ -3707,7 +3675,6 @@ TEST_LIST = [
     # TestServerClass
     'PyWBEMServerClass',
     'PyWEBEMListenerClass',
-
 
     # Pegasus only tests
     'PEGASUSCLITestClass',
@@ -3846,8 +3813,11 @@ def parse_args(argv_):
         args_['password'] = getpass()
     return args_, argv
 
-if __name__ == '__main__':
-    args, sys.argv = parse_args(sys.argv) # pylint: disable=invalid-name
+
+def main():
+    global SKIP_LONGRUNNING_TEST
+
+    args, sys.argv = parse_args(sys.argv)  # pylint: disable=invalid-name
     if args['verbose']:
         print("Using WBEM Server:")
         print("  server url: %s" % args['url'])
@@ -3879,3 +3849,5 @@ if __name__ == '__main__':
 
     unittest.main()
 
+if __name__ == '__main__':
+    main()
