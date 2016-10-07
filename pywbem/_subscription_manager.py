@@ -143,6 +143,7 @@ Another more practical example is in the script
 project).
 """
 
+import re
 from socket import getfqdn
 import uuid
 import six
@@ -176,24 +177,24 @@ class WBEMSubscriptionManager(object):
 
           subscription_manager_id (:term:`string`):
             A subscription manager ID string that is used as a component in
-            the value of the `Name` properties of filter and listener
+            the value of the `Name` property of indication filter and listener
             destination instances to help the user identify these instances in
             a WBEM server.
 
-            The string must consist of printable characters, and not contain
-            the character ':' because that is the separator between components
-            within the value of these `Name` properties.
+            Must not be `None`.
 
-            There is no requirement that the subscription manager ID be unique.
+            The string must consist of printable characters, and must not
+            contain the character ':' because that is the separator between
+            components within the value of the `Name` property.
 
-            `None` indicates that the subscription manager ID should not be
-            included in the value of these `Name` properties.
+            The subscription manager ID must be unique on the current host.
 
             For example, the form of the `Name` property of a filter instance
-            is:
+            is (for details, see
+            :meth:`~pywbem.WBEMSubscriptionManager.add_filter`):
 
-              ``"pywbemfilter:" [{subscription_manager_id} ":"]
-              [{filter_id} ":"] {guid}``
+              ``"pywbemfilter:" {ownership} ":" {subscription_manager_id} ":"
+              {filter_id} ":" {guid}``
         """
 
         # The following dictionaries have the WBEM server ID as a key.
@@ -203,15 +204,14 @@ class WBEMSubscriptionManager(object):
         self._owned_destination_paths = {}  # destination paths for server
 
         if subscription_manager_id is None:
-            self._subscription_manager_id = subscription_manager_id
-        elif isinstance(subscription_manager_id, six.string_types):
-            if ':' in subscription_manager_id:
-                raise ValueError("Subscription manager ID contains ':': %s" %
-                                 subscription_manager_id)
-            self._subscription_manager_id = subscription_manager_id
-        else:
+            raise ValueError("Subscription manager ID must not be None")
+        if not isinstance(subscription_manager_id, six.string_types):
             raise TypeError("Invalid type for subscription manager ID: %r" %
                             subscription_manager_id)
+        if ':' in subscription_manager_id:
+            raise ValueError("Subscription manager ID contains ':': %s" %
+                             subscription_manager_id)
+        self._subscription_manager_id = subscription_manager_id
 
     def __repr__(self):
         """
@@ -220,7 +220,7 @@ class WBEMSubscriptionManager(object):
         """
         return "%s(_subscription_manager_id=%r, _servers=%r, " \
                "_owned_subscription_paths=%r, _owned_filter_paths=%r, " \
-               "_owned_destinations=%r)" % \
+               "_owned_destination_paths=%r)" % \
                (self.__class__.__name__, self._subscription_manager_id,
                 self._servers, self._owned_subscription_paths,
                 self._owned_filter_paths, self._owned_destination_paths)
@@ -257,6 +257,19 @@ class WBEMSubscriptionManager(object):
         prerequisite for adding listener destinations, indication filters and
         indication subscriptions to the server.
 
+        Listener destinations, indication filters, and subscriptions that
+        already exist in the WBEM server and that are found to be owned by a
+        subscription manager with the same ID on the current host, are
+        considered owned by this subscription manager, and will be registered
+        accordingly.
+
+        In this process, the ownership of listener destinations and indication
+        filters is determined based upon the value of their `Name` property.
+        The ownership of subscriptions is determined based upon the ownership
+        of the referenced destination and filter instances: If a subscription
+        references a filter or a destination that is owned by this subscription
+        manager, it is considered owned by this subscription manager as well.
+
         Parameters:
 
           server (:class:`~pywbem.WBEMServer`):
@@ -285,6 +298,40 @@ class WBEMSubscriptionManager(object):
         self._owned_subscription_paths[server_id] = []
         self._owned_filter_paths[server_id] = []
         self._owned_destination_paths[server_id] = []
+
+        # Recover any owned destination, filter, and subscription instances
+        # that exist on this server
+
+        this_host = getfqdn()
+
+        dest_name_pattern = re.compile(
+            r'^pywbemdestination:owned:%s:[^:]*$' %
+            (this_host, self._subscription_manager_id))
+        dest_inst_paths = server.conn.EnumerateInstanceNames(
+            DESTINATION_CLASSNAME, namespace=server.interop_ns)
+        for ip in dest_inst_paths:
+            if re.match(dest_name_pattern, ip.keybindings['Name']) \
+                    and ip.keybindings['SystemName'] == this_host:
+                self._owned_destination_paths[server_id].append(ip)
+
+        filter_name_pattern = re.compile(
+            r'^pywbemfilter:owned:%s:%s:[^:]*:[^:]*$' %
+            (this_host, self._subscription_manager_id))
+        filter_inst_paths = server.conn.EnumerateInstanceNames(
+            FILTER_CLASSNAME, namespace=server.interop_ns)
+        for ip in filter_inst_paths:
+            if re.match(filter_name_pattern, ip.keybindings['Name']) \
+                    and ip.keybindings['SystemName'] == this_host:
+                self._owned_filter_paths[server_id].append(ip)
+
+        sub_inst_paths = server.conn.EnumerateInstanceNames(
+            SUBSCRIPTION_CLASSNAME, namespace=server.interop_ns)
+        for ip in sub_inst_paths:
+            if ip.keybindings['Filter'] in \
+                    self._owned_filter_paths[server_id] \
+                    or ip.keybindings['Handler'] in \
+                    self._owned_destination_paths[server_id]:
+                self._owned_subscription_paths[server_id].append(ip)
 
         return server_id
 
@@ -359,6 +406,16 @@ class WBEMSubscriptionManager(object):
         (of CIM class "CIM_ListenerDestinationCIMXML") for each specified
         listener URL in the Interop namespace of the specified WBEM server.
 
+        The form of the `Name` property of the created destination instance is:
+
+          ``"pywbemdestination:" {ownership} ":" {subscription_manager_id} ":"
+          {guid}``
+
+        where ``{ownership}`` is ``"owned"`` or ``"permanent"`` dependent on
+        whether the destination is owned; ``{subscription_manager_id}`` is
+        the subscription manager ID; and ``{guid}`` is a globally unique
+        identifier.
+
         Parameters:
 
           server_id (:term:`string`):
@@ -394,7 +451,7 @@ class WBEMSubscriptionManager(object):
             See :class:`~pywbem.WBEMConnection` for examples of valid URLs,
             with the caveat that the port in server URLs is optional.
 
-          owned (:class:`py:bool`)
+          owned (:class:`py:bool`):
             Defines whether or not the listener destination instances that are
             created in the WBEM server are *owned* by the subscription manager.
 
@@ -441,7 +498,7 @@ class WBEMSubscriptionManager(object):
         server = self._get_server(server_id)
 
         dest_path = _create_destination(server, listener_url,
-                                        self._subscription_manager_id)
+                                        self._subscription_manager_id, owned)
 
         if owned:
             self._owned_destination_paths[server_id].append(dest_path)
@@ -546,6 +603,16 @@ class WBEMSubscriptionManager(object):
         an indication filter instance (of CIM class "CIM_IndicationFilter") in
         the Interop namespace of the server.
 
+        The form of the `Name` property of the created filter instance is:
+
+          ``"pywbemfilter:" {ownership} ":" {subscription_manager_id} ":"
+          {filter_id} ":" {guid}``
+
+        where ``{ownership}`` is ``"owned"`` or ``"permanent"`` dependent on
+        whether the filter is owned; ``{subscription_manager_id}`` is the
+        subscription manager ID; ``{filter_id}`` is the filter ID; and
+        ``{guid}`` is a globally unique identifier.
+
         Parameters:
 
           server_id (:term:`string`):
@@ -563,7 +630,7 @@ class WBEMSubscriptionManager(object):
 
             Examples: 'WQL', 'DMTF:CQL'.
 
-          owned (:class:`py:bool`)
+          owned (:class:`py:bool`):
             Defines whether or not the filter instances that are created in the
             WBEM server are *owned* by the subscription manager.
 
@@ -587,24 +654,18 @@ class WBEMSubscriptionManager(object):
 
           filter_id (:term:`string`)
             A filter ID string that is used as a component in the value of the
-            `Name` properties of filter instances to help the user identify
+            `Name` property of filter instances to help the user identify
             these instances in a WBEM server.
+
+            Must not be `None`.
+
+            The string must consist of printable characters, and must not
+            contain the character ':' because that is the separator between
+            components within the value of the `Name` property.
 
             There is no requirement that the filter ID be unique. This can be
             used to identify groups of filters by using the same value for
             multiple filters.
-
-            The string must consist of printable characters, and not contain
-            the character ':' because that is the separator between components
-            within the value of these `Name` properties.
-
-            `None` indicates that the filter ID should not be included in the
-            value of these `Name` properties.
-
-            The form of the `Name` property of the created filter instance is:
-
-              ``"pywbemfilter:" [{subscription_manager_id} ":"]
-              [{filter_id} ":"] {guid}``
 
         Returns:
 
@@ -617,11 +678,18 @@ class WBEMSubscriptionManager(object):
         """
         server = self._get_server(server_id)
 
+        if filter_id is None:
+            raise ValueError("Filter ID must not be None")
+        if not isinstance(filter_id, six.string_types):
+            raise TypeError("Invalid type for filter ID: %r" % filter_id)
+        if ':' in filter_id:
+            raise ValueError("Filter ID contains ':': %s" % filter_id)
+
         # create a single filter for a server.
         filter_path = _create_filter(server, source_namespace, query,
                                      query_language,
                                      self._subscription_manager_id,
-                                     filter_id)
+                                     filter_id, owned)
 
         if owned:
             self._owned_filter_paths[server_id].append(filter_path)
@@ -775,7 +843,7 @@ class WBEMSubscriptionManager(object):
             When creating not-owned subscriptions, all involved listener
             destinations must be not-owned, too.
 
-          owned (:class:`py:bool`)
+          owned (:class:`py:bool`):
             Defines whether or not the subscription instances that are created
             in the WBEM server are *owned* by the subscription manager.
 
@@ -940,7 +1008,7 @@ class WBEMSubscriptionManager(object):
                 del sub_path_list[i]
                 # continue to end of list to pick up any duplicates
 
-def _create_destination(server, dest_url, subscription_manager_id=None):
+def _create_destination(server, dest_url, subscription_manager_id, owned):
     """
     Create a listener destination instance in the Interop namespace of a
     WBEM server and return its instance path. Creates the destination
@@ -962,12 +1030,11 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
       subscription_manager_id (:term:`string`):
         Subscription manager ID string to be incorporated into the `Name`
         property of the destination instance.
-        If `None`, the corresponding component is not added.
+        Must not be `None`.
 
-        The form of the `Name` property of the created destination instance is:
-
-          ``"pywbemdestination:" [{subscription_manager_id} ":"]
-          {guid}``
+      owned (:class:`py:bool`):
+        Defines whether or not the created instance is *owned* by the
+        subscription manager.
 
     Returns:
 
@@ -984,6 +1051,9 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
     schema = 'https' if ssl else 'http'
     listener_url = '{}://{}:{}'.format(schema, host, port)
 
+    this_host = getfqdn()
+    ownership = "owned" if owned else "permanent"
+
     dest_path = CIMInstanceName(DESTINATION_CLASSNAME)
     dest_path.classname = DESTINATION_CLASSNAME
     dest_path.namespace = server.interop_ns
@@ -992,20 +1062,15 @@ def _create_destination(server, dest_url, subscription_manager_id=None):
     dest_inst.path = dest_path
     dest_inst['CreationClassName'] = DESTINATION_CLASSNAME
     dest_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
-    dest_inst['SystemName'] = getfqdn()
-
-    sub_mgr_id = ''
-    if subscription_manager_id is not None:
-        sub_mgr_id = '%s:' % subscription_manager_id
-
-    dest_inst['Name'] = 'pywbemdestination:%s%s' % (sub_mgr_id,
-                                                    uuid.uuid4())
+    dest_inst['SystemName'] = this_host
+    dest_inst['Name'] = 'pywbemdestination:%s:%s:%s' % \
+                        (ownership, subscription_manager_id, uuid.uuid4())
     dest_inst['Destination'] = listener_url
     dest_path = server.conn.CreateInstance(dest_inst)
     return dest_path
 
 def _create_filter(server, source_namespace, query, query_language,
-                   subscription_manager_id=None, filter_id=None):
+                   subscription_manager_id, filter_id, owned):
     """
     Create a :term:`dynamic indication filter` instance in the Interop
     namespace of a WBEM server and return its instance path.
@@ -1026,20 +1091,19 @@ def _create_filter(server, source_namespace, query, query_language,
 
         Examples: 'WQL', 'DMTF:CQL'.
 
-      filter_id (:term:`string`):
-        Filter ID string to be incorporated into the `Name` property of the
-        filter instance, as detailed for `subscription_manager_id`.
-        If `None`, the corresponding component is not added.
-
       subscription_manager_id (:term:`string`):
         Subscription manager ID string to be incorporated into the `Name`
         property of the filter instance.
-        If `None`, the corresponding component is not added.
+        Must not be `None`.
 
-        The form of the `Name` property of the created filter instance is:
+      filter_id (:term:`string`):
+        Filter ID string to be incorporated into the `Name` property of the
+        filter instance, as detailed for `subscription_manager_id`.
+        Must not be `None`.
 
-          ``"pywbemfilter:" [{subscription_manager_id} ":"]
-          [{filter_id} ":"] {guid}``
+      owned (:class:`py:bool`):
+        Defines whether or not the created instance is *owned* by the
+        subscription manager.
 
     Returns:
 
@@ -1051,32 +1115,22 @@ def _create_filter(server, source_namespace, query, query_language,
         Exceptions raised by :class:`~pywbem.WBEMConnection`.
     """
 
+    this_host = getfqdn()
+    ownership = "owned" if owned else "permanent"
+
     filter_path = CIMInstanceName(FILTER_CLASSNAME)
     filter_path.classname = FILTER_CLASSNAME
     filter_path.namespace = server.interop_ns
 
     filter_inst = CIMInstance(FILTER_CLASSNAME)
-    if filter_id is None:
-        filter_id_ = ''
-    elif isinstance(filter_id, six.string_types):
-        if ':' in filter_id:
-            raise ValueError("Filter ID contains ':': %s" % filter_id)
-        filter_id_ = '%s:' % filter_id
-    else:
-        raise TypeError("Invalid type for filter ID: %r" % filter_id)
-
     filter_inst.path = filter_path
     filter_inst['CreationClassName'] = FILTER_CLASSNAME
     filter_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
-    filter_inst['SystemName'] = getfqdn()
-
-    sub_mgr_id = ''
-    if subscription_manager_id is not None:
-        sub_mgr_id = '%s:' % (subscription_manager_id)
-
-    filter_inst['Name'] = 'pywbemfilter:%s%s%s' % (sub_mgr_id,
-                                                   filter_id_,
-                                                   uuid.uuid4())
+    filter_inst['SystemName'] = this_host
+    # TODO: We should not set the `Name` property of filters, because it
+    # needs to be user-defined. See issue #540.
+    filter_inst['Name'] = 'pywbemfilter:%s:%s:%s:%s' % (ownership,
+                          subscription_manager_id, filter_id, uuid.uuid4())
     filter_inst['SourceNamespace'] = source_namespace
     filter_inst['Query'] = query
     filter_inst['QueryLanguage'] = query_language
@@ -1111,7 +1165,6 @@ def _create_subscription(server, dest_path, filter_path):
 
         Exceptions raised by :class:`~pywbem.WBEMConnection`.
     """
-
 
     sub_path = CIMInstanceName(SUBSCRIPTION_CLASSNAME)
     sub_path.classname = SUBSCRIPTION_CLASSNAME
