@@ -118,6 +118,7 @@ import six
 from . import cim_xml
 
 from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_INVALID_PARAMETER
+
 from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
                      CIMClassName, NocaseDict, _ensure_unicode, tocimxml, \
