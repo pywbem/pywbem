@@ -51,10 +51,69 @@ The fourth element is reserved.
 from __future__ import absolute_import
 
 import xml.dom.minidom
+import xml.sax
+import re
+import copy
 
 import six
 
 __all__ = []
+
+
+class CIMContentHandler(xml.sax.ContentHandler):
+    """SAX handler for CIM XML.
+
+    Similar to dom_to_tupletree, the handler creates a tree of tuples,
+    where the elements are the XML element name, the attributes, and the
+    children.
+
+    The handler pushes and pops the list of elements, building the child
+    list as it goes.
+
+    The end result is that the root node is left in the list and available
+    as the root attribute of the object.
+    """
+
+    def __init__(self):
+        xml.sax.ContentHandler.__init__(self)
+        self.root = None
+        self.elements = []
+        self.element = []
+
+    def startDocument(self):
+        assert self.elements == []
+
+    def endDocument(self):
+        assert self.elements == []
+        self.root = self.element
+
+    def startElement(self, name, attrs):
+        if self.element:
+            self.elements.append(self.element)
+        # Avoid dict comprehension to support python2.6.
+        attr_dict = {}
+        for k, v in attrs.items():
+            attr_dict[k] = v
+        element = (name, attr_dict, list(), None)
+        if self.element:
+            self.element[2].append(element)
+        self.element = element
+
+    def endElement(self, name):
+        if self.elements:
+            self.element = self.elements.pop()
+
+    def characters(self, content):
+        if self.element[2]:
+            try:
+                re.match('\s+', self.element[2][-1])
+            except TypeError:
+                pass
+            else:
+                ws = self.element[2].pop()
+                content = '%s%s' % (ws, content)
+        self.element[2].append(content)
+
 
 def dom_to_tupletree(node):
     """Convert a DOM object to a pyRXP-style tuple tree.
@@ -99,3 +158,10 @@ def xml_to_tupletree(xml_string):
     """Parse XML straight into tupletree."""
     dom_xml = xml.dom.minidom.parseString(xml_string)
     return dom_to_tupletree(dom_xml)
+
+
+def xml_to_tupletree_sax(xml_string):
+    """Parse an XML string into tupletree with SAX."""
+    handler = CIMContentHandler()
+    xml.sax.parseString(xml_string, handler, None)
+    return handler.root
