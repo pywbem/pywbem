@@ -41,6 +41,9 @@ Enhancements
   some content from the Introduction section into a new Appendix. Added
   an installation trouble shooting section to the Appendix.
 
+* Added a section "Prerequisite operating system packages" to the documentation
+  that describes the prerequisite packages by distribution.
+
 
 Bug fixes
 ^^^^^^^^^
