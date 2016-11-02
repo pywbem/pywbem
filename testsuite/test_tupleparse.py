@@ -14,9 +14,8 @@ from __future__ import absolute_import
 import unittest
 
 from pywbem import tupletree, tupleparse
-from pywbem import CIMInstance, CIMInstanceName, CIMClass, \
-                   CIMProperty, CIMParameter, CIMQualifier, \
-                   Uint8, Uint16, Uint32
+from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
+    CIMParameter, CIMQualifier, Uint8, Uint16, Uint32
 
 
 class TupleTest(unittest.TestCase):
@@ -38,6 +37,7 @@ class TupleTest(unittest.TestCase):
                          '\nbefore: %s\nafter:  %s' %
                          (xml, result.tocimxml().toxml()))
 
+
 class RawXMLTest(unittest.TestCase):
     """Test parse of any XML to object"""
 
@@ -51,6 +51,7 @@ class RawXMLTest(unittest.TestCase):
 
         self.assertEqual(obj, result,
                          'parsed XML: %s' % result)
+
 
 class ParseCIMInstanceName(TupleTest):
     """Test parsing of CIMInstanceName objects."""
@@ -78,6 +79,7 @@ class ParseCIMInstanceName(TupleTest):
                             host='woot.com',
                             namespace='root/cimv2'))
 
+
 class ParseCIMInstance(TupleTest):
     """Test parsing of CIMInstance objects."""
 
@@ -98,6 +100,7 @@ class ParseCIMInstance(TupleTest):
                         {'InstanceID': '1234'},
                         path=CIMInstanceName('CIM_Foo',
                                              {'InstanceID': '1234'})))
+
 
 # TODO 2/16 KS: Create test for more complete class.
 class ParseCIMClass(TupleTest):
@@ -156,6 +159,7 @@ class ParseCIMClass(TupleTest):
                        }  # noqa: E124
             ))  # noqa: E123
 
+
 # TODO 2/16 KS: Extend to all property data types.
 class ParseCIMProperty(TupleTest):
     """Test parsing of CIMProperty objects."""
@@ -194,6 +198,7 @@ class ParseCIMProperty(TupleTest):
                            {'one': Uint8(1), 'two': Uint8(2)})
         self._run_single(CIMProperty('Foo', inst))
         self._run_single(CIMProperty('Foo', [inst]))
+
 
 # TODO 2/16 KS: Extend for all data types.
 class ParseCIMParameter(TupleTest):

@@ -82,10 +82,9 @@ from __future__ import absolute_import
 
 import six
 
-from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
-                     CIMClassName, CIMProperty, CIMMethod, \
-                     CIMParameter, CIMQualifier, CIMQualifierDeclaration, \
-                     tocimobj, byname
+from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
+    CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
+    CIMQualifierDeclaration, tocimobj, byname
 from .tupletree import xml_to_tupletree
 from .exceptions import ParseError
 
@@ -127,6 +126,7 @@ def attrs(tup_tree):
 def kids(tup_tree):
     """Return third (children) element of tup_tree"""
     return filter_tuples(tup_tree[2])
+
 
 # pylint: disable=too-many-arguments
 def check_node(tup_tree, nodename, required_attrs=None, optional_attrs=None,
@@ -302,6 +302,7 @@ def notimplemented(tup_tree):
 # Root element
 #
 
+
 def parse_cim(tup_tree):
     """Parse the top level element of CIM/XML message
 
@@ -462,6 +463,7 @@ def parse_value_namedinstance(tup_tree):
 
     return instance
 
+
 def parse_value_instancewithpath(tup_tree):
     """
     The VALUE.INSTANCEWITHPATH is used to define a value that comprises
@@ -483,6 +485,7 @@ def parse_value_instancewithpath(tup_tree):
 
     instance.path = path
     return (instance)
+
 
 def parse_value_namedobject(tup_tree):
     """
@@ -509,6 +512,7 @@ def parse_value_namedobject(tup_tree):
                          kids(tup_tree))
 
     return (name(tup_tree), attrs(tup_tree), _object)
+
 
 # pylint: disable=invalid-name
 def parse_value_objectwithlocalpath(tup_tree):
@@ -537,6 +541,7 @@ def parse_value_objectwithlocalpath(tup_tree):
 
     return (name(tup_tree), attrs(tup_tree), _object)
 
+
 def parse_value_objectwithpath(tup_tree):
     """
       ::
@@ -563,9 +568,11 @@ def parse_value_objectwithpath(tup_tree):
 
     return (name(tup_tree), attrs(tup_tree), _object)
 
+
 #
 # Object naming and locating elements
 #
+
 
 def parse_namespacepath(tup_tree):
     """
@@ -668,6 +675,7 @@ def parse_localclasspath(tup_tree):
 
     return CIMClassName(classname.classname, namespace=localnspath)
 
+
 def parse_classname(tup_tree):
     """Parse a CLASSNAME element and return a CIMClassName.
 
@@ -704,6 +712,7 @@ def parse_instancepath(tup_tree):
 
     return instancename
 
+
 def parse_localinstancepath(tup_tree):
     """Parse a LOCALINSTANCEPATH element:
 
@@ -725,6 +734,7 @@ def parse_localinstancepath(tup_tree):
 
     return instancename
 
+
 def parse_instancename(tup_tree):
     """Parse XML INSTANCENAME into CIMInstanceName object.
 
@@ -734,7 +744,6 @@ def parse_instancename(tup_tree):
         <!ATTLIST INSTANCENAME
             %ClassName;>
     """
-
 
     check_node(tup_tree, 'INSTANCENAME', ['CLASSNAME'])
 
@@ -778,7 +787,6 @@ def parse_objectpath(tup_tree):
     child = one_child(tup_tree, ['INSTANCEPATH', 'CLASSPATH'])
 
     return (name(tup_tree), attrs(tup_tree), child)
-
 
 
 def parse_keybinding(tup_tree):
@@ -843,6 +851,7 @@ def parse_keyvalue(tup_tree):
 #
 # Object definition elements
 #
+
 
 def parse_class(tup_tree):
     """Parse CLASS element returning a CIMClass if the parse
@@ -915,6 +924,7 @@ def parse_instance(tup_tree):
 
     return obj
 
+
 def parse_scope(tup_tree):
     """Parse SCOPE element.
 
@@ -935,6 +945,7 @@ def parse_scope(tup_tree):
                ['CLASS', 'ASSOCIATION', 'REFERENCE', 'PROPERTY', 'METHOD',
                 'PARAMETER', 'INDICATION'], [])
     return dict([(k, v.lower() == 'true') for k, v in attrs(tup_tree).items()])
+
 
 def parse_qualifier_declaration(tup_tree):
     """Parse QUALIFIER.DECLARATION element.
@@ -1230,6 +1241,7 @@ def parse_parameter(tup_tree):
     return CIMParameter(attrl['NAME'], type=attrl['TYPE'],
                         qualifiers=quals)
 
+
 def parse_parameter_reference(tup_tree):
     """
       ::
@@ -1320,6 +1332,7 @@ def parse_parameter_refarray(tup_tree):
 # Message elements
 #
 
+
 def parse_message(tup_tree):
     """
       ::
@@ -1353,6 +1366,7 @@ def parse_multiexpreq(tup_tree):   # pylint: disable=unused-argument
     # TODO: Implement MULTIEXPREQ parser
     raise ParseError('MULTIEXPREQ parser not implemented')
 
+
 def parse_simpleexpreq(tup_tree):
     """
       ::
@@ -1363,6 +1377,7 @@ def parse_simpleexpreq(tup_tree):
     child = one_child(tup_tree, ['EXPMETHODCALL'])
 
     return name(tup_tree), attrs(tup_tree), child
+
 
 def parse_simplereq(tup_tree):
     """
@@ -1429,7 +1444,6 @@ def parse_expmethodcall(tup_tree):
     """
 
     check_node(tup_tree, 'EXPMETHODCALL', ['NAME'], [], ['EXPPARAMVALUE'])
-
 
     params = list_of_matching(tup_tree, ['EXPPARAMVALUE'])
 
@@ -1685,9 +1699,11 @@ def parse_ireturnvalue(tup_tree):
 
     return name(tup_tree), attrs(tup_tree), values
 
+
 #
 # Object naming and locating elements
 #
+
 
 def parse_any(tup_tree):
     """Parse a fragment of XML. This function drives the rest of
@@ -1708,7 +1724,8 @@ def parse_any(tup_tree):
     else:
         return funct_name(tup_tree)
 
-def parse_embeddedObject(val): # pylint: disable=invalid-name
+
+def parse_embeddedObject(val):  # pylint: disable=invalid-name
     """Parse and embedded instance or class and return the
     CIMInstance or CIMClass.
 
@@ -1789,6 +1806,7 @@ def unpack_value(tup_tree):
         return None
     else:
         return tocimobj(valtype, raw_val)
+
 
 def unpack_boolean(data):
     """Unpack a boolean, represented as "TRUE" or "FALSE" in CIM."""

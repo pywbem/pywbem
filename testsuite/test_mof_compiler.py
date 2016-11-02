@@ -13,26 +13,24 @@ from time import time
 from zipfile import ZipFile
 from tempfile import TemporaryFile
 import unittest
-
 import six
+from ply import lex
+from pywbem.cim_operations import CIMError
+from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
+from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_INVALID_PARAMETER, \
+    CIM_ERR_INVALID_SUPERCLASS
+from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
+    CIMQualifierDeclaration, CIMDateTime
+from pywbem import mof_compiler
+
+from unittest_extensions import CIMObjectMixin
+
 if six.PY2:
     # pylint: disable=wrong-import-order
     from urllib2 import urlopen
 else:
     # pylint: disable=wrong-import-order
     from urllib.request import urlopen
-
-from ply import lex
-
-from pywbem.cim_operations import CIMError
-from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
-from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_INVALID_PARAMETER, \
-                                 CIM_ERR_INVALID_SUPERCLASS
-from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
-                           CIMQualifierDeclaration, CIMDateTime
-from pywbem import mof_compiler
-
-from unittest_extensions import CIMObjectMixin
 
 # Constants
 NAME_SPACE = 'root/test'
@@ -43,12 +41,13 @@ SCHEMA_DIR = os.path.join(SCRIPT_DIR, 'schema')
 # Change the MOF_URL and CIM_SCHEMA_MOF when new schema is used.
 # Also, manually delete schema dir.
 MOF_URL = 'http://www.dmtf.org/standards/cim/cim_schema_v2450/' \
-         'cim_schema_2.45.0Final-MOFs.zip'
+          'cim_schema_2.45.0Final-MOFs.zip'
 CIM_SCHEMA_MOF = 'cim_schema_2.45.0.mof'
 TOTAL_QUALIFIERS = 70       # These may change for each schema release
 TOTAL_CLASSES = 1621
 
 TMP_FILE = 'test_mofRoundTripOutput.mof'
+
 
 def setUpModule():
     """ Setup the unittest. Includes possibly getting the
@@ -123,32 +122,30 @@ class TestFlavors(MOFTest):
         """Valid flavor combinations compile"""
 
         mof_str = "Qualifier testoneflavor : boolean = false, scope(class), " \
-                  "Flavor(DisableOverride);\n"
+            "Flavor(DisableOverride);\n"
 
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
         mof_str = "Qualifier testtwoflav : boolean = false, scope(class), " \
-          "Flavor(DisableOverride, ToSubclass);\n"
+            "Flavor(DisableOverride, ToSubclass);\n"
 
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
         mof_str = "Qualifier Version : string = null, \n" \
-                "Scope(class, association, indication),\n" \
-                "Flavor(EnableOverride, Restricted, Translatable);\n"
+            "Scope(class, association, indication),\n" \
+            "Flavor(EnableOverride, Restricted, Translatable);\n"
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
-
 
     def test_valid_flavor2(self):
         """Test for case independence of flavor keywords"""
 
         mof_str = "Qualifier test1 : scope(class),\n" \
-                  "Flavor(enableoverride, RESTRICTED, Translatable);"
+            "Flavor(enableoverride, RESTRICTED, Translatable);"
         try:
             self.mofcomp.compile_string(mof_str, NAME_SPACE)
             self.fail("Test must generate exception")
         except MOFParseError:
             pass
-
 
     def test_conflicting_flavors1(self):
         """Conflicting flavors should cause exception"""
@@ -161,7 +158,6 @@ class TestFlavors(MOFTest):
         except MOFParseError:
             pass
 
-
     def test_conflicting_flavors2(self):
         """Conflicting flavors should cause exception"""
 
@@ -173,7 +169,6 @@ class TestFlavors(MOFTest):
         except MOFParseError:
             pass
 
-
     def test_invalid_flavor1(self):
         """Invalid flavor should cause exception"""
 
@@ -184,7 +179,6 @@ class TestFlavors(MOFTest):
             self.fail("Test must generate exception")
         except MOFParseError:
             pass
-
 
     def test_invalid_flavor2(self):
         """Invalid flavor should cause exception"""
@@ -208,6 +202,7 @@ class TestAliases(MOFTest):
             os.path.join(SCRIPT_DIR, 'test.mof'), NAME_SPACE)
 
     # TODO: ks 4/16 confirm that this actually works other than just compile
+
 
 class TestSchemaError(MOFTest):
     """Test with errors in the schema"""
@@ -253,6 +248,7 @@ class TestSchemaError(MOFTest):
                 print('assertEqual {} line {}'.format(ce,
                                                       ce.file_line[1]))
             self.assertEqual(ce.file_line[1], 179)
+
 
 class TestSchemaSearch(MOFTest):
     """Test the search attribute for schema in a directory defined
@@ -300,7 +296,6 @@ class TestParseError(MOFTest):
             self.assertEqual(pe.context[5][1:5], '^^^^')
             self.assertEqual(pe.context[4][1:5], 'size')
 
-
     def test_error02(self):
         """Test invalid instance def TODO what is error? ks 6/16"""
         _file = os.path.join(SCRIPT_DIR,
@@ -313,7 +308,6 @@ class TestParseError(MOFTest):
             self.assertEqual(pe.lineno, 6)
             self.assertEqual(pe.context[5][7:13], '^^^^^^')
             self.assertEqual(pe.context[4][7:13], 'weight')
-
 
     def test_error03(self):
         """Test invalid mof, extra } character"""
@@ -347,6 +341,7 @@ class TestPropertyAlternatives(MOFTest):
     """
         Test compile of a class with individual property alternatives
     """
+
     def test_array_type(self):
         """ Test compile of class with array property"""
 
@@ -370,8 +365,9 @@ class TestPropertyAlternatives(MOFTest):
         self.assertEqual(cl.properties['arrayprop'].is_array, True)
         self.assertEqual(cl.properties['arrayprop'].array_size, 9)
 
-    #TODO ks apr 2016 Grow the number of functions to test property
-    #     parameter alternatives one by one.
+    # TODO ks apr 2016 Grow the number of functions to test property
+    #      parameter alternatives one by one.
+
 
 class TestRefs(MOFTest):
     """Test for valid References in mof"""
@@ -382,6 +378,7 @@ class TestRefs(MOFTest):
                                                'testmofs',
                                                'test_refs.mof'),
                                   NAME_SPACE)
+
 
 class TestInstCompile(MOFTest, CIMObjectMixin):
     """ Test the compile of instances defined with a class"""
@@ -408,8 +405,8 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
 
         for i in instances:
             # both keys must exist
-            self.assertTrue(i.has_key('k1'))
-            self.assertTrue(i.has_key('k2'))
+            self.assertTrue('k1' in i)
+            self.assertTrue('k2' in i)
 
             if i['k1'] == 9921 and i['k2'] == 'SampleLabelInner':
                 self.assertEqual(i['pui8'], 0)
@@ -442,12 +439,11 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
                 self.assertEqual(i['pb'], True)
                 self.assertEqual(i['pdt'],
                                  CIMDateTime("20160409061213.123456+120"))
-                #self.assertEqual(i['peo'], None)
-                #self.assertEqual(i['pei'], None)
+                # self.assertEqual(i['peo'], None)
+                # self.assertEqual(i['pei'], None)
             else:
                 self.fail('Cannot find required instance k1=%s, k2=%s' %
                           (i['k1'], i['k2']))
-
 
     def test_invalid_property(self):
         """Test compile of instance with duplicated property fails"""
@@ -523,6 +519,7 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
 
     # TODO add test for array value in inst, not scalar
 
+
 class TestTypes(MOFTest, CIMObjectMixin):
     """Test for all CIM data types in a class mof"""
 
@@ -545,16 +542,17 @@ class TestTypes(MOFTest, CIMObjectMixin):
         # The expected representation of the class must match the MOF
         # in testmofs/test_types.mof.
         exp_ac_properties = {
-            #pylint: disable=bad-continuation
-            'k1': CIMProperty('k1', None, type='uint32',
-                class_origin=test_class,
+            # pylint: disable=bad-continuation
+            'k1': CIMProperty(
+                'k1', None, type='uint32', class_origin=test_class,
                 qualifiers={
                     # TODO: Apply issues #203, #205 to flavor parms.
                     'key': CIMQualifier('key', True, overridable=False,
                                         tosubclass=True)
                 }),
             # pylint: disable=bad-continuation
-            'k2': CIMProperty('k2', None, type='string',
+            'k2': CIMProperty(
+                'k2', None, type='string',
                 class_origin=test_class,
                 qualifiers={
                     # TODO: Apply issues #203, #205 to flavor parms.
@@ -564,37 +562,37 @@ class TestTypes(MOFTest, CIMObjectMixin):
             'pui8': CIMProperty('pui8', None, type='uint8',
                                 class_origin=test_class),
             'pui16': CIMProperty('pui16', None, type='uint16',
-                                class_origin=test_class),
+                                 class_origin=test_class),
             'pui32': CIMProperty('pui32', None, type='uint32',
-                                class_origin=test_class),
+                                 class_origin=test_class),
             'pui64': CIMProperty('pui64', None, type='uint64',
-                                class_origin=test_class),
+                                 class_origin=test_class),
             'psi8': CIMProperty('psi8', None, type='sint8',
                                 class_origin=test_class),
             'psi16': CIMProperty('psi16', None, type='sint16',
-                                class_origin=test_class),
+                                 class_origin=test_class),
             'psi32': CIMProperty('psi32', None, type='sint32',
-                                class_origin=test_class),
+                                 class_origin=test_class),
             'psi64': CIMProperty('psi64', None, type='sint64',
-                                class_origin=test_class),
+                                 class_origin=test_class),
             'ps': CIMProperty('ps', None, type='string',
-                                class_origin=test_class),
+                              class_origin=test_class),
             'pc': CIMProperty('pc', None, type='char16',
-                                class_origin=test_class),
+                              class_origin=test_class),
             'pb': CIMProperty('pb', None, type='boolean',
-                                class_origin=test_class),
+                              class_origin=test_class),
             'pdt': CIMProperty('pdt', None, type='datetime',
-                                class_origin=test_class),
-            'peo': CIMProperty('peo', None, type='string',
-                                class_origin=test_class,
+                               class_origin=test_class),
+            'peo': CIMProperty(
+                'peo', None, type='string', class_origin=test_class,
                 qualifiers={
                     # TODO: Apply issues #203, #205 to flavor parms.
                     'embeddedobject': CIMQualifier(
                         'embeddedobject', True, overridable=False,
                         tosubclass=True, toinstance=None)
                 }),
-            'pei': CIMProperty('pei', None, type='string',
-                                class_origin=test_class,
+            'pei': CIMProperty(
+                'pei', None, type='string', class_origin=test_class,
                 qualifiers={
                     # TODO: Apply issues #203, #205 to flavor parms.
                     'embeddedinstance': CIMQualifier(
@@ -607,6 +605,7 @@ class TestTypes(MOFTest, CIMObjectMixin):
             properties=exp_ac_properties
         )
         self.assertEqualCIMClass(ac_class, exp_ac_class)
+
 
 def _build_scope(set_true=None):
     """ Build a basic scope dictionary to be used in building classes
@@ -630,12 +629,11 @@ class TestToInstanceFlavor(MOFTest, CIMObjectMixin):
             compiler in qualifier decl or in class creation from that
             qualifier.  """
 
-
         mof_str = 'Qualifier Tst: boolean = true, Scope(class),'\
                   ' Flavor(ToSubclass);\n' \
                   '[Tst]\n' \
                   'class Py_ToInst{\n' \
-                   '};'
+                  '};'
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
         # compare qualifier declaration
@@ -665,7 +663,7 @@ class TestToInstanceFlavor(MOFTest, CIMObjectMixin):
                   ' Flavor(ToSubclass, ToInstance);\n' \
                   '[Tst]\n' \
                   'class Py_ToInst{\n' \
-                   '};'
+                  '};'
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
         # compare qualifier declaration
@@ -694,9 +692,11 @@ class LexErrorToken(lex.LexToken):
     # Like lex.LexToken, we set its instance variables from outside
     pass
 
+
 def _test_log(msg):     # pylint: disable=unused-argument
     """Our log function when testing."""
     pass
+
 
 class BaseTestLexer(unittest.TestCase):
     """Base class for testcases just for the lexical analyzer."""
@@ -731,7 +731,7 @@ class BaseTestLexer(unittest.TestCase):
     def lex_error(value, lineno, lexpos):
         """Return an expected LEX error."""
         tok = LexErrorToken()
-        #pylint: disable=attribute-defined-outside-init
+        # pylint: disable=attribute-defined-outside-init
         tok.type = None
         tok.value = value
         tok.lineno = lineno
@@ -814,6 +814,7 @@ class BaseTestLexer(unittest.TestCase):
                             "in token: %r" %
                             (act_token.lexpos, exp_token.lexpos, act_token))
 
+
 class TestLexerSimple(BaseTestLexer):
     """Simple testcases for the lexical analyzer."""
 
@@ -829,6 +830,7 @@ class TestLexerSimple(BaseTestLexer):
             self.lex_token('decimalValue', '42', 1, 2),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
+
 
 class TestLexerNumber(BaseTestLexer):
     """Number testcases for the lexical analyzer."""
@@ -902,7 +904,7 @@ class TestLexerNumber(BaseTestLexer):
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_binary_0B(self):
-        #pylint: disable=invalid-name
+        # pylint: disable=invalid-name
         """Test a binary number 0B (upper case B)."""
         input_data = "0B"
         exp_tokens = [
@@ -1027,7 +1029,7 @@ class TestLexerNumber(BaseTestLexer):
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_hex_0X0(self):
-        #pylint: disable=invalid-name
+        # pylint: disable=invalid-name
         """Test hex number 0X0."""
         input_data = "0X0"
         exp_tokens = [
@@ -1184,7 +1186,7 @@ class TestLexerNumber(BaseTestLexer):
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_error_02B(self):
-        #pylint: disable=invalid-name
+        # pylint: disable=invalid-name
         """Test '02B' (decimal: B means binary; binary: digit out of range;
         octal: B means binary)."""
         input_data = "02B"
@@ -1204,6 +1206,7 @@ class TestLexerNumber(BaseTestLexer):
             # '.'. Find out why.
         ]
         self.run_assert_lexer(input_data, exp_tokens)
+
 
 class TestLexerString(BaseTestLexer):
     """Lexer testcases for CIM datatype string."""
@@ -1272,6 +1275,7 @@ class TestLexerString(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+
 class TestLexerChar(BaseTestLexer):
     """Lexer testcases for CIM datatype char16."""
 
@@ -1323,10 +1327,10 @@ class TestFullSchema(MOFTest):
             print(msg, file=self.logfile2)
 
         moflog_file2 = os.path.join(SCRIPT_DIR, 'moflog2.txt')
-        #pylint: disable=attribute-defined-outside-init
+        # pylint: disable=attribute-defined-outside-init
         self.logfile2 = open(moflog_file2, 'w')
 
-        #pylint: disable=attribute-defined-outside-init
+        # pylint: disable=attribute-defined-outside-init
         self.mofcomp2 = MOFCompiler(
             MOFWBEMConnection(),
             search_paths=None, verbose=debug,

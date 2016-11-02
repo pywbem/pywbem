@@ -60,6 +60,7 @@ import six
 
 __all__ = []
 
+
 def _text(data):
     """Return a minidom text node with the specified data string.
 
@@ -87,6 +88,7 @@ def _text(data):
 # You only need to set this to True if the WBEM server has no support for
 # XML-based escaping, but does have support for CDATA-based escaping.
 _CDATA_ESCAPING = False
+
 
 def _pcdata_nodes(pcdata):
     """Return a list of minidom nodes with the properly escaped ``pcdata``
@@ -162,11 +164,12 @@ def _pcdata_nodes(pcdata):
         # The following automatically uses XML entity references
         # for escaping.
 
-        node = _text(pcdata) # pylint: disable=redefined-variable-type
+        node = _text(pcdata)  # pylint: disable=redefined-variable-type
 
         nodelist.append(node)
 
     return nodelist
+
 
 class CIMElement(Element):
     """A base class that has a few bonus helper methods."""
@@ -194,6 +197,7 @@ class CIMElement(Element):
 
 # Root element
 
+
 class CIM(CIMElement):
     """
     The CIM element is the root element of every XML Document that is
@@ -220,6 +224,7 @@ class CIM(CIMElement):
 
 # Object declaration elements
 
+
 class DECLARATION(CIMElement):
     """
     The DECLARATION element defines a set of one or more declarations
@@ -235,6 +240,7 @@ class DECLARATION(CIMElement):
     def __init__(self, data):
         Element.__init__(self, 'DECLARATION')
         self.appendChildren(data)
+
 
 class DECLGROUP(CIMElement):
     """
@@ -253,6 +259,7 @@ class DECLGROUP(CIMElement):
     def __init__(self, data):
         Element.__init__(self, 'DECLGROUP')
         self.appendChildren(data)
+
 
 class DECLGROUP_WITHNAME(CIMElement):
     # pylint: disable=invalid-name
@@ -273,6 +280,7 @@ class DECLGROUP_WITHNAME(CIMElement):
         Element.__init__(self, 'DECLGROUP.WITHNAME')
         self.appendChildren(data)
 
+
 class DECLGROUP_WITHPATH(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -289,6 +297,7 @@ class DECLGROUP_WITHPATH(CIMElement):
     def __init__(self, data):
         Element.__init__(self, 'DECLGROUP.WITHPATH')
         self.appendChildren(data)
+
 
 class QUALIFIER_DECLARATION(CIMElement):
     # pylint: disable=invalid-name
@@ -335,8 +344,9 @@ class QUALIFIER_DECLARATION(CIMElement):
             if is_array:
                 xval = VALUE_ARRAY(value)
             else:
-                xval = VALUE(value) # pylint: disable=redefined-variable-type
+                xval = VALUE(value)  # pylint: disable=redefined-variable-type
             self.appendOptionalChild(xval)
+
 
 class SCOPE(CIMElement):
     """
@@ -374,6 +384,7 @@ class SCOPE(CIMElement):
 
 # Object value elements
 
+
 class VALUE(CIMElement):
     """
     The VALUE element is used to define a single (non-array and
@@ -390,6 +401,7 @@ class VALUE(CIMElement):
         if pcdata is not None:
             self.appendChildren(_pcdata_nodes(pcdata))
 
+
 class VALUE_ARRAY(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -404,6 +416,7 @@ class VALUE_ARRAY(CIMElement):
     def __init__(self, values):
         Element.__init__(self, 'VALUE.ARRAY')
         self.appendChildren(values)
+
 
 class VALUE_REFERENCE(CIMElement):
     # pylint: disable=invalid-name
@@ -422,6 +435,7 @@ class VALUE_REFERENCE(CIMElement):
         Element.__init__(self, 'VALUE.REFERENCE')
         self.appendChild(data)
 
+
 class VALUE_REFARRAY(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -436,6 +450,7 @@ class VALUE_REFARRAY(CIMElement):
     def __init__(self, data):
         Element.__init__(self, 'VALUE.REFARRAY')
         self.appendChildren(data)
+
 
 class VALUE_OBJECT(CIMElement):
     # pylint: disable=invalid-name
@@ -452,6 +467,7 @@ class VALUE_OBJECT(CIMElement):
         Element.__init__(self, 'VALUE.OBJECT')
         self.appendChild(data)
 
+
 class VALUE_NAMEDINSTANCE(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -467,6 +483,7 @@ class VALUE_NAMEDINSTANCE(CIMElement):
         Element.__init__(self, 'VALUE.NAMEDINSTANCE')
         self.appendChild(instancename)
         self.appendChild(instance)
+
 
 class VALUE_NAMEDOBJECT(CIMElement):
     # pylint: disable=invalid-name
@@ -485,6 +502,7 @@ class VALUE_NAMEDOBJECT(CIMElement):
             self.appendChildren(data)
         else:
             self.appendChild(data)
+
 
 class VALUE_OBJECTWITHLOCALPATH(CIMElement):
     # pylint: disable=invalid-name
@@ -505,6 +523,7 @@ class VALUE_OBJECTWITHLOCALPATH(CIMElement):
         self.appendChild(data1)
         self.appendChild(data2)
 
+
 class VALUE_OBJECTWITHPATH(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -524,6 +543,7 @@ class VALUE_OBJECTWITHPATH(CIMElement):
         self.appendChild(data1)
         self.appendChild(data2)
 
+
 class VALUE_NULL(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -539,6 +559,7 @@ class VALUE_NULL(CIMElement):
         Element.__init__(self, 'VALUE.NULL')
 
 # Object naming and location elements
+
 
 class NAMESPACEPATH(CIMElement):
     # pylint: disable=invalid-name
@@ -556,6 +577,7 @@ class NAMESPACEPATH(CIMElement):
         self.appendChild(host)
         self.appendChild(localnamespacepath)
 
+
 class LOCALNAMESPACEPATH(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -571,6 +593,7 @@ class LOCALNAMESPACEPATH(CIMElement):
     def __init__(self, namespaces):
         Element.__init__(self, 'LOCALNAMESPACEPATH')
         self.appendChildren(namespaces)
+
 
 class HOST(CIMElement):
     # pylint: disable=invalid-name
@@ -588,6 +611,7 @@ class HOST(CIMElement):
         Element.__init__(self, 'HOST')
         self.appendChild(_text(pcdata))
 
+
 class NAMESPACE(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -604,6 +628,7 @@ class NAMESPACE(CIMElement):
     def __init__(self, name):
         Element.__init__(self, 'NAMESPACE')
         self.setName(name)
+
 
 class CLASSPATH(CIMElement):
     # pylint: disable=invalid-name
@@ -638,6 +663,7 @@ class LOCALCLASSPATH(CIMElement):
         self.appendChild(localnamespacepath)
         self.appendChild(classname)
 
+
 class CLASSNAME(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -653,6 +679,7 @@ class CLASSNAME(CIMElement):
     def __init__(self, classname):
         Element.__init__(self, 'CLASSNAME')
         self.setName(classname)
+
 
 class INSTANCEPATH(CIMElement):
     # pylint: disable=invalid-name
@@ -671,6 +698,7 @@ class INSTANCEPATH(CIMElement):
         self.appendChild(namespacepath)
         self.appendChild(instancename)
 
+
 class LOCALINSTANCEPATH(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -687,6 +715,7 @@ class LOCALINSTANCEPATH(CIMElement):
         Element.__init__(self, 'LOCALINSTANCEPATH')
         self.appendChild(localpath)
         self.appendChild(instancename)
+
 
 class INSTANCENAME(CIMElement):
     # pylint: disable=invalid-name
@@ -723,6 +752,7 @@ class INSTANCENAME(CIMElement):
             else:
                 self.appendChild(data)
 
+
 class OBJECTPATH(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -737,6 +767,7 @@ class OBJECTPATH(CIMElement):
     def __init__(self, data):
         Element.__init__(self, 'OBJECTPATH')
         self.appendChild(data)
+
 
 class KEYBINDING(CIMElement):
     # pylint: disable=invalid-name
@@ -754,6 +785,7 @@ class KEYBINDING(CIMElement):
         Element.__init__(self, 'KEYBINDING')
         self.setName(name)
         self.appendChild(data)
+
 
 class KEYVALUE(CIMElement):
     # pylint: disable=invalid-name
@@ -783,7 +815,9 @@ class KEYVALUE(CIMElement):
         if data is not None:
             self.appendChild(_text(data))
 
+
 # Object definition elements
+
 
 class CLASS(CIMElement):
     # pylint: disable=invalid-name
@@ -813,6 +847,7 @@ class CLASS(CIMElement):
             children.extend(methods)
         self.appendChildren(children)
 
+
 class INSTANCE(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -837,6 +872,7 @@ class INSTANCE(CIMElement):
         if properties:
             children.extend(properties)
         self.appendChildren(children)
+
 
 class QUALIFIER(CIMElement):
     # pylint: disable=invalid-name
@@ -885,6 +921,7 @@ class QUALIFIER(CIMElement):
         self.setOptionalAttribute('xml:lang', xml_lang)
 
         self.appendOptionalChild(value)
+
 
 class PROPERTY(CIMElement):
     # pylint: disable=invalid-name
@@ -948,6 +985,7 @@ class PROPERTY(CIMElement):
             self.appendChildren(qualifiers)
         self.appendOptionalChild(value)
 
+
 class PROPERTY_ARRAY(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -998,6 +1036,7 @@ class PROPERTY_ARRAY(CIMElement):
             self.appendChildren(qualifiers)
         self.appendOptionalChild(value_array)
 
+
 class PROPERTY_REFERENCE(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1033,6 +1072,7 @@ class PROPERTY_REFERENCE(CIMElement):
         if qualifiers:
             self.appendChildren(qualifiers)
         self.appendOptionalChild(value_reference)
+
 
 class METHOD(CIMElement):
     # pylint: disable=invalid-name
@@ -1074,6 +1114,7 @@ class METHOD(CIMElement):
             children.extend(parameters)
         self.appendChildren(children)
 
+
 class PARAMETER(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1096,6 +1137,7 @@ class PARAMETER(CIMElement):
         if qualifiers:
             self.appendChildren(qualifiers)
 
+
 class PARAMETER_REFERENCE(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1117,6 +1159,7 @@ class PARAMETER_REFERENCE(CIMElement):
         self.setOptionalAttribute('REFERENCECLASS', reference_class)
         if qualifiers:
             self.appendChildren(qualifiers)
+
 
 class PARAMETER_ARRAY(CIMElement):
     # pylint: disable=invalid-name
@@ -1142,6 +1185,7 @@ class PARAMETER_ARRAY(CIMElement):
             self.setAttribute('ARRAYSIZE', str(array_size))
         if qualifiers:
             self.appendChildren(qualifiers)
+
 
 class PARAMETER_REFARRAY(CIMElement):
     # pylint: disable=invalid-name
@@ -1169,7 +1213,8 @@ class PARAMETER_REFARRAY(CIMElement):
         if qualifiers:
             self.appendChildren(qualifiers)
 
-class TABLECELL_DECLARATION(CIMElement): # pylint: disable=invalid-name
+
+class TABLECELL_DECLARATION(CIMElement):  # pylint: disable=invalid-name
     # pylint: disable=invalid-name
     """
     The TABLECELL.DECLARATION element describes a TABLECELL that is
@@ -1187,6 +1232,7 @@ class TABLECELL_DECLARATION(CIMElement): # pylint: disable=invalid-name
             SORTPOS          CDATA       #IMPLIED
             SORTDIR        (ASC|DESC)    #IMPLIED>
     """
+
 
 class TABLECELL_REFERENCE(CIMElement):
     # pylint: disable=invalid-name
@@ -1207,6 +1253,7 @@ class TABLECELL_REFERENCE(CIMElement):
             SORTDIR         (ASC|DESC)   #IMPLIED>
      """
 
+
 class TABLEROW_DECLARATION(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1219,6 +1266,7 @@ class TABLEROW_DECLARATION(CIMElement):
                                         | TABLECELL.REFERENCE)*>
     """
 
+
 class TABLE(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1230,6 +1278,7 @@ class TABLE(CIMElement):
 
         <!ELEMENT TABLE(TABLEROW.DECLARATION,(TABLEROW)*)>
     """
+
 
 class TABLEROW(CIMElement):
     # pylint: disable=invalid-name
@@ -1244,7 +1293,9 @@ class TABLEROW(CIMElement):
                             VALUE.REFARRAY | VALUE.NULL)*>
     """
 
+
 # Message elements
+
 
 class MESSAGE(CIMElement):
     # pylint: disable=invalid-name
@@ -1269,6 +1320,7 @@ class MESSAGE(CIMElement):
         self.setAttribute('PROTOCOLVERSION', protocol_version)
         self.appendChild(data)
 
+
 class MULTIREQ(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1284,6 +1336,7 @@ class MULTIREQ(CIMElement):
     def __init__(self, data):
         Element.__init__(self, 'MULTIREQ')
         self.appendChildren(data)
+
 
 class MULTIEXPREQ(CIMElement):
     # pylint: disable=invalid-name
@@ -1301,6 +1354,7 @@ class MULTIEXPREQ(CIMElement):
         Element.__init__(self, 'MULTIEXPREQ')
         self.appendChildren(data)
 
+
 class SIMPLEREQ(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1317,6 +1371,7 @@ class SIMPLEREQ(CIMElement):
         Element.__init__(self, 'SIMPLEREQ')
         self.appendChild(data)
 
+
 class SIMPLEEXPREQ(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1331,6 +1386,7 @@ class SIMPLEEXPREQ(CIMElement):
     def __init__(self, data):
         Element.__init__(self, 'SIMPLEEXPREQ')
         self.appendChild(data)
+
 
 class IMETHODCALL(CIMElement):
     # pylint: disable=invalid-name
@@ -1359,6 +1415,7 @@ class IMETHODCALL(CIMElement):
             self.appendChildren(iparamvalues)
         self.appendOptionalChild(responsedestination)
 
+
 class METHODCALL(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1386,6 +1443,7 @@ class METHODCALL(CIMElement):
             self.appendChildren(paramvalues)
         self.appendOptionalChild(responsedestination)
 
+
 class EXPMETHODCALL(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1405,6 +1463,7 @@ class EXPMETHODCALL(CIMElement):
         self.setName(name)
         if params:
             self.appendChildren(params)
+
 
 class PARAMVALUE(CIMElement):
     # pylint: disable=invalid-name
@@ -1433,6 +1492,7 @@ class PARAMVALUE(CIMElement):
         # See the note on EmbeddedObject in PROPERTY().
         self.appendOptionalChild(data)
 
+
 class IPARAMVALUE(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1454,6 +1514,7 @@ class IPARAMVALUE(CIMElement):
         Element.__init__(self, 'IPARAMVALUE')
         self.setName(name)
         self.appendOptionalChild(data)
+
 
 class EXPPARAMVALUE(CIMElement):
     # pylint: disable=invalid-name
@@ -1477,6 +1538,7 @@ class EXPPARAMVALUE(CIMElement):
         self.setOptionalAttribute('PARAMTYPE', param_type)
         self.appendOptionalChild(data)
 
+
 class MULTIRSP(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1493,6 +1555,7 @@ class MULTIRSP(CIMElement):
         Element.__init__(self, 'MULTIRSP')
         self.appendChildren(data)
 
+
 class MULTIEXPRSP(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1508,6 +1571,7 @@ class MULTIEXPRSP(CIMElement):
     def __init__(self, data):
         Element.__init__(self, 'MULTIEXPRSP')
         self.appendChildren(data)
+
 
 class SIMPLERSP(CIMElement):
     # pylint: disable=invalid-name
@@ -1526,6 +1590,7 @@ class SIMPLERSP(CIMElement):
         Element.__init__(self, 'SIMPLERSP')
         self.appendChild(data)
 
+
 class SIMPLEEXPRSP(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1541,6 +1606,7 @@ class SIMPLEEXPRSP(CIMElement):
     def __init__(self, data):
         Element.__init__(self, 'SIMPLEEXPRSP')
         self.appendChild(data)
+
 
 class METHODRESPONSE(CIMElement):
     # pylint: disable=invalid-name
@@ -1567,6 +1633,7 @@ class METHODRESPONSE(CIMElement):
             else:
                 self.appendChild(data)
 
+
 class EXPMETHODRESPONSE(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1587,6 +1654,7 @@ class EXPMETHODRESPONSE(CIMElement):
         self.setName(name)
         self.appendOptionalChild(data)
 
+
 class IMETHODRESPONSE(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1606,6 +1674,7 @@ class IMETHODRESPONSE(CIMElement):
         Element.__init__(self, 'IMETHODRESPONSE')
         self.setName(name)
         self.appendOptionalChild(data)
+
 
 class ERROR(CIMElement):
     # pylint: disable=invalid-name
@@ -1630,6 +1699,7 @@ class ERROR(CIMElement):
         if instances:
             self.appendChildren(instances)
 
+
 class RETURNVALUE(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1651,6 +1721,7 @@ class RETURNVALUE(CIMElement):
         # See the note on EmbeddedObject in PROPERTY().
         self.appendOptionalChild(data)
 
+
 class IRETURNVALUE(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1671,6 +1742,7 @@ class IRETURNVALUE(CIMElement):
         Element.__init__(self, 'IRETURNVALUE')
         self.appendOptionalChild(data)
 
+
 class RESPONSEDESTINATION(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1685,6 +1757,7 @@ class RESPONSEDESTINATION(CIMElement):
     def __init__(self, data):
         Element.__init__(self, 'RESPONSEDESTINATON')
         self.appendChild(data)
+
 
 class SIMPLEREQACK(CIMElement):
     # pylint: disable=invalid-name

@@ -298,7 +298,6 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
         except ValueError:
             pass
 
-
         try:
             self._run_single_defaults_false("://[2001:db8::7348-eth1]:5900",
                                             "2001:db8::7348%eth1",

@@ -29,8 +29,8 @@ import yaml
 import six
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
-                     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
-                     CIMQualifierDeclaration, NocaseDict
+    CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
+    CIMQualifierDeclaration, NocaseDict
 from .cim_types import CIMInt, CIMFloat, CIMDateTime
 from .exceptions import CIMError
 
@@ -38,7 +38,7 @@ __all__ = ['BaseOperationRecorder', 'TestClientRecorder',
            'OpArgs', 'OpResult', 'HttpRequest', 'HttpResponse']
 
 if six.PY2:
-    _Longint = long
+    _Longint = long  # noqa: F821
 else:
     _Longint = int
 
@@ -104,6 +104,7 @@ class OpArgs(OpArgs_tuple):
 
 OpResult_tuple = namedtuple("OpResult_tuple", ["ret", "exc"])
 
+
 class OpResult(OpResult_tuple):
     """
     A named tuple representing the result of the invocation of a
@@ -132,6 +133,7 @@ class OpResult(OpResult_tuple):
 HttpRequest_tuple = namedtuple("HttpRequest_tuple",
                                ["version", "url", "target", "method", "headers",
                                 "payload"])
+
 
 class HttpRequest(HttpRequest_tuple):
     """
@@ -173,6 +175,7 @@ class HttpRequest(HttpRequest_tuple):
 HttpResponse_tuple = namedtuple("HttpResponse_tuple",
                                 ["version", "status", "reason", "headers",
                                  "payload"])
+
 
 class HttpResponse(HttpResponse_tuple):
     """
@@ -404,7 +407,7 @@ class TestClientRecorder(BaseOperationRecorder):
         if http_request is not None:
             tc_http_request['verb'] = http_request.method
             tc_http_request['url'] = TestClientRecorder.TESTCASE_URL + \
-                                     http_request.target
+                http_request.target
             tc_request_headers = OrderedDict()
             if http_request.headers is not None:
                 for hdr_name in http_request.headers:
@@ -578,4 +581,3 @@ class TestClientRecorder(BaseOperationRecorder):
         else:
             raise TypeError("Invalid type in TestClientRecorder.toyaml(): "
                             "%s %s" % (obj.__class__.__name__, type(obj)))
-

@@ -78,7 +78,7 @@ import six
 from . import config
 
 if six.PY2:
-    _Longint = long
+    _Longint = long  # noqa: F821
 else:
     _Longint = int
 
@@ -87,7 +87,8 @@ __all__ = ['MinutesFromUTC', 'CIMType', 'CIMDateTime', 'CIMInt', 'Uint8',
            'Sint8', 'Uint16', 'Sint16', 'Uint32', 'Sint32', 'Uint64', 'Sint64',
            'CIMFloat', 'Real32', 'Real64']
 
-class _CIMComparisonMixin(object): # pylint: disable=too-few-public-methods
+
+class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
     """Mixin class providing default implementations for rich comparison
     operators.
 
@@ -210,7 +211,7 @@ class MinutesFromUTC(tzinfo):
                                                   pywbem.MinutesFromUTC(-300))
     """
 
-    def __init__(self, offset): # pylint: disable=super-init-not-called
+    def __init__(self, offset):  # pylint: disable=super-init-not-called
         """
         Parameters:
 
@@ -224,7 +225,7 @@ class MinutesFromUTC(tzinfo):
         """
         self.__offset = timedelta(minutes=offset)
 
-    def utcoffset(self, dt): # pylint: disable=unused-argument
+    def utcoffset(self, dt):  # pylint: disable=unused-argument
         """
         An implementation of the corresponding base class method
         (see :meth:`py:datetime.tzinfo.utcoffset` for its description),
@@ -239,7 +240,7 @@ class MinutesFromUTC(tzinfo):
         """
         return self.__offset
 
-    def dst(self, dt): # pylint: disable=unused-argument
+    def dst(self, dt):  # pylint: disable=unused-argument
         """
         An implementation of the corresponding base class method,
         (see :meth:`py:datetime.tzinfo.dst` for its description),
@@ -255,7 +256,7 @@ class MinutesFromUTC(tzinfo):
         return timedelta(0)
 
 
-class CIMType(object):       # pylint: disable=too-few-public-methods
+class CIMType(object):  # pylint: disable=too-few-public-methods
     """Base type for all CIM data types defined in this package."""
 
     # Note: __str__() is not needed; the inherited method is used,
@@ -300,7 +301,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
               interval.
             * Another :class:`~pywbem.CIMDateTime` object will be copied.
         """
-        from .cim_obj import _ensure_unicode # defer due to cyclic deps.
+        from .cim_obj import _ensure_unicode  # defer due to cyclic deps.
         self.__timedelta = None
         self.__datetime = None
         dtarg = _ensure_unicode(dtarg)
@@ -488,8 +489,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             minute = (self.timedelta.seconds - hour * 3600) // 60
             second = self.timedelta.seconds - hour * 3600 - minute * 60
             return '%08d%02d%02d%02d.%06d:000' % \
-                    (self.timedelta.days, hour, minute, second,
-                     self.timedelta.microseconds)
+                (self.timedelta.days, hour, minute, second,
+                 self.timedelta.microseconds)
         else:
             offset = self.minutes_from_utc
             sign = '+'
@@ -497,10 +498,10 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
                 sign = '-'
                 offset = -offset
             return '%d%02d%02d%02d%02d%02d.%06d%s%03d' % \
-                   (self.datetime.year, self.datetime.month,
-                    self.datetime.day, self.datetime.hour,
-                    self.datetime.minute, self.datetime.second,
-                    self.datetime.microsecond, sign, offset)
+                (self.datetime.year, self.datetime.month,
+                 self.datetime.day, self.datetime.hour,
+                 self.datetime.minute, self.datetime.second,
+                 self.datetime.microsecond, sign, offset)
 
     def __repr__(self):
         """Return a string representation suitable for debugging."""
@@ -523,7 +524,9 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         return (cmpitem(self.datetime, other.datetime) or
                 cmpitem(self.timedelta, other.timedelta))
 
+
 # CIM integer types
+
 
 class CIMInt(CIMType, _Longint):
     """
@@ -592,6 +595,7 @@ class CIMInt(CIMType, _Longint):
                (self.__class__.__name__, self.cimtype, self.minvalue,
                 self.maxvalue, self)
 
+
 class Uint8(CIMInt):
     """
     A value of CIM data type uint8. Derived from :class:`~pywbem.CIMInt`.
@@ -601,6 +605,7 @@ class Uint8(CIMInt):
     cimtype = 'uint8'
     minvalue = 0
     maxvalue = 2**8 - 1
+
 
 class Sint8(CIMInt):
     """
@@ -612,6 +617,7 @@ class Sint8(CIMInt):
     minvalue = -2 ** (8 - 1)
     maxvalue = 2 ** (8 - 1) - 1
 
+
 class Uint16(CIMInt):
     """
     A value of CIM data type uint16. Derived from :class:`~pywbem.CIMInt`.
@@ -621,6 +627,7 @@ class Uint16(CIMInt):
     cimtype = 'uint16'
     minvalue = 0
     maxvalue = 2**16 - 1
+
 
 class Sint16(CIMInt):
     """
@@ -632,6 +639,7 @@ class Sint16(CIMInt):
     minvalue = -2 ** (16 - 1)
     maxvalue = 2 ** (16 - 1) - 1
 
+
 class Uint32(CIMInt):
     """
     A value of CIM data type uint32. Derived from :class:`~pywbem.CIMInt`.
@@ -641,6 +649,7 @@ class Uint32(CIMInt):
     cimtype = 'uint32'
     minvalue = 0
     maxvalue = 2 ** 32 - 1
+
 
 class Sint32(CIMInt):
     """
@@ -652,6 +661,7 @@ class Sint32(CIMInt):
     minvalue = -2 ** (32 - 1)
     maxvalue = 2 ** (32 - 1) - 1
 
+
 class Uint64(CIMInt):
     """
     A value of CIM data type uint64. Derived from :class:`~pywbem.CIMInt`.
@@ -661,6 +671,7 @@ class Uint64(CIMInt):
     cimtype = 'uint64'
     minvalue = 0
     maxvalue = 2 ** 64 - 1
+
 
 class Sint64(CIMInt):
     """
@@ -672,12 +683,15 @@ class Sint64(CIMInt):
     minvalue = -2 ** (64 - 1)
     maxvalue = 2 ** (64 - 1) - 1
 
+
 # CIM float types
+
 
 class CIMFloat(CIMType, float):
     """
     Base type for real (floating point) CIM data types.
     """
+
 
 class Real32(CIMFloat):
     """
@@ -685,11 +699,13 @@ class Real32(CIMFloat):
     """
     cimtype = 'real32'
 
+
 class Real64(CIMFloat):
     """
     A value of CIM data type real64. Derived from :class:`~pywbem.CIMFloat`.
     """
     cimtype = 'real64'
+
 
 def cimtype(obj):
     """
@@ -728,10 +744,11 @@ def cimtype(obj):
     raise TypeError("Type %s of this object is not a CIM data type: %r" %
                     (type(obj), obj))
 
+
 _TYPE_FROM_NAME = {
     'boolean': bool,
-    'string': six.text_type, # return the preferred type
-    'char16': six.text_type, # return the preferred type
+    'string': six.text_type,  # return the preferred type
+    'char16': six.text_type,  # return the preferred type
     'datetime': CIMDateTime,
     # 'reference' covered at run time
     'uint8': Uint8,
@@ -745,6 +762,7 @@ _TYPE_FROM_NAME = {
     'real32': Real32,
     'real64': Real64,
 }
+
 
 def type_from_name(type_name):
     """
@@ -780,6 +798,7 @@ def type_from_name(type_name):
     except KeyError:
         raise ValueError("Unknown CIM data type name: %r" % type_name)
     return type_obj
+
 
 def atomic_to_cim_xml(obj):
     """
@@ -820,5 +839,5 @@ def atomic_to_cim_xml(obj):
         return u'%.16E' % obj
     elif isinstance(obj, six.string_types):
         return _ensure_unicode(obj)
-    else: # e.g. int
+    else:  # e.g. int
         return _convert_unicode(obj)

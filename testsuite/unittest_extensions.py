@@ -12,6 +12,7 @@ import os
 
 from pywbem.cim_obj import NocaseDict
 
+
 class RegexpMixin(object):
     """Mixin class for classes derived from unittest.TestCase, providing
     assertion functions for regular expression tests."""
@@ -53,17 +54,19 @@ class RegexpMixin(object):
                 "    text:    %r\n"
                 "    pattern: %r" % (text, pattern))
 
+
 class FileMixin(object):
     """Mixin class for classes derived from unittest.TestCase, providing
     assertion functions for file related tests."""
 
     def assertFileExists(self, filename):
-        assert os.path.exists(filename),\
-               ("File does not exist but should: %s" % filename)
+        assert os.path.exists(filename), \
+            ("File does not exist but should: %s" % filename)
 
     def assertFileNotExists(self, filename):
-        assert not os.path.exists(filename),\
-               ("File exists but should not: %s" % filename)
+        assert not os.path.exists(filename), \
+            ("File exists but should not: %s" % filename)
+
 
 class CIMObjectMixin(object):
     """Mixin class for classes derived from unittest.TestCase, providing

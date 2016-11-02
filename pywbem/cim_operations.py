@@ -118,14 +118,13 @@ import six
 from . import cim_xml
 from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_INVALID_PARAMETER
 from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
-from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, \
-                     CIMClassName, NocaseDict, _ensure_unicode, tocimxml, \
-                     tocimobj
+from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
+    NocaseDict, _ensure_unicode, tocimxml, tocimobj
 from .cim_http import get_object_header, wbem_request
 from .tupleparse import parse_cim
 from .tupletree import dom_to_tupletree
 from .exceptions import Error, ParseError, AuthError, ConnectionError, \
-                        TimeoutError, CIMError
+    TimeoutError, CIMError
 
 __all__ = ['WBEMConnection', 'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
@@ -135,7 +134,7 @@ __all__ = ['WBEMConnection', 'PegasusUDSConnection', 'SFCBUDSConnection',
 
 # openenumerateInstances, OpenAssociators, etc and PullInstanceWithPath
 # responses
-#pylint: disable=invalid-name
+# pylint: disable=invalid-name
 pull_path_result_tuple = namedtuple("pull_path_result_tuple",
                                     ["paths", "eos", "context"])
 
@@ -170,6 +169,7 @@ def _check_classname(val):
     """
     if not isinstance(val, six.string_types):
         raise ValueError("string expected for classname, not %r" % val)
+
 
 def check_utf8_xml_chars(utf8_xml, meaning):
     """
@@ -661,7 +661,6 @@ class WBEMConnection(object):
         self.last_reply = None
         self.operation_recorder = None
 
-
     def __str__(self):
         """
         Return a short representation of the :class:`~pywbem.WBEMConnection`
@@ -815,12 +814,12 @@ class WBEMConnection(object):
                 if parsing_error:
                     # We did not catch it in the check function, but
                     # minidom.parseString() failed.
-                    raise ParseError(msg) # data from previous exception
+                    raise ParseError(msg)  # data from previous exception
 
         if self.debug:
             pretty_reply = reply_dom.toprettyxml(indent='  ')
             self.last_reply = re.sub(r'>( *[\r\n]+)+( *)<', r'>\n\2<',
-                                     pretty_reply) # remove extra empty lines
+                                     pretty_reply)  # remove extra empty lines
 
         # Parse response
 
@@ -865,7 +864,7 @@ class WBEMConnection(object):
                 raise CIMError(code, err[1]['DESCRIPTION'])
             raise CIMError(code, 'Error code %s' % err[1]['CODE'])
         if response_params_rqd is None:
-            #expect either ERROR | IRETURNVALUE*
+            # expect either ERROR | IRETURNVALUE*
             err = tup_tree[0]
             if err[0] != 'IRETURNVALUE':
                 raise ParseError('Expecting IRETURNVALUE element, got %s'
@@ -1059,12 +1058,12 @@ class WBEMConnection(object):
                 if parsing_error:
                     # We did not catch it in the check function, but
                     # minidom.parseString() failed.
-                    raise ParseError(msg) # data from previous exception
+                    raise ParseError(msg)  # data from previous exception
 
         if self.debug:
             pretty_reply = reply_dom.toprettyxml(indent='  ')
             self.last_reply = re.sub(r'>( *[\r\n]+)+( *)<', r'>\n\2<',
-                                     pretty_reply) # remove extra empty lines
+                                     pretty_reply)  # remove extra empty lines
 
         # Parse response
 
@@ -1292,7 +1291,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return instancenames
 
-
     def EnumerateInstances(self, ClassName, namespace=None, LocalOnly=None,
                            DeepInheritance=None, IncludeQualifiers=None,
                            IncludeClassOrigin=None, PropertyList=None,
@@ -1449,7 +1447,7 @@ class WBEMConnection(object):
 
             # TODO ks 6/16 would the setattr be faster?
             # TODO: ks 6/16 should we check before setting?
-            #[setattr(i.path, 'namespace', namespace) for i in instances]
+            # [setattr(i.path, 'namespace', namespace) for i in instances]
             for instance in instances:
                 instance.path.namespace = namespace
 
@@ -1464,7 +1462,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return instances
 
-
     @staticmethod
     def _get_rslt_params(result, namespace):
         """Common processing for pull results to separate
@@ -1472,7 +1469,7 @@ class WBEMConnection(object):
            Returns tuple of entities in IRETURNVALUE, end_of_sequence,
            and enumeration_context)
         """
-        #TODO ks 6/16 make this None???
+        # TODO ks 6/16 make this None???
         rtn_objects = []
         end_of_sequence = False
         enumeration_context = None
@@ -1708,7 +1705,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(result_tuple, None)
                 self.operation_recorder.record_staged()
             return result_tuple
-
 
     def OpenEnumerateInstances(self, ClassName, namespace=None, LocalOnly=None,
                                DeepInheritance=None, IncludeQualifiers=None,
@@ -1982,7 +1978,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return result_tuple
 
-
     def OpenReferenceInstancePaths(self, InstanceName, ResultClass=None,
                                    Role=None,
                                    FilterQueryLanguage=None, FilterQuery=None,
@@ -2191,7 +2186,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(result_tuple, None)
                 self.operation_recorder.record_staged()
             return result_tuple
-
 
     def OpenReferenceInstances(self, InstanceName, ResultClass=None,
                                Role=None, IncludeQualifiers=None,
@@ -2407,7 +2401,7 @@ class WBEMConnection(object):
 
         try:
 
-            #TODO ks 6/16 Limit to instance name. No classname allowed.
+            # TODO ks 6/16 Limit to instance name. No classname allowed.
             namespace = self._iparam_namespace_from_objectname(InstanceName)
             instancename = self._iparam_instancename(InstanceName)
 
@@ -2441,7 +2435,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(result_tuple, None)
                 self.operation_recorder.record_staged()
             return result_tuple
-
 
     def OpenAssociatorInstancePaths(self, InstanceName, AssocClass=None,
                                     ResultClass=None, Role=None,
@@ -2671,7 +2664,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(result_tuple, None)
                 self.operation_recorder.record_staged()
             return result_tuple
-
 
     def OpenAssociatorInstances(self, InstanceName, AssocClass=None,
                                 ResultClass=None, Role=None, ResultRole=None,
@@ -2942,7 +2934,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return result_tuple
 
-
     def OpenQueryInstances(self, FilterQueryLanguage, FilterQuery,
                            namespace=None, ReturnQueryResultClass=None,
                            OperationTimeout=None, ContinueOnError=None,
@@ -3134,7 +3125,7 @@ class WBEMConnection(object):
             insts, eos, enum_ctxt = self._get_rslt_params(result, namespace)
 
             query_result_class = _GetQueryRsltClass(result) if \
-                                 ReturnQueryResultClass else None
+                ReturnQueryResultClass else None
 
             result_tuple = pull_query_result_tuple(insts, eos, enum_ctxt,
                                                    query_result_class)
@@ -3149,7 +3140,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(result_tuple, None)
                 self.operation_recorder.record_staged()
             return result_tuple
-
 
     def PullInstancesWithPath(self, context, MaxObjectCount,
                               **extra):
@@ -3288,7 +3278,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return result_tuple
 
-
     def PullInstancePaths(self, context, MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
 
@@ -3421,7 +3410,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return result_tuple
 
-
     def PullInstances(self, context, MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
         """
@@ -3550,7 +3538,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return result_tuple
 
-
     def CloseEnumeration(self, context, **extra):
         # pylint: disable=invalid-name
         """
@@ -3613,7 +3600,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(None, None)
                 self.operation_recorder.record_staged()
             return
-
 
     def GetInstance(self, InstanceName, LocalOnly=None, IncludeQualifiers=None,
                     IncludeClassOrigin=None, PropertyList=None, **extra):
@@ -3748,7 +3734,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return instance
 
-
     def ModifyInstance(self, ModifiedInstance, IncludeQualifiers=None,
                        PropertyList=None, **extra):
         # pylint: disable=invalid-name,line-too-long
@@ -3872,7 +3857,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return
 
-
     def CreateInstance(self, NewInstance, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
@@ -3975,7 +3959,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return instancename
 
-
     def DeleteInstance(self, InstanceName, **extra):
         # pylint: disable=invalid-name
         """
@@ -4037,7 +4020,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(None, None)
                 self.operation_recorder.record_staged()
             return
-
 
     #
     # Association operations
@@ -4189,7 +4171,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(objects, None)
                 self.operation_recorder.record_staged()
             return objects
-
 
     def Associators(self, ObjectName, AssocClass=None, ResultClass=None,
                     Role=None, ResultRole=None, IncludeQualifiers=None,
@@ -4387,7 +4368,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return objects
 
-
     def ReferenceNames(self, ObjectName, ResultClass=None, Role=None, **extra):
         # pylint: disable=invalid-name, line-too-long
         """
@@ -4516,7 +4496,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(objects, None)
                 self.operation_recorder.record_staged()
             return objects
-
 
     def References(self, ObjectName, ResultClass=None, Role=None,
                    IncludeQualifiers=None, IncludeClassOrigin=None,
@@ -4696,7 +4675,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return objects
 
-
     #
     # Method invocation operation
     #
@@ -4849,7 +4827,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return result_tuple
 
-
     #
     # Query operations
     #
@@ -4943,7 +4920,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(instances, None)
                 self.operation_recorder.record_staged()
             return instances
-
 
     #
     # Class operations
@@ -5055,7 +5031,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(classnames, None)
                 self.operation_recorder.record_staged()
             return classnames
-
 
     def EnumerateClasses(self, namespace=None, ClassName=None,
                          DeepInheritance=None, LocalOnly=None,
@@ -5202,7 +5177,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return classes
 
-
     def GetClass(self, ClassName, namespace=None, LocalOnly=None,
                  IncludeQualifiers=None, IncludeClassOrigin=None,
                  PropertyList=None, **extra):
@@ -5329,7 +5303,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return klass
 
-
     def ModifyClass(self, ModifiedClass, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
@@ -5405,7 +5378,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return
 
-
     def CreateClass(self, NewClass, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
@@ -5480,7 +5452,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return
 
-
     def DeleteClass(self, ClassName, namespace=None, **extra):
         # pylint: disable=invalid-name,line-too-long
         """
@@ -5552,7 +5523,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(None, None)
                 self.operation_recorder.record_staged()
             return
-
 
     #
     # Qualifier operations
@@ -5628,7 +5598,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(qualifiers, None)
                 self.operation_recorder.record_staged()
             return qualifiers
-
 
     def GetQualifier(self, QualifierName, namespace=None, **extra):
         # pylint: disable=invalid-name
@@ -5706,7 +5675,6 @@ class WBEMConnection(object):
                 self.operation_recorder.record_staged()
             return qualifiername
 
-
     def SetQualifier(self, QualifierDeclaration, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
@@ -5773,7 +5741,6 @@ class WBEMConnection(object):
                 self.operation_recorder.stage_pywbem_result(None, None)
                 self.operation_recorder.record_staged()
             return
-
 
     def DeleteQualifier(self, QualifierName, namespace=None, **extra):
         # pylint: disable=invalid-name
@@ -5889,6 +5856,7 @@ def is_subclass(ch, ns, super_class, sub):
                                IncludeClassOrigin=False)
     return False
 
+
 def PegasusUDSConnection(creds=None, **kwargs):
     """ Pegasus specific Unix Domain Socket call. Specific because
         of the location of the file name
@@ -5898,6 +5866,7 @@ def PegasusUDSConnection(creds=None, **kwargs):
     return WBEMConnection('/var/run/tog-pegasus/cimxml.socket', creds,
                           **kwargs)
 
+
 def SFCBUDSConnection(creds=None, **kwargs):
     """ SFCB specific Unix Domain Socket call. Specific because
         of the location of the file name
@@ -5905,6 +5874,7 @@ def SFCBUDSConnection(creds=None, **kwargs):
 
     # pylint: disable=invalid-name
     return WBEMConnection('/tmp/sfcbHttpSocket', creds, **kwargs)
+
 
 def OpenWBEMUDSConnection(creds=None, **kwargs):
     """ Pegasus specific Unix Domain Socket call. Specific because

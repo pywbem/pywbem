@@ -10,13 +10,13 @@ from datetime import timedelta, datetime
 import pytest
 
 from pywbem import CIMType, CIMInt, CIMFloat, Uint8, Uint16, Uint32, Uint64, \
-                   Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime, \
-                   MinutesFromUTC
+    Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime, MinutesFromUTC
 
 
 #
 # CIM integer data types
 #
+
 
 @pytest.fixture(params=[
 
@@ -41,6 +41,7 @@ from pywbem import CIMType, CIMInt, CIMFloat, Uint8, Uint16, Uint32, Uint64, \
 ], scope='module')
 def integer_tuple(request):
     return request.param
+
 
 class TestIntegers:
     """
@@ -147,6 +148,7 @@ class TestIntegers:
 # CIM real data types
 #
 
+
 @pytest.fixture(params=[
 
     # Each list item is a tuple of:
@@ -160,6 +162,7 @@ class TestIntegers:
 ], scope='module')
 def real_tuple(request):
     return request.param
+
 
 class TestReals:
     """
@@ -207,6 +210,7 @@ class TestReals:
 #
 # CIM datetime data type
 #
+
 
 @pytest.fixture(params=[
 
@@ -320,6 +324,7 @@ class TestReals:
 def datetime_init_tuple(request):
     return request.param
 
+
 class TestDatetime:
     """
     Test CIM real data type classes.
@@ -364,4 +369,3 @@ class TestDatetime:
 # TODO: Add testcases for get_local_utcoffset()
 # TODO: Add testcases for now()
 # TODO: Add testcases for fromtimestamp()
-
