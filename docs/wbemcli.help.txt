@@ -68,6 +68,12 @@ Connection security related options:
                         then be part  of the certfile
 
 General options:
+  -s [scripts [scripts ...]], --scripts [scripts [scripts ...]]
+                        Execute the python code defined by the script before the
+                        user gets control. This argument may be repeated to load
+                        multiple scripts or multiple scripts may be listed for a
+                        single use of the option. Scripts are executed after the
+                        WBEMConnection call
   -v, --verbose         Print more messages while processing
   -h, --help            Show this help message and exit
 

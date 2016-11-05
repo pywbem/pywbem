@@ -62,6 +62,9 @@ from pywbem._cliutils import SmartFormatter as _SmartFormatter
 # by all functions that execute operations.
 CONN = None
 
+# global ARGS contains the argparse arguments dictionary
+ARGS = None
+
 
 def _remote_connection(server, opts, argparser_):
     """Initiate a remote connection, via PyWBEM. Arguments for
@@ -1697,6 +1700,13 @@ Examples:
     general_arggroup = argparser.add_argument_group(
         'General options')
     general_arggroup.add_argument(
+        '-s', '--scripts', dest='scripts', metavar='scripts', nargs='*',
+        help='R|Execute the python code defined by the script before the\n'
+             'user gets control. This argument may be repeated to load\n'
+             'multiple scripts or multiple scripts may be listed for a\n'
+             'single use of the option. Scripts are executed after the\n'
+             'WBEMConnection call')
+    general_arggroup.add_argument(
         '-v', '--verbose', dest='verbose',
         action='store_true', default=False,
         help='Print more messages while processing')
@@ -1705,6 +1715,10 @@ Examples:
         help='Show this help message and exit')
 
     args = argparser.parse_args()
+
+    # setup the global args so it is available to scripts
+    global ARGS  # pylint: disable=global-statement
+    ARGS = args
 
     if not args.server:
         argparser.error('No WBEM server specified')
@@ -1728,6 +1742,14 @@ Examples:
         except NotFoundError as exc:
             if exc.errno != _errno.ENOENT:
                 raise
+
+    # Execute any python script defined by the script argument
+    if args.scripts:
+        for script in args.scripts:
+            if args.verbose:
+                print('script %s executed' % script)
+            with open(script) as fp:
+                exec(fp.read(), globals(), None)  # pylint: disable=exec-used
 
     # Interact
     i = _code.InteractiveConsole(globals())
