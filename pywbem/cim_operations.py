@@ -29,7 +29,6 @@ a WBEM server.
 All WBEM operations defined in :term:`DSP0200` can be issued across this connection.
 Each method of this class corresponds directly to a WBEM operation.
 
-# noqa: E501
 ==========================================================  ==============================================================
 WBEMConnection method                                       Purpose
 ==========================================================  ==============================================================
@@ -98,7 +97,7 @@ WBEMConnection method                                       Purpose
 NOTE: The method EnumerationCount is to be deprecated from the DMTF specs
 and has not been implemented by any servers so was not implemented
 in pywbem
-"""
+"""  # noqa: E501
 # pylint: enable=line-too-long
 # Note: When used before module docstrings, Pylint scopes the disable statement
 #       to the whole rest of the file, so we need an enable statement.
