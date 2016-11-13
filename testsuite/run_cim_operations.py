@@ -42,6 +42,8 @@ UNIMPLEMENTED = "test not implemented"
 
 SKIP_LONGRUNNING_TEST = True
 
+CLI_ARGS = None
+
 # A class that should be implemented in a wbem server and is used
 # for testing
 TEST_CLASS = 'CIM_ComputerSystem'
@@ -68,13 +70,13 @@ class ClientTest(unittest.TestCase):
     def setUp(self):
         """Create a connection."""
         # pylint: disable=global-variable-not-assigned
-        global args                 # pylint: disable=invalid-name
+        global CLI_ARGS
 
-        self.system_url = args['url']
-        self.namespace = args['namespace']
-        self.verbose = args['verbose']
-        self.debug = args['debug']
-        self.yamlfile = args['yamlfile']
+        self.system_url = CLI_ARGS['url']
+        self.namespace = CLI_ARGS['namespace']
+        self.verbose = CLI_ARGS['verbose']
+        self.debug = CLI_ARGS['debug']
+        self.yamlfile = CLI_ARGS['yamlfile']
         self.yamlfp = None
 
         # set this because python 3 http libs generate many ResourceWarnings
@@ -87,26 +89,24 @@ class ClientTest(unittest.TestCase):
                                                     self.namespace))
         self.conn = WBEMConnection(
             self.system_url,
-            (args['username'], args['password']),
+            (CLI_ARGS['username'], CLI_ARGS['password']),
             self.namespace,
-            timeout=args['timeout'],
-            no_verification=args['nvc'],
-            ca_certs=args['cacerts'])
+            timeout=CLI_ARGS['timeout'],
+            no_verification=CLI_ARGS['nvc'],
+            ca_certs=CLI_ARGS['cacerts'])
 
         # enable saving of xml for display
-        self.conn.debug = args['debug']
+        self.conn.debug = CLI_ARGS['debug']
 
         if self.yamlfile is not None:
             self.yamlfp = open(self.yamlfile, 'a')
             self.conn.operation_recorder = TestClientRecorder(self.yamlfp)
 
         self.log('Connected {}, ns {}'.format(self.system_url,
-                                              args['namespace']))
+                                              CLI_ARGS['namespace']))
 
     def tearDown(self):
         """Close the test_client YAML file."""
-        # pylint: disable=global-variable-not-assigned
-        global args                 # pylint: disable=invalid-name
 
         if self.yamlfp is not None:
             self.yamlfp.close()
@@ -2818,7 +2818,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
             ci_paths = server.get_central_instances(
                 indications_profile.path,
                 "CIM_IndicationService", "CIM_System", ["CIM_HostedService"])
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             print("Error: %s" % str(exc))
             ci_paths = []
             self.fail("No central class for indication profile")
@@ -2880,7 +2880,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
                         cls_name = cls.superclass
                     else:
                         self.fail("Could not find CIM_ObjectManager")
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             print("Error: %s" % str(exc))
             self.fail("No Server class")
 
@@ -2957,6 +2957,7 @@ def consume_indication(indication, host):
     """
 
     # pylint: disable=global-variable-not-assigned
+    # pylint: disable=global-statement
     global RECEIVED_INDICATION_COUNT
     # increment count.
     COUNTER_LOCK.acquire()
@@ -3025,6 +3026,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
         my_listener.add_callback(consume_indication)
 
+        # pylint: disable=global-statement
         global RECEIVED_INDICATION_COUNT
         # increment count.
         COUNTER_LOCK.acquire()
@@ -3146,7 +3148,8 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             filter_path = sub_mgr.add_filter(server_id,
                                              test_class_namespace,
                                              test_query,
-                                             query_language="DMTF:CQL")
+                                             query_language="DMTF:CQL",
+                                             filter_id="NotUsed")
 
             subscription_paths = sub_mgr.add_subscriptions(server_id,
                                                            filter_path)
@@ -3190,13 +3193,13 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             server = WBEMServer(self.conn)
 
             # Set arbitrary ports for the listener
-            http_listener_port = 50000
+            http_listener_port = 50001
             https_listener_port = None
 
             my_listener = self.create_listener(http_port=http_listener_port,
                                                https_port=https_listener_port)
 
-            sub_mgr = WBEMSubscriptionManager()
+            sub_mgr = WBEMSubscriptionManager(subscription_manager_id='fred2')
             server_id = sub_mgr.add_server(server)
             listener_url = '%s://%s:%s' % ('http', 'localhost',
                                            http_listener_port)
@@ -3206,13 +3209,15 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             filter_path = sub_mgr.add_filter(server_id,
                                              test_class_namespace,
                                              test_query,
-                                             query_language="DMTF:CQL")
+                                             query_language="DMTF:CQL",
+                                             filter_id="MyfilterId")
 
             # confirm structure of the name element without any id components
             # NOTE: The uuid from uuid4 is actually 36 char but not we made it
             # 30-40 in case format changes in future.
-            self.assertRegexpMatches(filter_path.keybindings['Name'],
-                                     r'^pywbemfilter:[^:][0-9a-f-]{30,40}\Z')
+            self.assertRegexpMatches(
+                filter_path.keybindings['Name'],
+                r'^pywbemfilter:owned:fred2:MyfilterId:[0-9a-f-]{30,40}\Z')
             subscription_paths = sub_mgr.add_subscriptions(server_id,
                                                            filter_path)
 
@@ -3232,6 +3237,31 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             my_listener.stop()
 
+    def test_no_subscription_id(self):
+        """Test to confirm tnat subscriptions must have id property"""
+
+        try:
+            WBEMSubscriptionManager()
+            self.fail("Should fail with ValueError")
+        except ValueError:
+            pass
+
+    def test_no_filter_id(self):
+        """ Test requirement for filter to have an ID"""
+
+        server = WBEMServer(self.conn)
+
+        sub_mgr = WBEMSubscriptionManager(subscription_manager_id='fred2')
+        server_id = sub_mgr.add_server(server)
+
+        try:
+            sub_mgr.add_filter(server_id,
+                               "blah",
+                               "blah",
+                               query_language="DMTF:CQL",)
+        except ValueError:
+            pass
+
     def test_id_attributes(self):
         """
         Test the use of subscription_manager_id and filter_id identifiers.
@@ -3246,7 +3276,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             server = WBEMServer(self.conn)
 
             # Set arbitrary ports for the listener
-            http_listener_port = 50000
+            http_listener_port = 50002
             https_listener_port = None
 
             my_listener = self.create_listener(http_port=http_listener_port,
@@ -3275,26 +3305,29 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 name = path.keybindings['Name']
                 self.assertRegexpMatches(
                     name,
-                    r'^pywbemfilter:pegTestListener:fred:[0-9a-f-]{30,40}\Z')
+                    r'^pywbemfilter:owned:pegTestListener:fred:' +
+                    r'[0-9a-f-]{30,40}\Z')
             self.assertTrue(filter_path in owned_filters)
 
             # Confirm format of second dynamic filter name property
             filter_path2 = sub_mgr.add_filter(
                 server_id, test_class_namespace, test_query,
-                query_language="DMTF:CQL", filter_id='john')
+                query_language="DMTF:CQL", filter_id='test_id_attributes1')
 
             self.assertRegexpMatches(
                 filter_path2.keybindings['Name'],
-                r'^pywbemfilter:pegTestListener:john:[0-9a-f-]{30,40}\Z')
+                r'^pywbemfilter:owned:pegTestListener:test_id_attributes1:' +
+                r'[0-9a-f-]{30,40}\Z')
 
             # Confirm valid id with filter that contains no name
             filter_path3 = sub_mgr.add_filter(
                 server_id, test_class_namespace, test_query,
-                query_language="DMTF:CQL")
+                query_language="DMTF:CQL", filter_id='test_id_attributes2')
 
             self.assertRegexpMatches(
                 filter_path3.keybindings['Name'],
-                r'^pywbemfilter:pegTestListener:[0-9a-f-]{30,40}\Z')
+                r'^pywbemfilter:owned:pegTestListener:test_id_attributes2:' +
+                r'[0-9a-f-]{30,40}\Z')
 
             # test to confirm fails on bad name (i.e. with : character)
             try:
@@ -3341,13 +3374,14 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             server = WBEMServer(self.conn)
 
             # Set arbitrary ports for the listener
-            http_listener_port = 50000
+            http_listener_port = 50003
             https_listener_port = None
 
             my_listener = self.create_listener(http_port=http_listener_port,
                                                https_port=https_listener_port)
 
-            sub_mgr = WBEMSubscriptionManager()
+            sub_mgr = WBEMSubscriptionManager(
+                subscription_manager_id='pegTestMgr')
             server_id = sub_mgr.add_server(server)
             listener_url = '%s://%s:%s' % ('http', 'localhost',
                                            http_listener_port)
@@ -3369,7 +3403,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 name = path.keybindings['Name']
                 self.assertRegexpMatches(
                     name,
-                    r'^pywbemfilter:fred:[0-9a-f-]{30,40}\Z')
+                    r'^pywbemfilter:owned:pegTestMgr:fred:[0-9a-f-]{30,40}\Z')
             self.assertTrue(filter_path in owned_filters)
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
@@ -3405,7 +3439,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             server = WBEMServer(self.conn)
 
             # Set arbitrary ports for the listener
-            http_listener_port = 50000
+            http_listener_port = 50004
             https_listener_port = None
             listener_url = '%s://%s:%s' % ('http', 'localhost',
                                            http_listener_port)
@@ -3469,7 +3503,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             server = WBEMServer(self.conn)
 
             # Set arbitrary ports for the listener
-            http_listener_port = 50000
+            http_listener_port = 50005
             https_listener_port = None
             listener_url = '%s://%s:%s' % ('http', 'localhost',
                                            http_listener_port)
@@ -3544,7 +3578,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             server = WBEMServer(self.conn)
 
             # Set arbitrary ports for the listener
-            http_listener_port = 50000
+            http_listener_port = 50006
             https_listener_port = None
 
             my_listener = self.create_listener(http_port=http_listener_port,
@@ -3702,12 +3736,11 @@ def parse_args(argv_):
         print('Where:')
         print('    GEN_OPTS            General options (see below).')
         print('    URL                 URL of the target WBEM server.\n'
-              '                        http:// or https:// prefix'
+              '                        http:// or https:// prefix\n'
               '                        defines ssl usage')
-        print('    USERNAME            Userid used to log into '
-              '                        WBEM server.\n'
+        print('    USERNAME            Userid used to log into WBEM server.\n'
               '                        Requests user input if not supplied')
-        print('    PASSWORD            Password used to log into '
+        print('    PASSWORD            Password used to log into\n'
               '                        WBEM server.\n'
               '                        Requests user input if not supplier')
         print('    -nvc                Do not verify server certificates.')
@@ -3715,22 +3748,22 @@ def parse_args(argv_):
         print('    --yamlfile yamlfile  Test_client YAML file to be recorded.')
 
         print('    UT_OPTS             Unittest options (see below).')
-        print('    UT_CLASS            Name of testcase class (e.g. '
+        print('    UT_CLASS            Name of testcase class (e.g.\n'
               '                        EnumerateInstances).')
         print('')
         print('General options[GEN_OPTS]:')
         print('    --help, -h          Display this help text.')
         print('    -n NAMESPACE        Use this CIM namespace instead of '
               'default: %s' % DEFAULT_NAMESPACE)
-        print('    -t TIMEOUT          Use this timeout (in seconds)'
-              '                        instead of no timeout')
+        print('    -t TIMEOUT          Use this timeout (in seconds) instead\n'
+              '                        of no timeout\n')
         print('    -v                  Verbose output which includes:\n'
               '                          - connection details,\n'
               '                          - details of tests')
         print('    -d                  Debug flag for extra displays:\n'
-              '                          - xml input and output,\n')
-        print('    -l                  Do long running tests. If not set, '
-              '                        skips a number of tests that take a '
+              '                          - xml input and output, if -v set.\n')
+        print('    -l                  Do long running tests. If not set,\n'
+              '                        skips a number of tests that take a\n'
               '                        long time to run')
         print('    -hl                 List of individual tests')
 
@@ -3815,29 +3848,30 @@ def parse_args(argv_):
 
 
 def main():
-    global SKIP_LONGRUNNING_TEST
+    # pylint: disable=global-statement
+    global SKIP_LONGRUNNING_TEST, CLI_ARGS
 
-    args, sys.argv = parse_args(sys.argv)  # pylint: disable=invalid-name
-    if args['verbose']:
+    CLI_ARGS, sys.argv = parse_args(sys.argv)  # pylint: disable=invalid-name
+    if CLI_ARGS['verbose']:
         print("Using WBEM Server:")
-        print("  server url: %s" % args['url'])
-        print("  namespace: %s" % args['namespace'])
-        print("  username: %s" % args['username'])
-        print("  password: %s" % ("*" * len(args['password'])))
-        print("  nvc: %s" % args['nvc'])
-        print("  cacerts: %s" % args['cacerts'])
-        print("  timeout: %s" % args['timeout'])
-        print("  verbose: %s" % args['verbose'])
-        print("  debug: %s" % args['debug'])
-        print("  yamlfile: %s" % args['yamlfile'])
-        print("  long_running: %s" % args['long_running'])
+        print("  server url: %s" % CLI_ARGS['url'])
+        print("  namespace: %s" % CLI_ARGS['namespace'])
+        print("  username: %s" % CLI_ARGS['username'])
+        print("  password: %s" % ("*" * len(CLI_ARGS['password'])))
+        print("  nvc: %s" % CLI_ARGS['nvc'])
+        print("  cacerts: %s" % CLI_ARGS['cacerts'])
+        print("  timeout: %s" % CLI_ARGS['timeout'])
+        print("  verbose: %s" % CLI_ARGS['verbose'])
+        print("  debug: %s" % CLI_ARGS['debug'])
+        print("  yamlfile: %s" % CLI_ARGS['yamlfile'])
+        print("  long_running: %s" % CLI_ARGS['long_running'])
 
-        if args['long_running'] is True:
+        if CLI_ARGS['long_running'] is True:
             SKIP_LONGRUNNING_TEST = False
 
     # if yamlfile exists rename it to yamlfile.bak
-    if args['yamlfile']:
-        yamlfile_name = args['yamlfile']
+    if CLI_ARGS['yamlfile']:
+        yamlfile_name = CLI_ARGS['yamlfile']
         if os.path.isfile(yamlfile_name):
             backupfile_name = '%s.bak' % yamlfile_name
             if os.path.isfile(backupfile_name):
