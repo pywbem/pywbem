@@ -41,6 +41,10 @@ Bug fixes
 * Fixed a documentation issue where the description of `CIMError` was not
   clear that the exception object itself can be accessed by index and slice.
 
+* Fixed a documentation build error on Python 2.6, by pinning the GitPython
+  version to <=2.0.8, due to its use of unittest.case which is not available 
+  on Python 2.6.
+
 
 pywbem v0.9.0
 -------------
