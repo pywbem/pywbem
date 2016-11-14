@@ -63,6 +63,10 @@ Bug fixes
 * Changed names of the pylint and flake8 config files to match the
   default names defined for these utilities (pylintrc and .flak8). Issue 534
 
+* Fixed a documentation build error on Python 2.6, by pinning the GitPython
+  version to <=2.0.8, due to its use of unittest.case which is not available
+  on Python 2.6.
+
 
 pywbem v0.9.0
 -------------
