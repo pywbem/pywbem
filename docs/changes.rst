@@ -19,6 +19,13 @@ pywbem v0.9.1.dev0
 
 Released: Not yet
 
+Enhancements
+^^^^^^^^^^^^
+
+* Added a section "Prerequisite operating system packages" to the documentation
+  that describes the prerequisite packages by distribution.
+
+
 Bug fixes
 ^^^^^^^^^
 

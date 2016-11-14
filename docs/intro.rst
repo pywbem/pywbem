@@ -54,6 +54,180 @@ Pywbem supports the following functionality:
     A WBEM command line interface that provides an interactive Python
     environment for issuing WBEM operations to a WBEM server.
 
+
+.. _`Installation`:
+
+Installation
+------------
+
+Pywbem is a pure Python package that can be installed from PyPi or from
+its `repository`_ by the usual means for installing Python packages.
+
+.. _repository: https://github.com/pywbem/pywbem
+
+Some of the Python packages used by pywbem have dependencies on operating
+system packages. As of pywbem v0.8, the setup script has support for installing
+prerequisite operating system packages via a new ``install_os`` command for the
+setup script. Alternatively, you can establish these prerequisites yourself.
+For details, see `Prerequisite operating system packages`_.
+
+The following examples show different ways to install pywbem. They all ensure
+that prerequisite Python packages are installed as needed:
+
+1. Install the latest released version, assuming the OS-level prerequisites are
+   already established::
+
+       $ pip install pywbem
+
+2. Install the latest released version and also install (or display) any
+   OS-level prerequisites::
+
+       $ pip download --no-deps --no-binary :all: pywbem
+       $ tar -xzf pywbem-*.tar.gz
+
+   or, when using ``pip`` versions before 8.0.0, you have to know the pywbem
+   version to download::
+
+       $ curl -L https://github.com/pywbem/pywbem/archive/v0.9.0.tar.gz |tar -xz
+
+   Followed in both cases by these commands::
+
+       $ cd pywbem-*
+       $ python setup.py install_os install
+
+3. Install a particular branch from the Git repository::
+
+       $ pip install git+https://github.com/pywbem/pywbem.git@<branch-name>
+
+These examples install pywbem and its prerequisite Python packages into the
+currently active Python environment. By default, the system Python environment
+is active. This is probably the right choice if you just want to use the
+scripts that come with pywbem. In that case, you need to prepend the
+installation commands shown above (i.e. `pip` and `python setup.py`) with
+`sudo`, and your Linux userid needs to be authorized accordingly.
+If your intention is to write code against the pywbem APIs, installation into
+a `virtual Python environment`_ is recommended).
+
+.. _virtual Python environment: http://docs.python-guide.org/en/latest/dev/virtualenvs/
+
+The second example installs the OS-level prerequisites always into the system,
+regardless of whether or not you have a virtual Python environment active.
+The setup script uses `sudo` under the covers. This means that you don't need
+to take care about that and can use `sudo` to control whether you install
+the Python packages into a virtual or system Python environment.
+
+The command syntax above is shown for Linux, but works in similar ways on
+Windows and OS-X.
+
+In case of trouble with the installation, see the :ref:`Troubleshooting`
+section.
+
+You can verify that pywbem and its dependent packages are installed correctly
+by importing the package into Python::
+
+    $ python -c "import pywbem; print('ok')"
+    ok
+
+
+.. _`Prerequisite operating system packages`:
+
+Prerequisite operating system packages
+--------------------------------------
+
+Prerequisite operating system packages can be installed by the pywbem setup
+script using a new command ``install_os``::
+
+    $ python setup.py install_os
+
+For a number of well-known Linux distributions, the setup script will install
+the packages using the respective installer program (e.g. ``yum`` on RHEL). For
+other Linux distributions and for non-Linux operating systems, the setup script
+will display the package names that would be needed on RHEL, leaving it to the
+user to translate them accordingly.
+
+When installing such packages on Linux, the setup script uses the ``sudo``
+command, so your userid needs to be authorized accordingly.
+
+This command also downbloads and builds ``swig`` and installs its build
+prerequisites if it cannot be installed as an operating system package in the
+required version.
+
+The second example in the previous section shows how to use the new setup
+command ``install_os``. It is really simple to be used and avoids the manual
+procedure for establishing the operating system packages as described in the
+remainder of this section.
+
+For manual installation of the prerequisite operating system packages, or for
+including pywbem in distributions, the following table lists the packages and
+their version requirements for a number of Linux distributions:
+
++----------------------------+---------------------+--------------------------+
+| Distributions              | Package name        | Version requirements     |
++============================+=====================+==========================+
+| RedHat, CentOS, Fedora     | openssl-devel       | >=1.0.1                  |
+|                            +---------------------+--------------------------+
+|                            | gcc-c++             | >=4.4                    |
+|                            +---------------------+--------------------------+
+|                            | python-devel        | for Python 2.6, 2.7      |
+|                            +---------------------+--------------------------+
+|                            | python34u-devel     | for Python 3.4           |
+|                            +---------------------+--------------------------+
+|                            | python35u-devel     | for Python 3.5           |
+|                            +---------------------+--------------------------+
+|                            | swig                | >=2.0                    |
++----------------------------+---------------------+--------------------------+
+| Ubuntu, Debian, LinuxMint  | libssl-dev          | >=1.0.1                  |
+|                            +---------------------+--------------------------+
+|                            | g++                 | >=4.4                    |
+|                            +---------------------+--------------------------+
+|                            | python-dev          | for Python 2.6, 2.7      |
+|                            +---------------------+--------------------------+
+|                            | python3-dev         | for Python 3.4, 3.5      |
+|                            +---------------------+--------------------------+
+|                            | swig                | >=2.0                    |
++----------------------------+---------------------+--------------------------+
+| SLES, OpenSUSE             | openssl-devel       | >=1.0.1                  |
+|                            +---------------------+--------------------------+
+|                            | gcc-c++             | >=4.4                    |
+|                            +---------------------+--------------------------+
+|                            | libpython26-devel   | for Python 2.6           |
+|                            +---------------------+--------------------------+
+|                            | libpython27-devel   | for Python 2.7           |
+|                            +---------------------+--------------------------+
+|                            | libpython34-devel   | for Python 3.4           |
+|                            +---------------------+--------------------------+
+|                            | libpython35-devel   | for Python 3.5           |
+|                            +---------------------+--------------------------+
+|                            | swig                | >=2.0                    |
++----------------------------+---------------------+--------------------------+
+
+On some distributions, the ``swig`` package is not available in the required
+version. In such cases, it can be built from its sources, as follows:
+
+1. Install the ``pcre-devel`` package (RedHat etc. and SLES etc.) or the
+   ``libpcre3`` and ``libpcre3-dev`` packages (Ubuntu etc.).
+
+2. Download the swig source archive and unpack it::
+
+       $ wget -q -O swig-2.0.12.tar.gz http://sourceforge.net/projects/swig/files/swig/swig-2.0.12/swig-2.0.12.tar.gz/download
+       $ tar -xf swig-2.0.12.tar.gz
+
+3. Configure and build it::
+
+       $ cd swig-2.0.12
+       $ ./configure --prefix=/usr
+       $ make swig
+
+4. Install it::
+
+       $ sudo make install
+
+5. Verify its version::
+
+       $ swig -version
+       SWIG Version 2.0.12
+
+
 .. _`Package version`:
 
 Package version
@@ -68,6 +242,7 @@ Note: For tooling reasons, the variable is shown as
 ``pywbem._version.__version__``, but it should be used as
 ``pywbem.__version__``.
 
+
 .. _`Compatibility`:
 .. _`Supported environments`:
 
@@ -78,6 +253,7 @@ Pywbem is supported in these environments:
 
 * Operating Systems: Linux, Windows, OS-X (testing has mostly happened on Linux)
 * Python: 2.6, 2.7, 3.4, 3.5, and higher 3.x
+
 
 .. _`Standards conformance`:
 
@@ -113,6 +289,7 @@ specified when following the links to the standards:
 
 * The mechanisms for subscribing for CIM indications in the
   :ref:`WBEM indication API` conforms to :term:`DSP1054`.
+
 
 .. _`Deprecation policy`:
 
@@ -161,6 +338,7 @@ by release type:
 Compatibility is always seen from the perspective of the user of pywbem, so a
 backwards compatible new pywbem release means that the user can safely upgrade
 to that new release without encountering compatibility issues.
+
 
 .. _'Python namespaces`:
 
