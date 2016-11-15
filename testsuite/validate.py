@@ -83,5 +83,6 @@ def validate_xml(data, dtd_directory=None, root_elem=None):
 
     return True
 
+
 if __name__ == '__main__':
     sys.exit(validate_xml(''.join(sys.stdin.readlines())))

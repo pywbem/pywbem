@@ -3652,6 +3652,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             my_listener.stop()
 
+
 #################################################################
 # Main function
 #################################################################
@@ -3882,6 +3883,7 @@ def main():
     # the url argument.
 
     unittest.main()
+
 
 if __name__ == '__main__':
     main()

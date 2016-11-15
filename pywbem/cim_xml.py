@@ -79,6 +79,7 @@ def _text(data):
 
     return t
 
+
 # Switch controlling whether the escaping of special XML characters in any
 # request messages sent to the WBEM server will be done using CDATA
 # sections (if True), or using XML entity references (e.g. &amp;) (if

@@ -76,6 +76,7 @@ def _represent_ordereddict(dump, tag, mapping, flow_style=None):
             node.flow_style = best_style
     return node
 
+
 yaml.SafeDumper.add_representer(
     OrderedDict,
     lambda dumper, value:
