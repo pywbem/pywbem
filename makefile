@@ -95,22 +95,17 @@ doc_dependent_files := \
 # PyLint config file
 pylint_rc_file := pylintrc
 
-# PyLint source files to check
-pylint_py_files := \
-    setup.py \
-    os_setup.py \
-    $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
-    $(wildcard testsuite/*.py)
-
 # Flake8 config file
 flake8_rc_file := .flake8
 
-# Flake8 source files to check
-flake8_py_files := \
+# Python source files to be checked by PyLint and Flake8
+py_src_files := \
     setup.py \
     os_setup.py \
     $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
-    $(wildcard testsuite/*.py)
+    $(wildcard testsuite/*.py) \
+    wbemcli \
+    mof_compiler \
 
 # Test log
 test_log_file := test_$(python_mn_version).log
@@ -298,22 +293,24 @@ $(moftab_files): $(moftab_dependent_files) build_moftab.py
 # * 32 on usage error
 # Status 1 to 16 will be bit-ORed.
 # The make command checks for statuses: 1,2,32
-pylint.log: makefile $(pylint_rc_file) $(pylint_py_files)
+pylint.log: makefile $(pylint_rc_file) $(py_src_files)
 ifeq ($(python_mn_version),27)
 	rm -f pylint.log
-	-bash -c 'set -o pipefail; PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --output-format=text $(pylint_py_files) 2>&1 |tee pylint.tmp.log; rc=$$?; if (($$rc >= 32 || $$rc & 0x03)); then exit $$rc; fi'
+	pylint --version
+	-bash -c 'set -o pipefail; PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --output-format=text $(py_src_files) 2>&1 |tee pylint.tmp.log; rc=$$?; if (($$rc >= 32 || $$rc & 0x03)); then exit $$rc; fi'
 	mv -f pylint.tmp.log pylint.log
 	@echo 'Done: Created Pylint log file: $@'
 else
 	@echo 'Info: Pylint requires Python 2.7; skipping this step on Python $(python_version)'
 endif
 
-flake8.log: makefile $(flake8_rc_file) $(flake8_py_files)
+flake8.log: makefile $(flake8_rc_file) $(py_src_files)
 ifeq ($(python_mn_version),26)
 	@echo 'Info: Flake8 requires Python 2.7 or Python 3; skipping this step on Python $(python_version)'
 else
 	rm -f flake8.log
-	bash -c "set -o pipefail; PYTHONPATH=. flake8 --statistics --config=$(flake8_rc_file) $(flake8_py_files) 2>&1 |tee flake8.tmp.log"
+	flake8 --version
+	bash -c "set -o pipefail; PYTHONPATH=. flake8 --statistics --config=$(flake8_rc_file) --filename="*" $(py_src_files) 2>&1 |tee flake8.tmp.log"
 	mv -f flake8.tmp.log flake8.log
 	@echo 'Done: Created flake8 log file: $@'
 endif

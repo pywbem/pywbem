@@ -1498,6 +1498,7 @@ def pdb(stmt):
     # pylint: disable=exec-used
     exec(stmt)  # Type 3 x "s" to get to stmt, and "cont" to end debugger.
 
+
 # Aliases for global functions above
 
 ein = EnumerateInstanceNames
@@ -1737,6 +1738,7 @@ Examples:
         _readline.write_history_file(histfile)
 
     return 0
+
 
 if __name__ == '__main__':
     rc = main()

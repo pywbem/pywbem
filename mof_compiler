@@ -20,7 +20,7 @@
 # Author: Bart Whiteley <bwhiteley suse.de>
 # Author: Ross Peoples <ross.peoples@gmail.com>
 #
- 
+
 """
 mof_compiler - Compile MOF files, and update a namespace in a WBEM server with
 the result.
@@ -28,17 +28,17 @@ the result.
 Invoke with `-h` or `--help` for a help message.
 """
 import os
-import sys 
-import re 
+import sys
+import re
 import argparse
 from getpass import getpass
 
 from pywbem._cliutils import SmartFormatter
 from pywbem import WBEMConnection, Error
-from pywbem.mof_compiler import MOFWBEMConnection, MOFCompiler, MOFParseError
+from pywbem.mof_compiler import MOFWBEMConnection, MOFCompiler
 from pywbem.cim_http import get_default_ca_cert_paths
 
- 
+
 def main():
     """
     Parse command line arguments and process the specified MOF files.
@@ -50,7 +50,7 @@ def main():
            'server with the result.'
     epilog = """
 Example:
-  %s CIM_Schema_2.45.mof -s https://localhost:15989 -n root/cimv2 -u sheldon -p penny42
+  %s CIM_Schema_2.45.mof -s https://localhost -n root/cimv2 -u sheldon -p p42
 """ % prog
     argparser = argparse.ArgumentParser(
         prog=prog, usage=usage, description=desc, epilog=epilog,
@@ -120,8 +120,8 @@ Example:
              'server. Set the --no-verify-cert option to bypass\n'
              'client verification of the WBEM server certificate.\n'
              'Default: Searches for matching certificates in the\n'
-             'following system directories:\n'
-        + ("\n".join("%s" % p for p in get_default_ca_cert_paths())))
+             'following system directories:\n' +
+             ("\n".join("%s" % p for p in get_default_ca_cert_paths())))
     security_arggroup.add_argument(
         '--certfile', dest='cert_file', metavar='certfile',
         help='R|Client certificate file for authenticating with the\n'
@@ -242,12 +242,12 @@ Example:
         # Only record the changes to the repository, but do not perform them.
         conn = MOFWBEMConnection(conn=conn)
 
-    #conn.debug = True
+    # conn.debug = True
     conn.default_namespace = args.namespace
 
     if args.verbose:
-        print('MOF repository: Namespace %s in WBEM server %s' % \
-            (conn.default_namespace, conn.url)) 
+        print('MOF repository: Namespace %s in WBEM server %s' %
+              (conn.default_namespace, conn.url))
 
     include_dirs = args.include_dirs
     if include_dirs is None:
@@ -274,7 +274,7 @@ Example:
             if fname[0] != '/':
                 fname = os.path.curdir + '/' + fname
             mofcomp.compile_file(fname, args.namespace)
-    except Error as exc:
+    except Error:
         # mof compiler outputs its own error messages today.
         sys.exit(1)
 

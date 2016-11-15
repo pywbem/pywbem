@@ -347,5 +347,6 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
         except ValueError:
             pass
 
+
 if __name__ == '__main__':
     unittest.main()

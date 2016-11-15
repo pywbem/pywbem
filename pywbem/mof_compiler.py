@@ -266,6 +266,7 @@ def t_decimalValue(t):
     r'[+-]?([1-9][0-9]*|0)'
     return t
 
+
 simpleEscape = r"""[bfnrt'"\\]"""
 hexEscape = r'x[0-9a-fA-F]{1,4}'
 escapeSequence = r'[\\]((%s)|(%s))' % (simpleEscape, hexEscape)
@@ -279,12 +280,14 @@ charvalue_re = r"'(%s)'" % cChar
 def t_charValue(t):
     return t
 
+
 stringvalue_re = r'"(%s)*"' % sChar
 
 
 @lex.TOKEN(stringvalue_re)
 def t_stringValue(t):
     return t
+
 
 identifier_re = r'([a-zA-Z_]|(%s))([0-9a-zA-Z_]|(%s))*' % (utf8Char, utf8Char)
 
@@ -301,6 +304,7 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
     t.lexer.linestart = t.lexpos
     return  # discard token
+
 
 t_ignore = ' \r\t'
 
@@ -1905,6 +1909,7 @@ class BaseRepositoryConnection(object):
         :meth:`pywbem.WBEMConnection.DeleteQualifier`.
         """
         raise NotImplementedError
+
 
 BaseRepositoryConnection.register(WBEMConnection)
 

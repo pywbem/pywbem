@@ -118,6 +118,7 @@ def create_pywbem_ssl_context():
 
     return context
 
+
 DEFAULT_PORT_HTTP = 5988        # default port for http
 DEFAULT_PORT_HTTPS = 5989       # default port for https
 
