@@ -84,5 +84,5 @@ General options:
   -v, --verbose         Print more messages while processing
   -h, --help            Show this help message and exit
 
-Example: mof_compiler CIM_Schema_2.45.mof -s https://localhost:15989 -n
-root/cimv2 -u sheldon -p penny42
+Example: mof_compiler CIM_Schema_2.45.mof -s https://localhost -n root/cimv2
+-u sheldon -p p42
