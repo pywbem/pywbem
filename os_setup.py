@@ -165,16 +165,18 @@ import pip
 
 
 # Some types to avoid dependency on "six" package during installation.
+# pylint: disable=invalid-name
 if sys.version_info[0] == 2:
-    string_types = basestring,      # pylint: disable=invalid-name # noqa: F821
-    text_type = unicode             # pylint: disable=invalid-name # noqa: F821
-    binary_type = str               # pylint: disable=invalid-name # noqa: F821
+    string_types = basestring,      # noqa: F821
+    text_type = unicode             # noqa: F821
+    binary_type = str               # noqa: F821
     from xmlrpclib import ServerProxy as xmlrpc_ServerProxy
 else:
-    string_types = str,             # pylint: disable=invalid-name # noqa: F821
-    text_type = str                 # pylint: disable=invalid-name # noqa: F821
-    binary_type = bytes             # pylint: disable=invalid-name # noqa: F821
+    string_types = str,             # noqa: F821
+    text_type = str                 # noqa: F821
+    binary_type = bytes             # noqa: F821
     from xmlrpc.client import ServerProxy as xmlrpc_ServerProxy
+# pylint: enable=invalid-name
 
 
 class OsDistribution(Distribution):
