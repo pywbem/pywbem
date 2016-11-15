@@ -2,6 +2,11 @@ usage: wbemcli [options] server
 
 Provide an interactive shell for issuing operations against a WBEM server.
 
+wbemcli executes the WBEMConnection as part of initialization so the user can
+input requests as soon as the interactive shell is started.
+
+Use h() in thenteractive shell for help for wbemcli methods and variables.
+
 Positional arguments:
   server                Host name or url of the WBEM server in this format:
                             [{scheme}://]{host}[:{port}]
@@ -77,6 +82,9 @@ General options:
   -v, --verbose         Print more messages while processing
   -h, --help            Show this help message and exit
 
-Examples: wbemcli https://localhost:15345 -n vendor -u sheldon -p penny -
-(https localhost, port=15345, namespace=vendor user=sheldon password=penny)
-wbemcli http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
+Examples:
+  wbemcli https://localhost:15345 -n vendor -u sheldon -p penny
+          - (https localhost, port=15345, namespace=vendor user=sheldon
+         password=penny)
+
+  wbemcli http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
