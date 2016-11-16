@@ -10,6 +10,7 @@ produce an object that is identical to the one we started with.
 """
 
 from __future__ import absolute_import
+import sys
 
 import unittest
 
@@ -30,6 +31,12 @@ class TupleTest(unittest.TestCase):
         # Convert object to xml
 
         xml = obj.tocimxml().toxml()
+
+        # inserted here because some versions of sax processor do not
+        # support str input.gi
+        if sys.version_info >= (3, 0) and sys.version_info < (3, 5):
+            if isinstance(xml, str):
+                xml = xml.encode("utf-8")
 
         # Parse back to an object
 
@@ -52,9 +59,16 @@ class RawXMLTest(unittest.TestCase):
         """
         # Parse raw XML to an object
 
+        # inserted here because some versions of sax processor do not
+        # support str input
+        if sys.version_info >= (3, 0) and sys.version_info < (3, 5):
+            if isinstance(xml, str):
+                xml = xml.encode("utf-8")
+
         result = tupleparse.parse_any(tupletree.xml_to_tupletree_sax(xml))
 
         # Assert XML parses to particular Python object
+        print('rawafter %s' % result)
 
         self.assertEqual(obj, result,
                          'parsed XML: %s' % result)
@@ -171,10 +185,8 @@ class ParseCIMClass(TupleTest):
 class ParseCIMProperty(TupleTest):
     """Test parsing of CIMProperty objects."""
 
-    def test_all(self):
-
-        # Single-valued properties
-
+    def test_single_valued(self):
+        """Single-valued properties"""
         self._run_single(CIMProperty('Spotty', 'Foot'))
         self._run_single(CIMProperty('Age', Uint16(32)))
         self._run_single(CIMProperty('Foo', '', type='string'))
@@ -183,24 +195,24 @@ class ParseCIMProperty(TupleTest):
                                      qualifiers={'Key': CIMQualifier('Key',
                                                                      True)}))
 
-        # Property arrays
-
+    def test_property_arrays(self):
+        """Property arrays"""
         self._run_single(CIMProperty('Foo', ['a', 'b', 'c']))
         self._run_single(CIMProperty('Foo', None, type='string', is_array=True))
         self._run_single(CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]],
                                      qualifiers={'Key': CIMQualifier('Key',
                                                                      True)}))
 
-        # Reference properties
-
+    def test_reference_properties(self):
+        """Test Reference properties"""
         self._run_single(CIMProperty('Foo', None, type='reference'))
         self._run_single(CIMProperty('Foo', CIMInstanceName('CIM_Foo')))
         self._run_single(CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
                                      qualifiers={'Key': CIMQualifier('Key',
                                                                      True)}))
 
-        # EmbeddedObject properties
-
+    def test_embeddedobject_properties(self):
+        """Test EmbeddedObject properties"""
         inst = CIMInstance('Foo_Class',
                            {'one': Uint8(1), 'two': Uint8(2)})
         self._run_single(CIMProperty('Foo', inst))
@@ -272,8 +284,7 @@ class ParseXMLKeyValue(RawXMLTest):
     def test_all(self):
 
         self._run_single(
-            '<KEYVALUE VALUETYPE="numeric">1234</KEYVALUE>',
-            1234)
+            '<KEYVALUE VALUETYPE="numeric">1234</KEYVALUE>', 1234)
 
         self._run_single(
             '<KEYVALUE TYPE="uint32" VALUETYPE="numeric">1234</KEYVALUE>',

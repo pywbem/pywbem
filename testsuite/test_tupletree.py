@@ -172,6 +172,7 @@ def xml_to_tupletree(xml_string):
     """
     Parse XML straight into tupletree.
     Uses the minidom to parse xml_string int a dom object.
+    This is part of the old obsolete dom code
     """
     dom_xml = xml.dom.minidom.parseString(xml_string)
     return dom_to_tupletree(dom_xml)
@@ -185,7 +186,12 @@ class TestTupleTreeRegression(unittest.TestCase):
             self.filenames = [os.path.join(path, f) for f in files]
 
     def test_to_tupletree(self):
-        """SAX parsing replicates DOM parsing to the tupletree."""
+        """
+        SAX parsing replicates DOM parsing to the tupletree.
+
+        This test compares the input xml compiled with the dom and sax.
+
+        """
         for fn in self.filenames:
             with open(fn, 'rb') as fh:
                 xml_str = fh.read()
@@ -213,7 +219,11 @@ class TestTupleTreeError(unittest.TestCase):
 class TestTupleTreeSax(unittest.TestCase):
 
     def test_xml_to_tupletree_sax(self):
-        """XML to tupletree with SAX is accurate."""
+        """
+        XML to tupletree with SAX is accurate.
+
+        This test compares data to the test_tuple variable in this file.
+        """
         data_dir = resource_filename(__name__, 'tupletree_ok')
         path = os.path.join(data_dir, 'Associators_StorageVolume_small.xml')
         with open(path, 'rb') as fh:

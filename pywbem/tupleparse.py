@@ -79,7 +79,7 @@ representation of CIM in XML by having the following properties:
 # This module is meant to be safe for 'import *'.
 
 from __future__ import absolute_import
-
+import sys
 import six
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
@@ -1771,6 +1771,12 @@ def parse_embeddedObject(val):  # pylint: disable=invalid-name
         return [parse_embeddedObject(obj) for obj in val]
     if val is None:
         return None
+
+    # the following is required because version 3.4 does not accept str
+    # for the sax processor
+    if sys.version_info >= (3, 0) and sys.version_info < (3, 5):
+        if isinstance(val, str):
+            val = val.encode("utf-8")
 
     tuptree = xml_to_tupletree_sax(val)  # performs the un-embedding
     # TODO ks 11/14/16 Does not handle exceptions.  See cim_operations l 800
