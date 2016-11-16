@@ -57,6 +57,7 @@ from __future__ import absolute_import
 import xml.dom.minidom
 import xml.sax
 import re
+import sys
 
 __all__ = []
 
@@ -118,9 +119,34 @@ class CIMContentHandler(xml.sax.ContentHandler):
 
 def xml_to_tupletree_sax(xml_string):
     """
-    Parse an XML string into tupletree with SAX.
-    Returns the root.
+    Parse an XML string into tupletree with SAX parser.
+
+    Parses the string using the class CIMContentHandler and
+    returns the root element. As a SAX parser it uses minimal
+    memory.
+
+    This is a replacement for the previous parser (xml_to_tuple)
+    which used the dom parser.
+
+    Parameters:
+
+      xml_string (:term:`string`) or (:term:`byte string`): A string
+      or bytes string containing the XML to be parsed.
+
+    Returns:
+      (:class: `CIMContentHandler`) : The root tuple from the
+      parse:
+
+    Raises:
+        TypeError, ParseError, SAXParseException,  or ExpatError.
     """
     handler = CIMContentHandler()
+
+    # The following is required because python version 3.4 does not accept
+    # str for the sax processor xml input.
+    if sys.version_info[0:2] == (3, 4):
+        if isinstance(xml_string, str):
+            xml_string = xml_string.encode("utf-8")
+
     xml.sax.parseString(xml_string, handler, None)
     return handler.root

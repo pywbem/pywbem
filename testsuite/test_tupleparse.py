@@ -10,7 +10,6 @@ produce an object that is identical to the one we started with.
 """
 
 from __future__ import absolute_import
-import sys
 
 import unittest
 
@@ -31,12 +30,6 @@ class TupleTest(unittest.TestCase):
         # Convert object to xml
 
         xml = obj.tocimxml().toxml()
-
-        # inserted here because some versions of sax processor do not
-        # support str input.gi
-        if sys.version_info >= (3, 0) and sys.version_info < (3, 5):
-            if isinstance(xml, str):
-                xml = xml.encode("utf-8")
 
         # Parse back to an object
 
@@ -59,16 +52,9 @@ class RawXMLTest(unittest.TestCase):
         """
         # Parse raw XML to an object
 
-        # inserted here because some versions of sax processor do not
-        # support str input
-        if sys.version_info >= (3, 0) and sys.version_info < (3, 5):
-            if isinstance(xml, str):
-                xml = xml.encode("utf-8")
-
         result = tupleparse.parse_any(tupletree.xml_to_tupletree_sax(xml))
 
         # Assert XML parses to particular Python object
-        print('rawafter %s' % result)
 
         self.assertEqual(obj, result,
                          'parsed XML: %s' % result)
