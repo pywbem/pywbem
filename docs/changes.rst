@@ -54,6 +54,10 @@ Enhancements
 * Added `git` as an OS-level dependency for development (it is used by GitPython
   when building the documentation).
 
+* Added enter and exit methods to `WBEMSubscriptionManager` to enable using it
+  as a context manager, whose exit method automatically cleans up by calling
+  `remove_all_servers()`.
+
 
 Bug fixes
 ^^^^^^^^^
