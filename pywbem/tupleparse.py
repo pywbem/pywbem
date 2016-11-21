@@ -79,13 +79,12 @@ representation of CIM in XML by having the following properties:
 # This module is meant to be safe for 'import *'.
 
 from __future__ import absolute_import
-
 import six
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, tocimobj, byname
-from .tupletree import xml_to_tupletree
+from .tupletree import xml_to_tupletree_sax
 from .exceptions import ParseError
 
 __all__ = []
@@ -1771,7 +1770,9 @@ def parse_embeddedObject(val):  # pylint: disable=invalid-name
         return [parse_embeddedObject(obj) for obj in val]
     if val is None:
         return None
-    tuptree = xml_to_tupletree(val)  # This performs the un-embedding
+
+    tuptree = xml_to_tupletree_sax(val)  # perform the un-embedding
+    # TODO ks 11/14/16 Does not handle exceptions.  See cim_operations l 800
     if tuptree[0] == 'INSTANCE':
         return parse_instance(tuptree)
     elif tuptree[0] == 'CLASS':

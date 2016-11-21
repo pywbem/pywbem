@@ -22,14 +22,18 @@ class TupleTest(unittest.TestCase):
     """ Top level class for testing tupleparse"""
 
     def _run_single(self, obj):
-
+        """
+        Execute the test on a single object.  This test converts the object to
+        xml and then parses it.  The result must be the same as the original
+        object.
+        """
         # Convert object to xml
 
         xml = obj.tocimxml().toxml()
 
         # Parse back to an object
 
-        result = tupleparse.parse_any(tupletree.xml_to_tupletree(xml))
+        result = tupleparse.parse_any(tupletree.xml_to_tupletree_sax(xml))
 
         # Assert that the before and after objects should be equal
 
@@ -42,10 +46,13 @@ class RawXMLTest(unittest.TestCase):
     """Test parse of any XML to object"""
 
     def _run_single(self, xml, obj):
-
+        """
+        Parse the xml parameter to an object and compare it with the obj
+        parameter
+        """
         # Parse raw XML to an object
 
-        result = tupleparse.parse_any(tupletree.xml_to_tupletree(xml))
+        result = tupleparse.parse_any(tupletree.xml_to_tupletree_sax(xml))
 
         # Assert XML parses to particular Python object
 
@@ -57,7 +64,7 @@ class ParseCIMInstanceName(TupleTest):
     """Test parsing of CIMInstanceName objects."""
 
     def test_all(self):
-
+        """Test multiple instance name constructions"""
         self._run_single(CIMInstanceName('CIM_Foo'))
 
         self._run_single(CIMInstanceName('CIM_Foo',
@@ -84,7 +91,7 @@ class ParseCIMInstance(TupleTest):
     """Test parsing of CIMInstance objects."""
 
     def test_all(self):
-
+        """Test multiple CIMInstanceObjects"""
         self._run_single(CIMInstance('CIM_Foo'))
 
         self._run_single(
@@ -107,7 +114,7 @@ class ParseCIMClass(TupleTest):
     """Test parsing of CIMClass objects."""
 
     def test_all(self):
-
+        """test CIMClass Constructors"""
         self._run_single(CIMClass('CIM_Foo'))
         self._run_single(CIMClass('CIM_Foo', superclass='CIM_bar'))
 
@@ -164,10 +171,8 @@ class ParseCIMClass(TupleTest):
 class ParseCIMProperty(TupleTest):
     """Test parsing of CIMProperty objects."""
 
-    def test_all(self):
-
-        # Single-valued properties
-
+    def test_single_valued(self):
+        """Single-valued properties"""
         self._run_single(CIMProperty('Spotty', 'Foot'))
         self._run_single(CIMProperty('Age', Uint16(32)))
         self._run_single(CIMProperty('Foo', '', type='string'))
@@ -176,24 +181,24 @@ class ParseCIMProperty(TupleTest):
                                      qualifiers={'Key': CIMQualifier('Key',
                                                                      True)}))
 
-        # Property arrays
-
+    def test_property_arrays(self):
+        """Property arrays"""
         self._run_single(CIMProperty('Foo', ['a', 'b', 'c']))
         self._run_single(CIMProperty('Foo', None, type='string', is_array=True))
         self._run_single(CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]],
                                      qualifiers={'Key': CIMQualifier('Key',
                                                                      True)}))
 
-        # Reference properties
-
+    def test_reference_properties(self):
+        """Test Reference properties"""
         self._run_single(CIMProperty('Foo', None, type='reference'))
         self._run_single(CIMProperty('Foo', CIMInstanceName('CIM_Foo')))
         self._run_single(CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
                                      qualifiers={'Key': CIMQualifier('Key',
                                                                      True)}))
 
-        # EmbeddedObject properties
-
+    def test_embeddedobject_properties(self):
+        """Test EmbeddedObject properties"""
         inst = CIMInstance('Foo_Class',
                            {'one': Uint8(1), 'two': Uint8(2)})
         self._run_single(CIMProperty('Foo', inst))
@@ -265,8 +270,7 @@ class ParseXMLKeyValue(RawXMLTest):
     def test_all(self):
 
         self._run_single(
-            '<KEYVALUE VALUETYPE="numeric">1234</KEYVALUE>',
-            1234)
+            '<KEYVALUE VALUETYPE="numeric">1234</KEYVALUE>', 1234)
 
         self._run_single(
             '<KEYVALUE TYPE="uint32" VALUETYPE="numeric">1234</KEYVALUE>',
