@@ -17,7 +17,8 @@ This chapter has the following sections:
 
 .. note::
 
-   At this point, the WBEM indication API is experimental.
+   The WBEM indication API has been introduced in v0.9.0 as experimental and
+   has been declared final in 0.10.0.
 
 
 .. _`WBEMListener`:
