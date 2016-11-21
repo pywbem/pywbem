@@ -417,6 +417,7 @@ def main():
                     "libyaml-devel",        # for installing Python pyyaml pkg
                     "make",                 # PyWBEM has a makefile
                     "tar",                  # for distribution archive
+                    "git",                  # used by GitPython
                 ],
                 'centos': 'redhat',
                 'fedora': 'redhat',
@@ -427,6 +428,7 @@ def main():
                     "libyaml-dev",
                     "make",
                     "tar",
+                    "git",
                 ],
                 'ubuntu': [
                     "libxml2-dev",
@@ -435,6 +437,7 @@ def main():
                     "libyaml-dev",
                     "make",
                     "tar",
+                    "git",
                 ],
                 'linuxmint': [
                     "libxml2-dev",
@@ -443,6 +446,7 @@ def main():
                     "libyaml-dev",
                     "make",
                     "tar",
+                    "git",
                 ],
                 'suse': [
                     "libxml2-devel",
@@ -451,6 +455,7 @@ def main():
                     "libyaml-devel",
                     "make",
                     "tar",
+                    "git",
                 ],
             },
             # TODO: Add support for Windows. Some notes:

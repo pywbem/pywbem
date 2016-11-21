@@ -25,6 +25,9 @@ Enhancements
 * Added a section "Prerequisite operating system packages" to the documentation
   that describes the prerequisite packages by distribution.
 
+* Added `git` as an OS-level dependency for development (it is used by GitPython
+  when building the documentation).
+
 
 Bug fixes
 ^^^^^^^^^
