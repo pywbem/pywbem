@@ -48,6 +48,9 @@ Enhancements
   response processing and indication processing  This is a significant reduction
   in memory usage. See issue # 498.
 
+* Declared the WBEM indications API and the WBEM server API to be final. These
+  APIs had been introduced in v0.9.0 as experimental.
+
 
 Bug fixes
 ^^^^^^^^^
