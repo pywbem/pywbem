@@ -120,75 +120,112 @@ def _remote_connection(server, opts, argparser_):
 
     return CONN
 
+
 #
 # Create some convenient global functions to reduce typing
 #
 
-# The following pylint disable is because many of the functions
-# in this file use CamelCase specifically to maintain equivalence to
-# the client functions in other languages. Do not change these names.
-# pylint: disable=invalid-name
-
-
-def EnumerateInstanceNames(cn, ns=None):
+def ein(cn, ns=None):
     """
+    WBEM operation: EnumerateInstanceNames
+
     Enumerate the instance paths of instances of a class (including instances
     of its subclasses) in a namespace.
 
     Parameters:
 
-      cn (string): Class name.
+      cn (string or CIMClassName):
+          Name of the class to be enumerated (case independent).
 
-      ns (string): Namespace name. None will use the default namespace.
+          If specified as a `CIMClassName` object, its `host` attribute will be
+          ignored.
+
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
+
+          If `None`, defaults to the namespace of the `cn` parameter if
+          specified as a `CIMClassName`, or to the default namespace of the
+          connection.
 
     Returns:
 
-      list(CIMInstanceName): The enumerated instance paths.
+      list of CIMInstanceName:
+          The instance paths, with their attributes set as follows:
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+            * `host`: `None`, indicating the WBEM server is unspecified.
     """
 
     return CONN.EnumerateInstanceNames(cn, ns)
 
 
-# pylint: disable=too-many-arguments,redefined-outer-name
-def EnumerateInstances(cn, ns=None, lo=None, di=None, iq=None, ico=None,
-                       pl=None):
+# pylint: disable=too-many-arguments
+def ei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None):
     """
+    WBEM operation: EnumerateInstances
+
     Enumerate the instances of a class (including instances of its subclasses)
     in a namespace.
 
     Parameters:
 
-      cn (string): Class name.
+      cn (string or CIMClassName):
+          Name of the class to be enumerated (case independent).
 
-      ns (string): Namespace name. None will use the default namespace.
+          If specified as a `CIMClassName` object, its `host` attribute will be
+          ignored.
 
-      lo (bool):   LocalOnly flag: Exclude inherited properties.
-                   Deprecated: Server impls for True vary; Set to False.
-                   None causes it not to be included in request to server.
-                   Server default: True
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
 
-      di (bool):   DeepInheritance flag: Include properties added by subclasses.
-                   None causes it not to be included in request to server.
-                   Server default: True
+          If `None`, defaults to the namespace of the `cn` parameter if
+          specified as a `CIMClassName`, or to the default namespace of the
+          connection.
 
-      iq (bool):   IncludeQualifiers flag: Include qualifiers.
-                   Deprecated: Instance qualifiers have been deprecated in CIM.
-                   None causes it not to be included in request to server.
-                   Server default: False
+      lo (bool):
+          LocalOnly flag: Exclude inherited properties.
 
-      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
-                   Deprecated: Server may treat as False.
-                   None causes it not to be included in request to server.
-                   Server default: False
+          If `None`, this parameter will not be sent to the server, and the
+          server default of `True` will be used.
 
-      pl (iterable):
-                   Iterable of property names to be included. None means all.
-                   None causes it not to be included in the request to server.
-                   Server default: None
+          Deprecated: Server implementations for `True` vary; therefore it is
+          recommended to set this parameter to `False`.
+
+      di (bool):
+          DeepInheritance flag: Include properties added by subclasses.
+
+          If `None`, this parameter will not be sent to the server, and the
+          server default of `True` will be used.
+
+      iq (bool):
+          IncludeQualifiers flag: Include qualifiers.
+
+          If `None`, this parameter will not be sent to the server, and the
+          server default of `True` will be used.
+
+          Deprecated: Instance qualifiers have been deprecated in CIM. Clients
+          cannot rely on qualifiers to be returned in this operation.
+
+      ico (bool):
+          IncludeClassOrigin flag: Include class origin info for properties.
+
+          If `None`, this parameter will not be sent to the server, and the
+          server default of `False` will be used.
+
+      pl (iterable of string):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). If `None`, all properties will be included.
 
     Returns:
 
-      list(CIMInstance): The enumerated instances.
+      list of CIMInstance:
+          The instances, with their `path` attribute being a CIMInstanceName
+          object with its attributes set as follows:
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+            * `host`: `None`, indicating the WBEM server is unspecified.
     """
 
     return CONN.EnumerateInstances(cn, ns,
@@ -199,37 +236,59 @@ def EnumerateInstances(cn, ns=None, lo=None, di=None, iq=None, ico=None,
                                    PropertyList=pl)
 
 
-def GetInstance(ip, lo=None, iq=None, ico=None, pl=None):
+def gi(ip, lo=None, iq=None, ico=None, pl=None):
     """
+    WBEM operation: GetInstance
+
     Retrieve an instance.
 
     Parameters:
 
-      ip (CIMInstanceName): Instance path.
+      ip (CIMInstanceName):
+          Instance path.
 
-      lo (bool):   LocalOnly flag: Exclude inherited properties.
-                   Deprecated: Server impls for True vary; Set to False.
-                   None causes it not to be included in request to server.
-                   Server default: True
+          If this object does not specify a namespace, the default namespace of
+          the connection is used.
 
-      iq (bool):   IncludeQualifiers flag: Include qualifiers.
-                   Deprecated: Instance qualifiers have been deprecated in CIM.
-                   None causes it not to be included in request to server.
-                   Server default: False
+          Its `host` attribute will be ignored.
 
-      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
-                   Deprecated:  Server impls. vary; Server may treat as False.
-                   None causes it not to be included in request to server.
-                   Server default: False
+      lo (bool):
+          LocalOnly flag: Exclude inherited properties.
 
-      pl (iterable):
-                   Iterable of property names to be included. None means all.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          If `None`, this parameter will not be sent to the server, and the
+          server default of `True` will be used.
+
+          Deprecated: Server implementations for `True` vary; therefore it is
+          recommended to set this parameter to `False`.
+
+      iq (bool):
+          IncludeQualifiers flag: Include qualifiers.
+
+          If `None`, this parameter will not be sent to the server, and the
+          server default of `False` will be used.
+
+          Deprecated: Instance qualifiers have been deprecated in CIM. Clients
+          cannot rely on qualifiers to be returned in this operation.
+
+      ico (bool):
+          IncludeClassOrigin flag: Include class origin info for properties.
+
+          If `None`, this parameter will not be sent to the server, and the
+          server default of `False` will be used.
+
+      pl (iterable of string):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). If `None`, all properties will be included.
 
     Returns:
 
-      CIMInstance: The retrieved instance.
+      CIMInstance:
+          The instance, with its `path` attribute being a CIMInstanceName
+          object with its attributes set as follows:
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+            * `host`: `None`, indicating the WBEM server is unspecified.
     """
 
     return CONN.GetInstance(ip,
@@ -239,23 +298,35 @@ def GetInstance(ip, lo=None, iq=None, ico=None, pl=None):
                             PropertyList=pl)
 
 
-def ModifyInstance(mi, iq=None, pl=None):
+def mi(mi, iq=None, pl=None):
     """
+    WBEM operation: ModifyInstance
+
     Modify the property values of an instance.
 
     Parameters:
 
-      mi (CIMInstance): Modified instance.
+      mi (CIMInstance):
+          Modified instance, also indicating its instance path.
 
-      iq (bool):   IncludeQualifiers flag: Include qualifiers.
-                   Deprecated: Instance qualifiers have been deprecated in CIM.
-                   None causes it not to be included in request to server.
-                   Server default: False
+          The properties defined in this object specify the new property
+          values for the instance to be modified. Missing properties
+          (relative to the class declaration) and properties provided with
+          a value of `None` will be set to NULL.
 
-      pl (iterable):
-                   Iterable of property names to be included. None means all.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      iq (bool):
+          IncludeQualifiers flag: Modify instance qualifiers as specified in
+          the instance.
+
+          If `None`, this parameter will not be sent to the server, and the
+          server default of `False` will be used.
+
+          Deprecated: Instance qualifiers have been deprecated in CIM. Clients
+          cannot rely on qualifiers to be modified in this operation.
+
+      pl (iterable of string):
+          PropertyList: Names of properties to be modified (if not otherwise
+          excluded). If `None`, all properties will be modified.
     """
 
     CONN.ModifyInstance(mi,
@@ -263,36 +334,64 @@ def ModifyInstance(mi, iq=None, pl=None):
                         PropertyList=pl)
 
 
-def CreateInstance(ni):
+def ci(ni, ns=None):
     """
+    WBEM operation: CreateInstance
+
     Create an instance in a namespace.
 
     Parameters:
 
-      ni (CIMInstance): New instance (with namespace, classname, and properties
-                        attributes set).
+      ni (CIMInstance):
+          New instance.
+
+          Its `classname` attribute specifies the creation class.
+          Its `properties` attribute specifies initial property values.
+          Its `path` attribute is ignored, except for providing a default
+          namespace.
+
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
+
+          If `None`, defaults to the namespace in the `path` attribute of the
+          `ni` parameter, or to the default namespace of the connection.
 
     Returns:
-      CIMInstanceName: Instance path of the new instance.
+
+      CIMInstanceName:
+          The instance path, with its attributes set as follows:
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+            * `host`: `None`, indicating the WBEM server is unspecified.
     """
 
-    return CONN.CreateInstance(ni)
+    return CONN.CreateInstance(ni, ns)
 
 
-def DeleteInstance(ip):
+def di(ip):
     """
+    WBEM operation: DeleteInstance
+
     Delete an instance.
 
     Parameters:
 
-      ip (CIMInstanceName): Instance path.
+      ip (CIMInstanceName):
+          Instance path.
+
+          If this object does not specify a namespace, the default namespace
+          of the connection is used.
+          Its `host` attribute will be ignored.
     """
 
     CONN.DeleteInstance(ip)
 
 
-def AssociatorNames(op, ac=None, rc=None, r=None, rr=None):
+def an(op, ac=None, rc=None, r=None, rr=None):
     """
+    WBEM operation: AssociatorNames
+
     Instance level use: Retrieve the instance paths of the instances
     associated to a source instance.
 
@@ -301,32 +400,54 @@ def AssociatorNames(op, ac=None, rc=None, r=None, rr=None):
 
     Parameters:
 
-      op (CIMInstanceName): Source instance path; select instance level use.
-      op (CIMClassName): Source class path; select class level use.
+      op (CIMInstanceName):
+          Source instance path; select instance level use.
 
-      ac (string): AssociationClass filter: Include only traversals across
-                   this association class.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      op (CIMClassName):
+          Source class path; select class level use.
 
-      rc (string): ResultClass filter: Include only traversals to this
-                   associated (result) class.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      ac (string):
+          AssociationClass filter: Include only traversals across this
+          association class.
 
-      r (string):  Role filter: Include only traversals from this role
-                   (= reference name) in source object.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          `None` means this filter is not applied.
 
-      rr (string): ResultRole filter: Include only traversals to this role
-                   (= reference name) in associated (=result) objects.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      rc (string):
+          ResultClass filter: Include only traversals to this associated
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (string):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
+
+      rr (string):
+          ResultRole filter: Include only traversals to this role (= reference
+          name) in associated (=result) objects.
+
+          `None` means this filter is not applied.
 
     Returns:
 
-      list(CIMInstanceName): The instance paths of the associated instances.
+      Instance level use: list of CIMInstanceName:
+          The instance paths, with their attributes set as follows:
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+            * `host`: Host and optionally port of the WBEM server containing
+              the CIM namespace, or `None` if the server did not return host
+              information.
+
+      Class level use: list of CIMClassName:
+          The class paths, with their attributes set as follows:
+            * `classname`: Name of the class.
+            * `namespace`: Name of the CIM namespace containing the class.
+            * `host`: Host and optionally port of the WBEM server containing
+              the CIM namespace, or `None` if the server did not return host
+              information.
     """
 
     return CONN.AssociatorNames(op,
@@ -336,57 +457,87 @@ def AssociatorNames(op, ac=None, rc=None, r=None, rr=None):
                                 ResultRole=rr)
 
 
-# pylint: disable=too-many-arguments,redefined-outer-name
-def Associators(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None,
-                pl=None):
+# pylint: disable=too-many-arguments
+def a(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None):
     """
+    WBEM operation: Associators
+
     Instance level use: Retrieve the instances associated to a source instance.
 
     Class level use: Retrieve the classes associated to a source class.
 
     Parameters:
 
-      op (CIMInstanceName): Source instance path; select instance level use.
-      op (CIMClassName): Source class path; select class level use.
+      op (CIMInstanceName):
+          Source instance path; select instance level use.
 
-      ac (string): AssociationClass filter: Include only traversals across
-                   this association class.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      op (CIMClassName):
+          Source class path; select class level use.
 
-      rc (string): ResultClass filter: Include only traversals to this
-                   associated (result) class.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      ac (string):
+          AssociationClass filter: Include only traversals across this
+          assoiation class.
 
-      r (string):  Role filter: Include only traversals from this role
-                   (= reference name) in source object.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          `None` means this filter is not applied.
 
-      rr (string): ResultRole filter: Include only traversals to this role
-                   (= reference name) in associated (=result) objects.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      rc (string):
+          ResultClass filter: Include only traversals to this associated
+          (result) class.
 
-      iq (bool):   IncludeQualifiers flag: Include qualifiers.
-                   Deprecated: Instance qualifiers have been deprecated in CIM.
-                   None causes it not to be included in request to server.
-                   Server default: False
+          `None` means this filter is not applied.
 
-      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
-                   Deprecated:  Server impls. vary; Server may treat as False.
-                   None causes it not to be included in request to server.
-                   Server default: False
+      r (string):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
 
-      pl (iterable):
-                   Iterable of property names to be included. None means all.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          `None` means this filter is not applied.
+
+      rr (string):
+          ResultRole filter: Include only traversals to this role (= reference
+          name) in associated (=result) objects.
+
+          `None` means this filter is not applied.
+
+      iq (bool):
+          IncludeQualifiers flag: Include qualifiers.
+
+          Deprecated: Instance qualifiers have been deprecated in CIM.
+
+          `None` will cause the server default of `False` to be used.
+
+      ico (bool):
+          IncludeClassOrigin flag: Include class origin info for props.
+
+          Deprecated:  Server impls. vary; Server may treat as False.
+
+          `None` will cause the server default of `False` to be used.
+
+      pl (iterable of string):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). If `None`, all properties will be included.
 
     Returns:
 
-      list(CIMInstance): The associated instances.
+      Instance level use: list of CIMInstance:
+          The instances, with their `path` attribute being a CIMInstanceName
+          object with its attributes set as follows:
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+            * `host`: Host and optionally port of the WBEM server containing
+              the CIM namespace, or `None` if the server did not return host
+              information.
+
+      Class level use: list of tuple (classpath, class):
+          The classes, with the following (unnamed) tuple items:
+            * classpath (CIMClassName): Class path with its attributes set as
+              follows:
+                * `classname`: Name of the class.
+                * `namespace`: Name of the CIM namespace containing the class.
+                * `host`: Host and optionally port of the WBEM server
+                  containing the CIM namespace, or `None` if the server did not
+                  return host information.
+            * class (CIMClass): The representation of the class.
     """
 
     return CONN.Associators(op,
@@ -399,8 +550,10 @@ def Associators(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None,
                             PropertyList=pl)
 
 
-def ReferenceNames(op, rc=None, r=None):
+def rn(op, rc=None, r=None):
     """
+    WBEM operation: ReferenceNames
+
     Instance level use: Retrieve the instance paths of the association
     instances referencing a source instance.
 
@@ -409,21 +562,42 @@ def ReferenceNames(op, rc=None, r=None):
 
     Parameters:
 
-      op (CIMInstanceName): Source instance path; select instance level use.
-      op (CIMClassName): Source class path; select class level use.
+      op (CIMInstanceName):
+          Source instance path; select instance level use.
 
-      rc (string): ResultClass filter: Include only traversals across this
-                   association (result) class.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      op (CIMClassName):
+          Source class path; select class level use.
 
-      r (string):  Role filter: Include only traversals from this role
-                   (= reference name) in source object.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      rc (string):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (string):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
 
     Returns:
-      list(CIMInstanceName): The instance paths of the association instances.
+
+      Instance level use: list of CIMInstanceName:
+          The instance paths, with their attributes set as follows:
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+            * `host`: Host and optionally port of the WBEM server containing
+              the CIM namespace, or `None` if the server did not return host
+              information.
+
+      Class level use: list of CIMClassName:
+          The class paths, with their attributes set as follows:
+            * `classname`: Name of the class.
+            * `namespace`: Name of the CIM namespace containing the class.
+            * `host`: Host and optionally port of the WBEM server containing
+              the CIM namespace, or `None` if the server did not return host
+              information.
     """
 
     return CONN.ReferenceNames(op,
@@ -431,8 +605,10 @@ def ReferenceNames(op, rc=None, r=None):
                                Role=r)
 
 
-def References(op, rc=None, r=None, iq=None, ico=None, pl=None):
+def r(op, rc=None, r=None, iq=None, ico=None, pl=None):
     """
+    WBEM operation: References
+
     Instance level use: Retrieve the association instances referencing a source
     instance.
 
@@ -441,37 +617,64 @@ def References(op, rc=None, r=None, iq=None, ico=None, pl=None):
 
     Parameters:
 
-      op (CIMInstanceName): Source instance path; select instance level use.
-      op (CIMClassName): Source class path; select class level use.
+      op (CIMInstanceName):
+          Source instance path; select instance level use.
 
-      rc (string): ResultClass filter: Include only traversals across this
-                   association (result) class.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      op (CIMClassName):
+          Source class path; select class level use.
 
-      r (string):  Role filter: Include only traversals from this role
-                   (= reference name) in source object.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      rc (string):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
 
-      iq (bool):   IncludeQualifiers flag: Include qualifiers.
-                   Deprecated: Instance qualifiers have been deprecated in CIM.
-                   None causes it not to be included in request to server.
-                   Server default: False
+          `None` means this filter is not applied.
 
-      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
-                   Deprecated:  Server impls. vary; Server may treat as False.
-                   None causes it not to be included in request to server.
-                   Server default: False
+      r (string):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
 
-      pl (iterable):
-                   Iterable of property names to be included. None means all.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          `None` means this filter is not applied.
+
+      iq (bool):
+          IncludeQualifiers flag: Include qualifiers.
+
+          Deprecated: Instance qualifiers have been deprecated in CIM.
+
+          `None` will cause the server default of `False` to be used.
+
+      ico (bool):
+          IncludeClassOrigin flag: Include class origin info for props.
+
+          Deprecated:  Server impls. vary; Server may treat as False.
+
+          `None` will cause the server default of `False` to be used.
+
+      pl (iterable of string):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). If `None`, all properties will be included.
 
     Returns:
 
-      list(CIMInstance): The association instances.
+      Instance level use: list of CIMInstance:
+          The instances, with their `path` attribute being a CIMInstanceName
+          object with its attributes set as follows:
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+            * `host`: Host and optionally port of the WBEM server containing
+              the CIM namespace, or `None` if the server did not return host
+              information.
+
+      Class level use: list of tuple (classpath, class):
+          The classes, with the following (unnamed) tuple items:
+            * classpath (CIMClassName): Class path with its attributes set as
+              follows:
+                * `classname`: Name of the class.
+                * `namespace`: Name of the CIM namespace containing the class.
+                * `host`: Host and optionally port of the WBEM server
+                  containing the CIM namespace, or `None` if the server did not
+                  return host information.
+            * class (CIMClass): The representation of the class.
     """
 
     return CONN.References(op,
@@ -482,11 +685,12 @@ def References(op, rc=None, r=None, iq=None, ico=None, pl=None):
                            PropertyList=pl)
 
 
-# pylint: disable=too-many-arguments,redefined-outer-name
-def OpenEnumerateInstances(cn, ns=None, lo=None, di=None, iq=None, ico=None,
-                           pl=None, fl=None, fq=None, ot=None, coe=None,
-                           moc=None):
+# pylint: disable=too-many-arguments
+def oei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None, fl=None,
+        fq=None, ot=None, coe=None, moc=None):
     """
+    WBEM operation: OpenEnumerateInstances
+
     Open an enumeration sequence to enumerate the instances of a class
     (including instances of its subclasses) in a namespace. Subsequent to this
     open response, additional instances may be pulled using the
@@ -498,69 +702,98 @@ def OpenEnumerateInstances(cn, ns=None, lo=None, di=None, iq=None, ico=None,
 
     Parameters:
 
-      cn (string): Class name.
+      cn (string or CIMClassName):
+          Name of the class to be enumerated (case independent).
 
-      ns (string): Namespace name. None will use the default namespace.
+          If specified as a `CIMClassName` object, its `host` attribute will be
+          ignored.
 
-      lo (bool):   LocalOnly flag: Exclude inherited properties.
-                   Deprecated: Server impls for True vary; Set to False.
-                   None causes it not to be included in request to server.
-                   Server default: True
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
 
-      di (bool):   DeepInheritance flag: Include properties added by subclasses.
-                   None causes it not to be included in request to server.
-                   Server default: True
+          If `None`, defaults to the namespace of the `cn` parameter if
+          specified as a `CIMClassName`, or to the default namespace of the
+          connection.
 
-      iq (bool):   IncludeQualifiers flag: Include qualifiers.
-                   Deprecated: Instance qualifiers have been deprecated in CIM.
-                   None causes it not to be included in request to server.
-                   Server default: False
+      lo (bool):
+          LocalOnly flag: Exclude inherited properties.
 
-      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
-                   Deprecated: Server may treat as False.
-                   None causes it not to be included in request to server.
-                   Server default: False
+          Deprecated: Server impls for True vary; Set to False.
 
-      pl (iterable):
-                   Iterable of property names to be included. None means all.
-                   None causes it not to be included in the request to server.
-                   Server default: None
+          `None` will cause the server default of `True` to be used.
 
-      moc (integer) Maximum number of objects to return for this operation.
-                   Server default: zero
+      di (bool):
+          DeepInheritance flag: Include properties added by subclasses.
 
-      fl (string)  Filter query language to be used for the filter defined
-                   in the `fi` parameter.
-                   Server default: None
+          `None` will cause the server default of `True` to be used.
 
-      fq (string)  Filter to apply to objects to be returned. Based on
-                   filter query language defined by fl parameter
-                   Server Default: None
+      iq (bool):
+          IncludeQualifiers flag: Include qualifiers.
 
-      coe (bool)   Continue on error flag.
-                   Server Default: False
+          Deprecated: Instance qualifiers have been deprecated in CIM.
 
-      ot (integer) Operation timeout in seconds.  This is the maximum
-                   time the server must keep the enumerate session open
-                   between this open response and the next request.
-                   This must be a positive integer. Zero indicates that the
-                   server does not timeout but many servers do not accept this
-                   value.
-                   Server Default: Server selects timeout
+          `None` will cause the server default of `False` to be used.
+
+      ico (bool):
+          IncludeClassOrigin flag: Include class origin info for props.
+
+          Deprecated: Server may treat as False.
+
+          `None` will cause the server default of `False` to be used.
+
+      pl (iterable of string):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). If `None`, all properties will be included.
+
+      fl (string):
+          Filter query language to be used for the filter defined in the `fi`
+          parameter.
+
+          `None` means that no such filtering is peformed.
+
+      fq (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between this open request and
+          the next request.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation.
+
+          `None` will cause the server to use its default of 0.
 
     Returns:
 
-      named tuple.  The named tuple contains the following elements:
+      Named tuple, containing the following named items:
 
-          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
-                        response to this request
-          'eos' (bool)  True if this response is the complete response to this
-                        request and there are no more instances to return.
-                        Otherwise `eos` is False and the `context` entity will
-                        define the context for the next operation.
-          `context` (string) A context string that must be supplied with any
-                        subsequent pull or CloseEnumeration operation on this
-                        enumeration sequence.
+          instances (list of CIMInstance):
+              The result set of instances in response to this request.
+
+          eos (bool):
+              `True` if this response is the complete response to this request
+              and there are no more instances to return. Otherwise `eos` is
+              `False` and the `context` item will define the context for the
+              next operation.
+
+          context (string):
+              A context string that must be supplied with any subsequent pull
+              or close operation on this enumeration sequence.
     """
     return CONN.OpenEnumerateInstances(cn, ns,
                                        LocalOnly=lo,
@@ -575,10 +808,11 @@ def OpenEnumerateInstances(cn, ns=None, lo=None, di=None, iq=None, ico=None,
                                        MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments,redefined-outer-name
-def OpenEnumerateInstancePaths(cn, ns=None, fl=None, fq=None, ot=None,
-                               coe=None, moc=None):
+# pylint: disable=too-many-arguments
+def oeip(cn, ns=None, fl=None, fq=None, ot=None, coe=None, moc=None):
     """
+    WBEM operation: OpenEnumerateInstancePaths
+
     Open an enumeration sequence to enumerate the instances of a class
     (including instances of its subclasses) in a namespace. Subsequent to this
     open response, additional instances may be pulled using the
@@ -590,50 +824,75 @@ def OpenEnumerateInstancePaths(cn, ns=None, fl=None, fq=None, ot=None,
 
     Parameters:
 
-      cn (string): Class name.
+      cn (string or CIMClassName):
+          Name of the class to be enumerated (case independent).
 
-      ns (string): Namespace name. None will use the default namespace.
+          If specified as a `CIMClassName` object, its `host` attribute will be
+          ignored.
 
-      lo (bool):   LocalOnly flag: Exclude inherited properties.
-                   Deprecated: Server impls for True vary; Set to False.
-                   None causes it not to be included in request to server.
-                   Server default: True
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
 
-      moc (integer) Maximum number of objects to return for this operation.
-                   Server default: zero
+          If `None`, defaults to the namespace of the `cn` parameter if
+          specified as a `CIMClassName`, or to the default namespace of the
+          connection.
 
-      fl (string)  Filter query language to be used for the filter defined
-                   in the `fi` parameter.
-                   wbemcli default: None
+      lo (bool):
+          LocalOnly flag: Exclude inherited properties.
 
-      fq (string)  Filter to apply to objects to be returned. Based on
-                   filter query language defined by fl parameter
-                   Server Default: None
+          Deprecated: Server impls for True vary; Set to False.
 
-      coe (bool)   Continue on error flag.
-                   Server Default: False
+          `None` will cause the server default of `True` to be used.
 
-      ot (integer) Operation timeout in seconds.  This is the maximum
-                   time the server must keep the enumerate session open
-                   between this open response and the next request.
-                   This must be a positive integer. Zero indicates that the
-                   server does not timeout but many servers do not accept this
-                   value.
-                   Server Default: Server selects timeout
+      fl (string):
+          Filter query language to be used for the filter defined in the `fi`
+          parameter.
+
+          `None` means that no such filtering is peformed.
+
+      fq (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between this open request and
+          the next request.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation.
+
+          `None` will cause the server to use its default of 0.
 
     Returns:
 
-      named tuple.  The named tuple contains the following elements:
+      Named tuple, containing the following named items:
 
-          `paths`  list(CIMInstance: ) Any enumeratedinstances received in
-                        response to this request
-          'eos' (bool)  True if this response is the complete response to this
-                        request and there are no more instances to return.
-                        Otherwise `eos` is False and the `context` entity will
-                        define the context for the next operation.
-          `context` (string) A context string that must be supplied with any
-                        subsequent pull or CloseEnumeration operation on this
-                        enumeration sequence.
+          paths (list of CIMInstanceName):
+              The result set of instance paths in response to this request.
+
+          eos (bool):
+              `True` if this response is the complete response to this request
+              and there are no more instances to return. Otherwise `eos` is
+              `False` and the `context` item will define the context for the
+              next operation.
+
+          context (string):
+              A context string that must be supplied with any subsequent pull
+              or close operation on this enumeration sequence.
     """
 
     return CONN.OpenEnumerateInstancePaths(cn, ns,
@@ -644,11 +903,12 @@ def OpenEnumerateInstancePaths(cn, ns=None, fl=None, fq=None, ot=None,
                                            MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments,redefined-outer-name
-def OpenReferenceInstances(op, rc=None, r=None, iq=None, ico=None,
-                           pl=None, fl=None, fq=None, ot=None, coe=None,
-                           moc=None):
+# pylint: disable=too-many-arguments
+def ori(op, rc=None, r=None, iq=None, ico=None, pl=None, fl=None, fq=None,
+        ot=None, coe=None, moc=None):
     """
+    WBEM operation: OpenReferenceInstances
+
     Open an enumeration sequence to enumerate the association instances of an
     instance in a namespace. Subsequent to this open response, additional
     instances may be pulled using the `PullInstancesWithPath` request. The
@@ -660,69 +920,88 @@ def OpenReferenceInstances(op, rc=None, r=None, iq=None, ico=None,
 
     Parameters:
 
-      op (CIMInstanceName): Source instance path.
+      op (CIMInstanceName):
+          Source instance path.
 
+      rc (string):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
 
-      rc (string): ResultClass filter: Include only traversals across this
-                   association (result) class.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          `None` means this filter is not applied.
 
-      r (string):  Role filter: Include only traversals from this role
-                   (= reference name) in source object.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      r (string):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
 
-      iq (bool):   IncludeQualifiers flag: Include qualifiers.
-                   Deprecated: Instance qualifiers have been deprecated in CIM.
-                   None causes it not to be included in request to server.
-                   Server default: False
+          `None` means this filter is not applied.
 
-      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
-                   Deprecated:  Server impls. vary; Server may treat as False.
-                   None causes it not to be included in request to server.
-                   Server default: False
+      iq (bool):
+          IncludeQualifiers flag: Include qualifiers.
 
-      pl (iterable):
-                   Iterable of property names to be included. None means all.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          Deprecated: Instance qualifiers have been deprecated in CIM.
 
-      moc (integer) Maximum number of objects to return for this operation.
-                   Server default: zero
+          `None` will cause the server default of `False` to be used.
 
-      fl (string)  Filter query language to be used for the filter defined
-                   in the `fi` parameter.
-                   Server default: None
+      ico (bool):
+          IncludeClassOrigin flag: Include class origin info for props.
 
-      fq (string)  Filter to apply to objects to be returned. Based on
-                   filter query language defined by fl parameter
-                   Server Default: None
+          Deprecated:  Server impls. vary; Server may treat as False.
 
-      coe (bool)   Continue on error flag.
-                   Server Default: False
+          `None` will cause the server default of `False` to be used.
 
-      ot (integer) Operation timeout in seconds.  This is the maximum
-                   time the server must keep the enumerate session open
-                   between this open response and the next request.
-                   This must be a positive integer. Zero indicates that the
-                   server does not timeout but many servers do not accept this
-                   value.
-                   Server Default: Server selects timeout
+      pl (iterable of string):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). If `None`, all properties will be included.
+
+      fl (string):
+          Filter query language to be used for the filter defined in the `fi`
+          parameter.
+
+          `None` means that no such filtering is peformed.
+
+      fq (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between this open request and
+          the next request.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation.
+
+          `None` will cause the server to use its default of 0.
 
     Returns:
 
-      named tuple.  The named tuple contains the following elements:
+      Named tuple, containing the following named items:
 
-          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
-                        response to this request
-          'eos' (bool)  True if this response is the complete response to this
-                        request and there are no more instances to return.
-                        Otherwise `eos` is False and the `context` entity will
-                        define the context for the next operation.
-          `context` (string) A context string that must be supplied with any
-                        subsequent pull or CloseEnumeration operation on this
-                        enumeration sequence.
+          instances (list of CIMInstance):
+              The result set of instances in response to this request.
+
+          eos (bool):
+              `True` if this response is the complete response to this request
+              and there are no more instances to return. Otherwise `eos` is
+              `False` and the `context` item will define the context for the
+              next operation.
+
+          context (string):
+              A context string that must be supplied with any subsequent pull
+              or close operation on this enumeration sequence.
     """
     return CONN.OpenReferenceInstances(op,
                                        ResultClass=rc,
@@ -737,10 +1016,11 @@ def OpenReferenceInstances(op, rc=None, r=None, iq=None, ico=None,
                                        MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments,redefined-outer-name
-def OpenReferenceInstancePaths(op, rc=None, r=None, fl=None, fq=None, ot=None,
-                               coe=None, moc=None):
+# pylint: disable=too-many-arguments
+def orip(op, rc=None, r=None, fl=None, fq=None, ot=None, coe=None, moc=None):
     """
+    WBEM operation: OpenReferenceInstancePaths
+
     Open an enumeration sequence to enumerate the association instance paths of
     an instance in a namespace. Subsequent to this open response, additional
     instances may be pulled using the `PullInstancesWithPath` request. The
@@ -752,69 +1032,87 @@ def OpenReferenceInstancePaths(op, rc=None, r=None, fl=None, fq=None, ot=None,
 
     Parameters:
 
-      op (CIMInstanceName): Source instance path.
+      op (CIMInstanceName):
+          Source instance path.
 
-      rc (string): ResultClass filter: Include only traversals across this
-                   association (result) class.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      rc (string):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
 
-      r (string):  Role filter: Include only traversals from this role
-                   (= reference name) in source object.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          `None` means this filter is not applied.
 
-      moc (integer) Maximum number of objects to return for this operation.
-                   Server default: zero
+      r (string):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
 
-      fl (string)  Filter query language to be used for the filter defined
-                   in the `fi` parameter.
-                   Server default: None
+          `None` means this filter is not applied.
 
-      fq (string)  Filter to apply to objects to be returned. Based on
-                   filter query language defined by fl parameter
-                   Server Default: None
+      fl (string):
+          Filter query language to be used for the filter defined in the `fi`
+          parameter.
 
-      coe (bool)   Continue on error flag.
-                   Server Default: False
+          `None` means that no such filtering is peformed.
 
-      ot (integer) Operation timeout in seconds.  This is the maximum
-                   time the server must keep the enumerate session open
-                   between this open response and the next request.
-                   This must be a positive integer. Zero indicates that the
-                   server does not timeout but many servers do not accept this
-                   value.
-                   Server Default: Server selects timeout
+      fq (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between this open request and
+          the next request.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation.
+
+          `None` will cause the server to use its default of 0.
 
     Returns:
 
-      named tuple.  The named tuple contains the following elements:
+      Named tuple, containing the following named items:
 
-          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
-                        response to this request
-          'eos' (bool)  True if this response is the complete response to this
-                        request and there are no more instances to return.
-                        Otherwise `eos` is False and the `context` entity will
-                        define the context for the next operation.
-          `context` (string) A context string that must be supplied with any
-                        subsequent pull or CloseEnumeration operation on this
-                        enumeration sequence.
+          paths (list of CIMInstanceName):
+              The result set of instance paths in response to this request.
+
+          eos (bool):
+              `True` if this response is the complete response to this request
+              and there are no more instances to return. Otherwise `eos` is
+              `False` and the `context` item will define the context for the
+              next operation.
+
+          context (string):
+              A context string that must be supplied with any subsequent pull
+              or close operation on this enumeration sequence.
     """
-    return CONN.OpenReferenceInstances(op,
-                                       ResultClass=rc,
-                                       Role=r,
-                                       FilterQueryLanguage=fl,
-                                       FilterQuery=fq,
-                                       OperationTimeout=ot,
-                                       ContinueOnError=coe,
-                                       MaxObjectCount=moc)
+    return CONN.OpenReferenceInstancePaths(op,
+                                           ResultClass=rc,
+                                           Role=r,
+                                           FilterQueryLanguage=fl,
+                                           FilterQuery=fq,
+                                           OperationTimeout=ot,
+                                           ContinueOnError=coe,
+                                           MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments,redefined-outer-name
-def OpenAssociatorInstances(op, ac=None, rc=None, r=None, rr=None, iq=None,
-                            ico=None, pl=None, fl=None, fq=None, ot=None,
-                            coe=None, moc=None):
+# pylint: disable=too-many-arguments
+def oai(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None,
+        fl=None, fq=None, ot=None, coe=None, moc=None):
     """
+    WBEM operation: OpenAssociatorInstances
+
     Open an enumeration sequence to enumerate the associated instances of an
     instance in a namespace. Subsequent to this open response, additional
     instances may be pulled using the `PullInstancesWithPath` request. The
@@ -826,78 +1124,100 @@ def OpenAssociatorInstances(op, ac=None, rc=None, r=None, rr=None, iq=None,
 
     Parameters:
 
-      op (CIMInstanceName): Source instance path.
+      op (CIMInstanceName):
+          Source instance path.
 
-      ac (string): AssociationClass filter: Include only traversals across
-                   this association class.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      ac (string):
+          AssociationClass filter: Include only traversals across this
+          association class.
 
-      rc (string): ResultClass filter: Include only traversals to this
-                   associated (result) class.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          `None` means this filter is not applied.
 
-      r (string):  Role filter: Include only traversals from this role
-                   (= reference name) in source object.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      rc (string):
+          ResultClass filter: Include only traversals to this associated
+          (result) class.
 
-      rr (string): ResultRole filter: Include only traversals to this role
-                   (= reference name) in associated (=result) objects.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          `None` means this filter is not applied.
 
-      iq (bool):   IncludeQualifiers flag: Include qualifiers.
-                   Deprecated: Instance qualifiers have been deprecated in CIM.
-                   None causes it not to be included in request to server.
-                   Server default: False
+      r (string):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
 
-      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
-                   Deprecated:  Server impls. vary; Server may treat as False.
-                   None causes it not to be included in request to server.
-                   Server default: False
+          `None` means this filter is not applied.
 
-      pl (iterable):
-                   Iterable of property names to be included. None means all.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      rr (string):
+          ResultRole filter: Include only traversals to this role (= reference
+          name) in associated (=result) objects.
 
-      moc (integer) Maximum number of objects to return for this operation.
-                   Server default: zero
+          `None` means this filter is not applied.
 
-      fl (string)  Filter query language to be used for the filter defined
-                   in the `fi` parameter.
-                   Server default: None
+      iq (bool):
+          IncludeQualifiers flag: Include qualifiers.
 
-      fq (string)  Filter to apply to objects to be returned. Based on
-                   filter query language defined by fl parameter
-                   Server Default: None
+          Deprecated: Instance qualifiers have been deprecated in CIM.
 
-      coe (bool)   Continue on error flag.
-                   Server Default: False
+          `None` will cause the server default of `False` to be used.
 
-      ot (integer) Operation timeout in seconds.  This is the maximum
-                   time the server must keep the enumerate session open
-                   between this open response and the next request.
-                   This must be a positive integer. Zero indicates that the
-                   server does not timeout but many servers do not accept this
-                   value.
-                   Server Default: Server selects timeout
+      ico (bool):
+          IncludeClassOrigin flag: Include class origin info for props.
+
+          Deprecated:  Server impls. vary; Server may treat as False.
+
+          `None` will cause the server default of `False` to be used.
+
+      pl (iterable of string):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). If `None`, all properties will be included.
+
+      fl (string):
+          Filter query language to be used for the filter defined in the `fi`
+          parameter.
+
+          `None` means that no such filtering is peformed.
+
+      fq (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between this open request and
+          the next request.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation.
+
+          `None` will cause the server to use its default of 0.
 
     Returns:
 
-      named tuple.  The named tuple contains the following elements:
+      Named tuple, containing the following named items:
 
-          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
-                        response to this request
-          'eos' (bool)  True if this response is the complete response to this
-                        request and there are no more instances to return.
-                        Otherwise `eos` is False and the `context` entity will
-                        define the context for the next operation.
-          `context` (string) A context string that must be supplied with any
-                        subsequent pull or CloseEnumeration operation on this
-                        enumeration sequence.
+          instances (list of CIMInstance):
+              The result set of instances in response to this request.
+
+          eos (bool):
+              `True` if this response is the complete response to this request
+              and there are no more instances to return. Otherwise `eos` is
+              `False` and the `context` item will define the context for the
+              next operation.
+
+          context (string):
+              A context string that must be supplied with any subsequent pull
+              or close operation on this enumeration sequence.
     """
     return CONN.OpenAssociatorInstances(op,
                                         AssocClass=ac,
@@ -914,11 +1234,12 @@ def OpenAssociatorInstances(op, ac=None, rc=None, r=None, rr=None, iq=None,
                                         MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments,redefined-outer-name
-def OpenAssociatorInstancePaths(op, ac=None, rc=None, r=None, rr=None, iq=None,
-                                ico=None, pl=None, fl=None, fq=None, ot=None,
-                                coe=None, moc=None):
+# pylint: disable=too-many-arguments
+def oaip(op, ac=None, rc=None, r=None, rr=None, fl=None, fq=None, ot=None,
+         coe=None, moc=None):
     """
+    WBEM operation: OpenAssociatorInstancePaths
+
     Open an enumeration sequence to enumerate the associated instance paths of
     an instance in a namespace. Subsequent to this open response, additional
     instances may be pulled using the `PullInstancesWithPath` request. The
@@ -930,87 +1251,87 @@ def OpenAssociatorInstancePaths(op, ac=None, rc=None, r=None, rr=None, iq=None,
 
     Parameters:
 
-      op (CIMInstanceName): Source instance path.
+      op (CIMInstanceName):
+          Source instance path.
 
-      rc (string): ResultClass filter: Include only traversals across this
-                   association (result) class.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      rc (string):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
 
-      r (string):  Role filter: Include only traversals from this role
-                   (= reference name) in source object.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          `None` means this filter is not applied.
 
-      iq (bool):   IncludeQualifiers flag: Include qualifiers.
-                   Deprecated: Instance qualifiers have been deprecated in CIM.
-                   None causes it not to be included in request to server.
-                   Server default: False
+      r (string):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
 
-      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
-                   Deprecated:  Server impls. vary; Server may treat as False.
-                   None causes it not to be included in request to server.
-                   Server default: False
+          `None` means this filter is not applied.
 
-      pl (iterable):
-                   Iterable of property names to be included. None means all.
-                   None causes it not to be included in request to server.
-                   Server default: None
+      fl (string):
+          Filter query language to be used for the filter defined in the `fi`
+          parameter.
 
-      moc (integer) Maximum number of objects to return for this operation.
-                   Server default: zero
+          `None` means that no such filtering is peformed.
 
-      fl (string)  Filter query language to be used for the filter defined
-                   in the `fi` parameter.
-                   Server default: None
+      fq (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
 
-      fq (string)  Filter to apply to objects to be returned. Based on
-                   filter query language defined by fl parameter
-                   Server Default: None
+          `None` means that no such filtering is peformed.
 
-      coe (bool)   Continue on error flag.
-                   Server Default: False
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between this open request and
+          the next request.
 
-      ot (integer) Operation timeout in seconds.  This is the maximum
-                   time the server must keep the enumerate session open
-                   between this open response and the next request.
-                   This must be a positive integer. Zero indicates that the
-                   server does not timeout but many servers do not accept this
-                   value.
-                   Server Default: Server selects timeout
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation.
+
+          `None` will cause the server to use its default of 0.
 
     Returns:
 
-      named tuple.  The named tuple contains the following elements:
+      Named tuple, containing the following named items:
 
-          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
-                        response to this request
-          'eos' (bool)  True if this response is the complete response to this
-                        request and there are no more instances to return.
-                        Otherwise `eos` is False and the `context` entity will
-                        define the context for the next operation.
-          `context` (string) A context string that must be supplied with any
-                        subsequent pull or CloseEnumeration operation on this
-                        enumeration sequence.
+          paths (list of CIMInstanceName):
+              The result set of instance paths in response to this request.
+
+          eos (bool):
+              `True` if this response is the complete response to this request
+              and there are no more instances to return. Otherwise `eos` is
+              `False` and the `context` item will define the context for the
+              next operation.
+
+          context (string):
+              A context string that must be supplied with any subsequent pull
+              or close operation on this enumeration sequence.
     """
-    return CONN.OpenAssociatorInstances(op,
-                                        AssocClass=ac,
-                                        ResultClass=rc,
-                                        Role=r,
-                                        ResultRole=rr,
-                                        IncludeQualifiers=iq,
-                                        IncludeClassOrigin=ico,
-                                        PropertyList=pl,
-                                        FilterQueryLanguage=fl,
-                                        FilterQuery=fq,
-                                        OperationTimeout=ot,
-                                        ContinueOnError=coe,
-                                        MaxObjectCount=moc)
+    return CONN.OpenAssociatorInstancePaths(op,
+                                            AssocClass=ac,
+                                            ResultClass=rc,
+                                            Role=r,
+                                            ResultRole=rr,
+                                            FilterQueryLanguage=fl,
+                                            FilterQuery=fq,
+                                            OperationTimeout=ot,
+                                            ContinueOnError=coe,
+                                            MaxObjectCount=moc)
 
 
-def OpenQueryInstances(ql, qi, ns=None, ot=None, coe=None, moc=None,
-                       rc=None):
+def oqi(ql, qi, ns=None, rc=None, ot=None, coe=None, moc=None):
     """
+    WBEM operation: OpenQueryInstances
+
     Open an enumeration sequence to execute a query `fi` using the query
     language `fl`.  If this operation returns `eos` == False, the
     `PullInstances` operation is used to request additional instances.
@@ -1020,46 +1341,67 @@ def OpenQueryInstances(ql, qi, ns=None, ot=None, coe=None, moc=None,
 
     Parameters:
 
-      ql (string)  Filter query language to be used for the filter defined
-                   in the `fi` parameter. This must be a query language such
-                   as CQL or WQL but NOT FQL.
+      ql (string):
+          Filter query language to be used for the filter defined in the `qi`
+          parameter. This must be a query language such as CQL or WQL but NOT
+          FQL.
 
-      qi (string)  Filter to apply to objects to be returned. Based on
-                   filter query language defined by `fl` parameter
+      qi (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by the `ql` parameter.
 
-      ns (string)  Namespace for the operation.
-                   Default: default namespace
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
 
-      coe (bool)   Continue on error flag.
-                   Server Default: None
+          If `None`, defaults to the default namespace of the connection.
 
-      ot (integer) Operation timeout in seconds.  This is the maximum
-                   time the server must keep the enumerate session open
-                   between this open response and the next request.
-                   This must be a positive integer. Zero indicates that the
-                   server does not timeout but many servers do not accept this
-                   value.
-                   Server Default: Server selects timeout
+      rc (bool):
+          Controls whether a result class definition describing the returned
+          instances will be returned.
 
-      moc (integer) Maximum number of objects to return for this operation.
-                   This is a required parameter.
+          `None` will cause the server to use its default of `False`.
 
-      rc (ClassName) ClassName for return class which the server constructs
-                   if this parameter is provided.
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between this open request and
+          the next request.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation.
+
+          `None` will cause the server to use its default of 0.
 
     Returns:
 
-      named tuple.  The named tuple contains the following elements:
+      Named tuple, containing the following named items:
 
-          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
-                        response to this request
-          'eos' (bool)  True if this response is the complete response to this
-                        request and there are no more instances to return.
-                        Otherwise `eos` is False and the `context` entity will
-                        define the context for the next operation.
-          `context` (string) A context string that must be supplied with any
-                        subsequent pull or CloseEnumeration operation on this
-                        enumeration sequence.
+          instances (list of CIMInstance):
+              The result set of instances in response to this request.
+
+          eos (bool):
+              `True` if this response is the complete response to this request
+              and there are no more instances to return. Otherwise `eos` is
+              `False` and the `context` item will define the context for the
+              next operation.
+
+          context (string):
+              A context string that must be supplied with any subsequent pull
+              or close operation on this enumeration sequence.
+
+          query_result_class (CIMClass):
+              Result class definition describing the returned instances, or
+              `None`.
     """
     return CONN.OpenQueryInstances(FilterQueryLanguage=ql,
                                    FilterQuery=qi,
@@ -1070,8 +1412,10 @@ def OpenQueryInstances(ql, qi, ns=None, ot=None, coe=None, moc=None,
                                    MaxObjectCount=moc)
 
 
-def PullInstancesWithPath(ec, moc):
+def piwp(ec, moc):
     """
+    WBEM operation: PullInstancesWithPath
+
     Pull instances from the server as part of an already opened enumeration
     sequence.  This operation can be used as the sequence continuation for
     `OpenEnumerateInstancePaths`, `OpenAssociatorPaths` and
@@ -1079,156 +1423,195 @@ def PullInstancesWithPath(ec, moc):
 
     Parameters:
 
-      ec (string): Enumeration context from previous operation response for
-                   this enumeration session.
+      ec (string):
+          Enumeration context from previous operation response for this
+          enumeration session.
 
-      moc (integer) Maximum number of objects to return for this operation.
-                   This is a required parameter.
+      moc (integer):
+          Maximum number of objects to return for this operation.
 
     Returns:
 
-      named tuple.  The named tuple contains the following elements:
+      Named tuple, containing the following named items:
 
-          `instances`  list(CIMInstance: ) Any enumeratedinstances received in
-                        response to this request
-          'eos' (bool)  True if this response is the complete response to this
-                        request and there are no more instances to return.
-                        Otherwise `eos` is False and the `context` entity will
-                        define the context for the next operation.
-          `context` (string) A context string that must be supplied with any
-                        subsequent pull or CloseEnumeration operation on this
-                        enumeration sequence.
+          instances (list of CIMInstance):
+              The result set of instances in response to this request.
+
+          eos (bool):
+              `True` if this response is the complete response to this request
+              and there are no more instances to return. Otherwise `eos` is
+              `False` and the `context` item will define the context for the
+              next operation.
+
+          context (string):
+              A context string that must be supplied with any subsequent pull
+              or close operation on this enumeration sequence.
     """
 
     return CONN.PullInstancesWithPath(ec, moc)
 
 
-def PullInstancePaths(ec, moc):
+def pip(ec, moc):
     """
+    WBEM operation: PullInstancePaths
+
     Pull instance paths from the server as part of an already opened enumeration
     sequence.  This operation can be used as the sequence continuation for
     OpenEnumeratePaths, OpenAssociatorPaths and OpenReferencePaths.
 
     Parameters:
 
-      ec (string): Enumeration context from previous operation response for
-                   this enumeration session.
+      ec (string):
+          Enumeration context from previous operation response for this
+          enumeration session.
 
-      moc (integer) Maximum number of objects to return for this operation.
-                   This is a required parameter.
+      moc (integer):
+          Maximum number of objects to return for this operation.
 
     Returns:
 
-      named tuple.  The named tuple contains the following elements:
+      Named tuple, containing the following named items:
 
-          `paths`       list(CIMInstance: ) Any enumeratedinstances received in
-                        response to this request
-          'eos' (bool)  True if this response is the complete response to this
-                        request and there are no more instances to return.
-                        Otherwise `eos` is False and the `context` entity will
-                        define the context for the next operation.
-          `context` (string) A context string that must be supplied with any
-                        subsequent pull or CloseEnumeration operation on this
-                        enumeration sequence.
+          paths (list of CIMInstanceName):
+              The result set of instance paths in response to this request.
+
+          eos (bool):
+              `True` if this response is the complete response to this request
+              and there are no more instances to return. Otherwise `eos` is
+              `False` and the `context` item will define the context for the
+              next operation.
+
+          context (string):
+              A context string that must be supplied with any subsequent pull
+              or close operation on this enumeration sequence.
     """
 
     return CONN.PullInstancePaths(ec, moc)
 
 
-def PullInstances(ec, moc):
+def pi(ec, moc):
     """
+    WBEM operation: PullInstances
+
     Pull instances from the server as part of an already opened enumeration
     sequence.  This operation can be used as the sequence continuation for
     OpenQueryInstances.
 
     Parameters:
 
-      ec (string): Enumeration context from previous operation response for
-                   this enumeration session.
+      ec (string):
+          Enumeration context from previous operation response for this
+          enumeration session.
 
-      moc (integer) Maximum number of objects to return for this operation.
-                   This is a required parameter.
+      moc (integer):
+          Maximum number of objects to return for this operation.
 
     Returns:
 
-      named tuple.  The named tuple contains the following elements:
+      Named tuple, containing the following named items:
 
-          `paths`       list(CIMInstance: ) Any enumeratedinstances received in
-                        response to this request
-          'eos' (bool)  True if this response is the complete response to this
-                        request and there are no more instances to return.
-                        Otherwise `eos` is False and the `context` entity will
-                        define the context for the next operation.
-          `context` (string) A context string that must be supplied with any
-                        subsequent pull or CloseEnumeration operation on this
-                        enumeration sequence.
+          instances (list of CIMInstance):
+              The result set of instances in response to this request.
+              The `path` attribute is `None`.
+
+          eos (bool):
+              `True` if this response is the complete response to this request
+              and there are no more instances to return. Otherwise `eos` is
+              `False` and the `context` item will define the context for the
+              next operation.
+
+          context (string):
+              A context string that must be supplied with any subsequent pull
+              or close operation on this enumeration sequence.
     """
 
-    return CONN.PullInstancePaths(ec, moc)
+    return CONN.PullInstances(ec, moc)
 
 
-def CloseEnumeration(ec):
+def ce(ec):
     """
+    WBEM operation: CloseEnumeration
+
     Close an existing open enumeration context early.  Once the sequence is
     complete, the `eos` flag is set in the last response.  Any time before
     this, the sequence may be closed early with this operation.
 
     Parameters:
 
-      ec (string): Enumeration context from previous operation response for
-                   this enumeration session.
-
-    Returns:
-
-        Nothing is returned.
+      ec (string):
+          Enumeration context from previous operation response for this
+          enumeration session.
     """
 
-    return CONN.CloseEnumeration(ec)
+    CONN.CloseEnumeration(ec)
 
 
-def InvokeMethod(mn, op, *params, **kwparams):
+def im(mn, op, *params, **kwparams):
     """
+    WBEM operation: InvokeMethod
+
     Invoke a method on a target instance or a static method on a target class.
 
     Parameters:
 
-      mn (string): Method name.
+      mn (string):
+          Method name.
 
-      op (CIMInstanceName): Target instance path.
-      op (CIMClassName): Target class path.
+      op (CIMInstanceName):
+          Target instance path.
 
-      *params (named args): Input parameters for the method.
+      op (CIMClassName):
+          Target class path.
 
-      **kwparams (keyword args): Input parameters for the method.
+      *params (named args):
+          Input parameters for the method.
+
+      **kwparams (keyword args):
+          Input parameters for the method.
 
     Returns:
 
-      tuple(rv, out): Method return value, dict with output parameters.
+      tuple(rv, out):
+          Method return value, dict with output parameters.
     """
 
     return CONN.InvokeMethod(mn, op, *params, **kwparams)
 
 
-def EnumerateClassNames(ns=None, cn=None, di=None):
+def ecn(ns=None, cn=None, di=None):
     """
+    WBEM operation: EnumerateClassNames
+
     Enumerate the names of subclasses of a class, or of the top-level classes
     in a namespace.
 
     Parameters:
 
-      ns (string): Namespace name. None will use the default namespace.
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
 
-      cn (string): Class name. None will return the top-level classes.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          If `None`, defaults to the namespace of the `cn` parameter if
+          specified as a `CIMClassName`, or to the default namespace of the
+          connection.
 
-      di (bool):   DeepInheritance flag: Include also indirect subclasses.
-                   None causes it not to be included in request to server.
-                   Server default: False
+      cn (string or CIMClassName):
+          Name of the class whose subclasses are to be enumerated (case
+          independent).
+
+          `None` will enumerate the top-level classes.
+
+          If specified as a `CIMClassName` object, its `host` attribute will be
+          ignored.
+
+      di (bool):
+          DeepInheritance flag: Include also indirect subclasses.
+
+          `None` will cause the server default of `False` to be used.
 
     Returns:
 
-      list(string): The enumerated class names.
+      list of string:
+          The enumerated class names.
     """
 
     return CONN.EnumerateClassNames(ns,
@@ -1236,38 +1619,55 @@ def EnumerateClassNames(ns=None, cn=None, di=None):
                                     DeepInheritance=di)
 
 
-def EnumerateClasses(ns=None, cn=None, di=None, lo=None, iq=None, ico=None):
+def ec(ns=None, cn=None, di=None, lo=None, iq=None, ico=None):
     """
+    WBEM operation: EnumerateClasses
+
     Enumerate the subclasses of a class, or the top-level classes in a
     namespace.
 
     Parameters:
 
-      ns (string): Namespace name. None will use the default namespace.
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
 
-      cn (string): Class name. None will return the top-level classes.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          If `None`, defaults to the namespace of the `cn` parameter if
+          specified as a `CIMClassName`, or to the default namespace of the
+          connection.
 
-      di (bool):   DeepInheritance flag: Include also indirect subclasses.
-                   None causes it not to be included in request to server.
-                   Server default: False
+      cn (string or CIMClassName):
+          Name of the class whose subclasses are to be enumerated (case
+          independent).
 
-      lo (bool):   LocalOnly flag: Exclude inherited properties.
-                   None causes it not to be included in request to server.
-                   Server default: True
+          `None` will enumerate the top-level classes.
 
-      iq (bool):   IncludeQualifiers flag: Include qualifiers.
-                   None causes it not to be included in request to server.
-                   Server default: True
+          If specified as a `CIMClassName` object, its `host` attribute will be
+          ignored.
 
-      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
-                   None causes it not to be included in request to server.
-                   Server default: False
+      di (bool):
+          DeepInheritance flag: Include also indirect subclasses.
+
+          `None` will cause the server default of `False` to be used.
+
+      lo (bool):
+          LocalOnly flag: Exclude inherited properties.
+
+          `None` will cause the server default of `True` to be used.
+
+      iq (bool):
+          IncludeQualifiers flag: Include qualifiers.
+
+          `None` will cause the server default of `True` to be used.
+
+      ico (bool):
+          IncludeClassOrigin flag: Include class origin info for props.
+
+          `None` will cause the server default of `False` to be used.
 
     Returns:
 
-      list(string): The enumerated class names.
+      list of CIMClass:
+          The enumerated classes.
     """
 
     return CONN.EnumerateClasses(ns,
@@ -1278,36 +1678,50 @@ def EnumerateClasses(ns=None, cn=None, di=None, lo=None, iq=None, ico=None):
                                  IncludeClassOrigin=ico)
 
 
-def GetClass(cn, ns=None, lo=None, iq=None, ico=None, pl=None):
+def gc(cn, ns=None, lo=None, iq=None, ico=None, pl=None):
     """
+    WBEM operation: GetClass
+
     Retrieve a class.
 
     Parameters:
 
-      cn (string): Class name.
+      cn (string or CIMClassName):
+          Name of the class to be retrieved (case independent).
 
-      ns (string): Namespace name. None will use the default namespace.
+          If specified as a `CIMClassName` object, its `host` attribute will be
+          ignored.
 
-      lo (bool):   LocalOnly flag: Exclude inherited properties.
-                   None causes it not to be included in request to server.
-                   Server default: True
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
 
-      iq (bool):   IncludeQualifiers flag: Include qualifiers.
-                   None causes it not to be included in request to server.
-                   Server default: True
+          If `None`, defaults to the namespace of the `cn` parameter if
+          specified as a `CIMClassName`, or to the default namespace of the
+          connection.
 
-      ico (bool):  IncludeClassOrigin flag: Include class origin info for props.
-                   None causes it not to be included in request to server.
-                   Server default: False
+      lo (bool):
+          LocalOnly flag: Exclude inherited properties.
 
-      pl (iterable):
-                   Iterable of property names to be included. None means all.
-                   None causes it not to be included in request to server.
-                   Server default: None
+          `None` will cause the server default of `True` to be used.
+
+      iq (bool):
+          IncludeQualifiers flag: Include qualifiers.
+
+          `None` will cause the server default of `True` to be used.
+
+      ico (bool):
+          IncludeClassOrigin flag: Include class origin info for props.
+
+          `None` will cause the server default of `False` to be used.
+
+      pl (iterable of string):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). If `None`, all properties will be included.
 
     Returns:
 
-      list(CIMClass): The retrieved class.
+      CIMClass:
+          The retrieved class.
     """
 
     return CONN.GetClass(cn, ns,
@@ -1317,105 +1731,153 @@ def GetClass(cn, ns=None, lo=None, iq=None, ico=None, pl=None):
                          PropertyList=pl)
 
 
-def ModifyClass(mc, ns=None):
+def mc(mc, ns=None):
     """
+    WBEM operation: ModifyClass
+
     Modify a class.
 
     Parameters:
 
-      mc (CIMClass): Modified class.
+      mc (CIMClass):
+          Modified class.
 
-      ns (string): Namespace name. None will use the default namespace.
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
+
+          `None` will use the default namespace of the connection.
     """
 
-    return CONN.ModifyClass(mc, ns)
+    CONN.ModifyClass(mc, ns)
 
 
-def CreateClass(nc, ns=None):
+def cc(nc, ns=None):
     """
+    WBEM operation: CreateClass
+
     Create a class in a namespace.
 
     Parameters:
 
-      nc (CIMClass): New class.
+      nc (CIMClass):
+          New class.
 
-      ns (string): Namespace name. None will use the default namespace.
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
+
+          `None` will use the default namespace of the connection.
     """
 
     CONN.CreateClass(nc, ns)
 
 
-def DeleteClass(cn, ns=None):
+def dc(cn, ns=None):
     """
+    WBEM operation: DeleteClass
+
     Delete a class.
 
     Parameters:
 
-      cn (string): Class name.
+      cn (string or CIMClassName):
+          Name of the class to be deleted (case independent).
 
-      ns (string): Namespace name. None will use the default namespace.
+          If specified as a `CIMClassName` object, its `host` attribute will be
+          ignored.
+
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
+
+          If `None`, defaults to the namespace of the `cn` parameter if
+          specified as a `CIMClassName`, or to the default namespace of the
+          connection.
     """
 
     CONN.DeleteClass(cn, ns)
 
 
-def EnumerateQualifiers(ns=None):
+def eq(ns=None):
     """
+    WBEM operation: EnumerateQualifiers
+
     Enumerate qualifier types (= declarations) in a namespace.
 
     Parameters:
 
-      ns (string): Namespace name. None will use the default namespace.
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
+
+          `None` will use the default namespace of the connection.
 
     Returns:
 
-      list(CIMQualifierDeclaration): Enumerated qualifier types.
+      list of CIMQualifierDeclaration:
+          The enumerated qualifier types.
     """
 
     return CONN.EnumerateQualifiers(ns)
 
 
-def GetQualifier(qn, ns=None):
+def gq(qn, ns=None):
     """
+    WBEM operation: GetQualifier
+
     Retrieve a qualifier type (= declaration).
 
     Parameters:
 
-      qn (string): Qualifier name.
+      qn (string):
+          Qualifier name (case independent).
 
-      ns (string): Namespace name. None will use the default namespace.
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
+
+          `None` will use the default namespace of the connection.
 
     Returns:
 
-      CIMQualifierDeclaration: Retrieved qualifier type.
+      CIMQualifierDeclaration:
+          The retrieved qualifier type.
     """
 
     return CONN.GetQualifier(qn, ns)
 
 
-def SetQualifier(qd, ns=None):
+def sq(qd, ns=None):
     """
+    WBEM operation: SetQualifier
+
     Create or modify a qualifier type (= declaration) in a namespace.
 
     Parameters:
 
-      qd (CIMQualifierDeclaration): Qualifier type.
+      qd (CIMQualifierDeclaration):
+          Qualifier type.
 
-      ns (string): Namespace name. None will use the default namespace.
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
+
+          `None` will use the default namespace of the connection.
     """
 
     CONN.SetQualifier(qd, ns)
 
 
-def DeleteQualifier(qn, ns=None):
+def dq(qn, ns=None):
     """
+    WBEM operation: DeleteQualifier
+
     Delete a qualifier type (= declaration).
 
     Parameters:
 
-      qn (string): Qualifier name.
+      qn (string):
+          Qualifier name (case independent).
 
-      ns (string): Namespace name. None will use the default namespace.
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
+
+          `None` will use the default namespace of the connection.
     """
 
     CONN.DeleteQualifier(qn, ns)
@@ -1426,43 +1888,49 @@ def h():
 
     print(_get_connection_info())
     print("""
-Short and long names of operation functions:
-  ein = EnumerateInstanceNames
-  ei  = EnumerateInstances
-  gi  = GetInstance
-  mi  = ModifyInstance
-  ci  = CreateInstance
-  di  = DeleteInstance
-  an  = AssociatorNames
-  a   = Associators
-  rn  = ReferenceNames
-  r   = References
-  oei = OpenEnumerateInstances
-  oeip = OpenEnumerateInstancePaths
-  oai  = OpenAssociatorInstances
-  oaip = OpenAssociatorInstancePaths
-  ori  = OpenReferenceInstances
-  orip = OpenReferenceInstancePaths
-  oqi - OpenQueryInstances
-  piwp  = PullInstancesWithPath
-  pip = PullInstancePaths
-  pi = PullInstances
-  ce  = CloseEnumeration
-  im  = InvokeMethod
-  ecn = EnumerateClassNames
-  ec  = EnumerateClasses
-  gc  = GetClass
-  mc  = ModifyClass
-  cc  = CreateClass
-  dc  = DeleteClass
-  eq  = EnumerateQualifiers
-  gq  = GetQualifier
-  sq  = SetQualifier
-  dq  = DeleteQualifier
+Global functions for WBEM operations:
+
+  ein              EnumerateInstanceNames
+  ei               EnumerateInstances
+  gi               GetInstance
+  mi               ModifyInstance
+  ci               CreateInstance
+  di               DeleteInstance
+
+  an               AssociatorNames
+  a                Associators
+  rn               ReferenceNames
+  r                References
+
+  oei              OpenEnumerateInstances
+  oeip             OpenEnumerateInstancePaths
+  oai              OpenAssociatorInstances
+  oaip             OpenAssociatorInstancePaths
+  ori              OpenReferenceInstances
+  orip             OpenReferenceInstancePaths
+  oqi              OpenQueryInstances
+  piwp             PullInstancesWithPath
+  pip              PullInstancePaths
+  pi               PullInstances
+  ce               CloseEnumeration
+
+  im               InvokeMethod
+
+  ecn              EnumerateClassNames
+  ec               EnumerateClasses
+  gc               GetClass
+  mc               ModifyClass
+  cc               CreateClass
+  dc               DeleteClass
+
+  eq               EnumerateQualifiers
+  gq               GetQualifier
+  sq               SetQualifier
+  dq               DeleteQualifier
 
 Connection:
-  CONN = WBEMConnection object connected to the WBEM server
-  conn = WBEMConnection class.
+  CONN             Global WBEMConnection object connected to the WBEM server
+  conn             Alias for WBEMConnection class
 
 Debugging support:
   pdb('<stmt>')    Enter PDB debugger to execute <stmt>
@@ -1478,11 +1946,11 @@ Printing support:
                    producing an XML string
 
 Help:
-  help(<op>)       Brief help; <op> is a short operation name, e.g. help(gi)
+  help(<op>)       Help for global operation functions, e.g. help(gi)
   help(conn.<OpName>)
-                   Detailed help; <OpName> is a long operation name, e.g.
+                   Help for operation methods on WBEMConnection, e.g.
                    help(conn.GetInstance).
-  'q' to get back from help().
+  Use 'q' to get back from help().
 
 Example:
   >>> cs = ei('CIM_ComputerSystem')[0]
@@ -1505,46 +1973,6 @@ def pdb(stmt):
     # pylint: disable=exec-used
     exec(stmt)  # Type 3 x "s" to get to stmt, and "cont" to end debugger.
 
-
-# Aliases for global functions above
-
-ein = EnumerateInstanceNames
-ei = EnumerateInstances
-gi = GetInstance
-mi = ModifyInstance
-ci = CreateInstance
-di = DeleteInstance
-
-an = AssociatorNames
-a = Associators
-rn = ReferenceNames
-r = References
-
-oei = OpenEnumerateInstances
-oeip = OpenEnumerateInstancePaths
-oai = OpenAssociatorInstances
-oaip = OpenAssociatorInstancePaths
-ori = OpenReferenceInstances
-orip = OpenReferenceInstancePaths
-
-piwp = PullInstancesWithPath
-pip = PullInstancePaths
-pi = PullInstances
-ce = CloseEnumeration
-
-im = InvokeMethod
-
-ecn = EnumerateClassNames
-ec = EnumerateClasses
-gc = GetClass
-mc = ModifyClass
-cc = CreateClass
-dc = DeleteClass
-
-eq = EnumerateQualifiers
-gq = GetQualifier
-sq = SetQualifier
-dq = DeleteQualifier
 
 conn = WBEMConnection
 
