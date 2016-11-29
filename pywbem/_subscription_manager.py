@@ -143,7 +143,9 @@ as a context manager, in order to get automatic cleanup::
 
     with WBEMSubscriptionManager('fred') as subscription_manager:
         server1_id = subscription_manager.add_server(server1)
-    # exit method automatically calls remove_all_servers()
+        . . .
+    # The exit method automatically calls remove_all_servers(), which removes
+    # all owned subscriptions, filters and destinations.
 
 Another more practical example is in the script
 ``examples/pegIndicationTest.py`` (when you clone the GitHub pywbem/pywbem
@@ -176,9 +178,8 @@ class WBEMSubscriptionManager(object):
     """
     A class for managing subscriptions for CIM indications in a WBEM server.
 
-    The class may be used as a context manager, whose
-    :meth:`~pywbem.WBEMSubscriptionManager.__exit__` method will automatically
-    clean up.
+    The class may be used as a Python context manager, in order to get
+    automatic clean up (see :meth:`~pywbem.WBEMSubscriptionManager.__exit__`).
     """
 
     def __init__(self, subscription_manager_id=None):
