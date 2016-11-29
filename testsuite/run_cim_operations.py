@@ -21,7 +21,7 @@ import warnings
 import time
 from six.moves.urllib.parse import urlparse
 import six
-from unittest_extensions import RegexpMixin
+
 
 from pywbem import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
@@ -35,6 +35,8 @@ from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
     CIMClassName, CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
     CIMMethod, ValueMapping, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, CIMDateTime, TestClientRecorder
+
+from unittest_extensions import RegexpMixin
 
 # Test for decorator for unimplemented tests
 # decorator is @unittest.skip(UNIMPLEMENTED)
@@ -50,6 +52,18 @@ TEST_CLASS = 'CIM_ComputerSystem'
 TEST_CLASS_NAMESPACE = 'root/cimv2'
 TEST_CLASS_PROPERTY1 = 'Name'
 TEST_CLASS_PROPERTY2 = 'CreationClassName'
+
+# definition of a standard class defined in PyWBEM package that can be
+# used.  Any test should first confirm that the primary class exists
+# in the envirnment before using.  There is a defined method in setUp
+# (pywbem_person_class_exists) for this.
+# TODO ks Nov 2016 Create decerators for both this and the OpenPegasus
+# limitations on tests.
+PYWBEM_PERSON_CLASS = "PyWBEM_Person"
+PYWBEM_PERSONCOLLECTION = "PyWBEM_PersonCollection"
+PYWBEM_MEMBEROFPERSONCOLLECTION = "PyWBEM_MemberOfPersonCollection"
+PYWBEM_SOURCE_ROLE = "member"
+PYWBEM_TARGET_ROLE = "collection"
 
 # TOP level class that can be used for tests. Note that this class delivers
 # differing numbers of instances over time because it is reporting on the
@@ -146,6 +160,35 @@ class ClientTest(unittest.TestCase):
         if self.verbose:
             print('{}'.format(data_))
 
+    def pywbem_person_class_exists(self):
+        """
+        Test this class if it exists in the root/cimv2 namespace.
+
+        This is a simple group of classes that allows class, instance,
+        and reference/associators testing. If the class does not exist
+        the detailed tests should ignore the test.
+
+        The mof for this test is in testsuite/test.mof
+
+        Returns True if the class exists.
+        """
+        try:
+            self.cimcall(self.conn.GetClass, PYWBEM_PERSON_CLASS)
+            return True
+        except CIMError:
+            return False
+
+    def assertClassNamesValid(self, classnames):
+        """
+        Validate that the classnames are valid cimobject CIMClassName.
+        """
+        if isinstance(classnames, list):
+            for name in classnames:
+                self.assertClassNamesValid(name)
+        else:
+            name = classnames
+            self.assertTrue(isinstance(name, CIMClassName))
+
     def assertInstancesValid(self, instances, includes_path=True,
                              prop_count=None, property_list=None):
         """ Test for valid basic characteristics of an instance or list
@@ -181,32 +224,50 @@ class ClientTest(unittest.TestCase):
                     prop = instance.properties[p]
                     self.assertIsInstance(prop, CIMProperty)
 
-    def assertInstanceNameValid(self, path, includes_namespace=True,
-                                includes_keybindings=True,
-                                namespace=None):
+    def assertInstanceNamesValid(self, paths, includes_namespace=True,
+                                 includes_keybindings=True,
+                                 namespace=None):
         """
-        Validate that the path argument is a valid CIMInstanceName.
+        Validate that the paths argument is a valid CIMInstanceName or
+        list of valid CIMInstanceNames.
         Default is to test for namespace existing and keybindings.
         Optional is to compare namespace.
         """
-        self.assertTrue(isinstance(path, CIMInstanceName))
-        if includes_namespace:
-            self.assertTrue(len(path.namespace) > 0)
-        if includes_keybindings:
-            self.assertTrue(path.keybindings is not None)
-        if namespace is not None:
-            self.assertTrue(path.namespace == namespace)
+        if isinstance(paths, list):
+            for path in paths:
+                self.assertInstanceNamesValid(
+                    path,
+                    includes_namespace=includes_namespace,
+                    includes_keybindings=includes_keybindings,
+                    namespace=namespace)
 
-    def assertAssocRefClassRtnValid(self, cls):
+        else:
+            path = paths
+            self.assertTrue(isinstance(path, CIMInstanceName))
+            if includes_namespace:
+                self.assertTrue(len(path.namespace) > 0)
+            if includes_keybindings:
+                self.assertTrue(path.keybindings is not None)
+            if namespace is not None:
+                self.assertTrue(path.namespace == namespace)
+
+    def assertAssocRefClassRtnValid(self, op_result):
         """ Confirm that an associator or Reference class response
             returns a tuple of (classname, class).
+
+            Accepts either a class or list of classes
         """
-        self.assertTrue(isinstance(cls, tuple))
+        if isinstance(op_result, list):
+            for r in op_result:
+                self.assertAssocRefClassRtnValid(r)
 
-        self.assertTrue(isinstance(cls[0], CIMClassName))
-        self.assertTrue(len(cls[0].namespace) > 0)
+        else:
+            self.assertTrue(isinstance(op_result, tuple))
 
-        self.assertTrue(isinstance(cls[1], CIMClass))
+            self.assertTrue(isinstance(op_result[0], CIMClassName))
+            self.assertTrue(len(op_result[0].namespace) > 0)
+
+            self.assertTrue(isinstance(op_result[1], CIMClass))
 
     def inst_in_list(self, inst, instances, ignorehost=False):
         """ Determine if an instance is in a list of instances.
@@ -315,7 +376,7 @@ class EnumerateInstanceNames(ClientTest):
         self.assertTrue(len(names) >= 1)
 
         for name in names:
-            self.assertInstanceNameValid(name, namespace=self.namespace)
+            self.assertInstanceNamesValid(name, namespace=self.namespace)
 
         # Call with explicit CIM namespace that exists
 
@@ -846,6 +907,8 @@ class PullEnumerateInstances(ClientTest):
             if ce.args[0] != CIM_ERR_INVALID_ENUMERATION_CONTEXT:
                 raise
 
+    # TODO. This one is subject to errors because compare may not return
+    #       same info.  Recheck all the TOP_CLASS calls for same issue
     def test_get_onebyone(self):
         """Get instances with MaxObjectCount = 1)."""
 
@@ -1089,6 +1152,7 @@ class PullEnumerateInstancePaths(ClientTest):
         else:
             print([path for path in paths2 if path not in paths1])
 
+    # TODO this only returns single instance.
     def test_get_onebyone(self):
         """Enumerate instances with MaxObjectCount = 1)."""
 
@@ -1167,6 +1231,41 @@ class PullReferences(ClientTest):
             self.assertTrue(i.path.host is not None)
 
         self.assertInstancesEqual(insts_pulled, insts_enum)
+
+    def test_pywbem_person_noparams(self):
+        """
+        Test OpenReferencesWithPath PyWBEM_Person class
+        and no associator filter parameters
+        """
+        if not self.pywbem_person_class_exists():
+            return
+
+        inst_paths = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_paths) >= 1)
+
+        # for each returned instance, execute  test sequence to get
+        # all instances
+        for path in inst_paths:
+            result = self.cimcall(self.conn.OpenReferenceInstances,
+                                  path,
+                                  MaxObjectCount=100)
+
+            insts_pulled = result.instances
+
+            while not result.eos:
+                result = self.cimcall(
+                    self.conn.PullInstancesWithPath, result.context,
+                    MaxObjectCount=1)
+                self.assertTrue(len(result.instances) <= 1)
+                insts_pulled.extend(result.instances)
+
+            # test the returned insts_pulled
+            self.assertTrue(len(insts_pulled) > 0)
+            self.assertInstancesValid(insts_pulled)
+            for inst in insts_pulled:
+                self.assertEqual(inst.classname,
+                                 PYWBEM_MEMBEROFPERSONCOLLECTION)
 
     @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip test against all instances')
     def test_all_instances_in_ns(self):
@@ -1274,7 +1373,7 @@ class PullReferencePaths(ClientTest):
                                   MaxObjectCount=100)
 
             for path in result.paths:
-                self.assertInstanceNameValid(path)
+                self.assertInstanceNamesValid(path)
 
             paths = result.paths
 
@@ -1284,7 +1383,7 @@ class PullReferencePaths(ClientTest):
                                       MaxObjectCount=1)
 
                 for path in result.path:
-                    self.assertInstanceNameValid(path)
+                    self.assertInstanceNamesValid(path)
 
                 paths.extend(result.paths)
 
@@ -1339,6 +1438,40 @@ class PullAssociators(ClientTest):
             self.assertTrue(i.path.host is not None)
 
         self.assertInstancesEqual(insts_pulled, insts_enum)
+
+    def test_pywbem_person_noparams(self):
+        """
+        Test associator with PyWBEM_Person class and no associator
+        filter parameters
+        """
+        if not self.pywbem_person_class_exists():
+            return
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+
+        for name in inst_names:
+            result = self.cimcall(self.conn.OpenAssociatorInstances,
+                                  name,
+                                  MaxObjectCount=100)
+
+            insts_pulled = result.instances
+
+            while not result.eos:
+                result = self.cimcall(
+                    self.conn.PullInstancesWithPath, result.context,
+                    MaxObjectCount=1)
+                self.assertTrue(len(result.instances) <= 1)
+                insts_pulled.extend(result.instances)
+
+        # TODO ks This not right. we are going back to associators
+        for path in inst_names:
+            ref_insts = self.cimcall(
+                self.conn.Associators, path)
+            self.assertTrue(len(ref_insts) > 0)
+            self.assertInstancesValid(ref_insts)
+            for inst in ref_insts:
+                self.assertEqual(inst.classname, 'PyWBEM_PersonCollection')
 
     @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long  all instances test')
     def test_all_instances_in_ns(self):
@@ -1435,6 +1568,40 @@ class PullAssociatorPaths(ClientTest):
 
         self.assertPathsEqual(paths_pulled, paths_enum)
 
+    def test_pywbem_person_noparams(self):
+        """
+        Test associator with PyWBEM_Person class and no associator
+        filter parameters
+        """
+        if not self.pywbem_person_class_exists():
+            return
+
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+
+        for name in inst_names:
+            result = self.cimcall(self.conn.OpenAssociatorInstancePaths,
+                                  name,
+                                  MaxObjectCount=100)
+
+            paths_pulled = result.paths
+
+            while not result.eos:
+                result = self.cimcall(
+                    self.conn.PullInstancePaths, result.context,
+                    MaxObjectCount=1)
+                self.assertTrue(len(result.paths) <= 1)
+                paths_pulled.extend(result.paths)
+
+        for path in inst_names:
+            ref_insts = self.cimcall(
+                self.conn.Associators, path)
+            self.assertTrue(len(ref_insts) > 0)
+            self.assertInstancesValid(ref_insts)
+            for inst in ref_insts:
+                self.assertEqual(inst.classname, 'PyWBEM_PersonCollection')
+
     @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
     def test_all_instances_in_ns(self):
         """Simplest invocation. Everything comes back in
@@ -1453,7 +1620,7 @@ class PullAssociatorPaths(ClientTest):
                                   MaxObjectCount=100)
 
             for path in result.paths:
-                self.assertInstanceNameValid(path)
+                self.assertInstanceNamesValid(path)
 
             paths_pulled = result.paths
 
@@ -1462,7 +1629,7 @@ class PullAssociatorPaths(ClientTest):
                                       result.context,
                                       MaxObjectCount=1)
                 for path in result.path:
-                    self.assertInstanceNameValid(path)
+                    self.assertInstanceNamesValid(path)
                 paths_pulled.extend(result.paths)
 
             paths_enum = self.cimcall(self.conn.AssociatorNames, pathi)
@@ -1868,8 +2035,8 @@ class ModifyInstance(ClientTest):
 
 class InvokeMethod(ClientTest):
 
-    def test_all(self):
-
+    def test_class_level(self):
+        """Invoke method on a class name"""
         # Invoke on classname
 
         try:
@@ -1882,7 +2049,8 @@ class InvokeMethod(ClientTest):
             if ce.args[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
                 raise
 
-        # Invoke on an InstanceName
+    def test_instance_level(self):
+        """Invoke on an InstanceName"""
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
                                   TEST_CLASS)
@@ -1900,8 +2068,12 @@ class InvokeMethod(ClientTest):
                                   CIM_ERR_METHOD_NOT_FOUND):
                 raise
 
-        # Test remote instance name
-
+    def test_remote_instance_name(self):
+        """Test remote instance name"""
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+        name = inst_names[0]  # Pick the first returned instance
         name2 = name.copy()
         name2.host = 'woot.com'
         name2.namespace = 'root/cimv2'
@@ -1916,8 +2088,12 @@ class InvokeMethod(ClientTest):
                                   CIM_ERR_METHOD_NOT_FOUND):
                 raise
 
-        # Call with all possible parameter types
-
+    def test_all_param_types(self):
+        """Call invoke method with all possible parameter types"""
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+        name = inst_names[0]  # Pick the first returned instance
         try:
             self.cimcall(self.conn.InvokeMethod,
                          'FooMethod',
@@ -1941,8 +2117,12 @@ class InvokeMethod(ClientTest):
             if ce.args[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
                 raise
 
-        # Call with non-empty arrays
-
+    def test_non_empty_arrays(self):
+        """Call with non-empty arrays"""
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+        name = inst_names[0]  # Pick the first returned instance
         try:
 
             self.cimcall(self.conn.InvokeMethod,
@@ -1968,7 +2148,8 @@ class InvokeMethod(ClientTest):
             if ce.args[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
                 raise
 
-        # Call with new Params arg
+    def test_new_params_arg(self):
+        """Call with new Params arg"""
 
         try:
             self.cimcall(self.conn.InvokeMethod,
@@ -1980,6 +2161,22 @@ class InvokeMethod(ClientTest):
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
                 raise
+
+    # TODO specalize this one for OpenPegasus
+    def test_working_method(self):
+        """OpenPegasus specific method that works"""
+        test_class = 'Test_IndicationProviderClass'
+        test_class_namespace = 'test/TestProvider'
+        class_name = CIMClassName(test_class,
+                                  namespace=test_class_namespace)
+
+        result = self.cimcall(self.conn.InvokeMethod,
+                              "SendTestIndicationsCount",
+                              class_name,
+                              [('indicationSendCount',
+                                Uint32(0))])
+
+        self.assertEqual(result[0], 1)
 
         # TODO: Call with empty arrays
 
@@ -2027,6 +2224,98 @@ class Associators(ClientTest):
         for cls in assoc_classes:
             self.assertAssocRefClassRtnValid(cls)
 
+    def test_pywbem_person_class_associator(self):
+        # pylint: disable=invalid-name
+        """Get Class Associator for PyWBEM_Person source instance."""
+        if not self.pywbem_person_class_exists():
+            return
+
+        result = self.cimcall(self.conn.Associators, PYWBEM_PERSON_CLASS)
+
+        self.assertAssocRefClassRtnValid(result)
+
+    def test_pywbem_person_class_associator2(self):
+        # pylint: disable=invalid-name
+        """Get a class associator filtered by result role and role"""
+        if not self.pywbem_person_class_exists():
+            return
+
+        result = self.cimcall(
+            self.conn.Associators, PYWBEM_PERSON_CLASS,
+            AssocClass=PYWBEM_MEMBEROFPERSONCOLLECTION)
+
+        self.assertAssocRefClassRtnValid(result)
+
+        self.assertEqual(len(result), 1)
+
+        self.assertEqual(result[0][1].classname, 'CIM_Collection')
+
+    def test_pywbem_person_class_associator3(self):
+        # pylint: disable=invalid-name
+        """Get a class associator filtered by result role and role"""
+        if not self.pywbem_person_class_exists():
+            return
+
+        result = self.cimcall(
+            self.conn.Associators, PYWBEM_PERSON_CLASS,
+            AssocClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
+            role=PYWBEM_SOURCE_ROLE)
+
+        self.assertAssocRefClassRtnValid(result)
+
+        self.assertEqual(len(result), 1)
+
+        self.assertEqual(result[0][1].classname, 'CIM_Collection')
+
+    # TODO ks dec/16 why returning CIM_Collection
+    # TODO ks dec/16 why do we not get return when we user resultrole
+
+    def test_pywbem_person_inst_associator(self):
+        # pylint: disable=invalid-name
+        """Get Class Associator for PyWBEM_Person source instance."""
+        if not self.pywbem_person_class_exists():
+            return
+
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+
+        for path in inst_names:
+            ref_insts = self.cimcall(
+                self.conn.Associators, path,
+                AssocClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
+                Role=PYWBEM_SOURCE_ROLE)
+            self.assertTrue(len(ref_insts) > 0)
+            self.assertInstancesValid(ref_insts)
+            for inst in ref_insts:
+                self.assertEqual(inst.classname, 'PyWBEM_PersonCollection')
+
+    def test_pywbem_person_inst_associatorName2(self):
+        # pylint: disable=invalid-name
+        """Get Class associator for PyWBEM_Person source instance.
+
+           All parameters included
+        """
+        if not self.pywbem_person_class_exists():
+            return
+
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+
+        for path in inst_names:
+            ref_insts = self.cimcall(
+                self.conn.AssociatorNames, path,
+                ResultClass='CIM_Collection',
+                AssocClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
+                Role=PYWBEM_SOURCE_ROLE,
+                ResultRole='Collection')
+
+            self.assertTrue(len(ref_insts) > 0)
+            self.assertInstancesValid(ref_insts)
+            for inst in ref_insts:
+                self.assertEqual(inst.classname, 'PyWBEM_PersonCollection')
+
     @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
     def test_all_class_associators(self):
         """Test getting associator classes for all classes in a namespace."""
@@ -2064,15 +2353,119 @@ class AssociatorNames(ClientTest):
             self.assertTrue(n.host is not None)
 
     def test_one_class_associatorname(self):
-        """Call on class name. Returns CIMClassName.
-           Test getting associator class names for defined class"""
+        # pylint: disable=invalid-name
+        """Test call with classname."""
 
         names = self.cimcall(self.conn.AssociatorNames, TEST_CLASS)
+        self.assertTrue(len(names) > 0)
+        self.assertClassNamesValid(names)
 
-        for n in names:
-            self.assertTrue(isinstance(n, CIMClassName))
+    def test_pywbem_person_class_associatorname(self):
+        # pylint: disable=invalid-name
+        """Get Class associator for PyWBEM_Person source instance."""
+        if not self.pywbem_person_class_exists():
+            return
 
-        # TODO: check return values, NS, etc.
+        names = self.cimcall(self.conn.AssociatorNames, PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(names) > 0)
+        self.assertClassNamesValid(names)
+
+    def test_pywbem_person_class_associatorname2(self):
+        # pylint: disable=invalid-name
+        """Get a class associator filtered by assoc class"""
+        if not self.pywbem_person_class_exists():
+            return
+
+        names = self.cimcall(
+            self.conn.AssociatorNames, PYWBEM_PERSON_CLASS,
+            AssocClass=PYWBEM_MEMBEROFPERSONCOLLECTION)
+
+        self.assertClassNamesValid(names)
+
+        self.assertEqual(len(names), 1)
+
+    def test_pywbem_person_class_associatorname3(self):
+        # pylint: disable=invalid-name
+        """Get a class associator filtered by result role and role"""
+        if not self.pywbem_person_class_exists():
+            return
+
+        names = self.cimcall(
+            self.conn.AssociatorNames, PYWBEM_PERSON_CLASS,
+            AssocClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
+            Role=PYWBEM_SOURCE_ROLE)
+
+        self.assertClassNamesValid(names)
+
+        self.assertEqual(len(names), 1)
+
+        for name in names:
+            print(name)
+
+    def test_pywbem_person_class_associatorname4(self):
+        # pylint: disable=invalid-name
+        """Get a class associator filtered by result role and role"""
+        if not self.pywbem_person_class_exists():
+            return
+
+        names = self.cimcall(
+            self.conn.AssociatorNames, PYWBEM_PERSON_CLASS,
+            ResultClass='CIM_Collection',
+            AssocClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
+            Role=PYWBEM_SOURCE_ROLE,
+            ResultRole='Collection')
+
+        self.assertClassNamesValid(names)
+
+        self.assertEqual(len(names), 1)
+
+    def test_pywbem_person_inst_associatorName(self):
+        # pylint: disable=invalid-name
+        """
+        Get associator instances for PyWBEM_Person source instance.
+
+        Uses default for all optional request parameters
+
+        """
+        if not self.pywbem_person_class_exists():
+            return
+
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+
+        for path in inst_names:
+            ref_inst_names = self.cimcall(
+                self.conn.AssociatorNames, path)
+
+            self.assertTrue(len(ref_inst_names) > 0)
+            self.assertInstanceNamesValid(ref_inst_names)
+
+    def test_pywbem_person_inst_associatorName2(self):
+        # pylint: disable=invalid-name
+        """
+        Get associator instances for PyWBEM_Person source instance.
+
+        This test includes all of the association filters
+
+        """
+        if not self.pywbem_person_class_exists():
+            return
+
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+
+        for path in inst_names:
+            ref_inst_names = self.cimcall(
+                self.conn.AssociatorNames, path,
+                ResultClass='CIM_Collection',
+                AssocClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
+                Role=PYWBEM_SOURCE_ROLE,
+                ResultRole='Collection')
+
+            self.assertTrue(len(ref_inst_names) > 0)
+            self.assertInstanceNamesValid(ref_inst_names)
 
     @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test')
     def test_all_class_associatornames(self):
@@ -2093,6 +2486,7 @@ class References(ClientTest):
     def test_one_ref(self):
 
         # Call on named instance
+        # TODO. This is really broken
 
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
         self.assertTrue(len(inst_names) >= 1)
@@ -2113,15 +2507,71 @@ class References(ClientTest):
     def test_one_class_reference(self):
         """Test call with classname that returns classes."""
 
-        classes = self.cimcall(self.conn.References, TEST_CLASS)
+        result = self.cimcall(self.conn.References, TEST_CLASS)
 
-        self.assertTrue(len(classes) > 0)
+        self.assertAssocRefClassRtnValid(result)
 
-        for cl in classes:
-            self.assertTrue(isinstance(cl, tuple))
-            self.assertTrue(isinstance(cl[0], CIMClassName))
-            self.assertTrue(isinstance(cl[1], CIMClass))
-        # TODO: check return values
+    def test_pywbem_person_class_ref(self):
+        """Get Class Reference for PyWBEM_Person source instance."""
+        if not self.pywbem_person_class_exists():
+            return
+
+        result = self.cimcall(self.conn.References, PYWBEM_PERSON_CLASS)
+
+        self.assertAssocRefClassRtnValid(result)
+
+    def test_pywbem_person_class_ref2(self):
+        """Get a class reference filtered by result role and role"""
+        if not self.pywbem_person_class_exists():
+            return
+
+        result = self.cimcall(
+            self.conn.References, PYWBEM_PERSON_CLASS,
+            ResultClass=PYWBEM_MEMBEROFPERSONCOLLECTION)
+
+        self.assertAssocRefClassRtnValid(result)
+
+        self.assertEqual(len(result), 1)
+
+        self.assertEqual(result[0][1].classname,
+                         PYWBEM_MEMBEROFPERSONCOLLECTION)
+
+    def test_pywbem_person_class_ref3(self):
+        """Get a class reference filtered by result role and role"""
+        if not self.pywbem_person_class_exists():
+            return
+
+        result = self.cimcall(
+            self.conn.References, PYWBEM_PERSON_CLASS,
+            ResultClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
+            role=PYWBEM_SOURCE_ROLE)
+
+        self.assertAssocRefClassRtnValid(result)
+
+        self.assertEqual(len(result), 1)
+
+        self.assertEqual(result[0][1].classname,
+                         PYWBEM_MEMBEROFPERSONCOLLECTION)
+
+    def test_pywbem_person_inst_ref(self):
+        """Get Class Reference for PyWBEM_Person source instance."""
+        if not self.pywbem_person_class_exists():
+            return
+
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+
+        for path in inst_names:
+            ref_insts = self.cimcall(
+                self.conn.References, path,
+                ResultClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
+                Role=PYWBEM_SOURCE_ROLE)
+            self.assertTrue(len(ref_insts) > 0)
+            self.assertInstancesValid(ref_insts)
+            for inst in ref_insts:
+                self.assertEqual(inst.classname,
+                                 PYWBEM_MEMBEROFPERSONCOLLECTION)
 
 
 class ReferenceNames(ClientTest):
@@ -2136,14 +2586,7 @@ class ReferenceNames(ClientTest):
 
         names = self.cimcall(self.conn.ReferenceNames, inst_name)
 
-        for n in names:
-            self.assertTrue(isinstance(n, CIMInstanceName))
-
-            # TODO: For now, disabled test for class name of referencing insts.
-            # self.assertTrue(n.classname == 'TBD')
-
-            self.assertTrue(n.namespace is not None)
-            self.assertTrue(n.host is not None)
+        self.assertClassNamesValid(names)
 
     def test_one_class_referencename(self):
         """Test call with classname."""
@@ -2152,8 +2595,64 @@ class ReferenceNames(ClientTest):
 
         self.assertTrue(len(names) > 0)
 
-        for name in names:
-            self.assertTrue(isinstance(name, CIMClassName))
+        self.assertClassNamesValid(names)
+
+    # pylint: disable=invalid-name
+    def test_pywbem_person_class_referencename(self):
+        """Get Class Reference for PyWBEM_Person source instance."""
+        if not self.pywbem_person_class_exists():
+            return
+
+        names = self.cimcall(self.conn.ReferenceNames, PYWBEM_PERSON_CLASS)
+        self.assertClassNamesValid(names)
+
+    def test_pywbem_person_class_referencename2(self):
+        """Get a class reference filtered by result role and role"""
+        if not self.pywbem_person_class_exists():
+            return
+
+        names = self.cimcall(
+            self.conn.ReferenceNames, PYWBEM_PERSON_CLASS,
+            ResultClass=PYWBEM_MEMBEROFPERSONCOLLECTION)
+
+        self.assertClassNamesValid(names)
+
+        self.assertEqual(len(names), 1)
+
+    def test_pywbem_person_class_referencename3(self):
+        """Get a class reference filtered by result role and role"""
+        if not self.pywbem_person_class_exists():
+            return
+
+        names = self.cimcall(
+            self.conn.ReferenceNames, PYWBEM_PERSON_CLASS,
+            ResultClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
+            role=PYWBEM_SOURCE_ROLE)
+
+        self.assertClassNamesValid(names)
+
+        self.assertEqual(len(names), 1)
+
+    def test_pywbem_person_inst_ref(self):
+        """Get Class Reference for PyWBEM_Person source instance."""
+        if not self.pywbem_person_class_exists():
+            return
+
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+
+        for path in inst_names:
+            ref_inst_names = self.cimcall(
+                self.conn.ReferenceNames, path,
+                ResultClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
+                Role=PYWBEM_SOURCE_ROLE)
+            self.assertTrue(len(ref_inst_names) > 0)
+            self.assertInstanceNamesValid(ref_inst_names)
+            # for inst in ref_insts:
+            #    self.assertEqual(inst.classname,
+            #        PYWBEM_MEMBEROFPERSONCOLLECTION)
+
 
 #################################################################
 # Schema manipulation interface tests

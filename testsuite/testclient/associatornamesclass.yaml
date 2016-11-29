@@ -1,0 +1,821 @@
+- name: AssociatorNamesClass1
+  description: Associator Names on Class PyWBEM with AssocClass, ResultClass, Role, ResultRole. Returns 1 instance 
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: AssociatorNames
+      ResultClass: CIM_Collection
+      Role: member
+      AssocClass: PyWBEM_MemberOfPersonCollection
+      ObjectName: PyWBEM_Person
+      ResultRole: Collection
+  pywbem_response:
+    result:
+    - pywbem_object: CIMClassName
+      classname: CIM_Collection
+      host: sheldon
+      namespace: root/cimv2
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: AssociatorNames
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="AssociatorNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ResultClass">
+      <CLASSNAME NAME="CIM_Collection"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Role">
+      <VALUE>member</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ResultRole">
+      <VALUE>Collection</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="AssocClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="AssociatorNames">
+      <IRETURNVALUE>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Collection"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+
+- name: AssociatorNamesClass2
+  description: AssociatorName on class PyWBEM no filter params. Returns multiple classnames
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: AssociatorNames
+      ResultClass: null
+      Role: null
+      AssocClass: null
+      ObjectName: PyWBEM_Person
+      ResultRole: null
+  pywbem_response:
+    result:
+    - pywbem_object: CIMClassName
+      classname: CIM_MethodParameters
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_SettingData
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_StatisticalInformation
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_ManagedElement
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_PolicySet
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_Credential
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_Identity
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_OrganizationalEntity
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_Capabilities
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_StatisticalData
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_View
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_Collection
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_Product
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_ListenerDestination
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_BaseMetricDefinition
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_BaseMetricValue
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_RecordForLog
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_AuthenticationRequirement
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_AccessControlInformation
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_AuthorizedPrivilege
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_UsersAccess
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_SecuritySensitivity
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_Role
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_Location
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_Profile
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_SoftwareIdentity
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_ScopedSettingData
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_RegisteredProfile
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_PolicyRoleCollection
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_Job
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_RedundancySet
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_Service
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_CommonDatabase
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_OtherPersonInformation
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_System
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_ServiceAccessPoint
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_DiagnosticService
+      host: sheldon
+      namespace: root/cimv2
+    - pywbem_object: CIMClassName
+      classname: CIM_PowerManagementService
+      host: sheldon
+      namespace: root/cimv2
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: AssociatorNames
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="AssociatorNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="AssociatorNames">
+      <IRETURNVALUE>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_MethodParameters"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_SettingData"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_StatisticalInformation"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_ManagedElement"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_PolicySet"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Credential"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Identity"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_OrganizationalEntity"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Capabilities"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_StatisticalData"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_View"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Collection"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Product"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_ListenerDestination"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_BaseMetricDefinition"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_BaseMetricValue"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_RecordForLog"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_AuthenticationRequirement"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_AccessControlInformation"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_AuthorizedPrivilege"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_UsersAccess"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_SecuritySensitivity"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Role"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Location"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Profile"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_SoftwareIdentity"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_ScopedSettingData"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_RegisteredProfile"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_PolicyRoleCollection"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Job"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_RedundancySet"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Service"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_CommonDatabase"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_OtherPersonInformation"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_System"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_ServiceAccessPoint"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_DiagnosticService"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_PowerManagementService"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+
+- name: AssociatorNamesClassF1
+  description: Associator Names on class PyWBEM with AssocClass,ResultClass, Role, and ResultRole Bad Namespace returns Invalid namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: AssociatorNames
+      ResultClass: CIM_Collection
+      Role: member
+      AssocClass: PyWBEM_MemberOfPersonCollection
+      ObjectName: PyWBEM_Person
+      ResultRole: null
+  pywbem_response:
+    cim_status: 3
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: AssociatorNames
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="AssociatorNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ResultClass">
+      <CLASSNAME NAME="CIM_Collection"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Role">
+      <VALUE>member</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="AssocClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+        CIMOperation: MethodResponse
+    data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="AssociatorNames">
+                    <ERROR CODE="3" DESCRIPTION="CIM_ERR_INVALID_NAMESPACE: Namespace root/bad not found"/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+      

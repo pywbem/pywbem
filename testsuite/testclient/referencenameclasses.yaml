@@ -1,0 +1,140 @@
+- name: ReferenceNamesClasses1
+  description: ReferenceNames request on PyWBEM_Person with ResultClass and role. Returns 1 instance
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: ReferenceNames
+      Role: member
+      ResultClass: PyWBEM_MemberOfPersonCollection
+      ObjectName: PyWBEM_Person
+  pywbem_response:
+    result:
+    - pywbem_object: CIMClassName
+      classname: PyWBEM_MemberOfPersonCollection
+      host: sheldon
+      namespace: root/cimv2
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: ReferenceNames
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="ReferenceNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ResultClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Role">
+      <VALUE>member</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="ReferenceNames">
+      <IRETURNVALUE>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: ReferenceNamesClassesF1
+  description: ReferenceNames request fails, invalid namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/bad
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: ReferenceNames
+      Role: member
+      ResultClass: PyWBEM_MemberOfPersonCollection
+      ObjectName: PyWBEM_Person
+  pywbem_response:
+    cim_status: 3
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: ReferenceNames
+      CIMObject: root/bad
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="ReferenceNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="bad"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ResultClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Role">
+      <VALUE>member</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+        CIMOperation: MethodResponse
+    data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="ReferenceNames">
+                    <ERROR CODE="3" DESCRIPTION="CIM_ERR_INVALID_NAMESPACE: Namespace root/bad not found"/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+

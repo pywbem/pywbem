@@ -1,0 +1,323 @@
+- name: AssociatorInsts1
+  description: Simple associator instances request, zero responses, succeeds
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: Associators
+      IncludeQualifiers: null
+      ObjectName:
+        pywbem_object: CIMInstanceName
+        classname: TST_Blah
+        namespace: root/cimv2
+        keybindings:
+          Name: Blah
+      ResultClass: null
+      PropertyList: null
+      ResultRole: null
+      IncludeClassOrigin: null
+      Role: null
+      AssocClass: null
+  pywbem_response:
+    result: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: Associators
+      CIMObject: root/cimv2
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEREQ>
+            <IMETHODCALL NAME="Associators">
+              <LOCALNAMESPACEPATH>
+                <NAMESPACE NAME="root"/>
+                <NAMESPACE NAME="cimv2"/>
+              </LOCALNAMESPACEPATH>
+              <IPARAMVALUE NAME="ObjectName">
+                <INSTANCENAME CLASSNAME="TST_Blah">
+                  <KEYBINDING NAME="Name">
+                    <KEYVALUE VALUETYPE="string">Blah</KEYVALUE>
+                  </KEYBINDING>
+                </INSTANCENAME>
+              </IPARAMVALUE>
+            </IMETHODCALL>
+          </SIMPLEREQ>
+        </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="Associators">
+      <IRETURNVALUE>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+- name: AssociatorInsts2
+  description: Associators on instance request with most parameters, zero responses, succeeds
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: Associators
+      IncludeQualifiers: true
+      ObjectName:
+        pywbem_object: CIMInstanceName
+        classname: TST_Blah
+        namespace: root/cimv2
+        keybindings:
+          Name: Blah
+      ResultClass: myResultClass
+      ResultRole: myResultRole
+      IncludeClassOrigin: true
+      Role: myRole
+      AssocClass: myAssocClass
+  pywbem_response:
+    result: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: Associators
+      CIMObject: root/cimv2
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEREQ>
+            <IMETHODCALL NAME="Associators">
+              <LOCALNAMESPACEPATH>
+                <NAMESPACE NAME="root"/>
+                <NAMESPACE NAME="cimv2"/>
+              </LOCALNAMESPACEPATH>
+              <IPARAMVALUE NAME="IncludeQualifiers">
+                <VALUE>True</VALUE>
+              </IPARAMVALUE>
+              <IPARAMVALUE NAME="ObjectName">
+                <INSTANCENAME CLASSNAME="TST_Blah">
+                  <KEYBINDING NAME="Name">
+                    <KEYVALUE VALUETYPE="string">Blah</KEYVALUE>
+                  </KEYBINDING>
+                </INSTANCENAME>
+              </IPARAMVALUE>
+              <IPARAMVALUE NAME="ResultClass">
+                <CLASSNAME NAME="myResultClass"></CLASSNAME>
+              </IPARAMVALUE>
+              <IPARAMVALUE NAME="ResultRole">
+                <VALUE>myResultRole</VALUE>
+              </IPARAMVALUE>
+              <IPARAMVALUE NAME="IncludeClassOrigin">
+                <VALUE>True</VALUE>
+              </IPARAMVALUE>
+              <IPARAMVALUE NAME="Role">
+                <VALUE>myRole</VALUE>
+              </IPARAMVALUE>
+              <IPARAMVALUE NAME="AssocClass">
+                <CLASSNAME NAME="myAssocClass"></CLASSNAME>
+              </IPARAMVALUE>
+            </IMETHODCALL>
+          </SIMPLEREQ>
+        </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="Associators">
+      <IRETURNVALUE>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+- name: AssociatorInsts3
+  description: Associators on instance Request, zero responses, succeeds
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: Associators
+      IncludeQualifiers: null
+      ObjectName:
+        pywbem_object: CIMInstanceName
+        classname: PG_ComputerSystem
+        namespace: root/cimv2
+        keybindings:
+          CreationClassName: PG_ComputerSystem
+          Name: sheldon
+      ResultClass: null
+      PropertyList: null
+      ResultRole: null
+      IncludeClassOrigin: null
+      Role: null
+      AssocClass: null
+  pywbem_response:
+    result: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: Associators
+      CIMObject: root/cimv2
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEREQ>
+            <IMETHODCALL NAME="Associators">
+              <LOCALNAMESPACEPATH>
+                <NAMESPACE NAME="root"/>
+                <NAMESPACE NAME="cimv2"/>
+              </LOCALNAMESPACEPATH>
+              <IPARAMVALUE NAME="ObjectName">
+                <INSTANCENAME CLASSNAME="PG_ComputerSystem">
+                  <KEYBINDING NAME="CreationClassName">
+                    <KEYVALUE VALUETYPE="string">PG_ComputerSystem</KEYVALUE>
+                  </KEYBINDING>
+                  <KEYBINDING NAME="Name">
+                    <KEYVALUE VALUETYPE="string">sheldon</KEYVALUE>
+                  </KEYBINDING>
+                </INSTANCENAME>
+              </IPARAMVALUE>
+            </IMETHODCALL>
+          </SIMPLEREQ>
+        </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="Associators">
+      <IRETURNVALUE>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+- name: AssociatorInsts4
+  description: Associator instances Request with most parameters, zero responses, succeeds
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: Associators
+      IncludeQualifiers: true
+      ObjectName:
+        pywbem_object: CIMInstanceName
+        classname: PG_ComputerSystem
+        namespace: root/cimv2
+        keybindings:
+          CreationClassName: PG_ComputerSystem
+          Name: sheldon
+      ResultClass: myResultClass
+      ResultRole: myResultRole
+      IncludeClassOrigin: true
+      Role: myRole
+      AssocClass: myAssocClass
+  pywbem_response:
+    result: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: Associators
+      CIMObject: root/cimv2
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEREQ>
+            <IMETHODCALL NAME="Associators">
+              <LOCALNAMESPACEPATH>
+                <NAMESPACE NAME="root"/>
+                <NAMESPACE NAME="cimv2"/>
+              </LOCALNAMESPACEPATH>
+              <IPARAMVALUE NAME="IncludeQualifiers">
+                <VALUE>True</VALUE>
+              </IPARAMVALUE>
+              <IPARAMVALUE NAME="ObjectName">
+                <INSTANCENAME CLASSNAME="PG_ComputerSystem">
+                  <KEYBINDING NAME="CreationClassName">
+                    <KEYVALUE VALUETYPE="string">PG_ComputerSystem</KEYVALUE>
+                  </KEYBINDING>
+                  <KEYBINDING NAME="Name">
+                    <KEYVALUE VALUETYPE="string">sheldon</KEYVALUE>
+                  </KEYBINDING>
+                </INSTANCENAME>
+              </IPARAMVALUE>
+              <IPARAMVALUE NAME="ResultClass">
+                <CLASSNAME NAME="myResultClass"></CLASSNAME>
+              </IPARAMVALUE>
+              <IPARAMVALUE NAME="ResultRole">
+                <VALUE>myResultRole</VALUE>
+              </IPARAMVALUE>
+              <IPARAMVALUE NAME="IncludeClassOrigin">
+                <VALUE>True</VALUE>
+              </IPARAMVALUE>
+              <IPARAMVALUE NAME="Role">
+                <VALUE>myRole</VALUE>
+              </IPARAMVALUE>
+              <IPARAMVALUE NAME="AssocClass">
+                <CLASSNAME NAME="myAssocClass"></CLASSNAME>
+              </IPARAMVALUE>
+            </IMETHODCALL>
+          </SIMPLEREQ>
+        </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="Associators">
+      <IRETURNVALUE>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+# TODO Add tests for associators error cases

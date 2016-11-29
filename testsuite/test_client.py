@@ -48,6 +48,21 @@ TESTCASE_DIR = os.path.join(os.path.dirname(__file__), "testclient")
 RUN_ONE_TESTCASE = None
 
 
+def str_tuple(tuple_):
+    """
+    Prepare a tuple or NonType for output.
+
+    This gets around issues of type failure when trying to
+    print tuples.
+
+    Returns str rep of tuple on None if tuple_ is None
+    """
+    if tuple_ is None:
+        return 'NoneType'
+    else:
+        return '%s' % (tuple_,)
+
+
 class ClientTestError(Exception):
     """Exception indicating an issue in the test case definition."""
     pass
@@ -140,7 +155,7 @@ def tc_getattr(tc_name, dict_, key, default=-1):
         value = dict_[key]
         if isinstance(value, (list, tuple)):
             value = value[0]
-    except (KeyError, IndexError):
+    except (KeyError, IndexError, TypeError):
         if default != -1:
             return default
         raise ClientTestError("Error in definition of testcase %s: "
@@ -241,11 +256,11 @@ def xml_embed(tree_elem):
     return xml_escape(etree.tostring(tree_elem))
 
 
-def xml_escape(s):
+def xml_escape(s):  # pylint: disable=invalid-name
     """
     Return the XML-escaped input string.
     """
-    if isinstance(s, six.text_type):
+    if isinstance(str, six.text_type):
         s = s.replace(u"&", u"&amp;")
         s = s.replace(u"<", u"&lt;")
         s = s.replace(u">", u"&gt;")
@@ -283,7 +298,7 @@ def xml_unembed(emb_str):
     return etree.XML(xml_unescape(emb_str), parser=parser)
 
 
-def xml_unescape(s):
+def xml_unescape(s):  # pylint: disable=invalid-name
     """
     Return the XML-unescaped input string.
     """
@@ -477,7 +492,7 @@ class ClientTest(unittest.TestCase):
         """Read a YAML test case file and process each test case it defines.
         """
 
-        print("Processing YAML file: %s" % os.path.basename(fn))
+        print("Process YAML file: %s" % os.path.basename(fn))
 
         with open(fn) as fp:
             testcases = yaml.load(fp)
@@ -491,6 +506,7 @@ class ClientTest(unittest.TestCase):
         tc_name = tc_getattr("", testcase, "name")
         tc_desc = tc_getattr(tc_name, testcase, "description", None)
         tc_ignore = tc_getattr(tc_name, testcase, "ignore_python_version", None)
+        tc_ignore_test = tc_getattr(tc_name, testcase, "ignore_test", None)
 
         # Test to determine if execute this testcase
         # 1. If the RUN_ONE_TESTCASE option set and this is not the one
@@ -499,11 +515,16 @@ class ClientTest(unittest.TestCase):
             if tc_name != RUN_ONE_TESTCASE:
                 return
         else:
+            if tc_ignore_test is not None:
+                print("IGNORE  test case: %s: %s. Ignore_test: set" %
+                      (tc_name, tc_desc))
+                return
             if six.PY2 and tc_ignore == 2 or six.PY3 and tc_ignore == 3:
-                print("ignoring test case: %s: %s" % (tc_name, tc_desc))
+                print("IGNORE  test case: %s: %s for python version %s" %
+                      (tc_name, tc_desc, tc_ignore))
                 return
 
-        print("Processing test case: %s: %s" % (tc_name, tc_desc))
+        print("Process test case: %s: %s" % (tc_name, tc_desc))
 
         httpretty.httpretty.allow_net_connect = False
 
@@ -712,11 +733,25 @@ class ClientTest(unittest.TestCase):
             else:
                 # pylint: disable=redefined-variable-type
                 _exp_result_obj = exp_result_obj
-            if result != _exp_result_obj:
+
+            # If result items are tuple, convert to lists. This is for
+            # class ref and assoc results.
+            if isinstance(result, list) and \
+                    len(result) > 0 and isinstance(result[0], tuple):
+                _result = []
+                for item in result:
+                    if isinstance(item, tuple):
+                        _result.append(list(item))
+                    else:
+                        _result.append(item)
+            else:
+                # pylint: disable=redefined-variable-type
+                _result = result
+            if _result != _exp_result_obj:
                 # TODO 2016/07 AM: Improve the presentation of the difference
                 print("Details for the following assertion error:")
                 print("- Expected result: %s" % repr(exp_result_obj))
-                print("- Actual result: %s" % repr(result))
+                print("- Actual result: %s" % repr(_result))
                 if conn.debug:
                     print("- HTTP response data: %r" % conn.last_raw_reply)
                 raise AssertionError("WBEMConnection operation method result "
@@ -746,12 +781,19 @@ class ClientTest(unittest.TestCase):
                 raise AssertionError("WBEMConnection operation method result "
                                      "is not as expected.")
 
-            # context is required result
-            if result.context != exp_pull_result_obj.context:
+            # Context is required result
+            # NOTE: pyaml does not natively support tuples
+            # It supports very simple tuples but only with single objects and
+            # in block mode.
+            exp_context = tuple(exp_pull_result_obj.context) \
+                if exp_pull_result_obj.context \
+                else None
+            if result.context != exp_context:
                 print("Details for the following assertion error:")
                 print("- Expected pull result.context: %r" %
-                      exp_pull_result_obj.context)
-                print("- Actual pull result.context: %r" % result.context)
+                      str_tuple(exp_context))
+                print("- Actual pull result.context: %r" %
+                      str_tuple(result.context))
                 if conn.debug:
                     print("- HTTP response data: %r" % conn.last_raw_reply)
                 raise AssertionError("WBEMConnection operation method result "
@@ -780,6 +822,8 @@ class ClientTest(unittest.TestCase):
                     raise AssertionError("WBEMConnection operation method "
                                          "result is not as expected.")
             else:
+                # If there are no instances or paths in response, use
+                # instances: []
                 raise AssertionError("WBEMConnection operation method result "
                                      "is not as expected. No 'instances' "
                                      "or 'paths' component.")

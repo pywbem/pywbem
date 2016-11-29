@@ -1,0 +1,394 @@
+-
+  name: PullInstancesWithPath1
+  description: Pull request and returns 2 instances with eos=false and a context
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: PullInstancesWithPath
+      MaxObjectCount: 1
+      context:
+      - '500001'
+      - root/cimv2
+  pywbem_response:
+        pullresult:
+            context:
+                - '50001'
+                -  root/cimv2
+            eos: False
+            instances:
+                -
+                    pywbem_object: CIMInstance
+                    classname: PYWBEM_Person
+                    properties:
+                        CreationClassName: PyWBEM_Person
+                        Name: Fritz
+                        Address: Fritz Town
+                    path:
+                        pywbem_object: CIMInstanceName
+                        classname: PYWBEM_Person
+                        host : Fred
+                        namespace: root/cimv2
+                        keybindings:
+                            CreationClassname: PyWBEM_Person
+                            Name: Fritz
+                -
+                    pywbem_object: CIMInstance
+                    classname: PyWBEM_Person
+                    properties:
+                        CreationClassName: PyWBEM_Person
+                        Name: Alice
+                        Address: Alice Town
+                    path:
+                        pywbem_object: CIMInstanceName
+                        classname: PyWBEM_Person
+                        host: fred
+                        namespace: root/cimv2
+                        keybindings:
+                            CreationClassname: PyWBEM_Person
+                            Name: Alice
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: PullInstancesWithPath
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="PullInstancesWithPath">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="EnumerationContext">
+      <VALUE>500001</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>1</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="PullInstancesWithPath">
+                            <IRETURNVALUE>
+                                <VALUE.INSTANCEWITHPATH>
+                                    <INSTANCEPATH>
+                                        <NAMESPACEPATH>
+                                            <HOST>fred</HOST>
+                                            <LOCALNAMESPACEPATH>
+                                                <NAMESPACE NAME="root"/>
+                                                <NAMESPACE NAME="cimv2"/>
+                                            </LOCALNAMESPACEPATH>
+                                        </NAMESPACEPATH>
+                                        <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                            <KEYBINDING NAME="CreationClassName">
+                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                            </KEYBINDING>
+                                            <KEYBINDING NAME="Name">
+                                                <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                            </KEYBINDING>
+                                        </INSTANCENAME>
+                                    </INSTANCEPATH>
+                                    <INSTANCE CLASSNAME="PyWBEM_Person">
+                                        <PROPERTY NAME="CreationClassName" TYPE="string">
+                                            <VALUE>PyWBEM_Person</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Name" TYPE="string">
+                                            <VALUE>Fritz</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Address" TYPE="string">
+                                            <VALUE>Fritz Town</VALUE>
+                                        </PROPERTY>
+                                    </INSTANCE>
+                                </VALUE.INSTANCEWITHPATH>
+                                <VALUE.INSTANCEWITHPATH>
+                                    <INSTANCEPATH>
+                                        <NAMESPACEPATH>
+                                            <HOST>Fred</HOST>
+                                            <LOCALNAMESPACEPATH>
+                                                <NAMESPACE NAME="root"/>
+                                                <NAMESPACE NAME="cimv2"/>
+                                            </LOCALNAMESPACEPATH>
+                                        </NAMESPACEPATH>
+                                        <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                            <KEYBINDING NAME="CreationClassName">
+                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                            </KEYBINDING>
+                                            <KEYBINDING NAME="Name">
+                                                <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+                                            </KEYBINDING>
+                                        </INSTANCENAME>
+                                    </INSTANCEPATH>
+                                    <INSTANCE CLASSNAME="PyWBEM_Person">
+                                        <PROPERTY NAME="CreationClassName" TYPE="string">
+                                            <VALUE>PyWBEM_Person</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Name" TYPE="string">
+                                            <VALUE>Alice</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Address" TYPE="string">
+                                            <VALUE>Alice Town</VALUE>
+                                        </PROPERTY>
+                                    </INSTANCE>
+                                </VALUE.INSTANCEWITHPATH>
+                            </IRETURNVALUE>
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>FALSE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE>50001</VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+  name: PullInstancesWithPath2
+  description: Pull request and returns two instances with eos=true and no context
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: PullInstancesWithPath
+      MaxObjectCount: 1
+      context:
+      - '500001'
+      - root/cimv2
+  pywbem_response:
+        pullresult:
+            context: null
+            eos: true
+            instances: 
+                -
+                    pywbem_object: CIMInstance
+                    classname: PYWBEM_Person
+                    properties:
+                        CreationClassName: PyWBEM_Person
+                        Name: Fritz
+                        Address: Fritz Town
+                    path:
+                        pywbem_object: CIMInstanceName
+                        classname: PYWBEM_Person
+                        host : Fred
+                        namespace: root/cimv2
+                        keybindings:
+                            CreationClassname: PyWBEM_Person
+                            Name: Fritz
+                -
+                    pywbem_object: CIMInstance
+                    classname: PyWBEM_Person
+                    properties:
+                        CreationClassName: PyWBEM_Person
+                        Name: Alice
+                        Address: Alice Town
+                    path:
+                        pywbem_object: CIMInstanceName
+                        classname: PyWBEM_Person
+                        host: fred
+                        namespace: root/cimv2
+                        keybindings:
+                            CreationClassname: PyWBEM_Person
+                            Name: Alice
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: PullInstancesWithPath
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="PullInstancesWithPath">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="EnumerationContext">
+      <VALUE>500001</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>1</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="PullInstancesWithPath">
+                            <IRETURNVALUE>
+                                <VALUE.INSTANCEWITHPATH>
+                                    <INSTANCEPATH>
+                                        <NAMESPACEPATH>
+                                            <HOST>fred</HOST>
+                                            <LOCALNAMESPACEPATH>
+                                                <NAMESPACE NAME="root"/>
+                                                <NAMESPACE NAME="cimv2"/>
+                                            </LOCALNAMESPACEPATH>
+                                        </NAMESPACEPATH>
+                                        <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                            <KEYBINDING NAME="CreationClassName">
+                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                            </KEYBINDING>
+                                            <KEYBINDING NAME="Name">
+                                                <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                            </KEYBINDING>
+                                        </INSTANCENAME>
+                                    </INSTANCEPATH>
+                                    <INSTANCE CLASSNAME="PyWBEM_Person">
+                                        <PROPERTY NAME="CreationClassName" TYPE="string">
+                                            <VALUE>PyWBEM_Person</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Name" TYPE="string">
+                                            <VALUE>Fritz</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Address" TYPE="string">
+                                            <VALUE>Fritz Town</VALUE>
+                                        </PROPERTY>
+                                    </INSTANCE>
+                                </VALUE.INSTANCEWITHPATH>
+                                <VALUE.INSTANCEWITHPATH>
+                                    <INSTANCEPATH>
+                                        <NAMESPACEPATH>
+                                            <HOST>Fred</HOST>
+                                            <LOCALNAMESPACEPATH>
+                                                <NAMESPACE NAME="root"/>
+                                                <NAMESPACE NAME="cimv2"/>
+                                            </LOCALNAMESPACEPATH>
+                                        </NAMESPACEPATH>
+                                        <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                            <KEYBINDING NAME="CreationClassName">
+                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                            </KEYBINDING>
+                                            <KEYBINDING NAME="Name">
+                                                <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+                                            </KEYBINDING>
+                                        </INSTANCENAME>
+                                    </INSTANCEPATH>
+                                    <INSTANCE CLASSNAME="PyWBEM_Person">
+                                        <PROPERTY NAME="CreationClassName" TYPE="string">
+                                            <VALUE>PyWBEM_Person</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Name" TYPE="string">
+                                            <VALUE>Alice</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Address" TYPE="string">
+                                            <VALUE>Alice Town</VALUE>
+                                        </PROPERTY>
+                                    </INSTANCE>
+                                </VALUE.INSTANCEWITHPATH>
+                            </IRETURNVALUE>
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>TRUE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE></VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+  name: PullInstancesWithPath3
+  description: Pull request and returns zero instances witheos=true and no context
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: PullInstancesWithPath
+      MaxObjectCount: 1
+      context:
+      - '500001'
+      - root/cimv2
+  pywbem_response:
+        pullresult:
+            context: null
+            eos: true
+            instances: []
+
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: PullInstancesWithPath
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="PullInstancesWithPath">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="EnumerationContext">
+      <VALUE>500001</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>1</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="PullInstancesWithPath">
+                            <IRETURNVALUE>
+                            </IRETURNVALUE>
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>TRUE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE></VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+

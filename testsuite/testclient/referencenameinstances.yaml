@@ -1,0 +1,126 @@
+- name: ReferenceNamesInst1
+  description: ReferenceNames Request on PyWbem_Person instance
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: ReferenceNames
+      ObjectName:
+        pywbem_object: CIMInstanceName
+        classname: PyWBEM_Person
+        namespace: root/cimv2
+        keybindings:
+          Name: Alice
+          CreationClassName: PyWBEM_Person
+      Role: member
+      ResultClass: PyWBEM_MemberOfPersonCollection
+  pywbem_response:
+    result:
+    - pywbem_object: CIMInstanceName
+      classname: PyWBEM_MemberOfPersonCollection
+      namespace: root/cimv2
+      host: sheldon
+      keybindings:
+        member:
+          pywbem_object: CIMInstanceName
+          classname: PyWBEM_Person
+          namespace: null
+          keybindings:
+            Name: Alice
+            CreationClassName: PyWBEM_Person
+        collection:
+          pywbem_object: CIMInstanceName
+          classname: PyWBEM_PersonCollection
+          namespace: null
+          keybindings:
+            InstanceId: PersonCollection
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMObject: root/cimv2
+      CIMMethod: ReferenceNames
+      CIMOperation: MethodCall
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="ReferenceNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ObjectName">
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Role">
+      <VALUE>member</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ResultClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="ReferenceNames">
+      <IRETURNVALUE>
+      <OBJECTPATH>
+      <INSTANCEPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <INSTANCENAME CLASSNAME="PyWBEM_MemberOfPersonCollection">
+      <KEYBINDING NAME="Collection">
+      <VALUE.REFERENCE>
+      <INSTANCENAME CLASSNAME="PyWBEM_PersonCollection">
+      <KEYBINDING NAME="InstanceID">
+      <KEYVALUE VALUETYPE="string">PersonCollection</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </VALUE.REFERENCE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Member">
+      <VALUE.REFERENCE>
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </VALUE.REFERENCE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </INSTANCEPATH>
+      </OBJECTPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'

@@ -1,0 +1,113 @@
+- name: OpenAssociatorInstancePaths1
+  description: OpenAssociators of instance of PyWBEM_Person with no request optional params. Returns one path
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: OpenAssociatorInstancePaths
+      FilterQuery: null
+      FilterQueryLanguage: null
+      OperationTimeout: null
+      ResultClass: null
+      ResultRole: null
+      ContinueOnError: null
+      Role: null
+      MaxObjectCount: 100
+      InstanceName:
+        pywbem_object: CIMInstanceName
+        classname: PyWBEM_Person
+        namespace: root/cimv2
+        keybindings:
+          CreationClassName: PyWBEM_Person
+          Name: Alice
+      AssocClass: null
+  pywbem_response:
+        pullresult:
+            context:
+                - '500034'
+                - root/cimv2
+            eos: false
+            paths: 
+              - pywbem_object: CIMInstanceName
+                classname: PyWBEM_PersonCollection
+                namespace: root/cimv2
+                host: sheldon
+                keybindings:
+                  instanceid: PersonCollection
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: OpenAssociatorInstancePaths
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="OpenAssociatorInstancePaths">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>100</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="InstanceName">
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="OpenAssociatorInstancePaths">
+      <IRETURNVALUE>
+      <INSTANCEPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <INSTANCENAME CLASSNAME="PyWBEM_PersonCollection">
+      <KEYBINDING NAME="InstanceID">
+      <KEYVALUE VALUETYPE="string">PersonCollection</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </INSTANCEPATH>
+      </IRETURNVALUE>
+      <PARAMVALUE NAME="EndOfSequence">
+      <VALUE>FALSE</VALUE>
+      </PARAMVALUE>
+      <PARAMVALUE NAME="EnumerationContext">
+      <VALUE>500034</VALUE>
+      </PARAMVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+# TODO add test with all options set.
+# TODO add test with some failure
+

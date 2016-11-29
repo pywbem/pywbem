@@ -1,0 +1,178 @@
+- name: ReferenceInstances1
+  description: Return reference instances for PyWBEM_Person
+  ignore_test:   "Ignore this test until we resolve issue 598"
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: References
+      ObjectName:
+        pywbem_object: CIMInstanceName
+        classname: PyWBEM_Person
+        namespace: root/cimv2
+        keybindings:
+          CreationClassName: PyWBEM_Person
+          Name: Alice
+      ResultClass: PyWBEM_MemberOfPersonCollection
+      Role: member
+  pywbem_response:
+    result:
+    - pywbem_object: CIMInstance
+      classname: PyWBEM_MemberOfPersonCollection
+      properties:
+        member:
+          pywbem_object: CIMProperty
+          name: Member
+          value:
+            pywbem_object: CIMInstanceName
+            classname: PyWBEM_Person
+            namespace: null
+            keybindings:
+              creationclassname: PyWBEM_Person
+              name: Alice
+          type: reference
+          reference_class: CIM_ManagedElement
+          is_array: false
+        collection:
+          pywbem_object: CIMProperty
+          name: Collection
+          value:
+            pywbem_object: CIMInstanceName
+            classname: PyWBEM_PersonCollection
+            namespace: null
+            keybindings:
+              instanceid: PersonCollection
+          type: reference
+          reference_class: CIM_Collection
+          is_array: false
+      path:
+        pywbem_object: CIMInstanceName
+        classname: PyWBEM_MemberOfPersonCollection
+        namespace: root/cimv2
+        keybindings:
+          member:
+            pywbem_object: CIMInstanceName
+            classname: PyWBEM_Person
+            namespace: null
+            keybindings:
+              creationclassname: PyWBEM_Person
+              name: Alice
+          collection:
+            pywbem_object: CIMInstanceName
+            classname: PyWBEM_PersonCollection
+            namespace: null
+            keybindings:
+              instanceid: PersonCollection
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: References
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="References">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ObjectName">
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ResultClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Role">
+      <VALUE>member</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="References">
+      <IRETURNVALUE>
+      <VALUE.OBJECTWITHPATH>
+      <INSTANCEPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <INSTANCENAME CLASSNAME="PyWBEM_MemberOfPersonCollection">
+      <KEYBINDING NAME="Collection">
+      <VALUE.REFERENCE>
+      <INSTANCENAME CLASSNAME="PyWBEM_PersonCollection">
+      <KEYBINDING NAME="InstanceID">
+      <KEYVALUE VALUETYPE="string">PersonCollection</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </VALUE.REFERENCE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Member">
+      <VALUE.REFERENCE>
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </VALUE.REFERENCE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </INSTANCEPATH>
+      <INSTANCE CLASSNAME="PyWBEM_MemberOfPersonCollection" >
+      <PROPERTY.REFERENCE NAME="Collection"  REFERENCECLASS="CIM_Collection">
+      <VALUE.REFERENCE>
+      <INSTANCENAME CLASSNAME="PyWBEM_PersonCollection">
+      <KEYBINDING NAME="InstanceID">
+      <KEYVALUE VALUETYPE="string">PersonCollection</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </VALUE.REFERENCE>
+      </PROPERTY.REFERENCE>
+      <PROPERTY.REFERENCE NAME="Member"  REFERENCECLASS="CIM_ManagedElement">
+      <VALUE.REFERENCE>
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </VALUE.REFERENCE>
+      </PROPERTY.REFERENCE>
+      </INSTANCE>
+      </VALUE.OBJECTWITHPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
