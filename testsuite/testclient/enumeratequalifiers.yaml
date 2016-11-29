@@ -1,0 +1,1327 @@
+- name: EnumerateQualifiers1
+  description: Get all qualifiers. Returns multiple qualifiers
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: EnumerateQualifiers
+      namespace: null
+  pywbem_response:
+    result:
+    - pywbem_object: CIMQualifierDeclaration
+      name: Exception
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        indication: true
+        class: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: BitMap
+      type: string
+      value: null
+      is_array: true
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: IsPUnit
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: EmbeddedInstance
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: UMLPackagePath
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        indication: true
+        class: true
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Association
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Weak
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        reference: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Write
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Experimental
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        reference: true
+        class: true
+        indication: true
+        property: true
+        parameter: true
+        method: true
+        association: true
+      tosubclass: false
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Reference
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: UnsupportedValues
+      type: string
+      value: null
+      is_array: true
+      array_size: null
+      scopes:
+        property: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: XMLNamespaceName
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: SyntaxType
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+        reference: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Revision
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        indication: true
+        class: true
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: true
+    - pywbem_object: CIMQualifierDeclaration
+      name: Description
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        reference: true
+        class: true
+        indication: true
+        property: true
+        parameter: true
+        method: true
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: true
+    - pywbem_object: CIMQualifierDeclaration
+      name: DisplayName
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        reference: true
+        class: true
+        indication: true
+        property: true
+        parameter: true
+        method: true
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: true
+    - pywbem_object: CIMQualifierDeclaration
+      name: Delete
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        association: true
+        reference: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Min
+      type: uint32
+      value: 0
+      is_array: false
+      array_size: null
+      scopes:
+        reference: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Aggregate
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        reference: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Indication
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        indication: true
+        class: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Structure
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        indication: true
+        class: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Provider
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        reference: true
+        class: true
+        indication: true
+        property: true
+        parameter: true
+        method: true
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: PropertyUsage
+      type: string
+      value: CurrentContext
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Override
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        method: true
+        reference: true
+      tosubclass: false
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: BitValues
+      type: string
+      value: null
+      is_array: true
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: true
+    - pywbem_object: CIMQualifierDeclaration
+      name: Abstract
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        indication: true
+        class: true
+        association: true
+      tosubclass: false
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: ArrayType
+      type: string
+      value: Bag
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Alias
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        method: true
+        reference: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: true
+    - pywbem_object: CIMQualifierDeclaration
+      name: MaxValue
+      type: sint64
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: ModelCorrespondence
+      type: string
+      value: null
+      is_array: true
+      array_size: null
+      scopes:
+        reference: true
+        class: true
+        indication: true
+        property: true
+        parameter: true
+        method: true
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: In
+      type: boolean
+      value: true
+      is_array: false
+      array_size: null
+      scopes:
+        parameter: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: DN
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: NullValue
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Large
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        class: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Version
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        indication: true
+        class: true
+        association: true
+      tosubclass: false
+      toinstance: null
+      overridable: null
+      translatable: true
+    - pywbem_object: CIMQualifierDeclaration
+      name: Deprecated
+      type: string
+      value: null
+      is_array: true
+      array_size: null
+      scopes:
+        reference: true
+        class: true
+        indication: true
+        property: true
+        parameter: true
+        method: true
+        association: true
+      tosubclass: false
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Out
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        parameter: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Values
+      type: string
+      value: null
+      is_array: true
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: true
+    - pywbem_object: CIMQualifierDeclaration
+      name: Correlatable
+      type: string
+      value: null
+      is_array: true
+      array_size: null
+      scopes:
+        property: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Counter
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: ClassConstraint
+      type: string
+      value: null
+      is_array: true
+      array_size: null
+      scopes:
+        indication: true
+        class: true
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: MethodConstraint
+      type: string
+      value: null
+      is_array: true
+      array_size: null
+      scopes:
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Syntax
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+        reference: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Static
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Composition
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: MappingStrings
+      type: string
+      value: null
+      is_array: true
+      array_size: null
+      scopes:
+        reference: true
+        class: true
+        indication: true
+        property: true
+        parameter: true
+        method: true
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Key
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        reference: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: EmbeddedObject
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: TriggerType
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        reference: true
+        class: true
+        indication: true
+        property: true
+        method: true
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Aggregation
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: ValueMap
+      type: string
+      value: null
+      is_array: true
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Required
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+        reference: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Propagated
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Read
+      type: boolean
+      value: true
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: PUnit
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Invisible
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        reference: true
+        property: true
+        method: true
+        association: true
+        class: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Ifdeleted
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        association: true
+        reference: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: MinLen
+      type: uint32
+      value: 0
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: UnknownValues
+      type: string
+      value: null
+      is_array: true
+      array_size: null
+      scopes:
+        property: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Units
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: true
+    - pywbem_object: CIMQualifierDeclaration
+      name: Octetstring
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Expensive
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        reference: true
+        class: true
+        indication: true
+        property: true
+        parameter: true
+        method: true
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Schema
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: false
+      translatable: true
+    - pywbem_object: CIMQualifierDeclaration
+      name: Gauge
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: MaxLen
+      type: uint32
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: PropertyConstraint
+      type: string
+      value: null
+      is_array: true
+      array_size: null
+      scopes:
+        property: true
+        reference: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Max
+      type: uint32
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        reference: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: Terminal
+      type: boolean
+      value: false
+      is_array: false
+      array_size: null
+      scopes:
+        indication: true
+        class: true
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: MinValue
+      type: sint64
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        property: true
+        parameter: true
+        method: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: null
+    - pywbem_object: CIMQualifierDeclaration
+      name: DisplayDescription
+      type: string
+      value: null
+      is_array: false
+      array_size: null
+      scopes:
+        reference: true
+        class: true
+        indication: true
+        property: true
+        parameter: true
+        method: true
+        association: true
+      tosubclass: null
+      toinstance: null
+      overridable: null
+      translatable: true
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: EnumerateQualifiers
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="EnumerateQualifiers">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateQualifiers">
+      <IRETURNVALUE>
+      <QUALIFIER.DECLARATION NAME="Exception" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE CLASS="true" INDICATION="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="BitMap" TYPE="string" ISARRAY="true">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="IsPUnit" TYPE="boolean">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="EmbeddedInstance" TYPE="string">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="UMLPackagePath" TYPE="string">
+      <SCOPE CLASS="true" ASSOCIATION="true" INDICATION="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Association" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE ASSOCIATION="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Weak" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE REFERENCE="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Write" TYPE="boolean">
+      <SCOPE PROPERTY="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Experimental" TYPE="boolean" TOSUBCLASS="false">
+      <SCOPE CLASS="true" ASSOCIATION="true" REFERENCE="true" PROPERTY="true" METHOD="true"
+      PARAMETER="true" INDICATION="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Reference" TYPE="string">
+      <SCOPE PROPERTY="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="UnsupportedValues" TYPE="string" ISARRAY="true"
+      OVERRIDABLE="false">
+      <SCOPE PROPERTY="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="XMLNamespaceName" TYPE="string">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="SyntaxType" TYPE="string">
+      <SCOPE REFERENCE="true" PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Revision" TYPE="string" TRANSLATABLE="true">
+      <SCOPE CLASS="true" ASSOCIATION="true" INDICATION="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Description" TYPE="string" TRANSLATABLE="true">
+      <SCOPE CLASS="true" ASSOCIATION="true" REFERENCE="true" PROPERTY="true" METHOD="true"
+      PARAMETER="true" INDICATION="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="DisplayName" TYPE="string" TRANSLATABLE="true">
+      <SCOPE CLASS="true" ASSOCIATION="true" REFERENCE="true" PROPERTY="true" METHOD="true"
+      PARAMETER="true" INDICATION="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Delete" TYPE="boolean">
+      <SCOPE ASSOCIATION="true" REFERENCE="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Min" TYPE="uint32">
+      <SCOPE REFERENCE="true"/>
+      <VALUE>0</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Aggregate" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE REFERENCE="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Indication" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE CLASS="true" INDICATION="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Structure" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE CLASS="true" INDICATION="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Provider" TYPE="string">
+      <SCOPE CLASS="true" ASSOCIATION="true" REFERENCE="true" PROPERTY="true" METHOD="true"
+      PARAMETER="true" INDICATION="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="PropertyUsage" TYPE="string">
+      <SCOPE PROPERTY="true"/>
+      <VALUE>CurrentContext</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Override" TYPE="string" TOSUBCLASS="false">
+      <SCOPE REFERENCE="true" PROPERTY="true" METHOD="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="BitValues" TYPE="string" ISARRAY="true" TRANSLATABLE="true">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Abstract" TYPE="boolean" TOSUBCLASS="false">
+      <SCOPE CLASS="true" ASSOCIATION="true" INDICATION="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="ArrayType" TYPE="string" OVERRIDABLE="false">
+      <SCOPE PROPERTY="true" PARAMETER="true"/>
+      <VALUE>Bag</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Alias" TYPE="string" TRANSLATABLE="true">
+      <SCOPE REFERENCE="true" PROPERTY="true" METHOD="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="MaxValue" TYPE="sint64">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="ModelCorrespondence" TYPE="string" ISARRAY="true">
+      <SCOPE CLASS="true" ASSOCIATION="true" REFERENCE="true" PROPERTY="true" METHOD="true"
+      PARAMETER="true" INDICATION="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="In" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE PARAMETER="true"/>
+      <VALUE>TRUE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="DN" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="NullValue" TYPE="string" OVERRIDABLE="false">
+      <SCOPE PROPERTY="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Large" TYPE="boolean">
+      <SCOPE CLASS="true" PROPERTY="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Version" TYPE="string" TOSUBCLASS="false" TRANSLATABLE="true">
+      <SCOPE CLASS="true" ASSOCIATION="true" INDICATION="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Deprecated" TYPE="string" ISARRAY="true" TOSUBCLASS="false">
+      <SCOPE CLASS="true" ASSOCIATION="true" REFERENCE="true" PROPERTY="true" METHOD="true"
+      PARAMETER="true" INDICATION="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Out" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE PARAMETER="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Values" TYPE="string" ISARRAY="true" TRANSLATABLE="true">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Correlatable" TYPE="string" ISARRAY="true">
+      <SCOPE PROPERTY="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Counter" TYPE="boolean">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="ClassConstraint" TYPE="string" ISARRAY="true">
+      <SCOPE CLASS="true" ASSOCIATION="true" INDICATION="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="MethodConstraint" TYPE="string" ISARRAY="true">
+      <SCOPE METHOD="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Syntax" TYPE="string">
+      <SCOPE REFERENCE="true" PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Static" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE PROPERTY="true" METHOD="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Composition" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE ASSOCIATION="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="MappingStrings" TYPE="string" ISARRAY="true">
+      <SCOPE CLASS="true" ASSOCIATION="true" REFERENCE="true" PROPERTY="true" METHOD="true"
+      PARAMETER="true" INDICATION="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Key" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE REFERENCE="true" PROPERTY="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="EmbeddedObject" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="TriggerType" TYPE="string">
+      <SCOPE CLASS="true" ASSOCIATION="true" REFERENCE="true" PROPERTY="true" METHOD="true"
+      INDICATION="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Aggregation" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE ASSOCIATION="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="ValueMap" TYPE="string" ISARRAY="true">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Required" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE REFERENCE="true" PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Propagated" TYPE="string" OVERRIDABLE="false">
+      <SCOPE PROPERTY="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Read" TYPE="boolean">
+      <SCOPE PROPERTY="true"/>
+      <VALUE>TRUE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="PUnit" TYPE="string">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Invisible" TYPE="boolean">
+      <SCOPE CLASS="true" ASSOCIATION="true" REFERENCE="true" PROPERTY="true" METHOD="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Ifdeleted" TYPE="boolean">
+      <SCOPE ASSOCIATION="true" REFERENCE="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="MinLen" TYPE="uint32">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      <VALUE>0</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="UnknownValues" TYPE="string" ISARRAY="true" OVERRIDABLE="false">
+      <SCOPE PROPERTY="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Units" TYPE="string" TRANSLATABLE="true">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Octetstring" TYPE="boolean" OVERRIDABLE="false">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Expensive" TYPE="boolean">
+      <SCOPE CLASS="true" ASSOCIATION="true" REFERENCE="true" PROPERTY="true" METHOD="true"
+      PARAMETER="true" INDICATION="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Schema" TYPE="string" OVERRIDABLE="false" TRANSLATABLE="true">
+      <SCOPE PROPERTY="true" METHOD="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Gauge" TYPE="boolean">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="MaxLen" TYPE="uint32">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="PropertyConstraint" TYPE="string" ISARRAY="true">
+      <SCOPE REFERENCE="true" PROPERTY="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Max" TYPE="uint32">
+      <SCOPE REFERENCE="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="Terminal" TYPE="boolean">
+      <SCOPE CLASS="true" ASSOCIATION="true" INDICATION="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="MinValue" TYPE="sint64">
+      <SCOPE PROPERTY="true" METHOD="true" PARAMETER="true"/>
+      </QUALIFIER.DECLARATION>
+      <QUALIFIER.DECLARATION NAME="DisplayDescription" TYPE="string" TRANSLATABLE="true">
+      <SCOPE CLASS="true" ASSOCIATION="true" REFERENCE="true" PROPERTY="true" METHOD="true"
+      PARAMETER="true" INDICATION="true"/>
+      </QUALIFIER.DECLARATION>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+- name: EnumerateQualifiersF1
+  description: EnumerateQualifiers fails with bad namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: EnumerateQualifiers
+      namespace: xx
+  pywbem_response:
+    cim_status: 3
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: EnumerateQualifiers
+      CIMObject: xx
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="EnumerateQualifiers">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="xx"/>
+      </LOCALNAMESPACEPATH>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateQualifiers">
+      <ERROR CODE="3" DESCRIPTION="CIM_ERR_INVALID_NAMESPACE: xx"/>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'

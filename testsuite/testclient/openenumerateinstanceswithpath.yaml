@@ -1,0 +1,1197 @@
+-
+    name: OpenEnumerateInstances1
+    description: OpenEnumerateInstances with localonly False parameters rtns EOS=true and succeeds
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: PyWBEM_Person
+            LocalOnly: false
+    pywbem_response:
+        pullresult:
+            context: null
+            eos: True
+            instances: 
+                -
+                    pywbem_object: CIMInstance
+                    classname: PYWBEM_Person
+                    properties:
+                        CreationClassName: PyWBEM_Person
+                        Name: Fritz
+                        Address: Fritz Town
+                    path:
+                        pywbem_object: CIMInstanceName
+                        classname: PYWBEM_Person
+                        host : Fred
+                        namespace: root/cimv2
+                        keybindings:
+                            CreationClassname: PyWBEM_Person
+                            Name: Fritz
+                -
+                    pywbem_object: CIMInstance
+                    classname: PyWBEM_Person
+                    properties:
+                        CreationClassName: PyWBEM_Person
+                        Name: Alice
+                        Address: Alice Town
+                    path:
+                        pywbem_object: CIMInstanceName
+                        classname: PyWBEM_Person
+                        host: fred
+                        namespace: root/cimv2
+                        keybindings:
+                            CreationClassname: PyWBEM_Person
+                            Name: Alice
+
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+             <?xml version="1.0" encoding="utf-8" ?>
+             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                 <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                     <SIMPLEREQ>
+                         <IMETHODCALL NAME="OpenEnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                 <NAMESPACE NAME="root"/>
+                                 <NAMESPACE NAME="cimv2"/>
+                             </LOCALNAMESPACEPATH>
+                             <IPARAMVALUE NAME="ClassName">
+                                 <CLASSNAME NAME="PyWBEM_Person"/>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="LocalOnly">
+                                 <VALUE>False</VALUE>
+                             </IPARAMVALUE>
+                         </IMETHODCALL>
+                     </SIMPLEREQ>
+                 </MESSAGE>
+             </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                            <IRETURNVALUE>
+                                <VALUE.INSTANCEWITHPATH>
+                                    <INSTANCEPATH>
+                                        <NAMESPACEPATH>
+                                            <HOST>fred</HOST>
+                                            <LOCALNAMESPACEPATH>
+                                                <NAMESPACE NAME="root"/>
+                                                <NAMESPACE NAME="cimv2"/>
+                                            </LOCALNAMESPACEPATH>
+                                        </NAMESPACEPATH>
+                                        <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                            <KEYBINDING NAME="CreationClassName">
+                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                            </KEYBINDING>
+                                            <KEYBINDING NAME="Name">
+                                                <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                            </KEYBINDING>
+                                        </INSTANCENAME>
+                                    </INSTANCEPATH>
+                                    <INSTANCE CLASSNAME="PyWBEM_Person">
+                                        <PROPERTY NAME="CreationClassName" TYPE="string">
+                                            <VALUE>PyWBEM_Person</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Name" TYPE="string">
+                                            <VALUE>Fritz</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Address" TYPE="string">
+                                            <VALUE>Fritz Town</VALUE>
+                                        </PROPERTY>
+                                    </INSTANCE>
+                                </VALUE.INSTANCEWITHPATH>
+                                <VALUE.INSTANCEWITHPATH>
+                                    <INSTANCEPATH>
+                                        <NAMESPACEPATH>
+                                            <HOST>Fred</HOST>
+                                            <LOCALNAMESPACEPATH>
+                                                <NAMESPACE NAME="root"/>
+                                                <NAMESPACE NAME="cimv2"/>
+                                            </LOCALNAMESPACEPATH>
+                                        </NAMESPACEPATH>
+                                        <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                            <KEYBINDING NAME="CreationClassName">
+                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                            </KEYBINDING>
+                                            <KEYBINDING NAME="Name">
+                                                <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+                                            </KEYBINDING>
+                                        </INSTANCENAME>
+                                    </INSTANCEPATH>
+                                    <INSTANCE CLASSNAME="PyWBEM_Person">
+                                        <PROPERTY NAME="CreationClassName" TYPE="string">
+                                            <VALUE>PyWBEM_Person</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Name" TYPE="string">
+                                            <VALUE>Alice</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Address" TYPE="string">
+                                            <VALUE>Alice Town</VALUE>
+                                        </PROPERTY>
+                                    </INSTANCE>
+                                </VALUE.INSTANCEWITHPATH>
+                            </IRETURNVALUE>
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>TRUE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE></VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: OpenEnumerateInstances2
+    description: OpenEnumerateInstances with LocalOnly True, EOS=true succeeds. Same response as 1
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: PyWBEM_Person
+            LocalOnly: true
+    pywbem_response:
+        pullresult:
+            context: null
+            eos: True
+            instances: 
+                -
+                    pywbem_object: CIMInstance
+                    classname: PYWBEM_Person
+                    properties:
+                        CreationClassName: PyWBEM_Person
+                        Name: Fritz
+                        Address: Fritz Town
+                    path:
+                        pywbem_object: CIMInstanceName
+                        classname: PYWBEM_Person
+                        host : Fred
+                        namespace: root/cimv2
+                        keybindings:
+                            CreationClassname: PyWBEM_Person
+                            Name: Fritz
+                -
+                    pywbem_object: CIMInstance
+                    classname: PyWBEM_Person
+                    properties:
+                        CreationClassName: PyWBEM_Person
+                        Name: Alice
+                        Address: Alice Town
+                    path:
+                        pywbem_object: CIMInstanceName
+                        classname: PyWBEM_Person
+                        host: fred
+                        namespace: root/cimv2
+                        keybindings:
+                            CreationClassname: PyWBEM_Person
+                            Name: Alice
+
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+             <?xml version="1.0" encoding="utf-8" ?>
+             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                 <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                     <SIMPLEREQ>
+                         <IMETHODCALL NAME="OpenEnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                 <NAMESPACE NAME="root"/>
+                                 <NAMESPACE NAME="cimv2"/>
+                             </LOCALNAMESPACEPATH>
+                             <IPARAMVALUE NAME="ClassName">
+                                 <CLASSNAME NAME="PyWBEM_Person"/>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="LocalOnly">
+                                 <VALUE>True</VALUE>
+                             </IPARAMVALUE>
+                         </IMETHODCALL>
+                     </SIMPLEREQ>
+                 </MESSAGE>
+             </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                            <IRETURNVALUE>
+                                <VALUE.INSTANCEWITHPATH>
+                                    <INSTANCEPATH>
+                                        <NAMESPACEPATH>
+                                            <HOST>fred</HOST>
+                                            <LOCALNAMESPACEPATH>
+                                                <NAMESPACE NAME="root"/>
+                                                <NAMESPACE NAME="cimv2"/>
+                                            </LOCALNAMESPACEPATH>
+                                        </NAMESPACEPATH>
+                                        <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                            <KEYBINDING NAME="CreationClassName">
+                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                            </KEYBINDING>
+                                            <KEYBINDING NAME="Name">
+                                                <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                            </KEYBINDING>
+                                        </INSTANCENAME>
+                                    </INSTANCEPATH>
+                                    <INSTANCE CLASSNAME="PyWBEM_Person">
+                                        <PROPERTY NAME="CreationClassName" TYPE="string">
+                                            <VALUE>PyWBEM_Person</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Name" TYPE="string">
+                                            <VALUE>Fritz</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Address" TYPE="string">
+                                            <VALUE>Fritz Town</VALUE>
+                                        </PROPERTY>
+                                    </INSTANCE>
+                                </VALUE.INSTANCEWITHPATH>
+                                <VALUE.INSTANCEWITHPATH>
+                                    <INSTANCEPATH>
+                                        <NAMESPACEPATH>
+                                            <HOST>Fred</HOST>
+                                            <LOCALNAMESPACEPATH>
+                                                <NAMESPACE NAME="root"/>
+                                                <NAMESPACE NAME="cimv2"/>
+                                            </LOCALNAMESPACEPATH>
+                                        </NAMESPACEPATH>
+                                        <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                            <KEYBINDING NAME="CreationClassName">
+                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                            </KEYBINDING>
+                                            <KEYBINDING NAME="Name">
+                                                <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+                                            </KEYBINDING>
+                                        </INSTANCENAME>
+                                    </INSTANCEPATH>
+                                    <INSTANCE CLASSNAME="PyWBEM_Person">
+                                        <PROPERTY NAME="CreationClassName" TYPE="string">
+                                            <VALUE>PyWBEM_Person</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Name" TYPE="string">
+                                            <VALUE>Alice</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Address" TYPE="string">
+                                            <VALUE>Alice Town</VALUE>
+                                        </PROPERTY>
+                                    </INSTANCE>
+                                </VALUE.INSTANCEWITHPATH>
+                            </IRETURNVALUE>
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>TRUE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE></VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: OpenEnumerateInstances3
+    description: OpenEnumerateInstances with LocalOnly True, EOS=true  and 1 response object succeeds.
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: PyWBEM_Person
+            LocalOnly: true
+    pywbem_response:
+        pullresult:
+            context: null
+            eos: True
+            instances: 
+                -
+                    pywbem_object: CIMInstance
+                    classname: PYWBEM_Person
+                    properties:
+                        CreationClassName: PyWBEM_Person
+                        Name: Fritz
+                        Address: Fritz Town
+                    path:
+                        pywbem_object: CIMInstanceName
+                        classname: PYWBEM_Person
+                        host : Fred
+                        namespace: root/cimv2
+                        keybindings:
+                            CreationClassname: PyWBEM_Person
+                            Name: Fritz
+
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+             <?xml version="1.0" encoding="utf-8" ?>
+             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                 <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                     <SIMPLEREQ>
+                         <IMETHODCALL NAME="OpenEnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                 <NAMESPACE NAME="root"/>
+                                 <NAMESPACE NAME="cimv2"/>
+                             </LOCALNAMESPACEPATH>
+                             <IPARAMVALUE NAME="ClassName">
+                                 <CLASSNAME NAME="PyWBEM_Person"/>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="LocalOnly">
+                                 <VALUE>True</VALUE>
+                             </IPARAMVALUE>
+                         </IMETHODCALL>
+                     </SIMPLEREQ>
+                 </MESSAGE>
+             </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                            <IRETURNVALUE>
+                                <VALUE.INSTANCEWITHPATH>
+                                    <INSTANCEPATH>
+                                        <NAMESPACEPATH>
+                                            <HOST>fred</HOST>
+                                            <LOCALNAMESPACEPATH>
+                                                <NAMESPACE NAME="root"/>
+                                                <NAMESPACE NAME="cimv2"/>
+                                            </LOCALNAMESPACEPATH>
+                                        </NAMESPACEPATH>
+                                        <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                            <KEYBINDING NAME="CreationClassName">
+                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                            </KEYBINDING>
+                                            <KEYBINDING NAME="Name">
+                                                <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                            </KEYBINDING>
+                                        </INSTANCENAME>
+                                    </INSTANCEPATH>
+                                    <INSTANCE CLASSNAME="PyWBEM_Person">
+                                        <PROPERTY NAME="CreationClassName" TYPE="string">
+                                            <VALUE>PyWBEM_Person</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Name" TYPE="string">
+                                            <VALUE>Fritz</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Address" TYPE="string">
+                                            <VALUE>Fritz Town</VALUE>
+                                        </PROPERTY>
+                                    </INSTANCE>
+                                </VALUE.INSTANCEWITHPATH>
+                            </IRETURNVALUE>
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>TRUE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE></VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: OpenEnumerateInstances4
+    description: OpenEnumerateInstances with LocalOnly True, returns eos=t and 0 response object succeeds.
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: PyWBEM_Person
+            LocalOnly: true
+    pywbem_response:
+        pullresult:
+            context: null
+            eos: True
+            instances: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+             <?xml version="1.0" encoding="utf-8" ?>
+             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                 <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                     <SIMPLEREQ>
+                         <IMETHODCALL NAME="OpenEnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                 <NAMESPACE NAME="root"/>
+                                 <NAMESPACE NAME="cimv2"/>
+                             </LOCALNAMESPACEPATH>
+                             <IPARAMVALUE NAME="ClassName">
+                                 <CLASSNAME NAME="PyWBEM_Person"/>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="LocalOnly">
+                                 <VALUE>True</VALUE>
+                             </IPARAMVALUE>
+                         </IMETHODCALL>
+                     </SIMPLEREQ>
+                 </MESSAGE>
+             </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>TRUE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE></VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: OpenEnumerateInstances5
+    description: OpenEnumerateInstances with maxobjcount=0; returns succeeds with context, eos=f, and 0 response objects.
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: PyWBEM_Person
+            MaxObjectCount: 0
+    pywbem_response:
+        pullresult:
+            context:
+            - blahblah
+            - root/cimv2
+            eos: false
+            instances: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+             <?xml version="1.0" encoding="utf-8" ?>
+             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                 <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                     <SIMPLEREQ>
+                         <IMETHODCALL NAME="OpenEnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                 <NAMESPACE NAME="root"/>
+                                 <NAMESPACE NAME="cimv2"/>
+                             </LOCALNAMESPACEPATH>
+                             <IPARAMVALUE NAME="ClassName">
+                                 <CLASSNAME NAME="PyWBEM_Person"/>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="MaxObjectCount">
+                                 <VALUE>0</VALUE>
+                             </IPARAMVALUE>
+                         </IMETHODCALL>
+                     </SIMPLEREQ>
+                 </MESSAGE>
+             </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>FALSE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE>blahblah</VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: OpenEnumerateInstances6
+    description: OpenEnumerateInstances with all parameters; returns succeeds with context, eos=f, and 0 response objects.
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: PyWBEM_Person
+            IncludeClassOrigin: true
+            ContinueOnError: true
+            MaxObjectCount: 1000
+            namespace: root/cimv2
+            DeepInheritance: true
+            FilterQuery: "Some Filter"
+            FilterQueryLanguage: WQL
+            OperationTimeout: 40
+            LocalOnly: true
+            IncludeQualifiers: true
+    pywbem_response:
+        pullresult:
+            context:
+                - blahblah
+                - root/cimv2
+            eos: false
+            instances: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+             <?xml version="1.0" encoding="utf-8" ?>
+             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                 <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                     <SIMPLEREQ>
+                         <IMETHODCALL NAME="OpenEnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                 <NAMESPACE NAME="root"/>
+                                 <NAMESPACE NAME="cimv2"/>
+                             </LOCALNAMESPACEPATH>
+                             <IPARAMVALUE NAME="ClassName">
+                                 <CLASSNAME NAME="PyWBEM_Person"/>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="MaxObjectCount">
+                                 <VALUE>1000</VALUE>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="IncludeClassOrigin">
+                                 <VALUE>True</VALUE>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="LocalOnly">
+                               <VALUE>True</VALUE>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="ContinueOnError">
+                                 <VALUE>True</VALUE>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="DeepInheritance">
+                                 <VALUE>True</VALUE>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="FilterQuery">
+                                 <VALUE>Some Filter</VALUE>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="FilterQueryLanguage">
+                                 <VALUE>WQL</VALUE>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="IncludeQualifiers">
+                                 <VALUE>True</VALUE>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="OperationTimeout">
+                                 <VALUE>40</VALUE>
+                             </IPARAMVALUE>
+                         </IMETHODCALL>
+                     </SIMPLEREQ>
+                 </MESSAGE>
+             </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>FALSE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE>blahblah</VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: OpenEnumerateInstances7
+    description: OpenEnumerateInstances with all parameters to default; returns succeeds with context, eos=f, and 0 response objects.
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: PyWBEM_Person
+            IncludeClassOrigin:
+            ContinueOnError:
+            MaxObjectCount:
+            namespace: root/cimv2
+            DeepInheritance:
+            FilterQuery:
+            FilterQueryLanguage:
+            OperationTimeout:
+            LocalOnly:
+            IncludeQualifiers:
+            ExtraParam: false
+    pywbem_response:
+        pullresult:
+            context:
+                - blahblah
+                - root/cimv2
+            eos: false
+            instances: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+
+        data: >
+             <?xml version="1.0" encoding="utf-8" ?>
+             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                 <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                     <SIMPLEREQ>
+                         <IMETHODCALL NAME="OpenEnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                 <NAMESPACE NAME="root"/>
+                                 <NAMESPACE NAME="cimv2"/>
+                             </LOCALNAMESPACEPATH>
+                             <IPARAMVALUE NAME="ClassName">
+                                 <CLASSNAME NAME="PyWBEM_Person"/>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="ExtraParam">
+                                 <VALUE>False</VALUE>
+                             </IPARAMVALUE>
+                         </IMETHODCALL>
+                     </SIMPLEREQ>
+                 </MESSAGE>
+             </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>FALSE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE>blahblah</VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: OpenEnumerateInstances8
+    description: OpenEnumerateInstances with all parameters to default and extra parameter. succeeds
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: PyWBEM_Person
+            IncludeClassOrigin:
+            ContinueOnError:
+            MaxObjectCount:
+            namespace: root/cimv2
+            DeepInheritance:
+            FilterQuery:
+            FilterQueryLanguage:
+            OperationTimeout:
+            LocalOnly:
+            IncludeQualifiers:
+            ExtraParam: false
+    pywbem_response:
+        pullresult:
+            context:
+                - blahblah
+                - root/cimv2
+            eos: false
+            instances: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+             <?xml version="1.0" encoding="utf-8" ?>
+             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                 <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                     <SIMPLEREQ>
+                         <IMETHODCALL NAME="OpenEnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                 <NAMESPACE NAME="root"/>
+                                 <NAMESPACE NAME="cimv2"/>
+                             </LOCALNAMESPACEPATH>
+                             <IPARAMVALUE NAME="ClassName">
+                                 <CLASSNAME NAME="PyWBEM_Person"/>
+                             </IPARAMVALUE>
+                            <IPARAMVALUE NAME="ExtraParam">
+                               <VALUE>False</VALUE>
+                            </IPARAMVALUE>
+                         </IMETHODCALL>
+                     </SIMPLEREQ>
+                 </MESSAGE>
+             </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>FALSE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE>blahblah</VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
+    name: OpenEnumerateInstancesF1
+    description: OpenEnumerateInstances fails with CIM_ERR_ACCESS_DENIED
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: CIM_ComputerSystem
+            IncludeClassOrigin: null
+            ContinueOnError: null
+            MaxObjectCount: 1000
+            namespace: root/cimv2
+            DeepInheritance: null
+            FilterQuery: null
+            FilterQueryLanguage: null
+            OperationTimeout: null
+            LocalOnly: null
+            PropertyList: null
+            IncludeQualifiers: null
+    pywbem_response:
+        cim_status: 2
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+             <?xml version="1.0" encoding="utf-8" ?>
+             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                 <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                     <SIMPLEREQ>
+                         <IMETHODCALL NAME="OpenEnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                 <NAMESPACE NAME="root"/>
+                                 <NAMESPACE NAME="cimv2"/>
+                             </LOCALNAMESPACEPATH>
+                             <IPARAMVALUE NAME="ClassName">
+                                 <CLASSNAME NAME="CIM_ComputerSystem"/>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="MaxObjectCount">
+                                 <VALUE>1000</VALUE>
+                             </IPARAMVALUE>
+                         </IMETHODCALL>
+                     </SIMPLEREQ>
+                 </MESSAGE>
+             </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                    <ERROR CODE="2" DESCRIPTION="CIM_ERR_ACCESS_DENIED: Access denied"/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: OpenEnumerateInstancesF2
+    description: OpenEnumerateInstances, server fails with CIM_ERR_NOT_SUPPORTED
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        cim_status: 7
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="OpenEnumerateInstances">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ClassName">
+                        <CLASSNAME NAME="PyWBEM_Person"/>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                    <ERROR CODE="7" DESCRIPTION="CIM_ERR_NOT_SUPPORTED: The requested operation is not supported on behalf of the WBEM server."/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: OpenEnumerateInstancesF3
+    description: OpenEnumerateInstances fails with CIM_ERR_INVALID_NAMESPACE
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/bad
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: CIM_ComputerSystem
+            IncludeClassOrigin: null
+            ContinueOnError: null
+            MaxObjectCount: 1000
+            namespace: root/bad
+            DeepInheritance: null
+            FilterQuery: null
+            FilterQueryLanguage: null
+            OperationTimeout: null
+            LocalOnly: null
+            PropertyList: null
+            IncludeQualifiers: null
+    pywbem_response:
+        cim_status: 3
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/bad
+        data: >
+             <?xml version="1.0" encoding="utf-8" ?>
+             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                 <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                     <SIMPLEREQ>
+                         <IMETHODCALL NAME="OpenEnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                 <NAMESPACE NAME="root"/>
+                                 <NAMESPACE NAME="bad"/>
+                             </LOCALNAMESPACEPATH>
+                             <IPARAMVALUE NAME="ClassName">
+                                 <CLASSNAME NAME="CIM_ComputerSystem"/>
+                             </IPARAMVALUE>
+                             <IPARAMVALUE NAME="MaxObjectCount">
+                                 <VALUE>1000</VALUE>
+                             </IPARAMVALUE>
+                         </IMETHODCALL>
+                     </SIMPLEREQ>
+                 </MESSAGE>
+             </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                    <ERROR CODE="3" DESCRIPTION="CIM_ERR_INVALID_NAMESPACE: Namespace root/bad not found"/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: OpenEnumerateInstancesF4
+    description: OpenEnumerateInstances, server fails with CIM_ERR_INVALID_PARAMETER due to extra parm
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: PyWBEM_Person
+            ExtraParam: false
+    pywbem_response:
+        cim_status: 4
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="OpenEnumerateInstances">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ClassName">
+                        <CLASSNAME NAME="PyWBEM_Person"/>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="ExtraParam">
+                      <VALUE>False</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                    <ERROR CODE="4" DESCRIPTION="CIM_ERR_INVALID_PARAMETER: Parameter ExtraParam is invalid"/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: OpenEnumerateInstancesF5
+    description: OpenEnumerateInstances, server fails with CIM_ERR_INVALID_CLASS
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: PyWBEM_Bad
+    pywbem_response:
+        cim_status: 5
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="OpenEnumerateInstances">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ClassName">
+                        <CLASSNAME NAME="PyWBEM_Bad"/>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                    <ERROR CODE="5" DESCRIPTION="CIM_ERR_INVALID_CLASS: The specified class does not exist."/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: OpenEnumerateInstancesF6
+    description: OpenEnumerateInstances, server fails with CIM_ERR_FAILED
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        cim_status: 1
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="OpenEnumerateInstances">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ClassName">
+                        <CLASSNAME NAME="PyWBEM_Person"/>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                    <ERROR CODE="1" DESCRIPTION="CIM_ERR_FAILED: Internal server error."/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+
+
+
