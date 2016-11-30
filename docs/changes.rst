@@ -14,10 +14,10 @@ Change log
 .. #    :revisions: 1
 
 
-pywbem v0.9.1.dev0
-------------------
+pywbem v0.9.1
+-------------
 
-Released: Not yet
+Released: 2016-11-30
 
 Enhancements
 ^^^^^^^^^^^^
@@ -27,7 +27,6 @@ Enhancements
 
 * Added `git` as an OS-level dependency for development (it is used by GitPython
   when building the documentation).
-
 
 Bug fixes
 ^^^^^^^^^
