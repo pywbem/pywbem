@@ -81,6 +81,10 @@ Bug fixes
   version to <=2.0.8, due to its use of unittest.case which is not available
   on Python 2.6.
 
+* Fixed an `AttributeError` in the `remove_all_servers()` method of
+  `WBEMSubscriptionManager` and dictionary iteration errors in its
+  `remove_server()` method. PR #583.
+
 
 pywbem v0.9.0
 -------------
