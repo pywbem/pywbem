@@ -25,6 +25,10 @@ Enhancements
 Bug fixes
 ^^^^^^^^^
 
+* Fixed an `AttributeError` in the `remove_all_servers()` method of
+  `WBEMSubscriptionManager` and dictionary iteration errors in its
+  `remove_server()` method. PR #583.
+
 
 pywbem v0.9.1
 -------------
