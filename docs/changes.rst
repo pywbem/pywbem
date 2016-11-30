@@ -14,6 +14,18 @@ Change log
 .. #    :revisions: 1
 
 
+pywbem v0.9.2-dev0
+------------------
+
+Released: not yet
+
+Enhancements
+^^^^^^^^^^^^
+
+Bug fixes
+^^^^^^^^^
+
+
 pywbem v0.9.1
 -------------
 
