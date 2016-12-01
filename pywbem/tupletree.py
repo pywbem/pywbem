@@ -58,6 +58,7 @@ import xml.dom.minidom
 import xml.sax
 import re
 import sys
+import six
 
 __all__ = []
 
@@ -142,10 +143,11 @@ def xml_to_tupletree_sax(xml_string):
     """
     handler = CIMContentHandler()
 
-    # The following is required because python version 3.4 does not accept
-    # str for the sax processor xml input.
-    if sys.version_info[0:2] == (3, 4):
-        if isinstance(xml_string, str):
+    # The following is required because the SAX parser in these Python
+    # versions does not accept unicode strings, raising:
+    # SAXParseException: "<unknown>:1:1: not well-formed (invalid token)"
+    if sys.version_info[0:2] in ((2, 6), (3, 4)):
+        if isinstance(xml_string, six.text_type):
             xml_string = xml_string.encode("utf-8")
 
     xml.sax.parseString(xml_string, handler, None)
