@@ -506,29 +506,18 @@ class EnumerateInstances(ClientTest):
 
         self.assertInstancesValid(instances)
 
-    def test_class_propertylist(self):
-        """ Test with propertyList for getClass to confirm property in class.
-        """
-        property_list = [TEST_CLASS_PROPERTY2]
-
-        cls = self.cimcall(self.conn.GetClass, TEST_CLASS,
-                           PropertyList=property_list, LocalOnly=False)
-
-        self.assertEqual(len(cls.properties), len(property_list))
-
-        if self.verbose:
-            for p in cls.properties.values():
-                print('ClassPropertyName=%s' % p.name)
-
     def test_instance_propertylist(self):
         """ Test property list on enumerate instances."""
 
         property_list = [TEST_CLASS_PROPERTY2]
 
+        # confirm property is in the class
         cls = self.cimcall(self.conn.GetClass, TEST_CLASS,
                            PropertyList=property_list, LocalOnly=False)
         cls_property_count = len(cls.properties)
+        self.assertEqual(len(cls.properties), len(property_list))
 
+        # Get instances of class
         instances = self.cimcall(self.conn.EnumerateInstances,
                                  TEST_CLASS,
                                  DeepInheritance=True,
@@ -608,6 +597,24 @@ class EnumerateInstances(ClientTest):
         # TODO Apparently ks 5/16 Pegasus did not implement all properties
         # now in the class
         # self.assertTrue(property_count == inst_property_count)
+
+    def test_instance_simple_propertylist(self): # pylint: disable=invalid-name
+        """ Test property list with one property as a string."""
+
+        property_list = TEST_CLASS_PROPERTY1
+
+        # Get instances of class
+        instances = self.cimcall(self.conn.EnumerateInstances,
+                                 TEST_CLASS,
+                                 DeepInheritance=True,
+                                 LocalOnly=False,
+                                 PropertyList=property_list)
+
+        self.assertInstancesValid(instances)
+
+        # confirm same number of properties on each instance
+        for inst in instances:
+            self.assertTrue(len(inst.properties) == 1)
 
     def test_deepinheritance(self):
         """Test with deep inheritance set true and then false."""
@@ -2918,6 +2925,21 @@ class GetClass(ClientClassTest):
             for p in cls.properties.values():
                 print('ClassPropertyName=%s' % p.name)
 
+    def test_class_single_property(self):
+        """ Test with propertyList for getClass to confirm that single
+            string not in list works.
+        """
+        property_list = TEST_CLASS_PROPERTY2
+
+        cls = self.cimcall(self.conn.GetClass, TEST_CLASS,
+                           PropertyList=property_list, LocalOnly=False)
+
+        self.assertEqual(len(cls.properties), 1)
+
+        if self.verbose:
+            for p in cls.properties.values():
+                print('ClassPropertyName=%s' % p.name)
+
     def test_nonexistent_class(self):
         try:
             self.cimcall(self.conn.GetClass, 'CIM_BlanBlahBlah')
@@ -2977,7 +2999,7 @@ class EnumerateQualifiers(QualifierDeclClientTest):
     def test_fail_namespace(self):
         try:
             self.cimcall(self.conn.EnumerateQualifiers(namespace='xx'))
-            self.assertfail('Should get exception')
+            self.fail('Should get exception')
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
                 raise
