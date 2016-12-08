@@ -119,6 +119,13 @@ The top-level elements in the test case YAML are:
   cases where a test is really version dependent. To date the only case
   is in HTTPS timeout processing where python 2 has an issue with mock.
 
+* `ignore_test`
+  If this element exists, the test is bypassed.  This is a way to temporarily
+  bypass tests that are causing problems without hiding or removing the code.
+  It should only be used in rare cases. Please document any use of this
+  options. If the command line option to run a single test is set
+  this element is ignored.
+
 * `pywbem_request`:
   A specification of the PyWBEM client function to test, and the input
   arguments for its invocation.

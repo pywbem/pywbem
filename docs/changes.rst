@@ -77,6 +77,10 @@ Bug fixes
   version to <=2.0.8, due to its use of unittest.case which is not available
   on Python 2.6.
 
+* Modified cim_operations that have a PropertyList attribute  to allow the
+  PropertyList attribute to have a single string in addition to the iterable.
+  Previously this caused an XML error (issue #577).
+
 
 pywbem v0.9.0
 -------------
