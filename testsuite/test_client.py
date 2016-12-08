@@ -458,6 +458,7 @@ class ClientTest(unittest.TestCase):
             ("IPARAMVALUE", "NAME"),
             ("PROPERTY", "NAME"),
             ("PARAMETER", "NAME"),
+            ("KEYBINDING", "NAME"),
         ]
         sort_children(x_act, sort_elements)
         sort_children(x_exp, sort_elements)

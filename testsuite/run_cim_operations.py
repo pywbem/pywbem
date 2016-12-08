@@ -224,6 +224,14 @@ class ClientTest(unittest.TestCase):
                     prop = instance.properties[p]
                     self.assertIsInstance(prop, CIMProperty)
 
+    def assertPathsValid(self, paths, namespace=None):
+        """
+        Test for valid paths.
+        Separate this from InstanceNamesValid since they are reallyd
+        different in definition. This assumes namespace exists.
+        """
+        self.assertInstanceNamesValid(paths, namespace=namespace)
+
     def assertInstanceNamesValid(self, paths, includes_namespace=True,
                                  includes_keybindings=True,
                                  namespace=None):
@@ -907,6 +915,23 @@ class PullEnumerateInstances(ClientTest):
             if ce.args[0] != CIM_ERR_INVALID_ENUMERATION_CONTEXT:
                 raise
 
+    def test_close_invalid(self):
+        """"Close enumeration session after complete."""
+        result = self.cimcall(self.conn.OpenEnumerateInstances, TEST_CLASS,
+                              MaxObjectCount=100)
+
+        while not result.eos:
+            result = self.cimcall(
+                self.conn.PullInstancesWithPath, result.context,
+                MaxObjectCount=100)
+
+        try:
+            self.cimcall(self.conn.CloseEnumeration, result.context)
+            self.fail('Expected CIMError')
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_ENUMERATION_CONTEXT:
+                raise
+
     # TODO. This one is subject to errors because compare may not return
     #       same info.  Recheck all the TOP_CLASS calls for same issue
     def test_get_onebyone(self):
@@ -1356,6 +1381,41 @@ class PullReferencePaths(ClientTest):
             self.assertTrue(i.host is not None)
 
         self.assertPathsEqual(paths_pulled, paths_enum)
+
+    def test_pywbem_person_noparams(self):
+        """
+        Test OpenReferencesPaths PyWBEM_Person class
+        and no associator filter parameters
+        """
+        if not self.pywbem_person_class_exists():
+            return
+
+        inst_paths = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  PYWBEM_PERSON_CLASS)
+        self.assertTrue(len(inst_paths) >= 1)
+
+        # for each returned instance, execute  test sequence to get
+        # all instances
+        for path in inst_paths:
+            result = self.cimcall(self.conn.OpenReferenceInstancePaths,
+                                  path,
+                                  MaxObjectCount=100)
+
+            paths_pulled = result.paths
+
+            while not result.eos:
+                result = self.cimcall(
+                    self.conn.PullInstancePaths, result.context,
+                    MaxObjectCount=1)
+                self.assertTrue(len(result.paths) <= 1)
+                paths_pulled.extend(result.paths)
+
+            # test the returned paths_pulled
+            self.assertTrue(len(paths_pulled) > 0)
+            self.assertPathsValid(paths_pulled)
+            for path in paths_pulled:
+                self.assertEqual(path.classname,
+                                 PYWBEM_MEMBEROFPERSONCOLLECTION)
 
     @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test for all instances')
     def test_all_instances_in_ns(self):
@@ -2746,6 +2806,30 @@ class EnumerateClassNames(ClientTest):
         if self.verbose:
             print('end deep inheritance size %s' % len(full_name_list))
 
+    def test_pywbem_person(self):
+        '''Enumerate starting at pywbem_person with no extra parameters.'''
+        if not self.pywbem_person_class_exists():
+            return
+
+        classes = self.cimcall(self.conn.EnumerateClassNames,
+                               ClassName=PYWBEM_PERSON_CLASS)
+
+        # The requested class should NOT be in the list
+        # since this gets subclass names.
+        for cl in classes:
+            self.assertTrue(isinstance(cl, six.string_types))
+
+    def test_bad_classname(self):
+        '''Enumerate starting at pywbem_person with no extra parameters.'''
+        if not self.pywbem_person_class_exists():
+            return
+
+        try:
+            self.cimcall(self.conn.EnumerateClassNames, ClassName='XXX_Blah')
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_CLASS:
+                raise
+
 
 class EnumerateClasses(ClientClassTest):
 
@@ -2768,8 +2852,41 @@ class EnumerateClasses(ClientClassTest):
             self.assertTrue(isinstance(cl, CIMClass))
             self.verify_class(cl)
 
-        # TODO extend for options of Deepinheritance, LocalOnly,
-        # IncludeQualifiers, IncludeClassOrigin
+    def test_pywbem_person(self):
+        '''Enumerate starting at pywbem_person with no extra parameters.'''
+        if not self.pywbem_person_class_exists():
+            return
+
+        classes = self.cimcall(self.conn.EnumerateClasses,
+                               ClassName=PYWBEM_PERSON_CLASS)
+
+        for cl in classes:
+            self.assertTrue(isinstance(cl, CIMClass))
+            self.verify_class(cl)
+
+    def test_pywbem_person2(self):
+        '''Enumerate starting at pywbem_person with no all parameters.'''
+        if not self.pywbem_person_class_exists():
+            return
+
+        classes = self.cimcall(self.conn.EnumerateClasses,
+                               ClassName=PYWBEM_PERSON_CLASS,
+                               IncludeClassOrigin=True,
+                               IncludeQualifiers=True,
+                               LocalOnly=False,
+                               DeepInheritance=True)
+        for cl in classes:
+            self.assertTrue(isinstance(cl, CIMClass))
+            self.verify_class(cl)
+
+    def test_invalid_classname(self):
+
+        # Enumerate all classes
+        try:
+            self.cimcall(self.conn.EnumerateClasses, ClassName="CIM_Blah")
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_CLASS:
+                raise
 
 
 class GetClass(ClientClassTest):
@@ -2842,7 +2959,7 @@ class QualifierDeclClientTest(ClientTest):
        tests.
     """
     def verify_qual_decl(self, ql, test_name=None):
-        """Verify simple class attributes."""
+        """Verify simple qualifier decl attributes."""
         self.assertTrue(isinstance(ql, CIMQualifierDeclaration))
 
         if test_name is not None:
@@ -2852,24 +2969,30 @@ class QualifierDeclClientTest(ClientTest):
 
 
 class EnumerateQualifiers(QualifierDeclClientTest):
+    """Test enumerating all qualifiers"""
+    def test_get_all(self):
+        qual_decl = self.cimcall(self.conn.EnumerateQualifiers())
+        self.verify_qual_decl(qual_decl, test_name='Abstract')
 
-    def test_all(self):
-        qual_decls = self.cimcall(self.conn.EnumerateQualifiers)
-        self.assertTrue(len(qual_decls) > 0)
-
-        for qual_decl in qual_decls:
-            self.verify_qual_decl(qual_decl)
+    def test_fail_namespace(self):
+        try:
+            self.cimcall(self.conn.EnumerateQualifiers(namespace='xx'))
+            self.assertfail('Should get exception')
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
+                raise
 
 
 class GetQualifier(QualifierDeclClientTest):
-
-    def test_all(self):
+    def test_get_one(self):
+        """Test getqualifier with valid qualifier name"""
         qual_decl = self.cimcall(self.conn.GetQualifier, 'Abstract')
         self.verify_qual_decl(qual_decl, test_name='Abstract')
 
-        # test with name that is not found
+    def test_get_badname(self):
+        """Test getqualifier with invalid qualifier name"""
         try:
-            qual_decl = self.cimcall(self.conn.GetQualifier, 'blahblah')
+            self.cimcall(self.conn.GetQualifier, 'blahblah')
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_NOT_FOUND:
                 raise

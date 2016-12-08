@@ -1,0 +1,366 @@
+- name: EnumerateClassNames1
+  description: Enumerate Classnames starting at PyWBEM_Person. Returns none.
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: EnumerateClassNames
+      ClassName: PyWBEM_Person
+      namespace: null
+      DeepInheritance: null
+  pywbem_response:
+    result: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: EnumerateClassNames
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="EnumerateClassNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ClassName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateClassNames">
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+- name: EnumerateClassNames2
+  description: Enumerate class names from top without deepInheritance
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: EnumerateClassNames
+      ClassName: null
+      namespace: null
+      DeepInheritance: null
+  pywbem_response:
+    result:
+    - CIM_CollectionInSystem
+    - CIM_ReplaceableProductFRU
+    - CIM_ElementCapabilities
+    - CIM_ElementProfile
+    - CIM_AuthorizedTarget
+    - CIM_Error
+    - CIM_ProductFRU
+    - CIM_Statistics
+    - CIM_FromDirectorySpecification
+    - CIM_RecordInLog
+    - CIM_CollectionSetting
+    - CIM_Indication
+    - CIM_SystemInNamespace
+    - CIM_ElementCapacity
+    - CIM_CollectionConfiguration
+    - CIM_ProductSoftwareFeatures
+    - CIM_ProductParentChild
+    - CIM_StorageDefect
+    - CIM_CollectionInOrganization
+    - CIM_ServiceAffectsElement
+    - CIM_FRUIncludesProduct
+    - CIM_OwningCollectionElement
+    - CIM_SystemSettingContext
+    - CIM_ElementLocation
+    - CIM_ServiceAvailableToElement
+    - CIM_ActionSequence
+    - CIM_DiagnosticResultForTest
+    - CIM_DiagnosticResultForMSE
+    - CIM_CompatibleProduct
+    - CIM_SCSIInitiatorTargetLogicalUnitPath
+    - CIM_InstalledSoftwareIdentity
+    - CIM_FRUIncludesSoftwareFeature
+    - CIM_SchemaInformationStructure
+    - CIM_InstalledSoftwareElement
+    - CIM_FibrePortActiveLogin
+    - CIM_CollectedCollections
+    - CIM_ElementConfiguration
+    - CIM_CorrespondingSettingDataRecord
+    - CIM_AffectedJobElement
+    - CIM_NetworksInAdminDomain
+    - CIM_OwningJobElement
+    - CIM_ToDirectoryAction
+    - CIM_ElementSettingData
+    - CIM_SAPAvailableForElement
+    - CIM_Dependency
+    - CIM_DiagnosticResultInPackage
+    - CIM_RelatedStatistics
+    - CIM_BGPClustersInAS
+    - CIM_CredentialContext
+    - CIM_FromDirectoryAction
+    - CIM_AFRelatedServices
+    - CIM_RoleLimitedToTarget
+    - CIM_ActsAsSpare
+    - CIM_OrgStructure
+    - CIM_AssociatedJobMethodResult
+    - CIM_SettingContext
+    - CIM_FRUPhysicalElements
+    - CIM_ElementStatisticalData
+    - CIM_NextService
+    - CIM_LogicalNetworkService
+    - CIM_ElementSetting
+    - CIM_DependencyContext
+    - CIM_ProductSupport
+    - CIM_GenericOperationCapabilitiesStructure
+    - CIM_RelatedStatisticalData
+    - CIM_ElementSecuritySensitivity
+    - CIM_AssignedIdentity
+    - CIM_Synchronized
+    - CIM_CorrespondingSettingsRecord
+    - CIM_LogManagesRecord
+    - CIM_ServiceProcess
+    - CIM_NextServiceAfterMeter
+    - CIM_QueueToSchedule
+    - CIM_ApplicationSystemDirectory
+    - CIM_PolicySetAppliesToElement
+    - CIM_ParameterValueSources
+    - CIM_DirectorySpecificationFile
+    - CIM_AssociatedPrivilege
+    - CIM_ParametersForMethod
+    - CIM_Export
+    - CIM_ElementConformsToProfile
+    - CIM_AdjacentSlots
+    - CIM_ProductPhysicalElements
+    - CIM_IdentityContext
+    - CIM_InstalledProductImage
+    - CIM_ToDirectorySpecification
+    - CIM_ProductProductDependency
+    - CIM_SchedulingServiceToSchedule
+    - CIM_DiagnosticResult
+    - CIM_AbstractIndicationSubscription
+    - CIM_AuthorizedSubject
+    - CIM_SettingsDefineState
+    - CIM_SoftwareElementActions
+    - CIM_SoftwareElementChecks
+    - CIM_AssociatedBlockStatisticsManifestCollection
+    - CIM_ParticipatesInSet
+    - CIM_LogicalIdentity
+    - CIM_ManagedElement
+    - CIM_UoWDefTraceLevelType
+    - CIM_ConfigurationComponent
+    - CIM_Component
+    - CIM_MemberOfCollection
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: EnumerateClassNames
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="EnumerateClassNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateClassNames">
+      <IRETURNVALUE>
+      <CLASSNAME NAME="CIM_CollectionInSystem"/>
+      <CLASSNAME NAME="CIM_ReplaceableProductFRU"/>
+      <CLASSNAME NAME="CIM_ElementCapabilities"/>
+      <CLASSNAME NAME="CIM_ElementProfile"/>
+      <CLASSNAME NAME="CIM_AuthorizedTarget"/>
+      <CLASSNAME NAME="CIM_Error"/>
+      <CLASSNAME NAME="CIM_ProductFRU"/>
+      <CLASSNAME NAME="CIM_Statistics"/>
+      <CLASSNAME NAME="CIM_FromDirectorySpecification"/>
+      <CLASSNAME NAME="CIM_RecordInLog"/>
+      <CLASSNAME NAME="CIM_CollectionSetting"/>
+      <CLASSNAME NAME="CIM_Indication"/>
+      <CLASSNAME NAME="CIM_SystemInNamespace"/>
+      <CLASSNAME NAME="CIM_ElementCapacity"/>
+      <CLASSNAME NAME="CIM_CollectionConfiguration"/>
+      <CLASSNAME NAME="CIM_ProductSoftwareFeatures"/>
+      <CLASSNAME NAME="CIM_ProductParentChild"/>
+      <CLASSNAME NAME="CIM_StorageDefect"/>
+      <CLASSNAME NAME="CIM_CollectionInOrganization"/>
+      <CLASSNAME NAME="CIM_ServiceAffectsElement"/>
+      <CLASSNAME NAME="CIM_FRUIncludesProduct"/>
+      <CLASSNAME NAME="CIM_OwningCollectionElement"/>
+      <CLASSNAME NAME="CIM_SystemSettingContext"/>
+      <CLASSNAME NAME="CIM_ElementLocation"/>
+      <CLASSNAME NAME="CIM_ServiceAvailableToElement"/>
+      <CLASSNAME NAME="CIM_ActionSequence"/>
+      <CLASSNAME NAME="CIM_DiagnosticResultForTest"/>
+      <CLASSNAME NAME="CIM_DiagnosticResultForMSE"/>
+      <CLASSNAME NAME="CIM_CompatibleProduct"/>
+      <CLASSNAME NAME="CIM_SCSIInitiatorTargetLogicalUnitPath"/>
+      <CLASSNAME NAME="CIM_InstalledSoftwareIdentity"/>
+      <CLASSNAME NAME="CIM_FRUIncludesSoftwareFeature"/>
+      <CLASSNAME NAME="CIM_SchemaInformationStructure"/>
+      <CLASSNAME NAME="CIM_InstalledSoftwareElement"/>
+      <CLASSNAME NAME="CIM_FibrePortActiveLogin"/>
+      <CLASSNAME NAME="CIM_CollectedCollections"/>
+      <CLASSNAME NAME="CIM_ElementConfiguration"/>
+      <CLASSNAME NAME="CIM_CorrespondingSettingDataRecord"/>
+      <CLASSNAME NAME="CIM_AffectedJobElement"/>
+      <CLASSNAME NAME="CIM_NetworksInAdminDomain"/>
+      <CLASSNAME NAME="CIM_OwningJobElement"/>
+      <CLASSNAME NAME="CIM_ToDirectoryAction"/>
+      <CLASSNAME NAME="CIM_ElementSettingData"/>
+      <CLASSNAME NAME="CIM_SAPAvailableForElement"/>
+      <CLASSNAME NAME="CIM_Dependency"/>
+      <CLASSNAME NAME="CIM_DiagnosticResultInPackage"/>
+      <CLASSNAME NAME="CIM_RelatedStatistics"/>
+      <CLASSNAME NAME="CIM_BGPClustersInAS"/>
+      <CLASSNAME NAME="CIM_CredentialContext"/>
+      <CLASSNAME NAME="CIM_FromDirectoryAction"/>
+      <CLASSNAME NAME="CIM_AFRelatedServices"/>
+      <CLASSNAME NAME="CIM_RoleLimitedToTarget"/>
+      <CLASSNAME NAME="CIM_ActsAsSpare"/>
+      <CLASSNAME NAME="CIM_OrgStructure"/>
+      <CLASSNAME NAME="CIM_AssociatedJobMethodResult"/>
+      <CLASSNAME NAME="CIM_SettingContext"/>
+      <CLASSNAME NAME="CIM_FRUPhysicalElements"/>
+      <CLASSNAME NAME="CIM_ElementStatisticalData"/>
+      <CLASSNAME NAME="CIM_NextService"/>
+      <CLASSNAME NAME="CIM_LogicalNetworkService"/>
+      <CLASSNAME NAME="CIM_ElementSetting"/>
+      <CLASSNAME NAME="CIM_DependencyContext"/>
+      <CLASSNAME NAME="CIM_ProductSupport"/>
+      <CLASSNAME NAME="CIM_GenericOperationCapabilitiesStructure"/>
+      <CLASSNAME NAME="CIM_RelatedStatisticalData"/>
+      <CLASSNAME NAME="CIM_ElementSecuritySensitivity"/>
+      <CLASSNAME NAME="CIM_AssignedIdentity"/>
+      <CLASSNAME NAME="CIM_Synchronized"/>
+      <CLASSNAME NAME="CIM_CorrespondingSettingsRecord"/>
+      <CLASSNAME NAME="CIM_LogManagesRecord"/>
+      <CLASSNAME NAME="CIM_ServiceProcess"/>
+      <CLASSNAME NAME="CIM_NextServiceAfterMeter"/>
+      <CLASSNAME NAME="CIM_QueueToSchedule"/>
+      <CLASSNAME NAME="CIM_ApplicationSystemDirectory"/>
+      <CLASSNAME NAME="CIM_PolicySetAppliesToElement"/>
+      <CLASSNAME NAME="CIM_ParameterValueSources"/>
+      <CLASSNAME NAME="CIM_DirectorySpecificationFile"/>
+      <CLASSNAME NAME="CIM_AssociatedPrivilege"/>
+      <CLASSNAME NAME="CIM_ParametersForMethod"/>
+      <CLASSNAME NAME="CIM_Export"/>
+      <CLASSNAME NAME="CIM_ElementConformsToProfile"/>
+      <CLASSNAME NAME="CIM_AdjacentSlots"/>
+      <CLASSNAME NAME="CIM_ProductPhysicalElements"/>
+      <CLASSNAME NAME="CIM_IdentityContext"/>
+      <CLASSNAME NAME="CIM_InstalledProductImage"/>
+      <CLASSNAME NAME="CIM_ToDirectorySpecification"/>
+      <CLASSNAME NAME="CIM_ProductProductDependency"/>
+      <CLASSNAME NAME="CIM_SchedulingServiceToSchedule"/>
+      <CLASSNAME NAME="CIM_DiagnosticResult"/>
+      <CLASSNAME NAME="CIM_AbstractIndicationSubscription"/>
+      <CLASSNAME NAME="CIM_AuthorizedSubject"/>
+      <CLASSNAME NAME="CIM_SettingsDefineState"/>
+      <CLASSNAME NAME="CIM_SoftwareElementActions"/>
+      <CLASSNAME NAME="CIM_SoftwareElementChecks"/>
+      <CLASSNAME NAME="CIM_AssociatedBlockStatisticsManifestCollection"/>
+      <CLASSNAME NAME="CIM_ParticipatesInSet"/>
+      <CLASSNAME NAME="CIM_LogicalIdentity"/>
+      <CLASSNAME NAME="CIM_ManagedElement"/>
+      <CLASSNAME NAME="CIM_UoWDefTraceLevelType"/>
+      <CLASSNAME NAME="CIM_ConfigurationComponent"/>
+      <CLASSNAME NAME="CIM_Component"/>
+      <CLASSNAME NAME="CIM_MemberOfCollection"/>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+- name: EnumerateClassNamesF1
+  description: EnumerateClassNames with invalid class name. Returns Exception
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: EnumerateClassNames
+      ClassName: XXX_Blah
+      namespace: null
+      DeepInheritance: null
+  pywbem_response:
+    cim_status: 5
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: EnumerateClassNames
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="EnumerateClassNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ClassName">
+      <CLASSNAME NAME="XXX_Blah"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateClassNames">
+      <ERROR CODE="5" DESCRIPTION="CIM_ERR_INVALID_CLASS: XXX_Blah"/>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+
+
