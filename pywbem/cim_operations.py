@@ -187,6 +187,19 @@ def _check_classname(val):
         raise ValueError("string expected for classname, not %r" % val)
 
 
+def _iparam_propertylist(property_list):
+    """Validate property_list and if it is not iterable convert to list.
+
+    This is a test for a particular issue where the user supplies a single
+    string in stead of a list for a PropertyList parameter. It prevents
+    an XML error.
+    """
+    if isinstance(property_list, six.string_types):
+        return [property_list]
+    else:
+        return property_list
+
+
 def check_utf8_xml_chars(utf8_xml, meaning):
     """
     Examine a UTF-8 encoded XML string and raise a `pywbem.ParseError`
@@ -1387,9 +1400,10 @@ class WBEMConnection(object):
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string`):
-            An iterable specifying the names of the properties to be
-            included in the returned instances (case independent).
+          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
+            An iterable specifying the names of the properties (or a  string
+            that defines a single property) to be included in the returned
+            instances (case independent).
 
             An empty iterable indicates to include no properties.
 
@@ -1420,7 +1434,7 @@ class WBEMConnection(object):
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
-        """
+        """  # noqa: E501
 
         if self.operation_recorder:
             self.operation_recorder.reset()
@@ -1441,6 +1455,7 @@ class WBEMConnection(object):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
             classname = self._iparam_classname(ClassName)
+            PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
                 'EnumerateInstances',
@@ -1725,6 +1740,7 @@ class WBEMConnection(object):
                                OperationTimeout=None, ContinueOnError=None,
                                MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Open an enumeration session to get instances of a class
         (including instances of its subclasses).
@@ -1811,9 +1827,10 @@ class WBEMConnection(object):
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string`):
-            An iterable specifying the names of the properties to be
-            included in the returned instances (case independent).
+          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
+            An iterable specifying the names of the properties (or a  string
+            that defines a single property) to be included in the returned
+            instances (case independent).
 
             An empty iterable indicates to include no properties.
 
@@ -1932,7 +1949,7 @@ class WBEMConnection(object):
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
-        """
+        """  # noqa: E501
 
         if self.operation_recorder:
             self.operation_recorder.reset()
@@ -1958,6 +1975,7 @@ class WBEMConnection(object):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
             classname = self._iparam_classname(ClassName)
+            PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
                 'OpenEnumerateInstances',
@@ -2206,6 +2224,7 @@ class WBEMConnection(object):
                                OperationTimeout=None, ContinueOnError=None,
                                MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Open an enumeration session to retrieve the association instances
         that reference a source instance.
@@ -2272,9 +2291,11 @@ class WBEMConnection(object):
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string`):
-            An iterable specifying the names of the properties to be included
-            in the returned instances (or classes) (case independent).
+          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
+            An iterable specifying the names of the properties (or a  string
+            that defines a single property) to be included in the returned
+            instances (case independent).
+
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -2392,7 +2413,7 @@ class WBEMConnection(object):
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
-        """
+        """  # noqa: E501
 
         if self.operation_recorder:
             self.operation_recorder.reset()
@@ -2416,6 +2437,7 @@ class WBEMConnection(object):
             # TODO ks 6/16 Limit to instance name. No classname allowed.
             namespace = self._iparam_namespace_from_objectname(InstanceName)
             instancename = self._iparam_instancename(InstanceName)
+            PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
                 'OpenReferenceInstances',
@@ -2686,6 +2708,7 @@ class WBEMConnection(object):
                                 ContinueOnError=None, MaxObjectCount=None,
                                 **extra):
         # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Open an enumeration session to retrieve the instances associated
         to a source instance.
@@ -2767,9 +2790,11 @@ class WBEMConnection(object):
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string`):
-            An iterable specifying the names of the properties to be included
-            in the returned instances (or classes) (case independent).
+          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
+            An iterable specifying the names of the properties (or a  string
+            that defines a single property) to be included in the returned
+            instances (case independent).
+
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -2887,7 +2912,7 @@ class WBEMConnection(object):
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
-        """
+        """  # noqa: E501
 
         if self.operation_recorder:
             self.operation_recorder.reset()
@@ -2912,6 +2937,7 @@ class WBEMConnection(object):
 
             namespace = self._iparam_namespace_from_objectname(InstanceName)
             instancename = self._iparam_instancename(InstanceName)
+            PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
                 'OpenAssociatorInstances',
@@ -3672,9 +3698,11 @@ class WBEMConnection(object):
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string`):
-            An iterable specifying the names of the properties to be
-            included in the returned instance (case independent).
+          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
+            An iterable specifying the names of the properties (or a  string
+            that defines a single property) to be included in the returned
+            instance (case independent).
+
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -3702,7 +3730,7 @@ class WBEMConnection(object):
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
-        """
+        """  # noqa: E501
 
         if self.operation_recorder:
             self.operation_recorder.reset()
@@ -3720,6 +3748,7 @@ class WBEMConnection(object):
             # Strip off host and namespace to make this a "local" object
             namespace = self._iparam_namespace_from_objectname(InstanceName)
             instancename = self._iparam_instancename(InstanceName)
+            PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
                 'GetInstance',
@@ -3795,9 +3824,9 @@ class WBEMConnection(object):
             This parameter has been deprecated in :term:`DSP0200`. Clients
             cannot rely on it being implemented by WBEM servers.
 
-          PropertyList (:term:`py:iterable` of :term:`string`):
-            An iterable specifying the names of the properties to be
-            modified (case independent).
+          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
+            An iterable specifying the names of the properties (or a  string
+            that defines a single property) to be modified (case independent).
 
             An empty iterable indicates to modify no properties.
 
@@ -3814,7 +3843,7 @@ class WBEMConnection(object):
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
-        """
+        """  # noqa: E501
 
         if self.operation_recorder:
             self.operation_recorder.reset()
@@ -3842,6 +3871,7 @@ class WBEMConnection(object):
 
             namespace = self._iparam_namespace_from_objectname(
                 ModifiedInstance.path)
+            PropertyList = _iparam_propertylist(PropertyList)
 
             # Strip off host and namespace to avoid producing an INSTANCEPATH or
             # LOCALINSTANCEPATH element instead of the desired INSTANCENAME
@@ -4275,9 +4305,11 @@ class WBEMConnection(object):
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string`):
-            An iterable specifying the names of the properties to be included
-            in the returned instances (or classes) (case independent).
+          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
+            An iterable specifying the names of the properties (or a  string
+            that defines a single property) to be included in the returned
+            instances (or classes) (case independent).
+
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -4330,7 +4362,7 @@ class WBEMConnection(object):
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
-        """
+        """  # noqa: E501
 
         if self.operation_recorder:
             self.operation_recorder.reset()
@@ -4350,6 +4382,7 @@ class WBEMConnection(object):
 
             namespace = self._iparam_namespace_from_objectname(ObjectName)
             objectname = self._iparam_objectname(ObjectName)
+            PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
                 'Associators',
@@ -4586,9 +4619,11 @@ class WBEMConnection(object):
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string`):
-            An iterable specifying the names of the properties to be included
-            in the returned instances (or classes) (case independent).
+          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
+            An iterable specifying the names of the properties (or a  string
+            that defines a single property) to be included in the returned
+            instances (or classes) (case independent).
+
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -4641,7 +4676,7 @@ class WBEMConnection(object):
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
-        """
+        """  # noqa: E501
 
         if self.operation_recorder:
             self.operation_recorder.reset()
@@ -4659,6 +4694,7 @@ class WBEMConnection(object):
 
             namespace = self._iparam_namespace_from_objectname(ObjectName)
             objectname = self._iparam_objectname(ObjectName)
+            PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
                 'References',
@@ -5248,9 +5284,11 @@ class WBEMConnection(object):
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string`):
-            An iterable specifying the names of the properties to be included
-            in the returned class (case independent).
+          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
+            An iterable specifying the names of the properties (or a  string
+            that defines a single property) to be included in the returned
+            class (case independent).
+
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -5271,7 +5309,7 @@ class WBEMConnection(object):
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
-        """
+        """  # noqa: E501
 
         if self.operation_recorder:
             self.operation_recorder.reset()
@@ -5291,6 +5329,7 @@ class WBEMConnection(object):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
             classname = self._iparam_classname(ClassName)
+            PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
                 'GetClass',
