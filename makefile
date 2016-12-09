@@ -172,45 +172,69 @@ html: $(doc_build_dir)/html/docs/index.html
 	@echo '$@ done.'
 
 $(doc_build_dir)/html/docs/index.html: makefile $(doc_utility_help_files) $(doc_dependent_files)
+ifeq ($(python_version_fn),26)
+	@echo 'Info: Sphinx requires Python 2.7 or Python 3; skipping this step on Python $(python_version)'
+else
 	rm -f $@
 	PYTHONPATH=. $(doc_cmd) -b html $(doc_opts) $(doc_build_dir)/html
 	@echo "Done: Created the HTML pages with top level file: $@"
+endif
 
 .PHONY: pdf
 pdf: makefile $(doc_utility_help_files) $(doc_dependent_files)
+ifeq ($(python_version_fn),26)
+	@echo 'Info: Sphinx requires Python 2.7 or Python 3; skipping this step on Python $(python_version)'
+else
 	rm -f $@
 	$(doc_cmd) -b latex $(doc_opts) $(doc_build_dir)/pdf
 	@echo "Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(doc_build_dir)/pdf all-pdf
 	@echo "Done: Created the PDF files in: $(doc_build_dir)/pdf/"
 	@echo '$@ done.'
+endif
 
 .PHONY: man
 man: makefile $(doc_utility_help_files) $(doc_dependent_files)
+ifeq ($(python_version_fn),26)
+	@echo 'Info: Sphinx requires Python 2.7 or Python 3; skipping this step on Python $(python_version)'
+else
 	rm -f $@
 	$(doc_cmd) -b man $(doc_opts) $(doc_build_dir)/man
 	@echo "Done: Created the manual pages in: $(doc_build_dir)/man/"
 	@echo '$@ done.'
+endif
 
 .PHONY: docchanges
 docchanges:
+ifeq ($(python_version_fn),26)
+	@echo 'Info: Sphinx requires Python 2.7 or Python 3; skipping this step on Python $(python_version)'
+else
 	$(doc_cmd) -b changes $(doc_opts) $(doc_build_dir)/changes
 	@echo
 	@echo "Done: Created the doc changes overview file in: $(doc_build_dir)/changes/"
 	@echo '$@ done.'
+endif
 
 .PHONY: doclinkcheck
 doclinkcheck:
+ifeq ($(python_version_fn),26)
+	@echo 'Info: Sphinx requires Python 2.7 or Python 3; skipping this step on Python $(python_version)'
+else
 	$(doc_cmd) -b linkcheck $(doc_opts) $(doc_build_dir)/linkcheck
 	@echo
 	@echo "Done: Look for any errors in the above output or in: $(doc_build_dir)/linkcheck/output.txt"
 	@echo '$@ done.'
+endif
 
 .PHONY: doccoverage
 doccoverage:
+ifeq ($(python_version_fn),26)
+	@echo 'Info: Sphinx requires Python 2.7 or Python 3; skipping this step on Python $(python_version)'
+else
 	$(doc_cmd) -b coverage $(doc_opts) $(doc_build_dir)/coverage
 	@echo "Done: Created the doc coverage results in: $(doc_build_dir)/coverage/python.txt"
 	@echo '$@ done.'
+endif
 
 .PHONY: check
 check: pylint.log
