@@ -3652,6 +3652,37 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             my_listener.stop()
 
+    def test_subscription_context_manager(self):
+        """Test that the WBEMSUbscriptionmanager class can be used as a
+           Python context manager and that its exit method cleans up.
+        """
+
+        if self.is_pegasus_test_build():
+
+            server = WBEMServer(self.conn)
+
+            # First, verify the behavior of remove_all_servers() with a
+            # normal WBEMSubscriptionManager instance.
+
+            sub_mgr = WBEMSubscriptionManager(
+                subscription_manager_id='test_ctxt_mgr_1')
+
+            server_id = sub_mgr.add_server(server)
+            self.assertEqual(set(sub_mgr._servers.keys()), {server_id})
+
+            sub_mgr.remove_all_servers()
+            self.assertEqual(set(sub_mgr._servers.keys()), {})
+
+            # Now, perform the actual test of the context manager.
+
+            with WBEMSubscriptionManager(
+                    subscription_manager_id='test_ctxt_mgr_2') as sub_mgr:
+
+                server_id = sub_mgr.add_server(server)
+                self.assertEqual(set(sub_mgr._servers.keys()), {server_id})
+
+            self.assertEqual(set(sub_mgr._servers.keys()), {})
+
 
 #################################################################
 # Main function

@@ -54,6 +54,10 @@ Enhancements
 * Added `git` as an OS-level dependency for development (it is used by GitPython
   when building the documentation).
 
+* Added enter and exit methods to `WBEMSubscriptionManager` to enable using it
+  as a context manager, whose exit method automatically cleans up by calling
+  `remove_all_servers()`.
+
 
 Bug fixes
 ^^^^^^^^^
@@ -76,6 +80,10 @@ Bug fixes
 * Fixed a documentation build error on Python 2.6, by pinning the GitPython
   version to <=2.0.8, due to its use of unittest.case which is not available
   on Python 2.6.
+
+* Fixed an `AttributeError` in the `remove_all_servers()` method of
+  `WBEMSubscriptionManager` and dictionary iteration errors in its
+  `remove_server()` method. PR #583.
 
 
 pywbem v0.9.0

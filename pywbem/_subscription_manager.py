@@ -138,6 +138,15 @@ callback function for indication delivery::
 
         subscription_manager.add_subscription(server2_id, filter2_path)
 
+The following example code briefly shows how to use a subscription manager
+as a context manager, in order to get automatic cleanup::
+
+    with WBEMSubscriptionManager('fred') as subscription_manager:
+        server1_id = subscription_manager.add_server(server1)
+        . . .
+    # The exit method automatically calls remove_all_servers(), which removes
+    # all owned subscriptions, filters and destinations.
+
 Another more practical example is in the script
 ``examples/pegIndicationTest.py`` (when you clone the GitHub pywbem/pywbem
 project).
@@ -169,6 +178,8 @@ class WBEMSubscriptionManager(object):
     """
     A class for managing subscriptions for CIM indications in a WBEM server.
 
+    The class may be used as a Python context manager, in order to get
+    automatic clean up (see :meth:`~pywbem.WBEMSubscriptionManager.__exit__`).
     """
 
     def __init__(self, subscription_manager_id=None):
@@ -225,6 +236,22 @@ class WBEMSubscriptionManager(object):
                (self.__class__.__name__, self._subscription_manager_id,
                 self._servers, self._owned_subscription_paths,
                 self._owned_filter_paths, self._owned_destination_paths)
+
+    def __enter__(self):
+        """
+        Enter method when the class is used as a context manager.
+        """
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Exit method when the class is used as a context manager.
+
+        It cleans up by calling
+        :meth:`~pywbem.WBEMSubscriptionManager.remove_all_servers`.
+        """
+        self.remove_all_servers()
+        return False  # re-raise any exceptions
 
     def _get_server(self, server_id):
         """
@@ -359,19 +386,19 @@ class WBEMSubscriptionManager(object):
 
         # Delete any instances we recorded to be cleaned up
 
-        if server_id in self._owned_subscription_paths:
+        if server_id in list(self._owned_subscription_paths.keys()):
             paths = self._owned_subscription_paths[server_id]
             for path in paths:
                 server.conn.DeleteInstance(path)
             del self._owned_subscription_paths[server_id]
 
-        if server_id in self._owned_filter_paths:
+        if server_id in list(self._owned_filter_paths.keys()):
             paths = self._owned_filter_paths[server_id]
             for path in paths:
                 server.conn.DeleteInstance(path)
             del self._owned_filter_paths[server_id]
 
-        if server_id in self._owned_destination_paths:
+        if server_id in list(self._owned_destination_paths.keys()):
             for path in self._owned_destination_paths[server_id]:
                 server.conn.DeleteInstance(path)
             del self._owned_destination_paths[server_id]
@@ -393,9 +420,8 @@ class WBEMSubscriptionManager(object):
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
 
-        for server in self._servers:
-            # This depends on server.url same as server_id
-            self.remove_server(server.url)
+        for server_id in list(self._servers.keys()):
+            self.remove_server(server_id)
 
     # pylint: disable=line-too-long
     def add_listener_destinations(self, server_id, listener_urls, owned=True):
@@ -546,7 +572,7 @@ class WBEMSubscriptionManager(object):
         This method verifies that there are not currently any subscriptions on
         the specified listener destination, in order to handle server
         implementations that do not ensure that on the server side as required
-        by :ref:`DSP1054`.
+        by :term:`DSP1054`.
 
         Parameters:
 
@@ -763,7 +789,7 @@ class WBEMSubscriptionManager(object):
         This method verifies that there are not currently any subscriptions on
         the specified indication filter, in order to handle server
         implementations that do not ensure that on the server side as required
-        by :ref:`DSP1054`.
+        by :term:`DSP1054`.
 
         Parameters:
 
