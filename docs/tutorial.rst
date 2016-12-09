@@ -8,7 +8,7 @@ This section contains a few short tutorials about using pywbem. It is intended
 to be enough to get people up and going who already know a bit about WBEM and
 CIM.
 
-The tutorials in this section are 
+The tutorials in this section are
 `Jupyter Notebooks <http://jupyter-notebook-beginner-guide.readthedocs.io/>`_,
 and are shown using the online
 `Jupyter Notebook Viewer <http://nbviewer.jupyter.org/>`_.
@@ -28,6 +28,7 @@ Tutorial                            Short description
 :nbview:`createdeleteinst.ipynb`    CreateInstance + DeleteInstance
 :nbview:`modifyinstance.ipynb`      ModifyInstance
 :nbview:`invokemethod.ipynb`        InvokeMethod
+:nbview:`subscriptionmanager.ipynb` Subscription Manager
 ==================================  ===========================================
 
 For the following topics, tutorials are not yet available:
