@@ -58,6 +58,8 @@ Enhancements
   as a context manager, whose exit method automatically cleans up by calling
   `remove_all_servers()`.
 
+* Added the global functions to the RTD documentation that are available in
+  the wbemcli interactive shell.
 
 Bug fixes
 ^^^^^^^^^

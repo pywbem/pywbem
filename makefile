@@ -91,6 +91,7 @@ doc_dependent_files := \
     $(package_name)/_recorder.py \
     $(package_name)/_server.py \
     $(package_name)/config.py \
+    wbemcli.py \
 
 # PyLint config file
 pylint_rc_file := pylintrc
@@ -105,6 +106,7 @@ py_src_files := \
     $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
     $(wildcard testsuite/*.py) \
     wbemcli \
+    wbemcli.py \
     mof_compiler \
 
 # Test log

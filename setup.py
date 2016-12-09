@@ -341,6 +341,7 @@ def main():
         },
         'scripts': [
             'wbemcli',
+            'wbemcli.py',
             'mof_compiler',
             'wbemcli.bat',
             'mof_compiler.bat',
