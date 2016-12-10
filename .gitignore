@@ -20,7 +20,7 @@ mofparsetab.py
 moflextab.py
 testsuite/runtests.log
 /testsuite/testtmp/
-/testsuite/schema/
+/testsuite/schema/mof/
 /epydoc-3.0.1-patches/
 swig-2.0*.tar.gz
 /swig-2.0*/

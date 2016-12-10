@@ -58,6 +58,8 @@ Enhancements
   as a context manager, whose exit method automatically cleans up by calling
   `remove_all_servers()`.
 
+* Added CIM Schema archive to the repository, in order to avoid repeated
+  downloads during testing in the CI systems.
 
 Bug fixes
 ^^^^^^^^^
