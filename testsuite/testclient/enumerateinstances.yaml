@@ -1,3 +1,4 @@
+# TODO input with namespace in classname
 -
     name: EnumerateInstances1
     description: EnumerateInstances with lo=f succeeds returning 3 instances; test that returned instances get namespace in set in their path.
@@ -171,7 +172,7 @@
 
 -
     name: EnumerateInstances2
-    description: EnumerateInstances with lo=f succeeds returning 1 instance; test that returned instances get namespace in set in their path.
+    description: EnumerateInstances with lo=f succeeds returning 1 instance; test that returned instances get namespace set in their path.
     pywbem_request:
         url: http://acme.com:80
         creds:

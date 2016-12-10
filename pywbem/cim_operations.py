@@ -1511,9 +1511,9 @@ class WBEMConnection(object):
                            "or EnumerationContext required")
 
         # convert enum context if eos is True
+        # Otherwise, returns tuple of enumeration context and namespace
         rtn_ctxt = None if end_of_sequence else (enumeration_context,
                                                  namespace)
-
         return (rtn_objects, end_of_sequence, rtn_ctxt)
 
     def OpenEnumerateInstancePaths(self, ClassName, namespace=None,

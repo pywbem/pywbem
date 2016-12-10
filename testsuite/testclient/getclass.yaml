@@ -1,0 +1,845 @@
+- name: GetClass1
+  description: Get Class with Property list
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: GetClass
+      IncludeClassOrigin: null
+      IncludeQualifiers: null
+      PropertyList:
+      - PowerManagementCapabilities
+      namespace: null
+      LocalOnly: false
+      ClassName: CIM_ComputerSystem
+  pywbem_response:
+    result:
+      pywbem_object: CIMClass
+      classname: CIM_ComputerSystem
+      superclass: CIM_System
+      properties:
+        powermanagementcapabilities:
+          pywbem_object: CIMProperty
+          name: PowerManagementCapabilities
+          value: null
+          type: uint16
+          reference_class: null
+          embedded_object: null
+          is_array: true
+          array_size: null
+          class_origin: null
+          propagated: null
+          qualifiers:
+            deprecated:
+              pywbem_object: CIMQualifier
+              name: Deprecated
+              value:
+              - CIM_PowerManagementCapabilities.PowerCapabilities
+              type: string
+              propagated: null
+              tosubclass: false
+              toinstance: null
+              overridable: null
+              translatable: null
+            mappingstrings:
+              pywbem_object: CIMQualifier
+              name: MappingStrings
+              value:
+              - MIF.DMTF|System Power Controls|001.2
+              type: string
+              propagated: null
+              tosubclass: null
+              toinstance: null
+              overridable: null
+              translatable: null
+            values:
+              pywbem_object: CIMQualifier
+              name: Values
+              value:
+              - Unknown
+              - Not Supported
+              - Disabled
+              - Enabled
+              - Power Saving Modes Entered Automatically
+              - Power State Settable
+              - Power Cycling Supported
+              - Timed Power On Supported
+              type: string
+              propagated: null
+              tosubclass: null
+              toinstance: null
+              overridable: null
+              translatable: true
+            description:
+              pywbem_object: CIMQualifier
+              name: Description
+              value: An enumerated array describing the power management capabilities
+                of the ComputerSystem. The use of this property has been deprecated.
+                Instead, the Power Capabilites property in an associated PowerManagement
+                Capabilities class should be used.
+              type: string
+              propagated: null
+              tosubclass: null
+              toinstance: null
+              overridable: null
+              translatable: true
+            valuemap:
+              pywbem_object: CIMQualifier
+              name: ValueMap
+              value:
+              - '0'
+              - '1'
+              - '2'
+              - '3'
+              - '4'
+              - '5'
+              - '6'
+              - '7'
+              type: string
+              propagated: null
+              tosubclass: null
+              toinstance: null
+              overridable: null
+              translatable: null
+      methods:
+        requeststatechange:
+          pywbem_object: CIMMethod
+          name: RequestStateChange
+          return_type: uint32
+          class_origin: null
+          propagated: true
+          parameters:
+            requestedstate:
+              pywbem_object: CIMParameter
+              name: RequestedState
+              type: uint16
+              reference_class: null
+              is_array: null
+              array_size: null
+              qualifiers:
+                modelcorrespondence:
+                  pywbem_object: CIMQualifier
+                  name: ModelCorrespondence
+                  value:
+                  - CIM_EnabledLogicalElement.RequestedState
+                  type: string
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: null
+                  translatable: null
+                in:
+                  pywbem_object: CIMQualifier
+                  name: IN
+                  value: true
+                  type: boolean
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: false
+                  translatable: null
+                values:
+                  pywbem_object: CIMQualifier
+                  name: Values
+                  value:
+                  - Enabled
+                  - Disabled
+                  - Shut Down
+                  - Offline
+                  - Test
+                  - Defer
+                  - Quiesce
+                  - Reboot
+                  - Reset
+                  - DMTF Reserved
+                  - Vendor Reserved
+                  type: string
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: null
+                  translatable: true
+                description:
+                  pywbem_object: CIMQualifier
+                  name: Description
+                  value: The state requested for the element. This information will
+                    be placed into the RequestedState property of the instance if
+                    the return code of the RequestStateChange method is 0 ('Completed
+                    with No Error'), or 4096 (0x1000) ('Job Started'). Refer to the
+                    description of the EnabledState and RequestedState properties
+                    for the detailed explanations of the RequestedState values.
+                  type: string
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: null
+                  translatable: true
+                valuemap:
+                  pywbem_object: CIMQualifier
+                  name: ValueMap
+                  value:
+                  - '2'
+                  - '3'
+                  - '4'
+                  - '6'
+                  - '7'
+                  - '8'
+                  - '9'
+                  - '10'
+                  - '11'
+                  - ..
+                  - 32768..65535
+                  type: string
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: null
+                  translatable: null
+            job:
+              pywbem_object: CIMParameter
+              name: Job
+              type: reference
+              reference_class: CIM_ConcreteJob
+              is_array: null
+              array_size: null
+              qualifiers:
+                in:
+                  pywbem_object: CIMQualifier
+                  name: IN
+                  value: false
+                  type: boolean
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: false
+                  translatable: null
+                description:
+                  pywbem_object: CIMQualifier
+                  name: Description
+                  value: May contain a reference to the ConcreteJob created to track
+                    the state transition initiated by the method invocation.
+                  type: string
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: null
+                  translatable: true
+                out:
+                  pywbem_object: CIMQualifier
+                  name: OUT
+                  value: true
+                  type: boolean
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: false
+                  translatable: null
+            timeoutperiod:
+              pywbem_object: CIMParameter
+              name: TimeoutPeriod
+              type: datetime
+              reference_class: null
+              is_array: null
+              array_size: null
+              qualifiers:
+                description:
+                  pywbem_object: CIMQualifier
+                  name: Description
+                  value: "A timeout period that specifies the maximum amount of time\
+                    \ that the client expects the transition to the new state to take.\
+                    \ The interval format must be used to specify the TimeoutPeriod.\
+                    \ A value of 0 or a null parameter indicates that the client has\
+                    \ no time requirements for the transition. \nIf this property\
+                    \ does not contain 0 or null and the implementation does not support\
+                    \ this parameter, a return code of 'Use Of Timeout Parameter Not\
+                    \ Supported' shall be returned."
+                  type: string
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: null
+                  translatable: true
+                in:
+                  pywbem_object: CIMQualifier
+                  name: IN
+                  value: true
+                  type: boolean
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: false
+                  translatable: null
+          qualifiers:
+            modelcorrespondence:
+              pywbem_object: CIMQualifier
+              name: ModelCorrespondence
+              value:
+              - CIM_EnabledLogicalElement.RequestedState
+              type: string
+              propagated: null
+              tosubclass: null
+              toinstance: null
+              overridable: null
+              translatable: null
+            values:
+              pywbem_object: CIMQualifier
+              name: Values
+              value:
+              - Completed with No Error
+              - Not Supported
+              - Unknown or Unspecified Error
+              - Cannot complete within Timeout Period
+              - Failed
+              - Invalid Parameter
+              - In Use
+              - DMTF Reserved
+              - Method Parameters Checked - Job Started
+              - Invalid State Transition
+              - Use of Timeout Parameter Not Supported
+              - Busy
+              - Method Reserved
+              - Vendor Specific
+              type: string
+              propagated: null
+              tosubclass: null
+              toinstance: null
+              overridable: null
+              translatable: true
+            description:
+              pywbem_object: CIMQualifier
+              name: Description
+              value: "Requests that the state of the element be changed to the value\
+                \ specified in the RequestedState parameter. When the requested state\
+                \ change takes place, the EnabledState and RequestedState of the element\
+                \ will be the same. Invoking the RequestStateChange method multiple\
+                \ times could result in earlier requests being overwritten or lost.\
+                \ \nA return code of 0 shall indicate the state change was successfully\
+                \ initiated. \nA return code of 3 shall indicate that the state transition\
+                \ cannot complete within the interval specified by the TimeoutPeriod\
+                \ parameter. \nA return code of 4096 (0x1000) shall indicate the state\
+                \ change was successfully initiated, a ConcreteJob has been created,\
+                \ and its reference returned in the output parameter Job. Any other\
+                \ return code indicates an error condition."
+              type: string
+              propagated: null
+              tosubclass: null
+              toinstance: null
+              overridable: null
+              translatable: true
+            valuemap:
+              pywbem_object: CIMQualifier
+              name: ValueMap
+              value:
+              - '0'
+              - '1'
+              - '2'
+              - '3'
+              - '4'
+              - '5'
+              - '6'
+              - ..
+              - '4096'
+              - '4097'
+              - '4098'
+              - '4099'
+              - 4100..32767
+              - 32768..65535
+              type: string
+              propagated: null
+              tosubclass: null
+              toinstance: null
+              overridable: null
+              translatable: null
+        setpowerstate:
+          pywbem_object: CIMMethod
+          name: SetPowerState
+          return_type: uint32
+          class_origin: null
+          propagated: null
+          parameters:
+            powerstate:
+              pywbem_object: CIMParameter
+              name: PowerState
+              type: uint32
+              reference_class: null
+              is_array: null
+              array_size: null
+              qualifiers:
+                values:
+                  pywbem_object: CIMQualifier
+                  name: Values
+                  value:
+                  - Full Power
+                  - Power Save - Low Power Mode
+                  - Power Save - Standby
+                  - Power Save - Other
+                  - Power Cycle
+                  - Power Off
+                  - Hibernate
+                  - Soft Off
+                  type: string
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: null
+                  translatable: true
+                description:
+                  pywbem_object: CIMQualifier
+                  name: Description
+                  value: The Desired state for the COmputerSystem.
+                  type: string
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: null
+                  translatable: true
+                valuemap:
+                  pywbem_object: CIMQualifier
+                  name: ValueMap
+                  value:
+                  - '1'
+                  - '2'
+                  - '3'
+                  - '4'
+                  - '5'
+                  - '6'
+                  - '7'
+                  - '8'
+                  type: string
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: null
+                  translatable: null
+            time:
+              pywbem_object: CIMParameter
+              name: Time
+              type: datetime
+              reference_class: null
+              is_array: null
+              array_size: null
+              qualifiers:
+                description:
+                  pywbem_object: CIMQualifier
+                  name: Description
+                  value: Time indicates when the power state should be set, either
+                    as a regular date-time value or as an interval value (where the
+                    interval begins when the method invocation is received.
+                  type: string
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: null
+                  translatable: true
+          qualifiers:
+            deprecated:
+              pywbem_object: CIMQualifier
+              name: Deprecated
+              value:
+              - CIM_PowerManagementService.SetPowerState
+              type: string
+              propagated: null
+              tosubclass: false
+              toinstance: null
+              overridable: null
+              translatable: null
+            description:
+              pywbem_object: CIMQualifier
+              name: Description
+              value: Sets the power state of the computer. The use of this method
+                has been deprecated. Instead, use the SetPowerState method in the
+                associated PowerManagementService class.
+              type: string
+              propagated: null
+              tosubclass: null
+              toinstance: null
+              overridable: null
+              translatable: true
+      qualifiers:
+        umlpackagepath:
+          pywbem_object: CIMQualifier
+          name: UMLPackagePath
+          value: CIM::System::SystemElements
+          type: string
+          propagated: null
+          tosubclass: null
+          toinstance: null
+          overridable: null
+          translatable: null
+        version:
+          pywbem_object: CIMQualifier
+          name: Version
+          value: 2.36.0
+          type: string
+          propagated: null
+          tosubclass: false
+          toinstance: null
+          overridable: null
+          translatable: true
+        description:
+          pywbem_object: CIMQualifier
+          name: Description
+          value: 'A class derived from System that is a special collection of ManagedSystemElements.
+            This collection is related to the providing of compute capabilities and
+            MAY serve as an aggregation point to associate one or more of the following
+            elements: FileSystem, OperatingSystem, Processor and Memory (Volatile
+            and/or NonVolatile Storage).'
+          type: string
+          propagated: null
+          tosubclass: null
+          toinstance: null
+          overridable: null
+          translatable: true
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: GetClass
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="GetClass">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ClassName">
+      <CLASSNAME NAME="CIM_ComputerSystem"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="PropertyList">
+      <VALUE.ARRAY>
+      <VALUE>PowerManagementCapabilities</VALUE>
+      </VALUE.ARRAY>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="LocalOnly">
+      <VALUE>False</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="GetClass">
+      <IRETURNVALUE>
+      <CLASS NAME="CIM_ComputerSystem"  SUPERCLASS="CIM_System" >
+      <QUALIFIER NAME="Version" TYPE="string" TOSUBCLASS="false" TRANSLATABLE="true">
+      <VALUE>2.36.0</VALUE>
+      </QUALIFIER>
+      <QUALIFIER NAME="UMLPackagePath" TYPE="string">
+      <VALUE>CIM::System::SystemElements</VALUE>
+      </QUALIFIER>
+      <QUALIFIER NAME="Description" TYPE="string" TRANSLATABLE="true">
+      <VALUE>A class derived from System that is a special collection of ManagedSystemElements.
+      This collection is related to the providing of compute capabilities and MAY
+      serve as an aggregation point to associate one or more of the following elements:
+      FileSystem, OperatingSystem, Processor and Memory (Volatile and/or NonVolatile
+      Storage).</VALUE>
+      </QUALIFIER>
+      <PROPERTY.ARRAY NAME="PowerManagementCapabilities"  TYPE="uint16">
+      <QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false">
+      <VALUE.ARRAY>
+      <VALUE>CIM_PowerManagementCapabilities.PowerCapabilities</VALUE>
+      </VALUE.ARRAY>
+      </QUALIFIER>
+      <QUALIFIER NAME="Description" TYPE="string" TRANSLATABLE="true">
+      <VALUE>An enumerated array describing the power management capabilities of the
+      ComputerSystem. The use of this property has been deprecated. Instead, the Power
+      Capabilites property in an associated PowerManagement Capabilities class should
+      be used.</VALUE>
+      </QUALIFIER>
+      <QUALIFIER NAME="ValueMap" TYPE="string">
+      <VALUE.ARRAY>
+      <VALUE>0</VALUE>
+      <VALUE>1</VALUE>
+      <VALUE>2</VALUE>
+      <VALUE>3</VALUE>
+      <VALUE>4</VALUE>
+      <VALUE>5</VALUE>
+      <VALUE>6</VALUE>
+      <VALUE>7</VALUE>
+      </VALUE.ARRAY>
+      </QUALIFIER>
+      <QUALIFIER NAME="Values" TYPE="string" TRANSLATABLE="true">
+      <VALUE.ARRAY>
+      <VALUE>Unknown</VALUE>
+      <VALUE>Not Supported</VALUE>
+      <VALUE>Disabled</VALUE>
+      <VALUE>Enabled</VALUE>
+      <VALUE>Power Saving Modes Entered Automatically</VALUE>
+      <VALUE>Power State Settable</VALUE>
+      <VALUE>Power Cycling Supported</VALUE>
+      <VALUE>Timed Power On Supported</VALUE>
+      </VALUE.ARRAY>
+      </QUALIFIER>
+      <QUALIFIER NAME="MappingStrings" TYPE="string">
+      <VALUE.ARRAY>
+      <VALUE>MIF.DMTF|System Power Controls|001.2</VALUE>
+      </VALUE.ARRAY>
+      </QUALIFIER>
+      </PROPERTY.ARRAY>
+      <METHOD NAME="RequestStateChange" TYPE="uint32" PROPAGATED="true">
+      <QUALIFIER NAME="Description" TYPE="string" TRANSLATABLE="true">
+      <VALUE>Requests that the state of the element be changed to the value specified
+      in the RequestedState parameter. When the requested state change takes place,
+      the EnabledState and RequestedState of the element will be the same. Invoking
+      the RequestStateChange method multiple times could result in earlier requests
+      being overwritten or lost. &#10;A return code of 0 shall indicate the state
+      change was successfully initiated. &#10;A return code of 3 shall indicate that
+      the state transition cannot complete within the interval specified by the TimeoutPeriod
+      parameter. &#10;A return code of 4096 (0x1000) shall indicate the state change
+      was successfully initiated, a ConcreteJob has been created, and its reference
+      returned in the output parameter Job. Any other return code indicates an error
+      condition.</VALUE>
+      </QUALIFIER>
+      <QUALIFIER NAME="ValueMap" TYPE="string">
+      <VALUE.ARRAY>
+      <VALUE>0</VALUE>
+      <VALUE>1</VALUE>
+      <VALUE>2</VALUE>
+      <VALUE>3</VALUE>
+      <VALUE>4</VALUE>
+      <VALUE>5</VALUE>
+      <VALUE>6</VALUE>
+      <VALUE>..</VALUE>
+      <VALUE>4096</VALUE>
+      <VALUE>4097</VALUE>
+      <VALUE>4098</VALUE>
+      <VALUE>4099</VALUE>
+      <VALUE>4100..32767</VALUE>
+      <VALUE>32768..65535</VALUE>
+      </VALUE.ARRAY>
+      </QUALIFIER>
+      <QUALIFIER NAME="Values" TYPE="string" TRANSLATABLE="true">
+      <VALUE.ARRAY>
+      <VALUE>Completed with No Error</VALUE>
+      <VALUE>Not Supported</VALUE>
+      <VALUE>Unknown or Unspecified Error</VALUE>
+      <VALUE>Cannot complete within Timeout Period</VALUE>
+      <VALUE>Failed</VALUE>
+      <VALUE>Invalid Parameter</VALUE>
+      <VALUE>In Use</VALUE>
+      <VALUE>DMTF Reserved</VALUE>
+      <VALUE>Method Parameters Checked - Job Started</VALUE>
+      <VALUE>Invalid State Transition</VALUE>
+      <VALUE>Use of Timeout Parameter Not Supported</VALUE>
+      <VALUE>Busy</VALUE>
+      <VALUE>Method Reserved</VALUE>
+      <VALUE>Vendor Specific</VALUE>
+      </VALUE.ARRAY>
+      </QUALIFIER>
+      <QUALIFIER NAME="ModelCorrespondence" TYPE="string">
+      <VALUE.ARRAY>
+      <VALUE>CIM_EnabledLogicalElement.RequestedState</VALUE>
+      </VALUE.ARRAY>
+      </QUALIFIER>
+      <PARAMETER NAME="RequestedState" TYPE="uint16">
+      <QUALIFIER NAME="IN" TYPE="boolean" OVERRIDABLE="false">
+      <VALUE>TRUE</VALUE>
+      </QUALIFIER>
+      <QUALIFIER NAME="Description" TYPE="string" TRANSLATABLE="true">
+      <VALUE>The state requested for the element. This information will be placed
+      into the RequestedState property of the instance if the return code of the RequestStateChange
+      method is 0 (&apos;Completed with No Error&apos;), or 4096 (0x1000) (&apos;Job
+      Started&apos;). Refer to the description of the EnabledState and RequestedState
+      properties for the detailed explanations of the RequestedState values.</VALUE>
+      </QUALIFIER>
+      <QUALIFIER NAME="ValueMap" TYPE="string">
+      <VALUE.ARRAY>
+      <VALUE>2</VALUE>
+      <VALUE>3</VALUE>
+      <VALUE>4</VALUE>
+      <VALUE>6</VALUE>
+      <VALUE>7</VALUE>
+      <VALUE>8</VALUE>
+      <VALUE>9</VALUE>
+      <VALUE>10</VALUE>
+      <VALUE>11</VALUE>
+      <VALUE>..</VALUE>
+      <VALUE>32768..65535</VALUE>
+      </VALUE.ARRAY>
+      </QUALIFIER>
+      <QUALIFIER NAME="Values" TYPE="string" TRANSLATABLE="true">
+      <VALUE.ARRAY>
+      <VALUE>Enabled</VALUE>
+      <VALUE>Disabled</VALUE>
+      <VALUE>Shut Down</VALUE>
+      <VALUE>Offline</VALUE>
+      <VALUE>Test</VALUE>
+      <VALUE>Defer</VALUE>
+      <VALUE>Quiesce</VALUE>
+      <VALUE>Reboot</VALUE>
+      <VALUE>Reset</VALUE>
+      <VALUE>DMTF Reserved</VALUE>
+      <VALUE>Vendor Reserved</VALUE>
+      </VALUE.ARRAY>
+      </QUALIFIER>
+      <QUALIFIER NAME="ModelCorrespondence" TYPE="string">
+      <VALUE.ARRAY>
+      <VALUE>CIM_EnabledLogicalElement.RequestedState</VALUE>
+      </VALUE.ARRAY>
+      </QUALIFIER>
+      </PARAMETER>
+      <PARAMETER.REFERENCE NAME="Job" REFERENCECLASS="CIM_ConcreteJob">
+      <QUALIFIER NAME="IN" TYPE="boolean" OVERRIDABLE="false">
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER>
+      <QUALIFIER NAME="OUT" TYPE="boolean" OVERRIDABLE="false">
+      <VALUE>TRUE</VALUE>
+      </QUALIFIER>
+      <QUALIFIER NAME="Description" TYPE="string" TRANSLATABLE="true">
+      <VALUE>May contain a reference to the ConcreteJob created to track the state
+      transition initiated by the method invocation.</VALUE>
+      </QUALIFIER>
+      </PARAMETER.REFERENCE>
+      <PARAMETER NAME="TimeoutPeriod" TYPE="datetime">
+      <QUALIFIER NAME="IN" TYPE="boolean" OVERRIDABLE="false">
+      <VALUE>TRUE</VALUE>
+      </QUALIFIER>
+      <QUALIFIER NAME="Description" TYPE="string" TRANSLATABLE="true">
+      <VALUE>A timeout period that specifies the maximum amount of time that the client
+      expects the transition to the new state to take. The interval format must be
+      used to specify the TimeoutPeriod. A value of 0 or a null parameter indicates
+      that the client has no time requirements for the transition. &#10;If this property
+      does not contain 0 or null and the implementation does not support this parameter,
+      a return code of &apos;Use Of Timeout Parameter Not Supported&apos; shall be
+      returned.</VALUE>
+      </QUALIFIER>
+      </PARAMETER>
+      </METHOD>
+      <METHOD NAME="SetPowerState" TYPE="uint32">
+      <QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false">
+      <VALUE.ARRAY>
+      <VALUE>CIM_PowerManagementService.SetPowerState</VALUE>
+      </VALUE.ARRAY>
+      </QUALIFIER>
+      <QUALIFIER NAME="Description" TYPE="string" TRANSLATABLE="true">
+      <VALUE>Sets the power state of the computer. The use of this method has been
+      deprecated. Instead, use the SetPowerState method in the associated PowerManagementService
+      class.</VALUE>
+      </QUALIFIER>
+      <PARAMETER NAME="PowerState" TYPE="uint32">
+      <QUALIFIER NAME="Description" TYPE="string" TRANSLATABLE="true">
+      <VALUE>The Desired state for the COmputerSystem.</VALUE>
+      </QUALIFIER>
+      <QUALIFIER NAME="ValueMap" TYPE="string">
+      <VALUE.ARRAY>
+      <VALUE>1</VALUE>
+      <VALUE>2</VALUE>
+      <VALUE>3</VALUE>
+      <VALUE>4</VALUE>
+      <VALUE>5</VALUE>
+      <VALUE>6</VALUE>
+      <VALUE>7</VALUE>
+      <VALUE>8</VALUE>
+      </VALUE.ARRAY>
+      </QUALIFIER>
+      <QUALIFIER NAME="Values" TYPE="string" TRANSLATABLE="true">
+      <VALUE.ARRAY>
+      <VALUE>Full Power</VALUE>
+      <VALUE>Power Save - Low Power Mode</VALUE>
+      <VALUE>Power Save - Standby</VALUE>
+      <VALUE>Power Save - Other</VALUE>
+      <VALUE>Power Cycle</VALUE>
+      <VALUE>Power Off</VALUE>
+      <VALUE>Hibernate</VALUE>
+      <VALUE>Soft Off</VALUE>
+      </VALUE.ARRAY>
+      </QUALIFIER>
+      </PARAMETER>
+      <PARAMETER NAME="Time" TYPE="datetime">
+      <QUALIFIER NAME="Description" TYPE="string" TRANSLATABLE="true">
+      <VALUE>Time indicates when the power state should be set, either as a regular
+      date-time value or as an interval value (where the interval begins when the
+      method invocation is received.</VALUE>
+      </QUALIFIER>
+      </PARAMETER>
+      </METHOD>
+      </CLASS>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+- name: GetClassF1
+  description: Get Class Fails bad namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/blah
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: GetClass
+      IncludeClassOrigin: null
+      IncludeQualifiers: null
+      PropertyList:
+      - PowerManagementCapabilities
+      namespace: null
+      LocalOnly: false
+      ClassName: CIM_ComputerSystem
+  pywbem_response:
+      cim_status: 3
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: GetClass
+      CIMObject: root/blah
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="GetClass">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="blah"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ClassName">
+      <CLASSNAME NAME="CIM_ComputerSystem"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="PropertyList">
+      <VALUE.ARRAY>
+      <VALUE>PowerManagementCapabilities</VALUE>
+      </VALUE.ARRAY>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="LocalOnly">
+      <VALUE>False</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+      status: 200
+      headers:
+          CIMOperation: MethodResponse
+      data: >
+          <?xml version="1.0" encoding="utf-8" ?>
+          <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+            <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+              <SIMPLERSP>
+                <IMETHODRESPONSE NAME="GetClass">
+                  <ERROR CODE="3" DESCRIPTION="CIM_ERR_INVALID_NAMESPACE: Namespace root/bad not found"/>
+                </IMETHODRESPONSE>
+              </SIMPLERSP>
+            </MESSAGE>
+          </CIM>
+# TODO getclass needs more success tests with different input parameters.

@@ -1,0 +1,139 @@
+- name: OpenAssociatorInstances1
+  description: OpenAssociatorInstanceswith no options set, Success, one return instance with path
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: OpenAssociatorInstances
+      MaxObjectCount: 100
+      InstanceName:
+        pywbem_object: CIMInstanceName
+        classname: PyWBEM_Person
+        namespace: root/cimv2
+        keybindings:
+          CreationClassName: PyWBEM_Person
+          Name: Alice
+  pywbem_response:
+    pullresult:
+        context:
+            - '500028'
+            - root/cimv2
+        eos: false
+        instances:
+          -
+            pywbem_object: CIMInstance
+            classname: PyWBEM_PersonCollection
+            properties:
+                InstanceID: PersonCollection
+                Caption:
+                    pywbem_object: CIMProperty
+                    name: Caption
+                    value: null
+                    type: string
+                    propagated: true
+                Description:
+                    pywbem_object: CIMProperty
+                    name: Description
+                    value: null
+                    type: string
+                    propagated: true
+                ElementName:
+                    pywbem_object: CIMProperty
+                    name: ElementName
+                    value: null
+                    type: string
+                    propagated: true
+            path:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_PersonCollection
+                namespace: root/cimv2
+                host: sheldon
+                keybindings:
+                  InstanceId: PersonCollection
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: OpenAssociatorInstances
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="OpenAssociatorInstances">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="InstanceName">
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>100</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="OpenAssociatorInstances">
+      <IRETURNVALUE>
+      <VALUE.INSTANCEWITHPATH>
+      <INSTANCEPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <INSTANCENAME CLASSNAME="PyWBEM_PersonCollection">
+      <KEYBINDING NAME="InstanceID">
+      <KEYVALUE VALUETYPE="string">PersonCollection</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </INSTANCEPATH>
+      <INSTANCE CLASSNAME="PyWBEM_PersonCollection" >
+      <PROPERTY NAME="Caption"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      <PROPERTY NAME="Description"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      <PROPERTY NAME="ElementName"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      <PROPERTY NAME="InstanceID"  TYPE="string">
+      <VALUE>PersonCollection</VALUE>
+      </PROPERTY>
+      </INSTANCE>
+      </VALUE.INSTANCEWITHPATH>
+      </IRETURNVALUE>
+      <PARAMVALUE NAME="EndOfSequence">
+      <VALUE>FALSE</VALUE>
+      </PARAMVALUE>
+      <PARAMVALUE NAME="EnumerationContext">
+      <VALUE>500028</VALUE>
+      </PARAMVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
