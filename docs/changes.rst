@@ -112,6 +112,10 @@ Bug fixes
   PropertyList attribute to have a single string in addition to the iterable.
   Previously this caused an XML error (issue #577).
 
+* Fixed a `TypeError` in the `TestClientRecorder` operation recorder that
+  occurred while handling a `ConnectionError` (this recorder is used by the
+  `--yamlfile` option of `run_cim_operations.py`) (issue #587). 
+
 
 pywbem v0.9.0
 -------------

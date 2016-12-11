@@ -431,8 +431,9 @@ class TestClientRecorder(BaseOperationRecorder):
         tc_http_request = OrderedDict()
         if http_request is not None:
             tc_http_request['verb'] = http_request.method
-            tc_http_request['url'] = TestClientRecorder.TESTCASE_URL + \
-                http_request.target
+            tc_http_request['url'] = TestClientRecorder.TESTCASE_URL
+            if http_request.target:
+                tc_http_request['url'] += http_request.target
             tc_request_headers = OrderedDict()
             if http_request.headers is not None:
                 for hdr_name in http_request.headers:
