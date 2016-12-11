@@ -20,6 +20,13 @@ pywbem v0.10.0.dev0
 
 Released: Not yet
 
+Incompatible changes
+^^^^^^^^^^^^^^^^^^^^
+
+* All methods of the WBEMSubscriptionManager class that returned instance
+  paths (or lists thereof) in pywbem v0.9 now return the complete instances
+  (or lists thereof).
+
 Deprecations
 ^^^^^^^^^^^^
 
@@ -58,11 +65,22 @@ Enhancements
   as a context manager, whose exit method automatically cleans up by calling
   `remove_all_servers()`.
 
+* Added the global functions to the RTD documentation that are available in
+  the wbemcli interactive shell.
+
 * Added CIM Schema archive to the repository, in order to avoid repeated
   downloads during testing in the CI systems.
 
 * Added methods to the operation recorder (class `BaseOperationRecorder`) for
   disabling and enabling it. (issue #493).
+
+* The Name property of indication filters created via the
+  WBEMSubscriptionManager class can now be controlled by the user.
+
+* Indication filter, listener destination and indication subscription
+  instances created via the WBEMSubscriptionManager class, that are "owned",
+  are now conditionally created, dependent on the owned instances that have
+  been discovered upon restart of the WBEMSubscriptionManager.
 
 Bug fixes
 ^^^^^^^^^

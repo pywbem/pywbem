@@ -37,6 +37,9 @@ The MOF compiler has a pluggable interface for the CIM repository. The default
 implementation of that interface uses a WBEM server as its repository.
 The plug interface is also described in the :ref:`MOF compiler API`.
 
+Usage
+^^^^^
+
 Here is the help text of the command:
 
 .. include:: mof_compiler.help.txt
@@ -53,8 +56,16 @@ implemented as an interactive shell.
 The WBEM client CLI does not have an external API on its own; it is for the
 most part a consumer of the :ref:`WBEM client library API`.
 
+Usage
+^^^^^
+
 Here is the help text of the command:
 
 .. include:: wbemcli.help.txt
    :literal:
 
+Global functions
+^^^^^^^^^^^^^^^^
+
+.. automodule:: wbemcli
+   :members:
