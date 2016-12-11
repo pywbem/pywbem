@@ -224,11 +224,31 @@ class BaseOperationRecorder(object):
 
     When an operation recorder is registered on a connection, each operation
     that is executed on the connection will cause the :meth:`record`
-    method of the operation recorder object to be called.
+    method of the operation recorder object to be called, if the recorder is
+    enabled.
+
+    The operation recorder is by default enabled, and can be disabled and
+    re-enabled using the :meth:`~pywbem.BaseOperationRecorder.disable` and
+    :meth:`~pywbem.BaseOperationRecorder.enable` methods, respectively.
+    This can be used to temporarily pause the recorder.
     """
 
     def __init__(self):
+        self._enabled = True
         self.reset()
+
+    def enable(self):
+        """Enable the recorder."""
+        self._enabled = True
+
+    def disable(self):
+        """Disable the recorder."""
+        self._enabled = False
+
+    @property
+    def enabled(self):
+        """Indicate whether the recorder is enabled."""
+        return self._enabled
 
     def reset(self):
         """Reset all the attributes in the class"""
@@ -278,31 +298,35 @@ class BaseOperationRecorder(object):
         self._http_response_payload = payload
 
     def record_staged(self):
-        pwargs = OpArgs(
-            self._pywbem_method,
-            self._pywbem_args)
-        pwresult = OpResult(
-            self._pywbem_result_ret,
-            self._pywbem_result_exc)
-        httpreq = HttpRequest(
-            self._http_request_version,
-            self._http_request_url,
-            self._http_request_target,
-            self._http_request_method,
-            self._http_request_headers,
-            self._http_request_payload)
-        httpresp = HttpResponse(
-            self._http_response_version,
-            self._http_response_status,
-            self._http_response_reason,
-            self._http_response_headers,
-            self._http_response_payload)
-        self.record(pwargs, pwresult, httpreq, httpresp)
+        if self.enabled:
+            pwargs = OpArgs(
+                self._pywbem_method,
+                self._pywbem_args)
+            pwresult = OpResult(
+                self._pywbem_result_ret,
+                self._pywbem_result_exc)
+            httpreq = HttpRequest(
+                self._http_request_version,
+                self._http_request_url,
+                self._http_request_target,
+                self._http_request_method,
+                self._http_request_headers,
+                self._http_request_payload)
+            httpresp = HttpResponse(
+                self._http_response_version,
+                self._http_response_status,
+                self._http_response_reason,
+                self._http_response_headers,
+                self._http_response_payload)
+            self.record(pwargs, pwresult, httpreq, httpresp)
 
     def record(self, pywbem_args, pywbem_result, http_request, http_response):
         """
         Function that is called to record a single WBEM operation, i.e. the
         invocation of a single :class:`~pywbem.WBEMConnection` method.
+
+        This function is called only when the recorder is enabled, i.e. it
+        does not need to check for recorder enablement.
 
         Parameters:
 
