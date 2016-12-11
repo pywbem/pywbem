@@ -7,11 +7,9 @@
 
 from __future__ import print_function, absolute_import
 
-import sys
 import os
 from time import time
 from zipfile import ZipFile
-from tempfile import TemporaryFile
 import unittest
 import six
 from ply import lex
@@ -37,12 +35,18 @@ NAME_SPACE = 'root/test'
 
 SCRIPT_DIR = os.path.dirname(__file__)
 SCHEMA_DIR = os.path.join(SCRIPT_DIR, 'schema')
+SCHEMA_MOF_DIR = os.path.join(SCHEMA_DIR, 'mof')
 
-# Change the MOF_URL and CIM_SCHEMA_MOF when new schema is used.
-# Also, manually delete schema dir.
-MOF_URL = 'http://www.dmtf.org/standards/cim/cim_schema_v2450/' \
-          'cim_schema_2.45.0Final-MOFs.zip'
-CIM_SCHEMA_MOF = 'cim_schema_2.45.0.mof'
+# Change the following variables when a new version of the CIM Schema is used.
+# Also, manually delete SCHEMA_DIR.
+MOF_ZIP_BN = 'cim_schema_2.45.0Final-MOFs.zip'
+MOF_ZIP_URL = 'http://www.dmtf.org/standards/cim/cim_schema_v2450/' + \
+    MOF_ZIP_BN
+SCHEMA_MOF_BN = 'cim_schema_2.45.0.mof'
+
+MOF_ZIP_FN = os.path.join(SCHEMA_DIR, MOF_ZIP_BN)
+SCHEMA_MOF_FN = os.path.join(SCHEMA_MOF_DIR, SCHEMA_MOF_BN)
+
 TOTAL_QUALIFIERS = 70       # These may change for each schema release
 TOTAL_CLASSES = 1621
 
@@ -54,47 +58,40 @@ def setUpModule():
         schema mof from DMTF web
     """
 
+    print("")
+
     if not os.path.isdir(SCHEMA_DIR):
-
-        print("\nDownloading CIM Schema into %s ..." % SCHEMA_DIR)
-
+        print("Creating directory for CIM Schema archive: %s" % SCHEMA_DIR)
         os.mkdir(SCHEMA_DIR)
 
-        mofbname = MOF_URL.split('/')[-1]
+    if not os.path.isfile(MOF_ZIP_FN):
+        print("Downloading CIM Schema archive from: %s" % MOF_ZIP_URL)
+        ufo = urlopen(MOF_ZIP_URL)
+        with open(MOF_ZIP_FN, 'w') as fp:
+            for data in ufo:
+                fp.write(data)
 
-        tfo = TemporaryFile()
-        ufo = urlopen(MOF_URL)
-        clen = int(ufo.info().get('Content-Length'))
-        offset = 0
-        ppct = -1
-        for data in ufo:
-            offset += len(data)
-            pct = 100 * offset / clen
-            if pct > ppct:
-                ppct = pct
-                sys.stdout.write('\rDownloading %s: %d%% ' % (mofbname, pct))
-                sys.stdout.flush()
-            tfo.write(data)
-        tfo.seek(0)
-        print('')
+    if not os.path.isdir(SCHEMA_MOF_DIR):
+        print("Creating directory for CIM Schema MOF files: %s" %
+              SCHEMA_MOF_DIR)
+        os.mkdir(SCHEMA_MOF_DIR)
 
-        zf = ZipFile(tfo, 'r')
-        nlist = zf.namelist()
-        for i in range(0, len(nlist)):
-            sys.stdout.write('\rUnpacking %s: %d%% ' %
-                             (mofbname, 100 * (i + 1) / len(nlist)))
-            sys.stdout.flush()
-            file_ = nlist[i]
-            dfile = os.path.join(SCHEMA_DIR, file_)
-            if dfile[-1] == '/':
-                if not os.path.exists(dfile):
-                    os.mkdir(dfile)
-            else:
-                fo = open(dfile, 'w+b')
-                fo.write(zf.read(file_))
-                fo.close()
-        tfo.close()
-        print('')
+    if not os.path.isfile(SCHEMA_MOF_FN):
+        print("Unpacking CIM Schema archive: %s" % MOF_ZIP_FN)
+        try:
+            zfp = ZipFile(MOF_ZIP_FN, 'r')
+            nlist = zfp.namelist()
+            for i in range(0, len(nlist)):
+                file_ = nlist[i]
+                dfile = os.path.join(SCHEMA_MOF_DIR, file_)
+                if dfile[-1] == '/':
+                    if not os.path.exists(dfile):
+                        os.mkdir(dfile)
+                else:
+                    with open(dfile, 'w+b') as dfp:
+                        dfp.write(zfp.read(file_))
+        finally:
+            zfp.close()
 
 
 class MOFTest(unittest.TestCase):
@@ -111,7 +108,8 @@ class MOFTest(unittest.TestCase):
         self.logfile = open(moflog_file, 'w')
         self.mofcomp = MOFCompiler(
             MOFWBEMConnection(),
-            search_paths=[SCHEMA_DIR], verbose=False,
+            search_paths=[SCHEMA_MOF_DIR],
+            verbose=False,
             log_func=moflog)
 
 
@@ -214,25 +212,25 @@ class TestSchemaError(MOFTest):
         # TODO ks 4/16 should these become individual tests
         self.mofcomp.parser.search_paths = []
         try:
-            self.mofcomp.compile_file(os.path.join(SCHEMA_DIR,
+            self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
                                                    'System',
                                                    'CIM_ComputerSystem.mof'),
                                       NAME_SPACE)
         except CIMError as ce:
             self.assertEqual(ce.args[0], CIM_ERR_FAILED)
             self.assertEqual(ce.file_line[0],
-                             os.path.join(SCHEMA_DIR,
+                             os.path.join(SCHEMA_MOF_DIR,
                                           'System',
                                           'CIM_ComputerSystem.mof'))
             if ce.file_line[1] != 2:
                 print('assert {}'.format(ce.file_line))
             self.assertEqual(ce.file_line[1], 2)
 
-        self.mofcomp.compile_file(os.path.join(SCHEMA_DIR,
+        self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
                                                'qualifiers.mof'),
                                   NAME_SPACE)
         try:
-            self.mofcomp.compile_file(os.path.join(SCHEMA_DIR,
+            self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
                                                    'System',
                                                    'CIM_ComputerSystem.mof'),
                                       NAME_SPACE)
@@ -240,7 +238,7 @@ class TestSchemaError(MOFTest):
             self.assertEqual(ce.args[0], CIM_ERR_INVALID_SUPERCLASS)
             self.assertEqual(ce.file_line[0],
                              os.path.join(
-                                 SCHEMA_DIR,
+                                 SCHEMA_MOF_DIR,
                                  'System',
                                  'CIM_ComputerSystem.mof'))
             # TODO The following is cim version dependent.
@@ -252,14 +250,14 @@ class TestSchemaError(MOFTest):
 
 class TestSchemaSearch(MOFTest):
     """Test the search attribute for schema in a directory defined
-       by search attribute. Searches the SCHEMA_DIR
+       by search attribute. Searches the SCHEMA_MOF_DIR
     """
 
     def test_all(self):
         """Test against schema single mof file that is dependent
            on other files in the schema directory
         """
-        self.mofcomp.compile_file(os.path.join(SCHEMA_DIR,
+        self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
                                                'System',
                                                'CIM_ComputerSystem.mof'),
                                   NAME_SPACE)
@@ -1343,8 +1341,7 @@ class TestFullSchema(MOFTest):
 
         # original compile and write of output mof
         start_time = time()
-        self.mofcomp.compile_file(
-            os.path.join(SCHEMA_DIR, CIM_SCHEMA_MOF), NAME_SPACE)
+        self.mofcomp.compile_file(SCHEMA_MOF_FN, NAME_SPACE)
 
         print('elapsed compile: %f  ' % (time() - start_time))
 
