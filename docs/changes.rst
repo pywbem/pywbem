@@ -61,6 +61,9 @@ Enhancements
 * Added CIM Schema archive to the repository, in order to avoid repeated
   downloads during testing in the CI systems.
 
+* Added methods to the operation recorder (class `BaseOperationRecorder`) for
+  disabling and enabling it. (issue #493).
+
 Bug fixes
 ^^^^^^^^^
 
