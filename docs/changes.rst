@@ -61,6 +61,12 @@ Enhancements
 * Added the global functions to the RTD documentation that are available in
   the wbemcli interactive shell.
 
+* Added CIM Schema archive to the repository, in order to avoid repeated
+  downloads during testing in the CI systems.
+
+* Added methods to the operation recorder (class `BaseOperationRecorder`) for
+  disabling and enabling it. (issue #493).
+
 Bug fixes
 ^^^^^^^^^
 

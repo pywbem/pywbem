@@ -392,10 +392,9 @@ def main():
                                             #   Swig in M2Crypto install
                     install_swig,           # for running Swig in M2Crypto inst.
                     # Python-devel provides Python.h for Swig run.
-                    ["python34-devel", "python34u-devel", "python3-devel"] \
-                    if py_version_m_n == "3.4" else \
-                    ["python35-devel", "python35u-devel", "python3-devel"] \
-                    if py_version_m_n == "3.5" else \
+                    # The following assumes we have python34, not python34u
+                    "python34-devel" if py_version_m_n == "3.4" else \
+                    "python35-devel" if py_version_m_n == "3.5" else \
                     "python-devel",
                 ],
                 'centos': 'redhat',
