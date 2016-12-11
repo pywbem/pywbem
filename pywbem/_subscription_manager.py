@@ -31,12 +31,13 @@ filter and listener destination CIM instances in WBEM servers:
 
   Owned CIM instances are created via the subscription manager and their life
   cycle is bound to the life cycle of the registration of that WBEM server with
-  the subscription manager.
+  the subscription manager via
+  :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
   Owned CIM instances are deleted automatically when their WBEM server is
-  deregistered from the subscription manager
-  (see :meth:`~pywbem.WBEMSubscriptionManager.remove_server` and
-  :meth:`~pywbem.WBEMSubscriptionManager.remove_all_servers`). They can still
+  deregistered from the subscription manager via
+  :meth:`~pywbem.WBEMSubscriptionManager.remove_server` or
+  :meth:`~pywbem.WBEMSubscriptionManager.remove_all_servers`. They can still
   explicitly be deleted by the user via the removal methods of the
   :class:`~pywbem.WBEMSubscriptionManager` class.
 
@@ -80,7 +81,7 @@ requires a particular name), the filter must be permanent and cannot be owned.
 Examples
 --------
 
-The following example code demosntrates the use of a subscription manager
+The following example code demonstrates the use of a subscription manager
 to subscribe for a CIM alert indication on a WBEM server. The WBEM listener
 is assumed to exist somewhere and is identified by its URL::
 
@@ -97,7 +98,10 @@ is assumed to exist somewhere and is identified by its URL::
     server = WBEMServer(conn)
     sub_mgr = WBEMSubscriptionManager(subscription_manager_id='fred')
 
+    # Register the server in the subscription manager:
     server_id = sub_mgr.add_server(server)
+
+    # Add a listener destination in the server:
     dest_inst = sub_mgr.add_listener_destinations(server_id, listener_url)
 
     # Subscribe to a static filter of a given name:
@@ -120,19 +124,16 @@ is assumed to exist somewhere and is identified by its URL::
     sub_mgr.add_subscriptions(server_id, filter2_inst.path, dest_inst.path)
 
 The following example code briefly shows how to use a subscription manager
-as a context manager, in order to get automatic cleanup::
+as a context manager, in order to get automatic cleanup of owned instances::
 
     with WBEMSubscriptionManager('fred') as sub_mgr:
         server_id = sub_mgr.add_server(server)
         . . .
-    # The exit method automatically calls remove_all_servers(), which removes
-    # all owned subscriptions, filters and destinations.
+    # The exit method automatically calls remove_all_servers(), which deletes
+    # all owned subscription, filter and destination instances in the servers
+    # that were registered.
 
 The :ref:`Tutorial` section contains a tutorial about the subscription manager.
-
-Another example is in the script
-``examples/pegasusindicationtest.py`` (when you clone the GitHub pywbem/pywbem
-project).
 """
 
 import re
