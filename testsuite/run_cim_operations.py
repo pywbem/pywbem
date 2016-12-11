@@ -3831,14 +3831,16 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                            http_listener_port)
             sub_mgr.add_listener_destinations(server_id, listener_url)
 
-            filter_path = sub_mgr.add_filter(server_id,
-                                             test_class_namespace,
-                                             test_query,
-                                             query_language="DMTF:CQL",
-                                             filter_id="NotUsed")
+            filter_ = sub_mgr.add_filter(server_id,
+                                         test_class_namespace,
+                                         test_query,
+                                         query_language="DMTF:CQL",
+                                         filter_id="NotUsed")
+            filter_path = filter_.path
 
-            subscription_paths = sub_mgr.add_subscriptions(server_id,
-                                                           filter_path)
+            subscriptions = sub_mgr.add_subscriptions(server_id,
+                                                      filter_path)
+            subscription_paths = [inst.path for inst in subscriptions]
 
             self.confirm_created(sub_mgr, server_id, filter_path,
                                  subscription_paths)
@@ -3892,11 +3894,12 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             sub_mgr.add_listener_destinations(server_id, listener_url)
 
-            filter_path = sub_mgr.add_filter(server_id,
-                                             test_class_namespace,
-                                             test_query,
-                                             query_language="DMTF:CQL",
-                                             filter_id="MyfilterId")
+            filter_ = sub_mgr.add_filter(server_id,
+                                         test_class_namespace,
+                                         test_query,
+                                         query_language="DMTF:CQL",
+                                         filter_id="MyfilterId")
+            filter_path = filter_.path
 
             # confirm structure of the name element without any id components
             # NOTE: The uuid from uuid4 is actually 36 char but not we made it
@@ -3904,8 +3907,9 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             self.assertRegexpMatches(
                 filter_path.keybindings['Name'],
                 r'^pywbemfilter:owned:fred2:MyfilterId:[0-9a-f-]{30,40}\Z')
-            subscription_paths = sub_mgr.add_subscriptions(server_id,
-                                                           filter_path)
+            subscriptions = sub_mgr.add_subscriptions(server_id,
+                                                      filter_path)
+            subscription_paths = [inst.path for inst in subscriptions]
 
             self.confirm_created(sub_mgr, server_id, filter_path,
                                  subscription_paths)
@@ -3975,14 +3979,16 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                            http_listener_port)
             sub_mgr.add_listener_destinations(server_id, listener_url)
 
-            filter_path = sub_mgr.add_filter(server_id,
-                                             test_class_namespace,
-                                             test_query,
-                                             query_language="DMTF:CQL",
-                                             filter_id='fred')
+            filter_ = sub_mgr.add_filter(server_id,
+                                         test_class_namespace,
+                                         test_query,
+                                         query_language="DMTF:CQL",
+                                         filter_id='fred')
+            filter_path = filter_.path
 
-            subscription_paths = sub_mgr.add_subscriptions(server_id,
-                                                           filter_path)
+            subscriptions = sub_mgr.add_subscriptions(server_id,
+                                                      filter_path)
+            subscription_paths = [inst.path for inst in subscriptions]
 
             owned_filters = sub_mgr.get_owned_filters(server_id)
 
@@ -3996,9 +4002,10 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             self.assertTrue(filter_path in owned_filters)
 
             # Confirm format of second dynamic filter name property
-            filter_path2 = sub_mgr.add_filter(
+            filter2 = sub_mgr.add_filter(
                 server_id, test_class_namespace, test_query,
                 query_language="DMTF:CQL", filter_id='test_id_attributes1')
+            filter_path2 = filter2.path
 
             self.assertRegexpMatches(
                 filter_path2.keybindings['Name'],
@@ -4006,9 +4013,10 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 r'[0-9a-f-]{30,40}\Z')
 
             # Confirm valid id with filter that contains no name
-            filter_path3 = sub_mgr.add_filter(
+            filter3 = sub_mgr.add_filter(
                 server_id, test_class_namespace, test_query,
                 query_language="DMTF:CQL", filter_id='test_id_attributes2')
+            filter_path3 = filter3.path
 
             self.assertRegexpMatches(
                 filter_path3.keybindings['Name'],
@@ -4017,7 +4025,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             # test to confirm fails on bad name (i.e. with : character)
             try:
-                filter_path = sub_mgr.add_filter(
+                sub_mgr.add_filter(
                     server_id, test_class_namespace, test_query,
                     query_language="DMTF:CQL", filter_id='fr:ed')
                 self.fail("Should fail this operation")
@@ -4073,14 +4081,16 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                            http_listener_port)
             sub_mgr.add_listener_destinations(server_id, listener_url)
 
-            filter_path = sub_mgr.add_filter(server_id,
-                                             test_class_namespace,
-                                             test_query,
-                                             query_language="DMTF:CQL",
-                                             filter_id='fred')
+            filter_ = sub_mgr.add_filter(server_id,
+                                         test_class_namespace,
+                                         test_query,
+                                         query_language="DMTF:CQL",
+                                         filter_id='fred')
+            filter_path = filter_.path
 
-            subscription_paths = sub_mgr.add_subscriptions(server_id,
-                                                           filter_path)
+            subscriptions = sub_mgr.add_subscriptions(server_id,
+                                                      filter_path)
+            subscription_paths = [inst.path for inst in subscriptions]
 
             owned_filters = sub_mgr.get_owned_filters(server_id)
 
@@ -4140,17 +4150,20 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             # Create non-owned subscription
             dest = sub_mgr.add_listener_destinations(server_id, listener_url,
                                                      owned=False)
-            filter_path = sub_mgr.add_filter(server_id,
-                                             test_class_namespace,
-                                             test_query,
-                                             query_language="DMTF:CQL",
-                                             filter_id='notowned',
-                                             owned=False)
-            subscription_paths = sub_mgr.add_subscriptions(
+            filter_ = sub_mgr.add_filter(server_id,
+                                         test_class_namespace,
+                                         test_query,
+                                         query_language="DMTF:CQL",
+                                         filter_id='notowned',
+                                         owned=False)
+            filter_path = filter_.path
+
+            subscriptions = sub_mgr.add_subscriptions(
                 server_id,
                 filter_path,
                 destination_paths=dest,
                 owned=False)
+            subscription_paths = [inst.path for inst in subscriptions]
 
             self.confirm_created(sub_mgr, server_id, filter_path,
                                  subscription_paths, owned=False)
@@ -4204,17 +4217,20 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             # Create non-owned subscription
             dest = sub_mgr.add_listener_destinations(server_id, listener_url,
                                                      owned=False)
-            filter_path = sub_mgr.add_filter(server_id,
-                                             test_class_namespace,
-                                             test_query,
-                                             query_language="DMTF:CQL",
-                                             filter_id='notowned',
-                                             owned=False)
-            subscription_paths = sub_mgr.add_subscriptions(
+            filter_ = sub_mgr.add_filter(server_id,
+                                         test_class_namespace,
+                                         test_query,
+                                         query_language="DMTF:CQL",
+                                         filter_id='notowned',
+                                         owned=False)
+            filter_path = filter_.path
+
+            subscriptions = sub_mgr.add_subscriptions(
                 server_id,
                 filter_path,
                 destination_paths=dest,
                 owned=False)
+            subscription_paths = [inst.path for inst in subscriptions]
 
             self.confirm_created(sub_mgr, server_id, filter_path,
                                  subscription_paths, owned=False)
@@ -4278,14 +4294,17 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             sub_mgr.add_listener_destinations(server_id, listener_url)
 
-            filter_path_owned = sub_mgr.add_filter(server_id,
-                                                   test_class_namespace,
-                                                   test_query,
-                                                   query_language="DMTF:CQL",
-                                                   filter_id='owned')
+            filter_owned = sub_mgr.add_filter(server_id,
+                                              test_class_namespace,
+                                              test_query,
+                                              query_language="DMTF:CQL",
+                                              filter_id='owned')
+            filter_path_owned = filter_owned.path
 
-            subscription_paths_owned = sub_mgr.add_subscriptions(
+            subscriptions_owned = sub_mgr.add_subscriptions(
                 server_id, filter_path_owned)
+            subscription_paths_owned = [inst.path for inst in
+                                        subscriptions_owned]
 
             self.confirm_created(sub_mgr, server_id, filter_path_owned,
                                  subscription_paths_owned)
@@ -4296,18 +4315,21 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                                              listener_url,
                                                              owned=False)
 
-            n_owned_filter_path = sub_mgr.add_filter(server_id,
-                                                     test_class_namespace,
-                                                     test_query,
-                                                     query_language="DMTF:CQL",
-                                                     filter_id='notowned',
-                                                     owned=False)
+            n_owned_filter = sub_mgr.add_filter(server_id,
+                                                test_class_namespace,
+                                                test_query,
+                                                query_language="DMTF:CQL",
+                                                filter_id='notowned',
+                                                owned=False)
+            n_owned_filter_path = n_owned_filter.path
 
-            n_owned_subscription_paths = sub_mgr.add_subscriptions(
+            n_owned_subscriptions = sub_mgr.add_subscriptions(
                 server_id,
                 n_owned_filter_path,
                 destination_paths=n_owned_dest,
                 owned=False)
+            n_owned_subscription_paths = [inst.path for inst in
+                                          n_owned_subscriptions]
 
             self.confirm_created(sub_mgr, server_id, n_owned_filter_path,
                                  n_owned_subscription_paths, owned=False)

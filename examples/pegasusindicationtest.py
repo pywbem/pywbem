@@ -196,9 +196,10 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
         old_subs = sub_mgr.get_all_subscriptions(server_id)
         # TODO filter for our sub mgr
         if len(old_subs) != 0 or len(old_filters) != 0:
-            sub_mgr.remove_subscriptions(server_id, old_subs)
+            sub_mgr.remove_subscriptions(server_id,
+                                         [inst.path for inst in old_subs])
             for filter_ in old_filters:
-                sub_mgr.remove_filter(server_id, filter_)
+                sub_mgr.remove_filter(server_id, filter_.path)
 
     except ConnectionError as ce:
         print('Connection Error %s with %s' % (ce, svr_url))
@@ -227,11 +228,11 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
     sub_mgr.add_listener_destinations(server_id, listener_url)
 
     # Create a dynamic alert indication filter and subscribe for it
-    filter_path = sub_mgr.add_filter(
+    filter_ = sub_mgr.add_filter(
         server_id, TEST_CLASS_NAMESPACE,
         TEST_QUERY,
         query_language="DMTF:CQL")
-    subscription_paths = sub_mgr.add_subscriptions(server_id, filter_path)
+    subscriptions = sub_mgr.add_subscriptions(server_id, filter_.path)
 
     # Request server to create indications by invoking method
     # This is pegasus specific
@@ -259,8 +260,9 @@ def run_test(svr_url, listener_host, user, password, http_listener_port, \
             time.sleep(requested_indications/150)
 
 
-    sub_mgr.remove_subscriptions(server_id, subscription_paths)
-    sub_mgr.remove_filter(server_id, filter_path)
+    sub_mgr.remove_subscriptions(server_id,
+                                 [inst.path for inst in subscriptions])
+    sub_mgr.remove_filter(server_id, filter_.path)
     sub_mgr.remove_server(server_id)
     LISTENER.stop()
 
