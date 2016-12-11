@@ -58,6 +58,8 @@ Enhancements
   as a context manager, whose exit method automatically cleans up by calling
   `remove_all_servers()`.
 
+* Added methods to the operation recorder (class `BaseOperationRecorder`) for
+  disabling and enabling it. (issue #493).
 
 Bug fixes
 ^^^^^^^^^
