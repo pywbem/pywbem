@@ -34,3 +34,10 @@ SERVER = WBEMServer(CONN)
 org_vm = ValueMapping.for_property(SERVER, SERVER.interop_ns,
                                    'CIM_RegisteredProfile',
                                    'RegisteredOrganization')
+
+print("Brand:\n  %s" % SERVER.brand)
+print("Version:\n  %s" % SERVER.version)
+print("Interop namespace:\n  %s" % SERVER.interop_ns)
+
+for inst in SERVER.profiles:
+    print_profile_info(org_vm, inst)
