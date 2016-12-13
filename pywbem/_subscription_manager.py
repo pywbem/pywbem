@@ -1126,9 +1126,8 @@ class WBEMSubscriptionManager(object):
         this_host = getfqdn()
         ownership = "owned" if owned else "permanent"
 
-        dest_path = CIMInstanceName(DESTINATION_CLASSNAME)
-        dest_path.classname = DESTINATION_CLASSNAME
-        dest_path.namespace = server.interop_ns
+        dest_path = CIMInstanceName(DESTINATION_CLASSNAME,
+                                    namespace=server.interop_ns)
 
         dest_inst = CIMInstance(DESTINATION_CLASSNAME)
         dest_inst.path = dest_path
@@ -1215,9 +1214,8 @@ class WBEMSubscriptionManager(object):
         this_host = getfqdn()
         ownership = "owned" if owned else "permanent"
 
-        filter_path = CIMInstanceName(FILTER_CLASSNAME)
-        filter_path.classname = FILTER_CLASSNAME
-        filter_path.namespace = server.interop_ns
+        filter_path = CIMInstanceName(FILTER_CLASSNAME,
+                                      namespace=server.interop_ns)
 
         filter_inst = CIMInstance(FILTER_CLASSNAME)
         filter_inst.path = filter_path
@@ -1292,9 +1290,8 @@ class WBEMSubscriptionManager(object):
         # Validate server_id
         server = self._get_server(server_id)
 
-        sub_path = CIMInstanceName(SUBSCRIPTION_CLASSNAME)
-        sub_path.classname = SUBSCRIPTION_CLASSNAME
-        sub_path.namespace = server.interop_ns
+        sub_path = CIMInstanceName(SUBSCRIPTION_CLASSNAME,
+                                   namespace=server.interop_ns)
 
         sub_inst = CIMInstance(SUBSCRIPTION_CLASSNAME)
         sub_inst.path = sub_path
