@@ -442,8 +442,11 @@ class TestClientRecorder(BaseOperationRecorder):
                         tc_request_headers[hdr_name] = \
                             http_request.headers[hdr_name]
             tc_http_request['headers'] = tc_request_headers
-            data = http_request.payload.decode('utf-8')
-            data = data.replace('><', '>\n<').strip()
+            if http_request.payload is not None:
+                data = http_request.payload.decode('utf-8')
+                data = data.replace('><', '>\n<').strip()
+            else:
+                data = None
             tc_http_request['data'] = data
         testcase['http_request'] = tc_http_request
 
