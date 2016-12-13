@@ -534,6 +534,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         :class:`~pywbem.BaseOperationRecorder`, each operation
         that is executed on this connection will be recorded by
         invoking its :meth:`~pywbem.BaseOperationRecorder.record` method.
+        All operations except the Iter... operations may be recorded. Since
+        the Iter... operations utilize the other operations to send requests
+        their calls are NOT recorded.
 
       use_pull_operations (:class:`py:bool`):
         Indicates whether the client will attempt the use of pull operations in
@@ -3281,11 +3284,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     # TODO we do not have a way to return the QueryResultClass in
     # iterator model.
-    # TODO the positional properties were renamed QueryLanguage, Query
-    #      This should be done for OpenQueryInstances also
 
     def IterQueryInstances(self, FilterQueryLanguage, FilterQuery,
-                           ReturnQueryResultClass=None,
+                           namespace=None, ReturnQueryResultClass=None,
                            OperationTimeout=None, ContinueOnError=None,
                            MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
                            **extra):
@@ -3410,23 +3411,58 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           A Python:term:`generator` object. Instances can be retrieved
           by iterating through the object.
+          An Instance of the nexted class IterQueryInstancesReturn that
+          contains two properties
+
+          query_result_class: If a result class was requested from by the
+          call to InterQueryInstances and one was returned, the CIMClass
+          representing this class is returned.  Otherwise, None is returned
+
+          generator: That defines a generator for the instances returned from
+          whichever lower level function is called. The instances are
+          accessed using this generator (ex. for inst in rtn.generator:)
 
         Example:
-            insts_iterator = conn.IterQueryInstances('DMTF:CQL',
+            rtn_def = conn.IterQueryInstances('DMTF:CQL',
                 'SELECT FROM * where pl > 2')
-            for inst in insts_iterator:
+
+            for inst in rtn.def.generator:
               print('instance %s' % inst.tomof())
 
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+        class IterQueryInstancesReturn(object):
+            """
+            Nested class that defines the return from IterQueryInstances.
+
+            This includes two methods that allow returning both the
+            query class result and the generator definition.
+            """
+            def __init__(self, instances, query_result_class=None):
+                self._query_result_class = query_result_class
+                self.instances = instances
+
+            @property
+            def query_result_class(self):
+                """Return with the query_result class or None."""
+                return self._query_result_class
+
+            @property
+            def generator(self):
+                """
+                Method to provide the python generator.
+                """
+                for inst in self.instances:
+                    yield inst
 
         _validateIterCommonParams(MaxObjectCount, OperationTimeout)
 
         # Common variable for pull result tuple used by pulls and finally:
         pull_result = None
         try:                # try / finally block to allow iter.close()
+            _instances = []
             if (self._use_query_pull_operations is None or
                     self._use_query_pull_operations):
 
@@ -3434,6 +3470,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     pull_result = self.OpenQueryInstances(
                         FilterQueryLanguage=FilterQueryLanguage,
                         FilterQuery=FilterQuery,
+                        namespace=namespace,
+                        ReturnQueryResultClass=ReturnQueryResultClass,
                         OperationTimeout=OperationTimeout,
                         ContinueOnError=ContinueOnError,
                         MaxObjectCount=MaxObjectCount, **extra)
@@ -3441,19 +3479,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     # Open operation succeeded; set has_pull flag
                     self._use_query_pull_operations = True
 
-                    for inst in pull_result.instances:
-                        yield inst
+                    _instances = pull_result.instances
 
-                    # loop to pull while more while eos not returned.
-                    # TODO ks 11/16.  Missing support to return query class
+                    qrc = None if ReturnQueryResultClass else \
+                        pull_result.query_result_class
+
                     while not pull_result.eos:
                         pull_result = self.PullInstances(
                             pull_result.context, MaxObjectCount=MaxObjectCount)
-
-                        for inst in pull_result.instances:
-                            yield inst
+                        _instances.extend(pull_result.instances)
+                    rtn = IterQueryInstancesReturn(_instances,
+                                                   query_result_class=qrc)
                     pull_result = None   # clear the pull_result
-                    return
+                    return rtn
 
                 # If NOT_SUPPORTED and first request, set flag and try
                 # alternative request operation.
@@ -3478,12 +3516,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 raise ValueError('EnumerateInstances does not support '
                                  'ContinueOnError.')
 
-            enum_rslt = self.ExecQuery(
+            _instances = self.ExecQuery(
                 QueryLanguage=FilterQueryLanguage,
                 Query=FilterQuery, **extra)
 
-            for inst in enum_rslt:
-                yield inst
+            rtn = IterQueryInstancesReturn(_instances)
+            return rtn
 
         # Cleanup if caller closes the iterator before exhausting it
         finally:

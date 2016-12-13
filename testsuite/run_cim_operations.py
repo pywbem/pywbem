@@ -4760,6 +4760,7 @@ class IterAssociatorInstances(PegasusServerTestBase):
             self.run_enum_test(path, MaxObjectCount=100)
 
 
+# TODO confirm that this should be pegasus
 class IterAssociatorInstancePaths(PegasusServerTestBase):
     """Test IterAssociatorInstancePaths methods"""
 
@@ -4925,6 +4926,118 @@ class IterAssociatorInstancePaths(PegasusServerTestBase):
         # all instances
         for path in inst_paths:
             self.run_enumpath_test(path, MaxObjectCount=100)
+
+
+class IterQueryInstances(PegasusServerTestBase):
+
+    def test_simple_iter_queryinstances(self):
+        try:
+            # Simplest invocation
+
+            result = self.cimcall(self.conn.IterQueryInstances,
+                                  'WQL',
+                                  'Select * from %s' % TEST_CLASS,
+                                  MaxObjectCount=100)
+            self.assertEqual(result.query_result_class, None)
+            count = 0
+            for inst in result.generator:
+                count += 1
+                self.assertTrue(isinstance(inst, CIMInstance))
+
+            self.assertTrue(count != 0)
+
+            self.assertEqual(self.conn._use_enum_inst_pull_operations, None)
+            self.assertEqual(self.conn._use_enum_path_pull_operations, None)
+            self.assertEqual(self.conn._use_ref_inst_pull_operations, None)
+            self.assertEqual(self.conn._use_ref_path_pull_operations, None)
+            self.assertEqual(self.conn._use_assoc_inst_pull_operations, None)
+            self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
+            self.assertEqual(self.conn._use_query_pull_operations, True)
+
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
+                raise AssertionError(
+                    "CIM_ERR_NOT_SUPPORTED: The WBEM server doesn't"
+                    " support OpenQueryInstances for this query")
+            if ce.args[0] == CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
+                raise AssertionError(
+                    "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM"
+                    " server doesn't support WQL for ExecQuery")
+            else:
+                raise
+
+    def test_zeroopen_pullexecquery(self):
+        try:
+
+            # Simplest invocation
+            result = self.cimcall(self.conn.IterQueryInstances,
+                                  'WQL',
+                                  'Select * from %s' % TEST_CLASS)
+
+            self.assertEqual(result.query_result_class, None)
+            count = 0
+            for inst in result.generator:
+                count += 1
+                self.assertTrue(isinstance(inst, CIMInstance))
+            self.assertTrue(count != 0)
+
+            self.assertEqual(self.conn._use_enum_inst_pull_operations, None)
+            self.assertEqual(self.conn._use_enum_path_pull_operations, None)
+            self.assertEqual(self.conn._use_ref_inst_pull_operations, None)
+            self.assertEqual(self.conn._use_ref_path_pull_operations, None)
+            self.assertEqual(self.conn._use_assoc_inst_pull_operations, None)
+            self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
+            self.assertEqual(self.conn._use_query_pull_operations, True)
+
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
+                raise AssertionError(
+                    "CIM_ERR_NOT_SUPPORTED: The WBEM server doesn't"
+                    " support OpenQueryInstances for this query")
+            if ce.args[0] == CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
+                raise AssertionError(
+                    "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM"
+                    " server doesn't support WQL for ExecQuery")
+            else:
+                raise
+
+    def test_original_execquery(self):
+        """Set to use original operation and retry request"""
+        try:
+            # Force a new setup to set the use_pull_operations False.
+            self.setUp(use_pull_operations=False)
+
+            # Simplest invocation
+            result = self.cimcall(self.conn.IterQueryInstances,
+                                  'WQL',
+                                  'Select * from %s' % TEST_CLASS)
+
+            self.assertEqual(result.query_result_class, None)
+            count = 0
+            for inst in result.generator:
+                count += 1
+                self.assertTrue(isinstance(inst, CIMInstance))
+            self.assertTrue(count != 0)
+
+            self.assertEqual(self.conn._use_enum_inst_pull_operations, False)
+            self.assertEqual(self.conn._use_enum_path_pull_operations, False)
+            self.assertEqual(self.conn._use_ref_inst_pull_operations, False)
+            self.assertEqual(self.conn._use_ref_path_pull_operations, False)
+            self.assertEqual(self.conn._use_assoc_inst_pull_operations, False)
+            self.assertEqual(self.conn._use_assoc_path_pull_operations, False)
+            self.assertEqual(self.conn._use_query_pull_operations, False)
+
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
+                raise AssertionError(
+                    "CIM_ERR_NOT_SUPPORTED: The WBEM server doesn't"
+                    " support OpenQueryInstances for this query")
+            if ce.args[0] == CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED:
+                raise AssertionError(
+                    "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM"
+                    " server doesn't support WQL for ExecQuery")
+            else:
+                raise
 
 
 RECEIVED_INDICATION_COUNT = 0
