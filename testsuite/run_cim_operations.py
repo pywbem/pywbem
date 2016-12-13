@@ -3364,7 +3364,7 @@ class PegasusTestEmbeddedInstance(PegasusServerTestBase, RegexpMixin):
                     print('======%s XML=====\n%s' % (inst.path, str_xml))
 
                 # confirm general characteristics of mof output
-                self.assertRegexpMatches(
+                self.assertRegex(
                     str_mof, r"instance of Test_CLITestEmbeddedClass {")
                 self.assertRegexpContains(
                     str_mof,
@@ -3472,7 +3472,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
 
         if self.is_pegasus_server():
             self.assertEqual(server.brand, 'OpenPegasus')
-            self.assertRegexpMatches(server.version, r"^2\.1[0-7]\.[0-7]$")
+            self.assertRegex(server.version, r"^2\.1[0-7]\.[0-7]$")
         else:
             # Do not know what server it is so just display
             print("Brand: %s" % server.brand)
@@ -3740,16 +3740,19 @@ class PyWBEMListenerClass(PyWBEMServerClass):
         if not isinstance(subscription_paths, list):
             subscription_paths = [subscription_paths]
         owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
+        owned_sub_paths = [inst.path for inst in owned_subscriptions]
         for subscription_path in subscription_paths:
-            self.assertFalse(subscription_path in owned_subscriptions)
+            self.assertFalse(subscription_path in owned_sub_paths)
 
         all_filters = sub_mgr.get_all_filters(server_id)
+        all_filter_paths = [inst.path for inst in all_filters]
         for filter_path in filter_paths:
-            self.assertFalse(filter_path in all_filters)
+            self.assertFalse(filter_path in all_filter_paths)
 
         all_subscriptions = sub_mgr.get_all_subscriptions(server_id)
+        all_sub_paths = [inst.path for inst in all_subscriptions]
         for subscription_path in subscription_paths:
-            self.assertFalse(subscription_path in all_subscriptions)
+            self.assertFalse(subscription_path in all_sub_paths)
 
     def confirm_created(self, sub_mgr, server_id, filter_path,
                         subscription_paths, owned=True):
@@ -3761,18 +3764,22 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
         if owned:
             owned_filters = sub_mgr.get_owned_filters(server_id)
-            self.assertTrue(filter_path in owned_filters)
+            owned_filter_paths = [inst.path for inst in owned_filters]
+            self.assertTrue(filter_path in owned_filter_paths)
 
             owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
-            for subscription_path in subscription_paths:
-                self.assertTrue(subscription_path in owned_subscriptions)
+            owned_sub_paths = [inst.path for inst in owned_subscriptions]
+            for subscription_path in owned_sub_paths:
+                self.assertTrue(subscription_path in owned_sub_paths)
 
         all_filters = sub_mgr.get_all_filters(server_id)
-        self.assertTrue(filter_path in all_filters)
+        all_filter_paths = [inst.path for inst in all_filters]
+        self.assertTrue(filter_path in all_filter_paths)
 
         all_subscriptions = sub_mgr.get_all_subscriptions(server_id)
+        all_sub_paths = [inst.path for inst in all_subscriptions]
         for subscription_path in subscription_paths:
-            self.assertTrue(subscription_path in all_subscriptions)
+            self.assertTrue(subscription_path in all_sub_paths)
 
     def display_all(self, sub_mgr, server_id):
         """Display all filters, subscriptions, and destinations in the
@@ -3904,7 +3911,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             # confirm structure of the name element without any id components
             # NOTE: The uuid from uuid4 is actually 36 char but not we made it
             # 30-40 in case format changes in future.
-            self.assertRegexpMatches(
+            self.assertRegex(
                 filter_path.keybindings['Name'],
                 r'^pywbemfilter:owned:fred2:MyfilterId:[0-9a-f-]{30,40}\Z')
             subscriptions = sub_mgr.add_subscriptions(server_id,
@@ -3932,8 +3939,8 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
         try:
             WBEMSubscriptionManager()
-            self.fail("Should fail with ValueError")
-        except ValueError:
+            self.fail("Should fail with TypeError")
+        except TypeError:
             pass
 
     def test_no_filter_id(self):
@@ -3991,15 +3998,15 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             subscription_paths = [inst.path for inst in subscriptions]
 
             owned_filters = sub_mgr.get_owned_filters(server_id)
-
-            self.assertEqual(len(owned_filters), 1)
-            for path in owned_filters:
+            owned_filter_paths = [inst.path for inst in owned_filters]
+            self.assertEqual(len(owned_filter_paths), 1)
+            for path in owned_filter_paths:
                 name = path.keybindings['Name']
-                self.assertRegexpMatches(
+                self.assertRegex(
                     name,
                     r'^pywbemfilter:owned:pegTestListener:fred:' +
                     r'[0-9a-f-]{30,40}\Z')
-            self.assertTrue(filter_path in owned_filters)
+            self.assertTrue(filter_path in owned_filter_paths)
 
             # Confirm format of second dynamic filter name property
             filter2 = sub_mgr.add_filter(
@@ -4007,7 +4014,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 query_language="DMTF:CQL", filter_id='test_id_attributes1')
             filter_path2 = filter2.path
 
-            self.assertRegexpMatches(
+            self.assertRegex(
                 filter_path2.keybindings['Name'],
                 r'^pywbemfilter:owned:pegTestListener:test_id_attributes1:' +
                 r'[0-9a-f-]{30,40}\Z')
@@ -4018,7 +4025,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 query_language="DMTF:CQL", filter_id='test_id_attributes2')
             filter_path3 = filter3.path
 
-            self.assertRegexpMatches(
+            self.assertRegex(
                 filter_path3.keybindings['Name'],
                 r'^pywbemfilter:owned:pegTestListener:test_id_attributes2:' +
                 r'[0-9a-f-]{30,40}\Z')
@@ -4036,19 +4043,22 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             self.assertEqual(len(owned_filters), 3)
 
             owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
+            owned_sub_paths = [inst.path for inst in owned_subscriptions]
             for subscription_path in subscription_paths:
-                self.assertTrue(subscription_path in owned_subscriptions)
+                self.assertTrue(subscription_path in owned_sub_paths)
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
 
             # confirm that filter and subscription were removed
             owned_filters = sub_mgr.get_owned_filters(server_id)
-            self.assertFalse(filter_path in owned_filters)
+            owned_filter_paths = [inst.path for inst in owned_filters]
+            self.assertFalse(filter_path in owned_filter_paths)
 
             owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
+            owned_sub_paths = [inst.path for inst in owned_subscriptions]
             for subscription_path in subscription_paths:
-                self.assertFalse(subscription_path in owned_subscriptions)
+                self.assertFalse(subscription_path in owned_sub_paths)
 
             sub_mgr.remove_server(server_id)
 
@@ -4093,14 +4103,15 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             subscription_paths = [inst.path for inst in subscriptions]
 
             owned_filters = sub_mgr.get_owned_filters(server_id)
+            owned_filter_paths = [inst.path for inst in owned_filters]
 
-            self.assertEqual(len(owned_filters), 1)
-            for path in owned_filters:
+            self.assertEqual(len(owned_filter_paths), 1)
+            for path in owned_filter_paths:
                 name = path.keybindings['Name']
-                self.assertRegexpMatches(
+                self.assertRegex(
                     name,
                     r'^pywbemfilter:owned:pegTestMgr:fred:[0-9a-f-]{30,40}\Z')
-            self.assertTrue(filter_path in owned_filters)
+            self.assertTrue(filter_path in owned_filter_paths)
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
@@ -4148,8 +4159,9 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             server_id = sub_mgr.add_server(server)
 
             # Create non-owned subscription
-            dest = sub_mgr.add_listener_destinations(server_id, listener_url,
-                                                     owned=False)
+            dests = sub_mgr.add_listener_destinations(server_id, listener_url,
+                                                      owned=False)
+            dest_paths = [inst.path for inst in dests]
             filter_ = sub_mgr.add_filter(server_id,
                                          test_class_namespace,
                                          test_query,
@@ -4157,11 +4169,10 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                          filter_id='notowned',
                                          owned=False)
             filter_path = filter_.path
-
             subscriptions = sub_mgr.add_subscriptions(
                 server_id,
                 filter_path,
-                destination_paths=dest,
+                destination_paths=dest_paths,
                 owned=False)
             subscription_paths = [inst.path for inst in subscriptions]
 
@@ -4173,7 +4184,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
-            sub_mgr.remove_destinations(server_id, dest)
+            sub_mgr.remove_destinations(server_id, dest_paths)
 
             self.confirm_removed(sub_mgr, server_id, filter_path,
                                  subscription_paths)
@@ -4215,8 +4226,9 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             server_id = sub_mgr.add_server(server)
 
             # Create non-owned subscription
-            dest = sub_mgr.add_listener_destinations(server_id, listener_url,
-                                                     owned=False)
+            dests = sub_mgr.add_listener_destinations(server_id, listener_url,
+                                                      owned=False)
+            dest_paths = [inst.path for inst in dests]
             filter_ = sub_mgr.add_filter(server_id,
                                          test_class_namespace,
                                          test_query,
@@ -4224,12 +4236,12 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                          filter_id='notowned',
                                          owned=False)
             filter_path = filter_.path
-
             subscriptions = sub_mgr.add_subscriptions(
                 server_id,
                 filter_path,
-                destination_paths=dest,
+                destination_paths=dest_paths,
                 owned=False)
+
             subscription_paths = [inst.path for inst in subscriptions]
 
             self.confirm_created(sub_mgr, server_id, filter_path,
@@ -4255,7 +4267,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
-            sub_mgr.remove_destinations(server_id, dest)
+            sub_mgr.remove_destinations(server_id, dest_paths)
 
             self.confirm_removed(sub_mgr, server_id, filter_path,
                                  subscription_paths)
@@ -4311,9 +4323,10 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             # Create non-owned dest, filter, subscription
 
-            n_owned_dest = sub_mgr.add_listener_destinations(server_id,
-                                                             listener_url,
-                                                             owned=False)
+            n_owned_dests = sub_mgr.add_listener_destinations(server_id,
+                                                              listener_url,
+                                                              owned=False)
+            n_owned_dest_paths = [inst.path for inst in n_owned_dests]
 
             n_owned_filter = sub_mgr.add_filter(server_id,
                                                 test_class_namespace,
@@ -4321,13 +4334,15 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                                 query_language="DMTF:CQL",
                                                 filter_id='notowned',
                                                 owned=False)
+
             n_owned_filter_path = n_owned_filter.path
 
             n_owned_subscriptions = sub_mgr.add_subscriptions(
                 server_id,
                 n_owned_filter_path,
-                destination_paths=n_owned_dest,
+                destination_paths=n_owned_dest_paths,
                 owned=False)
+
             n_owned_subscription_paths = [inst.path for inst in
                                           n_owned_subscriptions]
 
@@ -4348,7 +4363,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
             sub_mgr.remove_subscriptions(server_id, n_owned_subscription_paths)
             sub_mgr.remove_filter(server_id, n_owned_filter_path)
-            sub_mgr.remove_destinations(server_id, n_owned_dest)
+            sub_mgr.remove_destinations(server_id, n_owned_dest_paths)
 
             self.confirm_removed(sub_mgr, server_id, n_owned_filter_path,
                                  n_owned_subscription_paths)
@@ -4379,17 +4394,19 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             self.assertEqual(set(sub_mgr._servers.keys()), {server_id})
 
             sub_mgr.remove_all_servers()
-            self.assertEqual(set(sub_mgr._servers.keys()), {})
+            self.assertEqual(len(sub_mgr._servers.keys()), 0)
 
             # Now, perform the actual test of the context manager.
 
+            # pylint: disable=bad-continuation
             with WBEMSubscriptionManager(
                     subscription_manager_id='test_ctxt_mgr_2') as sub_mgr:
 
                 server_id = sub_mgr.add_server(server)
                 self.assertEqual(set(sub_mgr._servers.keys()), {server_id})
 
-            self.assertEqual(set(sub_mgr._servers.keys()), {})
+            # confirm that context manager cleared servers.
+            self.assertEqual(len(sub_mgr._servers.keys()), 0)
 
 
 #################################################################

@@ -227,8 +227,9 @@ class WBEMSubscriptionManager(object):
     def __enter__(self):
         """
         Enter method when the class is used as a context manager.
+        Returns the subscription manager object
         """
-        pass
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         """
@@ -381,7 +382,7 @@ class WBEMSubscriptionManager(object):
         if server_id in self._owned_subscriptions:
             inst_list = self._owned_subscriptions[server_id]
             # We iterate backwards because we change the list
-            for i in six.range(len(inst_list) - 1, -1, -1):
+            for i in six.moves.range(len(inst_list) - 1, -1, -1):
                 inst = inst_list[i]
                 server.conn.DeleteInstance(inst.path)
                 del inst_list[i]
@@ -390,7 +391,7 @@ class WBEMSubscriptionManager(object):
         if server_id in self._owned_filters:
             inst_list = self._owned_filters[server_id]
             # We iterate backwards because we change the list
-            for i in six.range(len(inst_list) - 1, -1, -1):
+            for i in six.moves.range(len(inst_list) - 1, -1, -1):
                 inst = inst_list[i]
                 server.conn.DeleteInstance(inst.path)
                 del inst_list[i]
@@ -399,7 +400,7 @@ class WBEMSubscriptionManager(object):
         if server_id in self._owned_destinations:
             inst_list = self._owned_destinations[server_id]
             # We iterate backwards because we change the list
-            for i in six.range(len(inst_list) - 1, -1, -1):
+            for i in six.moves.range(len(inst_list) - 1, -1, -1):
                 inst = inst_list[i]
                 server.conn.DeleteInstance(inst.path)
                 del inst_list[i]
@@ -635,7 +636,7 @@ class WBEMSubscriptionManager(object):
 
         inst_list = self._owned_destinations[server_id]
         # We iterate backwards because we change the list
-        for i in six.range(len(inst_list) - 1, -1, -1):
+        for i in six.moves.range(len(inst_list) - 1, -1, -1):
             inst = inst_list[i]
             if inst.path == dest_path:
                 del inst_list[i]
@@ -865,7 +866,7 @@ class WBEMSubscriptionManager(object):
 
         inst_list = self._owned_filters[server_id]
         # We iterate backwards because we change the list
-        for i in six.range(len(inst_list) - 1, -1, -1):
+        for i in six.moves.range(len(inst_list) - 1, -1, -1):
             inst = inst_list[i]
             if inst.path == filter_path:
                 del inst_list[i]
@@ -1072,7 +1073,7 @@ class WBEMSubscriptionManager(object):
 
         inst_list = self._owned_subscriptions[server_id]
         # We iterate backwards because we change the list
-        for i in six.range(len(inst_list) - 1, -1, -1):
+        for i in six.moves.range(len(inst_list) - 1, -1, -1):
             inst = inst_list[i]
             if inst.path == sub_path:
                 del inst_list[i]
@@ -1299,9 +1300,6 @@ class WBEMSubscriptionManager(object):
         sub_inst.path = sub_path
         sub_inst['Filter'] = filter_path
         sub_inst['Handler'] = dest_path
-
-        sub_path = server.conn.CreateInstance(sub_inst)
-        sub_inst = server.conn.GetInstance(sub_path)
 
         if owned:
             for inst in self._owned_subscriptions[server_id]:
