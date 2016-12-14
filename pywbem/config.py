@@ -38,7 +38,7 @@ they should be used from the ``pywbem`` namespace.
 
 # This module is meant to be safe for 'import *'.
 
-__all__ = ['ENFORCE_INTEGER_RANGE']
+__all__ = ['ENFORCE_INTEGER_RANGE', 'DEFAULT_ITER_MAXOBJECTCOUNT']
 
 #: Enforce the allowable value range for CIM integer types (e.g.
 #: :class:`~pywbem.Uint8`). For details, see the :class:`~pywbem.CIMInt` base
@@ -50,3 +50,13 @@ __all__ = ['ENFORCE_INTEGER_RANGE']
 #:   out of range works in pywbem. Note that a WBEM server may or may not
 #:   reject such out-of-range values.
 ENFORCE_INTEGER_RANGE = True
+
+#: Default setting for the MaxObjectCount attribute for all of the
+#: WBEMConnection:Iter... operations.
+#: If this attribute is not specified on a request such as
+#: IterEnumerateInstance this value will be used as the value for
+#: MaxObjectCount.
+#: Note that this does not necessarily optimize the performance of these
+#: operations.
+
+DEFAULT_ITER_MAXOBJECTCOUNT = 1000

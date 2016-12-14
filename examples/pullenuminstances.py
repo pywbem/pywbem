@@ -21,7 +21,7 @@ import sys
 import datetime
 from pywbem import WBEMConnection, CIMError, Error
 
-# Dfault connection attributes. Used if not all arguments are
+# Default connection attributes. Used if not all arguments are
 # supplied on the command line.
 USERNAME = 'blah'
 PASSWORD = 'blah'
@@ -56,14 +56,6 @@ class ElapsedTimer(object):
         """
         return self.elapsed_ms() / 1000
 
-def connect_server(server_url, creds, namespace):
-    """
-        Connect to the server return the connection object.
-        This call should not generate any exceptions
-    """
-    return WBEMConnection(server_url, creds,
-                          default_namespace=namespace,
-                          no_verification=True)
 
 def execute_request(conn, classname, max_open, max_pull):
     """
@@ -87,6 +79,7 @@ def execute_request(conn, classname, max_open, max_pull):
     start = ElapsedTimer()
     result = conn.OpenEnumerateInstances(classname,
                                          MaxObjectCount=max_open)
+
 
     print('open rtn eos=%s context=%s, count=%s time=%s ms' %
           (result.eos, result.context, len(result.instances),
@@ -139,15 +132,14 @@ def main():
         max_open = sys.argv[6]
         max_pull = sys.argv[7]
 
-    # create the credentials tuple for WBEMConnection
-    creds = (username, password)
-
     print('Parameters: server_url=%s\n username=%s\n namespace=%s\n' \
           ' classname=%s\n max_open=%s,\n max_pull=%s' % \
           (server_url, username, namespace, classname, max_open, max_pull))
 
-    # call method to connect to the server
-    conn = connect_server(server_url, creds, namespace)
+    # connect to the server
+    conn = WBEMConnection(server_url, (username, password),
+                          default_namespace=namespace,
+                          no_verification=True)
 
     #Call method to execute the enumeration sequence and return instances
     try:
@@ -157,14 +149,13 @@ def main():
         for instance in instances:
             print('\npath=%s\n%s' % (instance.path, instance.tomof()))
 
-    # handle any exception
+    # handle exceptions
+    except CIMError as ce:
+        print('Operation Failed: CIMError: code=%s, Description=%s' % \
+              (ce.status_code_name, ce.status_description))
+        sys.exit(1)
     except Error as err:
-        # If CIMError, display CIMError attributes
-        if isinstance(err, CIMError):
-            print('Operation Failed: CIMError: code=%s, Description=%s' % \
-                  (err.status_code_name, err.status_description))
-        else:
-            print ("Operation failed: %s" % err)
+        print ("Operation failed: %s" % err)
         sys.exit(1)
 
     return 0

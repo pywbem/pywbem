@@ -843,12 +843,17 @@ def result_tuple(value, tc_name):
             instance, eos, context
             or
             paths, eos, context
+        For openqueryinstances it returns a named tuple with 4 elements
+        in place of 3
     """
-
     if isinstance(value, dict):
         # test for both paths and instances.
         objs = None
-        result = namedtuple("exp_result", ["instances", "eos", "context"])
+        if "query_result_class" in value:
+            result = namedtuple("exp_result", ["instances", "eos", "context",
+                                               "query_result_class"])
+        else:
+            result = namedtuple("exp_result", ["instances", "eos", "context"])
 
         # either path or instances should be in value
         if "instances" in value:
@@ -858,7 +863,6 @@ def result_tuple(value, tc_name):
                 raise AssertionError("WBEMConnection operation method "
                                      "result is not as expected. Both "
                                      "'instances' and 'paths' component.")
-
         elif "paths" in value:
             paths = value["paths"]
             objs = obj(paths, tc_name)
@@ -868,7 +872,12 @@ def result_tuple(value, tc_name):
                                  "is not as expected. No 'instances' "
                                  "or 'paths' component.")
 
-        return result(objs, value["eos"], value["context"])
+        # if query_result_class in value, add it to result
+        if "query_result_class" in value:
+            return result(objs, value["eos"], value["context"],
+                          value["query_result_class"])
+        else:
+            return result(objs, value["eos"], value["context"])
 
     else:
         raise AssertionError("WBEMConnection operation invalid tuple "
