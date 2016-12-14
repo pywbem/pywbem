@@ -2376,8 +2376,7 @@ class InvokeMethod(ClientTest):
                               class_name,
                               [('indicationSendCount',
                                 Uint32(0))])
-
-        self.assertEqual(result[0], 1)
+        self.assertEqual(result[0], 0)
 
         # TODO: Call with empty arrays
 
@@ -3503,7 +3502,7 @@ class PegasusTestEmbeddedInstance(PegasusServerTestBase, RegexpMixin):
                     print('======%s XML=====\n%s' % (inst.path, str_xml))
 
                 # confirm general characteristics of mof output
-                self.assertRegex(
+                self.assertRegexpMatches(
                     str_mof, r"instance of Test_CLITestEmbeddedClass {")
                 self.assertRegexpContains(
                     str_mof,
@@ -3611,7 +3610,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
 
         if self.is_pegasus_server():
             self.assertEqual(server.brand, 'OpenPegasus')
-            self.assertRegex(server.version, r"^2\.1[0-7]\.[0-7]$")
+            self.assertRegexpMatches(server.version, r"^2\.1[0-7]\.[0-7]$")
         else:
             # Do not know what server it is so just display
             print("Brand: %s" % server.brand)
@@ -4108,8 +4107,6 @@ class IterEnumerateInstancePaths(PegasusServerTestBase):
 
         This is a common function used by other tests in this class.
         """
-        if namespace is not None:
-            namespace = namespace.encode('utf-8')
 
         # execute iterator operation
         generator = self.cimcall(self.conn.IterEnumerateInstancePaths,
@@ -4152,6 +4149,7 @@ class IterEnumerateInstancePaths(PegasusServerTestBase):
         # it.
         orig_paths = self.cimcall(self.conn.EnumerateInstanceNames, ClassName,
                                   namespace=namespace)
+        self.assertPathsValid(result.paths, namespace=namespace)
 
         self.assertPathsEqual(pulled_paths, orig_paths, ignore_host=True)
 
@@ -5320,7 +5318,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             # confirm structure of the name element without any id components
             # NOTE: The uuid from uuid4 is actually 36 char but not we made it
             # 30-40 in case format changes in future.
-            self.assertRegex(
+            self.assertRegexpMatches(
                 filter_path.keybindings['Name'],
                 r'^pywbemfilter:owned:fred2:MyfilterId:[0-9a-f-]{30,40}\Z')
             subscriptions = sub_mgr.add_subscriptions(server_id,
@@ -5411,7 +5409,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             self.assertEqual(len(owned_filter_paths), 1)
             for path in owned_filter_paths:
                 name = path.keybindings['Name']
-                self.assertRegex(
+                self.assertRegexpMatches(
                     name,
                     r'^pywbemfilter:owned:pegTestListener:fred:' +
                     r'[0-9a-f-]{30,40}\Z')
@@ -5423,7 +5421,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 query_language="DMTF:CQL", filter_id='test_id_attributes1')
             filter_path2 = filter2.path
 
-            self.assertRegex(
+            self.assertRegexpMatches(
                 filter_path2.keybindings['Name'],
                 r'^pywbemfilter:owned:pegTestListener:test_id_attributes1:' +
                 r'[0-9a-f-]{30,40}\Z')
@@ -5434,7 +5432,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 query_language="DMTF:CQL", filter_id='test_id_attributes2')
             filter_path3 = filter3.path
 
-            self.assertRegex(
+            self.assertRegexpMatches(
                 filter_path3.keybindings['Name'],
                 r'^pywbemfilter:owned:pegTestListener:test_id_attributes2:' +
                 r'[0-9a-f-]{30,40}\Z')
@@ -5517,7 +5515,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             self.assertEqual(len(owned_filter_paths), 1)
             for path in owned_filter_paths:
                 name = path.keybindings['Name']
-                self.assertRegex(
+                self.assertRegexpMatches(
                     name,
                     r'^pywbemfilter:owned:pegTestMgr:fred:[0-9a-f-]{30,40}\Z')
             self.assertTrue(filter_path in owned_filter_paths)

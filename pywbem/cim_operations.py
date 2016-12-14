@@ -2130,20 +2130,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         _validateIterCommonParams(MaxObjectCount, OperationTimeout)
 
-        if self.operation_recorder:
-            self.operation_recorder.reset()
-            self.operation_recorder.stage_pywbem_args(
-                method='IterEnumerateInstancePaths',
-                ClassName=ClassName,
-                namespace=namespace,
-                FilterQueryLanguage=FilterQueryLanguage,
-                FilterQuery=FilterQuery,
-                OperationTimeout=OperationTimeout,
-                ContinueOnError=ContinueOnError,
-                MaxObjectCount=MaxObjectCount,
-                **extra)
-
         # Common variable for pull result tuple used by pulls and finally:
+
         pull_result = None
         try:                # try / finally block to allow iter.close()
             if (self._use_enum_path_pull_operations is None or
