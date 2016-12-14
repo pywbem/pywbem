@@ -55,31 +55,38 @@ WBEMConnection method                                       Purpose
 ----------------------------------------------------------  --------------------------------------------------------------
 :meth:`~pywbem.WBEMConnection.ExecQuery`                    Execute a query in a namespace
 ----------------------------------------------------------  --------------------------------------------------------------
-:meth:`~pywbem.WBEMConnection.IterEnumerateInstances`       Iterator API that uses either OpenEnumerateInstances and
+:meth:`~pywbem.WBEMConnection.IterEnumerateInstances`       Experimental:
+                                                            Iterator API that uses either OpenEnumerateInstances and
                                                             PullInstancesWithPath or EnumerateInstances depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
-:meth:`~pywbem.WBEMConnection.IterEnumerateInstancePaths`   Iterator API that uses either OpenEnumerateInstances and
+:meth:`~pywbem.WBEMConnection.IterEnumerateInstancePaths`   Experimental:
+                                                            Iterator API that uses either OpenEnumerateInstances and
                                                             PullInstancesWithPath or EnumerateInstances depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
-:meth:`~pywbem.WBEMConnection.IterReferenceInstances`       Iterator API that uses either OpenReferenceInstances and
+:meth:`~pywbem.WBEMConnection.IterReferenceInstances`       Experimental:
+                                                            Iterator API that uses either OpenReferenceInstances and
                                                             PullInstancesWithPath or References depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
-:meth:`~pywbem.WBEMConnection.IterReferenceInstancePaths`   Iterator API that uses either OpenReferenceInstances and
+:meth:`~pywbem.WBEMConnection.IterReferenceInstancePaths`   Experimental:
+                                                            Iterator API that uses either OpenReferenceInstances and
                                                             PullInstancesWithPath or References depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
-:meth:`~pywbem.WBEMConnection.IterAssociatorInstances`      Iterator API that uses either OpenAssociatorInstances and
+:meth:`~pywbem.WBEMConnection.IterAssociatorInstances`      Experimental:
+                                                            Iterator API that uses either OpenAssociatorInstances and
                                                             PullInstancesWithPath or Associators depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
-:meth:`~pywbem.WBEMConnection.IterAssociatorInstancePaths`  Iterator API that uses either OpenAssociatorInstances and
+:meth:`~pywbem.WBEMConnection.IterAssociatorInstancePaths`  Experimental:
+                                                            Iterator API that uses either OpenAssociatorInstances and
                                                             PullInstancesWithPath or Associators depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
-:meth:`~pywbem.WBEMConnection.IterQueryInstances`           Iterator API that uses either OpenQueryInstances and
+:meth:`~pywbem.WBEMConnection.IterQueryInstances`           Experimental:
+                                                            Iterator API that uses either OpenQueryInstances and
                                                             PullInstances or ExecQuery depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
@@ -547,7 +554,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         a defined value.
 
         This variable is initially set from the same-named input argument.
-        If it is `Nnone` is modified when `Iter...()` methods are invoked,
+        If it is `None` is modified when `Iter...()` methods are invoked,
         dependent on the support for pull operations in the WBEM server.
         After the first call , the varaible will be either `True` or `False`
         and indicating whether pull operations will be used in this and
@@ -1648,8 +1655,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         EnumerateInstances/OpenEnumerateInstance methods and reduces
         the enumeration to a pythonic iterator idiom.
 
+        **Experimental:** This method is experimental in this release.
+
         This method performs either the
-        :meth:`~pywbem.WBEMConnection.OpenEnumerationInstances` and
+        :meth:`~pywbem.WBEMConnection.OpenEnumerateInstances` and
         :meth:`~pywbem.WBEMConnection.PullInstancesWithPath`
         operations (pull operations) or the
         :meth:`~pywbem.WBEMConnection.EnumerateInstances` operation
@@ -1839,9 +1848,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * The default is defined as a system config variable.
             * `None` is not allowed.
 
-          The choice of MaxObjectCount is client/server dependent but choices
-          between 100 and 1000 typically do not have a significant impact on
-          either memory or overall efficiency.
+            The choice of MaxObjectCount is client/server dependent but choices
+            between 100 and 1000 typically do not have a significant impact on
+            either memory or overall efficiency.
 
         Keyword Arguments:
 
@@ -1861,7 +1870,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           by iterating through the object. Instances that are retrieved
           include the host and namespace component of the instance path.
 
-        Example:
+        Example::
+
             insts_iterator = conn.IterEnumerateInstances('CIM_Blah')
             for inst in insts_iterator:
                 # close if a particular property value found
@@ -1969,9 +1979,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         EnumerateInstances/OpenEnumerateInstance methods and reduces
         the enumeration to a pythonic iterator idiom.
 
+        **Experimental:** This method is experimental in this release.
+
         This method performs either the
-        :meth:`~pywbem.WBEMConnection.OpenEnumerationInstancePaths` and
-        :meth:`~pywbem.WBEMConnection.PullInstancesPaths`
+        :meth:`~pywbem.WBEMConnection.OpenEnumerateInstancePaths` and
+        :meth:`~pywbem.WBEMConnection.PullInstancePaths`
         operations (pull operations) or the
         :meth:`~pywbem.WBEMConnection.EnumerateInstanceNames` operation
         (traditional operation) if the WBEM server does not support the
@@ -2100,9 +2112,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * The default is defined as a system config variable.
             * `None` is not allowed.
 
-          The choice of MaxObjectCount is client/server dependent but choices
-          between 100 and 1000 typically do not have a significant impact on
-          either memory or overall efficiency.
+            The choice of MaxObjectCount is client/server dependent but choices
+            between 100 and 1000 typically do not have a significant impact on
+            either memory or overall efficiency.
 
         Keyword Arguments:
 
@@ -2122,7 +2134,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           by iterating through the object. In all cases the instance paths\
           are complete including host and namespace information.
 
-        Example:
+        Example::
+
             paths_iterator = conn.IterEnumerateInstancePaths('CIM_Blah')
             for path in paths_iterator:
                 print('path %s' % path)
@@ -2217,6 +2230,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method frees the user of choices between the multiple
         ReferenceNames/ReferenceInstancePaths methods and reduces
         the enumeration to a pythonic iterator idiom.
+
+        **Experimental:** This method is experimental in this release.
 
         This method performs either the
         :meth:`~pywbem.OpenReferenceInstancePaths operation
@@ -2358,7 +2373,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           A Python:term:`generator` object. Instances can be retrieved
           by iterating through the object.
 
-        Example:
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
+
+        Example::
+
             insts_iterator = conn.IterReferencePaths('CIM_Blah')
             for inst in insts_iterator:
                 # close if a particular property value found
@@ -2367,10 +2387,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     break
                 else:
                     print('instance %s' % inst.tomof())
-
-        Raises:
-
-            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
         _validateIterCommonParams(MaxObjectCount, OperationTimeout)
@@ -2459,6 +2475,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method frees the user of choices between the multiple
         EnumerateInstances/OpenEnumerateInstance methods and reduces
         the enumeration to a pythonic iterator idiom.
+
+        **Experimental:** This method is experimental in this release.
 
         This method performs either the
         :meth:`~pywbem.WBEMConnection.OpenReferenceInstances` and
@@ -2624,7 +2642,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           A Python:term:`generator` object. Instances can be retrieved
           by iterating through the object.
 
-        Example:
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
+
+        Example::
+
             insts_iterator = conn.IterReferenceInstances('CIM_Blah.key=1', ...)
             for inst in insts_iterator:
                 # close if a particular property value found
@@ -2633,10 +2656,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     break
                 else:
                     print('instance %s' % inst.tomof())
-
-        Raises:
-
-            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
         # Must be positive integer gt zero
@@ -2730,6 +2749,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method frees the user of choices between the multiple
         AssociatorNames/AssociatorInstancePaths methods and reduces
         the enumeration to a pythonic iterator idiom.
+
+        **Experimental:** This method is experimental in this release.
 
         This method performs either the
         :meth:`~pywbem.OpenAssociatorInstancePaths operation
@@ -2885,7 +2906,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           A Python:term:`generator` object. Instances can be retrieved
           by iterating through the object.
 
-        Example:
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
+
+        Example::
+
             insts_iterator = conn.IterAssociatorInstancePaths('CIM_Blah')
             for inst in insts_iterator:
                 # close if a particular property value found
@@ -2894,10 +2920,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     break
                 else:
                     print('instance %s' % inst.tomof())
-
-        Raises:
-
-            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
         _validateIterCommonParams(MaxObjectCount, OperationTimeout)
@@ -2991,6 +3013,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method frees the user of choices between the multiple
         Associators/OpenAssociatorInstance methods and reduces
         the enumeration to a pythonic iterator idiom.
+
+        **Experimental:** This method is experimental in this release.
 
         This method performs either the
         :meth:`~pywbem.WBEMConnection.OpenAssociatorInstances` and
@@ -3170,7 +3194,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           A Python:term:`generator` object. Instances can be retrieved
           by iterating through the object.
 
-        Example:
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
+
+        Example::
+
             insts_iterator = conn.IterAssociatorInstances('CIM_Blah.key=1',...)
             for inst in insts_iterator:
                 # close if a particular property value found
@@ -3179,10 +3208,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     break
                 else:
                     print('instance %s' % inst.tomof())
-
-        Raises:
-
-            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
         # Must be positive integer gt zero
@@ -3284,6 +3309,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         ExecQuery/OpenQueryInstances methods and reduces
         the enumeration to a pythonic iterator idiom.
 
+        **Experimental:** This method is experimental in this release.
+
         This method performs either the
         :meth:`~pywbem.WBEMConnection.OpenQueryInstances` and
         :meth:`~pywbem.WBEMConnection.PullInstances`
@@ -3326,6 +3353,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         returned from the server can be retrieved with iterator expressions.
 
         Otherwise, this method raises an exception.
+
         Parameters:
 
           QueryLanguage (:term:`string`):
@@ -3410,16 +3438,17 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           whichever lower level function is called. The instances are
           accessed using this generator (ex. for inst in rtn.generator:)
 
-        Example:
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
+
+        Example::
+
             rtn_def = conn.IterQueryInstances('DMTF:CQL',
                 'SELECT FROM * where pl > 2')
 
             for inst in rtn.def.generator:
-              print('instance %s' % inst.tomof())
-
-        Raises:
-
-            Exceptions described in :class:`~pywbem.WBEMConnection`.
+                print('instance %s' % inst.tomof())
         """
         class IterQueryInstancesReturn(object):
             """
