@@ -82,20 +82,23 @@ Enhancements
   are now conditionally created, dependent on the owned instances that have
   been discovered upon restart of the WBEMSubscriptionManager.
 
-* Add new methods to WBEMConnection to provide integrated APIs for the
-  non-pull and pull operations, reducing the amount of code app writers must
-  produce and providing a pythonic (generator based) interface for the
-  methods that enumerate instances and instance paths, enumerator associators
-  and references (ssue #466)).  These new methods have names in the pattern
-  Iter<name of original function>. Thus, for example the new method
-  IterEnumerateInstances creates a new API to integrate EnumerateInstances
-  and the OpenEnumerateInstancesWithPath/PullInstancesWithPath.  See the
-  documentation for more information on these API's
-  Generally the form of these operations are:
+* **Experimental:** Added new methods to WBEMConnection to provide integrated
+  APIs for the non-pull and pull operations, reducing the amount of code app
+  writers must produce and providing a pythonic (generator based) interface
+  for the methods that enumerate instances and instance paths, enumerator
+  associators and references (issue #466)).
 
-  result_generator = IterEnumerateInstances(...)
-  for instance in result_generator:
-      <do something with instance>
+  These new methods have names in the pattern
+  `Iter<name of original function>`. Thus, for example the new method
+  `IterEnumerateInstances` creates a new API to integrate `EnumerateInstances`
+  and the `OpenEnumerateInstancesWithPath` / `PullInstancesWithPath`. See the
+  documentation for more information on these APIs.
+
+  Generally the form of these operations are::
+
+      result_generator = IterEnumerateInstances(...)
+      for instance in result_generator:
+          <do something with instance>
 
 Bug fixes
 ^^^^^^^^^
@@ -129,7 +132,7 @@ Bug fixes
 
 * Fixed a `TypeError` in the `TestClientRecorder` operation recorder that
   occurred while handling a `ConnectionError` (this recorder is used by the
-  `--yamlfile` option of `run_cim_operations.py`) (issue #587). 
+  `--yamlfile` option of `run_cim_operations.py`) (issue #587).
 
 
 pywbem v0.9.0
