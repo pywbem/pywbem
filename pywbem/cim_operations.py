@@ -745,7 +745,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             connection will be closed, causing a :exc:`~pywbem.TimeoutError` to
             be raised.
 
-            A value of `None` means there is no timeout.
+            A value of `None` means that the connection uses the standard
+            timeout behavior of Python sockets, which can be between several
+            minutes and much longer. Because this is somewhat unpredictable,
+            it is recommended to specify a value for the timeout.
 
             A value of ``0`` means the timeout is very short, and does not
             really make any sense.

@@ -100,6 +100,9 @@ Enhancements
       for instance in result_generator:
           <do something with instance>
 
+* Clarified the behavior for the default WBEMConnection timeout (`None`)
+  (issue #628).
+
 Bug fixes
 ^^^^^^^^^
 
