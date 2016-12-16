@@ -545,6 +545,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         the Iter... operations utilize the other operations to send requests
         their calls are NOT recorded.
 
+        All operations except the Iter... operations may be recorded. Since
+        the Iter... operations utilize the other operations to send requests
+        their calls are NOT recorded.
+
       use_pull_operations (:class:`py:bool`):
         Indicates whether the client will attempt the use of pull operations in
         any `Iter...()` methods. However, each operation has its own internal
@@ -1952,6 +1956,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             # Complete namespace and host components of the path
             # pylint: disable=unused-variable
             host, port, ssl = parse_url(self.url)
+
+            # get namespace for the operation
+            if namespace is None and isinstance(ClassName, CIMClassName):
+                namespace = ClassName.namespace
+            namespace = self._iparam_namespace_from_namespace(namespace)
+
             for inst in enum_rslt:
                 if inst.path.namespace is None:
                     inst.path.namespace = namespace
@@ -2146,6 +2156,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # Common variable for pull result tuple used by pulls and finally:
 
         pull_result = None
+
         try:                # try / finally block to allow iter.close()
             if (self._use_enum_path_pull_operations is None or
                     self._use_enum_path_pull_operations):
@@ -2202,6 +2213,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             # pylint: disable=unused-variable
             host, port, ssl = parse_url(self.url)
+
+            # get namespace for the operation
+            if namespace is None and isinstance(ClassName, CIMClassName):
+                namespace = ClassName.namespace
+            namespace = self._iparam_namespace_from_namespace(namespace)
+
             for path in enum_rslt:
                 if path.namespace is None:
                     path.namespace = namespace
@@ -3295,9 +3312,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 self.CloseEnumeration(pull_result.context)
                 pull_result = None
 
-    # TODO we do not have a way to return the QueryResultClass in
-    # iterator model.
-
     def IterQueryInstances(self, FilterQueryLanguage, FilterQuery,
                            namespace=None, ReturnQueryResultClass=None,
                            OperationTimeout=None, ContinueOnError=None,
@@ -3366,6 +3380,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Query string in the query language specified in the `QueryLanguage`
             parameter.
 
+          namespace (:term:`string`):
+            Name of the CIM namespace to be used (case independent).
+
+            If `None`, the default namespace of the connection object will be
+            used.
+
           ReturnQueryResultClass  (:class:`py:bool`):
             Controls whether a class definition is returned.
 
@@ -3428,7 +3448,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           A Python:term:`generator` object. Instances can be retrieved
           by iterating through the object.
           An Instance of the nexted class IterQueryInstancesReturn that
-          contains two properties
+          contains two properties:
 
           query_result_class: If a result class was requested from by the
           call to InterQueryInstances and one was returned, the CIMClass
@@ -3442,13 +3462,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
 
-        Example::
-
-            rtn_def = conn.IterQueryInstances('DMTF:CQL',
+        Example:
+            result = conn.IterQueryInstances('DMTF:CQL',
                 'SELECT FROM * where pl > 2')
-
-            for inst in rtn.def.generator:
+            for inst in result.generator:
                 print('instance %s' % inst.tomof())
+
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
         class IterQueryInstancesReturn(object):
             """
@@ -3526,11 +3548,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             assert self._use_query_pull_operations is False
 
             if ReturnQueryResultClass is not None:
-                raise ValueError('EnumerateInstances does not support'
+                raise ValueError('ExecQuery does not support'
                                  ' ReturnQueryResultClass.')
 
             if ContinueOnError is not None:
-                raise ValueError('EnumerateInstances does not support '
+                raise ValueError('ExecQuery does not support '
                                  'ContinueOnError.')
 
             _instances = self.ExecQuery(
