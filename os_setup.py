@@ -866,9 +866,18 @@ class PythonInstaller(BaseInstaller):
             return (False, False, None)
 
         lines = out.splitlines()
-        version_line = [line for line in lines
-                        if line.startswith("Version:")][0]
-        version = version_line.split()[1]
+        version_lines = [line for line in lines
+                         if line.startswith("Version:")]
+        if len(version_lines) == 0:
+            raise DistutilsSetupError(
+                "Unexpected output from command '%s': No version line:\n%s" %
+                (cmd, out))
+        version_words = version_lines[0].split()
+        if len(version_words) < 2:
+            raise DistutilsSetupError(
+                "Unexpected output from command '%s': Version line has less "
+                "than two words:\n%s" % (cmd, out))
+        version = version_words[1]
         version_sufficient = self.version_matches_req(version, version_reqs) \
             if version_reqs else True
         return (True, version_sufficient, version)
@@ -1241,13 +1250,16 @@ class YumInstaller(OSInstaller):
         rc, out, err = shell(cmd)
         if rc != 0:
             return (False, False, None)
-
-        info = out.splitlines()[-1].strip("\n").split()
-        if not info[0].startswith(pkg_name + "."):
+        info_words = out.splitlines()[-1].strip("\n").split()
+        if len(info_words) < 2:
             raise DistutilsSetupError(
-                "Unexpected output from command '%s':\n%s%s" %
-                (cmd, out, err))
-        version = info[1].split("-")[0]
+                "Unexpected output from command '%s': Last line has less "
+                "than two words:\n%s" % (cmd, out))
+        if not info_words[0].startswith(pkg_name + "."):
+            raise DistutilsSetupError(
+                "Unexpected output from command '%s': Last line does not "
+                "begin with 'package-name.':\n%s" % (cmd, out))
+        version = info_words[1].split("-")[0]
         version_sufficient = self.version_matches_req(version, version_reqs) \
             if version_reqs else True
         return (True, version_sufficient, version)
@@ -1265,13 +1277,16 @@ class YumInstaller(OSInstaller):
         rc, out, err = shell(cmd)
         if rc != 0:
             return (False, False, None)
-
-        info = out.splitlines()[-1].strip("\n").split()
-        if not info[0].startswith(pkg_name + "."):
+        info_words = out.splitlines()[-1].strip("\n").split()
+        if len(info_words) < 2:
             raise DistutilsSetupError(
-                "Unexpected output from command '%s':\n%s%s" %
-                (cmd, out, err))
-        version = info[1].split("-")[0]
+                "Unexpected output from command '%s': Last line has less "
+                "than two words:\n%s" % (cmd, out))
+        if not info_words[0].startswith(pkg_name + "."):
+            raise DistutilsSetupError(
+                "Unexpected output from command '%s': Last line does not "
+                "begin with 'package-name.':\n%s" % (cmd, out))
+        version = info_words[1].split("-")[0]
         version_sufficient = self.version_matches_req(version, version_reqs) \
             if version_reqs else True
         return (True, version_sufficient, [version])
@@ -1312,14 +1327,27 @@ class AptInstaller(OSInstaller):
             return (False, False, None)
 
         lines = out.splitlines()
-        status_line = [line for line in lines if line.startswith("Status:")][0]
-        version_line = [line for line in lines
-                        if line.startswith("Version:")][0]
-        if status_line != "Status: install ok installed":
+        status_lines = [line for line in lines if line.startswith("Status:")]
+        if len(status_lines) < 1:
+            raise DistutilsSetupError(
+                "Unexpected output from command '%s': No status line:\n%s" %
+                (cmd, out))
+        if status_lines[0] != "Status: install ok installed":
             raise DistutilsSetupError(
                 "Unexpected status output from command '%s':\n"
-                "%s%s" % (cmd, out, err))
-        version = version_line.split()[1].split("-")[0]
+                "%s" % (cmd, out))
+        version_lines = [line for line in lines
+                         if line.startswith("Version:")]
+        if len(version_lines) < 1:
+            raise DistutilsSetupError(
+                "Unexpected output from command '%s': No version line:\n%s" %
+                (cmd, out))
+        version_words = version_lines[0].split()
+        if len(version_words) < 2:
+            raise DistutilsSetupError(
+                "Unexpected output from command '%s': Version line has less "
+                "than two words:\n%s" % (cmd, out))
+        version = version_words[1].split("-")[0]
         if ":" in version:
             version = version.split(":")[1]
             # TODO: Add support for epoch number in the version
@@ -1342,9 +1370,18 @@ class AptInstaller(OSInstaller):
             return (False, False, None)
 
         lines = out.splitlines()
-        version_line = [line for line in lines
-                        if line.startswith("Version:")][0]
-        version = version_line.split()[1].split("-")[0]
+        version_lines = [line for line in lines
+                         if line.startswith("Version:")]
+        if len(version_lines) < 1:
+            raise DistutilsSetupError(
+                "Unexpected output from command '%s': No version line:\n%s" %
+                (cmd, out))
+        version_words = version_lines[0].split()
+        if len(version_words) < 2:
+            raise DistutilsSetupError(
+                "Unexpected output from command '%s': Version line has less "
+                "than two words:\n%s" % (cmd, out))
+        version = version_words[1].split("-")[0]
         version_sufficient = self.version_matches_req(version, version_reqs) \
             if version_reqs else True
         return (True, version_sufficient, [version])
@@ -1384,12 +1421,16 @@ class ZypperInstaller(OSInstaller):
         if rc != 0:
             return (False, False, None)
 
-        info = out.splitlines()[-1].strip("\n").split()
-        if not info[0].startswith(pkg_name + "."):
+        info_words = out.splitlines()[-1].strip("\n").split()
+        if len(info_words) < 2:
             raise DistutilsSetupError(
-                "Unexpected output from command '%s':\n%s%s" %
-                (cmd, out, err))
-        version = info[1].split("-")[0]
+                "Unexpected output from command '%s': Last line has less "
+                "than two words:\n%s" % (cmd, out))
+        if not info_words[0].startswith(pkg_name + "."):
+            raise DistutilsSetupError(
+                "Unexpected output from command '%s': Last line does not "
+                "begin with 'package-name.':\n%s" % (cmd, out))
+        version = info_words[1].split("-")[0]
         version_sufficient = self.version_matches_req(version, version_reqs) \
             if version_reqs else True
         return (True, version_sufficient, version)
@@ -1411,8 +1452,12 @@ class ZypperInstaller(OSInstaller):
         if len(version_lines) == 0:
             return (False, False, None)
 
-        version_line = version_lines[0]
-        version = version_line.split()[1].split("-")[0]
+        version_words = version_lines[0].split()
+        if len(version_words) < 2:
+            raise DistutilsSetupError(
+                "Unexpected output from command '%s': Version line has less "
+                "than two words:\n%s" % (cmd, out))
+        version = version_words[1].split("-")[0]
         version_sufficient = self.version_matches_req(version, version_reqs) \
             if version_reqs else True
         return (True, version_sufficient, [version])
@@ -1542,7 +1587,7 @@ def import_setuptools(min_version="12.0"):
     else:
         if setuptools.__version__.split(".") < min_version.split("."):
             raise DistutilsSetupError(
-                "The required version of setuptools (>=%s) is not available, "
+                "The required version of setuptools (>=%s) is not installed "
                 "and can't be\n"
                 "installed while this script is running. Please install the "
                 "required version\n"

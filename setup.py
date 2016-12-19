@@ -358,6 +358,8 @@ def main():
             'PyYAML',
         ],
         'develop_requires': [
+            # Wheel may not be installed in every system Python.
+            'wheel',
             # Python prereqs for 'develop' command. Handled by os_setup module.
             "pytest>=2.4",
             "pytest-cov",
