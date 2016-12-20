@@ -40,8 +40,8 @@ PYTHON="python2.7"   # Python command / version to be used
 ROOTDIR=".."         # relative path from here to repo root dir
 
 # Versions for ply package and generated table modules
-NEWPLY_VERSION="3.8"
-NEWPLY_TABVERSION="3.8"
+NEWPLY_VERSION="3.9"     # new = latest version released - keep up to date!
+NEWPLY_TABVERSION="3.8"  # ply 3.9 produces the 3.8 table format
 OLDPLY_VERSION="3.6"
 OLDPLY_TABVERSION="3.5"  # ply 3.6 produces the 3.5 table format
 
@@ -56,9 +56,20 @@ PYWBEM_MNU=$(echo "$PYWBEM_FULL" |sed 's/rc[0-9]\+$//' |sed 's/\.dev0$//')
 PYWBEM_MN=$(echo "$PYWBEM_MNU" |sed 's/\([0-9]\+\.[0-9]\+\).\+$/\1/')
 #echo "Debug: PYWBEM_MN=$PYWBEM_MN"
 
-DISTFILE="$ROOTDIR/dist/pywbem-${PYWBEM_MN}/pywbem-${PYWBEM_FULL}.tar.gz" # standard dist archive
-DISTFILE_OLDPLY="pywbem-${PYWBEM_FULL}-ply${OLDPLY_VERSION}.tar.gz"
-DISTFILE_NEWPLY="pywbem-${PYWBEM_FULL}-ply${NEWPLY_VERSION}.tar.gz"
+# distribution archives built by make
+SRC_DISTFILE="$ROOTDIR/dist/pywbem-${PYWBEM_FULL}.tar.gz"
+WHL_DISTFILE="$ROOTDIR/dist/pywbem-${PYWBEM_FULL}-py2.py3-none-any.whl"
+
+# Target directories for the dist. archives for testing 
+TMP_DISTROOT="tmp_dist"
+TMP_DISTDIR_OLDPLY="${TMP_DISTROOT}/ply-${OLDPLY_VERSION}"
+TMP_DISTDIR_NEWPLY="${TMP_DISTROOT}/ply-${NEWPLY_VERSION}"
+
+# distribution archives in temp directories:
+SRC_DISTFILE_OLDPLY="$TMP_DISTDIR_OLDPLY/pywbem-${PYWBEM_FULL}.tar.gz"
+SRC_DISTFILE_NEWPLY="$TMP_DISTDIR_NEWPLY/pywbem-${PYWBEM_FULL}.tar.gz"
+WHL_DISTFILE_OLDPLY="$TMP_DISTDIR_OLDPLY/pywbem-${PYWBEM_FULL}-py2.py3-none-any.whl"
+WHL_DISTFILE_NEWPLY="$TMP_DISTDIR_NEWPLY/pywbem-${PYWBEM_FULL}-py2.py3-none-any.whl"
 
 BUILDDIR="$ROOTDIR"
 
@@ -159,14 +170,22 @@ function remove_virtualenv()
 
 function build_dist()
 {
-  local df
-  df="$1"  # built dist archive will be moved to this file
-  call "cd $BUILDDIR; make clobber build" "Building freshly the dist. archive: $DISTFILE"
-  if [[ ! -f $DISTFILE ]]; then
-    error "make build did not produce dist archive: $DISTFILE"
+  local tgt_dir
+  tgt_dir="$1"  # directory to move dist archives to
+  call "cd $BUILDDIR; make clobber build" "Building freshly the dist. archives: $SRC_DISTFILE $WHL_DISTFILE"
+  if [[ ! -f $SRC_DISTFILE ]]; then
+    error "make build did not produce source dist. archive: $SRC_DISTFILE"
     exit 1
   fi 
-  run "mv -f $DISTFILE $df" "Moving built dist. archive to: $df"
+  if [[ ! -f $WHL_DISTFILE ]]; then
+    error "make build did not produce wheel dist. archive: $WHL_DISTFILE"
+    exit 1
+  fi 
+  if [[ ! -d $tgt_dir ]]; then
+    run "mkdir -p $tgt_dir" "Creating temp. dist. archive dir: $tgt_dir"
+  fi
+  run "mv -f $SRC_DISTFILE $tgt_dir" "Moving built source dist. archive to: $tgt_dir"
+  run "mv -f $WHL_DISTFILE $tgt_dir" "Moving built wheel dist. archive to: $tgt_dir"
 }
 
 function assert_eq()
@@ -202,7 +221,8 @@ function run()
     rc=$?
   fi
   if [[ $rc != 0 ]]; then
-    error "Command failed with rc=$rc: $cmd"
+    error "Command failed with rc=$rc: $cmd, output follows:"
+    cat cmd.log
     exit 1
   fi
   rm -f cmd.log
@@ -225,7 +245,8 @@ function call()
     rc=$?
   fi
   if [[ $rc != 0 ]]; then
-    error "Command failed with rc=$rc: $cmd"
+    error "Command failed with rc=$rc: $cmd, output follows:"
+    cat cmd.log
     exit 1
   fi
   rm -f cmd.log
@@ -248,7 +269,8 @@ function assert_run_ok()
     if [[ -n $msg ]]; then
       failure "$msg"
     else
-      failure "Command failed: $cmd"
+      failure "Command failed with rc=$rc: $cmd, output follows:"
+      cat cmd.log
     fi
     exit 1
   fi  
@@ -272,7 +294,8 @@ function assert_run_fails()
     if [[ -n $msg ]]; then
       failure "$msg"
     else
-      failure "Command succeeded: $cmd"
+      failure "Command succeeded: $cmd, output follows:<F2>"
+      cat cmd.log
     fi
     exit 1
   fi  
@@ -370,32 +393,33 @@ function ensure_fresh()
 
 function prep()
 {
-  info "Preparing the environment."
+  info "Preparing: Setup + build dist. archives."
   setup_virtualenv
   make_virtualenv "build"
   call "cd $BUILDDIR; python setup.py develop_os" "Establishing os-level package prerequisites"
   run "pip install ply==$OLDPLY_VERSION" "Installing old version of ply: $OLDPLY_VERSION"
   call "cd $BUILDDIR; python setup.py develop" "Establishing Python package prerequisites"
-  build_dist "$DISTFILE_OLDPLY"
+  build_dist "$TMP_DISTDIR_OLDPLY"
   run "pip install --upgrade ply==$NEWPLY_VERSION" "Upgrading ply to new version: $NEWPLY_VERSION"
-  build_dist "$DISTFILE_NEWPLY"
+  build_dist "$TMP_DISTDIR_NEWPLY"
   remove_virtualenv "build"
 }
 
 function cleanup()
 {
-  info "Cleaning up the environment."
-  run "rm -f $DISTFILE_OLDPLY $DISTFILE_NEWPLY cmd.log $ROOTDIR/dist/pywbem-${PYWBEM_FULL}-py2.7.egg"
-  run "git checkout -- $DISTFILE"
+  info "Cleaning up."
+  rm -rf $TMP_DISTROOT
+  rm -f cmd.log $ROOTDIR/dist/pywbem-${PYWBEM_FULL}-py2.7.egg
+  # run "git checkout -- $SRC_DISTFILE $WHL_DISTFILE"
 }
 
-function test1()
+function test1s()
 {
-  info "Testcase test1: Normal pip installation"
-  make_virtualenv "test1"
+  info "Testcase test1s: Normal pip installation of source dist. archive"
+  make_virtualenv "test1s"
   ensure_fresh
 
-  run "pip install ${DISTFILE_NEWPLY}" "Installing with pip from dist. archive: ${DISTFILE_NEWPLY}"
+  run "pip install ${SRC_DISTFILE_NEWPLY}" "Installing with pip from source dist. archive: ${SRC_DISTFILE_NEWPLY}"
 
   assert_import_ok "six"
   assert_import_ok "ply"
@@ -405,16 +429,35 @@ function test1()
   assert_eq "$(get_ply_tabversion)" "$NEWPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules" 
   assert_no_moftab_build
 
-  remove_virtualenv "test1"
+  remove_virtualenv "test1s"
 }
 
-function test2()
+function test1w()
 {
-  info "Testcase test2: pip installation, with old ply tables and new ply package"
-  make_virtualenv "test2"
+  info "Testcase test1w: Normal pip installation of wheel dist. archive"
+  make_virtualenv "test1w"
   ensure_fresh
 
-  run "pip install ${DISTFILE_OLDPLY}" "Installing with pip from dist. archive: ${DISTFILE_OLDPLY}"
+  run "pip install ${WHL_DISTFILE_NEWPLY}" "Installing with pip from wheel dist. archive: ${WHL_DISTFILE_NEWPLY}"
+
+  assert_import_ok "six"
+  assert_import_ok "ply"
+  assert_import_ok "M2Crypto"
+  assert_import_ok "pywbem"
+  assert_eq "$(get_ply_version)" "$NEWPLY_VERSION" "Unexpected 'ply' package version"
+  assert_eq "$(get_ply_tabversion)" "$NEWPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules" 
+  assert_no_moftab_build
+
+  remove_virtualenv "test1w"
+}
+
+function test2s()
+{
+  info "Testcase test2s: pip installation of source archive, with old ply tables and new ply package"
+  make_virtualenv "test2s"
+  ensure_fresh
+
+  run "pip install ${SRC_DISTFILE_OLDPLY}" "Installing with pip from source dist. archive: ${SRC_DISTFILE_OLDPLY}"
 
   assert_import_ok "six"
   assert_import_ok "ply"
@@ -424,12 +467,31 @@ function test2()
   assert_eq "$(get_ply_tabversion)" "$OLDPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules" 
   assert_moftab_build  # this shows the limitation with pip: It does not re-generate the tables upon install.
 
-  remove_virtualenv "test2"
+  remove_virtualenv "test2s"
+}
+
+function test2w()
+{
+  info "Testcase test2w: pip installation of wheel archive, with old ply tables and new ply package"
+  make_virtualenv "test2w"
+  ensure_fresh
+
+  run "pip install ${WHL_DISTFILE_OLDPLY}" "Installing with pip from wheel dist. archive: ${WHL_DISTFILE_OLDPLY}"
+
+  assert_import_ok "six"
+  assert_import_ok "ply"
+  assert_import_ok "M2Crypto"
+  assert_import_ok "pywbem"
+  assert_eq "$(get_ply_version)" "$NEWPLY_VERSION" "Unexpected 'ply' package version"
+  assert_eq "$(get_ply_tabversion)" "$OLDPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules" 
+  assert_moftab_build  # this shows the limitation with pip: It does not re-generate the tables upon install.
+
+  remove_virtualenv "test2w"
 }
 
 function test3()
 {
-  info "Testcase test3: Normal setup.py installation (with missing ply tables)"
+  info "Testcase test3: Normal setup.py install (with missing ply tables)"
   make_virtualenv "test3"
   ensure_fresh
   call "cd $BUILDDIR; make clobber" "Removing any build artefacts"
@@ -479,10 +541,13 @@ function test4()
 
 #----- main
 
+cleanup
 prep
 
-test1
-test2
+test1s
+test1w
+test2s
+test2w
 test3
 test4
 
