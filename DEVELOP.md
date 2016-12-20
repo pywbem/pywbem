@@ -143,20 +143,16 @@ version (e.g. `0.9.x`) that is to be released.
 
 19. Tag the release:
 
-    - Delete any preliminary M.N* tags, if any, and push the deletions
-      upstream:
+    - It is important to do this only with an up-to-date `master` branch
+      checked out (see step 17).
 
-      - `git tag | grep "0\.9\."`
-      - `git tag -d <tags ...>`
-      - `git push --tags`
-
-    - If a tag for the release already exists for some reason, delete it
+    - If a tag for the new release already exists for some reason, delete it
       and push the deletion upstream:
 
-      - `git tag -d v$MNU`
+      - `git tag -l v$MNU |xargs git tag -d`
       - `git push --tags`
 
-    - Create the final tag for the release and push it upstream:
+    - Create a tag for the new release and push the addition upstream:
 
       - `git tag v$MNU`
       - `git push --tags`
@@ -166,7 +162,7 @@ version (e.g. `0.9.x`) that is to be released.
     - `git checkout -b stable_$MN`
     - `git push --set-upstream origin stable_$MN`
 
-21. On RTD, activate the new branch stable_$MN as a version to be built.
+21. On RTD, activate the new branch `stable_$MN` as a version to be built.
 
 22. On GitHub, edit the new tag, and create a release description on it. This
     will cause it to appear in the Release tab.
