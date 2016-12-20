@@ -15,93 +15,81 @@ contains the `master` branch up to this commit:
    :revisions: 1
 
 
-pywbem v0.10.0.dev0
--------------------
+pywbem v0.10.0
+--------------
 
-Released: Not yet
+Released: 2016-12-20
 
 Incompatible changes
 ^^^^^^^^^^^^^^^^^^^^
 
-* All methods of the WBEMSubscriptionManager class that returned instance
+* All methods of the `WBEMSubscriptionManager` class that returned instance
   paths (or lists thereof) in pywbem v0.9 now return the complete instances
-  (or lists thereof).
+  (or lists thereof) (pr #607).
 
-Deprecations
-^^^^^^^^^^^^
-
-
-Known Issues
-^^^^^^^^^^^^
-
+* In `wbemcli`, removed the long global function names (e.g.
+  `EnumerateInstances`), and kept the short names (e.g. `ei`) (issue #548).
 
 Enhancements
 ^^^^^^^^^^^^
 
-* add flake8 as a lint tool.  It is executed with makefile check target.
-  see issues #512, #523
+* **Experimental:** Added new methods to `WBEMConnection` to provide integrated
+  APIs for the non-pull and pull operations, reducing the amount of code app
+  writers must produce and providing a pythonic (generator based) interface
+  for the methods that enumerate instances and instance paths, enumerator
+  associators and references.
+  These new methods have names in the pattern
+  `Iter<name of original function>`. Thus, for example the new method
+  `IterEnumerateInstances` creates a new API to integrate `EnumerateInstances`
+  and the `OpenEnumerateInstancesWithPath` / `PullInstancesWithPath`.
+  (issue #466).
 
-* Improved usage information for Tutorial section, to make usage of Jupyter
-  tutorials more obvious.
-
-* Added Installation and Development sections to the documentation, and moved
-  some content from the Introduction section into a new Appendix. Added
-  an installation trouble shooting section to the Appendix.
-
-* Added a section "Prerequisite operating system packages" to the documentation
-  that describes the prerequisite packages by distribution.
-
-* Modified xml parser to use sax parser in place of DOM parser for operation
-  response processing and indication processing  This is a significant reduction
-  in memory usage. See issue # 498.
+* Modified the XML parser to use SAX in place of minidom for operation response
+  processing and indication processing. This is a significant reduction in
+  memory usage (issue #498).
 
 * Declared the WBEM indications API and the WBEM server API to be final. These
   APIs had been introduced in v0.9.0 as experimental.
 
-* Added `git` as an OS-level dependency for development (it is used by GitPython
-  when building the documentation).
-
 * Added enter and exit methods to `WBEMSubscriptionManager` to enable using it
   as a context manager, whose exit method automatically cleans up by calling
-  `remove_all_servers()`.
-
-* Added the global functions to the RTD documentation that are available in
-  the wbemcli interactive shell.
-
-* Added CIM Schema archive to the repository, in order to avoid repeated
-  downloads during testing in the CI systems.
+  `remove_all_servers()` (issue #407).
 
 * Added methods to the operation recorder (class `BaseOperationRecorder`) for
-  disabling and enabling it. (issue #493).
+  disabling and enabling it (issue #493).
 
-* The Name property of indication filters created via the
-  WBEMSubscriptionManager class can now be controlled by the user.
+* The "Name" property of indication filters created via the
+  `WBEMSubscriptionManager` class can now be controlled by the user (pr #607).
 
 * Indication filter, listener destination and indication subscription
-  instances created via the WBEMSubscriptionManager class, that are "owned",
+  instances created via the `WBEMSubscriptionManager` class, that are "owned",
   are now conditionally created, dependent on the owned instances that have
-  been discovered upon restart of the WBEMSubscriptionManager.
+  been discovered upon restart of the `WBEMSubscriptionManager` (pr #607).
 
-* **Experimental:** Added new methods to WBEMConnection to provide integrated
-  APIs for the non-pull and pull operations, reducing the amount of code app
-  writers must produce and providing a pythonic (generator based) interface
-  for the methods that enumerate instances and instance paths, enumerator
-  associators and references (issue #466)).
+* Modified operations that have a "PropertyList" attribute to allow the
+  "PropertyList" attribute to have a single string in addition to the iterable.
+  Previously this caused an XML error (issue #577).
 
-  These new methods have names in the pattern
-  `Iter<name of original function>`. Thus, for example the new method
-  `IterEnumerateInstances` creates a new API to integrate `EnumerateInstances`
-  and the `OpenEnumerateInstancesWithPath` / `PullInstancesWithPath`. See the
-  documentation for more information on these APIs.
+* Added an option `-s` / `--script` to `wbemcli` that supports executing
+  scripts in the wbemcli shell.
 
-  Generally the form of these operations are::
+  Some example scripts are provided in the examples directory:
 
-      result_generator = IterEnumerateInstances(...)
-      for instance in result_generator:
-          <do something with instance>
+  - `wbemcli_server.py` - Creates a `WBEMServer` object named `SERVER`
+    representing a WBEM server.
 
-* Clarified the behavior for the default WBEMConnection timeout (`None`)
-  (issue #628).
+  - `wbemcli_quit.py` - Demo of terminating wbemcli from within a script.
+
+  - `wbemcli_display_args.py` - Demo of displaying input arguments.
+
+  - `wbemcli_count_instances.py` - Counts classes and instances in a server.
+
+  - `wbemcli_clean_subscriptions.py` - Removes all subscriptions, filters, and
+    listener destination instances in a server.
+
+  - `test_wbemcli_script.sh` - A shell script that demos scripts.
+
+* Improved robustness and diagnostics in `os_setup.py` (issue #556).
 
 Bug fixes
 ^^^^^^^^^
@@ -113,29 +101,99 @@ Bug fixes
   `pywbem.Error` class was no longer available in the `pywbem.cim_http`
   namespace. It has been made available in that namespace again, for
   compatibility reasons. Note that using sub-namespaces of the `pywbem`
-  namespace such as `pywbem.cim_http` has been deprecated in pywbem 0.8.0.
-
-* Fixed a documentation issue where the description of `CIMError` was not
-  clear that the exception object itself can be accessed by index and slice.
-
-* Changed names of the pylint and flake8 config files to match the
-  default names defined for these utilities (pylintrc and .flak8). Issue 534
-
-* Fixed a documentation build error on Python 2.6, by pinning the GitPython
-  version to <=2.0.8, due to its use of unittest.case which is not available
-  on Python 2.6.
+  namespace such as `pywbem.cim_http` has been deprecated in pywbem 0.8.0
+  (issue #511).
 
 * Fixed an `AttributeError` in the `remove_all_servers()` method of
   `WBEMSubscriptionManager` and dictionary iteration errors in its
-  `remove_server()` method. PR #583.
-
-* Modified cim_operations that have a PropertyList attribute to allow the
-  PropertyList attribute to have a single string in addition to the iterable.
-  Previously this caused an XML error (issue #577).
+  `remove_server()` method (pr #583).
 
 * Fixed a `TypeError` in the `TestClientRecorder` operation recorder that
   occurred while handling a `ConnectionError` (this recorder is used by the
   `--yamlfile` option of `run_cim_operations.py`) (issue #587).
+
+* Fixed several errors in recorder on Python 3 (issue #531).
+
+* In wbemcli, several fixes in the short global functions (issue #548).
+
+* Fixed name of python devel package for Python 3.4 and 3.5.
+
+* Several changes, fixes and improvements on WBEMSubscriptionManager
+  (issues #462, #540, #618, #619).
+
+* Added a check for unset URL target in recorder (issue #612).
+
+* Fixed access to None in recorder (issue #621)
+
+Build, test, quality
+^^^^^^^^^^^^^^^^^^^^
+
+* Added flake8 as an additional lint tool. It is executed with `make check`.
+  Fixed all flake8 issues (issues #512, #520, #523, #533, #542, #560, #567,
+  #575).
+
+* Changed names of the pylint and flake8 config files to match the default
+  names defined for these utilities (pylintrc and .flak8) (issue #534).
+
+* Added CIM Schema archive to the repository, in order to avoid repeated
+  downloads during testing in the CI systems (issue #49).
+
+* Added `git` as an OS-level dependency for development (it is used by GitPython
+  when building the documentation) (pr #581).
+
+* Added `wheel` as a Python dependency for development. This package is not
+  installed by default in some Linux distributions such as CentOS 7, and
+  when installing into the system Python this becomes an issue (pr #622).
+
+* Added retry in setup script to handle xmlrpc failures when installing
+  prerequisites from PyPI.
+
+* Fixed logic errors in pycmp compatibility checking tool.
+
+* Changed makefile to skip documentation build on Python 2.6 due to
+  Sphinx having removed Python 2.6 support (issue #604).
+
+* Fixed UnboundLocalError for exc in setup.py (issue #545).
+
+* Added an executable `run_enum_performance.py` to the testsuite to test pull
+  performance. It generates a table of the relative performance of
+  `EnumerateInstances` vs. `OpenEnumerateInstances` / `PullInstancesWithPath`
+  performance over a range of MaxObjectCount, response instance sizes, and
+  total number of instances in the response.
+
+* Completed the `test_client.py` mock tests for all instance operations.
+
+* Improved the tests in `run_cim_operations.py`.
+
+Documentation
+^^^^^^^^^^^^^
+
+* Added the global functions available in the wbemcli shell to the
+  documentation (issue #602).
+
+* Improved usage information for the "Tutorial" section, to make usage of
+  Jupyter tutorials more obvious (issue #470).
+
+* Added "Installation" and "Development" sections to the documentation, and
+  moved some content from the "Introduction" section into a new "Appendix"
+  section. Added an installation trouble shooting section to the appendix
+  (pr #509).
+
+* Added a section "Prerequisite operating system packages" to the documentation
+  that describes the prerequisite packages by distribution (pr #549).
+
+* Fixed a documentation build error on Python 2.6, by pinning the GitPython
+  version to <=2.0.8, due to its use of unittest.case which is not available
+  on Python 2.6 (issue #550).
+
+* Clarified the behavior for the default `WBEMConnection` timeout (`None`)
+  (issue #628).
+
+* Fixed a documentation issue where the description of `CIMError` was not
+  clear that the exception object itself can be accessed by index and slice
+  (issue #511).
+
+* Added the `wbemcli` global functions to the documentation (issue #608).
 
 
 pywbem v0.9.0

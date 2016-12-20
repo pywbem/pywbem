@@ -26,9 +26,8 @@ For information on how to use pywbem, or how to contribute to it, go to the
 Project plans
 -------------
 
-**Version 0.10.0** - Next version to come. See the issues for milestone 0.10.0
-for current planning for this release. Generally the release is expected
-about early november 2016 but that is a very preliminary estimate.
+**Version 0.11.0** - Next version to come. See the issues for milestone 0.11.0
+for current planning for this release. The release date is TBD.
 
 License
 -------
