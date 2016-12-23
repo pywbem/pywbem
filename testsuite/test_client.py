@@ -457,6 +457,7 @@ class ClientTest(unittest.TestCase):
             # Sort sibling elements with <first> tag by its <second> attribute
             ("IPARAMVALUE", "NAME"),
             ("PROPERTY", "NAME"),
+            ("PROPERTY.ARRAY", "NAME"),
             ("PARAMETER", "NAME"),
             ("KEYBINDING", "NAME"),
         ]
@@ -769,6 +770,8 @@ class ClientTest(unittest.TestCase):
                 print("- Expected pull_result tuple size: %s" %
                       len(exp_pull_result_obj))
                 print("- Actual result len: %s" % len(result))
+                # print('result %s exp %s' % ((result, ),
+                #      (exp_pull_result_obj, )))
                 raise AssertionError("PyWBEM CIM result type is not"
                                      " as expected.")
             # eos is required result
@@ -885,8 +888,7 @@ def result_tuple(value, tc_name):
 
 
 if __name__ == '__main__':
-    print('args %s len %s type %s' % (sys.argv, len(sys.argv), type(sys.argv)))
-
+    """Main function of test_client. Calls unittest"""
     # NonDocumented option to run a single testcase if that testcase name
     # is listed on the cmd line.
     if len(sys.argv) > 1:

@@ -1,0 +1,600 @@
+- name: CreateClass1
+  description: CreateClass request. Creates a simple class. Successful
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: CreateClass
+      NewClass:
+        pywbem_object: CIMClass
+        classname: PyWbem_Run_CIM_Operations0
+        superclass: null
+        properties:
+          instanceid:
+            pywbem_object: CIMProperty
+            name: InstanceID
+            value: null
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          myuint8:
+            pywbem_object: CIMProperty
+            name: MyUint8
+            value: 99
+            type: uint8
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        methods:
+          delete:
+            pywbem_object: CIMMethod
+            name: Delete
+            return_type: uint32
+            class_origin: null
+            propagated: false
+            parameters: {}
+            qualifiers: {}
+        qualifiers:
+          description:
+            pywbem_object: CIMQualifier
+            name: Description
+            value: This is a class description
+            type: string
+            propagated: null
+            tosubclass: null
+            toinstance: null
+            overridable: null
+            translatable: null
+      namespace: null
+  pywbem_response: {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: CreateClass
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="CreateClass">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="NewClass">
+      <CLASS NAME="PyWbem_Run_CIM_Operations0">
+      <QUALIFIER NAME="Description" TYPE="string">
+      <VALUE>This is a class description</VALUE>
+      </QUALIFIER>
+      <PROPERTY NAME="InstanceID" TYPE="string"/>
+      <PROPERTY NAME="MyUint8" TYPE="uint8">
+      <VALUE>99</VALUE>
+      </PROPERTY>
+      <METHOD NAME="Delete" PROPAGATED="false" TYPE="uint32"/>
+      </CLASS>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="CreateClass">
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+      
+- name: CreateClass2
+  description: CreateClass requests with valid class and many properties. Successful
+  ignore_test: true
+  # TODO fix this.  It does not always correctly sort the properties.
+  # Works most of the time but about 1 in 4 gets properties mixed up.
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: CreateClass
+      namespace: null
+      NewClass:
+        pywbem_object: CIMClass
+        classname: PyWbem_Run_CIM_Operations1
+        superclass: null
+        properties:
+          mydatetime:
+            pywbem_object: CIMProperty
+            name: Mydatetime
+            value: 12345678224455.654321:000
+            type: datetime
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          myreal64:
+            pywbem_object: CIMProperty
+            name: MyReal64
+            value: 12345.0
+            type: real64
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          uint32array:
+            pywbem_object: CIMProperty
+            name: Uint32Array
+            value: null
+            type: uint32
+            reference_class: null
+            embedded_object: null
+            is_array: true
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          myuint64:
+            pywbem_object: CIMProperty
+            name: MyUint64
+            value: 12345
+            type: uint64
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          myuint16:
+            pywbem_object: CIMProperty
+            name: MyUint16
+            value: 999
+            type: uint16
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          myuint32:
+            pywbem_object: CIMProperty
+            name: MyUint32
+            value: 12345
+            type: uint32
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          mystr:
+            pywbem_object: CIMProperty
+            name: MyStr
+            value: This is a test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          myreal32:
+            pywbem_object: CIMProperty
+            name: MyReal32
+            value: 12345.0
+            type: real32
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          instanceid:
+            pywbem_object: CIMProperty
+            name: InstanceID
+            value: null
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          sint32array:
+            pywbem_object: CIMProperty
+            name: Sint32Array
+            value: null
+            type: sint32
+            reference_class: null
+            embedded_object: null
+            is_array: true
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          uint64array:
+            pywbem_object: CIMProperty
+            name: Uint64Array
+            value: null
+            type: uint64
+            reference_class: null
+            embedded_object: null
+            is_array: true
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          mysint32:
+            pywbem_object: CIMProperty
+            name: MySint32
+            value: -12345
+            type: sint32
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          myuint8:
+            pywbem_object: CIMProperty
+            name: MyUint8
+            value: 99
+            type: uint8
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          sint64array:
+            pywbem_object: CIMProperty
+            name: Sint64Array
+            value: null
+            type: sint64
+            reference_class: null
+            embedded_object: null
+            is_array: true
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          mysint8:
+            pywbem_object: CIMProperty
+            name: MySint8
+            value: 99
+            type: sint8
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          mysint16:
+            pywbem_object: CIMProperty
+            name: MySint16
+            value: -999
+            type: sint16
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          mysint64:
+            pywbem_object: CIMProperty
+            name: MySint64
+            value: -12345
+            type: sint64
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        methods:
+          delete:
+            pywbem_object: CIMMethod
+            name: Delete
+            return_type: uint32
+            class_origin: null
+            propagated: false
+            parameters: {}
+            qualifiers: {}
+        qualifiers:
+          description:
+            pywbem_object: CIMQualifier
+            name: Description
+            value: This is a class description
+            type: string
+            propagated: null
+            tosubclass: null
+            toinstance: null
+            overridable: null
+            translatable: null
+  pywbem_response: {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMMethod: CreateClass
+      CIMObject: root/cimv2
+      CIMOperation: MethodCall
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="CreateClass">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="NewClass">
+      <CLASS NAME="PyWbem_Run_CIM_Operations1">
+      <QUALIFIER NAME="Description" TYPE="string">
+      <VALUE>This is a class description</VALUE>
+      </QUALIFIER>
+      <PROPERTY NAME="Mydatetime" TYPE="datetime">
+      <VALUE>12345678224455.654321:000</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="MyUint32" TYPE="uint32">
+      <VALUE>12345</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="MyStr" TYPE="string">
+      <VALUE>This is a test</VALUE>
+      </PROPERTY>
+      <PROPERTY.ARRAY NAME="Sint32Array" TYPE="sint32"/>
+      <PROPERTY.ARRAY NAME="Uint64Array" TYPE="uint64"/>
+      <PROPERTY NAME="MySint32" TYPE="sint32">
+      <VALUE>-12345</VALUE>
+      </PROPERTY>
+      <PROPERTY.ARRAY NAME="Sint64Array" TYPE="sint64"/>
+      <PROPERTY NAME="MySint8" TYPE="sint8">
+      <VALUE>99</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="MySint16" TYPE="sint16">
+      <VALUE>-999</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="MyReal64" TYPE="real64">
+      <VALUE>1.2345000000000000E+04</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="MyUint64" TYPE="uint64">
+      <VALUE>12345</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="InstanceID" TYPE="string"/>
+      <PROPERTY NAME="MyReal32" TYPE="real32">
+      <VALUE>1.23450000E+04</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="MyUint16" TYPE="uint16">
+      <VALUE>999</VALUE>
+      </PROPERTY>
+      <PROPERTY.ARRAY NAME="Uint32Array" TYPE="uint32"/>
+      <PROPERTY NAME="MyUint8" TYPE="uint8">
+      <VALUE>99</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="MySint64" TYPE="sint64">
+      <VALUE>-12345</VALUE>
+      </PROPERTY>
+      <METHOD NAME="Delete" PROPAGATED="false" TYPE="uint32"/>
+      </CLASS>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="CreateClass">
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: CreateClassF1
+  description: CreateClass fails. Namespace name causes invalid namespace return
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: CreateClass
+      NewClass:
+        pywbem_object: CIMClass
+        classname: PyWbem_Run_CIM_Operations1
+        superclass: null
+        properties:
+          instanceid:
+            pywbem_object: CIMProperty
+            name: InstanceID
+            value: null
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          myuint8:
+            pywbem_object: CIMProperty
+            name: MyUint8
+            value: 99
+            type: uint8
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          myuint16:
+            pywbem_object: CIMProperty
+            name: MyUint16
+            value: 999
+            type: uint16
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          mysint32:
+            pywbem_object: CIMProperty
+            name: MySint32
+            value: -12345
+            type: sint32
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          myuint32:
+            pywbem_object: CIMProperty
+            name: MyUint32
+            value: 12345
+            type: uint32
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          mydatetime:
+            pywbem_object: CIMProperty
+            name: Mydatetime
+            value: 12345678224455.654321:000
+            type: datetime
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          mystr:
+            pywbem_object: CIMProperty
+            name: MyStr
+            value: This is a test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        methods: {}
+        qualifiers: {}
+      namespace: blah
+  pywbem_response:
+    cim_status: 3
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: CreateClass
+      CIMObject: blah
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="CreateClass">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="blah"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="NewClass">
+      <CLASS NAME="PyWbem_Run_CIM_Operations1">
+      <PROPERTY NAME="MyUint32" TYPE="uint32">
+      <VALUE>12345</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Mydatetime" TYPE="datetime">
+      <VALUE>12345678224455.654321:000</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="InstanceID" TYPE="string"/>
+      <PROPERTY NAME="MyUint8" TYPE="uint8">
+      <VALUE>99</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="MyStr" TYPE="string">
+      <VALUE>This is a test</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="MyUint16" TYPE="uint16">
+      <VALUE>999</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="MySint32" TYPE="sint32">
+      <VALUE>-12345</VALUE>
+      </PROPERTY>
+      </CLASS>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="CreateClass">
+      <ERROR CODE="3" DESCRIPTION="CIM_ERR_INVALID_NAMESPACE: blah"/>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
