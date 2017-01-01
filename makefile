@@ -12,6 +12,12 @@
 #   find, xargs, grep, sed, tar
 #   python (Some active Python version, virtualenv is supported)
 #   pip (in the active Python environment)
+#
+# Optional environment ariables/command line variables
+#   PYWBEM_COVERAGE_REPORT - When set, forces coverage to create temporary
+#   annotated html output html files showing lines covered and missed
+#   See the directory coverage_html for the html output. 
+# 
 # ------------------------------------------------------------------------------
 
 # Determine OS platform make runs on
@@ -24,6 +30,18 @@ endif
 
 # Name of this Python package
 package_name := pywbem
+
+# Determine if coverage details report generated
+# The variable can be passed in as either an environment variable or
+# command line variable. When set, generates a set of reports of the
+# pywbem/*.py files showing line by line coverage.
+ifdef PYWBEM_COVERAGE_REPORT
+  coverage_report := --cov-report=annotate --cov-report=html
+else
+  coverage_report :=
+endif
+# directory for coverage html output. 
+coverage_html_dir := coverage_html
 
 # Package version as specified in pywbem/_version.py
 package_specified_version := $(shell sh -c "grep -E '^ *__version__ *= ' pywbem/_version.py |sed -r 's/__version__ *= *\x27(.*)\x27.*/\1/'")
@@ -259,8 +277,8 @@ test: $(test_log_file)
 
 .PHONY: clobber
 clobber: clean
-	rm -f pylint.log  flake8.log epydoc.log test_*.log $(moftab_files) $(dist_files)
-	rm -Rf $(doc_build_dir) .tox
+	rm -f pylint.log  flake8.log epydoc.log test_*.log $(moftab_files) $(dist_files) pywbem/*,cover
+	rm -Rf $(doc_build_dir) .tox $(coverage_html_dir)
 	@echo 'Done: Removed everything to get to a fresh state.'
 	@echo '$@ done.'
 
@@ -343,7 +361,7 @@ endif
 
 $(test_log_file): makefile $(package_name)/*.py testsuite/*.py coveragerc
 	rm -f $(test_log_file)
-	bash -c "set -o pipefail; PYTHONWARNINGS=default PYTHONPATH=. py.test --cov $(package_name) --cov-report=annotate --cov-report=html --cov-config coveragerc --ignore=attic --ignore=releases --ignore=testsuite/testclient -s 2>&1 |tee $(test_tmp_file)"
+	bash -c "set -o pipefail; PYTHONWARNINGS=default PYTHONPATH=. py.test --cov $(package_name) $(coverage_report) --cov-config coveragerc --ignore=attic --ignore=releases --ignore=testsuite/testclient -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
 	@echo 'Done: Created test log file: $@'
 

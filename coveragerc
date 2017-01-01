@@ -19,6 +19,7 @@ omit =
 # Controls whether lines without coverage are shown in the report.
 show_missing = True
 
+# defines location for coverage html output
 [html]
-directory = coverage_html_report
+directory = coverage_html
 
