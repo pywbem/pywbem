@@ -40,15 +40,22 @@ from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
     CIMMethod, ValueMapping, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, CIMDateTime, TestClientRecorder
 
+from pywbem.mof_compiler import MOFCompiler
+
 from unittest_extensions import RegexpMixin
 
 # Test for decorator for unimplemented tests
 # decorator is @unittest.skip(UNIMPLEMENTED)
 UNIMPLEMENTED = "test not implemented"
 
+# Test for long running unittests.  Modified by cli args.
 SKIP_LONGRUNNING_TEST = True
 
 CLI_ARGS = None
+
+# define the file that conatins the PyWBEM_Persion, etc. mof
+PYWBEM_TEST_MOF_DIR = os.path.dirname(__file__)
+PYWBEM_TEST_MOF = os.path.join(PYWBEM_TEST_MOF_DIR, 'test.mof')
 
 # A class that should be implemented in a wbem server and is used
 # for testing
@@ -173,6 +180,17 @@ class ClientTest(unittest.TestCase):
         if self.verbose:
             print('{}'.format(data_))
 
+    def assertRegexp(self, str_, regex):
+        """
+        This function eliminates the issue between the unittest assertRegex
+        and assertRegexpMatches functions between unittiest in python 2 and 3
+        """
+        if six.PY3:
+            return self.assertRegex(str_, regex)  # pylint: disable=no-member
+        else:
+            return self.assertRegexpMatches(str_,
+                                            regex)  # pylint: disable=no-member
+
     def pywbem_person_class_exists(self):
         """
         Test this class if it exists in the root/cimv2 namespace.
@@ -183,13 +201,25 @@ class ClientTest(unittest.TestCase):
 
         The mof for this test is in testsuite/test.mof
 
-        Returns True if the class exists.
+        Returns True if the class exists. or was correctly installed
+        in the target WBEMServer. Otherwise returns False so tests can
+        continue wittout the tests that involve these classes.
         """
         try:
             self.cimcall(self.conn.GetClass, PYWBEM_PERSON_CLASS)
             return True
-        except CIMError:
-            return False
+        except CIMError as ce:
+            if ce.status_code == 'CIM_ERROR_NOT_FOUND':
+                mofcomp = MOFCompiler(handle=self.conn)
+                try:
+                    mofcomp.compile_file(PYWBEM_TEST_MOF, self.namespace)
+                except Error:
+                    return False
+                else:
+                    return True
+            # Error other than NOT_FOUND. Just return False so tests continue
+            else:
+                return False
 
     def assertClassNamesValid(self, classnames):
         """
@@ -1426,7 +1456,8 @@ class PullReferences(ClientTest):
                 insts_pulled.extend(result.instances)
 
             # test the returned insts_pulled
-            self.assertTrue(len(insts_pulled) > 0)
+            self.assertTrue(len(insts_pulled) > 0,
+                            'PyWBEM_Persion expects pulled instances')
             self.assertInstancesValid(insts_pulled)
             for inst in insts_pulled:
                 self.assertEqual(inst.classname,
@@ -1843,7 +1874,7 @@ class PullAssociatorPaths(ClientTest):
 class PullQueryInstances(ClientTest):
     """Test of openexecquery and pullinstances."""
 
-    def test_simple_pullexecquery(self):
+    def test_simple_pull_sequence(self):
         try:
 
             # Simplest invocation
@@ -1880,7 +1911,7 @@ class PullQueryInstances(ClientTest):
             else:
                 raise
 
-    def test_zeroopen_pullexecquery(self):
+    def test_zeroopen_pull_sequence(self):
         try:
 
             # Simplest invocation
@@ -2376,6 +2407,9 @@ class InvokeMethod(ClientTest):
                               class_name,
                               [('indicationSendCount',
                                 Uint32(0))])
+        if result[0] != 0:
+            print('Method SendtestIndicationsCount class %s, count %s'
+                  ' returned %s' % (class_name, 0, result[0]))
         self.assertEqual(result[0], 0)
 
         # TODO: Call with empty arrays
@@ -2790,7 +2824,8 @@ class References(ClientTest):
                 self.conn.References, path,
                 ResultClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
                 Role=PYWBEM_SOURCE_ROLE)
-            self.assertTrue(len(ref_insts) > 0)
+            self.assertTrue(len(ref_insts) > 0,
+                            'Reference Instances expected. None received')
             self.assertInstancesValid(ref_insts)
             for inst in ref_insts:
                 self.assertEqual(inst.classname,
@@ -2870,7 +2905,8 @@ class ReferenceNames(ClientTest):
                 self.conn.ReferenceNames, path,
                 ResultClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
                 Role=PYWBEM_SOURCE_ROLE)
-            self.assertTrue(len(ref_inst_names) > 0)
+            self.assertTrue(len(ref_inst_names) > 0,
+                            'Reference Classes expected. Received none')
             self.assertInstanceNamesValid(ref_inst_names)
             # for inst in ref_insts:
             #    self.assertEqual(inst.classname,
@@ -3107,25 +3143,357 @@ class GetClass(ClientClassTest):
         # IncludeQualifiers, IncludeClassOrigin
 
 
-class CreateClass(ClientClassTest):
+class ClassOperations(ClientClassTest):
+    """
+    Common functions for Create, Delete, Modify class tests
+    """
+    def create_simple_class(self):
+        """
+        Create an instance of the class we will use for create/modify tests.
+
+        This creates a very simple class with only two properties
+
+        Returns the class created.
+        """
+        test_class_name = 'PyWbem_Run_CIM_Operations0'
+        test_class = CIMClass(
+            test_class_name,
+            methods={'Delete': CIMMethod('Delete', 'uint32')},
+            qualifiers={'Description': CIMQualifier('Description',
+                                                    'This is a class '
+                                                    'description')},
+            properties={'InstanceID': CIMProperty('InstanceID', None,
+                                                  type='string'),
+                        'MyUint8': CIMProperty('MyUint8', Uint8(99),
+                                               type='uint8')})
+        return test_class
+
+    def create_class(self):
+        """
+        Create an instance of the class we will use for create/modify tests.
+
+        This creates a complex class with many properties and most property
+        types
+
+        Returns the class created.
+        """
+        test_class_name = 'PyWbem_Run_CIM_Operations1'
+        test_class = CIMClass(
+            test_class_name,
+            methods={'Delete': CIMMethod('Delete', 'uint32')},
+            qualifiers={'Description': CIMQualifier('Description',
+                                                    'This is a class '
+                                                    'description')},
+            properties={'InstanceID': CIMProperty('InstanceID', None,
+                                                  type='string'),
+                        'MyUint8': CIMProperty('MyUint8', Uint8(99),
+                                               type='uint8'),
+                        'MySint8': CIMProperty('MySint8', Sint8(99),
+                                               type='sint8'),
+                        'MyUint16': CIMProperty('MyUint16', Uint16(999),
+                                                type='uint16'),
+                        'MySint16': CIMProperty('MySint16', Sint16(-999),
+                                                type='sint16'),
+                        'MyUint32': CIMProperty('MyUint32', Uint32(12345),
+                                                type='uint32'),
+                        'MySint32': CIMProperty('MySint32', Sint32(-12345),
+                                                type='sint32'),
+                        'MyUint64': CIMProperty('MyUint64', Uint64(12345),
+                                                type='uint64'),
+                        'MySint64': CIMProperty('MySint64', Sint64(-12345),
+                                                type='sint64'),
+                        'MyReal32': CIMProperty('MyReal32', Real32(12345),
+                                                type='real32'),
+                        'MyReal64': CIMProperty('MyReal64', Real64(12345),
+                                                type='real64'),
+                        'Mydatetime': CIMProperty('Mydatetime',
+                                                  '12345678224455.654321:000',
+                                                  type='datetime'),
+                        'Uint32Array': CIMProperty('Uint32Array', None,
+                                                   type='uint32',
+                                                   is_array=True),
+                        'Sint32Array': CIMProperty('Sint32Array', None,
+                                                   type='sint32',
+                                                   is_array=True),
+                        'Uint64Array': CIMProperty('Uint64Array', None,
+                                                   type='uint64',
+                                                   is_array=True),
+                        'Sint64Array': CIMProperty('Sint64Array', None,
+                                                   type='sint64',
+                                                   is_array=True),
+                        'MyStr': CIMProperty('MyStr', 'This is a test',
+                                             type='string')})
+        return test_class
+
+
+class CreateClass(ClassOperations):
+
+    def test_simple_create_delete(self):
+        """
+        Test Create Class by creating a new class in the server.
+
+        This also tests delete class because we first confirm that the
+        class does not exist with DeleteClass and then delete the
+        class from the repository after creation.
+        """
+
+        test_class = self.create_simple_class()
+        test_class_name = test_class.classname
+
+        # Delete if already exists (previous test incomplete)
+        try:
+            self.cimcall(self.conn.DeleteClass, test_class_name)
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_FOUND:
+                pass
+
+        # Create the class in the server
+
+        try:
+            self.cimcall(self.conn.CreateClass, test_class)
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_INVALID_CLASS:
+                print('NOTE: This server/namespace does not support '
+                      'CreateClass since it returned INVALID_CLASS')
+        else:
+            # get the class and compare with original
+            rtn_class = self.cimcall(self.conn.GetClass, test_class_name)
+            # returns with propagated  and translatable set by the server
+            # but sent as none. Make the same to compare.
+            if rtn_class.methods['Delete'].propagated != \
+                    test_class.methods['Delete'].propagated:
+                rtn_class.methods['Delete'].propagated = \
+                    test_class.methods['Delete'].propagated
+
+            if rtn_class.qualifiers['Description'].propagated != \
+                    test_class.qualifiers['Description'].propagated:
+                rtn_class.qualifiers['Description'].propagated = \
+                    test_class.qualifiers['Description'].propagated
+
+            if rtn_class.qualifiers['Description'].translatable != \
+                    test_class.qualifiers['Description'].translatable:
+                rtn_class.qualifiers['Description'].translatable = \
+                    test_class.qualifiers['Description'].translatable
+
+            self.assertEqual(rtn_class.classname, test_class_name)
+            self.assertEqual(rtn_class, test_class)
+            # delete the new class
+            self.cimcall(self.conn.DeleteClass, test_class_name)
+
+        # This should fail.  class already deleted
+        try:
+            self.cimcall(self.conn.GetClass, test_class_name)
+
+        except CIMError as arg:
+            if arg == CIM_ERR_NOT_FOUND:
+                pass
+
+    def test_create_delete1(self):
+        """
+        Test Create Class by creating a new class in the server.
+
+        This also tests delete class because we first confirm that the
+        class does not exist with DeleteClass and then delete the
+        class from the repository after creation.
+        """
+
+        test_class = self.create_class()
+        test_class_name = test_class.classname
+
+        # Delete if already exists (previous test incomplete)
+        try:
+            self.cimcall(self.conn.DeleteClass, test_class_name)
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_FOUND:
+                pass
+
+        # Create the class in the server
+
+        try:
+            self.cimcall(self.conn.CreateClass, test_class)
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_INVALID_CLASS:
+                print('NOTE: This server/namespace does not support '
+                      'CreateClass since it returned INVALID_CLASS')
+
+        else:
+            # get the class and compare with original
+            rtn_class = self.cimcall(self.conn.GetClass, test_class_name)
+            # returns with propagated  and translatable set by the server
+            # but sent as none. Make the same to compare.
+            if rtn_class.methods['Delete'].propagated != \
+                    test_class.methods['Delete'].propagated:
+                rtn_class.methods['Delete'].propagated = \
+                    test_class.methods['Delete'].propagated
+
+            if rtn_class.qualifiers['Description'].propagated != \
+                    test_class.qualifiers['Description'].propagated:
+                rtn_class.qualifiers['Description'].propagated = \
+                    test_class.qualifiers['Description'].propagated
+
+            if rtn_class.qualifiers['Description'].translatable != \
+                    test_class.qualifiers['Description'].translatable:
+                rtn_class.qualifiers['Description'].translatable = \
+                    test_class.qualifiers['Description'].translatable
+
+            self.assertEqual(rtn_class.classname, test_class_name)
+            self.assertEqual(rtn_class, test_class)
+            # delete the new class
+            self.cimcall(self.conn.DeleteClass, test_class_name)
+
+        # This should fail.  class already deleted
+        try:
+            self.cimcall(self.conn.GetClass, test_class_name)
+
+        except CIMError as arg:
+            if arg == CIM_ERR_NOT_FOUND:
+                pass
+
+    def test_fail_namespace(self):
+        """
+        Test Create Class by creating a new class in the server.
+
+        This also tests delete class because we first confirm that the
+        class does not exist with DeleteClass and then delete the
+        class from the repository after creation.
+        """
+
+        test_class_name = 'PyWbem_Run_CIM_Operations1'
+        test_class = CIMClass(
+            test_class_name,
+            properties={'InstanceID': CIMProperty('InstanceID', None,
+                                                  type='string'),
+                        'MyStr': CIMProperty('MyStr', 'This is a test',
+                                             type='string')})
+
+        try:
+            self.cimcall(self.conn.CreateClass, test_class, namespace='blah')
+            self.fail("Create class should have failed with namespace error")
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_INVALID_NAMESPACE:
+                pass
+
+
+class DeleteClass(ClassOperations):
 
     @unittest.skip(UNIMPLEMENTED)
     def test_all(self):
-        raise AssertionError("test not implemented")
+        raise AssertionError("test not implemented. See CreateClass")
 
 
-class DeleteClass(ClientClassTest):
+class ModifyClass(ClassOperations):
+    """Test the Modify class operation."""
 
-    @unittest.skip(UNIMPLEMENTED)
-    def test_all(self):
-        raise AssertionError("test not implemented")
+    def test_modify_simple_class(self):
+        """
+        Test Modify Class by creating a new class and then changing the
+        class and issuing ModifyClass.
 
+        This also tests delete class because we first confirm that the
+        class does not exist with DeleteClass and then delete the
+        class from the repository after creation.
+        """
 
-class ModifyClass(ClientClassTest):
+        test_class = self.create_simple_class()
+        test_class_name = test_class.classname
 
-    @unittest.skip(UNIMPLEMENTED)
-    def test_all(self):
-        raise AssertionError("test not implemented")
+        # Delete if already exists (previous test incomplete)
+        try:
+            self.cimcall(self.conn.DeleteClass, test_class_name)
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_FOUND:
+                pass
+
+        # Create the class in the server
+
+        try:
+            self.cimcall(self.conn.CreateClass, test_class)
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_INVALID_CLASS:
+                print('NOTE: This server/namespace does not support '
+                      'CreateClass since it returned INVALID_CLASS')
+
+        # Now modify the original class by adding a new property
+        new_property = CIMProperty('Str2', None,
+                                   type='string',
+                                   is_array=False)
+
+        test_class.properties['Str2'] = new_property
+
+        try:
+            self.cimcall(self.conn.ModifyClass, test_class)
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_INVALID_CLASS:
+                print('NOTE: This server/namespace does not support '
+                      'CreateClass since it returned INVALID_CLASS')
+
+        else:
+            # get the class and compare with original
+            rtn_class = self.cimcall(self.conn.GetClass, test_class_name)
+            # returns with propagated  and translatable set by the server
+            # but sent as none. Make the same to compare.
+            if rtn_class.methods['Delete'].propagated != \
+                    test_class.methods['Delete'].propagated:
+                rtn_class.methods['Delete'].propagated = \
+                    test_class.methods['Delete'].propagated
+
+            if rtn_class.qualifiers['Description'].propagated != \
+                    test_class.qualifiers['Description'].propagated:
+                rtn_class.qualifiers['Description'].propagated = \
+                    test_class.qualifiers['Description'].propagated
+
+            if rtn_class.qualifiers['Description'].translatable != \
+                    test_class.qualifiers['Description'].translatable:
+                rtn_class.qualifiers['Description'].translatable = \
+                    test_class.qualifiers['Description'].translatable
+
+            self.assertEqual(rtn_class.classname, test_class_name)
+            self.assertEqual(rtn_class, test_class)
+            # delete the new class
+            self.cimcall(self.conn.DeleteClass, test_class_name)
+
+        # This should fail.  class already deleted
+        try:
+            self.cimcall(self.conn.GetClass, test_class_name)
+
+        except CIMError as arg:
+            if arg == CIM_ERR_NOT_FOUND:
+                pass
+
+    def test_modify_invalid_namespace(self):
+        """Test failure when when modifyclass on nonexistent class."""
+        test_class_name = 'PyWbem_Run_CIM_Operations2'
+        test_class = CIMClass(
+            test_class_name,
+            properties={'InstanceID': CIMProperty('InstanceID', None,
+                                                  type='string'),
+                        'MyStr': CIMProperty('MyStr', 'This is a test',
+                                             type='string')})
+
+        try:
+            self.cimcall(self.conn.ModifyClass, test_class, namespace='blah')
+            self.fail("Modify class should have failed with namespace error")
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_INVALID_NAMESPACE:
+                pass
+
+    def test_modify_invalid_class(self):
+        """Test failure when when modifyclass on nonexistent class."""
+        test_class_name = 'PyWbem_Run_CIM_Operations2'
+        test_class = CIMClass(
+            test_class_name,
+            properties={'InstanceID': CIMProperty('InstanceID', None,
+                                                  type='string'),
+                        'MyStr': CIMProperty('MyStr', 'This is a test',
+                                             type='string')})
+
+        try:
+            self.cimcall(self.conn.ModifyClass, test_class)
+            self.fail("Modify class should have failed not found")
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_FOUND:
+                pass
+
 
 #################################################################
 # Qualifier Declaration provider interface tests
@@ -3183,17 +3551,122 @@ class GetQualifier(QualifierDeclClientTest):
 
 
 class SetQualifier(QualifierDeclClientTest):
+    """Test the capability to create a qualifierDecl in the server.
 
-    @unittest.skip(UNIMPLEMENTED)
-    def test_all(self):
-        raise AssertionError("test not implemented")
+    """
+
+    def test_create_delete(self):
+        """
+        Create a qualifier declaration, set it into the server, get
+        it and then delete it.
+        """
+
+        scopes = {'CLASS': True}
+        qd = CIMQualifierDeclaration('FooQualDecl', 'string', is_array=False,
+                                     value='Some string',
+                                     scopes=scopes,
+                                     overridable=False, tosubclass=False)
+        # Delete if already exists (previous test incomplete)
+        try:
+            self.cimcall(self.conn.DeleteQualifier, qd.name)
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
+                print('NOTE: This server/namespace does not support '
+                      'SetQualifier since it returned NOT SUPPORTED')
+                return
+            if ce.args[0] == CIM_ERR_NOT_FOUND:
+                pass
+
+        # Create the qualifier declaration in the server
+
+        try:
+            self.cimcall(self.conn.SetQualifier, qd)
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
+                print('NOTE: This server/namespace does not support '
+                      'SetQualifier since it returned NOT SUPPORTED')
+                return
+
+        # get the qd and compare with original
+        rtn_qd = self.cimcall(self.conn.GetQualifier, qd.name)
+
+        self.assertEqual(qd, rtn_qd, 'Returned qual decl should match created')
+
+        self.cimcall(self.conn.DeleteQualifier, qd.name)
+
+        # This should fail.  class already deleted
+        try:
+            self.cimcall(self.conn.GetQualifier, qd.name)
+        except CIMError as arg:
+            if arg == CIM_ERR_NOT_FOUND:
+                pass
+
+    def test_create_fail(self):
+        """
+        Set aualifier declaration known to exist to server.
+
+        Should fail. To do this, first create the new qualiferdecl and then
+        try to create it a second time.
+        """
+
+        # create new one and send to server.
+        scopes = {'CLASS': True}
+        qd = CIMQualifierDeclaration('FooQualDecl', 'string', is_array=False,
+                                     value='Some string',
+                                     scopes=scopes,
+                                     overridable=False, tosubclass=False)
+        try:
+            self.cimcall(self.conn.SetQualifier, qd)
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
+                print('NOTE: This server/namespace does not support '
+                      'SetQualifier since it returned NOT SUPPORTED')
+                return
+
+        # Now try to create a second time
+
+        # Create should fail. qualifier exists
+        # NOTE: There is an issue with OpenPegasus in that it rejects
+        # the request instead of overwriting the qualifier declaration.
+        # We need to account for that difference.
+        # TODO account for openpegasus only response of returning
+        # not supportedby confirming that this is the openpegasus
+        # server.
+        try:
+            self.cimcall(self.conn.SetQualifier, qd)
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
+                print('NOTE: This server/namespace does not support '
+                      'SetQualifier since it returned\nNOT SUPPORTED,'
+                      ' This may be due to issue with OpenPegasus'
+                      ' that rejects\nSetQualifier on an existing qualifier'
+                      'declaration.')
+                return
+        # finally delete the new qualifier to leave the server clean
+        self.cimcall(self.conn.DeleteQualifier, qd.name)
+        # This should fail.  class already deleted
+        try:
+            self.cimcall(self.conn.GetQualifier, qd.name)
+        except CIMError as arg:
+            if arg == CIM_ERR_NOT_FOUND:
+                pass
 
 
 class DeleteQualifier(QualifierDeclClientTest):
 
-    @unittest.skip(UNIMPLEMENTED)
-    def test_all(self):
-        raise AssertionError("test not implemented")
+    def test_delete_fail(self):
+        """
+        Test for error return if set into an invalid namespace.
+        """
+        try:
+            self.cimcall(self.conn.DeleteQualifier, "BlahBlah")
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
+                print('NOTE: This server/namespace does not support '
+                      'SetQualifier since it returned NOT SUPPORTED')
+                return
+            if ce.args[0] == CIM_ERR_NOT_FOUND:
+                pass
 
 #################################################################
 # Query provider interface
@@ -3502,7 +3975,7 @@ class PegasusTestEmbeddedInstance(PegasusServerTestBase, RegexpMixin):
                     print('======%s XML=====\n%s' % (inst.path, str_xml))
 
                 # confirm general characteristics of mof output
-                self.assertRegexpMatches(
+                self.assertRegexp(
                     str_mof, r"instance of Test_CLITestEmbeddedClass {")
                 self.assertRegexpContains(
                     str_mof,
@@ -3610,7 +4083,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
 
         if self.is_pegasus_server():
             self.assertEqual(server.brand, 'OpenPegasus')
-            self.assertRegexpMatches(server.version, r"^2\.1[0-7]\.[0-7]$")
+            self.assertRegexp(server.version, r"^2\.1[0-7]\.[0-7]$")
         else:
             # Do not know what server it is so just display
             print("Brand: %s" % server.brand)
@@ -5315,10 +5788,10 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                          filter_id="MyfilterId")
             filter_path = filter_.path
 
-            # confirm structure of the name element without any id components
+            # Confirm structure of the name element without any id components
             # NOTE: The uuid from uuid4 is actually 36 char but not we made it
             # 30-40 in case format changes in future.
-            self.assertRegexpMatches(
+            self.assertRegexp(
                 filter_path.keybindings['Name'],
                 r'^pywbemfilter:owned:fred2:MyfilterId:[0-9a-f-]{30,40}\Z')
             subscriptions = sub_mgr.add_subscriptions(server_id,
@@ -5329,7 +5802,8 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                  subscription_paths)
 
             self.assertTrue(self.pegasus_send_indications(class_name,
-                                                          requested_count))
+                                                          requested_count),
+                            'Send indications test failed')
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
@@ -5409,7 +5883,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             self.assertEqual(len(owned_filter_paths), 1)
             for path in owned_filter_paths:
                 name = path.keybindings['Name']
-                self.assertRegexpMatches(
+                self.assertRegexp(
                     name,
                     r'^pywbemfilter:owned:pegTestListener:fred:' +
                     r'[0-9a-f-]{30,40}\Z')
@@ -5421,7 +5895,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 query_language="DMTF:CQL", filter_id='test_id_attributes1')
             filter_path2 = filter2.path
 
-            self.assertRegexpMatches(
+            self.assertRegexp(
                 filter_path2.keybindings['Name'],
                 r'^pywbemfilter:owned:pegTestListener:test_id_attributes1:' +
                 r'[0-9a-f-]{30,40}\Z')
@@ -5432,7 +5906,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 query_language="DMTF:CQL", filter_id='test_id_attributes2')
             filter_path3 = filter3.path
 
-            self.assertRegexpMatches(
+            self.assertRegexp(
                 filter_path3.keybindings['Name'],
                 r'^pywbemfilter:owned:pegTestListener:test_id_attributes2:' +
                 r'[0-9a-f-]{30,40}\Z')
@@ -5515,7 +5989,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             self.assertEqual(len(owned_filter_paths), 1)
             for path in owned_filter_paths:
                 name = path.keybindings['Name']
-                self.assertRegexpMatches(
+                self.assertRegexp(
                     name,
                     r'^pywbemfilter:owned:pegTestMgr:fred:[0-9a-f-]{30,40}\Z')
             self.assertTrue(filter_path in owned_filter_paths)
@@ -5587,7 +6061,8 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                  subscription_paths, owned=False)
 
             self.assertTrue(self.pegasus_send_indications(class_name,
-                                                          requested_count))
+                                                          requested_count),
+                            'Send indications failed. Counts did not match')
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
@@ -5655,7 +6130,8 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                  subscription_paths, owned=False)
 
             self.assertTrue(self.pegasus_send_indications(class_name,
-                                                          requested_count))
+                                                          requested_count),
+                            'send Indications test failed')
 
             sub_mgr.remove_server(server_id)
 
@@ -5757,7 +6233,8 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                  n_owned_subscription_paths, owned=False)
 
             self.assertTrue(self.pegasus_send_indications(class_name,
-                                                          requested_count))
+                                                          requested_count),
+                            'Send indications test failed.')
 
             # Remove owned subscriptions
             sub_mgr.remove_subscriptions(server_id, subscription_paths_owned)

@@ -1,0 +1,144 @@
+- name: SetQualifier1
+  description: SetQualifier request succeeds. Sets qualifierDecaration
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: SetQualifier
+      namespace: null
+      QualifierDeclaration:
+        pywbem_object: CIMQualifierDeclaration
+        name: FooQualDecl
+        type: string
+        value: Some string
+        is_array: false
+        array_size: null
+        scopes:
+          class: true
+        tosubclass: false
+        toinstance: null
+        overridable: false
+        translatable: null
+  pywbem_response: {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: SetQualifier
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="SetQualifier">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="QualifierDeclaration">
+      <QUALIFIER.DECLARATION ISARRAY="false" NAME="FooQualDecl" OVERRIDABLE="false"
+      TOSUBCLASS="false" TYPE="string">
+      <SCOPE class="true"/>
+      <VALUE>Some string</VALUE>
+      </QUALIFIER.DECLARATION>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="SetQualifier">
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: SetQualifierF1
+  description: SetQualifier request fails. Returns NOT_SUPPORTED
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: SetQualifier
+      namespace: null
+      QualifierDeclaration:
+        pywbem_object: CIMQualifierDeclaration
+        name: Abstract
+        type: boolean
+        value: null
+        is_array: false
+        array_size: null
+        scopes:
+          reference: false
+          any: false
+          class: true
+          indication: false
+          property: false
+          parameter: false
+          method: false
+          association: false
+        tosubclass: true
+        toinstance: true
+        overridable: false
+        translatable: false
+  pywbem_response:
+    cim_status: 7
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: SetQualifier
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="SetQualifier">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="QualifierDeclaration">
+      <QUALIFIER.DECLARATION ISARRAY="false" NAME="Abstract" OVERRIDABLE="false" TOINSTANCE="true"
+      TOSUBCLASS="true" TRANSLATABLE="false" TYPE="boolean">
+      <SCOPE ANY="false" ASSOCIATION="false" CLASS="true" INDICATION="false" METHOD="false"
+      PARAMETER="false" PROPERTY="false" REFERENCE="false"/>
+      </QUALIFIER.DECLARATION>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="SetQualifier">
+      <ERROR CODE="7" DESCRIPTION="CIM_ERR_NOT_SUPPORTED: Abstract"/>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'

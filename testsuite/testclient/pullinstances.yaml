@@ -1,0 +1,525 @@
+- name: PullInstances1
+  description: PullInstances request part of OpenQueryInstances sequence. Successful with eol and null context
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: PullInstances
+      MaxObjectCount: 100
+      context:
+      - '500182'
+      - root/cimv2
+  pywbem_response:
+    pullresult:
+        context: null
+        eos: True
+        instances:
+          - pywbem_object: CIMInstance
+            classname: PG_ComputerSystem
+            properties:
+              status:
+                pywbem_object: CIMProperty
+                name: Status
+                value: OK
+                type: string
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              elementname:
+                pywbem_object: CIMProperty
+                name: ElementName
+                value: Computer System
+                type: string
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              powerstate:
+                pywbem_object: CIMProperty
+                name: PowerState
+                value: 1
+                type: uint16
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              powermanagementsupported:
+                pywbem_object: CIMProperty
+                name: PowerManagementSupported
+                value: false
+                type: boolean
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              nameformat:
+                pywbem_object: CIMProperty
+                name: NameFormat
+                value: Other
+                type: string
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              caption:
+                pywbem_object: CIMProperty
+                name: Caption
+                value: Computer System
+                type: string
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              operationalstatus:
+                pywbem_object: CIMProperty
+                name: OperationalStatus
+                value:
+                - 2
+                type: uint16
+                reference_class: null
+                embedded_object: null
+                is_array: true
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              powermanagementcapabilities:
+                pywbem_object: CIMProperty
+                name: PowerManagementCapabilities
+                value:
+                - 1
+                type: uint16
+                reference_class: null
+                embedded_object: null
+                is_array: true
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              creationclassname:
+                pywbem_object: CIMProperty
+                name: CreationClassName
+                value: PG_ComputerSystem
+                type: string
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              name:
+                pywbem_object: CIMProperty
+                name: Name
+                value: sheldon
+                type: string
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+            path: null
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: PullInstances
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="PullInstances">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="EnumerationContext">
+      <VALUE>500182</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>100</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="PullInstances">
+      <IRETURNVALUE>
+      <INSTANCE CLASSNAME="PG_ComputerSystem" >
+      <PROPERTY NAME="Caption"  TYPE="string">
+      <VALUE>Computer System</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Status"  TYPE="string">
+      <VALUE>OK</VALUE>
+      </PROPERTY>
+      <PROPERTY.ARRAY NAME="OperationalStatus"  TYPE="uint16">
+      <VALUE.ARRAY>
+      <VALUE>2</VALUE>
+      </VALUE.ARRAY>
+      </PROPERTY.ARRAY>
+      <PROPERTY NAME="ElementName"  TYPE="string">
+      <VALUE>Computer System</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="CreationClassName"  TYPE="string">
+      <VALUE>PG_ComputerSystem</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Name"  TYPE="string">
+      <VALUE>sheldon</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="NameFormat"  TYPE="string">
+      <VALUE>Other</VALUE>
+      </PROPERTY>
+      <PROPERTY.ARRAY NAME="PowerManagementCapabilities"  TYPE="uint16">
+      <VALUE.ARRAY>
+      <VALUE>1</VALUE>
+      </VALUE.ARRAY>
+      </PROPERTY.ARRAY>
+      <PROPERTY NAME="PowerManagementSupported"  TYPE="boolean">
+      <VALUE>FALSE</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="PowerState"  TYPE="uint16">
+      <VALUE>1</VALUE>
+      </PROPERTY>
+      </INSTANCE>
+      </IRETURNVALUE>
+      <PARAMVALUE NAME="EndOfSequence">
+      <VALUE>TRUE</VALUE>
+      </PARAMVALUE>
+      <PARAMVALUE NAME="EnumerationContext">
+      <VALUE>
+      </VALUE>
+      </PARAMVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: PullInstances2
+  description: PullInstances request part of OpenQueryInstances sequence. Successful with valid context and eol=False
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: PullInstances
+      MaxObjectCount: 100
+      context:
+      - '500182'
+      - root/cimv2
+  pywbem_response:
+    pullresult:
+        context:
+        - '500182'
+        - root/cimv2
+        eos: False
+        instances:
+          - pywbem_object: CIMInstance
+            classname: PG_ComputerSystem
+            properties:
+              status:
+                pywbem_object: CIMProperty
+                name: Status
+                value: OK
+                type: string
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              elementname:
+                pywbem_object: CIMProperty
+                name: ElementName
+                value: Computer System
+                type: string
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              powerstate:
+                pywbem_object: CIMProperty
+                name: PowerState
+                value: 1
+                type: uint16
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              powermanagementsupported:
+                pywbem_object: CIMProperty
+                name: PowerManagementSupported
+                value: false
+                type: boolean
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              nameformat:
+                pywbem_object: CIMProperty
+                name: NameFormat
+                value: Other
+                type: string
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              caption:
+                pywbem_object: CIMProperty
+                name: Caption
+                value: Computer System
+                type: string
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              operationalstatus:
+                pywbem_object: CIMProperty
+                name: OperationalStatus
+                value:
+                - 2
+                type: uint16
+                reference_class: null
+                embedded_object: null
+                is_array: true
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              powermanagementcapabilities:
+                pywbem_object: CIMProperty
+                name: PowerManagementCapabilities
+                value:
+                - 1
+                type: uint16
+                reference_class: null
+                embedded_object: null
+                is_array: true
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              creationclassname:
+                pywbem_object: CIMProperty
+                name: CreationClassName
+                value: PG_ComputerSystem
+                type: string
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+              name:
+                pywbem_object: CIMProperty
+                name: Name
+                value: sheldon
+                type: string
+                reference_class: null
+                embedded_object: null
+                is_array: false
+                array_size: null
+                class_origin: null
+                propagated: null
+                qualifiers: {}
+            path: null
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: PullInstances
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="PullInstances">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="EnumerationContext">
+      <VALUE>500182</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>100</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="PullInstances">
+      <IRETURNVALUE>
+      <INSTANCE CLASSNAME="PG_ComputerSystem" >
+      <PROPERTY NAME="Caption"  TYPE="string">
+      <VALUE>Computer System</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Status"  TYPE="string">
+      <VALUE>OK</VALUE>
+      </PROPERTY>
+      <PROPERTY.ARRAY NAME="OperationalStatus"  TYPE="uint16">
+      <VALUE.ARRAY>
+      <VALUE>2</VALUE>
+      </VALUE.ARRAY>
+      </PROPERTY.ARRAY>
+      <PROPERTY NAME="ElementName"  TYPE="string">
+      <VALUE>Computer System</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="CreationClassName"  TYPE="string">
+      <VALUE>PG_ComputerSystem</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Name"  TYPE="string">
+      <VALUE>sheldon</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="NameFormat"  TYPE="string">
+      <VALUE>Other</VALUE>
+      </PROPERTY>
+      <PROPERTY.ARRAY NAME="PowerManagementCapabilities"  TYPE="uint16">
+      <VALUE.ARRAY>
+      <VALUE>1</VALUE>
+      </VALUE.ARRAY>
+      </PROPERTY.ARRAY>
+      <PROPERTY NAME="PowerManagementSupported"  TYPE="boolean">
+      <VALUE>FALSE</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="PowerState"  TYPE="uint16">
+      <VALUE>1</VALUE>
+      </PROPERTY>
+      </INSTANCE>
+      </IRETURNVALUE>
+      <PARAMVALUE NAME="EndOfSequence">
+      <VALUE>FALSE</VALUE>
+      </PARAMVALUE>
+      <PARAMVALUE NAME="EnumerationContext">
+      <VALUE>500182</VALUE>
+      </PARAMVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+# TODO add other options of context, instances, eos on return. see pull paths
+- name: PullInstancesF1
+  description: PullInstances request fails. Invalid Context
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: PullInstances
+      MaxObjectCount: 100
+      context:
+      - '500182'
+      - root/cimv2
+  pywbem_response:
+     cim_status: 21
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: PullInstances
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="PullInstances">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="EnumerationContext">
+      <VALUE>500182</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>100</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: >
+        <?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+          <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+            <SIMPLERSP>
+              <IMETHODRESPONSE NAME="PullInstances">
+                <ERROR CODE="21" DESCRIPTION="CIM_ERR_INVALID_ENUMERATION_CONTEXT:"/>
+              </IMETHODRESPONSE>
+            </SIMPLERSP>
+          </MESSAGE>
+        </CIM>

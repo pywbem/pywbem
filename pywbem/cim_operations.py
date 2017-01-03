@@ -7880,7 +7880,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='SetQualifier',
+                method='DeleteQualifier',
                 QualifierName=QualifierName,
                 namespace=namespace,
                 **extra)

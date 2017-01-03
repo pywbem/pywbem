@@ -28,7 +28,8 @@ import six
 
 from pywbem import cim_obj, cim_types
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
-    CIMProperty, CIMMethod, CIMParameter, CIMQualifier, Uint8, Uint16, Uint32, \
+    CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
+    CIMQualifierDeclaration, Uint8, Uint16, Uint32, \
     Uint64, Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime
 from pywbem.cim_obj import NocaseDict
 
@@ -236,7 +237,7 @@ class DictTest(unittest.TestCase):
             invalid_propname = 'Cheepy'
             self.assertEqual(obj.get(invalid_propname, default_value),
                              default_value)
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             self.fail('%s thrown in exception-free get() when accessing '
                       'undefined key %s\n'
                       'Object: %r' %
@@ -2265,7 +2266,80 @@ class CIMQualifierToXML(ValidateTest):
                       root_elem_CIMQualifier)
 
 
-# TODO Add testcases for CIMClassName
+class InitCIMClassName(unittest.TestCase):
+
+    def test_all(self):
+
+        # Initialise with classname, superclass
+
+        CIMClassName('CIM_Foo')
+        CIMClassName('CIM_Foo', host='fred', namespace='root/blah')
+
+
+class CopyCIMClassName(unittest.TestCase):
+
+    def test_all(self):
+
+        c = CIMClassName('CIM_Foo')
+        co = c.copy()
+        self.assertEqual(c, co)
+        co.classname = 'CIM_Bar'
+        self.assertEqual(c.classname, 'CIM_Foo')
+        self.assertEqual(co.host, None)
+        self.assertEqual(co.namespace, None)
+
+        c = CIMClassName('CIM_Foo', host='fred', namespace='root/blah')
+        co = c.copy()
+        self.assertEqual(c, co)
+        self.assertEqual(c.classname, 'CIM_Foo')
+        self.assertEqual(co.host, 'fred')
+        self.assertEqual(co.namespace, 'root/blah')
+
+
+class CIMClassNameAttrs(unittest.TestCase):
+
+    def test_all(self):
+
+        obj = CIMClassName('CIM_Foo')
+
+        self.assertEqual(obj.classname, 'CIM_Foo')
+        self.assertEqual(obj.host, None)
+        self.assertEqual(obj.namespace, None)
+
+        obj = CIMClassName('CIM_Foo', host='fred', namespace='root/cimv2')
+
+        self.assertEqual(obj.classname, 'CIM_Foo')
+        self.assertEqual(obj.host, 'fred')
+        self.assertEqual(obj.namespace, 'root/cimv2')
+
+
+class CIMClassNameEquality(unittest.TestCase):
+
+    def test_all(self):
+
+        self.assertEqual(CIMClassName('CIM_Foo'), CIMClassName('CIM_Foo'))
+        self.assertEqual(CIMClassName('CIM_Foo'), CIMClassName('cim_foo'))
+
+
+class CIMClassNameString(unittest.TestCase, RegexpMixin):
+
+    def test_all(self):
+
+        s = str(CIMClassName('CIM_Foo'))
+        self.assertRegexpContains(s, 'CIM_Foo')
+
+
+class CIMClassNameToXML(ValidateTest):
+
+    def test_all(self):
+        root_elem_CIMClassName = 'CLASSNAME'
+
+        self.validate(CIMClassName('CIM_Foo'),
+                      root_elem_CIMClassName)
+
+        self.validate(CIMClassName('CIM_Foo', host='fred',
+                                   namespace='root/blah'),
+                      'CLASSPATH')
 
 
 class InitCIMClass(unittest.TestCase):
@@ -3153,11 +3227,41 @@ class CIMParameterToXML(ValidateTest):
 
 
 class InitCIMQualifierDeclaration(unittest.TestCase):
-    pass
+    """Test construction of CIMQualifierDeclarations."""
+
+    def test_all(self):
+        """Test the constructor options."""
+
+        CIMQualifierDeclaration('FooQualDecl', 'uint32')
+
+        CIMQualifierDeclaration('FooQualDecl', 'string', value='my string')
+
+        CIMQualifierDeclaration('FooQualDecl', 'string', is_array=True,
+                                array_size=4,
+                                overridable=True, tosubclass=True,
+                                toinstance=True, translatable=False)
+        scopes = {'CLASS': False, 'ANY': False, 'ASSOCIATION': False}
+        CIMQualifierDeclaration('FooQualDecl', 'uint64', is_array=True,
+                                array_size=4, scopes=scopes,
+                                overridable=True, tosubclass=True,
+                                toinstance=True, translatable=False)
 
 
 class CopyCIMQualifierDeclaration(unittest.TestCase):
-    pass
+
+    def test_all(self):
+
+        qd = CIMQualifierDeclaration('FooQualDecl', 'uint32')
+        c = qd.copy()
+        self.assertEqual(qd, c)
+
+        scopes = {'CLASS': False, 'ANY': False, 'ASSOCIATION': False}
+        qd = CIMQualifierDeclaration('FooQualDecl', 'string', is_array=True,
+                                     array_size=4, scopes=scopes,
+                                     overridable=True, tosubclass=True,
+                                     toinstance=True, translatable=False)
+        c = qd.copy()
+        self.assertEqual(qd, c)
 
 
 class CIMQualifierDeclarationAttrs(unittest.TestCase):
@@ -3165,8 +3269,53 @@ class CIMQualifierDeclarationAttrs(unittest.TestCase):
 
 
 class CIMQualifierDeclarationEquality(unittest.TestCase):
-    # pylint: disable=invalid-name
-    pass
+
+    def test_all(self):
+        self.assertEqual(CIMQualifierDeclaration('FooQualDecl', 'uint32'),
+                         CIMQualifierDeclaration('FooQualDecl', 'uint32'))
+
+        self.assertNotEqual(
+            CIMQualifierDeclaration('FooQualDecl1', 'uint32'),
+            CIMQualifierDeclaration('FooQualDecl2', 'uint32'))
+
+        scopes = {'CLASS': False, 'ANY': False, 'ASSOCIATION': False}
+        self.assertEqual(
+            CIMQualifierDeclaration('FooQualDecl', 'string', is_array=True,
+                                    array_size=4, scopes=scopes,
+                                    overridable=True, tosubclass=True,
+                                    toinstance=True, translatable=False),
+            CIMQualifierDeclaration('FooQualDecl', 'string', is_array=True,
+                                    array_size=4, scopes=scopes,
+                                    overridable=True, tosubclass=True,
+                                    toinstance=True, translatable=False))
+        self.assertNotEqual(
+            CIMQualifierDeclaration('FooQualDecl', 'string', is_array=True,
+                                    array_size=4, scopes=scopes,
+                                    overridable=True, tosubclass=True,
+                                    toinstance=True, translatable=False),
+            CIMQualifierDeclaration('FooQualDecl', 'string', is_array=True,
+                                    array_size=5, scopes=scopes,
+                                    overridable=True, tosubclass=True,
+                                    toinstance=True, translatable=False))
+        self.assertNotEqual(
+            CIMQualifierDeclaration('FooQualDecl', 'string', is_array=True,
+                                    array_size=4,
+                                    overridable=True, tosubclass=True,
+                                    toinstance=True, translatable=False),
+            CIMQualifierDeclaration('FooQualDecl', 'string', is_array=True,
+                                    array_size=4, scopes=scopes,
+                                    overridable=True, tosubclass=True,
+                                    toinstance=True, translatable=False))
+        self.assertNotEqual(
+            CIMQualifierDeclaration('FooQualDecl', 'string', is_array=True,
+                                    array_size=4, scopes=scopes,
+                                    overridable=True, tosubclass=True,
+                                    toinstance=True, translatable=False),
+            CIMQualifierDeclaration('FooQualDecl', 'string', is_array=True,
+                                    array_size=4, scopes=scopes,
+                                    overridable=False, tosubclass=True,
+                                    toinstance=True, translatable=False))
+        # TODO ks Dec 16. Add more equality tests.
 
 
 class CIMQualifierDeclarationCompare(unittest.TestCase):
