@@ -1851,7 +1851,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If positive, the WBEM server is to return no more than the
               specified number of instances.
             * Zero is not allowed; it would mean that zero instances
-              are to be returned for every request issued to the server.
+              are to be returned for open and all pull requests issued to the
+              server.
             * The default is defined as a system config variable.
             * `None` is not allowed.
 
@@ -1987,7 +1988,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
                                    **extra):
         """
-        A generator function to retrieve instances from a WBEM Server.
+        A generator function to retrieve instance paths from a WBEM Server.
         This method frees the user of choices between the multiple
         EnumerateInstances/OpenEnumerateInstance methods and reduces
         the enumeration to a pythonic iterator idiom.
@@ -2374,11 +2375,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If positive, the WBEM server is to return no more than the
               specified number of instances.
             * Zero is not allowed; it would mean that zero instances
-              are to be returned for every request issued to the server.
-            * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default behaviour to be used.
-              :term:`DSP0200` defines that the server-implemented default is
-              to return zero instances.
+              are to be returned for open and all pull requests issued to the
+              server.
+            * The default is defined as a system config variable.
+            * `None` is not allowed.
 
         Keyword Arguments:
 
@@ -2641,13 +2641,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             * If positive, the WBEM server is to return no more than the
               specified number of instances.
-            * If zero, the WBEM server is to return no instances. This may
-              be used by a client to leave the handling of any returned
-              instances to a loop of Pull operations.
-            * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default behaviour to be used.
-              :term:`DSP0200` defines that the server-implemented default is
-              to return zero instances.
+            * Zero is not allowed; it would mean that zero instances
+              are to be returned for open and all pull requests issued to the
+              server.
+            * The default is defined as a system config variable.
+            * `None` is not allowed.
 
         Keyword Arguments:
 
@@ -2765,9 +2763,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                     **extra):
         # pylint: disable=invalid-name
         """
-        A generator function to retrieve associators from a WBEM Server.
+        A generator function to retrieve associator paths from a WBEM Server.
         This method frees the user of choices between the multiple
-        AssociatorNames/AssociatorInstancePaths methods and reduces
+        AssociatorNames/OpenAssociatorInstancePaths methods and reduces
         the enumeration to a pythonic iterator idiom.
 
         **Experimental:** This method is experimental in this release.
@@ -2907,11 +2905,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If positive, the WBEM server is to return no more than the
               specified number of instances.
             * Zero is not allowed; it would mean that zero instances
-              are to be returned for every request issued to the server.
-            * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default behaviour to be used.
-              :term:`DSP0200` defines that the server-implemented default is
-              to return zero instances.
+              are to be returned for open and all pull requests issued to the
+              server.
+            * The default is defined as a system config variable.
+            * `None` is not allowed.
 
         Keyword Arguments:
 
@@ -3193,13 +3190,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             * If positive, the WBEM server is to return no more than the
               specified number of instances.
-            * If zero, the WBEM server is to return no instances. This may
-              be used by a client to leave the handling of any returned
-              instances to a loop of Pull operations.
-            * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default behaviour to be used.
-              :term:`DSP0200` defines that the server-implemented default is
-              to return zero instances.
+            * Zero is not allowed; it would mean that zero instances
+              are to be returned for open and all pull requests issued to the
+              server.
+            * The default is defined as a system config variable.
+            * `None` is not allowed.
 
         Keyword Arguments:
 
@@ -3430,13 +3425,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             * If positive, the WBEM server is to return no more than the
               specified number of instances.
-            * If zero, the WBEM server is to return no instances. This may
-              be used by a client to leave the handling of any returned
-              instances to a loop of Pull operations.
-            * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default behaviour to be used.
-              :term:`DSP0200` defines that the server-implemented default is
-              to return zero instances.
+            * Zero is not allowed; it would mean that zero instances
+              are to be returned for open and all pull requests issued to the
+              server.
+            * The default is defined as a system config variable.
+            * `None` is not allowed.
 
         Keyword Arguments:
 
@@ -5268,6 +5261,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If zero, the WBEM server is to return no instances. This may
               be used by a client to leave the handling of any returned
               instances to a loop of Pull operations.
+            * `None' is not allowed for this operation.
 
         Keyword Arguments:
 
@@ -5337,7 +5331,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
         try:
-
+            # TODO: ks jan 17. This should check for None on MaxObjectCount
+            # and reject.
             namespace = context[1]
 
             result = self._imethodcall(
@@ -5403,6 +5398,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If zero, the WBEM server is to return no instances. This may
               be used by a client to leave the handling of any returned
               instances to a loop of Pull operations.
+            * `None' is not allowed for this operation.
 
         Keyword Arguments:
 
@@ -5469,7 +5465,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
         try:
-
+            # TODO: ks jan 17. This should check for None on MaxObjectCount
+            # and reject.
             namespace = context[1]
 
             result = self._imethodcall(
@@ -5534,6 +5531,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If zero, the WBEM server is to return no instances. This may
               be used by a client to leave the handling of any returned
               instances to a loop of Pull operations.
+            * `None' is not allowed for this operation.
 
         Keyword Arguments:
 
@@ -5597,7 +5595,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
         try:
-
+            # TODO: ks jan 17 Reject if MaxObjectCount = None
             namespace = context[1]
 
             result = self._imethodcall(

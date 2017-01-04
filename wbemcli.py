@@ -57,6 +57,7 @@ except ImportError as arg:
 from pywbem import WBEMConnection
 from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
+from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT
 
 # Connection global variable. Set by remote_connection and use
 # by all functions that execute operations.
@@ -122,8 +123,749 @@ def _remote_connection(server, opts, argparser_):
 
 
 #
-# Create some convenient global functions to reduce typing
+# Create convenient global functions to reduce typing
 #
+
+# pylint: disable=too-many-arguments
+def iei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None, fl=None,
+        fq=None, ot=None, coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT,):
+    """
+    WBEM operation: IterEnumerateInstances
+
+    A generator function to retrieve instances from a WBEM Server.
+    This method frees the user of choices between the multiple
+    EnumerateInstances/OpenEnumerateInstance methods and reduces
+    the enumeration to a pythonic iterator idiom.
+
+    This method performs either the
+    :meth:`~pywbem.WBEMConnection.OpenEnumerateInstances` and
+    :meth:`~pywbem.WBEMConnection.PullInstancesWithPath`
+    operations (pull operations) or the
+    :meth:`~pywbem.WBEMConnection.EnumerateInstances` operation
+    (traditional operation) if the WBEM server does not support the
+    pull operations. It is an alternative to using these operations
+    directly, that automatically uses the pull operations if supported.
+
+    Parameters:
+
+      cn (string or CIMClassName):
+          Name of the class to be enumerated (case independent).
+
+          If specified as a `CIMClassName` object, its `host` attribute will be
+          ignored.
+
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
+
+          If `None`, defaults to the namespace of the `cn` parameter if
+          specified as a `CIMClassName`, or to the default namespace of the
+          connection.
+
+      lo (bool):
+          LocalOnly flag: Exclude inherited properties.
+
+          Deprecated: Server impls for True vary; Set to False.
+
+          `None` will cause the server default of `True` to be used.
+
+      di (bool):
+          DeepInheritance flag: Include properties added by subclasses.
+
+          `None` will cause the server default of `True` to be used.
+
+      iq (bool):
+          IncludeQualifiers flag: Include qualifiers.
+
+          Deprecated: Instance qualifiers have been deprecated in CIM.
+
+          `None` will cause the server default of `False` to be used.
+
+      ico (bool):
+          IncludeClassOrigin flag: Include class origin info for props.
+
+          Deprecated: Server may treat as False.
+
+          `None` will cause the server default of `False` to be used.
+
+      pl (iterable of string):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). If `None`, all properties will be included.
+
+      fl (string):
+          Filter query language to be used for the filter defined in the `fi`
+          parameter.
+
+          `None` means that no such filtering is peformed.
+
+      fq (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between requests in the
+          enumeration sequence.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation. This
+          must be a non-zero positive integer.
+
+          `None` is not allowed as a positive integer is required for all
+          of the Pull... requests.
+
+    Returns:
+
+        A Python :term:`generator` object. Instances can be retrieved
+        by iterating through the object. Instances that are retrieved
+        include the host and namespace component of the instance path.
+    """
+    return CONN.IterEnumerateInstances(cn, ns,
+                                       LocalOnly=lo,
+                                       DeepInheritance=di,
+                                       IncludeQualifiers=iq,
+                                       IncludeClassOrigin=ico,
+                                       PropertyList=pl,
+                                       FilterQueryLanguage=fl,
+                                       FilterQuery=fq,
+                                       OperationTimeout=ot,
+                                       ContinueOnError=coe,
+                                       MaxObjectCount=moc)
+
+
+# pylint: disable=too-many-arguments
+def ieip(cn, ns=None, fl=None, fq=None, ot=None, coe=None,
+         moc=DEFAULT_ITER_MAXOBJECTCOUNT,):
+    """
+    WBEM operation: IterEnumerateInstancePaths
+
+    A generator function to retrieve instance paths from a WBEM Server.
+    This method frees the user of choices between the multiple
+    EnumerateInstances/OpenEnumerateInstance methods and reduces
+    the enumeration to a pythonic iterator idiom.
+
+    This method performs either the
+    :meth:`~pywbem.WBEMConnection.OpenEnumerateInstancePaths` and
+    :meth:`~pywbem.WBEMConnection.PullInstancePaths`
+    operations (pull operations) or the
+    :meth:`~pywbem.WBEMConnection.EnumerateInstanceNames` operation
+    (traditional operation) if the WBEM server does not support the
+    pull operations. It is an alternative to using these operations
+    directly, that automatically uses the pull operations if supported.
+
+    Parameters:
+
+      cn (string or CIMClassName):
+          Name of the class to be enumerated (case independent).
+
+          If specified as a `CIMClassName` object, its `host` attribute will be
+          ignored.
+
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
+
+          If `None`, defaults to the namespace of the `cn` parameter if
+          specified as a `CIMClassName`, or to the default namespace of the
+          connection.
+
+      lo (bool):
+          LocalOnly flag: Exclude inherited properties.
+
+          Deprecated: Server impls for True vary; Set to False.
+
+          `None` will cause the server default of `True` to be used.
+
+      fl (string):
+          Filter query language to be used for the filter defined in the `fi`
+          parameter.
+
+          `None` means that no such filtering is peformed.
+
+      fq (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between requests in the
+          enumeration sequence.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation. This
+          must be a non-zero positive integer.
+
+          `None` is not allowed as a positive integer is required for all
+          of the Pull... requests.
+
+    Returns:
+
+      Named tuple, containing the following named items:
+
+          paths (list of CIMInstanceName):
+              The result set of instance paths in response to this request.
+
+          eos (bool):
+              `True` if this response is the complete response to this request
+              and there are no more instances to return. Otherwise `eos` is
+              `False` and the `context` item will define the context for the
+              next operation.
+
+          context (string):
+              A context string that must be supplied with any subsequent pull
+              or close operation on this enumeration sequence.
+    """
+
+    return CONN.IterEnumerateInstancePaths(cn, ns,
+                                           FilterQueryLanguage=fl,
+                                           FilterQuery=fq,
+                                           OperationTimeout=ot,
+                                           ContinueOnError=coe,
+                                           MaxObjectCount=moc)
+
+
+# pylint: disable=too-many-arguments
+def iri(op, rc=None, r=None, iq=None, ico=None, pl=None, fl=None, fq=None,
+        ot=None, coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT):
+    """
+    WBEM operation: IterReferenceInstances
+
+    A generator function to retrieve references from a WBEM Server.
+    This method frees the user of choices between the multiple
+    ReferenceNames/ReferenceInstancePaths methods and reduces
+    the enumeration to a pythonic iterator idiom.
+
+    **Experimental:** This method is experimental in this release.
+
+    This method performs either the
+    :meth:`~pywbem.OpenReferenceInstances operation
+    (see :term:`DSP0200`) and :meth:`~pywbem.PullInstances operation or
+    the:meth:`~pywbem.WBEMConnection.EnumerateInstances` operation
+    (traditional operation) if the WBEM server does not support the
+    pull operations. It is an alternative to using these operations
+    directly, that automatically uses the pull operations if supported.
+
+    Parameters:
+
+      op (CIMInstanceName):
+          Source instance path.
+
+      rc (string):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (string):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
+
+      iq (bool):
+          IncludeQualifiers flag: Include qualifiers.
+
+          Deprecated: Instance qualifiers have been deprecated in CIM.
+
+          `None` will cause the server default of `False` to be used.
+
+      ico (bool):
+          IncludeClassOrigin flag: Include class origin info for props.
+
+          Deprecated:  Server impls. vary; Server may treat as False.
+
+          `None` will cause the server default of `False` to be used.
+
+      pl (iterable of string):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). If `None`, all properties will be included.
+
+      fl (string):
+          Filter query language to be used for the filter defined in the `fi`
+          parameter.
+
+          `None` means that no such filtering is peformed.
+
+      fq (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between this open request and
+          the next request.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation. This
+          must be a non-zero positive integer.
+
+          `None` is not allowed as a positive integer is required for all
+          of the Pull... requests.
+
+    Returns:
+
+          A Python:term:`generator` object. Instances can be retrieved
+          by iterating through the object.
+    """
+    return CONN.IterReferenceInstances(op,
+                                       ResultClass=rc,
+                                       Role=r,
+                                       IncludeQualifiers=iq,
+                                       IncludeClassOrigin=ico,
+                                       PropertyList=pl,
+                                       FilterQueryLanguage=fl,
+                                       FilterQuery=fq,
+                                       OperationTimeout=ot,
+                                       ContinueOnError=coe,
+                                       MaxObjectCount=moc)
+
+
+# pylint: disable=too-many-arguments
+def irip(op, rc=None, r=None, fl=None, fq=None, ot=None, coe=None,
+         moc=DEFAULT_ITER_MAXOBJECTCOUNT):
+    """
+    WBEM operation: IterReferenceInstancePaths
+
+    A generator function to retrieve associator paths from a WBEM Server.
+    This method frees the user of choices between the multiple
+    AssociatorNames/AssociatorInstancePaths methods and reduces
+    the enumeration to a pythonic iterator idiom.
+
+    **Experimental:** This method is experimental in this release.
+
+    This method performs either the
+    :meth:`~pywbem.OpenAssociatorInstancePaths operation
+    (see :term:`DSP0200`) and :meth:`~pywbem.PullInstancePaths operation or
+    the:meth:`~pywbem.WBEMConnection.AssociatorNames` operation
+    (traditional operation) if the WBEM server does not support the
+    pull operations. It is an alternative to using these operations
+    directly, that automatically uses the pull operations if supported.
+
+    Parameters:
+
+      op (CIMInstanceName):
+          Source instance path.
+
+      rc (string):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (string):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
+
+      fl (string):
+          Filter query language to be used for the filter defined in the `fi`
+          parameter.
+
+          `None` means that no such filtering is peformed.
+
+      fq (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between this open request and
+          the next request.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation. This
+          must be a non-zero positive integer.
+
+          `None` is not allowed as a positive integer is required for all
+          of the Pull... requests.
+
+    Returns:
+
+          A Python:term:`generator` object. Instances can be retrieved
+          by iterating through the object.
+    """
+    return CONN.IterReferenceInstancePaths(op,
+                                           ResultClass=rc,
+                                           Role=r,
+                                           FilterQueryLanguage=fl,
+                                           FilterQuery=fq,
+                                           OperationTimeout=ot,
+                                           ContinueOnError=coe,
+                                           MaxObjectCount=moc)
+
+
+# pylint: disable=too-many-arguments
+def iai(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None,
+        fl=None, fq=None, ot=None, coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT):
+    """
+    WBEM operation: IterAssociatorInstances
+
+    A generator function to retrieve instances from a WBEM Server.
+    This method frees the user of choices between the multiple
+    Associators/OpenAssociatorInstance methods and reduces
+    the enumeration to a pythonic iterator idiom.
+
+    **Experimental:** This method is experimental in this release.
+
+    This method performs either the
+    :meth:`~pywbem.WBEMConnection.OpenAssociatorInstances` and
+    :meth:`~pywbem.WBEMConnection.PullInstancesWithPath`
+    operations (pull operations) or the
+    :meth:`~pywbem.WBEMConnection.Associators` operation
+    (traditional operation) if the WBEM server does not support the
+    pull operations. It is an alternative to using these operations
+    directly, that automatically uses the pull operations if supported.
+
+    Parameters:
+
+      op (CIMInstanceName):
+          Source instance path.
+
+      ac (string):
+          AssociationClass filter: Include only traversals across this
+          association class.
+
+          `None` means this filter is not applied.
+
+      rc (string):
+          ResultClass filter: Include only traversals to this associated
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (string):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
+
+      rr (string):
+          ResultRole filter: Include only traversals to this role (= reference
+          name) in associated (=result) objects.
+
+          `None` means this filter is not applied.
+
+      iq (bool):
+          IncludeQualifiers flag: Include qualifiers.
+
+          Deprecated: Instance qualifiers have been deprecated in CIM.
+
+          `None` will cause the server default of `False` to be used.
+
+      ico (bool):
+          IncludeClassOrigin flag: Include class origin info for props.
+
+          Deprecated:  Server impls. vary; Server may treat as False.
+
+          `None` will cause the server default of `False` to be used.
+
+      pl (iterable of string):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). If `None`, all properties will be included.
+
+      fl (string):
+          Filter query language to be used for the filter defined in the `fi`
+          parameter.
+
+          `None` means that no such filtering is peformed.
+
+      fq (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between the requests of
+          the enumeration sequence.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation. This
+          must be a non-zero positive integer.
+
+          `None` is not allowed as a positive integer is required for all
+          of the Pull... requests.
+
+    Returns:
+
+          A Python:term:`generator` object. Instances can be retrieved
+          by iterating through the object.
+    """
+    return CONN.IterAssociatorInstances(op,
+                                        AssocClass=ac,
+                                        ResultClass=rc,
+                                        Role=r,
+                                        ResultRole=rr,
+                                        IncludeQualifiers=iq,
+                                        IncludeClassOrigin=ico,
+                                        PropertyList=pl,
+                                        FilterQueryLanguage=fl,
+                                        FilterQuery=fq,
+                                        OperationTimeout=ot,
+                                        ContinueOnError=coe,
+                                        MaxObjectCount=moc)
+
+
+# pylint: disable=too-many-arguments
+def iaip(op, ac=None, rc=None, r=None, rr=None, fl=None, fq=None, ot=None,
+         coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT):
+    """
+    WBEM operation: IterAssociatorInstancePaths
+
+        A generator function to retrieve associators from a WBEM Server.
+        This method frees the user of choices between the multiple
+        AssociatorNames/AssociatorInstancePaths methods and reduces
+        the enumeration to a pythonic iterator idiom.
+
+        **Experimental:** This method is experimental in this release.
+
+        This method performs either the
+        :meth:`~pywbem.OpenAssociatorInstancePaths operation
+        (see :term:`DSP0200`) and :meth:`~pywbem.PullInstancePaths operation or
+        the:meth:`~pywbem.WBEMConnection.AssociatorNames` operation
+        (traditional operation) if the WBEM server does not support the
+        pull operations. It is an alternative to using these operations
+        directly, that automatically uses the pull operations if supported.
+
+    Parameters:
+
+      op (CIMInstanceName):
+          Source instance path.
+
+      rc (string):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (string):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
+
+      fl (string):
+          Filter query language to be used for the filter defined in the `fi`
+          parameter.
+
+          `None` means that no such filtering is peformed.
+
+      fq (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between this open request and
+          the next request.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation. This
+          must be a non-zero positive integer.
+
+          `None` is not allowed as a positive integer is required for all
+          of the Pull... requests.
+
+    Returns:
+
+      Named tuple, containing the following named items:
+
+          paths (list of CIMInstanceName):
+              The result set of instance paths in response to this request.
+
+          eos (bool):
+              `True` if this response is the complete response to this request
+              and there are no more instances to return. Otherwise `eos` is
+              `False` and the `context` item will define the context for the
+              next operation.
+
+          context (string):
+              A context string that must be supplied with any subsequent pull
+              or close operation on this enumeration sequence.
+    """
+    return CONN.IterAssociatorInstancePaths(op,
+                                            AssocClass=ac,
+                                            ResultClass=rc,
+                                            Role=r,
+                                            ResultRole=rr,
+                                            FilterQueryLanguage=fl,
+                                            FilterQuery=fq,
+                                            OperationTimeout=ot,
+                                            ContinueOnError=coe,
+                                            MaxObjectCount=moc)
+
+
+def iqi(ql, qi, ns=None, rc=None, ot=None, coe=None,
+        moc=DEFAULT_ITER_MAXOBJECTCOUNT,):
+    """
+    WBEM operation: IterQueryInstances
+
+    A generator function to retrieve instances from a WBEM Server.
+    This method frees the user of choices between the multiple
+    ExecQuery/OpenQueryInstances methods and reduces
+    the enumeration to a pythonic iterator idiom.
+
+    **Experimental:** This method is experimental in this release.
+
+    This method performs either the
+    :meth:`~pywbem.WBEMConnection.OpenQueryInstances` and
+    :meth:`~pywbem.WBEMConnection.PullInstances`
+    operations (pull operations) or the
+    :meth:`~pywbem.WBEMConnection.ExecQuery` operation
+    (traditional operation) if the WBEM server does not support the
+    pull operations. It is an alternative to using these operations
+    directly, that automatically uses the pull operations if supported.
+
+    Parameters:
+
+      ql (string):
+          Filter query language to be used for the filter defined in the `qi`
+          parameter. This must be a query language such as CQL or WQL but NOT
+          FQL.
+
+      qi (string):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by the `ql` parameter.
+
+      ns (string):
+          Name of the CIM namespace to be used (case independent).
+
+          If `None`, defaults to the default namespace of the connection.
+
+      rc (bool):
+          Controls whether a result class definition describing the returned
+          instances will be returned.
+
+          `None` will cause the server to use its default of `False`.
+
+      ot (integer):
+          Operation timeout in seconds. This is the minimum time the server
+          must keep the enumerate session open between this open request and
+          the next request.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (bool):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (integer):
+          Maximum number of objects to return for this operation. This
+          must be a non-zero positive integer.
+
+          `None` is not allowed as a positive integer is required for all
+          of the Pull... requests.
+
+    Returns:
+
+      Named tuple, containing the following named items:
+
+          instances (list of CIMInstance):
+              The result set of instances in response to this request.
+
+          eos (bool):
+              `True` if this response is the complete response to this request
+              and there are no more instances to return. Otherwise `eos` is
+              `False` and the `context` item will define the context for the
+              next operation.
+
+          context (string):
+              A context string that must be supplied with any subsequent pull
+              or close operation on this enumeration sequence.
+
+          query_result_class (CIMClass):
+              Result class definition describing the returned instances, or
+              `None`.
+    """
+    return CONN.IterQueryInstances(FilterQueryLanguage=ql,
+                                   FilterQuery=qi,
+                                   namespace=ns,
+                                   ReturnQueryResultClass=rc,
+                                   OperationTimeout=ot,
+                                   ContinueOnError=coe,
+                                   MaxObjectCount=moc)
+
 
 def ein(cn, ns=None):
     """
@@ -1925,6 +2667,14 @@ Global functions for WBEM operations:
   a                Associators
   rn               ReferenceNames
   r                References
+
+  iei              IterEnumerateInstances
+  ieip             IterEnumerateInstancePaths
+  iai              IterAssociatorInstances
+  iaip             IterAssociatorInstancePaths
+  iri              IterReferenceInstances
+  irip             IterReferenceInstancePaths
+  iqi              IterQueryInstances
 
   oei              OpenEnumerateInstances
   oeip             OpenEnumerateInstancePaths

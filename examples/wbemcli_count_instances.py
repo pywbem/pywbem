@@ -1,4 +1,4 @@
-'''
+"""
     Pywbem wbemcli scriptlet that counts classes and instances in a WBEMServer.
 
     This class explored the complete server and retrieve all
@@ -7,7 +7,7 @@
 
     It includes an ignore list that ignores selected classes and another that
     will ignore selected namespaces.
-'''
+"""
 from collections import defaultdict
 import six
 
