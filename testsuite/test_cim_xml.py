@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-#
-# Exercise routines in cim_xml by creating xml document fragments and
-# passing them through a validator.
-#
-# TODO: Currently this forks of an instance of xmllint which is a
-# little slow.  It would be nicer to have an in-process validator.
+
+"""
+Exercise routines in cim_xml by creating xml document fragments and
+passing them through a validator.
+"""
 #
 # TODO: A bunch of tests are still unimplemented for bits of the
 # schema that PyWBEM doesn't use right now.
@@ -22,6 +21,7 @@ DTD_FILE = 'CIM_DTD_V22.dtd'
 
 
 def validate_xml(data, dtd_directory=None):
+    """Run xmllint to validate files in dtd_directory"""
 
     from subprocess import Popen, PIPE
 
@@ -52,6 +52,7 @@ def validate_xml(data, dtd_directory=None):
 
 
 def LOCALNAMESPACEPATH():   # pylint: disable=invalid-name
+    """Return a LOCALNAMESPACEPATH"""
     return cim_xml.LOCALNAMESPACEPATH([cim_xml.NAMESPACE('root'),
                                        cim_xml.NAMESPACE('cimv2')])
 
@@ -243,7 +244,7 @@ class Value(CIMXMLTest):
         # controls that and run each test twice (wth different expected XML
         # strings).
 
-        cim_xml._CDATA_ESCAPING = True
+        cim_xml._CDATA_ESCAPING = True  # pylint: disable=protected-access
 
         self.xml.append(cim_xml.VALUE('dog'))
         self.xml_str.append('<VALUE>dog</VALUE>')
@@ -271,7 +272,8 @@ class Value(CIMXMLTest):
         self.xml_str.append(
             '<VALUE><![CDATA[<![CDATA[a&b<c>d]]]><![CDATA[]>]]></VALUE>')
 
-        cim_xml._CDATA_ESCAPING = False  # Back to its default
+        # set back to its default
+        cim_xml._CDATA_ESCAPING = False  # pylint: disable=protected-access
 
         self.xml.append(cim_xml.VALUE('dog'))
         self.xml_str.append('<VALUE>dog</VALUE>')

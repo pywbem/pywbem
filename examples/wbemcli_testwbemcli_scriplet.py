@@ -1,7 +1,24 @@
 """
-    Pywbem wbemcli scriptlet that tests wbemcli methods.
+    Pywbem wbemcli scriptlet that tests wbemcli shortcut methods.  The
+    goal of this scriptlet is to test the parameters for all of the
+    shortcut methods in wbemcli to assure that the names are correct and
+    that they execute.  This does not guarantee that the results are always
+    correct.
+
+    This scriptlet requires a running server.
+
+    It also depends heavily on the existence of the PyWBEM special
+    classes and instances in the server.
+
+    This scriptlet executes an assert to test results but does NOT use
+    the python unittest library.
+
+    NOTE: TODO does not test the create/delete functions for instances,
+           classes or QualifierDeclarations.
 """
-# import wbemcli
+from wbemcli import CONN, gc, ecn, ei, iei, oei, piwp, ein, ieip, oeip, pip, \
+    a, iai, oai, an, iaip, oaip, iri, ori, rn, irip, orip, ec, gq, eq
+
 # test objects
 # live class against the server. may not always return same number of elements
 TEST_CLASS1 = 'CIM_ManagedElement'
@@ -20,21 +37,13 @@ PYWBEM_TARGET_ROLE = "collection"
 PERSON_COUNT = 3
 
 
-# test getclass
-cl = gc(PYWBEM_PERSON_CLASS)
-assert cl.classname == PYWBEM_PERSON_CLASS
-
-cls = ecn()
-assert 'CIM_ManagedElement' in cls
-
-
-# TODO how can we test fl, fq, ot
 def test_enum_insts(cn, ns=None, lo=None, iq=None, ico=None, pl=None, fl=None,
-                    fq=None, ot=None, coe=None, moc=1, mop=10,
-                    exp_count=None):
+                    fq=None, ot=None, coe=None, moc=1, mop=10, exp_count=None):
     """
     Function to execute all 3 types of enumerate instances and compare
-    results.
+    results. Executes EnumerateInstances, Open/Pull instances with path and
+    IterEnumerateInstances and compares to see if the same number of instances
+    received.
     """
     insts_ei = ei(cn, ns=ns, lo=lo, iq=iq, ico=ico, pl=pl)
     assert len(insts_ei) > 0
@@ -46,6 +55,7 @@ def test_enum_insts(cn, ns=None, lo=None, iq=None, ico=None, pl=None, fl=None,
         for prop in pl:
             # test that all properties in list are returned
             pls = [inst[prop] for inst in insts_ei]
+            assert len(pls)
         for inst in insts_ei:
             assert len(inst.properties) == len(pl)
 
@@ -71,7 +81,7 @@ def test_enum_instpaths(cn, ns=None, fl=None, fq=None, ot=None, coe=None,
     insts_ei = ein(cn, ns=ns)
     assert len(insts_ei) > 0
     if exp_count:
-        exp_count == len(insts_ei)
+        exp_count = len(insts_ei)
 
     insts_iei = [inst for inst in ieip(cn, ns=ns, fl=fl, fq=fq, ot=ot,
                                        coe=coe, moc=moc)]
@@ -86,7 +96,7 @@ def test_enum_instpaths(cn, ns=None, fl=None, fq=None, ot=None, coe=None,
 
 def test_instassocs(cn, ac=None, rc=None, r=None, rr=None, iq=None, ico=None,
                     pl=None, fl=None, fq=None, ot=None, coe=None, moc=None,
-                    mop=10, exp_count=None):
+                    mop=10, exp_count=None):  # pylint: disable=invalid-name
     """
     Function to execute all 3 types of enumerate instance paths and compare
     results.
@@ -119,10 +129,10 @@ def test_instassocs(cn, ac=None, rc=None, r=None, rr=None, iq=None, ico=None,
 
 def test_instassocpaths(cn, ac=None, rc=None, r=None, rr=None,
                         fl=None, fq=None, ot=None, coe=None, moc=None, mop=10,
-                        exp_count=None):
+                        exp_count=None):  # pylint: disable=invalid-name
     """
-    Function to execute all 3 types of enumerate instance paths and compare
-    results.
+    Function to execute all 3 types of enumerate instance paths  requests
+    and compare results.
     """
     # first get an instance to work with
     paths_ei = ein(cn)
@@ -183,9 +193,9 @@ def test_instrefs(cn, rc=None, r=None, iq=None, ico=None,
     assert len(insts_r) == len(insts_pri)
 
 
-def test_instrefpaths(cn, ac=None, rc=None, r=None, rr=None,
+def test_instrefpaths(cn, rc=None, r=None,
                       fl=None, fq=None, ot=None, coe=None, moc=None, mop=10,
-                      exp_count=None):
+                      exp_count=None):  # pylint: disable=invalid-name
     """
     Function to execute all 3 types of enumerate instance paths and compare
     results.
@@ -214,7 +224,29 @@ def test_instrefpaths(cn, ac=None, rc=None, r=None, rr=None,
     assert len(paths_rn) == len(paths_pai)
 
 
+# test getclass
+cl = gc(PYWBEM_PERSON_CLASS)  # pylint: disable=invalid-name
+assert cl.classname == PYWBEM_PERSON_CLASS
+
+# test enumerate classnames
+clns = ecn()  # pylint: disable=invalid-name
+assert 'CIM_ManagedElement' in clns
+
+# test enumerate classes
+cls = ec()  # pylint: disable=invalid-name
+assert cls
+
+# test get QualifierDeclarations
+qd = gq('Abstract')  # pylint: disable=invalid-name
+assert qd
+
+# test enumerate qualifierdeclarations
+qds = eq()  # pylint: disable=invalid-name
+assert qds
+
 # Tests executed against the common function to test enumerate instances
+# This tests EnumerateInstances, Open/PullEnumerateInstances, and
+# IterEnumerateInstances
 test_enum_insts(TEST_CLASS2)
 test_enum_insts(TEST_CLASS2, pl=TEST_CLASS2_PROPERTIES)
 # this one returns error LocalOnly not supported???
@@ -224,14 +256,19 @@ test_enum_insts(TEST_CLASS2, iq=True)
 test_enum_insts(TEST_CLASS2, iq=False)
 test_enum_insts(TEST_CLASS2, ico=True)
 test_enum_insts(TEST_CLASS2, ico=False)
+# TODO not testing fq, fl, coe, ot, ns
 
+# Test that the following returns the correct count
 test_enum_insts(PYWBEM_PERSON_CLASS, exp_count=PERSON_COUNT)
 
-# Test executed against the common function to test enumerate instance paths
+# Test enumerate paths functions
+# TODO not testing ns
 test_enum_instpaths(TEST_CLASS2)
 
 # Test association functions
+# TODO not testing fq, fl, ot coe
 test_instassocs(PYWBEM_PERSON_CLASS)
+test_instassocs(PYWBEM_PERSON_CLASS, ot=30)
 test_instassocs(PYWBEM_PERSON_CLASS, exp_count=1)
 test_instassocs(PYWBEM_PERSON_CLASS, exp_count=1,
                 ac=PYWBEM_MEMBEROFPERSONCOLLECTION,
@@ -260,4 +297,5 @@ test_instrefpaths(PYWBEM_PERSON_CLASS, exp_count=1,
                   rc=PYWBEM_MEMBEROFPERSONCOLLECTION,
                   r=PYWBEM_SOURCE_ROLE)
 
+print('Test successful. Quitting')
 quit()

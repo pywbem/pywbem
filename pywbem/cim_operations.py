@@ -4473,7 +4473,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
-            # TODO ks 6/16 Limit to instance name. No classname allowed.
             namespace = self._iparam_namespace_from_objectname(InstanceName)
             instancename = self._iparam_instancename(InstanceName)
             PropertyList = _iparam_propertylist(PropertyList)
@@ -5332,7 +5331,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
             # TODO: ks jan 17. This should check for None on MaxObjectCount
-            # and reject.
+            # and reject. issue# 656
             namespace = context[1]
 
             result = self._imethodcall(
@@ -5466,7 +5465,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
             # TODO: ks jan 17. This should check for None on MaxObjectCount
-            # and reject.
+            # and reject. issue # 656
             namespace = context[1]
 
             result = self._imethodcall(
@@ -5595,7 +5594,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
         try:
-            # TODO: ks jan 17 Reject if MaxObjectCount = None
+            # TODO: ks jan 17 Reject if MaxObjectCount = None. issue # 656
             namespace = context[1]
 
             result = self._imethodcall(

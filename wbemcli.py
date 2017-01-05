@@ -905,6 +905,7 @@ def ein(cn, ns=None):
 
 # pylint: disable=too-many-arguments
 def ei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None):
+    # pylint: disable=redefined-outer-name
     """
     WBEM operation: EnumerateInstances
 
@@ -1044,6 +1045,7 @@ def gi(ip, lo=None, iq=None, ico=None, pl=None):
 
 
 def mi(mi, iq=None, pl=None):
+    # pylint: disable=redefined-outer-name
     """
     WBEM operation: ModifyInstance
 
@@ -1134,7 +1136,8 @@ def di(ip):
     CONN.DeleteInstance(ip)
 
 
-def an(op, ac=None, rc=None, r=None, rr=None):
+def an(op, ac=None, rc=None, r=None, rr=None):  # pylint: disable=invalid-name
+    # pylint: disable=redefined-outer-name
     """
     WBEM operation: AssociatorNames
 
@@ -1209,6 +1212,7 @@ def an(op, ac=None, rc=None, r=None, rr=None):
 
 # pylint: disable=too-many-arguments
 def a(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None):
+    # pylint: disable=redefined-outer-name, invalid-name
     """
     WBEM operation: Associators
 
@@ -1307,6 +1311,7 @@ def a(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None):
 
 
 def rn(op, rc=None, r=None):
+    # pylint: disable=redefined-outer-name, invalid-name
     """
     WBEM operation: ReferenceNames
 
@@ -1366,6 +1371,7 @@ def rn(op, rc=None, r=None):
 
 
 def r(op, rc=None, r=None, iq=None, ico=None, pl=None):
+    # pylint: disable=redefined-outer-name, invalid-name, invalid-name
     """
     WBEM operation: References
 
@@ -1454,6 +1460,7 @@ def r(op, rc=None, r=None, iq=None, ico=None, pl=None):
 # pylint: disable=too-many-arguments
 def oei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None, fl=None,
         fq=None, ot=None, coe=None, moc=None):
+    # pylint: disable=redefined-outer-name
     """
     WBEM operation: OpenEnumerateInstances
 
@@ -1672,6 +1679,7 @@ def oeip(cn, ns=None, fl=None, fq=None, ot=None, coe=None, moc=None):
 # pylint: disable=too-many-arguments
 def ori(op, rc=None, r=None, iq=None, ico=None, pl=None, fl=None, fq=None,
         ot=None, coe=None, moc=None):
+    # pylint: disable=redefined-outer-name, invalid-name
     """
     WBEM operation: OpenReferenceInstances
 
@@ -1784,6 +1792,7 @@ def ori(op, rc=None, r=None, iq=None, ico=None, pl=None, fl=None, fq=None,
 
 # pylint: disable=too-many-arguments
 def orip(op, rc=None, r=None, fl=None, fq=None, ot=None, coe=None, moc=None):
+    # pylint: disable=redefined-outer-name, invalid-name
     """
     WBEM operation: OpenReferenceInstancePaths
 
@@ -1876,6 +1885,7 @@ def orip(op, rc=None, r=None, fl=None, fq=None, ot=None, coe=None, moc=None):
 # pylint: disable=too-many-arguments
 def oai(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None,
         fl=None, fq=None, ot=None, coe=None, moc=None):
+    # pylint: disable=redefined-outer-name, invalid-name
     """
     WBEM operation: OpenAssociatorInstances
 
@@ -2003,6 +2013,7 @@ def oai(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None,
 # pylint: disable=too-many-arguments
 def oaip(op, ac=None, rc=None, r=None, rr=None, fl=None, fq=None, ot=None,
          coe=None, moc=None):
+    # pylint: disable=redefined-outer-name, invalid-name
     """
     WBEM operation: OpenAssociatorInstancePaths
 
@@ -2178,7 +2189,7 @@ def oqi(ql, qi, ns=None, rc=None, ot=None, coe=None, moc=None):
                                    MaxObjectCount=moc)
 
 
-def piwp(ec, moc):
+def piwp(ec, moc):    # pylint: disable=redefined-outer-name
     """
     WBEM operation: PullInstancesWithPath
 
@@ -2217,7 +2228,7 @@ def piwp(ec, moc):
     return CONN.PullInstancesWithPath(ec, moc)
 
 
-def pip(ec, moc):
+def pip(ec, moc):    # pylint: disable=redefined-outer-name
     """
     WBEM operation: PullInstancePaths
 
@@ -2255,7 +2266,7 @@ def pip(ec, moc):
     return CONN.PullInstancePaths(ec, moc)
 
 
-def pi(ec, moc):
+def pi(ec, moc):    # pylint: disable=redefined-outer-name
     """
     WBEM operation: PullInstances
 
@@ -2294,7 +2305,7 @@ def pi(ec, moc):
     return CONN.PullInstances(ec, moc)
 
 
-def ce(ec):
+def ce(ec):    # pylint: disable=redefined-outer-name
     """
     WBEM operation: CloseEnumeration
 
@@ -2345,6 +2356,7 @@ def im(mn, op, *params, **kwparams):
 
 
 def ecn(ns=None, cn=None, di=None):
+    # pylint: disable=redefined-outer-name
     """
     WBEM operation: EnumerateClassNames
 
@@ -2386,6 +2398,7 @@ def ecn(ns=None, cn=None, di=None):
 
 
 def ec(ns=None, cn=None, di=None, lo=None, iq=None, ico=None):
+    # pylint: disable=redefined-outer-name
     """
     WBEM operation: EnumerateClasses
 
@@ -2497,7 +2510,7 @@ def gc(cn, ns=None, lo=None, iq=None, ico=None, pl=None):
                          PropertyList=pl)
 
 
-def mc(mc, ns=None):
+def mc(mc, ns=None):    # pylint: disable=redefined-outer-name
     """
     WBEM operation: ModifyClass
 
@@ -2649,7 +2662,7 @@ def dq(qn, ns=None):
     CONN.DeleteQualifier(qn, ns)
 
 
-def h():
+def h():  # pylint: disable=invalid-name
     """Print help text for interactive environment."""
 
     print(_get_connection_info())
@@ -2739,16 +2752,16 @@ The symbols from the pywbem package namespace are available in this namespace.
 """)
 
 
-def pdb(stmt):
+def pdb(stmt):   # pylint: disable=redefined-outer-name
     """Run the statement under the PDB debugger."""
-    import pdb
+    import pdb   # pylint: disable=redefined-outer-name
     pdb.set_trace()
 
     # pylint: disable=exec-used
     exec(stmt)  # Type 3 x "s" to get to stmt, and "cont" to end debugger.
 
 
-conn = WBEMConnection
+conn = WBEMConnection  # pylint: disable=invalid-name
 
 
 def _get_connection_info():
@@ -2797,7 +2810,7 @@ def _get_banner():
     return result
 
 
-class _wbemcliCustomFormatter(_SmartFormatter,
+class _WbemcliCustomFormatter(_SmartFormatter,
                               _argparse.RawDescriptionHelpFormatter):
     """
     Define a custom Formatter to allow formatting help and epilog.
@@ -2844,7 +2857,7 @@ Examples:
 
     argparser = _argparse.ArgumentParser(
         prog=prog, usage=usage, description=desc, epilog=epilog,
-        add_help=False, formatter_class=_wbemcliCustomFormatter)
+        add_help=False, formatter_class=_WbemcliCustomFormatter)
 
     pos_arggroup = argparser.add_argument_group(
         'Positional arguments')
@@ -2966,6 +2979,7 @@ Examples:
 
     # Read previous command line history
     if _HAVE_READLINE:
+        # pylint: disable=invalid-name
         NotFoundError = getattr(__builtins__, 'FileNotFoundError', IOError)
         try:
             _readline.read_history_file(histfile)
