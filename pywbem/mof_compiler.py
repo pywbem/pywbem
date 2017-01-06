@@ -277,7 +277,7 @@ charvalue_re = r"'(%s)'" % cChar
 
 
 @lex.TOKEN(charvalue_re)
-def t_charValue(t):
+def t_charValue(t):  # pylint: disable=missing-docstring
     return t
 
 
@@ -285,7 +285,7 @@ stringvalue_re = r'"(%s)*"' % sChar
 
 
 @lex.TOKEN(stringvalue_re)
-def t_stringValue(t):
+def t_stringValue(t):  # pylint: disable=missing-docstring
     return t
 
 
@@ -293,13 +293,12 @@ identifier_re = r'([a-zA-Z_]|(%s))([0-9a-zA-Z_]|(%s))*' % (utf8Char, utf8Char)
 
 
 @lex.TOKEN(identifier_re)
-def t_IDENTIFIER(t):
+def t_IDENTIFIER(t):  # pylint: disable=missing-docstring
     t.type = reserved.get(t.value.lower(), 'IDENTIFIER')
     return t
 
 
-# Define a rule so we can track line numbers
-def t_newline(t):
+def t_newline(t):  # pylint: disable=missing-docstring
     r'\n+'
     t.lexer.lineno += len(t.value)
     t.lexer.linestart = t.lexpos
@@ -1787,10 +1786,15 @@ class BaseRepositoryConnection(object):
 
     # See below
     def _getns(self):
+        """get namespace not implemented for BaseRepositoryConnection."""
         raise NotImplementedError
 
     # See below
     def _setns(self, value):
+        """
+        Function to set namespace. Not implemented for
+        BaseRepositoryConnection
+        """
         raise NotImplementedError
 
     # Ideally this property would be created via abstractproperty(), but then
@@ -1911,7 +1915,7 @@ class BaseRepositoryConnection(object):
         raise NotImplementedError
 
 
-BaseRepositoryConnection.register(WBEMConnection)
+BaseRepositoryConnection.register(WBEMConnection)  # pylint: disable=no-member
 
 
 class MOFWBEMConnection(BaseRepositoryConnection):

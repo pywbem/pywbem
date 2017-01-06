@@ -114,7 +114,7 @@ class ClientTest(unittest.TestCase):
         # set this because python 3 http libs generate many ResourceWarnings
         # and unittest enables these warnings.
         if not six.PY2:
-            # pylint: disable=ResourceWarning, undefined-variable
+            # pylint: disable=undefined-variable
             warnings.simplefilter("ignore", ResourceWarning)  # noqa: F821
 
         self.log('setup connection {} ns {}'.format(self.system_url,
@@ -1102,10 +1102,12 @@ class PullEnumerateInstances(ClientTest):
         except ValueError:
             pass
 
-    # TODO. This one is subject to errors because compare may not return
-    #       same info.  Recheck all the TOP_CLASS calls for same issue
     def test_get_onebyone(self):
-        """Get instances with MaxObjectCount = 1)."""
+        """Get instances with MaxObjectCount = 1).
+        This test is subject to differences between the pull and non
+        pull sequence because it is getting live instances from the
+        server and they may change between the requests.
+        """
 
         result = self.cimcall(self.conn.OpenEnumerateInstances, TOP_CLASS,
                               MaxObjectCount=1)
@@ -1121,10 +1123,9 @@ class PullEnumerateInstances(ClientTest):
             self.assertTrue(len(result.instances) <= 1)
             insts_pulled.extend(result.instances)
 
-        # get with EnumInstances and compare returns
+        # get with EnumInstances
         insts_enum = self.cimcall(  # noqa: F841
             self.conn.EnumerateInstances, TOP_CLASS)
-        # TODO finish the compare (and remove the noqa F841)
 
     def test_bad_namespace(self):
         """Call with explicit CIM namespace that does not exist."""
@@ -1256,7 +1257,6 @@ class PullEnumerateInstancePaths(ClientTest):
         paths_enum = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
 
         self.assertTrue(len(paths_pulled) == len(paths_enum))
-        # TODO add test for all paths equal
 
     def test_open_complete_with_ns(self):
         """Simplest invocation. Everything comes back in
@@ -1292,7 +1292,6 @@ class PullEnumerateInstancePaths(ClientTest):
                   (len(paths_pulled), len(paths_enum)))
 
         self.assertTrue(len(paths_pulled) == len(paths_enum))
-        # TODO add test to confirm they are the same
 
     def test_bad_namespace(self):
         """Call with explicit CIM namespace that does not exist."""
@@ -1897,7 +1896,7 @@ class PullQueryInstances(ClientTest):
                 insts_pulled.extend(result.instances)
                 eos = op_result.eos
 
-            # TODO ks extend this test
+            self.assertInstancesValid(insts_pulled)
 
         except CIMError as ce:
             if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
@@ -2078,7 +2077,6 @@ class GetInstance(ClientTest):
         self.assertTrue(isinstance(obj, CIMInstance))
         self.assertTrue(isinstance(obj.path, CIMInstanceName))
         self.assertTrue(obj.path.namespace == self.namespace)
-        # TODO confirm results.
 
         # Call with IncludeClassOrigin
 
@@ -5416,7 +5414,7 @@ class IterQueryInstances(PegasusServerTestBase):
                 self.assertTrue(isinstance(inst, CIMInstance))
 
             self.assertTrue(count != 0)
-
+            # pylint: disable=protected-access
             self.assertEqual(self.conn._use_enum_inst_pull_operations, None)
             self.assertEqual(self.conn._use_enum_path_pull_operations, None)
             self.assertEqual(self.conn._use_ref_inst_pull_operations, None)
@@ -5451,7 +5449,7 @@ class IterQueryInstances(PegasusServerTestBase):
                 count += 1
                 self.assertTrue(isinstance(inst, CIMInstance))
             self.assertTrue(count != 0)
-
+            # pylint: disable=protected-access
             self.assertEqual(self.conn._use_enum_inst_pull_operations, None)
             self.assertEqual(self.conn._use_enum_path_pull_operations, None)
             self.assertEqual(self.conn._use_ref_inst_pull_operations, None)
@@ -5489,7 +5487,7 @@ class IterQueryInstances(PegasusServerTestBase):
                 count += 1
                 self.assertTrue(isinstance(inst, CIMInstance))
             self.assertTrue(count != 0)
-
+            # pylint: disable=protected-access
             self.assertEqual(self.conn._use_enum_inst_pull_operations, False)
             self.assertEqual(self.conn._use_enum_path_pull_operations, False)
             self.assertEqual(self.conn._use_ref_inst_pull_operations, False)
@@ -5819,6 +5817,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
         """Test to confirm tnat subscriptions must have id property"""
 
         try:
+            # pylint: disable=no-value-for-parameter
             WBEMSubscriptionManager()
             self.fail("Should fail with TypeError")
         except TypeError:
@@ -6275,9 +6274,11 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 subscription_manager_id='test_ctxt_mgr_1')
 
             server_id = sub_mgr.add_server(server)
+            # pylint: disable=protected-access
             self.assertEqual(set(sub_mgr._servers.keys()), {server_id})
 
             sub_mgr.remove_all_servers()
+            # pylint: disable=protected-access
             self.assertEqual(len(sub_mgr._servers.keys()), 0)
 
             # Now, perform the actual test of the context manager.
@@ -6287,6 +6288,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                     subscription_manager_id='test_ctxt_mgr_2') as sub_mgr:
 
                 server_id = sub_mgr.add_server(server)
+                # pylint: disable=protected-access
                 self.assertEqual(set(sub_mgr._servers.keys()), {server_id})
 
             # confirm that context manager cleared servers.
