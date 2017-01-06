@@ -124,7 +124,7 @@ DEFAULT_PORT_HTTPS = 5989       # default port for https
 
 # TODO 5/16 ks This is a linux based set of defaults:
 
-#: Default directory paths for looking up CA certificates.
+#: Default directory paths for looking up CA certificates for linux.
 DEFAULT_CA_CERT_PATHS = \
     ['/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt',
      '/etc/ssl/certs', '/etc/ssl/certificates']
@@ -328,6 +328,7 @@ def get_default_ca_certs():
     Try to find out system path with ca certificates. This path is cached and
     returned. If no path is found out, None is returned.
     """
+    # pylint: disable=protected-access
     if not hasattr(get_default_ca_certs, '_path'):
         for path in get_default_ca_cert_paths():
             if os.path.exists(path):
@@ -440,23 +441,27 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
             * Ensure that the data are bytes, not unicode.
               TODO 2016-05 AM: Ensuring bytes at this level can only be a
                                quick fix. Figure out a better approach.
+            NOTE: The attributes come from the httplib mixins in the
+            subclasses so the disable=no-member hides worthless warnings.
             """
-            if self.sock is None:
-                if self.auto_open:
-                    self.connect()
+            if self.sock is None:  # pylint: disable=no-member
+                if self.auto_open:  # pylint: disable=no-member
+                    self.connect()  # pylint: disable=no-member
                 else:
                     raise httplib.NotConnected()
-            if self.debuglevel > 0:
+            if self.debuglevel > 0:  # pylint: disable=no-member
                 print("send: %r" % strng)
             blocksize = 8192
             if hasattr(strng, 'read') and not isinstance(strng, list):
-                if self.debuglevel > 0:
+                if self.debuglevel > 0:  # pylint: disable=no-member
                     print("sendIng a read()able")
                 data = strng.read(blocksize)
                 while data:
+                    # pylint: disable=no-member
                     self.sock.sendall(_ensure_bytes(data))
                     data = strng.read(blocksize)
             else:
+                # pylint: disable=no-member
                 self.sock.sendall(_ensure_bytes(strng))
 
     class HTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
@@ -522,6 +527,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                     else:
                         ctx.load_verify_locations(cafile=self.ca_certs)
                 try:
+                    # pylint: disable=redefined-variable-type
                     self.sock = SSL.Connection(ctx, self.sock)
 
                     # Below is a body of SSL.Connection.connect() method
@@ -819,6 +825,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                         'OWLocal nonce="%s", cookie="%s"' %
                                         (nonce, cookie))
                                     continue
+                                # pylint: disable=broad-except
                                 except Exception as exc:
                                     if debug:
                                         print("Debug: Ignoring exception %s "
