@@ -53,10 +53,10 @@ try:
 except ImportError as arg:
     _HAVE_READLINE = False
 
-from pywbem import WBEMConnection, Error
+from pywbem import WBEMConnection, Error, CIMInstanceName
 from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
-impor re
+import re
 # Connection global variable. Set by remote_connection and use
 # by all functions that execute operations.
 CONN = None
@@ -70,36 +70,71 @@ ARGS = None
 #    if matches:
 #        _scheme = matches.group(1).lower()
 #        hostport = matches.group(2)
-   
-    
-    
-def _parse_wbem_uri(string)
+
+
+def _parse_wbem_uri(uri):
     """
     Create and return a CIMObjectPath from a string input.
-    Parse out a host element. Host starts with // and is of the form
-    <hostname>:<port> and ends with "/"
-    
+    For now we do not allow the host element.  The uri is of the form
+    namespace:className.<name=value>*
 
+    This differs from wbemuri in that it does not require quotes around
+    value elements unless they include commas or quotation marks
     """
+    print('parse uri %s' % uri)
     host = None
-    if not string_.startswith('//')
-        host =  None
-    if matches re.match(r"^//(.*)/".string_,re.I)
-        host =  matches.group(1))
-
-    # parse out namespace element from end of host to : if a : is found
-    # else no namespace element
+    # if matches re.match(r"^//(.*)/".uri,re.I):
+        # host =  matches.group(1))
+        # span = matches.span())
 
     namespace = None
-    if gothost and !gotnamespace
-        error
-    # get the classname. This is to the next dot. These are comma-separated
-    # pairs of name '=' value elements
-    
-    
+    key_bindings = {}
+    classname = None
+    if not uri.startswith('//'):
+        host = None
+    # TODO implement host component of parse.
+    uri_pattern = r'''(?x)
+              ([a-zA-Z0-9_]*).      # classname
+'''
+    match = re.match(uri_pattern, uri, re.VERBOSE)
+    print('uri match %s' % match)
+    if match:
+        # namespace = match.group(1)
+        classname = match.group(1)
+        if host and not namespace:
+            raise ValueError('HostName with no namespace is invalid')
+        next_char = match.end()
 
-    
-    
+        kb_pattern = r'([a-zA-Z0-9_]*=[^",][^,]*)'
+
+        for pmatch in re.finditer(kb_pattern, uri[next_char:]):
+            print('pmatch %s' % pmatch)
+            pair = pmatch.group(1).split('=', 1)
+            print('pair %s' % pair)
+            if len(pair[0]):
+                if pair[1][0] == '"':
+                    # if pair[1][:-1] != '"'
+                    #    ValueError('Mismatched quotes %s' % pmatch.group(1))
+                    key_bindings[pair[0]] = pair[1][1:-1]
+                else:
+                    try:
+                        key_bindings[pair[0]] = int(pair[1])
+                    except ValueError:
+                        key_bindings[pair[0]] = pair[1]
+                    except TypeError:
+                        key_bindings[pair[0]] = pair[1]
+            else:
+                # Value Error when name component empty
+                ValueError('Cannot parse keybinding %s' % pair)
+    else:
+        ValueError('Cannot parse wbemuri %s' % uri)
+
+    x = CIMInstanceName(classname, keybindings=key_bindings, host=host,
+                        namespace=namespace)
+    print('CIMInstanceName %s' % x)
+
+    return x
+
 
 def _remote_connection(server, opts, argparser_):
     """Initiate a remote connection, via PyWBEM. Arguments for
@@ -2332,13 +2367,12 @@ Examples:
                         pl=args.property_list)
         elif cmd == 'ec':
             result = ec(cn=object,
-                        di=args.deep_inheritance
+                        di=args.deep_inheritance,
                         lo=args.not_local_only,
-                        iq=args.include_qualifiers
-                        ico=args.include_classorigin)
+                        iq=args.include_qualifiers)
         elif cmd == 'ecn':
             result = ecn(cn=object,
-                        di=args.deep_inheritance)
+                         di=args.deep_inheritance)
         elif cmd == 'ein':
             result = ein(object)
         elif cmd == 'ei':
@@ -2349,24 +2383,25 @@ Examples:
                         ico=args.include_classorigin,
                         pl=args.propertylist)
         elif cmd == 'gi':
-            result = gi(object,
+            name = _parse_wbem_uri(object)
+            result = gi(name,
                         lo=args.not_local_only,
                         iq=args.include_qualifiers,
                         ico=args.include_classorigin,
-                        pl=args.propertylist)
+                        pl=args.property_list)
         # # modify instance and create instance
         elif cmd == 'di':
-            di(object)
-            # NOTE. No return expected
+            di(_parse_wbem_uri(object))
+            # No return expected
             return 0
         elif cmd == 'an':
-            result = an(object,
+            result = an(_parse_wbem_uri(object),
                         ac=None,
                         rc=None,
                         r=None,
                         rr=None)
         elif cmd == 'a':
-            result = a(object,
+            result = a(_parse_wbem_uri(object),
                        ac=None,
                        rc=None,
                        r=None,
@@ -2375,18 +2410,18 @@ Examples:
                        ico=None,
                        pl=None)
         elif cmd == 'rn':
-            result = a(object,
+            result = a(_parse_wbem_uri(object),
                        rc=None,
                        r=None)
         elif cmd == 'r':
-            result = a(object,
+            result = a(_parse_wbem_uri(object),
                        rc=None,
                        r=None,
                        iq=args.include_qualifiers,
                        ico=args.include_classorigin,
                        pl=args.property_list)
         elif cmd == 'pei':
-            result = a(object,
+            result = a(_parse_wbem_uri(object),
                        lo=None,
                        di=None,
                        iq=None,
@@ -2398,13 +2433,17 @@ Examples:
                        coe=None,
                        moc=None)
         elif cmd == 'peip':
-            result = a(object,
+            result = a(_parse_wbem_uri(object),
                        fl=None,
                        fq=None,
                        ot=None,
                        coe=None,
                        moc=None)
-        # TOD ori, orip, oai, oaip, oqi, piwp, imm mc, cc, dc, eq, gq, sq, dq,
+                       
+        # TODO imm mc, cc, dc, eq, gq, sq, dq,
+        else:
+            print('Invalid command %s' % cmd)
+            return 1
 
     except Error as er:
         print('Error %s' % er)
