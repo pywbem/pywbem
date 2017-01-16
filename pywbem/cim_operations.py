@@ -427,6 +427,24 @@ def _validateIterCommonParams(MaxObjectCount, OperationTimeout):
                          OperationTimeout)
 
 
+def _validatePullParams(MaxObjectCount, context):
+    """
+        Validate the input paramaters for the PullInstances,
+        PullInstancesWithPath, and PullInstancePaths.
+
+        MaxObjectCount: Must be integer type and ge 0
+
+        context: Must be not None and length ge 2
+    """
+    if (not isinstance(MaxObjectCount, six.integer_types) or
+            MaxObjectCount < 0):
+        raise ValueError('MaxObjectCount parameter must be integer >= 0 but '
+                         ' is %s' % MaxObjectCount)
+    if context is None or len(context) < 2:
+        raise ValueError('Pull... Context parameter must be valid tuple %s'
+                         % context)
+
+
 class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     """
     A client's connection to a WBEM server. This is the main class of the
@@ -5268,6 +5286,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If zero, the WBEM server is to return no instances. This may
               be used by a client to leave the handling of any returned
               instances to a loop of Pull operations.
+            * None is not allowed for this attribute.
 
         Keyword Arguments:
 
@@ -5337,6 +5356,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
         try:
+            _validatePullParams(MaxObjectCount, context)
 
             namespace = context[1]
 
@@ -5362,7 +5382,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 self.operation_recorder.record_staged()
             return result_tuple
 
-    def PullInstancePaths(self, context, MaxObjectCount=None, **extra):
+    def PullInstancePaths(self, context, MaxObjectCount, **extra):
         # pylint: disable=invalid-name
 
         """
@@ -5403,6 +5423,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If zero, the WBEM server is to return no instances. This may
               be used by a client to leave the handling of any returned
               instances to a loop of Pull operations.
+            * None is not allowed for this attribute.
 
         Keyword Arguments:
 
@@ -5469,8 +5490,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
         try:
+            _validatePullParams(MaxObjectCount, context)
 
             namespace = context[1]
+
+            if MaxObjectCount is None or MaxObjectCount < 0:
+                raise ValueError('MaxObjectCount must be >= 0 but is %s' %
+                                 MaxObjectCount)
 
             result = self._imethodcall(
                 'PullInstancePaths',
@@ -5494,7 +5520,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 self.operation_recorder.record_staged()
             return result_tuple
 
-    def PullInstances(self, context, MaxObjectCount=None, **extra):
+    def PullInstances(self, context, MaxObjectCount, **extra):
         # pylint: disable=invalid-name
         """
         Retrieve the next set of instances from an open enumeraton
@@ -5534,6 +5560,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If zero, the WBEM server is to return no instances. This may
               be used by a client to leave the handling of any returned
               instances to a loop of Pull operations.
+            * None is not allowed for this attribute.
 
         Keyword Arguments:
 
@@ -5597,6 +5624,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
         try:
+            _validatePullParams(MaxObjectCount, context)
 
             namespace = context[1]
 

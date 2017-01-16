@@ -29,6 +29,14 @@ Enhancements
 Bug fixes
 ^^^^^^^^^
 
+* Fix issue with MaxoObjectCount on PullInstances and PullInstancePaths
+  CIM_Operations.py methods.  The MaxObjectCount was defined as a keyword
+  parameter where it should have been be positional.  This should NOT impact
+  clients unless they did not supply the parameter at all so that the result
+  was None which is illegal(Pull... operations MUST include MaxObjectCount).
+  Also extends these requests to test the Pull.. methods for valid
+  MaxObjectCount and context parameters. See issue #656.
+
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 
