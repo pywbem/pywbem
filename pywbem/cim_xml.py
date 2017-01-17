@@ -25,7 +25,7 @@
 # pylint: disable=non-parent-init-called,super-init-not-called
 
 """
-Functions to create XML documens and elements conforming to the DMTF
+Functions to create XML documents and elements conforming to the DMTF
 standard DSP0201, Representation of CIM in XML, v2.2.
 
   http://www.dmtf.org/standards/wbem/DSP201.html

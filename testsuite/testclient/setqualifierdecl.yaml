@@ -19,7 +19,7 @@
         is_array: false
         array_size: null
         scopes:
-          class: true
+          CLASS: true
         tosubclass: false
         toinstance: null
         overridable: false
@@ -44,7 +44,7 @@
       <IPARAMVALUE NAME="QualifierDeclaration">
       <QUALIFIER.DECLARATION ISARRAY="false" NAME="FooQualDecl" OVERRIDABLE="false"
       TOSUBCLASS="false" TYPE="string">
-      <SCOPE class="true"/>
+      <SCOPE CLASS="true"/>
       <VALUE>Some string</VALUE>
       </QUALIFIER.DECLARATION>
       </IPARAMVALUE>
