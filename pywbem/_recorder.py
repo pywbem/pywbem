@@ -250,7 +250,7 @@ class BaseOperationRecorder(object):
         """Indicate whether the recorder is enabled."""
         return self._enabled
 
-    def reset(self):
+    def reset(self, pull_op=None):
         """Reset all the attributes in the class"""
         self._pywbem_method = None
         self._pywbem_args = None
@@ -270,6 +270,7 @@ class BaseOperationRecorder(object):
         self._http_response_reason = None
         self._http_response_headers = None
         self._http_response_payload = None
+        self._pull_op = pull_op
 
     def stage_pywbem_args(self, method, **kwargs):
         self._pywbem_method = method
@@ -418,7 +419,9 @@ class TestClientRecorder(BaseOperationRecorder):
 
         tc_pywbem_response = OrderedDict()
         if pywbem_result.ret is not None:
-            tc_pywbem_response['result'] = self.toyaml(pywbem_result.ret)
+                yaml_txt = 'pullresult' if self._pull_op else 'result'
+                tc_pywbem_response[yaml_txt] = self.toyaml(pywbem_result.ret)
+
         if pywbem_result.exc is not None:
             exc = pywbem_result.exc
             if isinstance(exc, CIMError):
@@ -492,6 +495,7 @@ class TestClientRecorder(BaseOperationRecorder):
         """
         if isinstance(obj, (list, tuple)):
             ret = []
+            # This does not handle namedtuple
             for item in obj:
                 ret.append(self.toyaml(item))
             return ret
