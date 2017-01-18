@@ -273,7 +273,7 @@ class ClientTest(unittest.TestCase):
         # if list, recurse this function
         if isinstance(instances, list):
             for inst in instances:
-                self.assertInstancesValid(inst, includes_path=True,
+                self.assertInstancesValid(inst, includes_path=includes_path,
                                           prop_count=prop_count,
                                           property_list=property_list,
                                           namespace=namespace)
@@ -935,8 +935,7 @@ class PullEnumerateInstances(ClientTest):
 
         while not result.eos:
             result = self.cimcall(
-                self.conn.PullInstancesWithPath, result.context,
-                MaxObjectCount=1)
+                self.conn.PullInstancesWithPath, result.context, 1)
 
             self.assertInstancesValid(result.instances)
 
@@ -962,8 +961,7 @@ class PullEnumerateInstances(ClientTest):
 
         while not result.eos:
             result = self.cimcall(
-                self.conn.PullInstancesWithPath, result.context,
-                MaxObjectCount=100)
+                self.conn.PullInstancesWithPath, result.context, 100)
             insts_pulled.extend(result.instances)
 
         self.assertInstancesValid(insts_pulled)
@@ -1013,8 +1011,7 @@ class PullEnumerateInstances(ClientTest):
 
         while not result.eos:
             result = self.cimcall(
-                self.conn.PullInstancesWithPath, result.context,
-                MaxObjectCount=1)
+                self.conn.PullInstancesWithPath, result.context, 1)
 
             self.assertTrue(len(result.instances) <= 1)
             insts_pulled.extend(result.instances)
@@ -1038,8 +1035,7 @@ class PullEnumerateInstances(ClientTest):
 
         while not result.eos:
             result = self.cimcall(
-                self.conn.PullInstancesWithPath, result.context,
-                MaxObjectCount=1)
+                self.conn.PullInstancesWithPath, result.context, 1)
 
             self.assertTrue(len(result.instances) <= 1)
             insts_pulled.extend(result.instances)
@@ -1062,8 +1058,7 @@ class PullEnumerateInstances(ClientTest):
 
         while not result.eos:
             result = self.cimcall(
-                self.conn.PullInstancesWithPath, result.context,
-                MaxObjectCount=100)
+                self.conn.PullInstancesWithPath, result.context, 100)
             self.assertTrue(len(result.instances) <= 1)
             insts_pulled.extend(result.instances)
 
@@ -1079,7 +1074,7 @@ class PullEnumerateInstances(ClientTest):
         self.cimcall(self.conn.CloseEnumeration, result.context)
 
         try:
-            self.conn.PullInstancesWithPath(result.context, MaxObjectCount=10)
+            self.conn.PullInstancesWithPath(result.context, 10)
             self.fail('Expected CIMError')
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_ENUMERATION_CONTEXT:
@@ -1092,8 +1087,7 @@ class PullEnumerateInstances(ClientTest):
 
         while not result.eos:
             result = self.cimcall(
-                self.conn.PullInstancesWithPath, result.context,
-                MaxObjectCount=100)
+                self.conn.PullInstancesWithPath, result.context, 100)
 
         try:
             self.cimcall(self.conn.CloseEnumeration, result.context)
@@ -1248,8 +1242,7 @@ class PullEnumerateInstancePaths(ClientTest):
         # loop to complete the enumeration session
         while not result.eos:
             result = self.cimcall(self.conn.PullInstancePaths,
-                                  result.context,
-                                  MaxObjectCount=1)
+                                  result.context, 1)
 
             self.assertTrue(len(result.paths) <= 1)
             paths_pulled.extend(result.paths)
@@ -1278,8 +1271,7 @@ class PullEnumerateInstancePaths(ClientTest):
 
         while not result.eos:
             result = self.cimcall(self.conn.PullInstancePaths,
-                                  result.context,
-                                  MaxObjectCount=1)
+                                  result.context, 1)
 
             self.assertTrue(len(result.paths) <= 1)
             paths_pulled.extend(result.paths)
@@ -1315,9 +1307,7 @@ class PullEnumerateInstancePaths(ClientTest):
         self.assertFalse(result.eos)
 
         # Pull the remainder of the paths
-        result = self.cimcall(self.conn.PullInstancePaths,
-                              result.context,
-                              MaxObjectCount=100)
+        result = self.cimcall(self.conn.PullInstancePaths, result.context, 100)
 
         self.assertTrue(result.eos)
 
@@ -1333,7 +1323,7 @@ class PullEnumerateInstancePaths(ClientTest):
         self.cimcall(self.conn.CloseEnumeration, result.context)
 
         try:
-            self.conn.PullInstancePaths(result.context, MaxObjectCount=10)
+            self.conn.PullInstancePaths(result.context, 10)
             self.fail('Expected CIMError')
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_ENUMERATION_CONTEXT:
@@ -1360,8 +1350,7 @@ class PullEnumerateInstancePaths(ClientTest):
 
         while not result.eos:
             result = self.cimcall(self.conn.PullInstancePaths,
-                                  result.context,
-                                  MaxObjectCount=1)
+                                  result.context, 1)
 
             self.assertTrue(len(result.paths) <= 1)
             paths_pulled.extend(result.paths)
@@ -1402,8 +1391,7 @@ class PullReferences(ClientTest):
 
         while not result.eos:
             result = self.cimcall(
-                self.conn.PullInstancesWithPath, result.context,
-                MaxObjectCount=1)
+                self.conn.PullInstancesWithPath, result.context, 1)
 
             self.assertTrue(len(result.instances) <= 1)
             insts_pulled.extend(result.instances)
@@ -1449,8 +1437,7 @@ class PullReferences(ClientTest):
 
             while not result.eos:
                 result = self.cimcall(
-                    self.conn.PullInstancesWithPath, result.context,
-                    MaxObjectCount=1)
+                    self.conn.PullInstancesWithPath, result.context, 1)
                 self.assertTrue(len(result.instances) <= 1)
                 insts_pulled.extend(result.instances)
 
@@ -1481,8 +1468,7 @@ class PullReferences(ClientTest):
 
             while not result.eos:
                 result = self.cimcall(
-                    self.conn.PullInstancesWithPath, result.context,
-                    MaxObjectCount=1)
+                    self.conn.PullInstancesWithPath, result.context, 1)
 
                 self.assertTrue(len(result.instances) <= 1)
                 insts_pulled.extend(result.instances)
@@ -1529,8 +1515,7 @@ class PullReferencePaths(ClientTest):
 
         while not result.eos:
             result = self.cimcall(
-                self.conn.PullInstancePaths, result.context,
-                MaxObjectCount=1)
+                self.conn.PullInstancePaths, result.context, 1)
 
             self.assertTrue(len(result.paths) <= 1)
             paths_pulled.extend(result.paths)
@@ -1575,8 +1560,7 @@ class PullReferencePaths(ClientTest):
 
             while not result.eos:
                 result = self.cimcall(
-                    self.conn.PullInstancePaths, result.context,
-                    MaxObjectCount=1)
+                    self.conn.PullInstancePaths, result.context, 1)
                 self.assertTrue(len(result.paths) <= 1)
                 paths_pulled.extend(result.paths)
 
@@ -1609,8 +1593,7 @@ class PullReferencePaths(ClientTest):
 
             while not result.eos:
                 result = self.cimcall(self.conn.PullInstancePaths,
-                                      result.context,
-                                      MaxObjectCount=1)
+                                      result.context, 1)
 
                 for path in result.path:
                     self.assertInstanceNamesValid(path)
@@ -1645,8 +1628,7 @@ class PullAssociators(ClientTest):
 
         while not result.eos:
             result = self.cimcall(
-                self.conn.PullInstancesWithPath, result.context,
-                MaxObjectCount=1)
+                self.conn.PullInstancesWithPath, result.context, 1)
 
             self.assertTrue(len(result.instances) <= 1)
             insts_pulled.extend(result.instances)
@@ -1689,8 +1671,7 @@ class PullAssociators(ClientTest):
 
             while not result.eos:
                 result = self.cimcall(
-                    self.conn.PullInstancesWithPath, result.context,
-                    MaxObjectCount=1)
+                    self.conn.PullInstancesWithPath, result.context, 1)
                 self.assertTrue(len(result.instances) <= 1)
                 insts_pulled.extend(result.instances)
 
@@ -1721,8 +1702,7 @@ class PullAssociators(ClientTest):
 
             while not result.eos:
                 result = self.cimcall(
-                    self.conn.PullInstancesWithPath, result.context,
-                    MaxObjectCount=1)
+                    self.conn.PullInstancesWithPath, result.context, 1)
 
                 self.assertTrue(len(result.instances) <= 1)
                 insts_pulled.extend(result.instances)
@@ -1774,8 +1754,7 @@ class PullAssociatorPaths(ClientTest):
 
         while not result.eos:
             result = self.cimcall(
-                self.conn.PullInstancePaths, result.context,
-                MaxObjectCount=1)
+                self.conn.PullInstancePaths, result.context, 1)
 
             self.assertTrue(len(result.paths) <= 1)
             paths_pulled.extend(result.paths)
@@ -1819,8 +1798,7 @@ class PullAssociatorPaths(ClientTest):
 
             while not result.eos:
                 result = self.cimcall(
-                    self.conn.PullInstancePaths, result.context,
-                    MaxObjectCount=1)
+                    self.conn.PullInstancePaths, result.context, 1)
                 self.assertTrue(len(result.paths) <= 1)
                 paths_pulled.extend(result.paths)
 
@@ -1856,8 +1834,7 @@ class PullAssociatorPaths(ClientTest):
 
             while not result.eos:
                 result = self.cimcall(self.conn.PullInstancePaths,
-                                      result.context,
-                                      MaxObjectCount=1)
+                                      result.context, 1)
                 for path in result.path:
                     self.assertInstanceNamesValid(path)
                 paths_pulled.extend(result.paths)
@@ -1891,12 +1868,11 @@ class PullQueryInstances(ClientTest):
 
             while eos is False:
                 op_result = self.cimcall(self.conn.PullInstances,
-                                         result.context,
-                                         MaxObjectCount=100)
+                                         result.context, 100)
                 insts_pulled.extend(result.instances)
                 eos = op_result.eos
 
-            self.assertInstancesValid(insts_pulled)
+            self.assertInstancesValid(insts_pulled, includes_path=False)
 
         except CIMError as ce:
             if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
@@ -1926,8 +1902,7 @@ class PullQueryInstances(ClientTest):
 
             while eos is False:
                 op_result = self.cimcall(self.conn.PullInstances,
-                                         result.context,
-                                         MaxObjectCount=100)
+                                         result.context, 100)
                 insts_pulled.extend(result.instances)
                 eos = op_result.eos
 
