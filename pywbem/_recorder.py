@@ -26,6 +26,7 @@ except ImportError:
     from ordereddict import OrderedDict
 from datetime import datetime, timedelta
 import yaml
+from yaml.representer import RepresenterError
 import six
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
@@ -81,6 +82,18 @@ yaml.SafeDumper.add_representer(
     OrderedDict,
     lambda dumper, value:
     _represent_ordereddict(dumper, u'tag:yaml.org,2002:map', value))
+
+
+# Some monkey-patching for better diagnostics:
+def _represent_undefined(self, data):
+    raise RepresenterError("cannot represent an object: %s of type: %s; "
+                           "yaml_representers: %r, "
+                           "yaml_multi_representers: %r" %
+                           (data, type(data), self.yaml_representers.keys(),
+                            self.yaml_multi_representers.keys()))
+
+
+yaml.SafeDumper.represent_undefined = _represent_undefined
 
 
 class OpArgs(OpArgs_tuple):
