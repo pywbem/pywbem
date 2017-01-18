@@ -26,6 +26,7 @@ except ImportError:
     from ordereddict import OrderedDict
 from datetime import datetime, timedelta
 import yaml
+from yaml.representer import RepresenterError
 import six
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
@@ -81,6 +82,18 @@ yaml.SafeDumper.add_representer(
     OrderedDict,
     lambda dumper, value:
     _represent_ordereddict(dumper, u'tag:yaml.org,2002:map', value))
+
+
+# Some monkey-patching for better diagnostics:
+def _represent_undefined(self, data):
+    raise RepresenterError("cannot represent an object: %s of type: %s; "
+                           "yaml_representers: %r, "
+                           "yaml_multi_representers: %r" %
+                           (data, type(data), self.yaml_representers.keys(),
+                            self.yaml_multi_representers.keys()))
+
+
+yaml.SafeDumper.represent_undefined = _represent_undefined
 
 
 class OpArgs(OpArgs_tuple):
@@ -250,7 +263,7 @@ class BaseOperationRecorder(object):
         """Indicate whether the recorder is enabled."""
         return self._enabled
 
-    def reset(self):
+    def reset(self, pull_op=None):
         """Reset all the attributes in the class"""
         self._pywbem_method = None
         self._pywbem_args = None
@@ -270,6 +283,7 @@ class BaseOperationRecorder(object):
         self._http_response_reason = None
         self._http_response_headers = None
         self._http_response_payload = None
+        self._pull_op = pull_op
 
     def stage_pywbem_args(self, method, **kwargs):
         self._pywbem_method = method
@@ -418,7 +432,9 @@ class TestClientRecorder(BaseOperationRecorder):
 
         tc_pywbem_response = OrderedDict()
         if pywbem_result.ret is not None:
-            tc_pywbem_response['result'] = self.toyaml(pywbem_result.ret)
+                yaml_txt = 'pullresult' if self._pull_op else 'result'
+                tc_pywbem_response[yaml_txt] = self.toyaml(pywbem_result.ret)
+
         if pywbem_result.exc is not None:
             exc = pywbem_result.exc
             if isinstance(exc, CIMError):
@@ -492,6 +508,7 @@ class TestClientRecorder(BaseOperationRecorder):
         """
         if isinstance(obj, (list, tuple)):
             ret = []
+            # This does not handle namedtuple
             for item in obj:
                 ret.append(self.toyaml(item))
             return ret

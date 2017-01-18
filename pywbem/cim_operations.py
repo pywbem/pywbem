@@ -3740,7 +3740,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
 
         if self.operation_recorder:
-            self.operation_recorder.reset()
+            self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
                 method='OpenEnumerateInstancePaths',
                 ClassName=ClassName,
@@ -4002,7 +4002,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """  # noqa: E501
 
         if self.operation_recorder:
-            self.operation_recorder.reset()
+            self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
                 method='OpenEnumerateInstances',
                 ClassName=ClassName,
@@ -4225,7 +4225,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
 
         if self.operation_recorder:
-            self.operation_recorder.reset()
+            self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
                 method='OpenReferenceInstancePaths',
                 InstanceName=InstanceName,
@@ -4473,7 +4473,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """  # noqa: E501
 
         if self.operation_recorder:
-            self.operation_recorder.reset()
+            self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
                 method='OpenReferenceInstances',
                 InstanceName=InstanceName,
@@ -4705,7 +4705,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
 
         if self.operation_recorder:
-            self.operation_recorder.reset()
+            self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
                 method='OpenAssociatorInstancePaths',
                 InstanceName=InstanceName,
@@ -4971,7 +4971,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """  # noqa: E501
 
         if self.operation_recorder:
-            self.operation_recorder.reset()
+            self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
                 method='OpenAssociatorInstances',
                 InstanceName=InstanceName,
@@ -5188,7 +5188,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                            "ReturnQueryResultClass invalid or missing.")
 
         if self.operation_recorder:
-            self.operation_recorder.reset()
+            self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
                 method='OpenQueryInstances',
                 FilterQueryLanguage=FilterQueryLanguage,
@@ -5339,7 +5339,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
 
         if self.operation_recorder:
-            self.operation_recorder.reset()
+            self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
                 method='PullInstancesWithPath',
                 context=context,
@@ -5472,7 +5472,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
 
         if self.operation_recorder:
-            self.operation_recorder.reset()
+            self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
                 method='PullInstancePaths',
                 context=context,
@@ -5601,7 +5601,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
 
         if self.operation_recorder:
-            self.operation_recorder.reset()
+            self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
                 method='PullInstances',
                 context=context,
