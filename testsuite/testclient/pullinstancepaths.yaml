@@ -504,4 +504,57 @@
             </CIM>
 
 
+- name: PullInstancePathsF2
+  description: Pull request with MaxObjectCount invalid raises ValueError
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: PullInstancePaths
+      MaxObjectCount: -1
+      context:
+      - '500001'
+      - root/cimv2
+  pywbem_response:
+        exception: ValueError
+-
+  name: PullInstancePathsF3
+  description: Pull request with context None raises ValueError
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: PullInstancePaths
+      MaxObjectCount: 1
+      context: null
+  pywbem_response:
+        exception: ValueError
+-
+  name: PullInstancePathsF4
+  description: Pull request with Invalid Input Parameter (no MaxObjectCount)
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: PullInstancePaths
+      MaxObjectCount: 1
+  pywbem_response:
+        exception: TypeError
+
+
 
