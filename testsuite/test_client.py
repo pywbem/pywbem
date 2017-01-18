@@ -48,6 +48,15 @@ TESTCASE_DIR = os.path.join(os.path.dirname(__file__), "testclient")
 RUN_ONE_TESTCASE = None
 
 
+def show_diff(conn, expected, actual, display_text):
+    """Display the actual and expected data"""
+    print("Details for the following assertion error:")
+    print("- Expected result %s: %s" % (display_text, expected))
+    print("- Actual result %s: %s" % (display_text, actual))
+    if conn is not None and conn.debug:
+        print("- HTTP response data: %r" % conn.last_raw_reply)
+
+
 def str_tuple(tuple_):
     """
     Prepare a tuple or NonType for output.
@@ -706,6 +715,7 @@ class ClientTest(unittest.TestCase):
         self.assertEqual(cim_status, exp_cim_status,
                          "WBEMConnection operation CIM status code")
 
+        # Returns either exp_result or exp_pull_result
         if exp_result is not None:
             exp_result_obj = obj(exp_result, tc_name)
 
@@ -717,9 +727,7 @@ class ClientTest(unittest.TestCase):
             exp_type = type(exp_result_obj)
             # pylint: disable=unidiomatic-typecheck
             if act_type != exp_type:
-                print("Details for the following assertion error:")
-                print("- Expected result type: %s" % type(exp_result_obj))
-                print("- Actual result type: %s" % type(result))
+                show_diff(None, type(exp_result_obj), type(result), 'type')
                 raise AssertionError("PyWBEM CIM result type is not"
                                      " as expected.")
 
@@ -749,88 +757,59 @@ class ClientTest(unittest.TestCase):
             else:
                 # pylint: disable=redefined-variable-type
                 _result = result
+
             if _result != _exp_result_obj:
                 # TODO 2016/07 AM: Improve the presentation of the difference
-                print("Details for the following assertion error:")
-                print("- Expected result: %s" % repr(exp_result_obj))
-                print("- Actual result: %s" % repr(_result))
-                if conn.debug:
-                    print("- HTTP response data: %r" % conn.last_raw_reply)
+                show_diff(conn, repr(exp_result_obj), repr(_result), 'data')
                 raise AssertionError("WBEMConnection operation method result "
                                      "is not as expected.")
 
         # if this is a pull result, compare the components of expected
-        # and actual results.
+        # and actual results. Pull results return a tuple
         elif exp_pull_result is not None:
             exp_pull_result_obj = result_tuple(exp_pull_result, tc_name)
 
-            # Length should be the same
+            # Result length should be the same as expected result
             if len(result) != len(exp_pull_result_obj):
-                print("Details for the following assertion error:")
-                print("- Expected pull_result tuple size: %s" %
-                      len(exp_pull_result_obj))
-                print("- Actual result len: %s" % len(result))
-                # print('result %s exp %s' % ((result, ),
-                #      (exp_pull_result_obj, )))
+                show_diff(conn, len(conn, exp_pull_result_obj), len(result),
+                          'tuple size')
                 raise AssertionError("PyWBEM CIM result type is not"
                                      " as expected.")
             # eos is required result
             if result.eos != exp_pull_result_obj.eos:
-                print("Details for the following assertion error:")
-                print("- Expected pull result.eos: %r" %
-                      exp_pull_result_obj.eos)
-                print("- Actual pull result.eos: %r" % result.eos)
-                if conn.debug:
-                    print("- HTTP response data: %r" % conn.last_raw_reply)
+                show_diff(conn, exp_pull_result_obj.eos, result.eos,
+                          'result.eos')
                 raise AssertionError("WBEMConnection operation method result "
                                      "is not as expected.")
 
             # Context is required result
-            # NOTE: pyaml does not natively support tuples
-            # It supports very simple tuples but only with single objects and
-            # in block mode.
+            # NOTE: pyaml does not natively support tuples. It supports very
+            #   simple tuples but only with single objects and in block mode.
             exp_context = tuple(exp_pull_result_obj.context) \
                 if exp_pull_result_obj.context \
                 else None
             if result.context != exp_context:
-                print("Details for the following assertion error:")
-                print("- Expected pull result.context: %r" %
-                      str_tuple(exp_context))
-                print("- Actual pull result.context: %r" %
-                      str_tuple(result.context))
-                if conn.debug:
-                    print("- HTTP response data: %r" % conn.last_raw_reply)
+                show_diff(conn, repr(str_tuple(exp_context)),
+                          repr(str_tuple(result.context)), 'result.context')
                 raise AssertionError("WBEMConnection operation method result "
                                      "is not as expected.")
 
             if "instances" in exp_pull_result:
-                if result.instances != exp_pull_result_obj.instances:
-                    # TODO 2016/07 AM: Improve the presentation of the diff.
-                    print("Details for the following assertion error:")
-                    print("- Expected pull result: %r" %
-                          exp_pull_result_obj.instances)
-                    print("- Actual pull result: %r" % result.instances)
-                    if conn.debug:
-                        print("- HTTP response data: %r" % conn.last_raw_reply)
-                    raise AssertionError("WBEMConnection operation method "
-                                         "result is not as expected.")
+                _result = result.instances
+                _exp_result = exp_pull_result_obj.instances
             elif "paths" in exp_pull_result:
-                if result.paths != exp_pull_result_obj.paths:
-                    # TODO 2016/07 AM: Improve the presentation of the diff.
-                    print("Details for the following assertion error:")
-                    print("- Expected pull result: %r" %
-                          exp_pull_result_obj.paths)
-                    print("- Actual pull result: %r" % result.paths)
-                    if conn.debug:
-                        print("- HTTP response data: %r" % conn.last_raw_reply)
-                    raise AssertionError("WBEMConnection operation method "
-                                         "result is not as expected.")
+                _result = result.paths
+                _exp_result = exp_pull_result_obj.paths
             else:
-                # If there are no instances or paths in response, use
-                # instances: []
                 raise AssertionError("WBEMConnection operation method result "
                                      "is not as expected. No 'instances' "
                                      "or 'paths' component.")
+
+            if _result != _exp_result:
+                # TODO 2016/07 AM: Improve the presentation of the diff.
+                show_diff(conn, repr(_exp_result), repr(_result), 'result data')
+                raise AssertionError("WBEMConnection operation method "
+                                     "result is not as expected.")
 
             # TODO redo as indexed loop to compare all items.
 
@@ -860,15 +839,15 @@ def result_tuple(value, tc_name):
 
         # either path or instances should be in value
         if "instances" in value:
-            instances = value["instances"]
-            objs = obj(instances, tc_name)
+            # instances = value["instances"]
+            objs = obj(value["instances"], tc_name)
             if 'paths' in value:
                 raise AssertionError("WBEMConnection operation method "
                                      "result is not as expected. Both "
                                      "'instances' and 'paths' component.")
         elif "paths" in value:
-            paths = value["paths"]
-            objs = obj(paths, tc_name)
+            # paths = value["paths"]
+            objs = obj(value["paths"], tc_name)
             result = namedtuple("result", ["paths", "eos", "context"])
         else:
             raise AssertionError("WBEMConnection operation method result "
@@ -888,7 +867,7 @@ def result_tuple(value, tc_name):
 
 
 if __name__ == '__main__':
-    """Main function of test_client. Calls unittest"""
+
     # NonDocumented option to run a single testcase if that testcase name
     # is listed on the cmd line.
     if len(sys.argv) > 1:
