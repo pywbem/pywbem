@@ -3524,28 +3524,29 @@ class GetQualifier(QualifierDeclClientTest):
 
 
 class SetQualifier(QualifierDeclClientTest):
-    """Test the capability to create a qualifierDecl in the server.
-
+    """Test the capability to create a QualifierDeclaration in the server.
+       Since the goal is to keep the server repository clean, this also tests
+       DeleteQualifier.
     """
 
     def test_create_delete(self):
         """
         Create a qualifier declaration, set it into the server, get
-        it and then delete it.
+        the qualifier declaration created and then delete it.
         """
 
-        scopes = {'CLASS': True}
         qd = CIMQualifierDeclaration('FooQualDecl', 'string', is_array=False,
                                      value='Some string',
-                                     scopes=scopes,
+                                     scopes={'CLASS': True},
                                      overridable=False, tosubclass=False)
+
         # Delete if already exists (previous test incomplete)
         try:
             self.cimcall(self.conn.DeleteQualifier, qd.name)
         except CIMError as ce:
             if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
                 print('NOTE: This server/namespace does not support '
-                      'SetQualifier since it returned NOT SUPPORTED')
+                      'DeleteQualifier since it returned NOT SUPPORTED')
                 return
             if ce.args[0] == CIM_ERR_NOT_FOUND:
                 pass
@@ -3563,13 +3564,15 @@ class SetQualifier(QualifierDeclClientTest):
         # get the qd and compare with original
         rtn_qd = self.cimcall(self.conn.GetQualifier, qd.name)
 
-        self.assertEqual(qd, rtn_qd, 'Returned qual decl should match created')
+        self.assertEqual(qd, rtn_qd, 'Returned qualifier declaration did not '
+                         'match created')
 
         self.cimcall(self.conn.DeleteQualifier, qd.name)
 
         # This should fail.  class already deleted
         try:
             self.cimcall(self.conn.GetQualifier, qd.name)
+            self.fail('This call should have failed')
         except CIMError as arg:
             if arg == CIM_ERR_NOT_FOUND:
                 pass
@@ -3626,6 +3629,10 @@ class SetQualifier(QualifierDeclClientTest):
 
 
 class DeleteQualifier(QualifierDeclClientTest):
+    """
+    See the SetQualifier tests for the test to correctly delete a qualifier
+    declaration.
+    """
 
     def test_delete_fail(self):
         """
