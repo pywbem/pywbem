@@ -21,9 +21,9 @@ Operation recorder interface and implementations.
 from __future__ import print_function, absolute_import
 from collections import namedtuple
 try:
-    from collections import OrderedDict
+    from collections import OrderedDict  # pylint: disable=import-error
 except ImportError:
-    from ordereddict import OrderedDict
+    from ordereddict import OrderedDict  # pylint: disable=import-error
 from datetime import datetime, timedelta
 import yaml
 from yaml.representer import RepresenterError
@@ -43,7 +43,7 @@ if six.PY2:
 else:
     _Longint = int
 
-OpArgs_tuple = namedtuple("OpArgs_tuple", ["method", "args"])
+OpArgsTuple = namedtuple("OpArgsTuple", ["method", "args"])
 
 
 def _represent_ordereddict(dump, tag, mapping, flow_style=None):
@@ -86,6 +86,7 @@ yaml.SafeDumper.add_representer(
 
 # Some monkey-patching for better diagnostics:
 def _represent_undefined(self, data):
+    """Raises flag for objects that cannot be represented"""
     raise RepresenterError("cannot represent an object: %s of type: %s; "
                            "yaml_representers: %r, "
                            "yaml_multi_representers: %r" %
@@ -96,7 +97,7 @@ def _represent_undefined(self, data):
 yaml.SafeDumper.represent_undefined = _represent_undefined
 
 
-class OpArgs(OpArgs_tuple):
+class OpArgs(OpArgsTuple):
     """
     A named tuple representing the name and input arguments of the invocation
     of a :class:`~pywbem.WBEMConnection` method, with the following named fields
@@ -116,10 +117,10 @@ class OpArgs(OpArgs_tuple):
         return "OpArgs(method={s.method!r}, args={s.args!r})".format(s=self)
 
 
-OpResult_tuple = namedtuple("OpResult_tuple", ["ret", "exc"])
+OpResultTuple = namedtuple("OpResultTuple", ["ret", "exc"])
 
 
-class OpResult(OpResult_tuple):
+class OpResult(OpResultTuple):
     """
     A named tuple representing the result of the invocation of a
     :class:`~pywbem.WBEMConnection` method, with the following named fields
@@ -144,12 +145,12 @@ class OpResult(OpResult_tuple):
         return "OpResult(ret={s.ret!r}, exc={s.exc!r})".format(s=self)
 
 
-HttpRequest_tuple = namedtuple("HttpRequest_tuple",
-                               ["version", "url", "target", "method", "headers",
-                                "payload"])
+HttpRequestTuple = namedtuple("HttpRequestTuple",
+                              ["version", "url", "target", "method", "headers",
+                               "payload"])
 
 
-class HttpRequest(HttpRequest_tuple):
+class HttpRequest(HttpRequestTuple):
     """
     A named tuple representing the HTTP request sent by the WBEM client, with
     the following named fields and attributes:
@@ -186,12 +187,12 @@ class HttpRequest(HttpRequest_tuple):
                .format(s=self)
 
 
-HttpResponse_tuple = namedtuple("HttpResponse_tuple",
-                                ["version", "status", "reason", "headers",
-                                 "payload"])
+HttpResponseTuple = namedtuple("HttpResponseTuple",
+                               ["version", "status", "reason", "headers",
+                                "payload"])
 
 
-class HttpResponse(HttpResponse_tuple):
+class HttpResponse(HttpResponseTuple):
     """
     A named tuple representing the HTTP response received by the WBEM client,
     with the following named fields and attributes:
@@ -225,6 +226,7 @@ class HttpResponse(HttpResponse_tuple):
 
 
 class BaseOperationRecorder(object):
+    # pylint: disable=too-many-instance-attributes
     """
     Abstract base class defining the interface to an operation recorder,
     that records the WBEM operations executed in a connection to a WBEM
@@ -286,15 +288,25 @@ class BaseOperationRecorder(object):
         self._pull_op = pull_op
 
     def stage_pywbem_args(self, method, **kwargs):
+        """
+        Set requst method and all args.
+        Normally called before the cmd is executed to record request
+        parameters
+        """
+        # pylint: disable=attribute-defined-outside-init
         self._pywbem_method = method
         self._pywbem_args = kwargs
 
     def stage_pywbem_result(self, ret, exc):
+        """ Set Result return info or exception info"""
+        # pylint: disable=attribute-defined-outside-init
         self._pywbem_result_ret = ret
         self._pywbem_result_exc = exc
 
     def stage_http_request(self, version, url, target, method, headers,
                            payload):
+        """Set request HTTP information including url, headers, etc."""
+        # pylint: disable=attribute-defined-outside-init
         self._http_request_version = version
         self._http_request_url = url
         self._http_request_target = target
@@ -303,15 +315,20 @@ class BaseOperationRecorder(object):
         self._http_request_payload = payload
 
     def stage_http_response1(self, version, status, reason, headers):
+        """Set response http info including headers, status, etc. """
+        # pylint: disable=attribute-defined-outside-init
         self._http_response_version = version
         self._http_response_status = status
         self._http_response_reason = reason
         self._http_response_headers = headers
 
     def stage_http_response2(self, payload):
+        """Stage second part of http response, the payload"""
+        # pylint: disable=attribute-defined-outside-init
         self._http_response_payload = payload
 
     def record_staged(self):
+        """Encode staged information on request and result to output"""
         if self.enabled:
             pwargs = OpArgs(
                 self._pywbem_method,
@@ -432,8 +449,8 @@ class TestClientRecorder(BaseOperationRecorder):
 
         tc_pywbem_response = OrderedDict()
         if pywbem_result.ret is not None:
-                yaml_txt = 'pullresult' if self._pull_op else 'result'
-                tc_pywbem_response[yaml_txt] = self.toyaml(pywbem_result.ret)
+            yaml_txt = 'pullresult' if self._pull_op else 'result'
+            tc_pywbem_response[yaml_txt] = self.toyaml(pywbem_result.ret)
 
         if pywbem_result.exc is not None:
             exc = pywbem_result.exc
@@ -513,10 +530,10 @@ class TestClientRecorder(BaseOperationRecorder):
                 ret.append(self.toyaml(item))
             return ret
         elif isinstance(obj, (dict, NocaseDict)):
-            ret = OrderedDict()
-            for key in obj:
-                ret[key] = self.toyaml(obj[key])
-            return ret
+            ret_dict = OrderedDict()
+            for key in obj.keys():  # get keys in original case
+                ret_dict[key] = self.toyaml(obj[key])
+            return ret_dict
         elif obj is None:
             return obj
         elif isinstance(obj, six.binary_type):
@@ -535,95 +552,95 @@ class TestClientRecorder(BaseOperationRecorder):
         elif isinstance(obj, (datetime, timedelta)):
             return CIMDateTime(obj)
         elif isinstance(obj, CIMInstance):
-            ret = OrderedDict()
-            ret['pywbem_object'] = 'CIMInstance'
-            ret['classname'] = self.toyaml(obj.classname)
-            ret['properties'] = self.toyaml(obj.properties)
-            ret['path'] = self.toyaml(obj.path)
-            return ret
+            ret_dict = OrderedDict()
+            ret_dict['pywbem_object'] = 'CIMInstance'
+            ret_dict['classname'] = self.toyaml(obj.classname)
+            ret_dict['properties'] = self.toyaml(obj.properties)
+            ret_dict['path'] = self.toyaml(obj.path)
+            return ret_dict
         elif isinstance(obj, CIMInstanceName):
-            ret = OrderedDict()
-            ret['pywbem_object'] = 'CIMInstanceName'
-            ret['classname'] = self.toyaml(obj.classname)
-            ret['namespace'] = self.toyaml(obj.namespace)
-            ret['keybindings'] = self.toyaml(obj.keybindings)
-            return ret
+            ret_dict = OrderedDict()
+            ret_dict['pywbem_object'] = 'CIMInstanceName'
+            ret_dict['classname'] = self.toyaml(obj.classname)
+            ret_dict['namespace'] = self.toyaml(obj.namespace)
+            ret_dict['keybindings'] = self.toyaml(obj.keybindings)
+            return ret_dict
         elif isinstance(obj, CIMClass):
-            ret = OrderedDict()
-            ret['pywbem_object'] = 'CIMClass'
-            ret['classname'] = self.toyaml(obj.classname)
-            ret['superclass'] = self.toyaml(obj.superclass)
-            ret['properties'] = self.toyaml(obj.properties)
-            ret['methods'] = self.toyaml(obj.methods)
-            ret['qualifiers'] = self.toyaml(obj.qualifiers)
+            ret_dict = OrderedDict()
+            ret_dict['pywbem_object'] = 'CIMClass'
+            ret_dict['classname'] = self.toyaml(obj.classname)
+            ret_dict['superclass'] = self.toyaml(obj.superclass)
+            ret_dict['properties'] = self.toyaml(obj.properties)
+            ret_dict['methods'] = self.toyaml(obj.methods)
+            ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
             return ret
         elif isinstance(obj, CIMClassName):
-            ret = OrderedDict()
-            ret['pywbem_object'] = 'CIMClassName'
-            ret['classname'] = self.toyaml(obj.classname)
-            ret['host'] = self.toyaml(obj.host)
-            ret['namespace'] = self.toyaml(obj.namespace)
+            ret_dict = OrderedDict()
+            ret_dict['pywbem_object'] = 'CIMClassName'
+            ret_dict['classname'] = self.toyaml(obj.classname)
+            ret_dict['host'] = self.toyaml(obj.host)
+            ret_dict['namespace'] = self.toyaml(obj.namespace)
             return ret
         elif isinstance(obj, CIMProperty):
-            ret = OrderedDict()
-            ret['pywbem_object'] = 'CIMProperty'
-            ret['name'] = self.toyaml(obj.name)
-            ret['value'] = self.toyaml(obj.value)
-            ret['type'] = self.toyaml(obj.type)
-            ret['reference_class'] = self.toyaml(obj.reference_class)
-            ret['embedded_object'] = self.toyaml(obj.embedded_object)
-            ret['is_array'] = self.toyaml(obj.is_array)
-            ret['array_size'] = self.toyaml(obj.array_size)
-            ret['class_origin'] = self.toyaml(obj.class_origin)
-            ret['propagated'] = self.toyaml(obj.propagated)
-            ret['qualifiers'] = self.toyaml(obj.qualifiers)
+            ret_dict = OrderedDict()
+            ret_dict['pywbem_object'] = 'CIMProperty'
+            ret_dict['name'] = self.toyaml(obj.name)
+            ret_dict['value'] = self.toyaml(obj.value)
+            ret_dict['type'] = self.toyaml(obj.type)
+            ret_dict['reference_class'] = self.toyaml(obj.reference_class)
+            ret_dict['embedded_object'] = self.toyaml(obj.embedded_object)
+            ret_dict['is_array'] = self.toyaml(obj.is_array)
+            ret_dict['array_size'] = self.toyaml(obj.array_size)
+            ret_dict['class_origin'] = self.toyaml(obj.class_origin)
+            ret_dict['propagated'] = self.toyaml(obj.propagated)
+            ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
             return ret
         elif isinstance(obj, CIMMethod):
-            ret = OrderedDict()
-            ret['pywbem_object'] = 'CIMMethod'
-            ret['name'] = self.toyaml(obj.name)
-            ret['return_type'] = self.toyaml(obj.return_type)
-            ret['class_origin'] = self.toyaml(obj.class_origin)
-            ret['propagated'] = self.toyaml(obj.propagated)
-            ret['parameters'] = self.toyaml(obj.parameters)
-            ret['qualifiers'] = self.toyaml(obj.qualifiers)
-            return ret
+            ret_dict = OrderedDict()
+            ret_dict['pywbem_object'] = 'CIMMethod'
+            ret_dict['name'] = self.toyaml(obj.name)
+            ret_dict['return_type'] = self.toyaml(obj.return_type)
+            ret_dict['class_origin'] = self.toyaml(obj.class_origin)
+            ret_dict['propagated'] = self.toyaml(obj.propagated)
+            ret_dict['parameters'] = self.toyaml(obj.parameters)
+            ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
+            return ret_dict
         elif isinstance(obj, CIMParameter):
-            ret = OrderedDict()
-            ret['pywbem_object'] = 'CIMParameter'
-            ret['name'] = self.toyaml(obj.name)
-            ret['type'] = self.toyaml(obj.type)
-            ret['reference_class'] = self.toyaml(obj.reference_class)
-            ret['is_array'] = self.toyaml(obj.is_array)
-            ret['array_size'] = self.toyaml(obj.array_size)
-            ret['qualifiers'] = self.toyaml(obj.qualifiers)
-            return ret
+            ret_dict = OrderedDict()
+            ret_dict['pywbem_object'] = 'CIMParameter'
+            ret_dict['name'] = self.toyaml(obj.name)
+            ret_dict['type'] = self.toyaml(obj.type)
+            ret_dict['reference_class'] = self.toyaml(obj.reference_class)
+            ret_dict['is_array'] = self.toyaml(obj.is_array)
+            ret_dict['array_size'] = self.toyaml(obj.array_size)
+            ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
+            return ret_dict
         elif isinstance(obj, CIMQualifier):
-            ret = OrderedDict()
-            ret['pywbem_object'] = 'CIMQualifier'
-            ret['name'] = self.toyaml(obj.name)
-            ret['value'] = self.toyaml(obj.value)
-            ret['type'] = self.toyaml(obj.type)
-            ret['propagated'] = self.toyaml(obj.propagated)
-            ret['tosubclass'] = self.toyaml(obj.tosubclass)
-            ret['toinstance'] = self.toyaml(obj.toinstance)
-            ret['overridable'] = self.toyaml(obj.overridable)
-            ret['translatable'] = self.toyaml(obj.translatable)
-            return ret
+            ret_dict = OrderedDict()
+            ret_dict['pywbem_object'] = 'CIMQualifier'
+            ret_dict['name'] = self.toyaml(obj.name)
+            ret_dict['value'] = self.toyaml(obj.value)
+            ret_dict['type'] = self.toyaml(obj.type)
+            ret_dict['propagated'] = self.toyaml(obj.propagated)
+            ret_dict['tosubclass'] = self.toyaml(obj.tosubclass)
+            ret_dict['toinstance'] = self.toyaml(obj.toinstance)
+            ret_dict['overridable'] = self.toyaml(obj.overridable)
+            ret_dict['translatable'] = self.toyaml(obj.translatable)
+            return ret_dict
         elif isinstance(obj, CIMQualifierDeclaration):
-            ret = OrderedDict()
-            ret['pywbem_object'] = 'CIMQualifierDeclaration'
-            ret['name'] = self.toyaml(obj.name)
-            ret['type'] = self.toyaml(obj.type)
-            ret['value'] = self.toyaml(obj.value)
-            ret['is_array'] = self.toyaml(obj.is_array)
-            ret['array_size'] = self.toyaml(obj.array_size)
-            ret['scopes'] = self.toyaml(obj.scopes)
-            ret['tosubclass'] = self.toyaml(obj.tosubclass)
-            ret['toinstance'] = self.toyaml(obj.toinstance)
-            ret['overridable'] = self.toyaml(obj.overridable)
-            ret['translatable'] = self.toyaml(obj.translatable)
-            return ret
+            ret_dict = OrderedDict()
+            ret_dict['pywbem_object'] = 'CIMQualifierDeclaration'
+            ret_dict['name'] = self.toyaml(obj.name)
+            ret_dict['type'] = self.toyaml(obj.type)
+            ret_dict['value'] = self.toyaml(obj.value)
+            ret_dict['is_array'] = self.toyaml(obj.is_array)
+            ret_dict['array_size'] = self.toyaml(obj.array_size)
+            ret_dict['scopes'] = self.toyaml(obj.scopes)
+            ret_dict['tosubclass'] = self.toyaml(obj.tosubclass)
+            ret_dict['toinstance'] = self.toyaml(obj.toinstance)
+            ret_dict['overridable'] = self.toyaml(obj.overridable)
+            ret_dict['translatable'] = self.toyaml(obj.translatable)
+            return ret_dict
         else:
             raise TypeError("Invalid type in TestClientRecorder.toyaml(): "
                             "%s %s" % (obj.__class__.__name__, type(obj)))
