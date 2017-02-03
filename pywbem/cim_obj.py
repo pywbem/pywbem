@@ -3880,6 +3880,17 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         self.tosubclass = tosubclass
         self.toinstance = toinstance
         self.translatable = translatable
+        if is_array is None:
+            raise ValueError('None not allowed for is_array')
+        if array_size and not is_array:
+            raise ValueError('QualifierDeclaration array_size allowed only '
+                             'when is_array is True.')
+        if isinstance(value, list) and not is_array:
+            raise ValueError('QualifierDeclaration is_array is False and '
+                             'value is a list.')
+        elif is_array and value is not None and not isinstance(value, list):
+            raise ValueError('QualifierDeclaration is_array is True but '
+                             'value is scalar')
 
     def _cmp(self, other):
         """

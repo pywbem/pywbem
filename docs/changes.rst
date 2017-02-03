@@ -38,6 +38,9 @@ Bug fixes
   Also extends these requests to test the Pull.. methods for valid
   MaxObjectCount and context parameters. See issue #656.
 
+* Add constructor parameter checking to QualifierDeclaration. See issue #645.
+
+
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 

@@ -3245,6 +3245,51 @@ class InitCIMQualifierDeclaration(unittest.TestCase):
                                 array_size=4, scopes=scopes,
                                 overridable=True, tosubclass=True,
                                 toinstance=True, translatable=False)
+        CIMQualifierDeclaration('FooQualDecl', 'uint32', is_array=True,
+                                value=[Uint32(x) for x in [1, 2, 3]],
+                                overridable=True, tosubclass=True,
+                                toinstance=True, translatable=False)
+        CIMQualifierDeclaration('FooQualDecl', 'uint32', is_array=False,
+                                value=Uint32(3),
+                                overridable=True, tosubclass=True,
+                                toinstance=True, translatable=False)
+
+    def test_errors(self):
+        """Test constructors that should generate errors"""
+        try:
+            CIMQualifierDeclaration('FooIs_ArrayNone', 'uint32', is_array=None)
+            self.fail('Exception expected')
+        except ValueError:
+            pass
+        try:
+            CIMQualifierDeclaration('is_arraySizeMismatch', 'string',
+                                    is_array=False,
+                                    array_size=4,
+                                    overridable=True, tosubclass=True,
+                                    toinstance=True, translatable=False)
+            self.fail('Exception expected')
+        except ValueError:
+            pass
+
+        try:
+            CIMQualifierDeclaration('is_arrayValueMismatch', 'uint32',
+                                    is_array=False,
+                                    value=[Uint32(x) for x in [1, 2, 3]],
+                                    overridable=True, tosubclass=True,
+                                    toinstance=True, translatable=False)
+            self.fail('Exception expected')
+        except ValueError:
+            pass
+
+        try:
+            CIMQualifierDeclaration('is_arrayValueMismatch', 'uint32',
+                                    is_array=True,
+                                    value=Uint32(3),
+                                    overridable=True, tosubclass=True,
+                                    toinstance=True, translatable=False)
+            self.fail('Exception expected')
+        except ValueError:
+            pass
 
 
 class CopyCIMQualifierDeclaration(unittest.TestCase):
