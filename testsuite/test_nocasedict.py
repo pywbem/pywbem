@@ -400,8 +400,8 @@ class TestEqual(BaseTest):
 
 class TestOrdering(BaseTest):
     """Verify that ordering comparisons between NocaseDict instances
-    issue a deprecation warning, and for Python 3, in addition the usual
-    "TypeError: unorderable types" for standard dicts."""
+    issue a deprecation warning, and for Python 3, in addition raise
+    TypeError."""
 
     def assertWarning(self, comp_str):
         with warnings.catch_warnings(record=True) as wlist:
@@ -412,10 +412,20 @@ class TestOrdering(BaseTest):
                 try:
                     eval(comp_str)
                 except TypeError as exc:
-                    assert "unorderable types" in str(exc)
+                    msg = str(exc)
+                    if "not supported between instances" not in msg and \
+                            "unorderable types" not in msg:
+                        self.fail("Applying ordering to a dictionary in "
+                                  "Python 3 did raise TypeError but with an "
+                                  "unexpected message: %s" % msg)
+                except Exception as exc:
+                    msg = str(exc)
+                    self.fail("Applying ordering to a dictionary in Python 3 "
+                              "did not raise TypeError, but %s: %s" %
+                              (exc.__class__.__name__, msg))
                 else:
-                    self.fail("Ordering a dictionary in Python 3 did not "
-                              "raise TypeError")
+                    self.fail("Applying ordering to a dictionary in Python 3 "
+                              "succeeded (should not happen)")
             assert len(wlist) >= 1
             assert issubclass(wlist[-1].category, DeprecationWarning)
             assert "deprecated" in str(wlist[-1].message)
