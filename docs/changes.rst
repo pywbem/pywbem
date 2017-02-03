@@ -27,6 +27,10 @@ Incompatible changes
 Enhancements
 ^^^^^^^^^^^^
 
+* Added support for automatically finding out whether for RHEL/CentOS/Fedora,
+  the IUS version of the Python development packages should be used,
+  dependent on whether the Python package is from IUS.
+
 Bug fixes
 ^^^^^^^^^
 
@@ -38,6 +42,14 @@ Bug fixes
   In that case, server should return error.
   Also extends these requests to test the Pull.. methods for valid
   MaxObjectCount and context parameters. See issue #656.
+
+* Fixed TypeError "'str' does not support the buffer interface" during
+  'setup.py develop' on Python 3.x on Windows (issue #661).
+
+* Fixed ValueError "underlying buffer has been detached" during
+  'setup.py develop' on Python 3.x on Windows (issue #661).
+
+* Fixed names of Python development packages for SLES/OpenSUSE.
 
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
@@ -60,6 +72,9 @@ Build, test, quality
 
 Documentation
 ^^^^^^^^^^^^^
+
+* Documented that pywbem is not supported on Python 2.6 on Windows.
+  and that 64-bit versions of Python are not supported on Windows.
 
 
 pywbem v0.10.0

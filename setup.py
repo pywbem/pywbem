@@ -42,7 +42,7 @@ import platform
 from distutils.errors import DistutilsSetupError
 
 import os_setup
-from os_setup import shell, shell_check, import_setuptools
+from os_setup import shell, shell_check, import_setuptools, YumInstaller
 
 # Workaround for Python 2.6 issue https://bugs.python.org/issue15881
 # This causes this module to be referenced and prevents the premature
@@ -308,8 +308,9 @@ def main():
             _VERBOSE = self.verbose
             _build_py.run(self)
 
-    py_version_m_n = "%s.%s" % (sys.version_info[0], sys.version_info[1])
+    py_version_mn = "%s%s" % (sys.version_info[0], sys.version_info[1])
     py_version_m = "%s" % sys.version_info[0]
+    yuminst = YumInstaller()
 
     pkg_version = package_version("pywbem/_version.py", "__version__")
 
@@ -393,11 +394,11 @@ def main():
                     "gcc-c++>=4.4",         # for building Swig and for running
                                             #   Swig in M2Crypto install
                     install_swig,           # for running Swig in M2Crypto inst.
-                    # Python-devel provides Python.h for Swig run.
-                    # The following assumes we have python34, not python34u
-                    "python34-devel" if py_version_m_n == "3.4" else \
-                    "python35-devel" if py_version_m_n == "3.5" else \
-                    "python-devel",
+                    # Python*-devel provides Python.h for Swig run.
+                    "python-devel" if py_version_m == "2" else \
+                    "python%su-devel" % py_version_mn if \
+                    yuminst.is_installed('python%su' % py_version_mn)[0] else \
+                    "python%s-devel" % py_version_mn
                 ],
                 'centos': 'redhat',
                 'fedora': 'redhat',
@@ -405,8 +406,8 @@ def main():
                     "libssl-dev>=1.0.1",
                     "g++>=4.4",
                     install_swig,
-                    "python-dev" if py_version_m == "2"
-                    else "python%s-dev" % py_version_m,
+                    "python-dev" if py_version_m == "2" else \
+                    "python%s-dev" % py_version_m,
                 ],
                 'debian': 'ubuntu',
                 'linuxmint': 'ubuntu',
@@ -414,7 +415,8 @@ def main():
                     "openssl-devel>=1.0.1",
                     "gcc-c++>=4.4",
                     install_swig,
-                    "libpython%s-devel" % py_version_m_n,
+                    "python-devel" if py_version_m == "2" else \
+                    "python%s-devel" % py_version_m,
                 ],
             },
             # TODO: Add support for Windows.
@@ -488,6 +490,7 @@ def main():
             'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
             'Topic :: Software Development :: Libraries :: Python Modules',
             'Topic :: System :: Systems Administration',
         ],

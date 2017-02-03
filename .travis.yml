@@ -8,6 +8,7 @@ python:
   - "2.7"
   - "3.4"
   - "3.5"
+  - "3.6"
 
 # commands to install dependencies
 install:
@@ -30,4 +31,4 @@ script:
   - make test
 
 after_success:
-  - coveralls
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
