@@ -170,9 +170,11 @@ their version requirements for a number of Linux distributions:
 |                            +---------------------+--------------------------+
 |                            | python-devel        | for Python 2.6, 2.7      |
 |                            +---------------------+--------------------------+
-|                            | python34u-devel     | for Python 3.4           |
+|                            | python3{N}u-devel   | for Python 3.{N} from IUS|
+|                            |                     | community (python3{N}u)  |
 |                            +---------------------+--------------------------+
-|                            | python35u-devel     | for Python 3.5           |
+|                            | python3{N}-devel    | for Python 3.{N} not from|
+|                            |                     | IUS (python3{N})         |
 |                            +---------------------+--------------------------+
 |                            | swig                | >=2.0                    |
 +----------------------------+---------------------+--------------------------+
@@ -182,7 +184,7 @@ their version requirements for a number of Linux distributions:
 |                            +---------------------+--------------------------+
 |                            | python-dev          | for Python 2.6, 2.7      |
 |                            +---------------------+--------------------------+
-|                            | python3-dev         | for Python 3.4, 3.5      |
+|                            | python3-dev         | for Python 3.4 - 3.6     |
 |                            +---------------------+--------------------------+
 |                            | swig                | >=2.0                    |
 +----------------------------+---------------------+--------------------------+
@@ -190,13 +192,9 @@ their version requirements for a number of Linux distributions:
 |                            +---------------------+--------------------------+
 |                            | gcc-c++             | >=4.4                    |
 |                            +---------------------+--------------------------+
-|                            | libpython26-devel   | for Python 2.6           |
+|                            | python-devel        | for Python 2.6, 2.7      |
 |                            +---------------------+--------------------------+
-|                            | libpython27-devel   | for Python 2.7           |
-|                            +---------------------+--------------------------+
-|                            | libpython34-devel   | for Python 3.4           |
-|                            +---------------------+--------------------------+
-|                            | libpython35-devel   | for Python 3.5           |
+|                            | python3-devel       | for Python 3.4 - 3.6     |
 |                            +---------------------+--------------------------+
 |                            | swig                | >=2.0                    |
 +----------------------------+---------------------+--------------------------+
@@ -251,8 +249,19 @@ Supported environments
 
 Pywbem is supported in these environments:
 
-* Operating Systems: Linux, Windows, OS-X (testing has mostly happened on Linux)
-* Python: 2.6, 2.7, 3.4, 3.5, and higher 3.x
+* Operating Systems: Linux, Windows, OS-X
+* Python: 2.6, 2.7, 3.4, 3.5, 3.6
+
+Limitations:
+
+* On Windows, pywbem is not supported on Python 2.6, because M2Crypto in the
+  M2CryptoWin32/64 package does not support Python 2.6.
+
+* On Windows, pywbem has not been tested on 64-bit versions of Python, because
+  the libxslt etc. development packages needed to install lxml that are used
+  do not provide the link libraries in the format needed by lxml. Because
+  lxml is only used for development and test of pywbem, just running pywbem on
+  64-bit versions of Windows may or may not work.
 
 
 .. _`Standards conformance`:
