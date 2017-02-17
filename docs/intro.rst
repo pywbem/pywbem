@@ -355,8 +355,8 @@ Python namespaces
 -----------------
 
 The external APIs of pywbem are defined by the symbols in the ``pywbem``
-namespace. With a few exceptions, that is the only Python namespace that needs
-to be imported by users.
+namespace. That is the only Python namespace that needs to be imported by
+users.
 
 With pywbem versions prior to v0.8, it was common for users to import the
 sub-modules of pywbem (e.g. ``pywbem.cim_obj``). The sub-modules that existed
@@ -374,8 +374,10 @@ New sub-modules added since pywbem v0.8 have a leading underscore in their name
 in order to document that they are considered an implementation detail and that
 they should not be imported by users.
 
-The only exception to the single-namespace rule stated above, is the
-:ref:`MOF compiler API`, which uses the ``pywbem.mof_compiler`` namespace.
+With pywbem versions prior to v0.11, the :ref:`MOF compiler API` was only
+available in the ``pywbem.mof_compiler`` namespace. Starting with pywbem
+version v0.11, it is also available in the ``pywbem`` namespace and should be
+used from there.
 
 This documentation describes only the external APIs of pywbem, and omits any
 internal symbols and any sub-modules.
