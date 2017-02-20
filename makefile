@@ -138,7 +138,7 @@ test_tmp_file := test_$(python_mn_version).tmp.log
 # as specified, without being expanded.
 dist_manifest_in_files := \
     $(package_name)/LICENSE.txt \
-    README.md \
+    README.rst \
     INSTALL.md \
     *.py \
     $(package_name)/*.py \
@@ -147,7 +147,7 @@ dist_manifest_in_files := \
 # Keep in sync with dist_manifest_in_files.
 dist_dependent_files := \
     $(package_name)/LICENSE.txt \
-    README.md \
+    README.rst \
     INSTALL.md \
     $(wildcard *.py) \
     $(wildcard $(package_name)/*.py) \
