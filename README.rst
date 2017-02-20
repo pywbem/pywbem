@@ -132,7 +132,7 @@ Pywbem includes two command line tools:
    server. In addition to executing the WBEM operations directly, simple
    scripts can be created to be executed.  
 
-2. `mof_comp` - A MOF compiler to compile MOF into repositories (e.g.
+2. `mof_compiler` - A MOF compiler to compile MOF into repositories (e.g.
    WBEM servers).
 
 QuickStart
@@ -140,6 +140,7 @@ QuickStart
 
 The following simple example script lists the namespaces and the Interop
 namespace in a particular WBEM server:
+=======
 
 .. code-block:: python
 
