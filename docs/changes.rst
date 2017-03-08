@@ -30,6 +30,9 @@ Enhancements
   the IUS version of the Python development packages should be used,
   dependent on whether the Python package is from IUS.
 
+* Added the MOF compiler API to the ``pywbem`` namespace. For compatibility, it
+  is still available in the ``pywbem.mof_compiler`` namespace. See issue #634.
+
 Bug fixes
 ^^^^^^^^^
 
@@ -63,7 +66,7 @@ Build, test, quality
 
 * Fixed uninstall_pbr_on_py26.py to remove 'pbr' only if installed
   (issue #661).
-    
+
 * Fixed TypeError about dict ordering on Python 3.6 in unit test
   'test_nocasedict.TestOrdering' (issue #661).
 

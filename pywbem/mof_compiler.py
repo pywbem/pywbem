@@ -36,17 +36,15 @@ from the repository it has a definition for in the MOF files it processes.
 The MOF compiler API provides for invoking the MOF compiler and for plugging in
 your own CIM repository into the MOF compiler.
 
-The MOF compiler API is available in the ``pywbem.mof_compiler`` module.
-
 This chapter has the following sections:
 
-* :ref:`MOFCompiler` - Describes the :class:`~pywbem.mof_compiler.MOFCompiler`
+* :ref:`MOFCompiler` - Describes the :class:`~pywbem.MOFCompiler`
   class, which allows invoking the MOF compiler programmatically.
 
 * :ref:`Repository connections` - Describes the
-  :class:`~pywbem.mof_compiler.BaseRepositoryConnection` class that defines
+  :class:`~pywbem.BaseRepositoryConnection` class that defines
   the interface for connecting to a CIM repository, and the
-  :class:`~pywbem.mof_compiler.MOFWBEMConnection` class that is a connection
+  :class:`~pywbem.MOFWBEMConnection` class that is a connection
   to an in-memory repository on top of an underlying repository, and is used
   by the MOF compiler to provide rollback support.
 
@@ -1763,10 +1761,10 @@ class BaseRepositoryConnection(object):
     """
     An abstract base class for implementing repository connections for the MOF
     compiler. This class defines the interface that is used by the MOF compiler
-    (class :class:`~pywbem.mof_compiler.MOFCompiler`) when it interacts with
+    (class :class:`~pywbem.MOFCompiler`) when it interacts with
     the repository.
 
-    Class :class:`~pywbem.mof_compiler.MOFCompiler` invokes only the operations
+    Class :class:`~pywbem.MOFCompiler` invokes only the operations
     that are defined as methods on this class. Specifically, it does not
     invoke:
 
@@ -1929,7 +1927,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
     is connected with the CIM repository that is actually being updated.
 
     This class implements the
-    :class:`~pywbem.mof_compiler.BaseRepositoryConnection` interface.
+    :class:`~pywbem.BaseRepositoryConnection` interface.
 
     Exceptions:
 
@@ -2219,7 +2217,7 @@ class MOFCompiler(object):
     The association with a CIM repository is established when creating an
     instance of this class. The interactions with the CIM repository are
     defined in the abstract base class
-    :class:`~pywbem.mof_compiler.BaseRepositoryConnection`.
+    :class:`~pywbem.BaseRepositoryConnection`.
     """
 
     def __init__(self, handle, search_paths=None, verbose=False,

@@ -11,7 +11,7 @@ MOF compiler API
 MOFCompiler
 ------------
 
-.. autoclass:: pywbem.mof_compiler.MOFCompiler
+.. autoclass:: pywbem.MOFCompiler
    :members:
 
 .. _`Repository connections`:
@@ -19,10 +19,10 @@ MOFCompiler
 Repository connections
 ----------------------
 
-.. autoclass:: pywbem.mof_compiler.BaseRepositoryConnection
+.. autoclass:: pywbem.BaseRepositoryConnection
    :members:
 
-.. autoclass:: pywbem.mof_compiler.MOFWBEMConnection
+.. autoclass:: pywbem.MOFWBEMConnection
    :members:
 
 .. _`MOF compiler exceptions`:
@@ -30,6 +30,6 @@ Repository connections
 Exceptions
 ----------
 
-.. autoclass:: pywbem.mof_compiler.MOFParseError
+.. autoclass:: pywbem.MOFParseError
    :members:
 
