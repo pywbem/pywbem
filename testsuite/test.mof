@@ -1,3 +1,14 @@
+/*
+    This file includes several classes and instances used in
+    testing pywbem and pywbemtools. It can be installed
+    in a wbem server (either in the repository or
+    provider). It allows creating standard tests because
+    the exact data to be returned is defined in the
+    instances. All of these class names are prefixed
+    with PyWBEM to distinguish them from other classes
+    in a server
+*/
+
 class PyWBEM_Person : CIM_Person {
 };
 
@@ -8,35 +19,151 @@ class PyWBEM_MemberOfPersonCollection : CIM_MemberOfCollection {
 };
 
 instance of PyWBEM_Person as $Alice {
-	CreationClassName = "PyWBEM_Person";
-	Name = "Alice";
+    CreationClassName = "PyWBEM_Person";
+    Name = "Alice";
 };
 
 instance of PyWBEM_Person as $Bob {
-	CreationClassName = "PyWBEM_Person";
-	Name = "Bob";
+    CreationClassName = "PyWBEM_Person";
+    Name = "Bob";
 };
 
 instance of PyWBEM_Person as $Charlie {
-	CreationClassName = "PyWBEM_Person";
-	Name = "Charlie";
+    CreationClassName = "PyWBEM_Person";
+    Name = "Charlie";
 };
 
 instance of PyWBEM_PersonCollection as $Collection {
-	InstanceID = "PersonCollection";
+    InstanceID = "PersonCollection";
 };
 
 instance of PyWBEM_MemberOfPersonCollection {
-	Collection = $Collection;
-	Member = $Alice;
+    Collection = $Collection;
+    Member = $Alice;
 };
 
 instance of PyWBEM_MemberOfPersonCollection {
-	Collection = $Collection;
-	Member = $Bob;
+    Collection = $Collection;
+    Member = $Bob;
 };
 
 instance of PyWBEM_MemberOfPersonCollection {
-	Collection = $Collection;
-	Member = $Charlie;
+    Collection = $Collection;
+    Member = $Charlie;
 };
+
+// This class defines all of the primitive CIM data types to be used both
+// by requests and methods so that they can be tested by a client.
+[Version ( "1.0.0" ),
+    Description (
+        "Class that defines all properties for all data types and both "
+        " scalar and array properties with these types. The goal of this "
+        "class is to provide a basis for client testing of request and "
+        " responses with all data types. This does not include the "
+        " embedded types. That will be covered in a separate set of classes."
+        "The REF data type in methods is also covered in other classes today.")
+    ]
+class PyWBEM_AllTypes {
+    [key,
+    Description (
+    "Within the scope of the instantiating Namespace, "
+    "InstanceID opaquely and uniquely identifies an instance "
+    "of this class. In order to ensure uniqueness within the "
+    "NameSpace, the value of InstanceID SHOULD be constructed "
+    "using the following \'preferred\' algorithm: \n"
+    "<OrgID>:<LocalID> \n")
+    ]
+    String InstanceId;
+
+   // Scalar property data types. The following are all of the possible  DMTF
+   // scalar data types each in a property named in accord with the datatype.
+
+   Boolean scalBool;
+   Uint8   scalUint8;
+   Sint8   scalSint8;
+   Uint16  scalUint16;
+   Sint16  scalSint16;
+   Uint32  scalUint32;
+   Sint32  scalSint32;
+   Uint64  scalUint64;
+   Sint64  scalSint64;
+   Real32  scalReal32;
+   Real64  scalReal64;
+   String  scalString;
+   Datetime scalDateTime;
+
+   // Scalar properties with default values
+   [Description ("Scalar Boolean property that may be created or returned. "
+       "TODO define what default means to the client.")]
+   Boolean defaultBool = true;
+   Uint8   defaultUint8 = 4;
+   Sint8   defaultSint8 = 4;
+   Uint16  defaultUint16 = 4;
+   Sint16  defaultSint16 = 4;
+   Uint32  defaultUint32 = 4;
+   Sint32  defaultSint32 = 4;
+   Uint64  defaultUint64 = 4;
+   Sint64  defaultSint64 = 4;
+   Real32  defaultReal32 = 1.0;
+   Real64  defaultReal64 = 1.0;
+   String  defaultString = "test\"embedded\"quote";
+   Datetime defaultDateTime;
+
+   // The following are all of the possible DMTF primitive data types defined
+   // within array properties.
+
+   [Description ("Array Boolean property that may be created or returned.")]
+   Boolean arrayBool[];
+   [Description ("Array Uint8 property that may be created or returned.")]
+   Uint8   arrayUint8[];
+   Sint8   arraySint8[];
+   Uint16  arrayUint16[];
+   Sint16  arraySint16[];
+   Uint32  arrayUint32[];
+   Sint32  arraySint32[];
+   Uint64  arrayUint64[];
+   Sint64  arraySint64[];
+   Real32  arrayReal32[];
+   Real64  arrayReal64[];
+   String  arrayString[];
+   Datetime arrayDateTime[];
+};
+
+# An instance that returns all of the scalar data types
+instance of PyWBEM_AllTypes {
+   InstanceId = "scal1";
+   scalBool = true;
+   scalUint8 = 8;
+   scalSint8 = -8;
+   scalUint16 = 45;
+   scalSint16 =-45;
+   scalUint32 = 9999;
+   scalSint32 = -9999;
+   scalUint64 = 99999;
+   scalSint64 = -99999;
+   scalReal32 = 1.9;
+   scalReal64 = 1.9;
+   scalString = "This is a test string";
+   scalDateTime = "19991224120000.000000+360";
+};
+# instance that returns all of the array data types
+instance of PyWBEM_AllTypes {
+
+   InstanceId = "array1";
+   arrayBool = {true, false};
+   arrayUint8 = {0,8, 125};
+   arraySint8 = {-8};
+   arrayUint16 = {0, 45};
+   arraySint16 = {0, 45};
+   arrayUint32 = {0, 9999};
+   arraySint32 = {0, -9999};
+   arrayUint64 = {0, 99999};
+   arraySint64 = {-99999, 0, 99999};
+   arrayReal32 = {0, 1.9};
+   arrayReal64 = {0, 1.9};
+   arrayString = {"This is a test string", "Second String"};
+   arrayDateTime = {"19991224120000.000000+360", "19991224120000.000000+360"};
+};
+
+
+
