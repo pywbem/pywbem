@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 #
+"""
+    Test tool to manipulate the test.mof class in a WBEM server.  This can
+    be used to either add the classes and instances in the server or to
+    remove them and clean all reference to them out of the server. Note
+    If providers were created to handle these classes this may not work.
+"""
 from __future__ import print_function, absolute_import
 
 import sys as _sys
@@ -24,7 +30,7 @@ def moflog(msg):
 def compile_mof(conn, mof_file, namespace):
     """Compile the mof_file into the server defined by conn"""
 
-    moflog_file = _os.path.join(SCRIPT_DIR, 'addtestnif.txt')
+    moflog_file = _os.path.join(SCRIPT_DIR, 'addtestmof.txt')
     global LOGFILE
     LOGFILE = open(moflog_file, 'w')
     mofcomp = MOFCompiler(
@@ -45,7 +51,7 @@ def test_compiled_mof(conn):
     assert(len(inst_names) == 3)
 
     assoc_names = conn.AssociatorNames(inst_names[0])
-    assert(len(assoc_names) == 1)
+    assert(len(assoc_names) == 3)
 
 
 def _remote_connection(server, opts, argparser_):
@@ -99,6 +105,35 @@ def _remote_connection(server, opts, argparser_):
     conn.debug = True
 
     return conn
+
+
+def remove_pywbem_objects(conn, mof_file, verbose):
+    """
+    Remove instances of the pywbem objects
+    Then use the compiler to remove the classes
+    """
+
+    # find all classes that have pywbem prefix.
+
+    classes = conn.EnumerateClassNames(DeepInheritance=True)
+
+    filtered_classes = [cls for cls in classes if cls.startswith('PyWBEM_')]
+
+    if not filtered_classes:
+        print('There are no PyWBEM_ classes. Exiting.')
+        return
+
+    print(' Deleting instances of %s' % filtered_classes)
+
+    for cls in filtered_classes:        
+        inst_names = conn.EnumerateInstanceNames(cls)
+        for inst_name in inst_names:
+            try:
+                conn.DeleteInstance(inst_name)
+            except CIMError as ce:
+                if ce.status_code == CIM_ERR_NOT_FOUND:
+                    print('%s in enum but reported not found for delete %s' %
+                          (inst_name, ce))
 
 
 class _WbemcliCustomFormatter(_SmartFormatter,
@@ -222,6 +257,10 @@ Examples:
     general_arggroup = argparser.add_argument_group(
         'General options')
     general_arggroup.add_argument(
+        '-r', '--remove', dest='remove',
+        action='store_true', default=False,
+        help='Remove the mof including instances instead of adding it.')
+    general_arggroup.add_argument(
         '-v', '--verbose', dest='verbose',
         action='store_true', default=False,
         help='Print more messages while processing')
@@ -234,23 +273,35 @@ Examples:
     if not args.server:
         argparser.error('No WBEM server specified')
 
+    print(args)
+
     # Set up a client connection
     conn = _remote_connection(args.server, args, argparser)
     global SCRIPT_DIR
     SCRIPT_DIR = _os.path.dirname(__file__)
 
+    pywbem_exists = None
     try:
         conn.GetClass('PyWBEM_Person')
-        print('Classes already exist in server. Terminating.')
-        return
+        pywbem_exists = True
     except CIMError:
-        pass
+        pywbem_exists = False
+
 
     mof_file = _os.path.join(SCRIPT_DIR, 'test.mof')
 
-    compile_mof(conn, mof_file, args.namespace)
+    if args.remove:
+        if not pywbem_exists:
+            print('The class PyWBEM_Person does not exist so this may fail')
+        remove_pywbem_objects(conn, mof_file, args.verbose)
+    else:
+        if pywbem_exists:
+            print('The class PyWBEM_Person exists. exiting')
+            return
+        
+        compile_mof(conn, mof_file, args.namespace)
 
-    test_compiled_mof(conn)
+        test_compiled_mof(conn)
 
 
 if __name__ == '__main__':
