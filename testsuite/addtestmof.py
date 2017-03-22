@@ -8,7 +8,7 @@ import getpass as _getpass
 import re
 import argparse as _argparse
 from pywbem import WBEMConnection, CIMError
-from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
+from pywbem.mof_compiler import MOFCompiler
 from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 
@@ -243,7 +243,7 @@ Examples:
         conn.GetClass('PyWBEM_Person')
         print('Classes already exist in server. Terminating.')
         return
-    except CIMError as ce:
+    except CIMError:
         pass
 
     mof_file = _os.path.join(SCRIPT_DIR, 'test.mof')
