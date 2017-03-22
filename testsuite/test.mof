@@ -129,7 +129,7 @@ class PyWBEM_AllTypes {
    Datetime arrayDateTime[];
 };
 
-# An instance that returns all of the scalar data types
+// An instance that returns all of the scalar data types
 instance of PyWBEM_AllTypes {
    InstanceId = "scal1";
    scalBool = true;
@@ -146,7 +146,7 @@ instance of PyWBEM_AllTypes {
    scalString = "This is a test string";
    scalDateTime = "19991224120000.000000+360";
 };
-# instance that returns all of the array data types
+// instance that returns all of the array data types
 instance of PyWBEM_AllTypes {
 
    InstanceId = "array1";
