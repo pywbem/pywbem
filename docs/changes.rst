@@ -33,6 +33,11 @@ Enhancements
 * Added the MOF compiler API to the ``pywbem`` namespace. For compatibility, it
   is still available in the ``pywbem.mof_compiler`` namespace. See issue #634.
 
+* Modify the pattern used for cim_operation.py request methods from using
+  except/else to use except/finally to reduce number of places code like
+  the recorder call and future statistics, log, etc. calls have to be included.
+  See issue #680
+
 Bug fixes
 ^^^^^^^^^
 
