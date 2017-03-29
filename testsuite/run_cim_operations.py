@@ -53,7 +53,7 @@ SKIP_LONGRUNNING_TEST = True
 
 CLI_ARGS = None
 
-# define the file that conatins the PyWBEM_Persion, etc. mof
+# define the file that contains the PyWBEM_Person, etc. mof
 PYWBEM_TEST_MOF_DIR = os.path.dirname(__file__)
 PYWBEM_TEST_MOF = os.path.join(PYWBEM_TEST_MOF_DIR, 'test.mof')
 
@@ -1467,7 +1467,7 @@ class PullReferences(ClientTest):
 
             # test the returned insts_pulled
             self.assertTrue(len(insts_pulled) > 0,
-                            'PyWBEM_Persion expects pulled instances')
+                            'PyWBEM_Person expects pulled instances')
             self.assertInstancesValid(insts_pulled)
             for inst in insts_pulled:
                 self.assertEqual(inst.classname,
@@ -5475,7 +5475,7 @@ class IterQueryInstances(PegasusServerTestBase):
             else:
                 raise
 
-    def test_zeroopen_pullexecquery(self):
+    def test_zeroopen_iterexecquery(self):
         try:
 
             # Simplest invocation

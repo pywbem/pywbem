@@ -17,30 +17,30 @@ locally.
 
 In order to view a tutorial, just click on a link in this table:
 
-===================================  ==========================================
-Tutorial                             Short description
-===================================  ==========================================
-:nbview:`connections.ipynb`          Making connections to a WBEM server
-:nbview:`datamodel.ipynb`            Representation of CIM objects in Python
-:nbview:`enuminsts.ipynb`            EnumerateInstances
-:nbview:`enuminstnames.ipynb`        EnumerateInstanceNames
-:nbview:`getinstance.ipynb`          GetInstance
-:nbview:`createdeleteinst.ipynb`     CreateInstance + DeleteInstance
-:nbview:`modifyinstance.ipynb`       ModifyInstance
-:nbview:`invokemethod.ipynb`         InvokeMethod
-:nbview:`subscriptionmanager.ipynb`  Subscription Manager
-===================================  ==========================================
+===================================== ==========================================
+Tutorial                              Short description
+===================================== ==========================================
+:nbview:`connections.ipynb`           Making connections to a WBEM server
+:nbview:`datamodel.ipynb`             Representation of CIM objects in Python
+:nbview:`enuminsts.ipynb`             EnumerateInstances
+:nbview:`enuminstnames.ipynb`         EnumerateInstanceNames
+:nbview:`getinstance.ipynb`           GetInstance
+:nbview:`createdeleteinst.ipynb`      CreateInstance + DeleteInstance
+:nbview:`modifyinstance.ipynb`        ModifyInstance
+:nbview:`invokemethod.ipynb`          InvokeMethod
+:nbview:`pulloperations.ipynb`        The Pull Operations
+:nbview:`iterablecimoperations.ipynb` The Iterable Operation Extensions
+:nbview:`wbemserverclass.ipynb`       Pywbem WBEMServer Class
+:nbview:`subscriptionmanager.ipynb`   Subscription Manager
+===================================== ==========================================
 
 For the following topics, tutorials are not yet available:
 
-* Pulled Enumerations
 * ExecQuery
 * Association Operations
 * Class Operations
 * Qualifier Operations
-* WBEMServer
 * WBEMListener
-* WBEMSubscriptionManager
 
 Executing code in the tutorials
 -------------------------------
