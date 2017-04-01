@@ -36,6 +36,7 @@ Enhancements
 * Modify the pattern used for cim_operation.py request methods from using
   except/else to use except/finally to reduce number of places code like
   the recorder call and future statistics, log, etc. calls have to be included.
+  No other functional changes.
   See issue #680
 
 Bug fixes
