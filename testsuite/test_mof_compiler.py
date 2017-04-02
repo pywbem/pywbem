@@ -18,7 +18,7 @@ from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_INVALID_SUPERCLASS
 from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
-    CIMQualifierDeclaration, CIMDateTime
+    CIMQualifierDeclaration, CIMDateTime, CIMInstanceName, NocaseDict
 from pywbem import mof_compiler
 
 from unittest_extensions import CIMObjectMixin
@@ -194,12 +194,69 @@ class TestAliases(MOFTest):
     """Test of a mof file that contains aliases"""
 
     def test_all(self):
-        """Execute test using test.mof file"""
+        """
+        Execute test using test.mof file. This compiles the test.mof file
+        and tests for a) valid classes and instances, and then for
+        a correct instance of the association class.
 
+        This was easier than trying to create a test case in memory since that
+        would involve 3 classes and multiple instances.
+        """
+        # compile the mof
         self.mofcomp.compile_file(
             os.path.join(SCRIPT_DIR, 'test.mof'), NAME_SPACE)
 
-    # TODO: ks 4/16 confirm that this actually works other than just compile
+        # test for valid classes since we do not do that elsewhere
+        pywbem_person_class = self.mofcomp.handle.GetClass(
+            'PyWBEM_Person', LocalOnly=False, IncludeQualifiers=True)
+        self.assertEqual(pywbem_person_class.properties['Name'].type, 'string')
+
+        ccs = self.mofcomp.handle.GetClass(
+            'PyWBEM_MemberOfPersonCollection',
+            LocalOnly=False, IncludeQualifiers=True)
+        self.assertEqual(ccs.properties['Member'].type, 'reference')
+
+        # get the instances
+        insts = self.mofcomp.handle.instances[NAME_SPACE]
+
+        # get a particular instance of PyWBEM_Person.  This is
+        # equivalent to getInstance('PyWBEM_PERSON.name=Alice')
+        my_person = [inst for inst in insts
+                     if inst.classname == 'PyWBEM_Person' and
+                     inst['name'] == 'Alice']
+
+        self.assertEqual(len(my_person), 1)
+        my_person = my_person[0]
+
+        # get the instance we want of PyWBEM_PersonCollection
+        inst_coll = [inst for inst in insts
+                     if inst.classname == 'PyWBEM_PersonCollection' and
+                     inst['InstanceID'] == 'PersonCollection']
+        self.assertEqual(len(inst_coll), 1)
+        inst_coll = inst_coll[0]
+        #   and inst.properties['InstanceID'] == 'PersonCollection'
+
+        member_path = my_person.path
+        collection_path = inst_coll.path
+        pywbem_members = [
+            inst for inst in insts
+            if inst.classname == 'PyWBEM_MemberOfPersonCollection']
+
+        # test for valid keybinding in one instance of MembersOfPersonCollection
+        # against predefined CIMInstanceName. Confirms keybindings exist
+        pywbem_member = pywbem_members[0]
+        member_property = pywbem_member.properties['Collection']
+
+        kb = NocaseDict({'InstanceID': 'PersonCollection'})
+        exp_path = CIMInstanceName('PyWBEM_PersonCollection', kb,
+                                   namespace=NAME_SPACE)
+        self.assertEqual(member_property.value, exp_path)
+
+        # find our instance in MembersOfPersonCollection
+        my_member = [inst for inst in pywbem_members
+                     if inst['member'] == member_path and
+                     inst['Collection'] == collection_path]
+        self.assertEqual(len(my_member), 1)
 
 
 class TestSchemaError(MOFTest):
@@ -209,7 +266,6 @@ class TestSchemaError(MOFTest):
         """Test multiple errors. Each test tries to compile a
            specific mof and should result in a specific error
         """
-        # TODO ks 4/16 should these become individual tests
         self.mofcomp.parser.search_paths = []
         try:
             self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
