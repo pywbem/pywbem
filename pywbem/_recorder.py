@@ -573,14 +573,14 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['properties'] = self.toyaml(obj.properties)
             ret_dict['methods'] = self.toyaml(obj.methods)
             ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
-            return ret
+            return ret_dict
         elif isinstance(obj, CIMClassName):
             ret_dict = OrderedDict()
             ret_dict['pywbem_object'] = 'CIMClassName'
             ret_dict['classname'] = self.toyaml(obj.classname)
             ret_dict['host'] = self.toyaml(obj.host)
             ret_dict['namespace'] = self.toyaml(obj.namespace)
-            return ret
+            return ret_dict
         elif isinstance(obj, CIMProperty):
             ret_dict = OrderedDict()
             ret_dict['pywbem_object'] = 'CIMProperty'
@@ -594,7 +594,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['class_origin'] = self.toyaml(obj.class_origin)
             ret_dict['propagated'] = self.toyaml(obj.propagated)
             ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
-            return ret
+            return ret_dict
         elif isinstance(obj, CIMMethod):
             ret_dict = OrderedDict()
             ret_dict['pywbem_object'] = 'CIMMethod'
