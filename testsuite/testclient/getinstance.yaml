@@ -9,6 +9,7 @@
         namespace: root/cimv2
         timeout: 10
         debug: false
+        enable-stats: false
         operation:
             pywbem_method: GetInstance
             InstanceName:
@@ -87,6 +88,96 @@
             </CIM>
 -
     name: GetInstance2
+    description: GetInstance succeeds stats gathered and request/reply lengths tested
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        enable-stats: true
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                    Name: Fritz
+            LocalOnly: false
+    pywbem_response:
+        req_len: 503
+        reply_len: 585
+        result:
+            pywbem_object: CIMInstance
+            classname: PyWBEM_Person
+            properties:
+                Name: Fritz
+                Address: Fritz Town
+            path:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    Name: Fritz
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>False</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetInstance">
+                    <IRETURNVALUE>
+                      <INSTANCE CLASSNAME="PyWBEM_Person">
+                        <PROPERTY NAME="Name" TYPE="string">
+                          <VALUE>Fritz</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="Address" TYPE="string">
+                          <VALUE>Fritz Town</VALUE>
+                        </PROPERTY>
+                      </INSTANCE>
+                    </IRETURNVALUE>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: GetInstanceE1
     description: GetInstance fails with CIM_ERR_ACCESS_DENIED
     pywbem_request:
         url: http://acme.com:80
@@ -153,7 +244,7 @@
               </MESSAGE>
             </CIM>
 -
-    name: GetInstance3
+    name: GetInstanceE2
     description: GetInstance fails with CIM_ERR_INVALID_NAMESPACE (and input params swapped)
     pywbem_request:
         url: http://acme.com:80
@@ -220,7 +311,7 @@
               </MESSAGE>
             </CIM>
 -
-    name: GetInstance4
+    name: GetInstanceE3
     description: GetInstance fails with CIM_ERR_INVALID_PARAMETER
     pywbem_request:
         url: http://acme.com:80
@@ -291,7 +382,7 @@
               </MESSAGE>
             </CIM>
 -
-    name: GetInstance5
+    name: GetInstanceE4
     description: GetInstance fails with CIM_ERR_INVALID_CLASS
     pywbem_request:
         url: http://acme.com:80
@@ -358,7 +449,7 @@
               </MESSAGE>
             </CIM>
 -
-    name: GetInstance6
+    name: GetInstanceE5
     description: GetInstance fails with CIM_ERR_NOT_FOUND
     pywbem_request:
         url: http://acme.com:80
@@ -425,7 +516,7 @@
               </MESSAGE>
             </CIM>
 -
-    name: GetInstance7
+    name: GetInstanceE6
     description: GetInstance fails with CIM_ERR_FAILED
     pywbem_request:
         url: http://acme.com:80

@@ -25,6 +25,7 @@ The following YAML is an example for one testcase in such a file:
             namespace: root/cimv2
             timeout: 10
             debug: false
+            enable_stats: false
             operation:
                 pywbem_method: GetInstance
                 InstanceName:
@@ -34,6 +35,8 @@ The following YAML is an example for one testcase in such a file:
                         Name: Fritz
                 LocalOnly: false
         pywbem_response:
+            req_len: 100
+            reply_len: 100
             result:
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
@@ -156,6 +159,10 @@ Elements in `pywbem_request` element
 * `debug`:
   Boolean indicating whether the PyWBEM client enables debug mode.
 
+* `enable_stats`:
+  Boolean indicating whether the PyWBEM client enables gathering statistical
+  information on operations.
+
 * `operation`:
   A specification of the WBEMConnection method (= CIM operation) to be
   invoked. Its child elements are:
@@ -191,6 +198,16 @@ Elements in `pywbem_response` element
   The name of the Python exception that is expectd to be raised.
   This is optional; if not specified, it defaults to None (=no exception is
   raised).
+
+* `req_len`:
+  Defines expected length of the request. If this element exists, the
+  value is tested against the last_req_len field of the connection. If not
+  specified the test is bypassed.
+
+* `reply_len`:
+  Defines expected length of the response. If this element exists, the
+  value is tested against the last_reply_len field of the connection. If not
+  specified the test is bypassed.
 
 * `result`:
   A specification of the expected result (= return value) of the operation,

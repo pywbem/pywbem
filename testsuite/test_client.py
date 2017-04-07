@@ -576,7 +576,9 @@ class ClientTest(unittest.TestCase):
             url=tc_getattr(tc_name, pywbem_request, "url"),
             creds=tc_getattr(tc_name, pywbem_request, "creds"),
             default_namespace=tc_getattr(tc_name, pywbem_request, "namespace"),
-            timeout=tc_getattr(tc_name, pywbem_request, "timeout"))
+            timeout=tc_getattr(tc_name, pywbem_request, "timeout"),
+            enable_stats=tc_getattr(tc_name, pywbem_request, "enable-stats",
+                                    False))
 
         conn.debug = tc_getattr(tc_name, pywbem_request, "debug", False)
 
@@ -633,6 +635,10 @@ class ClientTest(unittest.TestCase):
         # get the expected result.  This may be either the the definition
         # of a value or cimobject or a list of values or cimobjects or
         # a named tuple of results.
+        exp_req_len = tc_getattr_list(tc_name, exp_pywbem_response, "req_len",
+                                      None)
+        exp_reply_len = tc_getattr_list(tc_name, exp_pywbem_response,
+                                        "reply_len", None)
         exp_result = tc_getattr_list(tc_name, exp_pywbem_response, "result",
                                      None)
 
@@ -705,6 +711,15 @@ class ClientTest(unittest.TestCase):
             exp_data = tc_getattr(tc_name, exp_http_request, "data", None)
             self.assertXMLEqual(http_request.body, exp_data,
                                 "Unexpected CIM-XML payload in HTTP request")
+        if exp_req_len is not None:
+            self.assertEqual(exp_req_len, conn.last_req_len, 'request lengths '
+                             'do not match. exp %s rcvd %s' %
+                             (exp_req_len, conn.last_req_len))
+
+        if exp_reply_len is not None:
+            self.assertEqual(exp_reply_len, conn.last_reply_len, 'ply '
+                             'lengths do not match. exp %s rcvd %s' %
+                             (exp_reply_len, conn.last_reply_len))
 
         # Continue with validating the result
 
