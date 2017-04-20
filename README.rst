@@ -140,7 +140,6 @@ QuickStart
 
 The following simple example script lists the namespaces and the Interop
 namespace in a particular WBEM server:
-=======
 
 .. code-block:: python
 
