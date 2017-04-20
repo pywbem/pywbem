@@ -55,7 +55,7 @@ class StatisticsTests(unittest.TestCase):
                          "Error:  initial state has no time statistics. "
                          "Actual number = %d" % snapshot_length)
 
-        stats = statistics.get_named_statistic('EnumerateInstances')
+        stats = statistics.get_op_statistic('EnumerateInstances')
         snapshot_length = len(statistics.snapshot())
         self.assertEqual(snapshot_length, 0,
                          "Error: getting a new stats with a disabled "
@@ -68,15 +68,15 @@ class StatisticsTests(unittest.TestCase):
         self.assertEqual(stats.min_time, float('inf'))
         self.assertEqual(stats.max_time, 0)
 
-        self.assertEqual(stats.avg_req_len, 0)
-        self.assertEqual(stats.min_req_len, float('inf'))
-        self.assertEqual(stats.max_req_len, 0)
+        self.assertEqual(stats.avg_request_len, 0)
+        self.assertEqual(stats.min_request_len, float('inf'))
+        self.assertEqual(stats.max_request_len, 0)
 
         statistics.enable()
 
         method_name = 'OpenEnumerateInstances'
 
-        stats = statistics.get_named_statistic(method_name)
+        stats = statistics.get_op_statistic(method_name)
         snapshot_length = len(statistics.snapshot())
         self.assertEqual(snapshot_length, 1,
                          "Error: getting a new stats with an enabled "
@@ -90,7 +90,7 @@ class StatisticsTests(unittest.TestCase):
         self.assertEqual(stats.min_time, float('inf'))
         self.assertEqual(stats.max_time, 0)
 
-        statistics.get_named_statistic(method_name)
+        statistics.get_op_statistic(method_name)
         snapshot_length = len(statistics.snapshot())
         self.assertEqual(snapshot_length, 1,
                          "Error: getting an existing stats with an "
@@ -117,9 +117,9 @@ class StatisticsTests(unittest.TestCase):
             self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta)
             self.assertTrue(time_abs_delta(stats.min_time, duration) < delta)
             self.assertTrue(time_abs_delta(stats.max_time, duration) < delta)
-            self.assertEqual(stats.max_req_len, 100)
-            self.assertEqual(stats.min_req_len, 100)
-            self.assertEqual(stats.avg_req_len, 100)
+            self.assertEqual(stats.max_request_len, 100)
+            self.assertEqual(stats.min_request_len, 100)
+            self.assertEqual(stats.avg_request_len, 100)
             self.assertEqual(stats.max_reply_len, 200)
             self.assertEqual(stats.min_reply_len, 200)
             self.assertEqual(stats.avg_reply_len, 200)
@@ -137,7 +137,7 @@ class StatisticsTests(unittest.TestCase):
 
         duration = 0.2
 
-        stats = statistics.get_named_statistic('GetClass')
+        stats = statistics.get_op_statistic('GetClass')
         self.assertEqual(stats.name, 'disabled')
 
         stats.start_timer()
@@ -173,9 +173,9 @@ class StatisticsTests(unittest.TestCase):
             self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta)
             self.assertTrue(time_abs_delta(stats.min_time, duration) < delta)
             self.assertTrue(time_abs_delta(stats.max_time, duration) < delta)
-            self.assertEqual(stats.max_req_len, 200)
-            self.assertEqual(stats.min_req_len, 100)
-            self.assertEqual(stats.avg_req_len, 150)
+            self.assertEqual(stats.max_request_len, 200)
+            self.assertEqual(stats.min_request_len, 100)
+            self.assertEqual(stats.avg_request_len, 150)
             self.assertEqual(stats.max_reply_len, 400)
             self.assertEqual(stats.min_reply_len, 200)
             self.assertEqual(stats.avg_reply_len, 300)
@@ -203,9 +203,9 @@ class StatisticsTests(unittest.TestCase):
             self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta)
             self.assertTrue(time_abs_delta(stats.min_time, duration) < delta)
             self.assertTrue(time_abs_delta(stats.max_time, duration) < delta)
-            self.assertEqual(stats.max_req_len, 200)
-            self.assertEqual(stats.min_req_len, 100)
-            self.assertEqual(stats.avg_req_len, 150)
+            self.assertEqual(stats.max_request_len, 200)
+            self.assertEqual(stats.min_request_len, 100)
+            self.assertEqual(stats.avg_request_len, 150)
             self.assertEqual(stats.max_reply_len, 400)
             self.assertEqual(stats.min_reply_len, 200)
             self.assertEqual(stats.avg_reply_len, 300)
@@ -238,6 +238,37 @@ class StatisticsTests(unittest.TestCase):
             self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta)
             self.assertTrue(time_abs_delta(stats.min_time, duration) < delta)
             self.assertTrue(time_abs_delta(stats.max_time, duration) < delta)
+
+    def test_print_statistics(self):
+        """Simply print repr() and formatted() for a small statistics."""
+
+        statistics = Statistics()
+        statistics.enable()
+
+        stats = statistics.start_timer('EnumerateInstanceNames')
+        time.sleep(0.1)
+        stats.stop_timer(1200, 22000)
+
+        stats = statistics.start_timer('EnumerateInstances')
+        time.sleep(0.1)
+        stats.stop_timer(1000, 20000)
+
+        stats = statistics.start_timer('EnumerateInstances')
+        time.sleep(0.2)
+        stats.stop_timer(1500, 25000)
+
+        stats = statistics.start_timer('EnumerateInstances')
+        time.sleep(0.4)
+        stats.stop_timer(1200, 35000)
+
+        print("\n\nTest print of repr() for a small statistics:")
+        print("================")
+        print(repr(statistics))
+        print("================")
+        print("\nTest print of formatted() for the same statistics:")
+        print("================")
+        print(statistics.formatted())
+        print("================")
 
 
 if __name__ == '__main__':

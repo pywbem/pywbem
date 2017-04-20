@@ -274,6 +274,21 @@ Exceptions
    :members:
    :special-members: __str__
 
+.. _`Statistics`:
+
+Statistics
+----------
+
+.. automodule:: pywbem._statistics
+
+.. autoclass:: pywbem.Statistics
+   :members:
+   :special-members: __str__
+
+.. autoclass:: pywbem.OperationStatistic
+   :members:
+   :special-members: __str__
+
 .. _`Security considerations`:
 
 Security considerations
