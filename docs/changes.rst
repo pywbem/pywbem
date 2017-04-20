@@ -39,18 +39,22 @@ Enhancements
   No other functional changes.
   See issue #680
 
-* Add operation statistics gathering.  This adds the class Statistics which
-  serves as a common place to gather execution time and request/reply size
-  information. The detailed information is available in WBEMConnect for
-  execution time and request/reply content size at the end of each operation.
+* Add operation statistics gathering **experimental**.  Adds the class
+  Statistics which serves as a common place to gather execution time and
+  request/reply size information on server requests and replies. The detailed
+  information is available in WBEMConnection for operation execution time
+   and request/reply content size at the end of each operation.
   
-  Statistics information is placed into the Statistics class where min/max/avg
-  information is available for each operation time if statistics is enabled.
+  When statistics gathering is enabled, the information is placed into the
+  Statistics class where min/max/avg information is available for each
+  operation type.
   Statistics gathering is enabled if the WBEMConnection attribute
   `enable_stats` is `True`.
   
   Statistics can be externalized through the snapshot method of the Statistics
   class.
+
+  The functionality is marked experimental for the current release
   
   See issue #761
 

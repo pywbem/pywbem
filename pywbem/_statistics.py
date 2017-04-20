@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 #
-# (C) Copyright 2003-2007 Hewlett-Packard Development Company, L.P.
-# (C) Copyright 2006-2007 Novell, Inc.
+# (C) Copyright 2017 InovaDevelopment Inc.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -34,6 +32,9 @@ a new named statistic  category.
 The :class:`~pywbem.Statistics` class maintins time statistics over
 multiple separate named statistics gatherers (TimeStatistic class) and provides
 tools for reporting these statistics
+
+**Experimental:** The statistics functions are experimental for this
+release***.
 
 """
 
