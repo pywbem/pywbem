@@ -85,9 +85,9 @@ work:
 The major components of pywbem are shown in this diagram:
 
 .. image:: images/pywbemcomponents.png
-    :width: 400px
+    :width: 200px
     :align: right
-    :height: 250px
+    :height: 125px
     :alt: alternate text
 
 Installation
