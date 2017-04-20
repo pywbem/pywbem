@@ -4183,6 +4183,10 @@ def tocimobj(type_, value):
 
         A :term:`CIM data type` object, representing the specified value and
         type.
+
+    Exceptions:
+        ValueError - Input cannot be converted to defined CIMValue type or
+            invalid CIMDatatype name.
     """
 
     if value is None or type_ is None:

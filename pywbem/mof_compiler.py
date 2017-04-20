@@ -72,6 +72,7 @@ from .cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS, _statuscode2string
 from .exceptions import Error, CIMError
+from .cim_types import atomic_to_cim_xml
 
 __all__ = ['MOFParseError', 'MOFWBEMConnection', 'MOFCompiler',
            'BaseRepositoryConnection']
@@ -1594,6 +1595,8 @@ def p_instanceDeclaration(p):
             raise
     path = CIMInstanceName(cname, namespace=ns)
     inst = CIMInstance(cname, qualifiers=quals, path=path)
+    keybindings = NocaseDict()   # dictionary to build kb if alias exists
+
     for prop in props:
         pname = prop[1]
         pval = prop[2]
@@ -1619,6 +1622,10 @@ def p_instanceDeclaration(p):
             pprop.qualifiers = NocaseDict(None)
             pprop.value = tocimobj(cprop.type, pval)
             inst.properties[pname] = pprop
+            # if alias and this is key property, add keybinding
+            if alias and 'key' in cprop.qualifiers:
+                keybindings[pname] = atomic_to_cim_xml(pprop.value)
+
         except ValueError as ve:
             ce = CIMError(CIM_ERR_INVALID_PARAMETER,
                           'Invalid value for property %s: %s' %
@@ -1627,7 +1634,10 @@ def p_instanceDeclaration(p):
             raise ce
 
     if alias:
+        if keybindings:
+            inst.path.keybindings = keybindings
         p.parser.aliases[alias] = inst.path
+
     p[0] = inst
 
 

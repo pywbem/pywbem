@@ -61,6 +61,16 @@ Bug fixes
 
 * Fixed names of Python development packages for SLES/OpenSUSE.
 
+* Fixed issue in mof_compiler where instance aliases were incomplete. They
+  only included the class component so that if they were used in the definition
+  of other instances (ex. to define an association where a reference property
+  was the aliased instance, the reference path was incomplete.) This is now
+  a path with keybindings.  Note: It is the responsibility of the user to
+  make these instances complete (i.e. with all key properties) see issue #679
+
+* Correct documentation issue in cim_obj (Exceptions definition missing).
+  See issue #677
+
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 
