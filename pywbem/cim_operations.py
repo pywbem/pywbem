@@ -1002,8 +1002,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.last_reply = None
 
         # Send request and receive response
+        self.last_request_len = 0
+        self.last_reply_len = 0
         try:
             request_data = req_xml.toxml()
+            self.last_request_len = len(request_data)
             reply_xml = wbem_request(
                 self.url, request_data, self.creds, headers,
                 x509=self.x509,
@@ -1013,16 +1016,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 timeout=self.timeout,
                 debug=self.debug,
                 recorder=self.operation_recorder)
-            self.last_request_len = len(request_data)
             self.last_reply_len = len(reply_xml)
         except (AuthError, ConnectionError, TimeoutError, Error):
-            self.last_reply_len = 0
             raise
         # TODO 3/16 AM: Clean up exception handling. The next two lines are a
         # workaround in order not to ignore TypeError and other exceptions
         # that may be raised.
         except Exception:
-            self.last_reply_len = 0
             raise
 
         # Set the raw response before parsing (which can fail)
@@ -1249,8 +1249,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Send request and receive response
 
+        self.last_request_len = 0
+        self.last_reply_len = 0
         try:
             request_data = req_xml.toxml()
+            self.last_request_len = len(request_data)
             reply_xml = wbem_request(
                 self.url, request_data, self.creds, headers,
                 x509=self.x509,
@@ -1260,16 +1263,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 timeout=self.timeout,
                 debug=self.debug,
                 recorder=self.operation_recorder)
-            self.last_request_len = len(request_data)
             self.last_reply_len = len(reply_xml)
         except (AuthError, ConnectionError, TimeoutError, Error):
-            self.last_reply_len = 0
             raise
         # TODO 3/16 AM: Clean up exception handling. The next two lines are a
         # workaround in order not to ignore TypeError and other exceptions
         # that may be raised.
         except Exception:
-            self.last_reply_len = 0
             raise
 
         # Set the raw response before parsing and checking (which can fail)
