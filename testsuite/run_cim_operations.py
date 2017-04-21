@@ -182,10 +182,20 @@ class ClientTest(unittest.TestCase):
         last_reply = self.conn.last_reply or self.conn.last_raw_reply
         self.log('Reply:\n\n%s\n' % last_reply)
 
+        # account for issue where last operation exception, in particular
+        # those few exceptions that occur outside of the try block in the
+        # Iter... operations.
         if self.enable_stats:
-            print('Operation info time %.3f req_len %s reply_len %s' %
-                  (self.conn.last_operation_time, self.conn.last_request_len,
-                   self.conn.last_reply_len))
+            if not self.conn.last_operation_time:
+                print('Operation info time %s req_len %s reply_len %s' %
+                      (self.conn.last_operation_time,
+                       self.conn.last_request_len,
+                       self.conn.last_reply_len))
+            else:
+                print('Operation info time %.3f req_len %s reply_len %s' %
+                      (self.conn.last_operation_time,
+                       self.conn.last_request_len,
+                       self.conn.last_reply_len))
 
         return result
 
