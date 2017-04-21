@@ -1014,7 +1014,7 @@
             # parameters occur correctly in the request message, and any others
             # don't.
     pywbem_response:
-        req_len: 403
+        request_len: 403
         reply_len: 3816
         result:
             -

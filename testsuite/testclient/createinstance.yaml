@@ -107,5 +107,118 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
+- name: CreateInstance2
+  description: Create instance of PyWBEM_Person successful test sizes
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    enable-stats: true
+    operation:
+      pywbem_method: CreateInstance
+      NewInstance:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Person
+        properties:
+          creationclassname:
+            pywbem_object: CIMProperty
+            name: CreationClassName
+            value: PyWBEM_Person
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path:
+          pywbem_object: CIMInstanceName
+          classname: PyWBEM_Person
+          namespace: null
+          keybindings:
+            creationclassname: PyWBEM_Person
+            name: run_cimoperations_test
+      namespace: null
+  pywbem_response:
+    request_len: 523
+    reply_len: 519
+    result:
+      pywbem_object: CIMInstanceName
+      classname: PyWBEM_Person
+      namespace: root/cimv2
+      keybindings:
+        creationclassname: PyWBEM_Person
+        name: run_cimoperations_test
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: CreateInstance
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="CreateInstance">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="NewInstance">
+      <INSTANCE CLASSNAME="PyWBEM_Person">
+      <PROPERTY NAME="CreationClassName" TYPE="string">
+      <VALUE>PyWBEM_Person</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Name" TYPE="string">
+      <VALUE>run_cimoperations_test</VALUE>
+      </PROPERTY>
+      </INSTANCE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="CreateInstance">
+      <IRETURNVALUE>
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">run_cimoperations_test</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
 # TODO needs much more complete instance to create
 # TODO needs failure test.

@@ -74,7 +74,7 @@
       ClassName: PyWBEM_Person
       DeepInheritance: null
   pywbem_response:
-    req_len: 337
+    request_len: 337
     reply_len: 225
     result: []
   http_request:

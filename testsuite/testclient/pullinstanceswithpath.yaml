@@ -462,7 +462,80 @@
                     </SIMPLERSP>
                 </MESSAGE>
             </CIM>
-
+- name: PullInstancesWithPath4
+  description: Pull request and returns zero instances with eos=false and valid context. Test statistics
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    enable-stats: true
+    operation:
+      pywbem_method: PullInstancesWithPath
+      MaxObjectCount: 1
+      context:
+      - '500001'
+      - root/cimv2
+  pywbem_response:
+        request_len: 404
+        reply_len: 590
+        pullresult:
+            context:
+              - '500001'
+              - root/cimv2            
+            eos: false
+            instances: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: PullInstancesWithPath
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="PullInstancesWithPath">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="EnumerationContext">
+      <VALUE>500001</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>1</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="PullInstancesWithPath">
+                            <IRETURNVALUE>
+                            </IRETURNVALUE>
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>FALSE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE>500001</VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
 - name: PullInstancesWithPathF1
   description: PullInstancesWithPath request fails. Invalid Context
   pywbem_request:

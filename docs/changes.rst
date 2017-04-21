@@ -43,7 +43,7 @@ Enhancements
   Statistics which serves as a common place to gather execution time and
   request/reply size information on server requests and replies. The detailed
   information is available in WBEMConnection for operation execution time
-   and request/reply content size at the end of each operation.
+  and request/reply content size at the end of each operation.
   
   When statistics gathering is enabled, the information is placed into the
   Statistics class where min/max/avg information is available for each

@@ -25,7 +25,7 @@ The following YAML is an example for one testcase in such a file:
             namespace: root/cimv2
             timeout: 10
             debug: false
-            enable_stats: false
+            enable_stats: true
             operation:
                 pywbem_method: GetInstance
                 InstanceName:
@@ -35,7 +35,7 @@ The following YAML is an example for one testcase in such a file:
                         Name: Fritz
                 LocalOnly: false
         pywbem_response:
-            req_len: 100
+            request_len: 100
             reply_len: 100
             result:
                 pywbem_object: CIMInstance
@@ -199,7 +199,7 @@ Elements in `pywbem_response` element
   This is optional; if not specified, it defaults to None (=no exception is
   raised).
 
-* `req_len`:
+* `request_len`:
   Defines expected length of the request. If this element exists, the
   value is tested against the last_req_len field of the connection. If not
   specified the test is bypassed.

@@ -149,7 +149,7 @@ class ClientTest(unittest.TestCase):
         if self.enable_stats:
             print('%s: Test time %.2f sec.' % (self.id(),
                                                (time.time() - self.start_time)))
-            print('%s\n%s' % (self.id(), self.conn.statistics.display()))
+            print('%s\n%s' % (self.id(), self.conn.statistics.formatted()))
 
         if self.yamlfp is not None:
             self.yamlfp.close()
@@ -184,7 +184,7 @@ class ClientTest(unittest.TestCase):
 
         if self.enable_stats:
             print('Operation info time %.3f req_len %s reply_len %s' %
-                  (self.conn.last_operation_time, self.conn.last_req_len,
+                  (self.conn.last_operation_time, self.conn.last_request_len,
                    self.conn.last_reply_len))
 
         return result
@@ -5079,7 +5079,7 @@ class IterReferenceInstancePaths(PegasusServerTestBase):
 
 
 class IterAssociatorInstances(PegasusServerTestBase):
-    """Test IterAssociatorInstancePaths methods"""
+    """Test IterAssociatorInstances methods"""
 
     def get_source_name(self):
         """

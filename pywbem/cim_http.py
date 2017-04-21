@@ -703,8 +703,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
 
     header_tuples = []
     header_tuples.append(('Content-type', 'application/xml; charset="utf-8"'))
-    # TODO we are doing length twice.
-    header_tuples.append(('Content-length', len(data)))
+    header_tuples.append(('Content-length', str(len(data))))
     if local_auth_header is not None:
         # The following pylint stmt disables a false positive, see
         # https://github.com/PyCQA/pylint/issues/701

@@ -816,6 +816,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             WBEM operations executed via this connection. See the
             :ref:`Statistics` section for details.
 
+            Statistics may also be enabled or disabled with the WBEMConnection
+            property `stats_enabled`. This may be used to view the current
+            status or change the status (ex. `conn.stats_enabled(False)`)
+
             **Experimental:** This argument is experimental for this release.
         """
 
@@ -895,7 +899,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def last_operation_time(self):
         """
         :class:`py:float`: Elapsed time of the last operation that was executed
-        via this connection.
+        via this connection in seconds.
 
         This time is available only subsequent to the execution of an operation
         on this connection, and if the statistics are enabled on this

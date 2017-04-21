@@ -632,13 +632,16 @@ class ClientTest(unittest.TestCase):
                                    "exception", None)
         exp_cim_status = tc_getattr(tc_name, exp_pywbem_response,
                                     "cim_status", 0)
-        # get the expected result.  This may be either the the definition
-        # of a value or cimobject or a list of values or cimobjects or
-        # a named tuple of results.
+
+        # get the optional expected request and reply sizes if specified. The
+        # default is None if not specified
         exp_request_len = tc_getattr_list(tc_name, exp_pywbem_response,
                                           "request_len", None)
         exp_reply_len = tc_getattr_list(tc_name, exp_pywbem_response,
                                         "reply_len", None)
+        # get the expected result.  This may be either the the definition
+        # of a value or cimobject or a list of values or cimobjects or
+        # a named tuple of results.
         exp_result = tc_getattr_list(tc_name, exp_pywbem_response,
                                      "result", None)
 
@@ -717,10 +720,32 @@ class ClientTest(unittest.TestCase):
                              'do not match. exp %s rcvd %s' %
                              (exp_request_len, conn.last_request_len))
 
+            if conn.stats_enabled:
+                snapshot = conn.statistics.snapshot()
+                self.assertEqual(len(snapshot), 1)   # one operation; one stat
+
+                for name, stats in snapshot:  # pylint: disable=unused-variable
+                    stat = stats
+                self.assertEqual(stat.count, 1, "Expected a single statistic")
+                self.assertEqual(stat.min_request_len,
+                                 stat.max_request_len)
+                self.assertEqual(stat.min_request_len, exp_request_len)
+
         if exp_reply_len is not None:
             self.assertEqual(exp_reply_len, conn.last_reply_len, 'ply '
                              'lengths do not match. exp %s rcvd %s' %
                              (exp_reply_len, conn.last_reply_len))
+
+            if conn.stats_enabled:
+                snapshot = conn.statistics.snapshot()
+                self.assertEqual(len(snapshot), 1)   # one operation; one stat
+
+                for name, stats in snapshot:
+                    stat = stats
+                self.assertEqual(stat.count, 1, "Expected a single statistic")
+                self.assertEqual(stat.min_reply_len,
+                                 stat.max_reply_len)
+                self.assertEqual(stat.min_reply_len, exp_reply_len)
 
         # Continue with validating the result
 

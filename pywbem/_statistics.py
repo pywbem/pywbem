@@ -349,9 +349,9 @@ class OperationStatistic(object):
     #:
     #: For an example, see :meth:`pywbem.Statistics.formatted`.
     formatted_header = \
-        'Count ExcCt    Time    Time    Time ReqLen ReqLen ReqLen ' \
+        'Count Excep    Time    Time    Time ReqLen ReqLen ReqLen ' \
         'ReplyLen ReplyLen ReplyLen Operation\n' \
-        '                Avg     Min     Max    Avg    Min    Max ' \
+        '        Cnt     Avg     Min     Max    Avg    Min    Max ' \
         '     Avg      Min      Max\n'
 
     def formatted(self):
@@ -507,10 +507,10 @@ class Statistics(object):
         Example::
 
             Statistics (times in seconds, lengths in Bytes):
-            Count ExcCt    Time    Time    Time ReqLen ReqLen ReqLen ReplyLen ReplyLen ReplyLen Operation
-                            Avg     Min     Max    Avg    Min    Max      Avg      Min      Max
-                3     0   0.234   0.100   0.401   1233   1000   1500    26667    20000    35000 EnumerateInstances
-                1     0   0.100   0.100   0.100   1200   1200   1200    22000    22000    22000 EnumerateInstanceNames
+            Count  Exc    Time    Time    Time ReqLen ReqLen ReqLen ReplyLen ReplyLen ReplyLen Operation
+                   Cnt    Avg     Min     Max    Avg    Min    Max      Avg      Min      Max
+                3    0   0.234   0.100   0.401   1233   1000   1500    26667    20000    35000 EnumerateInstances
+                1    0   0.100   0.100   0.100   1200   1200   1200    22000    22000    22000 EnumerateInstanceNames
         """  # noqa: E501
         # pylint: enable=line-too-long
         ret = "Statistics (times in seconds, lengths in Bytes):\n"
