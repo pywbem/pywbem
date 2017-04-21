@@ -1501,3 +1501,63 @@
                 </SIMPLERSP>
               </MESSAGE>
             </CIM>
+-
+    name: EnumerateInstancesF7
+    description: EnumerateInstances, server fails with CIM_ERR_FAILED. statistics gathering set
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        enable-stats: true
+        operation:
+            pywbem_method: EnumerateInstances
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        request_len: 339
+        reply_len: 331
+        cim_status: 1
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="EnumerateInstances">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ClassName">
+                        <CLASSNAME NAME="PyWBEM_Person"/>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="EnumerateInstances">
+                    <ERROR CODE="1" DESCRIPTION="CIM_ERR_FAILED: Internal server error."/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+
+

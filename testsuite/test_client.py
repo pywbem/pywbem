@@ -716,8 +716,7 @@ class ClientTest(unittest.TestCase):
                                 "Unexpected CIM-XML payload in HTTP request")
         if exp_request_len is not None:
             self.assertEqual(exp_request_len, conn.last_request_len,
-                             'request lengths '
-                             'do not match. exp %s rcvd %s' %
+                             'request lengths do not match. exp %s rcvd %s' %
                              (exp_request_len, conn.last_request_len))
 
             if conn.stats_enabled:
@@ -732,8 +731,8 @@ class ClientTest(unittest.TestCase):
                 self.assertEqual(stat.min_request_len, exp_request_len)
 
         if exp_reply_len is not None:
-            self.assertEqual(exp_reply_len, conn.last_reply_len, 'ply '
-                             'lengths do not match. exp %s rcvd %s' %
+            self.assertEqual(exp_reply_len, conn.last_reply_len,
+                             'Reply lengths do not match. exp %s rcvd %s' %
                              (exp_reply_len, conn.last_reply_len))
 
             if conn.stats_enabled:

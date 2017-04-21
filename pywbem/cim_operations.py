@@ -4877,7 +4877,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             exc = exce
             raise
         finally:
-            print('Before finally req %s, reply %s, exc %s' % (self.last_request_len, self.last_reply_len, exc))
             self._last_operation_time = stats.stop_timer(
                 self.last_request_len, self.last_reply_len, exc)
             print('finally optim %s' % self._last_operation_time)
