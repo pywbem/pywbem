@@ -201,7 +201,7 @@ There is usually also an issue that sets out the major goals for an upcoming
 release.
 
 Planned Next Release
-------------
+--------------------
 
 Pywbem 0.11.0 is in development and is expected to be released in Q2 of 2017
 
