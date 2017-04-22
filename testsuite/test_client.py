@@ -576,7 +576,9 @@ class ClientTest(unittest.TestCase):
             url=tc_getattr(tc_name, pywbem_request, "url"),
             creds=tc_getattr(tc_name, pywbem_request, "creds"),
             default_namespace=tc_getattr(tc_name, pywbem_request, "namespace"),
-            timeout=tc_getattr(tc_name, pywbem_request, "timeout"))
+            timeout=tc_getattr(tc_name, pywbem_request, "timeout"),
+            enable_stats=tc_getattr(tc_name, pywbem_request, "enable-stats",
+                                    False))
 
         conn.debug = tc_getattr(tc_name, pywbem_request, "debug", False)
 
@@ -630,14 +632,21 @@ class ClientTest(unittest.TestCase):
                                    "exception", None)
         exp_cim_status = tc_getattr(tc_name, exp_pywbem_response,
                                     "cim_status", 0)
+
+        # get the optional expected request and reply sizes if specified. The
+        # default is None if not specified
+        exp_request_len = tc_getattr_list(tc_name, exp_pywbem_response,
+                                          "request_len", None)
+        exp_reply_len = tc_getattr_list(tc_name, exp_pywbem_response,
+                                        "reply_len", None)
         # get the expected result.  This may be either the the definition
         # of a value or cimobject or a list of values or cimobjects or
         # a named tuple of results.
-        exp_result = tc_getattr_list(tc_name, exp_pywbem_response, "result",
-                                     None)
+        exp_result = tc_getattr_list(tc_name, exp_pywbem_response,
+                                     "result", None)
 
-        exp_pull_result = tc_getattr(tc_name, exp_pywbem_response, "pullresult",
-                                     None)
+        exp_pull_result = tc_getattr(tc_name, exp_pywbem_response,
+                                     "pullresult", None)
 
         if exp_pull_result and exp_result:
             raise ClientTestError("Error in definition of testcase %s: "
@@ -705,6 +714,37 @@ class ClientTest(unittest.TestCase):
             exp_data = tc_getattr(tc_name, exp_http_request, "data", None)
             self.assertXMLEqual(http_request.body, exp_data,
                                 "Unexpected CIM-XML payload in HTTP request")
+        if exp_request_len is not None:
+            self.assertEqual(exp_request_len, conn.last_request_len,
+                             'request lengths do not match. exp %s rcvd %s' %
+                             (exp_request_len, conn.last_request_len))
+
+            if conn.stats_enabled:
+                snapshot = conn.statistics.snapshot()
+                self.assertEqual(len(snapshot), 1)   # one operation; one stat
+
+                for name, stats in snapshot:  # pylint: disable=unused-variable
+                    stat = stats
+                self.assertEqual(stat.count, 1, "Expected a single statistic")
+                self.assertEqual(stat.min_request_len,
+                                 stat.max_request_len)
+                self.assertEqual(stat.min_request_len, exp_request_len)
+
+        if exp_reply_len is not None:
+            self.assertEqual(exp_reply_len, conn.last_reply_len,
+                             'Reply lengths do not match. exp %s rcvd %s' %
+                             (exp_reply_len, conn.last_reply_len))
+
+            if conn.stats_enabled:
+                snapshot = conn.statistics.snapshot()
+                self.assertEqual(len(snapshot), 1)   # one operation; one stat
+
+                for name, stats in snapshot:
+                    stat = stats
+                self.assertEqual(stat.count, 1, "Expected a single statistic")
+                self.assertEqual(stat.min_reply_len,
+                                 stat.max_reply_len)
+                self.assertEqual(stat.min_reply_len, exp_reply_len)
 
         # Continue with validating the result
 

@@ -164,6 +164,7 @@ from .tupletree import xml_to_tupletree_sax
 from .cim_http import parse_url
 from .exceptions import Error, ParseError, AuthError, ConnectionError, \
     TimeoutError, CIMError
+from ._statistics import Statistics
 
 __all__ = ['WBEMConnection', 'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
@@ -524,6 +525,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
       ... : All parameters of the :class:`~pywbem.WBEMConnection` constructor
         are set as public attribute with the same name.
 
+      ... : There are some additional properties documented for this class,
+        further down.
+
       debug (:class:`py:bool`): A boolean indicating whether logging of
         the last request and last reply is enabled.
 
@@ -550,6 +554,17 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         CIM-XML data of the last response received from the WBEM server
         on this connection, formatted as it was received. Prior to receiving
         the very first response on this connection object, it is `None`.
+
+      last_request_len (:class:`py:int`):
+        The size of the HTTP body in the CIM-XML request of the last operation,
+        in Bytes. Prior to sending the very first request on this connection
+        object, or if the last operation raised an exception, it is 0.
+
+      last_reply_len (:class:`py:int`):
+        The size of the HTTP body in the CIM-XML response of the last
+        operation, in Bytes. Prior to receiving the very first response on this
+        connection object, or if the last operation raised an exception, it
+        is 0.
 
       operation_recorder (:class:`~pywbem.BaseOperationRecorder`):
         This attribute provides for recording of the operations that are
@@ -585,7 +600,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, url, creds=None, default_namespace=DEFAULT_NAMESPACE,
                  x509=None, verify_callback=None, ca_certs=None,
-                 no_verification=False, timeout=None, use_pull_operations=None):
+                 no_verification=False, timeout=None, use_pull_operations=None,
+                 enable_stats=False):
         """
         Parameters:
 
@@ -794,8 +810,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             `False` means that the `Iter...()` methods will only use traditional
             operations.
+
+          enable_stats (:class:`py:bool`):
+            Initial enablement status for maintaining statistics about the
+            WBEM operations executed via this connection. See the
+            :ref:`Statistics` section for details.
+
+            Statistics may also be enabled or disabled with the WBEMConnection
+            property `stats_enabled`. This may be used to view the current
+            status or change the status (ex. `conn.stats_enabled(False)`)
+
+            **Experimental:** This argument is experimental for this release.
         """
 
+        # Connection attributes
         self.url = url
         self.creds = creds
         self.x509 = x509
@@ -810,8 +838,16 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self.last_raw_reply = None
         self.last_request = None
         self.last_reply = None
+
+        self.last_request_len = 0
+        self.last_reply_len = 0
+
+        # control of recorder
         self.operation_recorder = None
+
+        # pull operations control for iter... operations
         self.use_pull_operations = use_pull_operations
+
         # set the flags for each individual operation to the initial
         # value defined by use_pull_operations
         self._use_enum_inst_pull_operations = use_pull_operations
@@ -821,6 +857,57 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._use_assoc_inst_pull_operations = use_pull_operations
         self._use_assoc_path_pull_operations = use_pull_operations
         self._use_query_pull_operations = use_pull_operations
+
+        self._statistics = Statistics(enable_stats)
+        self._last_operation_time = None
+
+    @property
+    def stats_enabled(self):
+        """
+        :class:`py:bool`: Statistics enablement status for this connection.
+
+        This is a writeable property; setting this property will change the
+        statistics enablement status accordingly.
+
+        **Experimental:** This property is experimental for this release.
+        """
+        return self.statistics.enabled
+
+    @stats_enabled.setter
+    def stats_enabled(self, value):
+        if value:
+            self.statistics.enable()
+        else:
+            self.statistics.disable()
+
+    @property
+    def statistics(self):
+        """
+        :class:`~pywbem.Statistics`: Statistics for this connection.
+
+        Statistics are disabled by default and can be enabled via the
+        ``enable_stats`` argument when creating a connection object, or
+        lateron via modifying the :attr:`~pywbem.WBEMConnection.stats_enabled`
+        property on this connection object. See the :ref:`Statistics` section
+        for more details.
+
+        **Experimental:** This property is experimental for this release.
+        """
+        return self._statistics
+
+    @property
+    def last_operation_time(self):
+        """
+        :class:`py:float`: Elapsed time of the last operation that was executed
+        via this connection in seconds.
+
+        This time is available only subsequent to the execution of an operation
+        on this connection, and if the statistics are enabled on this
+        connection. Otherwise, the value is `None`.
+
+        **Experimental:** This property is experimental for this release.
+        """
+        return self._last_operation_time
 
     def __str__(self):
         """
@@ -919,10 +1006,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.last_reply = None
 
         # Send request and receive response
-
+        self.last_request_len = 0
+        self.last_reply_len = 0
         try:
+            request_data = req_xml.toxml()
+            self.last_request_len = len(request_data)
             reply_xml = wbem_request(
-                self.url, req_xml.toxml(), self.creds, headers,
+                self.url, request_data, self.creds, headers,
                 x509=self.x509,
                 verify_callback=self.verify_callback,
                 ca_certs=self.ca_certs,
@@ -930,6 +1020,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 timeout=self.timeout,
                 debug=self.debug,
                 recorder=self.operation_recorder)
+            self.last_reply_len = len(reply_xml)
         except (AuthError, ConnectionError, TimeoutError, Error):
             raise
         # TODO 3/16 AM: Clean up exception handling. The next two lines are a
@@ -1162,9 +1253,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Send request and receive response
 
+        self.last_request_len = 0
+        self.last_reply_len = 0
         try:
+            request_data = req_xml.toxml()
+            self.last_request_len = len(request_data)
             reply_xml = wbem_request(
-                self.url, req_xml.toxml(), self.creds, headers,
+                self.url, request_data, self.creds, headers,
                 x509=self.x509,
                 verify_callback=self.verify_callback,
                 ca_certs=self.ca_certs,
@@ -1172,6 +1267,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 timeout=self.timeout,
                 debug=self.debug,
                 recorder=self.operation_recorder)
+            self.last_reply_len = len(reply_xml)
         except (AuthError, ConnectionError, TimeoutError, Error):
             raise
         # TODO 3/16 AM: Clean up exception handling. The next two lines are a
@@ -1411,25 +1507,28 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
         instancenames = None
+        method_name = 'EnumerateInstanceNames'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='EnumerateInstanceNames',
+                method=method_name,
                 ClassName=ClassName,
                 namespace=namespace,
                 **extra)
 
         try:
-
+            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
             classname = self._iparam_classname(ClassName)
 
             result = self._imethodcall(
-                'EnumerateInstanceNames',
+                method_name,
                 namespace,
                 ClassName=classname,
                 **extra)
@@ -1442,9 +1541,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 instancename.namespace = namespace
             return instancenames
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(instancenames, exc)
                 self.operation_recorder.record_staged()
@@ -1567,12 +1669,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """  # noqa: E501
+
         exc = None
         instances = None
+        method_name = 'EnumerateInstances'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='EnumerateInstances',
+                method=method_name,
                 ClassName=ClassName,
                 namespace=namespace,
                 LocalOnly=LocalOnly,
@@ -1583,7 +1688,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
         try:
-
+            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
@@ -1591,7 +1696,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
-                'EnumerateInstances',
+                method_name,
                 namespace,
                 ClassName=classname,
                 LocalOnly=LocalOnly,
@@ -1613,9 +1718,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 instance.path.namespace = namespace
             return instances
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(instances, exc)
                 self.operation_recorder.record_staged()
@@ -3534,6 +3642,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         pull_result.query_result_class
 
                     while not pull_result.eos:
+                        # pylint: disable=redefined-variable-type
                         pull_result = self.PullInstances(
                             pull_result.context, MaxObjectCount=MaxObjectCount)
                         _instances.extend(pull_result.instances)
@@ -3734,12 +3843,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
         result_tuple = None
+        method_name = 'OpenEnumerateInstancePaths'
+
         if self.operation_recorder:
             self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
-                method='OpenEnumerateInstancePaths',
+                method=method_name,
                 ClassName=ClassName,
                 namespace=namespace,
                 FilterQueryLanguage=FilterQueryLanguage,
@@ -3750,14 +3862,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
         try:
-
+            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
             classname = self._iparam_classname(ClassName)
 
             result = self._imethodcall(
-                'OpenEnumerateInstancePaths',
+                method_name,
                 namespace,
                 ClassName=classname,
                 FilterQueryLanguage=FilterQueryLanguage,
@@ -3772,9 +3884,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
-        else:
+        finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -3994,12 +4109,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """  # noqa: E501
+
         exc = None
         result_tuple = None
+        method_name = 'OpenEnumerateInstances'
+
         if self.operation_recorder:
             self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
-                method='OpenEnumerateInstances',
+                method=method_name,
                 ClassName=ClassName,
                 namespace=namespace,
                 LocalOnly=LocalOnly,
@@ -4020,6 +4138,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
@@ -4027,7 +4146,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
-                'OpenEnumerateInstances',
+                method_name,
                 namespace,
                 ClassName=classname,
                 LocalOnly=LocalOnly,
@@ -4047,9 +4166,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -4217,10 +4339,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         exc = None
         result_tuple = None
+        method_name = 'OpenReferenceInstancePaths'
+
         if self.operation_recorder:
             self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
-                method='OpenReferenceInstancePaths',
+                method=method_name,
                 InstanceName=InstanceName,
                 ResultClass=ResultClass,
                 Role=Role,
@@ -4236,11 +4360,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                              MaxObjectCount)
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(InstanceName)
             instancename = self._iparam_instancename(InstanceName)
 
             result = self._imethodcall(
-                'OpenReferenceInstancePaths',
+                method_name,
                 namespace,
                 InstanceName=instancename,
                 ResultClass=self._iparam_classname(ResultClass),
@@ -4257,9 +4382,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -4461,12 +4589,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """  # noqa: E501
+
         exc = None
         result_tuple = None
+        method_name = 'OpenReferenceInstances'
+
         if self.operation_recorder:
             self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
-                method='OpenReferenceInstances',
+                method=method_name,
                 InstanceName=InstanceName,
                 ResultClass=ResultClass,
                 Role=Role,
@@ -4482,12 +4613,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(InstanceName)
             instancename = self._iparam_instancename(InstanceName)
             PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
-                'OpenReferenceInstances',
+                method_name,
                 namespace,
                 InstanceName=instancename,
                 ResultClass=self._iparam_classname(ResultClass),
@@ -4507,9 +4639,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -4691,12 +4826,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
         result_tuple = None
+        method_name = 'OpenAssociatorInstancePaths'
+
         if self.operation_recorder:
             self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
-                method='OpenAssociatorInstancePaths',
+                method=method_name,
                 InstanceName=InstanceName,
                 AssocClass=AssocClass,
                 ResultClass=ResultClass,
@@ -4711,11 +4849,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(InstanceName)
             instancename = self._iparam_instancename(InstanceName)
 
             result = self._imethodcall(
-                'OpenAssociatorInstancePaths',
+                method_name,
                 namespace,
                 InstanceName=instancename,
                 AssocClass=self._iparam_classname(AssocClass),
@@ -4734,9 +4873,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
+            print('finally optim %s' % self._last_operation_time)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -4957,10 +5100,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """  # noqa: E501
         exc = None
         result_tuple = None
+        method_name = 'OpenAssociatorInstances'
+
         if self.operation_recorder:
             self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
-                method='OpenAssociatorInstances',
+                method=method_name,
                 InstanceName=InstanceName,
                 AssocClass=AssocClass,
                 ResultClass=ResultClass,
@@ -4978,12 +5123,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(InstanceName)
             instancename = self._iparam_instancename(InstanceName)
             PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
-                'OpenAssociatorInstances',
+                method_name,
                 namespace,
                 InstanceName=instancename,
                 AssocClass=self._iparam_classname(AssocClass),
@@ -5005,9 +5151,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -5170,12 +5319,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     return p[2]
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            "ReturnQueryResultClass invalid or missing.")
+
         exc = None
         result_tuple = None
+        method_name = 'OpenQueryInstances'
+
         if self.operation_recorder:
             self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
-                method='OpenQueryInstances',
+                method=method_name,
                 FilterQueryLanguage=FilterQueryLanguage,
                 FilterQuery=FilterQuery,
                 namespace=namespace,
@@ -5187,10 +5339,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(namespace)
 
             result = self._imethodcall(
-                'OpenQueryInstances',
+                method_name,
                 namespace,
                 FilterQuery=FilterQuery,
                 FilterQueryLanguage=FilterQueryLanguage,
@@ -5210,9 +5363,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                                    query_result_class)
             return result_tuple
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -5318,23 +5474,28 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
         result_tuple = None
+        method_name = 'PullInstancesWithPath'
+
         if self.operation_recorder:
             self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
-                method='PullInstancesWithPath',
+                method=method_name,
                 context=context,
                 MaxObjectCount=MaxObjectCount,
                 **extra)
 
         try:
+
+            stats = self.statistics.start_timer(method_name)
             _validatePullParams(MaxObjectCount, context)
 
             namespace = context[1]
 
             result = self._imethodcall(
-                'PullInstancesWithPath',
+                method_name,
                 namespace=namespace,
                 EnumerationContext=context[0],
                 MaxObjectCount=MaxObjectCount,
@@ -5345,9 +5506,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -5449,23 +5613,28 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
         result_tuple = None
+        method_name = 'PullInstancePaths'
+
         if self.operation_recorder:
             self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
-                method='PullInstancePaths',
+                method=method_name,
                 context=context,
                 MaxObjectCount=MaxObjectCount,
                 **extra)
 
         try:
+
+            stats = self.statistics.start_timer(method_name)
             _validatePullParams(MaxObjectCount, context)
 
             namespace = context[1]
 
             result = self._imethodcall(
-                'PullInstancePaths',
+                method_name,
                 namespace=namespace,
                 EnumerationContext=context[0],
                 MaxObjectCount=MaxObjectCount,
@@ -5476,9 +5645,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -5578,21 +5750,25 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         exc = None
         result_tuple = None
+        method_name = 'PullInstances'
+
         if self.operation_recorder:
             self.operation_recorder.reset(pull_op=True)
             self.operation_recorder.stage_pywbem_args(
-                method='PullInstances',
+                method=method_name,
                 context=context,
                 MaxObjectCount=MaxObjectCount,
                 **extra)
 
         try:
+
+            stats = self.statistics.start_timer(method_name)
             _validatePullParams(MaxObjectCount, context)
 
             namespace = context[1]
 
             result = self._imethodcall(
-                'PullInstances',
+                method_name,
                 namespace=namespace,
                 EnumerationContext=context[0],
                 MaxObjectCount=MaxObjectCount,
@@ -5603,9 +5779,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -5646,27 +5825,35 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
+        method_name = 'CloseEnumeration'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='CloseEnumeration',
+                method=method_name,
                 context=context,
                 **extra)
 
         try:
+
+            stats = self.statistics.start_timer(method_name)
             if context is None:
                 raise ValueError('Invalid EnumerationContext')
             self._imethodcall(
-                'CloseEnumeration',
+                method_name,
                 namespace=context[1],
                 EnumerationContext=context[0],
                 **extra)
             return
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -5763,12 +5950,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """  # noqa: E501
+
         exc = None
         instance = None
+        method_name = 'GetInstance'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='GetInstance',
+                method=method_name,
                 InstanceName=InstanceName,
                 LocalOnly=LocalOnly,
                 IncludeQualifiers=IncludeQualifiers,
@@ -5778,13 +5968,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             # Strip off host and namespace to make this a "local" object
             namespace = self._iparam_namespace_from_objectname(InstanceName)
             instancename = self._iparam_instancename(InstanceName)
             PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
-                'GetInstance',
+                method_name,
                 namespace,
                 InstanceName=instancename,
                 LocalOnly=LocalOnly,
@@ -5798,9 +5989,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             instance.path.namespace = namespace
             return instance
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(instance, exc)
                 self.operation_recorder.record_staged()
@@ -5874,11 +6068,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """  # noqa: E501
+
         exc = None
+        method_name = 'ModifyInstance'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='ModifyInstance',
+                method=method_name,
                 ModifiedInstance=ModifiedInstance,
                 IncludeQualifiers=IncludeQualifiers,
                 PropertyList=PropertyList,
@@ -5886,6 +6083,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer('ModifyInstance')
             # Must pass a named CIMInstance here (i.e path attribute set)
             if ModifiedInstance.path is None:
                 raise ValueError(
@@ -5911,7 +6109,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             instance.path.host = None
 
             self._imethodcall(
-                'ModifyInstance',
+                method_name,
                 namespace,
                 ModifiedInstance=instance,
                 IncludeQualifiers=IncludeQualifiers,
@@ -5919,9 +6117,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
             return
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -5986,18 +6187,22 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
         instancename = None
+        method_name = 'CreateInstance'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='CreateInstance',
+                method=method_name,
                 NewInstance=NewInstance,
                 namespace=namespace,
                 **extra)
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             if namespace is None and \
                getattr(NewInstance.path, 'namespace', None) is not None:
                 namespace = NewInstance.path.namespace
@@ -6009,7 +6214,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             instance.path = None
 
             result = self._imethodcall(
-                'CreateInstance',
+                method_name,
                 namespace,
                 NewInstance=instance,
                 **extra)
@@ -6019,9 +6224,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             # TODO: Why not accept returned namespace?
             return instancename
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(instancename, exc)
                 self.operation_recorder.record_staged()
@@ -6058,29 +6266,36 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
+        method_name = 'DeleteInstance'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='DeleteInstance',
+                method=method_name,
                 InstanceName=InstanceName,
                 **extra)
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(InstanceName)
             instancename = self._iparam_instancename(InstanceName)
 
             self._imethodcall(
-                'DeleteInstance',
+                method_name,
                 namespace,
                 InstanceName=instancename,
                 **extra)
             return
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -6195,10 +6410,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         exc = None
         objects = None
+        method_name = 'AssociatorNames'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='AssociatorNames',
+                method=method_name,
                 ObjectName=ObjectName,
                 AssocClass=AssocClass,
                 ResultClass=ResultClass,
@@ -6208,11 +6425,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(ObjectName)
             objectname = self._iparam_objectname(ObjectName)
 
             result = self._imethodcall(
-                'AssociatorNames',
+                method_name,
                 namespace,
                 ObjectName=objectname,
                 AssocClass=self._iparam_classname(AssocClass),
@@ -6227,9 +6445,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 objects = [x[2] for x in result[0][2]]
             return objects
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(objects, exc)
                 self.operation_recorder.record_staged()
@@ -6383,12 +6604,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """  # noqa: E501
+
         exc = None
         objects = None
+        method_name = 'Associators'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='Associators',
+                method=method_name,
                 ObjectName=ObjectName,
                 AssocClass=AssocClass,
                 ResultClass=ResultClass,
@@ -6401,12 +6625,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(ObjectName)
             objectname = self._iparam_objectname(ObjectName)
             PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
-                'Associators',
+                method_name,
                 namespace,
                 ObjectName=objectname,
                 AssocClass=self._iparam_classname(AssocClass),
@@ -6424,9 +6649,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 objects = [x[2] for x in result[0][2]]
             return objects
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(objects, exc)
                 self.operation_recorder.record_staged()
@@ -6521,12 +6749,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
         objects = None
+        method_name = 'ReferenceNames'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='ReferenceNames',
+                method=method_name,
                 ObjectName=ObjectName,
                 ResultClass=ResultClass,
                 Role=Role,
@@ -6534,11 +6765,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(ObjectName)
             objectname = self._iparam_objectname(ObjectName)
 
             result = self._imethodcall(
-                'ReferenceNames',
+                method_name,
                 namespace,
                 ObjectName=objectname,
                 ResultClass=self._iparam_classname(ResultClass),
@@ -6551,9 +6783,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 objects = [x[2] for x in result[0][2]]
             return objects
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(objects, exc)
                 self.operation_recorder.record_staged()
@@ -6693,12 +6928,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """  # noqa: E501
+
         exc = None
         objects = None
+        method_name = 'References'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='References',
+                method=method_name,
                 ObjectName=ObjectName,
                 ResultClass=ResultClass,
                 Role=Role,
@@ -6709,12 +6947,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(ObjectName)
             objectname = self._iparam_objectname(ObjectName)
             PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
-                'References',
+                method_name,
                 namespace,
                 ObjectName=objectname,
                 ResultClass=self._iparam_classname(ResultClass),
@@ -6730,9 +6969,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 objects = [x[2] for x in result[0][2]]
             return objects
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(objects, exc)
                 self.operation_recorder.record_staged()
@@ -6831,8 +7073,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
         result_tuple = None
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
@@ -6844,6 +7088,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer('InvokeMethod')
             # Convert string to CIMClassName
 
             obj = ObjectName
@@ -6880,9 +7125,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             result_tuple = (returnvalue, output_params)
             return result_tuple
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -6941,12 +7189,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
         instances = None
+        method_name = 'ExecQuery'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='ExecQuery',
+                method=method_name,
                 QueryLanguage=QueryLanguage,
                 Query=Query,
                 namespace=namespace,
@@ -6954,10 +7205,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
 
             result = self._imethodcall(
-                'ExecQuery',
+                method_name,
                 namespace,
                 QueryLanguage=QueryLanguage,
                 Query=Query,
@@ -6972,9 +7224,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 instance.path.namespace = namespace
             return instances
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(instances, exc)
                 self.operation_recorder.record_staged()
@@ -7050,12 +7305,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
         classnames = None
+        method_name = 'EnumerateClassNames'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='EnumerateClassNames',
+                method=method_name,
                 namespace=namespace,
                 ClassName=ClassName,
                 DeepInheritance=DeepInheritance,
@@ -7063,13 +7321,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
             classname = self._iparam_classname(ClassName)
 
             result = self._imethodcall(
-                'EnumerateClassNames',
+                method_name,
                 namespace,
                 ClassName=classname,
                 DeepInheritance=DeepInheritance,
@@ -7081,9 +7340,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 classnames = [x.classname for x in result[0][2]]
             return classnames
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(classnames, exc)
                 self.operation_recorder.record_staged()
@@ -7187,12 +7449,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
         classes = None
+        method_name = 'EnumerateClasses'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='EnumerateClasses',
+                method=method_name,
                 namespace=namespace,
                 ClassName=ClassName,
                 DeepInheritance=DeepInheritance,
@@ -7203,13 +7468,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
             classname = self._iparam_classname(ClassName)
 
             result = self._imethodcall(
-                'EnumerateClasses',
+                method_name,
                 namespace,
                 ClassName=classname,
                 DeepInheritance=DeepInheritance,
@@ -7224,9 +7490,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 classes = result[0][2]
             return classes
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(classes, exc)
                 self.operation_recorder.record_staged()
@@ -7316,12 +7585,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """  # noqa: E501
+
         klass = None
         exc = None
+        method_name = 'GetClass'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='GetClass',
+                method=method_name,
                 ClassName=ClassName,
                 namespace=namespace,
                 LocalOnly=LocalOnly,
@@ -7332,6 +7604,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
@@ -7339,7 +7612,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
-                'GetClass',
+                method_name,
                 namespace,
                 ClassName=classname,
                 LocalOnly=LocalOnly,
@@ -7350,9 +7623,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             klass = result[0][2][0]
             return klass
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(klass, exc)
                 self.operation_recorder.record_staged()
@@ -7399,31 +7675,38 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
+        method_name = 'ModifyClass'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='ModifyClass',
+                method=method_name,
                 ModifiedClass=ModifiedClass,
                 namespace=namespace,
                 **extra)
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
 
             klass = ModifiedClass.copy()
             klass.path = None
 
             self._imethodcall(
-                'ModifyClass',
+                method_name,
                 namespace,
                 ModifiedClass=klass,
                 **extra)
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -7469,32 +7752,38 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
+        method_name = 'CreateClass'
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='CreateClass',
+                method=method_name,
                 NewClass=NewClass,
                 namespace=namespace,
                 **extra)
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
 
             klass = NewClass.copy()
             klass.path = None
 
             self._imethodcall(
-                'CreateClass',
+                method_name,
                 namespace,
                 NewClass=klass,
                 **extra)
             return
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -7538,32 +7827,39 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
+        method_name = 'DeleteClass'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='DeleteClass',
+                method=method_name,
                 ClassName=ClassName,
                 namespace=namespace,
                 **extra)
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
             classname = self._iparam_classname(ClassName)
 
             self._imethodcall(
-                'DeleteClass',
+                method_name,
                 namespace,
                 ClassName=classname,
                 **extra)
             return
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -7610,21 +7906,25 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
         qualifiers = None
+        method_name = 'EnumerateQualifiers'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='EnumerateQualifiers',
+                method=method_name,
                 namespace=namespace,
                 **extra)
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
 
             result = self._imethodcall(
-                'EnumerateQualifiers',
+                method_name,
                 namespace,
                 **extra)
 
@@ -7634,9 +7934,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 qualifiers = []
             return qualifiers
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(qualifiers, exc)
                 self.operation_recorder.record_staged()
@@ -7683,22 +7986,26 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
         qualifiername = None
+        method_name = 'GetQualifier'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='GetQualifier',
+                method=method_name,
                 QualifierName=QualifierName,
                 namespace=namespace,
                 **extra)
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
 
             result = self._imethodcall(
-                'GetQualifier',
+                method_name,
                 namespace,
                 QualifierName=QualifierName,
                 **extra)
@@ -7707,9 +8014,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             qualifiername = result[0][2][0]
             return qualifiername
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(qualifiername,
                                                             exc)
@@ -7752,29 +8062,36 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
+        method_name = 'SetQualifier'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='SetQualifier',
+                method=method_name,
                 QualifierDeclaration=QualifierDeclaration,
                 namespace=namespace,
                 **extra)
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
 
             self._imethodcall(
-                'SetQualifier',
+                method_name,
                 namespace,
                 QualifierDeclaration=QualifierDeclaration,
                 **extra)
             return
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -7815,29 +8132,36 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
+
         exc = None
+        method_name = 'DeleteQualifier'
+
         if self.operation_recorder:
             self.operation_recorder.reset()
             self.operation_recorder.stage_pywbem_args(
-                method='DeleteQualifier',
+                method=method_name,
                 QualifierName=QualifierName,
                 namespace=namespace,
                 **extra)
 
         try:
 
+            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
 
             self._imethodcall(
-                'DeleteQualifier',
+                method_name,
                 namespace,
                 QualifierName=QualifierName,
                 **extra)
             return
 
-        except Exception as exc:
+        except Exception as exce:
+            exc = exce
             raise
         finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()

@@ -831,6 +831,88 @@
                 </MESSAGE>
             </CIM>
 -
+    name: OpenEnumerateInstances9
+    description: OpenEnumerateInstances with all parameters to default and extra parameter. succeeds. Test statistics
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        enable-stats: true
+        operation:
+            pywbem_method: OpenEnumerateInstances
+            ClassName: PyWBEM_Person
+            IncludeClassOrigin:
+            ContinueOnError:
+            MaxObjectCount:
+            namespace: root/cimv2
+            DeepInheritance:
+            FilterQuery:
+            FilterQueryLanguage:
+            OperationTimeout:
+            LocalOnly:
+            IncludeQualifiers:
+            ExtraParam: false
+    pywbem_response:
+        request_len: 408
+        reply_len: 530
+        pullresult:
+            context:
+                - blahblah
+                - root/cimv2
+            eos: false
+            instances: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+             <?xml version="1.0" encoding="utf-8" ?>
+             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                 <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                     <SIMPLEREQ>
+                         <IMETHODCALL NAME="OpenEnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                 <NAMESPACE NAME="root"/>
+                                 <NAMESPACE NAME="cimv2"/>
+                             </LOCALNAMESPACEPATH>
+                             <IPARAMVALUE NAME="ClassName">
+                                 <CLASSNAME NAME="PyWBEM_Person"/>
+                             </IPARAMVALUE>
+                            <IPARAMVALUE NAME="ExtraParam">
+                               <VALUE>False</VALUE>
+                            </IPARAMVALUE>
+                         </IMETHODCALL>
+                     </SIMPLEREQ>
+                 </MESSAGE>
+             </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>FALSE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE>blahblah</VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+-
     name: OpenEnumerateInstancesF1
     description: OpenEnumerateInstances fails with CIM_ERR_ACCESS_DENIED
     pywbem_request:

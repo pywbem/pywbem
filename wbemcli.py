@@ -115,7 +115,7 @@ def _remote_connection(server, opts, argparser_):
     CONN = WBEMConnection(url, creds, default_namespace=opts.namespace,
                           no_verification=opts.no_verify_cert,
                           x509=x509_dict, ca_certs=opts.ca_certs,
-                          timeout=opts.timeout)
+                          timeout=opts.timeout, enable_stats=opts.enable_stats)
 
     CONN.debug = True
 
@@ -2953,6 +2953,10 @@ Examples:
         '-v', '--verbose', dest='verbose',
         action='store_true', default=False,
         help='Print more messages while processing')
+    general_arggroup.add_argument(
+        '-e', '--enable_stats', dest='verbose',
+        action='store_true', default=False,
+        help='Enable gathering of statistics on operations.')
     general_arggroup.add_argument(
         '-h', '--help', action='help',
         help='Show this help message and exit')

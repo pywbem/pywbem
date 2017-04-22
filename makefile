@@ -108,6 +108,7 @@ doc_dependent_files := \
     $(package_name)/_subscription_manager.py \
     $(package_name)/_recorder.py \
     $(package_name)/_server.py \
+    $(package_name)/_statistics.py \
     $(package_name)/config.py \
     wbemcli.py \
 
