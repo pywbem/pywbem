@@ -364,8 +364,8 @@ class OperationStatistic(object):
 
         For an example, see :meth:`pywbem.Statistics.formatted`.
         """
-        return ('{:5d} {:5d} {:7.3f} {:7.3f} {:7.3f} {:6.0f} {:6.0f} {:6.0f} '
-                '{:8.0f} {:8.0f} {:8.0f} {}\n'.
+        return ('{0:5d} {1:5d} {2:7.3f} {3:7.3f} {4:7.3f} {5:6.0f} {6:6.0f} '
+                 '{7:6.0f} {8:8.0f} {9:8.0f} {10:8.0f} {11}\n'.
                 format(self.count, self.exception_count,
                        self.avg_time, self.min_time, self.max_time,
                        self.avg_request_len, self.min_request_len,
