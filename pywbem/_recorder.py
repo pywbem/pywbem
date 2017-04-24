@@ -20,10 +20,12 @@ Operation recorder interface and implementations.
 
 from __future__ import print_function, absolute_import
 from collections import namedtuple
+
 try:
     from collections import OrderedDict  # pylint: disable=import-error
 except ImportError:
     from ordereddict import OrderedDict  # pylint: disable=import-error
+
 from datetime import datetime, timedelta
 import yaml
 from yaml.representer import RepresenterError
@@ -266,7 +268,10 @@ class BaseOperationRecorder(object):
         return self._enabled
 
     def reset(self, pull_op=None):
-        """Reset all the attributes in the class"""
+        """Reset all the attributes in the class. This also allows setting
+        the pull_op attribute that defines whether the operation is to be
+        a traditional or pull operation.
+        """
         self._pywbem_method = None
         self._pywbem_args = None
 
@@ -511,9 +516,8 @@ class TestClientRecorder(BaseOperationRecorder):
 
         # The file is open in text mode, so we produce a unicode string
         data = yaml.safe_dump(testcases, encoding=None, allow_unicode=True,
-                              default_flow_style=False)
+                              default_flow_style=False, indent=4)
         data = data.replace('\n\n', '\n')  # YAML dump duplicates newlines
-
         self._fp.write(data)
         self._fp.flush()
 
@@ -523,6 +527,12 @@ class TestClientRecorder(BaseOperationRecorder):
         operation method to an object that is ready for serialization into
         test_client yaml format.
         """
+
+        # namedtuple is subclass of tuple so it is instance of tuple but
+        # not type tuple. Cvt to dictionary and cvt dict to yaml.
+        if isinstance(obj, tuple) and type(obj) is not tuple:
+            ret_dict = obj._asdict()
+            return self.toyaml(ret_dict)
         if isinstance(obj, (list, tuple)):
             ret = []
             # This does not handle namedtuple
@@ -549,7 +559,9 @@ class TestClientRecorder(BaseOperationRecorder):
             return float(obj)
         elif isinstance(obj, CIMDateTime):
             return str(obj)
-        elif isinstance(obj, (datetime, timedelta)):
+        elif isinstance(obj, datetime):
+            return CIMDateTime(obj)
+        elif isinstance(obj, timedelta):
             return CIMDateTime(obj)
         elif isinstance(obj, CIMInstance):
             ret_dict = OrderedDict()
