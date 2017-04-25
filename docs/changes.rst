@@ -58,6 +58,10 @@ Enhancements
   
   See issue #761
 
+* Extended development.rst to define how to update dmtf mof and move the\
+  variables for this process from test_compiler.py to a separate file to
+  make them easy to find.  See issue #54
+
 Bug fixes
 ^^^^^^^^^
 
