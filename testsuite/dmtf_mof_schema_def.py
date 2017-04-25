@@ -19,7 +19,8 @@ To change the schema used:
     See the page http://www.dmtf.org/standards/cim if there are issues
     downloading a particular schema version.
 
-2. Delete the SCHEMA_DIR (testsuite/schema)
+2. Delete the SCHEMA_DIR (testsuite/schema). Be sure to delete the directory
+   to be sure the new schema gets downloaded and correctly expanded.
 
 3. Execute testsuite/test_mof_compiler.py. This should cause the new schema
    to be downloaded and expanded as part of the test.
