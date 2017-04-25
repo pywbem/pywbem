@@ -23,6 +23,9 @@ from pywbem import mof_compiler
 
 from unittest_extensions import CIMObjectMixin
 
+from dmtf_mof_schema_def import MOF_ZIP_BN, MOF_ZIP_URL, SCHEMA_MOF_BN, \
+    TOTAL_QUALIFIERS, TOTAL_CLASSES
+
 if six.PY2:
     # pylint: disable=wrong-import-order
     from urllib2 import urlopen
@@ -33,22 +36,16 @@ else:
 # Constants
 NAME_SPACE = 'root/test'
 
+# Location of the schema for use by test_mof_compiler.
+# This should not change unless you intend to use another schema directory
 SCRIPT_DIR = os.path.dirname(__file__)
 SCHEMA_DIR = os.path.join(SCRIPT_DIR, 'schema')
 SCHEMA_MOF_DIR = os.path.join(SCHEMA_DIR, 'mof')
 
-# Change the following variables when a new version of the CIM Schema is used.
-# Also, manually delete SCHEMA_DIR.
-MOF_ZIP_BN = 'cim_schema_2.45.0Final-MOFs.zip'
-MOF_ZIP_URL = 'http://www.dmtf.org/standards/cim/cim_schema_v2450/' + \
-    MOF_ZIP_BN
-SCHEMA_MOF_BN = 'cim_schema_2.45.0.mof'
-
+# DMTF Schema zip filename and mof filename
 MOF_ZIP_FN = os.path.join(SCHEMA_DIR, MOF_ZIP_BN)
 SCHEMA_MOF_FN = os.path.join(SCHEMA_MOF_DIR, SCHEMA_MOF_BN)
 
-TOTAL_QUALIFIERS = 70       # These may change for each schema release
-TOTAL_CLASSES = 1621
 
 TMP_FILE = 'test_mofRoundTripOutput.mof'
 
