@@ -98,6 +98,37 @@ shape in all supported Python environments, use Tox:
     $ tox -e py27                      # Run all tests on Python 2.7
 
 
+.. _`Updating the DMTF Test Schema`:
+
+Updating the DMTF Test Schema
+-------
+
+Pywbem uses DMTF CIM Schemas in its CI testing.  The schema used is stored in
+the form received from the DMTF in the directory ``testsuite/schema`` and is
+expanded and compiled in ``testsuite/test_mof_compiler.py`` as part of the
+tests.
+
+Since the DMTF regularly updates the schema, the pywbem project tries to stay
+up-to-date with the current schema. At the same time, earlier schemas can be
+used for testing also by changing the definitions for the dmtf schema to be
+tested.
+
+The schema used for testing can be modified by
+
+1. modifying the file
+
+::
+
+    testsuite/dmtf_mof_schema_def.py
+
+to define the location of the file to download
+
+2. removing the existing testsuite/schema directory which is the flag that
+causes the installation of the new schema as part of the next ``make tests``.
+
+Detailed information is in ``testsuite/dmtf_mof_schema_def.py``
+
+
 .. _`Contributing`:
 
 Contributing
