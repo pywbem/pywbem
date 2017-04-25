@@ -205,6 +205,10 @@ Planned Next Release
 
 Pywbem 0.11.0 is in development and is expected to be released in Q2 of 2017
 
+Pywbem github `Issue 633`_ defines the basic direction for release 0.11.0
+
+.. _Issue 633: https://github.com/pywbem/pywbem/issues/633
+
 Contributing
 ------------
 
