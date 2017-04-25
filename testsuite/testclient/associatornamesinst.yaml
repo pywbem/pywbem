@@ -286,5 +286,87 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
-# TODO add error response test
+-
+    name: AssociatorNamesE1
+    description: AssociatorNames fails with CIM_ERR_ACCESS_DENIED
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+        - username
+        - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+          pywbem_method: AssociatorNames
+          ResultClass: CIM_Collection
+          Role: member
+          AssocClass: PyWBEM_MemberOfPersonCollection
+          ObjectName:
+            pywbem_object: CIMInstanceName
+            classname: PyWBEM_Person
+            namespace: root/cimv2
+            keybindings:
+              CreationClassName: PyWBEM_Person
+              Name: Alice
+          ResultRole: Collection
+    pywbem_response:
+        cim_status: 2
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+          CIMOperation: MethodCall
+          CIMMethod: AssociatorNames
+          CIMObject: root/cimv2
+        data: '<?xml version="1.0" encoding="utf-8" ?>
+          <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+          <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEREQ>
+          <IMETHODCALL NAME="AssociatorNames">
+          <LOCALNAMESPACEPATH>
+          <NAMESPACE NAME="root"/>
+          <NAMESPACE NAME="cimv2"/>
+          </LOCALNAMESPACEPATH>
+          <IPARAMVALUE NAME="ResultClass">
+          <CLASSNAME NAME="CIM_Collection"/>
+          </IPARAMVALUE>
+          <IPARAMVALUE NAME="Role">
+          <VALUE>member</VALUE>
+          </IPARAMVALUE>
+          <IPARAMVALUE NAME="ResultRole">
+          <VALUE>Collection</VALUE>
+          </IPARAMVALUE>
+          <IPARAMVALUE NAME="ObjectName">
+          <INSTANCENAME CLASSNAME="PyWBEM_Person">
+          <KEYBINDING NAME="CreationClassName">
+          <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+          </KEYBINDING>
+          <KEYBINDING NAME="Name">
+          <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+          </KEYBINDING>
+          </INSTANCENAME>
+          </IPARAMVALUE>
+          <IPARAMVALUE NAME="AssocClass">
+          <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+          </IPARAMVALUE>
+          </IMETHODCALL>
+          </SIMPLEREQ>
+          </MESSAGE>
+          </CIM>'
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="AssociatorNames">
+                    <ERROR CODE="2" DESCRIPTION="CIM_ERR_ACCESS_DENIED: Access denied"/>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
 

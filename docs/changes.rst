@@ -90,6 +90,9 @@ Bug fixes
 * Correct documentation issue in cim_obj (Exceptions definition missing).
   See issue #677
 
+* Add more mock tests.  ModifyInstance was missing and some others were
+  missing an error test. issue#61
+
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 
