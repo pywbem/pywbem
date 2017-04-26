@@ -333,10 +333,11 @@ class NocaseDict(object):
         """
         Return a string representation of the `NocaseDict`_ object that is
         suitable for debugging.
-        """
 
+        The order of dictionary items is the iteration order of `iteritems()`.
+        """
         items = ', '.join([('%r: %r' % (key, value))
-                           for key, value in sorted(self.iteritems())])
+                           for key, value in self.iteritems()])
         return 'NocaseDict({%s})' % items
 
     def update(self, *args, **kwargs):

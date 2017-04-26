@@ -487,6 +487,71 @@ class CIMInstanceNameEquality(unittest.TestCase):
         self.assertEqual(CIMInstanceName('CIM_Foo', namespace='root/cimv2'),
                          CIMInstanceName('CIM_Foo', namespace='Root/CIMv2'))
 
+    def test_keybindings_order(self):
+        """
+        Test that two CIMInstanceName objects compare equal if their key
+        bindings have a different order.
+
+        This test was motivated by pywbem issue #686.
+
+        This test attempts to construct dictionaries that have a different
+        iteration order for their items. This may not work on all Python
+        implementations and versions, but having the same order does not
+        invalidate this test, it just lowers the quality of this test.
+
+        The approach to achieve different iteration orders is based on the
+        knowledge that in CPython<=3.2, the dict implementation uses a hash
+        table with an initial size of 8 (which doubles its size under certain
+        conditions). The two test keys 'bar' and 'baz' happen to have the
+        same hash value of 4 (= hash(key) % 8) , and therefore occupy the
+        same slot in the hash table (i.e. they produce a hash collision).
+        In such a case, the iteration order depends on the order in which the
+        items were added to the dictionary. For details, read
+        http://stackoverflow.com/a/15479974/1424462.
+        """
+
+        key1 = 'bar'
+        key2 = 'baz'  # should have same hash value as key1 (= hash(key) % 8)
+        value1 = 'a'
+        value2 = 'b'
+
+        d1 = {key1: value1, key2: value2}
+        kb1 = NocaseDict(d1)
+        obj1 = CIMInstanceName('CIM_Foo', kb1)
+
+        d2 = {key2: value2, key1: value1}
+        kb2 = NocaseDict(d2)
+        obj2 = CIMInstanceName('CIM_Foo', kb2)
+
+        for k in obj1.keybindings:
+            k1_first = k
+            break
+        for k in obj2.keybindings:
+            k2_first = k
+            break
+        if k1_first != k2_first:
+            # The key bindings do have different iteration order, so we have
+            # a high test quality.
+            pass
+        else:
+            print("\nInfo: CIMInstanceNameEquality.test_keybindings_order(): "
+                  "Key bindings have the same order of keys, lowering the "
+                  "quality of this test.")
+            print("  Hash values of keys: k1=%r (hash: %s), k2=%r (hash: %s)" %
+                  (key1, hash(key1) % 8, key2, hash(key2) % 8))
+            print("  First keys: k1=%r, k2=%r" % (k1_first, k2_first))
+            print("  Input dicts: d1=%r, d2=%r" % (d1, d2))
+            print("  Input key bindings: kb1=%r, kb2=%r" % (kb1, kb2))
+            print("  Object key bindings: obj1.kb=%r, obj2.kb=%r" %
+                  (obj1.keybindings, obj2.keybindings))
+            print("  Objects:\n    obj1=%r\n    obj2=%r" % (obj1, obj2))
+        if obj1 != obj2:
+            raise AssertionError(
+                "CIMInstanceName objects with different iteration order of "
+                "key bindings do not compare equal:\n"
+                "  obj1=%r\n"
+                "  obj2=%r" % (obj1, obj2))
+
 
 class CIMInstanceNameCompare(unittest.TestCase):
     """
