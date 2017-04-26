@@ -128,6 +128,8 @@ Documentation
 * Documented that pywbem is not supported on Python 2.6 on Windows.
   and that 64-bit versions of Python are not supported on Windows.
 
+* Added material to README and changed to use restructured text. issue #642
+
 
 pywbem v0.10.0
 --------------
