@@ -82,6 +82,7 @@ General options:
                         Path name of a MOF include directory. Can be specified
                         multiple times.
   -v, --verbose         Print more messages while processing
+  -V, --version         Display pywbem version and exit.
   -h, --help            Show this help message and exit
 
 Example: mof_compiler CIM_Schema_2.45.mof -s https://localhost -n root/cimv2

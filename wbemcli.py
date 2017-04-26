@@ -58,6 +58,7 @@ from pywbem import WBEMConnection
 from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT
+from pywbem import __version__
 
 # Connection global variable. Set by remote_connection and use
 # by all functions that execute operations.
@@ -2953,6 +2954,9 @@ Examples:
         '-v', '--verbose', dest='verbose',
         action='store_true', default=False,
         help='Print more messages while processing')
+    general_arggroup.add_argument(
+        '-V', '--version', action='version', version='%(prog)s ' + __version__,
+        help='Display pywbem version and exit.')
     general_arggroup.add_argument(
         '-e', '--enable_stats', dest='verbose',
         action='store_true', default=False,

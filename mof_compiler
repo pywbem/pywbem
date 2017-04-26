@@ -37,6 +37,7 @@ from pywbem._cliutils import SmartFormatter
 from pywbem import WBEMConnection, Error
 from pywbem.mof_compiler import MOFWBEMConnection, MOFCompiler
 from pywbem.cim_http import get_default_ca_cert_paths
+from pywbem import __version__
 
 
 def main():
@@ -165,6 +166,9 @@ Example:
         action='store_true', default=False,
         help='Print more messages while processing')
     general_arggroup.add_argument(
+        '-V', '--version', action='version', version='%(prog)s ' + __version__,
+        help='Display pywbem version and exit.')
+    general_arggroup.add_argument(
         '-h', '--help', action='help',
         help='Show this help message and exit')
 
@@ -240,6 +244,7 @@ Example:
 
     if args.remove or args.dry_run:
         # Only record the changes to the repository, but do not perform them.
+        # pylint: disable=redefined-variable-type
         conn = MOFWBEMConnection(conn=conn)
 
     # conn.debug = True
@@ -285,5 +290,5 @@ Example:
 
 
 if __name__ == '__main__':
-    rc = main()
+    rc = main()  # pylint: disable=invalid-name
     sys.exit(rc)
