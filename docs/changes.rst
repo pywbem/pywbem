@@ -101,6 +101,9 @@ Bug fixes
 * Add more mock tests.  ModifyInstance was missing and some others were
   missing an error test. issue#61
 
+* add --version option to mof_compiler and pywbem cli tools.  Generates the
+  pywbem version string.  See issue # 630
+
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 
