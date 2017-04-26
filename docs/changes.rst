@@ -62,6 +62,10 @@ Enhancements
   variables for this process from test_compiler.py to a separate file to
   make them easy to find.  See issue #54
 
+* Changed `CIMInstancename.__repr__()` to show the key bindings in the
+  iteration order, and no longer in sorted order, to better debug
+  iteration order related issues. See issue #585.
+
 Bug fixes
 ^^^^^^^^^
 
@@ -114,6 +118,9 @@ Build, test, quality
 
 * Fixed TypeError about dict ordering on Python 3.6 in unit test
   'test_nocasedict.TestOrdering' (issue #661).
+
+* Added a testcase for `CIMInstanceName` to compare two objects with
+  different ordering of their key bindings for equality. See issue #686.
 
 Documentation
 ^^^^^^^^^^^^^
