@@ -4,48 +4,58 @@
 Concepts
 ========
 
+This sections defines some of the basic concepts that form the basis for
+Pywbem including the architecture, basic CIM/WBEM components, operations
+and indications.
 
-TODO: We need a section on profiles
+It also defines the differences between some of the methods defined in
+Pywbem cim_operations, in particular, the pull operations and the iter
+operations.
 
-.. _`The CIM/WBEM Architecture`:
 
-The CIM/WBEM Architecture
+.. _`The CIM/WBEM architecture`:
+
+The CIM/WBEM architecture
 -------------------------
 
-TODO: Write this
+TODO: Write this section
 
-.. _`The CIM Model and CIM Objects`:
+.. _`The CIM model and CIM objects`:
 
 
-The CIM Model and CIM Objects
+The CIM model and CIM objects
 -----------------------------
 
-TODO: Write this
+TODO: Write this section
 
 
-.. _`WBEM Operations: Communicating with the WBEM Server`:
+.. _`WBEM operations: Communicating with the WBEM Server`:
 
 WBEM Operations: Communicating with the WBEM Server
 ---------------------------------------------------
 
 TODO: Write this section
 
-.. _`Pull Operations: increasing scalability`:
+.. _`WBEM operations overview`:
 
-Overview
-^^^^^^^^
+WBEM operations overview
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-TODO Write this
+TODO Write this section
 
-The Traditional Operations
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. _`Traditional operations`:
 
-TODO - Write this
+Traditional operations
+^^^^^^^^^^^^^^^^^^^^^^
 
-Pull Operations: increasing scalability
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TODO - Write this section
 
-The DMTF CIM/XML Pull operations allow the WBEM client to break the
+.. _`Pull operations`:
+
+Pull operations
+^^^^^^^^^^^^^^^
+
+The DMTF CIM/XML pull operations allow the WBEM client to break the
 monolithic instance operations for requests that deliver multiple objects
 into multiple requests/responses executed as a sequence of requests to limit
 the size of individual responses.
@@ -53,49 +63,59 @@ the size of individual responses.
 NOTE: The pull operations were added to pywbem in version 0.9.0.
 
 They were created to reduce scalability issues with extremely large
-responses from the enumerate requests for instances (EnumerateInstances,
+responses from servers for instance enumerate operations (EnumerateInstances,
 Associators, and References) that were causing resource problems in both
-clients and servers by allowing the client to break large responses up into
-multiple smaller responses and allowing some filter of the responses to be
+clients and servers. The pull operations allow the client to break large responses up into
+multiple smaller responses and allowing filtering of the responses to be
 performed by the server.
 
 A central concept of pulled enumeration operations is the `enumeration
 session`, which provides a context in which the operations perform their
 work and which determines the set of instances or instance paths to be
-returned. To process the operations of an enumeration session, some
+returned. To process the operations of an `enumeration session`, some
 parameters of the open operation need to be maintained as long as the
-enumeration session is open. In addition, some state data about where the
-enumeration session is with regard to instances or instance paths already
-.returned must be maintained.
+`enumeration session` is open. In addition, some state data about where the
+`enumeration session` is with regard to instances or instance paths already
+returned must be maintained.
 
-A successful `Open...` operation establishes the enumeration session and
-returns an enumeration context value representing it. This value is used as
-an input/output parameter in subsequent Pull operations on that enumeration
-session.
+A successful `Open...` operation establishes the `enumeration session` and
+returns an enumeration context (Pybbem result.context) value representing
+that session. This value is used as a parameter in subsequent
+Pull operations on that enumeration session.
 
-In general they replace the single request/response (ex. EnumerateInstances)
-that returns all instances in a single response  with a pattern that is
-based on two operations:
+In general the pull operations replace the single  monolithic request/response (ex. EnumerateInstances)
+that returns all instances in a single response  with a pattern (enumeration sequence)
+that is based on three operations:
 
 * `Open...` to open the request enumeration session to the WBEM Server and
+  optionally request objects be returned.
 * `Pull...` to continue retrieving objects from the WBEM Server after a
-  successful `Open...`. The client continues to pull until an exception or
-  end-of-sequence flag is received.
+  successful `Open...`. The client normally continues to execute pulls until an
+  exception or end-of-sequence flag is received.
+* `CloseEnumeration` Close an `enumeration sequence` before it is complete. This
+  request is ONLY used to execute early close; when the eos flag is returned or
+  and error is returned (if `ContinueOnError` is not set),
+  the session is closed by the server.
 
-They use the same request parameters and the traditional operations and add
-several more parameters to control the flow of responses (response size,
-timeouts, etc.)
+The open... requests use the same request parameters as the traditional
+operations to define the basic characteristics of the  corresponding
+traditional operation (object name, propertylists, etc) and add several more
+request parameters to control the flow of responses (response size,
+timeouts, etc.). In addition they add two new request parameters
+(`QueryFilter` and `QueryFilterLanguage`) to request that the server filter
+the responses and return only instances/paths that match the filter.
 
 Relation to traditional operations
 """"""""""""""""""""""""""""""""""
 
-The convention for the pull operation naming was as follows 1) Prepend the
-traditional operation name with `Open` and `Pull`, 2) Suffix the pull
-operations that return both instances and paths with `WithPath`, 3) Change
-the name suffix on operations that return path information from `Names` to
-`Paths` to reflect that these operations are returning complete instance
-paths with host and namespace included.  The `Exec` was dropped from the
-name for the `OpenQueryInstances`.
+The convention for the pull operation naming is as follows:
+
+1. Prepend the traditional operation name with `Open` and `Pull`
+2. Suffix the pull operations that return both instances and paths with `WithPath`
+3. Change the name suffix on operations that return path information from `Names` to
+   `Paths` to reflect that these operations are returning complete instance
+   paths with host and namespace included.  The `Exec` was dropped from the
+   name for the `OpenQueryInstances`.
 
 The pull operations parallel to the traditional operations as follows:
 
@@ -115,10 +135,10 @@ The pull operations are defined only for instances.  There are NO pull
 operations for CIM classes, the for CIM qualifier declarations or for method
 invocations.
 
-Pull Operation Responses
+Pull operation responses
 """"""""""""""""""""""""
 
-Each pull operation request returns a Python named tuple result that
+Each pull operation request returns a Python namedtuple result that
 consists of the following named components:
 
 * `eos` - A boolean flag that indicates the end of the enumeration sequence.
@@ -137,10 +157,10 @@ consists of the following named components:
   in the namedtuple and those that request paths return paths in the `path` entry
   in the namedtuple.
 
-Pull Request Sequence Code Pattern
-""""""""""""""""""""""""""""""""""
+Pull enumeration sequence code pattern
+""""""""""""""""""""""""""""""""""""""
 
-Generally the pattern for requesting from a server using the Pull operations
+Generally the pattern for requesting from a server using the pull operations
 is as follows:
 
 ::
@@ -170,7 +190,7 @@ Common Pull Operation Request Input Arguments
 
 The following are the request arguments that are common across all of the Pull requests.
 
-Open Requests
+Open requests
 '''''''''''''
 
 * FilterQuery Language and FilterQuery - These input parameters specify a
@@ -196,17 +216,19 @@ Open Requests
 * ContinueOnError - This input parameter, if true, requests a continuation
   on error, which is the ability to resume an enumeration session successfully
   after a Pull operation returns an error. If a WBEM server does not support
-  continuation on error and ContinueOnError is true, it shall return a failure
-  with the status code CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED.
+  continuation on error and `ContinueOnError` is true, it shall return a failure
+  with the status code CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED. Most servers
+  today do not support `ContinueOnError`.
 
 * MaxObjectCount - Defines the maximum number of instances or instance paths
   that the open operation can return. Any uint32 number is valid, including 0.
   The WBEM server may deliver any number of instances or instance paths up to
-  MaxObjectCount but shall not deliver more than MaxObjectCount elements. The
+  `MaxObjectCount` but shall not deliver more than `MaxObjectCount` elements. The
   default for this is zero so that the WBEM server does not deliver objects in
-  the response unless a MaxObjectCount is specifically defined.
+  the response unless a `MaxObjectCount` is specifically defined. The WBEM
+  server may limit the maximum size of this request parameter.
 
-Pull Requests
+Pull requests
 '''''''''''''
 
 * Context - This is the EnumerationContext defined in the specification. It
@@ -216,12 +238,12 @@ Pull Requests
 * MaxObjectCount - This required input parameter defines the maximum number
   of instances or instance paths that may be returned by this Pull operation.
   Any uint32 number is valid, including 0. The WBEM server may deliver any
-  number of instances or instance paths up to MaxObjectCount but shall not
-  deliver more than MaxObjectCount. The WBEM client may use a MaxObjectCount
+  number of instances or instance paths up to `MaxObjectCount` but shall not
+  deliver more than `MaxObjectCount`. The WBEM client may use a `MaxObjectCount`
   value of 0 to restart the operation timeout for the enumeration session when
   it does not need to not retrieve any instances or instance paths.
 
-Close Request
+Close request
 '''''''''''''
 
 * Context - This is the EnumerationContext defined in the specification. It
@@ -239,17 +261,17 @@ The pull operations differ from the traditional operations in the several ways:
 2. They limit the amount of memory used by the server since the server need
    not process the complete request before returning information to the client
 3. They limit the memory used by the client since it can define the maximum
-   size of any request.
-4. They allow the client to terminate a request early with the CloseEnumeration
+   size of any response.
+4. They allow the client to terminate an enumeration early with the CloseEnumeration.
 5. They allow the server and client to receive partial responses in that the
    client receives potentially an error response on each segment of the
    response, not the overall response.
 6. They provide a more consistent inclusion of the path component in the responses.
 
 
-.. _`Iter Operations`:
+.. _`Iter operations`:
 
-Iter Operations
+Iter operations
 ^^^^^^^^^^^^^^^
 
 The iterable operation extensions (short: *iter operations*) are a set of
@@ -257,6 +279,8 @@ methods added to
 [`pywbem.WBEMConnection`](https://pywbem.readthedocs.io/en/latest/client.html#
 pywbem.WBEMConnection) class in pywbem version 0.10.0 to simplify the use of
 the pull vs. traditional operations.
+
+These are specific to PyWBEM.
 
 Why the iter operations exist
 """""""""""""""""""""""""""""
@@ -300,8 +324,7 @@ ExecQuery                OpenQueryInstances / PullInstances                 Iter
 
 The methods for the iter operations use the same arguments as the Open...
 methods of the pull operations, with exceptions noted in section
-[Differences between iter operations and pull
-operations](#Differences-between-iter-operations-and-pull-operations).
+:ref: `Differences between iter operations and pull operations`.
 
 The general pattern for use of the iter operations is:
 
@@ -332,6 +355,7 @@ pull operation):
 
 ::
 
+    # psuedo code pattern for iter function internal processing
     if <use_pull_for_this_operation is try or true>:
         try:
             result = Open...(...)
@@ -355,8 +379,10 @@ pull operation):
         <fix up path in instance>
         yield inst
 
+.. _Forcing pull vs. traditional operations:
+
 Forcing pull vs. traditional operations
-"""""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A parameter (`use_pull_operations`) has been added to the
 [`pywbem.WBEMConnection`](https://pywbem.readthedocs.io/en/latest/client.html#
@@ -384,11 +410,14 @@ operations by simply setting `use_pull_operations=False`.
                                  no_verification=True,
                                  use_pull_operations=False)
 
+
+.._Differences between iter operations and pull operations:
+
 Differences between iter operations and pull operations
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use of FilterQuery
-''''''''''''''''''
+""""""""""""""""""
 
 Since the traditional operations did not incorporate the query filters into
 their input parameters, if a query filter is included in the request and the
@@ -398,7 +427,7 @@ and an exception generated. This is because the specification for the
 there is no way to do that with the traditional operations.
 
 Paths in returned instances
-'''''''''''''''''''''''''''
+"""""""""""""""""""""""""""
 
 The requirements on paths in returned instances differ between pull and
 traditional operations. The iter operations have been defined to be in line
@@ -409,7 +438,7 @@ operation. Thus, the iter operation always returns a complete path in any
 returned instances.
 
 Use of MaxObjectCount argument
-''''''''''''''''''''''''''''''
+""""""""""""""""""""""""""""""
 
 The `MaxObjectCount` argument is somewhat more limited than if the pull
 operations are used directly in that:
@@ -420,19 +449,19 @@ operations are used directly in that:
    must be sufficient for the client to complete its processing.
 
 Receiving returned objects before an exception
-''''''''''''''''''''''''''''''''''''''''''''''
+""""""""""""""""""""""""""""""""""""""""""""""
 
 In general the pull operations receive either objects or error for each
 request (open or pull). Since these operations may be called to get objects
 from the server the iterator may receive objects before an exception is
 executed. In general, unless the `ContinueOnError` flag is set, the
 enumeration sequence will terminate after the first error and that error is
-an indication that not all objects were received from the server. Note that
-if the traditional enumerate function is called by the Iter...() method,
+an indication that not all objects were received from the server.
+If the traditional enumerate function is called by the Iter...() method,
 either objects or an error are received, never both.
 
-Closing a pull operation before it is complete
-''''''''''''''''''''''''''''''''''''''''''''''
+Closing an Iter operation before it is complete
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 An iter operation may be closed before the processing from the server is
 complete by executing the `close()` function on the iterator:
@@ -452,11 +481,19 @@ than the pull operation, the `close()` will do nothing since the response
 instances are received as a single block. If the enumeration sequence is
 already complete, this call will also be ignored.
 
-.. _`WBEM Indications`:
+.. _`WBEM Indications and subscriptions`:
 
-WBEM Indications and Subscriptions
+WBEM indications and subscriptions
 ----------------------------------
 
-TODO: Write this section
+TODO: Section on indications and subscriptions
+
+.. _`WBEM Management Profiles`:
+
+WBEM Management Profiles
+------------------------
+
+TODO: Create this section describing profiles, why there exist and
+very generally how to use them
 
 
