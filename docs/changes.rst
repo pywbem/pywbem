@@ -66,6 +66,10 @@ Enhancements
   iteration order, and no longer in sorted order, to better debug
   iteration order related issues. See issue #585.
 
+* Add new notebooks to the tutorials including notebooks for the
+  WBEMServer class, the pull operations, and the Iter operations. See issue
+  #682
+
 Bug fixes
 ^^^^^^^^^
 
