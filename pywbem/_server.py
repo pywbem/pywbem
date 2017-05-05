@@ -317,13 +317,16 @@ class WBEMServer(object):
         Parameters:
 
             profile_org (:term:`string`) or None: the `RegisteredOrganization`
-              to match the `RegisteredOrganization` of the profile.
+              to match the `RegisteredOrganization` of the profile. This
+              match is case sensitive.
               If None, this parameter is ignored in the filter
 
             profile_name (:term:`string`) or None: the `RegisteredName`.
+              This match is case sensitive
               If None, this parameter is ignored in the filter
 
             profile_version (:term:`string`) or None: the `RegisteredVersion`.
+              This match is case sensitive.
               If None, this parameter is ignored in the filter
 
         Raises:
