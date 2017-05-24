@@ -364,13 +364,13 @@ def main():
             # Python prereqs for 'develop' command. Handled by os_setup module.
             "pytest>=2.4",
             "pytest-cov",
-            "Sphinx>=1.3",
+            "Sphinx>=1.3" if sys.version_info[0:2] != (2, 6) else None,
             # Pinning GitPython to 2.0.8 max, due to its use of unittest.case
             # which is not available on Python 2.6.
             # TODO: Track resolution of GitPython issue #540:
             #       https://github.com/gitpython-developers/GitPython/issues/540
-            "GitPython==2.0.8",
-            "sphinx-git",
+            "GitPython==2.0.8" if sys.version_info[0:2] != (2, 6) else None,
+            "sphinx-git" if sys.version_info[0:2] != (2, 6) else None,
             "httpretty",
             "lxml",
             # Astroid is used by Pylint. Astroid 1.3 and above, and Pylint 1.4
