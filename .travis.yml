@@ -15,6 +15,9 @@ install:
   - python -c "import platform; print('Demonstration of incorrect distro returned by platform.linux_distribution():'); print(repr(platform.linux_distribution()))"
   - python -c "import pip, os; print('Site-packages directory of system Python:'); print(os.path.dirname(os.path.dirname(pip.__file__)))"
   - pip list
+#  - sudo apt-get update
+#  - sudo apt search swig
+  - sudo apt-get install -y swig
   - pip install --upgrade pip
   - python uninstall_pbr_on_py26.py
   - make clobber
