@@ -15,6 +15,9 @@ install:
   - python -c "import platform; print('Demonstration of incorrect distro returned by platform.linux_distribution():'); print(repr(platform.linux_distribution()))"
   - python -c "import pip, os; print('Site-packages directory of system Python:'); print(os.path.dirname(os.path.dirname(pip.__file__)))"
   - pip list
+# TODO: Replace the following quick fix for installing swig with a real fix.
+  - sudo apt-get install -y swig
+# end of swig quick fix
   - pip install --upgrade pip
   - python uninstall_pbr_on_py26.py
   - make clobber
