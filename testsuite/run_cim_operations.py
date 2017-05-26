@@ -18,7 +18,7 @@ import sys
 import os.path
 import threading
 import types
-from datetime import timedelta
+from datetime import timedelta, datetime
 import unittest
 from getpass import getpass
 import warnings
@@ -26,13 +26,12 @@ import time
 from six.moves.urllib.parse import urlparse
 import six
 
-
 from pywbem import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_AVAILABLE, CIM_ERR_INVALID_QUERY, \
     CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
-    CIM_ERR_METHOD_NOT_FOUND, DEFAULT_NAMESPACE
+    CIM_ERR_METHOD_NOT_FOUND, DEFAULT_NAMESPACE, MinutesFromUTC
 
 from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
     WBEMSubscriptionManager, CIMInstance, CIMInstanceName, CIMClass, \
@@ -43,6 +42,10 @@ from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
 from pywbem.mof_compiler import MOFCompiler
 
 from unittest_extensions import RegexpMixin
+
+
+if six.PY2:
+    import codecs
 
 # Test for decorator for unimplemented tests
 # decorator is @unittest.skip(UNIMPLEMENTED)
@@ -137,7 +140,10 @@ class ClientTest(unittest.TestCase):
         self.conn.debug = CLI_ARGS['debug']
 
         if self.yamlfile is not None:
-            self.yamlfp = open(self.yamlfile, 'a')
+            if six.PY2:
+                self.yamlfp = codecs.open(self.yamlfile, 'a', encoding='utf8')
+            else:
+                self.yamlfp = open(self.yamlfile, 'a')
             self.conn.operation_recorder = TestClientRecorder(self.yamlfp)
 
         self.log('Connected {}, ns {}'.format(self.system_url,
@@ -2209,6 +2215,87 @@ class CreateInstance(ClientTest):
             if arg == CIM_ERR_NOT_FOUND:
                 pass
 
+    def test_pywbem_AllTypes(self):
+        """Test Creation of an instance of PyWBEM_AllTypes."""
+        if not self.pywbem_person_class_exists():
+            return
+
+        # Note: We do not use the variables that name the class here
+        dt = datetime(year=2016, month=3, day=31, hour=19, minute=30,
+                      second=40, microsecond=654321,
+                      tzinfo=MinutesFromUTC(120))
+
+        instance_id = 'run_cimoperations_test1'
+
+        tst_instance = CIMInstance(
+            'PyWBEM_AllTypes',
+            {'InstanceId': instance_id,
+             'scalUint8': Uint8(42),
+             'scalSint8': Sint8(-42),
+             'scalUint16': Uint16(4216),
+             'scalSint16': Sint16(-4216),
+             'scalUint32': Uint32(4232),
+             'scalSint32': Sint32(-4232),
+             'scalUint64': Uint64(99999),
+             'scalSint64': Sint64(-99999),
+             'scalReal32': Real32(42.0),
+             'scalReal64': Real64(42.64),
+             'scalString': 'ham',
+             'scalDateTime': dt,
+             'arrayUint8': [Uint8(x) for x in [0, 1, 44, 127]],
+             'arraySint8': [Sint8(x) for x in [0, -1, 44, 127]],
+             'arrayUint16': [Sint16(x) for x in [0, -1, 44, 127]],
+             'arraySint16': [Sint16(42), Sint16(-99)],
+             'arrayUint32': [Uint32(42), Uint32(99)],
+             'arraySint32': [Sint32(42), Sint32(-99)],
+             'arrayUint64': [Uint64(42), Uint64(999999)],
+             'arraySint64': [Sint64(4222222), Sint64(-999999)],
+             'arrayReal32': [Real32(42.0), Real32(4442.9)],
+             'arrayReal64': [Real64(42.0), Real64(4442.9)],
+             'arrayString': ['ham', u'H\u00E4m'],  # U+00E4=lower case a umlaut
+             'arrayDateTime': [dt, dt], })
+
+        tst_instance.path = CIMInstanceName(
+            'PyWBEM_AllTypes', {'InstanceId': instance_id})
+
+        # Delete if already exists (previous test incomplete)
+        try:
+            self.cimcall(self.conn.DeleteInstance, tst_instance.path)
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_NOT_FOUND:
+                pass
+
+        # Create instance and get/compare then delete if the create was
+        # successful
+        try:
+            real_inst_path = self.cimcall(self.conn.CreateInstance,
+                                          tst_instance)
+        except CIMError as ce:
+            if ce.args[0] == CIM_ERR_INVALID_CLASS:
+                # does not support creation
+                pass
+        else:
+            self.assertTrue(isinstance(real_inst_path, CIMInstanceName))
+            self.assertTrue(len(real_inst_path.namespace) > 0)
+
+            got_instance = self.cimcall(self.conn.GetInstance,
+                                        tst_instance.path)
+
+            self.assertEqual(tst_instance, got_instance)
+
+            result = self.cimcall(self.conn.DeleteInstance,
+                                  real_inst_path)
+
+            self.assertTrue(result is None)
+
+        # Should fail.  Instance already deleted
+        try:
+            self.cimcall(self.conn.GetInstance(tst_instance.path))
+
+        except CIMError as arg:
+            if arg == CIM_ERR_NOT_FOUND:
+                pass
+
 
 class ModifyInstance(ClientTest):
 
@@ -2342,6 +2429,36 @@ class InvokeMethod(ClientTest):
                          Date1=CIMDateTime.now(),
                          Date2=timedelta(60),
                          Ref=name)
+        except CIMError as ce:
+            if ce.args[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
+                raise
+
+    def test_one_param_types(self):
+        """Call invoke method with all possible parameter types"""
+        inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
+                                  TEST_CLASS)
+        self.assertTrue(len(inst_names) >= 1)
+        name = inst_names[0]  # Pick the first returned instance
+        try:
+            self.cimcall(self.conn.InvokeMethod,
+                         'FooMethod',
+                         TEST_CLASS,
+                         String='Spotty',
+                         Uint8=Uint8(1),
+                         Sint8=Sint8(2),
+                         Uint16=Uint16(3),
+                         Sint16=Sint16(3),
+                         Uint32=Uint32(4),
+                         Sint32=Sint32(5),
+                         Uint64=Uint64(6),
+                         Sint64=Sint64(7),
+                         Real32=Real32(8),
+                         Real64=Real64(9),
+                         Bool=True,
+                         Date1=CIMDateTime.now(),
+                         Date2=timedelta(60),
+                         Ref=name
+                         )
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
                 raise

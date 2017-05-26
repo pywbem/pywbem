@@ -70,6 +70,8 @@ Enhancements
   WBEMServer class, the pull operations, and the Iter operations. See issue
   #682
 
+* Added unit test for recorder. See issue #676
+
 Bug fixes
 ^^^^^^^^^
 
@@ -107,6 +109,13 @@ Bug fixes
 
 * add --version option to mof_compiler and pywbem cli tools.  Generates the
   pywbem version string.  See issue # 630
+
+* Fix several issues in recorder including issue #609:indent by 4,
+  # 676: invalid yaml representation for namedtuples that result from
+  open/pull operations, #700 and #663: recorder won't write utf8 (at least for our
+  tests), #698 : datetime test failures because of timezone, Most
+  of these are tested with the new test_recorder.py unit test.
+  
 
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^

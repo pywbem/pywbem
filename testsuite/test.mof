@@ -91,6 +91,7 @@ class PyWBEM_AllTypes {
    Real64  scalReal64;
    String  scalString;
    Datetime scalDateTime;
+   Datetime scalTimeDelta;
 
    // Scalar properties with default values
    [Description ("Scalar Boolean property that may be created or returned. "

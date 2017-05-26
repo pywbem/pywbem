@@ -12,6 +12,7 @@ pywbem.egg-info
 MANIFEST
 parser.out
 moflog*.txt
+test_recorder.yaml
 pylint_done
 .coverage
 /build/
