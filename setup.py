@@ -343,6 +343,7 @@ def main():
         'scripts': [
             'wbemcli',
             'wbemcli.py',
+            'pywbemcli',
             'mof_compiler',
             'wbemcli.bat',
             'mof_compiler.bat',
@@ -354,6 +355,11 @@ def main():
             # at Python startup time).
             'six',
             'ply',
+            # The following are used by wcli
+            'click',
+            'click-repl',
+            'click-spinner',
+            'click-configfile',
             # The PyYAML package contains the "yaml" Python package. yaml is
             # needed by the pywbem._recorder module.
             'PyYAML',
