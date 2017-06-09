@@ -118,6 +118,8 @@ Bug fixes
 
 * Fix error in wbemcli with --enable_stats arg.  Since this was added in
   this release, the bug was never public. See issue #709
+
+* Remove extra print in cim_operations. See issue # 704
   
 
 Build, test, quality
