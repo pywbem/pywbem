@@ -41,6 +41,9 @@ from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
 
 from pywbem.mof_compiler import MOFCompiler
 
+from pywbem import ClientLogger
+from pywbem._logging import define_operationlogger
+
 from unittest_extensions import RegexpMixin
 
 
@@ -109,6 +112,7 @@ class ClientTest(unittest.TestCase):
         self.verbose = CLI_ARGS['verbose']
         self.debug = CLI_ARGS['debug']
         self.yamlfile = CLI_ARGS['yamlfile']
+        self.log = CLI_ARGS['log']
         self.yamlfp = None
         self.enable_stats = True if CLI_ARGS['stats'] else False
         if self.enable_stats:
@@ -132,6 +136,13 @@ class ClientTest(unittest.TestCase):
             ca_certs=CLI_ARGS['cacerts'],
             use_pull_operations=use_pull_operations,
             enable_stats=self.enable_stats)
+
+        # if log set, enable the logger.
+        if self.log:
+            define_operationlogger(log_destination='file',
+                                   filename='run_cimoperations.log',
+                                   log_level='debug')
+            self.conn.operation_recorder = ClientLogger()
 
         # enable saving of xml for display
         self.conn.debug = CLI_ARGS['debug']
@@ -6577,6 +6588,7 @@ def parse_args(argv_):
         print('    -l                  Do long running tests. If not set,\n'
               '                        skips a number of tests that take a\n'
               '                        long time to run')
+        print('    -log                Log all operations and http to file.')
         print('    -hl                 List of individual tests')
 
         print('')
@@ -6606,6 +6618,7 @@ def parse_args(argv_):
     args_['yamlfile'] = None
     args_['long_running'] = None
     args_['stats'] = None
+    args_['log'] = None
 
     # options must proceed arguments
     while True:
@@ -6644,6 +6657,8 @@ def parse_args(argv_):
         elif argv[1] == '--yamlfile':
             args_['yamlfile'] = argv[2]
             del argv[1:3]
+        elif argv[1] == '-log':
+            del argv[1:2]
         else:
             print("Error: Unknown option: %s" % argv[1])
             sys.exit(1)
@@ -6681,6 +6696,7 @@ def main():
         print("  stats: %s" % CLI_ARGS['stats'])
         print("  debug: %s" % CLI_ARGS['debug'])
         print("  yamlfile: %s" % CLI_ARGS['yamlfile'])
+        print("  log: %s" % CLI_ARGS['log'])
         print("  long_running: %s" % CLI_ARGS['long_running'])
 
         if CLI_ARGS['long_running'] is True:

@@ -166,6 +166,8 @@ from .exceptions import Error, ParseError, AuthError, ConnectionError, \
     TimeoutError, CIMError
 from ._statistics import Statistics
 
+from ._recorder import LogOperationRecorder
+
 __all__ = ['WBEMConnection', 'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
 
@@ -599,7 +601,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def __init__(self, url, creds=None, default_namespace=DEFAULT_NAMESPACE,
                  x509=None, verify_callback=None, ca_certs=None,
                  no_verification=False, timeout=None, use_pull_operations=None,
-                 enable_stats=False):
+                 enable_stats=False, enable_log=False):
         """
         Parameters:
 
@@ -819,6 +821,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             status or change the status (ex. `conn.stats_enabled(False)`)
 
             **Experimental:** This argument is experimental for this release.
+
+          enable_log (:class:`py_bool` or :class:`py_integer`):
+            Defines whether logging of operations and http requests should
+            be executed.   If this is a bool True, logging of the complete
+            operations calls and responses and the complete http requests are
+            logged. If False, Nothing is logged.  If it is a positive non-zero
+            integer, request/response methods and http requests/responses are
+            logged but only the length defined by the integer of the payload
+            is actually included.
+
+            Logging destinations and further information about the loggers
+            is defined through the _logger module
+
         """
 
         # Connection attributes
@@ -843,6 +858,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # control of recorder
         self.operation_recorder = None
 
+        if enable_log:
+            self.operation_recorder = LogOperationRecorder()
+
         # pull operations control for iter... operations
         self.use_pull_operations = use_pull_operations
 
@@ -859,6 +877,22 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._statistics = Statistics(enable_stats)
         self._last_operation_time = None
         self._last_server_response_time = None
+
+        # If there is a recorder, record the connection
+        if self.operation_recorder:
+            if self.creds:
+                creds = '%s:%s' % (self.creds[0], '****')
+            else:
+                creds = None
+            self.operation_recorder.reset()
+            self.operation_recorder.stage_pywbem_connection(
+                url=self.url,
+                creds=creds,
+                default_namespace=self.default_namespace,
+                no_verification=self.no_verification,
+                timeout=self.timeout,
+                use_pull_operations=self.use_pull_operations,
+                stats_enabled=self.stats_enabled)
 
     @property
     def stats_enabled(self):
@@ -878,6 +912,34 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.statistics.enable()
         else:
             self.statistics.disable()
+
+    @property
+    def operation_recorder_enabled(self):
+        """
+        :class:`py:bool`: operation_recorder enablement status for this connection.
+
+        This is a writeable property; setting this property will change the
+        statistics enablement status accordingly.
+
+        This property returns None if no operation recorder has been set.
+
+        **Experimental:** This property is experimental for this release.
+        """  # noqa: E501
+        # TODO completely redo this to clean up whole operation recorder
+        # controller.
+        if self.operation_recorder:
+            return self.operation_recorder.enabled
+        else:
+            return None
+
+    @operation_recorder_enabled.setter
+    def operation_recorder_enabled(self, value):
+        # TODO: No. Need to call recorder.
+        if self.operation_recorder:
+            if value:
+                self.operation_recorder.enable()
+            else:
+                self.operation_recorder.disable()
 
     @property
     def statistics(self):
@@ -954,11 +1016,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         return "%s(url=%r, creds=%s, " \
                "default_namespace=%r, x509=%r, verify_callback=%r, " \
                "ca_certs=%r, no_verification=%r, timeout=%r, " \
-               "use_pull_operations=%r)" % \
+               "use_pull_operations=%r, stats=%r, recorder=%r)" % \
                (self.__class__.__name__, self.url, creds_repr,
                 self.default_namespace, self.x509, self.verify_callback,
                 self.ca_certs, self.no_verification, self.timeout,
-                self.use_pull_operations)
+                self.use_pull_operations, self.statistics,
+                self.operation_recorder)
 
     def imethodcall(self, methodname, namespace, response_params_rqd=None,
                     **params):
