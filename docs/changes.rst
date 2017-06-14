@@ -115,6 +115,9 @@ Bug fixes
   open/pull operations, #700 and #663: recorder won't write utf8 (at least for our
   tests), #698 : datetime test failures because of timezone, Most
   of these are tested with the new test_recorder.py unit test.
+
+* Fix error in wbemcli with --enable_stats arg.  Since this was added in
+  this release, the bug was never public. See issue #709
   
 
 Build, test, quality

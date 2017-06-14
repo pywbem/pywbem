@@ -2791,6 +2791,8 @@ def _get_connection_info():
     if CONN.timeout is not None:
         info += ', timeout=%s' % CONN.timeout
 
+    info += ' stats=%s,' % ('on' if CONN._statistics else 'off')
+
     return fill(info, 78, subsequent_indent='    ')
 
 
@@ -2958,7 +2960,7 @@ Examples:
         '-V', '--version', action='version', version='%(prog)s ' + __version__,
         help='Display pywbem version and exit.')
     general_arggroup.add_argument(
-        '-e', '--enable_stats', dest='verbose',
+        '-e', '--enable_stats', dest='enable_stats',
         action='store_true', default=False,
         help='Enable gathering of statistics on operations.')
     general_arggroup.add_argument(
