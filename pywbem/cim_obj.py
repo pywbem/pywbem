@@ -662,37 +662,37 @@ def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
 
     DSP0004 defines MOF escape sequences for several more characters, but it
     does not require their use in MOF. For example, it is valid for a MOF
-    string constant to contain the characters U+000D (newline) or U+0009
-    (horizontal tab).
+    string constant to contain the (unescaped) characters U+000D (newline) or
+    U+0009 (horizontal tab), and others.
 
-    Now that may not be supported by MOF related tools, and therefore this
-    function plays it safe and uses MOF escape sequences for all characters
-    that have short MOF escape sequences defined (except for single quote), and
-    for all remaining characters in the so called "control range"
-    U+0001..U+001F, it uses generic MOF escape sequences (e.g. U+0001 becomes
-    "\x0001")
+    Processing the MOF escape sequences as unescaped characters may not be
+    supported by MOF-related tools, and therefore this function plays it safe
+    and uses the MOF escape sequences defined in DSP0004 as much as possible.
+    The following table shows the MOF escape sequences defined in `DSP0004`
+    and whether they are used (i.e. generated) by this function:
 
-    The following table shows the MOF escape sequences defined in `DSP0004`:
-
-    ============  =============================================================
-    MOF escape    Character
+    ========== ==== ===========================================================
+    MOF escape Used Character
     sequence
-    ============  =============================================================
-    \b            U+0008: Backspace
-    \t            U+0009: Horizontal tab
-    \n            U+000A: Line feed
-    \f            U+000C: Form feed
-    \r            U+000D: Carriage return
-    \"            U+0022: Double quote (") (required to be used)
-    \'            U+0027: Single quote (')
-    \\            U+005C: Backslash (\)
-    \x<hex>       U+<hex>: Any UCS-2 character, where <hex> is one to four hex
-                  digits, representing its UCS code position (this form is
-                  limited to the UCS-2 character repertoire)
-    \X<hex>       U+<hex>: Any UCS-2 character, where <hex> is one to four hex
-                  digits, representing its UCS code position (this form is
-                  limited to the UCS-2 character repertoire)
-    ============  =============================================================
+    ========== ==== ===========================================================
+    \b         yes  U+0008: Backspace
+    \t         yes  U+0009: Horizontal tab
+    \n         yes  U+000A: Line feed
+    \f         yes  U+000C: Form feed
+    \r         yes  U+000D: Carriage return
+    \"         yes  U+0022: Double quote (") (required to be used)
+    \'         yes  U+0027: Single quote (')
+    \\         yes  U+005C: Backslash (\)
+    \x<hex>    (1)  U+<hex>: Any UCS-2 character, where <hex> is one to four
+                      hex digits, representing its UCS code position (this form
+                      is limited to the UCS-2 character repertoire)
+    \X<hex>    no   U+<hex>: Any UCS-2 character, where <hex> is one to four
+                      hex digits, representing its UCS code position (this form
+                      is limited to the UCS-2 character repertoire)
+    ========== ==== ===========================================================
+
+    (1) Yes, for all other characters in the so called "control range"
+        U+0001..U+001F.
 
     This function does not tolerate that the input string already contains
     MOF escape sequences (it did so before v0.9, but that created more
