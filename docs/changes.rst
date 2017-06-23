@@ -31,6 +31,11 @@ Enhancements
   the IUS version of the Python development packages should be used,
   dependent on whether the Python package is from IUS.
 
+* Ensured that `CIMDateTime` objects for point in time values are
+  timezone-aware when supplied with a timezone-naive `datetime` object.
+  This does not change the behavior, but increases code clarity.
+  Clarified that in the documentation of  `CIMDateTime`. See issue #698.
+
 Bug fixes
 ^^^^^^^^^
 
