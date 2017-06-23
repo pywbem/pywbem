@@ -31,7 +31,7 @@ Note that the pywbem source file defining these variables should not be changed
 by the user. Instead, the technique shown in the example above should be used to
 modify the configuration variables.
 
-Note: Due to limitations of the documentatin tooling, the following
+Note: Due to limitations of the documentation tooling, the following
 configuration variables are shown in the ``pywbem.config`` namespace. However,
 they should be used from the ``pywbem`` namespace.
 """
@@ -52,10 +52,10 @@ __all__ = ['ENFORCE_INTEGER_RANGE', 'DEFAULT_ITER_MAXOBJECTCOUNT']
 ENFORCE_INTEGER_RANGE = True
 
 #: Default setting for the MaxObjectCount attribute for all of the
-#: WBEMConnection:Iter... operations.
+#: :class:`~pywbem.WBEMConnection`:Iter... operations.
 #: If this attribute is not specified on a request such as
-#: IterEnumerateInstance this value will be used as the value for
-#: MaxObjectCount.
+#: :meth:`~pywbem.WBEMConnection.IterEnumerateInstances`, this value will be
+#: used as the value for MaxObjectCount.
 #: Note that this does not necessarily optimize the performance of these
 #: operations.
 

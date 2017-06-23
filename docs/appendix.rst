@@ -141,7 +141,7 @@ then you do not have the Python.h header file available.
 The installation of pywbem with OS-level prereqs (see :ref:`Installation`)
 installs the necessary Python SDK package for C/C++ (or displays its package
 name). On RHEL, the missing package is `python-dev`.
-
+For more details, see :ref:`Prerequisite operating system packages`.
 
 .. _'Glossary`:
 
@@ -162,7 +162,7 @@ Glossary
       cycle cannot be managed by a client.
       See :term:`DSP1054` for an authoritative definition and for details.
 
-   
+
 .. _`References`:
 
 References

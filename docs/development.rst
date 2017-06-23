@@ -58,8 +58,8 @@ Building the documentation
 The ReadTheDocs (RTD) site is used to publish the documentation for the
 pywbem package at http://pywbem.readthedocs.io/
 
-This page automatically gets updated whenever the ``master`` branch of the
-Git repo for this package changes.
+This page automatically gets updated whenever the Git repo for this package
+changes the branch from which this documentation is built.
 
 In order to build the documentation locally from the Git work directory, issue:
 
@@ -77,7 +77,7 @@ Testing
 -------
 
 To run unit tests in the currently active Python environment, issue one of
-these example variants of ``make test``:
+these example commands:
 
 ::
 
@@ -143,12 +143,12 @@ may be installed as root or within a python virtual environment. For example:
    $ sudo pip install ipython
    or
    $ sudo pip3 install ipython
-   or   
+   or
    $ sudo pip install jupyter
 
 The notebook server may be installed as root or within a python virtual
 environment.
-  
+
 2. Start the local ipython/jupyter notebook server in the notebook directory
 (`pywbem/docs/notebooks`) referencing that directory in the command line
 call:
@@ -156,7 +156,7 @@ call:
 ::
 
   $ ipython notebook docs/notebooks
-  or      
+  or
   $ jupyter notebook docs/notebooks
 
 This will start the local ipython/juypter notebook server and on the first page

@@ -54,7 +54,7 @@ filter and listener destination CIM instances in WBEM servers:
 
 * **Static**
 
-  Static CIM instances pre-exist in the WBEM server and that cannot be deleted
+  Static CIM instances pre-exist in the WBEM server and cannot be deleted
   (or created) by a WBEM client.
 
 If a client creates a subscription between a filter and a listener destination,

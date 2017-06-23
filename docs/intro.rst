@@ -148,7 +148,7 @@ user to translate them accordingly.
 When installing such packages on Linux, the setup script uses the ``sudo``
 command, so your userid needs to be authorized accordingly.
 
-This command also downbloads and builds ``swig`` and installs its build
+This command also downloads and builds ``swig`` and installs its build
 prerequisites if it cannot be installed as an operating system package in the
 required version.
 
@@ -294,10 +294,10 @@ specified when following the links to the standards:
 
 * The mechanisms for discovering the Interop namespace of a WBEM server and the
   management profiles advertised by a WBEM server and their central instances
-  in the :ref:`WBEM server API` conforms to :term:`DSP1033`.
+  in the :ref:`WBEM server API` conform to :term:`DSP1033`.
 
 * The mechanisms for subscribing for CIM indications in the
-  :ref:`WBEM indication API` conforms to :term:`DSP1054`.
+  :ref:`WBEM indication API` conform to :term:`DSP1054`.
 
 
 .. _`Deprecation policy`:
