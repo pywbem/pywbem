@@ -74,6 +74,7 @@ from datetime import tzinfo, datetime, timedelta
 import re
 import warnings
 import six
+import copy
 
 from . import config
 
@@ -294,9 +295,11 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             * A :term:`string` object will be
               interpreted as CIM datetime format (see :term:`DSP0004`) and
               will result in a point in time or a time interval.
-            * A :class:`py:datetime.datetime` object must be timezone-aware
-              (see :class:`~pywbem.MinutesFromUTC`) and will result in a point
-              in time.
+            * A :class:`py:datetime.datetime` object will result in a point
+              in time. If the :class:`py:datetime.datetime` object is
+              timezone-aware (see :class:`~pywbem.MinutesFromUTC`), the
+              specified timezone will be used. Otherwise, a default timezone
+              of UTC will be assumed.
             * A :class:`py:datetime.timedelta` object will result in a time
               interval.
             * Another :class:`~pywbem.CIMDateTime` object will be copied.
@@ -342,14 +345,15 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
                     raise ValueError('dtarg argument "%s" has an invalid CIM '
                                      'datetime format' % dtarg)
         elif isinstance(dtarg, datetime):
-            self.__datetime = dtarg
+            if dtarg.tzinfo is None:
+                self.__datetime = dtarg.replace(tzinfo=MinutesFromUTC(0))
+            else:
+                self.__datetime = copy.copy(dtarg)
         elif isinstance(dtarg, timedelta):
-            self.__timedelta = dtarg
+            self.__timedelta = copy.copy(dtarg)
         elif isinstance(dtarg, CIMDateTime):
-            # pylint: disable=protected-access
-            self.__datetime = dtarg.__datetime
-            # pylint: disable=protected-access
-            self.__timedelta = dtarg.__timedelta
+            self.__datetime = copy.copy(dtarg.datetime)
+            self.__timedelta = copy.copy(dtarg.timedelta)
         else:
             raise TypeError('dtarg argument "%s" has an invalid type: %s '
                             '(expected datetime, timedelta, string, or '
