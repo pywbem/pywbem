@@ -58,7 +58,7 @@ Building the documentation
 The ReadTheDocs (RTD) site is used to publish the documentation for the
 pywbem package at http://pywbem.readthedocs.io/
 
-This page automatically gets updated whenever the Git repo for this package
+This page is automatically updated whenever the Git repo for this package
 changes the branch from which this documentation is built.
 
 In order to build the documentation locally from the Git work directory, issue:

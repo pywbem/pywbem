@@ -759,9 +759,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           no_verification (:class:`py:bool`):
             Disables verification of the X.509 server certificate returned by
-            the WBEM server during TLS/SSL handshake and the hostname, and
-            disables the invocation of a verification function specified in
-            `verify_callback`.
+            the WBEM server during TLS/SSL handshake, disables verification of
+            the hostname, and disables the invocation of a verification function
+            specified in `verify_callback`.
 
             If `True`, verification is disabled; otherwise, verification is
             enabled.
