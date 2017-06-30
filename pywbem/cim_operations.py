@@ -574,9 +574,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         :class:`~pywbem.BaseOperationRecorder`, each operation
         that is executed on this connection will be recorded by
         invoking its :meth:`~pywbem.BaseOperationRecorder.record` method.
-        All operations except the Iter... operations may be recorded. Since
-        the Iter... operations utilize the other operations to send requests
-        their calls are NOT recorded.
 
         All operations except the Iter... operations may be recorded. Since
         the Iter... operations utilize the other operations to send requests
@@ -591,9 +588,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         a defined value.
 
         This variable is initially set from the same-named input argument.
-        If it is `None` is modified when `Iter...()` methods are invoked,
-        dependent on the support for pull operations in the WBEM server.
-        After the first call , the varaible will be either `True` or `False`
+        If it is initially `None`, it is modified when `Iter...()` methods are
+        invoked, dependent on the support for pull operations in the WBEM
+        server.
+        After the first call , the variable will be either `True` or `False`
         and indicating whether pull operations will be used in this and
         subsequent `Iter...()` methods.
     """
@@ -761,9 +759,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           no_verification (:class:`py:bool`):
             Disables verification of the X.509 server certificate returned by
-            the WBEM server during TLS/SSL handshake, and disables the
-            invocation of a verification function specified in
-            `verify_callback`.
+            the WBEM server during TLS/SSL handshake, disables verification of
+            the hostname, and disables the invocation of a verification function
+            specified in `verify_callback`.
 
             If `True`, verification is disabled; otherwise, verification is
             enabled.

@@ -41,6 +41,7 @@ For the following topics, tutorials are not yet available:
 * Class Operations
 * Qualifier Operations
 * WBEMListener
+* Iter* Operations
 
 Executing code in the tutorials
 -------------------------------
