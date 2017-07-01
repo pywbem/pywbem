@@ -130,6 +130,47 @@ class StatisticsTests(unittest.TestCase):
         self.assertEqual(stats.min_time, float('inf'))
         self.assertEqual(stats.max_time, 0)
 
+    def test_measure_enabled_with_servertime(self):
+        # pylint: disable=invalid-name
+        """Test measuring time with enabled statistics."""
+
+        statistics = Statistics()
+        statistics.enable()
+
+        duration = 0.4
+        # On Windows has only a precision of 1/60 sec:
+        delta = 0.04
+
+        stats = statistics.start_timer('EnumerateInstances')
+        time.sleep(duration)
+        stats.stop_timer(1000, 2000, duration)
+
+        for _, stats in statistics.snapshot():
+            self.assertEqual(stats.count, 1)
+            self.assertTrue(time_abs_delta(stats.avg_time, duration) <= delta)
+            self.assertTrue(time_abs_delta(stats.min_time, duration) <= delta)
+            self.assertTrue(time_abs_delta(stats.max_time, duration) <= delta)
+
+            self.assertTrue(
+                time_abs_delta(stats.avg_server_time, duration) <= delta)
+            self.assertTrue(
+                time_abs_delta(stats.min_server_time, duration) <= delta)
+            self.assertTrue(
+                time_abs_delta(stats.max_server_time, duration) <= delta)
+
+            self.assertEqual(stats.max_request_len, 1000)
+            self.assertEqual(stats.min_request_len, 1000)
+            self.assertEqual(stats.avg_request_len, 1000)
+            self.assertEqual(stats.max_reply_len, 2000)
+            self.assertEqual(stats.min_reply_len, 2000)
+            self.assertEqual(stats.avg_reply_len, 2000)
+
+        stats.reset()
+        self.assertEqual(stats.count, 0)
+        self.assertEqual(stats.avg_time, 0)
+        self.assertEqual(stats.min_time, float('inf'))
+        self.assertEqual(stats.max_time, 0)
+
     def test_measure_disabled(self):
         """Test measuring time with disabled statistics."""
 
@@ -239,7 +280,7 @@ class StatisticsTests(unittest.TestCase):
             self.assertTrue(time_abs_delta(stats.min_time, duration) < delta)
             self.assertTrue(time_abs_delta(stats.max_time, duration) < delta)
 
-    def test_print_statistics(self):
+    def test_print_statistics(self):  # pylint: disable=no-self-use
         """Simply print repr() and formatted() for a small statistics."""
 
         statistics = Statistics()
@@ -261,7 +302,38 @@ class StatisticsTests(unittest.TestCase):
         time.sleep(0.4)
         stats.stop_timer(1200, 35000)
 
-        print("\n\nTest print of repr() for a small statistics:")
+        print("\n\nTest print of repr() for a small statistics No svr time:")
+        print("================")
+        print(repr(statistics))
+        print("================")
+        print("\nTest print of formatted() for the same statistics:")
+        print("================")
+        print(statistics.formatted())
+        print("================")
+
+    def test_print_stats_svrtime(self):  # pylint: disable=no-self-use
+        """Simply print repr() and formatted() for a small statistics."""
+
+        statistics = Statistics()
+        statistics.enable()
+
+        stats = statistics.start_timer('EnumerateInstanceNames')
+        time.sleep(0.1)
+        stats.stop_timer(1200, 22000, 0.1)
+
+        stats = statistics.start_timer('EnumerateInstances')
+        time.sleep(0.1)
+        stats.stop_timer(1000, 20000, 0.1)
+
+        stats = statistics.start_timer('EnumerateInstances')
+        time.sleep(0.2)
+        stats.stop_timer(1500, 25000, 0.2)
+
+        stats = statistics.start_timer('EnumerateInstances')
+        time.sleep(0.4)
+        stats.stop_timer(1200, 35000, 0.4)
+
+        print("\n\nTest print of repr() for a small statisticsW server time:")
         print("================")
         print(repr(statistics))
         print("================")

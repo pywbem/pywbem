@@ -858,6 +858,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         self._statistics = Statistics(enable_stats)
         self._last_operation_time = None
+        self._last_server_response_time = None
 
     @property
     def stats_enabled(self):
@@ -897,11 +898,27 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def last_operation_time(self):
         """
         :class:`py:float`: Elapsed time of the last operation that was executed
-        via this connection in seconds.
+        via this connection in seconds or `None`.
 
         This time is available only subsequent to the execution of an operation
         on this connection, and if the statistics are enabled on this
         connection. Otherwise, the value is `None`.
+
+        **Experimental:** This property is experimental for this release.
+        """
+        return self._last_operation_time
+
+    @property
+    def last_server_response_time(self):
+        """
+        :class:`py:float`: Server measured response time of the last
+        request. This is optionally returned from the server in HTTP
+        header
+
+        This time is available only subsequent to the execution of an operation
+        on this connection, if the statistics are enabled on this
+        connection and if the WBEMServerResponseTime is received from the
+        WBEM server. Otherwise, the value is `None`.
 
         **Experimental:** This property is experimental for this release.
         """
@@ -1006,10 +1023,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # Send request and receive response
         self.last_request_len = 0
         self.last_reply_len = 0
+        self._last_server_response_time = None
         try:
             request_data = req_xml.toxml()
             self.last_request_len = len(request_data)
-            reply_xml = wbem_request(
+            reply_xml, self._last_server_response_time = wbem_request(
                 self.url, request_data, self.creds, headers,
                 x509=self.x509,
                 verify_callback=self.verify_callback,
@@ -1253,10 +1271,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         self.last_request_len = 0
         self.last_reply_len = 0
+        self._last_server_response_time = None
         try:
             request_data = req_xml.toxml()
             self.last_request_len = len(request_data)
-            reply_xml = wbem_request(
+            reply_xml, self._last_server_response_time = wbem_request(
                 self.url, request_data, self.creds, headers,
                 x509=self.x509,
                 verify_callback=self.verify_callback,
@@ -1544,7 +1563,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(instancenames, exc)
                 self.operation_recorder.record_staged()
@@ -1721,7 +1741,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(instances, exc)
                 self.operation_recorder.record_staged()
@@ -3887,7 +3908,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -4169,7 +4191,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -4385,7 +4408,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -4642,7 +4666,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -4876,7 +4901,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -5153,7 +5179,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -5365,7 +5392,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -5508,7 +5536,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -5647,7 +5676,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -5781,7 +5811,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -5850,7 +5881,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -5991,7 +6023,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(instance, exc)
                 self.operation_recorder.record_staged()
@@ -6119,7 +6152,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -6226,7 +6260,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(instancename, exc)
                 self.operation_recorder.record_staged()
@@ -6292,7 +6327,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -6447,7 +6483,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(objects, exc)
                 self.operation_recorder.record_staged()
@@ -6651,7 +6688,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(objects, exc)
                 self.operation_recorder.record_staged()
@@ -6785,7 +6823,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(objects, exc)
                 self.operation_recorder.record_staged()
@@ -6971,7 +7010,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(objects, exc)
                 self.operation_recorder.record_staged()
@@ -7127,7 +7167,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(result_tuple, exc)
                 self.operation_recorder.record_staged()
@@ -7226,7 +7267,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(instances, exc)
                 self.operation_recorder.record_staged()
@@ -7342,7 +7384,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(classnames, exc)
                 self.operation_recorder.record_staged()
@@ -7492,7 +7535,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(classes, exc)
                 self.operation_recorder.record_staged()
@@ -7625,7 +7669,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(klass, exc)
                 self.operation_recorder.record_staged()
@@ -7703,7 +7748,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -7780,7 +7826,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -7856,7 +7903,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -7936,7 +7984,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(qualifiers, exc)
                 self.operation_recorder.record_staged()
@@ -8016,7 +8065,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(qualifiername,
                                                             exc)
@@ -8088,7 +8138,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()
@@ -8158,7 +8209,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise
         finally:
             self._last_operation_time = stats.stop_timer(
-                self.last_request_len, self.last_reply_len, exc)
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
             if self.operation_recorder:
                 self.operation_recorder.stage_pywbem_result(None, exc)
                 self.operation_recorder.record_staged()

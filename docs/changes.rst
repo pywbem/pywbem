@@ -80,6 +80,16 @@ Enhancements
 * Extend the documentation to list support for specific non-specification
   features of some WBEM servers. Issue #653.
 
+* Extend cim_http.py, cim_operations.py, _statistics.py to handle optional
+  WBEMServerResponseTime header from WBEMServer.  This HTTP header reports
+  the server time in microseconds from request to response in the operation
+  response.  The extension adds the WBEMConnection property
+  last_server_response_time and places the time from the server into the
+  attribute for this property.
+  It also passes server_response_time to statistics so that max/min/avg are
+  maintained.  See issue # 687.
+
+
 Bug fixes
 ^^^^^^^^^
 

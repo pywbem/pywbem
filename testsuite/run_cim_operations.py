@@ -192,16 +192,18 @@ class ClientTest(unittest.TestCase):
         # those few exceptions that occur outside of the try block in the
         # Iter... operations.
         if self.enable_stats:
-            if not self.conn.last_operation_time:
-                print('Operation info time %s req_len %s reply_len %s' %
-                      (self.conn.last_operation_time,
-                       self.conn.last_request_len,
-                       self.conn.last_reply_len))
-            else:
-                print('Operation info time %.3f req_len %s reply_len %s' %
-                      (self.conn.last_operation_time,
-                       self.conn.last_request_len,
-                       self.conn.last_reply_len))
+            svr_time = ('%.4f' % self.conn.last_server_response_time) \
+                if self.conn.last_server_response_time else 'None'
+
+            operation_time = ('%.4f' % self.conn.last_operation_time) \
+                if self.conn.last_operation_time else None
+
+            print('Operation info: time %s req_len %d reply_len %d '
+                  'svr_time %s' %
+                  (operation_time,
+                   self.conn.last_request_len,
+                   self.conn.last_reply_len,
+                   svr_time))
 
         return result
 

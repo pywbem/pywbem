@@ -413,8 +413,13 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
         be staged as attributes.
 
     Returns:
-        The CIM-XML formatted response data from the WBEM server, as a
-        :term:`unicode string` object.
+        Tuple containing:
+
+            The CIM-XML formatted response data from the WBEM server, as a
+            :term:`unicode string` object.
+
+            The server response time in milliseconds if this data was received
+            from the server.
 
     Raises:
         :exc:`~pywbem.AuthError`
@@ -662,6 +667,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
         ca_certs = None
 
     local = False
+    svr_resp_time = None
     if use_ssl:
         client = HTTPSConnection(host=host,
                                  port=port,
@@ -774,6 +780,17 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                         raise ConnectionError("Socket error: %s" % exc)
 
                 response = client.getresponse()
+
+                # Attempt to get the optional response time header sent from
+                # the server
+                svr_resp_time = response.getheader(
+                    'WBEMServerResponseTime', '')
+                if svr_resp_time:
+                    try:
+                        # convert to integer and map from microsec to sec.
+                        svr_resp_time = int(svr_resp_time) / 1000000
+                    except ValueError:
+                        pass
 
                 if recorder:
                     recorder.stage_http_response1(
@@ -894,7 +911,7 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
 
             break
 
-    return body
+    return body, svr_resp_time
 
 
 def get_object_header(obj):
