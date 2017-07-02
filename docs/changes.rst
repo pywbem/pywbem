@@ -77,6 +77,9 @@ Enhancements
   This does not change the behavior, but increases code clarity.
   Clarified that in the documentation of  `CIMDateTime`. See issue #698.
 
+* Extend the documentation to list support for specific non-specification
+  features of some WBEMServers. Issue #653.
+
 Bug fixes
 ^^^^^^^^^
 

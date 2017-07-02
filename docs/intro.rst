@@ -391,3 +391,52 @@ Configuration variables
 .. automodule:: pywbem.config
       :members:
 
+.. _`WBEM Servers`:
+
+WBEM servers
+------------
+
+Pywbem supports communication with any WBEMServer that conforms to the
+DMTF specifications. See section  :ref:`Standards conformance`.
+
+Server Specific Features
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are some specific non-specification features that are included in
+pywbem for support of WBEM server specific features including:
+
+1. Openwbem server - includes support for an authentication extension
+(OWLocal password-less local authorization) that is part of the openwbem server.
+
+2. OpenPegasus - includes support for the special interop namespace that may
+be used in some OpenPegasus implements `root/PG_InterOp`. Most implementations
+have moved to supporting the standard namespace (`interop`, 'root\interop') but
+for backward compatibility, this old interop namespace name was included in
+the table of namespaces that are searched by the
+`WBEMServer.get_interop_namespace()` method).
+
+3. OpenPegasus - Supports a mixed-case attribute name `EmbeddedObject` in xml
+responses that was defined in error in some old versions of OpenPegasus
+in addtion to the correct upper case.
+
+4. Supports a specific Unix Domain Socket call (the name of the domanin socket)
+for multiple different servers as subclasses of WBEMConnection including:
+
+* OpenPegasus PegasusUDSConnection
+* OpenWbem - OpenWBEMUDSConnection
+* SFCB(Small Footprint Broker) - SFCBUDSConnection
+
+WBEM Server Testing
+^^^^^^^^^^^^^^^^^^^
+
+Today the pywbem project tests primarily against current versions of the
+OpenPegasus WBEM Server because that server is available to the project.
+
+These tests are captured in the testsuite run_cimoperations.py. Note that
+generally the tests that are server specific only run against the defined
+server so that there are a number of tests that run only against the
+OpenPegasus server. This includes some tests that use specific providers
+in the OpenPegasus server to set up tests such as indication tests.
+
+
+
