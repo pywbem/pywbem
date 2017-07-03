@@ -57,8 +57,8 @@ from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError
 _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
 if six.PY2 and not _ON_RTD:  # RTD has no swig to install M2Crypto
-    from M2Crypto import SSL           # pylint: disable=wrong-import-position
-    from M2Crypto.Err import SSLError  # pylint: disable=wrong-import-position
+    from M2Crypto import SSL           # pylint: disable=wrong-import-order
+    from M2Crypto.Err import SSLError  # pylint: disable=wrong-import-order
     _HAVE_M2CRYPTO = True
     # pylint: disable=invalid-name
     SocketErrors = (socket.error, socket.sslerror)
@@ -785,11 +785,11 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                 # Attempt to get the optional response time header sent from
                 # the server
                 svr_resp_time = response.getheader(
-                    'WBEMServerResponseTime', '')
+                    'WBEMServerResponseTime', None)
                 if svr_resp_time:
                     try:
-                        # convert to integer and map from microsec to sec.
-                        svr_resp_time = int(svr_resp_time) / 1000000
+                        # convert to float and map from microsec to sec.
+                        svr_resp_time = float(svr_resp_time) / 1000000
                     except ValueError:
                         pass
 

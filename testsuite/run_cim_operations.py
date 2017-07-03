@@ -199,7 +199,7 @@ class ClientTest(unittest.TestCase):
             operation_time = ('%.4f' % self.conn.last_operation_time) \
                 if self.conn.last_operation_time else None
 
-            print('Operation info: time %s req_len %d reply_len %d '
+            print('Operation stats: time %s req_len %d reply_len %d '
                   'svr_time %s' %
                   (operation_time,
                    self.conn.last_request_len,
@@ -4611,7 +4611,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
         self.assertEqual(self.conn._use_query_pull_operations, False)
 
     def test_propertylist2(self):
-        """Test withone item property list."""
+        """Test with one item property list."""
         expected_response_count = 200
         self.set_stress_provider_parameters(expected_response_count, 200)
 

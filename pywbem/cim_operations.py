@@ -916,13 +916,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         header
 
         This time is available only subsequent to the execution of an operation
-        on this connection, if the statistics are enabled on this
-        connection and if the WBEMServerResponseTime is received from the
+        on this connection  if the WBEMServerResponseTime is received from the
         WBEM server. Otherwise, the value is `None`.
 
         **Experimental:** This property is experimental for this release.
         """
-        return self._last_operation_time
+        return self._last_server_response_time
 
     def __str__(self):
         """

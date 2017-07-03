@@ -70,7 +70,7 @@ class OperationStatistic(object):
 
         stats = container.start_timer('EnumerateInstances')
         ...
-        stats.stop_timer(request_len, reply_len, exc)
+        stats.stop_timer(request_len, reply_len, server_time, exc)
 
     **Experimental:** This class is experimental for this release.
     """
@@ -98,6 +98,7 @@ class OperationStatistic(object):
         self._server_time_sum = float(0)
         self._server_time_min = float('inf')
         self._server_time_max = float(0)
+        self._server_time_stored = False
 
         self._start_time = None
 
@@ -276,6 +277,7 @@ class OperationStatistic(object):
         self._server_time_sum = float(0)
         self._server_time_min = float('inf')
         self._server_time_max = float(0)
+        self._server_time_stored = False
 
         self._request_len_sum = float(0)
         self._request_len_min = float('inf')
@@ -355,6 +357,7 @@ class OperationStatistic(object):
                 self._time_min = dt
 
             if server_time:
+                self._server_time_stored = True
                 self._server_time_sum += server_time
                 if dt > self._server_time_max:
                     self._server_time_max = server_time
@@ -602,17 +605,17 @@ class Statistics(object):
                               reverse=True)
 
             # Test to see if any server time is non-zero
-            server_time = 0
+            include_svr = False
             for name, stats in snapshot:  # pylint: disable=unused-variable
-                server_time += stats.avg_server_time
-            inc_svr = True if server_time else False
-            if inc_svr:
+                if stats._server_time_stored:
+                    include_svr = True
+            if include_svr:
                 ret += OperationStatistic.formatted_header_w_svr
             else:
                 ret += OperationStatistic.formatted_header
 
             for name, stats in snapshot:  # pylint: disable=unused-variable
-                ret += stats.formatted(inc_svr)
+                ret += stats.formatted(include_svr)
         else:
             ret += "Disabled"
         return ret.strip()
