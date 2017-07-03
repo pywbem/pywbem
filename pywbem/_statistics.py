@@ -324,7 +324,7 @@ class OperationStatistic(object):
             processing the operation.
 
           server_time (:class:`py:bool`)
-            Time in microseconds that the server optionally returns to the
+            Time in seconds that the server optionally returns to the
             client in the HTTP response defining the time from when the
             server received the request to when it started sending the
             response. If None, there is no time from the server.
@@ -583,11 +583,8 @@ class Statistics(object):
         Return a human readable string with the statistics for this container.
         The operations are sorted by decreasing average time.
 
-        If the server time statistic exists, a report with that statistic
-        is output
-
-        The server times are only included if they have been used, i.e. there
-        is data in these properties.
+        Server time statistic is included only if the wbem server has returned
+        statistics information.
 
         Example w/o server times::
 

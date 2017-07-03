@@ -192,6 +192,7 @@ class ClientTest(unittest.TestCase):
         # those few exceptions that occur outside of the try block in the
         # Iter... operations.
         if self.enable_stats:
+            # svr_time and operation_time may return None
             svr_time = ('%.4f' % self.conn.last_server_response_time) \
                 if self.conn.last_server_response_time else 'None'
 
