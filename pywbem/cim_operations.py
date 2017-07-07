@@ -8232,7 +8232,7 @@ def SFCBUDSConnection(creds=None, **kwargs):
 
 
 def OpenWBEMUDSConnection(creds=None, **kwargs):
-    """ Pegasus specific Unix Domain Socket call. Specific because
+    """ Openwbem specific Unix Domain Socket call. Specific because
         of the location of the file name
     """
 
