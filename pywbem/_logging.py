@@ -70,12 +70,11 @@ Examples:
       format_string = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
       logging.basicConfig(format=format_string, level=logging.DEBUG)
 """
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
 
 import sys
 import logging
 import six
-from .config import DEFAULT_LOG_FILENAME
 
 # from ._constants import API_LOGGER_NAME
 API_LOGGER_NAME = 'pywbem.api'
@@ -98,11 +97,14 @@ LOG_DESTINATIONS = ['file', 'stderr', 'none']
 
 LOG_DETAIL_LEVELS = ['all', 'min']
 
+DEFAULT_LOG_DETAIL_LEVEL = 'min'
+DEFAULT_LOG_LEVEL = 'debug'
+
 LOG_LEVELS = ['error', 'warning', 'info', 'debug']
 
 __all__ = ['PywbemLoggers', 'LOG_DESTINATIONS', 'LOG_LEVELS',
            'PYWBEM_LOG_COMPONENTS', 'LOG_OPS_CALLS_NAME',
-           'LOG_DETAIL_LEVELS']
+           'LOG_DETAIL_LEVELS', 'DEFAULT_LOG_DETAIL_LEVEL', 'DEFAULT_LOG_LEVEL']
 
 
 class PywbemLoggers(object):
@@ -124,12 +126,20 @@ class PywbemLoggers(object):
         return 'PywbemLoggers(loggers={s.loggers!r})'.format(s=cls)
 
     @classmethod
-    def create_loggers(cls, input_str):
+    def reset(cls):
+        """Reset the logger dictionary. Used primarily in unittests"""
+        cls.loggers = {}
+
+    @classmethod
+    def create_loggers(cls, input_str, log_filename=None):
         """
         Create the pywbem loggers defined by the input string in the following
         format and place in a class level dictionary in this class:
 
         Parameters:
+          input_str (:term:`string`) that specifies the logger definitions:
+            as follows:
+
             log_spec[,log_spec]
 
             log_spec := log_comp['=' [dest][":"[detail_level][":"[log_level]]]]
@@ -140,6 +150,10 @@ class PywbemLoggers(object):
                 detail_level (str) must be one of LOG_DETAIL_LEVELS
                 dest (str) must be one of LOG_DESTINATIONS
 
+          log_filename (:term:`string`)
+            Optional string that defines the filename for output of logs
+            if the dest type is `file`
+
         Exceptions:
           ValueError if any of the parameters are invalid
         """
@@ -147,12 +161,13 @@ class PywbemLoggers(object):
         for name, value in six.iteritems(results):
             cls.create_logger(name, log_dest=value[0],
                               log_detail_level=value[1],
-                              log_level=value[2])
+                              log_level=value[2],
+                              log_filename=log_filename)
 
     @classmethod
-    def create_logger(cls, log_component, log_dest='file',
-                      log_filename=DEFAULT_LOG_FILENAME,
-                      log_detail_level='all', log_level=None):
+    def create_logger(cls, log_component, log_dest='stderr',
+                      log_filename=None,
+                      log_detail_level='all', log_level='debug'):
         """
         Setup a single named logger with the characteristics defined on input.
 
@@ -195,26 +210,37 @@ class PywbemLoggers(object):
             No named logger is created.
         """
         if log_dest not in LOG_DESTINATIONS:
-            ValueError('Invalid log destination %s. Not in list %s' %
-                       (log_dest, LOG_DESTINATIONS))
+            raise ValueError('Invalid log destination %s. Not in list %s' %
+                             (log_dest, LOG_DESTINATIONS))
         if log_component not in PYWBEM_LOG_COMPONENTS:
-            ValueError('Invalid log component %s. Not in list %s' %
-                       (log_component, PYWBEM_LOG_COMPONENTS))
+            raise ValueError('Invalid log component %s. Not in list %s' %
+                             (log_component, PYWBEM_LOG_COMPONENTS))
+        if not log_level:
+            log_level = DEFAULT_LOG_LEVEL
         if log_level not in LOG_LEVELS:
-            ValueError('Invalid log level %s. Not in list %s' %
-                       (log_level, LOG_LEVELS))
+            raise ValueError('Invalid log level %s. Not in list %s' %
+                             (log_level, LOG_LEVELS))
 
+        if not log_detail_level:
+            log_detail_level = DEFAULT_LOG_DETAIL_LEVEL
         if log_detail_level not in LOG_DETAIL_LEVELS:
-            ValueError('Invalid log detail %s. Not in list %s' %
-                       (log_detail_level, LOG_DETAIL_LEVELS))
+            raise ValueError('Invalid log detail %s. Not in list %s' %
+                             (log_detail_level, LOG_DETAIL_LEVELS))
 
         # If destinations or components is all, recurse for all destinations
         if log_dest == 'all':
             for dest in LOG_DESTINATIONS:
-                cls.create_logger(log_component, dest, log_filename, log_level)
+                cls.create_logger(log_component, dest,
+                                  log_filename=log_filename,
+                                  log_detail_level=log_detail_level,
+                                  log_level=log_level)
         elif log_component == 'all':
             for comp in PYWBEM_LOG_COMPONENTS:
-                cls.create_logger(comp, log_dest, log_filename, log_level)
+                if comp != 'all':
+                    cls.create_logger(comp, log_dest=log_dest,
+                                      log_filename=log_filename,
+                                      log_detail_level=log_detail_level,
+                                      log_level=log_level)
 
         # Otherwise process results of any recursive calls above
         else:
@@ -223,8 +249,8 @@ class PywbemLoggers(object):
                 format_string = '%(asctime)s-%(name)s-%(message)s'
             elif log_dest == 'file':
                 if not log_filename:
-                    assert ValueError('Filename required if log destination '
-                                      'is "file"')
+                    raise ValueError('Filename required if log destination '
+                                     'is "file"')
                 handler = logging.FileHandler(log_filename)
                 format_string = '%(asctime)s-%(name)s-%(message)s'
             else:
@@ -235,27 +261,29 @@ class PywbemLoggers(object):
             # set the logger name based on the log_component.
             if log_component == 'http':
                 logger_name = LOG_HTTP_NAME
-                log_level = 'DEBUG'
+                if log_level is None:
+                    log_level = 'debug'
             elif log_component == 'ops':
                 logger_name = LOG_OPS_CALLS_NAME
-                log_level = 'DEBUG'
+                if log_level is None:
+                    log_level = 'debug'
             else:
-                ValueError('Invalid log_component %s' % log_component)
+                raise ValueError('Invalid log_component %s' % log_component)
 
             # Set the log level based on the log_level input
             level = getattr(logging, log_level.upper(), None)
-            # check the logging log_level_choices have not changed from expected
+            # check logging log_level_choices have not changed from expected
             assert isinstance(level, int)
             if level is None:
-                ValueError('Invalid log level %s specified. Must be one of %s.'
-                           % (log_level, LOG_LEVELS))
+                raise ValueError('Invalid log level %s specified. Must be one '
+                                 'of %s.' % (log_level, LOG_LEVELS))
 
             # create named logger
             if handler:
                 handler.setFormatter(logging.Formatter(format_string))
                 logger_ops = logging.getLogger(logger_name)
                 logger_ops.addHandler(handler)
-                logger_ops.setLevel(log_level)
+                logger_ops.setLevel(level)
 
             # save the detail level in the dict that is part of this class.
             # All members of this tuple are just viewing except detail
@@ -277,11 +305,8 @@ class PywbemLoggers(object):
         """Get information about a logger by name"""
         if logger_name in cls.loggers:
             t = cls.loggers[logger_name]
-            return 'comp=%s dest %s detail %s log_level %s file %s' % (logger_name,
-                                                               t[3],
-                                                               t[0],
-                                                               t[2],
-                                                               t[3])
+            return 'comp=%s dest %s detail %s log_level %s ' \
+                   'file %s' % (logger_name, t[3], t[0], t[2], t[3])
         return('%s not defined' % logger_name)
 
     @classmethod

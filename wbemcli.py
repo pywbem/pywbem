@@ -60,7 +60,8 @@ from pywbem._cliutils import SmartFormatter as _SmartFormatter
 from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT, DEFAULT_LOG_DESTINATION
 
 from pywbem import PywbemLoggers, LOG_DESTINATIONS, LOG_DETAIL_LEVELS, \
-    PYWBEM_LOG_COMPONENTS, LOG_LEVELS
+    PYWBEM_LOG_COMPONENTS, LOG_LEVELS, DEFAULT_LOG_DETAIL_LEVEL, \
+    DEFAULT_LOG_LEVEL
 from pywbem import __version__
 
 # Connection global variable. Set by remote_connection and use
@@ -71,6 +72,8 @@ CONN = None
 ARGS = None
 
 WBEMCLI_LOG_FILE_NAME = 'wbemcli.log'
+
+DEFAULT_LOG_FILENAME = 'pywbem.log'
 
 
 def _remote_connection(server, opts, argparser_):
@@ -2803,9 +2806,10 @@ def _get_connection_info():
     if CONN.timeout is not None:
         info += ', timeout=%s' % CONN.timeout
 
+    # pylint: disable=protected-access
     info += ' stats=%s, ' % ('on' if CONN._statistics else 'off')
 
-    # TODO find logical way to record that we are logging
+    # TODO: ks find more complete way to record that we are logging
     info += 'log=%s, ' % ('on' if CONN.operation_recorder else 'off')
 
     return fill(info, 78, subsequent_indent='    ')
@@ -2990,16 +2994,16 @@ Examples:
              '   DETAIL: Detail Level to log: [{dl}].\n'
              '           (Default={dll})\n'
              '   LEVEL: Log level:[{ll}].\n'
-             '          (Default={lld}\n'
+             '          (Default={lld})\n'
+             # pylint: disable=bad-continuation
              .format(c='|'.join(PYWBEM_LOG_COMPONENTS),
                      cd='all',
                      d='|'.join(LOG_DESTINATIONS),
                      dd=DEFAULT_LOG_DESTINATION,
                      dl='|'.join(LOG_DETAIL_LEVELS),
-                     dll='all',
+                     dll=DEFAULT_LOG_DETAIL_LEVEL,
                      ll='|'.join(LOG_LEVELS),
-                     lld='debug'))
-    # TODO ks July 17generalize where we get the defaults
+                     lld=DEFAULT_LOG_LEVEL))
 
     general_arggroup.add_argument(
         '-h', '--help', action='help',
@@ -3017,10 +3021,9 @@ Examples:
     # log information is in the form
     # -l dest=level:detail:log_level
     if args.log:
-        PywbemLoggers.create_loggers(args.log)
+        PywbemLoggers.create_loggers(args.log, DEFAULT_LOG_FILENAME)
 
     # Set up a client connection
-    # TODO separate our the detail level parameter
     CONN = _remote_connection(args.server, args, argparser)
 
     # Determine file path of history file

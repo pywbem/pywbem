@@ -28,9 +28,10 @@
 from __future__ import print_function, absolute_import
 import os
 import unittest
-from re import findall
+import re
 from subprocess import Popen, PIPE
 import six
+from collections import namedtuple
 
 # Location of any test scripts for testing wbemcli.py
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -39,44 +40,57 @@ SCRIPT_DIR = os.path.dirname(__file__)
 # Output fragments to test against for each test defined
 # Each item is a list of fragmants that are tested against the cmd execution
 # result
-HELP_OUTPUT = ['-n namespace,',
-               '-t timeout', ]
+HELP_OUTPUT = ['-n namespace, --namespace',
+               '-t timeout, --timeout']
 LOG_DEST_STDERR_OUTPUT = ['log=on',
-                          'Connection: http://localhost,',
+                          'Connection: http://blah,',
                           ' no creds']
 LOG_DEST_FILE_OUTPUT = ['log=on',
-                        'Connection: http://localhost,',
+                        'Connection: http://blah,',
                         ' no creds']
 
-TIMEOUT_OUTPUT = ['Connection: http://localhost,',
+TIMEOUT_OUTPUT = ['Connection: http://blah,',
                   ' no creds',
                   'timeout=10']
-NAMESPACE_OUTPUT = ['log=on',
-                    'Connection: http://localhost,',
+
+STATS_OUTPUT = ['Connection: http://blah,',
+                ' no creds',
+                'stats=on']
+NAMESPACE_OUTPUT = ['log=off',
+                    'Connection: http://blah,',
                     ' no creds',
                     'default-namespace=rex/fred']
+LOG_STDERR_OUTPUT = ['pywbem.ops-Connection:']
 
-# TODO ks: change this to use named tuple for clarity
-# Each test is dictionary with list containing test definition.
-#    For each test the dictionary entry includes:
-#    0 string defining 
-# expected stderr
+# Each test is dictionary with namedtuple containing test definition.
+
+test_def = namedtuple("test_def", ["stdout", "exitcode", "stderr"])
 
 TESTS_MAP = {  # pylint: disable=invalid-name
-    'help': ["--help", HELP_OUTPUT, 0, None],
-    'namespace': ["-n rex/fred", NAMESPACE_OUTPUT, 0, None],
-    'timeout': ["-t 10", TIMEOUT_OUTPUT, 0, None], }
+    'help': ("--help", HELP_OUTPUT, 0, None),
+    'namespace': ("-n rex/fred", NAMESPACE_OUTPUT, 0, None),
+    'timeout': ("-t 10", TIMEOUT_OUTPUT, 0, None),
+    'log_dest_file1': ('-l ops=file', LOG_DEST_FILE_OUTPUT, 0, None),
+    'log_dest_file1a': ('-l ops=file:min', LOG_DEST_FILE_OUTPUT, 0, None),
+    'log_dest_file1b': ('-l ops=file:min:debug', LOG_DEST_FILE_OUTPUT, 0, None),
+    'log_dest_file2': ('-l http=file', LOG_DEST_FILE_OUTPUT, 0, None),
+    'log_dest_file3': ('-l all=file', LOG_DEST_FILE_OUTPUT, 0, None),
+    'log_dest_file4': ('-l ops=stderr:all:debug', LOG_DEST_FILE_OUTPUT, 0,
+                       LOG_STDERR_OUTPUT),
+    'log_dest_file5': ('-l all=stderr:all:debug', LOG_DEST_FILE_OUTPUT, 0,
+                       LOG_STDERR_OUTPUT),
+    'stats': ('-s', STATS_OUTPUT, 0, None), }
 
 # more tests
 #    'log_dest_stderr': ['-l stderr', LOG_DEST_STDERR_OUTPUT]}
-#    'log_dest_file': ['-l file', LOG_DEST_STDERR_OUTPUT]}
 
 
 class ContainerMeta(type):
     """Class to define the function to generate unittest methods."""
 
     def __new__(mcs, name, bases, dict):  # pylint: disable=redefined-builtin
-        def generate_test(test_name, cmd_str, expected_stdout, expected_stderr):
+        def generate_test(test_name, cmd_str, expected_stdout,
+                          expected_exitcode, expected_stderr):
             """
             Defines the test method (test) that we generate for each test
             and returns the method.
@@ -103,16 +117,20 @@ class ContainerMeta(type):
                 command = 'export PYTHONWARNINGS="" && %s' % command
                 proc = Popen(command, shell=True, stdout=PIPE, stderr=PIPE)
                 std_out, std_err = proc.communicate()
+                # print('std_out:\n%s\nstd_err:\n%s' % (std_out, std_err))
                 exitcode = proc.returncode
                 if six.PY3:
                     std_out = std_out.decode()
                     std_err = std_err.decode()
 
-                self.assertEqual(exitcode, 0, ('%s: Unexpected ExitCode Err, '
-                                               'cmd="%s" '
-                                               'exitcode %s stderr=%s' %
-                                               (test_name, command,
-                                               exitcode, std_err)))
+                if expected_exitcode is not None:
+                    self.assertEqual(exitcode,
+                                     expected_exitcode,
+                                     ('%s: Unexpected ExitCode Err. '
+                                      'Expected %s: cmd="%s": '
+                                      'exitcode %s: stderr=%s' %
+                                      (test_name, expected_exitcode, command,
+                                       exitcode, std_err)))
 
                 if not expected_stderr:
                     self.assertEqual(std_err, "",
@@ -120,24 +138,24 @@ class ContainerMeta(type):
                                      % (test_name, std_err))
                 else:
                     for item in expected_stderr:
-                        match_result = findall(item, std_err)
+                        match_result = re.search(item, std_err)
                         self.assertIsNotNone(match_result, 'test %s, '
                                              'stderr did not match test '
                                              'definition. Expected %s in %s' %
-                                             (test_name, item, expected_stderr))
+                                             (test_name, item, std_err))
 
                 for item in expected_stdout:
-                    match_result = findall(item, std_out)
+                    match_result = re.search(item, std_out)
                     self.assertIsNotNone(match_result,
-                                         'Test %s, stdout did not match test '
+                                         'Test=%s, stdout did not match test '
                                          'definition. Expected %s in %s' %
-                                         (test_name, item, expected_stdout))
+                                         (test_name, item, std_out))
             return test
 
         for test_name, params in six.iteritems(TESTS_MAP):
             test_name = "test_%s" % test_name
             dict[test_name] = generate_test(test_name, params[0], params[1],
-                                            params[2])
+                                            params[2], params[3])
         return type.__new__(mcs, name, bases, dict)
 
 

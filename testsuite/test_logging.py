@@ -29,17 +29,19 @@ import unittest
 
 from pywbem import PywbemLoggers
 
+VERBOSE = False
+
 
 class BaseLoggingTests(unittest.TestCase):
     """Base class for logging unit tests"""
     def setUp(self):
-        pass
+        PywbemLoggers.reset()
 
     def tearDown(self):
         pass
 
 
-class LogParseTests(BaseLoggingTests):
+class TestLogParse(BaseLoggingTests):
     """
     Test parse_log_specs
     """
@@ -97,7 +99,7 @@ class LogParseTests(BaseLoggingTests):
                                  'http': (None, None, None)})
 
 
-class LogParseTestErrors(BaseLoggingTests):
+class TestLogParseErrors(BaseLoggingTests):
     """ Test errors on the parse"""
     def parser_error_test(self, param):
         """Test for exception"""
@@ -118,41 +120,197 @@ class LogParseTestErrors(BaseLoggingTests):
         self.parser_error_test(param)
 
 
-class LoggerCreateTests(BaseLoggingTests):
+class TestLoggerCreate(BaseLoggingTests):
     """ Test the PywbemLoggers.create_logger method."""
-    def test_create_single_logger(self):
+    def test_create_single_logger1(self):
         """
         Create a simple logger
         """
         PywbemLoggers.create_logger('ops', 'file',
                                     log_filename='loggingtest.log',
-                                    log_level='debug')
+                                    log_level='debug',
+                                    log_detail_level='min')
 
-        print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
+        if VERBOSE:
+            print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
+        expected_result = \
+            {'pywbem.ops': ('min', 'debug', 'file', 'loggingtest.log')}
 
-        # TODO add test    
+        self.assertEqual(PywbemLoggers.loggers, expected_result)
+
+    def test_create_single_logger2(self):
+        """
+        Create a simple logger from detailed parameter input
+        """
+        PywbemLoggers.create_logger('http', 'file',
+                                    log_filename='loggingtest.log',
+                                    log_level='debug',
+                                    log_detail_level='min')
+
+        if VERBOSE:
+            print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
+        expected_result = \
+            {'pywbem.http': ('min', 'debug', 'file', 'loggingtest.log')}
+
+        self.assertEqual(PywbemLoggers.loggers, expected_result)
+
+    def test_create_single_logger3(self):
+        """
+        Create a simple logger from detailed parameter input
+        """
+        PywbemLoggers.create_logger('http', 'stderr',
+                                    log_level='debug',
+                                    log_filename=None,
+                                    log_detail_level='min')
+
+        if VERBOSE:
+            print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
+        expected_result = \
+            {'pywbem.http': ('min', 'debug', 'stderr', None)}
+
+        self.assertEqual(PywbemLoggers.loggers, expected_result)
+
+    def test_create_single_logger4(self):
+        """
+        Create a simple logger from detailed parameter input
+        """
+        PywbemLoggers.create_logger('all', 'stderr',
+                                    log_level='debug',
+                                    log_filename=None,
+                                    log_detail_level='min')
+
+        if VERBOSE:
+            print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
+        expected_result = \
+            {'pywbem.http': ('min', 'debug', 'stderr', None),
+             'pywbem.ops': ('min', 'debug', 'stderr', None)}
+
+        self.assertEqual(PywbemLoggers.loggers, expected_result)
 
 
-class LoggersCreateTests(BaseLoggingTests):
+class TestLoggerCreateErrors(BaseLoggingTests):
+    """Test errors in the LoggerCreate Function"""
+
+    def test_create_single_logger1(self):
+        """
+        Create a simple logger from detailed parameter input
+        """
+        try:
+            PywbemLoggers.create_logger('httpx', 'stderr',
+                                        log_level='debug',
+                                        log_filename=None,
+                                        log_detail_level='min')
+            self.fail('Exception expected')
+        except ValueError as ve:
+            if VERBOSE:
+                print('ve %s' % ve)
+
+    def test_create_single_logger2(self):
+        """
+        Create a simple logger from detailed parameter input
+        """
+        try:
+            PywbemLoggers.create_logger('http', 'stderrblah',
+                                        log_level='debug',
+                                        log_filename=None,
+                                        log_detail_level='min')
+            self.fail('Exception expected')
+        except ValueError as ve:
+            if VERBOSE:
+                print('ve %s' % ve)
+
+    def test_create_single_logger3(self):
+        """
+        Create a simple logger from detailed parameter input
+        """
+        try:
+            PywbemLoggers.create_logger('http', 'stderr',
+                                        log_level='debugblah',
+                                        log_filename=None,
+                                        log_detail_level='min')
+            self.fail('Exception expected')
+        except ValueError as ve:
+            if VERBOSE:
+                print('ve %s' % ve)
+
+    def test_create_single_logger4(self):
+        """
+        Create a simple logger from detailed parameter input
+        """
+        try:
+            PywbemLoggers.create_logger('http', 'stderr',
+                                        log_level='debug',
+                                        log_filename=None,
+                                        log_detail_level='mi')
+            self.fail('Exception expected')
+        except ValueError as ve:
+            if VERBOSE:
+                print('ve %s' % ve)
+
+    def test_create_single_logger5(self):
+        """
+        Create a simple logger from detailed parameter input
+        """
+        try:
+            PywbemLoggers.create_logger('http', 'file',
+                                        log_level='debug',
+                                        log_filename=None,
+                                        log_detail_level='mi')
+            self.fail('Exception expected')
+        except ValueError as ve:
+            if VERBOSE:
+                print('ve %s' % ve)
+
+
+class TestLoggersCreate(BaseLoggingTests):
     """
-    Tests to create loggers using the PywbemLogger class
+    Tests to create loggers using the PywbemLogger class and the
+    method create_loggers that creates logger definitions from
+    an input string
     """
-    def valid_loggers_create(self, input_str, expected_result):
+    def valid_loggers_create(self, input_str, expected_result,
+                             log_filename=None):
         """Common test to do the create loggers and test result."""
-        PywbemLoggers.create_loggers(input_str)
-        print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
+        PywbemLoggers.create_loggers(input_str, log_filename)
+        self.assertEqual(PywbemLoggers.loggers, expected_result)
         # TODO add test
-        for name in PywbemLoggers.loggers:
-            print(PywbemLoggers.get_logger_info(name))
+        # for name in PywbemLoggers.loggers:
+        #    print(PywbemLoggers.get_logger_info(name))
 
-
-    def test_create_loggers(self):
+    def test_create_logger(self):
         """
         Create a simple logger
         """
         test_input = 'ops=file:min:debug,http=file:min:debug'
 
-        self.valid_loggers_create(test_input, None)
+        expected_result = \
+            {'pywbem.http': ('min', 'debug', 'file', 'pywbem.log'),
+             'pywbem.ops': ('min', 'debug', 'file', 'pywbem.log')}
+        self.valid_loggers_create(test_input, expected_result,
+                                  log_filename='pywbem.log')
+
+    def test_create_loggers1(self):
+        """
+        Create a simple logger
+        """
+        test_input = 'all=file:min:debug'
+        expected_result = \
+            {'pywbem.http': ('min', 'debug', 'file', 'logfile.log'),
+             'pywbem.ops': ('min', 'debug', 'file', 'logfile.log')}
+
+        self.valid_loggers_create(test_input, expected_result,
+                                  log_filename='logfile.log')
+
+    def test_create_loggers2(self):
+        """
+        Create a simple logger
+        """
+        test_input = 'all=stderr:all:info'
+        expected_result = \
+            {'pywbem.http': ('all', 'info', 'stderr', None),
+             'pywbem.ops': ('all', 'info', 'stderr', None)}
+
+        self.valid_loggers_create(test_input, expected_result)
 
 
 if __name__ == '__main__':
