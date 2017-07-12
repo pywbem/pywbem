@@ -56,6 +56,7 @@ __all__ = ['Statistics', 'OperationStatistic']
 
 
 class OperationStatistic(object):
+    # pylint: disable=too-many-instance-attributes
     """
     A statistics data keeper for the executions of all operations with the
     same operation name.
@@ -69,7 +70,7 @@ class OperationStatistic(object):
 
         stats = container.start_timer('EnumerateInstances')
         ...
-        stats.stop_timer(request_len, reply_len, exc)
+        stats.stop_timer(request_len, reply_len, server_time, exc)
 
     **Experimental:** This class is experimental for this release.
     """
@@ -93,6 +94,12 @@ class OperationStatistic(object):
         self._time_sum = float(0)
         self._time_min = float('inf')
         self._time_max = float(0)
+
+        self._server_time_sum = float(0)
+        self._server_time_min = float('inf')
+        self._server_time_max = float(0)
+        self._server_time_stored = False
+
         self._start_time = None
 
         self._request_len_sum = float(0)
@@ -176,6 +183,33 @@ class OperationStatistic(object):
         return self._time_max
 
     @property
+    def avg_server_time(self):
+        """
+        :class:`py:float`: The average elapsed time for invoking the measured
+        operations, in seconds.
+        """
+        try:
+            return self._server_time_sum / self._count
+        except ZeroDivisionError:
+            return 0
+
+    @property
+    def min_server_time(self):
+        """
+        :class:`py:float`: The minimum elapsed time for invoking the measured
+        operations, in seconds.
+        """
+        return self._server_time_min
+
+    @property
+    def max_server_time(self):
+        """
+        :class:`py:float`: The maximum elapsed time for invoking the measured
+        operations, in seconds.
+        """
+        return self._server_time_max
+
+    @property
     def avg_request_len(self):
         """
         :class:`py:float`: The average size of the HTTP body in the CIM-XML
@@ -240,6 +274,11 @@ class OperationStatistic(object):
         self._time_min = float('inf')
         self._time_max = float(0)
 
+        self._server_time_sum = float(0)
+        self._server_time_min = float('inf')
+        self._server_time_max = float(0)
+        self._server_time_stored = False
+
         self._request_len_sum = float(0)
         self._request_len_min = float('inf')
         self._request_len_max = float(0)
@@ -265,7 +304,8 @@ class OperationStatistic(object):
             if not self._stat_start_time:
                 self._stat_start_time = self._start_time
 
-    def stop_timer(self, request_len, reply_len, exception=False):
+    def stop_timer(self, request_len, reply_len, server_time=None,
+                   exception=False):
         """
         This method needs to be called at the end of an operation that is
         intended to be measured. It completes the measurement for that
@@ -284,6 +324,12 @@ class OperationStatistic(object):
           exception (:class:`py:bool`)
             Boolean that specifies whether an exception was raised while
             processing the operation.
+
+          server_time (:class:`py:bool`)
+            Time in seconds that the server optionally returns to the
+            client in the HTTP response defining the time from when the
+            server received the request to when it started sending the
+            response. If None, there is no time from the server.
 
         Returns:
 
@@ -309,6 +355,14 @@ class OperationStatistic(object):
                 self._time_max = dt
             if dt < self._time_min:
                 self._time_min = dt
+
+            if server_time:
+                self._server_time_stored = True
+                self._server_time_sum += server_time
+                if dt > self._server_time_max:
+                    self._server_time_max = server_time
+                if dt < self._server_time_min:
+                    self._server_time_min = server_time
 
             if request_len > self._request_len_max:
                 self._request_len_max = request_len
@@ -336,6 +390,9 @@ class OperationStatistic(object):
                'avg_time={s.avg_time!r}, ' \
                'min_time={s.min_time!r}, ' \
                'max_time={s.max_time!r}, ' \
+               'avg_server_time={s.avg_server_time!r}, ' \
+               'min_server_time={s.min_server_time!r}, ' \
+               'max_server_time={s.max_server_time!r}, ' \
                'avg_request_len={s.avg_request_len!r}, ' \
                'min_request_len={s.min_request_len!r}, ' \
                'max_request_len={s.max_request_len!r}, ' \
@@ -348,13 +405,19 @@ class OperationStatistic(object):
     #: returned by the :meth:`~pywbem.OperationStatistic.formatted` method.
     #:
     #: For an example, see :meth:`pywbem.Statistics.formatted`.
-    formatted_header = \
-        'Count Excep    Time    Time    Time ReqLen ReqLen ReqLen ' \
-        'ReplyLen ReplyLen ReplyLen Operation\n' \
-        '        Cnt     Avg     Min     Max    Avg    Min    Max ' \
-        '     Avg      Min      Max\n'
+    formatted_header_w_svr = \
+        'Count Excep            Time               ServerTime       ' \
+        '       RequestLen               ReplyLen         Operation\n' \
+        '        Cnt     Avg     Min     Max     Avg     Min     Max   ' \
+        ' Avg    Min    Max      Avg      Min      Max\n'
 
-    def formatted(self):
+    formatted_header = \
+        'Count Excep            Time          ' \
+        '       RequestLen            ReplyLen        Operation\n' \
+        '        Cnt     Avg     Min     Max   ' \
+        ' Avg    Min    Max    Avg      Min      Max\n'
+
+    def formatted(self, include_server_time):
         """
         Return a formatted one-line string with the statistics values for this
         operation.
@@ -364,14 +427,33 @@ class OperationStatistic(object):
 
         For an example, see :meth:`pywbem.Statistics.formatted`.
         """
-        return ('{0:5d} {1:5d} {2:7.3f} {3:7.3f} {4:7.3f} {5:6.0f} {6:6.0f} '
-                '{7:6.0f} {8:8.0f} {9:8.0f} {10:8.0f} {11}\n'.
-                format(self.count, self.exception_count,
-                       self.avg_time, self.min_time, self.max_time,
-                       self.avg_request_len, self.min_request_len,
-                       self.max_request_len, self.avg_reply_len,
-                       self.min_reply_len, self.max_reply_len,
-                       self.name))
+        if include_server_time:
+            return ('{0:5d} {1:5d} '
+                    '{2:7.3f} {3:7.3f} {4:7.3f} '
+                    '{5:7.3f} {6:7.3f} {7:7.3f} '
+                    '{8:6.0f} {9:6.0f} {10:6.0f} '
+                    '{11:8.0f} {12:8.0f} {13:8.0f} {14}\n'.
+                    format(self.count, self.exception_count,
+                           self.avg_time, self.min_time, self.max_time,
+                           self.avg_server_time, self.min_server_time,
+                           self.max_server_time,
+                           self.avg_request_len, self.min_request_len,
+                           self.max_request_len,
+                           self.avg_reply_len, self.min_reply_len,
+                           self.max_reply_len,
+                           self.name))
+        else:
+            return ('{0:5d} {1:5d} '
+                    '{2:7.3f} {3:7.3f} {4:7.3f} '
+                    '{5:6.0f} {6:6.0f} {7:6.0f} '
+                    '{8:6.0f} {9:8.0f} {10:8.0f} {11}\n'.
+                    format(self.count, self.exception_count,
+                           self.avg_time, self.min_time, self.max_time,
+                           self.avg_request_len, self.min_request_len,
+                           self.max_request_len,
+                           self.avg_reply_len, self.min_reply_len,
+                           self.max_reply_len,
+                           self.name))
 
 
 class Statistics(object):
@@ -504,10 +586,13 @@ class Statistics(object):
         Return a human readable string with the statistics for this container.
         The operations are sorted by decreasing average time.
 
-        Example::
+        Server time statistic is included only if the wbem server has returned
+        statistics information.
+
+        Example w/o server times::
 
             Statistics (times in seconds, lengths in Bytes):
-            Count  Exc    Time    Time    Time ReqLen ReqLen ReqLen ReplyLen ReplyLen ReplyLen Operation
+            Count  Exc            Time                ReqLen                ReplyLen          Operation
                    Cnt    Avg     Min     Max    Avg    Min    Max      Avg      Min      Max
                 3    0   0.234   0.100   0.401   1233   1000   1500    26667    20000    35000 EnumerateInstances
                 1    0   0.100   0.100   0.100   1200   1200   1200    22000    22000    22000 EnumerateInstanceNames
@@ -515,12 +600,22 @@ class Statistics(object):
         # pylint: enable=line-too-long
         ret = "Statistics (times in seconds, lengths in Bytes):\n"
         if self.enabled:
-            ret += OperationStatistic.formatted_header
             snapshot = sorted(self.snapshot(),
                               key=lambda item: item[1].avg_time,
                               reverse=True)
+
+            # Test to see if any server time is non-zero
+            include_svr = False
             for name, stats in snapshot:  # pylint: disable=unused-variable
-                ret += stats.formatted()
+                if stats._server_time_stored:
+                    include_svr = True
+            if include_svr:
+                ret += OperationStatistic.formatted_header_w_svr
+            else:
+                ret += OperationStatistic.formatted_header
+
+            for name, stats in snapshot:  # pylint: disable=unused-variable
+                ret += stats.formatted(include_svr)
         else:
             ret += "Disabled"
         return ret.strip()
