@@ -44,9 +44,6 @@ from pywbem.mof_compiler import MOFCompiler
 from unittest_extensions import RegexpMixin
 
 
-if six.PY2:
-    import codecs
-
 # Test for decorator for unimplemented tests
 # decorator is @unittest.skip(UNIMPLEMENTED)
 UNIMPLEMENTED = "test not implemented"
@@ -140,10 +137,7 @@ class ClientTest(unittest.TestCase):
         self.conn.debug = CLI_ARGS['debug']
 
         if self.yamlfile is not None:
-            if six.PY2:
-                self.yamlfp = codecs.open(self.yamlfile, 'a', encoding='utf8')
-            else:
-                self.yamlfp = open(self.yamlfile, 'a')
+            self.yamlfp = TestClientRecorder.open_file(self.yamlfile, 'a')
             self.conn.operation_recorder = TestClientRecorder(self.yamlfp)
 
         self.log('Connected {}, ns {}'.format(self.system_url,

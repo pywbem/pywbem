@@ -25,9 +25,6 @@ from pywbem import TestClientRecorder as _TestClientRecorder
 # used to build result tuple for test
 from pywbem.cim_operations import pull_path_result_tuple
 
-if six.PY2:
-    import codecs  # pylint: disable=wrong-import-order
-
 # test outpuf file for the recorder tests.  This is opened for each
 # test to save yaml output and may be reloaded during the same test
 # to confirm the yaml results.
@@ -43,11 +40,7 @@ class BaseRecorderTests(unittest.TestCase):
         if os.path.isfile(self.testyamlfile):
             os.remove(self.testyamlfile)
 
-        # if python 2, open with codec to allow utf-8 writes.
-        if six.PY2:
-            self.yamlfp = codecs.open(self.testyamlfile, 'a', encoding='utf8')
-        else:
-            self.yamlfp = open(self.testyamlfile, 'a')
+        self.yamlfp = TestClientRecorder.open_file(self.testyamlfile, 'a')
 
         self.test_recorder = _TestClientRecorder(self.yamlfp)
         self.test_recorder.reset()

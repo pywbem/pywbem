@@ -148,6 +148,12 @@ Bug fixes
 * Correct Error in run_cimoperations with use of namespace in iter... function
   See issue #718. This was a test code issue. No changes to the iter
   operations.
+
+* Correct issue with Recorder creating non-text files.  This issue
+  Documents the requirement for text files and also adds a static
+  method to force creation of the recorder output as a text file.
+  See issue # 700
+
   
 
 Build, test, quality
