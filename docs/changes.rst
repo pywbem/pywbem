@@ -144,6 +144,10 @@ Bug fixes
   this release, the bug was never public. See issue #709
 
 * Remove extra print in cim_operations. See issue # 704
+
+* Correct Error in run_cimoperations with use of namespace in iter... function
+  See issue #718. This was a test code issue. No changes to the iter
+  operations.
   
 
 Build, test, quality

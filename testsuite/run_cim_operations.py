@@ -319,9 +319,12 @@ class ClientTest(unittest.TestCase):
                 self.assertTrue(len(instance.path.namespace) > 0)
 
                 if namespace is None:
-                    self.assertTrue(instance.path.namespace == self.namespace)
-                else:
-                    self.assertTrue(instance.path.namespace == namespace)
+                    namespace = self.namespace
+
+                self.assertEqual(instance.path.namespace, namespace,
+                                 'Expected instance.path.namespace %s to '
+                                 'match expected namespace %s' %
+                                 (instance.path.namespace, namespace))
 
             if prop_count is not None:
                 self.assertTrue(len(instance.properties) == prop_count)
@@ -4424,8 +4427,9 @@ class IterEnumerateInstances(PegasusServerTestBase):
 
         # account for possible non unicode namespace.  Test fails in compare
         # of unicode and non-unicode namespaces otherwise.
-        if namespace is not None:
-            namespace = namespace.encode('utf-8')
+        if namespace is not None and six.PY3:
+            if isinstance(namespace, bytes):
+                namespace = namespace.decode()
 
         # execute iterator operation
         generator = self.cimcall(self.conn.IterEnumerateInstances, ClassName,
