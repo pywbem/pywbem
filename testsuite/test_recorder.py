@@ -19,7 +19,9 @@ import six
 
 from pywbem import CIMInstanceName, CIMInstance, MinutesFromUTC, \
     Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
-    Sint32, Sint64, Real32, Real64, CIMProperty, CIMDateTime, TestClientRecorder
+    Sint32, Sint64, Real32, Real64, CIMProperty, CIMDateTime
+# Renamed the following import to not have py.test pick it up as a test class:
+from pywbem import TestClientRecorder as _TestClientRecorder
 # used to build result tuple for test
 from pywbem.cim_operations import pull_path_result_tuple
 
@@ -47,7 +49,7 @@ class BaseRecorderTests(unittest.TestCase):
         else:
             self.yamlfp = open(self.testyamlfile, 'a')
 
-        self.test_recorder = TestClientRecorder(self.yamlfp)
+        self.test_recorder = _TestClientRecorder(self.yamlfp)
         self.test_recorder.reset()
         self.test_recorder.enable()
 
