@@ -30,8 +30,8 @@ import os
 import unittest
 import re
 from subprocess import Popen, PIPE
-import six
 from collections import namedtuple
+import six
 
 # Location of any test scripts for testing wbemcli.py
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -62,35 +62,39 @@ NAMESPACE_OUTPUT = ['log=off',
                     'default-namespace=rex/fred']
 LOG_STDERR_OUTPUT = ['pywbem.ops-Connection:']
 
-# Each test is dictionary with namedtuple containing test definition.
+DEF_NAMESPACE_OUTPUT = ['default-namespace=root/cimv2']
 
-test_def = namedtuple("test_def", ["stdout", "exitcode", "stderr"])
 
-TESTS_MAP = {  # pylint: disable=invalid-name
-    'help': ("--help", HELP_OUTPUT, 0, None),
-    'namespace': ("-n rex/fred", NAMESPACE_OUTPUT, 0, None),
-    'timeout': ("-t 10", TIMEOUT_OUTPUT, 0, None),
-    'log_dest_file1': ('-l ops=file', LOG_DEST_FILE_OUTPUT, 0, None),
-    'log_dest_file1a': ('-l ops=file:min', LOG_DEST_FILE_OUTPUT, 0, None),
-    'log_dest_file1b': ('-l ops=file:min:debug', LOG_DEST_FILE_OUTPUT, 0, None),
-    'log_dest_file2': ('-l http=file', LOG_DEST_FILE_OUTPUT, 0, None),
-    'log_dest_file3': ('-l all=file', LOG_DEST_FILE_OUTPUT, 0, None),
-    'log_dest_file4': ('-l ops=stderr:all:debug', LOG_DEST_FILE_OUTPUT, 0,
-                       LOG_STDERR_OUTPUT),
-    'log_dest_file5': ('-l all=stderr:all:debug', LOG_DEST_FILE_OUTPUT, 0,
-                       LOG_STDERR_OUTPUT),
-    'stats': ('-s', STATS_OUTPUT, 0, None), }
+# pylint: disable=invalid-name
+tst_p = namedtuple('tst_p', ['test_name', 'cmd', 'expected_stdout',
+                             'expected_exitcode',
+                             'expected_stderr'])
 
-# more tests
-#    'log_dest_stderr': ['-l stderr', LOG_DEST_STDERR_OUTPUT]}
+# Each test in the following list is a namedtuple containing test definition.
+TESTS_MAP = [  # pylint: disable=invalid-name
+    tst_p('help', '--help', HELP_OUTPUT, 0, None),
+    tst_p('namespace', '-n rex/fred', NAMESPACE_OUTPUT, 0, None),
+    tst_p('timeout', '-t 10', TIMEOUT_OUTPUT, 0, None),
+    tst_p('log_dest_file1', '-l ops=file', LOG_DEST_FILE_OUTPUT, 0, None),
+    tst_p('log_dest_file1a', '-l ops=file:min', LOG_DEST_FILE_OUTPUT, 0, None),
+    tst_p('log_dest_file1b', '-l ops=file:min:debug', LOG_DEST_FILE_OUTPUT, 0,
+          None),
+    tst_p('log_dest_file2', '-l http=file', LOG_DEST_FILE_OUTPUT, 0, None),
+    tst_p('log_dest_file3', '-l all=file', LOG_DEST_FILE_OUTPUT, 0, None),
+    tst_p('log_dest_file4', '-l ops=stderr:all:debug', LOG_DEST_FILE_OUTPUT, 0,
+          LOG_STDERR_OUTPUT),
+    tst_p('log_dest_file5', '-l all=stderr:all:debug', LOG_DEST_FILE_OUTPUT, 0,
+          LOG_STDERR_OUTPUT),
+    tst_p('def_namespace', '', DEF_NAMESPACE_OUTPUT, 0, None),
+    tst_p('error_param', '--log', None, 2,
+          ['argument -l/--log: expected one argument']), ]
 
 
 class ContainerMeta(type):
     """Class to define the function to generate unittest methods."""
 
     def __new__(mcs, name, bases, dict):  # pylint: disable=redefined-builtin
-        def generate_test(test_name, cmd_str, expected_stdout,
-                          expected_exitcode, expected_stderr):
+        def generate_test(test_name, test_params):
             """
             Defines the test method (test) that we generate for each test
             and returns the method.
@@ -110,7 +114,7 @@ class ContainerMeta(type):
                 term_script_param = '-s %s' % term_script_file
 
                 command = ('wbemcli http://blah %s %s' %
-                           (cmd_str, term_script_param))
+                           (test_params.cmd, term_script_param))
                 # Disable python warnings for wbemcli call
                 # because some imports generate deprecated warnings
                 # that appear in std_err when nothing expected
@@ -123,39 +127,45 @@ class ContainerMeta(type):
                     std_out = std_out.decode()
                     std_err = std_err.decode()
 
-                if expected_exitcode is not None:
-                    self.assertEqual(exitcode,
-                                     expected_exitcode,
-                                     ('%s: Unexpected ExitCode Err. '
+                if test_params.expected_exitcode is not None:
+                    self.assertEqual(exitcode, test_params.expected_exitcode,
+                                     ('Test %s: Unexpected ExitCode Err. '
                                       'Expected %s: cmd="%s": '
                                       'exitcode %s: stderr=%s' %
-                                      (test_name, expected_exitcode, command,
+                                      (test_name, test_params.expected_exitcode,
+                                       command,
                                        exitcode, std_err)))
 
-                if not expected_stderr:
+                if not test_params.expected_stderr:
                     self.assertEqual(std_err, "",
-                                     '%s stderr not empty. returned %s'
+                                     'Test %s stderr not empty as expected. '
+                                     'Returned %s'
                                      % (test_name, std_err))
                 else:
-                    for item in expected_stderr:
+                    for item in test_params.expected_stderr:
                         match_result = re.search(item, std_err)
-                        self.assertIsNotNone(match_result, 'test %s, '
-                                             'stderr did not match test '
-                                             'definition. Expected %s in %s' %
-                                             (test_name, item, std_err))
-
-                for item in expected_stdout:
-                    match_result = re.search(item, std_out)
-                    self.assertIsNotNone(match_result,
-                                         'Test=%s, stdout did not match test '
-                                         'definition. Expected %s in %s' %
-                                         (test_name, item, std_out))
+                        self.assertNotEqual(match_result, None, 'Test %s, '
+                                            'stderr did not match test '
+                                            'definition. Expected %s in %s' %
+                                            (test_name, item, std_err))
+                if test_params.expected_stdout is not None:
+                    for item in test_params.expected_stdout:
+                        match_result = re.search(item, std_out)
+                        self.assertNotEqual(match_result, None,
+                                            'Test=%s, stdout did not match '
+                                            'test definition. Expected %s in %s'
+                                            % (test_name, item, std_out))
+                else:
+                    self.assertEqual(std_out, "",
+                                     'Test %s stdout not empty as expected. '
+                                     'Returned %s'
+                                     % (test_name, std_out))
             return test
 
-        for test_name, params in six.iteritems(TESTS_MAP):
-            test_name = "test_%s" % test_name
-            dict[test_name] = generate_test(test_name, params[0], params[1],
-                                            params[2], params[3])
+        # generate tests from TESTS_MAP
+        for test_params in TESTS_MAP:
+            test_name = "test_%s" % test_params.test_name
+            dict[test_name] = generate_test(test_name, test_params)
         return type.__new__(mcs, name, bases, dict)
 
 
