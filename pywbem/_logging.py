@@ -245,7 +245,7 @@ class PywbemLoggers(object):
         # Otherwise process results of any recursive calls above
         else:
             if log_dest == 'stderr':
-                handler = logging.StreamHandler(stream=sys.stderr)
+                handler = logging.StreamHandler()
                 format_string = '%(asctime)s-%(name)s-%(message)s'
             elif log_dest == 'file':
                 if not log_filename:
