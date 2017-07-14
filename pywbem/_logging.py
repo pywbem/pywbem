@@ -280,9 +280,9 @@ class PywbemLoggers(object):
             # create named logger
             if handler:
                 handler.setFormatter(logging.Formatter(format_string))
-                logger_ops = logging.getLogger(logger_name)
-                logger_ops.addHandler(handler)
-                logger_ops.setLevel(level)
+                logger = logging.getLogger(logger_name)
+                logger.addHandler(handler)
+                logger.setLevel(level)
 
             # save the detail level in the dict that is part of this class.
             # All members of this tuple are just viewing except detail

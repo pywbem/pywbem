@@ -37,13 +37,12 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMQualifierDeclaration, NocaseDict
 from .cim_types import CIMInt, CIMFloat, CIMDateTime
 from .exceptions import CIMError
+from .config import DEFAULT_MAX_LOG_ENTRY_SIZE
+from ._logging import PywbemLoggers, LOG_OPS_CALLS_NAME, LOG_HTTP_NAME
 
 if six.PY2:
     import codecs  # pylint: disable=wrong-import-order
 
-from .config import DEFAULT_MAX_LOG_ENTRY_SIZE
-
-from ._logging import PywbemLoggers, LOG_OPS_CALLS_NAME, LOG_HTTP_NAME
 
 __all__ = ['BaseOperationRecorder', 'TestClientRecorder',
            'OpArgs', 'OpResult', 'HttpRequest', 'HttpResponse',

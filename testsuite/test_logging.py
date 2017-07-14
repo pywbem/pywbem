@@ -28,6 +28,7 @@ import os
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
 # pylint: disable=too-many-lines,no-self-use
 import unittest
+from testfixtures import LogCapture, log_capture
 
 from pywbem import PywbemLoggers, LOG_OPS_CALLS_NAME
 from pywbem._logging import get_logger
@@ -43,21 +44,12 @@ TEST_OUTPUT_LOG = '%s/%s' % (SCRIPT_DIR, LOG_FILE_NAME)
 
 class BaseLoggingTests(unittest.TestCase):
     """Base class for logging unit tests"""
+
     def setUp(self):
         PywbemLoggers.reset()
-        if os.path.isfile(TEST_OUTPUT_LOG):
-            os.remove(TEST_OUTPUT_LOG)
 
     def tearDown(self):
-        if os.path.isfile(TEST_OUTPUT_LOG):
-            os.remove(TEST_OUTPUT_LOG)
-
-    def loadLogfile(self):
-        if os.path.isfile(TEST_OUTPUT_LOG):
-            with open(TEST_OUTPUT_LOG) as f:
-                lines = f.read().splitlines()
-                return lines
-        return None
+        LogCapture.uninstall_all()
 
 
 class TestLogParse(BaseLoggingTests):
@@ -171,7 +163,9 @@ class TestLoggerCreate(BaseLoggingTests):
         expected_result = \
             {'pywbem.http': ('min', 'debug', 'file', TEST_OUTPUT_LOG)}
 
-        self.assertEqual(PywbemLoggers.loggers, expected_result)
+        self.assertEqual(PywbemLoggers.loggers, expected_result,
+                         'Actual %s, Expected %s' % (PywbemLoggers.loggers,
+                                                     expected_result))
 
     def test_create_single_logger3(self):
         """
@@ -187,7 +181,9 @@ class TestLoggerCreate(BaseLoggingTests):
         expected_result = \
             {'pywbem.http': ('min', 'debug', 'stderr', None)}
 
-        self.assertEqual(PywbemLoggers.loggers, expected_result)
+        self.assertEqual(PywbemLoggers.loggers, expected_result,
+                         'Actual %s, Expected %s' % (PywbemLoggers.loggers,
+                                                     expected_result))
 
     def test_create_single_logger4(self):
         """
@@ -335,7 +331,8 @@ class TestLoggersCreate(BaseLoggingTests):
 class TestLoggerOutput(BaseLoggingTests):
     """Test output from logging"""
 
-    def test_log_output(self):
+    @log_capture()
+    def test_log_output(self, l):
         test_input = 'all=file:all:debug'
 
         print('log filename %s' % TEST_OUTPUT_LOG)
@@ -359,8 +356,8 @@ class TestLoggerOutput(BaseLoggingTests):
 
         my_logger.debug('%s: %s: %s', return_name, 'FakeMethodName', result)
 
-        logged_data = self.loadLogfile()
-        print('Log file contents:\n%s' % logged_data)
+        l.check(('pywbem.ops', 'DEBUG',
+                 "Return: FakeMethodName: 'This is fake return data'"))
 
 
 if __name__ == '__main__':

@@ -365,6 +365,7 @@ def main():
             "coverage>=4.3",
             "pytest>=2.4",
             "pytest-cov",
+            'testfixtures>=4.13.3',
             "Sphinx>=1.3" if sys.version_info[0:2] != (2, 6) else None,
             # Pinning GitPython to 2.0.8 max, due to its use of unittest.case
             # which is not available on Python 2.6.

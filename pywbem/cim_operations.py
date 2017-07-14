@@ -826,10 +826,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Defines whether logging of operations and http requests should
             be executed.   If this is a bool True, logging of the complete
             operations calls and responses and the complete http requests are
-            logged. If False, Nothing is logged.  If it is a positive non-zero
-            integer, request/response methods and http requests/responses are
-            logged but only the length defined by the integer of the payload
-            is actually included.
+            logged. If False, Nothing is logged.
 
             Logging destinations and further information about the loggers
             is defined through the _logger module
@@ -925,8 +922,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         **Experimental:** This property is experimental for this release.
         """  # noqa: E501
-        # TODO completely redo this to clean up whole operation recorder
-        # controller.
+
         if self.operation_recorder:
             return self.operation_recorder.enabled
         else:
@@ -934,7 +930,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     @operation_recorder_enabled.setter
     def operation_recorder_enabled(self, value):
-        # TODO: No. Need to call recorder.
+        """
+        Set the operation_recorder to the value defined by the
+        input attribute value.
+
+        **Experimental:** This property setter is experimental for this
+                          release.
+        """
         if self.operation_recorder:
             if value:
                 self.operation_recorder.enable()

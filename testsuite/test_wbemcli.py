@@ -33,10 +33,6 @@ from subprocess import Popen, PIPE
 from collections import namedtuple
 import six
 
-# Location of any test scripts for testing wbemcli.py
-SCRIPT_DIR = os.path.dirname(__file__)
-
-
 # Output fragments to test against for each test defined
 # Each item is a list of fragmants that are tested against the cmd execution
 # result
@@ -66,37 +62,51 @@ DEF_NAMESPACE_OUTPUT = ['default-namespace=root/cimv2']
 
 
 # pylint: disable=invalid-name
-tst_p = namedtuple('tst_p', ['test_name', 'cmd', 'expected_stdout',
-                             'expected_exitcode',
-                             'expected_stderr'])
+tst_def = namedtuple('tst_def', ['test_name',
+                                 'cmd',
+                                 'expected_stdout',
+                                 'expected_exitcode',
+                                 'expected_stderr'])
 
 # Each test in the following list is a namedtuple containing test definition.
 TESTS_MAP = [  # pylint: disable=invalid-name
-    tst_p('help', '--help', HELP_OUTPUT, 0, None),
-    tst_p('namespace', '-n rex/fred', NAMESPACE_OUTPUT, 0, None),
-    tst_p('timeout', '-t 10', TIMEOUT_OUTPUT, 0, None),
-    tst_p('log_dest_file1', '-l ops=file', LOG_DEST_FILE_OUTPUT, 0, None),
-    tst_p('log_dest_file1a', '-l ops=file:min', LOG_DEST_FILE_OUTPUT, 0, None),
-    tst_p('log_dest_file1b', '-l ops=file:min:debug', LOG_DEST_FILE_OUTPUT, 0,
-          None),
-    tst_p('log_dest_file2', '-l http=file', LOG_DEST_FILE_OUTPUT, 0, None),
-    tst_p('log_dest_file3', '-l all=file', LOG_DEST_FILE_OUTPUT, 0, None),
-    tst_p('log_dest_file4', '-l ops=stderr:all:debug', LOG_DEST_FILE_OUTPUT, 0,
-          LOG_STDERR_OUTPUT),
-    tst_p('log_dest_file5', '-l all=stderr:all:debug', LOG_DEST_FILE_OUTPUT, 0,
-          LOG_STDERR_OUTPUT),
-    tst_p('def_namespace', '', DEF_NAMESPACE_OUTPUT, 0, None),
-    tst_p('error_param', '--log', None, 2,
-          ['argument -l/--log: expected one argument']), ]
+    tst_def('help', '--help', HELP_OUTPUT, 0, None),
+    tst_def('namespace', '-n rex/fred', NAMESPACE_OUTPUT, 0, None),
+    tst_def('timeout', '-t 10', TIMEOUT_OUTPUT, 0, None),
+    tst_def('log_dest_file1', '-l ops=file', LOG_DEST_FILE_OUTPUT, 0, None),
+    tst_def('log_dest_file1a', '-l ops=file:min', LOG_DEST_FILE_OUTPUT, 0,
+            None),
+    tst_def('log_dest_file1b', '-l ops=file:min:debug', LOG_DEST_FILE_OUTPUT, 0,
+            None),
+    tst_def('log_dest_file2', '-l http=file', LOG_DEST_FILE_OUTPUT, 0, None),
+    tst_def('log_dest_file3', '-l all=file', LOG_DEST_FILE_OUTPUT, 0, None),
+    tst_def('log_dest_file4', '-l ops=stderr:all:debug', LOG_DEST_FILE_OUTPUT,
+            0, LOG_STDERR_OUTPUT),
+    tst_def('log_dest_file5', '-l all=stderr:all:debug', LOG_DEST_FILE_OUTPUT,
+            0, LOG_STDERR_OUTPUT),
+    tst_def('def_namespace', '', DEF_NAMESPACE_OUTPUT, 0, None),
+    tst_def('error_param', '--log', None, 2,
+            ['argument -l/--log: expected one argument']), ]
+
+
+def create_abs_path(filename):
+    """
+    create an absolute path name for filename in the same directory as this
+    python code.  Also, replace any backslashes with forward slashes to
+    account for executing this in windows.
+    """
+    script_dir = os.path.dirname(__file__)
+    script_file = os.path.join(script_dir, filename)
+    return script_file.replace('\\', '/')
 
 
 class ContainerMeta(type):
-    """Class to define the function to generate unittest methods."""
+    """Metaclass to define the function to generate unittest methods."""
 
     def __new__(mcs, name, bases, dict):  # pylint: disable=redefined-builtin
         def generate_test(test_name, test_params):
             """
-            Defines the test method (test) that we generate for each test
+            Defines the test method (test_<name>) that we generate for each test
             and returns the method.
 
             The cmd_str defines ONLY the arguments and options part of the
@@ -107,22 +117,30 @@ class ContainerMeta(type):
             Each test builds the pywbemcli command executes it and tests the
             results
             """
+
             def test(self):  # pylint: disable=missing-docstring
                 """ The test method that is generated."""
-                term_script_file = os.path.join(SCRIPT_DIR,
-                                                'wbemcli_quit_script.py')
-                term_script_param = '-s %s' % term_script_file
+                # create the path for the quit script
+                quit_script_file = create_abs_path('wbemcli_quit_script.py')
 
-                command = ('wbemcli http://blah %s %s' %
-                           (test_params.cmd, term_script_param))
+                script_name = 'wbemcli.bat' if os.name == 'nt' else 'wbemcli'
+
+                cmd = ('%s http://blah %s -s %s' % (script_name,
+                                                    test_params.cmd,
+                                                    quit_script_file))
                 # Disable python warnings for wbemcli call
                 # because some imports generate deprecated warnings
                 # that appear in std_err when nothing expected
-                command = 'export PYTHONWARNINGS="" && %s' % command
-                proc = Popen(command, shell=True, stdout=PIPE, stderr=PIPE)
+
+                bash_cmd = 'bash -c "set -o pipefail;  PYTHONPATH=. ' \
+                           'PYTHONWARNINGS= %s"' % cmd
+
+                proc = Popen(bash_cmd, shell=True, stdout=PIPE, stderr=PIPE)
                 std_out, std_err = proc.communicate()
-                # print('std_out:\n%s\nstd_err:\n%s' % (std_out, std_err))
                 exitcode = proc.returncode
+                # print('bash_cmd: %s\nexitcode: %s std_out:\n%s\nstd_err:'
+                #      '\n%s' % (bash_cmd, exitcode, std_out, std_err))
+
                 if six.PY3:
                     std_out = std_out.decode()
                     std_err = std_err.decode()
@@ -133,10 +151,17 @@ class ContainerMeta(type):
                                       'Expected %s: cmd="%s": '
                                       'exitcode %s: stderr=%s' %
                                       (test_name, test_params.expected_exitcode,
-                                       command,
+                                       cmd,
                                        exitcode, std_err)))
 
-                if not test_params.expected_stderr:
+                if test_params.expected_stderr is None:
+                    if re.search('ImportWarning', std_err) is None:
+                        self.assertEqual(std_err, "",
+                                         'Test %s stderr not empty as '
+                                         'expected. Returned %s'
+                                         % (test_name, std_err))
+                    else:
+                        print('Ignored junk in stderr %s' % std_err)
                     self.assertEqual(std_err, "",
                                      'Test %s stderr not empty as expected. '
                                      'Returned %s'
@@ -162,7 +187,7 @@ class ContainerMeta(type):
                                      % (test_name, std_out))
             return test
 
-        # generate tests from TESTS_MAP
+        # generate the individual from TESTS_MAP list
         for test_params in TESTS_MAP:
             test_name = "test_%s" % test_params.test_name
             dict[test_name] = generate_test(test_name, test_params)
@@ -171,7 +196,7 @@ class ContainerMeta(type):
 
 @six.add_metaclass(ContainerMeta)
 class TestsContainer(unittest.TestCase):
-    """Container class for all tests"""
+    """Container class for all tests created from ContainerMeta"""
     __metaclass__ = ContainerMeta
 
 
