@@ -22,23 +22,42 @@ Unit test logging functionality in _logging.py
 
 from __future__ import absolute_import, print_function
 
+import os
+
 # Allows use of lots of single character variable names.
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
 # pylint: disable=too-many-lines,no-self-use
 import unittest
 
-from pywbem import PywbemLoggers
+from pywbem import PywbemLoggers, LOG_OPS_CALLS_NAME
+from pywbem._logging import get_logger
 
 VERBOSE = False
+
+# Location of any test scripts for testing wbemcli.py
+SCRIPT_DIR = os.path.dirname(__file__)
+
+LOG_FILE_NAME = 'test_logging.log'
+TEST_OUTPUT_LOG = '%s/%s' % (SCRIPT_DIR, LOG_FILE_NAME)
 
 
 class BaseLoggingTests(unittest.TestCase):
     """Base class for logging unit tests"""
     def setUp(self):
         PywbemLoggers.reset()
+        if os.path.isfile(TEST_OUTPUT_LOG):
+            os.remove(TEST_OUTPUT_LOG)
 
     def tearDown(self):
-        pass
+        if os.path.isfile(TEST_OUTPUT_LOG):
+            os.remove(TEST_OUTPUT_LOG)
+
+    def loadLogfile(self):
+        if os.path.isfile(TEST_OUTPUT_LOG):
+            with open(TEST_OUTPUT_LOG) as f:
+                lines = f.read().splitlines()
+                return lines
+        return None
 
 
 class TestLogParse(BaseLoggingTests):
@@ -127,14 +146,14 @@ class TestLoggerCreate(BaseLoggingTests):
         Create a simple logger
         """
         PywbemLoggers.create_logger('ops', 'file',
-                                    log_filename='loggingtest.log',
+                                    log_filename=TEST_OUTPUT_LOG,
                                     log_level='debug',
                                     log_detail_level='min')
 
         if VERBOSE:
             print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
         expected_result = \
-            {'pywbem.ops': ('min', 'debug', 'file', 'loggingtest.log')}
+            {'pywbem.ops': ('min', 'debug', 'file', TEST_OUTPUT_LOG)}
 
         self.assertEqual(PywbemLoggers.loggers, expected_result)
 
@@ -143,14 +162,14 @@ class TestLoggerCreate(BaseLoggingTests):
         Create a simple logger from detailed parameter input
         """
         PywbemLoggers.create_logger('http', 'file',
-                                    log_filename='loggingtest.log',
+                                    log_filename=TEST_OUTPUT_LOG,
                                     log_level='debug',
                                     log_detail_level='min')
 
         if VERBOSE:
             print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
         expected_result = \
-            {'pywbem.http': ('min', 'debug', 'file', 'loggingtest.log')}
+            {'pywbem.http': ('min', 'debug', 'file', TEST_OUTPUT_LOG)}
 
         self.assertEqual(PywbemLoggers.loggers, expected_result)
 
@@ -284,10 +303,10 @@ class TestLoggersCreate(BaseLoggingTests):
         test_input = 'ops=file:min:debug,http=file:min:debug'
 
         expected_result = \
-            {'pywbem.http': ('min', 'debug', 'file', 'pywbem.log'),
-             'pywbem.ops': ('min', 'debug', 'file', 'pywbem.log')}
+            {'pywbem.http': ('min', 'debug', 'file', TEST_OUTPUT_LOG),
+             'pywbem.ops': ('min', 'debug', 'file', TEST_OUTPUT_LOG)}
         self.valid_loggers_create(test_input, expected_result,
-                                  log_filename='pywbem.log')
+                                  log_filename=TEST_OUTPUT_LOG)
 
     def test_create_loggers1(self):
         """
@@ -295,11 +314,11 @@ class TestLoggersCreate(BaseLoggingTests):
         """
         test_input = 'all=file:min:debug'
         expected_result = \
-            {'pywbem.http': ('min', 'debug', 'file', 'logfile.log'),
-             'pywbem.ops': ('min', 'debug', 'file', 'logfile.log')}
+            {'pywbem.http': ('min', 'debug', 'file', TEST_OUTPUT_LOG),
+             'pywbem.ops': ('min', 'debug', 'file', TEST_OUTPUT_LOG)}
 
         self.valid_loggers_create(test_input, expected_result,
-                                  log_filename='logfile.log')
+                                  log_filename=TEST_OUTPUT_LOG)
 
     def test_create_loggers2(self):
         """
@@ -311,6 +330,37 @@ class TestLoggersCreate(BaseLoggingTests):
              'pywbem.ops': ('all', 'info', 'stderr', None)}
 
         self.valid_loggers_create(test_input, expected_result)
+
+
+class TestLoggerOutput(BaseLoggingTests):
+    """Test output from logging"""
+
+    def test_log_output(self):
+        test_input = 'all=file:all:debug'
+
+        print('log filename %s' % TEST_OUTPUT_LOG)
+        PywbemLoggers.create_loggers(test_input, TEST_OUTPUT_LOG)
+
+        my_logger = get_logger(LOG_OPS_CALLS_NAME)
+
+        self.assertNotEqual(my_logger, None,
+                            'Valid named logger %s expected.'
+                            % LOG_OPS_CALLS_NAME)
+        for name in PywbemLoggers.loggers:
+            print(PywbemLoggers.get_logger_info(name))
+        max_size = 1000
+        result = 'This is fake return data'
+        return_name = 'Return'
+        if max_size and len(repr(result)) > max_size:
+            result = '{:.{sz}s}...' \
+                .format(repr(result), sz=max_size)
+        else:
+            result = '%s' % repr(result)
+
+        my_logger.debug('%s: %s: %s', return_name, 'FakeMethodName', result)
+
+        logged_data = self.loadLogfile()
+        print('Log file contents:\n%s' % logged_data)
 
 
 if __name__ == '__main__':
