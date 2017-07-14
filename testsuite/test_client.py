@@ -30,6 +30,7 @@ import unittest
 import re
 import traceback
 from collections import namedtuple
+from io import open as _open
 import six
 import yaml
 import httpretty
@@ -505,7 +506,7 @@ class ClientTest(unittest.TestCase):
 
         print("Process YAML file: %s" % os.path.basename(fn))
 
-        with open(fn) as fp:
+        with _open(fn, encoding="utf-8") as fp:
             testcases = yaml.load(fp)
             for testcase in testcases:
                 self.runtestcase(testcase)

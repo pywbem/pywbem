@@ -14,6 +14,7 @@ from datetime import timedelta, datetime, tzinfo
 import unittest
 import os
 import os.path
+from io import open as _open
 import yaml
 import six
 
@@ -40,7 +41,7 @@ class BaseRecorderTests(unittest.TestCase):
         if os.path.isfile(self.testyamlfile):
             os.remove(self.testyamlfile)
 
-        self.yamlfp = TestClientRecorder.open_file(self.testyamlfile, 'a')
+        self.yamlfp = _TestClientRecorder.open_file(self.testyamlfile, 'a')
 
         self.test_recorder = _TestClientRecorder(self.yamlfp)
         self.test_recorder.reset()
@@ -60,7 +61,7 @@ class BaseRecorderTests(unittest.TestCase):
     def loadYamlFile(self):
         """Load any created yaml file"""
         self.closeYamlFile()
-        with open(self.testyamlfile) as fp:
+        with _open(self.testyamlfile, encoding="utf-8") as fp:
             testyaml = yaml.load(fp)
         return testyaml
 
@@ -71,7 +72,7 @@ class BaseRecorderTests(unittest.TestCase):
         """
         class TZ(tzinfo):
             """'Simplistic tsinfo subclass for this test"""
-            def utcoffset(self, dt):
+            def utcoffset(self, dt):  # pylint: disable=unused-argument
                 return timedelta(minutes=-399)
 
         dt = datetime(year=2016, month=3, day=31, hour=19, minute=30,

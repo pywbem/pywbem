@@ -290,6 +290,7 @@ class BaseOperationRecorder(object):
             recorder = TestClientRecorder(open_file('recorder.log')
         """
         if six.PY2:
+            # Open with codecs to define text mode
             return codecs.open(filename, mode=file_mode, encoding='utf-8')
 
         return open(filename, file_mode, encoding='utf8')
