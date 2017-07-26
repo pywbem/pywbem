@@ -2402,9 +2402,10 @@ class CIMProperty(_CIMComparisonMixin):
                 msg = 'Property %r has a CIMInstanceName value with ' \
                       'classname=%r' % (name, value.classname)
                 # Note that value.classname is the creation class of the
-                # referenced instance (actual ref value or default value of class
-                # decl), while reference_class is the declared class.
-                # Therefore, we cannot check them for specifying the same class.
+                # referenced instance, while reference_class is the declared
+                # class. Therefore, we cannot default reference_class to
+                # value.classname and instead just use reference_class
+                # as specified.
                 type_ = _intended_value('reference', None, type_, 'type', msg)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)

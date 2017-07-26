@@ -103,7 +103,6 @@
                 pRef2:
                     pywbem_object: CIMProperty
                     name: pRef2
-                    reference_class: PyWBEM_End2
                     value:
                         pywbem_object: CIMInstanceName
                         classname: PyWBEM_End2
@@ -220,7 +219,7 @@
                             </INSTANCENAME>
                           </VALUE.REFERENCE>
                         </PROPERTY.REFERENCE>
-                        <PROPERTY.REFERENCE NAME="pRef2" REFERENCECLASS="PyWBEM_End2">
+                        <PROPERTY.REFERENCE NAME="pRef2">
                           <VALUE.REFERENCE>
                             <INSTANCENAME CLASSNAME="PyWBEM_End2">
                               <KEYBINDING NAME="ID">
