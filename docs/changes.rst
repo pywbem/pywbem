@@ -44,18 +44,18 @@ Enhancements
   request/reply size information on server requests and replies. The detailed
   information is available in WBEMConnection for operation execution time
   and request/reply content size at the end of each operation.
-  
+
   When statistics gathering is enabled, the information is placed into the
   Statistics class where min/max/avg information is available for each
   operation type.
   Statistics gathering is enabled if the WBEMConnection attribute
   `enable_stats` is `True`.
-  
+
   Statistics can be externalized through the snapshot method of the Statistics
   class.
 
   The functionality is marked experimental for the current release
-  
+
   See issue #761
 
 * Extended development.rst to define how to update dmtf mof and move the\
@@ -157,6 +157,13 @@ Bug fixes
 * Correct issue in wbemcli.bat where it was not returning error level.
   see issue #727
   
+* Fixed the issue that ``CIMProperty.__init__()`` had an incorrect check for
+  the ``reference_class`` parameter, where it checked the class name specified
+  in that parameter to be the creation class of the referenced instance.
+  According to DSP0201, reference_class is the declared class, which can be
+  a superclass of the  creation class of the referenced instance.
+  This is related to issue #598.
+
 
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
@@ -175,6 +182,12 @@ Build, test, quality
 
 * Added a testcase for `CIMInstanceName` to compare two objects with
   different ordering of their key bindings for equality. See issue #686.
+
+* In ``parse_property_reference()`` in ``tupleparse.py``, a number of
+  attributes of the new ``CIMProperty`` object had been updated after having
+  created it. That bypasses the checks in its ``__init__()`` method.
+  This has been improved to pass these values in when creating the object.
+
 
 Documentation
 ^^^^^^^^^^^^^
