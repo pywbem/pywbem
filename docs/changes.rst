@@ -95,6 +95,9 @@ Enhancements
   It also passes server_response_time to statistics so that max/min/avg are
   maintained.  See issue # 687.
 
+* Add test for wbemcli script that will execute the script and test
+  results. issue #569
+
 
 Bug fixes
 ^^^^^^^^^
