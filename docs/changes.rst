@@ -156,6 +156,12 @@ Bug fixes
 
 * Correct issue in wbemcli.bat where it was not returning error level.
   see issue #727
+
+* Correct issue where dependency pip installs end up with old version
+  of coverage package. This old version generates unwanted deprecation
+  messages that are fixed after version 4.03. This requires a change to
+  the travis.yaml file directly to force a reinstall of coverage.
+  See issue #734
   
 
 Build, test, quality
