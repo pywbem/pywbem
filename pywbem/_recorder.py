@@ -37,6 +37,9 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
 from .cim_types import CIMInt, CIMFloat, CIMDateTime
 from .exceptions import CIMError
 
+if six.PY2:
+    import codecs  # pylint: disable=wrong-import-order
+
 __all__ = ['BaseOperationRecorder', 'TestClientRecorder',
            'OpArgs', 'OpResult', 'HttpRequest', 'HttpResponse']
 
@@ -267,6 +270,31 @@ class BaseOperationRecorder(object):
         """Indicate whether the recorder is enabled."""
         return self._enabled
 
+    @staticmethod
+    def open_file(filename, file_mode='w'):
+        """
+        A static convience function that performs the open of the recorder file
+        correctly for different versions of python.  This covers the
+        issue where the file should be opened in text mode but that is
+        done differently in pythong 2 and python 3
+
+        Parameters:
+          filename: (:term: `string`):
+            Name of the file where the recorder output will be written
+          file_mode: (:term: `string`):
+            Optional file mode.  The default is 'w' which overwrites any
+            existing file.  if 'a' is used, the data is appended to any
+            existing file.
+
+          Example:
+            recorder = TestClientRecorder(open_file('recorder.log')
+        """
+        if six.PY2:
+            # Open with codecs to define text mode
+            return codecs.open(filename, mode=file_mode, encoding='utf-8')
+
+        return open(filename, file_mode, encoding='utf8')
+
     def reset(self, pull_op=None):
         """Reset all the attributes in the class. This also allows setting
         the pull_op attribute that defines whether the operation is to be
@@ -420,7 +448,15 @@ class TestClientRecorder(BaseOperationRecorder):
         Parameters:
 
         fp (file):
-          An open file that each test case will be written to.
+          An open file that each test case will be written to.  This file
+          should have been opened in text mode.
+
+          Since there are differences between python 2 and 3 in opening
+          files in text mode, the static method
+          open__file(filename) can be used to open the file.
+
+        Example:
+          recorder = TestClientRecorder(open_file('recorder.log')
         """
         super(TestClientRecorder, self).__init__()
         self._fp = fp
