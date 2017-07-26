@@ -154,6 +154,8 @@ Bug fixes
   method to force creation of the recorder output as a text file.
   See issue # 700
 
+* Correct issue in wbemcli.bat where it was not returning error level.
+  see issue #727
   
 
 Build, test, quality
