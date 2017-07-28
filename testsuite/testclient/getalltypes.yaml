@@ -94,6 +94,7 @@
                 pRef1:
                     pywbem_object: CIMProperty
                     name: pRef1
+                    reference_class: PyWBEM_End1
                     value:
                         pywbem_object: CIMInstanceName
                         classname: PyWBEM_End1
@@ -102,6 +103,7 @@
                 pRef2:
                     pywbem_object: CIMProperty
                     name: pRef2
+                    reference_class: PyWBEM_End2
                     value:
                         pywbem_object: CIMInstanceName
                         classname: PyWBEM_End2
