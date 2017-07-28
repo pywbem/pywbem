@@ -61,60 +61,42 @@ Installation
 ------------
 
 Pywbem is a pure Python package that can be installed from PyPi or from
-its `repository`_ by the usual means for installing Python packages.
+its `Git repository`_ by the usual means for installing Python packages.
 
-.. _repository: https://github.com/pywbem/pywbem
+.. _Git repository: https://github.com/pywbem/pywbem
 
 Some of the Python packages used by pywbem have dependencies on operating
-system packages. As of pywbem v0.8, the setup script has support for installing
-prerequisite operating system packages via a new ``install_os`` command for the
-setup script. Alternatively, you can establish these prerequisites yourself.
-For details, see `Prerequisite operating system packages`_.
+system packages. These operating system packages must be installed before the
+pywbem Python package can be installed. For details, see
+`Prerequisite operating system packages`_.
 
-The following examples show different ways to install pywbem. They all ensure
-that prerequisite Python packages are installed as needed:
+Pywbem also has dependencies on other Python packages. These Python packages
+will be automatically installed when installing pywbem using any of the
+approaches shown below:
 
-1. Install the latest released version, assuming the OS-level prerequisites are
-   already established::
+* Install the latest released version of pywbem (assuming the OS-level
+  prerequisites are already established):
 
-       $ pip install pywbem
+  .. code-block:: bash
 
-2. Install the latest released version and also install (or display) any
-   OS-level prerequisites::
+      $ pip install pywbem
 
-       $ pip download --no-deps --no-binary :all: pywbem
-       $ tar -xzf pywbem-*.tar.gz
+* Install the latest development version of pywbem (assuming the OS-level
+  prerequisites are already established):
 
-   or, when using ``pip`` versions before 8.0.0, you have to know the pywbem
-   version to download::
+  .. code-block:: bash
 
-       $ curl -L https://github.com/pywbem/pywbem/archive/v0.9.0.tar.gz |tar -xz
-
-   Followed in both cases by these commands::
-
-       $ cd pywbem-*
-       $ python setup.py install_os install
-
-3. Install a particular branch from the Git repository::
-
-       $ pip install git+https://github.com/pywbem/pywbem.git@<branch-name>
+      $ pip install git+https://github.com/pywbem/pywbem.git@master
 
 These examples install pywbem and its prerequisite Python packages into the
 currently active Python environment. By default, the system Python environment
 is active. This is probably the right choice if you just want to use the
-scripts that come with pywbem. In that case, you need to prepend the
-installation commands shown above (i.e. `pip` and `python setup.py`) with
-`sudo`, and your Linux userid needs to be authorized accordingly.
+scripts that come with pywbem. In that case, you need to use `sudo` with the
+commands shown above, and your Linux userid needs to be authorized accordingly.
 If your intention is to write code against the pywbem APIs, installation into
 a `virtual Python environment`_ is recommended).
 
 .. _virtual Python environment: http://docs.python-guide.org/en/latest/dev/virtualenvs/
-
-The second example installs the OS-level prerequisites always into the system,
-regardless of whether or not you have a virtual Python environment active.
-The setup script uses `sudo` under the covers. This means that you don't need
-to take care about that and can use `sudo` to control whether you install
-the Python packages into a virtual or system Python environment.
 
 The command syntax above is shown for Linux, but works in similar ways on
 Windows and OS-X.
@@ -122,8 +104,11 @@ Windows and OS-X.
 In case of trouble with the installation, see the :ref:`Troubleshooting`
 section.
 
-You can verify that pywbem and its dependent packages are installed correctly
-by importing the package into Python::
+You can verify that pywbem, its dependent Python packages and its dependent
+OS-level packages are installed correctly by importing the package into
+Python (using the Python environment you installed pywbem to):
+
+.. code-block:: bash
 
     $ python -c "import pywbem; print('ok')"
     ok
@@ -134,32 +119,92 @@ by importing the package into Python::
 Prerequisite operating system packages
 --------------------------------------
 
-Prerequisite operating system packages can be installed by the pywbem setup
-script using a new command ``install_os``::
+Some of the Python packages used by pywbem have dependencies on operating
+system packages. These operating system packages must be installed before the
+pywbem Python package can be installed. This section describes how that can be
+done, and documents these packages.
 
-    $ python setup.py install_os
+* For pywbem 0.11 and higher: Use ``pywbem_os_setup.sh``
 
-For a number of well-known Linux distributions, the setup script will install
-the packages using the respective installer program (e.g. ``yum`` on RHEL). For
-other Linux distributions and for non-Linux operating systems, the setup script
-will display the package names that would be needed on RHEL, leaving it to the
-user to translate them accordingly.
+  In this approach, a standalone shell script that installs the OS-level
+  prerequisites is downloaded and executed.
 
-When installing such packages on Linux, the setup script uses the ``sudo``
-command, so your userid needs to be authorized accordingly.
+  * The shell script needs the Python ``distro`` package installed in the
+    current Python environment. If your current Python environment is a virtual
+    Python environment, the shell script will install the ``distro`` package
+    automatically.
 
-This command also downloads and builds ``swig`` and installs its build
-prerequisites if it cannot be installed as an operating system package in the
-required version.
+    If your current Python environment is the system Python, the shell script
+    does not automatically install that Python package, in order not to modify
+    the system Python, and leaves that to you (including the decision whether
+    to switch to a virtual Python environment and then to simply re-run the
+    shell script).
 
-The second example in the previous section shows how to use the new setup
-command ``install_os``. It is really simple to be used and avoids the manual
-procedure for establishing the operating system packages as described in the
-remainder of this section.
+  * Download the :download:`pywbem_os_setup.sh </pywbem_os_setup.sh>` shell
+    script for the pywbem version you want to install, and execute that
+    script:
+
+    .. code-block:: bash
+
+        $ ./pywbem_os_setup.sh
+
+    The script uses ``sudo`` under the covers, so your userid needs to have
+    sudo permission.
+
+* For pywbem 0.8 to 0.10: Use ``setup.py install_os``
+
+  In this approach, the pywbem source archive is downloaded and its
+  ``setup.py`` script is executed with a pywbem-specific command
+  ``install_os``.
+
+  This approach still should work for pywbem versions higher than 0.10, but
+  should not be used anymore.
+
+  The examples are shown for pywbem version 0.8.1.
+
+  * Download the pywbem source archive from Pypi using Pip:
+
+    .. code-block:: bash
+
+        $ pip download --no-deps --no-binary :all: pywbem==0.8.1
+
+    The ability to download packages was introduced in Pip 8.0. When using an
+    older Pip version, you can download the pywbem source archive from its Git
+    repository:
+
+    .. code-block:: bash
+
+        $ curl -o pywbem-0.8.1.tar.gz -L https://github.com/pywbem/pywbem/blob/master/dist/pywbem-0.8/pywbem-0.8.1.tar.gz
+
+    Of course, you can also download it manually from Pypi. Note that only the
+    source archive (``*.tar.gz``) has the capability we use here; the binary
+    archive (``*.whl``) does not have that capability.
+
+  * Extract the pywbem source archive and run the ``install_os`` command of
+    ``setup.py``:
+
+    .. code-block:: bash
+
+        $ tar -xzf pywbem-0.8.1.tar.gz
+        $ cd pywbem-0.8.1
+        $ python setup.py install_os
+
+    The ``install_os`` command uses ``sudo`` under the covers, so your userid
+    needs to have sudo permission.
+
+    The M2Crypto Python package used by pywbem needs Swig to be installed.
+    The ``install_os`` command attempts to install Swig. If no suitable version
+    of Swig can be installed, the source archive of Swig is downloaded, and
+    its build prerequisites are installed, and Swig is built. This is only
+    necessary on very old operating systems.
+
+* For pywbem before 0.8: Install the required packages manually, based upon
+  the table shown below.
 
 For manual installation of the prerequisite operating system packages, or for
 including pywbem in distributions, the following table lists the packages and
-their version requirements for a number of Linux distributions:
+their version requirements for the Linux distributions that are supported
+by the scripts:
 
 +----------------------------+---------------------+--------------------------+
 | Distributions              | Package name        | Version requirements     |

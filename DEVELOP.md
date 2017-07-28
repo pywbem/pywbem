@@ -61,11 +61,21 @@ version (e.g. `0.9.0`) that is to be released.
     This can be done by comparing with the commit log of the master branch
     back to the previous version.
 
-6.  Edit the README file to remove any release planning info for the current
-    release and to add some preliminary release planning info for the next
-    release:
+6.  Edit the README file:
 
     - `vi README.md`
+
+    To make the following changes:
+
+    * Set the pywbem version near the top of the file to the version that is
+      being released:
+
+      `.. |pywbem-version| replace:: M.N.U`
+
+    * Remove any release planning info for the current release, if present.
+
+    * Optional: Add some preliminary release planning info for the next
+      release.
 
 7.  Finalize the package versions in the following files by changing the
     development version `M.N.U.dev0` to the final version `M.N.U`:
@@ -129,7 +139,7 @@ version (e.g. `0.9.0`) that is to be released.
     - Merge the Pull Request on GitHub (no review is needed)
     - Delete the Pull Request on GitHub
 
-    Note: This cannot be done before the CI runs succeed. 
+    Note: This cannot be done before the CI runs succeed.
 
 17. Checkout the `master` branch and update it from upstream:
 
