@@ -101,7 +101,12 @@ Enhancements
 * **Experimental:** Add logging to record information passing between the pywbem
   client and WBEM servers both the WBEMConnection methods that drive information
   interchange and the http requests and responses.  In includes a new module
-  (_logging.py) that provides configuration of logging.  See issue #691
+  (_logging.py) that provides configuration of logging.
+  Extend WBEMConnection with options so that the user
+  can chose to log None/either/both a)Calls and returns from the
+  WBEMConnection CIM operation calls, b)http request/responses. The logging
+  can be to either stderr or file and the user can chose to log the complete
+  requests or responses or subsets (log_detail level). See issue #691.
 
 * Clarify documentation on wbem operation recorder in client.rst. see
   issue #741

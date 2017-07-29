@@ -17,12 +17,16 @@ import os.path
 from io import open as _open
 import yaml
 import six
+from testfixtures import LogCapture, log_capture, StringComparison
 
 from pywbem import CIMInstanceName, CIMInstance, MinutesFromUTC, \
     Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
-    Sint32, Sint64, Real32, Real64, CIMProperty, CIMDateTime
+    Sint32, Sint64, Real32, Real64, CIMProperty, CIMDateTime, CIMError
 # Renamed the following import to not have py.test pick it up as a test class:
 from pywbem import TestClientRecorder as _TestClientRecorder
+from pywbem import LogOperationRecorder as _LogOperationRecorder
+from pywbem import PywbemLoggers
+
 # used to build result tuple for test
 from pywbem.cim_operations import pull_path_result_tuple
 
@@ -32,38 +36,13 @@ from pywbem.cim_operations import pull_path_result_tuple
 TEST_YAML_FILE = 'test_recorder.yaml'
 SCRIPT_DIR = os.path.dirname(__file__)
 
+VERBOSE = False
+
 
 class BaseRecorderTests(unittest.TestCase):
-    """Base class for recorder unit tests"""
-    def setUp(self):
-        """ Setup recorder instance including defining output file"""
-        self.testyamlfile = os.path.join(SCRIPT_DIR, TEST_YAML_FILE)
-        if os.path.isfile(self.testyamlfile):
-            os.remove(self.testyamlfile)
-
-        self.yamlfp = _TestClientRecorder.open_file(self.testyamlfile, 'a')
-
-        self.test_recorder = _TestClientRecorder(self.yamlfp)
-        self.test_recorder.reset()
-        self.test_recorder.enable()
-
-    def tearDown(self):
-        """Close the test_client YAML file."""
-        if self.yamlfp is not None:
-            self.yamlfp.close()
-
-    def closeYamlFile(self):
-        """Close the yaml file if it is open"""
-        if self.yamlfp is not None:
-            self.yamlfp.close()
-            self.yamlfp = None
-
-    def loadYamlFile(self):
-        """Load any created yaml file"""
-        self.closeYamlFile()
-        with _open(self.testyamlfile, encoding="utf-8") as fp:
-            testyaml = yaml.load(fp)
-        return testyaml
+    """Base class for recorder unit tests. Implements method
+       for creating instance
+    """
 
     def create_ciminstance(self):
         """
@@ -114,7 +93,43 @@ class BaseRecorderTests(unittest.TestCase):
         return obj_name
 
 
-class ToYaml(BaseRecorderTests):
+class ClientRecorderTests(BaseRecorderTests):
+    """
+    Common base for all tests on the TestClientRecorder. Defines specific common
+    methods including setUp and tearDown for the TestClientRecorder.
+    """
+    def setUp(self):
+        """ Setup recorder instance including defining output file"""
+        self.testyamlfile = os.path.join(SCRIPT_DIR, TEST_YAML_FILE)
+        if os.path.isfile(self.testyamlfile):
+            os.remove(self.testyamlfile)
+
+        self.yamlfp = _TestClientRecorder.open_file(self.testyamlfile, 'a')
+
+        self.test_recorder = _TestClientRecorder(self.yamlfp)
+        self.test_recorder.reset()
+        self.test_recorder.enable()
+
+    def tearDown(self):
+        """Close the test_client YAML file."""
+        if self.yamlfp is not None:
+            self.yamlfp.close()
+
+    def closeYamlFile(self):
+        """Close the yaml file if it is open"""
+        if self.yamlfp is not None:
+            self.yamlfp.close()
+            self.yamlfp = None
+
+    def loadYamlFile(self):
+        """Load any created yaml file"""
+        self.closeYamlFile()
+        with _open(self.testyamlfile, encoding="utf-8") as fp:
+            testyaml = yaml.load(fp)
+        return testyaml
+
+
+class ToYaml(ClientRecorderTests):
     """Test the toyaml function with multiple data input"""
     def test_inst_to_yaml_simple(self):
         """Test Simple instancename toyaml conversion"""
@@ -252,7 +267,7 @@ class ToYaml(BaseRecorderTests):
         self.assertEqual(test_yaml['context'], list(context))
 
 
-class StageTests(BaseRecorderTests):
+class StageTests(ClientRecorderTests):
     """
     Test staging for different cim_operations.  This defines fixed
     parameters for the before and after staging, stages (which creates
@@ -463,6 +478,237 @@ class StageTests(BaseRecorderTests):
         self.assertEqual(pull_result['paths'], [])
         self.assertEqual(pull_result['eos'], True)
         self.assertEqual(pull_result['context'], None)
+
+
+class BaseLogOperationRecorderTests(BaseRecorderTests):
+    """
+    Test the LogOperationRecorder functions. Creates log entries and
+    uses testfixture to validate results
+    """
+
+    def setUp(self):
+        """ Setup recorder instance including defining output file"""
+
+        PywbemLoggers.create_logger('ops', 'file',
+                                    log_filename='TEST_OUTPUT_LOG',
+                                    log_detail_level='min')
+
+    def recorder_setup(self, max_log_entry_size=None):
+        """Setup the recorder for a defined max output size"""
+        self.test_recorder = _LogOperationRecorder(max_log_entry_size)
+
+        # Set a conn id into the connection. Saves testing the connection
+        # log for each test.
+        # pylint: disable=protected-access
+        self.test_recorder._conn_id = 'test_id'
+        self.test_recorder.reset()
+        self.test_recorder.enable()
+
+    def tearDown(self):
+        """Remove LogCapture."""
+        LogCapture.uninstall_all()
+
+
+class LogOperationRecorderTests(BaseLogOperationRecorderTests):
+    """
+    Test staging for different cim_operations.  This defines fixed
+    parameters for the before and after staging, stages (which creates
+    a yaml file), and then inspects that file to determine if valid
+    yaml was created
+    """
+    @log_capture()
+    def test_create_connection(self, l):
+        self.test_recorder = _LogOperationRecorder()
+
+        self.test_recorder.reset()
+        self.test_recorder.enable()
+        self.test_recorder.stage_wbem_connection('http://blah',
+                                                 'test_conn_id')
+        if VERBOSE:
+            print(l)
+        l.check(("pywbem.ops", "DEBUG",
+                 "Connection: url=http://blah, id=test_conn_id "))
+
+    @log_capture()
+    def test_create_connection2(self, l):
+        self.test_recorder = _LogOperationRecorder()
+
+        self.test_recorder.reset()
+        self.test_recorder.enable()
+        x509_dict = {"cert_file": 'Certfile.x'}
+        x509_dict.update({'key_file': 'keyfile.x'})
+        self.test_recorder.stage_wbem_connection('http://blah',
+                                                 'test_conn_id',
+                                                 default_namespace='root/blah',
+                                                 creds=('username', 'password'),
+                                                 x509=x509_dict,
+                                                 no_verification=True,
+                                                 timeout=10,
+                                                 use_pull_operaitons=True,
+                                                 enable_stats=True,
+                                                 elable_log=True)
+
+        if VERBOSE:
+            print(l)
+        l.check(("pywbem.ops", "DEBUG",
+                 "Connection: url=http://blah, id=test_conn_id elable_log=True,"
+                 " default_namespace='root/blah', no_verification=True, "
+                 "x509={'cert_file': 'Certfile.x', 'key_file': 'keyfile.x'}, "
+                 "use_pull_operaitons=True, timeout=10, enable_stats=True, "
+                 "creds=('username', '******')"))
+
+    @log_capture()
+    def test_getinstance_args(self, l):
+        """
+        Emulates call to getInstance to test parameter processing.
+        Currently creates the pywbem_request component.
+        """
+        InstanceName = self.create_ciminstancename()
+
+        self.recorder_setup(10)
+
+        self.test_recorder.stage_pywbem_args(
+            method='GetInstance',
+            InstanceName=InstanceName,
+            LocalOnly=True,
+            IncludeQualifiers=True,
+            IncludeClassOrigin=True,
+            PropertyList=['propertyblah'])
+
+        if VERBOSE:
+            print(l)
+
+        l.check(("pywbem.ops", "DEBUG",
+                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "IncludeQualifiers=True, PropertyList=['propertyblah'], "
+                 "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
+                 "keybindings=NocaseDict({'Chicken': 'Ham', 'Beans': 42}),"
+                 " namespace=u'root/cimv2', host=u'woot.com'), "
+                 "LocalOnly=True)"))
+
+    @log_capture()
+    def test_getinstance_result(self, l):
+        """Test the ops result log for get instance"""
+
+        InstanceName = self.create_ciminstancename()
+
+        self.recorder_setup(10)
+
+        self.test_recorder.stage_pywbem_args(
+            method='GetInstance',
+            InstanceName=InstanceName,
+            LocalOnly=True,
+            IncludeQualifiers=True,
+            IncludeClassOrigin=True,
+            PropertyList=['propertyblah'])
+        instance = self.create_ciminstance()
+        exc = None
+        self.test_recorder.stage_pywbem_result(instance, exc)
+
+        if VERBOSE:
+            print(l)
+
+        l.check(("pywbem.ops", "DEBUG",
+                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "IncludeQualifiers=True, PropertyList=['propertyblah'], "
+                 "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
+                 "keybindings=NocaseDict({'Chicken': 'Ham', 'Beans': 42}),"
+                 " namespace=u'root/cimv2', host=u'woot.com'), "
+                 "LocalOnly=True)"),
+                ("pywbem.ops", "DEBUG",
+                 "Return: GetInstance:test_id(CIMInstanc...)"))
+
+    @log_capture()
+    def test_getinstance_exception(self, l):
+        """Test the ops result log for get instance"""
+
+        InstanceName = self.create_ciminstancename()
+
+        self.recorder_setup(10)
+
+        self.test_recorder.stage_pywbem_args(
+            method='GetInstance',
+            InstanceName=InstanceName,
+            LocalOnly=True,
+            IncludeQualifiers=True,
+            IncludeClassOrigin=True,
+            PropertyList=['propertyblah'])
+        instance = None
+        exc = CIMError(6, "This is a fake CIMError")
+        self.test_recorder.stage_pywbem_result(instance, exc)
+
+        if VERBOSE:
+            print(l)
+
+        l.check(("pywbem.ops", "DEBUG",
+                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "IncludeQualifiers=True, PropertyList=['propertyblah'], "
+                 "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
+                 "keybindings=NocaseDict({'Chicken': 'Ham', 'Beans': 42}),"
+                 " namespace=u'root/cimv2', host=u'woot.com'), "
+                 "LocalOnly=True)"),
+                ("pywbem.ops", "DEBUG",
+                 "Exception: GetInstance:test_id(CIMError(6...)"))
+
+    @log_capture()
+    def test_getinstance_exception2(self, l):
+        """Test the ops result log for get instance"""
+
+        InstanceName = self.create_ciminstancename()
+
+        self.recorder_setup()
+
+        self.test_recorder.stage_pywbem_args(
+            method='GetInstance',
+            InstanceName=InstanceName)
+        instance = None
+        exc = CIMError(6, "This is a fake CIMError")
+        self.test_recorder.stage_pywbem_result(instance, exc)
+
+        if VERBOSE:
+            print(l)
+
+        l.check(("pywbem.ops", "DEBUG",
+                 "Request: GetInstance:test_id(InstanceName=CIMInstanceName("
+                 "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
+                 "'Ham', 'Beans': 42}), namespace=u'root/cimv2', "
+                 "host=u'woot.com'))"),
+                ("pywbem.ops", "DEBUG",
+                 "Exception: GetInstance:test_id("
+                 "CIMError(6, 'This is a fake CIMError'))"))
+
+    @log_capture()
+    def test_getinstance_result_all(self, l):
+        """Test the ops result log for get instance"""
+
+        InstanceName = self.create_ciminstancename()
+
+        self.recorder_setup()
+
+        self.test_recorder.stage_pywbem_args(
+            method='GetInstance',
+            InstanceName=InstanceName,
+            LocalOnly=True,
+            IncludeQualifiers=True,
+            IncludeClassOrigin=True,
+            PropertyList=['propertyblah'])
+        instance = self.create_ciminstance()
+        exc = None
+        self.test_recorder.stage_pywbem_result(instance, exc)
+
+        if VERBOSE:
+            print(l)
+
+        l.check(("pywbem.ops", "DEBUG",
+                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "IncludeQualifiers=True, PropertyList=['propertyblah'], "
+                 "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
+                 "keybindings=NocaseDict({'Chicken': 'Ham', 'Beans': 42}),"
+                 " namespace=u'root/cimv2', host=u'woot.com'), "
+                 "LocalOnly=True)"),
+                ("pywbem.ops", "DEBUG",
+                 StringComparison(r"Return: GetInstance:test_id\("
+                                  "CIMInstance\(classname=u'CIM_Foo'")))
 
 
 if __name__ == '__main__':

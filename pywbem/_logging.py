@@ -419,4 +419,5 @@ def get_logger(logger_name):
         log_prefix, log_comp = logger_name.split('.')
         # create PywbemLogger with default values
         PywbemLoggers.create_logger(log_comp)
+    print('get_logger dict %s' % PywbemLoggers)
     return logging.getLogger(logger_name)
