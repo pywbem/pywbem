@@ -27,8 +27,9 @@ The following commands are provided:
 mof_compiler
 ------------
 
-The ``mof_compiler`` command is a MOF compiler. It compiles MOF files, and
-updates the repository of a WBEM server with the result.
+The ``mof_compiler`` command is a command line interface to the pywbem MOF
+compiler. It compiles MOF files, and updates the repository of a WBEM server
+with the result.
 
 The MOF compiler can also be invoked from programs via the
 :ref:`MOF compiler API`.
