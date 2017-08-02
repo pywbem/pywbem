@@ -162,7 +162,13 @@ Bug fixes
   in that parameter to be the creation class of the referenced instance.
   According to DSP0201, reference_class is the declared class, which can be
   a superclass of the  creation class of the referenced instance.
-  This is related to issue #598.
+  This is related to issue #598
+  
+* Correct issue where dependency pip installs end up with old version
+  of coverage package. This old version generates unwanted deprecation
+  messages that are fixed after version 4.03. This requires a change to
+  the travis.yaml file directly to force a reinstall of coverage.
+  See issue #734
 
 
 Build, test, quality
