@@ -156,7 +156,14 @@ Bug fixes
 
 * Correct issue in wbemcli.bat where it was not returning error level.
   see issue #727
-
+  
+* Fixed the issue that ``CIMProperty.__init__()`` had an incorrect check for
+  the ``reference_class`` parameter, where it checked the class name specified
+  in that parameter to be the creation class of the referenced instance.
+  According to DSP0201, reference_class is the declared class, which can be
+  a superclass of the  creation class of the referenced instance.
+  This is related to issue #598
+  
 * Correct issue where dependency pip installs end up with old version
   of coverage package. This old version generates unwanted deprecation
   messages that are fixed after version 4.03. This requires a change to
@@ -181,6 +188,12 @@ Build, test, quality
 
 * Added a testcase for `CIMInstanceName` to compare two objects with
   different ordering of their key bindings for equality. See issue #686.
+
+* In ``parse_property_reference()`` in ``tupleparse.py``, a number of
+  attributes of the new ``CIMProperty`` object had been updated after having
+  created it. That bypasses the checks in its ``__init__()`` method.
+  This has been improved to pass these values in when creating the object.
+
 
 Documentation
 ^^^^^^^^^^^^^

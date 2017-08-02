@@ -2055,9 +2055,15 @@ class CIMProperty(_CIMComparisonMixin):
         This variable will never be `None`.
 
       reference_class (:term:`unicode string`):
-        The name of the referenced class, for reference properties.
+        The name of the referenced class as declared in the class defining
+        the reference property.
 
-        `None`, for non-reference properties.
+        `None`, for non-reference properties, or for reference properties
+        if it was not set.
+
+        Note that in CIM instances returned from a WBEM server, DSP0201
+        recommends this attribute not to be set. For CIM classes returned from
+        a WBEM server, DSP0201 requires this attribute to be set.
 
       embedded_object (:term:`unicode string`):
         A string value indicating the kind of embedded object represented
@@ -2182,11 +2188,15 @@ class CIMProperty(_CIMComparisonMixin):
             parameter, and if that is `None` it defaults to `False` (scalar).
 
           reference_class (:term:`string`):
-            The name of the referenced class, for reference properties.
+            The name of the referenced class as declared in the class defining
+            the reference property.
 
             `None` means that the parameter is unspecified, causing the
-            corresponding attribute to be inferred. An exception is
-            raised if it cannot be inferred.
+            corresponding attribute to also be `None`.
+
+            Note: Prior to pywbem v0.11.0, the corresponding attribute was
+            inferred from the creation class name of a referenced instance.
+            This was incorrect and has been fixed in v0.11.0.
 
           qualifiers (:class:`py:dict` or `NocaseDict`_):
             Qualifier values for the property declaration.
@@ -2391,9 +2401,11 @@ class CIMProperty(_CIMComparisonMixin):
             elif isinstance(value, CIMInstanceName):
                 msg = 'Property %r has a CIMInstanceName value with ' \
                       'classname=%r' % (name, value.classname)
-                reference_class = _intended_value(
-                    value.classname, None, reference_class, 'reference_class',
-                    msg)
+                # Note that value.classname is the creation class of the
+                # referenced instance, while reference_class is the declared
+                # class. Therefore, we cannot default reference_class to
+                # value.classname and instead just use reference_class
+                # as specified.
                 type_ = _intended_value('reference', None, type_, 'type', msg)
                 embedded_object = _intended_value(
                     None, None, embedded_object, 'embedded_object', msg)
