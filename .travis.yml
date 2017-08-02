@@ -24,6 +24,11 @@ install:
   - pip list
   - make develop
   - pip install python-coveralls
+# Update coverage because the version defined for python-coveralls breaks
+# some of our tests (they specify a specific version) see pr #691 where at
+# least on python 2.6, the test_wbemcli.py code catches a deprecation warning
+# from coverage 4.03 or earlier.
+  - pip install -U coverage
   - pip list
 
 # commands to run builds & tests

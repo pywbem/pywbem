@@ -95,6 +95,14 @@ Enhancements
   It also passes server_response_time to statistics so that max/min/avg are
   maintained.  See issue # 687.
 
+* Implement logging of CIM operations with options so that the user
+  can chose to log None/either/both a)Calls and returns from the
+  WBEMConnection CIM operation calls, b)http request/responses. The logging
+  can be to either stderr or file and the user can chose to log the complete
+  requests or responses or subsets (log_detail level). Implement the
+  command line parameter interface for this logging in wbemcli so that
+  wbemcli can log cim operations and HTTP requests/responses. See issue #691.
+ 
 
 Bug fixes
 ^^^^^^^^^

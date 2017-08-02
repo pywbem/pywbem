@@ -45,6 +45,7 @@ from ._listener import *  # noqa: F403,F401
 from ._recorder import *  # noqa: F403,F401
 from .config import *  # noqa: F403,F401
 from ._statistics import *  # noqa: F403,F401
+from ._logging import *  # noqa: F403,F401
 
 from ._version import __version__  # noqa: F401
 
