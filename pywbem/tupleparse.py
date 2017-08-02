@@ -1166,20 +1166,17 @@ def parse_property_reference(tup_tree):
     else:
         raise ParseError('Too many VALUE.REFERENCE elements.')
 
-    attributes = attrs(tup_tree)
-    pref = CIMProperty(attributes['NAME'], value, type='reference')
-
+    quals = dict()
     for qual in list_of_matching(tup_tree, ['QUALIFIER']):
-        pref.qualifiers[qual.name] = qual
+        quals[qual.name] = qual
 
-    if 'REFERENCECLASS' in attributes:
-        pref.reference_class = attributes['REFERENCECLASS']
+    attributes = attrs(tup_tree)
 
-    if 'CLASSORIGIN' in attributes:
-        pref.class_origin = attributes['CLASSORIGIN']
-
-    if 'PROPAGATED' in attributes:
-        pref.propagated = attributes['PROPAGATED']
+    pref = CIMProperty(attributes['NAME'], value, type='reference',
+                       qualifiers=quals,
+                       reference_class=attributes.get('REFERENCECLASS'),
+                       class_origin=attributes.get('CLASSORIGIN'),
+                       propagated=attributes.get('PROPAGATED'))
 
     return pref
 

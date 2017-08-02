@@ -1,6 +1,5 @@
 - name: OpenReferenceInstancesWithPath1
   description: OpenReferenceInstancesWithPath request with default parameters returns instances
-  ignore_test: See issue 598, the REFERENCECLASS value
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -31,8 +30,8 @@
   pywbem_response:
     pullresult:
         context:
-            - false
             - '500054'
+            - root/cimv2
         eos: False
         instances:
             -
@@ -77,6 +76,7 @@
                 path:
                   pywbem_object: CIMInstanceName
                   classname: PyWBEM_MemberOfPersonCollection
+                  host: sheldon
                   namespace: root/cimv2
                   keybindings:
                     member:
@@ -203,5 +203,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
+# TODO: add error test.
 
 

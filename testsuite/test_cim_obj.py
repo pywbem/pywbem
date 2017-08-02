@@ -1637,31 +1637,27 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         # reference_class argument was required to be provided for references.
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'))
         self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
-                               'reference',
-                               reference_class='CIM_Foo')
+                               'reference')
 
         # This test failed in the old constructor implementation, because the
         # reference_class argument was required to be provided for references.
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference')
         self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
-                               'reference',
-                               reference_class='CIM_Foo')
+                               'reference')
 
         # This test failed in the old constructor implementation, because the
         # reference_class argument was required to be provided for references.
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
                         qualifiers=quals)
         self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
-                               'reference',
-                               reference_class='CIM_Foo', qualifiers=quals)
+                               'reference', qualifiers=quals)
 
         # This test failed in the old constructor implementation, because the
         # reference_class argument was required to be provided for references.
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference',
                         qualifiers=quals)
         self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
-                               'reference',
-                               reference_class='CIM_Foo', qualifiers=quals)
+                               'reference', qualifiers=quals)
 
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
                         reference_class='CIM_Foo')
@@ -2070,8 +2066,7 @@ class CIMPropertyAttrs(unittest.TestCase, CIMObjectMixin):
         # reference_class argument was required to be provided for references.
         v = CIMInstanceName('CIM_Bar')
         obj = CIMProperty('Foo', v)
-        self.assertCIMProperty(obj, 'Foo', v, type_='reference',
-                               reference_class='CIM_Bar')
+        self.assertCIMProperty(obj, 'Foo', v, type_='reference')
 
 
 class CIMPropertyEquality(unittest.TestCase):
