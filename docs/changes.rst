@@ -44,18 +44,18 @@ Enhancements
   request/reply size information on server requests and replies. The detailed
   information is available in WBEMConnection for operation execution time
   and request/reply content size at the end of each operation.
-  
+
   When statistics gathering is enabled, the information is placed into the
   Statistics class where min/max/avg information is available for each
   operation type.
   Statistics gathering is enabled if the WBEMConnection attribute
   `enable_stats` is `True`.
-  
+
   Statistics can be externalized through the snapshot method of the Statistics
   class.
 
   The functionality is marked experimental for the current release
-  
+
   See issue #761
 
 * Extended development.rst to define how to update dmtf mof and move the\
@@ -156,7 +156,13 @@ Bug fixes
 
 * Correct issue in wbemcli.bat where it was not returning error level.
   see issue #727
-  
+
+* Correct issue where dependency pip installs end up with old version
+  of coverage package. This old version generates unwanted deprecation
+  messages that are fixed after version 4.03. This requires a change to
+  the travis.yaml file directly to force a reinstall of coverage.
+  See issue #734
+
 
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
