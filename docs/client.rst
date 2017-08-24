@@ -21,6 +21,8 @@ This chapter has the following sections:
 * :ref:`CIM status codes` - CIM status codes returned by failing WBEM
   operations.
 * :ref:`Exceptions` - Exceptions specific to pywbem that may be raised.
+* :ref:`Statistics` - Statistics classes to gather information on wbem
+  operation performance.
 * :ref:`Security considerations` - Information about authentication types and
   certificates.
 
