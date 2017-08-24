@@ -289,7 +289,7 @@ test: $(test_log_file)
 
 .PHONY: clobber
 clobber: clean
-	rm -f pylint.log  flake8.log epydoc.log test_*.log $(moftab_files) $(dist_files) pywbem/*,cover
+	rm -f pylint.log  flake8.log epydoc.log test_*.log $(moftab_files) $(dist_files) pywbem/*,cover wbemcli.log
 	rm -Rf $(doc_build_dir) .tox $(coverage_html_dir)
 	@echo 'Done: Removed everything to get to a fresh state.'
 	@echo '$@ done.'

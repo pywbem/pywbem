@@ -57,7 +57,10 @@ except ImportError as arg:
 from pywbem import WBEMConnection
 from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
-from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT
+from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT, DEFAULT_LOG_DESTINATION
+
+from pywbem import PywbemLoggers, LOG_DESTINATIONS, LOG_DETAIL_LEVELS, \
+    PYWBEM_LOG_COMPONENTS, DEFAULT_LOG_DETAIL_LEVEL
 from pywbem import __version__
 
 # Connection global variable. Set by remote_connection and use
@@ -66,6 +69,10 @@ CONN = None
 
 # global ARGS contains the argparse arguments dictionary
 ARGS = None
+
+WBEMCLI_LOG_FILE_NAME = 'wbemcli.log'
+
+DEFAULT_LOG_FILENAME = 'pywbem.log'
 
 
 def _remote_connection(server, opts, argparser_):
@@ -113,10 +120,13 @@ def _remote_connection(server, opts, argparser_):
         if opts.key_file is not None:
             x509_dict.update({'key_file': opts.key_file})
 
+    log_info = True if opts.log else False
+
     CONN = WBEMConnection(url, creds, default_namespace=opts.namespace,
                           no_verification=opts.no_verify_cert,
                           x509=x509_dict, ca_certs=opts.ca_certs,
-                          timeout=opts.timeout, enable_stats=opts.enable_stats)
+                          timeout=opts.timeout, enable_stats=opts.enable_stats,
+                          enable_log=log_info)
 
     CONN.debug = True
 
@@ -2791,7 +2801,11 @@ def _get_connection_info():
     if CONN.timeout is not None:
         info += ', timeout=%s' % CONN.timeout
 
-    info += ' stats=%s,' % ('on' if CONN._statistics else 'off')
+    # pylint: disable=protected-access
+    info += ' stats=%s, ' % ('on' if CONN._statistics else 'off')
+
+    # TODO: ks find more complete way to record that we are logging
+    info += 'log=%s, ' % ('on' if CONN.operation_recorder else 'off')
 
     return fill(info, 78, subsequent_indent='    ')
 
@@ -2964,6 +2978,25 @@ Examples:
         action='store_true', default=False,
         help='Enable gathering of statistics on operations.')
     general_arggroup.add_argument(
+        '-l', '--log', dest='log', metavar='log_spec[,logspec]',
+        action='store', default=None,
+        help='R|Log_spec defines characteristics of the various named\n'
+             'loggers. It is the form:\n COMP=[DEST[:DETAIL[:LEVEL]]] where:\n'
+             '   COMP: Logger component name:[{c}].\n'
+             '         (Default={cd})\n'
+             '   DEST: Destination for component:[{d}].\n'
+             '         (Default={dd})\n'
+             '   DETAIL: Detail Level to log: [{dl}].\n'
+             '           (Default={dll})\n'
+             # pylint: disable=bad-continuation
+             .format(c='|'.join(PYWBEM_LOG_COMPONENTS),
+                     cd='all',
+                     d='|'.join(LOG_DESTINATIONS),
+                     dd=DEFAULT_LOG_DESTINATION,
+                     dl='|'.join(LOG_DETAIL_LEVELS),
+                     dll=DEFAULT_LOG_DETAIL_LEVEL))
+
+    general_arggroup.add_argument(
         '-h', '--help', action='help',
         help='Show this help message and exit')
 
@@ -2978,6 +3011,9 @@ Examples:
 
     # Set up a client connection
     CONN = _remote_connection(args.server, args, argparser)
+    if args.log:
+        PywbemLoggers.create_loggers(args.log, DEFAULT_LOG_FILENAME)
+        CONN.add_operation_recorder(LogOperationRecorder())
 
     # Determine file path of history file
     home_dir = '.'
