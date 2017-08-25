@@ -531,11 +531,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
       ... : There are some additional properties documented for this class,
         further down.
 
-      debug (:class:`py:bool`): A boolean indicating whether logging of
-        the last request and last reply is enabled.
+      debug (:class:`py:bool`): A boolean indicating whether saving of
+        the last request and last reply to the WBEMConnection object is enabled.
 
         The initial value of this attribute is `False`.
-        Debug logging can be enabled for future operations by setting this
+        Debug saving can be enabled for future operations by setting this
         attribute to `True`.
 
       last_request (:term:`unicode string`):

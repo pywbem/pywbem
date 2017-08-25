@@ -41,8 +41,7 @@ from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
 
 from pywbem.mof_compiler import MOFCompiler
 
-from pywbem import ClientLogger
-from pywbem._logging import define_operationlogger
+from pywbem._logging import PywbemLoggers
 
 from unittest_extensions import RegexpMixin
 
@@ -118,7 +117,7 @@ class ClientTest(unittest.TestCase):
         if self.enable_stats:
             self.start_time = time.time()
 
-        # set this because python 3 http libs generate many ResourceWarnings
+        # Set this because python 3 http libs generate many ResourceWarnings
         # and unittest enables these warnings.
         if not six.PY2:
             # pylint: disable=undefined-variable
@@ -135,14 +134,12 @@ class ClientTest(unittest.TestCase):
             no_verification=CLI_ARGS['nvc'],
             ca_certs=CLI_ARGS['cacerts'],
             use_pull_operations=use_pull_operations,
-            enable_stats=self.enable_stats)
+            enable_stats=self.enable_stats,
+            enable_log=self.log)
 
         # if log set, enable the logger.
         if self.log:
-            define_operationlogger(log_destination='file',
-                                   filename='run_cimoperations.log',
-                                   log_level='debug')
-            self.conn.operation_recorder = ClientLogger()
+            PywbemLoggers.create_loggers('all=file,all,debug')
 
         # enable saving of xml for display
         self.conn.debug = CLI_ARGS['debug']
@@ -187,6 +184,7 @@ class ClientTest(unittest.TestCase):
             self.log('Reply:\n\n%s\n' % last_reply)
             raise
 
+        # This code displays operation results by calling the method log
         self.log('Operation %s succeeded\n' % fn.__name__)
         last_request = self.conn.last_request or self.conn.last_raw_request
         self.log('Request:\n\n%s\n' % last_request)
@@ -215,6 +213,7 @@ class ClientTest(unittest.TestCase):
 
     def log(self, data_):
         """Display log entry if verbose."""
+        # TODO ks aug 17. This should be integrated into logging
         if self.verbose:
             print('{}'.format(data_))
 
@@ -1608,8 +1607,8 @@ class PullReferencePaths(ClientTest):
             # test the returned paths_pulled
             self.assertTrue(len(paths_pulled) > 0)
             self.assertPathsValid(paths_pulled)
-            for path in paths_pulled:
-                self.assertEqual(path.classname,
+            for path_ in paths_pulled:
+                self.assertEqual(path_.classname,
                                  PYWBEM_MEMBEROFPERSONCOLLECTION)
 
     @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test for all instances')
@@ -2226,7 +2225,7 @@ class CreateInstance(ClientTest):
             if arg == CIM_ERR_NOT_FOUND:
                 pass
 
-    def test_pywbem_AllTypes(self):
+    def test_pywbem_AllTypes(self):  # pylint: disable=invalid-name
         """Test Creation of an instance of PyWBEM_AllTypes."""
         if not self.pywbem_person_class_exists():
             return
@@ -2468,8 +2467,7 @@ class InvokeMethod(ClientTest):
                          Bool=True,
                          Date1=CIMDateTime.now(),
                          Date2=timedelta(60),
-                         Ref=name
-                         )
+                         Ref=name)
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
                 raise
@@ -6588,7 +6586,7 @@ def parse_args(argv_):
         print('    -l                  Do long running tests. If not set,\n'
               '                        skips a number of tests that take a\n'
               '                        long time to run')
-        print('    -log                Log all operations and http to file.')
+        print('    --log               Log all operations and http to file.')
         print('    -hl                 List of individual tests')
 
         print('')
@@ -6618,7 +6616,7 @@ def parse_args(argv_):
     args_['yamlfile'] = None
     args_['long_running'] = None
     args_['stats'] = None
-    args_['log'] = None
+    args_['log'] = False
 
     # options must proceed arguments
     while True:
@@ -6657,7 +6655,8 @@ def parse_args(argv_):
         elif argv[1] == '--yamlfile':
             args_['yamlfile'] = argv[2]
             del argv[1:3]
-        elif argv[1] == '-log':
+        elif argv[1] == '--log':
+            args_['log'] = True
             del argv[1:2]
         else:
             print("Error: Unknown option: %s" % argv[1])
