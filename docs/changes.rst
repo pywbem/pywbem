@@ -187,6 +187,8 @@ Bug fixes
   the travis.yaml file directly to force a reinstall of coverage.
   See issue #734
 
+* Fix minor doc issue in client.rst. See issue #740.
+
 
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
