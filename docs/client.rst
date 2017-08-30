@@ -19,7 +19,8 @@ This chapter has the following sections:
 * :ref:`CIM data types` - Python classes for representing values of CIM data
   types.
 * :ref:`CIM status codes` - CIM status codes returned by failing WBEM
-  operations.
+  operations.  
+* :ref:`Logging` - Logging of WBEM operations.
 * :ref:`Exceptions` - Exceptions specific to pywbem that may be raised.
 * :ref:`Security considerations` - Information about authentication types and
   certificates.
@@ -288,6 +289,14 @@ Statistics
 .. autoclass:: pywbem.OperationStatistic
    :members:
    :special-members: __str__
+
+.. _`Logging`:
+
+Logging
+-------
+
+.. automodule:: pywbem._logging
+   :members:
 
 .. _`Security considerations`:
 

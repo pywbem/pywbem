@@ -58,5 +58,4 @@ ENFORCE_INTEGER_RANGE = True
 #: used as the value for MaxObjectCount.
 #: Note that this does not necessarily optimize the performance of these
 #: operations.
-
 DEFAULT_ITER_MAXOBJECTCOUNT = 1000

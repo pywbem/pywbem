@@ -98,6 +98,11 @@ Enhancements
 * Add test for wbemcli script that will execute the script and test
   results. issue #569
 
+* **Experimental:** Add logging to record information passing between the pywbem
+  client and WBEM servers both the WBEMConnection methods that drive information
+  interchange and the http requests and responses.  In includes a new module
+  (_logging.py) that provides configuration of logging.  See issue #691
+
 
 Bug fixes
 ^^^^^^^^^
