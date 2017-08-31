@@ -834,8 +834,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             logged. If False, Nothing is logged.
 
             Logging destinations and further information about the loggers
-            is defined through the _logger module
-
+            is defined through the _logger module.
+            **Experimental:** - The enable_log parameter is experimental
+            for this release.
         """
 
         # Connection attributes
@@ -904,7 +905,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def operation_recorder(self):
         """
-        TODO
         This is a writeable property; setting this property will cause the
         defined recorder to be activated.
 
@@ -912,6 +912,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This property has been marked deprecated.  The method
         add_operation_recorder should be used to activate an operation
         recorder.
+        **Experimental:** - This method is experimental for this release.
         """
         warnings.warn(
             "Directly setting operation recorder has been deprecated",
@@ -921,8 +922,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @operation_recorder.setter
     def operation_recorder(self, value):
         """
-            Set a the value representing the operation recorder instance
-            into the list of active operation recorders
+        Set a the value representing the operation recorder instance
+        into the list of active operation recorders
+        **Experimental:** This property is experimental for this release.
+
+
         """
         self._operation_recorder = value
         self. add_operation_recorder(value)

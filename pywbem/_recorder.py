@@ -469,13 +469,16 @@ class LogOperationRecorder(BaseOperationRecorder):
             else DEFAULT_MAX_LOG_ENTRY_SIZE
 
         self.opslogger = logging.getLogger(LOG_OPS_CALLS_NAME)
-        opsinfo = PywbemLoggers.get_logger_info(LOG_OPS_CALLS_NAME)
-        self.ops_max_log_entry_size = max_sz if opsinfo[0] == 'min'  \
+        ops_logger_info = PywbemLoggers.get_logger_info(LOG_OPS_CALLS_NAME)
+        opsdetaillevel = ops_logger_info[0] if ops_logger_info else None
+
+        self.ops_max_log_entry_size = max_sz if opsdetaillevel == 'min'  \
             else None
 
         self.httplogger = logging.getLogger(LOG_HTTP_NAME)
-        httpinfo = PywbemLoggers.get_logger_info(LOG_HTTP_NAME)
-        self.http_max_log_entry_size = max_sz if httpinfo[0] == 'min' \
+        http_logger_info = PywbemLoggers.get_logger_info(LOG_HTTP_NAME)
+        httpdetaillevel = http_logger_info[0] if http_logger_info else None
+        self.http_max_log_entry_size = max_sz if httpdetaillevel == 'min' \
             else None
 
     def stage_wbem_connection(self, url, conn_id, **kwargs):

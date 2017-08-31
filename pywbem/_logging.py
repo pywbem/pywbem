@@ -323,8 +323,7 @@ class PywbemLoggers(six.with_metaclass(MetaPywbemLoggers)):
                 logger.setLevel(level)
 
             # save the detail level in the dict that is part of this class.
-            # All members of this tuple are just viewing except detail
-            # that is used by individual loggers
+            # All members of this tuple are just for information.
             cls.loggers[logger_name] = (log_detail_level, log_level,
                                         log_dest, log_filename)
 
@@ -340,7 +339,6 @@ class PywbemLoggers(six.with_metaclass(MetaPywbemLoggers)):
         Returns:
            Tuple with the following information in the tuple:
            (log_detail_level, log_level, log_dest, log_filename)
-
            or 'None' if the logger has not been defined to PywbemLoggers
         """
         return cls.loggers.get(logger_name, None)
