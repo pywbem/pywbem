@@ -181,6 +181,9 @@ Bug fixes
   a superclass of the  creation class of the referenced instance.
   This is related to issue #598
 
+* Modify mof_compiler documentation to indication issues with property
+  names that are compiler keywords. See issue #62.
+  
 * Correct issue where dependency pip installs end up with old version
   of coverage package. This old version generates unwanted deprecation
   messages that are fixed after version 4.03. This requires a change to

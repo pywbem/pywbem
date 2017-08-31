@@ -20,25 +20,37 @@
 #
 
 """
-The language in which CIM classes are specified, is called `MOF` (for Managed
-Object Format). It is defined in :term:`DSP0004`.
+The language in which CIM classes, CIM Instances, etc. are specified, is
+called `MOF` (for Managed Object Format). It is defined in the DMTF document
+:term:`DSP0004`.
+
+MOF compilers take MOF files as input, compile them and use the result
+(CIMClasses, CIMInstances, etc.) to update a target CIM repository. The
+repository may initially be empty, or may contain the result of earlier MOF
+compilations that are used to resolve dependencies the new MOF compilation
+may have.
 
 The pywbem package includes a MOF compiler.
 
-MOF compilers take MOF files as input, compile them and the result is used to
-update a target CIM repository. The repository may initially be empty, or may
-contain the result of earlier MOF compilations that are used to resolve
-dependencies the new MOF compilation may have.
+The MOF compiler in this package will compile MOF files whose syntax complies
+with :term:`DSP0004` with some limitations:
 
-The MOF compiler in this package also has an option to remove CIM elements
-from the repository it has a definition for in the MOF files it processes.
+1. Although there is no formal keyword list of illegal words
+for property/parameter.etc. names , there is a list of mof syntax tokens
+in :term:`DSP0004` section A.3.  Generally these should not be used as property
+names.  The pywbem MOF compiler largely enforces this so that words like
+'indication' are not allowed as property/parameter/etc. names.
+
+The pywbem MOF compiler also has an option to remove CIM elements from a
+repository by using the  compiler rollback. This is used in the MOFCompiler
+script. See :ref:`mof_compiler`.
 
 The MOF compiler API provides for invoking the MOF compiler and for plugging in
 your own CIM repository into the MOF compiler.
 
 This chapter has the following sections:
 
-* :ref:`MOFCompiler` - Describes the :class:`~pywbem.MOFCompiler`
+* :ref:`MOFCompiler Class` - Describes the :class:`~pywbem.MOFCompiler`
   class, which allows invoking the MOF compiler programmatically.
 
 * :ref:`Repository connections` - Describes the

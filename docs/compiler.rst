@@ -6,10 +6,10 @@ MOF compiler API
 
 .. automodule:: pywbem.mof_compiler
 
-.. _`MOFCompiler`:
+.. _`MOFCompiler Class`:
 
-MOFCompiler
-------------
+MOFCompiler Class
+-----------------
 
 .. autoclass:: pywbem.MOFCompiler
    :members:
