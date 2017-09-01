@@ -103,6 +103,9 @@ Enhancements
   interchange and the http requests and responses.  In includes a new module
   (_logging.py) that provides configuration of logging.  See issue #691
 
+* Clarify documentation on wbem operation recorder in client.rst. see
+  issue #741
+
 
 Bug fixes
 ^^^^^^^^^
@@ -170,7 +173,7 @@ Bug fixes
   messages that are fixed after version 4.03. This requires a change to
   the travis.yaml file directly to force a reinstall of coverage.
   See issue #734
-  
+
 * Fixed the issue that ``CIMProperty.__init__()`` had an incorrect check for
   the ``reference_class`` parameter, where it checked the class name specified
   in that parameter to be the creation class of the referenced instance.

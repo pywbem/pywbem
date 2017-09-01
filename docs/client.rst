@@ -13,17 +13,24 @@ This chapter has the following sections:
 * :ref:`WBEM operations` - Class :class:`~pywbem.WBEMConnection` is the main
   class of the WBEM client library API and is used to issue WBEM operations to
   a WBEM server.
+
+  * :ref:`WBEM Operation recording` -  :attr:`~pywbem.WBEMConnection.operation_recorder`
+    is an attribute of :class:`~pywbem.WBEMConnection` that allows recording
+    of WBEM operations
+
 * :ref:`CIM objects` - Python classes for representing CIM objects (instances,
   classes, properties, etc.) that are used by the WBEM operations as input or
   output.
 * :ref:`CIM data types` - Python classes for representing values of CIM data
   types.
 * :ref:`CIM status codes` - CIM status codes returned by failing WBEM
-  operations.  
+  operations.
 * :ref:`Logging` - Logging of WBEM operations.
 * :ref:`Exceptions` - Exceptions specific to pywbem that may be raised.
 * :ref:`Statistics` - Statistics classes to gather information on wbem
   operation performance.
+* :ref:`WBEM Operation recorder` - Python classes that implement the operation
+  recorder functions that are used by :class:`~pywbem.WBEMConnection`.
 * :ref:`Security considerations` - Information about authentication types and
   certificates.
 
@@ -58,8 +65,11 @@ WBEMConnection
 .. #         ModifyClass, CreateClass, DeleteClass, EnumerateQualifiers,
 .. #         GetQualifier, SetQualifier, DeleteQualifier
 
-Operation recording
-^^^^^^^^^^^^^^^^^^^
+
+.. _`WBEM Operation recording`:
+
+WBEM Operation recording
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 The WBEM client library API provides the possibility to record the WBEM
 operations that are executed on a connection. This is disabled by default
@@ -71,42 +81,8 @@ i.e. to an object of a subclass of :class:`~pywbem.BaseOperationRecorder`.
 Typical usage scenarios for operation recorders are the tracing of WBEM
 operations, or the generation of test cases.
 
-Users can write their own operation recorder classes based upon the
-abstract base class :class:`~pywbem.BaseOperationRecorder`.
-
-The WBEM client library API provides the following operation recorder classes:
-
-======================================== =======================================
-Class                                    Purpose
-======================================== =======================================
-:class:`~pywbem.TestClientRecorder`      Generate test cases for the
-                                         `test_client` unit test module.
-======================================== =======================================
-
-
-.. autoclass:: pywbem.BaseOperationRecorder
-   :members:
-   :special-members: __str__, __repr__
-
-.. autoclass:: pywbem.OpArgs
-   :members:
-   :special-members: __repr__
-
-.. autoclass:: pywbem.OpResult
-   :members:
-   :special-members: __repr__
-
-.. autoclass:: pywbem.HttpRequest
-   :members:
-   :special-members: __repr__
-
-.. autoclass:: pywbem.HttpResponse
-   :members:
-   :special-members: __repr__
-
-.. autoclass:: pywbem.TestClientRecorder
-   :members:
-   :special-members: __str__, __repr__
+WBEM Operation recording uses the classes and subclasses defined in
+:ref:`WBEM Operation Recorder`.
 
 .. _`CIM objects`:
 
@@ -292,6 +268,7 @@ Statistics
    :members:
    :special-members: __str__
 
+<<<<<<< HEAD
 .. _`Logging`:
 
 Logging
@@ -299,6 +276,55 @@ Logging
 
 .. automodule:: pywbem._logging
    :members:
+=======
+
+
+.. _`WBEM Operation recorder`:
+
+WBEM Operation recorder
+-----------------------
+
+The WBEM client library API includes the abstract base class :class:`~pywbem.BaseOperationRecorder`
+from which operation recorders can be written that perform specific
+recording tasks
+
+Users can write their own operation recorder classes based upon the
+abstract base class :class:`~pywbem.BaseOperationRecorder`.
+
+The WBEM client library API provides the following operation recorder classes:
+
+======================================== =======================================
+Class                                    Purpose
+======================================== =======================================
+:class:`~pywbem.TestClientRecorder`      Generate test cases for the
+                                         `test_client` unit test module.
+======================================== =======================================
+
+
+.. autoclass:: pywbem.BaseOperationRecorder
+   :members:
+   :special-members: __str__, __repr__
+
+.. autoclass:: pywbem.OpArgs
+   :members:
+   :special-members: __repr__
+
+.. autoclass:: pywbem.OpResult
+   :members:
+   :special-members: __repr__
+
+.. autoclass:: pywbem.HttpRequest
+   :members:
+   :special-members: __repr__
+
+.. autoclass:: pywbem.HttpResponse
+   :members:
+   :special-members: __repr__
+
+.. autoclass:: pywbem.TestClientRecorder
+   :members:
+   :special-members: __str__, __repr__
+>>>>>>> 677b90a... Move documentation on operation recorder
 
 .. _`Security considerations`:
 
