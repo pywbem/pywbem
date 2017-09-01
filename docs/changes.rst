@@ -106,6 +106,17 @@ Enhancements
 * Clarify documentation on wbem operation recorder in client.rst. see
   issue #741
 
+* Added an optional class path to the `CIMClass` class, as a convenience for
+  the user in order so that `CIMClass` objects are self-contained w.r.t. their
+  path. The class path is set in `CIMClass` objects returned by the `GetClass`,
+  `EmumerateClasses`, and the class-level `Associators` and `References`
+  operations. The path is added purely on the client side, based on existing
+  information returned from WBEM server. This change does therefore not affect
+  the interactions with WBEM servers at all.  issue #349.
+
+* Added a ``host`` property to ``WBEMConnection`` which contains the host:port
+  component of the WBEM server's URL.  This helps addressing issue #349.
+
 
 Bug fixes
 ^^^^^^^^^
@@ -183,7 +194,7 @@ Bug fixes
 
 * Modify mof_compiler documentation to indication issues with property
   names that are compiler keywords. See issue #62.
-  
+
 * Correct issue where dependency pip installs end up with old version
   of coverage package. This old version generates unwanted deprecation
   messages that are fixed after version 4.03. This requires a change to

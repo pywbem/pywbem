@@ -1618,7 +1618,7 @@ class CIMClassName(_CIMComparisonMixin):
         which the object is used.
 
         `None` means that the WBEM server is unspecified.
-"""
+    """
 
     def __init__(self, classname, host=None, namespace=None):
         """
@@ -1779,7 +1779,7 @@ class CIMClassName(_CIMComparisonMixin):
 
 class CIMClass(_CIMComparisonMixin):
     """
-    A CIM class.
+    A CIM class, optionally including its class path.
 
     Attributes:
 
@@ -1822,11 +1822,25 @@ class CIMClass(_CIMComparisonMixin):
         * value (:class:`~pywbem.CIMQualifier`): Qualifier value
 
         This variable will never be `None`.
+
+      path (:class:`~pywbem.CIMClassName`):
+        Class path of the class.
+
+        `None` means that the class path is unspecified.
+
+        This attribute has been added in pywbem v0.11.0 as a convenience for
+        the user in order so that :class:`~pywbem.CIMClass` objects can be
+        self-contained w.r.t. their class path. This attribute will be set in
+        in any :class:`~pywbem.CIMClass` objects returned by
+        :class:`~pywbem.WBEMConnection` methods.
+
+        This attribute is set in the pywbem client, based on information
+        in the standard response returned by the WBEM server.
     """
 
     # pylint: disable=too-many-arguments
     def __init__(self, classname, properties=None, methods=None,
-                 superclass=None, qualifiers=None):
+                 superclass=None, qualifiers=None, path=None):
         """
         Parameters:
 
@@ -1863,6 +1877,11 @@ class CIMClass(_CIMComparisonMixin):
             attribute.
 
             If `None`, the class will have no qualifiers.
+
+          path (:class:`~pywbem.CIMClassName`):
+            Class path for the class.
+
+            `None` means that the class path will be unspecified.
         """
 
         self.classname = _ensure_unicode(classname)
@@ -1870,13 +1889,14 @@ class CIMClass(_CIMComparisonMixin):
         self.methods = NocaseDict(methods)
         self.superclass = _ensure_unicode(superclass)
         self.qualifiers = NocaseDict(qualifiers)
+        self.path = path
 
     def _cmp(self, other):
         """
         Comparator function for two :class:`~pywbem.CIMClass` objects.
 
         The comparison is based on the `classname`, `superclass`, `qualifiers`,
-        `properties` and `methods` instance attributes, in descending
+        `properties`, `methods` and `path` instance attributes, in descending
         precedence.
 
         The `classname` and `superclass` attributes are compared
@@ -1891,7 +1911,8 @@ class CIMClass(_CIMComparisonMixin):
                 cmpname(self.superclass, other.superclass) or
                 cmpitem(self.qualifiers, other.qualifiers) or
                 cmpitem(self.properties, other.properties) or
-                cmpitem(self.methods, other.methods))
+                cmpitem(self.methods, other.methods) or
+                cmpitem(self.path, other.path))
 
     def __str__(self):
         """
@@ -1909,9 +1930,11 @@ class CIMClass(_CIMComparisonMixin):
     """
 
         return '%s(classname=%r, superclass=%r, ' \
-               'properties=%r, methods=%r, qualifiers=%r)' % \
+               'properties=%r, methods=%r, qualifiers=%r, ' \
+               'path=%r)' % \
                (self.__class__.__name__, self.classname, self.superclass,
-                self.properties, self.methods, self.qualifiers)
+                self.properties, self.methods, self.qualifiers,
+                self.path)
 
     def copy(self):
         """
@@ -1922,6 +1945,8 @@ class CIMClass(_CIMComparisonMixin):
         result.methods = self.methods.copy()
         result.superclass = self.superclass
         result.qualifiers = self.qualifiers.copy()
+        result.path = (self.path is not None and
+                       [self.path.copy()] or [None])[0]
 
         return result
 
@@ -1932,6 +1957,9 @@ class CIMClass(_CIMComparisonMixin):
         as an instance of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        The :attr:`~pywbem.CIMClass.path` attribute of this object will not be
+        included in the returned CIM-XML representation.
         """
         return cim_xml.CLASS(
             self.classname,
@@ -1946,6 +1974,9 @@ class CIMClass(_CIMComparisonMixin):
         :class:`~pywbem.CIMClass` object, as a :term:`unicode string`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        The :attr:`~pywbem.CIMClass.path` attribute of this object will not be
+        included in the returned CIM-XML representation.
 
         Parameters:
 
@@ -1970,6 +2001,9 @@ class CIMClass(_CIMComparisonMixin):
         Return a :term:`unicode string` that is a MOF fragment with the
         class definition represented by the :class:`~pywbem.CIMClass`
         object.
+
+        The :attr:`~pywbem.CIMClass.path` attribute of this object will not be
+        included in the returned MOF string.
         """
 
         indent = MOF_INDENT

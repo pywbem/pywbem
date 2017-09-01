@@ -25,6 +25,11 @@
       - pywbem_object: CIMClass
         classname: PyWBEM_MemberOfPersonCollection
         superclass: CIM_MemberOfCollection
+        path:
+          pywbem_object: CIMClassName
+          classname: PyWBEM_MemberOfPersonCollection
+          host: sheldon
+          namespace: root/cimv2
         properties:
           member:
             pywbem_object: CIMProperty
