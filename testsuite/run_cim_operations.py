@@ -37,7 +37,8 @@ from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
     WBEMSubscriptionManager, CIMInstance, CIMInstanceName, CIMClass, \
     CIMClassName, CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
     CIMMethod, ValueMapping, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
-    Sint32, Sint64, Real32, Real64, CIMDateTime, TestClientRecorder
+    Sint32, Sint64, Real32, Real64, CIMDateTime, TestClientRecorder, \
+    LogOperationRecorder
 
 from pywbem.mof_compiler import MOFCompiler
 
@@ -134,25 +135,25 @@ class ClientTest(unittest.TestCase):
             no_verification=CLI_ARGS['nvc'],
             ca_certs=CLI_ARGS['cacerts'],
             use_pull_operations=use_pull_operations,
-            enable_stats=self.enable_stats,
-            enable_log=self.log)
+            enable_stats=self.enable_stats)
 
         # if log set, enable the logger.
         if self.log:
             PywbemLoggers.create_loggers('all=file,all,debug')
+            self.conn.add_operation_recorder(LogOperationRecorder())
 
         # enable saving of xml for display
         self.conn.debug = CLI_ARGS['debug']
 
         if self.yamlfile is not None:
             self.yamlfp = TestClientRecorder.open_file(self.yamlfile, 'a')
-            self.conn.operation_recorder = TestClientRecorder(self.yamlfp)
+            self.conn.add_operation_recorder(TestClientRecorder(self.yamlfp))
 
         self.log('Connected {}, ns {}'.format(self.system_url,
                                               CLI_ARGS['namespace']))
 
     def tearDown(self):
-        """Close the test_client YAML file."""
+        """Close the test_client YAML file and display stats."""
 
         if self.enable_stats:
             print('%s: Test time %.2f sec.' % (self.id(),

@@ -68,49 +68,39 @@ class TestLogParse(BaseLoggingTests):
     def test_comp_only(self):
         """Test all string"""
         param = 'all'
-        self.parser_test(param, {'all': (None, None, None)})
+        self.parser_test(param, {'all': (None, None)})
 
     def test_comp_only2(self):
         """Test all= string"""
         param = 'all='
-        self.parser_test(param, {'all': (None, None, None)})
+        self.parser_test(param, {'all': (None, None)})
 
     def test_complete1(self):
-        """Test all=file:min:debug string"""
-        param = 'all=file:min:debug'
-        self.parser_test(param, {'all': ('file', 'min', 'debug')})
+        """Test all=file:min string"""
+        param = 'all=file:min'
+        self.parser_test(param, {'all': ('file', 'min')})
 
     def test_complete2(self):
         """Test all=file:min: string"""
-        param = 'all=file:min:'
-        self.parser_test(param, {'all': ('file', 'min', None)})
+        param = 'all=file:min'
+        self.parser_test(param, {'all': ('file', 'min')})
 
     def test_complete3(self):
         """Test all=file:min string"""
         param = 'all=file:min'
-        self.parser_test(param, {'all': ('file', 'min', None)})
-
-    def test_complete4(self):
-        """Test all=::debug string"""
-        param = 'all=::debug'
-        self.parser_test(param, {'all': (None, None, 'debug')})
-
-    def test_complete5(self):
-        """Test all=::debug string"""
-        param = 'all=:min:'
-        self.parser_test(param, {'all': (None, 'min', None)})
+        self.parser_test(param, {'all': ('file', 'min')})
 
     def test_multiple1(self):
-        """Test ops=file:min,http=file:min:debug string"""
-        param = 'ops=file:min,http=file:min:debug'
-        self.parser_test(param, {'ops': ('file', 'min', None),
-                                 'http': ('file', 'min', 'debug')})
+        """Test ops=file:min,http=file:min string"""
+        param = 'ops=file:min,http=file:min'
+        self.parser_test(param, {'ops': ('file', 'min'),
+                                 'http': ('file', 'min')})
 
     def test_multiple2(self):
-        """Test ops=file:min,http=file:min:debug string"""
+        """Test ops=file:min,http=file:min string"""
         param = 'ops=file:min,http='
-        self.parser_test(param, {'ops': ('file', 'min', None),
-                                 'http': (None, None, None)})
+        self.parser_test(param, {'ops': ('file', 'min'),
+                                 'http': (None, None)})
 
 
 class TestLogParseErrors(BaseLoggingTests):
@@ -125,8 +115,8 @@ class TestLogParseErrors(BaseLoggingTests):
             pass
 
     def test_to_many_params(self):
-        """ test all=file:min:debug:junk string """
-        param = "all=file:min:debug:junk"
+        """ test all=file:min:junk string """
+        param = "all=file:min:junk"
         self.parser_error_test(param)
 
     def test_empty(self):
@@ -142,13 +132,12 @@ class TestLoggerCreate(BaseLoggingTests):
         """
         PywbemLoggers.create_logger('ops', 'file',
                                     log_filename=TEST_OUTPUT_LOG,
-                                    log_level='debug',
                                     log_detail_level='min')
 
         if VERBOSE:
             print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
         expected_result = \
-            {'pywbem.ops': ('min', 'debug', 'file', TEST_OUTPUT_LOG)}
+            {'pywbem.ops': ('min', 'file', TEST_OUTPUT_LOG)}
 
         # test getting from logger variable
         self.assertEqual(PywbemLoggers.loggers, expected_result)
@@ -163,13 +152,12 @@ class TestLoggerCreate(BaseLoggingTests):
         """
         PywbemLoggers.create_logger('http', 'file',
                                     log_filename=TEST_OUTPUT_LOG,
-                                    log_level='debug',
                                     log_detail_level='min')
 
         if VERBOSE:
             print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
         expected_result = \
-            {'pywbem.http': ('min', 'debug', 'file', TEST_OUTPUT_LOG)}
+            {'pywbem.http': ('min', 'file', TEST_OUTPUT_LOG)}
 
         self.assertEqual(PywbemLoggers.loggers, expected_result,
                          'Actual %s, Expected %s' % (PywbemLoggers.loggers,
@@ -180,14 +168,13 @@ class TestLoggerCreate(BaseLoggingTests):
         Create a simple logger from detailed parameter input
         """
         PywbemLoggers.create_logger('http', 'stderr',
-                                    log_level='debug',
                                     log_filename=None,
                                     log_detail_level='min')
 
         if VERBOSE:
             print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
         expected_result = \
-            {'pywbem.http': ('min', 'debug', 'stderr', None)}
+            {'pywbem.http': ('min', 'stderr', None)}
 
         self.assertEqual(PywbemLoggers.loggers, expected_result,
                          'Actual %s, Expected %s' % (PywbemLoggers.loggers,
@@ -198,15 +185,14 @@ class TestLoggerCreate(BaseLoggingTests):
         Create a simple logger from detailed parameter input
         """
         PywbemLoggers.create_logger('all', 'stderr',
-                                    log_level='debug',
                                     log_filename=None,
                                     log_detail_level='min')
 
         if VERBOSE:
             print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
         expected_result = \
-            {'pywbem.http': ('min', 'debug', 'stderr', None),
-             'pywbem.ops': ('min', 'debug', 'stderr', None)}
+            {'pywbem.http': ('min', 'stderr', None),
+             'pywbem.ops': ('min', 'stderr', None)}
 
         self.assertEqual(PywbemLoggers.loggers, expected_result)
 
@@ -220,7 +206,6 @@ class TestLoggerCreateErrors(BaseLoggingTests):
         """
         try:
             PywbemLoggers.create_logger('httpx', 'stderr',
-                                        log_level='debug',
                                         log_filename=None,
                                         log_detail_level='min')
             self.fail('Exception expected')
@@ -234,21 +219,6 @@ class TestLoggerCreateErrors(BaseLoggingTests):
         """
         try:
             PywbemLoggers.create_logger('http', 'stderrblah',
-                                        log_level='debug',
-                                        log_filename=None,
-                                        log_detail_level='min')
-            self.fail('Exception expected')
-        except ValueError as ve:
-            if VERBOSE:
-                print('ve %s' % ve)
-
-    def test_create_single_logger3(self):
-        """
-        Create a simple logger from detailed parameter input
-        """
-        try:
-            PywbemLoggers.create_logger('http', 'stderr',
-                                        log_level='debugblah',
                                         log_filename=None,
                                         log_detail_level='min')
             self.fail('Exception expected')
@@ -262,7 +232,6 @@ class TestLoggerCreateErrors(BaseLoggingTests):
         """
         try:
             PywbemLoggers.create_logger('http', 'stderr',
-                                        log_level='debug',
                                         log_filename=None,
                                         log_detail_level='mi')
             self.fail('Exception expected')
@@ -276,7 +245,6 @@ class TestLoggerCreateErrors(BaseLoggingTests):
         """
         try:
             PywbemLoggers.create_logger('http', 'file',
-                                        log_level='debug',
                                         log_filename=None,
                                         log_detail_level='mi')
             self.fail('Exception expected')
@@ -304,11 +272,11 @@ class TestLoggersCreate(BaseLoggingTests):
         """
         Create a simple logger
         """
-        test_input = 'ops=file:min:debug,http=file:min:debug'
+        test_input = 'ops=file:min,http=file:min'
 
         expected_result = \
-            {'pywbem.http': ('min', 'debug', 'file', TEST_OUTPUT_LOG),
-             'pywbem.ops': ('min', 'debug', 'file', TEST_OUTPUT_LOG)}
+            {'pywbem.http': ('min', 'file', TEST_OUTPUT_LOG),
+             'pywbem.ops': ('min', 'file', TEST_OUTPUT_LOG)}
         self.valid_loggers_create(test_input, expected_result,
                                   log_filename=TEST_OUTPUT_LOG)
 
@@ -316,10 +284,10 @@ class TestLoggersCreate(BaseLoggingTests):
         """
         Create a simple logger
         """
-        test_input = 'all=file:min:debug'
+        test_input = 'all=file:min'
         expected_result = \
-            {'pywbem.http': ('min', 'debug', 'file', TEST_OUTPUT_LOG),
-             'pywbem.ops': ('min', 'debug', 'file', TEST_OUTPUT_LOG)}
+            {'pywbem.http': ('min', 'file', TEST_OUTPUT_LOG),
+             'pywbem.ops': ('min', 'file', TEST_OUTPUT_LOG)}
 
         self.valid_loggers_create(test_input, expected_result,
                                   log_filename=TEST_OUTPUT_LOG)
@@ -328,10 +296,10 @@ class TestLoggersCreate(BaseLoggingTests):
         """
         Create a simple logger
         """
-        test_input = 'all=stderr:all:info'
+        test_input = 'all=stderr:all'
         expected_result = \
-            {'pywbem.http': ('all', 'info', 'stderr', None),
-             'pywbem.ops': ('all', 'info', 'stderr', None)}
+            {'pywbem.http': ('all', 'stderr', None),
+             'pywbem.ops': ('all', 'stderr', None)}
 
         self.valid_loggers_create(test_input, expected_result)
 
@@ -357,7 +325,7 @@ class TestLoggerOutput(BaseLoggingTests):
 
     @log_capture()
     def test_log_output(self, l):  # pylint: disable=blacklisted-name
-        test_input = 'all=file:all:debug'
+        test_input = 'all=file:all'
 
         print('log filename %s' % TEST_OUTPUT_LOG)
         PywbemLoggers.create_loggers(test_input, TEST_OUTPUT_LOG)

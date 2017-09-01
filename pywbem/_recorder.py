@@ -45,8 +45,8 @@ if six.PY2:
 
 
 __all__ = ['BaseOperationRecorder', 'TestClientRecorder',
-           'OpArgs', 'OpResult', 'HttpRequest', 'HttpResponse',
-           'LogOperationRecorder']
+           'LogOperationRecorder',
+           'OpArgs', 'OpResult', 'HttpRequest', 'HttpResponse']
 
 if six.PY2:
     _Longint = long  # noqa: F821
@@ -472,13 +472,13 @@ class LogOperationRecorder(BaseOperationRecorder):
         ops_logger_info = PywbemLoggers.get_logger_info(LOG_OPS_CALLS_NAME)
         opsdetaillevel = ops_logger_info[0] if ops_logger_info else None
 
-        self.ops_max_log_entry_size = max_sz if opsdetaillevel == 'min'  \
+        self.ops_max_log_size = max_sz if opsdetaillevel == 'min'  \
             else None
 
         self.httplogger = logging.getLogger(LOG_HTTP_NAME)
         http_logger_info = PywbemLoggers.get_logger_info(LOG_HTTP_NAME)
         httpdetaillevel = http_logger_info[0] if http_logger_info else None
-        self.http_max_log_entry_size = max_sz if httpdetaillevel == 'min' \
+        self.http_max_log_size = max_sz if httpdetaillevel == 'min' \
             else None
 
     def stage_wbem_connection(self, url, conn_id, **kwargs):
@@ -489,10 +489,6 @@ class LogOperationRecorder(BaseOperationRecorder):
         self._conn_id = conn_id
 
         if self.enabled:
-            # hide password
-            if 'creds' in kwargs and kwargs['creds'][1]:
-                kwargs['creds'] = (kwargs['creds'][0], '******')
-
             kwstr = \
                 ', '.join('{0}={1!r}'.format(k, v) for k, v in kwargs.items())
 
@@ -524,14 +520,15 @@ class LogOperationRecorder(BaseOperationRecorder):
         """
         if self.enabled:
             return_name = 'Return' if ret else 'Exception'
-            result = ret if ret else exc
-
-            if self.ops_max_log_entry_size:
-                result = '{:.{sz}s}...' \
-                    .format(repr(result),
-                            sz=self.ops_max_log_entry_size)
+            if ret:
+                result = '%r' % ret
             else:
-                result = '%r' % result
+                result = '%s(%s)' % (exc.__class__.__name__, exc)
+
+            print('result type %s data %r' % (type(result), result))
+
+            if self.ops_max_log_size and (len(result) > self.ops_max_log_size):
+                result = (result[:self.ops_max_log_size] + '...')
 
             self.opslogger.debug('%s: %s:%s(%s)', return_name,
                                  self._pywbem_method, self._conn_id,
@@ -572,11 +569,10 @@ class LogOperationRecorder(BaseOperationRecorder):
                 header_str = ''
 
             # format the payload possibly with max size limit
-            if self.http_max_log_entry_size:
-                payload = '{:.{sz}}...'.format(payload.decode('utf-8'),
-                                               sz=self.http_max_log_entry_size)
-            else:
-                payload = '%r' % payload.decode('utf-8')
+            payload = '%r' % payload.decode('utf-8')
+            if self.http_max_log_size and \
+                    (len(payload) > self.http_max_log_size):
+                payload = (payload[:self.http_max_log_size] + '...')
 
             self.httplogger.debug('Response: %s:%s:%s %s\n%s\n%s',
                                   self._http_response_status,

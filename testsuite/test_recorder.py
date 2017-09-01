@@ -544,9 +544,8 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                                                  x509=x509_dict,
                                                  no_verification=True,
                                                  timeout=10,
-                                                 use_pull_operaitons=True,
-                                                 enable_stats=True,
-                                                 elable_log=True)
+                                                 use_pull_operations=True,
+                                                 enable_stats=True)
 
         if VERBOSE:
             print(l)
@@ -558,11 +557,11 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         if six.PY2:
             l.check((
                 "pywbem.ops", "DEBUG",
-                "Connection: url=http://blah, id=test_conn_id elable_log=True,"
-                " default_namespace='root/blah', no_verification=True, "
+                "Connection: url=http://blah, id=test_conn_id "
+                "default_namespace='root/blah', no_verification=True, "
                 "x509={'cert_file': 'Certfile.x', 'key_file': 'keyfile.x'},"
-                " use_pull_operaitons=True, timeout=10, enable_stats=True,"
-                " creds=('username', '******')"))
+                " timeout=10, enable_stats=True, creds=('username', "
+                "'password'), use_pull_operations=True"),)
 
     @log_capture()
     def test_getinstance_args(self, l):
@@ -641,7 +640,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
             IncludeClassOrigin=True,
             PropertyList=['propertyblah'])
         instance = None
-        exc = CIMError(6, "This is a fake CIMError")
+        exc = CIMError(6, "Fake CIMError")
         self.test_recorder.stage_pywbem_result(instance, exc)
 
         if VERBOSE:
@@ -670,7 +669,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
             method='GetInstance',
             InstanceName=InstanceName)
         instance = None
-        exc = CIMError(6, "This is a fake CIMError")
+        exc = CIMError(6, "Fake CIMError")
         self.test_recorder.stage_pywbem_result(instance, exc)
 
         if VERBOSE:
@@ -687,7 +686,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                 "host=u'woot.com'))"),
                 ("pywbem.ops", "DEBUG",
                  "Exception: GetInstance:test_id("
-                 "CIMError(6, 'This is a fake CIMError')...)"))
+                 "CIMError(6: Fake CIMError))"))
 
     @log_capture()
     def test_getinstance_result_all(self, l):
