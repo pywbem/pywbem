@@ -22,6 +22,11 @@
       pywbem_object: CIMClass
       classname: CIM_ComputerSystem
       superclass: CIM_System
+      path:
+        pywbem_object: CIMClassName
+        classname: CIM_ComputerSystem
+        host: acme.com:80
+        namespace: root/cimv2
       properties:
         powermanagementcapabilities:
           pywbem_object: CIMProperty

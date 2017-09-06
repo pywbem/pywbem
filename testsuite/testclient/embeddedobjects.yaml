@@ -528,6 +528,11 @@
             pywbem_object: CIMClass
             classname: PyWBEM_Person
             superclass: PyWBEM_Object
+            path:
+              pywbem_object: CIMClassName
+              classname: PyWBEM_Person
+              host: acme.com:80
+              namespace: root/cimv2
             properties:
                 Name:
                     pywbem_object: CIMProperty
