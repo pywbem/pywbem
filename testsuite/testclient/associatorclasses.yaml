@@ -1,5 +1,5 @@
 - name: AssociatorsClass1
-  description: Associator with classname PyWBEM. Returns one instance
+  description: Associator with classname PyWBEM. Returns one class
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -28,6 +28,11 @@
       - pywbem_object: CIMClass
         classname: CIM_Collection
         superclass: CIM_ManagedElement
+        path:
+          pywbem_object: CIMClassName
+          classname: CIM_Collection
+          host: sheldon
+          namespace: root/cimv2
         properties:
           instanceid:
             pywbem_object: CIMProperty

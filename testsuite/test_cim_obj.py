@@ -2426,14 +2426,22 @@ class InitCIMClass(unittest.TestCase):
 
         CIMClass('CIM_Foo', qualifiers={'Key': CIMQualifier('Key', True)})
 
+        # Initialise with path
+
+        path = CIMClassName('CIM_Bar', host='fred', namespace='root/cimv2')
+        CIMClass('CIM_Foo', path=path)
+
 
 class CopyCIMClass(unittest.TestCase):
 
     def test_all(self):
 
+        path = CIMClassName('CIM_Bar', host='fred', namespace='root/cimv2')
+
         c = CIMClass('CIM_Foo',
                      methods={'Delete': CIMMethod('Delete', 'uint32')},
-                     qualifiers={'Key': CIMQualifier('Value', True)})
+                     qualifiers={'Key': CIMQualifier('Value', True)},
+                     path=path)
 
         co = c.copy()
 
@@ -2442,10 +2450,12 @@ class CopyCIMClass(unittest.TestCase):
         co.classname = 'CIM_Bar'
         del co.methods['Delete']
         del co.qualifiers['Key']
+        co.path = None
 
         self.assertEqual(c.classname, 'CIM_Foo')
         self.assertTrue(c.methods['Delete'])
         self.assertTrue(c.qualifiers['Key'])
+        self.assertEqual(c.path, path)
 
 
 class CIMClassAttrs(unittest.TestCase):
@@ -2460,6 +2470,7 @@ class CIMClassAttrs(unittest.TestCase):
         self.assertEqual(obj.qualifiers, {})
         self.assertEqual(obj.methods, {})
         self.assertEqual(obj.qualifiers, {})
+        self.assertEqual(obj.path, None)
 
 
 class CIMClassEquality(unittest.TestCase):
@@ -2480,6 +2491,8 @@ class CIMClassEquality(unittest.TestCase):
 
         qualifiers = {'Key': CIMQualifier('Key', True)}
 
+        path = CIMClassName('CIM_Bar', host='fred', namespace='root/cimv2')
+
         self.assertNotEqual(CIMClass('CIM_Foo'),
                             CIMClass('CIM_Foo', properties=properties))
 
@@ -2488,6 +2501,9 @@ class CIMClassEquality(unittest.TestCase):
 
         self.assertNotEqual(CIMClass('CIM_Foo'),
                             CIMClass('CIM_Foo', qualifiers=qualifiers))
+
+        self.assertNotEqual(CIMClass('CIM_Foo'),
+                            CIMClass('CIM_Foo', path=path))
 
         self.assertEqual(CIMClass('CIM_Foo', superclass='CIM_Bar'),
                          CIMClass('CIM_Foo', superclass='cim_bar'))

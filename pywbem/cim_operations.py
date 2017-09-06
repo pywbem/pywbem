@@ -861,6 +861,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._last_server_response_time = None
 
     @property
+    def host(self):
+        """
+        :term:`unicode string`: The ``{host}[:{port}]``component of the
+        WBEM server's URL, as specified in the ``url`` attribute.
+        """
+        host = self.url.split('://')[-1]
+        return host
+
+    @property
     def stats_enabled(self):
         """
         :class:`py:bool`: Statistics enablement status for this connection.
@@ -6631,7 +6640,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                   information.
 
               * class (:class:`~pywbem.CIMClass`): The representation of the
-                class.
+                class, with its `path` attribute set to the `classpath` tuple
+                item.
 
         Raises:
 
@@ -6680,6 +6690,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 objects = []
             else:
                 objects = [x[2] for x in result[0][2]]
+            if not isinstance(objectname, CIMInstanceName):
+                for classpath, klass in objects:
+                    klass.path = classpath
             return objects
 
         except Exception as exce:
@@ -6957,7 +6970,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                   information.
 
               * class (:class:`~pywbem.CIMClass`): The representation of the
-                class.
+                class, with its `path` attribute set to the `classpath` tuple
+                item.
 
         Raises:
 
@@ -7002,6 +7016,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 objects = []
             else:
                 objects = [x[2] for x in result[0][2]]
+            if not isinstance(objectname, CIMInstanceName):
+                for classpath, klass in objects:
+                    klass.path = classpath
             return objects
 
         except Exception as exce:
@@ -7482,7 +7499,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Returns:
 
             A list of :class:`~pywbem.CIMClass` objects that are
-            representations of the enumerated classes.
+            representations of the enumerated classes, with their `path`
+            attributes set.
 
         Raises:
 
@@ -7527,6 +7545,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 classes = []
             else:
                 classes = result[0][2]
+            for klass in classes:
+                klass.path = CIMClassName(
+                    classname=klass.classname, host=self.host,
+                    namespace=namespace)
             return classes
 
         except Exception as exce:
@@ -7619,7 +7641,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Returns:
 
             A :class:`~pywbem.CIMClass` object that is a representation of the
-            retrieved class.
+            retrieved class, with its `path` attribute set.
 
         Raises:
 
@@ -7662,6 +7684,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
             klass = result[0][2][0]
+            klass.path = CIMClassName(
+                classname=klass.classname, host=self.host, namespace=namespace)
             return klass
         except Exception as exce:
             exc = exce
