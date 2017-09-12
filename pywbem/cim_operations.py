@@ -487,31 +487,30 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     the :attr:`last_raw_request` and :attr:`last_raw_reply` attributes
     of the connection object.
 
-    WBEMConnections can record the results of methods that interact with
-    a WBEM Server using either the :class:`~pywbem.LogOperationRecorder` (uses
-    python logging
-    to create logs for methods and http data) or the
-    :class:`~pywbem.TestClientRecorder`( creates a yaml file of methods and
-    http for tests) which are subclasses of the :class:`~pywbem.Recorder`
-    class.
+    WBEMConnection objects can record the results of
+    :class:`~pywbem.WBEMConnection` methods that interact with
+    a WBEM server using either the :class:`~pywbem.LogOperationRecorder` (uses
+    python logging facitlity to create logs for these methods and http
+    interactions) or the :class:`~pywbem.TestClientRecorder`( creates a yaml
+    file of methods     and http for tests)..
 
-    Before pywbem 0.11.0, there was only a single operation recorder and
+    Before pywbem version 0.11.0, there was only a single operation recorder and
     activating/deactivating the recorder was a simple matter of setting the
     value of an instance of the :class:`~pywbem.TestClientRecorder` into the
     WBEMConnection.operation_recorder attribute.
-    Setting the value of TestClientRecorder into this
+    Setting the value of :class:`TestClientRecorder` into this
     attribute activated and enabled the recorder.  Setting it to None
     deactivated the recorder.
 
-    Effective version 0.11.0, pywbem added a second recorder and the requirement
-    that both recorders operate simultaneously. Thus, if both are enabled and
-    active, operation data can be both recorded to a yaml file and to the log
-    simultaneously.
+    Starting with pywbem version 0.11.0, pywbem added a second recorder and the
+    requirement     that both recorders operate simultaneously. Thus, if both
+    are enabled and active, operation data can be both recorded to a yaml file
+    and to the log simultaneously.
 
-    The method to activate has therefore change. To activate a rcorder you must
+    The method to activate has therefore change. To activate a recorder you must
     use the WBEM connection method:
 
-        `:class:`~pywbem.add_operationsrecorder`
+        `:class:`~pywbem.add_operation_recorder`
 
     The methods of this class may raise the following exceptions:
 
@@ -896,11 +895,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         defined recorder to be activated.
 
         Effective pywbem 0.10.0 operation_recorder became a property rather
-        than an attribute. The getter operation returns TODO
-        The setting operation executes the add_operation_recorder with the
-        value provided. Since there can be multiple simultaneous recorders,
-        setting operation_recorder to None is no longer valid.
+        than an attribute. The getter operation returns the last value added
+        through the operation_recorder setter.
 
+        The setting operation executes
+        :meth:`WBEMConnection.add_operation_recorder` with the
+        value provided. Since there can be multiple simultaneous recorders,
+        setting operation_recorder to `None` is no longer valid.
+
+        Parameters:
+           value ()
+              Instance of a subclass of the Recorder class
+
+        Exceptions:
+            ValueError if value is `None`.
 
         **Experimental:** This property is experimental for this release.
 
@@ -909,26 +917,16 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         recorder.
         """
         warnings.warn(
-            "Directly setting operation recorder has been deprecated",
+            "Directly getting operation recorder has been deprecated. There"
+            "is no way to remove an operation recorder once it has been "
+            "added to a WBEMConnection object",
             DeprecationWarning)
         return self._operation_recorder
 
     @operation_recorder.setter
     def operation_recorder(self, value):
         """
-        Set a the value representing the operation recorder instance
-        into the list of active operation recorders.
-
-        Parameters:
-           value ()
-              Instance of a subclass of the Recorder class
-
-        Exceptions:
-            ValueError if value is None.
-
-        **Experimental:** This property is experimental for this release.
-
-
+        See operation_recorder for documentaiton
         """
         self._operation_recorder = value
         if value is None:
@@ -936,7 +934,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                              ' not allowed.')
         self.add_operation_recorder(value)
         warnings.warn(
-            "Directly setting operation recorder has been deprecated",
+            "Directly setting operation recorder has been deprecated. Use "
+            "the WBEMConnection method 'add_operation_recorder(...)' to "
+            "activate recorders",
             DeprecationWarning)
 
     @property
@@ -970,16 +970,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def operation_recorder_enabled(self):
         """
-        :class:`py:bool`: operation_recorder enablement status for connection.
+        :class:`py:bool`: Operation recorder enablement status for connection.
 
         This is a writeable property; setting this property will change the
-        operation recorders enablement status accordingly for all active
+        operation recorder enablement status accordingly for all active
         operation recorders.
 
-        This property returns None if no operation recorder has been added.
+        This property returns`False` if no operation recorder has been added.
 
         If any recorder in the recorders list has been enabled, it returns
-        true. Otherwise it returns false
+        `True`. Otherwise it returns `False`.
+
+        Parameters:
+          value (:term:`boolean`)
+            Enablement state to which all active recorders are set.
 
         **Experimental:** This property is experimental for this release.
         """  # noqa: E501
@@ -993,14 +997,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @operation_recorder_enabled.setter
     def operation_recorder_enabled(self, value):
         """
-        Set all active operation recorders to the state defined in the
-        value parameter. This enables enabling or disabling all active
-        recorders simultaneously
-
-        Parameters:
-
-          value (:term:`boolean`)
-            Enablement state to which all active recorders are set.
+        # See the property operation_recorder_enabled for documentation.
 
         **Experimental:** This property setter is experimental for this
                           release.
@@ -1114,8 +1111,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def _record_wbemconnection(self, recorder):
         """
-            Create the recorde for recording wbemconnection information
-            and forward to recorder
+            Create the record for recording wbemconnection information
+            and forward to recorder. This allows recording connection
+            information correlatable with the method recording calls using
+            the conn_id parameter which is common to this recorder entry
+            and the method recorders.
         """
         creds = '%s:%s' % (self.creds[0], '******') if self.creds else None
         print('cimoperation creds %s' % creds)
@@ -1138,8 +1138,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         same recorder.
 
         Parameters:
-          operation_recorder(:class:`~pywbem._recorder.TestClientRecorder or :class:`~pywbem._recorder.LogOperationRecorder)
-            Adds the instance of the defined recorder to the list of
+          operation_recorder(:class:`~pywbem.BaseOperationRecorder)
+            This parameter must be an implemented subclass of
+            :class:`~pywbem.BaseOperationRecorder`.
+            Adds the object of the defined recorder class to the list of
             active operation recorders
 
         Exception:
@@ -1147,9 +1149,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """  # noqa: E501
         for recorder in self._operation_recorders:
             # pylint: disable=unidiomatic-typecheck
-            if (type(recorder) == type(operation_recorder)):
-                raise ValueError('You cannot add the same recorder class '
-                                 'multiple times to a single WBEMConnection')
+            if type(recorder) is type(operation_recorder):
+                raise ValueError('Tried to add the same recorder class %s'
+                                 'multiple times to a single WBEMConnection'
+                                 % type(operation_recorder))
         self._operation_recorders.append(operation_recorder)
         self._record_wbemconnection(operation_recorder)
 

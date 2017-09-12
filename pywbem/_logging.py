@@ -15,16 +15,16 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 """
-The pywbem package implements selected logging based on standard Python
-:mod:`py:logging` module.
+The pywbem package implements selected logging based on the Python
+:mod:`py:logging` facility.
 
 Pywbem logging is used as a tool to record information passing between
-the pywbem client and WBEM servers but Nnot as a general recorder for errors,
+the pywbem client and WBEM servers but not as a general recorder for errors,
 state, etc. within pywbem. Pywbem errors are generally passed to the pywbem API
 user as python exceptions rather than being recorded in a log by a pywbem
 logger.
 
-The logging supports multiple :class:`~py:logging.Logger` objects
+Pywbem logging supports multiple :class:`~py:logging.Logger` objects
 (named loggers). Two named loggers are defined in this code and used
 by pywbem:
 
@@ -40,8 +40,8 @@ by pywbem:
 
 To output log records for one of the defined named loggers, either
 :meth:`~pywbem.PywbemLoggers.create_loggers` or the
-:meth:`~pywbem.PywbemLoggers.create_logger` should be used to create the
-configure logger definitions.
+:meth:`~pywbem.PywbemLoggers.create_logger` should be used to define the
+characteristics of the named logger.
 
 * :meth:`~pywbem.PywbemLoggers.create_loggers` creates one or more loggers from
   a string input that defines the component name and characteristics of each
@@ -52,21 +52,21 @@ configure logger definitions.
   parameter inputs that define the component name and characteristics of each
   logger.
 
-These functions create a dictionary in PywbemLoggers class that is used by
-the logging functions in the recorder so trying to create the named loggers
-independently of this code may cause issues.
+These functions save the logger definitions in the PywbemLoggers class that
+is used by the logging functions in the recorder so trying to create the named
+loggers independently of this code may cause issues.
 
-The pywbem loggers are based on 3 parameters (log destination, log detail level,
-and log level) that determine if the logs for the logger name are created,
-how much information is inserted, and where the logs entries are sent.  This
-extends the python logging to include the log_detail parameter which defines
-whether all the information defined or only a limited size is output.  This
-is used with pywbem because the logs on operation and http responses can be
+The pywbem loggers are based on two parameters (log destination, log detail)
+that determine if the logs for the logger name are created,
+how much information is inserted, and the log destination.  This
+extends the python logging facility to include the log_detail parameter which
+defines whether all the information defined or only a limited size is output.
+This is used with pywbem because the logs on operation and http responses can be
 very large.
 
-The code that executes the loggers call the funciton get_logger(..) to get a
+The code that executes the loggers call the function get_logger(..) to get a
 logger from a defined logger name.  If that logger has not yet been defined
-in PywbemLoggers, an entry will be added
+in PywbemLoggers, an entry will be added with the default parameters.
 """
 from __future__ import absolute_import
 
@@ -184,7 +184,7 @@ class PywbemLoggers(six.with_metaclass(MetaPywbemLoggers)):
 
             ``http=file:``        # set http logger to send to file
 
-            ``all=file:all``      # Set all named loggers to
+            ``all=file:all``      # Set all loggers to default log destination
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -219,7 +219,7 @@ class PywbemLoggers(six.with_metaclass(MetaPywbemLoggers)):
           log_filename (:term:`string`):
             Filename to use as logging file if the log destination is `file`.
             Ignored if log destination is not `file`. If value is None and
-            this is a ``file`` log, a ValueError is raised.
+            this is a ``file`` log, ValueError is raised.
 
           log_detail_level (:term:`string`):
             String defining the level of detail for log output. This is
@@ -382,5 +382,4 @@ def get_logger(logger_name):
         log_prefix, log_comp = logger_name.split('.')
         # create PywbemLogger with default values
         PywbemLoggers.create_logger(log_comp)
-    print('get_logger dict %s' % PywbemLoggers)
     return logging.getLogger(logger_name)

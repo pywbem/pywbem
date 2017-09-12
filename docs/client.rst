@@ -14,9 +14,10 @@ This chapter has the following sections:
   class of the WBEM client library API and is used to issue WBEM operations to
   a WBEM server.
 
-  * :ref:`WBEM Operation recording` -  :attr:`~pywbem.WBEMConnection.operation_recorder`
-    is an attribute of :class:`~pywbem.WBEMConnection` that allows recording
-    of WBEM operations
+  * :ref:`WBEM Operation recording` -  Class :class:`~pywbem.WBEMConnection`
+    includes the capability to optionally record the WBEMConnection method
+    calls that communicate with a WBEM server including creating yaml
+    files for test generation and logging using the Python logging facility.
 
 * :ref:`CIM objects` - Python classes for representing CIM objects (instances,
   classes, properties, etc.) that are used by the WBEM operations as input or
@@ -77,63 +78,64 @@ WBEM Operation recording uses the classes and subclasses defined in
 :ref:`WBEM Operation Recorder`.
 
 This is disabled by default and can be enabled by adding recorders to a
-WBEMCOnnection with the method
-:method:`~pywbem.WBEMConnection.add_operation_recorder`.
+WBEMConnection with the method
+:meth:`~pywbem.WBEMConnection.add_operation_recorder`.
 
-Typical usage scenarios for operation recorders are the tracing of WBEM
+Typical usage scenarios for various operation recorders are the tracing of WBEM
 operations, tracing of interactions with a WBEM server, or the generation of
 test cases.
 
-Before pywbem version 0.11.0, there was only a single operation recorder and
-activating/deactivating the recorder was a matter of setting the
-value of an instance of the TestClientRecorder into the WBEMConnection attribute
-:attr:`~pywbem.WBEMConnection.operation_recorder`
-Setting the value of TestClientRecorder into this
-attribute activated and enabled the recorder.  Setting it to None
-deactivated the recorder.
+Please not that the method of activating operation recorders changed starting
+with pywbem 0.11.0 and the addition of a second recorder.  See
+:meth:`~pywbem.WBEMConnection.add_operation_recorder` for more information.
 
-Effective version 0.11.0, pywbem added a second recorder and the requirement
-that both recorders operate simultaneously. If both are active and
-enabled, operation data can be both recorded to a yaml file and to the log
-simultaneously.
+This adds the recorder defined in the method call to a list of active recorders
+in WBEMConnection. All active recorders are called for each WBEMConnection
+method that sends information to the WBEM server.
 
-The method to activate has therefore changed. To activate a recorder you must
-use the WBEM connection method:
+A single recorder can be  be disabled with
+:meth:`~pywbem.BaseOperationRecorder.disable` method and enabled with
+:meth:`~pywbem.BaseOperationRecorder.enable` method.
 
-:method:`~pywbem.WBEMConnection.add_operationsrecorder()`.
+The logger names for the operations and http loggers must be
+defined using  the :class:`~pywbem:`PywbemLoggers` class to
+define usable loggers because the pywbem loggers include logging attributes in
+addition to the standard python logger attributes.  This is done with the
+method :meth:`~pywbem.PywbemLoggers.create_logger` which defines one or more
+loggers from the input parameters.  There is also a convience method
+:meth:`~pywbem.PywbemLoggers.create_loggers` which will define multiple pywbem
+logger definitions from a string definition that could be used with command
+line tools.
 
-This adds the defined recorder to a list of active recorders in WBEMConnection.
-All active recorders are called for each WBEMConnection method that sends
-information to the WBEM server.
-
-The recorder can be  be disabled with the disable() method of
-:method:`~pywbem.BaseOperationRecorder.disable` and enabled with the
-:method:`~pywbem.enable` method.
-
-In addition, the logger names for the operations and http loggers should be
-defined to create usable loggers since the pywbem loggers use attributes in
-addition to the standard python loggers.  This is done with the
-:class:`~pywbem.PywbemLoggers` and specifically with the method
-:method:`~pywbem.PywbemLoggers.create_logger` which creates one or more loggers
-from the input parameters.
+The following example shows defining loggers for both http and operations and
+adding activating the LogOperationRecorder in WBEMConnection.
 
 ::
 
+    # set the python logger facility to output at the DEBUG level
     logger.setLevel(logging.DEBUG)
-    # To add the LogOperationRecorder
-    # Enable the logs using one of the methods in PywbemLoggers
-    PywbemLoggers.create_logger('all')   # enables both loggers
+
+    # Define the parameters of the LogOperationRecorder
+    # using one of the methods in the PywbemLoggers class
+    PywbemLoggers.create_logger('all',
+                                log_dest='file',
+                                log_detail_level='min'
+                                log_filename='test.log')   # define both loggers
+
     # Create the connection and enable the logger
     conn = WBEMConnection(...)
     logging = LogOperationRecorder()
     add_operations_recorder(LogOperationRecorder())
-    # The LogOperationRecorder will not be active.
+    # The LogOperationRecorder is now active and writing logs to stderr.
     # To enable writing logs
 
+The following example activates and enables both recorders:
+
+::
 
     # To add both recorders
     logger.setLevel(logging.DEBUG)
-    PywbemLoggers.create_logger('all')   # enables both loggers
+    PywbemLoggers.create_logger('log')   # define only the log logger
     conn = WBEMConnection(...)
     add_operations_recorder(LogOperationRecorder())
     yamlfp = TestClientRecorder.open_file(self.yamlfile, 'a')
@@ -146,36 +148,42 @@ from the input parameters.
 
     logging.disable()   # disables recording to the log
 
-Activated loggers can computing-wise expensive so it is best not to activate
+Activated loggers can be computing-wise expensive so it is best not to activate
 either logger unless they are to be used for that specific WBEMConnection.
 
-The Recorder enable() and disable() methods simply set flags to bypass creating
-the final recorder output so activating and disabling is still more
-compute-wise expensive than not activating a recorder at all.
+The :meth:`~pywbemRecorder.BaseOperationRecorder.enable` and
+:meth:`~pywbemRecorder.BaseOperationRecorder.disable` methods simply set
+flags to bypass creating the final recorder output so activating and disabling
+is still more compute-wise expensive than not activating a recorder at all.
 
-The :class:`~pywbem.LogOperationRecorder' is a more complete mechanism than the
+The :class:`~pywbem.LogOperationRecorder` is a more complete mechanism than the
 :attr:`~pywbem.WBEMConnection.debug` in that it records
-information on operations and http interactions with a WBEM server to a python
-log file.  This information includes the following:
+information on operations and HTTP interactions with a WBEM server to a
+log destination defined through :class:`~pywbem.PywbemLoggers` using the python
+logging facility.  This information includes the following:
 
-a. If operations logging is set (the log component == 'ops':
+a. If operations logging is set (the log component == 'ops'):
     1. Records the method input parameters
-    2. Records either all or a fixed length of the respons values with an
+    2. Records either all or a fixed length of the response values with an
        optional maximum length attribute because this log entry can become
        enormous if it records complete responses.
     3. Records all exceptions
 
-b. If http logging is set (the log component == 'http':
+b. If http logging is set (the log component == 'http'):
     1. Records the HTTP attributes and data of the request
     2. Records the HTTP attributes and data of the response with an optional
        max length
-c.  If either 'http' or 'ops' log set it records the WBEMConnection attributes
-    and an id so that ops and http logs can be linked back to the WBEM
-    connection.
 
 d. If the log component = 'all' both operations and http are logged.
 
-Logs may be recorded to 'stderr' or a 'file'.
+In addition to the method and HTTP information, the parameters of each
+WBEM connection are also logged including an id so that method logs can be
+linked back to the WBEM connection.
+
+The :class:`~pywbem.PywbemLoggers` allows defining loggers to output the logs
+to either stderr or a file based on the
+:meth:`~pywbem.PywbemLoggers.create_logger`
+log_dest parameter.
 
 .. _`CIM objects`:
 
@@ -369,6 +377,10 @@ Logging
 .. automodule:: pywbem._logging
    :members:
 
+.. autoclass:: pywbem.PywbemLoggers
+   :members:
+   :special-members: __str__
+
 
 .. _`WBEM Operation recorder`:
 
@@ -390,7 +402,8 @@ Class                                    Purpose
 :class:`~pywbem.TestClientRecorder`      Generate test cases for the
                                          `test_client` unit test module.
 
-:class:`~pywbem.LogOperationRecorder`    Generate python logs for
+:class:`~pywbem.LogOperationRecorder`    Generate logs using the python logging
+                                         facitlity for
                                          :class:`~pywbem.WBEMConnection`
                                          methods that communicate with a
                                          WBEM server.
@@ -421,7 +434,7 @@ Class                                    Purpose
    :members:
    :special-members: __str__, __repr__
 
-.. autoclass:: pywbem.LogOperationrecorder
+.. autoclass:: pywbem.LogOperationRecorder
    :members:
    :special-members: __str__, __repr__
 

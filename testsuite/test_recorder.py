@@ -39,7 +39,7 @@ SCRIPT_DIR = os.path.dirname(__file__)
 VERBOSE = False
 
 
-class StringSearch(object):  # pylint; disable=too-few-public-methods
+class StringSearch(object):  # pylint: disable=too-few-public-methods
     """
     This class was modified from the StringComparison class in
     testfixtures.Comparison.py to provide for using the regex search mechanism
@@ -58,7 +58,7 @@ class StringSearch(object):  # pylint; disable=too-few-public-methods
         self.re = compile(regex_source, flags)
 
     def __eq__(self, other):
-        if not isinstance(other, basestring):
+        if not isinstance(other, six.string_types):
             return
         if self.re.search(other):
             return True
