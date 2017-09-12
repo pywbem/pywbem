@@ -525,8 +525,6 @@ class LogOperationRecorder(BaseOperationRecorder):
             else:
                 result = '%s(%s)' % (exc.__class__.__name__, exc)
 
-            print('result type %s data %r' % (type(result), result))
-
             if self.ops_max_log_size and (len(result) > self.ops_max_log_size):
                 result = (result[:self.ops_max_log_size] + '...')
 

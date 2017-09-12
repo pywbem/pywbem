@@ -39,6 +39,44 @@ SCRIPT_DIR = os.path.dirname(__file__)
 VERBOSE = False
 
 
+class StringSearch(object):  # pylint; disable=too-few-public-methods
+    """
+    This class was modified from the StringComparison class in
+    testfixtures.Comparison.py to provide for using the regex search mechanism
+    rather than match
+    An object that can be used in comparisons of expected and actual
+    strings where the string expected matches a pattern rather than a
+    specific concrete string.
+    :param regex_source: A string containing the source for a regular
+                         expression that will be used whenever this
+                         :class:`StringComparison` is compared with
+                         any :class:`basestring` instance.
+    :param flags: Any of the flags defined for a regex compile including
+                         re.M, re.IGNORECASE, etc.
+    """
+    def __init__(self, regex_source, flags=0):
+        self.re = compile(regex_source, flags)
+
+    def __eq__(self, other):
+        if not isinstance(other, basestring):
+            return
+        if self.re.search(other):
+            return True
+        return False
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __repr__(self):
+        return '<S:%s>' % self.re.pattern
+
+    def __lt__(self, other):
+        return self.re.pattern < other
+
+    def __gt__(self, other):
+        return self.re.pattern > other
+
+
 class BaseRecorderTests(unittest.TestCase):
     """Base class for recorder unit tests. Implements method
        for creating instance
@@ -85,7 +123,7 @@ class BaseRecorderTests(unittest.TestCase):
         return inst
 
     def create_ciminstancename(self):
-        kb = {'Chicken': 'Ham', 'Beans': 42}
+        kb = {'Chicken': 'Ham'}
         obj_name = CIMInstanceName('CIM_Foo',
                                    kb,
                                    namespace='root/cimv2',
@@ -141,7 +179,6 @@ class ToYaml(ClientRecorderTests):
         self.assertEqual(test_yaml['namespace'], 'root/cimv2')
         kb = test_yaml['keybindings']
         self.assertEqual(kb['Chicken'], 'Ham')
-        self.assertEqual(kb['Beans'], 42)
 
         # CIMClass, cimqualifierdecl
 
@@ -242,8 +279,7 @@ class ToYaml(ClientRecorderTests):
         # TODO host does not appear in output yaml
         # ##self.assertEqual[test_yaml['host'], 'woot.com']
         kbs = test_yaml['keybindings']
-        self.assertEqual(len(kbs), 2)
-        self.assertEqual(kbs['Beans'], 42)
+        self.assertEqual(len(kbs), 1)
         self.assertEqual(kbs['Chicken'], 'Ham')
 
     def test_openreq_resulttuple(self):
@@ -517,7 +553,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
     yaml was created
     """
     @log_capture()
-    def test_create_connection(self, l):
+    def test_create_connection(self, lc):
         self.test_recorder = _LogOperationRecorder()
 
         self.test_recorder.reset()
@@ -525,12 +561,12 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         self.test_recorder.stage_wbem_connection('http://blah',
                                                  'test_conn_id')
         if VERBOSE:
-            print(l)
-        l.check(("pywbem.ops", "DEBUG",
-                 "Connection: url=http://blah, id=test_conn_id "))
+            print(lc)
+        lc.check(("pywbem.ops", "DEBUG",
+                  "Connection: url=http://blah, id=test_conn_id "))
 
     @log_capture()
-    def test_create_connection2(self, l):
+    def test_create_connection2(self, lc):
         self.test_recorder = _LogOperationRecorder()
 
         self.test_recorder.reset()
@@ -548,14 +584,14 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                                                  enable_stats=True)
 
         if VERBOSE:
-            print(l)
+            print(lc)
         # TODO we have issues in that strings in unicode for namespace and
         # instance name are inconsistent. Further the order of keybindings
         # is different in python 3 and python2. We are therefore running
         # this test in python2 for the moment
         # TODO sort out how to make this work in python 2 and 3
         if six.PY2:
-            l.check((
+            lc.check((
                 "pywbem.ops", "DEBUG",
                 "Connection: url=http://blah, id=test_conn_id "
                 "default_namespace='root/blah', no_verification=True, "
@@ -564,7 +600,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                 "'password'), use_pull_operations=True"),)
 
     @log_capture()
-    def test_getinstance_args(self, l):
+    def test_getinstance_args(self, lc):
         """
         Emulates call to getInstance to test parameter processing.
         Currently creates the pywbem_request component.
@@ -582,18 +618,18 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
             PropertyList=['propertyblah'])
 
         if VERBOSE:
-            print(l)
+            print(lc)
         if six.PY2:
-            l.check(("pywbem.ops", "DEBUG",
-                     "Request: GetInstance:test_id(IncludeClassOrigin=True, "
-                     "IncludeQualifiers=True, PropertyList=['propertyblah'], "
-                     "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
-                     "keybindings=NocaseDict({'Chicken': 'Ham', 'Beans': 42}),"
-                     " namespace=u'root/cimv2', host=u'woot.com'), "
-                     "LocalOnly=True)"))
+            lc.check(("pywbem.ops", "DEBUG",
+                      "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                      "IncludeQualifiers=True, PropertyList=['propertyblah'], "
+                      "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
+                      "keybindings=NocaseDict({'Chicken': 'Ham'}),"
+                      " namespace=u'root/cimv2', host=u'woot.com'), "
+                      "LocalOnly=True)"))
 
     @log_capture()
-    def test_getinstance_result(self, l):
+    def test_getinstance_result(self, lc):
         """Test the ops result log for get instance"""
 
         InstanceName = self.create_ciminstancename()
@@ -612,20 +648,20 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         self.test_recorder.stage_pywbem_result(instance, exc)
 
         if VERBOSE:
-            print(l)
+            print(lc)
         if six.PY2:
-            l.check((
-                "pywbem.ops", "DEBUG",
-                "Request: GetInstance:test_id(IncludeClassOrigin=True, "
-                "IncludeQualifiers=True, PropertyList=['propertyblah'], "
-                "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
-                "keybindings=NocaseDict({'Chicken': 'Ham', 'Beans': 42}), "
-                "namespace=u'root/cimv2', host=u'woot.com'), LocalOnly=True)"),
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "IncludeQualifiers=True, PropertyList=['propertyblah'], "
+                 "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
+                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "namespace=u'root/cimv2', host=u'woot.com'), LocalOnly=True)"),
                 ('pywbem.ops', 'DEBUG',
                  'Return: GetInstance:test_id(CIMInstanc...)'))
 
     @log_capture()
-    def test_getinstance_exception(self, l):
+    def test_getinstance_exception(self, lc):
         """Test the ops result log for get instance"""
 
         InstanceName = self.create_ciminstancename()
@@ -644,21 +680,21 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         self.test_recorder.stage_pywbem_result(instance, exc)
 
         if VERBOSE:
-            print(l)
+            print(lc)
 
         if six.PY2:
-            l.check(("pywbem.ops", "DEBUG",
-                     "Request: GetInstance:test_id(IncludeClassOrigin=True, "
-                     "IncludeQualifiers=True, PropertyList=['propertyblah'], "
-                     "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
-                     "keybindings=NocaseDict({'Chicken': 'Ham', 'Beans': 42}),"
-                     " namespace=u'root/cimv2', host=u'woot.com'), "
-                     "LocalOnly=True)"),
-                    ("pywbem.ops", "DEBUG",
-                     "Exception: GetInstance:test_id(CIMError(6...)"))
+            lc.check(("pywbem.ops", "DEBUG",
+                      "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                      "IncludeQualifiers=True, PropertyList=['propertyblah'], "
+                      "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
+                      "keybindings=NocaseDict({'Chicken': 'Ham'}),"
+                      " namespace=u'root/cimv2', host=u'woot.com'), "
+                      "LocalOnly=True)"),
+                     ("pywbem.ops", "DEBUG",
+                      "Exception: GetInstance:test_id(CIMError(6...)"))
 
     @log_capture()
-    def test_getinstance_exception2(self, log_test):
+    def test_getinstance_exception2(self, lc):
         """Test the ops result log for get instance"""
 
         InstanceName = self.create_ciminstancename()
@@ -673,23 +709,23 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         self.test_recorder.stage_pywbem_result(instance, exc)
 
         if VERBOSE:
-            print(log_test)
+            print(lc)
         # TODO we have issues in that strings in unicode for namespace and
         # instance name are inconsistent. Further the order of keybindings
         # is different in python 3 and python2.
         if six.PY2:
-            log_test.check((
-                "pywbem.ops", "DEBUG",
-                "Request: GetInstance:test_id(InstanceName=CIMInstanceName("
-                "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                "'Ham', 'Beans': 42}), namespace=u'root/cimv2', "
-                "host=u'woot.com'))"),
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Request: GetInstance:test_id(InstanceName=CIMInstanceName("
+                 "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
+                 "'Ham'}), namespace=u'root/cimv2', "
+                 "host=u'woot.com'))"),
                 ("pywbem.ops", "DEBUG",
                  "Exception: GetInstance:test_id("
                  "CIMError(6: Fake CIMError))"))
 
     @log_capture()
-    def test_getinstance_result_all(self, l):
+    def test_getinstance_result_all(self, lc):
         """Test the ops result log for get instance"""
 
         InstanceName = self.create_ciminstancename()
@@ -708,17 +744,17 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         self.test_recorder.stage_pywbem_result(instance, exc)
 
         if VERBOSE:
-            print(l)
+            print(lc)
         if six.PY2:
-            l.check(("pywbem.ops", "DEBUG",
-                     "Request: GetInstance:test_id(IncludeClassOrigin=True, "
-                     "IncludeQualifiers=True, PropertyList=['propertyblah'], "
-                     "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
-                     "keybindings=NocaseDict({'Chicken': 'Ham', 'Beans': 42}),"
-                     " namespace=u'root/cimv2', host=u'woot.com'), "
-                     "LocalOnly=True)"),
-                    ("pywbem.ops", "DEBUG",
-                     StringComparison("Return: GetInstance:test_id.*")))
+            lc.check(("pywbem.ops", "DEBUG",
+                      "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                      "IncludeQualifiers=True, PropertyList=['propertyblah'], "
+                      "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
+                      "keybindings=NocaseDict({'Chicken': 'Ham'}),"
+                      " namespace=u'root/cimv2', host=u'woot.com'), "
+                      "LocalOnly=True)"),
+                     ("pywbem.ops", "DEBUG",
+                      StringComparison("Return: GetInstance:test_id.*")))
 
 
 if __name__ == '__main__':
