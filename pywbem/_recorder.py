@@ -328,7 +328,7 @@ class BaseOperationRecorder(object):
         self._http_response_payload = None
         self._pull_op = pull_op
 
-    def stage_wbem_connection(self, url, conn_id, **kwargs):
+    def stage_wbem_connection(self, wbem_connection):
         """
         Stage information about the connection. Used only by
         LogOperationRecorder.
@@ -481,19 +481,15 @@ class LogOperationRecorder(BaseOperationRecorder):
         self.http_max_log_size = max_sz if httpdetaillevel == 'min' \
             else None
 
-    def stage_wbem_connection(self, url, conn_id, **kwargs):
+    def stage_wbem_connection(self, wbem_connection):
         """
         Log connection information. This includes the connection id
         that should remain throught the life of the connection.
         """
-        self._conn_id = conn_id
+        self._conn_id = wbem_connection.conn_id
 
         if self.enabled:
-            kwstr = \
-                ', '.join('{0}={1!r}'.format(k, v) for k, v in kwargs.items())
-
-            self.opslogger.debug('Connection: url=%s, id=%s %s', url, conn_id,
-                                 kwstr)
+            self.opslogger.debug('Connection: %r', wbem_connection)
 
     def stage_pywbem_args(self, method, **kwargs):
         """
@@ -505,8 +501,10 @@ class LogOperationRecorder(BaseOperationRecorder):
         # pylint: disable=attribute-defined-outside-init
         self._pywbem_method = method
         if self.enabled:
-            kwstr = \
-                ', '.join('{0}={1!r}'.format(k, v) for k, v in kwargs.items())
+            # Order kwargs.  Note that this is done automatically starting
+            # with python 3.6
+            kwstr = ', '.join([('{0}={1!r}'.format(key, kwargs[key]))
+                               for key in sorted(six.iterkeys(kwargs))])
 
             self.opslogger.debug('Request: %s:%s(%s)', method, self._conn_id,
                                  kwstr)

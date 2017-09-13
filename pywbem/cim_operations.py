@@ -949,25 +949,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         return host
 
     @property
-    def stats_enabled(self):
-        """
-        :class:`py:bool`: Statistics enablement status for this connection.
-
-        This is a writeable property; setting this property will change the
-        statistics enablement status accordingly.
-
-        **Experimental:** This property is experimental for this release.
-        """
-        return self.statistics.enabled
-
-    @stats_enabled.setter
-    def stats_enabled(self, value):
-        if value:
-            self.statistics.enable()
-        else:
-            self.statistics.disable()
-
-    @property
     def operation_recorder_enabled(self):
         """
         :class:`py:bool`: Operation recorder enablement status for connection.
@@ -1099,12 +1080,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             creds_repr = "(%r, ...)" % self.creds[0]
         else:
             creds_repr = repr(self.creds)
+        if self.x509:
+            x509_repr = ', '.join([('%r: %r' % (key, self.x509[key]))
+                                   for key in sorted(six.iterkeys(self.x509))])
+        else:
+            x509_repr = "None"
+
         return "%s(url=%r, creds=%s, " \
-               "default_namespace=%r, x509=%r, verify_callback=%r, " \
+               "default_namespace=%r, x509=%s, verify_callback=%r, " \
                "ca_certs=%r, no_verification=%r, timeout=%r, " \
                "use_pull_operations=%r, stats=%r, recorder=%r)" % \
                (self.__class__.__name__, self.url, creds_repr,
-                self.default_namespace, self.x509, self.verify_callback,
+                self.default_namespace, x509_repr, self.verify_callback,
                 self.ca_certs, self.no_verification, self.timeout,
                 self.use_pull_operations, self.statistics,
                 self.operation_recorder)
@@ -1117,17 +1104,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             the conn_id parameter which is common to this recorder entry
             and the method recorders.
         """
-        creds = '%s:%s' % (self.creds[0], '******') if self.creds else None
-        print('cimoperation creds %s' % creds)
         recorder.reset()
-        recorder.stage_wbem_connection(
-            url=self.url, conn_id=self.conn_id,
-            creds=creds,
-            default_namespace=self.default_namespace,
-            no_verification=self.no_verification,
-            timeout=self.timeout,
-            use_pull_operations=self.use_pull_operations,
-            stats_enabled=self.stats_enabled)
+        recorder.stage_wbem_connection(self)
 
     def add_operation_recorder(self, operation_recorder):
         # pylint: disable=line-too-long

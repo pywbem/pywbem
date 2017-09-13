@@ -14,11 +14,10 @@ from datetime import timedelta, datetime, tzinfo
 import unittest
 import os
 import os.path
-import platform
 from io import open as _open
 import yaml
 import six
-from testfixtures import LogCapture, log_capture, StringComparison
+from testfixtures import LogCapture, log_capture
 
 from pywbem import CIMInstanceName, CIMInstance, MinutesFromUTC, \
     Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
@@ -26,7 +25,7 @@ from pywbem import CIMInstanceName, CIMInstance, MinutesFromUTC, \
 # Renamed the following import to not have py.test pick it up as a test class:
 from pywbem import TestClientRecorder as _TestClientRecorder
 from pywbem import LogOperationRecorder as _LogOperationRecorder
-from pywbem import PywbemLoggers
+from pywbem import PywbemLoggers, WBEMConnection
 
 # used to build result tuple for test
 from pywbem.cim_operations import pull_path_result_tuple
@@ -521,12 +520,19 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         self.test_recorder.reset()
         self.test_recorder.enable()
-        self.test_recorder.stage_wbem_connection('http://blah',
-                                                 'test_conn_id')
+        # we must fake the connection to create a fixed data environment
+        conn = WBEMConnection('http://blah')
+        conn.conn_id = '%s-%s' % (22, "1234:34")
+        self.test_recorder.stage_wbem_connection(conn)
         if VERBOSE:
             print(lc)
-        lc.check(("pywbem.ops", "DEBUG",
-                  "Connection: url=http://blah, id=test_conn_id "))
+        lc.check(
+            ("pywbem.ops", "DEBUG",
+             "Connection: WBEMConnection(url='http://blah', creds=None, "
+             "default_namespace='root/cimv2', x509=None, verify_callback=None, "
+             'ca_certs=None, no_verification=False, timeout=None, '
+             'use_pull_operations=False, stats=Statistics(\n'
+             '), recorder=None)'),)
 
     @log_capture()
     def test_create_connection2(self, lc):
@@ -534,35 +540,29 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         self.test_recorder.reset()
         self.test_recorder.enable()
-        x509_dict = {"cert_file": 'Certfile.x'}
-        x509_dict.update({'key_file': 'keyfile.x'})
-        self.test_recorder.stage_wbem_connection('http://blah',
-                                                 'test_conn_id',
-                                                 default_namespace='root/blah',
-                                                 creds=('username', 'password'),
-                                                 x509=x509_dict,
-                                                 no_verification=True,
-                                                 timeout=10,
-                                                 use_pull_operations=True,
-                                                 enable_stats=True)
+        x509_dict = {"cert_file": 'Certfile.x', 'key_file': 'keyfile.x'}
+        conn = WBEMConnection('http://blah',
+                              default_namespace='root/blah',
+                              creds=('username', 'password'),
+                              x509=x509_dict,
+                              no_verification=True,
+                              timeout=10,
+                              use_pull_operations=True,
+                              enable_stats=True)
+        self.test_recorder.stage_wbem_connection(conn)
+        conn.conn_id = '%s-%s' % (23, "1234:34")
 
         if VERBOSE:
             print(lc)
-        # TODO we have issues in that strings in unicode for namespace and
-        # instance name are inconsistent. Further the order of keybindings
-        # is different in python 3 and python2 and even windows vs linux.
-        # We are therefore running the full compare test
-        # in python2 for the moment and more limited tests using the
-        # StringComparison on other platforms.
-        # TODO sort out how to make this work in python 2 and 3
-        if six.PY2 and platform.system() != 'windows':
-            lc.check((
-                "pywbem.ops", "DEBUG",
-                "Connection: url=http://blah, id=test_conn_id "
-                "default_namespace='root/blah', no_verification=True, "
-                "x509={'cert_file': 'Certfile.x', 'key_file': 'keyfile.x'},"
-                " timeout=10, enable_stats=True, creds=('username', "
-                "'password'), use_pull_operations=True"),)
+
+        lc.check((
+            "pywbem.ops", "DEBUG",
+            "Connection: WBEMConnection(url='http://blah', "
+            "creds=('username', ...), default_namespace='root/blah', "
+            "x509='cert_file': 'Certfile.x', 'key_file': 'keyfile.x', "
+            "verify_callback=None, ca_certs=None, no_verification=True, "
+            "timeout=10, use_pull_operations=True, stats=Statistics(\n), "
+            "recorder=None)"),)
 
     @log_capture()
     def test_getinstance_args(self, lc):
@@ -585,36 +585,28 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         if VERBOSE:
             print(lc)
-        if six.PY2 and platform.system() != 'windows':
-            lc.check(("pywbem.ops", "DEBUG",
-                      "Request: GetInstance:test_id(IncludeClassOrigin=True, "
-                      "IncludeQualifiers=True, PropertyList=['propertyblah'], "
-                      "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
-                      "keybindings=NocaseDict({'Chicken': 'Ham'}),"
-                      " namespace=u'root/cimv2', host=u'woot.com'), "
-                      "LocalOnly=True)"))
+        # pywbem 2 and 3 differ in only the use of unicode for certain
+        # string properties. (ex. classname)
+        if six.PY2:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "IncludeQualifiers=True, InstanceName=CIMInstanceName("
+                 "classname=u'CIM_Foo', keybindings=NocaseDict("
+                 "{'Chicken': 'Ham'}), namespace=u'root/cimv2', "
+                 "host=u'woot.com'), LocalOnly=True, "
+                 "PropertyList=['propertyblah'])"),)
 
-        # lc.check("pywbem.ops", "DEBUG",
-        #    StringComparison("Request: GetInstance:test_id\("))
-
-        # lc.check("pywbem.ops", "DEBUG",
-        #         StringComparison(r".*IncludeClassOrigin=True"))
-
-        # lc.check("pywbem.ops", "DEBUG",
-        #         StringComparison(r".*IncludeQualifiers=True"))
-
-        # lc.check("pywbem.ops", "DEBUG",
-        #         StringComparison(r".*PropertyList=['propertyblah']"))
-
-        # lc.check("pywbem.ops", "DEBUG",
-        #         StringComparison(r".*PropertyList=['propertyblah']"))
-
-        # lc.check("pywbem.ops", "DEBUG",
-        #         StringComparison(r".*namespace=u'root/cimv2'"))
-
-        # lc.check("pywbem.ops", "DEBUG",
-        #         StringComparison(r".*keybindings=NocaseDict\({'Chicken': "
-        # "'Ham'}"))
+        else:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 'Request: GetInstance:test_id(IncludeClassOrigin=True, '
+                 'IncludeQualifiers=True, '
+                 "InstanceName=CIMInstanceName(classname='CIM_Foo', "
+                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "namespace='root/cimv2', "
+                 "host='woot.com'), LocalOnly=True, "
+                 "PropertyList=['propertyblah'])"),)
 
     @log_capture()
     def test_getinstance_result(self, lc):
@@ -622,6 +614,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         InstanceName = self.create_ciminstancename()
 
+        # set recorder to limit response to length of 10
         self.recorder_setup(10)
 
         self.test_recorder.stage_pywbem_args(
@@ -637,14 +630,27 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         if VERBOSE:
             print(lc)
-        if six.PY2 and platform.system() != 'windows':
+
+        if six.PY2:
             lc.check(
                 ("pywbem.ops", "DEBUG",
                  "Request: GetInstance:test_id(IncludeClassOrigin=True, "
-                 "IncludeQualifiers=True, PropertyList=['propertyblah'], "
-                 "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
+                 "IncludeQualifiers=True, InstanceName=CIMInstanceName("
+                 "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
+                 "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
+                 "LocalOnly=True, PropertyList=['propertyblah'])"),
+                ('pywbem.ops', 'DEBUG',
+                 'Return: GetInstance:test_id(CIMInstanc...)'))
+        else:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 'Request: GetInstance:test_id(IncludeClassOrigin=True, '
+                 'IncludeQualifiers=True, '
+                 "InstanceName=CIMInstanceName(classname='CIM_Foo', "
                  "keybindings=NocaseDict({'Chicken': 'Ham'}), "
-                 "namespace=u'root/cimv2', host=u'woot.com'), LocalOnly=True)"),
+                 "namespace='root/cimv2', "
+                 "host='woot.com'), LocalOnly=True, "
+                 "PropertyList=['propertyblah'])"),
                 ('pywbem.ops', 'DEBUG',
                  'Return: GetInstance:test_id(CIMInstanc...)'))
 
@@ -670,21 +676,26 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         if VERBOSE:
             print(lc)
 
-        if six.PY2 and platform.system() != 'windows':
-            lc.check(("pywbem.ops", "DEBUG",
-                      "Request: GetInstance:test_id(IncludeClassOrigin=True, "
-                      "IncludeQualifiers=True, PropertyList=['propertyblah'], "
-                      "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
-                      "keybindings=NocaseDict({'Chicken': 'Ham'}),"
-                      " namespace=u'root/cimv2', host=u'woot.com'), "
-                      "LocalOnly=True)"),
-                     ("pywbem.ops", "DEBUG",
-                      "Exception: GetInstance:test_id(CIMError(6...)"))
-        lc.check(
-            ("pywbem.ops", "DEBUG",
-             StringComparison("Request: GetInstance:test_id\(")),
-            ("pywbem.ops", "DEBUG",
-             "Exception: GetInstance:test_id(CIMError(6...)"))
+        if six.PY2:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "IncludeQualifiers=True, InstanceName=CIMInstanceName("
+                 "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
+                 "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
+                 "LocalOnly=True, PropertyList=['propertyblah'])"),
+                ("pywbem.ops", "DEBUG",
+                 "Exception: GetInstance:test_id(CIMError(6...)"))
+        else:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "IncludeQualifiers=True, InstanceName=CIMInstanceName("
+                 "classname='CIM_Foo', keybindings=NocaseDict({'Chicken': "
+                 "'Ham'}), namespace='root/cimv2', host='woot.com'), "
+                 "LocalOnly=True, PropertyList=['propertyblah'])"),
+                ("pywbem.ops", "DEBUG",
+                 "Exception: GetInstance:test_id(CIMError(6...)"))
 
     @log_capture()
     def test_getinstance_exception2(self, lc):
@@ -703,34 +714,25 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         if VERBOSE:
             print(lc)
-        # TODO we have issues in that strings in unicode for namespace and
-        # instance name are inconsistent. Further the order of keybindings
-        # is different in python 3 and python2.
 
-        if six.PY2 and platform.system() != 'windows':
+        if six.PY2:
             lc.check(
                 ("pywbem.ops", "DEBUG",
                  "Request: GetInstance:test_id(InstanceName=CIMInstanceName("
                  "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                 "'Ham'}), namespace=u'root/cimv2', "
-                 "host=u'woot.com'))"),
+                 "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'))"),
                 ("pywbem.ops", "DEBUG",
                  "Exception: GetInstance:test_id("
                  "CIMError(6: Fake CIMError))"))
-
-        lc.check(
-            ("pywbem.ops", "DEBUG",
-             StringComparison("Request: GetInstance:test_id\(")),
-            ("pywbem.ops", "DEBUG",
-             "Exception: GetInstance:test_id("
-             "CIMError(6: Fake CIMError))"))
-
-        lc.check(
-            ("pywbem.ops", "DEBUG",
-             StringComparison(".*keybindings=NocaseDict\({'Chicken': 'Ham'}")),
-            ("pywbem.ops", "DEBUG",
-             "Exception: GetInstance:test_id("
-             "CIMError(6: Fake CIMError))"))
+        else:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Request: GetInstance:test_id(InstanceName=CIMInstanceName("
+                 "classname='CIM_Foo', keybindings=NocaseDict({'Chicken': "
+                 "'Ham'}), namespace='root/cimv2', host='woot.com'))"),
+                ("pywbem.ops", "DEBUG",
+                 "Exception: GetInstance:test_id("
+                 "CIMError(6: Fake CIMError))"))
 
     @log_capture()
     def test_getinstance_result_all(self, lc):
@@ -754,26 +756,153 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         if VERBOSE:
             print(lc)
         if six.PY2:
-            lc.check(("pywbem.ops", "DEBUG",
-                      "Request: GetInstance:test_id(IncludeClassOrigin=True, "
-                      "IncludeQualifiers=True, PropertyList=['propertyblah'], "
-                      "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
-                      "keybindings=NocaseDict({'Chicken': 'Ham'}),"
-                      " namespace=u'root/cimv2', host=u'woot.com'), "
-                      "LocalOnly=True)"),
-                     ("pywbem.ops", "DEBUG",
-                      StringComparison("Return: GetInstance:test_id.*")))
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "IncludeQualifiers=True, InstanceName=CIMInstanceName("
+                 "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
+                 "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
+                 "LocalOnly=True, PropertyList=['propertyblah'])"),
+                ('pywbem.ops',
+                 'DEBUG',
+                 "Return: GetInstance:test_id(CIMInstance(classname=u'CIM_Foo'"
+                 ", path=None, properties=NocaseDict({'Bool': CIMProperty("
+                 "name=u'Bool', value=True, type='boolean', reference_class="
+                 "None, embedded_object=None, is_array=False, array_size=None,"
+                 " class_origin=None, propagated=None, qualifiers=NocaseDict({"
+                 "})), 'DTF': CIMProperty(name=u'DTF', value=CIMDateTime("
+                 "cimtype='datetime', '20160331193040.654321+120'), "
+                 "type='datetime', reference_class=None, embedded_object=None,"
+                 " is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, qualifiers=NocaseDict({})), 'DTI': "
+                 "CIMProperty(name=u'DTI', value=CIMDateTime(cimtype="
+                 "'datetime', '00000010000049.000020:000'), type='datetime',"
+                 " reference_class=None, embedded_object=None, is_array=False,"
+                 " array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict({})), 'DTP': CIMProperty(name=u'DTP',"
+                 " value=CIMDateTime(cimtype='datetime', '20140922104920."
+                 "524789-399'), type='datetime', reference_class=None, "
+                 "embedded_object=None, is_array=False, array_size=None, "
+                 "class_origin=None, ...)"))
 
-        lc.check(("pywbem.ops", "DEBUG",
-                  StringComparison("Request: GetInstance:test_id\(")),
-                 ("pywbem.ops", "DEBUG",
-                  StringComparison("Return: GetInstance:test_id.*")))
+        else:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 'Request: GetInstance:test_id(IncludeClassOrigin=True, '
+                 'IncludeQualifiers=True, '
+                 "InstanceName=CIMInstanceName(classname='CIM_Foo', "
+                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "namespace='root/cimv2', "
+                 "host='woot.com'), LocalOnly=True, "
+                 "PropertyList=['propertyblah'])"),
+                ("pywbem.ops", "DEBUG",
+                 "Return: GetInstance:test_id(CIMInstance(classname='CIM_Foo',"
+                 " path=None, "
+                 "properties=NocaseDict({'Bool': CIMProperty(name='Bool', "
+                 "value=True, "
+                 "type='boolean', reference_class=None, embedded_object=None, "
+                 'is_array=False, array_size=None, class_origin=None, '
+                 'propagated=None, '
+                 "qualifiers=NocaseDict({})), 'DTF': CIMProperty(name='DTF', "
+                 "value=CIMDateTime(cimtype='datetime', "
+                 "'20160331193040.654321+120'), "
+                 "type='datetime', reference_class=None, embedded_object=None, "
+                 'is_array=False, array_size=None, class_origin=None, '
+                 'propagated=None, '
+                 "qualifiers=NocaseDict({})), 'DTI': CIMProperty(name='DTI', "
+                 "value=CIMDateTime(cimtype='datetime', "
+                 "'00000010000049.000020:000'), "
+                 "type='datetime', reference_class=None, "
+                 "embedded_object=None, "
+                 'is_array=False, array_size=None, class_origin=None, '
+                 'propagated=None, '
+                 "qualifiers=NocaseDict({})), 'DTP': CIMProperty(name='DTP', "
+                 "value=CIMDateTime(cimtype='datetime', "
+                 "'20140922104920.524789-399'), "
+                 "type='datetime', reference_class=None, embedded_object=None, "
+                 'is_array=False, array_size=None, '
+                 'class_origin=None, propa...)'))
 
-        lc.check(("pywbem.ops", "DEBUG",
-                  StringComparison(".*keybindings=NocaseDict\({'Chicken': "
-                                   "'Ham'}")),
-                 ("pywbem.ops", "DEBUG",
-                  StringComparison(r".*CIMProperty")))
+    @log_capture()
+    def test_enuminstances_result(self, lc):
+        """Test the ops result log for enumerate instances"""
+
+        # set recorder to limit response to length of 10
+        self.recorder_setup(10)
+
+        self.test_recorder.stage_pywbem_args(
+            method='EnumerateInstances',
+            ClassName='CIM_Foo',
+            LocalOnly=True,
+            IncludeQualifiers=True,
+            IncludeClassOrigin=True,
+            PropertyList=['propertyblah'])
+
+        instance = self.create_ciminstance()
+        exc = None
+        self.test_recorder.stage_pywbem_result([instance, instance], exc)
+
+        if VERBOSE:
+            print(lc)
+
+        if six.PY2:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Request: EnumerateInstances:test_id(ClassName='CIM_Foo', "
+                 "IncludeClassOrigin=True, IncludeQualifiers=True, "
+                 "LocalOnly=True, PropertyList=['propertyblah'])"),
+                ('pywbem.ops', 'DEBUG',
+                 'Return: EnumerateInstances:test_id([CIMInstan...)'))
+        else:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Request: EnumerateInstances:test_id(ClassName='CIM_Foo', "
+                 'IncludeClassOrigin=True, IncludeQualifiers=True, '
+                 'LocalOnly=True, '
+                 "PropertyList=['propertyblah'])"),
+                ('pywbem.ops', 'DEBUG',
+                 'Return: EnumerateInstances:test_id([CIMInstan...)'))
+
+    @log_capture()
+    def test_openenuminstances_result(self, lc):
+        """Test the ops result log for enumerate instances"""
+
+        # set recorder to limit response to length of 10
+        self.recorder_setup(10)
+
+        self.test_recorder.stage_pywbem_args(
+            method='OpenEnumerateInstances',
+            ClassName='CIM_Foo',
+            LocalOnly=True,
+            IncludeQualifiers=True,
+            IncludeClassOrigin=True,
+            PropertyList=['propertyblah'])
+
+        instance = self.create_ciminstance()
+        exc = None
+        self.test_recorder.stage_pywbem_result([instance, instance], exc)
+
+        if VERBOSE:
+            print(lc)
+
+        if six.PY2:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Request: OpenEnumerateInstances:test_id(ClassName='CIM_Foo', "
+                 "IncludeClassOrigin=True, IncludeQualifiers=True, "
+                 "LocalOnly=True, PropertyList=['propertyblah'])"),
+                ('pywbem.ops', 'DEBUG',
+                 'Return: OpenEnumerateInstances:test_id([CIMInstan...)'))
+        else:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Request: OpenEnumerateInstances:test_id(ClassName='CIM_Foo', "
+                 'IncludeClassOrigin=True, IncludeQualifiers=True, '
+                 'LocalOnly=True, '
+                 "PropertyList=['propertyblah'])"),
+
+                ('pywbem.ops', 'DEBUG',
+                 'Return: OpenEnumerateInstances:test_id([CIMInstan...)'))
 
 
 if __name__ == '__main__':
