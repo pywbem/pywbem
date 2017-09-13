@@ -481,5 +481,24 @@ class TestIteritems(BaseTest):
         self.assertTrue(items, set([('Budgie', 'Fish'), ('Dog', 'Cat')]))
 
 
+class TestRepr(unittest.TestCase):
+
+    def test_reliable_order(self):
+        """Test that repr() has a reliable result despite different orders of
+        insertion into the dictionary."""
+
+        dic1 = NocaseDict()
+        dic1['Budgie'] = 'Fish'
+        dic1['Dog'] = 'Cat'
+        dic1['Foo'] = 'Bla'
+
+        dic2 = NocaseDict()
+        dic2['Foo'] = 'Bla'
+        dic2['Dog'] = 'Cat'
+        dic2['Budgie'] = 'Fish'
+
+        self.assertEqual(repr(dic1), repr(dic2))
+
+
 if __name__ == '__main__':
     unittest.main()

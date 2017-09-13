@@ -334,10 +334,10 @@ class NocaseDict(object):
         Return a string representation of the `NocaseDict`_ object that is
         suitable for debugging.
 
-        The order of dictionary items is the iteration order of `iteritems()`.
+        The order of dictionary items in the result will be sorted by keys.
         """
-        items = ', '.join([('%r: %r' % (key, value))
-                           for key, value in self.iteritems()])
+        items = ', '.join([('%r: %r' % (key, self[key]))
+                           for key in sorted(self.iterkeys())])
         return 'NocaseDict({%s})' % items
 
     def update(self, *args, **kwargs):
@@ -923,6 +923,9 @@ class CIMInstanceName(_CIMComparisonMixin):
         by the :class:`~pywbem.CIMInstanceName` object.
 
         The returned WBEM URI is consistent with :term:`DSP0207`.
+
+        The key properties in the returned WBEM URI will be ordered by their
+        names.
         """
 
         ret_str = ''
@@ -935,7 +938,8 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         ret_str += '%s.' % self.classname
 
-        for key, value in self.keybindings.items():
+        for key in sorted(self.keybindings.iterkeys()):
+            value = self.keybindings[key]
 
             ret_str += '%s=' % key
 
@@ -956,6 +960,8 @@ class CIMInstanceName(_CIMComparisonMixin):
         Return a string representation of the
         :class:`~pywbem.CIMInstanceName` object that is suitable for
         debugging.
+
+        The key bindings will be ordered by their names in the result.
         """
 
         return '%s(classname=%r, keybindings=%r, ' \
@@ -1336,6 +1342,9 @@ class CIMInstance(_CIMComparisonMixin):
         """
         Return a string representation of the :class:`~pywbem.CIMInstance`
         object that is suitable for debugging.
+
+        The properties and qualifiers will be ordered by their names in the
+        result.
         """
 
         return '%s(classname=%r, path=%r, ' \
@@ -1927,7 +1936,10 @@ class CIMClass(_CIMComparisonMixin):
         """
         Return a string representation of the :class:`~pywbem.CIMClass`
         object that is suitable for debugging.
-    """
+
+        The properties, method and qualifiers will be ordered by their names in
+        the result.
+        """
 
         return '%s(classname=%r, superclass=%r, ' \
                'properties=%r, methods=%r, qualifiers=%r, ' \
@@ -2537,6 +2549,8 @@ class CIMProperty(_CIMComparisonMixin):
         """
         Return a string representation of the :class:`~pywbem.CIMProperty`
         object that is suitable for debugging.
+
+        The qualifiers will be ordered by their names in the result.
         """
         return '%s(name=%r, value=%r, type=%r, ' \
                'reference_class=%r, embedded_object=%r, ' \
@@ -2936,6 +2950,9 @@ class CIMMethod(_CIMComparisonMixin):
         """
         Return a string representation of the :class:`~pywbem.CIMMethod`
         object that is suitable for debugging.
+
+        The parameters and qualifiers will be ordered by their names in the
+        result.
         """
         return '%s(name=%r, return_type=%r, ' \
                'class_origin=%r, propagated=%r, ' \
@@ -3203,6 +3220,8 @@ class CIMParameter(_CIMComparisonMixin):
         """
         Return a string representation of the :class:`~pywbem.CIMParameter`
         object that is suitable for debugging.
+
+        The qualifiers will be ordered by their names in the result.
         """
         return '%s(name=%r, type=%r, ' \
                'reference_class=%r, ' \
@@ -3982,6 +4001,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         Return a string representation of the
         :class:`~pywbem.CIMQualifierDeclaration` object that is suitable for
         debugging.
+
+        The scopes will be ordered by their names in the result.
         """
         return '%s(name=%r, value=%r, type=%r, ' \
                'is_array=%r, array_size=%r, ' \
