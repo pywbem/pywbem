@@ -14,6 +14,7 @@ from datetime import timedelta, datetime, tzinfo
 import unittest
 import os
 import os.path
+import platform
 from io import open as _open
 import yaml
 import six
@@ -37,44 +38,6 @@ TEST_YAML_FILE = 'test_recorder.yaml'
 SCRIPT_DIR = os.path.dirname(__file__)
 
 VERBOSE = False
-
-
-class StringSearch(object):  # pylint: disable=too-few-public-methods
-    """
-    This class was modified from the StringComparison class in
-    testfixtures.Comparison.py to provide for using the regex search mechanism
-    rather than match
-    An object that can be used in comparisons of expected and actual
-    strings where the string expected matches a pattern rather than a
-    specific concrete string.
-    :param regex_source: A string containing the source for a regular
-                         expression that will be used whenever this
-                         :class:`StringComparison` is compared with
-                         any :class:`basestring` instance.
-    :param flags: Any of the flags defined for a regex compile including
-                         re.M, re.IGNORECASE, etc.
-    """
-    def __init__(self, regex_source, flags=0):
-        self.re = compile(regex_source, flags)
-
-    def __eq__(self, other):
-        if not isinstance(other, six.string_types):
-            return
-        if self.re.search(other):
-            return True
-        return False
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __repr__(self):
-        return '<S:%s>' % self.re.pattern
-
-    def __lt__(self, other):
-        return self.re.pattern < other
-
-    def __gt__(self, other):
-        return self.re.pattern > other
 
 
 class BaseRecorderTests(unittest.TestCase):
@@ -587,10 +550,12 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
             print(lc)
         # TODO we have issues in that strings in unicode for namespace and
         # instance name are inconsistent. Further the order of keybindings
-        # is different in python 3 and python2. We are therefore running
-        # this test in python2 for the moment
+        # is different in python 3 and python2 and even windows vs linux.
+        # We are therefore running the full compare test
+        # in python2 for the moment and more limited tests using the
+        # StringComparison on other platforms.
         # TODO sort out how to make this work in python 2 and 3
-        if six.PY2:
+        if six.PY2 and platform.system() != 'windows':
             lc.check((
                 "pywbem.ops", "DEBUG",
                 "Connection: url=http://blah, id=test_conn_id "
@@ -605,6 +570,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         Emulates call to getInstance to test parameter processing.
         Currently creates the pywbem_request component.
         """
+
         InstanceName = self.create_ciminstancename()
 
         self.recorder_setup(10)
@@ -619,7 +585,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         if VERBOSE:
             print(lc)
-        if six.PY2:
+        if six.PY2 and platform.system() != 'windows':
             lc.check(("pywbem.ops", "DEBUG",
                       "Request: GetInstance:test_id(IncludeClassOrigin=True, "
                       "IncludeQualifiers=True, PropertyList=['propertyblah'], "
@@ -627,6 +593,28 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                       "keybindings=NocaseDict({'Chicken': 'Ham'}),"
                       " namespace=u'root/cimv2', host=u'woot.com'), "
                       "LocalOnly=True)"))
+
+        # lc.check("pywbem.ops", "DEBUG",
+        #    StringComparison("Request: GetInstance:test_id\("))
+
+        # lc.check("pywbem.ops", "DEBUG",
+        #         StringComparison(r".*IncludeClassOrigin=True"))
+
+        # lc.check("pywbem.ops", "DEBUG",
+        #         StringComparison(r".*IncludeQualifiers=True"))
+
+        # lc.check("pywbem.ops", "DEBUG",
+        #         StringComparison(r".*PropertyList=['propertyblah']"))
+
+        # lc.check("pywbem.ops", "DEBUG",
+        #         StringComparison(r".*PropertyList=['propertyblah']"))
+
+        # lc.check("pywbem.ops", "DEBUG",
+        #         StringComparison(r".*namespace=u'root/cimv2'"))
+
+        # lc.check("pywbem.ops", "DEBUG",
+        #         StringComparison(r".*keybindings=NocaseDict\({'Chicken': "
+        # "'Ham'}"))
 
     @log_capture()
     def test_getinstance_result(self, lc):
@@ -649,7 +637,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         if VERBOSE:
             print(lc)
-        if six.PY2:
+        if six.PY2 and platform.system() != 'windows':
             lc.check(
                 ("pywbem.ops", "DEBUG",
                  "Request: GetInstance:test_id(IncludeClassOrigin=True, "
@@ -682,7 +670,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         if VERBOSE:
             print(lc)
 
-        if six.PY2:
+        if six.PY2 and platform.system() != 'windows':
             lc.check(("pywbem.ops", "DEBUG",
                       "Request: GetInstance:test_id(IncludeClassOrigin=True, "
                       "IncludeQualifiers=True, PropertyList=['propertyblah'], "
@@ -692,6 +680,11 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                       "LocalOnly=True)"),
                      ("pywbem.ops", "DEBUG",
                       "Exception: GetInstance:test_id(CIMError(6...)"))
+        lc.check(
+            ("pywbem.ops", "DEBUG",
+             StringComparison("Request: GetInstance:test_id\(")),
+            ("pywbem.ops", "DEBUG",
+             "Exception: GetInstance:test_id(CIMError(6...)"))
 
     @log_capture()
     def test_getinstance_exception2(self, lc):
@@ -713,7 +706,8 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         # TODO we have issues in that strings in unicode for namespace and
         # instance name are inconsistent. Further the order of keybindings
         # is different in python 3 and python2.
-        if six.PY2:
+
+        if six.PY2 and platform.system() != 'windows':
             lc.check(
                 ("pywbem.ops", "DEBUG",
                  "Request: GetInstance:test_id(InstanceName=CIMInstanceName("
@@ -723,6 +717,20 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                 ("pywbem.ops", "DEBUG",
                  "Exception: GetInstance:test_id("
                  "CIMError(6: Fake CIMError))"))
+
+        lc.check(
+            ("pywbem.ops", "DEBUG",
+             StringComparison("Request: GetInstance:test_id\(")),
+            ("pywbem.ops", "DEBUG",
+             "Exception: GetInstance:test_id("
+             "CIMError(6: Fake CIMError))"))
+
+        lc.check(
+            ("pywbem.ops", "DEBUG",
+             StringComparison(".*keybindings=NocaseDict\({'Chicken': 'Ham'}")),
+            ("pywbem.ops", "DEBUG",
+             "Exception: GetInstance:test_id("
+             "CIMError(6: Fake CIMError))"))
 
     @log_capture()
     def test_getinstance_result_all(self, lc):
@@ -755,6 +763,17 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                       "LocalOnly=True)"),
                      ("pywbem.ops", "DEBUG",
                       StringComparison("Return: GetInstance:test_id.*")))
+
+        lc.check(("pywbem.ops", "DEBUG",
+                  StringComparison("Request: GetInstance:test_id\(")),
+                 ("pywbem.ops", "DEBUG",
+                  StringComparison("Return: GetInstance:test_id.*")))
+
+        lc.check(("pywbem.ops", "DEBUG",
+                  StringComparison(".*keybindings=NocaseDict\({'Chicken': "
+                                   "'Ham'}")),
+                 ("pywbem.ops", "DEBUG",
+                  StringComparison(r".*CIMProperty")))
 
 
 if __name__ == '__main__':

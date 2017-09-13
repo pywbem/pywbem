@@ -14,7 +14,7 @@ This chapter has the following sections:
   class of the WBEM client library API and is used to issue WBEM operations to
   a WBEM server.
 
-  * :ref:`WBEM Operation recording` -  Class :class:`~pywbem.WBEMConnection`
+  * :ref:`WBEM operation recording` -  Class :class:`~pywbem.WBEMConnection`
     includes the capability to optionally record the WBEMConnection method
     calls that communicate with a WBEM server including creating yaml
     files for test generation and logging using the Python logging facility.
@@ -30,7 +30,7 @@ This chapter has the following sections:
 * :ref:`Exceptions` - Exceptions specific to pywbem that may be raised.
 * :ref:`Statistics` - Statistics classes to gather information on wbem
   operation performance.
-* :ref:`WBEM Operation recorder` - Python classes that implement the operation
+* :ref:`WBEM operation recorder` - Python classes that implement the operation
   recorder functions that are used by :class:`~pywbem.WBEMConnection`.
 * :ref:`Security considerations` - Information about authentication types and
   certificates.
