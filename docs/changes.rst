@@ -117,6 +117,13 @@ Enhancements
 * Added a ``host`` property to ``WBEMConnection`` which contains the host:port
   component of the WBEM server's URL.  This helps addressing issue #349.
 
+* Made sure that ``repr()`` on CIM objects produces a reliable order of
+  items such as properties, qualifiers, methods, parameters, scopes, by
+  ordering them by their names. This makes debugging using ``repr()`´ easier
+  for pywbem users, and it also helps in some unit test cases of pywbem itself.
+
+* Made sure that ``str()`` on ``CIMInstanceName`` produces reliable order of
+  key bindings in the returned WBEM URI, by ordering them by key name.
 
 Bug fixes
 ^^^^^^^^^
