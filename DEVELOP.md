@@ -22,10 +22,10 @@ Git workflow
   commit message, which is often the only place that tells the issue that was
   fixed.
 
-Releasing to PyPI
------------------
+Releasing a version
+-------------------
 
-This section describes how to release a version of pywbem.
+This section describes how to release a version of pywbem to Pypi.
 
 The description assumes that the `pywbem/pywbem` repo and the
 `pywbem/pywbem.github.io` repo are both cloned locally in sibling directories
@@ -34,14 +34,14 @@ named `pywbem` and `pywbem.github.io`.
 The upstream repos are assumed to have the remote name `origin`.
 
 A shell variable `$MNU` is used in the description to refer to the `M.N.U`
-version (e.g. `0.9.x`) that is to be released.
+version (e.g. `0.9.0`) that is to be released.
 
 1.  Switch to your work directory of the `pywbem/pywbem` repo (this is where
     the `makefile` is), and perform the following steps in that directory.
 
 2.  Set shell variables for the version to be released:
 
-    - `MNU='0.9.x'`
+    - `MNU='0.9.0'`
     - `MN='0.9'`
 
 3.  Check out the `master` branch (because that will be the basis for the
@@ -50,7 +50,7 @@ version (e.g. `0.9.x`) that is to be released.
     - `git checkout master`
     - `git pull`
 
-4.  Create a topic branch for the changes to release the package:
+4.  Create a topic branch for the release, based upon the `master` branch:
 
     - `git checkout -b release_$MNU`
 
@@ -90,11 +90,10 @@ version (e.g. `0.9.x`) that is to be released.
 9.  Commit the changes and push to upstream:
 
     - `git commit -a -m "Release v$MNU"`
-    - `git push`
-      - Or with variations as shown by the command
+    - `git push --set-upstream origin release_$MNU`
 
-10. On Github, create a Pull Request for the target branch. This will trigger
-    the CI runs (e.g. Travis, Appveyor).
+10. On Github, create a Pull Request for branch `release-$MNU`. This will
+    trigger the CI runs (e.g. Travis, Appveyor).
 
     **Important:** Regardless of which branch the commit was based upon, GitHub
     will by default target the `master` branch for the merge. This is correct
@@ -217,11 +216,10 @@ version (e.g. `0.9.x`) that is to be released.
 31. Announce the new release on the
     [pywbem-devel mailing list](http://sourceforge.net/p/pywbem/mailman/pywbem-devel/).
 
-Starting development of a new release
--------------------------------------
+Starting a new version
+----------------------
 
-This description applies to a new release, and not to a new topic branch
-within a release. It applies to the master branch only!
+This section shows the steps for starting development of a new version.
 
 A shell variable `$MNU` is used in the description to refer to the `M.N.U`
 version (e.g. `0.10.x`) whose development is started.
@@ -231,15 +229,17 @@ version (e.g. `0.10.x`) whose development is started.
 
 2.  Set a shell variable for the new version to be developed:
 
-    - `MNU='0.10.x'`
+    - `MNU='0.10.0'`
 
-3.  Check out the `master` branch, because that will be the basis for the new
-    release, and update it from upstream:
+3.  Check out the branch the new version should be based upon: Normally, that
+    would be the `master` branch (shown in the example); for fixing an older
+    version, that would be its `stable_X.Y.Z` branch. Update that branch from
+    upstream:
 
     - `git checkout master`
     - `git pull`
 
-4.  Create a topic branch for the new release:
+4.  Create a topic branch for the new version:
 
     - `git checkout -b start_$MNU`
 
@@ -256,15 +256,14 @@ version (e.g. `0.10.x`) whose development is started.
 6. Commit the changes and push to upstream:
 
     - `git commit -a -m "Start development of v$MNU"`
-    - `git push`
-      - Or with variations as shown by the command
+    - `git push --set-upstream origin start_$MNU`
 
-7.  On Github, create a Pull Request for the target branch. This will trigger
-    the CI runs (e.g. Travis, Appveyor).
+7.  On Github, create a Pull Request for the `start_$MNU` branch. This will
+    trigger the CI runs (e.g. Travis, Appveyor).
 
     **Important:** Regardless of which branch the commit was based upon, GitHub
-    will by default target the `master` branch for the merge. This is correct
-    for what we do here.
+    will by default target the `master` branch for the merge. Change that to
+    the branch you checked out in step 3.
 
 8.  If the CI runs fail (should not happen) fix it and go back to step
     6, until it succeeds.
