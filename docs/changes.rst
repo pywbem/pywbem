@@ -42,6 +42,22 @@ Bug fixes
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 
+* Added Python 3.6 to the environments to be tested in Travis CI and Appveyor
+  CI (issue #661).
+
+* Added Python 2.6, 3.4 and 3.5 to the environments to be tested in Appveyor
+  CI (issue #661).
+
+* Fixed uninstall_pbr_on_py26.py to remove 'pbr' only if installed
+  (issue #661).
+    
+* Fixed TypeError about dict ordering on Python 3.6 in unit test
+  'test_nocasedict.TestOrdering' (issue #661).
+
+* Tolerated incorrect Unicode characters in output of commands invoked by
+  ``os_setup.py`` (used for installation) that sometimes occurred on Windows
+  (e.g. on the Appveyor CI with Python 3).
+
 Documentation
 ^^^^^^^^^^^^^
 
