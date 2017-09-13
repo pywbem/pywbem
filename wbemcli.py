@@ -42,6 +42,7 @@ import errno as _errno
 import code as _code
 import argparse as _argparse
 from textwrap import fill
+import logging
 
 # Additional symbols for use in the interactive session
 # pylint: disable=unused-import
@@ -54,13 +55,13 @@ try:
 except ImportError as arg:
     _HAVE_READLINE = False
 
-from pywbem import WBEMConnection
+from pywbem import WBEMConnection, LogOperationRecorder
 from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT, DEFAULT_LOG_DESTINATION
 
 from pywbem import PywbemLoggers, LOG_DESTINATIONS, LOG_DETAIL_LEVELS, \
-    PYWBEM_LOG_COMPONENTS, DEFAULT_LOG_DETAIL_LEVEL
+    LOG_COMPONENTS, DEFAULT_LOG_DETAIL_LEVEL
 from pywbem import __version__
 
 # Connection global variable. Set by remote_connection and use
@@ -120,13 +121,10 @@ def _remote_connection(server, opts, argparser_):
         if opts.key_file is not None:
             x509_dict.update({'key_file': opts.key_file})
 
-    log_info = True if opts.log else False
-
     CONN = WBEMConnection(url, creds, default_namespace=opts.namespace,
                           no_verification=opts.no_verify_cert,
                           x509=x509_dict, ca_certs=opts.ca_certs,
-                          timeout=opts.timeout, enable_stats=opts.enable_stats,
-                          enable_log=log_info)
+                          timeout=opts.timeout, enable_stats=opts.enable_stats)
 
     CONN.debug = True
 
@@ -2989,7 +2987,7 @@ Examples:
              '   DETAIL: Detail Level to log: [{dl}].\n'
              '           (Default={dll})\n'
              # pylint: disable=bad-continuation
-             .format(c='|'.join(PYWBEM_LOG_COMPONENTS),
+             .format(c='|'.join(LOG_COMPONENTS),
                      cd='all',
                      d='|'.join(LOG_DESTINATIONS),
                      dd=DEFAULT_LOG_DESTINATION,
@@ -3011,9 +3009,13 @@ Examples:
 
     # Set up a client connection
     CONN = _remote_connection(args.server, args, argparser)
+
     if args.log:
         PywbemLoggers.create_loggers(args.log, DEFAULT_LOG_FILENAME)
         CONN.add_operation_recorder(LogOperationRecorder())
+
+        # enable logging at the debug level
+        logging.basicConfig(level=logging.DEBUG)
 
     # Determine file path of history file
     home_dir = '.'
