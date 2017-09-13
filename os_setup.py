@@ -1561,9 +1561,9 @@ def shell(command, display=False, ignore_notfound=False):
                 "Cannot execute %s: %s" % (command.split(' ')[0], exc))
 
     if isinstance(stdout, binary_type):
-        stdout = stdout.decode("utf-8")
+        stdout = stdout.decode('utf-8', 'replace')
     if isinstance(stderr, binary_type):
-        stderr = stderr.decode("utf-8")
+        stderr = stderr.decode('utf-8', 'replace')
 
     # TODO: Add support for printing while command executes, like with 'tee'
     if display:

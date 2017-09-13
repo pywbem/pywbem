@@ -203,7 +203,6 @@ Bug fixes
 
 * Fix minor doc issue in client.rst. See issue #740.
 
-
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -227,6 +226,9 @@ Build, test, quality
   created it. That bypasses the checks in its ``__init__()`` method.
   This has been improved to pass these values in when creating the object.
 
+* Tolerated incorrect Unicode characters in output of commands invoked by
+  ``os_setup.py`` (used for installation) that sometimes occurred on Windows
+  (e.g. on the Appveyor CI with Python 3).
 
 Documentation
 ^^^^^^^^^^^^^
