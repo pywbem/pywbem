@@ -294,9 +294,9 @@ class BaseOperationRecorder(object):
             existing file.  if 'a' is used, the data is appended to any
             existing file.
 
-          Example:
+        Example::
 
-            recorder = TestClientRecorder(open_file('recorder.log')
+            recorder = TestClientRecorder(open_file('recorder.log'))
         """
         if six.PY2:
             # Open with codecs to define text mode
@@ -452,17 +452,15 @@ class LogOperationRecorder(BaseOperationRecorder):
     """
     def __init__(self, max_log_entry_size=None):
         """
-        Create the the loggers for the following logging names
-
-        1. LOG_OPS_CALLS - logs operations calls and responses
-        2. LOG_HTTP - Logs http/xml requests and responses
+        Creates the the loggers and sets the max_log_size for each if
+        the input parameter max_log_entry_size is not `None`.
 
         Parameters: (:term:`integer`)
 
-        max_log_entry_size (:term:`integer`)
-        The maximum size of each log entry. This is primarily to limit
-        reqsponse sizes since they could be enormous.
-        If `None`, no size limit and the full request or response is logged.
+          max_log_entry_size(:term:`integer`)
+            The maximum size of each log entry. This is primarily to limit
+            response sizes since they could be enormous.
+            If `None`, no size limit and the full request or response is logged.
 
 
         """
@@ -523,6 +521,8 @@ class LogOperationRecorder(BaseOperationRecorder):
             return_name = 'Return' if ret else 'Exception'
             if ret:
                 # test if type is namedtuple
+                # (subclass of tuple but not type tuple)
+                # pylint: disable=unidiomatic-typecheck
                 if isinstance(ret, tuple) and type(ret) is not tuple:
                     result = '%r' % (ret,)
                 else:
@@ -622,16 +622,17 @@ class TestClientRecorder(BaseOperationRecorder):
         """
         Parameters:
 
-        fp (file):
-          An open file that each test case will be written to.  This file
-          should have been opened in text mode.
+          fp (file):
+            An open file that each test case will be written to.  This file
+            should have been opened in text mode.
 
-          Since there are differences between python 2 and 3 in opening
-          files in text mode, the static method
-          open__file(filename) can be used to open the file.
+            Since there are differences between python 2 and 3 in opening
+            files in text mode, the static method
+            open_file(filename) can be used to open the file.
 
-        Example:
-          recorder = TestClientRecorder(open_file('recorder.log')
+        Example::
+
+          recorder = TestClientRecorder(open_file('recorder.log'))
         """
         super(TestClientRecorder, self).__init__()
         self._fp = fp
