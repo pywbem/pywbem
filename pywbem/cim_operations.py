@@ -510,7 +510,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     The method to activate has therefore change. To activate a recorder you must
     use the WBEM connection method:
 
-        `:class:`~pywbem.add_operation_recorder`
+        :class:`~pywbem.add_operation_recorder`
 
     The methods of this class may raise the following exceptions:
 
@@ -951,7 +951,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def operation_recorder_enabled(self):
         """
-        :class:`py:bool`: Operation recorder enablement status for connection.
+        Operation recorder enablement status for connection.
 
         This is a writeable property; setting this property will change the
         operation recorder enablement status accordingly for all active
@@ -963,7 +963,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         `True`. Otherwise it returns `False`.
 
         Parameters:
-          value (:term:`boolean`)
+          value (:class:`py:bool`)
             Enablement state to which all active recorders are set.
 
         **Experimental:** This property is experimental for this release.
@@ -1949,7 +1949,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @staticmethod
     def _get_rslt_params(result, namespace):
         """Common processing for pull results to separate
-           end-of-sequence, enum-context, and endities in IRETURNVALUE.
+           end-of-sequence, enum-context, and entities in IRETURNVALUE.
            Returns tuple of entities in IRETURNVALUE, end_of_sequence,
            and enumeration_context)
         """

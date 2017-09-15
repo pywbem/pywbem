@@ -28,7 +28,7 @@ from pywbem import LogOperationRecorder as _LogOperationRecorder
 from pywbem import PywbemLoggers, WBEMConnection
 
 # used to build result tuple for test
-from pywbem.cim_operations import pull_path_result_tuple
+from pywbem.cim_operations import pull_path_result_tuple, pull_inst_result_tuple
 
 # test outpuf file for the recorder tests.  This is opened for each
 # test to save yaml output and may be reloaded during the same test
@@ -864,11 +864,52 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  'Return: EnumerateInstances:test_id([CIMInstan...)'))
 
     @log_capture()
-    def test_openenuminstances_result(self, lc):
+    def test_enuminstancenames_result(self, lc):
         """Test the ops result log for enumerate instances"""
 
         # set recorder to limit response to length of 10
         self.recorder_setup(10)
+
+        self.test_recorder.stage_pywbem_args(
+            method='EnumerateInstanceNames',
+            ClassName='CIM_Foo',
+            LocalOnly=True,
+            IncludeQualifiers=True,
+            IncludeClassOrigin=True,
+            PropertyList=['propertyblah', 'blah2'])
+
+        exc = None
+        instance_name = self.create_ciminstancename()
+        self.test_recorder.stage_pywbem_result([instance_name, instance_name],
+                                               exc)
+
+        if VERBOSE:
+            print(lc)
+
+        if six.PY2:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Request: EnumerateInstanceNames:test_id(ClassName='CIM_Foo', "
+                 "IncludeClassOrigin=True, IncludeQualifiers=True, "
+                 "LocalOnly=True, PropertyList=['propertyblah', 'blah2'])"),
+                ('pywbem.ops', 'DEBUG',
+                 'Return: EnumerateInstanceNames:test_id([CIMInstan...)'))
+        else:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Request: EnumerateInstanceNames:test_id(ClassName='CIM_Foo', "
+                 'IncludeClassOrigin=True, IncludeQualifiers=True, '
+                 'LocalOnly=True, '
+                 "PropertyList=['propertyblah', 'blah2'])"),
+                ('pywbem.ops', 'DEBUG',
+                 'Return: EnumerateInstanceNames:test_id([CIMInstan...)'))
+
+    @log_capture()
+    def test_openenuminstances_result_all(self, lc):
+        """Test the ops result log for enumerate instances"""
+
+        # set recorder to limit response to length of 10
+        self.recorder_setup()
 
         self.test_recorder.stage_pywbem_args(
             method='OpenEnumerateInstances',
@@ -878,9 +919,14 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
             IncludeClassOrigin=True,
             PropertyList=['propertyblah'])
 
-        instance = self.create_ciminstance()
+        # instance = self.create_ciminstance()
         exc = None
-        self.test_recorder.stage_pywbem_result([instance, instance], exc)
+
+        result = []
+        context = ('test_rtn_context', 'root/blah')
+        result_tuple = pull_inst_result_tuple(result, False, context)
+
+        self.test_recorder.stage_pywbem_result(result_tuple, exc)
 
         if VERBOSE:
             print(lc)
@@ -892,7 +938,9 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "IncludeClassOrigin=True, IncludeQualifiers=True, "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ('pywbem.ops', 'DEBUG',
-                 'Return: OpenEnumerateInstances:test_id([CIMInstan...)'))
+                 "Return: OpenEnumerateInstances:test_id("
+                 "pull_inst_result_tuple(instances=[], eos=False, "
+                 "context=('test_rtn_context', 'root/blah')))"))
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
@@ -902,7 +950,9 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "PropertyList=['propertyblah'])"),
 
                 ('pywbem.ops', 'DEBUG',
-                 'Return: OpenEnumerateInstances:test_id([CIMInstan...)'))
+                 "Return: OpenEnumerateInstances:test_id("
+                 "pull_inst_result_tuple(instances=[], eos=False, "
+                 "context=('test_rtn_context', 'root/blah')))"))
 
 
 if __name__ == '__main__':

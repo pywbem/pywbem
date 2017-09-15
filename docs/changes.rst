@@ -125,7 +125,7 @@ Enhancements
 
 * Made sure that ``repr()`` on CIM objects produces a reliable order of
   items such as properties, qualifiers, methods, parameters, scopes, by
-  ordering them by their names. This makes debugging using ``repr()`´ easier
+  ordering them by their names. This makes debugging using ``repr()`` easier
   for pywbem users, and it also helps in some unit test cases of pywbem itself.
 
 * Made sure that ``str()`` on ``CIMInstanceName`` produces reliable order of

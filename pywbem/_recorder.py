@@ -519,7 +519,11 @@ class LogOperationRecorder(BaseOperationRecorder):
         if self.enabled:
             return_name = 'Return' if ret else 'Exception'
             if ret:
-                result = '%r' % ret
+                # test if type is namedtuple
+                if isinstance(ret, tuple) and type(ret) is not tuple:
+                    result = '%r' % (ret,)
+                else:
+                    result = '%r' % ret
             else:
                 result = '%s(%s)' % (exc.__class__.__name__, exc)
 

@@ -98,7 +98,7 @@ A single recorder can be  be disabled with
 :meth:`~pywbem.BaseOperationRecorder.enable` method.
 
 The logger names for the operations and http loggers must be
-defined using  the :class:`~pywbem:`PywbemLoggers` class to
+defined using  the :class:~pywbem.`PywbemLoggers` class to
 define usable loggers because the pywbem loggers include logging attributes in
 addition to the standard python logger attributes.  This is done with the
 method :meth:`~pywbem.PywbemLoggers.create_logger` which defines one or more
@@ -124,10 +124,8 @@ adding activating the LogOperationRecorder in WBEMConnection.
 
     # Create the connection and enable the logger
     conn = WBEMConnection(...)
-    logging = LogOperationRecorder()
-    add_operations_recorder(LogOperationRecorder())
+    conn.add_operation_recorder(LogOperationRecorder())
     # The LogOperationRecorder is now active and writing logs to stderr.
-    # To enable writing logs
 
 The following example activates and enables both recorders:
 
@@ -137,16 +135,16 @@ The following example activates and enables both recorders:
     logger.setLevel(logging.DEBUG)
     PywbemLoggers.create_logger('log')   # define only the log logger
     conn = WBEMConnection(...)
-    add_operations_recorder(LogOperationRecorder())
+    log_recorder = LogOperationRecorder()
+    conn.add_operation_recorder(log_recorder)
     yamlfp = TestClientRecorder.open_file(self.yamlfile, 'a')
-    add_operations_recorder(TestClientRecorder(yamlfp))
+    conn.add_operation_recorder(TestClientRecorder(yamlfp))
 
     # Both TestClientRecorder and LogOperationRecorder are be
     # active, enabled and recording
-    # To change the enabled state of either, use the enabled/disabled
+    # To change the enabled state of either recorder, use the enabled/disabled
     # methods of the Recorder
-
-    logging.disable()   # disables recording to the log
+    log_recorder.disable()   # disables recording to the log
 
 Activated loggers can be computing-wise expensive so it is best not to activate
 either logger unless they are to be used for that specific WBEMConnection.
