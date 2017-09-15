@@ -285,14 +285,17 @@ class BaseOperationRecorder(object):
         done differently in pythong 2 and python 3
 
         Parameters:
-          filename: (:term: `string`):
+
+          filename(:term:`string`):
             Name of the file where the recorder output will be written
-          file_mode: (:term: `string`):
+
+          file_mode(:term:`string`):
             Optional file mode.  The default is 'w' which overwrites any
             existing file.  if 'a' is used, the data is appended to any
             existing file.
 
           Example:
+
             recorder = TestClientRecorder(open_file('recorder.log')
         """
         if six.PY2:

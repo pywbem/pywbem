@@ -6026,7 +6026,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          context (:term: `string`)
+          context (:term:`string`)
             The `enumeration_context` paramater must contain the
             `Context` value returned by the WBEM server with the
             response to the previous open or pull operation for this

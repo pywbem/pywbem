@@ -364,7 +364,7 @@ def get_logger(logger_name):
     hierarchy, and therefore causes this package to be silent by default.
 
     Parameters
-        logger_name(:term:`string)
+        logger_name(:term:`string`)
             Name of the logger which must be one of the named defined in
             pywbem for loggers used by pywbem.  These names are structured
             as prefix . <log_component>
