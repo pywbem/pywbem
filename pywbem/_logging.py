@@ -158,7 +158,6 @@ class PywbemLoggers(six.with_metaclass(MetaPywbemLoggers)):
 
     **Experimental:** The logging support is experimental for this release.
     """
-    __metaclass__ = MetaPywbemLoggers
 
     @classmethod
     def create_loggers(cls, input_str, log_filename=None):
