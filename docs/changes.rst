@@ -77,6 +77,9 @@ Build, test, quality
 * Pinned the version of the ``wheel`` package to <0.30.0 for Python 2.6,
   because wheel removed Python 2.6 support in its 0.30.0 version.
 
+* Improved the build process to ensure that half-built artefacts are
+  removed before building (issue #754).
+
 Documentation
 ^^^^^^^^^^^^^
 
