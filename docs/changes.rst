@@ -51,6 +51,10 @@ Bug fixes
 
 * Fixed names of Python development packages for SLES/OpenSUSE.
 
+* Fixed that older versions of pip and setuptools failed or were
+  rejected on some older Linux distros during make develop or make install,
+  by upgrading them in these steps. See issues #759 and #760.
+
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 
