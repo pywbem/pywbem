@@ -237,6 +237,9 @@ Build, test, quality
   ``os_setup.py`` (used for installation) that sometimes occurred on Windows
   (e.g. on the Appveyor CI with Python 3).
 
+* Improved the build process to ensure that half-built artefacts are
+  removed before building (issue #754).
+
 Documentation
 ^^^^^^^^^^^^^
 
