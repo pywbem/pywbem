@@ -645,7 +645,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               Use HTTP to port 5988 to host 2001:db8::1234 (a link-local IPv6
               address) using zone identifier eth0
 
-          creds (:class:`py:tuple` of userid, password):
+          creds (:func:`py:tuple` of userid, password):
             Credentials for HTTP authenticatiion with the WBEM server, as a
             tuple(userid, password), with:
 
@@ -3846,7 +3846,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 server has closed the enumeration session.
               - If `False`, the enumeration session is not exhausted.
 
-            * **context** (:class:`py:tuple` of server_context, namespace):
+            * **context** (:func:`py:tuple` of server_context, namespace):
               Identifies the opened enumeration session. The client must
               provide this value for subsequent operations on this
               enumeration session.
@@ -4113,7 +4113,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 server has closed the enumeration session.
               - If `False`, the enumeration session is not exhausted.
 
-            * **context** (:class:`py:tuple` of server_context, namespace):
+            * **context** (:func:`py:tuple` of server_context, namespace):
               Identifies the opened enumeration session. The client must
               provide this value for subsequent operations on this
               enumeration session.
@@ -4342,7 +4342,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 server has closed the enumeration session.
               - If `False`, the enumeration session is not exhausted.
 
-            * **context** (:class:`py:tuple` of server_context, namespace):
+            * **context** (:func:`py:tuple` of server_context, namespace):
               Identifies the opened enumeration session. The client must
               provide this value for subsequent operations on this
               enumeration session.
@@ -4595,7 +4595,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 server has closed the enumeration session.
               - If `False`, the enumeration session is not exhausted.
 
-            * **context** (:class:`py:tuple` of server_context, namespace):
+            * **context** (:func:`py:tuple` of server_context, namespace):
               Identifies the opened enumeration session. The client must
               provide this value for subsequent operations on this
               enumeration session.
@@ -4833,7 +4833,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 server has closed the enumeration session.
               - If `False`, the enumeration session is not exhausted.
 
-            * **context** (:class:`py:tuple` of server_context, namespace):
+            * **context** (:func:`py:tuple` of server_context, namespace):
               Identifies the opened enumeration session. The client must
               provide this value for subsequent operations on this
               enumeration session.
@@ -5105,7 +5105,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 server has closed the enumeration session.
               - If `False`, the enumeration session is not exhausted.
 
-            * **context** (:class:`py:tuple` of server_context, namespace):
+            * **context** (:func:`py:tuple` of server_context, namespace):
               Identifies the opened enumeration session. The client must
               provide this value for subsequent operations on this
               enumeration session.
@@ -5310,7 +5310,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 server has closed the enumeration session.
               - If `False`, the enumeration session is not exhausted.
 
-            * **context** (:class:`py:tuple` of server_context, namespace):
+            * **context** (:func:`py:tuple` of server_context, namespace):
               Identifies the opened enumeration session. The client must
               provide this value for subsequent operations on this
               enumeration session.
@@ -5483,7 +5483,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 server has closed the enumeration session.
               - If `False`, the enumeration session is not exhausted.
 
-            * **context** (:class:`py:tuple` of server_context, namespace):
+            * **context** (:func:`py:tuple` of server_context, namespace):
               Identifies the opened enumeration session. The client must
               provide this value for subsequent operations on this
               enumeration session.
@@ -5623,7 +5623,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 server has closed the enumeration session.
               - If `False`, the enumeration session is not exhausted.
 
-            * **context** (:class:`py:tuple` of server_context, namespace):
+            * **context** (:func:`py:tuple` of server_context, namespace):
               Identifies the opened enumeration session. The client must
               provide this value for subsequent operations on this
               enumeration session.
@@ -5759,7 +5759,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 server has closed the enumeration session.
               - If `False`, the enumeration session is not exhausted.
 
-            * **context** (:class:`py:tuple` of server_context, namespace):
+            * **context** (:func:`py:tuple` of server_context, namespace):
               Identifies the opened enumeration session. The client must
               provide this value for subsequent operations on this
               enumeration session.
@@ -6624,7 +6624,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace, or `None` if the server did not return host
                 information.
 
-            * For class-level usage: A list of :class:`py:tuple` of
+            * For class-level usage: A list of :func:`py:tuple` of
               (classpath, class) objects that are representations of the
               associated classes.
 
@@ -6954,7 +6954,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace, or `None` if the server did not return host
                 information.
 
-            * For class-level usage: A list of :class:`py:tuple` of
+            * For class-level usage: A list of :func:`py:tuple` of
               (classpath, class) objects that are representations of the
               referencing association classes.
 
@@ -7108,7 +7108,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-            A :class:`py:tuple` of (returnvalue, outparams), with these
+            A :func:`py:tuple` of (returnvalue, outparams), with these
             tuple items:
 
             * returnvalue (:term:`CIM data type`):
