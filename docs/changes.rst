@@ -74,6 +74,9 @@ Build, test, quality
   ``os_setup.py`` (used for installation) that sometimes occurred on Windows
   (e.g. on the Appveyor CI with Python 3).
 
+* Pinned the version of the ``wheel`` package to <0.30.0 for Python 2.6,
+  because wheel removed Python 2.6 support in its 0.30.0 version.
+
 Documentation
 ^^^^^^^^^^^^^
 
