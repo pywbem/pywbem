@@ -36,6 +36,9 @@ from pywbem.cim_operations import pull_path_result_tuple, pull_inst_result_tuple
 TEST_YAML_FILE = 'test_recorder.yaml'
 SCRIPT_DIR = os.path.dirname(__file__)
 
+LOG_FILE_NAME = 'test_recorder.log'
+TEST_OUTPUT_LOG = '%s/%s' % (SCRIPT_DIR, LOG_FILE_NAME)
+
 VERBOSE = False
 
 
@@ -488,7 +491,11 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
         """ Setup recorder instance including defining output file"""
 
         PywbemLoggers.create_logger('ops', 'file',
-                                    log_filename='TEST_OUTPUT_LOG',
+                                    log_filename=TEST_OUTPUT_LOG,
+                                    log_detail_level='min')
+
+        PywbemLoggers.create_logger('http', 'file',
+                                    log_filename=TEST_OUTPUT_LOG,
                                     log_detail_level='min')
 
     def recorder_setup(self, max_log_entry_size=None):
@@ -520,7 +527,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         self.test_recorder.reset()
         self.test_recorder.enable()
-        # we must fake the connection to create a fixed data environment
+        # Fake the connection to create a fixed data environment
         conn = WBEMConnection('http://blah')
         conn.conn_id = '%s-%s' % (22, "1234:34")
         self.test_recorder.stage_wbem_connection(conn)
