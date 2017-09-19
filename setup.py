@@ -360,7 +360,8 @@ def main():
         ],
         'develop_requires': [
             # Wheel may not be installed in every system Python.
-            'wheel',
+            # Wheel 0.30.0 removed Python 2.6 support.
+            'wheel<0.30.0' if sys.version_info[0:2] == (2, 6) else 'wheel',
             # Python prereqs for 'develop' command. Handled by os_setup module.
             "coverage>=4.3",
             "pytest>=2.4",
