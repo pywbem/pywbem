@@ -16,8 +16,8 @@
 # Optional environment ariables/command line variables
 #   PYWBEM_COVERAGE_REPORT - When set, forces coverage to create temporary
 #   annotated html output html files showing lines covered and missed
-#   See the directory coverage_html for the html output. 
-# 
+#   See the directory coverage_html for the html output.
+#
 # ------------------------------------------------------------------------------
 
 # Determine OS platform make runs on
@@ -40,7 +40,7 @@ ifdef PYWBEM_COVERAGE_REPORT
 else
   coverage_report :=
 endif
-# directory for coverage html output. 
+# directory for coverage html output.
 coverage_html_dir := coverage_html
 
 # Package version as specified in pywbem/_version.py
@@ -316,8 +316,10 @@ MANIFEST.in: makefile
 # Distribution archives.
 # Note: Deleting MANIFEST causes distutils (setup.py) to read MANIFEST.in and to
 # regenerate MANIFEST. Otherwise, changes in MANIFEST.in will not be used.
+# Note: Deleting build is a safeguard against picking up partial build products
+# which can lead to incorrect hashbangs in the pywbem scripts in wheel archives.
 $(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
-	rm -rf MANIFEST $(package_name).egg-info .eggs
+	rm -rf MANIFEST $(package_name).egg-info .eggs build
 	python setup.py sdist -d $(dist_dir) bdist_wheel -d $(dist_dir) --universal
 	@echo 'Done: Created distribution files: $@'
 
