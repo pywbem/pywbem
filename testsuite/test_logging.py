@@ -53,6 +53,8 @@ class BaseLoggingTests(unittest.TestCase):
 
     def tearDown(self):
         LogCapture.uninstall_all()
+        if os.path.isfile(TEST_OUTPUT_LOG):
+            os.remove(TEST_OUTPUT_LOG)
 
 
 class TestLogParse(BaseLoggingTests):

@@ -1085,15 +1085,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         else:
             x509_repr = "None"
 
-        return "%s(url=%r, creds=%s, " \
+        return "%s(url=%r, creds=%s, conn_id=%s, " \
                "default_namespace=%r, x509=%s, verify_callback=%r, " \
                "ca_certs=%r, no_verification=%r, timeout=%r, " \
-               "use_pull_operations=%r, stats=%r, recorder=%r)" % \
-               (self.__class__.__name__, self.url, creds_repr,
+               "use_pull_operations=%r, stats=%r, recorders=%r)" % \
+               (self.__class__.__name__, self.url, creds_repr, self.conn_id,
                 self.default_namespace, x509_repr, self.verify_callback,
                 self.ca_certs, self.no_verification, self.timeout,
                 self.use_pull_operations, self.statistics,
-                self.operation_recorder)
+                self._operation_recorders)
 
     def add_operation_recorder(self, operation_recorder_object):
         # pylint: disable=line-too-long
@@ -1225,7 +1225,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 no_verification=self.no_verification,
                 timeout=self.timeout,
                 debug=self.debug,
-                recorder=self.operation_recorder)
+                recorders=self._operation_recorders,
+                conn_id=self.conn_id)
             self.last_reply_len = len(reply_xml)
         except (AuthError, ConnectionError, TimeoutError, Error):
             raise
@@ -1473,7 +1474,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 no_verification=self.no_verification,
                 timeout=self.timeout,
                 debug=self.debug,
-                recorder=self.operation_recorder)
+                recorders=self._operation_recorders,
+                conn_id=self.conn_id)
             self.last_reply_len = len(reply_xml)
         except (AuthError, ConnectionError, TimeoutError, Error):
             raise
@@ -4100,8 +4102,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 self.last_request_len, self.last_reply_len,
                 self.last_server_response_time, exc)
             if self._operation_recorders:
-                self.operation_recorder.stage_pywbem_result(result_tuple, exc)
-                self.operation_recorder.record_staged()
+                self.operation_recorder_stage_result(result_tuple, exc)
 
     def OpenEnumerateInstances(self, ClassName, namespace=None, LocalOnly=None,
                                DeepInheritance=None, IncludeQualifiers=None,
@@ -4383,8 +4384,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 self.last_request_len, self.last_reply_len,
                 self.last_server_response_time, exc)
             if self._operation_recorders:
-                self.operation_recorder.stage_pywbem_result(result_tuple, exc)
-                self.operation_recorder.record_staged()
+                self.operation_recorder_stage_result(result_tuple, exc)
 
     def OpenReferenceInstancePaths(self, InstanceName, ResultClass=None,
                                    Role=None,

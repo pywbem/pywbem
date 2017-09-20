@@ -57,8 +57,9 @@ from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError
 _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
 if six.PY2 and not _ON_RTD:  # RTD has no swig to install M2Crypto
-    from M2Crypto import SSL           # pylint: disable=wrong-import-order
-    from M2Crypto.Err import SSLError  # pylint: disable=wrong-import-order
+    # pylint: disable=wrong-import-order
+    from M2Crypto import SSL           # pylint: disable=wrong-import-position
+    from M2Crypto.Err import SSLError  # pylint: disable=wrong-import-position
     _HAVE_M2CRYPTO = True
     # pylint: disable=invalid-name
     SocketErrors = (socket.error, socket.sslerror)
@@ -342,7 +343,8 @@ def get_default_ca_certs():
 # pylint: disable=too-many-branches,too-many-statements,too-many-arguments
 def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                  verify_callback=None, ca_certs=None,
-                 no_verification=False, timeout=None, recorder=None):
+                 no_verification=False, timeout=None, recorders=None,
+                 conn_id=None):
     # pylint: disable=too-many-arguments,unused-argument
     # pylint: disable=too-many-locals
     """
@@ -408,9 +410,13 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
         Note that not all situations can be handled within this timeout, so
         for some issues, this method may take longer to raise an exception.
 
-      recorder (:class:`~pywbem.BaseOperationRecorder`):
-        Operation recorder, into which the HTTP request and HTTP response will
-        be staged as attributes.
+      recorders (List of :class:`~pywbem.BaseOperationRecorder`):
+        List of enabled operation recorders, into which the HTTP request and
+        HTTP response will be staged as attributes.
+
+      conn_id (:term:`string`)
+        string that uniquely defines a connection.  Used as part of any
+        logs created.
 
     Returns:
         Tuple containing:
@@ -731,13 +737,15 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
         header_tuples.append((urllib.parse.quote(hdr_pieces[0]),
                               urllib.parse.quote(hdr_pieces[1])))
 
-    if recorder:
-        recorder.stage_http_request(11, url, target, method,
-                                    dict(header_tuples), data)
-        # We want clean response data when an exception is raised before
-        # the HTTP response comes in:
-        recorder.stage_http_response1(None, None, None, None)
-        recorder.stage_http_response2(None)
+    if recorders:
+        for recorder in recorders:
+            recorder.stage_http_request(conn_id, 11, url, target, method,
+                                        dict(header_tuples), data)
+
+            # We want clean response data when an exception is raised before
+            # the HTTP response comes in:
+            recorder.stage_http_response1(conn_id, None, None, None, None)
+            recorder.stage_http_response2(None)
 
     with HTTPTimeout(timeout, client):
 
@@ -793,12 +801,14 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                     except ValueError:
                         pass
 
-                if recorder:
-                    recorder.stage_http_response1(
-                        response.version,
-                        response.status,
-                        response.reason,
-                        dict(response.getheaders()))
+                if recorders:
+                    for recorder in recorders:
+                        recorder.stage_http_response1(
+                            conn_id,
+                            response.version,
+                            response.status,
+                            response.reason,
+                            dict(response.getheaders()))
 
                 if response.status != 200:
                     if response.status == 401:
@@ -885,8 +895,9 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
 
                 body = response.read()
 
-                if recorder:
-                    recorder.stage_http_response2(body)
+                if recorders:
+                    for recorder in recorders:
+                        recorder.stage_http_response2(body)
 
             except httplib.BadStatusLine as exc:
                 # Background: BadStatusLine is documented to be raised only

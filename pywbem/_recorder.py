@@ -282,7 +282,7 @@ class BaseOperationRecorder(object):
         A static convience function that performs the open of the recorder file
         correctly for different versions of python.  This covers the
         issue where the file should be opened in text mode but that is
-        done differently in pythong 2 and python 3
+        done differently in python 2 and python 3
 
         Parameters:
 
@@ -296,7 +296,8 @@ class BaseOperationRecorder(object):
 
         Example::
 
-            recorder = TestClientRecorder(open_file('recorder.log'))
+            recorder = TestClientRecorder(
+                BaseOperationRecorder.open_file('recorder.log'))
         """
         if six.PY2:
             # Open with codecs to define text mode
@@ -354,19 +355,22 @@ class BaseOperationRecorder(object):
         self._pywbem_result_ret = ret
         self._pywbem_result_exc = exc
 
-    def stage_http_request(self, version, url, target, method, headers,
+    def stage_http_request(self, conn_id, version, url, target, method, headers,
                            payload):
         """Set request HTTP information including url, headers, etc."""
         # pylint: disable=attribute-defined-outside-init
         self._http_request_version = version
+        self._http_request_conn_id = conn_id
         self._http_request_url = url
         self._http_request_target = target
         self._http_request_method = method
         self._http_request_headers = headers
         self._http_request_payload = payload
 
-    def stage_http_response1(self, version, status, reason, headers):
-        """Set response http info including headers, status, etc. """
+    # pylint: disable=unused-argument
+    def stage_http_response1(self, conn_id, version, status, reason, headers):
+        """Set response http info including headers, status, etc.
+           conn_id unused here. Used in log"""
         # pylint: disable=attribute-defined-outside-init
         self._http_response_version = version
         self._http_response_status = status
@@ -501,13 +505,13 @@ class LogOperationRecorder(BaseOperationRecorder):
         """
         # pylint: disable=attribute-defined-outside-init
         self._pywbem_method = method
-        if self.enabled:
+        if self.enabled and self.opslogger.isEnabledFor(logging.DEBUG):
             # Order kwargs.  Note that this is done automatically starting
             # with python 3.6
             kwstr = ', '.join([('{0}={1!r}'.format(key, kwargs[key]))
                                for key in sorted(six.iterkeys(kwargs))])
 
-            self.opslogger.debug('Request: %s:%s(%s)', method, self._conn_id,
+            self.opslogger.debug('Request:%s %s(%s)', self._conn_id, method,
                                  kwstr)
 
     def stage_pywbem_result(self, ret, exc):
@@ -517,13 +521,12 @@ class LogOperationRecorder(BaseOperationRecorder):
         information can be very large
         .
         """
-        if self.enabled:
-            return_name = 'Return' if ret else 'Exception'
+        if self.enabled and self.opslogger.isEnabledFor(logging.DEBUG):
             if ret:
-                # test if type is namedtuple
+                # test if type is tuple
                 # (subclass of tuple but not type tuple)
                 # pylint: disable=unidiomatic-typecheck
-                if isinstance(ret, tuple) and type(ret) is not tuple:
+                if isinstance(ret, tuple):
                     result = '%r' % (ret,)
                 else:
                     result = '%r' % ret
@@ -533,28 +536,36 @@ class LogOperationRecorder(BaseOperationRecorder):
             if self.ops_max_log_size and (len(result) > self.ops_max_log_size):
                 result = (result[:self.ops_max_log_size] + '...')
 
-            self.opslogger.debug('%s: %s:%s(%s)', return_name,
-                                 self._pywbem_method, self._conn_id,
+            return_type = 'Return' if ret else 'Exception'
+            self.opslogger.debug('%s:%s %s(%s)', return_type, self._conn_id,
+                                 self._pywbem_method,
                                  result)
 
-    def stage_http_request(self, version, url, target, method, headers,
+    def stage_http_request(self, conn_id, version, url, target, method, headers,
                            payload):
         """Log request HTTP information including url, headers, etc."""
-        if self.enabled:
+        if self.enabled and self.httplogger.isEnabledFor(logging.DEBUG):
             # pylint: disable=attribute-defined-outside-init
+            # if Auth header, mask data
+            if 'Authorization' in headers:
+                authtype, cred = headers['Authorization'].split(' ')
+                headers['Authorization'] = '%s %s' % (authtype, 'X' * len(cred))
+
             header_str = ' '.join('{0}:{1!r}'.format(k, v)
                                   for k, v in headers.items())
-            self.httplogger.debug('Request: %s:%s:%s %s %s\n%s\n%s',
-                                  method, url, self._conn_id, target, version,
+
+            self.httplogger.debug('Request:%s %s %s %s %s %s\n    %s',
+                                  conn_id, method, target, version, url,
                                   header_str, payload)
 
-    def stage_http_response1(self, version, status, reason, headers):
+    def stage_http_response1(self, conn_id, version, status, reason, headers):
         """Set response http info including headers, status, etc. """
         # pylint: disable=attribute-defined-outside-init
         self._http_response_version = version
         self._http_response_status = status
         self._http_response_reason = reason
         self._http_response_headers = headers
+        self._http_response_conn_id = conn_id
 
     def stage_http_response2(self, payload):
         """Log complete http response, including response1 and payload"""
@@ -563,7 +574,7 @@ class LogOperationRecorder(BaseOperationRecorder):
         # parameters. We ignore that
         if not self._http_response_version and not payload:
             return
-        if self.enabled:
+        if self.enabled and self.httplogger.isEnabledFor(logging.DEBUG):
             if self._http_response_headers:
                 header_str = \
                     ' '.join('{0}:{1!r}'.format(k, v)
@@ -577,10 +588,10 @@ class LogOperationRecorder(BaseOperationRecorder):
                     (len(payload) > self.http_max_log_size):
                 payload = (payload[:self.http_max_log_size] + '...')
 
-            self.httplogger.debug('Response: %s:%s:%s %s\n%s\n%s',
+            self.httplogger.debug('Response:%s %s:%s %s %s\n    %s',
+                                  self._http_response_conn_id,
                                   self._http_response_status,
                                   self._http_response_reason,
-                                  self._conn_id,
                                   self._http_response_version,
                                   header_str,
                                   payload)
@@ -628,11 +639,16 @@ class TestClientRecorder(BaseOperationRecorder):
 
             Since there are differences between python 2 and 3 in opening
             files in text mode, the static method
-            open_file(filename) can be used to open the file.
+            :meth:`~pywbem.BaseOperationRecorder.open_file`
+            can be used to open the file or python 2/3 compatible open::
+
+              from io import open
+                  f = open('blah.log', encoding='utf-8')
 
         Example::
 
-          recorder = TestClientRecorder(open_file('recorder.log'))
+          recorder = TestClientRecorder(
+              BaseOperationRecorder.open_file('recorder.log'))
         """
         super(TestClientRecorder, self).__init__()
         self._fp = fp

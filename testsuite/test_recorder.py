@@ -512,6 +512,8 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
     def tearDown(self):
         """Remove LogCapture."""
         LogCapture.uninstall_all()
+        if os.path.isfile(TEST_OUTPUT_LOG):
+            os.remove(TEST_OUTPUT_LOG)
 
 
 class LogOperationRecorderTests(BaseLogOperationRecorderTests):
@@ -536,10 +538,11 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         lc.check(
             ("pywbem.ops", "DEBUG",
              "Connection: WBEMConnection(url='http://blah', creds=None, "
+             "conn_id=22-1234:34, "
              "default_namespace='root/cimv2', x509=None, verify_callback=None, "
              'ca_certs=None, no_verification=False, timeout=None, '
              'use_pull_operations=False, stats=Statistics(\n'
-             '), recorder=None)'),)
+             '), recorders=[])'),)
 
     @log_capture()
     def test_create_connection2(self, lc):
@@ -565,11 +568,12 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         lc.check((
             "pywbem.ops", "DEBUG",
             "Connection: WBEMConnection(url='http://blah', "
-            "creds=('username', ...), default_namespace='root/blah', "
+            "creds=('username', ...), conn_id=23-1234:34, "
+            "default_namespace='root/blah', "
             "x509='cert_file': 'Certfile.x', 'key_file': 'keyfile.x', "
             "verify_callback=None, ca_certs=None, no_verification=True, "
             "timeout=10, use_pull_operations=True, stats=Statistics(\n), "
-            "recorder=None)"),)
+            "recorders=[])"),)
 
     @log_capture()
     def test_getinstance_args(self, lc):
@@ -597,7 +601,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         if six.PY2:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
                  "classname=u'CIM_Foo', keybindings=NocaseDict("
                  "{'Chicken': 'Ham'}), namespace=u'root/cimv2', "
@@ -607,7 +611,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 'Request: GetInstance:test_id(IncludeClassOrigin=True, '
+                 'Request:test_id GetInstance(IncludeClassOrigin=True, '
                  'IncludeQualifiers=True, '
                  "InstanceName=CIMInstanceName(classname='CIM_Foo', "
                  "keybindings=NocaseDict({'Chicken': 'Ham'}), "
@@ -641,17 +645,17 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         if six.PY2:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
                  "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
                  "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ('pywbem.ops', 'DEBUG',
-                 'Return: GetInstance:test_id(CIMInstanc...)'))
+                 'Return:test_id GetInstance(CIMInstanc...)'))
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 'Request: GetInstance:test_id(IncludeClassOrigin=True, '
+                 'Request:test_id GetInstance(IncludeClassOrigin=True, '
                  'IncludeQualifiers=True, '
                  "InstanceName=CIMInstanceName(classname='CIM_Foo', "
                  "keybindings=NocaseDict({'Chicken': 'Ham'}), "
@@ -659,7 +663,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "host='woot.com'), LocalOnly=True, "
                  "PropertyList=['propertyblah'])"),
                 ('pywbem.ops', 'DEBUG',
-                 'Return: GetInstance:test_id(CIMInstanc...)'))
+                 'Return:test_id GetInstance(CIMInstanc...)'))
 
     @log_capture()
     def test_getinstance_exception(self, lc):
@@ -686,23 +690,23 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         if six.PY2:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
                  "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
                  "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ("pywbem.ops", "DEBUG",
-                 "Exception: GetInstance:test_id(CIMError(6...)"))
+                 "Exception:test_id GetInstance(CIMError(6...)"))
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
                  "classname='CIM_Foo', keybindings=NocaseDict({'Chicken': "
                  "'Ham'}), namespace='root/cimv2', host='woot.com'), "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ("pywbem.ops", "DEBUG",
-                 "Exception: GetInstance:test_id(CIMError(6...)"))
+                 "Exception:test_id GetInstance(CIMError(6...)"))
 
     @log_capture()
     def test_getinstance_exception2(self, lc):
@@ -725,20 +729,20 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         if six.PY2:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request: GetInstance:test_id(InstanceName=CIMInstanceName("
+                 "Request:test_id GetInstance(InstanceName=CIMInstanceName("
                  "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
                  "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'))"),
                 ("pywbem.ops", "DEBUG",
-                 "Exception: GetInstance:test_id("
+                 "Exception:test_id GetInstance("
                  "CIMError(6: Fake CIMError))"))
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request: GetInstance:test_id(InstanceName=CIMInstanceName("
+                 "Request:test_id GetInstance(InstanceName=CIMInstanceName("
                  "classname='CIM_Foo', keybindings=NocaseDict({'Chicken': "
                  "'Ham'}), namespace='root/cimv2', host='woot.com'))"),
                 ("pywbem.ops", "DEBUG",
-                 "Exception: GetInstance:test_id("
+                 "Exception:test_id GetInstance("
                  "CIMError(6: Fake CIMError))"))
 
     @log_capture()
@@ -765,14 +769,14 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         if six.PY2:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request: GetInstance:test_id(IncludeClassOrigin=True, "
+                 "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
                  "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
                  "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ('pywbem.ops',
                  'DEBUG',
-                 "Return: GetInstance:test_id(CIMInstance(classname=u'CIM_Foo'"
+                 "Return:test_id GetInstance(CIMInstance(classname=u'CIM_Foo'"
                  ", path=None, properties=NocaseDict({'Bool': CIMProperty("
                  "name=u'Bool', value=True, type='boolean', reference_class="
                  "None, embedded_object=None, is_array=False, array_size=None,"
@@ -795,7 +799,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 'Request: GetInstance:test_id(IncludeClassOrigin=True, '
+                 'Request:test_id GetInstance(IncludeClassOrigin=True, '
                  'IncludeQualifiers=True, '
                  "InstanceName=CIMInstanceName(classname='CIM_Foo', "
                  "keybindings=NocaseDict({'Chicken': 'Ham'}), "
@@ -803,7 +807,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "host='woot.com'), LocalOnly=True, "
                  "PropertyList=['propertyblah'])"),
                 ("pywbem.ops", "DEBUG",
-                 "Return: GetInstance:test_id(CIMInstance(classname='CIM_Foo',"
+                 "Return:test_id GetInstance(CIMInstance(classname='CIM_Foo',"
                  " path=None, "
                  "properties=NocaseDict({'Bool': CIMProperty(name='Bool', "
                  "value=True, "
@@ -855,20 +859,20 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         if six.PY2:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request: EnumerateInstances:test_id(ClassName='CIM_Foo', "
+                 "Request:test_id EnumerateInstances(ClassName='CIM_Foo', "
                  "IncludeClassOrigin=True, IncludeQualifiers=True, "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ('pywbem.ops', 'DEBUG',
-                 'Return: EnumerateInstances:test_id([CIMInstan...)'))
+                 'Return:test_id EnumerateInstances([CIMInstan...)'))
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request: EnumerateInstances:test_id(ClassName='CIM_Foo', "
+                 "Request:test_id EnumerateInstances(ClassName='CIM_Foo', "
                  'IncludeClassOrigin=True, IncludeQualifiers=True, '
                  'LocalOnly=True, '
                  "PropertyList=['propertyblah'])"),
                 ('pywbem.ops', 'DEBUG',
-                 'Return: EnumerateInstances:test_id([CIMInstan...)'))
+                 'Return:test_id EnumerateInstances([CIMInstan...)'))
 
     @log_capture()
     def test_enuminstancenames_result(self, lc):
@@ -896,20 +900,20 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         if six.PY2:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request: EnumerateInstanceNames:test_id(ClassName='CIM_Foo', "
+                 "Request:test_id EnumerateInstanceNames(ClassName='CIM_Foo', "
                  "IncludeClassOrigin=True, IncludeQualifiers=True, "
                  "LocalOnly=True, PropertyList=['propertyblah', 'blah2'])"),
                 ('pywbem.ops', 'DEBUG',
-                 'Return: EnumerateInstanceNames:test_id([CIMInstan...)'))
+                 'Return:test_id EnumerateInstanceNames([CIMInstan...)'))
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request: EnumerateInstanceNames:test_id(ClassName='CIM_Foo', "
+                 "Request:test_id EnumerateInstanceNames(ClassName='CIM_Foo', "
                  'IncludeClassOrigin=True, IncludeQualifiers=True, '
                  'LocalOnly=True, '
                  "PropertyList=['propertyblah', 'blah2'])"),
                 ('pywbem.ops', 'DEBUG',
-                 'Return: EnumerateInstanceNames:test_id([CIMInstan...)'))
+                 'Return:test_id EnumerateInstanceNames([CIMInstan...)'))
 
     @log_capture()
     def test_openenuminstances_result_all(self, lc):
@@ -941,23 +945,23 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         if six.PY2:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request: OpenEnumerateInstances:test_id(ClassName='CIM_Foo', "
+                 "Request:test_id OpenEnumerateInstances(ClassName='CIM_Foo', "
                  "IncludeClassOrigin=True, IncludeQualifiers=True, "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ('pywbem.ops', 'DEBUG',
-                 "Return: OpenEnumerateInstances:test_id("
+                 "Return:test_id OpenEnumerateInstances("
                  "pull_inst_result_tuple(instances=[], eos=False, "
                  "context=('test_rtn_context', 'root/blah')))"))
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request: OpenEnumerateInstances:test_id(ClassName='CIM_Foo', "
+                 "Request:test_id OpenEnumerateInstances(ClassName='CIM_Foo', "
                  'IncludeClassOrigin=True, IncludeQualifiers=True, '
                  'LocalOnly=True, '
                  "PropertyList=['propertyblah'])"),
 
                 ('pywbem.ops', 'DEBUG',
-                 "Return: OpenEnumerateInstances:test_id("
+                 "Return:test_id OpenEnumerateInstances("
                  "pull_inst_result_tuple(instances=[], eos=False, "
                  "context=('test_rtn_context', 'root/blah')))"))
 
