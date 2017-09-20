@@ -210,6 +210,10 @@ Bug fixes
 
 * Fix minor doc issue in client.rst. See issue #740.
 
+* Fixed that older versions of pip and setuptools failed or were
+  rejected on some older Linux distros during make develop or make install,
+  by upgrading them in these steps. See issues #759 and #760.
+
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 
