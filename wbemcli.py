@@ -60,8 +60,8 @@ from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT, DEFAULT_LOG_DESTINATION
 
-from pywbem import PywbemLoggers, LOG_DESTINATIONS, LOG_DETAIL_LEVELS, \
-    LOG_COMPONENTS, DEFAULT_LOG_DETAIL_LEVEL
+from pywbem._logging import PywbemLoggers, LOG_DESTINATIONS, \
+    LOG_DETAIL_LEVELS, LOG_COMPONENTS, DEFAULT_LOG_DETAIL_LEVEL
 from pywbem import __version__
 
 # Connection global variable. Set by remote_connection and use
@@ -2803,7 +2803,7 @@ def _get_connection_info():
     info += ' stats=%s, ' % ('on' if CONN._statistics else 'off')
 
     # TODO: ks find more complete way to record that we are logging
-    info += 'log=%s, ' % ('on' if CONN.operation_recorder else 'off')
+    info += 'log=%s, ' % ('on' if CONN._operation_recorders else 'off')
 
     return fill(info, 78, subsequent_indent='    ')
 
