@@ -470,6 +470,7 @@ class LogOperationRecorder(BaseOperationRecorder):
         """
         super(LogOperationRecorder, self).__init__()
 
+        # compute max entry size for each logger
         max_sz = max_log_entry_size if max_log_entry_size \
             else DEFAULT_MAX_LOG_ENTRY_SIZE
 
@@ -494,7 +495,8 @@ class LogOperationRecorder(BaseOperationRecorder):
         self._conn_id = wbem_connection.conn_id
 
         if self.enabled:
-            self.opslogger.debug('Connection: %r', wbem_connection)
+            self.opslogger.debug('Connection:%s %r', self._conn_id,
+                                 wbem_connection)
 
     def stage_pywbem_args(self, method, **kwargs):
         """
@@ -521,22 +523,45 @@ class LogOperationRecorder(BaseOperationRecorder):
         information can be very large
         .
         """
+        def format_result(ret, max_len):
+            """ format ret as repr while clipping it to max_len if
+                max_len is not None.
+            """
+            result = '{0!r}'.format(ret)
+            if max_len and (len(result) > max_len):
+                result = (result[:max_len] + '...')
+            return result
+
         if self.enabled and self.opslogger.isEnabledFor(logging.DEBUG):
-            if ret:
-                # test if type is tuple
-                # (subclass of tuple but not type tuple)
+            if exc:  # format exception
+                result = format_result(
+                    '%s(%s)' % (exc.__class__.__name__, exc),
+                    self.ops_max_log_size)
+            else:    # format result
+                # test if type is tuple (subclass of tuple but not type tuple)
                 # pylint: disable=unidiomatic-typecheck
-                if isinstance(ret, tuple):
-                    result = '%r' % (ret,)
+                if isinstance(ret, tuple) and type(ret) is not tuple:
+                    try:    # test if field instances or paths
+                        rtn_data = ret.instances
+                        data_str = 'instances'
+                    except AttributeError:
+                        rtn_data = ret.paths
+                        data_str = 'paths'
+                    rtn_data = format_result(rtn_data, self.ops_max_log_size)
+
+                    try:    # test for query_result_class
+                        qrc = ', query_result_class=%s' % ret.query_result_class
+                    except AttributeError:
+                        qrc = ""
+
+                    result = "{0.__name__}(context={1}, eos={2}{3}, {4}={5})" \
+                        .format(type(ret), ret.context, ret.eos, qrc,
+                                data_str, rtn_data)
                 else:
-                    result = '%r' % ret
-            else:
-                result = '%s(%s)' % (exc.__class__.__name__, exc)
+                    result = format_result(ret, self.ops_max_log_size)
 
-            if self.ops_max_log_size and (len(result) > self.ops_max_log_size):
-                result = (result[:self.ops_max_log_size] + '...')
+            return_type = 'Exception' if exc else 'Return'
 
-            return_type = 'Return' if ret else 'Exception'
             self.opslogger.debug('%s:%s %s(%s)', return_type, self._conn_id,
                                  self._pywbem_method,
                                  result)

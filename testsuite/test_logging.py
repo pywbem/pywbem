@@ -23,6 +23,7 @@ Unit test logging functionality in _logging.py
 from __future__ import absolute_import, print_function
 
 import os
+import logging
 
 # Allows use of lots of single character variable names.
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
@@ -53,6 +54,7 @@ class BaseLoggingTests(unittest.TestCase):
 
     def tearDown(self):
         LogCapture.uninstall_all()
+        logging.shutdown()
         if os.path.isfile(TEST_OUTPUT_LOG):
             os.remove(TEST_OUTPUT_LOG)
 

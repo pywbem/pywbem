@@ -121,6 +121,8 @@ class ClientTest(unittest.TestCase):
         self.enable_stats = True if CLI_ARGS['stats'] else False
         if self.enable_stats:
             self.start_time = time.time()
+        self.log_output_size = 1000
+        self.log_definition = 'all=file:all'
 
         # Set this because python 3 http libs generate many ResourceWarnings
         # and unittest enables these warnings.
@@ -144,10 +146,11 @@ class ClientTest(unittest.TestCase):
         # if log set, enable the logger.
         if self.output_log:
             PywbemLoggers.create_loggers(
-                'all=file:all',
+                self.log_definition,
                 log_filename=RUN_CIM_OPERATIONS_OUTPUT_LOG)
 
-            self.conn.add_operation_recorder(LogOperationRecorder())
+            self.conn.add_operation_recorder(
+                LogOperationRecorder(max_log_entry_size=self.log_output_size))
 
         # enable saving of xml for display
         self.conn.debug = CLI_ARGS['debug']
@@ -6604,14 +6607,17 @@ def parse_args(argv_):
         print('    -l                  Do long running tests. If not set,\n'
               '                        skips a number of tests that take a\n'
               '                        long time to run')
-        print('    --log               Log all operations and http to file.')
+        print('    --log               Log all operations and http to file.\n'
+              '                        run_cim_operations.log.\n'
+              '                        Any existing log is renamed with .bak\n'
+              '                        suffix.')
         print('    -hl                 List of individual tests')
 
         print('')
         print('Examples:')
         print('    %s https://9.10.11.12 username%%password' % argv[0])
-        print('    %s https://myhost -v username%%password' % argv[0])
-        print('    %s http://localhost -v username%%password'
+        print('    %s --log https://myhostusername%%password' % argv[0])
+        print('    %s -v http://localhost username%%password'
               ' GetQualifier' % argv[0])
 
         print('------------------------')

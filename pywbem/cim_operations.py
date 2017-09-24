@@ -1085,15 +1085,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         else:
             x509_repr = "None"
 
+        recorder_list = [recorder.__class__.__name__
+                         for recorder in self._operation_recorders]
+
         return "%s(url=%r, creds=%s, conn_id=%s, " \
                "default_namespace=%r, x509=%s, verify_callback=%r, " \
                "ca_certs=%r, no_verification=%r, timeout=%r, " \
-               "use_pull_operations=%r, stats=%r, recorders=%r)" % \
+               "use_pull_operations=%r, stats=%r, recorders=%s)" % \
                (self.__class__.__name__, self.url, creds_repr, self.conn_id,
                 self.default_namespace, x509_repr, self.verify_callback,
                 self.ca_certs, self.no_verification, self.timeout,
-                self.use_pull_operations, self.statistics,
-                self._operation_recorders)
+                self.use_pull_operations, self.stats_enabled,
+                recorder_list)
 
     def add_operation_recorder(self, operation_recorder_object):
         # pylint: disable=line-too-long

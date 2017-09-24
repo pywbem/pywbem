@@ -14,6 +14,7 @@ from datetime import timedelta, datetime, tzinfo
 import unittest
 import os
 import os.path
+import logging
 from io import open as _open
 import yaml
 import six
@@ -21,7 +22,8 @@ from testfixtures import LogCapture, log_capture
 
 from pywbem import CIMInstanceName, CIMInstance, MinutesFromUTC, \
     Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
-    Sint32, Sint64, Real32, Real64, CIMProperty, CIMDateTime, CIMError
+    Sint32, Sint64, Real32, Real64, CIMProperty, CIMDateTime, CIMError, \
+    HTTPError
 # Renamed the following import to not have py.test pick it up as a test class:
 from pywbem import TestClientRecorder as _TestClientRecorder
 from pywbem import LogOperationRecorder as _LogOperationRecorder
@@ -268,7 +270,7 @@ class ToYaml(ClientRecorderTests):
         self.assertEqual(test_yaml['context'], list(context))
 
 
-class StageTests(ClientRecorderTests):
+class LogOperationStageTests(ClientRecorderTests):
     """
     Test staging for different cim_operations.  This defines fixed
     parameters for the before and after staging, stages (which creates
@@ -427,11 +429,6 @@ class StageTests(ClientRecorderTests):
                                qualifiers=pv['qualifiers'],
                                embedded_object=pv['embedded_object'])
 
-            # temp display while sorting out datetime issues.
-            # if pv['type'] == 'datetime':
-            #    print('datetime prop name:%s orig:%s new:%s' %
-            #          (pn, NewInstance.properties[pn], prop))
-
             self.assertEqual(NewInstance.properties[pn], prop,
                              'Property compare failed orig %s, recreated %s' %
                              (NewInstance.properties[pn], prop))
@@ -486,20 +483,16 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
     Test the LogOperationRecorder functions. Creates log entries and
     uses testfixture to validate results
     """
-
-    def setUp(self):
-        """ Setup recorder instance including defining output file"""
-
+    def recorder_setup(self, log_detail_level='min', max_log_entry_size=None):
+        """Setup the recorder for a defined max output size"""
         PywbemLoggers.create_logger('ops', 'file',
                                     log_filename=TEST_OUTPUT_LOG,
-                                    log_detail_level='min')
+                                    log_detail_level=log_detail_level)
 
         PywbemLoggers.create_logger('http', 'file',
                                     log_filename=TEST_OUTPUT_LOG,
-                                    log_detail_level='min')
+                                    log_detail_level=log_detail_level)
 
-    def recorder_setup(self, max_log_entry_size=None):
-        """Setup the recorder for a defined max output size"""
         self.test_recorder = _LogOperationRecorder(max_log_entry_size)
 
         # Set a conn id into the connection. Saves testing the connection
@@ -512,11 +505,142 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
     def tearDown(self):
         """Remove LogCapture."""
         LogCapture.uninstall_all()
+        logging.shutdown()
+        # remove any existing log file
         if os.path.isfile(TEST_OUTPUT_LOG):
             os.remove(TEST_OUTPUT_LOG)
 
 
-class LogOperationRecorderTests(BaseLogOperationRecorderTests):
+# Long log entry for getInstance return all log
+get_inst_return_all_log = (
+    u"Return:test_id GetInstance(CIMInstance(classname='CIM_Foo', path=None, "
+    u"properties=NocaseDict({'Bool': CIMProperty(name='Bool', value=True, "
+    u"type='boolean', reference_class=None, embedded_object=None, "
+    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'DTF': CIMProperty(name='DTF', "
+    u"value=CIMDateTime(cimtype='datetime', '20160331193040.654321+120'), "
+    u"type='datetime', reference_class=None, embedded_object=None, "
+    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'DTI': CIMProperty(name='DTI', "
+    u"value=CIMDateTime(cimtype='datetime', '00000010000049.000020:000'), "
+    u"type='datetime', reference_class=None, embedded_object=None, "
+    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'DTP': CIMProperty(name='DTP', "
+    u"value=CIMDateTime(cimtype='datetime', '20140922104920.524789-399'), "
+    u"type='datetime', reference_class=None, embedded_object=None, "
+    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'R32': CIMProperty(name='R32', "
+    u"value=Real32(cimtype='real32', 42.0), type='real32', "
+    u"reference_class=None, embedded_object=None, is_array=False, "
+    u"array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'R64': CIMProperty(name='R64', "
+    u"value=Real64(cimtype='real64', 42.64), type='real64', "
+    u"reference_class=None, embedded_object=None, is_array=False, "
+    u"array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'S1': CIMProperty(name='S1', value='Ham', "
+    u"type='string', reference_class=None, embedded_object=None, "
+    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'S2': CIMProperty(name='S2', value='H\u00E4m'"
+    u", type='string', reference_class=None, embedded_object=None, "
+    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'SI16': CIMProperty(name='SI16', "
+    u"value=Sint16(cimtype='sint16', minvalue=-32768, maxvalue=32767, -4216), "
+    u"type='sint16', reference_class=None, embedded_object=None, "
+    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'SI32': CIMProperty(name='SI32', "
+    u"value=Sint32(cimtype='sint32', minvalue=-2147483648, "
+    u"maxvalue=2147483647, -4232), type='sint32', reference_class=None, "
+    u"embedded_object=None, is_array=False, array_size=None, "
+    u"class_origin=None, propagated=None, qualifiers=NocaseDict({})), 'SI64': "
+    u"CIMProperty(name='SI64', value=Sint64(cimtype='sint64', "
+    u"minvalue=-9223372036854775808, maxvalue=9223372036854775807, -4264), "
+    u"type='sint64', reference_class=None, embedded_object=None, "
+    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'SI8': CIMProperty(name='SI8', "
+    u"value=Sint8(cimtype='sint8', minvalue=-128, maxvalue=127, -42), "
+    u"type='sint8', reference_class=None, embedded_object=None, "
+    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'UI16': CIMProperty(name='UI16', "
+    u"value=Uint16(cimtype='uint16', minvalue=0, maxvalue=65535, 4216), "
+    u"type='uint16', reference_class=None, embedded_object=None, "
+    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'UI32': CIMProperty(name='UI32', "
+    u"value=Uint32(cimtype='uint32', minvalue=0, maxvalue=4294967295, 4232), "
+    u"type='uint32', reference_class=None, embedded_object=None, "
+    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'UI64': CIMProperty(name='UI64', "
+    u"value=Uint64(cimtype='uint64', minvalue=0, "
+    u"maxvalue=18446744073709551615, 4264), type='uint64', "
+    u"reference_class=None, embedded_object=None, is_array=False, "
+    u"array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({})), 'UI8': CIMProperty(name='UI8', "
+    u"value=Uint8(cimtype='uint8', minvalue=0, maxvalue=255, 42), "
+    u"type='uint8', reference_class=None, embedded_object=None, "
+    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict({}))}), property_list=None, "
+    u"qualifiers=NocaseDict({})))")
+
+
+get_inst_return_all_log_PY2 = (
+    "Return:test_id GetInstance(CIMInstance(classname=u'CIM_Foo', path=None, "
+    "properties=NocaseDict({'Bool': CIMProperty(name=u'Bool', value=True, "
+    "type='boolean', reference_class=None, embedded_object=None, is_array="
+    "False, array_size=None, class_origin=None, propagated=None, qualifiers="
+    "NocaseDict({})), 'DTF': CIMProperty(name=u'DTF', value=CIMDateTime("
+    "cimtype='datetime', '20160331193040.654321+120'), type='datetime', "
+    "reference_class=None, embedded_object=None, is_array=False, array_size="
+    "None, class_origin=None, propagated=None, qualifiers=NocaseDict({})), "
+    "'DTI': CIMProperty(name=u'DTI', value=CIMDateTime(cimtype='datetime', "
+    "'00000010000049.000020:000'), type='datetime', reference_class=None, "
+    "embedded_object=None, is_array=False, array_size=None, class_origin=None,"
+    " propagated=None, qualifiers=NocaseDict({})), 'DTP': CIMProperty(name="
+    "u'DTP', value=CIMDateTime(cimtype='datetime', '20140922104920.524789-399')"
+    ", type='datetime', reference_class=None, embedded_object=None, is_array="
+    "False, array_size=None, class_origin=None, propagated=None, qualifiers="
+    "NocaseDict({})), 'R32': CIMProperty(name=u'R32', value=Real32(cimtype="
+    "'real32', 42.0), type='real32', reference_class=None, embedded_object="
+    "None, is_array=False, array_size=None, class_origin=None, propagated="
+    "None, qualifiers=NocaseDict({})), 'R64': CIMProperty(name=u'R64', "
+    "value=Real64(cimtype='real64', 42.64), type='real64', reference_class="
+    "None, embedded_object=None, is_array=False, array_size=None, "
+    "class_origin=None, propagated=None, qualifiers=NocaseDict({})), 'S1': "
+    "CIMProperty(name=u'S1', value=u'Ham', type='string', reference_class=None"
+    ", embedded_object=None, is_array=False, array_size=None, class_origin="
+    "None, propagated=None, qualifiers=NocaseDict({})), 'SI16': CIMProperty("
+    "name=u'SI16', value=Sint16(cimtype='sint16', minvalue=-32768, maxvalue="
+    "32767, -4216), type='sint16', reference_class=None, embedded_object=None"
+    ", is_array=False, array_size=None, class_origin=None, propagated=None, "
+    "qualifiers=NocaseDict({})), 'SI32': CIMProperty(name=u'SI32', value="
+    "Sint32(cimtype='sint32', minvalue=-2147483648, maxvalue=2147483647, -4232"
+    "), type='sint32', reference_class=None, embedded_object=None, is_array="
+    "False, array_size=None, class_origin=None, propagated=None, qualifiers="
+    "NocaseDict({})), 'SI64': CIMProperty(name=u'SI64', value=Sint64(cimtype="
+    "'sint64', minvalue=-9223372036854775808, maxvalue=9223372036854775807, "
+    "-4264), type='sint64', reference_class=None, embedded_object=None, "
+    "is_array=False, array_size=None, class_origin=None, propagated=None, "
+    "qualifiers=NocaseDict({})), 'SI8': CIMProperty(name=u'SI8', value=Sint8("
+    "cimtype='sint8', minvalue=-128, maxvalue=127, -42), type='sint8', "
+    "reference_class=None, embedded_object=None, is_array=False, array_size="
+    "None, class_origin=None, propagated=None, qualifiers=NocaseDict({})), "
+    "'UI16': CIMProperty(name=u'UI16', value=Uint16(cimtype='uint16', minvalue"
+    "=0, maxvalue=65535, 4216), type='uint16', reference_class=None, "
+    "embedded_object=None, is_array=False, array_size=None, class_origin=None,"
+    " propagated=None, qualifiers=NocaseDict({})), 'UI32': CIMProperty("
+    "name=u'UI32', value=Uint32(cimtype='uint32', minvalue=0, maxvalue="
+    "4294967295, 4232), type='uint32', reference_class=None, embedded_object"
+    "=None, is_array=False, array_size=None, class_origin=None, propagated="
+    "None, qualifiers=NocaseDict({})), 'UI64': CIMProperty(name=u'UI64', "
+    "value=Uint64(cimtype='uint64', minvalue=0, maxvalue=18446744073709551615"
+    ", 4264), type='uint64', reference_class=None, embedded_object=None, "
+    "is_array=False, array_size=None, class_origin=None, propagated=None, "
+    "qualifiers=NocaseDict({})), 'UI8': CIMProperty(name=u'UI8', "
+    "value=Uint8(cimtype='uint8', minvalue=0, maxvalue=255, 42), "
+    "type='uint8', reference_class=None, embedded_object=None, is_array=False"
+    ", array_size=None, class_origin=None, propagated=None, qualifiers="
+    "NocaseDict({}))}), property_list=None, qualifiers=NocaseDict({})))")
+
+
+class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
     """
     Test staging for different cim_operations.  This defines fixed
     parameters for the before and after staging, stages (which creates
@@ -525,31 +649,26 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
     """
     @log_capture()
     def test_create_connection(self, lc):
-        self.test_recorder = _LogOperationRecorder()
-
-        self.test_recorder.reset()
-        self.test_recorder.enable()
+        """Create connection with default parameters"""
+        self.recorder_setup()
         # Fake the connection to create a fixed data environment
         conn = WBEMConnection('http://blah')
         conn.conn_id = '%s-%s' % (22, "1234:34")
         self.test_recorder.stage_wbem_connection(conn)
-        if VERBOSE:
-            print(lc)
+
         lc.check(
             ("pywbem.ops", "DEBUG",
-             "Connection: WBEMConnection(url='http://blah', creds=None, "
-             "conn_id=22-1234:34, "
+             "Connection:22-1234:34 WBEMConnection(url='http://blah', "
+             "creds=None, conn_id=22-1234:34, "
              "default_namespace='root/cimv2', x509=None, verify_callback=None, "
              'ca_certs=None, no_verification=False, timeout=None, '
-             'use_pull_operations=False, stats=Statistics(\n'
-             '), recorders=[])'),)
+             'use_pull_operations=False, stats=False, '
+             'recorders=[])'),)
 
     @log_capture()
     def test_create_connection2(self, lc):
-        self.test_recorder = _LogOperationRecorder()
+        self.recorder_setup()
 
-        self.test_recorder.reset()
-        self.test_recorder.enable()
         x509_dict = {"cert_file": 'Certfile.x', 'key_file': 'keyfile.x'}
         conn = WBEMConnection('http://blah',
                               default_namespace='root/blah',
@@ -559,43 +678,70 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                               timeout=10,
                               use_pull_operations=True,
                               enable_stats=True)
-        self.test_recorder.stage_wbem_connection(conn)
         conn.conn_id = '%s-%s' % (23, "1234:34")
-
-        if VERBOSE:
-            print(lc)
+        self.test_recorder.stage_wbem_connection(conn)
 
         lc.check((
             "pywbem.ops", "DEBUG",
-            "Connection: WBEMConnection(url='http://blah', "
+            "Connection:23-1234:34 WBEMConnection(url='http://blah', "
             "creds=('username', ...), conn_id=23-1234:34, "
             "default_namespace='root/blah', "
             "x509='cert_file': 'Certfile.x', 'key_file': 'keyfile.x', "
             "verify_callback=None, ca_certs=None, no_verification=True, "
-            "timeout=10, use_pull_operations=True, stats=Statistics(\n), "
+            "timeout=10, use_pull_operations=True, stats=True, "
             "recorders=[])"),)
 
     @log_capture()
-    def test_getinstance_args(self, lc):
+    def test_stage_result_exception(self, lc):
+        """Test the ops result log None return, HTTPError exception."""
+        self.recorder_setup(max_log_entry_size=10)
+        ce = CIMError(6, "Fake CIMError")
+        exc = HTTPError(500, "Fake Reason", cimerror='%s' % ce)
+        self.test_recorder.stage_pywbem_result(None, exc)
+
+        lc.check(
+            ("pywbem.ops", "DEBUG",
+             "Exception:test_id None('HTTPError...)"))
+
+    @log_capture()
+    def test_stage_result_exception_all(self, lc):
+        """Test the ops result log None return, HTTPError exception."""
+        self.recorder_setup(log_detail_level='all')
+        ce = CIMError(6, "Fake CIMError")
+        exc = HTTPError(500, "Fake Reason", cimerror='%s' % ce)
+        self.test_recorder.stage_pywbem_result(None, exc)
+
+        # TODO. V2 valid string has extra single quote after CIMError
+        if six.PY2:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Exception:test_id None('HTTPError(500 (Fake Reason), "
+                 "CIMError: 6: Fake CIMError)')"),)
+        else:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Exception:test_id None('HTTPError(500 (Fake Reason), "
+                 "CIMError: 6: Fake CIMError)')"),)
+
+    @log_capture()
+    def test_stage_getinstance_args(self, lc):
         """
         Emulates call to getInstance to test parameter processing.
         Currently creates the pywbem_request component.
         """
 
-        InstanceName = self.create_ciminstancename()
+        inst_name = self.create_ciminstancename()
 
-        self.recorder_setup(10)
+        self.recorder_setup(max_log_entry_size=10)
 
         self.test_recorder.stage_pywbem_args(
             method='GetInstance',
-            InstanceName=InstanceName,
+            InstanceName=inst_name,
             LocalOnly=True,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
             PropertyList=['propertyblah'])
 
-        if VERBOSE:
-            print(lc)
         # pywbem 2 and 3 differ in only the use of unicode for certain
         # string properties. (ex. classname)
         if six.PY2:
@@ -620,17 +766,186 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "PropertyList=['propertyblah'])"),)
 
     @log_capture()
-    def test_getinstance_result(self, lc):
+    def test_stage_instance_result(self, lc):
+        instance = self.create_ciminstance()
+        self.recorder_setup(max_log_entry_size=10)
+        exc = None
+        self.test_recorder.stage_pywbem_result(instance, exc)
+
+        if six.PY2:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 'Return:test_id None(CIMInstanc...)'))
+        else:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 'Return:test_id None(CIMInstanc...)'))
+
+    @log_capture()
+    def test_stage_instance_result_default(self, lc):
+        instance = self.create_ciminstance()
+        self.recorder_setup()
+        exc = None
+        self.test_recorder.stage_pywbem_result(instance, exc)
+
+        if six.PY2:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Return:test_id None(CIMInstance(classname=u'CIM_Foo', "
+                 "path=None,"
+                 " properties=NocaseDict({'Bool': CIMProperty(name=u'Bool', "
+                 "value=True, type='boolean', reference_class=None, "
+                 "embedded_object=None, is_array=False, array_size=None, "
+                 "class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict({})),"
+                 " 'DTF': CIMProperty(name=u'DTF', value=CIMDateTime(cimtype"
+                 "='datetime', '20160331193040.654321+120'), type='datetime', "
+                 "reference_class=None, embedded_object=None, is_array=False, "
+                 "array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict({})), 'DTI': CIMProperty(name=u'DTI', "
+                 "value=CIMDateTime(cimtype='datetime', "
+                 "'00000010000049.000020:000'), type='datetime', "
+                 "reference_class=None, embedded_object=None, is_array=False, "
+                 "array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict({})), 'DTP': CIMProperty(name=u'DTP', "
+                 "value=CIMDateTime(cimtype='datetime', "
+                 "'20140922104920.524789-399'), type='datetime', "
+                 "reference_class=None, embedded_object=None, is_array=False, "
+                 "array_size=None, class_origin=None, ...)"),)
+        else:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Return:test_id None(CIMInstance(classname='CIM_Foo', "
+                 "path=None, "
+                 "properties=NocaseDict({'Bool': CIMProperty(name='Bool', "
+                 "value=True, "
+                 "type='boolean', reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, "
+                 "qualifiers=NocaseDict({})), 'DTF': CIMProperty(name='DTF', "
+                 "value=CIMDateTime(cimtype='datetime', "
+                 "'20160331193040.654321+120'), "
+                 "type='datetime', reference_class=None, embedded_object=None, "
+                 'is_array=False, array_size=None, class_origin=None, '
+                 'propagated=None, '
+                 "qualifiers=NocaseDict({})), 'DTI': CIMProperty(name='DTI', "
+                 "value=CIMDateTime(cimtype='datetime', "
+                 "'00000010000049.000020:000'), "
+                 "type='datetime', reference_class=None, embedded_object=None, "
+                 'is_array=False, array_size=None, class_origin=None, '
+                 'propagated=None, '
+                 "qualifiers=NocaseDict({})), 'DTP': CIMProperty(name='DTP', "
+                 "value=CIMDateTime(cimtype='datetime', "
+                 "'20140922104920.524789-399'), "
+                 "type='datetime', reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propa...)"),)
+
+    @log_capture()
+    def test_stage_instance_result_all(self, lc):
+        instance = self.create_ciminstance()
+        self.recorder_setup(log_detail_level='all')
+        exc = None
+        self.test_recorder.stage_pywbem_result(instance, exc)
+
+        if six.PY2:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Return:test_id None(CIMInstance(classname=u'CIM_Foo', "
+                 "path=None, properties=NocaseDict({'Bool': CIMProperty("
+                 "name=u'Bool', value=True, type='boolean', "
+                 "reference_class=None, embedded_object=None, is_array=False,"
+                 " array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict({})), 'DTF': CIMProperty(name=u'DTF',"
+                 " value=CIMDateTime(cimtype='datetime', "
+                 "'20160331193040.654321+120'), type='datetime', "
+                 "reference_class=None, embedded_object=None, is_array=False,"
+                 " array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict({})), 'DTI': CIMProperty(name=u'DTI',"
+                 " value=CIMDateTime(cimtype='datetime', "
+                 "'00000010000049.000020:000'), type='datetime', "
+                 "reference_class=None, embedded_object=None, is_array=False,"
+                 " array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict({})), 'DTP': CIMProperty(name=u'DTP',"
+                 " value=CIMDateTime(cimtype='datetime', "
+                 "'20140922104920.524789-399'), type='datetime', "
+                 "reference_class=None, embedded_object=None, is_array=False,"
+                 " array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict({})), 'R32': CIMProperty(name=u'R32',"
+                 " value=Real32(cimtype='real32', 42.0), type='real32', "
+                 "reference_class=None, embedded_object=None, is_array=False,"
+                 " array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict({})), 'R64': CIMProperty(name=u'R64',"
+                 " value=Real64(cimtype='real64', 42.64), type='real64', "
+                 "reference_class=None, embedded_object=None, is_array=False,"
+                 " array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict({})), 'S1': CIMProperty(name=u'S1',"
+                 " value=u'Ham', type='string', reference_class=None, "
+                 "embedded_object=None, is_array=False, array_size=None, "
+                 "class_origin=None, propagated=None, qualifiers=NocaseDict("
+                 "{})), 'SI16': CIMProperty(name=u'SI16', "
+                 "value=Sint16(cimtype='sint16', minvalue=-32768,"
+                 " maxvalue=32767, -4216), type='sint16', "
+                 "reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, qualifiers=NocaseDict({})), 'SI32': "
+                 "CIMProperty(name=u'SI32', value=Sint32(cimtype='sint32', "
+                 "minvalue=-2147483648, maxvalue=2147483647, -4232), "
+                 "type='sint32', reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, qualifiers=NocaseDict({})), 'SI64': "
+                 "CIMProperty(name=u'SI64', value=Sint64(cimtype='sint64', "
+                 "minvalue=-9223372036854775808, maxvalue=9223372036854775807,"
+                 " -4264), type='sint64', reference_class=None, "
+                 "embedded_object=None, is_array=False, array_size=None, "
+                 "class_origin=None, propagated=None, qualifiers=NocaseDict("
+                 "{})), 'SI8': CIMProperty(name=u'SI8', value=Sint8("
+                 "cimtype='sint8', minvalue=-128, maxvalue=127, -42), "
+                 "type='sint8', reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, qualifiers=NocaseDict({})), 'UI16': "
+                 "CIMProperty(name=u'UI16', value=Uint16(cimtype='uint16', "
+                 "minvalue=0, maxvalue=65535, 4216), type='uint16', "
+                 "reference_class=None, embedded_object=None, is_array=False,"
+                 " array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict({})), 'UI32': CIMProperty(name=u'UI32',"
+                 " value=Uint32(cimtype='uint32', minvalue=0, "
+                 "maxvalue=4294967295, 4232), type='uint32', reference_class="
+                 "None, embedded_object=None, is_array=False, array_size=None,"
+                 " class_origin=None, propagated=None, qualifiers=NocaseDict("
+                 "{})), 'UI64': CIMProperty(name=u'UI64', value=Uint64(cimtype"
+                 "='uint64', minvalue=0, maxvalue=18446744073709551615, 4264), "
+                 "type='uint64', reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, qualifiers=NocaseDict({})), 'UI8': "
+                 "CIMProperty(name=u'UI8', value=Uint8(cimtype='uint8', "
+                 "minvalue=0, maxvalue=255, 42), type='uint8', reference_"
+                 "class=None, embedded_object=None, is_array=False, "
+                 "array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict({}))}), property_list=None, "
+                 "qualifiers=NocaseDict({})))"),)
+        else:
+            none_result_all = get_inst_return_all_log.replace('GetInstance',
+                                                              'None')
+            lc.check(
+                ("pywbem.ops", "DEBUG", none_result_all))
+
+
+class LogOperationRecorderTests(BaseLogOperationRecorderTests):
+    """Test args and resutls logging"""
+
+    @log_capture()
+    def test_getinstance(self, lc):
         """Test the ops result log for get instance"""
 
-        InstanceName = self.create_ciminstancename()
+        inst_name = self.create_ciminstancename()
 
         # set recorder to limit response to length of 10
-        self.recorder_setup(10)
+        self.recorder_setup(max_log_entry_size=10)
 
         self.test_recorder.stage_pywbem_args(
             method='GetInstance',
-            InstanceName=InstanceName,
+            InstanceName=inst_name,
             LocalOnly=True,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
@@ -638,9 +953,6 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         instance = self.create_ciminstance()
         exc = None
         self.test_recorder.stage_pywbem_result(instance, exc)
-
-        if VERBOSE:
-            print(lc)
 
         if six.PY2:
             lc.check(
@@ -669,13 +981,13 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
     def test_getinstance_exception(self, lc):
         """Test the ops result log for get instance"""
 
-        InstanceName = self.create_ciminstancename()
+        inst_name = self.create_ciminstancename()
 
-        self.recorder_setup(10)
+        self.recorder_setup(max_log_entry_size=11)
 
         self.test_recorder.stage_pywbem_args(
             method='GetInstance',
-            InstanceName=InstanceName,
+            InstanceName=inst_name,
             LocalOnly=True,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
@@ -683,9 +995,6 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         instance = None
         exc = CIMError(6, "Fake CIMError")
         self.test_recorder.stage_pywbem_result(instance, exc)
-
-        if VERBOSE:
-            print(lc)
 
         if six.PY2:
             lc.check(
@@ -696,7 +1005,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ("pywbem.ops", "DEBUG",
-                 "Exception:test_id GetInstance(CIMError(6...)"))
+                 "Exception:test_id GetInstance('CIMError(6...)"))
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
@@ -706,25 +1015,22 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "'Ham'}), namespace='root/cimv2', host='woot.com'), "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ("pywbem.ops", "DEBUG",
-                 "Exception:test_id GetInstance(CIMError(6...)"))
+                 "Exception:test_id GetInstance('CIMError(6...)"))
 
     @log_capture()
-    def test_getinstance_exception2(self, lc):
-        """Test the ops result log for get instance"""
+    def test_getinstance_exception_all(self, lc):
+        """Test the ops result log for get instance CIMError exception"""
 
-        InstanceName = self.create_ciminstancename()
+        inst_name = self.create_ciminstancename()
 
-        self.recorder_setup()
+        self.recorder_setup(log_detail_level='all')
 
         self.test_recorder.stage_pywbem_args(
             method='GetInstance',
-            InstanceName=InstanceName)
+            InstanceName=inst_name)
         instance = None
         exc = CIMError(6, "Fake CIMError")
         self.test_recorder.stage_pywbem_result(instance, exc)
-
-        if VERBOSE:
-            print(lc)
 
         if six.PY2:
             lc.check(
@@ -733,8 +1039,8 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
                  "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'))"),
                 ("pywbem.ops", "DEBUG",
-                 "Exception:test_id GetInstance("
-                 "CIMError(6: Fake CIMError))"))
+                 "Exception:test_id GetInstance('CIMError(6: Fake "
+                 "CIMError)')"),)
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
@@ -742,20 +1048,20 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "classname='CIM_Foo', keybindings=NocaseDict({'Chicken': "
                  "'Ham'}), namespace='root/cimv2', host='woot.com'))"),
                 ("pywbem.ops", "DEBUG",
-                 "Exception:test_id GetInstance("
-                 "CIMError(6: Fake CIMError))"))
+                 "Exception:test_id GetInstance('CIMError(6: Fake "
+                 "CIMError)')"),)
 
     @log_capture()
     def test_getinstance_result_all(self, lc):
         """Test the ops result log for get instance"""
 
-        InstanceName = self.create_ciminstancename()
+        inst_name = self.create_ciminstancename()
 
-        self.recorder_setup()
+        self.recorder_setup(log_detail_level='all')
 
         self.test_recorder.stage_pywbem_args(
             method='GetInstance',
-            InstanceName=InstanceName,
+            InstanceName=inst_name,
             LocalOnly=True,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
@@ -764,8 +1070,6 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         exc = None
         self.test_recorder.stage_pywbem_result(instance, exc)
 
-        if VERBOSE:
-            print(lc)
         if six.PY2:
             lc.check(
                 ("pywbem.ops", "DEBUG",
@@ -776,26 +1080,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ('pywbem.ops',
                  'DEBUG',
-                 "Return:test_id GetInstance(CIMInstance(classname=u'CIM_Foo'"
-                 ", path=None, properties=NocaseDict({'Bool': CIMProperty("
-                 "name=u'Bool', value=True, type='boolean', reference_class="
-                 "None, embedded_object=None, is_array=False, array_size=None,"
-                 " class_origin=None, propagated=None, qualifiers=NocaseDict({"
-                 "})), 'DTF': CIMProperty(name=u'DTF', value=CIMDateTime("
-                 "cimtype='datetime', '20160331193040.654321+120'), "
-                 "type='datetime', reference_class=None, embedded_object=None,"
-                 " is_array=False, array_size=None, class_origin=None, "
-                 "propagated=None, qualifiers=NocaseDict({})), 'DTI': "
-                 "CIMProperty(name=u'DTI', value=CIMDateTime(cimtype="
-                 "'datetime', '00000010000049.000020:000'), type='datetime',"
-                 " reference_class=None, embedded_object=None, is_array=False,"
-                 " array_size=None, class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict({})), 'DTP': CIMProperty(name=u'DTP',"
-                 " value=CIMDateTime(cimtype='datetime', '20140922104920."
-                 "524789-399'), type='datetime', reference_class=None, "
-                 "embedded_object=None, is_array=False, array_size=None, "
-                 "class_origin=None, ...)"))
-
+                 get_inst_return_all_log_PY2))
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
@@ -806,40 +1091,14 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "namespace='root/cimv2', "
                  "host='woot.com'), LocalOnly=True, "
                  "PropertyList=['propertyblah'])"),
-                ("pywbem.ops", "DEBUG",
-                 "Return:test_id GetInstance(CIMInstance(classname='CIM_Foo',"
-                 " path=None, "
-                 "properties=NocaseDict({'Bool': CIMProperty(name='Bool', "
-                 "value=True, "
-                 "type='boolean', reference_class=None, embedded_object=None, "
-                 'is_array=False, array_size=None, class_origin=None, '
-                 'propagated=None, '
-                 "qualifiers=NocaseDict({})), 'DTF': CIMProperty(name='DTF', "
-                 "value=CIMDateTime(cimtype='datetime', "
-                 "'20160331193040.654321+120'), "
-                 "type='datetime', reference_class=None, embedded_object=None, "
-                 'is_array=False, array_size=None, class_origin=None, '
-                 'propagated=None, '
-                 "qualifiers=NocaseDict({})), 'DTI': CIMProperty(name='DTI', "
-                 "value=CIMDateTime(cimtype='datetime', "
-                 "'00000010000049.000020:000'), "
-                 "type='datetime', reference_class=None, "
-                 "embedded_object=None, "
-                 'is_array=False, array_size=None, class_origin=None, '
-                 'propagated=None, '
-                 "qualifiers=NocaseDict({})), 'DTP': CIMProperty(name='DTP', "
-                 "value=CIMDateTime(cimtype='datetime', "
-                 "'20140922104920.524789-399'), "
-                 "type='datetime', reference_class=None, embedded_object=None, "
-                 'is_array=False, array_size=None, '
-                 'class_origin=None, propa...)'))
+                ("pywbem.ops", "DEBUG", get_inst_return_all_log),)
 
     @log_capture()
     def test_enuminstances_result(self, lc):
         """Test the ops result log for enumerate instances"""
 
         # set recorder to limit response to length of 10
-        self.recorder_setup(10)
+        self.recorder_setup(max_log_entry_size=10)
 
         self.test_recorder.stage_pywbem_args(
             method='EnumerateInstances',
@@ -852,9 +1111,6 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         instance = self.create_ciminstance()
         exc = None
         self.test_recorder.stage_pywbem_result([instance, instance], exc)
-
-        if VERBOSE:
-            print(lc)
 
         if six.PY2:
             lc.check(
@@ -879,7 +1135,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         """Test the ops result log for enumerate instances"""
 
         # set recorder to limit response to length of 10
-        self.recorder_setup(10)
+        self.recorder_setup(max_log_entry_size=10)
 
         self.test_recorder.stage_pywbem_args(
             method='EnumerateInstanceNames',
@@ -890,12 +1146,8 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
             PropertyList=['propertyblah', 'blah2'])
 
         exc = None
-        instance_name = self.create_ciminstancename()
-        self.test_recorder.stage_pywbem_result([instance_name, instance_name],
-                                               exc)
-
-        if VERBOSE:
-            print(lc)
+        inst_name = self.create_ciminstancename()
+        self.test_recorder.stage_pywbem_result([inst_name, inst_name], exc)
 
         if six.PY2:
             lc.check(
@@ -917,10 +1169,12 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
     @log_capture()
     def test_openenuminstances_result_all(self, lc):
-        """Test the ops result log for enumerate instances"""
+        """Test the ops result log for enumerate instances. Returns no
+        instances.
+        """
 
         # set recorder to limit response to length of 10
-        self.recorder_setup()
+        self.recorder_setup(log_detail_level='all')
 
         self.test_recorder.stage_pywbem_args(
             method='OpenEnumerateInstances',
@@ -939,31 +1193,138 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         self.test_recorder.stage_pywbem_result(result_tuple, exc)
 
-        if VERBOSE:
-            print(lc)
+        lc.check(
+            ("pywbem.ops", "DEBUG",
+             "Request:test_id OpenEnumerateInstances(ClassName='CIM_Foo', "
+             "IncludeClassOrigin=True, IncludeQualifiers=True, "
+             "LocalOnly=True, PropertyList=['propertyblah'])"),
+            ('pywbem.ops', 'DEBUG',
+             "Return:test_id OpenEnumerateInstances(pull_inst_result_tuple("
+             "context=('test_rtn_context', 'root/blah'), eos=False, "
+             "instances=[]))"),)
+
+    @log_capture()
+    def test_openenuminstancepaths_result_all(self, lc):
+        """Test the ops result log for enumerate instances paths with
+        data in the paths component"""
+
+        # set recorder to limit response to length of 10
+        self.recorder_setup(log_detail_level='all')
+
+        self.test_recorder.stage_pywbem_args(
+            method='OpenEnumerateInstancePaths',
+            ClassName='CIM_Foo',
+            FilterQueryLanguage='FQL',
+            FilterQuery='SELECT A from B',
+            OperationTimeout=10,
+            ContinueOnError=None,
+            MaxObjectCount=100)
+
+        inst_name = self.create_ciminstancename()
+        result = [inst_name, inst_name]
+        exc = None
+
+        context = ('test_rtn_context', 'root/blah')
+        result_tuple = pull_path_result_tuple(result, False, context)
+
+        self.test_recorder.stage_pywbem_result(result_tuple, exc)
 
         if six.PY2:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request:test_id OpenEnumerateInstances(ClassName='CIM_Foo', "
-                 "IncludeClassOrigin=True, IncludeQualifiers=True, "
-                 "LocalOnly=True, PropertyList=['propertyblah'])"),
+                 "Request:test_id OpenEnumerateInstancePaths(ClassName="
+                 "'CIM_Foo', ContinueOnError=None, FilterQuery='SELECT A "
+                 "from B', FilterQueryLanguage='FQL', MaxObjectCount=100, "
+                 "OperationTimeout=10)"),
                 ('pywbem.ops', 'DEBUG',
-                 "Return:test_id OpenEnumerateInstances("
-                 "pull_inst_result_tuple(instances=[], eos=False, "
-                 "context=('test_rtn_context', 'root/blah')))"))
+                 "Return:test_id OpenEnumerateInstancePaths("
+                 "pull_path_result_tuple(context=('test_rtn_context', "
+                 "'root/blah'), eos=False, paths=[CIMInstanceName("
+                 "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
+                 "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
+                 "CIMInstanceName(classname=u'CIM_Foo', keybindings="
+                 "NocaseDict({'Chicken': 'Ham'}), namespace=u'root/cimv2',"
+                 " host=u'woot.com')]))"))
+
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Request:test_id OpenEnumerateInstances(ClassName='CIM_Foo', "
-                 'IncludeClassOrigin=True, IncludeQualifiers=True, '
-                 'LocalOnly=True, '
-                 "PropertyList=['propertyblah'])"),
-
+                 "Request:test_id OpenEnumerateInstancePaths("
+                 "ClassName='CIM_Foo', "
+                 "ContinueOnError=None, FilterQuery='SELECT A from B', "
+                 "FilterQueryLanguage='FQL', MaxObjectCount=100, "
+                 "OperationTimeout=10)"),
                 ('pywbem.ops', 'DEBUG',
-                 "Return:test_id OpenEnumerateInstances("
-                 "pull_inst_result_tuple(instances=[], eos=False, "
-                 "context=('test_rtn_context', 'root/blah')))"))
+                 'Return:test_id '
+                 "OpenEnumerateInstancePaths(pull_path_result_tuple("
+                 "context=('test_rtn_context', "
+                 "'root/blah'), eos=False, paths=[CIMInstanceName("
+                 "classname='CIM_Foo', "
+                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "namespace='root/cimv2', "
+                 "host='woot.com'), CIMInstanceName(classname='CIM_Foo', "
+                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "namespace='root/cimv2', "
+                 "host='woot.com')]))"),)
+
+    @log_capture()
+    def test_associators_result(self, lc):
+        """Test the ops result log for Associators that returns nothing"""
+
+        inst_name = self.create_ciminstancename()
+
+        # set recorder to limit response to length of 10
+        self.recorder_setup(max_log_entry_size=10)
+
+        self.test_recorder.stage_pywbem_args(
+            method='Associators',
+            InstanceName=inst_name,
+            AssocClass='BLAH_Assoc',
+            ResultClass='BLAH_Result',
+            IncludeQualifiers=True,
+            IncludeClassOrigin=True,
+            PropertyList=['propertyblah', 'propertyblah2'])
+        exc = None
+        self.test_recorder.stage_pywbem_result([], exc)
+
+        if six.PY2:
+            lc.check(
+                ('pywbem.ops', 'DEBUG',
+                 "Request:test_id Associators(AssocClass='BLAH_Assoc', "
+                 "IncludeClassOrigin=True, IncludeQualifiers=True, "
+                 "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
+                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "namespace=u'root/cimv2', host=u'woot.com'), "
+                 "PropertyList=['propertyblah', 'propertyblah2'], "
+                 "ResultClass='BLAH_Result')"),
+                ('pywbem.ops', 'DEBUG', 'Return:test_id Associators([])'))
+
+        else:
+            lc.check(
+                ('pywbem.ops', 'DEBUG',
+                 "Request:test_id Associators(AssocClass='BLAH_Assoc', "
+                 'IncludeClassOrigin=True, IncludeQualifiers=True, '
+                 "InstanceName=CIMInstanceName(classname='CIM_Foo', "
+                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "namespace='root/cimv2', "
+                 "host='woot.com'), PropertyList=['propertyblah', "
+                 "'propertyblah2'], "
+                 "ResultClass='BLAH_Result')"),
+                ('pywbem.ops', 'DEBUG', 'Return:test_id Associators([])'))
+
+    @log_capture()
+    def test_associators_result_exception(self, lc):
+        """Test the ops result log for associators that returns exception"""
+
+        # set recorder to limit response to length of 10
+        self.recorder_setup(max_log_entry_size=11)
+
+        exc = CIMError(6, "Fake CIMError")
+        self.test_recorder.stage_pywbem_result([], exc)
+
+        lc.check(
+            ('pywbem.ops', 'DEBUG',
+             "Exception:test_id None('CIMError(6...)"),)
 
 
 if __name__ == '__main__':
