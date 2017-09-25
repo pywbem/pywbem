@@ -9,7 +9,10 @@ from __future__ import print_function, absolute_import
 
 import unittest
 
-from pywbem.cim_operations import check_utf8_xml_chars, ParseError
+from pywbem.cim_operations import check_utf8_xml_chars, ParseError, \
+    WBEMConnection
+
+from pywbem._recorder import LogOperationRecorder, TestClientRecorder
 
 
 #################################################################
@@ -92,6 +95,66 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
         self._run_single(b'<V>a\xF1\x80\xFFbc</V>', False)
         # 4-byte sequence with incorrect 3rd byte that is an correct new start:
         self._run_single(b'<V>a\xF1\x80\xC2\x81c</V>', False)
+
+
+class test_create_connection(unittest.TestCase):
+    """
+    Test construction of WBEMConnection and those functions that do not
+    depend on actually creating a connection
+    """
+    def test_connection_defaults(self):
+        """Test creation of a connection with default constructor
+           parameters.
+        """
+        conn = WBEMConnection('http://localhost')
+        self.assertTrue(conn.url, 'http://localhost')
+        self.assertEqual(conn.creds, None)
+        self.assertEqual(conn.x509, None)
+        self.assertEqual(conn.use_pull_operations, False)
+        self.assertEqual(conn.stats_enabled, False)
+
+    def test_no_recorder(self):
+        """Test creation of wbem connection with specific parameters"""
+        creds = ('myname', 'mypw')
+        x509 = {'cert_file': 'mycertfile.crt', 'key_file': 'mykeyfile.key'}
+        conn = WBEMConnection('http://localhost', creds,
+                              default_namespace='root/blah',
+                              x509=x509,
+                              use_pull_operations=True,
+                              enable_stats=True)
+        self.assertEqual(conn.url, 'http://localhost')
+        self.assertEqual(conn.creds, creds)
+        self.assertEqual(conn.x509, x509)
+        self.assertEqual(conn.stats_enabled, True)
+        self.assertEqual(conn.use_pull_operations, True)
+
+    def test_add_operation_recorder(self):
+        """Test addition of an operation recorder"""
+        conn = WBEMConnection('http://localhost')
+        conn.add_operation_recorder(LogOperationRecorder())
+        # pylint: disable=protected-access
+        self.assertTrue(len(conn._operation_recorders), 1)
+
+    def test_add_operation_recorders(self):
+        """Test addition of multiple operation recorders"""
+        conn = WBEMConnection('http://localhost')
+        conn.add_operation_recorder(LogOperationRecorder())
+        tcr_file = TestClientRecorder.open_file('blah.yaml', 'a')
+        conn.add_operation_recorder(TestClientRecorder(tcr_file))
+        # pylint: disable=protected-access
+        self.assertTrue(len(conn._operation_recorders), 2)
+
+    def test_add_same_twice(self):
+        """ Test addition of same recorder twice"""
+        conn = WBEMConnection('http://localhost')
+        conn.add_operation_recorder(LogOperationRecorder())
+        # pylint: disable=protected-access
+        self.assertTrue(len(conn._operation_recorders), 1)
+        try:
+            conn.add_operation_recorder(LogOperationRecorder())
+            self.fail('Expected exception')
+        except ValueError:
+            pass
 
 
 if __name__ == '__main__':

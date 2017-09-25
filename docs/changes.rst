@@ -99,9 +99,15 @@ Enhancements
   results. issue #569
 
 * **Experimental:** Add logging to record information passing between the pywbem
-  client and WBEM servers both the WBEMConnection methods that drive information
-  interchange and the http requests and responses.  In includes a new module
-  (_logging.py) that provides configuration of logging.  See issue #691
+  client and WBEM servers both for the WBEMConnection methods that drive information
+  interchange and the http requests and responses.  Logging includes a new module
+  (_logging.py) that provides configuration of logging.
+  The logging extends WBEMConnection with methods so that the user
+  can chose to log a)Calls and returns from the WBEMConnection methods that
+  interact with the WBEMServer (ex. getClass), b)http request/responses, c)both.
+  The logging uses the python logging package and the output can be directed
+  to either stderr or a file. The user can chose to log the complete
+  requests and responses or size limited subsets (log_detail level). See issue #691.
 
 * Clarify documentation on wbem operation recorder in client.rst. see
   issue #741
@@ -119,7 +125,7 @@ Enhancements
 
 * Made sure that ``repr()`` on CIM objects produces a reliable order of
   items such as properties, qualifiers, methods, parameters, scopes, by
-  ordering them by their names. This makes debugging using ``repr()`´ easier
+  ordering them by their names. This makes debugging using ``repr()`` easier
   for pywbem users, and it also helps in some unit test cases of pywbem itself.
 
 * Made sure that ``str()`` on ``CIMInstanceName`` produces reliable order of

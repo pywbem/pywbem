@@ -37,12 +37,19 @@ from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
     WBEMSubscriptionManager, CIMInstance, CIMInstanceName, CIMClass, \
     CIMClassName, CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
     CIMMethod, ValueMapping, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
-    Sint32, Sint64, Real32, Real64, CIMDateTime, TestClientRecorder
+    Sint32, Sint64, Real32, Real64, CIMDateTime, TestClientRecorder, \
+    LogOperationRecorder
 
 from pywbem.mof_compiler import MOFCompiler
 
+from pywbem._logging import PywbemLoggers
+
 from unittest_extensions import RegexpMixin
 
+# output files
+SCRIPT_DIR = os.path.dirname(__file__)
+LOG_FILE_NAME = 'run_cim_operations.log'
+RUN_CIM_OPERATIONS_OUTPUT_LOG = '%s/%s' % (SCRIPT_DIR, LOG_FILE_NAME)
 
 # Test for decorator for unimplemented tests
 # decorator is @unittest.skip(UNIMPLEMENTED)
@@ -109,12 +116,15 @@ class ClientTest(unittest.TestCase):
         self.verbose = CLI_ARGS['verbose']
         self.debug = CLI_ARGS['debug']
         self.yamlfile = CLI_ARGS['yamlfile']
+        self.output_log = CLI_ARGS['log']
         self.yamlfp = None
         self.enable_stats = True if CLI_ARGS['stats'] else False
         if self.enable_stats:
             self.start_time = time.time()
+        self.log_output_size = 1000
+        self.log_definition = 'all=file:all'
 
-        # set this because python 3 http libs generate many ResourceWarnings
+        # Set this because python 3 http libs generate many ResourceWarnings
         # and unittest enables these warnings.
         if not six.PY2:
             # pylint: disable=undefined-variable
@@ -133,18 +143,27 @@ class ClientTest(unittest.TestCase):
             use_pull_operations=use_pull_operations,
             enable_stats=self.enable_stats)
 
+        # if log set, enable the logger.
+        if self.output_log:
+            PywbemLoggers.create_loggers(
+                self.log_definition,
+                log_filename=RUN_CIM_OPERATIONS_OUTPUT_LOG)
+
+            self.conn.add_operation_recorder(
+                LogOperationRecorder(max_log_entry_size=self.log_output_size))
+
         # enable saving of xml for display
         self.conn.debug = CLI_ARGS['debug']
 
         if self.yamlfile is not None:
             self.yamlfp = TestClientRecorder.open_file(self.yamlfile, 'a')
-            self.conn.operation_recorder = TestClientRecorder(self.yamlfp)
+            self.conn.add_operation_recorder(TestClientRecorder(self.yamlfp))
 
         self.log('Connected {}, ns {}'.format(self.system_url,
                                               CLI_ARGS['namespace']))
 
     def tearDown(self):
-        """Close the test_client YAML file."""
+        """Close the test_client YAML file and display stats."""
 
         if self.enable_stats:
             print('%s: Test time %.2f sec.' % (self.id(),
@@ -176,6 +195,7 @@ class ClientTest(unittest.TestCase):
             self.log('Reply:\n\n%s\n' % last_reply)
             raise
 
+        # This code displays operation results by calling the method log
         self.log('Operation %s succeeded\n' % fn.__name__)
         last_request = self.conn.last_request or self.conn.last_raw_request
         self.log('Request:\n\n%s\n' % last_request)
@@ -191,7 +211,7 @@ class ClientTest(unittest.TestCase):
                 if self.conn.last_server_response_time else 'None'
 
             operation_time = ('%.4f' % self.conn.last_operation_time) \
-                if self.conn.last_operation_time else None
+                if self.conn.last_operation_time else 'None'
 
             print('Operation stats: time %s req_len %d reply_len %d '
                   'svr_time %s' %
@@ -204,6 +224,7 @@ class ClientTest(unittest.TestCase):
 
     def log(self, data_):
         """Display log entry if verbose."""
+        # TODO ks aug 17. This should be integrated into logging
         if self.verbose:
             print('{}'.format(data_))
 
@@ -1597,8 +1618,8 @@ class PullReferencePaths(ClientTest):
             # test the returned paths_pulled
             self.assertTrue(len(paths_pulled) > 0)
             self.assertPathsValid(paths_pulled)
-            for path in paths_pulled:
-                self.assertEqual(path.classname,
+            for path_ in paths_pulled:
+                self.assertEqual(path_.classname,
                                  PYWBEM_MEMBEROFPERSONCOLLECTION)
 
     @unittest.skipIf(SKIP_LONGRUNNING_TEST, 'skip long test for all instances')
@@ -2215,7 +2236,7 @@ class CreateInstance(ClientTest):
             if arg == CIM_ERR_NOT_FOUND:
                 pass
 
-    def test_pywbem_AllTypes(self):
+    def test_pywbem_AllTypes(self):  # pylint: disable=invalid-name
         """Test Creation of an instance of PyWBEM_AllTypes."""
         if not self.pywbem_person_class_exists():
             return
@@ -2457,8 +2478,7 @@ class InvokeMethod(ClientTest):
                          Bool=True,
                          Date1=CIMDateTime.now(),
                          Date2=timedelta(60),
-                         Ref=name
-                         )
+                         Ref=name)
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_METHOD_NOT_AVAILABLE:
                 raise
@@ -2523,6 +2543,7 @@ class InvokeMethod(ClientTest):
                                 Uint32(0))])
 
         # TODO ks Mar 2017. Returns value 1 rather than zero for some reason
+        # Sometimes returns value 0.
         # Review pegasus code.
         self.assertEqual(result[0], 1, 'Expected method result value 1 '
                          'Received result value %s' % result[0])
@@ -3313,6 +3334,7 @@ class ClassOperations(ClientClassTest):
                                                   type='string'),
                         'MyUint8': CIMProperty('MyUint8', Uint8(99),
                                                type='uint8')})
+
         return test_class
 
     def create_class(self):
@@ -3421,7 +3443,8 @@ class CreateClass(ClassOperations):
                     test_class.qualifiers['Description'].translatable:
                 rtn_class.qualifiers['Description'].translatable = \
                     test_class.qualifiers['Description'].translatable
-
+            # move CIMClassName from return to test class for compare
+            test_class.path = rtn_class.path
             self.assertEqual(rtn_class.classname, test_class_name)
             self.assertEqual(rtn_class, test_class)
             # delete the new class
@@ -3483,6 +3506,8 @@ class CreateClass(ClassOperations):
                 rtn_class.qualifiers['Description'].translatable = \
                     test_class.qualifiers['Description'].translatable
 
+            # put classpath into original class for compare
+            test_class.path = rtn_class.path
             self.assertEqual(rtn_class.classname, test_class_name)
             self.assertEqual(rtn_class, test_class)
             # delete the new class
@@ -3594,6 +3619,11 @@ class ModifyClass(ClassOperations):
                 rtn_class.qualifiers['Description'].translatable = \
                     test_class.qualifiers['Description'].translatable
 
+            # test classpath on return class
+            self.assertEqual(rtn_class.path.classname, test_class_name)
+            self.assertEqual(rtn_class.path.namespace, self.namespace)
+            # set rtn class path into test_class for compare
+            test_class.path = rtn_class.path
             self.assertEqual(rtn_class.classname, test_class_name)
             self.assertEqual(rtn_class, test_class)
             # delete the new class
@@ -6577,13 +6607,17 @@ def parse_args(argv_):
         print('    -l                  Do long running tests. If not set,\n'
               '                        skips a number of tests that take a\n'
               '                        long time to run')
+        print('    --log               Log all operations and http to file.\n'
+              '                        run_cim_operations.log.\n'
+              '                        Any existing log is renamed with .bak\n'
+              '                        suffix.')
         print('    -hl                 List of individual tests')
 
         print('')
         print('Examples:')
         print('    %s https://9.10.11.12 username%%password' % argv[0])
-        print('    %s https://myhost -v username%%password' % argv[0])
-        print('    %s http://localhost -v username%%password'
+        print('    %s --log https://myhostusername%%password' % argv[0])
+        print('    %s -v http://localhost username%%password'
               ' GetQualifier' % argv[0])
 
         print('------------------------')
@@ -6606,6 +6640,7 @@ def parse_args(argv_):
     args_['yamlfile'] = None
     args_['long_running'] = None
     args_['stats'] = None
+    args_['log'] = False
 
     # options must proceed arguments
     while True:
@@ -6636,14 +6671,17 @@ def parse_args(argv_):
         elif argv[1] == '-l':
             args_['long_running'] = True
             del argv[1:2]
+        elif argv[1] == '--yamlfile':
+            args_['yamlfile'] = argv[2]
+            del argv[1:3]
+        elif argv[1] == '--log':
+            args_['log'] = True
+            del argv[1:2]
         elif argv[1] == '-hl':
             args_['debug'] = True
             del argv[1:2]
             print('List of tests: %s' % ", ".join(TEST_LIST))
             sys.exit(2)
-        elif argv[1] == '--yamlfile':
-            args_['yamlfile'] = argv[2]
-            del argv[1:3]
         else:
             print("Error: Unknown option: %s" % argv[1])
             sys.exit(1)
@@ -6681,12 +6719,13 @@ def main():
         print("  stats: %s" % CLI_ARGS['stats'])
         print("  debug: %s" % CLI_ARGS['debug'])
         print("  yamlfile: %s" % CLI_ARGS['yamlfile'])
+        print("  log: %s" % CLI_ARGS['log'])
         print("  long_running: %s" % CLI_ARGS['long_running'])
 
         if CLI_ARGS['long_running'] is True:
             SKIP_LONGRUNNING_TEST = False
 
-    # if yamlfile exists rename it to yamlfile.bak
+    # if yamlfile  or log file exists rename them with .bak suffix
     if CLI_ARGS['yamlfile']:
         yamlfile_name = CLI_ARGS['yamlfile']
         if os.path.isfile(yamlfile_name):
@@ -6694,6 +6733,13 @@ def main():
             if os.path.isfile(backupfile_name):
                 os.remove(backupfile_name)
             os.rename(yamlfile_name, backupfile_name)
+
+    if CLI_ARGS['log']:
+        if os.path.isfile(RUN_CIM_OPERATIONS_OUTPUT_LOG):
+            backupfile_name = '%s.bak' % RUN_CIM_OPERATIONS_OUTPUT_LOG
+            if os.path.isfile(backupfile_name):
+                os.remove(backupfile_name)
+            os.rename(RUN_CIM_OPERATIONS_OUTPUT_LOG, backupfile_name)
 
     # Note: unittest options are defined in separate args after
     # the url argument.

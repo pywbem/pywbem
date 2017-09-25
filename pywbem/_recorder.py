@@ -27,6 +27,7 @@ except ImportError:
     from ordereddict import OrderedDict  # pylint: disable=import-error
 
 from datetime import datetime, timedelta
+import logging
 import yaml
 from yaml.representer import RepresenterError
 import six
@@ -36,11 +37,15 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMQualifierDeclaration, NocaseDict
 from .cim_types import CIMInt, CIMFloat, CIMDateTime
 from .exceptions import CIMError
+from ._logging import PywbemLoggers, LOG_OPS_CALLS_NAME, LOG_HTTP_NAME
+from .config import DEFAULT_MAX_LOG_ENTRY_SIZE
 
 if six.PY2:
     import codecs  # pylint: disable=wrong-import-order
 
+
 __all__ = ['BaseOperationRecorder', 'TestClientRecorder',
+           'LogOperationRecorder',
            'OpArgs', 'OpResult', 'HttpRequest', 'HttpResponse']
 
 if six.PY2:
@@ -255,6 +260,7 @@ class BaseOperationRecorder(object):
 
     def __init__(self):
         self._enabled = True
+        self._conn_id = None
         self.reset()
 
     def enable(self):
@@ -276,18 +282,22 @@ class BaseOperationRecorder(object):
         A static convience function that performs the open of the recorder file
         correctly for different versions of python.  This covers the
         issue where the file should be opened in text mode but that is
-        done differently in pythong 2 and python 3
+        done differently in python 2 and python 3
 
         Parameters:
-          filename: (:term: `string`):
+
+          filename(:term:`string`):
             Name of the file where the recorder output will be written
-          file_mode: (:term: `string`):
+
+          file_mode(:term:`string`):
             Optional file mode.  The default is 'w' which overwrites any
             existing file.  if 'a' is used, the data is appended to any
             existing file.
 
-          Example:
-            recorder = TestClientRecorder(open_file('recorder.log')
+        Example::
+
+            recorder = TestClientRecorder(
+                BaseOperationRecorder.open_file('recorder.log'))
         """
         if six.PY2:
             # Open with codecs to define text mode
@@ -299,6 +309,8 @@ class BaseOperationRecorder(object):
         """Reset all the attributes in the class. This also allows setting
         the pull_op attribute that defines whether the operation is to be
         a traditional or pull operation.
+        This does NOT reset _conn.id as that exists through the life of
+        the connection.
         """
         self._pywbem_method = None
         self._pywbem_args = None
@@ -320,6 +332,13 @@ class BaseOperationRecorder(object):
         self._http_response_payload = None
         self._pull_op = pull_op
 
+    def stage_wbem_connection(self, wbem_connection):
+        """
+        Stage information about the connection. Used only by
+        LogOperationRecorder.
+        """
+        pass
+
     def stage_pywbem_args(self, method, **kwargs):
         """
         Set requst method and all args.
@@ -336,19 +355,22 @@ class BaseOperationRecorder(object):
         self._pywbem_result_ret = ret
         self._pywbem_result_exc = exc
 
-    def stage_http_request(self, version, url, target, method, headers,
+    def stage_http_request(self, conn_id, version, url, target, method, headers,
                            payload):
         """Set request HTTP information including url, headers, etc."""
         # pylint: disable=attribute-defined-outside-init
         self._http_request_version = version
+        self._http_request_conn_id = conn_id
         self._http_request_url = url
         self._http_request_target = target
         self._http_request_method = method
         self._http_request_headers = headers
         self._http_request_payload = payload
 
-    def stage_http_response1(self, version, status, reason, headers):
-        """Set response http info including headers, status, etc. """
+    # pylint: disable=unused-argument
+    def stage_http_response1(self, conn_id, version, status, reason, headers):
+        """Set response http info including headers, status, etc.
+           conn_id unused here. Used in log"""
         # pylint: disable=attribute-defined-outside-init
         self._http_response_version = version
         self._http_response_status = status
@@ -419,6 +441,195 @@ class BaseOperationRecorder(object):
         raise NotImplementedError
 
 
+class LogOperationRecorder(BaseOperationRecorder):
+    """
+    An Operation Recorder that logs the information to a set of named logs.
+    This recorder uses two named logs:
+
+    LOG_OPS_CALLS_NAME - Logger for cim_operations method calls and responses
+
+    LOG_HTTP_NAME - Logger for http_requests and responses
+
+    This also implements a method to log information on each connection.
+
+    All logging calls are at the debug level.
+    """
+    def __init__(self, max_log_entry_size=None):
+        """
+        Creates the the loggers and sets the max_log_size for each if
+        the input parameter max_log_entry_size is not `None`.
+
+        Parameters: (:term:`integer`)
+
+          max_log_entry_size(:term:`integer`)
+            The maximum size of each log entry. This is primarily to limit
+            response sizes since they could be enormous.
+            If `None`, no size limit and the full request or response is logged.
+
+
+        """
+        super(LogOperationRecorder, self).__init__()
+
+        # compute max entry size for each logger
+        max_sz = max_log_entry_size if max_log_entry_size \
+            else DEFAULT_MAX_LOG_ENTRY_SIZE
+
+        self.opslogger = logging.getLogger(LOG_OPS_CALLS_NAME)
+        ops_logger_info = PywbemLoggers.get_logger_info(LOG_OPS_CALLS_NAME)
+        opsdetaillevel = ops_logger_info[0] if ops_logger_info else None
+
+        self.ops_max_log_size = max_sz if opsdetaillevel == 'min'  \
+            else None
+
+        self.httplogger = logging.getLogger(LOG_HTTP_NAME)
+        http_logger_info = PywbemLoggers.get_logger_info(LOG_HTTP_NAME)
+        httpdetaillevel = http_logger_info[0] if http_logger_info else None
+        self.http_max_log_size = max_sz if httpdetaillevel == 'min' \
+            else None
+
+    def stage_wbem_connection(self, wbem_connection):
+        """
+        Log connection information. This includes the connection id
+        that should remain throught the life of the connection.
+        """
+        self._conn_id = wbem_connection.conn_id
+
+        if self.enabled:
+            self.opslogger.debug('Connection:%s %r', self._conn_id,
+                                 wbem_connection)
+
+    def stage_pywbem_args(self, method, **kwargs):
+        """
+        Log request method and all args.
+        Normally called before the cmd is executed to record request
+        parameters.
+        This method does not limit size of log record.
+        """
+        # pylint: disable=attribute-defined-outside-init
+        self._pywbem_method = method
+        if self.enabled and self.opslogger.isEnabledFor(logging.DEBUG):
+            # Order kwargs.  Note that this is done automatically starting
+            # with python 3.6
+            kwstr = ', '.join([('{0}={1!r}'.format(key, kwargs[key]))
+                               for key in sorted(six.iterkeys(kwargs))])
+
+            self.opslogger.debug('Request:%s %s(%s)', self._conn_id, method,
+                                 kwstr)
+
+    def stage_pywbem_result(self, ret, exc):
+        """
+        Log result return or exception parameter. This function allows
+        setting maximum size on the result parameter logged because response
+        information can be very large
+        .
+        """
+        def format_result(ret, max_len):
+            """ format ret as repr while clipping it to max_len if
+                max_len is not None.
+            """
+            result = '{0!r}'.format(ret)
+            if max_len and (len(result) > max_len):
+                result = (result[:max_len] + '...')
+            return result
+
+        if self.enabled and self.opslogger.isEnabledFor(logging.DEBUG):
+            if exc:  # format exception
+                result = format_result(
+                    '%s(%s)' % (exc.__class__.__name__, exc),
+                    self.ops_max_log_size)
+            else:    # format result
+                # test if type is tuple (subclass of tuple but not type tuple)
+                # pylint: disable=unidiomatic-typecheck
+                if isinstance(ret, tuple) and type(ret) is not tuple:
+                    try:    # test if field instances or paths
+                        rtn_data = ret.instances
+                        data_str = 'instances'
+                    except AttributeError:
+                        rtn_data = ret.paths
+                        data_str = 'paths'
+                    rtn_data = format_result(rtn_data, self.ops_max_log_size)
+
+                    try:    # test for query_result_class
+                        qrc = ', query_result_class=%s' % ret.query_result_class
+                    except AttributeError:
+                        qrc = ""
+
+                    result = "{0.__name__}(context={1}, eos={2}{3}, {4}={5})" \
+                        .format(type(ret), ret.context, ret.eos, qrc,
+                                data_str, rtn_data)
+                else:
+                    result = format_result(ret, self.ops_max_log_size)
+
+            return_type = 'Exception' if exc else 'Return'
+
+            self.opslogger.debug('%s:%s %s(%s)', return_type, self._conn_id,
+                                 self._pywbem_method,
+                                 result)
+
+    def stage_http_request(self, conn_id, version, url, target, method, headers,
+                           payload):
+        """Log request HTTP information including url, headers, etc."""
+        if self.enabled and self.httplogger.isEnabledFor(logging.DEBUG):
+            # pylint: disable=attribute-defined-outside-init
+            # if Auth header, mask data
+            if 'Authorization' in headers:
+                authtype, cred = headers['Authorization'].split(' ')
+                headers['Authorization'] = '%s %s' % (authtype, 'X' * len(cred))
+
+            header_str = ' '.join('{0}:{1!r}'.format(k, v)
+                                  for k, v in headers.items())
+
+            self.httplogger.debug('Request:%s %s %s %s %s %s\n    %s',
+                                  conn_id, method, target, version, url,
+                                  header_str, payload)
+
+    def stage_http_response1(self, conn_id, version, status, reason, headers):
+        """Set response http info including headers, status, etc. """
+        # pylint: disable=attribute-defined-outside-init
+        self._http_response_version = version
+        self._http_response_status = status
+        self._http_response_reason = reason
+        self._http_response_headers = headers
+        self._http_response_conn_id = conn_id
+
+    def stage_http_response2(self, payload):
+        """Log complete http response, including response1 and payload"""
+
+        # required because http code uses sending all None to reset
+        # parameters. We ignore that
+        if not self._http_response_version and not payload:
+            return
+        if self.enabled and self.httplogger.isEnabledFor(logging.DEBUG):
+            if self._http_response_headers:
+                header_str = \
+                    ' '.join('{0}:{1!r}'.format(k, v)
+                             for k, v in self._http_response_headers.items())
+            else:
+                header_str = ''
+
+            # format the payload possibly with max size limit
+            payload = '%r' % payload.decode('utf-8')
+            if self.http_max_log_size and \
+                    (len(payload) > self.http_max_log_size):
+                payload = (payload[:self.http_max_log_size] + '...')
+
+            self.httplogger.debug('Response:%s %s:%s %s %s\n    %s',
+                                  self._http_response_conn_id,
+                                  self._http_response_status,
+                                  self._http_response_reason,
+                                  self._http_response_version,
+                                  header_str,
+                                  payload)
+
+    def record_staged(self):
+        """Not used for logging"""
+        pass
+
+    def record(self, pywbem_args, pywbem_result, http_request, http_response):
+        """Not used for logging"""
+        pass
+
+
 class TestClientRecorder(BaseOperationRecorder):
     """
     An operation recorder that generates test cases for each recorded
@@ -447,16 +658,22 @@ class TestClientRecorder(BaseOperationRecorder):
         """
         Parameters:
 
-        fp (file):
-          An open file that each test case will be written to.  This file
-          should have been opened in text mode.
+          fp (file):
+            An open file that each test case will be written to.  This file
+            should have been opened in text mode.
 
-          Since there are differences between python 2 and 3 in opening
-          files in text mode, the static method
-          open__file(filename) can be used to open the file.
+            Since there are differences between python 2 and 3 in opening
+            files in text mode, the static method
+            :meth:`~pywbem.BaseOperationRecorder.open_file`
+            can be used to open the file or python 2/3 compatible open::
 
-        Example:
-          recorder = TestClientRecorder(open_file('recorder.log')
+              from io import open
+                  f = open('blah.log', encoding='utf-8')
+
+        Example::
+
+          recorder = TestClientRecorder(
+              BaseOperationRecorder.open_file('recorder.log'))
         """
         super(TestClientRecorder, self).__init__()
         self._fp = fp
@@ -566,6 +783,7 @@ class TestClientRecorder(BaseOperationRecorder):
 
         # namedtuple is subclass of tuple so it is instance of tuple but
         # not type tuple. Cvt to dictionary and cvt dict to yaml.
+        # pylint: disable=unidiomatic-typecheck
         if isinstance(obj, tuple) and type(obj) is not tuple:
             ret_dict = obj._asdict()
             return self.toyaml(ret_dict)
@@ -589,6 +807,7 @@ class TestClientRecorder(BaseOperationRecorder):
         elif isinstance(obj, CIMInt):
             return _Longint(obj)
         elif isinstance(obj, (bool, int)):
+            # TODO ks jun 17 should the above be six.integertypes???
             # The check for int must be after CIMInt, because CIMInt is int.
             return obj
         elif isinstance(obj, CIMFloat):
