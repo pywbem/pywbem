@@ -153,8 +153,19 @@ help:
 	@echo '  clean      - Remove any temporary files'
 	@echo '  clobber    - Remove everything; ensure clean start like a fresh clone'
 
+# Keep the condition for the 'wheel' package consistent with setup.py.
+.PHONY: _pip
+_pip:
+	@echo 'Installing/upgrading pip, setuptools and wheel'
+	pip install --upgrade pip setuptools
+ifeq ($(python_mn_version),26)
+	pip install --upgrade 'wheel<0.30.0'
+else
+	pip install --upgrade wheel
+endif
+
 .PHONY: develop
-develop:
+develop: _pip
 	python setup.py develop_os
 	python setup.py develop
 	@echo '$@ done.'
@@ -245,7 +256,7 @@ flake8: flake8.log
 	@echo '$@ done.'
 
 .PHONY: install
-install: $(sdist_file)
+install: _pip $(sdist_file)
 	mkdir tmp_install
 	tar -x -C tmp_install -f $(sdist_file)
 	sh -c "cd tmp_install/$(package_name)-$(package_version) && python setup.py install_os && python setup.py install"
@@ -297,8 +308,10 @@ MANIFEST.in: makefile
 # Distribution archives.
 # Note: Deleting MANIFEST causes distutils (setup.py) to read MANIFEST.in and to
 # regenerate MANIFEST. Otherwise, changes in MANIFEST.in will not be used.
+# Note: Deleting build is a safeguard against picking up partial build products
+# which can lead to incorrect hashbangs in the pywbem scripts in wheel archives.
 $(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
-	rm -rf MANIFEST $(package_name).egg-info .eggs
+	rm -rf MANIFEST $(package_name).egg-info .eggs build
 	python setup.py sdist -d $(dist_dir) bdist_wheel -d $(dist_dir) --universal
 	@echo 'Done: Created distribution files: $@'
 

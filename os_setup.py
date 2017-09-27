@@ -161,7 +161,6 @@ import getpass
 from distutils.errors import DistutilsSetupError
 from setuptools import Command, Distribution
 from setuptools.command.develop import develop as _develop
-import pip
 
 
 # Some types to avoid dependency on "six" package during installation.
@@ -839,17 +838,26 @@ class PythonInstaller(BaseInstaller):
         `BaseInstaller.do_install()`.
         """
         pkg_req = self.pkg_req(pkg_name, version_reqs)
-        args = ['install']
+        cmd_args = ['pip', 'install']
         if reinstall:
-            args.append('--ignore-installed')
-        args.append(pkg_req)
+            cmd_args.append('--ignore-installed')
+        cmd_args.append(pkg_req)  # blanks inside: "package >=version"
+        cmd = ' '.join(cmd_args)
         if dry_run:
-            print("Dry-running: pip %s" % ' '.join(args))
+            print("Dry-running: %s" % cmd)
         else:
-            print("Running: pip %s" % ' '.join(args))
-            rc = pip.main(args)
-            if rc != 0:
-                raise DistutilsSetupError("Pip returns rc=%d" % rc)
+            print("Running: %s" % cmd)
+            # The following pip invocation was changed from pip.main() to use
+            # the external pip command, due to ValueError "underlying buffer
+            # has been detached" in pip/_vendor/progress/helpers.py, line 58,
+            # __init__() on Python 3.x on Windows. See also
+            # https://cbuelter.wordpress.com/2015/12/15/you-detach-me-i-
+            # detach-you/
+            rc, out, _ = shell(cmd_args, display=True)
+            if rc == 127:
+                raise DistutilsSetupError("Pip command is not available")
+            elif rc != 0:
+                raise DistutilsSetupError("Pip install returns rc=%d" % rc)
 
     def is_installed(self, pkg_name, version_reqs=None):
         """Test whether a Python package is installed, and optionally satisfies
@@ -1220,8 +1228,12 @@ class YumInstaller(OSInstaller):
         rc, _, _ = shell("which dnf")
         if rc == 0:
             self.installer_cmd = "dnf"
-        else:
+            return
+        rc, _, _ = shell("which yum")
+        if rc == 0:
             self.installer_cmd = "yum"
+            return
+        self.installer_cmd = None
 
     def do_install(self, pkg_name, version_reqs=None, dry_run=False,
                    reinstall=False):
@@ -1231,6 +1243,8 @@ class YumInstaller(OSInstaller):
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.do_install()`.
         """
+        if not self.installer_cmd:
+            return
         subcmd = 'reinstall' if reinstall else 'install'
         cmd = "sudo %s %s -y %s" % (self.installer_cmd, subcmd, pkg_name)
         if dry_run:
@@ -1246,6 +1260,8 @@ class YumInstaller(OSInstaller):
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.is_installed()`.
         """
+        if not self.installer_cmd:
+            return (False, False, None)
         cmd = "%s list installed %s" % (self.installer_cmd, pkg_name)
         rc, out, err = shell(cmd)
         if rc != 0:
@@ -1273,6 +1289,8 @@ class YumInstaller(OSInstaller):
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.is_available()`.
         """
+        if not self.installer_cmd:
+            return (False, False, None)
         cmd = "%s list %s" % (self.installer_cmd, pkg_name)
         rc, out, err = shell(cmd)
         if rc != 0:
@@ -1297,6 +1315,11 @@ class AptInstaller(OSInstaller):
 
     def __init__(self):
         OSInstaller.__init__(self)
+        rc, _, _ = shell("which apt-get")
+        if rc == 0:
+            self.installer_cmd = "apt-get"
+            return
+        self.installer_cmd = None
 
     def do_install(self, pkg_name, version_reqs=None, dry_run=False,
                    reinstall=False):
@@ -1306,8 +1329,11 @@ class AptInstaller(OSInstaller):
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.do_install()`.
         """
+        if not self.installer_cmd:
+            return
         reinstall_opt = '--reinstall' if reinstall else ''
-        cmd = "sudo apt-get install -y %s %s" % (reinstall_opt, pkg_name)
+        cmd = "sudo %s install -y %s %s" % (self.installer_cmd,
+                                            reinstall_opt, pkg_name)
         if dry_run:
             print("Dry-running: %s" % cmd)
         else:
@@ -1321,6 +1347,8 @@ class AptInstaller(OSInstaller):
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.is_installed()`.
         """
+        if not self.installer_cmd:
+            return (False, False, None)
         cmd = "dpkg -s %s" % pkg_name
         rc, out, err = shell(cmd)
         if rc != 0:
@@ -1364,6 +1392,8 @@ class AptInstaller(OSInstaller):
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.is_available()`.
         """
+        if not self.installer_cmd:
+            return (False, False, None)
         cmd = "apt show %s" % pkg_name
         rc, out, _ = shell(cmd)
         if rc != 0:
@@ -1392,6 +1422,11 @@ class ZypperInstaller(OSInstaller):
 
     def __init__(self):
         OSInstaller.__init__(self)
+        rc, _, _ = shell("which zypper")
+        if rc == 0:
+            self.installer_cmd = "zypper"
+            return
+        self.installer_cmd = None
 
     def do_install(self, pkg_name, version_reqs=None, dry_run=False,
                    reinstall=False):
@@ -1401,8 +1436,11 @@ class ZypperInstaller(OSInstaller):
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.do_install()`.
         """
+        if not self.installer_cmd:
+            return
         reinstall_opt = '-f' if reinstall else ''
-        cmd = "sudo zypper -y %s %s" % (reinstall_opt, pkg_name)
+        cmd = "sudo %s -y %s %s" % (self.installer_cmd, reinstall_opt,
+                                    pkg_name)
         if dry_run:
             print("Dry-running: %s" % cmd)
         else:
@@ -1416,7 +1454,9 @@ class ZypperInstaller(OSInstaller):
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.is_installed()`.
         """
-        cmd = "zypper info %s" % pkg_name
+        if not self.installer_cmd:
+            return (False, False, None)
+        cmd = "%s info %s" % (self.installer_cmd, pkg_name)
         rc, out, err = shell(cmd)
         if rc != 0:
             return (False, False, None)
@@ -1444,7 +1484,9 @@ class ZypperInstaller(OSInstaller):
         For a description of the parameters, return value and exceptions, see
         `BaseInstaller.is_available()`.
         """
-        cmd = "zypper info %s" % pkg_name
+        if not self.installer_cmd:
+            return (False, False, None)
+        cmd = "%s info %s" % (self.installer_cmd, pkg_name)
         _, out, _ = shell(cmd)
         # zypper always returns 0, and writes everything to stdout.
         lines = out.splitlines()
@@ -1470,7 +1512,13 @@ def shell(command, display=False, ignore_notfound=False):
     Python 2.7, but we want to support Python 2.6 as well.
 
     Parameters:
-      * command: string or list of strings with the command and its parameters.
+      * command: command and arguments, in one of two forms:
+        - as a string: In this case, the string will be split upon blanks, so
+          don't use this unless you know for sure that the arguments do not
+          contain blanks (as opposed to being separated by blanks).
+        - as a list or tuple of strings, representing the command name and
+          each of its arguments as one item.
+        arguments.
       * display: boolean indicating whether the command output will be printed.
       * ignore_notfound: boolean indicating that command not found should be
         ignored. If the command is not found and this argument is True, the
@@ -1487,15 +1535,21 @@ def shell(command, display=False, ignore_notfound=False):
     """
 
     if isinstance(command, string_types):
-        cmd_parts = command.split(" ")
-    else:  # already a list
-        cmd_parts = command
+        command = command.split(" ")
+    elif isinstance(command, (tuple, list)):
+        pass
+    else:
+        raise TypeError("Invalid type for command parameter: %s" %
+                        type(command))
 
-    encoded_cmd_parts = [part.encode("utf-8")
-                         if isinstance(part, text_type)
-                         else part for part in cmd_parts]
+    # Note: On Python 3.x on Windows, passing UTF-8 encoded 'bytes' in the
+    # 'args' parameter of subprocess.Popen() causes a TypeError: "'str' does
+    # not support the buffer interface". This does not happen on Python 3.x
+    # on Linux. Therefore, the following code no longer encodes the command
+    # and arguments to UTF-8 bytes.
+
     try:
-        p = subprocess.Popen(encoded_cmd_parts,
+        p = subprocess.Popen(command,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -1504,12 +1558,12 @@ def shell(command, display=False, ignore_notfound=False):
             return 10002, "", ""
         else:
             raise DistutilsSetupError(
-                "Cannot execute %s: %s" % (cmd_parts[0], exc))
+                "Cannot execute %s: %s" % (command.split(' ')[0], exc))
 
     if isinstance(stdout, binary_type):
-        stdout = stdout.decode("utf-8")
+        stdout = stdout.decode('utf-8', 'replace')
     if isinstance(stderr, binary_type):
-        stderr = stderr.decode("utf-8")
+        stderr = stderr.decode('utf-8', 'replace')
 
     # TODO: Add support for printing while command executes, like with 'tee'
     if display:
@@ -1526,7 +1580,12 @@ def shell_check(command, display=False, exp_rc=0):
     raise an exception.
 
     Parameters:
-      * command: string or list of strings with the command and its parameters.
+      * command: command and arguments, in one of two forms:
+        - as a string: In this case, the string will be split upon blanks, so
+          don't use this unless you know for sure that the arguments do not
+          contain blanks (as opposed to being separated by blanks).
+        - as a list or tuple of strings, representing the command name and
+          each of its arguments as one item.
       * display: boolean indicating whether the command stdout will be printed.
       * rc: number or list of numbers indicating the allowable return codes.
 
@@ -1537,9 +1596,6 @@ def shell_check(command, display=False, exp_rc=0):
       * If the command is not found, OSError is raised.
       * If the command does not return 0, DistutilsSetupError is raised.
     """
-
-    if isinstance(command, string_types):
-        command = command.split(" ")
 
     if isinstance(exp_rc, int):
         exp_rc = [exp_rc]
@@ -1553,7 +1609,7 @@ def shell_check(command, display=False, exp_rc=0):
         else:
             msg = out
         raise DistutilsSetupError(
-            "%s returns rc=%d: %s" % (command[0], rc, msg))
+            "%s returns rc=%d: %s" % (command.split(' ')[0], rc, msg))
 
     return out
 

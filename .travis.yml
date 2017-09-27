@@ -1,23 +1,42 @@
 # Control file for Travis CI (http://travis-ci.org)
 # Must be located in the root directory of the Git repository.
 
+# By default, notification emails are sent to the PR creator and commiter.
+notifications:
+  email: false
+
 sudo: required
+
+# Disabling the distro, so we get the latest:
+# dist:
+#   - trusty
+
 language: python
 python:
   - "2.6"
   - "2.7"
   - "3.4"
   - "3.5"
+  - "3.6"
 
 # commands to install dependencies
 install:
   - python -c "import platform; print('Demonstration of incorrect distro returned by platform.linux_distribution():'); print(repr(platform.linux_distribution()))"
   - python -c "import pip, os; print('Site-packages directory of system Python:'); print(os.path.dirname(os.path.dirname(pip.__file__)))"
+  - env |sort
   - pip list
+# TODO: Replace the following quick fix for installing swig with a real fix.
+  - if [[ $TRAVIS_OS_NAME == linux ]]; then sudo apt-get install -y swig; fi
+# end of swig quick fix
   - pip install --upgrade pip
   - python uninstall_pbr_on_py26.py
   - make clobber
   - pip list
+# TODO: Replace the following quick fix for installing M2Crypto with a real fix.
+# The problem happens only with Python 2.6 on Ubuntu 16.04, see pywbem issue #750.
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.6 && -f /usr/include/x86_64-linux-gnu/openssl/opensslconf.h && ! -f /usr/include/openssl/opensslconf.h ]]; then echo "Linking openssl/opensslconf.h"; sudo ln -s /usr/include/x86_64-linux-gnu/openssl/opensslconf.h /usr/include/openssl/opensslconf.h; fi
+  - find /usr/include -name "openssl*.h" -ls 2>/dev/null || true
+# end of m2crypto quick fix
   - make develop
   - pip install python-coveralls
   - pip list
@@ -30,4 +49,4 @@ script:
   - make test
 
 after_success:
-  - coveralls
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi

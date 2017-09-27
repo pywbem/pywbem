@@ -27,6 +27,15 @@ Incompatible changes
 Enhancements
 ^^^^^^^^^^^^
 
+* Added support for automatically finding out whether for RHEL/CentOS/Fedora,
+  the IUS version of the Python development packages should be used,
+  dependent on whether the Python package is from IUS.
+
+* Ensured that `CIMDateTime` objects for point in time values are
+  timezone-aware when supplied with a timezone-naive `datetime` object.
+  This does not change the behavior, but increases code clarity.
+  Clarified that in the documentation of  `CIMDateTime`. See issue #698.
+
 Bug fixes
 ^^^^^^^^^
 
@@ -39,11 +48,48 @@ Bug fixes
   Also extends these requests to test the Pull.. methods for valid
   MaxObjectCount and context parameters. See issue #656.
 
+* Fixed TypeError "'str' does not support the buffer interface" during
+  'setup.py develop' on Python 3.x on Windows (issue #661).
+
+* Fixed ValueError "underlying buffer has been detached" during
+  'setup.py develop' on Python 3.x on Windows (issue #661).
+
+* Fixed names of Python development packages for SLES/OpenSUSE.
+
+* Fixed that older versions of pip and setuptools failed or were
+  rejected on some older Linux distros during make develop or make install,
+  by upgrading them in these steps. See issues #759 and #760.
+
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 
+* Added Python 3.6 to the environments to be tested in Travis CI and Appveyor
+  CI (issue #661).
+
+* Added Python 2.6, 3.4 and 3.5 to the environments to be tested in Appveyor
+  CI (issue #661).
+
+* Fixed uninstall_pbr_on_py26.py to remove 'pbr' only if installed
+  (issue #661).
+    
+* Fixed TypeError about dict ordering on Python 3.6 in unit test
+  'test_nocasedict.TestOrdering' (issue #661).
+
+* Tolerated incorrect Unicode characters in output of commands invoked by
+  ``os_setup.py`` (used for installation) that sometimes occurred on Windows
+  (e.g. on the Appveyor CI with Python 3).
+
+* Pinned the version of the ``wheel`` package to <0.30.0 for Python 2.6,
+  because wheel removed Python 2.6 support in its 0.30.0 version.
+
+* Improved the build process to ensure that half-built artefacts are
+  removed before building (issue #754).
+
 Documentation
 ^^^^^^^^^^^^^
+
+* Documented that pywbem is not supported on Python 2.6 on Windows.
+  and that 64-bit versions of Python are not supported on Windows.
 
 
 pywbem v0.10.0

@@ -42,7 +42,7 @@ import platform
 from distutils.errors import DistutilsSetupError
 
 import os_setup
-from os_setup import shell, shell_check, import_setuptools
+from os_setup import shell, shell_check, import_setuptools, YumInstaller
 
 # Workaround for Python 2.6 issue https://bugs.python.org/issue15881
 # This causes this module to be referenced and prevents the premature
@@ -50,7 +50,7 @@ from os_setup import shell, shell_check, import_setuptools
 if sys.version_info[0:2] == (2, 6):
     try:
         # pylint: disable=unused-import
-        import multiprocessing  # noqa: E402, F401
+        import multiprocessing  # noqa: E402,F401
     except ImportError:
         pass
 
@@ -308,8 +308,9 @@ def main():
             _VERBOSE = self.verbose
             _build_py.run(self)
 
-    py_version_m_n = "%s.%s" % (sys.version_info[0], sys.version_info[1])
+    py_version_mn = "%s%s" % (sys.version_info[0], sys.version_info[1])
     py_version_m = "%s" % sys.version_info[0]
+    yuminst = YumInstaller()
 
     pkg_version = package_version("pywbem/_version.py", "__version__")
 
@@ -359,17 +360,19 @@ def main():
         ],
         'develop_requires': [
             # Wheel may not be installed in every system Python.
-            'wheel',
+            # Wheel 0.30.0 removed Python 2.6 support.
+            # Keep the condition for wheel consistent with the makefile.
+            'wheel<0.30.0' if sys.version_info[0:2] == (2, 6) else 'wheel',
             # Python prereqs for 'develop' command. Handled by os_setup module.
             "pytest>=2.4",
             "pytest-cov",
-            "Sphinx>=1.3",
+            "Sphinx>=1.3" if sys.version_info[0:2] != (2, 6) else None,
             # Pinning GitPython to 2.0.8 max, due to its use of unittest.case
             # which is not available on Python 2.6.
             # TODO: Track resolution of GitPython issue #540:
             #       https://github.com/gitpython-developers/GitPython/issues/540
-            "GitPython==2.0.8",
-            "sphinx-git",
+            "GitPython==2.0.8" if sys.version_info[0:2] != (2, 6) else None,
+            "sphinx-git" if sys.version_info[0:2] != (2, 6) else None,
             "httpretty",
             "lxml",
             # Astroid is used by Pylint. Astroid 1.3 and above, and Pylint 1.4
@@ -393,11 +396,11 @@ def main():
                     "gcc-c++>=4.4",         # for building Swig and for running
                                             #   Swig in M2Crypto install
                     install_swig,           # for running Swig in M2Crypto inst.
-                    # Python-devel provides Python.h for Swig run.
-                    # The following assumes we have python34, not python34u
-                    "python34-devel" if py_version_m_n == "3.4" else \
-                    "python35-devel" if py_version_m_n == "3.5" else \
-                    "python-devel",
+                    # Python*-devel provides Python.h for Swig run.
+                    "python-devel" if py_version_m == "2" else \
+                    "python%su-devel" % py_version_mn if \
+                    yuminst.is_installed('python%su' % py_version_mn)[0] else \
+                    "python%s-devel" % py_version_mn
                 ],
                 'centos': 'redhat',
                 'fedora': 'redhat',
@@ -405,8 +408,8 @@ def main():
                     "libssl-dev>=1.0.1",
                     "g++>=4.4",
                     install_swig,
-                    "python-dev" if py_version_m == "2"
-                    else "python%s-dev" % py_version_m,
+                    "python-dev" if py_version_m == "2" else \
+                    "python%s-dev" % py_version_m,
                 ],
                 'debian': 'ubuntu',
                 'linuxmint': 'ubuntu',
@@ -414,7 +417,8 @@ def main():
                     "openssl-devel>=1.0.1",
                     "gcc-c++>=4.4",
                     install_swig,
-                    "libpython%s-devel" % py_version_m_n,
+                    "python-devel" if py_version_m == "2" else \
+                    "python%s-devel" % py_version_m,
                 ],
             },
             # TODO: Add support for Windows.
@@ -488,6 +492,7 @@ def main():
             'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
             'Topic :: Software Development :: Libraries :: Python Modules',
             'Topic :: System :: Systems Administration',
         ],
