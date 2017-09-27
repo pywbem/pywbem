@@ -50,7 +50,7 @@ from os_setup import shell, shell_check, import_setuptools, YumInstaller
 if sys.version_info[0:2] == (2, 6):
     try:
         # pylint: disable=unused-import
-        import multiprocessing  # noqa: E402, F401
+        import multiprocessing  # noqa: E402,F401
     except ImportError:
         pass
 
