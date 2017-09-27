@@ -227,11 +227,11 @@ release.
 Planned Next Release
 --------------------
 
-Pywbem 0.11.0 is in development and is expected to be released in Q2 of 2017
+Pywbem 0.12.0 is in development.
 
-Pywbem github `Issue 633`_ defines the basic direction for release 0.11.0
+Pywbem github `Issue 771`_ defines the basic direction for release 0.12.0
 
-.. _Issue 633: https://github.com/pywbem/pywbem/issues/633
+.. _Issue 771: https://github.com/pywbem/pywbem/issues/771
 
 Contributing
 ------------
