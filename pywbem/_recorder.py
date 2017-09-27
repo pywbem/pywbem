@@ -465,8 +465,6 @@ class LogOperationRecorder(BaseOperationRecorder):
             The maximum size of each log entry. This is primarily to limit
             response sizes since they could be enormous.
             If `None`, no size limit and the full request or response is logged.
-
-
         """
         super(LogOperationRecorder, self).__init__()
 

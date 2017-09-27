@@ -40,6 +40,12 @@ import six
 # result
 HELP_OUTPUT = ['-n namespace, --namespace',
                '-t timeout, --timeout']
+LOG_DEST_STDERR_OUTPUT = ['log=on',
+                          'Connection: http://blah,',
+                          ' no creds']
+LOG_DEST_FILE_OUTPUT = ['log=on',
+                        'Connection: http://blah,',
+                        ' no creds']
 
 TIMEOUT_OUTPUT = ['Connection: http://blah,',
                   ' no creds',
@@ -48,10 +54,12 @@ TIMEOUT_OUTPUT = ['Connection: http://blah,',
 STATS_OUTPUT = ['Connection: http://blah,',
                 ' no creds',
                 'stats=on']
-NAMESPACE_OUTPUT = ['Connection: http://blah,',
+NAMESPACE_OUTPUT = ['log=off',
+                    'Connection: http://blah,',
                     ' no creds',
                     'verifycert=on',
                     'default-namespace=rex/fred']
+LOG_STDERR_OUTPUT = ['pywbem.ops-Connection:']
 
 DEF_NAMESPACE_OUTPUT = ['default-namespace=root/cimv2']
 
@@ -70,6 +78,16 @@ TESTS_MAP = [  # pylint: disable=invalid-name
     tst_def('help', '--help', HELP_OUTPUT, 0, None, None),
     tst_def('namespace', '-n rex/fred', NAMESPACE_OUTPUT, 0, None, None),
     tst_def('timeout', '-t 10', TIMEOUT_OUTPUT, 0, None, None),
+    tst_def('log_dest_file1', '-l ops=file', LOG_DEST_FILE_OUTPUT, 0, None,
+            None),
+    tst_def('log_dest_file1a', '-l ops=file:min', LOG_DEST_FILE_OUTPUT, 0,
+            None, None),
+    tst_def('log_dest_file2', '-l http=file', LOG_DEST_FILE_OUTPUT, 0, None,
+            None),
+    tst_def('log_dest_file3', '-l all=file', LOG_DEST_FILE_OUTPUT, 0, None,
+            None),
+    tst_def('log_dest_file4', '-l ops=stderr:all', LOG_DEST_FILE_OUTPUT,
+            0, LOG_STDERR_OUTPUT, None),
     tst_def('def_namespace', '', DEF_NAMESPACE_OUTPUT, 0, None, None),
     tst_def('error_param', '-n', None, 2,
             ['argument -n/--namespace: expected one argument'], None),

@@ -16,6 +16,7 @@ parser.out
 moflog*.txt
 test_recorder.yaml
 pylint_done
+wbemcli.log
 .coverage
 /build/
 /build_doc/
