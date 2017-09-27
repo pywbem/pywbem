@@ -27,6 +27,10 @@ Incompatible changes
 Enhancements
 ^^^^^^^^^^^^
 
+* Added support for automatically finding out whether for RHEL/CentOS/Fedora,
+  the IUS version of the Python development packages should be used,
+  dependent on whether the Python package is from IUS.
+
 Bug fixes
 ^^^^^^^^^
 
@@ -39,11 +43,36 @@ Bug fixes
   Also extends these requests to test the Pull.. methods for valid
   MaxObjectCount and context parameters. See issue #656.
 
+* Add constructor parameter checking to QualifierDeclaration. See issue #645.
+
+* Fixed TypeError "'str' does not support the buffer interface" during
+  'setup.py develop' on Python 3.x on Windows (issue #661).
+
+* Fixed ValueError "underlying buffer has been detached" during
+  'setup.py develop' on Python 3.x on Windows (issue #661).
+
+* Fixed names of Python development packages for SLES/OpenSUSE.
+
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 
+* Added Python 3.6 to the environments to be tested in Travis CI and Appveyor
+  CI (issue #661).
+
+* Added Python 2.6, 3.4 and 3.5 to the environments to be tested in Appveyor
+  CI (issue #661).
+
+* Fixed uninstall_pbr_on_py26.py to remove 'pbr' only if installed
+  (issue #661).
+    
+* Fixed TypeError about dict ordering on Python 3.6 in unit test
+  'test_nocasedict.TestOrdering' (issue #661).
+
 Documentation
 ^^^^^^^^^^^^^
+
+* Documented that pywbem is not supported on Python 2.6 on Windows.
+  and that 64-bit versions of Python are not supported on Windows.
 
 
 pywbem v0.10.0
