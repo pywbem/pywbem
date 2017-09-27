@@ -1,6 +1,8 @@
 Pywbem - A WBEM client and related utilities, written in pure Python
 ====================================================================
 
+.. |pywbem-version| replace:: 0.11.0
+
 .. PyPI download statistics are broken, but the new PyPI warehouse makes PyPI
 .. download statistics available through Google BigQuery
 .. (https://bigquery.cloud.google.com).
@@ -100,11 +102,33 @@ activities:
 Installation
 ------------
 
-For rapid installation, use pip:
+.. |os-setup-link-pre| raw:: html
 
-.. code-block:: bash
+    <a href="https://github.com/pywbem/pywbem/raw/v
 
-    $ pip install pywbem
+.. |os-setup-link-post| raw:: html
+
+    /pywbem_os_setup.sh">pywbem_os_setup.sh</a>
+
+.. |os-setup-link| replace:: |os-setup-link-pre|\ |pywbem-version|\ |os-setup-link-post|
+
+* You first need to ensure that prerequisite OS-level packages are installed:
+
+  * Download the |os-setup-link| script (for pywbem version |pywbem-version|)
+
+  * Execute that script:
+
+    .. code-block:: bash
+
+        $ ./pywbem_os_setup.sh
+
+* Then, install the pywbem Python package using Pip:
+
+  .. code-block:: bash
+
+      $ pip install pywbem
+
+  This will also install any prerequisite Python packages.
 
 For more details and alternative ways to install, see the
 `Installation section`_ in the pywbem documentation.
@@ -187,7 +211,7 @@ namespace in a particular WBEM server:
 
     print("All namespaces:")
     for ns in server.namespaces:
-        print("  %s" % ns) 
+        print("  %s" % ns)
 
 Project Planning
 ----------------
