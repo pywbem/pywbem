@@ -34,7 +34,7 @@ namespace and should be used from there.
 
 # disable flake8 tests for no whitespace before : and line too long
 # for this file because of special formatting in the file.
-# flake8: noqa: E203, E501
+# flake8: noqa: E203,E501
 
 # This module is meant to be safe for 'import *'.
 
