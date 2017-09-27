@@ -15,13 +15,15 @@ contains the `master` branch up to this commit:
    :revisions: 1
 
 
-pywbem v0.11.0.dev0
--------------------
+pywbem v0.11.0
+--------------
 
-Released: Not yet
+Released: 2017-09-27
 
 Incompatible changes
 ^^^^^^^^^^^^^^^^^^^^
+
+None
 
 Enhancements
 ^^^^^^^^^^^^
