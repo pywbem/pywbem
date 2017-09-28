@@ -461,7 +461,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     operations).
 
     As usual in HTTP, there is no persistent TCP connection; the connectedness
-    provided by this class is  only conceptual. That is, the creation of the
+    provided by this class is only conceptual. That is, the creation of the
     connection object does not cause any interaction with the WBEM server, and
     each subsequent WBEM operation performs an independent, state-less
     HTTP/HTTPS request.
@@ -490,9 +490,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     WBEMConnection objects can record the results of
     :class:`~pywbem.WBEMConnection` methods that interact with
     a WBEM server using either the :class:`~pywbem.LogOperationRecorder` (uses
-    python logging facitlity to create logs for these methods and http
-    interactions) or the :class:`~pywbem.TestClientRecorder`( creates a yaml
-    file of methods     and http for tests)..
+    python logging facility to create logs for these methods and http
+    interactions) or the :class:`~pywbem.TestClientRecorder` (creates a yaml
+    file of methods and http for tests)..
 
     Before pywbem version 0.11.0, there was only a single operation recorder and
     activating/deactivating the recorder was a simple matter of setting the
@@ -503,7 +503,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     deactivated the recorder.
 
     Starting with pywbem version 0.11.0, pywbem added a second recorder and the
-    requirement     that both recorders operate simultaneously. Thus, if both
+    requirement that both recorders operate simultaneously. Thus, if both
     are enabled and active, operation data can be both recorded to a yaml file
     and to the log simultaneously.
 
@@ -602,7 +602,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         equivalent flag based on this flag to allow for WBEM servers that
         implement only some of the pull operations.
 
-        This variable is initially set from the same-named input argument.
+        This attribute is initially set from the same-named constructor
+        parameter.
         If it is initially `None`, it is modified when `Iter...()` methods are
         invoked, dependent on the support for pull operations in the WBEM
         server.
@@ -722,8 +723,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Note that the validation performed by the TLS/SSL support already
             includes the usual validation, so that normally a callback function
-            does not need to be used. See :ref:`Verification of the X.509 server
-            certificate` for details.
+            does not need to be used. See
+            :ref:`Verification of the X.509 server certificate` for details.
 
             Warning: This parameter is not used when the python environment
             is Python 3 because the ssl module does not support it.
@@ -1044,7 +1045,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         header
 
         This time is available only subsequent to the execution of an operation
-        on this connection  if the WBEMServerResponseTime is received from the
+        on this connection if the WBEMServerResponseTime is received from the
         WBEM server. Otherwise, the value is `None`.
 
         **Experimental:** This property is experimental for this release.
@@ -1107,11 +1108,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         same recorder.
 
         Parameters:
-          operation_recorder_object(:class:`~pywbem.BaseOperationRecorder)
+
+          operation_recorder_object (:class:`~pywbem.BaseOperationRecorder`):
             This parameter must be an implemented subclass of
             :class:`~pywbem.BaseOperationRecorder`.
             Adds the object of the defined recorder class to the list of
-            active operation recorders
+            active operation recorders.
 
         Exception:
             ValueError: If the same recorder class is added multiple times.
@@ -1846,8 +1848,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
-            An iterable specifying the names of the properties (or a  string
+          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+            An iterable specifying the names of the properties (or a string
             that defines a single property) to be included in the returned
             instances (case independent).
 
@@ -1991,55 +1993,69 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                **extra):
         # pylint: disable=invalid-name,line-too-long
         """
-        A generator function to retrieve instances from a WBEM Server.
-        This method frees the user of choices between the multiple
-        EnumerateInstances/OpenEnumerateInstance methods and reduces
-        the enumeration to a pythonic iterator idiom.
+        Enumerate the instances of a class (including instances of its
+        subclasses) in a namespace,
+        using the corresponding pull operations if supported by the WBEM server
+        or otherwise the corresponding traditional operation, and using the
+        Python :term:`py:generator` idiom to return the result.
+
+        This method is an alternative to using the pull operations directly,
+        that frees the user of having to know whether the WBEM server supports
+        pull operations.
 
         **Experimental:** This method is experimental in this release.
 
-        This method performs either the
-        :meth:`~pywbem.WBEMConnection.OpenEnumerateInstances` and
-        :meth:`~pywbem.WBEMConnection.PullInstancesWithPath`
-        operations (pull operations) or the
-        :meth:`~pywbem.WBEMConnection.EnumerateInstances` operation
-        (traditional operation) if the WBEM server does not support the
-        pull operations. It is an alternative to using these operations
-        directly, that automatically uses the pull operations if supported.
+        This method is a generator function that retrieves instances from
+        the WBEM server and returns them one by one (using :keyword:`yield`)
+        when the caller iterates through the returned generator object. The
+        number of instances that are retrieved from the WBEM server in one
+        request (and thus need to be materialized in this method) is up to the
+        `MaxObjectCount` parameter if the corresponding pull operations are
+        used, or the complete result set all at once if the corresponding
+        traditional operation is used.
 
-        The `use_pull_operations` argument of the
-        :class:`~pywbem.WBEMConnection` constructor can be used to
-        override that default behavior to either force the use of pull
-        operations or to avoid their use.
+        By default, this method attempts to perform the corresponding pull
+        operations
+        (:meth:`~pywbem.WBEMConnection.OpenEnumerateInstances` and
+        :meth:`~pywbem.WBEMConnection.PullInstancesWithPath`).
+        If these pull operations are not supported by the WBEM server, this
+        method falls back to using the corresponding traditional operation
+        (:meth:`~pywbem.WBEMConnection.EnumerateInstances`).
+        Whether the WBEM server supports these pull operations is remembered
+        in the :class:`~pywbem.WBEMConnection` object (by operation type), and
+        avoids unnecessary attempts to try these pull operations on that
+        connection in the future.
+        The `use_pull_operations` constructor parameter of
+        :class:`~pywbem.WBEMConnection` can be used to control the preference
+        for always using pull operations, always using traditional operations,
+        or using pull operations if supported by the WBEM server (the default).
 
-        NOTE: This functionality assumes that pull operations may not be
-        supported for all of the pull operation types (i.e. operations whose
-        name starts with Open). Even if one `Open...` function is not
-        implemented (returns `CIM_ERR_NOT_SUPPORTED`) and that operation is
-        used as the first request, the code will try the Open... on other pull
-        operation types the first time each type is used.
+        This method provides all of the controls of the corresponding pull
+        operations except for the ability to set different response sizes on
+        each request; the response size (defined by the `MaxObjectCount`
+        parameter) is the same for all requests in the sequence.
 
-        This method provides all of the controls of the pull operations API
-        except the ability to set the response size on each request; response
-        size (defined by `MaxObjectCount` is the same for all of the request
-        operations in the sequence). There are, limitations in that:
+        In addition, some functionality is only available if the corresponding
+        pull operations are used by this method:
 
-          * The filter function does not exist for EnumerateInstances
-            so that a request with `FilterQuery` or `FilterQueryLanguage`
-            attribute will be rejected if the pull operatons do not exist on
-            the target WBEM Server.
+        * Filtering is not supported for the corresponding traditional
+          operation so that setting the `FilterQuery` or `FilterQueryLanguage`
+          parameters will be rejected if the corresponding traditional
+          operation is used by this method.
 
-          * If `ContinueOnError` is set and the pull operations are not
-            supported on the server, the request is rejected.
+          Note that this limitation is not a disadvantage compared to using the
+          corresponding pull operations directly, because in both cases, the
+          WBEM server must support the pull operations and their filtering
+          capability in order for the filtering to work.
 
-        An open request may be closed while the iteration process is being
-        executed by issuing the iterator close() method.
+        * Setting the `ContinueOnError` parameter to `True` will be rejected if
+          the corresponding traditional operation is used by this method.
 
-        If the initial request of the operation sequence succeeds, this method
-        returns a Python iterator object so that the instances that are
-        returned from the server can be retrieved with iterator expressions.
-
-        Otherwise, this method raises an exception.
+        The enumeration session that is opened with the WBEM server when using
+        pull operations is closed automatically when the returned generator
+        object is exhausted, or when the generator object is closed using its
+        :meth:`~py:generator.close` method (which may also be called before the
+        generator is exhausted).
 
         Parameters:
 
@@ -2110,8 +2126,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
-            An iterable specifying the names of the properties (or a  string
+          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+            An iterable specifying the names of the properties (or a string
             that defines a single property) to be included in the returned
             instances (case independent).
 
@@ -2120,26 +2136,25 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, all properties are included.
 
           FilterQueryLanguage (:term:`string`):
-            A string defining the name of the query language
-            used for the `FilterQuery` parameter. The DMTF defined language
-            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'. If this
-            attribute is `True` and the method uses the EnumerateInstances
-            option (either `use_pull_operations` == `False` or the server does
-            not support pull operations), the method will fail with a
-            ValueError.
+            The name of the filter query language used for the `FilterQuery`
+            parameter. The DMTF-defined Filter Query Language (see
+            :term:`DSP0212`) is specified as "DMTF:FQL".
+
+            If this parameter is not `None` and the traditional operation is
+            used by this method, :exc:`~py:exceptions.ValueError` will be
+            raised.
 
           FilterQuery (:term:`string`):
-            A string defining the query that is to be sent
-            to the WBEM server using the query language defined by
-            the `FilterQueryLanguage` parameter. If this
-            attribute is `True` and the method uses the EnumerateInstances
-            option (either `use_pull_operations` == `False` or the server does
-            not support pull operations), the method will fail with a
-            ValueError
+            The filter query in the query language defined by the
+            `FilterQueryLanguage` parameter.
+
+            If this parameter is not `None` and the traditional operation is
+            used by this method, :exc:`~py:exceptions.ValueError` will be
+            raised.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
-            enumeration session after a previous Open or Pull request is
+            enumeration session after a previous Open or pull request is
             sent to the client. Once this timeout time has expired, the
             WBEM server may close the enumeration session.
 
@@ -2162,6 +2177,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
               :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              If the corresponding traditional operation is used by this
+              method, :exc:`~py:exceptions.ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -2169,18 +2186,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-            Many WBEM servers do not support this request attribute so that
-            its use is NOT recommended except in special cases.
-
-            If this attribute is `True` and the method uses the
-            EnumerateInstances option (`use_pull_operations` == `False`
-            or the server does not support pull operations), the method will
-            fail with a ValueError
-
           MaxObjectCount (:class:`~pywbem.Uint32`)
-            Maximum number of instances the WBEM server may return
-            for each of the open and pull requests issues as part of the
-            execution of this generator.
+            Maximum number of instances the WBEM server may return for each of
+            the open and pull requests issued during the iterations over the
+            returned generator object.
 
             * If positive, the WBEM server is to return no more than the
               specified number of instances.
@@ -2206,19 +2215,22 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
 
+            ValueError: Invalid parameters provided.
+
         Returns:
 
-          A Python :term:`generator` object. Instances can be retrieved
-          by iterating through the object. Instances that are retrieved
-          include the host and namespace component of the instance path.
+          :term:`py:generator` iterating :class:`~pywbem.CIMInstance`:
+          A generator object that iterates the resulting CIM instances.
+          These instances include an instance path that has its host and
+          namespace components set.
 
         Example::
 
-            insts_iterator = conn.IterEnumerateInstances('CIM_Blah')
-            for inst in insts_iterator:
+            insts_generator = conn.IterEnumerateInstances('CIM_Blah')
+            for inst in insts_generator:
                 # close if a particular property value found
                 if inst.get('thisPropertyName') == 0
-                    insts_iterator.close()
+                    insts_generator.close()
                     break
                 else:
                     print('instance %s' % inst.tomof())
@@ -2322,57 +2334,69 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
                                    **extra):
         """
-        A generator function to retrieve instance paths from a WBEM Server.
-        This method frees the user of choices between the multiple
-        EnumerateInstances/OpenEnumerateInstance methods and reduces
-        the enumeration to a pythonic iterator idiom.
+        Enumerate the instance paths of instances of a class (including
+        instances of its subclasses) in a namespace,
+        using the corresponding pull operations if supported by the WBEM server
+        or otherwise the corresponding traditional operation, and using the
+        Python :term:`py:generator` idiom to return the result.
+
+        This method is an alternative to using the pull operations directly,
+        that frees the user of having to know whether the WBEM server supports
+        pull operations.
 
         **Experimental:** This method is experimental in this release.
 
-        This method performs either the
-        :meth:`~pywbem.WBEMConnection.OpenEnumerateInstancePaths` and
-        :meth:`~pywbem.WBEMConnection.PullInstancePaths`
-        operations (pull operations) or the
-        :meth:`~pywbem.WBEMConnection.EnumerateInstanceNames` operation
-        (traditional operation) if the WBEM server does not support the
-        pull operations. It is an alternative to using these operations
-        directly, that automatically uses the pull operations if supported.
+        This method is a generator function that retrieves instance paths from
+        the WBEM server and returns them one by one (using :keyword:`yield`)
+        when the caller iterates through the returned generator object. The
+        number of instance paths that are retrieved from the WBEM server in one
+        request (and thus need to be materialized in this method) is up to the
+        `MaxObjectCount` parameter if the corresponding pull operations are
+        used, or the complete result set all at once if the corresponding
+        traditional operation is used.
 
-        The `use_pull_operations` argument of the
-        :class:`~pywbem.WBEMConnection` constructor can be used to
-        override that default behavior to either force the use of pull
-        operations or to avoid their use.
+        By default, this method attempts to perform the corresponding pull
+        operations
+        (:meth:`~pywbem.WBEMConnection.OpenEnumerateInstancePaths` and
+        :meth:`~pywbem.WBEMConnection.PullInstancePaths`).
+        If these pull operations are not supported by the WBEM server, this
+        method falls back to using the corresponding traditional operation
+        (:meth:`~pywbem.WBEMConnection.EnumerateInstanceNames`).
+        Whether the WBEM server supports these pull operations is remembered
+        in the :class:`~pywbem.WBEMConnection` object (by operation type), and
+        avoids unnecessary attempts to try these pull operations on that
+        connection in the future.
+        The `use_pull_operations` constructor parameter of
+        :class:`~pywbem.WBEMConnection` can be used to control the preference
+        for always using pull operations, always using traditional operations,
+        or using pull operations if supported by the WBEM server (the default).
 
-        NOTE: This functionality assumes that pull operations are supported for
-        either all or none of the defined `Open....`  Since the first request
-        determines whether operations continue with the pull operations, if
-        one of the `Open...` functions is not implemented
-        (returns `CIM_ERR_NOT_SUPPORTED`) and that operation is used as the
-        first request, the code will decide that None of the operations are
-        supported. Resetting the use_pull_operations to `None` may be used to
-        override the decision made by the `Iter...` method for other operations.
+        This method provides all of the controls of the corresponding pull
+        operations except for the ability to set different response sizes on
+        each request; the response size (defined by the `MaxObjectCount`
+        parameter) is the same for all requests in the sequence.
 
-        This method provides all of the controls of the pull operations API
-        except the ability to set the response size on each request; response
-        size (defined by `MaxObjectCount` is the same for all of the request
-        operations in the sequence). There are, limitations in that:
+        In addition, some functionality is only available if the corresponding
+        pull operations are used by this method:
 
-          * The filter function does not exist for EnumerateInstances
-            so that a request with `FilterQuery` or `FilterQueryLanguage`
-            attribute will be rejected if the pull operatons do not exist on the
-            target WBEM Server.
+        * Filtering is not supported for the corresponding traditional
+          operation so that setting the `FilterQuery` or `FilterQueryLanguage`
+          parameters will be rejected if the corresponding traditional
+          operation is used by this method.
 
-          * If `ContinueOnError` is set and the pull operations are not
-            supported on the server, the request is rejected.
+          Note that this limitation is not a disadvantage compared to using the
+          corresponding pull operations directly, because in both cases, the
+          WBEM server must support the pull operations and their filtering
+          capability in order for the filtering to work.
 
-        An open request may be closed while the iteration process is being
-        executed by issuing the iterator close() method.
+        * Setting the `ContinueOnError` parameter to `True` will be rejected if
+          the corresponding traditional operation is used by this method.
 
-        If the initial request of the operation sequence succeeds, this method
-        returns a Python iterator object so that the instances that are returned
-        from the server can be retrieved with iterator expressions.
-
-        Otherwise, this method raises an exception.
+        The enumeration session that is opened with the WBEM server when using
+        pull operations is closed automatically when the returned generator
+        object is exhausted, or when the generator object is closed using its
+        :meth:`~py:generator.close` method (which may also be called before the
+        generator is exhausted).
 
         Parameters:
 
@@ -2391,22 +2415,26 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             also `None`, the default namespace of the connection will be used.
 
           FilterQueryLanguage (:term:`string`):
-            A string defining the name of the query language
-            used for the `FilterQuery` parameter. The DMTF defined language
-            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'. If this
-            attribute is `True` and the method uses the EnumerateInstances
-            option (either `use_pull_operations` == `False` or the server does
-            not support pull operations), the method will fail with a
-            ValueError.
+            The name of the filter query language used for the `FilterQuery`
+            parameter. The DMTF-defined Filter Query Language (see
+            :term:`DSP0212`) is specified as "DMTF:FQL".
+
+            If this parameter is not `None` and the traditional operation is
+            used by this method, :exc:`~py:exceptions.ValueError` will be
+            raised.
+
+            Not all WBEM servers support filtering for this operation because
+            it returns instance paths and the act of the server filtering
+            requires that it generate instances just for that purpose and then
+            discard them.
 
           FilterQuery (:term:`string`):
-            A string defining the query that is to be sent
-            to the WBEM server using the query language defined by
-            the `FilterQueryLanguage` parameter. If this
-            attribute is `True` and the method uses the EnumerateInstances
-            option (either `use_pull_operations` == `False` or the server does
-            not support pull operations), the method will fail with a
-            ValueError
+            The filter query in the query language defined by the
+            `FilterQueryLanguage` parameter.
+
+            If this parameter is not `None` and the traditional operation is
+            used by this method, :exc:`~py:exceptions.ValueError` will be
+            raised.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
@@ -2433,6 +2461,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
               :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              If the corresponding traditional operation is used by this
+              method, :exc:`~py:exceptions.ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -2440,18 +2470,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-            Many WBEM servers do not support this request attribute so that
-            its use is NOT recommended except in special cases.
-
-            If this attribute is `True` and the method uses the
-            EnumerateInstances option (`use_pull_operations` == `False`
-            or the server does not support pull operations), the method will
-            fail with a ValueError
-
           MaxObjectCount (:class:`~pywbem.Uint32`)
-            Maximum number of instance paths the WBEM server may return
-            for each of the open and pull requests issues as part of the
-            execution of this iterator.
+            Maximum number of instances the WBEM server may return for each of
+            the open and pull requests issued during the iterations over the
+            returned generator object.
 
             * If positive, the WBEM server is to return no more than the
               specified number of instance paths.
@@ -2478,14 +2500,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-          A Python:term:`generator` object. Instance paths can be retrieved
-          by iterating through the object. In all cases the instance paths\
-          are complete including host and namespace information.
+          :term:`py:generator` iterating :class:`~pywbem.CIMInstanceName`:
+          A generator object that iterates the resulting CIM instance paths.
+          These instance paths have their host and namespace components set.
 
         Example::
 
-            paths_iterator = conn.IterEnumerateInstancePaths('CIM_Blah')
-            for path in paths_iterator:
+            paths_generator = conn.IterEnumerateInstancePaths('CIM_Blah')
+            for path in paths_generator:
                 print('path %s' % path)
         """
 
@@ -2581,59 +2603,69 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    **extra):
         # pylint: disable=invalid-name
         """
-        A generator function to retrieve references from a WBEM Server.
-        This method frees the user of choices between the multiple
-        ReferenceNames/ReferenceInstancePaths methods and reduces
-        the enumeration to a pythonic iterator idiom.
+        Retrieve the instance paths of the association instances that reference
+        a source instance,
+        using the corresponding pull operations if supported by the WBEM server
+        or otherwise the corresponding traditional operation, and using the
+        Python :term:`py:generator` idiom to return the result.
+
+        This method is an alternative to using the pull operations directly,
+        that frees the user of having to know whether the WBEM server supports
+        pull operations.
 
         **Experimental:** This method is experimental in this release.
 
-        This method performs either the
-        :meth:`~pywbem.OpenReferenceInstancePaths operation
-        (see :term:`DSP0200`) and :meth:`~pywbem.PullInstancePaths operation or
-        the:meth:`~pywbem.WBEMConnection.EnumerateInstances` operation
-        (traditional operation) if the WBEM server does not support the
-        pull operations. It is an alternative to using these operations
-        directly, that automatically uses the pull operations if supported.
+        This method is a generator function that retrieves instance paths from
+        the WBEM server and returns them one by one (using :keyword:`yield`)
+        when the caller iterates through the returned generator object. The
+        number of instance paths that are retrieved from the WBEM server in one
+        request (and thus need to be materialized in this method) is up to the
+        `MaxObjectCount` parameter if the corresponding pull operations are
+        used, or the complete result set all at once if the corresponding
+        traditional operation is used.
 
-        The `use_pull_operations` argument of the
-        :class:`~pywbem.WBEMConnection` constructor can be used to
-        override that default behavior to either force the use of pull
-        operations or to avoid their use.
+        By default, this method attempts to perform the corresponding pull
+        operations
+        (:meth:`~pywbem.WBEMConnection.OpenReferenceInstancePaths` and
+        :meth:`~pywbem.WBEMConnection.PullInstancePaths`).
+        If these pull operations are not supported by the WBEM server, this
+        method falls back to using the corresponding traditional operation
+        (:meth:`~pywbem.WBEMConnection.ReferenceNames`).
+        Whether the WBEM server supports these pull operations is remembered
+        in the :class:`~pywbem.WBEMConnection` object (by operation type), and
+        avoids unnecessary attempts to try these pull operations on that
+        connection in the future.
+        The `use_pull_operations` constructor parameter of
+        :class:`~pywbem.WBEMConnection` can be used to control the preference
+        for always using pull operations, always using traditional operations,
+        or using pull operations if supported by the WBEM server (the default).
 
-        The `use_pull_operations` argument of the
-        :class:`~pywbem.WBEMConnection` constructor can be used to
-        override that default behavior to either force the use of pull
-        operations or to avoid their use.
+        This method provides all of the controls of the corresponding pull
+        operations except for the ability to set different response sizes on
+        each request; the response size (defined by the `MaxObjectCount`
+        parameter) is the same for all requests in the sequence.
 
-        NOTE: This functionality assumes that pull operations may not be
-        supported for all of the pull operation types (i.e. operations whose
-        name starts with Open). Even if one `Open...` function is not
-        implemented (returns `CIM_ERR_NOT_SUPPORTED`) and that operation is
-        used as the first request, the code will try the Open... on other pull
-        operation types the first time each type is used.
+        In addition, some functionality is only available if the corresponding
+        pull operations are used by this method:
 
-        This method provides all of the controls of the pull operations API
-        except the ability to set the response size on each request; response
-        size (defined by `MaxObjectCount` is the same for all of the request
-        operations in the sequence). There are, limitations in that:
+        * Filtering is not supported for the corresponding traditional
+          operation so that setting the `FilterQuery` or `FilterQueryLanguage`
+          parameters will be rejected if the corresponding traditional
+          operation is used by this method.
 
-          * The filter function does not exist for ReferenceNames
-            so that a request with `FilterQuery` or `FilterQueryLanguage`
-            attribute will be rejected if the pull operatons do not exist on
-            the target WBEM Server.
+          Note that this limitation is not a disadvantage compared to using the
+          corresponding pull operations directly, because in both cases, the
+          WBEM server must support the pull operations and their filtering
+          capability in order for the filtering to work.
 
-          * If `ContinueOnError` is set and the pull operations are not
-            supported on the server, the request is rejected.
+        * Setting the `ContinueOnError` parameter to `True` will be rejected if
+          the corresponding traditional operation is used by this method.
 
-        An open request may be closed while the iteration process is being
-        executed by issuing the iterator close() method.
-
-        If the initial request of the operation sequence succeeds, this method
-        returns a Python iterator object so that the instances that are
-        returned from the server can be retrieved with iterator expressions.
-
-        Otherwise, this method raises an exception.
+        The enumeration session that is opened with the WBEM server when using
+        pull operations is closed automatically when the returned generator
+        object is exhausted, or when the generator object is closed using its
+        :meth:`~py:generator.close` method (which may also be called before the
+        generator is exhausted).
 
         Parameters:
 
@@ -2658,17 +2690,26 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `None` means that no such filtering is peformed.
 
           FilterQueryLanguage (:term:`string`):
-            A string defining the name of the query language
-            used for the `FilterQuery` parameter. The DMTF defined language
-            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
+            The name of the filter query language used for the `FilterQuery`
+            parameter. The DMTF-defined Filter Query Language (see
+            :term:`DSP0212`) is specified as "DMTF:FQL".
+
+            If this parameter is not `None` and the traditional operation is
+            used by this method, :exc:`~py:exceptions.ValueError` will be
+            raised.
+
+            Not all WBEM servers support filtering for this operation because
+            it returns instance paths and the act of the server filtering
+            requires that it generate instances just for that purpose and then
+            discard them.
 
           FilterQuery (:term:`string`):
-            A string defining the query that is to be sent
-            to the WBEM server using the query language defined by
-            the `FilterQueryLanguage` parameter.  Not all WBEM
-            servers allow FilterQuery filtering for this operation
-            because the act of the server filtering requires
-            that it generate instances and then discard them.
+            The filter query in the query language defined by the
+            `FilterQueryLanguage` parameter.
+
+            If this parameter is not `None` and the traditional operation is
+            used by this method, :exc:`~py:exceptions.ValueError` will be
+            raised.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
@@ -2695,6 +2736,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
               :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              If the corresponding traditional operation is used by this
+              method, :exc:`~py:exceptions.ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration
               after sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -2703,8 +2746,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               `False`.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
-            Maximum number of instances the WBEM server may return
-            for this request.
+            Maximum number of instances the WBEM server may return for each of
+            the open and pull requests issued during the iterations over the
+            returned generator object.
 
             * If positive, the WBEM server is to return no more than the
               specified number of instances.
@@ -2724,8 +2768,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-          A Python:term:`generator` object. Instances can be retrieved
-          by iterating through the object.
+          :term:`py:generator` iterating :class:`~pywbem.CIMInstanceName`:
+          A generator object that iterates the resulting CIM instance paths.
+          These instance paths have their host and namespace components set.
 
         Raises:
 
@@ -2733,14 +2778,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Example::
 
-            insts_iterator = conn.IterReferencePaths('CIM_Blah')
-            for inst in insts_iterator:
-                # close if a particular property value found
-                if inst.get('thisPropertyName') == 0
-                    insts_iterator.close()
-                    break
-                else:
-                    print('instance %s' % inst.tomof())
+            paths_generator = conn.IterReferenceInstancePaths('CIM_Blah')
+            for path in paths_generator:
+                print('path %s' % path)
         """
 
         _validateIterCommonParams(MaxObjectCount, OperationTimeout)
@@ -2825,53 +2865,68 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                **extra):
         # pylint: disable=invalid-name
         """
-        A generator function to retrieve instances from a WBEM Server.
-        This method frees the user of choices between the multiple
-        EnumerateInstances/OpenEnumerateInstance methods and reduces
-        the enumeration to a pythonic iterator idiom.
+        Retrieve the association instances that reference a source instance,
+        using the corresponding pull operations if supported by the WBEM server
+        or otherwise the corresponding traditional operation, and using the
+        Python :term:`py:generator` idiom to return the result.
+
+        This method is an alternative to using the pull operations directly,
+        that frees the user of having to know whether the WBEM server supports
+        pull operations.
 
         **Experimental:** This method is experimental in this release.
 
-        This method performs either the
-        :meth:`~pywbem.WBEMConnection.OpenReferenceInstances` and
-        :meth:`~pywbem.WBEMConnection.PullInstancesWithPath`
-        operations (pull operations) or the
-        :meth:`~pywbem.WBEMConnection.References` operation
-        (traditional operation) if the WBEM server does not support the
-        pull operations. It is an alternative to using these operations
-        directly, that automatically uses the pull operations if supported.
+        This method is a generator function that retrieves instances from
+        the WBEM server and returns them one by one (using :keyword:`yield`)
+        when the caller iterates through the returned generator object. The
+        number of instances that are retrieved from the WBEM server in one
+        request (and thus need to be materialized in this method) is up to the
+        `MaxObjectCount` parameter if the corresponding pull operations are
+        used, or the complete result set all at once if the corresponding
+        traditional operation is used.
 
-        The `use_pull_operations` argument of the
-        :class:`~pywbem.WBEMConnection` constructor can be used to
-        override that default behavior to either force the use of pull
-        operations or to avoid their use.
+        By default, this method attempts to perform the corresponding pull
+        operations
+        (:meth:`~pywbem.WBEMConnection.OpenReferenceInstances` and
+        :meth:`~pywbem.WBEMConnection.PullInstancesWithPath`).
+        If these pull operations are not supported by the WBEM server, this
+        method falls back to using the corresponding traditional operation
+        (:meth:`~pywbem.WBEMConnection.References`).
+        Whether the WBEM server supports these pull operations is remembered
+        in the :class:`~pywbem.WBEMConnection` object (by operation type), and
+        avoids unnecessary attempts to try these pull operations on that
+        connection in the future.
+        The `use_pull_operations` constructor parameter of
+        :class:`~pywbem.WBEMConnection` can be used to control the preference
+        for always using pull operations, always using traditional operations,
+        or using pull operations if supported by the WBEM server (the default).
 
-        NOTE: This functionality assumes that pull operations may not be
-        supported for all of the pull operation types (i.e. operations whose
-        name starts with Open). Even if one `Open...` function is not
-        implemented (returns `CIM_ERR_NOT_SUPPORTED`) and that operation is
-        used as the first request, the code will try the Open... on other pull
-        operation types the first time each type is used.
+        This method provides all of the controls of the corresponding pull
+        operations except for the ability to set different response sizes on
+        each request; the response size (defined by the `MaxObjectCount`
+        parameter) is the same for all requests in the sequence.
 
-        This method provides all of the controls of the pull operations API
-        except the ability to set the response size on each request; response
-        size (defined by `MaxObjectCount` is the same for all of the request
-        operations in the sequence). There are, limitations in that:
+        In addition, some functionality is only available if the corresponding
+        pull operations are used by this method:
 
-          * The filter function does not exist for ReferenceNames
-            so that a request with `FilterQuery` or `FilterQueryLanguage`
-            attribute will be rejected if the pull operatons do not exist on
-            the target WBEM Server.
+        * Filtering is not supported for the corresponding traditional
+          operation so that setting the `FilterQuery` or `FilterQueryLanguage`
+          parameters will be rejected if the corresponding traditional
+          operation is used by this method.
 
-          * If `ContinueOnError` is set and the pull operations are not
-            supported on the server, the request is rejected.
+          Note that this limitation is not a disadvantage compared to using the
+          corresponding pull operations directly, because in both cases, the
+          WBEM server must support the pull operations and their filtering
+          capability in order for the filtering to work.
 
-        An open request may be closed while the iteration process is being
-        executed by issuing the iterator close() method.
+        * Setting the `ContinueOnError` parameter to `True` will be rejected if
+          the corresponding traditional operation is used by this method.
 
-        If the initial request of the operation sequence succeeds, this method
-        returns a Python iterator object so that the instances that are
-        returned from the server can be retrieved with iterator expressions.
+        The enumeration session that is opened with the WBEM server when using
+        pull operations is closed automatically when the returned generator
+        object is exhausted, or when the generator object is closed using its
+        :meth:`~py:generator.close` method (which may also be called before the
+        generator is exhausted).
 
         Parameters:
 
@@ -2928,14 +2983,21 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, all properties are included.
 
           FilterQueryLanguage (:term:`string`):
-            A string defining the name of the query language
-            used for the `FilterQuery` parameter. The DMTF defined language
-            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
+            The name of the filter query language used for the `FilterQuery`
+            parameter. The DMTF-defined Filter Query Language (see
+            :term:`DSP0212`) is specified as "DMTF:FQL".
+
+            If this parameter is not `None` and the traditional operation is
+            used by this method, :exc:`~py:exceptions.ValueError` will be
+            raised.
 
           FilterQuery (:term:`string`):
-            A string defining the query that is to be sent
-            to the WBEM server using the query language defined by
-            the `FilterQueryLanguage` parameter.
+            The filter query in the query language defined by the
+            `FilterQueryLanguage` parameter.
+
+            If this parameter is not `None` and the traditional operation is
+            used by this method, :exc:`~py:exceptions.ValueError` will be
+            raised.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
@@ -2962,6 +3024,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
               :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              If the corresponding traditional operation is used by this
+              method, :exc:`~py:exceptions.ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -2970,8 +3034,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               `False`.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
-            Maximum number of instances the WBEM server may return
-            for this request.
+            Maximum number of instances the WBEM server may return for each of
+            the open and pull requests issued during the iterations over the
+            returned generator object.
 
             * If positive, the WBEM server is to return no more than the
               specified number of instances.
@@ -2991,8 +3056,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-          A Python:term:`generator` object. Instances can be retrieved
-          by iterating through the object.
+          :term:`py:generator` iterating :class:`~pywbem.CIMInstance`:
+          A generator object that iterates the resulting CIM instances.
+          These instances include an instance path that has its host and
+          namespace components set.
 
         Raises:
 
@@ -3000,11 +3067,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Example::
 
-            insts_iterator = conn.IterReferenceInstances('CIM_Blah.key=1', ...)
-            for inst in insts_iterator:
+            insts_generator = conn.IterReferenceInstances('CIM_Blah.key=1', ...)
+            for inst in insts_generator:
                 # close if a particular property value found
                 if inst.get('thisPropertyName') == 0
-                    insts_iterator.close()
+                    insts_generator.close()
                     break
                 else:
                     print('instance %s' % inst.tomof())
@@ -3097,59 +3164,69 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                     **extra):
         # pylint: disable=invalid-name
         """
-        A generator function to retrieve associator paths from a WBEM Server.
-        This method frees the user of choices between the multiple
-        AssociatorNames/OpenAssociatorInstancePaths methods and reduces
-        the enumeration to a pythonic iterator idiom.
+        Retrieve the instance paths of the instances associated to a source
+        instance,
+        using the corresponding pull operations if supported by the WBEM server
+        or otherwise the corresponding traditional operation, and using the
+        Python :term:`py:generator` idiom to return the result.
+
+        This method is an alternative to using the pull operations directly,
+        that frees the user of having to know whether the WBEM server supports
+        pull operations.
 
         **Experimental:** This method is experimental in this release.
 
-        This method performs either the
-        :meth:`~pywbem.OpenAssociatorInstancePaths operation
-        (see :term:`DSP0200`) and :meth:`~pywbem.PullInstancePaths operation or
-        the:meth:`~pywbem.WBEMConnection.AssociatorNames` operation
-        (traditional operation) if the WBEM server does not support the
-        pull operations. It is an alternative to using these operations
-        directly, that automatically uses the pull operations if supported.
+        This method is a generator function that retrieves instance paths from
+        the WBEM server and returns them one by one (using :keyword:`yield`)
+        when the caller iterates through the returned generator object. The
+        number of instance paths that are retrieved from the WBEM server in one
+        request (and thus need to be materialized in this method) is up to the
+        `MaxObjectCount` parameter if the corresponding pull operations are
+        used, or the complete result set all at once if the corresponding
+        traditional operation is used.
 
-        The `use_pull_operations` argument of the
-        :class:`~pywbem.WBEMConnection` constructor can be used to
-        override that default behavior to either force the use of pull
-        operations or to avoid their use.
+        By default, this method attempts to perform the corresponding pull
+        operations
+        (:meth:`~pywbem.WBEMConnection.OpenAssociatorInstancePaths` and
+        :meth:`~pywbem.WBEMConnection.PullInstancePaths`).
+        If these pull operations are not supported by the WBEM server, this
+        method falls back to using the corresponding traditional operation
+        (:meth:`~pywbem.WBEMConnection.AssociatorNames`).
+        Whether the WBEM server supports these pull operations is remembered
+        in the :class:`~pywbem.WBEMConnection` object (by operation type), and
+        avoids unnecessary attempts to try these pull operations on that
+        connection in the future.
+        The `use_pull_operations` constructor parameter of
+        :class:`~pywbem.WBEMConnection` can be used to control the preference
+        for always using pull operations, always using traditional operations,
+        or using pull operations if supported by the WBEM server (the default).
 
-        The `use_pull_operations` argument of the
-        :class:`~pywbem.WBEMConnection` constructor can be used to
-        override that default behavior to either force the use of pull
-        operations or to avoid their use.
+        This method provides all of the controls of the corresponding pull
+        operations except for the ability to set different response sizes on
+        each request; the response size (defined by the `MaxObjectCount`
+        parameter) is the same for all requests in the sequence.
 
-        NOTE: This functionality assumes that pull operations may not be
-        supported for all of the pull operation types (i.e. operations whose
-        name starts with Open). Even if one `Open...` function is not
-        implemented (returns `CIM_ERR_NOT_SUPPORTED`) and that operation is
-        used as the first request, the code will try the Open... on other pull
-        operation types the first time each type is used.
+        In addition, some functionality is only available if the corresponding
+        pull operations are used by this method:
 
-        This method provides all of the controls of the pull operations API
-        except the ability to set the response size on each request; response
-        size (defined by `MaxObjectCount` is the same for all of the request
-        operations in the sequence). There are, limitations in that:
+        * Filtering is not supported for the corresponding traditional
+          operation so that setting the `FilterQuery` or `FilterQueryLanguage`
+          parameters will be rejected if the corresponding traditional
+          operation is used by this method.
 
-          * The filter function does not exist for ReferenceNames
-            so that a request with `FilterQuery` or `FilterQueryLanguage`
-            attribute will be rejected if the pull operatons do not exist on
-            the target WBEM Server.
+          Note that this limitation is not a disadvantage compared to using the
+          corresponding pull operations directly, because in both cases, the
+          WBEM server must support the pull operations and their filtering
+          capability in order for the filtering to work.
 
-          * If `ContinueOnError` is set and the pull operations are not
-            supported on the server, the request is rejected.
+        * Setting the `ContinueOnError` parameter to `True` will be rejected if
+          the corresponding traditional operation is used by this method.
 
-        An open request may be closed while the iteration process is being
-        executed by issuing the iterator close() method.
-
-        If the initial request of the operation sequence succeeds, this method
-        returns a Python iterator object so that the instances that are
-        returned from the server can be retrieved with iterator expressions.
-
-        Otherwise, this method raises an exception.
+        The enumeration session that is opened with the WBEM server when using
+        pull operations is closed automatically when the returned generator
+        object is exhausted, or when the generator object is closed using its
+        :meth:`~py:generator.close` method (which may also be called before the
+        generator is exhausted).
 
         Parameters:
 
@@ -3188,17 +3265,26 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `None` means that no such filtering is peformed.
 
           FilterQueryLanguage (:term:`string`):
-            A string defining the name of the query language
-            used for the `FilterQuery` parameter. The DMTF defined language
-            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
+            The name of the filter query language used for the `FilterQuery`
+            parameter. The DMTF-defined Filter Query Language (see
+            :term:`DSP0212`) is specified as "DMTF:FQL".
+
+            If this parameter is not `None` and the traditional operation is
+            used by this method, :exc:`~py:exceptions.ValueError` will be
+            raised.
+
+            Not all WBEM servers support filtering for this operation because
+            it returns instance paths and the act of the server filtering
+            requires that it generate instances just for that purpose and then
+            discard them.
 
           FilterQuery (:term:`string`):
-            A string defining the query that is to be sent
-            to the WBEM server using the query language defined by
-            the `FilterQueryLanguage` parameter.  Not all WBEM
-            servers allow FilterQuery filtering for this operation
-            because the act of the server filtering requires
-            that it generate instances and then discard them.
+            The filter query in the query language defined by the
+            `FilterQueryLanguage` parameter.
+
+            If this parameter is not `None` and the traditional operation is
+            used by this method, :exc:`~py:exceptions.ValueError` will be
+            raised.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
@@ -3225,6 +3311,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
               :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              If the corresponding traditional operation is used by this
+              method, :exc:`~py:exceptions.ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration
               after sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -3233,8 +3321,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               `False`.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
-            Maximum number of instances the WBEM server may return
-            for this request.
+            Maximum number of instances the WBEM server may return for each of
+            the open and pull requests issued during the iterations over the
+            returned generator object.
 
             * If positive, the WBEM server is to return no more than the
               specified number of instances.
@@ -3254,8 +3343,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-          A Python:term:`generator` object. Instances can be retrieved
-          by iterating through the object.
+          :term:`py:generator` iterating :class:`~pywbem.CIMInstanceName`:
+          A generator object that iterates the resulting CIM instance paths.
+          These instance paths have their host and namespace components set.
 
         Raises:
 
@@ -3263,14 +3353,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Example::
 
-            insts_iterator = conn.IterAssociatorInstancePaths('CIM_Blah')
-            for inst in insts_iterator:
-                # close if a particular property value found
-                if inst.get('thisPropertyName') == 0
-                    insts_iterator.close()
-                    break
-                else:
-                    print('instance %s' % inst.tomof())
+            paths_generator = conn.IterAssociatorInstancePaths('CIM_Blah')
+            for path in paths_generator:
+                print('path %s' % path)
         """
 
         _validateIterCommonParams(MaxObjectCount, OperationTimeout)
@@ -3360,53 +3445,68 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                 **extra):
         # pylint: disable=invalid-name
         """
-        A generator function to retrieve instances from a WBEM Server.
-        This method frees the user of choices between the multiple
-        Associators/OpenAssociatorInstance methods and reduces
-        the enumeration to a pythonic iterator idiom.
+        Retrieve the instances associated to a source instance,
+        using the corresponding pull operations if supported by the WBEM server
+        or otherwise the corresponding traditional operation, and using the
+        Python :term:`py:generator` idiom to return the result.
+
+        This method is an alternative to using the pull operations directly,
+        that frees the user of having to know whether the WBEM server supports
+        pull operations.
 
         **Experimental:** This method is experimental in this release.
 
-        This method performs either the
-        :meth:`~pywbem.WBEMConnection.OpenAssociatorInstances` and
-        :meth:`~pywbem.WBEMConnection.PullInstancesWithPath`
-        operations (pull operations) or the
-        :meth:`~pywbem.WBEMConnection.Associators` operation
-        (traditional operation) if the WBEM server does not support the
-        pull operations. It is an alternative to using these operations
-        directly, that automatically uses the pull operations if supported.
+        This method is a generator function that retrieves instances from
+        the WBEM server and returns them one by one (using :keyword:`yield`)
+        when the caller iterates through the returned generator object. The
+        number of instances that are retrieved from the WBEM server in one
+        request (and thus need to be materialized in this method) is up to the
+        `MaxObjectCount` parameter if the corresponding pull operations are
+        used, or the complete result set all at once if the corresponding
+        traditional operation is used.
 
-        The `use_pull_operations` argument of the
-        :class:`~pywbem.WBEMConnection` constructor can be used to
-        override that default behavior to either force the use of pull
-        operations or to avoid their use.
+        By default, this method attempts to perform the corresponding pull
+        operations
+        (:meth:`~pywbem.WBEMConnection.OpenAssociatorInstances` and
+        :meth:`~pywbem.WBEMConnection.PullInstancesWithPath`).
+        If these pull operations are not supported by the WBEM server, this
+        method falls back to using the corresponding traditional operation
+        (:meth:`~pywbem.WBEMConnection.Associators`).
+        Whether the WBEM server supports these pull operations is remembered
+        in the :class:`~pywbem.WBEMConnection` object (by operation type), and
+        avoids unnecessary attempts to try these pull operations on that
+        connection in the future.
+        The `use_pull_operations` constructor parameter of
+        :class:`~pywbem.WBEMConnection` can be used to control the preference
+        for always using pull operations, always using traditional operations,
+        or using pull operations if supported by the WBEM server (the default).
 
-        NOTE: This functionality assumes that pull operations may not be
-        supported for all of the pull operation types (i.e. operations whose
-        name starts with Open). Even if one `Open...` function is not
-        implemented (returns `CIM_ERR_NOT_SUPPORTED`) and that operation is
-        used as the first request, the code will try the Open... on other pull
-        operation types the first time each type is used.
+        This method provides all of the controls of the corresponding pull
+        operations except for the ability to set different response sizes on
+        each request; the response size (defined by the `MaxObjectCount`
+        parameter) is the same for all requests in the sequence.
 
-        This method provides all of the controls of the pull operations API
-        except the ability to set the response size on each request; response
-        size (defined by `MaxObjectCount` is the same for all of the request
-        operations in the sequence). There are, limitations in that:
+        In addition, some functionality is only available if the corresponding
+        pull operations are used by this method:
 
-          * The filter function does not exist for ReferenceNames
-            so that a request with `FilterQuery` or `FilterQueryLanguage`
-            attribute will be rejected if the pull operatons do not exist on
-            the target WBEM Server.
+        * Filtering is not supported for the corresponding traditional
+          operation so that setting the `FilterQuery` or `FilterQueryLanguage`
+          parameters will be rejected if the corresponding traditional
+          operation is used by this method.
 
-          * If `ContinueOnError` is set and the pull operations are not
-            supported on the server, the request is rejected.
+          Note that this limitation is not a disadvantage compared to using the
+          corresponding pull operations directly, because in both cases, the
+          WBEM server must support the pull operations and their filtering
+          capability in order for the filtering to work.
 
-        An open request may be closed while the iteration process is being
-        executed by issuing the iterator close() method.
+        * Setting the `ContinueOnError` parameter to `True` will be rejected if
+          the corresponding traditional operation is used by this method.
 
-        If the initial request of the operation sequence succeeds, this method
-        returns a Python iterator object so that the instances that are
-        returned from the server can be retrieved with iterator expressions.
+        The enumeration session that is opened with the WBEM server when using
+        pull operations is closed automatically when the returned generator
+        object is exhausted, or when the generator object is closed using its
+        :meth:`~py:generator.close` method (which may also be called before the
+        generator is exhausted).
 
         Parameters:
 
@@ -3477,14 +3577,21 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, all properties are included.
 
           FilterQueryLanguage (:term:`string`):
-            A string defining the name of the query language
-            used for the `FilterQuery` parameter. The DMTF defined language
-            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
+            The name of the filter query language used for the `FilterQuery`
+            parameter. The DMTF-defined Filter Query Language (see
+            :term:`DSP0212`) is specified as "DMTF:FQL".
+
+            If this parameter is not `None` and the traditional operation is
+            used by this method, :exc:`~py:exceptions.ValueError` will be
+            raised.
 
           FilterQuery (:term:`string`):
-            A string defining the query that is to be sent
-            to the WBEM server using the query language defined by
-            the `FilterQueryLanguage` parameter.
+            The filter query in the query language defined by the
+            `FilterQueryLanguage` parameter.
+
+            If this parameter is not `None` and the traditional operation is
+            used by this method, :exc:`~py:exceptions.ValueError` will be
+            raised.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
@@ -3501,6 +3608,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
+            Many WBEM servers do not support this request attribute so that
+            setting it to `True` is NOT recommended except in special cases.
+
+            If this parameter is `True` and the traditional operation is used
+            by this method, :exc:`~py:exceptions.ValueError` will be raised.
+
           ContinueOnError (:class:`py:bool`):
             Indicates to the WBEM server to continue sending responses
             after an error response has been sent.
@@ -3511,6 +3624,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
               :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              If the corresponding traditional operation is used by this
+              method, :exc:`~py:exceptions.ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -3519,8 +3634,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               `False`.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
-            Maximum number of instances the WBEM server may return
-            for this request.
+            Maximum number of instances the WBEM server may return for each of
+            the open and pull requests issued during the iterations over the
+            returned generator object.
 
             * If positive, the WBEM server is to return no more than the
               specified number of instances.
@@ -3540,8 +3656,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-          A Python:term:`generator` object. Instances can be retrieved
-          by iterating through the object.
+          :term:`py:generator` iterating :class:`~pywbem.CIMInstance`:
+          A generator object that iterates the resulting CIM instances.
+          These instances include an instance path that has its host and
+          namespace components set.
 
         Raises:
 
@@ -3549,11 +3667,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Example::
 
-            insts_iterator = conn.IterAssociatorInstances('CIM_Blah.key=1',...)
-            for inst in insts_iterator:
+            insts_generator = conn.IterAssociatorInstances('CIM_Blah.key=1',...)
+            for inst in insts_generator:
                 # close if a particular property value found
                 if inst.get('thisPropertyName') == 0
-                    insts_iterator.close()
+                    insts_generator.close()
                     break
                 else:
                     print('instance %s' % inst.tomof())
@@ -3650,63 +3768,66 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                            MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
                            **extra):
         """
-        A generator function to retrieve instances from a WBEM Server.
-        This method frees the user of choices between the multiple
-        ExecQuery/OpenQueryInstances methods and reduces
-        the enumeration to a pythonic iterator idiom.
+        Execute a query in a namespace,
+        using the corresponding pull operations if supported by the WBEM server
+        or otherwise the corresponding traditional operation, and using the
+        Python :term:`py:generator` idiom to return the result.
+
+        This method is an alternative to using the pull operations directly,
+        that frees the user of having to know whether the WBEM server supports
+        pull operations.
 
         **Experimental:** This method is experimental in this release.
 
-        This method performs either the
-        :meth:`~pywbem.WBEMConnection.OpenQueryInstances` and
-        :meth:`~pywbem.WBEMConnection.PullInstances`
-        operations (pull operations) or the
-        :meth:`~pywbem.WBEMConnection.ExecQuery` operation
-        (traditional operation) if the WBEM server does not support the
-        pull operations. It is an alternative to using these operations
-        directly, that automatically uses the pull operations if supported.
+        Other than the other Iter...() methods, this method is not a generator
+        function, but returns an object that provides access to a generator
+        property. The reason for this design is the additionally returned query
+        result class. The generator property in the returned object is a
+        generator object that returns the instances in the query result one by
+        one (using :keyword:`yield`) when the caller iterates through the
+        generator object. This design causes the entire query result to be
+        materialized, even if pull operations are used.
 
-        The `use_pull_operations` argument of the
-        :class:`~pywbem.WBEMConnection` constructor can be used to
-        override that default behavior to either force the use of pull
-        operations or to avoid their use.
+        By default, this method attempts to perform the corresponding pull
+        operations
+        (:meth:`~pywbem.WBEMConnection.OpenQueryInstances` and
+        :meth:`~pywbem.WBEMConnection.PullInstances`).
+        If these pull operations are not supported by the WBEM server, this
+        method falls back to using the corresponding traditional operation
+        (:meth:`~pywbem.WBEMConnection.ExecQuery`).
+        Whether the WBEM server supports these pull operations is remembered
+        in the :class:`~pywbem.WBEMConnection` object (by operation type), and
+        avoids unnecessary attempts to try these pull operations on that
+        connection in the future.
+        The `use_pull_operations` constructor parameter of
+        :class:`~pywbem.WBEMConnection` can be used to control the preference
+        for always using pull operations, always using traditional operations,
+        or using pull operations if supported by the WBEM server (the default).
 
-        NOTE: This functionality assumes that pull operations may not be
-        supported for all of the pull operation types (i.e. operations whose
-        name starts with Open). Even if one `Open...` function is not
-        implemented (returns `CIM_ERR_NOT_SUPPORTED`) and that operation is
-        used as the first request, the code will try the Open... on other pull
-        operation types the first time each type is used.
+        This method provides all of the controls of the corresponding pull
+        operations except for the ability to set different response sizes on
+        each request; the response size (defined by the `MaxObjectCount`
+        parameter) is the same for all requests in the sequence.
 
-        This method provides all of the controls of the pull operations API
-        except the ability to set the response size on each request; response
-        size (defined by `MaxObjectCount` is the same for all of the request
-        operations in the sequence). There are, limitations in that:
+        In addition, some functionality is only available if the corresponding
+        pull operations are used by this method:
 
-          * The filter function does not exist for EnumerateInstances
-            so that a request with `FilterQuery` or `FilterQueryLanguage`
-            attribute will be rejected if the pull operatons do not exist on
-            the target WBEM Server.
+        * Setting the `ContinueOnError` parameter to `True` will be rejected if
+          the corresponding traditional operation is used by this method.
 
-          * If `ContinueOnError` is set and the pull operations are not
-            supported on the server, the request is rejected.
-
-        An open request may be closed while the iteration process is being
-        executed by issuing the iterator close() method.
-
-        If the initial request of the operation sequence succeeds, this method
-        returns a Python iterator object so that the instances that are
-        returned from the server can be retrieved with iterator expressions.
-
-        Otherwise, this method raises an exception.
+        The enumeration session that is opened with the WBEM server when using
+        pull operations is closed automatically when the returned generator
+        object is exhausted, or when the generator object is closed using its
+        :meth:`~py:generator.close` method (which may also be called before the
+        generator is exhausted).
 
         Parameters:
 
           QueryLanguage (:term:`string`):
             Name of the query language used in the `Query` parameter, e.g.
             "DMTF:CQL" for CIM Query Language, and "WQL" for WBEM Query
-            Language. "DMTF:FQL" is not a valid query language for this
-            request.
+            Language. Because this is not a filter query, "DMTF:FQL" is not a
+            valid query language for this request.
 
           Query (:term:`string`):
             Query string in the query language specified in the `QueryLanguage`
@@ -3718,7 +3839,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-          ReturnQueryResultClass  (:class:`py:bool`):
+          ReturnQueryResultClass (:class:`py:bool`):
             Controls whether a class definition is returned.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
@@ -3746,6 +3867,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
               :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              If the corresponding traditional operation is used by this
+              method, :exc:`~py:exceptions.ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -3754,8 +3877,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               `False`.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
-            Maximum number of instances the WBEM server may return
-            for this request.
+            Maximum number of instances the WBEM server may return for each of
+            the open and pull requests issued during the iterations over the
+            returned generator object.
 
             * If positive, the WBEM server is to return no more than the
               specified number of instances.
@@ -3775,18 +3899,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-          A Python:term:`generator` object. Instances can be retrieved
-          by iterating through the object.
-          An Instance of the nexted class IterQueryInstancesReturn that
-          contains two properties:
+          :class:`~pywbem.IterQueryInstancesReturn`: An object with the
+          following properties:
 
-          query_result_class: If a result class was requested from by the
-          call to InterQueryInstances and one was returned, the CIMClass
-          representing this class is returned.  Otherwise, None is returned
+          * **query_result_class** (:class:`~pywbem.CIMClass`):
 
-          generator: That defines a generator for the instances returned from
-          whichever lower level function is called. The instances are
-          accessed using this generator (ex. for inst in rtn.generator:)
+            The query result class, if requested via the
+            `ReturnQueryResultClass` parameter.
+
+            `None`, if a query result class was not requested.
+
+          * **generator** (:term:`py:generator` iterating :class:`~pywbem.CIMInstance`):
+
+            A generator object that iterates the CIM instances representing the
+            query result. These instances do not have an instance path set.
 
         Raises:
 
@@ -3794,35 +3920,41 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Example::
 
-            result = conn.IterQueryInstances('DMTF:CQL',
+            result = conn.IterQueryInstances(
+                'DMTF:CQL',
                 'SELECT FROM * where pl > 2')
             for inst in result.generator:
                 print('instance %s' % inst.tomof())
+        """  # noqa: E501
 
-        Raises:
-
-            Exceptions described in :class:`~pywbem.WBEMConnection`.
-        """
         class IterQueryInstancesReturn(object):
             """
-            Nested class that defines the return from IterQueryInstances.
-
-            This includes two methods that allow returning both the
-            query class result and the generator definition.
+            The return data for
+            :meth:`~pywbem.WBEMConnection.IterQueryInstances`.
             """
+
             def __init__(self, instances, query_result_class=None):
                 self._query_result_class = query_result_class
                 self.instances = instances
 
             @property
             def query_result_class(self):
-                """Return with the query_result class or None."""
+                """
+                :class:`~pywbem.CIMClass`: The query result class, if requested
+                via the `ReturnQueryResultClass` parameter of
+                :meth:`~pywbem.WBEMConnection.IterQueryInstances`.
+
+                `None`, if a query result class was not requested.
+                """
                 return self._query_result_class
 
             @property
             def generator(self):
                 """
-                Method to provide the python generator.
+                :term:`py:generator` iterating :class:`~pywbem.CIMInstance`:
+                A generator object that iterates the CIM instances representing
+                the query result. These instances do not have an instance path
+                set.
                 """
                 for inst in self.instances:
                     yield inst
@@ -3942,18 +4074,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             also `None`, the default namespace of the connection will be used.
 
           FilterQueryLanguage (:term:`string`):
-            A string defining the name of the query language
-            used for the `FilterQuery` parameter. The DMTF defined language
-            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
+            The name of the filter query language used for the `FilterQuery`
+            parameter. The DMTF-defined Filter Query Language (see
+            :term:`DSP0212`) is specified as "DMTF:FQL".
+
+            Not all WBEM servers support filtering for this operation because
+            it returns instance paths and the act of the server filtering
+            requires that it generate instances just for that purpose and then
+            discard them.
 
           FilterQuery (:term:`string`):
-            A string defining the query that is to be sent
-            to the WBEM server using the query language defined by
-            the `FilterQueryLanguage` parameter. Not all WBEM
-            servers allow FilterQuery filtering for this operation
-            (i.e. return the CIM_ERR_NOT_SUPPORTED exception when filtering
-            is specified) because the act of the server filtering
-            requires that it generate instances and then discard them.
+            The filter query in the query language defined by the
+            `FilterQueryLanguage` parameter.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
@@ -4209,14 +4341,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, all properties are included.
 
           FilterQueryLanguage (:term:`string`):
-            A string defining the name of the query language
-            used for the `FilterQuery` parameter. The DMTF defined language
-            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
+            The name of the filter query language used for the `FilterQuery`
+            parameter. The DMTF-defined Filter Query Language (see
+            :term:`DSP0212`) is specified as "DMTF:FQL".
 
           FilterQuery (:term:`string`):
-            A string defining the query that is to be sent
-            to the WBEM server using the query language defined by
-            the `FilterQueryLanguage` parameter.
+            The filter query in the query language defined by the
+            `FilterQueryLanguage` parameter.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
@@ -4437,17 +4568,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `None` means that no such filtering is peformed.
 
           FilterQueryLanguage (:term:`string`):
-            A string defining the name of the query language
-            used for the `FilterQuery` parameter. The DMTF defined language
-            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
+            The name of the filter query language used for the `FilterQuery`
+            parameter. The DMTF-defined Filter Query Language (see
+            :term:`DSP0212`) is specified as "DMTF:FQL".
+
+            Not all WBEM servers support filtering for this operation because
+            it returns instance paths and the act of the server filtering
+            requires that it generate instances just for that purpose and then
+            discard them.
 
           FilterQuery (:term:`string`):
-            A string defining the query that is to be sent
-            to the WBEM server using the query language defined by
-            the `FilterQueryLanguage` parameter.  Not all WBEM
-            servers allow FilterQuery filtering for this operation
-            because the act of the server filtering requires
-            that it generate instances and then discard them.
+            The filter query in the query language defined by the
+            `FilterQueryLanguage` parameter.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
@@ -4679,8 +4811,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
-            An iterable specifying the names of the properties (or a  string
+          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+            An iterable specifying the names of the properties (or a string
             that defines a single property) to be included in the returned
             instances (case independent).
 
@@ -4689,14 +4821,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, all properties are included.
 
           FilterQueryLanguage (:term:`string`):
-            A string defining the name of the query language
-            used for the `FilterQuery` parameter. The DMTF defined language
-            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
+            The name of the filter query language used for the `FilterQuery`
+            parameter. The DMTF-defined Filter Query Language (see
+            :term:`DSP0212`) is specified as "DMTF:FQL".
 
           FilterQuery (:term:`string`):
-            A string defining the query that is to be sent
-            to the WBEM server using the query language defined by
-            the `FilterQueryLanguage` parameter.
+            The filter query in the query language defined by the
+            `FilterQueryLanguage` parameter.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
@@ -4925,18 +5056,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `None` means that no such filtering is peformed.
 
           FilterQueryLanguage (:term:`string`):
-            A string defining the name of the query language
-            used for the `FilterQuery` parameter. The DMTF defined language
-            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
+            The name of the filter query language used for the `FilterQuery`
+            parameter. The DMTF-defined Filter Query Language (see
+            :term:`DSP0212`) is specified as "DMTF:FQL".
+
+            Not all WBEM servers support filtering for this operation because
+            it returns instance paths and the act of the server filtering
+            requires that it generate instances just for that purpose and then
+            discard them.
 
           FilterQuery (:term:`string`):
-            A string defining the query that is to be sent
-            to the WBEM server using the query language defined by
-            the `FilterQueryLanguage` parameter. Not all WBEM
-            servers allow FilterQuery filtering for this operation
-            (i.e. return the CIM_ERR_NOT_SUPPORTED exception when filtering
-            is specified) because the act of the server filtering
-            requires that it generate instances and then discard them.
+            The filter query in the query language defined by the
+            `FilterQueryLanguage` parameter.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
@@ -5187,8 +5318,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
-            An iterable specifying the names of the properties (or a  string
+          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+            An iterable specifying the names of the properties (or a string
             that defines a single property) to be included in the returned
             instances (case independent).
 
@@ -5197,14 +5328,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, all properties are included.
 
           FilterQueryLanguage (:term:`string`):
-            A string defining the name of the query language
-            used for the `FilterQuery` parameter. The DMTF defined language
-            (FQL) (:term:`DSP0212`) is specified as 'DMTF:FQL'.
+            The name of the filter query language used for the `FilterQuery`
+            parameter. The DMTF-defined Filter Query Language (see
+            :term:`DSP0212`) is specified as "DMTF:FQL".
 
           FilterQuery (:term:`string`):
-            A string defining the query that is to be sent
-            to the WBEM server using the query language defined by
-            the `FilterQueryLanguage` parameter.
+            The filter query in the query language defined by the
+            `FilterQueryLanguage` parameter.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
@@ -5398,14 +5528,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Parameters:
 
           FilterQueryLanguage (:term:`string`):
-            Name of the query language used in the `Query` parameter, e.g.
-            "DMTF:CQL" for CIM Query Language, and "WQL" for WBEM Query
-            Language. "DMTF:FQL" is not a valid query language for this
-            request.
+            Name of the query language used in the `FilterQuery` parameter,
+            e.g. "DMTF:CQL" for CIM Query Language, and "WQL" for WBEM Query
+            Language. Because this is not a filter query, "DMTF:FQL" is not a
+            valid query language for this request.
 
           FilterQuery (:term:`string`):
-            Query string in the query language specified in the `QueryLanguage`
-            parameter.
+            Query string in the query language specified in the
+            `FilterQueryLanguage` parameter.
 
           namespace (:term:`string`):
             Name of the CIM namespace to be used (case independent).
@@ -5413,7 +5543,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-          ReturnQueryResultClass  (:class:`py:bool`):
+          ReturnQueryResultClass (:class:`py:bool`):
             Controls whether a class definition is returned.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
@@ -5783,7 +5913,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             A :class:`py:namedtuple` object containing the following named
             items:
 
-            * **paths** (:class:`py:list of` :class:`~pywbem.CIMInstanceName`):
+            * **paths** (:class:`py:list` of :class:`~pywbem.CIMInstanceName`):
               Representations of the next set of enumerated instance paths,
               with their attributes set as follows:
 
@@ -6129,8 +6259,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
-            An iterable specifying the names of the properties (or a  string
+          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+            An iterable specifying the names of the properties (or a string
             that defines a single property) to be included in the returned
             instance (case independent).
 
@@ -6260,8 +6390,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             This parameter has been deprecated in :term:`DSP0200`. Clients
             cannot rely on it being implemented by WBEM servers.
 
-          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
-            An iterable specifying the names of the properties (or a  string
+          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+            An iterable specifying the names of the properties (or a string
             that defines a single property) to be modified (case independent).
 
             An empty iterable indicates to modify no properties.
@@ -6758,8 +6888,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
-            An iterable specifying the names of the properties (or a  string
+          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+            An iterable specifying the names of the properties (or a string
             that defines a single property) to be included in the returned
             instances (or classes) (case independent).
 
@@ -7086,8 +7216,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
-            An iterable specifying the names of the properties (or a  string
+          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+            An iterable specifying the names of the properties (or a string
             that defines a single property) to be included in the returned
             instances (or classes) (case independent).
 
@@ -7280,7 +7410,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             * returnvalue (:term:`CIM data type`):
               Return value of the CIM method.
-            * outparams (`NocaseDict`_):
+            * outparams (:class:`~pywbem.cim_obj.NocaseDict`):
               Dictionary with all provided output parameters of the CIM method,
               with:
 
@@ -7784,8 +7914,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string` or :term:`string`):
-            An iterable specifying the names of the properties (or a  string
+          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+            An iterable specifying the names of the properties (or a string
             that defines a single property) to be included in the returned
             class (case independent).
 

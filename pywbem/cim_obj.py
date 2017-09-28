@@ -139,9 +139,9 @@ class NocaseDict(object):
             respectively. The key/value pairs will be put into the new
             dictionary (without copying them).
 
-          * If one positional argument of dictionary (mapping) or `NocaseDict`_
-            type is provided, its key/value pairs are put into the new
-            dictionary (without copying them).
+          * If one positional argument of dictionary (mapping) or
+            :class:`~pywbem.cim_obj.NocaseDict` type is provided, its key/value
+            pairs are put into the new dictionary (without copying them).
 
           * Otherwise, `TypeError` is raised.
 
@@ -331,8 +331,9 @@ class NocaseDict(object):
 
     def __repr__(self):
         """
-        Return a string representation of the `NocaseDict`_ object that is
-        suitable for debugging.
+        Return a string representation of the
+        :class:`~pywbem.cim_obj.NocaseDict` object that is suitable for
+        debugging.
 
         The order of dictionary items in the result will be sorted by keys.
         """
@@ -555,12 +556,15 @@ def cmpitem(item1, item2):
 
 def _convert_unicode(obj):
     """
-    Convert the input object into a Unicode string (`unicode`for Python 2,
-    and `str` for Python 3).
+    Make sure the input object is returned as a :term:`unicode string`, as
+    follows:
 
-    If the input object already is a Unicode string, it is simply returned.
-    If the input object is a byte string, it is decoded using UTF-8.
-    Otherwise, the input object is translated into its string representation.
+    * If the input object already is a :term:`unicode string`, it is returned
+      unchanged.
+    * If the input object is a :term:`byte string`, it is decoded using UTF-8.
+    * Otherwise, the input object is translated into its :term:`unicode string`
+      representation (this causes its `__str__()` or `__unicode__()` method to
+      be invoked).
     """
     if isinstance(obj, six.text_type):
         return obj
@@ -571,25 +575,32 @@ def _convert_unicode(obj):
 
 def _ensure_unicode(obj):
     """
-    Return the input object, ensuring that a byte string is decoded into a
-    Unicode string (`unicode`for Python 2, and `str` for Python 3).
+    If the input object is a string, make sure it is returned as a
+    :term:`unicode string`, as follows:
 
-    If the input object is a byte string, it is decoded using UTF-8.
-    Otherwise, the input object is simply returned.
+    * If the input object already is a :term:`unicode string`, it is returned
+      unchanged.
+    * If the input string is a :term:`byte string`, it is decoded using UTF-8.
+    * Otherwise, the input object was not a string and is returned unchanged.
     """
     if isinstance(obj, six.binary_type):
         return obj.decode("utf-8")
+    # TODO: Find out whether this function is used for non-string types at all
     return obj
 
 
 def _convert_bytes(obj):
     """
-    Convert the input object into a byte string (`str`for Python 2, and `bytes`
-    for Python 3).
+    Make sure the input object is returned as a :term:`byte string`, as
+    follows:
 
-    If the input object already is a byte string, it is simply returned.
-    If the input object is a Unicode string, it is encoded using UTF-8.
-    Otherwise, the input object is translated into its string representation.
+    * If the input object already is a :term:`byte string`, it is returned
+      unchanged.
+    * If the input object is a :term:`unicode string`, it is encoded using
+      UTF-8.
+    * Otherwise, the input object is translated into its :term:`byte string`
+      representation (this causes its `__str__()` or `__bytes__()` method to
+      be invoked).
     """
     if isinstance(obj, six.binary_type):
         return obj
@@ -600,14 +611,18 @@ def _convert_bytes(obj):
 
 def _ensure_bytes(obj):
     """
-    Return the input object, ensuring that a Unicode string is decoded into a
-    byte string (`str`for Python 2, and `bytes` for Python 3).
+    If the input object is a string, make sure it is returned as a
+    :term:`byte string`, as follows:
 
-    If the input object is a Unicode string, it is encoded using UTF-8.
-    Otherwise, the input object is simply returned.
+    * If the input object already is a :term:`byte string`, it is returned
+      unchanged.
+    * If the input string is a :term:`unicode string`, it is encoded using
+      UTF-8.
+    * Otherwise, the input object was not a string and is returned unchanged.
     """
     if isinstance(obj, six.text_type):
         return obj.encode("utf-8")
+    # TODO: Find out whether this function is used for non-string types at all
     return obj
 
 
@@ -621,7 +636,7 @@ def _makequalifiers(qualifiers, indent):
 
       qualifiers (list): List of qualifiers to format.
 
-      indent (:term:`integer): Indent level for this set of qualifiers.
+      indent (:term:`integer`): Indent level for this set of qualifiers.
     """
     if len(qualifiers) == 0:
         return ''
@@ -646,8 +661,8 @@ def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
     (i.e. a string literal), including the surrounding double quotes, and
     return that result.
 
-    The input string must be a Python unicode string object, and the
-    returned MOF string constant is also a Python unicode string object.
+    The input string must be a :term:`unicode string`, and the returned MOF
+    string constant is also a :term:`unicode string`.
 
     This function handles MOF escaping and breaking the string into multiple
     lines according to the `maxline` and `indent` parameters.
@@ -811,7 +826,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         This variable will never be `None`.
 
-      keybindings (`NocaseDict`_):
+      keybindings (:class:`~pywbem.cim_obj.NocaseDict`):
         Keybindings of the instance path (the key property values of the
         referenced instance).
 
@@ -857,7 +872,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
             Must not be `None`.
 
-          keybindings (:class:`py:dict` or `NocaseDict`_):
+          keybindings (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
             Keybindings for the instance path (the key property values
             of the referenced instance).
 
@@ -1215,7 +1230,7 @@ class CIMInstance(_CIMComparisonMixin):
 
         This variable will never be `None`.
 
-      properties (`NocaseDict`_):
+      properties (:class:`~pywbem.cim_obj.NocaseDict`):
         Properties for the instance.
 
         Each dictionary item specifies one property value, with:
@@ -1225,7 +1240,7 @@ class CIMInstance(_CIMComparisonMixin):
 
         This variable will never be `None`.
 
-      qualifiers (`NocaseDict`_):
+      qualifiers (:class:`~pywbem.cim_obj.NocaseDict`):
         Qualifiers for the instance.
 
         Each dictionary item specifies one qualifier value, with:
@@ -1261,7 +1276,7 @@ class CIMInstance(_CIMComparisonMixin):
             Name of the creation class of the instance.
             Must not be `None`.
 
-          properties (:class:`py:dict` or `NocaseDict`_):
+          properties (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
             Properties for the instance.
 
             For details about the dictionary items, see the corresponding
@@ -1269,7 +1284,7 @@ class CIMInstance(_CIMComparisonMixin):
 
             `None` is interpreted as an empty dictionary.
 
-          qualifiers (:class:`py:dict` or `NocaseDict`_):
+          qualifiers (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
             Qualifiers for the instance.
 
             For details about the dictionary items, see the corresponding
@@ -1802,7 +1817,7 @@ class CIMClass(_CIMComparisonMixin):
 
         `None` means that the class is a top-level class.
 
-      properties (`NocaseDict`_):
+      properties (:class:`~pywbem.cim_obj.NocaseDict`):
         Property declarations of the class.
 
         Each dictionary item specifies one property declaration, with:
@@ -1812,7 +1827,7 @@ class CIMClass(_CIMComparisonMixin):
 
         This variable will never be `None`.
 
-      methods (`NocaseDict`_):
+      methods (:class:`~pywbem.cim_obj.NocaseDict`):
         Method declarations of the class.
 
         Each dictionary item specifies one method declaration, with:
@@ -1822,7 +1837,7 @@ class CIMClass(_CIMComparisonMixin):
 
         This variable will never be `None`.
 
-      qualifiers (`NocaseDict`_):
+      qualifiers (:class:`~pywbem.cim_obj.NocaseDict`):
         Qualifier values of the class.
 
         Each dictionary item specifies one qualifier value, with:
@@ -1858,7 +1873,7 @@ class CIMClass(_CIMComparisonMixin):
 
             Must not be `None`.
 
-          properties (:class:`py:dict` or `NocaseDict`_):
+          properties (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
             Property declarations for the class.
 
             For details about the dictionary items, see the corresponding
@@ -1866,7 +1881,7 @@ class CIMClass(_CIMComparisonMixin):
 
             `None` is interpreted as an empty dictionary.
 
-          methods (:class:`py:dict` or `NocaseDict`_):
+          methods (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
             Method declarations for the class.
 
             For details about the dictionary items, see the corresponding
@@ -1879,7 +1894,7 @@ class CIMClass(_CIMComparisonMixin):
 
             If `None`, the class will be a top-level class.
 
-          qualifiers (:class:`py:dict` or `NocaseDict`_):
+          qualifiers (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
             Qualifier values for the class.
 
             For details about the dictionary items, see the corresponding
@@ -2158,7 +2173,7 @@ class CIMProperty(_CIMComparisonMixin):
 
         `None` means that propagation information is not available.
 
-      qualifiers (`NocaseDict`_):
+      qualifiers (:class:`~pywbem.cim_obj.NocaseDict`):
         Qualifier values for the property declaration.
 
         Each dictionary item specifies one qualifier value, with:
@@ -2244,7 +2259,7 @@ class CIMProperty(_CIMComparisonMixin):
             inferred from the creation class name of a referenced instance.
             This was incorrect and has been fixed in v0.11.0.
 
-          qualifiers (:class:`py:dict` or `NocaseDict`_):
+          qualifiers (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
             Qualifier values for the property declaration.
 
             For details about the dictionary items, see the corresponding
@@ -2818,7 +2833,7 @@ class CIMMethod(_CIMComparisonMixin):
 
         `None` means that propagation information is not available.
 
-      parameters (`NocaseDict`_):
+      parameters (:class:`~pywbem.cim_obj.NocaseDict`):
         Parameter declarations for the method declaration.
 
         Each dictionary item specifies one parameter declaration, with:
@@ -2828,7 +2843,7 @@ class CIMMethod(_CIMComparisonMixin):
 
         This variable will never be `None`.
 
-      qualifiers (`NocaseDict`_):
+      qualifiers (:class:`~pywbem.cim_obj.NocaseDict`):
         Qualifier values for the method declaration.
 
         Each dictionary item specifies one qualifier value, with:
@@ -2866,7 +2881,7 @@ class CIMMethod(_CIMComparisonMixin):
 
             Must not be `None`
 
-          parameters (:class:`py:dict` or `NocaseDict`_):
+          parameters (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
             Parameter declarations for the method declaration.
 
             For details about the dictionary items, see the corresponding
@@ -2888,7 +2903,7 @@ class CIMMethod(_CIMComparisonMixin):
 
             `None` means that propagation information is not available.
 
-          qualifiers (:class:`py:dict` or `NocaseDict`_):
+          qualifiers (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
             Qualifier values for the method declaration.
 
             For details about the dictionary items, see the corresponding
@@ -3080,7 +3095,7 @@ class CIMParameter(_CIMComparisonMixin):
         `None` means that the array parameter has variable size, or that it is
         not an array.
 
-      qualifiers (`NocaseDict`_):
+      qualifiers (:class:`~pywbem.cim_obj.NocaseDict`):
         Qualifier values of the parameter declaration.
 
         Each dictionary item specifies one qualifier value, with:
@@ -3133,7 +3148,7 @@ class CIMParameter(_CIMComparisonMixin):
 
             `None` means that the array parameter has variable size.
 
-          qualifiers (:class:`py:dict` or `NocaseDict`_):
+          qualifiers (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
             Qualifier values of the parameter declaration.
 
             For details about the dictionary items, see the corresponding
@@ -3811,7 +3826,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         `None` means that the array qualifier has variable size, or that it is
         not an array.
 
-      scopes (`NocaseDict`_):
+      scopes (:class:`~pywbem.cim_obj.NocaseDict`):
         Scopes of the qualifier.
 
         Each dictionary item specifies one scope value, with:
@@ -3899,7 +3914,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
             `None` means that the array qualifier has variable size.
 
-          scopes (:class:`py:dict` or `NocaseDict`_):
+          scopes (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
             Scopes of the qualifier.
 
             For details about the dictionary items, see the corresponding
