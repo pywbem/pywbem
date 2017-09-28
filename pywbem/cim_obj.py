@@ -806,57 +806,10 @@ def moftype(cim_type, refclass):
 
 class CIMInstanceName(_CIMComparisonMixin):
     """
-    A CIM instance path (aka *instance name*).
+    A CIM instance path (aka *CIM instance name*).
 
-    A CIM instance path references a CIM instance in a namespace in a WBEM
+    A CIM instance path references a CIM instance in a CIM namespace in a WBEM
     server. Namespace and WBEM server may be unspecified.
-
-    This object can be used like a dictionary of the keybindings of the
-    instance path, with the names of the keybindings (= key properties) as
-    dictionary keys, and their property values as dictionary values.
-
-    Attributes:
-
-      classname (:term:`unicode string`):
-        Name of the creation class of the referenced instance.
-
-        This variable will never be `None`.
-
-      keybindings (`NocaseDict`_):
-        Keybindings of the instance path (the key property values of the
-        referenced instance).
-
-        Each dictionary item specifies one key property value, with:
-
-          * key (:term:`string`): Key property name
-          * value (:term:`CIM data type`): Key property value
-
-        This variable will never be `None`.
-
-      namespace (:term:`unicode string`):
-        Name of the CIM namespace containing the referenced instance.
-
-        `None` means that the namespace is unspecified.
-
-      host (:term:`unicode string`):
-        Host and optionally port of the WBEM server containing the CIM
-        namespace of the referenced instance, in the format:
-
-          ``host[:port]``
-
-        The host can be specified in any of the usual formats:
-
-          * a short or fully qualified DNS hostname
-          * a literal (= dotted) IPv4 address
-          * a literal IPv6 address, formatted as defined in :term:`RFC3986`
-            with the extensions for zone identifiers as defined in
-            :term:`RFC6874`, supporting ``-`` (minus) for the delimiter
-            before the zone ID string, as an additional choice to ``%25``.
-
-        If no port is specified, the default port depends on the context in
-        which the object is used.
-
-        `None` means that the WBEM server is unspecified.
     """
 
     def __init__(self, classname, keybindings=None, host=None, namespace=None):
@@ -869,27 +822,50 @@ class CIMInstanceName(_CIMComparisonMixin):
             Must not be `None`.
 
           keybindings (:class:`py:dict` or `NocaseDict`_):
-            Keybindings for the instance path (the key property values
+            Keybindings for the instance path (that is, the key property values
             of the referenced instance).
 
-            For details about the dictionary items, see the corresponding
-            attribute.
+            A a shallow copy of the provided dictionary will be stored in the
+            ``CIMInstanceName`` object.
 
-            `None` is interpreted as an empty dictionary.
+            Each dictionary item specifies one keybinding, with:
+
+            * key (:term:`string`):
+              Keybinding name. Lexical case is preserved. Must not be `None`.
+            * value (:term:`CIM data type`):
+              Keybinding value.
+              Note that numeric Python types (``int``, ``float``) are not valid
+              CIM data types.
+
+            `None` is interpreted as an empty set of keybindings.
 
           host (:term:`string`):
             Host and optionally port of the WBEM server containing the CIM
             namespace of the referenced instance.
 
-            For details about the string format, see the corresponding instance
-            variable.
+            The format of the string must be:
 
-            `None` means that the WBEM server is unspecified.
+            ``host[:port]``
+
+            The host can be specified in any of the usual formats:
+
+            * a short or fully qualified DNS hostname
+            * a literal (= dotted) IPv4 address
+            * a literal IPv6 address, formatted as defined in :term:`RFC3986`
+              with the extensions for zone identifiers as defined in
+              :term:`RFC6874`, supporting ``-`` (minus) for the delimiter
+              before the zone ID string, as an additional choice to ``%25``.
+
+            `None` means that the WBEM server is unspecified, and the
+            same-named attribute in the ``CIMInstanceName`` object will also be
+            `None`.
 
           namespace (:term:`string`):
             Name of the CIM namespace containing the referenced instance.
 
-            `None` means that the namespace is unspecified.
+            `None` means that the namespace is unspecified, and the
+            same-named attribute in the ``CIMInstanceName`` object will also be
+            `None`.
         """
 
         # Make sure we process Unicode strings
@@ -904,6 +880,113 @@ class CIMInstanceName(_CIMComparisonMixin):
         self.keybindings = NocaseDict(keybindings)
         self.host = host
         self.namespace = namespace
+
+    @property
+    def classname(self):
+        """
+        :term:`unicode string`: Name of the creation class of the referenced
+        instance.
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter,
+        except that the provided value must be a :term:`unicode string`.
+        """
+        return self._classname
+
+    @classname.setter
+    def classname(self, classname):
+        """Setter method; for a description see the getter method."""
+        self._classname = classname
+
+    @property
+    def keybindings(self):
+        """
+        `NocaseDict`_: Keybindings of the instance path (that is, the key
+        property values of the referenced instance).
+
+        Each dictionary item specifies one keybinding, with:
+
+        * key (:term:`unicode string`): Keybinding name. Its lexical case was
+          preserved.
+        * value (:term:`CIM data type`): Keybinding value.
+
+        Will not be `None`.
+
+        This attribute is settable; setting it will cause the current
+        keybindings to be replaced with the new keybindings.
+        The provided value must be a `NocaseDict`_ object. For details, see the
+        description of the same-named constructor parameter,
+        except that the dictionary key must be a :term:`unicode string`.
+
+        The keybindings can also be accessed and manipulated one by one
+        because the attribute value is a modifiable dictionary::
+
+            instpath = CIMInstanceName(...)
+            v1 = "abc"  # must be a CIM data type
+
+            instpath.keybindings['k1'] = v1  # Set "k1" to v1 (add if needed)
+            v1 = instpath.keybindings['k1']  # Access value of "k1"
+            del instpath.keybindings['k1']  # Delete "k1" from the inst. path
+
+        In addition, the keybindings can be accessed and manipulated one by
+        one by using the entire ``CIMInstanceName`` object like a dictionary::
+
+            instpath = CIMInstanceName(...)
+            v2 = Uint32(...)  # must be a CIM data type
+
+            instpath['k2'] = v2  # Set "k2" to v2 (add if needed)
+            v2 = instpath['k2']  # Access value of "k2"
+            del instpath['k2']  # Delete "k2" from the instance path
+        """
+        return self._keybindings
+
+    @keybindings.setter
+    def keybindings(self, keybindings):
+        """Setter method; for a description see the getter method."""
+        self._keybindings = keybindings
+
+    @property
+    def namespace(self):
+        """
+        :term:`unicode string`: Name of the CIM namespace containing the
+        referenced instance.
+
+        `None` means that the namespace is unspecified.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter,
+        except that the provided value must be a :term:`unicode string`.
+        """
+        return self._namespace
+
+    @namespace.setter
+    def namespace(self, namespace):
+        """Setter method; for a description see the getter method."""
+        self._namespace = namespace
+
+    @property
+    def host(self):
+        """
+        :term:`unicode string`: Host and optionally port of the WBEM server
+        containing the CIM namespace of the referenced instance.
+
+        For details about the string format, see the same-named constructor
+        parameter.
+
+        `None` means that the host and port are unspecified.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter,
+        except that the provided value must be a :term:`unicode string`.
+        """
+        return self._host
+
+    @host.setter
+    def host(self, host):
+        """Setter method; for a description see the getter method."""
+        self._host = host
 
     def _cmp(self, other):
         """
@@ -1213,94 +1296,85 @@ class CIMInstanceName(_CIMComparisonMixin):
 
 class CIMInstance(_CIMComparisonMixin):
     """
-    A CIM instance, optionally including its instance path.
-
-    This object can be used like a dictionary of its properties, with the
-    names of the properties as dictionary keys, and their values as dictionary
-    values.
-
-    Attributes:
-
-      classname (:term:`unicode string`):
-        Name of the creation class of the instance.
-
-        This variable will never be `None`.
-
-      properties (`NocaseDict`_):
-        Properties for the instance.
-
-        Each dictionary item specifies one property value, with:
-
-        * key (:term:`string`): Property name
-        * value (:class:`~pywbem.CIMProperty`): Property value
-
-        This variable will never be `None`.
-
-      qualifiers (`NocaseDict`_):
-        Qualifiers for the instance.
-
-        Each dictionary item specifies one qualifier value, with:
-
-        * key (:term:`string`): Qualifier name
-        * value (:class:`~pywbem.CIMQualifier`): Qualifier value
-
-        Note that :term:`DSP0200` has deprecated the presence of qualifier
-        values on CIM instances.
-
-        This variable will never be `None`.
-
-      path (CIMInstanceName):
-        Instance path of the instance.
-
-        `None` means that the instance path is unspecified.
-
-      property_list (:class:`py:list` of :term:`unicode string`):
-        List of property names for use as a filter by some operations on
-        the instance.
-
-        `None` means that the properties are not filtered.
+    A representation of a CIM instance in a CIM namespace in a WBEM server,
+    optionally including its instance path.
     """
 
     # pylint: disable=too-many-arguments
     def __init__(self, classname, properties=None, qualifiers=None,
                  path=None, property_list=None):
-        # pylint: disable=line-too-long
         """
         Parameters:
 
           classname (:term:`string`):
-            Name of the creation class of the instance.
+            Name of the creation class for the instance.
+
             Must not be `None`.
 
           properties (:class:`py:dict` or `NocaseDict`_):
             Properties for the instance.
 
-            For details about the dictionary items, see the corresponding
-            attribute.
+            A shallow copy of the provided dictionary will be stored in the
+            ``CIMInstance`` object.
 
-            `None` is interpreted as an empty dictionary.
+            Each dictionary item specifies one property value, with:
+
+            * key (:term:`string`):
+              Property name. Lexical case is preserved. Must not be `None`.
+            * value (:term:`CIM data type` or :class:`~pywbem.CIMProperty`):
+              Property value.
+              If specified as a :term:`CIM data type`, a new
+              :class:`~pywbem.CIMProperty` object will be created from it,
+              and the new object will be stored in the ``CIMInstance`` object.
+              If specified as a :class:`~pywbem.CIMProperty` object, its `name`
+              attribute must be equal (case insensitively) to the dictionary
+              key, and the provided object will be stored in the
+              ``CIMInstance`` object (no copy is made).
+
+            `None` is interpreted as an empty set of properties.
 
           qualifiers (:class:`py:dict` or `NocaseDict`_):
             Qualifiers for the instance.
 
-            For details about the dictionary items, see the corresponding
-            attribute.
+            A shallow copy of the provided dictionary will be stored in the
+            ``CIMInstance`` object.
 
-            `None` is interpreted as an empty dictionary.
+            Each dictionary item specifies one qualifier value, with:
+
+            * key (:term:`string`):
+              Qualifier name. Lexical case is preserved. Must not be `None`.
+            * value (:class:`~pywbem.CIMQualifier`):
+              Qualifier value.
+              The `name` attribute of the provided object must be equal (case
+              insensitively) to the dictionary key, and the provided object
+              will be stored in the ``CIMInstance`` object (no copy is made).
+
+            `None` is interpreted as an empty set of qualifiers.
 
             Note that :term:`DSP0200` has deprecated the presence of qualifier
             values on CIM instances.
 
-          path (CIMInstanceName):
+          path (:class:`~pywbem.CIMInstanceName`):
             Instance path for the instance.
 
-            `None` means that the instance path is unspecified.
+            The provided object will be stored in the ``CIMInstance`` object
+            (no copy is made).
+
+            `None` means that the instance path is unspecified, and the
+            same-named attribute in the ``CIMInstance`` object will also be
+            `None`.
 
           property_list (:term:`py:iterable` of :term:`string`):
             List of property names for use as a filter by some operations on
-            the instance.
+            the instance. The property names may have any lexical case.
 
-            `None` means that the properties are not filtered.
+            A copy of the provided iterable will be stored in the
+            ``CIMInstance`` object, and the property names will be converted to
+            lower case.
+
+            `None` means that the properties are not filtered, and the
+            same-named attribute in the ``CIMInstance`` object will also be
+            `None`.
         """
 
         self.classname = _ensure_unicode(classname)
@@ -1320,6 +1394,141 @@ class CIMInstance(_CIMComparisonMixin):
         if properties:
             for key, value in properties.items():
                 self.__setitem__(key, value)
+
+    @property
+    def classname(self):
+        """
+        :term:`unicode string`: Name of the creation class of the instance.
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter,
+        except that the provided value must be a :term:`unicode string`.
+        """
+        return self._classname
+
+    @classname.setter
+    def classname(self, classname):
+        """Setter method; for a description see the getter method."""
+        self._classname = classname
+
+    @property
+    def properties(self):
+        """
+        `NocaseDict`_: Properties of the CIM instance.
+
+        Each dictionary item specifies one property value, with:
+
+        * key (:term:`unicode string`): Property name. Its lexical case was
+          preserved.
+        * value (:class:`~pywbem.CIMProperty`): Property value.
+
+        Will not be `None`.
+
+        This attribute is settable; setting it will cause the current CIM
+        properties to be replaced with the new properties, and will also cause
+        the values of corresponding keybindings in the instance path (if set)
+        to be updated. For details, see the description of the same-named
+        constructor parameter. Note that the property value may be specified as
+        a :term:`CIM data type` or as a :class:`~pywbem.CIMProperty` object.
+
+        The CIM property values can also be accessed and manipulated one by one
+        because the attribute value is a modifiable dictionary. In that case,
+        the provided input value must be a :class:`~pywbem.CIMProperty`
+        object::
+
+            inst = CIMInstance(...)
+            p1 = CIMProperty('p1', ...)
+
+            inst.properties['p1'] = p1  # Set "p1" to p1 (add if needed)
+            p1 = inst.properties['p1']  # Access "p1"
+            del inst.properties['p1']  # Delete "p1" from the instance
+
+        In addition, the CIM properties can be accessed and manipulated one by
+        one by using the entire :class:`~pywbem.CIMInstance` object like a
+        dictionary. Again, the provided input value must be a
+        :class:`~pywbem.CIMProperty` object in this case::
+
+            inst = CIMInstance(...)
+            p2 = CIMProperty('p2', ...)
+
+            inst['p2'] = p2  # Set "p2" to p2 (add if needed)
+            p2 = inst['p2']  # Access "p2"
+            del inst['p2']  # Delete "p2" from the instance
+        """
+        return self._properties
+
+    @properties.setter
+    def properties(self, properties):
+        """Setter method; for a description see the getter method."""
+        self._properties = properties
+
+    @property
+    def qualifiers(self):
+        """
+        `NocaseDict`_: Qualifiers of the CIM instance.
+
+        Each dictionary item specifies one qualifier value, with:
+
+        * key (:term:`string`): Qualifier name. Its lexical case was
+          preserved.
+        * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
+
+        Will not be `None`.
+
+        This attribute is settable; setting it will cause the current
+        qualifiers to be replaced with the new qualifiers. For details, see
+        the description of the same-named constructor parameter.
+
+        The qualifier values can also be accessed and manipulated one by one
+        because the attribute value is a modifiable dictionary.
+
+        Note that :term:`DSP0200` has deprecated the presence of qualifier
+        values on CIM instances.
+        """
+        return self._qualifiers
+
+    @qualifiers.setter
+    def qualifiers(self, qualifiers):
+        """Setter method; for a description see the getter method."""
+        self._qualifiers = qualifiers
+
+    @property
+    def path(self):
+        """
+        :class:`~pywbem.CIMInstanceName`: Instance path of the instance.
+
+        `None` means that the instance path is unspecified.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._path
+
+    @path.setter
+    def path(self, path):
+        """Setter method; for a description see the getter method."""
+        self._path = path
+
+    @property
+    def property_list(self):
+        """
+        :term:`py:list` of :term:`unicode string`: List of property names for
+        use as a filter by some operations on the instance. The property names
+        are in lower case.
+
+        `None` means that the properties are not filtered.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._property_list
+
+    @property_list.setter
+    def property_list(self, property_list):
+        """Setter method; for a description see the getter method."""
+        self._property_list = property_list
 
     def _cmp(self, other):
         """
@@ -1602,42 +1811,10 @@ class CIMInstance(_CIMComparisonMixin):
 
 class CIMClassName(_CIMComparisonMixin):
     """
-    A CIM class path.
+    A CIM class path (aka *CIM class name*).
 
-    A CIM class path references a CIM class in a namespace in a WBEM server.
-    Namespace and WBEM server may be unspecified.
-
-    Attributes:
-
-      classname (:term:`unicode string`):
-        Name of the referenced class.
-
-        This variable will never be `None`.
-
-      namespace (:term:`unicode string`):
-        Name of the CIM namespace containing the referenced class.
-
-        `None` means that the namespace is unspecified.
-
-      host (:term:`unicode string`):
-        Host and optionally port of the WBEM server containing the CIM
-        namespace of the referenced class, in the format:
-
-          ``host[:port]``
-
-        The host can be specified in any of the usual formats:
-
-          * a short or fully qualified DNS hostname
-          * a literal (= dotted) IPv4 address
-          * a literal IPv6 address, formatted as defined in :term:`RFC3986`
-            with the extensions for zone identifiers as defined in
-            :term:`RFC6874`, supporting ``-`` (minus) for the delimiter
-            before the zone ID string, as an additional choice to ``%25``.
-
-        If no port is specified, the default port depends on the context in
-        which the object is used.
-
-        `None` means that the WBEM server is unspecified.
+    A CIM class path references a CIM class in a CIM namespace in a WBEM
+    server. Namespace and WBEM server may be unspecified.
     """
 
     def __init__(self, classname, host=None, namespace=None):
@@ -1645,7 +1822,7 @@ class CIMClassName(_CIMComparisonMixin):
         Parameters:
 
           classname (:term:`string`):
-            Name of the referenced class.
+            Class name of the referenced class.
 
             Must not be `None`.
 
@@ -1653,15 +1830,29 @@ class CIMClassName(_CIMComparisonMixin):
             Host and optionally port of the WBEM server containing the CIM
             namespace of the referenced class.
 
-            For details about the string format, see the corresponding instance
-            variable.
+            The format of the string must be:
 
-            `None` means that the WBEM server is unspecified.
+            ``host[:port]``
+
+            The host can be specified in any of the usual formats:
+
+            * a short or fully qualified DNS hostname
+            * a literal (= dotted) IPv4 address
+            * a literal IPv6 address, formatted as defined in :term:`RFC3986`
+              with the extensions for zone identifiers as defined in
+              :term:`RFC6874`, supporting ``-`` (minus) for the delimiter
+              before the zone ID string, as an additional choice to ``%25``.
+
+            `None` means that the WBEM server is unspecified, and the
+            same-named attribute in the ``CIMClassName`` object will also be
+            `None`.
 
           namespace (:term:`string`):
             Name of the CIM namespace containing the referenced class.
 
-            `None` means that the namespace is unspecified.
+            `None` means that the namespace is unspecified, and the
+            same-named attribute in the ``CIMClassName`` object will also be
+            `None`.
         """
 
         # Make sure we process Unicode strings
@@ -1681,6 +1872,62 @@ class CIMClassName(_CIMComparisonMixin):
         self.classname = classname
         self.host = host
         self.namespace = namespace
+
+    @property
+    def classname(self):
+        """
+        :term:`unicode string`: Class name of the referenced class.
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._classname
+
+    @classname.setter
+    def classname(self, classname):
+        """Setter method; for a description see the getter method."""
+        self._classname = classname
+
+    @property
+    def namespace(self):
+        """
+        :term:`unicode string`: Name of the CIM namespace containing the
+        referenced class.
+
+        `None` means that the namespace is unspecified.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._namespace
+
+    @namespace.setter
+    def namespace(self, namespace):
+        """Setter method; for a description see the getter method."""
+        self._namespace = namespace
+
+    @property
+    def host(self):
+        """
+        :term:`unicode string`: Host and optionally port of the WBEM server
+        containing the CIM namespace of the referenced class.
+
+        For details about the string format, see the same-named constructor
+        parameter.
+
+        `None` means that the host and port are unspecified.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._host
+
+    @host.setter
+    def host(self, host):
+        """Setter method; for a description see the getter method."""
+        self._host = host
 
     def copy(self):
         """
@@ -1799,63 +2046,8 @@ class CIMClassName(_CIMComparisonMixin):
 
 class CIMClass(_CIMComparisonMixin):
     """
-    A CIM class, optionally including its class path.
-
-    Attributes:
-
-      classname (:term:`unicode string`):
-        Name of the class.
-
-        This variable will never be `None`.
-
-      superclass (:term:`unicode string`):
-        Name of the superclass of the class.
-
-        `None` means that the class is a top-level class.
-
-      properties (`NocaseDict`_):
-        Property declarations of the class.
-
-        Each dictionary item specifies one property declaration, with:
-
-        * key (:term:`string`): Property name
-        * value (:class:`~pywbem.CIMProperty`): Property declaration
-
-        This variable will never be `None`.
-
-      methods (`NocaseDict`_):
-        Method declarations of the class.
-
-        Each dictionary item specifies one method declaration, with:
-
-        * key (:term:`string`): Nethod name
-        * value (:class:`~pywbem.CIMMethod`): Method declaration
-
-        This variable will never be `None`.
-
-      qualifiers (`NocaseDict`_):
-        Qualifier values of the class.
-
-        Each dictionary item specifies one qualifier value, with:
-
-        * key (:term:`string`): Qualifier name
-        * value (:class:`~pywbem.CIMQualifier`): Qualifier value
-
-        This variable will never be `None`.
-
-      path (:class:`~pywbem.CIMClassName`):
-        Class path of the class.
-
-        `None` means that the class path is unspecified.
-
-        This attribute has been added in pywbem v0.11.0 as a convenience for
-        the user in order so that :class:`~pywbem.CIMClass` objects can be
-        self-contained w.r.t. their class path. This attribute will be set in
-        in any :class:`~pywbem.CIMClass` objects returned by
-        :class:`~pywbem.WBEMConnection` methods.
-
-        This attribute is set in the pywbem client, based on information
-        in the standard response returned by the WBEM server.
+    A representation of a CIM class in a CIM namespace in a WBEM server,
+    optionally including its class path.
     """
 
     # pylint: disable=too-many-arguments
@@ -1865,43 +2057,84 @@ class CIMClass(_CIMComparisonMixin):
         Parameters:
 
           classname (:term:`string`):
-            Name for the class.
+            Class name of the class.
 
             Must not be `None`.
 
           properties (:class:`py:dict` or `NocaseDict`_):
-            Property declarations for the class.
+            Properties (declarations) for the class.
 
-            For details about the dictionary items, see the corresponding
-            attribute.
+            A shallow copy of the provided dictionary will be stored in the
+            ``CIMClass`` object.
 
-            `None` is interpreted as an empty dictionary.
+            Each dictionary item specifies one property, with:
+
+            * key (:term:`string`):
+              Property name. Lexical case is preserved. Must not be `None`.
+            * value (:class:`~pywbem.CIMProperty`):
+              Property declaration.
+              The `name` attribute of the provided object must be equal (case
+              insensitively) to the dictionary key, and the provided object
+              will be stored in the ``CIMClass`` object (no copy is made).
+
+            `None` is interpreted as an empty set of properties.
 
           methods (:class:`py:dict` or `NocaseDict`_):
             Method declarations for the class.
 
-            For details about the dictionary items, see the corresponding
-            attribute.
+            A shallow copy of the provided dictionary will be stored in the
+            ``CIMClass`` object.
 
-            `None` is interpreted as an empty dictionary.
+            Each dictionary item specifies one method (declaration), with:
+
+            * key (:term:`string`):
+              Method name. Lexical case is preserved. Must not be `None`.
+            * value (:class:`~pywbem.CIMMethod`):
+              Method declaration.
+              The `name` attribute of the provided object must be equal (case
+              insensitively) to the dictionary key, and the provided object
+              will be stored in the ``CIMClass`` object (no copy is made).
+
+            `None` is interpreted as an empty set of methods.
 
           superclass (:term:`string`):
             Name of the superclass for the class.
 
-            If `None`, the class will be a top-level class.
+            `None` means that the class is a top-level class, and the
+            same-named attribute in the ``CIMClass`` object will also be
+            `None`.
 
           qualifiers (:class:`py:dict` or `NocaseDict`_):
             Qualifier values for the class.
 
-            For details about the dictionary items, see the corresponding
-            attribute.
+            A shallow copy of the provided dictionary will be stored in the
+            ``CIMClass`` object.
 
-            If `None`, the class will have no qualifiers.
+            Each dictionary item specifies one qualifier value, with:
+
+            * key (:term:`string`):
+              Qualifier name. Lexical case is preserved. Must not be `None`.
+            * value (:class:`~pywbem.CIMQualifier`):
+              Qualifier value.
+              The `name` attribute of the provided object must be equal (case
+              insensitively) to the dictionary key, and the provided object
+              will be stored in the ``CIMClass`` object (no copy is made).
+
+            `None` is interpreted as an empty set of qualifiers.
 
           path (:class:`~pywbem.CIMClassName`):
             Class path for the class.
 
-            `None` means that the class path will be unspecified.
+            The provided object will be stored in the ``CIMClass`` object
+            (no copy is made).
+
+            `None` means that the instance path is unspecified, and the
+            same-named attribute in the ``CIMClass`` object will also be
+            `None`.
+
+            This parameter has been added in pywbem v0.11.0 as a convenience
+            for the user in order so that ``CIMClass`` objects can be
+            self-contained w.r.t. their class path.
         """
 
         self.classname = _ensure_unicode(classname)
@@ -1910,6 +2143,167 @@ class CIMClass(_CIMComparisonMixin):
         self.superclass = _ensure_unicode(superclass)
         self.qualifiers = NocaseDict(qualifiers)
         self.path = path
+
+    @property
+    def classname(self):
+        """
+        :term:`unicode string`: Class name of the CIM class.
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._classname
+
+    @classname.setter
+    def classname(self, classname):
+        """Setter method; for a description see the getter method."""
+        self._classname = classname
+
+    @property
+    def superclass(self):
+        """
+        :term:`unicode string`: Class name of the superclass of the CIM class.
+
+        `None` means that the class is a top-level class.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._superclass
+
+    @superclass.setter
+    def superclass(self, superclass):
+        """Setter method; for a description see the getter method."""
+        self._superclass = superclass
+
+    @property
+    def properties(self):
+        """
+        `NocaseDict`_: Properties (declarations) of the CIM class.
+
+        Each dictionary item specifies one property, with:
+
+        * key (:term:`unicode string`): Property name. Its lexical case was
+          preserved.
+        * value (:class:`~pywbem.CIMProperty`): Property declaration.
+
+        Will not be `None`.
+
+        This attribute is settable; setting it will cause the current CIM
+        properties to be replaced with the new properties. For details, see
+        the description of the same-named constructor parameter.
+
+        The CIM properties can also be accessed and manipulated one by one
+        because the attribute value is a modifiable dictionary::
+
+            cls = CIMClass(...)
+            p1 = CIMProperty('p1', ...)  # must be a CIMProperty
+
+            cls.properties['p1'] = p1  # Set "p1" to p1 (add if needed)
+            p1 = cls.properties['p1']  # Access "p1"
+            del cls.properties['p1']  # Delete "p1" from the class
+        """
+        return self._properties
+
+    @properties.setter
+    def properties(self, properties):
+        """Setter method; for a description see the getter method."""
+        self._properties = properties
+
+    @property
+    def methods(self):
+        """
+        `NocaseDict`_: Methods (declarations) of the CIM class.
+
+        Each dictionary item specifies one method, with:
+
+        * key (:term:`unicode string`): Method name. Its lexical case was
+          preserved.
+        * value (:class:`~pywbem.CIMMethod`): Method declaration.
+
+        Will not be `None`.
+
+        This attribute is settable; setting it will cause the current CIM
+        methods to be replaced with the new methods. For details, see
+        the description of the same-named constructor parameter.
+
+        The CIM methods can also be accessed and manipulated one by one
+        because the attribute value is a modifiable dictionary::
+
+            cls = CIMClass(...)
+            m1 = CIMMethod('m1', ...)  # must be a CIMMethod
+
+            cls.methods['m1'] = m1  # Set "m1" to m1 (add if needed)
+            m1 = cls.methods['m1']  # Access "m1"
+            del cls.methods['m1']  # Delete "m1" from the class
+        """
+        return self._methods
+
+    @methods.setter
+    def methods(self, methods):
+        """Setter method; for a description see the getter method."""
+        self._methods = methods
+
+    @property
+    def qualifiers(self):
+        """
+        `NocaseDict`_: Qualifiers (qualifier values) of the CIM class.
+
+        Each dictionary item specifies one qualifier, with:
+
+        * key (:term:`string`): Qualifier name. Its lexical case was
+          preserved.
+        * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
+
+        Will not be `None`.
+
+        This attribute is settable; setting it will cause the current
+        qualifiers to be replaced with the new qualifiers. For details, see
+        the description of the same-named constructor parameter.
+
+        The qualifier values can also be accessed and manipulated one by one
+        because the attribute value is a modifiable dictionary::
+
+            cls = CIMClass(...)
+            q1 = CIMQualifier('q1', ...)  # must be a CIMQualifier
+
+            cls.qualifiers['q1'] = q1  # Set "q1" to q1 (add if needed)
+            q1 = cls.qualifiers['q1']  # Access "q1"
+            del cls.qualifiers['q1']  # Delete "q1" from the class
+        """
+        return self._qualifiers
+
+    @qualifiers.setter
+    def qualifiers(self, qualifiers):
+        """Setter method; for a description see the getter method."""
+        self._qualifiers = qualifiers
+
+    @property
+    def path(self):
+        """
+        :class:`~pywbem.CIMClassName`: Class path of the CIM class.
+
+        `None` means that the class path is unspecified.
+
+        This attribute has been added in pywbem v0.11.0 as a convenience
+        for the user in order so that :class:`~pywbem.CIMClass` objects can
+        be self-contained w.r.t. their class path.
+
+        This attribute will be set in in any :class:`~pywbem.CIMClass`
+        objects returned by :class:`~pywbem.WBEMConnection` methods, based
+        on information in the response from the WBEM server.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._path
+
+    @path.setter
+    def path(self, path):
+        """Setter method; for a description see the getter method."""
+        self._path = path
 
     def _cmp(self, other):
         """
@@ -2062,7 +2456,7 @@ class CIMClass(_CIMComparisonMixin):
 # pylint: disable=too-many-statements,too-many-instance-attributes
 class CIMProperty(_CIMComparisonMixin):
     """
-    A CIM property.
+    A CIM property (value or declaration).
 
     This object can be used in a :class:`~pywbem.CIMInstance` object for
     representing a property value, or in a :class:`~pywbem.CIMClass` object
@@ -2087,97 +2481,6 @@ class CIMProperty(_CIMComparisonMixin):
     primitive CIM data type, and string type with embedded instance or embedded
     object. Reference types are not allowed in property arrays in CIM, as per
     :term:`DSP0004`.
-
-    Attributes:
-
-      name (:term:`unicode string`):
-        Name of the property.
-
-        This variable will never be `None`.
-
-      value (:term:`CIM data type`):
-        Value of the property (interpreted as actual value when
-        representing a property value, and as default value for property
-        declarations).
-
-        `None` means that the value is Null.
-
-        For CIM data types string and char16, this attribute will be a
-        :term:`unicode string`, even when specified as a :term:`byte string`
-        in the constructor.
-
-      type (:term:`unicode string`):
-        Name of the CIM data type of the property (e.g. ``"uint8"``).
-
-        This variable will never be `None`.
-
-      reference_class (:term:`unicode string`):
-        The name of the referenced class as declared in the class defining
-        the reference property.
-
-        `None`, for non-reference properties, or for reference properties
-        if it was not set.
-
-        Note that in CIM instances returned from a WBEM server, DSP0201
-        recommends this attribute not to be set. For CIM classes returned from
-        a WBEM server, DSP0201 requires this attribute to be set.
-
-      embedded_object (:term:`unicode string`):
-        A string value indicating the kind of embedded object represented
-        by the property value.
-
-        The following values are defined for this parameter:
-
-        * ``"instance"``: The property is declared with the
-          ``EmbeddedInstance`` qualifier, indicating that the property
-          value is an embedded instance of the class specified as the value
-          of the ``EmbeddedInstance`` qualifier.
-          The property value must be a :class:`~pywbem.CIMInstance` object,
-          or `None`.
-        * ``"object"``: The property is declared with the
-          ``EmbeddedObject`` qualifier, indicating that the property
-          value is an embedded object (instance or class) of which the
-          class name is not known.
-          The property value must be a :class:`~pywbem.CIMInstance` or
-          :class:`~pywbem.CIMClass` object, or `None`.
-        * `None`, for properties not representing embedded objects.
-
-      is_array (:class:`py:bool`):
-        A boolean indicating whether the property is an array (`True`) or a
-        scalar (`False`).
-
-        This variable will never be `None`.
-
-      array_size (:term:`integer`):
-        The size of the array property, for fixed-size arrays.
-
-        `None` means that the array property has variable size, or that it is
-        not an array.
-
-      class_origin (:term:`unicode string`):
-        The CIM class origin of the property (the name
-        of the most derived class that defines or overrides the property in
-        the class hierarchy of the class owning the property).
-
-        `None` means that class origin information is not available.
-
-      propagated (:class:`py:bool`):
-        If not `None`, indicates whether the property declaration has been
-        propagated from a superclass to this class, or the property value
-        has been propagated from the creation class to this instance (the
-        latter is not really used).
-
-        `None` means that propagation information is not available.
-
-      qualifiers (`NocaseDict`_):
-        Qualifier values for the property declaration.
-
-        Each dictionary item specifies one qualifier value, with:
-
-        * key (:term:`string`): Qualifier name
-        * value (:class:`~pywbem.CIMQualifier`): Qualifier value
-
-        This variable will never be `None`.
     """
 
     # pylint: disable=too-many-statements
@@ -2192,8 +2495,8 @@ class CIMProperty(_CIMComparisonMixin):
         The constructor infers optional parameters that are not specified (for
         example, it infers `type` from the Python type of `value` and other
         information). If the specified parameters are inconsistent, an
-        exception is raised. If an optional parameter is needed for some reason,
-        an exception is raised.
+        exception is raised. If an optional parameter is needed for some
+        reason, an exception is raised.
 
         Parameters:
 
@@ -2207,26 +2510,31 @@ class CIMProperty(_CIMComparisonMixin):
             representing a property value, and as default value for property
             declarations).
 
-            `None` means that the property is Null.
+            `None` means that the property is Null, and the same-named
+            attribute in the ``CIMProperty`` object will also be `None`.
 
           type (:term:`string`):
             Name of the CIM data type of the property (e.g. ``"uint8"``).
 
             `None` means that the parameter is unspecified, causing the
-            corresponding attribute to be inferred. An exception is
-            raised if it cannot be inferred.
+            same-named attribute in the ``CIMProperty`` object to be inferred.
+            An exception is raised if it cannot be inferred.
 
           class_origin (:term:`string`):
             The CIM class origin of the property (the name
             of the most derived class that defines or overrides the property in
             the class hierarchy of the class owning the property).
 
-            `None` means that class origin information is not available.
+            `None` means that class origin information is not available, and
+            the same-named attribute in the ``CIMProperty`` object will also be
+            `None`.
 
           array_size (:term:`integer`):
             The size of the array property, for fixed-size arrays.
 
-            `None` means that the array property has variable size.
+            `None` means that the array property has variable size, and
+            the same-named attribute in the ``CIMProperty`` object will also be
+            `None`.
 
           propagated (:class:`py:bool`):
             If not `None`, indicates whether the property declaration has been
@@ -2234,34 +2542,51 @@ class CIMProperty(_CIMComparisonMixin):
             has been propagated from the creation class to this instance (the
             latter is not really used).
 
-            `None` means that propagation information is not available.
+            `None` means that propagation information is not available, and
+            the same-named attribute in the ``CIMProperty`` object will also be
+            `None`.
 
           is_array (:class:`py:bool`):
             A boolean indicating whether the property is an array (`True`) or a
             scalar (`False`).
 
             `None` means that the parameter is unspecified, causing the
-            corresponding attribute to be inferred from the `value`
-            parameter, and if that is `None` it defaults to `False` (scalar).
+            same-named attribute in the ``CIMProperty`` object to be inferred
+            from the `value` parameter, and if that is `None` it defaults to
+            `False` (scalar).
 
           reference_class (:term:`string`):
-            The name of the referenced class as declared in the class defining
-            the reference property.
+            For reference properties, the name of the class referenced by the
+            property, as declared in the class defining the property (for both,
+            property declarations in CIM classes, and property values in CIM
+            instances).
 
-            `None` means that the parameter is unspecified, causing the
-            corresponding attribute to also be `None`.
+            `None` means that the referenced class is unspecified, and the
+            same-named attribute in the ``CIMProperty`` object will also be
+            `None`.
 
             Note: Prior to pywbem v0.11.0, the corresponding attribute was
             inferred from the creation class name of a referenced instance.
             This was incorrect and has been fixed in v0.11.0.
 
           qualifiers (:class:`py:dict` or `NocaseDict`_):
-            Qualifier values for the property declaration.
+            Qualifier values for the property declaration. Has no meaning for
+            property values.
 
-            For details about the dictionary items, see the corresponding
-            attribute.
+            A shallow copy of the provided dictionary will be stored in the
+            ``CIMProperty`` object.
 
-            `None` is interpreted as an empty dictionary.
+            Each dictionary item specifies one qualifier value, with:
+
+            * key (:term:`string`):
+              Qualifier name. Lexical case is preserved. Must not be `None`.
+            * value (:class:`~pywbem.CIMQualifier`):
+              Qualifier value.
+              The `name` attribute of the provided object must be equal (case
+              insensitively) to the dictionary key, and the provided object
+              will be stored in the ``CIMProperty`` object (no copy is made).
+
+            `None` is interpreted as an empty set of qualifiers.
 
           embedded_object (:term:`string`):
             A string value indicating the kind of embedded object represented
@@ -2270,9 +2595,9 @@ class CIMProperty(_CIMComparisonMixin):
             For details about the possible values, see the corresponding
             attribute.
 
-            In addition, `None` means that the value is unspecified, causing
-            the corresponding attribute to be inferred. An exception is
-            raised if it cannot be inferred.
+            `None` means that the value is unspecified, causing the same-named
+            attribute in the ``CIMProperty`` object to be inferred. An
+            exception is raised if it cannot be inferred.
 
         Examples:
 
@@ -2528,6 +2853,233 @@ class CIMProperty(_CIMComparisonMixin):
         self.reference_class = reference_class
         self.qualifiers = NocaseDict(qualifiers)
         self.embedded_object = embedded_object
+
+    @property
+    def name(self):
+        """
+        :term:`unicode string`: Name of the property.
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        """Setter method; for a description see the getter method."""
+        self._name = name
+
+    @property
+    def value(self):
+        """
+        :term:`CIM data type`: Value of the property (interpreted as actual
+        value when representing a property value, and as default value for
+        property declarations).
+
+        `None` means that the value is Null.
+
+        For CIM data types string and char16, this attribute will be a
+        :term:`unicode string`, even when specified as a :term:`byte string`
+        in the constructor.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        """Setter method; for a description see the getter method."""
+        self._value = value
+
+    @property
+    def type(self):
+        """
+        :term:`unicode string`: Name of the CIM data type of the property
+        (e.g. ``"uint8"``).
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._type
+
+    @type.setter
+    def type(self, type):
+        """Setter method; for a description see the getter method."""
+        self._type = type
+
+    @property
+    def reference_class(self):
+        """
+        :term:`unicode string`:
+
+        For reference properties, the name of the class referenced by the
+        property, as declared in the class defining the property (for both,
+        property declarations in CIM classes, and property values in CIM
+        instances).
+        `None` means that the referenced class is unspecified.
+
+        For non-reference properties, will be `None`.
+
+        Note that in CIM instances returned from a WBEM server, DSP0201
+        recommends this attribute not to be set. For CIM classes returned from
+        a WBEM server, DSP0201 requires this attribute to be set.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._reference_class
+
+    @reference_class.setter
+    def reference_class(self, reference_class):
+        """Setter method; for a description see the getter method."""
+        self._reference_class = reference_class
+
+    @property
+    def embedded_object(self):
+        """
+        :term:`unicode string`: A string value indicating the kind of embedded
+        object represented by the property value.
+
+        The following values are defined for this parameter:
+
+        * ``"instance"``: The property is declared with the
+          ``EmbeddedInstance`` qualifier, indicating that the property
+          value is an embedded instance of the class specified as the value
+          of the ``EmbeddedInstance`` qualifier.
+          The property value must be a :class:`~pywbem.CIMInstance` object,
+          or `None`.
+        * ``"object"``: The property is declared with the
+          ``EmbeddedObject`` qualifier, indicating that the property
+          value is an embedded object (instance or class) of which the
+          class name is not known.
+          The property value must be a :class:`~pywbem.CIMInstance` or
+          :class:`~pywbem.CIMClass` object, or `None`.
+        * `None`, for properties not representing embedded objects.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._embedded_object
+
+    @embedded_object.setter
+    def embedded_object(self, embedded_object):
+        """Setter method; for a description see the getter method."""
+        self._embedded_object = embedded_object
+
+    @property
+    def is_array(self):
+        """
+        :class:`py:bool`: A boolean indicating whether the property is an array
+        (`True`) or a scalar (`False`).
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._is_array
+
+    @is_array.setter
+    def is_array(self, is_array):
+        """Setter method; for a description see the getter method."""
+        self._is_array = is_array
+
+    @property
+    def array_size(self):
+        """
+        :term:`integer`: The size of the array property, for fixed-size arrays.
+
+        `None` means that the array property has variable size, or that it is
+        not an array.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._array_size
+
+    @array_size.setter
+    def array_size(self, array_size):
+        """Setter method; for a description see the getter method."""
+        self._array_size = array_size
+
+    @property
+    def class_origin(self):
+        """
+        :term:`unicode string`: The CIM class origin of the property (the name
+        of the most derived class that defines or overrides the property in
+        the class hierarchy of the class owning the property).
+
+        `None` means that class origin information is not available.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._class_origin
+
+    @class_origin.setter
+    def class_origin(self, class_origin):
+        """Setter method; for a description see the getter method."""
+        self._class_origin = class_origin
+
+    @property
+    def propagated(self):
+        """
+        :class:`py:bool`: If not `None`, indicates whether the property
+        declaration has been propagated from a superclass to this class, or the
+        property value has been propagated from the creation class to this
+        instance (the latter is not really used).
+
+        `None` means that propagation information is not available.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._propagated
+
+    @propagated.setter
+    def propagated(self, propagated):
+        """Setter method; for a description see the getter method."""
+        self._propagated = propagated
+
+    @property
+    def qualifiers(self):
+        """
+        `NocaseDict`_: Qualifiers (qualifier values) of the property
+        declaration.
+
+        Each dictionary item specifies one qualifier, with:
+
+        * key (:term:`string`): Qualifier name. Its lexical case was
+          preserved.
+        * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
+
+        Will not be `None`.
+
+        This attribute is settable; setting it will cause the current
+        qualifiers to be replaced with the new qualifiers. For details, see
+        the description of the same-named constructor parameter.
+
+        The qualifier values can also be accessed and manipulated one by one
+        because the attribute value is a modifiable dictionary::
+
+            prop = CIMProperty(...)
+            q1 = CIMQualifier('q1', ...)  # must be a CIMQualifier
+
+            prop.qualifiers['q1'] = q1  # Set "q1" to q1 (add if needed)
+            q1 = prop.qualifiers['q1']  # Access "q1"
+            del prop.qualifiers['q1']  # Delete "q1" from the class
+        """
+        return self._qualifiers
+
+    @qualifiers.setter
+    def qualifiers(self, qualifiers):
+        """Setter method; for a description see the getter method."""
+        self._qualifiers = qualifiers
 
     def copy(self):
         """
@@ -2799,53 +3351,7 @@ class CIMProperty(_CIMComparisonMixin):
 
 class CIMMethod(_CIMComparisonMixin):
     """
-    A method declaration in a CIM class.
-
-    Attributes:
-
-      name (:term:`unicode string`):
-        Name of the method.
-
-        This variable will never be `None`.
-
-      return_type (:term:`unicode string`):
-        Name of the CIM data type of the method return type (e.g. ``"uint32"``).
-
-        This variable will never be `None`. Note that void return types of
-        methods are not supported in CIM.
-
-      class_origin (:term:`unicode string`):
-        The CIM class origin of the method (the name
-        of the most derived class that defines or overrides the method in
-        the class hierarchy of the class owning the method).
-
-        `None` means that class origin information is not available.
-
-      propagated (:class:`py:bool`):
-        If not `None`, indicates whether the method has been propagated
-        from a superclass to this class.
-
-        `None` means that propagation information is not available.
-
-      parameters (`NocaseDict`_):
-        Parameter declarations for the method declaration.
-
-        Each dictionary item specifies one parameter declaration, with:
-
-        * key (:term:`string`): Parameter name
-        * value (:class:`~pywbem.CIMParameter`): Parameter declaration
-
-        This variable will never be `None`.
-
-      qualifiers (`NocaseDict`_):
-        Qualifier values for the method declaration.
-
-        Each dictionary item specifies one qualifier value, with:
-
-        * key (:term:`string`): Qualifier name
-        * value (:class:`~pywbem.CIMQualifier`): Qualifier value
-
-        This variable will never be `None`.
+    A method (declaration) in a CIM class.
     """
 
     # pylint: disable=too-many-arguments
@@ -2853,9 +3359,9 @@ class CIMMethod(_CIMComparisonMixin):
                  class_origin=None, propagated=False, qualifiers=None,
                  methodname=None):
         """
-        The constructor stores the input parameters as-is and does
-        not infer unspecified parameters from the others
-        (like :class:`~pywbem.CIMProperty` does).
+        The constructor stores the input parameters as-is and does not infer
+        unspecified parameters from the others (like
+        :class:`~pywbem.CIMProperty` does).
 
         Parameters:
 
@@ -2873,37 +3379,60 @@ class CIMMethod(_CIMComparisonMixin):
             Name of the CIM data type of the method return type
             (e.g. ``"uint32"``).
 
-            Must not be `None`
+            Must not be `None`.
 
           parameters (:class:`py:dict` or `NocaseDict`_):
-            Parameter declarations for the method declaration.
+            Parameter declarations for the method.
 
-            For details about the dictionary items, see the corresponding
-            attribute.
+            A shallow copy of the provided dictionary will be stored in the
+            ``CIMMethod`` object.
 
-            If `None`, the method will have no parameters, and the dictionary
-            will be empty.
+            Each dictionary item specifies one parameter declaration, with:
+
+            * key (:term:`string`):
+              Parameter name. Lexical case is preserved. Must not be `None`.
+            * value (:class:`~pywbem.CIMParameter`):
+              Parameter value.
+              The `name` attribute of the provided object must be equal (case
+              insensitively) to the dictionary key, and the provided object
+              will be stored in the ``CIMMethod`` object (no copy is made).
+
+            `None` is interpreted as an empty set of parameters.
 
           class_origin (:term:`string`):
             The CIM class origin of the method (the name
             of the most derived class that defines or overrides the method in
             the class hierarchy of the class owning the method).
 
-            `None` means that class origin information is not available.
+            `None` means that class origin information is not available, and
+            the same-named attribute in the ``CIMMethod`` object will also be
+            `None`.
 
           propagated (:class:`py:bool`):
             If not `None`, indicates whether the method has been propagated
             from a superclass to this class.
 
-            `None` means that propagation information is not available.
+            `None` means that propagation information is not available, and the
+            same-named attribute in the ``CIMMethod`` object will also be
+            `None`.
 
           qualifiers (:class:`py:dict` or `NocaseDict`_):
-            Qualifier values for the method declaration.
+            Qualifier values for the method.
 
-            For details about the dictionary items, see the corresponding
-            attribute.
+            A shallow copy of the provided dictionary will be stored in the
+            ``CIMMethod`` object.
 
-            `None` is interpreted as an empty dictionary.
+            Each dictionary item specifies one qualifier value, with:
+
+            * key (:term:`string`):
+              Qualifier name. Lexical case is preserved. Must not be `None`.
+            * value (:class:`~pywbem.CIMQualifier`):
+              Qualifier value.
+              The `name` attribute of the provided object must be equal (case
+              insensitively) to the dictionary key, and the provided object
+              will be stored in the ``CIMMethod`` object (no copy is made).
+
+            `None` is interpreted as an empty set of qualifiers.
         """
         if methodname is not None:
             warnings.warn("methodname is deprecated; use name instead",
@@ -2924,6 +3453,147 @@ class CIMMethod(_CIMComparisonMixin):
         # Check valid `return_type`
         if return_type is None:
             raise ValueError('return_type must not be None')
+
+    @property
+    def name(self):
+        """
+        :term:`unicode string`: Name of the method.
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        """Setter method; for a description see the getter method."""
+        self._name = name
+
+    @property
+    def return_type(self):
+        """
+        :term:`unicode string`: Name of the CIM data type of the method return
+        type (e.g. ``"uint32"``).
+
+        Will not be `None`. Note that void return types of
+        methods are not supported in CIM.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._return_type
+
+    @return_type.setter
+    def return_type(self, return_type):
+        """Setter method; for a description see the getter method."""
+        self._return_type = return_type
+
+    @property
+    def class_origin(self):
+        """
+        :term:`unicode string`: The CIM class origin of the method (the name
+        of the most derived class that defines or overrides the method in
+        the class hierarchy of the class owning the method).
+
+        `None` means that class origin information is not available.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._class_origin
+
+    @class_origin.setter
+    def class_origin(self, class_origin):
+        """Setter method; for a description see the getter method."""
+        self._class_origin = class_origin
+
+    @property
+    def propagated(self):
+        """
+        :class:`py:bool`: If not `None`, indicates whether the method has been
+        propagated from a superclass to this class.
+
+        `None` means that propagation information is not available.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._propagated
+
+    @propagated.setter
+    def propagated(self, propagated):
+        """Setter method; for a description see the getter method."""
+        self._propagated = propagated
+
+    @property
+    def parameters(self):
+        """
+        `NocaseDict`_: Parameters of the method.
+
+        Each dictionary item specifies one parameter, with:
+
+        * key (:term:`string`): Parameter name. Its lexical case was
+          preserved.
+        * value (:class:`~pywbem.CIMParameter`): Parameter declaration.
+
+        Will not be `None`.
+
+        This attribute is settable; setting it will cause the current
+        parameters to be replaced with the new parameters. For details, see
+        the description of the same-named constructor parameter.
+
+        The parameters can also be accessed and manipulated one by one
+        because the attribute value is a modifiable dictionary::
+
+            meth = CIMMethod(...)
+            p1 = CIMParameter('p1', ...)  # must be a CIMParameter
+
+            meth.parameters['p1'] = p1  # Set "p1" to p1 (add if needed)
+            p1 = meth.parameters['p1']  # Access "p1"
+            del meth.parameters['p1']  # Delete "p1" from the class
+        """
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, parameters):
+        """Setter method; for a description see the getter method."""
+        self._parameters = parameters
+
+    @property
+    def qualifiers(self):
+        """
+        `NocaseDict`_: Qualifiers (qualifier values) of the method.
+
+        Each dictionary item specifies one qualifier, with:
+
+        * key (:term:`string`): Qualifier name. Its lexical case was
+          preserved.
+        * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
+
+        Will not be `None`.
+
+        This attribute is settable; setting it will cause the current
+        qualifiers to be replaced with the new qualifiers. For details, see
+        the description of the same-named constructor parameter.
+
+        The qualifier values can also be accessed and manipulated one by one
+        because the attribute value is a modifiable dictionary::
+
+            meth = CIMMethod(...)
+            q1 = CIMQualifier('q1', ...)  # must be a CIMQualifier
+
+            meth.qualifiers['q1'] = q1  # Set "q1" to q1 (add if needed)
+            q1 = meth.qualifiers['q1']  # Access "q1"
+            del meth.qualifiers['q1']  # Delete "q1" from the class
+        """
+        return self._qualifiers
+
+    @qualifiers.setter
+    def qualifiers(self, qualifiers):
+        """Setter method; for a description see the getter method."""
+        self._qualifiers = qualifiers
 
     def _cmp(self, other):
         """
@@ -3058,51 +3728,7 @@ class CIMMethod(_CIMComparisonMixin):
 
 class CIMParameter(_CIMComparisonMixin):
     """
-    A CIM parameter for a method declaration.
-
-    Attributes:
-
-      name (:term:`unicode string`):
-        Name of the parameter.
-
-        This variable will never be `None`.
-
-      type (:term:`unicode string`):
-        Name of the CIM data type of the parameter (e.g. ``"uint8"``).
-
-        This variable will never be `None`.
-
-      reference_class (:term:`unicode string`):
-        The name of the referenced class, for reference parameters.
-
-        `None`, for non-reference parameters.
-
-      is_array (:class:`py:bool`):
-        A boolean indicating whether the parameter is an array (`True`) or a
-        scalar (`False`).
-
-        This variable will never be `None`.
-
-      array_size (:term:`integer`):
-        The size of the array parameter, for fixed-size arrays.
-
-        `None` means that the array parameter has variable size, or that it is
-        not an array.
-
-      qualifiers (`NocaseDict`_):
-        Qualifier values of the parameter declaration.
-
-        Each dictionary item specifies one qualifier value, with:
-
-        * key (:term:`string`): Qualifier name
-        * value (:class:`~pywbem.CIMQualifier`): Qualifier value
-
-        This variable will never be `None`.
-
-      value:
-        Deprecated: Because the object represents a parameter declaration,
-        this attribute does not make any sense. Accessing it will issue
-        a :term:`DeprecationWarning`.
+    A CIM parameter in a method (declaration).
     """
 
     # pylint: disable=too-many-arguments
@@ -3127,28 +3753,45 @@ class CIMParameter(_CIMComparisonMixin):
             Must not be `None`.
 
           reference_class (:term:`string`):
-            Name of the referenced class, for reference parameters.
+            For reference parameters, the name of the class referenced by the
+            parameter, as declared in the class defining the method.
 
-            `None` is stored as-is.
+            `None` means that the referenced class is unspecified, and the
+            same-named attribute in the ``CIMParameter`` object will also be
+            `None`.
 
           is_array (:class:`py:bool`):
             A boolean indicating whether the parameter is an array (`True`) or a
             scalar (`False`).
 
-            `None` is stored as-is.
+            `None` means that it is unspecified whether the parameter is an
+            array, and the same-named attribute in the ``CIMParameter`` object
+            will also be `None`.
 
           array_size (:term:`integer`):
             The size of the array parameter, for fixed-size arrays.
 
-            `None` means that the array parameter has variable size.
+            `None` means that the array parameter has variable size, and the
+            same-named attribute in the ``CIMParameter`` object will also be
+            `None`.
 
           qualifiers (:class:`py:dict` or `NocaseDict`_):
-            Qualifier values of the parameter declaration.
+            Qualifier values for the parameter.
 
-            For details about the dictionary items, see the corresponding
-            attribute.
+            A shallow copy of the provided dictionary will be stored in the
+            ``CIMParameter`` object.
 
-            `None` is interpreted as an empty dictionary.
+            Each dictionary item specifies one qualifier value, with:
+
+            * key (:term:`string`):
+              Qualifier name. Lexical case is preserved. Must not be `None`.
+            * value (:class:`~pywbem.CIMQualifier`):
+              Qualifier value.
+              The `name` attribute of the provided object must be equal (case
+              insensitively) to the dictionary key, and the provided object
+              will be stored in the ``CIMParameter`` object (no copy is made).
+
+            `None` is interpreted as an empty set of qualifiers.
 
           value:
             Deprecated: Because the object represents a parameter declaration,
@@ -3171,8 +3814,139 @@ class CIMParameter(_CIMComparisonMixin):
         self._value = value
 
     @property
+    def name(self):
+        """
+        :term:`unicode string`: Name of the parameter.
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        """Setter method; for a description see the getter method."""
+        self._name = name
+
+    @property
+    def type(self):
+        """
+        :term:`unicode string`: Name of the CIM data type of the parameter
+        (e.g. ``"uint8"``).
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._type
+
+    @type.setter
+    def type(self, type):
+        """Setter method; for a description see the getter method."""
+        self._type = type
+
+    @property
+    def reference_class(self):
+        """
+        :term:`unicode string`:
+
+        For reference parameters, the name of the class referenced by the
+        parameter, as declared in the class defining the parameter.
+        `None` means that the referenced class is unspecified.
+
+        For non-reference parameters, will be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._reference_class
+
+    @reference_class.setter
+    def reference_class(self, reference_class):
+        """Setter method; for a description see the getter method."""
+        self._reference_class = reference_class
+
+    @property
+    def is_array(self):
+        """
+        :class:`py:bool`: A boolean indicating whether the parameter is an array
+        (`True`) or a scalar (`False`).
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._is_array
+
+    @is_array.setter
+    def is_array(self, is_array):
+        """Setter method; for a description see the getter method."""
+        self._is_array = is_array
+
+    @property
+    def array_size(self):
+        """
+        :term:`integer`: The size of the array parameter, for fixed-size
+        arrays.
+
+        `None` means that the array parameter has variable size, or that it is
+        not an array.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._array_size
+
+    @array_size.setter
+    def array_size(self, array_size):
+        """Setter method; for a description see the getter method."""
+        self._array_size = array_size
+
+    @property
+    def qualifiers(self):
+        """
+        `NocaseDict`_: Qualifiers (qualifier values) of the parameter.
+
+        Each dictionary item specifies one qualifier, with:
+
+        * key (:term:`string`): Qualifier name. Its lexical case was
+          preserved.
+        * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
+
+        Will not be `None`.
+
+        This attribute is settable; setting it will cause the current
+        qualifiers to be replaced with the new qualifiers. For details, see
+        the description of the same-named constructor parameter.
+
+        The qualifier values can also be accessed and manipulated one by one
+        because the attribute value is a modifiable dictionary::
+
+            parm = CIMParameter(...)
+            q1 = CIMQualifier('q1', ...)  # must be a CIMQualifier
+
+            parm.qualifiers['q1'] = q1  # Set "q1" to q1 (add if needed)
+            q1 = parm.qualifiers['q1']  # Access "q1"
+            del parm.qualifiers['q1']  # Delete "q1" from the class
+        """
+        return self._qualifiers
+
+    @qualifiers.setter
+    def qualifiers(self, qualifiers):
+        """Setter method; for a description see the getter method."""
+        self._qualifiers = qualifiers
+
+    @property
     def value(self):
-        """Return `value` attribute (Deprecated)."""
+        """
+        Deprecated: Because the object represents a parameter declaration,
+        this attribute does not make any sense. Accessing it will issue
+        a :term:`DeprecationWarning`.
+        """
         warnings.warn(
             "The value attribute of CIMParameter is deprecated",
             DeprecationWarning)
@@ -3180,7 +3954,7 @@ class CIMParameter(_CIMComparisonMixin):
 
     @value.setter
     def value(self, value):
-        """Set `value` attribute (Deprecated)."""
+        """Setter method; for a description see the getter method."""
         warnings.warn(
             "The value attribute of CIMParameter is deprecated",
             DeprecationWarning)
@@ -3400,78 +4174,6 @@ class CIMQualifier(_CIMComparisonMixin):
     been deprecated in :term:`DSP0004`. The implicitly defined qualifier type is
     conceptual and is not materialized as a
     :class:`~pywbem.CIMQualifierDeclaration` object.
-
-    Attributes:
-
-      name (:term:`unicode string`):
-        Name of the qualifier.
-
-        This variable will never be `None`.
-
-      value (:term:`CIM data type`):
-        Value of the qualifier.
-
-        `None` means that the value is Null.
-
-        For CIM data types string and char16, this attribute will be a
-        :term:`unicode string`, even when specified as a :term:`byte string`
-        in the constructor.
-
-      type (:term:`unicode string`):
-        Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
-
-        This variable will never be `None`.
-
-      propagated (:class:`py:bool`):
-        Indicates whether the qualifier value has been propagated from a
-        superclass to this class.
-
-        `None` means that this information is not available.
-
-      tosubclass (:class:`py:bool`):
-        If not `None`, causes an implicit qualifier type to be defined for this
-        qualifier that has the specified flavor.
-
-        If `True`, specifies the ToSubclass flavor (the qualifier value
-        propagates to subclasses); if `False` specifies the Restricted flavor
-        (the qualifier values does not propagate to subclasses).
-
-        `None` means that this information is not available.
-
-      toinstance (:class:`py:bool`):
-        If not `None`, causes an implicit qualifier type to be defined for this
-        qualifier that has the specified flavor.
-
-        If `True` specifies the ToInstance flavor(the qualifier value
-        propagates to instances. If `False`, specifies that qualifier values
-        do not propagate to instances. There is no flavor corresponding to
-        `toinstance=False`.
-
-        `None` means that this information is not available.
-
-        Note that :term:`DSP0200` has deprecated the presence of qualifier
-        values on CIM instances.
-
-      overridable (:class:`py:bool`):
-        If not `None`, causes an implicit qualifier type to be defined for this
-        qualifier that has the specified flavor.
-
-        If `True`, specifies the  EnableOverride flavor(the qualifier value is
-        overridable in subclasses); if `False` specifies the DisableOverride
-        flavor(the qualifier value is not overridable in subclasses).
-
-        `None` means that this information is not available.
-
-      translatable (:class:`py:bool`):
-        If not `None`, causes an implicit qualifier type to be defined for this
-        qualifier that has the specified flavor.
-
-        If `True`, specifies the Translatable flavor (the qualifier is
-        translatable); if `False` specifies that the qualfier is
-        not translatable. There is no flavor corresponding to
-        translatable=False.
-
-        `None` means that this information is not available.
     """
 
     # pylint: disable=too-many-arguments
@@ -3496,38 +4198,47 @@ class CIMQualifier(_CIMComparisonMixin):
           value (:term:`CIM data type`):
             Value of the qualifier.
 
-            `None` means that the qualifier is Null.
+            `None` means that the qualifier is Null, and the same-named
+            attribute in the ``CIMQualifier`` object will also be `None`.
 
           type (:term:`string`):
             Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
 
             `None` means that the parameter is unspecified, causing the
-            corresponding attribute to be inferred. An exception is
-            raised if it cannot be inferred.
+            same-named attribute in the ``CIMQualifier`` object to be inferred.
+            An exception is raised if it cannot be inferred.
 
           propagated (:class:`py:bool`):
             If not `None`, specifies whether the qualifier value has been
             propagated from a superclass to this class.
 
-            `None` means that this information is not available.
+            `None` means that this information is not available, and the
+            same-named attribute in the ``CIMQualifier`` object will also be
+            `None`.
 
           overridable (:class:`py:bool`):
             If not `None`, specifies whether the qualifier value is overridable
             in subclasses.
 
-            `None` means that this information is not available.
+            `None` means that this information is not available, and the
+            same-named attribute in the ``CIMQualifier`` object will also be
+            `None`.
 
           tosubclass (:class:`py:bool`):
             If not `None`, specifies whether the qualifier value propagates
             to subclasses.
 
-            `None` means that this information is not available.
+            `None` means that this information is not available, and the
+            same-named attribute in the ``CIMQualifier`` object will also be
+            `None`.
 
           toinstance (:class:`py:bool`):
             If not `None`, specifies whether the qualifier value propagates
             to instances.
 
-            `None` means that this information is not available.
+            `None` means that this information is not available, and the
+            same-named attribute in the ``CIMQualifier`` object will also be
+            `None`.
 
             Note that :term:`DSP0200` has deprecated the presence of qualifier
             values on CIM instances.
@@ -3535,7 +4246,9 @@ class CIMQualifier(_CIMComparisonMixin):
           translatable (:class:`py:bool`):
             If not `None`, specifies whether the qualifier is translatable.
 
-            `None` means that this information is not available.
+            `None` means that this information is not available, and the
+            same-named attribute in the ``CIMQualifier`` object will also be
+            `None`.
         """
 
         type_ = type  # Minimize usage of the builtin 'type'
@@ -3587,6 +4300,173 @@ class CIMQualifier(_CIMComparisonMixin):
                 "CIM data type, but is %s" % builtin_type(value))
 
         self.value = value
+
+    @property
+    def name(self):
+        """
+        :term:`unicode string`: Name of the qualifier.
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        """Setter method; for a description see the getter method."""
+        self._name = name
+
+    @property
+    def value(self):
+        """
+        :term:`CIM data type`: Value of the qualifier.
+
+        `None` means that the value is Null.
+
+        For CIM data types string and char16, this attribute will be a
+        :term:`unicode string`, even when specified as a :term:`byte string`
+        in the constructor.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        """Setter method; for a description see the getter method."""
+        self._value = value
+
+    @property
+    def type(self):
+        """
+        :term:`unicode string`: Name of the CIM data type of the qualifier
+        (e.g. ``"uint8"``).
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._type
+
+    @type.setter
+    def type(self, type):
+        """Setter method; for a description see the getter method."""
+        self._type = type
+
+    @property
+    def propagated(self):
+        """
+        :class:`py:bool`: Indicates whether the qualifier value has been
+        propagated from a superclass to this class.
+
+        `None` means that propagation information is not available.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._propagated
+
+    @propagated.setter
+    def propagated(self, propagated):
+        """Setter method; for a description see the getter method."""
+        self._propagated = propagated
+
+    @property
+    def tosubclass(self):
+        """
+        :class:`py:bool`: If not `None`, causes an implicit qualifier type to
+        be defined for this qualifier that has the specified flavor.
+
+        If `True`, specifies the ToSubclass flavor (the qualifier value
+        propagates to subclasses); if `False` specifies the Restricted flavor
+        (the qualifier values does not propagate to subclasses).
+
+        `None` means that this information is not available.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._tosubclass
+
+    @tosubclass.setter
+    def tosubclass(self, tosubclass):
+        """Setter method; for a description see the getter method."""
+        self._tosubclass = tosubclass
+
+    @property
+    def toinstance(self):
+        """
+        :class:`py:bool`: If not `None`, causes an implicit qualifier type to
+        be defined for this qualifier that has the specified flavor.
+
+        If `True` specifies the ToInstance flavor(the qualifier value
+        propagates to instances. If `False`, specifies that qualifier values
+        do not propagate to instances. There is no flavor corresponding to
+        `toinstance=False`.
+
+        `None` means that this information is not available.
+
+        Note that :term:`DSP0200` has deprecated the presence of qualifier
+        values on CIM instances.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._toinstance
+
+    @toinstance.setter
+    def toinstance(self, toinstance):
+        """Setter method; for a description see the getter method."""
+        self._toinstance = toinstance
+
+    @property
+    def overridable(self):
+        """
+        :class:`py:bool`: If not `None`, causes an implicit qualifier type to
+        be defined for this qualifier that has the specified flavor.
+
+        If `True`, specifies the  EnableOverride flavor(the qualifier value is
+        overridable in subclasses); if `False` specifies the DisableOverride
+        flavor(the qualifier value is not overridable in subclasses).
+
+        `None` means that this information is not available.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._overridable
+
+    @overridable.setter
+    def overridable(self, overridable):
+        """Setter method; for a description see the getter method."""
+        self._overridable = overridable
+
+    @property
+    def translatable(self):
+        """
+        :class:`py:bool`: If not `None`, causes an implicit qualifier type to
+        be defined for this qualifier that has the specified flavor.
+
+        If `True`, specifies the Translatable flavor (the qualifier is
+        translatable); if `False` specifies that the qualfier is
+        not translatable. There is no flavor corresponding to
+        translatable=False.
+
+        `None` means that this information is not available.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._translatable
+
+    @translatable.setter
+    def translatable(self, translatable):
+        """Setter method; for a description see the getter method."""
+        self._translatable = translatable
 
     def _cmp(self, other):
         """
@@ -3747,7 +4627,6 @@ class CIMQualifier(_CIMComparisonMixin):
 # pylint: disable=too-many-instance-attributes
 class CIMQualifierDeclaration(_CIMComparisonMixin):
     """
-
     A CIM qualifier type is the declaration of a qualifier and defines the
     attributes of qualifier name, qualifier type, value, scopes, and flavors
     for the qualifier.
@@ -3784,89 +4663,6 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     The pywbem MOF compiler supplies all of the flavor values so that
     those which were not specified in the MOF are set to the DMTF defined
     default values.
-
-
-    Attributes:
-
-      name (:term:`unicode string`):
-        Name of the qualifier.
-
-        This variable will never be `None`.
-
-      type (:term:`unicode string`):
-        Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
-
-        This variable will never be `None`.
-
-      value (:term:`CIM data type`):
-        Default value of the qualifier.
-
-        `None` means that the value is Null.
-
-        For CIM data types string and char16, this attribute will be a
-        :term:`unicode string`, even when specified as a :term:`byte string`
-        in the constructor.
-
-      is_array (:class:`py:bool`):
-        A boolean indicating whether the qualifier is an array (`True`) or a
-        scalar (`False`).
-
-        This variable will never be `None`.
-
-      array_size (:term:`integer`):
-        The size of the array qualifier, for fixed-size arrays.
-
-        `None` means that the array qualifier has variable size, or that it is
-        not an array.
-
-      scopes (`NocaseDict`_):
-        Scopes of the qualifier.
-
-        Each dictionary item specifies one scope value, with:
-
-        * key (:term:`string`): Scope name, in upper case.
-        * value (:class:`py:bool`): Scope value, specifying whether the
-          qualifier has that scope (i.e. can be applied to a CIM element of
-          that kind).
-
-        Valid scope names are "CLASS", "ASSOCIATION", "REFERENCE",
-        "PROPERTY", "METHOD", "PARAMETER", "INDICATION", and "ANY".
-        `None` is interpreted as an empty dictionary.
-
-        This variable will never be `None`.
-
-      tosubclass (:class:`py:bool`):
-        If `True` specifies the ToSubclass flavor(the qualifier value
-        propagates to subclasses); if `False` specifies the Restricted
-        flavor(the qualifier value does not propagate to subclasses).
-
-        `None` means that this information is not available.
-
-      toinstance (:class:`py:bool`):
-        If `True`, specifies the ToInstance flavor. This flavor specifies
-        that the qualifier value propagates to instances. If `False`,
-        specifies that qualifier values do not propagate to instances.
-        There is no flavor corresponding to `toinstance=False`.
-
-        `None` means that this information is not available.
-
-        Note that :term:`DSP0200` has deprecated the presence of qualifier
-        values on CIM instances.
-
-      overridable (:class:`py:bool`):
-        If `True`, specifies the  EnableOverride flavor(the qualifier value is
-        overridable in subclasses); if `False` specifies the DisableOverride
-        flavor(the qualifier value is not overridable in subclasses).
-
-        `None` means that this information is not available.
-
-      translatable (:class:`py:bool`):
-        If `True`, specifies the  Translatable flavor. This flavor specifies
-        that the qualifier is translatable. If `False`, specifies that the
-        qualfier is not translatable. There is no flavor corresponding to
-        `translatable=False`.
-
-        `None` means that this information is not available.
     """
 
     # TODO: 8/16 ks Consider removing toinstance completely from object since
@@ -3894,7 +4690,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
           value (:term:`CIM data type`):
             Default value of the qualifier.
 
-            `None` means a default value of Null.
+            `None` means a default value of Null, and the same-named attribute
+            in the ``CIMQualifierDeclaration`` object will also be `None`.
 
           is_array (:class:`py:bool`):
             A boolean indicating whether the qualifier is an array (`True`) or
@@ -3905,10 +4702,28 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
           array_size (:term:`integer`):
             The size of the array qualifier, for fixed-size arrays.
 
-            `None` means that the array qualifier has variable size.
+            `None` means that the array qualifier has variable size, and the
+            same-named attribute in the ``CIMQualifierDeclaration`` object will
+            also be `None`.
 
           scopes (:class:`py:dict` or `NocaseDict`_):
             Scopes of the qualifier.
+
+            A shallow copy of the provided dictionary will be stored in the
+            ``CIMQualifierDeclaration`` object.
+
+            Each dictionary item specifies one scope value, with:
+
+            * key (:term:`string`): Scope name, in upper case. Must not be
+              `None`.
+            * value (:class:`py:bool`): Scope value, specifying whether the
+              qualifier has that scope (i.e. can be applied to a CIM element of
+              that kind).
+
+            Valid scope names are "CLASS", "ASSOCIATION", "REFERENCE",
+            "PROPERTY", "METHOD", "PARAMETER", "INDICATION", and "ANY".
+
+            `None` is interpreted as an empty set of scopes.
 
             For details about the dictionary items, see the corresponding
             attribute.
@@ -3917,19 +4732,25 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             If not `None`, defines the flavor that defines whether the
             qualifier value is overridable in subclasses.
 
-            `None` means that this information is not available.
+            `None` means that this information is not available, and the
+            same-named attribute in the ``CIMQualifierDeclaration`` object will
+            also be `None`.
 
           tosubclass (:class:`py:bool`):
             If not `None`, specifies the flavor that defines whether the
             qualifier value propagates to subclasses.
 
-            `None` means that this information is not available.
+            `None` means that this information is not available, and the
+            same-named attribute in the ``CIMQualifierDeclaration`` object will
+            also be `None`.
 
           toinstance (:class:`py:bool`):
             If not `None`, specifies the flavor that defines whether the
             qualifier value propagates to instances.
 
-            `None` means that this information is not available.
+            `None` means that this information is not available, and the
+            same-named attribute in the ``CIMQualifierDeclaration`` object will
+            also be `None`.
 
             Note that :term:`DSP0200` has deprecated the presence of qualifier
             values on CIM instances and this flavor is not defined in
@@ -3939,7 +4760,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             If not `None`, specifies  the flavor that defines whether the
             qualifier is translatable.
 
-            `None` means that this information is not available.
+            `None` means that this information is not available, and the
+            same-named attribute in the ``CIMQualifierDeclaration`` object will
+            also be `None`.
         """
 
         type_ = type  # Minimize usage of the builtin 'type'
@@ -3965,6 +4788,209 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         elif is_array and value is not None and not isinstance(value, list):
             raise ValueError('QualifierDeclaration is_array is True but '
                              'value is scalar')
+
+    @property
+    def name(self):
+        """
+        :term:`unicode string`: Name of the qualifier.
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        """Setter method; for a description see the getter method."""
+        self._name = name
+
+    @property
+    def type(self):
+        """
+        :term:`unicode string`: Name of the CIM data type of the qualifier
+        (e.g. ``"uint8"``).
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._type
+
+    @type.setter
+    def type(self, type):
+        """Setter method; for a description see the getter method."""
+        self._type = type
+
+    @property
+    def value(self):
+        """
+        :term:`CIM data type`: Default value of the qualifier.
+
+        `None` means that the value is Null.
+
+        For CIM data types string and char16, this attribute will be a
+        :term:`unicode string`, even when specified as a :term:`byte string`
+        in the constructor.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        """Setter method; for a description see the getter method."""
+        self._value = value
+
+    @property
+    def is_array(self):
+        """
+        :class:`py:bool`: A boolean indicating whether the qualifier is an
+        array (`True`) or a scalar (`False`).
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._is_array
+
+    @is_array.setter
+    def is_array(self, is_array):
+        """Setter method; for a description see the getter method."""
+        self._is_array = is_array
+
+    @property
+    def array_size(self):
+        """
+        :term:`integer`: The size of the array qualifier, for fixed-size
+        arrays.
+
+        `None` means that the array qualifier has variable size, or that it is
+        not an array.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._array_size
+
+    @array_size.setter
+    def array_size(self, array_size):
+        """Setter method; for a description see the getter method."""
+        self._array_size = array_size
+
+    @property
+    def scopes(self):
+        """
+        `NocaseDict`_: Scopes of the qualifier.
+
+        Each dictionary item specifies one scope value, with:
+
+        * key (:term:`string`): Scope name, in upper case.
+        * value (:class:`py:bool`): Scope value, specifying whether the
+          qualifier has that scope (i.e. can be applied to a CIM element of
+          that kind).
+
+        Valid scope names are "CLASS", "ASSOCIATION", "REFERENCE",
+        "PROPERTY", "METHOD", "PARAMETER", "INDICATION", and "ANY".
+
+        Will not be `None`.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._scopes
+
+    @scopes.setter
+    def scopes(self, scopes):
+        """Setter method; for a description see the getter method."""
+        self._scopes = scopes
+
+    @property
+    def tosubclass(self):
+        """
+        :class:`py:bool`: If `True` specifies the ToSubclass flavor(the
+        qualifier value propagates to subclasses); if `False` specifies the
+        Restricted flavor(the qualifier value does not propagate to
+        subclasses).
+
+        `None` means that this information is not available.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._tosubclass
+
+    @tosubclass.setter
+    def tosubclass(self, tosubclass):
+        """Setter method; for a description see the getter method."""
+        self._tosubclass = tosubclass
+
+    @property
+    def toinstance(self):
+        """
+        :class:`py:bool`: If `True`, specifies the ToInstance flavor. This
+        flavor specifies that the qualifier value propagates to instances. If
+        `False`, specifies that qualifier values do not propagate to instances.
+        There is no flavor corresponding to `toinstance=False`.
+
+        `None` means that this information is not available.
+
+        Note that :term:`DSP0200` has deprecated the presence of qualifier
+        values on CIM instances.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._toinstance
+
+    @toinstance.setter
+    def toinstance(self, toinstance):
+        """Setter method; for a description see the getter method."""
+        self._toinstance = toinstance
+
+    @property
+    def overridable(self):
+        """
+        :class:`py:bool`: If `True`, specifies the  EnableOverride flavor (the
+        qualifier value is overridable in subclasses); if `False` specifies the
+        DisableOverride flavor (the qualifier value is not overridable in
+        subclasses).
+
+        `None` means that this information is not available.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._overridable
+
+    @overridable.setter
+    def overridable(self, overridable):
+        """Setter method; for a description see the getter method."""
+        self._overridable = overridable
+
+    @property
+    def translatable(self):
+        """
+        :class:`py:bool`: If `True`, specifies the Translatable flavor. This
+        flavor specifies that the qualifier is translatable. If `False`,
+        specifies that the qualfier is not translatable. There is no flavor
+        corresponding to `translatable=False`.
+
+        `None` means that this information is not available.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._translatable
+
+    @translatable.setter
+    def translatable(self, translatable):
+        """Setter method; for a description see the getter method."""
+        self._translatable = translatable
 
     def _cmp(self, other):
         """

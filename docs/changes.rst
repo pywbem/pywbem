@@ -26,6 +26,10 @@ Incompatible changes
 Enhancements
 ^^^^^^^^^^^^
 
+* Changed public attributes to properties with getter and setter in all CIM
+  object classes (e.g. `CIMInstance`). This solves the Sphinx warnigs about
+  duplicate 'host' attribute when building the documentation (issue #761).
+
 * Docs: Editorial improvements in the documentation (links, typos, formatting).
 
 * Docs: Clarifications and small fixes in the documentation of the
@@ -39,6 +43,10 @@ Build, test, quality
 
 Documentation
 ^^^^^^^^^^^^^
+
+* Docs: Many clarifications for CIM objects, e.g. about case preservation of
+  CIM element names, or making copies of input parameters vs. storing the
+  provided object.
 
 
 pywbem v0.11.0
