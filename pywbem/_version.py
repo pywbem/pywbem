@@ -31,4 +31,4 @@ Version of the pywbem package.
 #: * "M.N.U.rcX": Release candidate X of future M.N.U release (not released to
 #:   PyPI)
 #: * "M.N.U": The final M.N.U release
-__version__ = '0.11.0'
+__version__ = '0.12.0.dev0'

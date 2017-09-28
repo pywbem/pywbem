@@ -15,6 +15,27 @@ contains the `master` branch up to this commit:
    :revisions: 1
 
 
+pywbem v0.12.0.dev0
+-------------------
+
+Released: Not yet
+
+Incompatible changes
+^^^^^^^^^^^^^^^^^^^^
+
+Enhancements
+^^^^^^^^^^^^
+
+Bug fixes
+^^^^^^^^^
+
+Build, test, quality
+^^^^^^^^^^^^^^^^^^^^
+
+Documentation
+^^^^^^^^^^^^^
+
+
 pywbem v0.11.0
 --------------
 
