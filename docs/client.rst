@@ -265,6 +265,8 @@ such as debugging.
 
 .. autofunction:: pywbem.tocimobj
 
+.. autofunction:: pywbem.cimvalue
+
 .. _`CIM data types`:
 
 CIM data types

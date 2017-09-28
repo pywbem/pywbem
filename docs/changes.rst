@@ -23,11 +23,116 @@ Released: Not yet
 Incompatible changes
 ^^^^^^^^^^^^^^^^^^^^
 
+* The following initialization parameters of some CIM object classes that are
+  required not to be `None` (as per the documentation) are now enforced not to
+  be `None`, and `ValueError` is now raised when providing them as `None`:
+
+  - `CIMInstanceName.classname` (already raised `ValueError`)
+  - `CIMInstance.classname`
+  - `CIMClassName.classname` (previously raised `TypeError`)
+  - `CIMClass.classname`
+  - `CIMProperty.name` (already raised `ValueError`)
+  - `CIMMethod.name` (previously raised `TypeError`)
+  - `CIMParameter.name`
+  - `CIMParameter.type`
+  - `CIMQualifier.name`
+  - `CIMQualifierDeclaration.name`
+  - `CIMQualifierDeclaration.type`
+
+  Unless otherwise noted, the previous behavior was to tolerate `None`.
+
+  Note that in all cases, the requirement not to be `None` had previously been
+  documented.
+
+* When setting some attributes of CIM object classes that are required not to
+  be `None` (as per the documentation), `ValueError` is now raised when
+  attempting to set them to `None`:
+
+  - `CIMInstanceName.classname`
+  - `CIMInstance.classname`
+  - `CIMClassName.classname`
+  - `CIMClass.classname`
+  - `CIMProperty.name`
+  - `CIMMethod.name`
+  - `CIMParameter.name`
+  - `CIMParameter.type`
+  - `CIMQualifier.name`
+  - `CIMQualifierDeclaration.name`
+  - `CIMQualifierDeclaration.type`
+
+  The previous behavior was to tolerate `None`.
+
+  Note that in all cases, the requirement not to be `None` had previously been
+  documented.
+
+* When initializing objects of the CIM object classes `CIMProperty` and
+  `CIMQualifier` with a `type` parameter of `None`, and when initializing
+  the properties of `CIMInstance`, their CIM type is (and has previously been)
+  inferred from the value.
+
+  If inferring the type is not possible (for example because the value is a
+  Python integer, float, long (Python 2 only), or `None`), the exception that
+  is raised is now `ValueError`. Previously, `TypeError` was raised in that
+  case.
+
+* When setting the `type` attribute of the CIM object classes `CIMProperty` and
+  `CIMQualifier`, the type is now enforced not to be `None`, and `ValueError`
+  is raised when providing it as `None`.
+
+  Previously, setting a type of `None` was tolerated.
+
+  Note that in both cases, the requirement not to be `None` had previously been
+  documented.
+
+* For CIM elements passed as dictionaries into CIM object classes (i.e.
+  the aparameters/attributes `properties`, `keybindings`, `parameters`,
+  `qualifiers`), the consistency between the dictionary key and the name of the
+  CIM object that is the dictionary value is now checked and `ValueError` is
+  raised if it does not match (case insensitively).
+
+* Initializing a `CIMProperty` object as an embedded object or embedded
+  instance and with a value of `None` now requires specifying `type="string"`.
+
+  Previously (but only starting with pywbem v0.8.1), the type was inferred from
+  the `embedded_instance` parameter and thus could be omitted. This new
+  requirement for specifying `type` is not really intentional, but a by-product
+  of simplifying the implementation of `CIMProperty`. It was considered
+  acceptable because that should not be a common case (and has not been
+  supported before pywbem v0.8.1 anyway).
+
+Deprecations
+^^^^^^^^^^^^
+
+* For `CIMInstanceName`, specifying input keybindings as Python numeric types
+  (`int`, `float`) has been deprecated, and an according deprecation warning
+  will now be raised.
+
 Enhancements
 ^^^^^^^^^^^^
 
+* For `CIMInstanceName`, the values of keybindings can now be specified as
+  `CIMProperty` objects from which their value will be used (this is in
+  addition to specfying the values of keybindings as CIM data types).
+
+* Updating attributes of CIM objects (e.g. updating `CIMInstance.properties`)
+  now goes through the same conversions (e.g. binary string to unicode string)
+  as for the same-named constructor parameters. As a result, it is ensured
+  that all attributes that are strings (e.g. `name`) contain unicode strings,
+  all attributes that are booleans (e.g. `propagated`) contain bool values,
+  and all CIM values (e.g. `CIMProperty.value`) are of a :term:`CIM data type`.
+
+* Added static `from_wbem_uri()` methods to `CIMInstanceName` and
+  `CIMClassName`, that create a new object of these classes from a
+  WBEM URI string.
+
+* Added a `cimvalue()` function that converts input values specified
+  at the interface of CIM object classes, into the internally stored
+  CIM value. It is mainly used internally by the CIM object classes, but
+  has also been made available at the public API of pywbem.
+  Its functionality is very close to the existing `tocimobj()` function.
+
 * Changed public attributes to properties with getter and setter in all CIM
-  object classes (e.g. `CIMInstance`). This solves the Sphinx warnigs about
+  object classes (e.g. `CIMInstance`). This solves the Sphinx warnings about
   duplicate 'host' attribute when building the documentation (issue #761).
 
 * Docs: Editorial improvements in the documentation (links, typos, formatting).
