@@ -360,7 +360,7 @@ class install_os(BaseOsCommand):  # pylint: disable=invalid-name
         self.installer.install_system(
             self.distribution.install_os_requires, self.dry_run, self.verbose)
 
-        if len(self.installer.errors) > 0:
+        if self.installer.errors:
             self.installer.print_errors()
             raise DistutilsSetupError(
                 "Errors occurred (see previous messages)"
@@ -397,7 +397,7 @@ class develop_os(BaseOsCommand):  # pylint: disable=invalid-name
         self.installer.install_system(
             self.distribution.develop_os_requires, self.dry_run, self.verbose)
 
-        if len(self.installer.errors) > 0:
+        if self.installer.errors:
             self.installer.print_errors()
             raise DistutilsSetupError(
                 "Errors occurred (see previous messages)"
@@ -429,7 +429,7 @@ class develop(_develop):  # pylint: disable=invalid-name
         self.installer.install_reqlist(
             self.distribution.develop_requires, self.dry_run, self.verbose)
 
-        if len(self.installer.errors) > 0:
+        if self.installer.errors:
             self.installer.print_errors()
             raise DistutilsSetupError(
                 "Errors occurred (see previous messages)"
@@ -634,7 +634,7 @@ class BaseInstaller(object):
             if req_string is not None:
                 for req in req_string.split(','):
                     req = req.strip()
-                    if len(req) == 0:
+                    if not req:
                         continue  # ignore empty requirements
                     if req[0] not in "<=>!":
                         req = '==' + req  # add default operator
@@ -876,7 +876,7 @@ class PythonInstaller(BaseInstaller):
         lines = out.splitlines()
         version_lines = [line for line in lines
                          if line.startswith("Version:")]
-        if len(version_lines) == 0:
+        if not version_lines:
             raise DistutilsSetupError(
                 "Unexpected output from command '%s': No version line:\n%s" %
                 (cmd, out))
@@ -1263,7 +1263,7 @@ class YumInstaller(OSInstaller):
         if not self.installer_cmd:
             return (False, False, None)
         cmd = "%s list installed %s" % (self.installer_cmd, pkg_name)
-        rc, out, err = shell(cmd)
+        rc, out, err = shell(cmd)  # pylint: disable=unused-variable
         if rc != 0:
             return (False, False, None)
         info_words = out.splitlines()[-1].strip("\n").split()
@@ -1292,7 +1292,7 @@ class YumInstaller(OSInstaller):
         if not self.installer_cmd:
             return (False, False, None)
         cmd = "%s list %s" % (self.installer_cmd, pkg_name)
-        rc, out, err = shell(cmd)
+        rc, out, err = shell(cmd)  # pylint: disable=unused-variable
         if rc != 0:
             return (False, False, None)
         info_words = out.splitlines()[-1].strip("\n").split()
@@ -1350,7 +1350,7 @@ class AptInstaller(OSInstaller):
         if not self.installer_cmd:
             return (False, False, None)
         cmd = "dpkg -s %s" % pkg_name
-        rc, out, err = shell(cmd)
+        rc, out, err = shell(cmd)  # pylint: disable=unused-variable
         if rc != 0:
             return (False, False, None)
 
@@ -1457,7 +1457,7 @@ class ZypperInstaller(OSInstaller):
         if not self.installer_cmd:
             return (False, False, None)
         cmd = "%s info %s" % (self.installer_cmd, pkg_name)
-        rc, out, err = shell(cmd)
+        rc, out, err = shell(cmd)  # pylint: disable=unused-variable
         if rc != 0:
             return (False, False, None)
 
@@ -1491,7 +1491,7 @@ class ZypperInstaller(OSInstaller):
         # zypper always returns 0, and writes everything to stdout.
         lines = out.splitlines()
         version_lines = [line for line in lines if line.startswith("Version:")]
-        if len(version_lines) == 0:
+        if not version_lines:
             return (False, False, None)
 
         version_words = version_lines[0].split()

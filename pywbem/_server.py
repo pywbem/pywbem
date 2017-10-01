@@ -467,7 +467,7 @@ class WBEMServer(object):
             ObjectName=profile_path,
             AssocClass="CIM_ElementConformsToProfile",
             ResultRole="ManagedElement")
-        if len(ci_paths) > 0:
+        if ci_paths:
             return ci_paths
 
         # Try scoping methodology
@@ -484,7 +484,7 @@ class WBEMServer(object):
             ObjectName=profile_path,
             AssocClass="CIM_ReferencedProfile",
             ResultRole="Dependent")
-        if len(referencing_profile_paths) == 0:
+        if not referencing_profile_paths:
             raise ValueError("No referencing profile found")
         elif len(referencing_profile_paths) > 1:
             raise ValueError("More than one referencing profile found")
@@ -501,7 +501,7 @@ class WBEMServer(object):
         scoping_inst_paths = self.get_central_instances(
             referencing_profile_paths[0],
             upper_central_class, scoping_class, upper_scoping_path)
-        if len(scoping_inst_paths) == 0:
+        if not scoping_inst_paths:
             raise ValueError("No scoping instances found")
 
         # Go down one level on the resource side (using the last
@@ -513,7 +513,7 @@ class WBEMServer(object):
                 ObjectName=ip,
                 AssocClass=assoc_class,
                 ResultClass=central_class)
-            if len(ci_paths) == 0:
+            if not ci_paths:
                 # At least one central instance for each scoping instance
                 raise ValueError("No central instances found traversing down "
                                  "across %s to %s" %

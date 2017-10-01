@@ -625,7 +625,7 @@ class WBEMSubscriptionManager(object):
         # Verify referencing subscriptions.
         ref_paths = server.conn.ReferenceNames(
             dest_path, ResultClass=SUBSCRIPTION_CLASSNAME)
-        if len(ref_paths) > 0:
+        if ref_paths:
             # DSP1054 1.2 defines that this CIM error is raised by the server
             # in that case, so we simulate that behavior on the client side.
             raise CIMError(CIM_ERR_FAILED,
@@ -855,7 +855,7 @@ class WBEMSubscriptionManager(object):
         # Verify referencing subscriptions.
         ref_paths = server.conn.ReferenceNames(
             filter_path, ResultClass=SUBSCRIPTION_CLASSNAME)
-        if len(ref_paths) > 0:
+        if ref_paths:
             # DSP1054 1.2 defines that this CIM error is raised by the server
             # in that case, so we simulate that behavior on the client side.
             raise CIMError(CIM_ERR_FAILED,

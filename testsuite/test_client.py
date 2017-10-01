@@ -67,10 +67,7 @@ def str_tuple(tuple_):
 
     Returns str rep of tuple on None if tuple_ is None
     """
-    if tuple_ is None:
-        return 'NoneType'
-    else:
-        return '%s' % (tuple_,)
+    return 'NoneType' if tuple_ is None else '%s' % (tuple_,)
 
 
 class ClientTestError(Exception):
@@ -447,7 +444,7 @@ class ClientTest(unittest.TestCase):
             for tag, attr in sort_elements:
                 # elems is a list of elements with this tag name
                 elems = root.xpath("//*[local-name() = $tag]", tag=tag)
-                if len(elems) > 0:
+                if elems:
                     parent = elems[0].getparent()
                     first = None
                     after = None
@@ -788,7 +785,7 @@ class ClientTest(unittest.TestCase):
             # If result items are tuple, convert to lists. This is for
             # class ref and assoc results.
             if isinstance(result, list) and \
-                    len(result) > 0 and isinstance(result[0], tuple):
+                    result and isinstance(result[0], tuple):
                 _result = []
                 for item in result:
                     if isinstance(item, tuple):
@@ -899,8 +896,7 @@ def result_tuple(value, tc_name):
         if "query_result_class" in value:
             return result(objs, value["eos"], value["context"],
                           value["query_result_class"])
-        else:
-            return result(objs, value["eos"], value["context"])
+        return result(objs, value["eos"], value["context"])
 
     else:
         raise AssertionError("WBEMConnection operation invalid tuple "

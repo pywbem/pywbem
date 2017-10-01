@@ -702,7 +702,7 @@ def p_compilerDirective(p):
     param = p[5]
     if directive == 'include':
         fname = param
-        if len(os.path.dirname(p.parser.file)) != 0:
+        if os.path.dirname(p.parser.file):
             fname = os.path.dirname(p.parser.file) + '/' + fname
         p.parser.mofcomp.compile_file(fname, p.parser.handle.default_namespace)
     elif directive == 'namespace':
@@ -1984,8 +1984,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         """Return either connection default or universal default namespace"""
         if self.conn is not None:
             return self.conn.default_namespace
-        else:
-            return self.__default_namespace
+        return self.__default_namespace
 
     def _setns(self, value):
         """ Set the namespace in value into either the connection default or
@@ -2030,7 +2029,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         :meth:`pywbem.WBEMConnection.CreateInstance`.
         """
 
-        inst = len(args) > 0 and args[0] or kwargs['NewInstance']
+        inst = args[0] if args else kwargs['NewInstance']
         try:
             self.instances[self.default_namespace].append(inst)
         except KeyError:
@@ -2051,7 +2050,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         :meth:`pywbem.WBEMConnection.GetClass`.
         """
 
-        cname = len(args) > 0 and args[0] or kwargs['ClassName']
+        cname = args[0] if args else kwargs['ClassName']
         try:
             cc = self.classes[self.default_namespace][cname]
         except KeyError:
@@ -2070,7 +2069,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                     del kwargs['ClassName']
                 except KeyError:
                     pass
-                if len(args) > 0:
+                if args:
                     args = args[1:]
                 super_ = self.GetClass(cc.superclass, *args, **kwargs)
                 for prop in super_.properties.values():
@@ -2097,7 +2096,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         :meth:`pywbem.WBEMConnection.CreateClass`.
         """
 
-        cc = len(args) > 0 and args[0] or kwargs['NewClass']
+        cc = args[0] if args else kwargs['NewClass']
         # TODO 2016/03 AM: Dubious stmt above.
         if cc.superclass:
             try:
@@ -2158,7 +2157,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         :meth:`pywbem.WBEMConnection.GetQualifier`.
         """
 
-        qualname = len(args) > 0 and args[0] or kwargs['QualifierName']
+        qualname = args[0] if args else kwargs['QualifierName']
         try:
             qual = self.qualifiers[self.default_namespace][qualname]
         except KeyError:
@@ -2175,7 +2174,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         :meth:`pywbem.WBEMConnection.SetQualifier`.
         """
 
-        qual = len(args) > 0 and args[0] or kwargs['QualifierDeclaration']
+        qual = args[0] if args else kwargs['QualifierDeclaration']
         try:
             self.qualifiers[self.default_namespace][qual.name] = qual
         except KeyError:
