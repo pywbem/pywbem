@@ -164,7 +164,8 @@ help:
 	@echo '  develop    - Prepare the development environment by installing prerequisites'
 	@echo '  build      - Build the distribution files in: $(dist_dir)'
 	@echo '  builddoc   - Build documentation in: $(doc_build_dir)'
-	@echo '  check      - Run PyLint&Flake8 on sources and save results in: pylint.log&flake8.log'
+	@echo '  check      - Run Flake8 on sources and save results in: flake8.log'
+	@echo '  pylint     - Run PyLint on sources and save results in: pylint.log'
 	@echo '  test       - Run unit tests and save results in: $(test_log_file)'
 	@echo '  all        - Do all of the above'
 	@echo '  install    - Install distribution archive to active Python environment'
@@ -267,11 +268,11 @@ else
 endif
 
 .PHONY: check
-check: pylint.log flake8.log
+check: flake8.log
 	@echo '$@ done.'
 
-.PHONY: flake8
-flake8: flake8.log
+.PHONY: pylint
+pylint: pylint.log
 	@echo '$@ done.'
 
 .PHONY: install
@@ -306,11 +307,11 @@ clean:
 	@echo '$@ done.'
 
 .PHONY: all
-all: develop check build builddoc test
+all: develop build builddoc check pylint test
 	@echo '$@ done.'
 
 .PHONY: upload
-upload:  $(dist_files)
+upload: $(dist_files)
 	twine upload $(dist_files)
 	@echo 'Done: Uploaded pywbem version to PyPI: $(package_version)'
 	@echo '$@ done.'
