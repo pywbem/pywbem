@@ -31,6 +31,8 @@ Enhancements
 * Docs: Clarifications and small fixes in the documentation of the
   `WBEMConnection.Iter...()` generator functions.
 
+* Docs: Minor fixes.
+
 Bug fixes
 ^^^^^^^^^
 
