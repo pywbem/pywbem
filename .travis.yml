@@ -77,7 +77,7 @@ install:
       brew update;
     fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew ls --versions $OSX_PYTHON_PKG && brew upgrade $OSX_PYTHON_PKG || brew install $OSX_PYTHON_PKG;
+      brew search python && brew ls --versions $OSX_PYTHON_PKG && brew upgrade $OSX_PYTHON_PKG || brew install $OSX_PYTHON_PKG;
     fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       virtualenv venv -p $PYTHON_CMD && source venv/bin/activate;
@@ -94,7 +94,12 @@ install:
 # TODO: Replace the following quick fix for installing M2Crypto with a real fix.
 # The problem happens only with Python 2.6 on Ubuntu 16.04, see pywbem issue #750.
   - if [[ -f /usr/include/x86_64-linux-gnu/openssl/opensslconf.h && ! -f /usr/include/openssl/opensslconf.h ]]; then echo "Linking openssl/opensslconf.h"; sudo ln -s /usr/include/x86_64-linux-gnu/openssl/opensslconf.h /usr/include/openssl/opensslconf.h; fi
-  - find /usr/include -name "openssl*.h" -ls 2>/dev/null || true
+  - (find /usr -type d -name "openssl" && echo "dummy") |xargs find 2>/dev/null |grep "\.h$" |sort || true
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew info openssl;
+      export LDFLAGS="-L/usr/local/opt/openssl/lib $LDFLAGS";
+      export CPPFLAGS="-I/usr/local/opt/openssl/include $CPPFLAGS";
+    fi
 # end of m2crypto quick fix
   - make develop
   - pip install python-coveralls
