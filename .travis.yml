@@ -11,18 +11,77 @@ sudo: required
 # dist:
 #   - trusty
 
-language: python
-python:
-  - "2.6"
-  - "2.7"
-  - "3.4"
-  - "3.5"
-  - "3.6"
+# We define the job matrix explicitly, in order to be able to minimize the
+# combinations of runtime environments.
+# For OS-X, using an explicit matrix is required anyway, because Travis at
+# this point only has half-baked support for Python on OS-X that does
+# not work. Also, on OS-X, it needs to be invoked with language=generic
+# and an empty 'python' variable in order to prevent that Travis attempts
+# to install Python.
+matrix:
+  include:
+    - os: linux
+      language: python
+      python: "2.6"
+    - os: linux
+      language: python
+      python: "2.7"
+    - os: linux
+      language: python
+      python: "3.4"
+    - os: linux
+      language: python
+      python: "3.5"
+    - os: linux
+      language: python
+      python: "3.6"
+    - os: linux
+      language: python
+      python: "pypy-5.3.1"  # Python 2.7.10
+    - os: osx
+      language: generic
+      python:
+      env:
+        - PYTHON=2
+    - os: osx
+      language: generic
+      python:
+      env:
+        - PYTHON=3
 
 # commands to install dependencies
 install:
-  - python -c "import platform; print('Demonstration of incorrect distro returned by platform.linux_distribution():'); print(repr(platform.linux_distribution()))"
-  - python -c "import pip, os; print('Site-packages directory of system Python:'); print(os.path.dirname(os.path.dirname(pip.__file__)))"
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      if [[ "${PYTHON:0:1}" == "2" ]]; then
+        export PYTHON_CMD=python;
+        export PIP_CMD=pip;
+      else
+        export PYTHON_CMD=python3;
+        export PIP_CMD=pip3;
+      fi;
+    else
+      export PYTHON_CMD=python;
+      export PIP_CMD=pip;
+    fi;
+    echo "PYTHON_CMD=$PYTHON_CMD";
+    echo "PIP_CMD=$PIP_CMD"
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      if [[ "${PYTHON:0:1}" == "2" ]]; then
+        OSX_PYTHON_PKG=python;
+      else
+        OSX_PYTHON_PKG=python3;
+      fi;
+      echo "OSX_PYTHON_PKG=$OSX_PYTHON_PKG";
+    fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew update;
+    fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew ls --versions $OSX_PYTHON_PKG && brew upgrade $OSX_PYTHON_PKG || brew install $OSX_PYTHON_PKG;
+    fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      virtualenv venv -p $PYTHON_CMD && source venv/bin/activate;
+    fi
   - env |sort
   - pip list
 # TODO: Replace the following quick fix for installing swig with a real fix.
@@ -53,5 +112,5 @@ script:
   - make builddoc
   - make test
 
-after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
+#after_success:
+#  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
