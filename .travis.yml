@@ -29,25 +29,25 @@ matrix:
     - os: linux
       language: python
       python: "3.4"
-#    - os: linux
-#      language: python
-#      python: "3.5"
+    - os: linux
+      language: python
+      python: "3.5"
     - os: linux
       language: python
       python: "3.6"
-#    - os: linux
-#      language: python
-#      python: "pypy-5.3.1"  # Python 2.7.10
-#    - os: osx
-#      language: generic
-#      python:
-#      env:
-#        - PYTHON=2
-#    - os: osx
-#      language: generic
-#      python:
-#      env:
-#        - PYTHON=3
+    - os: linux
+      language: python
+      python: "pypy-5.3.1"  # Python 2.7.10
+    - os: osx
+      language: generic
+      python:
+      env:
+        - PYTHON=2
+    - os: osx
+      language: generic
+      python:
+      env:
+        - PYTHON=3
 
 # commands to install dependencies
 install:
@@ -112,5 +112,5 @@ script:
   - make builddoc
   - make test
 
-after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
+#after_success:
+#  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
