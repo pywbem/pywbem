@@ -38,9 +38,9 @@ This documentation uses a few special terms to refer to Python types:
       only).
 
    callable
-      a type for callable objects (e.g. a function, calling a class returns a
-      new instance, instances are callable if they have a
-      :meth:`~py:object.__call__` method).
+      a callable object; for example a function, a class (calling it returns a
+      new object of the class), or an object with a :meth:`~py:object.__call__`
+      method.
 
    DeprecationWarning
       a standard Python warning that indicates a deprecated functionality.
@@ -208,3 +208,7 @@ References
 
    WBEM Standards
       `DMTF WBEM Standards <http://www.dmtf.org/standards/wbem>`_
+
+   Python Glossary
+      * `Python 2.7 Glossary <https://docs.python.org/2.7/glossary.html>`_
+      * `Python 3.4 Glossary <https://docs.python.org/3.4/glossary.html>`_

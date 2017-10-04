@@ -26,6 +26,11 @@ Incompatible changes
 Enhancements
 ^^^^^^^^^^^^
 
+* Docs: Editorial improvements in the documentation (links, typos, formatting).
+
+* Docs: Clarifications and small fixes in the documentation of the
+  `WBEMConnection.Iter...()` generator functions.
+
 Bug fixes
 ^^^^^^^^^
 
