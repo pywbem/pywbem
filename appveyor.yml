@@ -1,35 +1,55 @@
 
 environment:
   matrix:
-# Python 2.6 is disabled because ion Windows, pywbem uses M2Crypto via the
-# M2CryptoWin32 package. That package is not supported for Pathon 2.6, and its
-# __m2crypto.pyd file depends on python27.dll. As a result, importing M2Crypto
-# on Python 2.6 fails with:
-# ImportError: Module use of python27.dll conflicts with this version of Python.
-# To support Python 2.6, M2Crypto would need to be built upon install from
-# the M2Crypto package. See https://github.com/dsoprea/M2CryptoWindows for
-# details onhow to build it.
+#------------------------
+# Notes on disabled environments:
+# * Python 2.6 is disabled because on Windows, pywbem uses M2Crypto via the
+#   M2CryptoWin32 package. That package is not supported for Python 2.6, and
+#   its __m2crypto.pyd file depends on python27.dll. As a result, importing
+#   M2Crypto on Python 2.6 fails with:
+#     ImportError: Module use of python27.dll conflicts with this version of
+#     Python.
+#   To support Python 2.6, M2Crypto would need to be built upon install from
+#   the M2Crypto package. See https://github.com/dsoprea/M2CryptoWindows for
+#   details on how to build it.
+# * The use of libxslt devel packages from ftp.zlatkovic.com causes issues
+#   on some 64-bit environments. The 64-bit version of this package contains
+#   the libxslt library in .a format, but the lxml build process wants it
+#   in .lib format, so the linker step fails with:
+#     LINK : fatal error LNK1181: cannot open input file 'libxslt.lib'
+#   For reasons not completely understood, this causes the 64-bit build only
+#   to fail on Python 2.6.
+#------------------------
 #    - PYTHON_VERSION: 2.6
 #      PYTHON_ARCH: 32
 #      PYTHON_HOME: C:\Python26
+#    - PYTHON_VERSION: 2.6
+#      PYTHON_ARCH: 64
+#      PYTHON_HOME: C:\Python26-x64
     - PYTHON_VERSION: 2.7
       PYTHON_ARCH: 32
       PYTHON_HOME: C:\Python27
-# 64-bit Windows versions with libxslt devel packages from ftp.zlatkovic.com
-# cannot be used currently, because these packages provide libs in .a format,
-# and the lxml build process wants them in .lib format. Disabled for now.
 #    - PYTHON_VERSION: 2.7
 #      PYTHON_ARCH: 64
 #      PYTHON_HOME: C:\Python27-x64
-    - PYTHON_VERSION: 3.4
-      PYTHON_ARCH: 32
-      PYTHON_HOME: C:\Python34
-    - PYTHON_VERSION: 3.5
-      PYTHON_ARCH: 32
-      PYTHON_HOME: C:\Python35
+#    - PYTHON_VERSION: 3.4
+#      PYTHON_ARCH: 32
+#      PYTHON_HOME: C:\Python34
+#    - PYTHON_VERSION: 3.4
+#      PYTHON_ARCH: 64
+#      PYTHON_HOME: C:\Python34-x64
+#    - PYTHON_VERSION: 3.5
+#      PYTHON_ARCH: 32
+#      PYTHON_HOME: C:\Python35
+#    - PYTHON_VERSION: 3.5
+#      PYTHON_ARCH: 64
+#      PYTHON_HOME: C:\Python35-x64
     - PYTHON_VERSION: 3.6
       PYTHON_ARCH: 32
       PYTHON_HOME: C:\Python36
+#    - PYTHON_VERSION: 3.6
+#      PYTHON_ARCH: 64
+#      PYTHON_HOME: C:\Python36-x64
 
 install:
 
