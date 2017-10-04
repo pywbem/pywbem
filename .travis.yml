@@ -93,7 +93,7 @@ install:
   - pip list
 # TODO: Replace the following quick fix for installing M2Crypto with a real fix.
 # The problem happens only with Python 2.6 on Ubuntu 16.04, see pywbem issue #750.
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.6 && -f /usr/include/x86_64-linux-gnu/openssl/opensslconf.h && ! -f /usr/include/openssl/opensslconf.h ]]; then echo "Linking openssl/opensslconf.h"; sudo ln -s /usr/include/x86_64-linux-gnu/openssl/opensslconf.h /usr/include/openssl/opensslconf.h; fi
+  - if [[ -f /usr/include/x86_64-linux-gnu/openssl/opensslconf.h && ! -f /usr/include/openssl/opensslconf.h ]]; then echo "Linking openssl/opensslconf.h"; sudo ln -s /usr/include/x86_64-linux-gnu/openssl/opensslconf.h /usr/include/openssl/opensslconf.h; fi
   - find /usr/include -name "openssl*.h" -ls 2>/dev/null || true
 # end of m2crypto quick fix
   - make develop

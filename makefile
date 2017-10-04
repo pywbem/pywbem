@@ -44,7 +44,7 @@ endif
 coverage_html_dir := coverage_html
 
 # Package version as specified in pywbem/_version.py
-package_specified_version := $(shell sh -c "grep -E '^ *__version__ *= ' pywbem/_version.py |sed -r 's/__version__ *= *\x27(.*)\x27.*/\1/'")
+package_specified_version := $(shell sh -c "grep -E '^ *__version__ *= ' pywbem/_version.py |sed 's/__version__ *= *\x27\(.*\)\x27.*/\1/'")
 
 # Normalized package version (as normalized by setup.py during building)
 package_version := $(shell sh -c "echo $(package_specified_version) |sed 's/[.-]\?\(rc[0-9]\+\)$$/\1/' |sed 's/[.]\?dev[0-9]\*$$/\.dev0/'")
