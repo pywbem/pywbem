@@ -50,8 +50,15 @@ matrix:
 #        - PYTHON=3
 
 before_install:
-  - if [[ "$TRAVIS_PULL_REQUEST_BRANCH" == "manual-ci-run" || "$TRAVIS_BRANCH" == "manual-ci-run" ]]; then
-      echo "Rebasing manual-ci-run to master";
+  - if [[ "$TRAVIS_BRANCH" == "manual-ci-run" ]]; then
+      echo "Rebasing manual-ci-run to master...";
+      echo "git fetch origin master";
+      git fetch origin master;
+      echo "git branch master FETCH_HEAD";
+      git branch master FETCH_HEAD;
+      echo "git branch -av";
+      git branch -av;
+      echo "git rebase master";
       git rebase master;
     fi
 
