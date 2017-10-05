@@ -51,19 +51,18 @@ matrix:
 
 before_install:
   - if [[ "$TRAVIS_BRANCH" == "manual-ci-run" ]]; then
-      echo "Rebasing manual-ci-run to master...";
-      echo "git fetch origin master";
-      git fetch origin master;
-      echo "git branch master FETCH_HEAD";
-      git branch master FETCH_HEAD;
-      echo "git branch -av";
-      git branch -av;
-      echo "git rebase master";
-      git rebase master;
+      export _NEED_REBASE=true;
     fi
+  - if [[ -n $_NEED_REBASE ]]; then git fetch origin master; fi
+  - if [[ -n $_NEED_REBASE ]]; then git branch master FETCH_HEAD; fi
+  - if [[ -n $_NEED_REBASE ]]; then git rebase master; fi
+  - git branch -av
 
 # commands to install dependencies
 install:
+  - if [[ "$TRAVIS_BRANCH" == "manual-ci-run" || "$TRAVIS_PULL_REQUEST_BRANCH" == "manual-ci-run" ]]; then
+      export _MANUAL_CI_RUN=true;
+    fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       if [[ "${PYTHON:0:1}" == "2" ]]; then
         export PYTHON_CMD=python;
@@ -125,10 +124,11 @@ install:
 
 # commands to run builds & tests
 script:
-  - make build
-  - make builddoc
+  - if [[ -n $_MANUAL_CI_RUN ]]; then make build; fi
+  - if [[ -n $_MANUAL_CI_RUN ]]; then make builddoc; fi
   - make check
+  - if [[ -n $_MANUAL_CI_RUN ]]; then make pylint; fi
   - make test
 
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
+  - if [[ -z $_MANUAL_CI_RUN && $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
