@@ -55,10 +55,12 @@ install:
 
   - if %APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH%.==manual-ci-run. (
       echo "Rebasing manual-ci-run to master"&
-      git rebase master)
+      git fetch origin master&
+      git rebase origin/master)
     else if %APPVEYOR_REPO_BRANCH%.==manual-ci-run. (
       echo "Rebasing manual-ci-run to master"&
-      git rebase master)
+      git fetch origin master&
+      git rebase origin/master)
 
   # Verify that the commands used in this file are available
   - where where
