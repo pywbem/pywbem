@@ -356,7 +356,7 @@ pylint.log: makefile $(pylint_rc_file) $(py_src_files)
 ifeq ($(python_mn_version),27)
 	rm -f pylint.log
 	pylint --version
-	-bash -c 'set -o pipefail; PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) --output-format=text $(py_src_files) 2>&1 |tee pylint.tmp.log; rc=$$?; if (($$rc >= 32 || $$rc & 0x03)); then exit $$rc; fi'
+	-bash -c 'set -o pipefail; PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) $(py_src_files) 2>&1 |tee pylint.tmp.log; rc=$$?; if (($$rc >= 32 || $$rc & 0x03)); then exit $$rc; fi'
 	mv -f pylint.tmp.log pylint.log
 	@echo 'Done: Created Pylint log file: $@'
 else
