@@ -16,10 +16,14 @@ omit =
 
 [report]
 
-# Controls whether lines without coverage are shown in the report.
-show_missing = True
+# Controls whether the line numbers of the lines without coverage are shown
+# in the text form of the report. This variable does not change the information
+# in the html form of the report.
+show_missing = False
 
-# defines location for coverage html output
 [html]
+
+# Location for html report. Must be in sync with the corresponding variable in
+# the makefile.
 directory = coverage_html
 

@@ -18,6 +18,7 @@ test_recorder.yaml
 pylint_done
 wbemcli.log
 .coverage
+/coverage_html/
 /build/
 /build_doc/
 mofparsetab.py

@@ -36,11 +36,12 @@ package_name := pywbem
 # command line variable. When set, generates a set of reports of the
 # pywbem/*.py files showing line by line coverage.
 ifdef PYWBEM_COVERAGE_REPORT
-  coverage_report := --cov-report=annotate --cov-report=html
+  coverage_report := --cov-report=html
 else
   coverage_report :=
 endif
-# directory for coverage html output.
+
+# Directory for coverage html output. Must be in sync with the one in coveragerc.
 coverage_html_dir := coverage_html
 
 # Package version as specified in pywbem/_version.py
