@@ -49,6 +49,12 @@ matrix:
 #      env:
 #        - PYTHON=3
 
+before_install:
+  - if [[ "$TRAVIS_PULL_REQUEST_BRANCH" == "manual-ci-run" || "$TRAVIS_BRANCH" == "manual-ci-run" ]]; then
+      echo "Rebasing manual-ci-run to master";
+      git rebase master;
+    fi
+
 # commands to install dependencies
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
