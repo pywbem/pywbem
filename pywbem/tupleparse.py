@@ -1156,7 +1156,7 @@ def parse_property_reference(tup_tree):
 
     value = list_of_matching(tup_tree, ['VALUE.REFERENCE'])
 
-    if value is None or not value:
+    if not value:
         value = None
     elif len(value) == 1:
         value = value[0]

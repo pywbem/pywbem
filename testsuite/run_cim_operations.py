@@ -320,7 +320,8 @@ class ClientTest(unittest.TestCase):
 
             if includes_path:
                 self.assertTrue(isinstance(instance.path, CIMInstanceName))
-                self.assertTrue(instance.path.namespace, 'Includes namespace')
+                self.assertTrue(instance.path.namespace,
+                                'Instance path missing in instance path.')
 
                 if namespace is None:
                     namespace = self.namespace
@@ -331,7 +332,10 @@ class ClientTest(unittest.TestCase):
                                  (instance.path.namespace, namespace))
 
             if prop_count is not None:
-                self.assertEqual(len(instance.properties), prop_count)
+                self.assertEqual(len(instance.properties), prop_count,
+                                 'Expected %s properties; tested instance has '
+                                 '%s properties' % (prop_count,
+                                                    len(instance.properties)))
 
             if property_list is not None:
                 for p in property_list:
@@ -1138,7 +1142,7 @@ class PullEnumerateInstances(ClientTest):
     def test_get_onebyone(self):
         """Get instances with MaxObjectCount = 1).
         This test is subject to differences between the pull and non
-    gy s    pull sequence because it is getting live instances from the
+        pull sequence because it is getting live instances from the
         server and they may change between the requests.
         """
 
