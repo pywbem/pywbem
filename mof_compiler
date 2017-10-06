@@ -116,6 +116,7 @@ Example:
              ' client does not have certificates.')
     security_arggroup.add_argument(
         '--cacerts', dest='ca_certs', metavar='cacerts',
+        # pylint: disable=bad-continuation
         help='R|File or directory containing certificates that will be\n'
              'matched against a certificate received from the WBEM\n'
              'server. Set the --no-verify-cert option to bypass\n'
@@ -244,7 +245,6 @@ Example:
 
     if args.remove or args.dry_run:
         # Only record the changes to the repository, but do not perform them.
-        # pylint: disable=redefined-variable-type
         conn = MOFWBEMConnection(conn=conn)
 
     # conn.debug = True

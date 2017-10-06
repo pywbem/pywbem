@@ -96,10 +96,7 @@ def filter_tuples(list_):
     In a tupletree, tuples correspond to XML elements.  Useful for
     stripping out whitespace data in a child list."""
 
-    if list_ is None:
-        return []
-    else:
-        return [x for x in list_ if isinstance(x, tuple)]
+    return [] if list_ is None else [x for x in list_ if isinstance(x, tuple)]
 
 
 def pcdata(tup_tree):
@@ -168,7 +165,7 @@ def check_node(tup_tree, nodename, required_attrs=None, optional_attrs=None,
             if attr in tt_attrs:
                 del tt_attrs[attr]
 
-    if len(tt_attrs.keys()) > 0:
+    if tt_attrs.keys():
         raise ParseError('invalid extra attributes %s' % tt_attrs.keys())
 
     if allowed_children is not None:
@@ -601,7 +598,7 @@ def parse_localnamespacepath(tup_tree):
 
     check_node(tup_tree, 'LOCALNAMESPACEPATH', [], [], ['NAMESPACE'])
 
-    if len(kids(tup_tree)) == 0:
+    if not kids(tup_tree):
         raise ParseError('Expecting one or more of NAMESPACE, got nothing')
 
     ns_list = list_of_various(tup_tree, ['NAMESPACE'])
@@ -746,7 +743,7 @@ def parse_instancename(tup_tree):
 
     check_node(tup_tree, 'INSTANCENAME', ['CLASSNAME'])
 
-    if len(kids(tup_tree)) == 0:
+    if not kids(tup_tree):
         # probably not ever going to see this, but it's valid
         # according to the grammar
         return CIMInstanceName(attrs(tup_tree)['CLASSNAME'], {})
@@ -1159,7 +1156,7 @@ def parse_property_reference(tup_tree):
 
     value = list_of_matching(tup_tree, ['VALUE.REFERENCE'])
 
-    if value is None or len(value) == 0:
+    if not value:
         value = None
     elif len(value) == 1:
         value = value[0]
@@ -1790,7 +1787,7 @@ def unpack_value(tup_tree):
     valtype = attrs(tup_tree)['TYPE']
 
     raw_val = list_of_matching(tup_tree, ['VALUE', 'VALUE.ARRAY'])
-    if len(raw_val) == 0:
+    if not raw_val:
         return None
     elif len(raw_val) > 1:
         raise ParseError('more than one VALUE or VALUE.ARRAY under %s' %
@@ -1800,10 +1797,9 @@ def unpack_value(tup_tree):
 
     if isinstance(raw_val, list):
         return [tocimobj(valtype, x) for x in raw_val]
-    elif len(raw_val) == 0 and valtype != 'string':
+    elif not raw_val and valtype != 'string':
         return None
-    else:
-        return tocimobj(valtype, raw_val)
+    return tocimobj(valtype, raw_val)
 
 
 def unpack_boolean(data):

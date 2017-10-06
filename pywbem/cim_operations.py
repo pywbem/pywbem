@@ -232,13 +232,11 @@ def _iparam_propertylist(property_list):
     """Validate property_list and if it is not iterable convert to list.
 
     This is a test for a particular issue where the user supplies a single
-    string in stead of a list for a PropertyList parameter. It prevents
+    string instead of a list for a PropertyList parameter. It prevents
     an XML error.
     """
-    if isinstance(property_list, six.string_types):
-        return [property_list]
-    else:
-        return property_list
+    return [property_list] if isinstance(property_list, six.string_types) \
+        else property_list
 
 
 def check_utf8_xml_chars(utf8_xml, meaning):
@@ -351,7 +349,7 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         ifs_pos = m.start(1)
         ifs_seq = m.group(1)
         ifs_list.append((ifs_pos, ifs_seq))
-    if len(ifs_list) > 0:
+    if ifs_list:
         exc_txt = "Ill-formed (surrogate) UTF-8 Byte sequences found in %s:" %\
                   meaning
         for (ifs_pos, ifs_seq) in ifs_list:
@@ -397,7 +395,7 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         if ixc_pos > last_ixc_pos + 1:
             ixc_list.append((ixc_pos, ixc_char_u))
         last_ixc_pos = ixc_pos
-    if len(ixc_list) > 0:
+    if ixc_list:
         exc_txt = "Invalid XML characters found in %s:" % meaning
         for (ixc_pos, ixc_char_u) in ixc_list:
             cpos1 = max(ixc_pos - context_before, 0)
@@ -1315,9 +1313,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # or None if there was no child nodes of the IMETHODRESPONSE
         # element.
 
-        if tup_tree is None:
-            return None
-        if len(tup_tree) == 0:
+        if not tup_tree:
             return None
 
         # ERROR | ...
@@ -1394,10 +1390,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             elif isinstance(obj, (CIMClass, CIMInstance)):
                 return 'string'
             elif isinstance(obj, list):
-                if obj:
-                    return paramtype(obj[0])
-                else:
-                    return None
+                return paramtype(obj[0]) if obj else None
             raise TypeError('Unsupported parameter type "%s"' % type(obj))
 
         def paramvalue(obj):
@@ -1563,7 +1556,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # At this point we have an optional RETURNVALUE and zero or
         # more PARAMVALUE elements representing output parameters.
 
-        if len(tt) > 0 and tt[0][0] == 'ERROR':
+        if tt and tt[0][0] == 'ERROR':
             code = int(tt[0][1]['CODE'])
             if 'DESCRIPTION' in tt[0][1]:
                 raise CIMError(code, tt[0][1]['DESCRIPTION'])
@@ -7457,7 +7450,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             returnvalue = None
 
-            if len(result) > 0 and result[0][0] == 'RETURNVALUE':
+            if result and result[0][0] == 'RETURNVALUE':
 
                 returnvalue = tocimobj(result[0][1]['PARAMTYPE'], result[0][2])
                 result = result[1:]

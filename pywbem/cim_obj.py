@@ -434,7 +434,7 @@ class NocaseDict(object):
         # a case sensitive comparison, but that will be better than the faulty
         # algorithm that was used before. It will raise TypeError "unorderable
         # types" in Python 3.
-        return self._data < other._data
+        return self._data < other._data  # pylint: disable=protected-access
 
     def __gt__(self, other):
         """
@@ -524,10 +524,7 @@ def cmpname(name1, name2):
     lower_name2 = name2.lower()
     if lower_name1 == lower_name2:
         return 0
-    if lower_name1 < lower_name2:
-        return -1
-    else:
-        return 1
+    return -1 if lower_name1 < lower_name2 else 1
 
 
 def cmpitem(item1, item2):
@@ -638,7 +635,7 @@ def _makequalifiers(qualifiers, indent):
 
       indent (:term:`integer`): Indent level for this set of qualifiers.
     """
-    if len(qualifiers) == 0:
+    if not qualifiers:
         return ''
     qual_list = [q.tomof(indent + 2) for q in sorted(qualifiers.values())]
     qual_str = ',\n '.ljust(indent + 2).join(qual_list)
@@ -2375,7 +2372,7 @@ class CIMProperty(_CIMComparisonMixin):
             if reference_class is not None:
                 raise ValueError(
                     'Array property %r cannot specify reference_class' % name)
-            elif value is None or len(value) == 0 or value[0] is None:
+            elif not value or value[0] is None:
                 # Cannot infer from value, look at embedded_object and type
                 if embedded_object == 'instance':
                     msg = 'Array property %r contains embedded instances' % name
@@ -2513,7 +2510,6 @@ class CIMProperty(_CIMComparisonMixin):
             else:  # type is specified and value is not Null
                 # Make sure the value is of the corresponding Python type.
                 _type_obj = type_from_name(type_)
-                # pylint: disable=redefined-variable-type
                 value = _type_obj(value)
                 msg = 'Property %r has a simple typed value ' \
                       'and specifies CIM data type %r' % (name, type_)
@@ -2629,7 +2625,6 @@ class CIMProperty(_CIMComparisonMixin):
                     value = value.tocimxml().toxml()
                 else:
                     value = atomic_to_cim_xml(value)
-                # pylint: disable=redefined-variable-type
                 value = cim_xml.VALUE(value)
 
             return cim_xml.PROPERTY(
@@ -2742,7 +2737,7 @@ class CIMProperty(_CIMComparisonMixin):
                 array_str = ''
 
             mof = '\n'
-            if len(self.qualifiers) != 0:
+            if self.qualifiers:
                 mof += '%s\n' % ((_makequalifiers(self.qualifiers,
                                                   (indent + MOF_INDENT))))
 
@@ -3040,7 +3035,7 @@ class CIMMethod(_CIMComparisonMixin):
 
         ret_str = ''
 
-        if len(self.qualifiers) != 0:
+        if self.qualifiers:
             ret_str += '%s\n' % (_makequalifiers(self.qualifiers,
                                                  (indent + MOF_INDENT)))
         # TODO is None allowed for return type.
@@ -3050,7 +3045,7 @@ class CIMMethod(_CIMComparisonMixin):
             # TODO CIM-XML does not support methods returning reference
             # types(the CIM architecture does).
 
-        if len(self.parameters.values()) != 0:
+        if self.parameters.values():
             ret_str += '%s(\n' % (self.name)
             ret_str += ',\n'.join([
                 p.tomof(indent + MOF_INDENT)
@@ -3358,7 +3353,7 @@ class CIMParameter(_CIMComparisonMixin):
             array_str = ''
 
         rtn_str = ''
-        if len(self.qualifiers) != 0:
+        if self.qualifiers:
             rtn_str = '%s\n' % (_makequalifiers(self.qualifiers,
                                                 indent + 2))
         rtn_str += '%s%s %s%s' % (_indent_str(indent),
@@ -3569,7 +3564,7 @@ class CIMQualifier(_CIMComparisonMixin):
 
                 # Determine type for list value
 
-                if len(value) == 0:
+                if not value:
                     raise TypeError(
                         'Empty qualifier array "%s" must have a type' % name)
 
@@ -3665,7 +3660,6 @@ class CIMQualifier(_CIMComparisonMixin):
         if isinstance(self.value, list):
             value = cim_xml.VALUE_ARRAY([cim_xml.VALUE(v) for v in self.value])
         elif self.value is not None:
-            # pylint: disable=redefined-variable-type
             # used as VALUE.ARRAY and the as VALUE
             value = cim_xml.VALUE(self.value)
 
@@ -4165,10 +4159,7 @@ def tocimxml(value):
     #       int. Bool is a subtype of int, so bool probably matches in the test
     #       above.
     if isinstance(value, bool):
-        if value:
-            return cim_xml.VALUE('TRUE')
-        else:
-            return cim_xml.VALUE('FALSE')
+        return cim_xml.VALUE('TRUE') if value else cim_xml.VALUE('FALSE')
 
     # Iterable of values
 
@@ -4413,7 +4404,7 @@ def tocimobj(type_, value):
                         if val.lower() in ('true', 'false'):
                             val = val.lower() == 'true'
                         elif val.isdigit():
-                            val = int(val)   # pylint: disable=R0204
+                            val = int(val)
                         else:
                             try:
                                 val = float(val)

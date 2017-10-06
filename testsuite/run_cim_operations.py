@@ -228,17 +228,6 @@ class ClientTest(unittest.TestCase):
         if self.verbose:
             print('{}'.format(data_))
 
-    def assertRegexp(self, str_, regex):
-        """
-        This function eliminates the issue between the unittest assertRegex
-        and assertRegexpMatches functions between unittiest in python 2 and 3
-        """
-        if six.PY3:
-            return self.assertRegex(str_, regex)  # pylint: disable=no-member
-        else:
-            return self.assertRegexpMatches(str_,
-                                            regex)  # pylint: disable=no-member
-
     def pywbem_person_class_exists(self):
         """
         Test this class if it exists in the root/cimv2 namespace.
@@ -295,7 +284,7 @@ class ClientTest(unittest.TestCase):
         else:
             path = paths
             self.assertTrue(isinstance(path, CIMInstanceName))
-            self.assertTrue(len(path.namespace) > 0)
+            self.assertTrue(path.namespace)
 
             if namespace is None:
                 self.assertTrue(paths.namespace == self.namespace)
@@ -331,7 +320,8 @@ class ClientTest(unittest.TestCase):
 
             if includes_path:
                 self.assertTrue(isinstance(instance.path, CIMInstanceName))
-                self.assertTrue(len(instance.path.namespace) > 0)
+                self.assertTrue(instance.path.namespace,
+                                'Instance path missing in instance path.')
 
                 if namespace is None:
                     namespace = self.namespace
@@ -342,7 +332,10 @@ class ClientTest(unittest.TestCase):
                                  (instance.path.namespace, namespace))
 
             if prop_count is not None:
-                self.assertTrue(len(instance.properties) == prop_count)
+                self.assertEqual(len(instance.properties), prop_count,
+                                 'Expected %s properties; tested instance has '
+                                 '%s properties' % (prop_count,
+                                                    len(instance.properties)))
 
             if property_list is not None:
                 for p in property_list:
@@ -370,7 +363,7 @@ class ClientTest(unittest.TestCase):
             path = paths
             self.assertTrue(isinstance(path, CIMInstanceName))
             if includes_namespace:
-                self.assertTrue(len(path.namespace) > 0)
+                self.assertTrue(path.namespace)
             if includes_keybindings:
                 self.assertTrue(path.keybindings is not None)
             if namespace is not None:
@@ -390,8 +383,7 @@ class ClientTest(unittest.TestCase):
             self.assertTrue(isinstance(op_result, tuple))
 
             self.assertTrue(isinstance(op_result[0], CIMClassName))
-            self.assertTrue(len(op_result[0].namespace) > 0)
-
+            self.assertTrue(op_result[0].namespace)
             self.assertTrue(isinstance(op_result[1], CIMClass))
 
     def inst_in_list(self, inst, instances, ignore_host=False):
@@ -1172,6 +1164,8 @@ class PullEnumerateInstances(ClientTest):
         insts_enum = self.cimcall(  # noqa: F841
             self.conn.EnumerateInstances, TOP_CLASS)
 
+        self.assertEqual(len(insts_pulled), len(insts_enum))
+
     def test_bad_namespace(self):
         """Call with explicit CIM namespace that does not exist."""
 
@@ -1288,7 +1282,7 @@ class PullEnumerateInstancePaths(ClientTest):
         if result.eos:
             self.assertTrue(result.context is None)
         else:
-            self.assertTrue(len(result.context) != 0)
+            self.assertTrue(result.context)
 
         # loop to complete the enumeration session
         while not result.eos:
@@ -1300,7 +1294,7 @@ class PullEnumerateInstancePaths(ClientTest):
 
         paths_enum = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
 
-        self.assertTrue(len(paths_pulled) == len(paths_enum))
+        self.assertEqual(len(paths_pulled), len(paths_enum))
 
     def test_open_complete_with_ns(self):
         """Simplest invocation. Everything comes back in
@@ -1318,7 +1312,7 @@ class PullEnumerateInstancePaths(ClientTest):
         if result.eos:
             self.assertTrue(result.context is None)
         else:
-            self.assertTrue(len(result.context) != 0)
+            self.assertTrue(result.context)
 
         while not result.eos:
             result = self.cimcall(self.conn.PullInstancePaths,
@@ -1527,7 +1521,7 @@ class PullReferences(ClientTest):
             self.assertInstancesValid(result.instances)
 
             insts_enum = self.cimcall(self.conn.References, pathi)
-            if len(insts_enum) != 0:
+            if insts_enum:
                 print('References %s count %s' % (pathi, len(insts_enum)))
             self.assertTrue(len(insts_pulled) == len(insts_enum))
 
@@ -1652,7 +1646,7 @@ class PullReferencePaths(ClientTest):
                 paths.extend(result.paths)
 
             paths_enum = self.cimcall(self.conn.ReferenceNames, pathi)
-            if len(paths_enum) != 0:
+            if paths_enum:
                 print('References %s count %s' % (pathi, len(paths_enum)))
             self.assertTrue(len(paths) == len(paths_enum))
 
@@ -1764,7 +1758,7 @@ class PullAssociators(ClientTest):
 
             insts_enum = self.cimcall(self.conn.References, pathi)
 
-            if len(insts_enum) != 0:
+            if insts_enum:
                 print('Associators %s count %s' % (insts_pulled,
                                                    len(insts_enum)))
             self.assertTrue(len(insts_pulled) == len(insts_enum))
@@ -1891,9 +1885,9 @@ class PullAssociatorPaths(ClientTest):
                 paths_pulled.extend(result.paths)
 
             paths_enum = self.cimcall(self.conn.AssociatorNames, pathi)
-            if len(paths_enum) != 0:
+            if paths_enum:
                 print('Associator Names %s count %s' % (pathi, len(paths_enum)))
-            self.assertTrue(len(paths_pulled) == len(paths_enum))
+            self.assertEqual(len(paths_pulled), len(paths_enum))
             # TODO ks 5/30 2016 add tests here
             # Do this as a loop for all instances above.
 
@@ -4159,7 +4153,7 @@ class PegasusTestEmbeddedInstance(PegasusServerTestBase, RegexpMixin):
                     print('======%s XML=====\n%s' % (inst.path, str_xml))
 
                 # confirm general characteristics of mof output
-                self.assertRegexp(
+                self.assertRegexpMatches(
                     str_mof, r"instance of Test_CLITestEmbeddedClass {")
                 self.assertRegexpContains(
                     str_mof,
@@ -4267,7 +4261,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
 
         if self.is_pegasus_server():
             self.assertEqual(server.brand, 'OpenPegasus')
-            self.assertRegexp(server.version, r"^2\.1[0-7]\.[0-7]$")
+            self.assertRegexpMatches(server.version, r"^2\.1[0-7]\.[0-7]$")
         else:
             # Do not know what server it is so just display
             print("Brand: %s" % server.brand)
@@ -5717,7 +5711,7 @@ def consume_indication(indication, host):
     COUNTER_LOCK.release()
 
 
-class PyWBEMListenerClass(PyWBEMServerClass):
+class PyWBEMListenerClass(PyWBEMServerClass, RegexpMixin):
     """Test the management of indications with the listener class.
        All of these functions depend on existence of a WBEM server to
        which subscriptions/filters are sent."""
@@ -5856,21 +5850,21 @@ class PyWBEMListenerClass(PyWBEMServerClass):
 
         filters = sub_mgr.get_all_filters(server_id)
         owned_filters = sub_mgr.get_owned_filters(server_id)
-        if len(filters) != 0:
+        if filters:
             for i, filter_ in enumerate(filters):
                 print('filter %s %s %s', (i, filter_,
                                           is_owned(filter_, owned_filters)))
 
         subscriptions = sub_mgr.get_all_subscriptions(server_id)
         owned_subs = sub_mgr.get_owned_subscriptions(server_id)
-        if len(subscriptions) != 0:
+        if subscriptions:
             for i, subscription in enumerate(subscriptions):
                 print('subscription %s %s %s', (i, subscription,
                                                 is_owned(subscription,
                                                          owned_subs)))
 
         dests = sub_mgr.get_all_subscriptions(server_id)
-        if len(dests) != 0:
+        if dests:
             for i, dest in enumerate(dests):
                 print('destination %s %s' % (i, dest))
 
@@ -5919,7 +5913,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                                  subscription_paths)
 
             # confirm destination instance paths match
-            self.assertTrue(len(sub_mgr.get_all_destinations(server_id)) > 0)
+            self.assertTrue(sub_mgr.get_all_destinations(server_id))
             # #TODO: ks Finish this test completely when we add other changes
             # #for filter ids
 
@@ -5977,7 +5971,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             # Confirm structure of the name element without any id components
             # NOTE: The uuid from uuid4 is actually 36 char but not we made it
             # 30-40 in case format changes in future.
-            self.assertRegexp(
+            self.assertRegexpMatches(
                 filter_path.keybindings['Name'],
                 r'^pywbemfilter:owned:fred2:MyfilterId:[0-9a-f-]{30,40}\Z')
             subscriptions = sub_mgr.add_subscriptions(server_id,
@@ -6070,7 +6064,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             self.assertEqual(len(owned_filter_paths), 1)
             for path in owned_filter_paths:
                 name = path.keybindings['Name']
-                self.assertRegexp(
+                self.assertRegexpMatches(
                     name,
                     r'^pywbemfilter:owned:pegTestListener:fred:' +
                     r'[0-9a-f-]{30,40}\Z')
@@ -6082,7 +6076,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 query_language="DMTF:CQL", filter_id='test_id_attributes1')
             filter_path2 = filter2.path
 
-            self.assertRegexp(
+            self.assertRegexpMatches(
                 filter_path2.keybindings['Name'],
                 r'^pywbemfilter:owned:pegTestListener:test_id_attributes1:' +
                 r'[0-9a-f-]{30,40}\Z')
@@ -6093,7 +6087,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
                 query_language="DMTF:CQL", filter_id='test_id_attributes2')
             filter_path3 = filter3.path
 
-            self.assertRegexp(
+            self.assertRegexpMatches(
                 filter_path3.keybindings['Name'],
                 r'^pywbemfilter:owned:pegTestListener:test_id_attributes2:' +
                 r'[0-9a-f-]{30,40}\Z')
@@ -6176,7 +6170,7 @@ class PyWBEMListenerClass(PyWBEMServerClass):
             self.assertEqual(len(owned_filter_paths), 1)
             for path in owned_filter_paths:
                 name = path.keybindings['Name']
-                self.assertRegexp(
+                self.assertRegexpMatches(
                     name,
                     r'^pywbemfilter:owned:pegTestMgr:fred:[0-9a-f-]{30,40}\Z')
             self.assertTrue(filter_path in owned_filter_paths)

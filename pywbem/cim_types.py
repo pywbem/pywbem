@@ -73,8 +73,8 @@ from __future__ import absolute_import
 from datetime import tzinfo, datetime, timedelta
 import re
 import warnings
-import six
 import copy
+import six
 
 from . import config
 
@@ -419,8 +419,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         local = datetime.now()
         if local < utc:
             return - int(float((utc - local).seconds) / 60 + .5)
-        else:
-            return int(float((local - utc).seconds) / 60 + .5)
+        return int(float((local - utc).seconds) / 60 + .5)
 
     @classmethod
     def now(cls, tzi=None):
@@ -739,7 +738,7 @@ def cimtype(obj):
         # accept both possible types
         return 'string'
     if isinstance(obj, list):
-        if len(obj) == 0:
+        if not obj:
             raise ValueError(
                 "Cannot determine CIM data type from an empty array")
         return cimtype(obj[0])
@@ -827,10 +826,7 @@ def atomic_to_cim_xml(obj):
     # pylint: disable=too-many-return-statements
     from .cim_obj import _ensure_unicode, _convert_unicode  # due to cycles
     if isinstance(obj, bool):
-        if obj:
-            return u"true"
-        else:
-            return u"false"
+        return u"true" if obj else u"false"
     elif isinstance(obj, CIMDateTime):
         return six.text_type(obj)
     elif isinstance(obj, datetime):
@@ -843,5 +839,4 @@ def atomic_to_cim_xml(obj):
         return u'%.16E' % obj
     elif isinstance(obj, six.string_types):
         return _ensure_unicode(obj)
-    else:  # e.g. int
-        return _convert_unicode(obj)
+    return _convert_unicode(obj)  # e.g. int

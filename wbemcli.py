@@ -135,9 +135,9 @@ def _remote_connection(server, opts, argparser_):
 # Create convenient global functions to reduce typing
 #
 
-# pylint: disable=too-many-arguments
 def iei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None, fl=None,
         fq=None, ot=None, coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT,):
+    # pylint: disable=too-many-arguments, redefined-outer-name
     """
     WBEM operation: IterEnumerateInstances
 
@@ -254,9 +254,9 @@ def iei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None, fl=None,
                                        MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments
 def ieip(cn, ns=None, fl=None, fq=None, ot=None, coe=None,
          moc=DEFAULT_ITER_MAXOBJECTCOUNT,):
+    # pylint: disable=too-many-arguments
     """
     WBEM operation: IterEnumerateInstancePaths
 
@@ -357,9 +357,9 @@ def ieip(cn, ns=None, fl=None, fq=None, ot=None, coe=None,
                                            MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments
 def iri(op, rc=None, r=None, iq=None, ico=None, pl=None, fl=None, fq=None,
         ot=None, coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT):
+    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
     """
     WBEM operation: IterReferenceInstances
 
@@ -466,9 +466,9 @@ def iri(op, rc=None, r=None, iq=None, ico=None, pl=None, fl=None, fq=None,
                                        MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments
 def irip(op, rc=None, r=None, fl=None, fq=None, ot=None, coe=None,
          moc=DEFAULT_ITER_MAXOBJECTCOUNT):
+    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
     """
     WBEM operation: IterReferenceInstancePaths
 
@@ -554,9 +554,9 @@ def irip(op, rc=None, r=None, fl=None, fq=None, ot=None, coe=None,
                                            MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments
 def iai(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None,
         fl=None, fq=None, ot=None, coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT):
+    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
     """
     WBEM operation: IterAssociatorInstances
 
@@ -678,9 +678,9 @@ def iai(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None,
                                         MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments
 def iaip(op, ac=None, rc=None, r=None, rr=None, fl=None, fq=None, ot=None,
          coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT):
+    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
     """
     WBEM operation: IterAssociatorInstancePaths
 
@@ -912,9 +912,8 @@ def ein(cn, ns=None):
     return CONN.EnumerateInstanceNames(cn, ns)
 
 
-# pylint: disable=too-many-arguments
 def ei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None):
-    # pylint: disable=redefined-outer-name
+    # pylint: disable=redefined-outer-name, too-many-arguments
     """
     WBEM operation: EnumerateInstances
 
@@ -1145,8 +1144,8 @@ def di(ip):
     CONN.DeleteInstance(ip)
 
 
-def an(op, ac=None, rc=None, r=None, rr=None):  # pylint: disable=invalid-name
-    # pylint: disable=redefined-outer-name
+def an(op, ac=None, rc=None, r=None, rr=None):
+    # pylint: disable=redefined-outer-name, invalid-name
     """
     WBEM operation: AssociatorNames
 
@@ -1219,9 +1218,8 @@ def an(op, ac=None, rc=None, r=None, rr=None):  # pylint: disable=invalid-name
                                 ResultRole=rr)
 
 
-# pylint: disable=too-many-arguments
 def a(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None):
-    # pylint: disable=redefined-outer-name, invalid-name
+    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
     """
     WBEM operation: Associators
 
@@ -1466,10 +1464,9 @@ def r(op, rc=None, r=None, iq=None, ico=None, pl=None):
                            PropertyList=pl)
 
 
-# pylint: disable=too-many-arguments
 def oei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None, fl=None,
         fq=None, ot=None, coe=None, moc=None):
-    # pylint: disable=redefined-outer-name
+    # pylint: disable=too-many-arguments, redefined-outer-name
     """
     WBEM operation: OpenEnumerateInstances
 
@@ -1590,8 +1587,8 @@ def oei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None, fl=None,
                                        MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments
 def oeip(cn, ns=None, fl=None, fq=None, ot=None, coe=None, moc=None):
+    # pylint: disable=too-many-arguments
     """
     WBEM operation: OpenEnumerateInstancePaths
 
@@ -1685,10 +1682,9 @@ def oeip(cn, ns=None, fl=None, fq=None, ot=None, coe=None, moc=None):
                                            MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments
 def ori(op, rc=None, r=None, iq=None, ico=None, pl=None, fl=None, fq=None,
         ot=None, coe=None, moc=None):
-    # pylint: disable=redefined-outer-name, invalid-name
+    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
     """
     WBEM operation: OpenReferenceInstances
 
@@ -1799,9 +1795,8 @@ def ori(op, rc=None, r=None, iq=None, ico=None, pl=None, fl=None, fq=None,
                                        MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments
 def orip(op, rc=None, r=None, fl=None, fq=None, ot=None, coe=None, moc=None):
-    # pylint: disable=redefined-outer-name, invalid-name
+    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
     """
     WBEM operation: OpenReferenceInstancePaths
 
@@ -1891,10 +1886,9 @@ def orip(op, rc=None, r=None, fl=None, fq=None, ot=None, coe=None, moc=None):
                                            MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments
 def oai(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None,
         fl=None, fq=None, ot=None, coe=None, moc=None):
-    # pylint: disable=redefined-outer-name, invalid-name
+    # pylint: disable=too-many-arguments,redefined-outer-name, invalid-name
     """
     WBEM operation: OpenAssociatorInstances
 
@@ -2019,10 +2013,9 @@ def oai(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None,
                                         MaxObjectCount=moc)
 
 
-# pylint: disable=too-many-arguments
 def oaip(op, ac=None, rc=None, r=None, rr=None, fl=None, fq=None, ot=None,
          coe=None, moc=None):
-    # pylint: disable=redefined-outer-name, invalid-name
+    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
     """
     WBEM operation: OpenAssociatorInstancePaths
 
@@ -2802,7 +2795,6 @@ def _get_connection_info():
     # pylint: disable=protected-access
     info += ' stats=%s, ' % ('on' if CONN._statistics else 'off')
 
-    # TODO: ks find more complete way to record that we are logging
     info += 'log=%s, ' % ('on' if CONN._operation_recorders else 'off')
 
     return fill(info, 78, subsequent_indent='    ')

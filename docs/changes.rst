@@ -248,6 +248,8 @@ Bug fixes
   rejected on some older Linux distros during make develop or make install,
   by upgrading them in these steps. See issues #759 and #760.
 
+* Clean up pylint new messages tied to use of len and if else. See issue #770
+
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 
