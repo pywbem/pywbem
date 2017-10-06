@@ -10,6 +10,7 @@ import time
 import unittest
 
 from pywbem import Statistics
+from unittest_extensions import RegexpMixin
 
 
 def time_abs_delta(t1, t2):
@@ -280,8 +281,11 @@ class StatisticsTests(unittest.TestCase):
             self.assertTrue(time_abs_delta(stats.min_time, duration) < delta)
             self.assertTrue(time_abs_delta(stats.max_time, duration) < delta)
 
+
+class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
+    """Test repr and report output from statistics class"""
     def test_print_statistics(self):  # pylint: disable=no-self-use
-        """Simply print repr() and formatted() for a small statistics."""
+        """Test repr() and formatted() for a small statistics."""
 
         statistics = Statistics()
         statistics.enable()
@@ -302,17 +306,55 @@ class StatisticsTests(unittest.TestCase):
         time.sleep(0.4)
         stats.stop_timer(1200, 35000)
 
-        print("\n\nTest print of repr() for a small statistics No svr time:")
-        print("================")
-        print(repr(statistics))
-        print("================")
-        print("\nTest print of formatted() for the same statistics:")
-        print("================")
-        print(statistics.formatted())
-        print("================")
+        # test repr output
+        stat_repr = repr(statistics)
+
+        self.assertRegexpMatches(stat_repr, r'Statistics\(')
+
+        self.assertRegexpContains(
+            stat_repr,
+            r"OperationStatistic\(name='EnumerateInstanceNames', count=1,"
+            r" exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
+            r"max_time=[.0-9]+, avg_server_time=0.0, min_server_time=inf, "
+            r"max_server_time=0.0, avg_request_len=[.0-9]+, "
+            r"min_request_len=[0-9]{4}, max_request_len=[0-9]{4}, "
+            r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5},"
+            r" max_reply_len=[0-9]{5}")
+
+        self.assertRegexpContains(
+            stat_repr,
+            r"OperationStatistic\(name='EnumerateInstances', count=3, "
+            r"exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
+            r"max_time=[.0-9]+, avg_server_time=0.0, min_server_time=inf, "
+            r"max_server_time=0.0, avg_request_len=[.0-9]+, "
+            r"min_request_len=[0-9]{4}, max_request_len=[0-9]{4}, "
+            r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5}, "
+            r"max_reply_len=[0-9]{5}")
+
+        # Test statistics report output
+
+        report = statistics.formatted()
+
+        self.assertRegexpMatches(
+            report, r'Statistics \(times in seconds, lengths in Bytes\)')
+
+        self.assertRegexpContains(
+            report, r"Count Excep *Time *RequestLen *ReplyLen *Operation")
+
+        self.assertRegexpContains(
+            report,
+            r" +3 +0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
+            r"[.0-9]+ +[0-9]{4} +[0-9]{4} +"
+            r"[.0-9]+ +[0-9]{5} +[0-9]{5} EnumerateInstances")
+
+        self.assertRegexpContains(
+            report,
+            r" +1 +0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
+            r"[.0-9]+ +[0-9]{4} +[0-9]{4} +"
+            r"[.0-9]+ +[0-9]{5} +[0-9]{5} EnumerateInstanceNames")
 
     def test_print_stats_svrtime(self):  # pylint: disable=no-self-use
-        """Simply print repr() and formatted() for a small statistics."""
+        """Test repr() and formatted() for a small statistics."""
 
         statistics = Statistics()
         statistics.enable()
@@ -333,14 +375,72 @@ class StatisticsTests(unittest.TestCase):
         time.sleep(0.4)
         stats.stop_timer(1200, 35000, 0.4)
 
-        print("\n\nTest print of repr() for a small statisticsW server time:")
-        print("================")
-        print(repr(statistics))
-        print("================")
-        print("\nTest print of formatted() for the same statistics:")
-        print("================")
-        print(statistics.formatted())
-        print("================")
+        # test repr output
+        stat_repr = repr(statistics)
+
+        # test repr output
+        self.assertRegexpMatches(stat_repr, 'Statistics\(')
+
+        self.assertRegexpContains(
+            stat_repr,
+            r"OperationStatistic\(name='EnumerateInstanceNames', count=1,"
+            r" exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
+            r"max_time=[.0-9]+, avg_server_time=[.0-9]+, "
+            r"min_server_time=[.0-9]+, "
+            r"max_server_time=[.0-9]+, avg_request_len=[.0-9]+, "
+            r"min_request_len=[0-9]{4}, max_request_len=[0-9]{4}, "
+            r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5},"
+            r" max_reply_len=[0-9]{5}")
+
+        self.assertRegexpContains(
+            stat_repr,
+            r"OperationStatistic\(name='EnumerateInstances', count=3, "
+            r"exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
+            r"max_time=[.0-9]+, avg_server_time=[.0-9]+, "
+            r"min_server_time=[.0-9]+, "
+            r"max_server_time=[.0-9]+, avg_request_len=[.0-9]+, "
+            r"min_request_len=[0-9]{4}, max_request_len=[0-9]{4}, "
+            r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5}, "
+            r"max_reply_len=[0-9]{5}")
+
+        self.assertRegexpContains(
+            stat_repr,
+            r"OperationStatistic\(name='EnumerateInstances', count=3, "
+            r"exception_count=0, avg_time=.+min_time=.+max_time=.+"
+            r"avg_server_time=.+min_server_time.+max_server_time=.+"
+            r"max_reply_len=[0-9]{5}")
+
+        self.assertRegexpContains(
+            stat_repr,
+            r"OperationStatistic\(name='EnumerateInstanceNames', count=1, "
+            r"exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
+            r"max_time=[.0-9]+, avg_server_time=[.0-9]+, min_server_time="
+            r"[.0-9]+.+max_server_time=[.0-9]+, avg_request_len=[.0-9]+"
+            r".+max_reply_len=[0-9]{5}")
+
+        # test formatted output
+
+        report = statistics.formatted()
+
+        self.assertRegexpContains(
+            report,
+            r'Count Excep +Time +ServerTime +RequestLen +ReplyLen +Operation')
+
+        self.assertRegexpContains(
+            report,
+            r'Cnt +Avg +Min +Max +Avg +Min +Max +Avg +Min +Max')
+
+        self.assertRegexpContains(
+            report,
+            r"3     0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
+            r"[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]{5} "
+            r"EnumerateInstances")
+
+        self.assertRegexpContains(
+            report,
+            r"1     0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
+            r"[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]{5} "
+            r"EnumerateInstanceNames")
 
 
 if __name__ == '__main__':
