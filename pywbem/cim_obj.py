@@ -48,17 +48,16 @@ CIM object                                  Purpose
 NocaseDict
 ----------
 
-:class:`~pywbem.NocaseDict` is a dictionary implementation with
-case-insensitive but case-preserving keys. It is used for sets of named
-CIM elements (e.g. CIM properties in an instance or class, or CIM parameters
-in a method).
+Class ``NocaseDict`` is a dictionary implementation with case-insensitive but
+case-preserving keys. It is used for sets of named CIM elements (e.g. CIM
+properties in an instance or class, or CIM parameters in a method).
 
 Except for the case-insensitivity of its keys, it behaves like the built-in
-:class:`py:dict`. Therefore, :class:`~pywbem.NocaseDict` is not described
-in detail in this documentation.
+:class:`py:dict`. Therefore, ``NocaseDict`` is not described in detail in this
+documentation.
 
-Deprecated: In v0.9.0, support for comparing two NocaseDict instances with the
-``>``, ``>``, ``<=``, ``>=`` operators has been deprecated.
+Deprecated: In v0.9.0, support for comparing two ``NocaseDict`` instances with
+the ``>``, ``>``, ``<=``, ``>=`` operators has been deprecated.
 """  # noqa: E501
 # pylint: enable=line-too-long
 # Note: When used before module docstrings, Pylint scopes the disable statement
@@ -140,7 +139,7 @@ class NocaseDict(object):
             dictionary (without copying them).
 
           * If one positional argument of dictionary (mapping) or
-            :class:`~pywbem.cim_obj.NocaseDict` type is provided, its key/value
+            `NocaseDict`_ type is provided, its key/value
             pairs are put into the new dictionary (without copying them).
 
           * Otherwise, `TypeError` is raised.
@@ -332,7 +331,7 @@ class NocaseDict(object):
     def __repr__(self):
         """
         Return a string representation of the
-        :class:`~pywbem.cim_obj.NocaseDict` object that is suitable for
+        `NocaseDict`_ object that is suitable for
         debugging.
 
         The order of dictionary items in the result will be sorted by keys.
@@ -823,7 +822,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         This variable will never be `None`.
 
-      keybindings (:class:`~pywbem.cim_obj.NocaseDict`):
+      keybindings (`NocaseDict`_):
         Keybindings of the instance path (the key property values of the
         referenced instance).
 
@@ -869,7 +868,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
             Must not be `None`.
 
-          keybindings (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
+          keybindings (:class:`py:dict` or `NocaseDict`_):
             Keybindings for the instance path (the key property values
             of the referenced instance).
 
@@ -1227,7 +1226,7 @@ class CIMInstance(_CIMComparisonMixin):
 
         This variable will never be `None`.
 
-      properties (:class:`~pywbem.cim_obj.NocaseDict`):
+      properties (`NocaseDict`_):
         Properties for the instance.
 
         Each dictionary item specifies one property value, with:
@@ -1237,7 +1236,7 @@ class CIMInstance(_CIMComparisonMixin):
 
         This variable will never be `None`.
 
-      qualifiers (:class:`~pywbem.cim_obj.NocaseDict`):
+      qualifiers (`NocaseDict`_):
         Qualifiers for the instance.
 
         Each dictionary item specifies one qualifier value, with:
@@ -1273,7 +1272,7 @@ class CIMInstance(_CIMComparisonMixin):
             Name of the creation class of the instance.
             Must not be `None`.
 
-          properties (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
+          properties (:class:`py:dict` or `NocaseDict`_):
             Properties for the instance.
 
             For details about the dictionary items, see the corresponding
@@ -1281,7 +1280,7 @@ class CIMInstance(_CIMComparisonMixin):
 
             `None` is interpreted as an empty dictionary.
 
-          qualifiers (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
+          qualifiers (:class:`py:dict` or `NocaseDict`_):
             Qualifiers for the instance.
 
             For details about the dictionary items, see the corresponding
@@ -1814,7 +1813,7 @@ class CIMClass(_CIMComparisonMixin):
 
         `None` means that the class is a top-level class.
 
-      properties (:class:`~pywbem.cim_obj.NocaseDict`):
+      properties (`NocaseDict`_):
         Property declarations of the class.
 
         Each dictionary item specifies one property declaration, with:
@@ -1824,7 +1823,7 @@ class CIMClass(_CIMComparisonMixin):
 
         This variable will never be `None`.
 
-      methods (:class:`~pywbem.cim_obj.NocaseDict`):
+      methods (`NocaseDict`_):
         Method declarations of the class.
 
         Each dictionary item specifies one method declaration, with:
@@ -1834,7 +1833,7 @@ class CIMClass(_CIMComparisonMixin):
 
         This variable will never be `None`.
 
-      qualifiers (:class:`~pywbem.cim_obj.NocaseDict`):
+      qualifiers (`NocaseDict`_):
         Qualifier values of the class.
 
         Each dictionary item specifies one qualifier value, with:
@@ -1870,7 +1869,7 @@ class CIMClass(_CIMComparisonMixin):
 
             Must not be `None`.
 
-          properties (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
+          properties (:class:`py:dict` or `NocaseDict`_):
             Property declarations for the class.
 
             For details about the dictionary items, see the corresponding
@@ -1878,7 +1877,7 @@ class CIMClass(_CIMComparisonMixin):
 
             `None` is interpreted as an empty dictionary.
 
-          methods (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
+          methods (:class:`py:dict` or `NocaseDict`_):
             Method declarations for the class.
 
             For details about the dictionary items, see the corresponding
@@ -1891,7 +1890,7 @@ class CIMClass(_CIMComparisonMixin):
 
             If `None`, the class will be a top-level class.
 
-          qualifiers (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
+          qualifiers (:class:`py:dict` or `NocaseDict`_):
             Qualifier values for the class.
 
             For details about the dictionary items, see the corresponding
@@ -2170,7 +2169,7 @@ class CIMProperty(_CIMComparisonMixin):
 
         `None` means that propagation information is not available.
 
-      qualifiers (:class:`~pywbem.cim_obj.NocaseDict`):
+      qualifiers (`NocaseDict`_):
         Qualifier values for the property declaration.
 
         Each dictionary item specifies one qualifier value, with:
@@ -2256,7 +2255,7 @@ class CIMProperty(_CIMComparisonMixin):
             inferred from the creation class name of a referenced instance.
             This was incorrect and has been fixed in v0.11.0.
 
-          qualifiers (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
+          qualifiers (:class:`py:dict` or `NocaseDict`_):
             Qualifier values for the property declaration.
 
             For details about the dictionary items, see the corresponding
@@ -2828,7 +2827,7 @@ class CIMMethod(_CIMComparisonMixin):
 
         `None` means that propagation information is not available.
 
-      parameters (:class:`~pywbem.cim_obj.NocaseDict`):
+      parameters (`NocaseDict`_):
         Parameter declarations for the method declaration.
 
         Each dictionary item specifies one parameter declaration, with:
@@ -2838,7 +2837,7 @@ class CIMMethod(_CIMComparisonMixin):
 
         This variable will never be `None`.
 
-      qualifiers (:class:`~pywbem.cim_obj.NocaseDict`):
+      qualifiers (`NocaseDict`_):
         Qualifier values for the method declaration.
 
         Each dictionary item specifies one qualifier value, with:
@@ -2876,7 +2875,7 @@ class CIMMethod(_CIMComparisonMixin):
 
             Must not be `None`
 
-          parameters (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
+          parameters (:class:`py:dict` or `NocaseDict`_):
             Parameter declarations for the method declaration.
 
             For details about the dictionary items, see the corresponding
@@ -2898,7 +2897,7 @@ class CIMMethod(_CIMComparisonMixin):
 
             `None` means that propagation information is not available.
 
-          qualifiers (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
+          qualifiers (:class:`py:dict` or `NocaseDict`_):
             Qualifier values for the method declaration.
 
             For details about the dictionary items, see the corresponding
@@ -3090,7 +3089,7 @@ class CIMParameter(_CIMComparisonMixin):
         `None` means that the array parameter has variable size, or that it is
         not an array.
 
-      qualifiers (:class:`~pywbem.cim_obj.NocaseDict`):
+      qualifiers (`NocaseDict`_):
         Qualifier values of the parameter declaration.
 
         Each dictionary item specifies one qualifier value, with:
@@ -3143,7 +3142,7 @@ class CIMParameter(_CIMComparisonMixin):
 
             `None` means that the array parameter has variable size.
 
-          qualifiers (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
+          qualifiers (:class:`py:dict` or `NocaseDict`_):
             Qualifier values of the parameter declaration.
 
             For details about the dictionary items, see the corresponding
@@ -3820,7 +3819,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         `None` means that the array qualifier has variable size, or that it is
         not an array.
 
-      scopes (:class:`~pywbem.cim_obj.NocaseDict`):
+      scopes (`NocaseDict`_):
         Scopes of the qualifier.
 
         Each dictionary item specifies one scope value, with:
@@ -3908,7 +3907,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
             `None` means that the array qualifier has variable size.
 
-          scopes (:class:`py:dict` or :class:`~pywbem.cim_obj.NocaseDict`):
+          scopes (:class:`py:dict` or `NocaseDict`_):
             Scopes of the qualifier.
 
             For details about the dictionary items, see the corresponding
