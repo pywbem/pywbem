@@ -7403,7 +7403,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             * returnvalue (:term:`CIM data type`):
               Return value of the CIM method.
-            * outparams (:class:`~pywbem.cim_obj.NocaseDict`):
+            * outparams (`NocaseDict`_):
               Dictionary with all provided output parameters of the CIM method,
               with:
 
