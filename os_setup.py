@@ -327,9 +327,11 @@ class BaseOsCommand(Command):
         self.installer = OSInstaller().platform_installer()
 
     def initialize_options(self):
+        """ Base for initiaise_options"""
         pass
 
     def finalize_options(self):
+        """Base empty method for finalize options"""
         pass
 
 
@@ -853,7 +855,7 @@ class PythonInstaller(BaseInstaller):
             # __init__() on Python 3.x on Windows. See also
             # https://cbuelter.wordpress.com/2015/12/15/you-detach-me-i-
             # detach-you/
-            rc, out, _ = shell(cmd_args, display=True)
+            rc, out, _ = shell(cmd_args, display=True)  # pylint: disable=W0612
             if rc == 127:
                 raise DistutilsSetupError("Pip command is not available")
             elif rc != 0:
@@ -998,6 +1000,7 @@ class OSInstaller(BaseInstaller):
     def authorized(self):
         """Determine whether the current userid is authorized to install
         OS packages."""
+        # pylint: disable=simplifiable-if-statement
         if self.system == "Linux":
             # TODO: Using sudo may ask for the sudo password. Find a better
             #       way of testing for authorization to install packages.

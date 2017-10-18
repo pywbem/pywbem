@@ -1139,7 +1139,7 @@ class WBEMSubscriptionManager(object):
                              uuid.uuid4())
         dest_inst['Destination'] = listener_url
 
-        if owned:
+        if owned:  # pylint: disable=no-else-return
             for i, inst in enumerate(self._owned_destinations[server_id]):
                 if inst.path == dest_path:
                     # It already exists, now check its properties
@@ -1232,7 +1232,7 @@ class WBEMSubscriptionManager(object):
         filter_inst['Query'] = query
         filter_inst['QueryLanguage'] = query_language
 
-        if owned:
+        if owned:  # pylint: disable=no-else-return
             for i, inst in enumerate(self._owned_filters[server_id]):
                 if inst.path == filter_path:
                     # It already exists, now check its properties
@@ -1298,7 +1298,7 @@ class WBEMSubscriptionManager(object):
         sub_inst['Filter'] = filter_path
         sub_inst['Handler'] = dest_path
 
-        if owned:
+        if owned:  # pylint: disable=no-else-return
             for inst in self._owned_subscriptions[server_id]:
                 if inst.path == sub_path:
                     # It does not have any properties besides its keys,

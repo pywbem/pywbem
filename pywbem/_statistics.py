@@ -427,7 +427,7 @@ class OperationStatistic(object):
 
         For an example, see :meth:`pywbem.Statistics.formatted`.
         """
-        if include_server_time:
+        if include_server_time:  # pylint: disable=no-else-return
             return ('{0:5d} {1:5d} '
                     '{2:7.3f} {3:7.3f} {4:7.3f} '
                     '{5:7.3f} {6:7.3f} {7:7.3f} '

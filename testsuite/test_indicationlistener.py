@@ -94,7 +94,7 @@ def send_indication(url, headers, payload, verbose):
 
     try:
         response = requests.post(url, headers=headers, data=payload, timeout=4)
-    except Exception as ex:
+    except Exception as ex:  # pylint: disable=broad-except
         print('Exception %s' % ex)
         return False
 
@@ -121,8 +121,8 @@ def _process_indication(indication, host):
     if there is a mismatch.
     """
 
-    global RCV_COUNT
-    global RCV_FAIL
+    global RCV_COUNT  # pylint: disable=global-statement
+    global RCV_FAIL  # pylint: disable=global-statement
 
     counter = indication.properties['SequenceNumber'].value
     if int(counter) != RCV_COUNT:
@@ -146,11 +146,13 @@ class TestIndications(unittest.TestCase):
     @staticmethod
     def createlistener(host, http_port=None, https_port=None,
                        certfile=None, keyfile=None):
-
-        global RCV_COUNT
-        global LISTENER
-        global RCV_FAIL
-        RCV_FAIL = False
+        """
+        Create and start a listener based on host, ports, etc.
+        """
+        global RCV_COUNT  # pylint: disable=global-statement
+        global LISTENER  # pylint: disable=global-statement
+        global RCV_FAIL  # pylint: disable=global-statement
+        RCV_FAIL = False  # pylint: disable=global-statement
 
         _logging.basicConfig(stream=_sys.stderr, level=_logging.WARNING,
                              format='%(levelname)s: %(message)s')
@@ -176,8 +178,8 @@ class TestIndications(unittest.TestCase):
         """
 
         # pylint: disable=global-variable-not-assigned
-        global VERBOSE
-        global RCV_FAIL
+        global VERBOSE  # pylint: disable=global-statement
+        global RCV_FAIL  # pylint: disable=global-statement
         RCV_FAIL = False
         host = 'localhost'
 

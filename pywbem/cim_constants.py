@@ -250,4 +250,3 @@ PROVIDERTYPE_CONSUMER = 6               # Indication consumer
 PROVIDERTYPE_QUERY = 7
 
 DEFAULT_NAMESPACE = 'root/cimv2'        #: Default CIM namespace
-

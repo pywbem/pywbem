@@ -14,7 +14,7 @@ from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError,\
 
 
 def _assert_subscription(exc):
-
+    """Test the exception defined by exc for required args"""
     # Access by subscription is only supported in Python 2:
     if six.PY2:
         assert exc[:] == exc.args
@@ -43,6 +43,9 @@ def _assert_subscription(exc):
     Error, ConnectionError, AuthError, TimeoutError, ParseError, VersionError
 ], scope='module')
 def simple_class(request):
+    """Return request.param as defined by the fixture. Representing
+       the exception classes.
+    """
     return request.param
 
 
@@ -53,10 +56,17 @@ def simple_class(request):
     ('foo', 42),
 ], scope='module')
 def simple_args(request):
+    """Return request.param defined by the pytest.fixture
+       representing arguments for the exception class
+    """
     return request.param
 
 
 def test_simple(simple_class, simple_args):
+    """Test exceptions classes and arguments using the
+      testfixtures.
+    """
+    # pylint: disable=redefined-outer-name
 
     exc = simple_class(*simple_args)
 
@@ -79,11 +89,14 @@ def test_simple(simple_class, simple_args):
     (404, 'Not Found', 'instance xyz not found', 'foo'),
 ], scope='module')
 def httperror_args(request):
+    """Returns init arguments for the HTTPError exception class as
+       pytest.fixture
+    """
     return request.param
 
 
-def test_httperror(httperror_args):
-
+def test_httperror(httperror_args):  # pylint: disable=redefined-outer-name
+    """Test httperror arguments from test fixture"""
     exc = HTTPError(*httperror_args)
 
     assert exc.status == httperror_args[0]
@@ -144,11 +157,14 @@ def test_httperror(httperror_args):
     (30, None),
 ], scope='module')
 def status_tuple(request):
+    """pytest.fixture returns status codes for CIMError
+       exception
+    """
     return request.param
 
 
-def test_cimerror_1(status_tuple):
-
+def test_cimerror_1(status_tuple):  # pylint: disable=redefined-outer-name
+    """Test cimerror"""
     status_code = status_tuple[0]
     status_code_name = status_tuple[1]
 
@@ -172,7 +188,8 @@ def test_cimerror_1(status_tuple):
     _assert_subscription(exc)
 
 
-def test_cimerror_2(status_tuple):
+def test_cimerror_2(status_tuple):  # pylint: disable=redefined-outer-name
+    """Test cimerror status tuple from date in status-tuple fixture"""
 
     status_code = status_tuple[0]
     status_code_name = status_tuple[1]
