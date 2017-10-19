@@ -58,15 +58,18 @@ def LOCALNAMESPACEPATH():   # pylint: disable=invalid-name
 
 
 def NAMESPACEPATH():   # pylint: disable=invalid-name
+    """Return predefined NAMESPACEPATH"""
     return cim_xml.NAMESPACEPATH(
         cim_xml.HOST('leonardo'), LOCALNAMESPACEPATH())
 
 
 def CLASSNAME():  # pylint: disable=invalid-name
+    """return predefined CLASSNAME, CIM_Foo"""
     return cim_xml.CLASSNAME('CIM_Foo')
 
 
 def INSTANCENAME():  # pylint: disable=invalid-name
+    """Return predefinedINSTANCENAME"""
     return cim_xml.INSTANCENAME(
         'CIM_Pet',
         [cim_xml.KEYBINDING('type', cim_xml.KEYVALUE('dog', 'string')),
@@ -94,6 +97,7 @@ class CIMXMLTest(unittest.TestCase):
         validate_xml(xml, dtd_directory='../..')
 
     def test_all(self):
+        """Loop over xml to execute tests"""
 
         for i in range(0, len(self.xml)):
 
@@ -114,9 +118,10 @@ class CIMXMLTest(unittest.TestCase):
 
 # pylint: disable=too-few-public-methods
 class UnimplementedTest(object):
-
+    """Test unimplemented. Raise AssertionError"""
     @staticmethod
     def test_all():
+        """raise Assertion Error"""
         raise AssertionError('Unimplemented test')
 
 
@@ -128,7 +133,9 @@ class UnimplementedTest(object):
 
 
 class CIM(CIMXMLTest):
+    """CIM Top level element as class"""
     def setUp(self):
+        """setUp for CIM class"""
         super(CIM, self).setUp()
         self.xml.append(cim_xml.CIM(
             cim_xml.MESSAGE(

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-#
-# Test case-insensitive dictionary implementation.
-#
+"""
+    Test case-insensitive dictionary implementation.
+"""
 
 from __future__ import absolute_import
 
@@ -13,9 +13,9 @@ from pywbem.cim_obj import NocaseDict
 
 
 class TestInit(unittest.TestCase):
-
+    """Test initialization"""
     def test_all(self):
-
+        """Test all init options"""
         # Empty
 
         dic = NocaseDict()
@@ -94,16 +94,20 @@ class TestInit(unittest.TestCase):
 
 
 class BaseTest(unittest.TestCase):
-
+    """Base class for following unit test. Does common setup which
+       creates a NoCaseDict.
+    """
     def setUp(self):
+        """unittest setUp creates NoCaseDict"""
         self.dic = NocaseDict()
         self.dic['Dog'] = 'Cat'
         self.dic['Budgie'] = 'Fish'
 
 
 class TestGetitem(BaseTest):
-
+    """Tests for getitem"""
     def test_all(self):
+        """All tests"""
         self.assertTrue(self.dic['dog'] == 'Cat')
         self.assertTrue(self.dic['DOG'] == 'Cat')
 
@@ -116,15 +120,16 @@ class TestGetitem(BaseTest):
 
 
 class TestLen(BaseTest):
-
+    """Tests for len of dict"""
     def test_all(self):
+        """Test method"""
         self.assertTrue(len(self.dic) == 2)
 
 
 class TestSetitem(BaseTest):
-
+    """Test setting items"""
     def test_all(self):
-
+        """All setitem tests"""
         self.dic['DOG'] = 'Kitten'
         self.assertTrue(self.dic['DOG'] == 'Kitten')
         self.assertTrue(self.dic['Dog'] == 'Kitten')
@@ -141,8 +146,9 @@ class TestSetitem(BaseTest):
 
 
 class TestDelitem(BaseTest):
-
+    """Class for del items from dictionary"""
     def test_all(self):
+        """All tests"""
         del self.dic['DOG']
         del self.dic['budgie']
         self.assertTrue(self.dic.keys() == [])
@@ -156,16 +162,18 @@ class TestDelitem(BaseTest):
 
 
 class TestHasKey(BaseTest):
-
+    """Class to test haskey on dict"""
     def test_all(self):
+        """Method to test haskey"""
         self.assertTrue('DOG' in self.dic)
         self.assertTrue('budgie' in self.dic)
         self.assertTrue(1234 not in self.dic)
 
 
 class TestKeys(BaseTest):
-
+    """Class for TestKeys method"""
     def test_all(self):
+        """All tests in single method"""
         keys = self.dic.keys()
         animals = ['Budgie', 'Dog']
         for ani in animals:
@@ -175,8 +183,9 @@ class TestKeys(BaseTest):
 
 
 class TestValues(BaseTest):
-
+    """Class for values tests"""
     def test_all(self):
+        """Test all for TestValues"""
         values = self.dic.values()
         animals = ['Cat', 'Fish']
         for ani in animals:
@@ -186,8 +195,9 @@ class TestValues(BaseTest):
 
 
 class TestItems(BaseTest):
-
+    """Class for Test items"""
     def test_all(self):
+        """All tests for item"""
         items = self.dic.items()
         animals = [('Dog', 'Cat'), ('Budgie', 'Fish')]
         for ani in animals:
@@ -197,15 +207,17 @@ class TestItems(BaseTest):
 
 
 class TestClear(BaseTest):
-
+    """Class for dict clear method"""
     def test_all(self):
+        """All clear method tests"""
         self.dic.clear()
         self.assertTrue(len(self.dic) == 0)
 
 
 class TestUpdate(BaseTest):
-
+    """Class for test update method"""
     def test_all(self):
+        """All methods for TestUpdate"""
         self.dic.clear()
         self.dic.update({'Chicken': 'Ham'})
         self.assertTrue(self.dic.keys() == ['Chicken'])
@@ -231,8 +243,9 @@ class TestUpdate(BaseTest):
 
 
 class TestCopy(BaseTest):
-
+    """Class to test dict copy"""
     def test_all(self):
+        """All tests for dict copy"""
         cp = self.dic.copy()
         self.assertEqual(cp, self.dic)
         self.assertTrue(isinstance(cp, NocaseDict))
@@ -242,16 +255,18 @@ class TestCopy(BaseTest):
 
 
 class TestGet(BaseTest):
-
+    """Class to test get method"""
     def test_all(self):
+        """Test get method"""
         self.assertTrue(self.dic.get('Dog', 'Chicken') == 'Cat')
         self.assertTrue(self.dic.get('Ningaui') is None)
         self.assertTrue(self.dic.get('Ningaui', 'Chicken') == 'Chicken')
 
 
 class TestSetDefault(BaseTest):
-
+    """Class for setdefault test methods"""
     def test_all(self):
+        """All tests for setdefault of dict"""
         self.dic.setdefault('Dog', 'Kitten')
         self.assertTrue(self.dic['Dog'] == 'Cat')
         self.dic.setdefault('Ningaui', 'Chicken')
@@ -259,8 +274,9 @@ class TestSetDefault(BaseTest):
 
 
 class TestPopItem(BaseTest):
-
+    """Class for PopItem"""
     def test_all(self):
+        """This test does nothing"""
         pass
 
 
@@ -280,9 +296,9 @@ def swapcase2(text):
 
 
 class TestEqual(BaseTest):
-
+    """Class for test equal for dict items"""
     def assertDictEqual(self, dic1, dic2, msg):
-
+        """method to test for dict items equal"""
         self.assertTrue(dic1 == dic2, msg)
         self.assertFalse(dic1 != dic2, msg)
 
@@ -290,7 +306,7 @@ class TestEqual(BaseTest):
         self.assertFalse(dic2 != dic1, msg)
 
     def assertDictNotEqual(self, dic1, dic2, msg):
-
+        """Method to test for unequal dict methods"""
         self.assertTrue(dic1 != dic2, msg)
         self.assertFalse(dic1 == dic2, msg)
 
@@ -298,7 +314,7 @@ class TestEqual(BaseTest):
         self.assertFalse(dic2 == dic1, msg)
 
     def run_test_dicts(self, base_dict, test_dicts):
-
+        """General test_dictionaries"""
         for test_dict, relation, comment in test_dicts:
             if relation == 'eq':
                 self.assertDictEqual(test_dict, base_dict,
@@ -320,7 +336,7 @@ class TestEqual(BaseTest):
                                      (relation, comment))
 
     def test_all(self):
-
+        """Class for overall test"""
         # The base dictionary that is used for all comparisons
         base_dict = dict({'Budgie': 'Fish', 'Dog': 'Cat'})
 
@@ -404,13 +420,14 @@ class TestOrdering(BaseTest):
     TypeError."""
 
     def assertWarning(self, comp_str):
+        """Common function for assert warning"""
         with warnings.catch_warnings(record=True) as wlist:
             warnings.simplefilter("always")
             if six.PY2:
-                eval(comp_str)
+                eval(comp_str)  # pylint: disable=eval-used
             else:
                 try:
-                    eval(comp_str)
+                    eval(comp_str)  # pylint: disable=eval-used
                 except TypeError as exc:
                     msg = str(exc)
                     if "not supported between instances" not in msg and \
@@ -418,7 +435,7 @@ class TestOrdering(BaseTest):
                         self.fail("Applying ordering to a dictionary in "
                                   "Python 3 did raise TypeError but with an "
                                   "unexpected message: %s" % msg)
-                except Exception as exc:
+                except Exception as exc:  # pylint: disable=broad-except
                     msg = str(exc)
                     self.fail("Applying ordering to a dictionary in Python 3 "
                               "did not raise TypeError, but %s: %s" %
@@ -431,6 +448,7 @@ class TestOrdering(BaseTest):
             assert "deprecated" in str(wlist[-1].message)
 
     def test_all(self):
+        """Test for the compare options that should generate assertWarning"""
         self.assertWarning("self.dic < self.dic")
         self.assertWarning("self.dic <= self.dic")
         self.assertWarning("self.dic > self.dic")
@@ -438,16 +456,18 @@ class TestOrdering(BaseTest):
 
 
 class TestContains(BaseTest):
-
+    """Class for dict contains functionality"""
     def test_all(self):
+        """Method for test dict contains functionality"""
         self.assertTrue('dog' in self.dic)
         self.assertTrue('Dog' in self.dic)
         self.assertTrue('Cat' not in self.dic)
 
 
 class TestForLoop(BaseTest):
-
+    """Class for test for loop with dictionary"""
     def test_all(self):
+        """Test method for TestForLoop"""
         keys = set()
         for key in self.dic:
             keys.add(key)
@@ -455,8 +475,9 @@ class TestForLoop(BaseTest):
 
 
 class TestIterkeys(BaseTest):
-
+    """Class for iterkeys test"""
     def test_all(self):
+        """iterkeys test method"""
         keys = set()
         for key in self.dic.iterkeys():
             keys.add(key)
@@ -464,8 +485,9 @@ class TestIterkeys(BaseTest):
 
 
 class TestItervalues(BaseTest):
-
+    """Class for test itervalues test"""
     def test_all(self):
+        """itervalues test method"""
         vals = set()
         for val in self.dic.itervalues():
             vals.add(val)
@@ -473,8 +495,9 @@ class TestItervalues(BaseTest):
 
 
 class TestIteritems(BaseTest):
-
+    """Class to test iteritems for dict"""
     def test_all(self):
+        """Method for test iteritems for dict"""
         items = set()
         for item in self.dic.iteritems():
             items.add(item)
@@ -482,7 +505,7 @@ class TestIteritems(BaseTest):
 
 
 class TestRepr(unittest.TestCase):
-
+    """Class to test repr functionality for NocaseDict"""
     def test_reliable_order(self):
         """Test that repr() has a reliable result despite different orders of
         insertion into the dictionary."""

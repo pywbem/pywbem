@@ -210,7 +210,7 @@ class ParseCIMParameter(TupleTest):
     """Test parsing of CIMParameter objects."""
 
     def test_all(self):
-
+        """All tests for ParseCIMParameter"""
         # Single-valued parameters
 
         self._run_single(CIMParameter('Param', 'string'))
@@ -266,9 +266,9 @@ class ParseCIMParameter(TupleTest):
 
 
 class ParseXMLKeyValue(RawXMLTest):
-
+    """Class for test of Parse XML key values"""
     def test_all(self):
-
+        """All tests for XML key values"""
         self._run_single(
             '<KEYVALUE VALUETYPE="numeric">1234</KEYVALUE>', 1234)
 

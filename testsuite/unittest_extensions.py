@@ -60,10 +60,12 @@ class FileMixin(object):
     assertion functions for file related tests."""
 
     def assertFileExists(self, filename):
+        """Test assert file exists"""
         assert os.path.exists(filename), \
             ("File does not exist but should: %s" % filename)
 
     def assertFileNotExists(self, filename):
+        """Test assert file exists but should not"""
         assert not os.path.exists(filename), \
             ("File exists but should not: %s" % filename)
 

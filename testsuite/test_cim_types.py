@@ -40,11 +40,13 @@ from pywbem import CIMType, CIMInt, CIMFloat, Uint8, Uint16, Uint32, Uint64, \
     (Sint64, 'sint64', -2**63, 2**63 - 1),
 ], scope='module')
 def integer_tuple(request):
+    """Utility function to return param from request"""
     return request.param
 
 
 def test_integer_class_attrs_class(integer_tuple):
     """Test class attrs via class level"""
+    # pylint: disable=redefined-outer-name
     obj_type, exp_cimtype, exp_minvalue, exp_maxvalue = integer_tuple
     assert obj_type.cimtype == exp_cimtype
     assert obj_type.minvalue == exp_minvalue
@@ -53,6 +55,7 @@ def test_integer_class_attrs_class(integer_tuple):
 
 def test_integer_class_attrs_inst(integer_tuple):
     """Test class attrs via instance level"""
+    # pylint: disable=redefined-outer-name
     obj_type, exp_cimtype, exp_minvalue, exp_maxvalue = integer_tuple
     obj = obj_type(42)
     assert obj.cimtype == exp_cimtype
@@ -62,6 +65,7 @@ def test_integer_class_attrs_inst(integer_tuple):
 
 def test_integer_inheritance(integer_tuple):
     """Test inheritance"""
+    # pylint: disable=redefined-outer-name
     obj_type = integer_tuple[0]
     obj = obj_type(42)
     assert isinstance(obj, obj_type)
@@ -72,6 +76,7 @@ def test_integer_inheritance(integer_tuple):
 
 def test_integer_init_int(integer_tuple):
     """Test initialization from integer value"""
+    # pylint: disable=redefined-outer-name
     obj_type = integer_tuple[0]
     obj = obj_type(42)
     assert obj == 42
@@ -79,6 +84,7 @@ def test_integer_init_int(integer_tuple):
 
 def test_integer_init_str(integer_tuple):
     """Test initialization from string value"""
+    # pylint: disable=redefined-outer-name
     obj_type = integer_tuple[0]
     obj = obj_type('42')
     assert obj == 42
@@ -86,6 +92,7 @@ def test_integer_init_str(integer_tuple):
 
 def test_integer_init_str_base10(integer_tuple):
     """Test initialization from string value with base 10"""
+    # pylint: disable=redefined-outer-name
     obj_type = integer_tuple[0]
     obj = obj_type('42', 10)
     assert obj == 42
@@ -93,6 +100,7 @@ def test_integer_init_str_base10(integer_tuple):
 
 def test_integer_init_str_base16(integer_tuple):
     """Test initialization from string value with base 16"""
+    # pylint: disable=redefined-outer-name
     obj_type = integer_tuple[0]
     obj = obj_type('2A', 16)
     assert obj == 42
@@ -100,6 +108,7 @@ def test_integer_init_str_base16(integer_tuple):
 
 def test_integer_init_minimum(integer_tuple):
     """Test initialization from integer value at minimum"""
+    # pylint: disable=redefined-outer-name
     obj_type = integer_tuple[0]
     exp_minvalue = integer_tuple[2]
     obj = obj_type(exp_minvalue)
@@ -108,6 +117,7 @@ def test_integer_init_minimum(integer_tuple):
 
 def test_integer_init_maximum(integer_tuple):
     """Test initialization from integer value at maximum"""
+    # pylint: disable=redefined-outer-name
     obj_type = integer_tuple[0]
     exp_maxvalue = integer_tuple[3]
     obj = obj_type(exp_maxvalue)
@@ -116,6 +126,7 @@ def test_integer_init_maximum(integer_tuple):
 
 def test_integer_init_too_low(integer_tuple):
     """Test initialization from integer value below minimum"""
+    # pylint: disable=redefined-outer-name
     obj_type = integer_tuple[0]
     exp_minvalue = integer_tuple[2]
     try:
@@ -128,6 +139,7 @@ def test_integer_init_too_low(integer_tuple):
 
 def test_integer_init_too_high(integer_tuple):
     """Test initialization from integer value above maximum"""
+    # pylint: disable=redefined-outer-name
     obj_type = integer_tuple[0]
     exp_maxvalue = integer_tuple[3]
     try:
@@ -155,24 +167,28 @@ def test_integer_init_too_high(integer_tuple):
     (Real64, 'real64'),
 ], scope='module')
 def real_tuple(request):
+    """pytest.fixture returns Real types"""
     return request.param
 
 
 def test_real_class_attrs_class(real_tuple):
-    """Test class attrs via class level"""
+    """Test class attrs via class level using real_tuple fixture"""
+    # pylint: disable=redefined-outer-name
     obj_type, exp_cimtype = real_tuple
     assert obj_type.cimtype == exp_cimtype
 
 
 def test_real_class_attrs_inst(real_tuple):
-    """Test class attrs via instance level"""
+    """Test class attrs via instance level using real_tuple fixture"""
+    # pylint: disable=redefined-outer-name
     obj_type, exp_cimtype = real_tuple
     obj = obj_type(42)
     assert obj.cimtype == exp_cimtype
 
 
 def test_real_inheritance(real_tuple):
-    """Test inheritance"""
+    """Test inheritance  using real_tuple fixture"""
+    # pylint: disable=redefined-outer-name
     obj_type = real_tuple[0]
     obj = obj_type(42)
     assert isinstance(obj, obj_type)
@@ -183,13 +199,15 @@ def test_real_inheritance(real_tuple):
 
 def test_real_init_float(real_tuple):
     """Test initialization from floating point value"""
+    # pylint: disable=redefined-outer-name
     obj_type = real_tuple[0]
     obj = obj_type(42.0)
     assert obj == 42.0
 
 
 def test_real_init_str(real_tuple):
-    """Test initialization from string value"""
+    """Test initialization from string value using real_tuple fixture"""
+    # pylint: disable=redefined-outer-name
     obj_type = real_tuple[0]
     obj = obj_type('42.0')
     assert obj == 42.0
@@ -330,10 +348,11 @@ def test_real_init_str(real_tuple):
     ),
 ], scope='module')
 def datetime_init_tuple(request):
+    """pytest.fixture that returns datatetime tuple info"""
     return request.param
 
 
-def test_datetime_class_attrs_class():
+def test_datetime_class_attrs_class():  # pylint: disable=invalid-name
     """Test class attrs via class level"""
     assert CIMDateTime.cimtype == 'datetime'
 
@@ -354,12 +373,15 @@ def test_datetime_inheritance():
 
 
 def test_datetime_init(datetime_init_tuple):
-    """Test initialization from all input types"""
+    """Test initialization from all input types using
+       datetime_init_tuple pytest.fixture.
+    """
+    # pylint: disable=redefined-outer-name
     (dtarg, exp_kind, exp_datetime, exp_timedelta, exp_minutesfromutc,
      exp_str) = datetime_init_tuple
     try:
         obj = CIMDateTime(dtarg)
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-except
         assert isinstance(exc, exp_kind)
     else:
         assert obj.is_interval == (exp_kind == 'interval')

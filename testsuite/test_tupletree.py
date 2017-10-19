@@ -12,9 +12,9 @@ from pkg_resources import resource_filename
 
 from pywbem import tupletree
 
-pp = pprint.PrettyPrinter(indent=4)
+pp = pprint.PrettyPrinter(indent=4)  # pylint: disable=invalid-name
 
-test_tuple = (u'CIM',
+test_tuple = (u'CIM',  # pylint: disable=invalid-name
               {u'CIMVERSION': u'2.0', u'DTDVERSION': u'2.0'},
               [(u'MESSAGE',
                 {u'ID': u'1001', u'PROTOCOLVERSION': u'1.0'},
@@ -182,6 +182,7 @@ class TestTupleTreeRegression(unittest.TestCase):
     """Setup the TupleTree tests"""
     def setUp(self):
         self.data_dir = resource_filename(__name__, 'tupletree_ok')
+        # pylint: disable=unused-variable
         for path, dirs, files in os.walk(self.data_dir):
             self.filenames = [os.path.join(path, f) for f in files]
 
@@ -203,8 +204,11 @@ class TestTupleTreeRegression(unittest.TestCase):
 
 
 class TestTupleTreeError(unittest.TestCase):
-
+    """Base class for Testing Tuple tree errors. Does setUp and common
+       method to test
+    """
     def setUp(self):
+        """Unittest setUp"""
         self.data_dir = resource_filename(__name__, 'tupletree_error')
 
     def test_to_tupletree_error(self):
@@ -217,7 +221,7 @@ class TestTupleTreeError(unittest.TestCase):
 
 
 class TestTupleTreeSax(unittest.TestCase):
-
+    """Class to execute SaxTupleTree tests"""
     def test_xml_to_tupletree_sax(self):
         """
         XML to tupletree with SAX is accurate.

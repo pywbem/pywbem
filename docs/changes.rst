@@ -36,6 +36,8 @@ Bug fixes
 
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
+* Cleaned up a lot of pylint warnings, for things like missing-doc, etc. so that
+  we can actually review the remainder.  See issue #808.
 
 Documentation
 ^^^^^^^^^^^^^
