@@ -17,7 +17,8 @@ class RegexpMixin(object):
     """Mixin class for classes derived from unittest.TestCase, providing
     assertion functions for regular expression tests."""
 
-    def assertRegexpContains(self, text, pattern, msg=None):
+    @staticmethod
+    def assertRegexpContains(text, pattern, msg=None):
         """Assert that a string text *contains* a particular regular expression
         pattern.
 
@@ -34,7 +35,8 @@ class RegexpMixin(object):
                 "    text:    %r\n"
                 "    pattern: %r" % (text, pattern))
 
-    def assertRegexpMatches(self, text, pattern, msg=None):
+    @staticmethod
+    def assertRegexpMatches(text, pattern, msg=None):
         """Assert that a string text matches a particular regular expression
         pattern.
 
@@ -59,12 +61,14 @@ class FileMixin(object):
     """Mixin class for classes derived from unittest.TestCase, providing
     assertion functions for file related tests."""
 
-    def assertFileExists(self, filename):
+    @staticmethod
+    def assertFileExists(filename):
         """Test assert file exists"""
         assert os.path.exists(filename), \
             ("File does not exist but should: %s" % filename)
 
-    def assertFileNotExists(self, filename):
+    @staticmethod
+    def assertFileNotExists(filename):
         """Test assert file exists but should not"""
         assert not os.path.exists(filename), \
             ("File exists but should not: %s" % filename)

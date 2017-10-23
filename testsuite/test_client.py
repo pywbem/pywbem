@@ -236,7 +236,8 @@ class Callback(object):
         raise socket.error(32, "Broken pipe.")
 
     @staticmethod
-    def socket_timeout(request, uri, headers):  # pylint: disable=unused-argument # noqa: E501
+    def socket_timeout(request, uri, headers):
+        # pylint: disable=unused-argument
         """HTTPretty callback function that raises socket.timeout error.
            The socket.timeout is just a string, no status.
         """
@@ -779,7 +780,6 @@ class ClientTest(unittest.TestCase):
                     NocaseDict(exp_result_obj[1])
                 )
             else:
-                # pylint: disable=redefined-variable-type
                 _exp_result_obj = exp_result_obj
 
             # If result items are tuple, convert to lists. This is for
@@ -793,7 +793,6 @@ class ClientTest(unittest.TestCase):
                     else:
                         _result.append(item)
             else:
-                # pylint: disable=redefined-variable-type
                 _result = result
 
             if _result != _exp_result_obj:

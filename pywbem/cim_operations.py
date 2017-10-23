@@ -3760,6 +3760,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                            OperationTimeout=None, ContinueOnError=None,
                            MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
                            **extra):
+        # pylint: disable=line-too-long
         """
         Execute a query in a namespace,
         using the corresponding pull operations if supported by the WBEM server
@@ -3919,6 +3920,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             for inst in result.generator:
                 print('instance %s' % inst.tomof())
         """  # noqa: E501
+        # pylint: enable=line-too-long
 
         class IterQueryInstancesReturn(object):
             """
@@ -3980,7 +3982,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         pull_result.query_result_class
 
                     while not pull_result.eos:
-                        # pylint: disable=redefined-variable-type
                         pull_result = self.PullInstances(
                             pull_result.context, MaxObjectCount=MaxObjectCount)
                         _instances.extend(pull_result.instances)

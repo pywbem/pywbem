@@ -185,8 +185,8 @@ class ToYaml(ClientRecorderTests):
         self.assertEqual(dti['type'], 'datetime')
         self.assertEqual(dti['value'], '00000010000049.000020:000')
 
-        # TODO reference properties
-        # TODO embedded object property
+        # TODO add test for reference properties
+        # TODO add test for embedded object property
 
     def test_inst_to_yaml_array_props(self):
         """Test  property with array toyaml"""
@@ -243,7 +243,7 @@ class ToYaml(ClientRecorderTests):
         test_yaml = self.test_recorder.toyaml(inst_name)
         self.assertEqual(test_yaml['pywbem_object'], 'CIMInstanceName')
         self.assertEqual(test_yaml['classname'], 'CIM_Foo')
-        # TODO host does not appear in output yaml
+        # TODO host does not appear in output yaml. Is that correct???
         # ##self.assertEqual[test_yaml['host'], 'woot.com']
         kbs = test_yaml['keybindings']
         self.assertEqual(len(kbs), 1)
@@ -286,7 +286,7 @@ class LogOperationStageTests(ClientRecorderTests):
         # TODO the following fails because of issues with timedelta
         # params = [('Date2', timedelta(60))]
         params = [('StringParam', 'Spotty')]
-        # TODO fix the error we have masked above
+
         self.test_recorder.stage_pywbem_args(method='InvokeMethod',
                                              MethodName='Blah',
                                              ObjectName=obj_name,
@@ -493,6 +493,7 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
                                     log_filename=TEST_OUTPUT_LOG,
                                     log_detail_level=log_detail_level)
 
+        # pylint: disable=attribute-defined-outside-init
         self.test_recorder = _LogOperationRecorder(max_log_entry_size)
 
         # Set a conn id into the connection. Saves testing the connection

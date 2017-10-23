@@ -22,6 +22,8 @@
 
 # TODO 2/16 KS: Sort this issue out and see if we need to fix. These two
 #               issues are found repeatedly in this file so pylint disabled.
+#               Throughout the code, the classes __init__ from Element, not
+#               a direct superclass is used.
 # pylint: disable=non-parent-init-called,super-init-not-called
 
 """
@@ -165,7 +167,7 @@ def _pcdata_nodes(pcdata):
         # The following automatically uses XML entity references
         # for escaping.
 
-        node = _text(pcdata)  # pylint: disable=redefined-variable-type
+        node = _text(pcdata)
 
         nodelist.append(node)
 
@@ -345,7 +347,7 @@ class QUALIFIER_DECLARATION(CIMElement):
             if is_array:
                 xval = VALUE_ARRAY(value)
             else:
-                xval = VALUE(value)  # pylint: disable=redefined-variable-type
+                xval = VALUE(value)
             self.appendOptionalChild(xval)
 
 

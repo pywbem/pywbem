@@ -195,7 +195,6 @@ def test_cimerror_2(status_tuple):  # pylint: disable=redefined-outer-name
     status_code_name = status_tuple[1]
 
     invalid_code_name = 'Invalid status code %s' % status_code
-    _invalid_code_desc = 'Invalid status code %s' % status_code  # noqa: F841
 
     input_desc = 'foo'
 

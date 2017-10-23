@@ -768,7 +768,6 @@ def p_classDeclaration(p):
             else:  # superclass
                 superclass = p[4]
                 cfl = p[6]
-    # pylint: disable=redefined-variable-type
     quals = dict([(x.name, x) for x in quals])
     methods = {}
     props = {}
@@ -1086,7 +1085,6 @@ def p_referenceDeclaration(p):
         pname = p[2]
         if len(p) == 5:
             dv = p[3]
-    # pylint: disable=redefined-variable-type
     quals = dict([(x.name, x) for x in quals])
     p[0] = CIMProperty(pname, dv, type='reference',
                        reference_class=cname, qualifiers=quals)
@@ -1112,7 +1110,6 @@ def p_methodDeclaration(p):
         mname = p[3]
         if p[5] != ')':
             paramlist = p[5]
-    # pylint: disable=redefined-variable-type
     params = dict([(param.name, param) for param in paramlist])
     quals = dict([(q.name, q) for q in quals])
     p[0] = CIMMethod(mname, return_type=dt, parameters=params,
