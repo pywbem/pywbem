@@ -898,7 +898,8 @@ class CIMInstanceName(_CIMComparisonMixin):
     @classname.setter
     def classname(self, classname):
         """Setter method; for a description see the getter method."""
-        self._classname = classname  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._classname = classname
 
     @property
     def keybindings(self):
@@ -945,7 +946,8 @@ class CIMInstanceName(_CIMComparisonMixin):
     @keybindings.setter
     def keybindings(self, keybindings):
         """Setter method; for a description see the getter method."""
-        self._keybindings = keybindings  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._keybindings = keybindings
 
     @property
     def namespace(self):
@@ -964,7 +966,8 @@ class CIMInstanceName(_CIMComparisonMixin):
     @namespace.setter
     def namespace(self, namespace):
         """Setter method; for a description see the getter method."""
-        self._namespace = namespace  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._namespace = namespace
 
     @property
     def host(self):
@@ -986,7 +989,8 @@ class CIMInstanceName(_CIMComparisonMixin):
     @host.setter
     def host(self, host):
         """Setter method; for a description see the getter method."""
-        self._host = host  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._host = host
 
     def _cmp(self, other):
         """
@@ -1411,7 +1415,8 @@ class CIMInstance(_CIMComparisonMixin):
     @classname.setter
     def classname(self, classname):
         """Setter method; for a description see the getter method."""
-        self._classname = classname  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._classname = classname
 
     @property
     def properties(self):
@@ -1462,7 +1467,8 @@ class CIMInstance(_CIMComparisonMixin):
     @properties.setter
     def properties(self, properties):
         """Setter method; for a description see the getter method."""
-        self._properties = properties  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._properties = properties
 
     @property
     def qualifiers(self):
@@ -1492,7 +1498,8 @@ class CIMInstance(_CIMComparisonMixin):
     @qualifiers.setter
     def qualifiers(self, qualifiers):
         """Setter method; for a description see the getter method."""
-        self._qualifiers = qualifiers  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._qualifiers = qualifiers
 
     @property
     def path(self):
@@ -1509,7 +1516,8 @@ class CIMInstance(_CIMComparisonMixin):
     @path.setter
     def path(self, path):
         """Setter method; for a description see the getter method."""
-        self._path = path  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._path = path
 
     @property
     def property_list(self):
@@ -1528,7 +1536,8 @@ class CIMInstance(_CIMComparisonMixin):
     @property_list.setter
     def property_list(self, property_list):
         """Setter method; for a description see the getter method."""
-        self._property_list = property_list  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._property_list = property_list
 
     def _cmp(self, other):
         """
@@ -1888,7 +1897,8 @@ class CIMClassName(_CIMComparisonMixin):
     @classname.setter
     def classname(self, classname):
         """Setter method; for a description see the getter method."""
-        self._classname = classname  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._classname = classname
 
     @property
     def namespace(self):
@@ -1906,7 +1916,8 @@ class CIMClassName(_CIMComparisonMixin):
     @namespace.setter
     def namespace(self, namespace):
         """Setter method; for a description see the getter method."""
-        self._namespace = namespace  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._namespace = namespace
 
     @property
     def host(self):
@@ -1927,7 +1938,8 @@ class CIMClassName(_CIMComparisonMixin):
     @host.setter
     def host(self, host):
         """Setter method; for a description see the getter method."""
-        self._host = host  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._host = host
 
     def copy(self):
         """
@@ -2159,7 +2171,8 @@ class CIMClass(_CIMComparisonMixin):
     @classname.setter
     def classname(self, classname):
         """Setter method; for a description see the getter method."""
-        self._classname = classname  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._classname = classname
 
     @property
     def superclass(self):
@@ -2176,7 +2189,8 @@ class CIMClass(_CIMComparisonMixin):
     @superclass.setter
     def superclass(self, superclass):
         """Setter method; for a description see the getter method."""
-        self._superclass = superclass  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._superclass = superclass
 
     @property
     def properties(self):
@@ -2210,7 +2224,8 @@ class CIMClass(_CIMComparisonMixin):
     @properties.setter
     def properties(self, properties):
         """Setter method; for a description see the getter method."""
-        self._properties = properties  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._properties = properties
 
     @property
     def methods(self):
@@ -2244,7 +2259,8 @@ class CIMClass(_CIMComparisonMixin):
     @methods.setter
     def methods(self, methods):
         """Setter method; for a description see the getter method."""
-        self._methods = methods  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._methods = methods
 
     @property
     def qualifiers(self):
@@ -2278,7 +2294,8 @@ class CIMClass(_CIMComparisonMixin):
     @qualifiers.setter
     def qualifiers(self, qualifiers):
         """Setter method; for a description see the getter method."""
-        self._qualifiers = qualifiers  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._qualifiers = qualifiers
 
     @property
     def path(self):
@@ -2303,7 +2320,8 @@ class CIMClass(_CIMComparisonMixin):
     @path.setter
     def path(self, path):
         """Setter method; for a description see the getter method."""
-        self._path = path  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._path = path
 
     def _cmp(self, other):
         """
@@ -2869,7 +2887,8 @@ class CIMProperty(_CIMComparisonMixin):
     @name.setter
     def name(self, name):
         """Setter method; for a description see the getter method."""
-        self._name = name  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._name = name
 
     @property
     def value(self):
@@ -2892,7 +2911,8 @@ class CIMProperty(_CIMComparisonMixin):
     @value.setter
     def value(self, value):
         """Setter method; for a description see the getter method."""
-        self._value = value  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._value = value
 
     @property
     def type(self):
@@ -2910,7 +2930,8 @@ class CIMProperty(_CIMComparisonMixin):
     @type.setter
     def type(self, type):
         """Setter method; for a description see the getter method."""
-        self._type = type  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._type = type
 
     @property
     def reference_class(self):
@@ -2937,7 +2958,8 @@ class CIMProperty(_CIMComparisonMixin):
     @reference_class.setter
     def reference_class(self, reference_class):
         """Setter method; for a description see the getter method."""
-        self._reference_class = reference_class  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._reference_class = reference_class
 
     @property
     def embedded_object(self):
@@ -2969,7 +2991,8 @@ class CIMProperty(_CIMComparisonMixin):
     @embedded_object.setter
     def embedded_object(self, embedded_object):
         """Setter method; for a description see the getter method."""
-        self._embedded_object = embedded_object  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._embedded_object = embedded_object
 
     @property
     def is_array(self):
@@ -2987,7 +3010,8 @@ class CIMProperty(_CIMComparisonMixin):
     @is_array.setter
     def is_array(self, is_array):
         """Setter method; for a description see the getter method."""
-        self._is_array = is_array  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._is_array = is_array
 
     @property
     def array_size(self):
@@ -3005,7 +3029,8 @@ class CIMProperty(_CIMComparisonMixin):
     @array_size.setter
     def array_size(self, array_size):
         """Setter method; for a description see the getter method."""
-        self._array_size = array_size  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._array_size = array_size
 
     @property
     def class_origin(self):
@@ -3024,7 +3049,8 @@ class CIMProperty(_CIMComparisonMixin):
     @class_origin.setter
     def class_origin(self, class_origin):
         """Setter method; for a description see the getter method."""
-        self._class_origin = class_origin  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._class_origin = class_origin
 
     @property
     def propagated(self):
@@ -3044,7 +3070,8 @@ class CIMProperty(_CIMComparisonMixin):
     @propagated.setter
     def propagated(self, propagated):
         """Setter method; for a description see the getter method."""
-        self._propagated = propagated  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._propagated = propagated
 
     @property
     def qualifiers(self):
@@ -3079,7 +3106,8 @@ class CIMProperty(_CIMComparisonMixin):
     @qualifiers.setter
     def qualifiers(self, qualifiers):
         """Setter method; for a description see the getter method."""
-        self._qualifiers = qualifiers  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._qualifiers = qualifiers
 
     def copy(self):
         """
@@ -3469,7 +3497,8 @@ class CIMMethod(_CIMComparisonMixin):
     @name.setter
     def name(self, name):
         """Setter method; for a description see the getter method."""
-        self._name = name  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._name = name
 
     @property
     def return_type(self):
@@ -3488,7 +3517,8 @@ class CIMMethod(_CIMComparisonMixin):
     @return_type.setter
     def return_type(self, return_type):
         """Setter method; for a description see the getter method."""
-        self._return_type = return_type  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._return_type = return_type
 
     @property
     def class_origin(self):
@@ -3507,7 +3537,8 @@ class CIMMethod(_CIMComparisonMixin):
     @class_origin.setter
     def class_origin(self, class_origin):
         """Setter method; for a description see the getter method."""
-        self._class_origin = class_origin  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._class_origin = class_origin
 
     @property
     def propagated(self):
@@ -3525,7 +3556,8 @@ class CIMMethod(_CIMComparisonMixin):
     @propagated.setter
     def propagated(self, propagated):
         """Setter method; for a description see the getter method."""
-        self._propagated = propagated  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._propagated = propagated
 
     @property
     def parameters(self):
@@ -3559,7 +3591,8 @@ class CIMMethod(_CIMComparisonMixin):
     @parameters.setter
     def parameters(self, parameters):
         """Setter method; for a description see the getter method."""
-        self._parameters = parameters  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._parameters = parameters
 
     @property
     def qualifiers(self):
@@ -3593,7 +3626,8 @@ class CIMMethod(_CIMComparisonMixin):
     @qualifiers.setter
     def qualifiers(self, qualifiers):
         """Setter method; for a description see the getter method."""
-        self._qualifiers = qualifiers  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._qualifiers = qualifiers
 
     def _cmp(self, other):
         """
@@ -3828,7 +3862,8 @@ class CIMParameter(_CIMComparisonMixin):
     @name.setter
     def name(self, name):
         """Setter method; for a description see the getter method."""
-        self._name = name  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._name = name
 
     @property
     def type(self):
@@ -3846,7 +3881,8 @@ class CIMParameter(_CIMComparisonMixin):
     @type.setter
     def type(self, type):
         """Setter method; for a description see the getter method."""
-        self._type = type  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._type = type
 
     @property
     def reference_class(self):
@@ -3867,7 +3903,8 @@ class CIMParameter(_CIMComparisonMixin):
     @reference_class.setter
     def reference_class(self, reference_class):
         """Setter method; for a description see the getter method."""
-        self._reference_class = reference_class  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._reference_class = reference_class
 
     @property
     def is_array(self):
@@ -3885,7 +3922,8 @@ class CIMParameter(_CIMComparisonMixin):
     @is_array.setter
     def is_array(self, is_array):
         """Setter method; for a description see the getter method."""
-        self._is_array = is_array  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._is_array = is_array
 
     @property
     def array_size(self):
@@ -3904,7 +3942,8 @@ class CIMParameter(_CIMComparisonMixin):
     @array_size.setter
     def array_size(self, array_size):
         """Setter method; for a description see the getter method."""
-        self._array_size = array_size  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._array_size = array_size
 
     @property
     def qualifiers(self):
@@ -3938,7 +3977,8 @@ class CIMParameter(_CIMComparisonMixin):
     @qualifiers.setter
     def qualifiers(self, qualifiers):
         """Setter method; for a description see the getter method."""
-        self._qualifiers = qualifiers  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._qualifiers = qualifiers
 
     @property
     def value(self):
@@ -3958,7 +3998,8 @@ class CIMParameter(_CIMComparisonMixin):
         warnings.warn(
             "The value attribute of CIMParameter is deprecated",
             DeprecationWarning)
-        self._value = value  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._value = value
 
     def _cmp(self, other):
         """
@@ -4316,7 +4357,8 @@ class CIMQualifier(_CIMComparisonMixin):
     @name.setter
     def name(self, name):
         """Setter method; for a description see the getter method."""
-        self._name = name  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._name = name
 
     @property
     def value(self):
@@ -4337,7 +4379,8 @@ class CIMQualifier(_CIMComparisonMixin):
     @value.setter
     def value(self, value):
         """Setter method; for a description see the getter method."""
-        self._value = value  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._value = value
 
     @property
     def type(self):
@@ -4355,7 +4398,8 @@ class CIMQualifier(_CIMComparisonMixin):
     @type.setter
     def type(self, type):
         """Setter method; for a description see the getter method."""
-        self._type = type  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._type = type
 
     @property
     def propagated(self):
@@ -4373,7 +4417,8 @@ class CIMQualifier(_CIMComparisonMixin):
     @propagated.setter
     def propagated(self, propagated):
         """Setter method; for a description see the getter method."""
-        self._propagated = propagated  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._propagated = propagated
 
     @property
     def tosubclass(self):
@@ -4395,7 +4440,8 @@ class CIMQualifier(_CIMComparisonMixin):
     @tosubclass.setter
     def tosubclass(self, tosubclass):
         """Setter method; for a description see the getter method."""
-        self._tosubclass = tosubclass  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._tosubclass = tosubclass
 
     @property
     def toinstance(self):
@@ -4421,7 +4467,8 @@ class CIMQualifier(_CIMComparisonMixin):
     @toinstance.setter
     def toinstance(self, toinstance):
         """Setter method; for a description see the getter method."""
-        self._toinstance = toinstance  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._toinstance = toinstance
 
     @property
     def overridable(self):
@@ -4443,7 +4490,8 @@ class CIMQualifier(_CIMComparisonMixin):
     @overridable.setter
     def overridable(self, overridable):
         """Setter method; for a description see the getter method."""
-        self._overridable = overridable  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._overridable = overridable
 
     @property
     def translatable(self):
@@ -4466,7 +4514,8 @@ class CIMQualifier(_CIMComparisonMixin):
     @translatable.setter
     def translatable(self, translatable):
         """Setter method; for a description see the getter method."""
-        self._translatable = translatable  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._translatable = translatable
 
     def _cmp(self, other):
         """
@@ -4804,7 +4853,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @name.setter
     def name(self, name):
         """Setter method; for a description see the getter method."""
-        self._name = name  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._name = name
 
     @property
     def type(self):
@@ -4822,7 +4872,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @type.setter
     def type(self, type):
         """Setter method; for a description see the getter method."""
-        self._type = type  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._type = type
 
     @property
     def value(self):
@@ -4843,7 +4894,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @value.setter
     def value(self, value):
         """Setter method; for a description see the getter method."""
-        self._value = value  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._value = value
 
     @property
     def is_array(self):
@@ -4861,7 +4913,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @is_array.setter
     def is_array(self, is_array):
         """Setter method; for a description see the getter method."""
-        self._is_array = is_array  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._is_array = is_array
 
     @property
     def array_size(self):
@@ -4880,7 +4933,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @array_size.setter
     def array_size(self, array_size):
         """Setter method; for a description see the getter method."""
-        self._array_size = array_size  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._array_size = array_size
 
     @property
     def scopes(self):
@@ -4907,7 +4961,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @scopes.setter
     def scopes(self, scopes):
         """Setter method; for a description see the getter method."""
-        self._scopes = scopes  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._scopes = scopes
 
     @property
     def tosubclass(self):
@@ -4927,7 +4982,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @tosubclass.setter
     def tosubclass(self, tosubclass):
         """Setter method; for a description see the getter method."""
-        self._tosubclass = tosubclass  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._tosubclass = tosubclass
 
     @property
     def toinstance(self):
@@ -4950,7 +5006,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @toinstance.setter
     def toinstance(self, toinstance):
         """Setter method; for a description see the getter method."""
-        self._toinstance = toinstance  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._toinstance = toinstance
 
     @property
     def overridable(self):
@@ -4970,7 +5027,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @overridable.setter
     def overridable(self, overridable):
         """Setter method; for a description see the getter method."""
-        self._overridable = overridable  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._overridable = overridable
 
     @property
     def translatable(self):
@@ -4990,7 +5048,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @translatable.setter
     def translatable(self, translatable):
         """Setter method; for a description see the getter method."""
-        self._translatable = translatable  # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
+        self._translatable = translatable
 
     def _cmp(self, other):
         """
