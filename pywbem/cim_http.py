@@ -539,7 +539,6 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                     else:
                         ctx.load_verify_locations(cafile=self.ca_certs)
                 try:
-                    # pylint: disable=redefined-variable-type
                     self.sock = SSL.Connection(ctx, self.sock)
 
                     # Below is a body of SSL.Connection.connect() method
@@ -685,7 +684,6 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                  timeout=timeout)
     else:
         if url.startswith('http'):
-            # pylint: disable=redefined-variable-type
             client = HTTPConnection(host=host, port=port, timeout=timeout)
         else:
             if url.startswith('file:'):

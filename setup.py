@@ -57,7 +57,7 @@ if sys.version_info[0:2] == (2, 6):
 if sys.version_info[0] == 2:
     from xmlrpclib import Fault
 else:
-    from xmlrpc.client import Fault
+    from xmlrpc.client import Fault  # pylint: disable=import-error
 
 _VERBOSE = True
 

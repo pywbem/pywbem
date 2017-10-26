@@ -344,6 +344,8 @@ class TestParseError(MOFTest):
         except MOFParseError as pe:
             self.assertEqual(pe.file, _file)
             self.assertEqual(pe.lineno, 16)
+            # pylint: disable=unsubscriptable-object
+            # This may be a pylint issue
             self.assertEqual(pe.context[5][1:5], '^^^^')
             self.assertEqual(pe.context[4][1:5], 'size')
 
@@ -357,6 +359,7 @@ class TestParseError(MOFTest):
         except MOFParseError as pe:
             self.assertEqual(pe.file, _file)
             self.assertEqual(pe.lineno, 6)
+            # pylint: disable=unsubscriptable-object
             self.assertEqual(pe.context[5][7:13], '^^^^^^')
             self.assertEqual(pe.context[4][7:13], 'weight')
 
@@ -371,6 +374,7 @@ class TestParseError(MOFTest):
         except MOFParseError as pe:
             self.assertEqual(pe.file, _file)
             self.assertEqual(pe.lineno, 24)
+            # pylint: disable=unsubscriptable-object
             self.assertEqual(pe.context[5][53], '^')
             self.assertEqual(pe.context[4][53], '}')
 
