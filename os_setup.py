@@ -174,6 +174,7 @@ else:
     string_types = str,             # noqa: F821
     text_type = str                 # noqa: F821
     binary_type = bytes             # noqa: F821
+    # pylint: disable=import-error
     from xmlrpc.client import ServerProxy as xmlrpc_ServerProxy
 # pylint: enable=invalid-name
 

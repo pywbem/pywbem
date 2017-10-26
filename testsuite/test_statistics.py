@@ -379,7 +379,9 @@ class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
         stat_repr = repr(statistics)
 
         # test repr output
-        self.assertRegexpMatches(stat_repr, 'Statistics\(')
+        self.assertRegexpMatches(
+            stat_repr,
+            'Statistics\(')  # pylint: disable=anomalous-backslash-in-string
 
         self.assertRegexpContains(
             stat_repr,

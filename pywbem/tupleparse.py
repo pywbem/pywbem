@@ -498,7 +498,6 @@ def parse_value_namedobject(tup_tree):
     elif len(k) == 2:
         path = parse_instancename(kids(tup_tree)[0])
 
-        # pylint: disable=redefined-variable-type
         # redefines _object from pywbem.cim_obj.CIMClass to ...CIMInstance
         _object = parse_instance(kids(tup_tree)[1])
 
@@ -530,7 +529,6 @@ def parse_value_objectwithlocalpath(tup_tree):
                    parse_class(kids(tup_tree)[1]))
     else:
         path = parse_localinstancepath(kids(tup_tree)[0])
-        # pylint: disable=redefined-variable-type
         # redefines _object from tuple to CIMInstance
         _object = parse_instance(kids(tup_tree)[1])
         _object.path = path
@@ -557,7 +555,6 @@ def parse_value_objectwithpath(tup_tree):
         _object = (parse_classpath(k[0]), parse_class(k[1]))
     else:
         path = parse_instancepath(k[0])
-        # pylint: disable=redefined-variable-type
         # redefines _object from tuple to CIMInstance
         _object = parse_instance(k[1])
         _object.path = path
@@ -1349,14 +1346,15 @@ def parse_message(tup_tree):
 
 
 def parse_multireq(tup_tree):   # pylint: disable=unused-argument
-    """Not Implemented"""
-    # TODO: Implement MULTIREQ parser
+    """Not Implemented. Because this request is generally not implemented
+       by platforms, It will probably never be implemented
+    """
     raise ParseError('MULTIREQ parser not implemented')
 
 
 def parse_multiexpreq(tup_tree):   # pylint: disable=unused-argument
-    """Not Implemented"""
-    # TODO: Implement MULTIEXPREQ parser
+    """Not Implemented. Because this request is generally not implemented
+       by platforms, It will probably never be implemented"""
     raise ParseError('MULTIEXPREQ parser not implemented')
 
 
@@ -1535,14 +1533,15 @@ def parse_expparamvalue(tup_tree):
 
 
 def parse_multirsp(tup_tree):   # pylint: disable=unused-argument
-    """This Function not implemented"""
-    # TODO: Implement MULTIRSP parser
+    """This function not implemented. Because this request is generally not
+       implemented. It will probably never be implemented"""
     raise ParseError('MULTIRSP parser not implemented')
 
 
 def parse_multiexprsp(tup_tree):   # pylint: disable=unused-argument
-    """This Function not implemented"""
-    # TODO: Implement MULTIEXPRSP parser
+    """This function not implemented. Because this request is generally not
+       implemented. It will probably never be implemented
+    """
     raise ParseError('MULTIEXPRSP parser not implemented')
 
 
@@ -1562,8 +1561,10 @@ def parse_simplersp(tup_tree):
 
 
 def parse_simpleexprsp(tup_tree):   # pylint: disable=unused-argument
-    """This Function not implemented"""
-    # TODO: Implement SIMPLEEXPRSP parser
+    """This Function not implemented. This response is for export senders
+       (indication senders) so it is not implemented in the pywbem
+       client.
+    """
     raise ParseError('SIMPLEEXPRSP parser not implemented')
 
 
@@ -1586,8 +1587,7 @@ def parse_methodresponse(tup_tree):
 
 
 def parse_expmethodresponse(tup_tree):  # pylint: disable=unused-argument
-    """This function not implemented"""
-    # TODO: Implement EXPMETHODRESPONSE parser
+    """This function not implemented. """
     raise ParseError('EXPMETHODRESPONSE parser not implemented')
 
 

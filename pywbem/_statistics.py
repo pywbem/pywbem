@@ -607,6 +607,7 @@ class Statistics(object):
             # Test to see if any server time is non-zero
             include_svr = False
             for name, stats in snapshot:  # pylint: disable=unused-variable
+                # pylint: disable=protected-access
                 if stats._server_time_stored:
                     include_svr = True
             if include_svr:

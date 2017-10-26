@@ -108,8 +108,6 @@ class ClientTest(unittest.TestCase):
     # pylint: disable=arguments-differ
     def setUp(self, use_pull_operations=None):
         """Create a connection."""
-        # pylint: disable=global-variable-not-assigned
-        global CLI_ARGS
 
         self.system_url = CLI_ARGS['url']
         self.namespace = CLI_ARGS['namespace']
