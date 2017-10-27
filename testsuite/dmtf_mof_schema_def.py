@@ -77,6 +77,7 @@ TOTAL_CLASSES = 1631
 # 2.48.0
 # TOTAL_QUALIFIERS = 70
 # TOTAL_CLASSES = 1630
+<<<<<<< HEAD
 
 
 def install_dmtf_schema():
@@ -130,3 +131,5 @@ def install_dmtf_schema():
                         dfp.write(zfp.read(file_))
         finally:
             zfp.close()
+=======
+>>>>>>> 2f83178... Update to schema 2.49.0
