@@ -28,6 +28,8 @@ To change the schema used:
 4. The first test should generate an error if the values for total number of
    classes or qualifiers have changed. Modify the  variables below to define
    the correct numbers and re-execute test_mof_compiler.
+   NOTE: We are keeping some history of the counts for previous versions of
+   the schema (see the comments at the end of this file)
 """
 
 # Change the following variables when a new version of the CIM Schema is used
@@ -37,13 +39,19 @@ To change the schema used:
 # See the page http://www.dmtf.org/standards/cim if there are issues
 # downloading a particular version.
 
-MOF_ZIP_BN = 'cim_schema_2.48.0Final-MOFs.zip'
-MOF_ZIP_URL = 'http://www.dmtf.org/standards/cim/cim_schema_v2480/' + \
-    MOF_ZIP_BN
-SCHEMA_MOF_BN = 'cim_schema_2.48.0.mof'
+DMTF_SCHEMA_VERSION = 'cim_schema_2.49.0'
+MOF_ZIP_BN = DMTF_SCHEMA_VERSION + 'Final-MOFs.zip'
+MOF_ZIP_URL = 'http://www.dmtf.org/standards/cim/cim_schema_v2490/' + MOF_ZIP_BN
+SCHEMA_MOF_BN = DMTF_SCHEMA_VERSION + '.mof'
 
 # Expected total of qualifiers and classes in the DMTF Schema.
 # These may change for each schema release and will need to be manually
 # modified here to correctly execute the tests.
+# 2.49.0
 TOTAL_QUALIFIERS = 70
-TOTAL_CLASSES = 1630
+TOTAL_CLASSES = 1631
+
+# Qualifier and Class counts for previous DMTF schema.
+# 2.48.0
+# TOTAL_QUALIFIERS = 70
+# TOTAL_CLASSES = 1630
