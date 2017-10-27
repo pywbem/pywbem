@@ -157,5 +157,23 @@ class test_create_connection(unittest.TestCase):
             pass
 
 
+class Test_get_rslt_params(unittest.TestCase):
+    """Test WBEMConnection._get_rslt_params method."""
+    def test_iterability(self):
+        from pywbem import WBEMConnection
+
+        result = [
+            (u'IRETURNVALUE', {}, None),
+            (u'EnumerationContext', None, u'context----------------'),
+            (u'EndOfSequence', None, u'FALSE')
+        ]
+
+        result = WBEMConnection._get_rslt_params(result, 'namespace')
+        self.assertEqual(
+            result,
+            (None, False, (u'context----------------', 'namespace'))
+        )
+
+
 if __name__ == '__main__':
     unittest.main()

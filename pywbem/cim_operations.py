@@ -1945,28 +1945,25 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         rtn_objects = []
         end_of_sequence = False
         enumeration_context = None
-        valid_result = False
+        sequence = None
+        context = None
 
         for p in result:
             if p[0] == 'EndOfSequence':
-                if p[2] is None:
-                    valid_result = True
-                elif isinstance(p[2], six.string_types) and \
+                sequence = True
+                if isinstance(p[2], six.string_types) and \
                     p[2].lower() in ['true', 'false']:  # noqa: E125
-                    valid_result = True if p[2].lower() == 'true' else False
-                    end_of_sequence = valid_result
+                    end_of_sequence = True if p[2].lower() == 'true' else False
 
             elif p[0] == 'EnumerationContext':
-                if p[2] is None:
-                    valid_result = True
+                context = True
                 if isinstance(p[2], six.string_types):
                     enumeration_context = p[2]
-                    valid_result = True
 
             elif p[0] == "IRETURNVALUE":
                 rtn_objects = p[2]
 
-        if not valid_result:
+        if not sequence and not context:
             raise CIMError(CIM_ERR_INVALID_PARAMETER, "EndOfSequence "
                            "or EnumerationContext required")
 
