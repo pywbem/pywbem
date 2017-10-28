@@ -57,6 +57,8 @@ Build, test, quality
 * Update to current DMTF Schema (2.49.0) for pywbem tests. This also validates
   that pywbem can compile this DMTF released schema. See issue #816
 
+* Add unit tests for the iter... operations. See issue #818
+
 Documentation
 ^^^^^^^^^^^^^
 
