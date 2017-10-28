@@ -43,6 +43,9 @@ Build, test, quality
 * Cleaned up a lot of pylint warnings, for things like missing-doc, etc. so that
   we can actually review the remainder.  See issue #808.
 
+* Update to current DMTF Schema (2.49.0) for pywbem tests. This also validates
+  that pywbem can compile this DMTF released schema. See issue #816
+
 Documentation
 ^^^^^^^^^^^^^
 
