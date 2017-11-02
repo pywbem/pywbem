@@ -1168,85 +1168,48 @@ class CIMInstanceName(_CIMComparisonMixin):
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
 
-        if isinstance(self.keybindings, str):
+        if not isinstance(self.keybindings, NocaseDict):
+            raise TypeError("keybindings must be a NocaseDict but is: %r" %
+                            self.keybindings)
 
-            # This cannot happen; self.keybindings is always a NocaseDict:
-            raise TypeError("Unexpected: keybindings has string type: %s" %
-                            repr(self.keybindings))
+        kbs = []
 
-            # TODO: Remove this old code after verifying that it works.
-            # #Class with single key string property
-            # instancename_xml = cim_xml.INSTANCENAME(
-            #     self.classname,
-            #     cim_xml.KEYVALUE(self.keybindings, 'string'))
+        for key_bind in self.keybindings.items():
 
-        # Note: The CIM data types are derived from the built-in types,
-        # so we cannot use isinstance() for this test.
-        # pylint: disable=unidiomatic-typecheck
-        elif builtin_type(self.keybindings) in six.integer_types + (float,):
+            # Keybindings can be integers, booleans, strings or
+            # value references.
 
-            # This cannot happen; self.keybindings is always a NocaseDict:
-            raise TypeError("Unexpected: keybindings has numeric type: %s" %
-                            repr(self.keybindings))
-
-            # TODO: Remove this old code after verifying that it works.
-            # # Class with single key numeric property
-            # instancename_xml = cim_xml.INSTANCENAME(
-            #     self.classname,
-            #     cim_xml.KEYVALUE(str(self.keybindings), 'numeric'))
-
-        elif isinstance(self.keybindings, NocaseDict):
-
-            kbs = []
-
-            for key_bind in self.keybindings.items():
-
-                # Keybindings can be integers, booleans, strings or
-                # value references.
-
-                if hasattr(key_bind[1], 'tocimxml'):
-                    kbs.append(cim_xml.KEYBINDING(
-                        key_bind[0],
-                        cim_xml.VALUE_REFERENCE(key_bind[1].tocimxml())))
-                    continue
-
-                if isinstance(key_bind[1], bool):
-                    type_ = 'boolean'
-                    if key_bind[1]:
-                        value = 'TRUE'
-                    else:
-                        value = 'FALSE'
-                elif isinstance(key_bind[1], six.integer_types + (float,)):
-                    # Numeric CIM data types derive from int, long or float.
-                    # Note: int is a subtype of bool, but bool is already
-                    # tested further up.
-                    type_ = 'numeric'
-                    value = str(key_bind[1])
-                elif isinstance(key_bind[1], six.string_types):
-                    type_ = 'string'
-                    value = _ensure_unicode(key_bind[1])
-                else:
-                    raise TypeError('Invalid keybinding type for keybinding '
-                                    '%s: %s' %
-                                    (key_bind[0], builtin_type(key_bind[1])))
-
+            if hasattr(key_bind[1], 'tocimxml'):
                 kbs.append(cim_xml.KEYBINDING(
                     key_bind[0],
-                    cim_xml.KEYVALUE(value, type_)))
+                    cim_xml.VALUE_REFERENCE(key_bind[1].tocimxml())))
+                continue
 
-            instancename_xml = cim_xml.INSTANCENAME(self.classname, kbs)
+            if isinstance(key_bind[1], bool):
+                type_ = 'boolean'
+                if key_bind[1]:
+                    value = 'TRUE'
+                else:
+                    value = 'FALSE'
+            elif isinstance(key_bind[1], six.integer_types + (float,)):
+                # Numeric CIM data types derive from int, long or float.
+                # Note: int is a subtype of bool, but bool is already
+                # tested further up.
+                type_ = 'numeric'
+                value = str(key_bind[1])
+            elif isinstance(key_bind[1], six.string_types):
+                type_ = 'string'
+                value = _ensure_unicode(key_bind[1])
+            else:
+                raise TypeError('Invalid keybinding type for keybinding '
+                                '%s: %s' %
+                                (key_bind[0], builtin_type(key_bind[1])))
 
-        else:
+            kbs.append(cim_xml.KEYBINDING(
+                key_bind[0],
+                cim_xml.KEYVALUE(value, type_)))
 
-            # This cannot happen; self.keybindings is always a NocaseDict:
-            raise TypeError("Unexpected: keybindings has type: %s" %
-                            repr(self.keybindings))
-
-            # TODO: Remove this old code after verifying that it works.
-            # # Value reference
-            # instancename_xml = cim_xml.INSTANCENAME(
-            #     self.classname,
-            #     cim_xml.VALUE_REFERENCE(self.keybindings.tocimxml()))
+        instancename_xml = cim_xml.INSTANCENAME(self.classname, kbs)
 
         # Instance name plus namespace = LOCALINSTANCEPATH
 
