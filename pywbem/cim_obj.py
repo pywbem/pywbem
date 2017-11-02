@@ -4714,9 +4714,6 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     default values.
     """
 
-    # TODO: 8/16 ks Consider removing toinstance completely from object since
-    # it is not a viable part of specs any more.
-
     # pylint: disable=too-many-arguments
     def __init__(self, name, type, value=None, is_array=False,
                  array_size=None, scopes=None,
