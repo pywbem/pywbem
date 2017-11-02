@@ -743,8 +743,6 @@ class WBEMSubscriptionManager(object):
             ValueError, TypeError for incorrect input parameters.
         """
 
-        # TODO: Add support for user-defined filter name
-
         # server_id is validated in _create_...() method.
 
         if filter_id is None and name is None:
