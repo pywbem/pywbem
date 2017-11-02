@@ -372,7 +372,10 @@ def check_utf8_xml_chars(utf8_xml, meaning):
         # If more than one incorrectly encoded sequence is present, only
         # information about the first one is returned in the exception object.
         # Also, the stated reason (in _msg) is not always correct.
+
+        # pylint: disable=unbalanced-tuple-unpacking
         unused_codec, unused_str, _p1, _p2, unused_msg = exc.args
+
         exc_txt = "Incorrectly encoded UTF-8 Byte sequences found in %s" %\
                   meaning
         exc_txt += "\n  At offset %d:" % _p1
