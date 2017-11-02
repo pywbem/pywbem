@@ -25,6 +25,7 @@ class RegexpMixin(object):
         Parameters:
             text         string: string text to be searched
             pattern      string: regular expression
+            msg          string: additional message text (normally not needed)
 
         Raises:
             AssertionError if not matched
@@ -33,7 +34,8 @@ class RegexpMixin(object):
             raise AssertionError(
                 "String text does not contain regexp pattern\n"
                 "    text:    %r\n"
-                "    pattern: %r" % (text, pattern))
+                "    pattern: %r\n"
+                "%s" % (text, pattern, msg))
 
     @staticmethod
     def assertRegexpMatches(text, pattern, msg=None):
@@ -46,6 +48,7 @@ class RegexpMixin(object):
         Parameters:
             text         string: string text to be matched
             pattern      string: regular expression
+            msg          string: additional message text (normally not needed)
 
         Raises:
             AssertionError if not matched
@@ -54,7 +57,8 @@ class RegexpMixin(object):
             raise AssertionError(
                 "String text does not match regexp pattern\n"
                 "    text:    %r\n"
-                "    pattern: %r" % (text, pattern))
+                "    pattern: %r\n"
+                "%s" % (text, pattern, msg))
 
 
 class FileMixin(object):
