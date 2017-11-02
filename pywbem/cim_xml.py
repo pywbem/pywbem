@@ -20,12 +20,6 @@
 # Author: Bart Whiteley <bwhiteley@suse.de>
 #
 
-# TODO 2/16 KS: Sort this issue out and see if we need to fix. These two
-#               issues are found repeatedly in this file so pylint disabled.
-#               Throughout the code, the classes __init__ from Element, not
-#               a direct superclass is used.
-# pylint: disable=non-parent-init-called,super-init-not-called
-
 """
 Functions to create XML documents and elements conforming to the DMTF
 standard DSP0201, Representation of CIM in XML, v2.2.
@@ -179,6 +173,10 @@ class CIMElement(Element):
 
     ownerDocument = None
 
+    def __init__(self, name):
+        # We use call by class name because it is an old-style class.
+        Element.__init__(self, name)
+
     def setName(self, name):
         """Set the NAME attribute of the element."""
         self.setAttribute('NAME', name)
@@ -220,7 +218,8 @@ class CIM(CIMElement):
     """
 
     def __init__(self, data, cim_version, dtd_version):
-        Element.__init__(self, 'CIM')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'CIM')
         self.setAttribute('CIMVERSION', cim_version)
         self.setAttribute('DTDVERSION', dtd_version)
         self.appendChild(data)
@@ -241,7 +240,8 @@ class DECLARATION(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'DECLARATION')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'DECLARATION')
         self.appendChildren(data)
 
 
@@ -260,7 +260,8 @@ class DECLGROUP(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'DECLGROUP')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'DECLGROUP')
         self.appendChildren(data)
 
 
@@ -280,7 +281,8 @@ class DECLGROUP_WITHNAME(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'DECLGROUP.WITHNAME')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'DECLGROUP.WITHNAME')
         self.appendChildren(data)
 
 
@@ -298,7 +300,8 @@ class DECLGROUP_WITHPATH(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'DECLGROUP.WITHPATH')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'DECLGROUP.WITHPATH')
         self.appendChildren(data)
 
 
@@ -323,8 +326,8 @@ class QUALIFIER_DECLARATION(CIMElement):
                  array_size=None, qualifier_scopes=None,
                  overridable=None, tosubclass=None,
                  toinstance=None, translatable=None):
-
-        Element.__init__(self, 'QUALIFIER.DECLARATION')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'QUALIFIER.DECLARATION')
         self.setName(name)
         self.setAttribute('TYPE', type_)
         if is_array is not None:
@@ -371,7 +374,8 @@ class SCOPE(CIMElement):
     """
 
     def __init__(self, scopes=None):
-        Element.__init__(self, 'SCOPE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'SCOPE')
         if not scopes:
             scopes = {}
         elif 'any' in scopes and scopes['any']:
@@ -400,7 +404,8 @@ class VALUE(CIMElement):
     """
 
     def __init__(self, pcdata):
-        Element.__init__(self, 'VALUE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'VALUE')
         if pcdata is not None:
             self.appendChildren(_pcdata_nodes(pcdata))
 
@@ -417,7 +422,8 @@ class VALUE_ARRAY(CIMElement):
     """
 
     def __init__(self, values):
-        Element.__init__(self, 'VALUE.ARRAY')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'VALUE.ARRAY')
         self.appendChildren(values)
 
 
@@ -435,7 +441,8 @@ class VALUE_REFERENCE(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'VALUE.REFERENCE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'VALUE.REFERENCE')
         self.appendChild(data)
 
 
@@ -451,7 +458,8 @@ class VALUE_REFARRAY(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'VALUE.REFARRAY')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'VALUE.REFARRAY')
         self.appendChildren(data)
 
 
@@ -467,7 +475,8 @@ class VALUE_OBJECT(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'VALUE.OBJECT')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'VALUE.OBJECT')
         self.appendChild(data)
 
 
@@ -483,7 +492,8 @@ class VALUE_NAMEDINSTANCE(CIMElement):
     """
 
     def __init__(self, instancename, instance):
-        Element.__init__(self, 'VALUE.NAMEDINSTANCE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'VALUE.NAMEDINSTANCE')
         self.appendChild(instancename)
         self.appendChild(instance)
 
@@ -500,7 +510,8 @@ class VALUE_NAMEDOBJECT(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'VALUE.NAMEDOBJECT')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'VALUE.NAMEDOBJECT')
         if isinstance(data, (tuple, list)):
             self.appendChildren(data)
         else:
@@ -522,7 +533,8 @@ class VALUE_OBJECTWITHLOCALPATH(CIMElement):
     """
 
     def __init__(self, data1, data2):
-        Element.__init__(self, 'VALUE.OBJECTWITHLOCALPATH')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'VALUE.OBJECTWITHLOCALPATH')
         self.appendChild(data1)
         self.appendChild(data2)
 
@@ -542,7 +554,8 @@ class VALUE_OBJECTWITHPATH(CIMElement):
     """
 
     def __init__(self, data1, data2):
-        Element.__init__(self, 'VALUE.OBJECTWITHPATH')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'VALUE.OBJECTWITHPATH')
         self.appendChild(data1)
         self.appendChild(data2)
 
@@ -559,7 +572,8 @@ class VALUE_NULL(CIMElement):
     """
 
     def __init__(self):
-        Element.__init__(self, 'VALUE.NULL')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'VALUE.NULL')
 
 # Object naming and location elements
 
@@ -576,7 +590,8 @@ class NAMESPACEPATH(CIMElement):
     """
 
     def __init__(self, host, localnamespacepath):
-        Element.__init__(self, 'NAMESPACEPATH')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'NAMESPACEPATH')
         self.appendChild(host)
         self.appendChild(localnamespacepath)
 
@@ -594,7 +609,8 @@ class LOCALNAMESPACEPATH(CIMElement):
     """
 
     def __init__(self, namespaces):
-        Element.__init__(self, 'LOCALNAMESPACEPATH')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'LOCALNAMESPACEPATH')
         self.appendChildren(namespaces)
 
 
@@ -611,7 +627,8 @@ class HOST(CIMElement):
     """
 
     def __init__(self, pcdata):
-        Element.__init__(self, 'HOST')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'HOST')
         self.appendChild(_text(pcdata))
 
 
@@ -629,7 +646,8 @@ class NAMESPACE(CIMElement):
     """
 
     def __init__(self, name):
-        Element.__init__(self, 'NAMESPACE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'NAMESPACE')
         self.setName(name)
 
 
@@ -645,7 +663,8 @@ class CLASSPATH(CIMElement):
     """
 
     def __init__(self, namespacepath, classname):
-        Element.__init__(self, 'CLASSPATH')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'CLASSPATH')
         self.appendChild(namespacepath)
         self.appendChild(classname)
 
@@ -662,7 +681,8 @@ class LOCALCLASSPATH(CIMElement):
     """
 
     def __init__(self, localnamespacepath, classname):
-        Element.__init__(self, 'LOCALCLASSPATH')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'LOCALCLASSPATH')
         self.appendChild(localnamespacepath)
         self.appendChild(classname)
 
@@ -680,7 +700,8 @@ class CLASSNAME(CIMElement):
     """
 
     def __init__(self, classname):
-        Element.__init__(self, 'CLASSNAME')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'CLASSNAME')
         self.setName(classname)
 
 
@@ -697,7 +718,8 @@ class INSTANCEPATH(CIMElement):
     """
 
     def __init__(self, namespacepath, instancename):
-        Element.__init__(self, 'INSTANCEPATH')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'INSTANCEPATH')
         self.appendChild(namespacepath)
         self.appendChild(instancename)
 
@@ -715,7 +737,8 @@ class LOCALINSTANCEPATH(CIMElement):
     """
 
     def __init__(self, localpath, instancename):
-        Element.__init__(self, 'LOCALINSTANCEPATH')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'LOCALINSTANCEPATH')
         self.appendChild(localpath)
         self.appendChild(instancename)
 
@@ -747,7 +770,8 @@ class INSTANCENAME(CIMElement):
     """
 
     def __init__(self, classname, data):
-        Element.__init__(self, 'INSTANCENAME')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'INSTANCENAME')
         self.setAttribute('CLASSNAME', classname)
         if data is not None:
             if isinstance(data, list):
@@ -768,7 +792,8 @@ class OBJECTPATH(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'OBJECTPATH')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'OBJECTPATH')
         self.appendChild(data)
 
 
@@ -785,7 +810,8 @@ class KEYBINDING(CIMElement):
     """
 
     def __init__(self, name, data):
-        Element.__init__(self, 'KEYBINDING')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'KEYBINDING')
         self.setName(name)
         self.appendChild(data)
 
@@ -806,7 +832,8 @@ class KEYVALUE(CIMElement):
 
     def __init__(self, data, value_type=None, cim_type=None):
 
-        Element.__init__(self, 'KEYVALUE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'KEYVALUE')
 
         if value_type is None:
             self.setAttribute('VALUETYPE', 'string')
@@ -838,7 +865,8 @@ class CLASS(CIMElement):
 
     def __init__(self, classname, properties=None, methods=None,
                  qualifiers=None, superclass=None):
-        Element.__init__(self, 'CLASS')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'CLASS')
         self.setName(classname)
         self.setOptionalAttribute('SUPERCLASS', superclass)
         children = []
@@ -866,7 +894,8 @@ class INSTANCE(CIMElement):
     """
     def __init__(self, classname, properties=None, qualifiers=None,
                  xml_lang=None):
-        Element.__init__(self, 'INSTANCE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'INSTANCE')
         self.setAttribute('CLASSNAME', classname)
         self.setOptionalAttribute('xml:lang', xml_lang)
         children = []
@@ -904,7 +933,8 @@ class QUALIFIER(CIMElement):
                  overridable=None, tosubclass=None, toinstance=None,
                  translatable=None, xml_lang=None):
 
-        Element.__init__(self, 'QUALIFIER')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'QUALIFIER')
 
         self.setName(name)
         self.setAttribute('TYPE', type_)
@@ -955,7 +985,8 @@ class PROPERTY(CIMElement):
                  propagated=None, qualifiers=None, xml_lang=None,
                  embedded_object=None):
 
-        Element.__init__(self, 'PROPERTY')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'PROPERTY')
 
         self.setName(name)
         self.setAttribute('TYPE', type_)
@@ -1019,7 +1050,8 @@ class PROPERTY_ARRAY(CIMElement):
                  class_origin=None, propagated=None, qualifiers=None,
                  xml_lang=None, embedded_object=None):
 
-        Element.__init__(self, 'PROPERTY.ARRAY')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'PROPERTY.ARRAY')
 
         self.setName(name)
         self.setAttribute('TYPE', type_)
@@ -1062,7 +1094,8 @@ class PROPERTY_REFERENCE(CIMElement):
     def __init__(self, name, value_reference=None, reference_class=None,
                  class_origin=None, propagated=None, qualifiers=None):
 
-        Element.__init__(self, 'PROPERTY.REFERENCE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'PROPERTY.REFERENCE')
 
         self.setName(name)
 
@@ -1100,7 +1133,8 @@ class METHOD(CIMElement):
     def __init__(self, name, parameters=None, return_type=None,
                  class_origin=None, propagated=None, qualifiers=None):
 
-        Element.__init__(self, 'METHOD')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'METHOD')
 
         self.setName(name)
 
@@ -1134,7 +1168,8 @@ class PARAMETER(CIMElement):
     """
 
     def __init__(self, name, type_, qualifiers=None):
-        Element.__init__(self, 'PARAMETER')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'PARAMETER')
         self.setName(name)
         self.setAttribute('TYPE', type_)
         if qualifiers:
@@ -1157,7 +1192,8 @@ class PARAMETER_REFERENCE(CIMElement):
     """
 
     def __init__(self, name, reference_class=None, qualifiers=None):
-        Element.__init__(self, 'PARAMETER.REFERENCE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'PARAMETER.REFERENCE')
         self.setName(name)
         self.setOptionalAttribute('REFERENCECLASS', reference_class)
         if qualifiers:
@@ -1181,7 +1217,8 @@ class PARAMETER_ARRAY(CIMElement):
     """
 
     def __init__(self, name, type_, array_size=None, qualifiers=None):
-        Element.__init__(self, 'PARAMETER.ARRAY')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'PARAMETER.ARRAY')
         self.setName(name)
         self.setAttribute('TYPE', type_)
         if array_size is not None:
@@ -1208,7 +1245,8 @@ class PARAMETER_REFARRAY(CIMElement):
 
     def __init__(self, name, reference_class=None, array_size=None,
                  qualifiers=None):
-        Element.__init__(self, 'PARAMETER.REFARRAY')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'PARAMETER.REFARRAY')
         self.setName(name)
         self.setOptionalAttribute('REFERENCECLASS', reference_class)
         if array_size is not None:
@@ -1318,7 +1356,8 @@ class MESSAGE(CIMElement):
     """
 
     def __init__(self, data, message_id, protocol_version):
-        Element.__init__(self, 'MESSAGE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'MESSAGE')
         self.setAttribute('ID', message_id)
         self.setAttribute('PROTOCOLVERSION', protocol_version)
         self.appendChild(data)
@@ -1337,7 +1376,8 @@ class MULTIREQ(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'MULTIREQ')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'MULTIREQ')
         self.appendChildren(data)
 
 
@@ -1354,7 +1394,8 @@ class MULTIEXPREQ(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'MULTIEXPREQ')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'MULTIEXPREQ')
         self.appendChildren(data)
 
 
@@ -1371,7 +1412,8 @@ class SIMPLEREQ(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'SIMPLEREQ')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'SIMPLEREQ')
         self.appendChild(data)
 
 
@@ -1387,7 +1429,8 @@ class SIMPLEEXPREQ(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'SIMPLEEXPREQ')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'SIMPLEEXPREQ')
         self.appendChild(data)
 
 
@@ -1411,7 +1454,8 @@ class IMETHODCALL(CIMElement):
 
     def __init__(self, name, localnamespacepath, iparamvalues=None,
                  responsedestination=None):
-        Element.__init__(self, 'IMETHODCALL')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'IMETHODCALL')
         self.setName(name)
         self.appendChild(localnamespacepath)
         if iparamvalues:
@@ -1439,7 +1483,8 @@ class METHODCALL(CIMElement):
 
     def __init__(self, name, localpath, paramvalues=None,
                  responsedestination=None):
-        Element.__init__(self, 'METHODCALL')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'METHODCALL')
         self.setName(name)
         self.appendChild(localpath)
         if paramvalues:
@@ -1462,7 +1507,8 @@ class EXPMETHODCALL(CIMElement):
     """
 
     def __init__(self, name, params=None):
-        Element.__init__(self, 'EXPMETHODCALL')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'EXPMETHODCALL')
         self.setName(name)
         if params:
             self.appendChildren(params)
@@ -1488,7 +1534,8 @@ class PARAMVALUE(CIMElement):
 
     def __init__(self, name, data=None, paramtype=None,
                  embedded_object=None):
-        Element.__init__(self, 'PARAMVALUE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'PARAMVALUE')
         self.setName(name)
         self.setOptionalAttribute('PARAMTYPE', paramtype)
         self.setOptionalAttribute('EmbeddedObject', embedded_object)
@@ -1514,7 +1561,8 @@ class IPARAMVALUE(CIMElement):
     """
 
     def __init__(self, name, data=None):
-        Element.__init__(self, 'IPARAMVALUE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'IPARAMVALUE')
         self.setName(name)
         self.appendOptionalChild(data)
 
@@ -1536,7 +1584,8 @@ class EXPPARAMVALUE(CIMElement):
     """
 
     def __init__(self, name, data=None, param_type=None):
-        Element.__init__(self, 'EXPPARAMVALUE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'EXPPARAMVALUE')
         self.setName(name)
         self.setOptionalAttribute('PARAMTYPE', param_type)
         self.appendOptionalChild(data)
@@ -1555,7 +1604,8 @@ class MULTIRSP(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'MULTIRSP')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'MULTIRSP')
         self.appendChildren(data)
 
 
@@ -1572,7 +1622,8 @@ class MULTIEXPRSP(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'MULTIEXPRSP')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'MULTIEXPRSP')
         self.appendChildren(data)
 
 
@@ -1590,7 +1641,8 @@ class SIMPLERSP(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'SIMPLERSP')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'SIMPLERSP')
         self.appendChild(data)
 
 
@@ -1607,7 +1659,8 @@ class SIMPLEEXPRSP(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'SIMPLEEXPRSP')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'SIMPLEEXPRSP')
         self.appendChild(data)
 
 
@@ -1628,7 +1681,8 @@ class METHODRESPONSE(CIMElement):
     """
 
     def __init__(self, name, data=None):
-        Element.__init__(self, 'METHODRESPONSE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'METHODRESPONSE')
         self.setName(name)
         if data is not None:
             if isinstance(data, (tuple, list)):
@@ -1653,7 +1707,8 @@ class EXPMETHODRESPONSE(CIMElement):
     """
 
     def __init__(self, name, data=None):
-        Element.__init__(self, 'EXPMETHODRESPONSE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'EXPMETHODRESPONSE')
         self.setName(name)
         self.appendOptionalChild(data)
 
@@ -1674,7 +1729,8 @@ class IMETHODRESPONSE(CIMElement):
     """
 
     def __init__(self, name, data=None):
-        Element.__init__(self, 'IMETHODRESPONSE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'IMETHODRESPONSE')
         self.setName(name)
         self.appendOptionalChild(data)
 
@@ -1696,7 +1752,8 @@ class ERROR(CIMElement):
     """
 
     def __init__(self, code, description=None, instances=None):
-        Element.__init__(self, 'ERROR')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'ERROR')
         self.setAttribute('CODE', code)
         self.setOptionalAttribute('DESCRIPTION', description)
         if instances:
@@ -1718,7 +1775,8 @@ class RETURNVALUE(CIMElement):
     """
 
     def __init__(self, data, param_type=None, embedded_object=None):
-        Element.__init__(self, 'RETURNVALUE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'RETURNVALUE')
         self.setOptionalAttribute('PARAMTYPE', param_type)
         self.setOptionalAttribute('EmbeddedObject', embedded_object)
         # See the note on EmbeddedObject in PROPERTY().
@@ -1742,7 +1800,8 @@ class IRETURNVALUE(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'IRETURNVALUE')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'IRETURNVALUE')
         self.appendOptionalChild(data)
 
 
@@ -1758,7 +1817,8 @@ class RESPONSEDESTINATION(CIMElement):
     """
 
     def __init__(self, data):
-        Element.__init__(self, 'RESPONSEDESTINATON')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'RESPONSEDESTINATON')
         self.appendChild(data)
 
 
@@ -1778,6 +1838,7 @@ class SIMPLEREQACK(CIMElement):
     """
 
     def __init__(self, instanceid, data):
-        Element.__init__(self, 'SIMPLEREQACK')
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'SIMPLEREQACK')
         self.setOptionalAttribute('INSTANCEID', instanceid)
         self.appendOptionalChild(data)
