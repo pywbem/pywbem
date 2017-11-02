@@ -2893,6 +2893,7 @@ class CIMProperty(_CIMComparisonMixin):
 
     @type.setter
     def type(self, type):
+        # pylint: disable=redefined-builtin
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
         self._type = type
@@ -3844,6 +3845,7 @@ class CIMParameter(_CIMComparisonMixin):
 
     @type.setter
     def type(self, type):
+        # pylint: disable=redefined-builtin
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
         self._type = type
@@ -4361,6 +4363,7 @@ class CIMQualifier(_CIMComparisonMixin):
 
     @type.setter
     def type(self, type):
+        # pylint: disable=redefined-builtin
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
         self._type = type
@@ -4832,6 +4835,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     @type.setter
     def type(self, type):
+        # pylint: disable=redefined-builtin
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
         self._type = type
