@@ -297,21 +297,34 @@ def swapcase2(text):
 
 class TestEqual(BaseTest):
     """Class for test equal for dict items"""
-    def assertDictEqual(self, dic1, dic2, msg):
-        """method to test for dict items equal"""
-        self.assertTrue(dic1 == dic2, msg)
-        self.assertFalse(dic1 != dic2, msg)
 
-        self.assertTrue(dic2 == dic1, msg)
-        self.assertFalse(dic2 != dic1, msg)
+    def assertDictEqual(self, d1, d2, msg=None):
+        """Assert that two NocaseDict objects are equal."""
 
-    def assertDictNotEqual(self, dic1, dic2, msg):
-        """Method to test for unequal dict methods"""
-        self.assertTrue(dic1 != dic2, msg)
-        self.assertFalse(dic1 == dic2, msg)
+        # We override the inherited unittest.Testcase method and do checking in
+        # both directions, because we override the __eq__() and __ne__()
+        # methods on NocaseDict.
+        # Note that the Python docs state that assertDictEqual() has parameters
+        # 'expected', 'actual', but the implemented method has 'd1', 'd2'.
 
-        self.assertTrue(dic2 != dic1, msg)
-        self.assertFalse(dic2 == dic1, msg)
+        self.assertTrue(d1 == d2, msg)
+        self.assertFalse(d1 != d2, msg)
+
+        self.assertTrue(d2 == d1, msg)
+        self.assertFalse(d2 != d1, msg)
+
+    def assertDictNotEqual(self, d1, d2, msg=None):
+        """Assert that two NocaseDict objects are not equal."""
+
+        # unittest.Testcase does not have an according method. We perform
+        # checking in both directions, because we override the __eq__() and
+        # __ne__() methods on NocaseDict.
+
+        self.assertTrue(d1 != d2, msg)
+        self.assertFalse(d1 == d2, msg)
+
+        self.assertTrue(d2 != d1, msg)
+        self.assertFalse(d2 == d1, msg)
 
     def run_test_dicts(self, base_dict, test_dicts):
         """General test_dictionaries"""
