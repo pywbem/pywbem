@@ -1837,9 +1837,10 @@ class CIMClassName(_CIMComparisonMixin):
                 "classname argument has an invalid type: %s "
                 "(expected string)" % builtin_type(classname))
 
-        # TODO: There are some odd restrictions on what a CIM
-        # classname can look like (i.e must start with a
-        # non-underscore and only one underscore per classname).
+        # DSP0004 defines a certain format of CIM class names, but we don't
+        # check that in pywbem because we don't parse the class name anywhere.
+        # Also, some WBEM servers implement special classes that deviate from
+        # that format.
 
         self.classname = classname
         self.host = host
