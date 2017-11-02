@@ -804,10 +804,19 @@ class TestClientRecorder(BaseOperationRecorder):
         elif isinstance(obj, six.text_type):
             return obj
         elif isinstance(obj, CIMInt):
+            # CIMInt is _Longint and therefore may exceed the value range of
+            # int in Python 2. Therefore, we convert it to _Longint.
             return _Longint(obj)
-        elif isinstance(obj, (bool, int)):
-            # TODO ks jun 17 should the above be six.integertypes???
-            # The check for int must be after CIMInt, because CIMInt is int.
+        elif isinstance(obj, six.integer_types):
+            # This case must be after CIMInt, because CIMInt is _Longint and
+            # would match a long value in Python 2.
+            # We don't convert six.integer_types to _Longint, because the value
+            # fits into the provided type, and there is no need to convert it.
+            # Note that in Python 2 (where that would make a difference), int
+            # and long do not inherit from each other, so it is likely best if
+            # we just don't convert.
+            return obj
+        elif isinstance(obj, bool):
             return obj
         elif isinstance(obj, CIMFloat):
             return float(obj)
