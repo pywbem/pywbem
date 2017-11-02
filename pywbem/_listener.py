@@ -538,14 +538,15 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         self.server.listener.logger.log(level, format_, *args)
 
-    def log_message(self, format_, *args):
+    # pylint: disable=redefined-builtin
+    def log_message(self, format, *args):
         """
         In the standard handler class, this function is called for anything
         that needs to get logged (e.g. from :meth:`log_request`).
 
         We override it in order to use our own log function.
         """
-        self.log(format_, args, logging.INFO)
+        self.log(format, args, logging.INFO)
 
     def log_request(self, code='-', size='-'):
         """
