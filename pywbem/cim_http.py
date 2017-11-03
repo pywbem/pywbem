@@ -473,8 +473,8 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                     self.sock.sendall(_ensure_bytes(data))
                     data = strng.read(blocksize)
             else:
-                # pylint: disable=no-member
-                self.sock.sendall(_ensure_bytes(strng))
+                # For unknown reasons, the pylint disable must be on same line:
+                self.sock.sendall(_ensure_bytes(strng))  # noqa: E501 pylint: disable=no-member
 
     class HTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
         """ Execute client connection without ssl using httplib. """
