@@ -76,7 +76,7 @@ install:
   - choco source list
   - dir C:\
   - dir
-  - env |sort
+  - set
 
   # Remove Python 2.7 from PATH.
   # Note that YAML interprets some characters in a special way (including '!' and '#')
