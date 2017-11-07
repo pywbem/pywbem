@@ -32,6 +32,7 @@ The general pywbem web site is: http://pywbem.github.io/pywbem/index.html.
    compiler.rst
    utilities.rst
    development.rst
+   mocksupport.rst
    appendix.rst
    changes.rst
 
