@@ -3088,6 +3088,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         InstanceName,
                         ResultClass=ResultClass,
                         Role=Role,
+                        IncludeQualifiers=IncludeQualifiers,
                         IncludeClassOrigin=IncludeClassOrigin,
                         PropertyList=PropertyList,
                         FilterQueryLanguage=FilterQueryLanguage,
@@ -3691,6 +3692,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         ResultClass=ResultClass,
                         Role=Role,
                         ResultRole=ResultRole,
+                        IncludeQualifiers=IncludeQualifiers,
                         IncludeClassOrigin=IncludeClassOrigin,
                         PropertyList=PropertyList,
                         FilterQueryLanguage=FilterQueryLanguage,
@@ -3932,6 +3934,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             """
 
             def __init__(self, instances, query_result_class=None):
+                """Save any query_result_class and instances returned"""
                 self._query_result_class = query_result_class
                 self.instances = instances
 
@@ -3968,8 +3971,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
                 try:        # operation try block
                     pull_result = self.OpenQueryInstances(
-                        FilterQueryLanguage=FilterQueryLanguage,
-                        FilterQuery=FilterQuery,
+                        FilterQueryLanguage,
+                        FilterQuery,
                         namespace=namespace,
                         ReturnQueryResultClass=ReturnQueryResultClass,
                         OperationTimeout=OperationTimeout,
@@ -3981,13 +3984,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
                     _instances = pull_result.instances
 
-                    qrc = None if ReturnQueryResultClass else \
-                        pull_result.query_result_class
+                    # get QueryResultClass from if returned with open
+                    # request.
+                    qrc = pull_result.query_result_class if \
+                        ReturnQueryResultClass else None
 
-                    while not pull_result.eos:
-                        pull_result = self.PullInstances(
-                            pull_result.context, MaxObjectCount=MaxObjectCount)
-                        _instances.extend(pull_result.instances)
+                    if not pull_result.eos:
+                        while not pull_result.eos:
+                            pull_result = self.PullInstances(
+                                pull_result.context,
+                                MaxObjectCount=MaxObjectCount)
+                            _instances.extend(pull_result.instances)
+
                     rtn = IterQueryInstancesReturn(_instances,
                                                    query_result_class=qrc)
                     pull_result = None   # clear the pull_result
@@ -4016,9 +4024,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 raise ValueError('ExecQuery does not support '
                                  'ContinueOnError.')
 
-            _instances = self.ExecQuery(
-                QueryLanguage=FilterQueryLanguage,
-                Query=FilterQuery, **extra)
+            _instances = self.ExecQuery(FilterQuery,
+                                        FilterQueryLanguage,
+                                        namespace=namespace, **extra)
 
             rtn = IterQueryInstancesReturn(_instances)
             return rtn

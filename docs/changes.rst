@@ -38,6 +38,17 @@ Enhancements
 Bug fixes
 ^^^^^^^^^
 
+* Fixed issue in iterReferenceNames and IterAssociatiorNames where it was
+  not passing the IncludeQualifiers input parameter to the OpenReferenceNames.
+  This should not have been a significant issue since in general qualifiers
+  are not parts of instances.  Also changed code in IterQueryInstances were
+  parameters that are required by the called ExecQuery and OpenQueryInstances
+  were defined as NamedArguments where since they are required, the Name
+  component is not required.  This should not change operations except that
+  when we were mocking the methods, it returns sees the parameter as name=value
+  rather than value. See issue #833
+
+
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 * Cleaned up a lot of pylint warnings, for things like missing-doc, etc. so that
