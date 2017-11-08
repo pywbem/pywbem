@@ -842,7 +842,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             **Experimental:** This argument is experimental for this release.
         """
-
+        print('wbemconnection url %s' % url)
         # Connection attributes
         self.url = url
         self.creds = creds
@@ -1183,7 +1183,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         Perform an intrinsic CIM-XML operation.
         """
-
+        print('imethodcall methodname %s, ns %s, rqd %s params %s' %
+              (methodname, namespace, response_params_rqd, params))
         # Create HTTP headers
 
         headers = ['CIMOperation: MethodCall',
@@ -1317,6 +1318,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # element.
 
         if not tup_tree:
+            print('_imethodcall returns empty')
             return None
 
         # ERROR | ...
@@ -1332,6 +1334,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if err[0] != 'IRETURNVALUE':
                 raise ParseError('Expecting IRETURNVALUE element, got %s'
                                  % err[0])
+            print('_imethodrtn1 tuple %s' % (tup_tree,))
             return tup_tree
 
         # At this point should have optional RETURNVALUE and at maybe one
@@ -1341,6 +1344,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         else:
             # TODO Further tests on this IRETURN or PARAMVALUE
             # Could be IRETURNVALUE or a PARAMVALUE
+            print('_imethodrtn2 tuple %s' % (tup_tree,))
             return tup_tree
 
     def methodcall(self, methodname, localobject, Params=None, **params):
@@ -1564,7 +1568,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if 'DESCRIPTION' in tt[0][1]:
                 raise CIMError(code, tt[0][1]['DESCRIPTION'])
             raise CIMError(code, 'Error code %s' % tt[0][1]['CODE'])
-
+        print('_methodcall response:\n%s' % tt)
         return tt
 
     def _iparam_namespace_from_namespace(self, obj):
@@ -7980,10 +7984,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList,
                 **extra)
+            print('GetClass Result %s' % result)
 
             klass = result[0][2][0]
             klass.path = CIMClassName(
                 classname=klass.classname, host=self.host, namespace=namespace)
+            print('GetClass return %s' % klass)
             return klass
         except Exception as exce:
             exc = exce
