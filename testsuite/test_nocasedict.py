@@ -328,7 +328,11 @@ class TestEqual(BaseTest):
 
     def run_test_dicts(self, base_dict, test_dicts):
         """General test_dictionaries"""
-        for test_dict, relation, comment in test_dicts:
+        for test_dict, relation, dict_types, comment in test_dicts:
+
+            if type(test_dict) not in dict_types:  # noqa: E501 pylint: disable=unidiomatic-typecheck
+                continue
+
             if relation == 'eq':
                 self.assertDictEqual(test_dict, base_dict,
                                      "Expected test_dict == base_dict:\n"
@@ -350,6 +354,17 @@ class TestEqual(BaseTest):
 
     def test_all(self):
         """Class for overall test"""
+
+        class C1(object):
+            # pylint: disable=too-few-public-methods
+            """Class used as dict item to provoke non-comparability."""
+
+            def __eq__(self, other):
+                raise TypeError("Cannot compare %r to %r" % (self, other))
+
+            def __ne__(self, other):
+                raise TypeError("Cannot compare %r to %r" % (self, other))
+
         # The base dictionary that is used for all comparisons
         base_dict = dict({'Budgie': 'Fish', 'Dog': 'Cat'})
 
@@ -360,62 +375,80 @@ class TestEqual(BaseTest):
 
             (dict({'Budgie': 'Fish', 'Dog': 'Cat'}),
              'eq',
+             (dict, NocaseDict),
              'Same'),
 
             (dict({'Budgie': 'Fish'}),
              'ne',
+             (dict, NocaseDict),
              'Higher key missing, shorter size'),
 
             (dict({'Dog': 'Cat'}),
              'ne',
+             (dict, NocaseDict),
              'Lower key missing, shorter size'),
 
             (dict({'Budgie': 'Fish', 'Curly': 'Snake', 'Cozy': 'Dog'}),
              'ne',
+             (dict, NocaseDict),
              'First non-matching key is less. But longer size!'),
 
             (dict({'Alf': 'F', 'Anton': 'S', 'Aussie': 'D'}),
              'ne',
+             (dict, NocaseDict),
              'Only non-matching keys that are less. But longer size!'),
 
             (dict({'Budgio': 'Fish'}),
              'ne',
+             (dict, NocaseDict),
              'First non-matching key is greater. But shorter size!'),
 
             (dict({'Zoe': 'F'}),
              'ne',
+             (dict, NocaseDict),
              'Only non-matching keys that are greater. But shorter size!'),
 
             (dict({'Budgie': 'Fish', 'Curly': 'Snake'}),
              'ne',
+             (dict, NocaseDict),
              'Same size. First non-matching key is less'),
 
             (dict({'Alf': 'F', 'Anton': 'S'}),
              'ne',
+             (dict, NocaseDict),
              'Same size. Only non-matching keys that are less'),
 
             (dict({'Zoe': 'F', 'Zulu': 'S'}),
              'ne',
+             (dict, NocaseDict),
              'Same size. Only non-matching keys that are greater'),
 
             (dict({'Budgie': 'Fish', 'Dog': 'Car'}),
              'ne',
+             (dict, NocaseDict),
              'Same size, only matching keys. First non-matching value is less'),
 
             (dict({'Budgie': 'Fish', 'Dog': 'Caz'}),
              'ne',
+             (dict, NocaseDict),
              'Same size, only matching keys. First non-matching value is grt.'),
+
+            (dict({'Budgie': C1(), 'Dog': 'Cat'}),
+             'ne',
+             (NocaseDict,),
+             'Not-comparable items.'),
         ]
 
         # First, run these tests against a standard dictionary to verify
         # that the test case definitions conform to that
+
         self.run_test_dicts(base_dict, test_dicts)
 
         # Then, transform these tests to NocaseDict and run them again
         TEST_CASE_INSENSITIVITY = True
         base_ncdict = NocaseDict(base_dict)
         test_ncdicts = []
-        for test_dict, relation, comment in test_dicts:
+        for test_dict, relation, dict_types, comment in test_dicts:
             test_ncdict = NocaseDict()
             for key in test_dict:
                 if TEST_CASE_INSENSITIVITY:
@@ -423,7 +456,7 @@ class TestEqual(BaseTest):
                 else:
                     nc_key = key
                 test_ncdict[nc_key] = test_dict[key]
-            test_ncdicts.append((test_ncdict, relation, comment))
+            test_ncdicts.append((test_ncdict, relation, dict_types, comment))
         self.run_test_dicts(base_ncdict, test_ncdicts)
 
 

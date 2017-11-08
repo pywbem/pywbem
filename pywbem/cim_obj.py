@@ -729,46 +729,52 @@ def moftype(cim_type, refclass):
 
 def _cim_keybinding(key, value):
     """
-    Return a keybinding value, from dict item input (key+value), after
-    performing some checks.
-
-    If the input value is a CIMProperty object, a copy of its value is
-    returned.
-
-    Otherwise, a new CIMProperty object is created from the input value, and
-    returned.
+    Return a keybinding value, from dict item input (key+value).
     """
 
     if key is None:
-        raise ValueError("Keybinding name in instance path must not be "
-                         "None")
+        raise ValueError("Invalid keybinding name: None")
 
     if isinstance(value, CIMProperty):
         if value.name.lower() != key.lower():
-            raise ValueError("CIMProperty.name must be dictionary key %s, but "
-                             "is %s" % (key, value.name))
-        kbval = copy(value.value)
-    else:
+            raise ValueError("Invalid keybinding name: CIMProperty.name must "
+                             "be dictionary key %s, but is %s" %
+                             (key, value.name))
+        return copy(value.value)
 
+    if value is None:
+        return None
+
+    if isinstance(value, (six.text_type, six.binary_type)):
+        return _ensure_unicode(value)
+
+    if isinstance(value, (bool, CIMInstanceName, CIMType)):
+        return value
+
+    # pylint: disable=unidiomatic-typecheck
+    if builtin_type(value) in six.integer_types + (float,):
         # Ideally, we won't accept keybinding values specified as Python int or
         # float values, but require a CIM data type (e.g. Uint32 or Real32).
         # However, that was allowed in earlier versions of pywbem, so for
         # compatibility, we deprecate that but do not raise an exception.
-
         # Note: The CIM data types are derived from the built-in types, so we
         # cannot use isinstance() for this test.
+        warnings.warn(
+            "Using Python numeric type %s for the value of keybinding "
+            "%s is deprecated; use CIM data type classes instead" %
+            (builtin_type(value), key),
+            DeprecationWarning)
+        return value
 
-        # pylint: disable=unidiomatic-typecheck
-        if builtin_type(value) in six.integer_types + (float,):
-            warnings.warn(
-                "Using Python numeric type %s for the value of keybinding "
-                "%s is deprecated; use CIM data type classes instead" %
-                (builtin_type(value), key),
-                DeprecationWarning)
+    if isinstance(value, (CIMClass, CIMInstance)):
+        raise TypeError("Value of keybinding %s cannot be an "
+                        "embedded object: %s" % (key, type(value)))
 
-        kbval = value
+    if isinstance(value, list):
+        raise TypeError("Value of keybinding %s cannot be a list" % key)
 
-    return kbval
+    raise TypeError("Value of keybinding %s has an invalid type: %s" %
+                    (key, type(value)))
 
 
 def _cim_property_value(key, value):
@@ -1252,46 +1258,44 @@ class CIMInstanceName(_CIMComparisonMixin):
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
 
-        if not isinstance(self.keybindings, NocaseDict):
-            raise TypeError("keybindings must be a NocaseDict but is: %r" %
-                            self.keybindings)
-
         kbs = []
 
-        for key_bind in self.keybindings.items():
+        # We no longer check that the keybindings is a NocaseDict because we
+        # ensure that in the keybindings() property setter method.
 
-            # Keybindings can be integers, booleans, strings or
-            # value references.
+        for key, value in self.keybindings.items():
 
-            if hasattr(key_bind[1], 'tocimxml'):
+            # Keybindings can be integers, booleans, strings or references.
+            # References can only by instance names.
+
+            if isinstance(value, CIMInstanceName):
                 kbs.append(cim_xml.KEYBINDING(
-                    key_bind[0],
-                    cim_xml.VALUE_REFERENCE(key_bind[1].tocimxml())))
+                    key, cim_xml.VALUE_REFERENCE(value.tocimxml())))
                 continue
 
-            if isinstance(key_bind[1], bool):
+            if isinstance(value, bool):
                 type_ = 'boolean'
-                if key_bind[1]:
+                if value:
                     value = 'TRUE'
                 else:
                     value = 'FALSE'
-            elif isinstance(key_bind[1], six.integer_types + (float,)):
+            elif isinstance(value, six.integer_types + (float,)):
                 # Numeric CIM data types derive from int, long or float.
                 # Note: int is a subtype of bool, but bool is already
                 # tested further up.
                 type_ = 'numeric'
-                value = str(key_bind[1])
-            elif isinstance(key_bind[1], six.string_types):
+                value = str(value)
+            elif isinstance(value, six.string_types):
                 type_ = 'string'
-                value = _ensure_unicode(key_bind[1])
+                value = _ensure_unicode(value)
             else:
-                raise TypeError('Invalid keybinding type for keybinding '
-                                '%s: %s' %
-                                (key_bind[0], builtin_type(key_bind[1])))
+                # Double check the type of the keybindings, because they can be
+                # set individually.
+                raise TypeError('Keybinding %s has invalid type: %s' %
+                                (key, builtin_type(value)))
 
             kbs.append(cim_xml.KEYBINDING(
-                key_bind[0],
-                cim_xml.KEYVALUE(value, type_)))
+                key, cim_xml.KEYVALUE(value, type_)))
 
         instancename_xml = cim_xml.INSTANCENAME(self.classname, kbs)
 
@@ -1900,22 +1904,27 @@ class CIMInstance(_CIMComparisonMixin):
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
         """
 
-        props = []
-
+        # The items in the self.properties dictionary are required to be
+        # CIMProperty objects and that is ensured when initializing a
+        # CIMInstance object and when setting the entire self.properties
+        # attribute. However, even though the items in the dictionary are
+        # required to be CIMProperty objects, the user technically can set
+        # them to anything.
+        # Before pywbem v0.12.0, the dictionary items were converted to
+        # CIMProperty objects. This was only done for properties of
+        # CIMinstance, but not for any other CIM object attribute.
+        # In v0.12.0, this conversion was removed because it worked only for
+        # bool and string types anyway. Because that conversion had been
+        # implemented, we still check that the items are CIMProperty objects.
         for key, value in self.properties.items():
-
-            # Value has already been converted into a CIM object
-            # property type (e.g for creating null property values).
-
-            if isinstance(value, CIMProperty):
-                props.append(value)
-                continue
-
-            props.append(CIMProperty(key, value))
+            if not isinstance(value, CIMProperty):
+                raise TypeError("Property %s has invalid type: %s "
+                                "(must be CIMProperty)" %
+                                (key, builtin_type(value)))
 
         instance_xml = cim_xml.INSTANCE(
             self.classname,
-            properties=[p.tocimxml() for p in props],
+            properties=[p.tocimxml() for p in self.properties.values()],
             qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
         if self.path is None:
@@ -5810,9 +5819,8 @@ def check_array_parms(is_array, array_size, value, element_txt):
     Check whether array-related parameters are ok.
     """
 
-    if is_array is None:
-        raise ValueError("The is_array parameter of %s must not be None." %
-                         element_txt)
+    assert is_array is not None
+    # infer_is_array() ensures that, and is supposed to be called
 
     if array_size and not is_array:
         raise ValueError("The array_size parameter of %s is not None but "
