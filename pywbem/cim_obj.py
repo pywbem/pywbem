@@ -550,25 +550,6 @@ def cmpitem(item1, item2):
     return 1
 
 
-def _convert_unicode(obj):
-    """
-    Make sure the input object is returned as a :term:`unicode string`, as
-    follows:
-
-    * If the input object already is a :term:`unicode string`, it is returned
-      unchanged.
-    * If the input object is a :term:`byte string`, it is decoded using UTF-8.
-    * Otherwise, the input object is translated into its :term:`unicode string`
-      representation (this causes its `__str__()` or `__unicode__()` method to
-      be invoked).
-    """
-    if isinstance(obj, six.text_type):
-        return obj
-    if isinstance(obj, six.binary_type):
-        return obj.decode("utf-8")
-    return six.text_type(obj)
-
-
 def _ensure_unicode(obj):
     """
     If the input object is a string, make sure it is returned as a
@@ -581,28 +562,7 @@ def _ensure_unicode(obj):
     """
     if isinstance(obj, six.binary_type):
         return obj.decode("utf-8")
-    # TODO: Find out whether this function is used for non-string types at all
     return obj
-
-
-def _convert_bytes(obj):
-    """
-    Make sure the input object is returned as a :term:`byte string`, as
-    follows:
-
-    * If the input object already is a :term:`byte string`, it is returned
-      unchanged.
-    * If the input object is a :term:`unicode string`, it is encoded using
-      UTF-8.
-    * Otherwise, the input object is translated into its :term:`byte string`
-      representation (this causes its `__str__()` or `__bytes__()` method to
-      be invoked).
-    """
-    if isinstance(obj, six.binary_type):
-        return obj
-    if isinstance(obj, six.text_type):
-        return obj.encode("utf-8")
-    return six.binary_type(obj)
 
 
 def _ensure_bytes(obj):
@@ -618,7 +578,6 @@ def _ensure_bytes(obj):
     """
     if isinstance(obj, six.text_type):
         return obj.encode("utf-8")
-    # TODO: Find out whether this function is used for non-string types at all
     return obj
 
 

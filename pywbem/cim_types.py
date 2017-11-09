@@ -824,7 +824,7 @@ def atomic_to_cim_xml(obj):
         the CIM typed value. For a value of `None`, `None` is returned.
     """
     # pylint: disable=too-many-return-statements
-    from .cim_obj import _ensure_unicode, _convert_unicode  # due to cycles
+    from .cim_obj import _ensure_unicode  # due to cycles
     if isinstance(obj, bool):
         return u"true" if obj else u"false"
     elif isinstance(obj, CIMDateTime):
@@ -839,4 +839,4 @@ def atomic_to_cim_xml(obj):
         return u'%.16E' % obj
     elif isinstance(obj, six.string_types):
         return _ensure_unicode(obj)
-    return _convert_unicode(obj)  # e.g. int
+    return six.text_type(obj)  # e.g. int
