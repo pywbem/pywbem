@@ -372,17 +372,6 @@ class NocaseDict(object):
         """
         self._data.clear()
 
-    def popitem(self):
-        """
-        This function does nothing.
-
-        In a standard mapping implementation, it would remove and return an
-        arbitrary item from the dictionary.
-
-        TODO: Why does popitem() do nothing; was it simply not implemented?
-        """
-        pass
-
     def copy(self):
         """
         Return a shallow copy of the dictionary (i.e. the keys and values are

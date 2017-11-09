@@ -48,6 +48,10 @@ Bug fixes
   when we were mocking the methods, it returns sees the parameter as name=value
   rather than value. See issue #833
 
+Cleanup
+^^^^^^^
+
+* Removed the unimplemented and unused `popitem()` method of `NocaseDict`.
 
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
