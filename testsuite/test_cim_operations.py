@@ -2,30 +2,30 @@
 #
 
 """
-Test functions in cim_operations
+Unittest functions in cim_operations.
 """
 
 from __future__ import print_function, absolute_import
 
-import unittest
+import pytest
 
 from pywbem.cim_operations import check_utf8_xml_chars, ParseError, \
-    WBEMConnection
+    WBEMConnection, CIMError
 
-from pywbem._recorder import LogOperationRecorder, TestClientRecorder
+from pywbem._recorder import LogOperationRecorder
 
+from pywbem._recorder import TestClientRecorder as MyTestClientRecorder
 
 #################################################################
 # Test check_utf8_xml_chars function
 #################################################################
 
 
-# pylint: disable=invalid-name
-class Test_check_utf8_xml_chars(unittest.TestCase):
+# pylint: disable=invalid-name, too-few-public-methods
+class TestCheckUtf8XmlChars(object):
     """Test various inputs to the check_utf8_xml_chars function"""
 
-    def setUp(self):
-        self.VERBOSE = False
+    VERBOSE = False
 
     def _run_single(self, utf8_xml, expected_ok):
         """Run single test from test_all. Executes the check...
@@ -39,11 +39,9 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
             if self.VERBOSE:
                 print("Verify manually: Input XML: %r, ParseError: %s" %
                       (utf8_xml, exc))
-            self.assertFalse(expected_ok,
-                             "ParseError unexpectedly raised: %s" % exc)
+            assert expected_ok is False
         else:
-            self.assertTrue(expected_ok,
-                            "ParseError unexpectedly not raised.")
+            assert expected_ok
 
     def test_all(self):
         """ Test cases. Each case tests a particular utf8 xml string"""
@@ -97,7 +95,7 @@ class Test_check_utf8_xml_chars(unittest.TestCase):
         self._run_single(b'<V>a\xF1\x80\xC2\x81c</V>', False)
 
 
-class test_create_connection(unittest.TestCase):
+class TestCreateConnection(object):
     """
     Test construction of WBEMConnection and those functions that do not
     depend on actually creating a connection
@@ -107,11 +105,11 @@ class test_create_connection(unittest.TestCase):
            parameters.
         """
         conn = WBEMConnection('http://localhost')
-        self.assertTrue(conn.url, 'http://localhost')
-        self.assertEqual(conn.creds, None)
-        self.assertEqual(conn.x509, None)
-        self.assertEqual(conn.use_pull_operations, False)
-        self.assertEqual(conn.stats_enabled, False)
+        assert conn.url == 'http://localhost'
+        assert conn.creds is None
+        assert conn.x509 is None
+        assert conn.use_pull_operations is False
+        assert conn.stats_enabled is False
 
     def test_no_recorder(self):
         """Test creation of wbem connection with specific parameters"""
@@ -122,40 +120,114 @@ class test_create_connection(unittest.TestCase):
                               x509=x509,
                               use_pull_operations=True,
                               enable_stats=True)
-        self.assertEqual(conn.url, 'http://localhost')
-        self.assertEqual(conn.creds, creds)
-        self.assertEqual(conn.x509, x509)
-        self.assertEqual(conn.stats_enabled, True)
-        self.assertEqual(conn.use_pull_operations, True)
+        assert conn.url == 'http://localhost'
+        assert conn.creds == creds
+        assert conn.x509 == x509
+        assert conn.stats_enabled is True
+        assert conn.use_pull_operations is True
 
     def test_add_operation_recorder(self):
         """Test addition of an operation recorder"""
         conn = WBEMConnection('http://localhost')
         conn.add_operation_recorder(LogOperationRecorder())
         # pylint: disable=protected-access
-        self.assertTrue(len(conn._operation_recorders), 1)
+        assert len(conn._operation_recorders) == 1
 
     def test_add_operation_recorders(self):
         """Test addition of multiple operation recorders"""
         conn = WBEMConnection('http://localhost')
         conn.add_operation_recorder(LogOperationRecorder())
-        tcr_file = TestClientRecorder.open_file('blah.yaml', 'a')
-        conn.add_operation_recorder(TestClientRecorder(tcr_file))
+        tcr_file = MyTestClientRecorder.open_file('blah.yaml', 'a')
+        conn.add_operation_recorder(MyTestClientRecorder(tcr_file))
         # pylint: disable=protected-access
-        self.assertTrue(len(conn._operation_recorders), 2)
+        assert len(conn._operation_recorders) == 2
 
     def test_add_same_twice(self):
         """ Test addition of same recorder twice"""
         conn = WBEMConnection('http://localhost')
         conn.add_operation_recorder(LogOperationRecorder())
         # pylint: disable=protected-access
-        self.assertTrue(len(conn._operation_recorders), 1)
-        try:
+        assert len(conn._operation_recorders) == 1
+
+        with pytest.raises(ValueError):
             conn.add_operation_recorder(LogOperationRecorder())
-            self.fail('Expected exception')
-        except ValueError:
-            pass
 
 
-if __name__ == '__main__':
-    unittest.main()
+class TestGetRsltParams(object):
+    """Test WBEMConnection._get_rslt_params method."""
+
+    @pytest.mark.parametrize(
+        'irval, ec, eos, eos_exp', [[None, u'contextblah', u'False', False],
+                                    [None, "", u'True', True],
+                                    [None, u'contextblah', u'True', True]]
+    )
+    @staticmethod
+    def test_pass(irval, ec, eos, eos_exp):
+        """Test good combinations of EndOfSequence and EnumerationContext"""
+        result = [
+            (u'IRETURNVALUE', {}, irval),
+            (u'EnumerationContext', None, ec),
+            (u'EndOfSequence', None, eos)
+        ]
+        # pylint: disable=protected-access
+        result = WBEMConnection._get_rslt_params(result, 'namespace')
+        # the _get_rslt_params method sets context to None if eos True
+        ecs = None if eos_exp is True else (ec, 'namespace')
+        assert result == (None, eos_exp, ecs)
+
+    @pytest.mark.parametrize(
+        'irval, ec, eos', [[None, None, None],
+                           [None, None, u'False']]
+    )
+    @staticmethod
+    def test_fail(irval, ec, eos):
+        """Test EndOfSequence and EnumerationContext variations that should
+           cause exception."""
+        result = [
+            (u'IRETURNVALUE', {}, irval),
+            (u'EnumerationContext', None, ec),
+            (u'EndOfSequence', None, eos)
+        ]
+        with pytest.raises(CIMError) as exec_info:
+            # pylint: disable=protected-access
+            result = WBEMConnection._get_rslt_params(result, 'namespace')
+
+        exc = exec_info.value
+        assert exc.status_code_name == 'CIM_ERR_INVALID_PARAMETER'
+
+    @staticmethod
+    def test_missing():
+        """Test both Enum context and EndOfSequence completely missing"""
+        result = [
+            (u'IRETURNVALUE', {}, {})
+        ]
+        with pytest.raises(CIMError) as exec_info:
+            # pylint: disable=protected-access
+            result = WBEMConnection._get_rslt_params(result, 'namespace')
+
+        exc = exec_info.value
+        assert exc.status_code_name == 'CIM_ERR_INVALID_PARAMETER'
+
+    @pytest.mark.parametrize(
+        'result_input, ec_exp, eos_exp, exec_exp', [[
+            (u'IRETURNVALUE', {}, None),
+            (u'EnumerationContext', None, 'context-blah'),
+            (u'EndOfSequence', None, False),
+            ('context-blah', 'ns'), False, None]]
+    )
+    @staticmethod
+    def test_all(result_input, ec_exp, eos_exp, exec_exp):
+        """
+        """
+        if exec_exp:
+            with pytest.raises(CIMError) as exec_info:
+                # pylint: disable=protected-access
+                result = WBEMConnection._get_rslt_params(result_input, 'ns')
+
+            exc = exec_info.value
+            assert exc.status_code_name == 'CIM_ERR_INVALID_PARAMETER'
+
+        else:
+            # pylint: disable=protected-access
+            result = WBEMConnection._get_rslt_params(result_input, 'ns')
+            assert result == (None, eos_exp, ec_exp)

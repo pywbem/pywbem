@@ -172,6 +172,10 @@ Bug fixes
   is `CIMInstanceName`, for keys that are references. Now, `TypeError` is
   raised in that case.
 
+* Fix issues in cim_operations.py where a open or pull that returned with
+  missing enumeration_context and eos would pass one of the internal tests.
+  See issue #844
+
 Cleanup
 ^^^^^^^
 

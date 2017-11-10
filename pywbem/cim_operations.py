@@ -1948,33 +1948,34 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         rtn_objects = []
         end_of_sequence = False
         enumeration_context = None
-        valid_result = False
+        end_of_sequence_found = False
+        enumeration_context_found = False
 
         for p in result:
             if p[0] == 'EndOfSequence':
-                if p[2] is None:
-                    valid_result = True
-                elif isinstance(p[2], six.string_types) and \
-                    p[2].lower() in ['true', 'false']:  # noqa: E125
-                    valid_result = True if p[2].lower() == 'true' else False
-                    end_of_sequence = valid_result
+                if isinstance(p[2], six.string_types):
+                    if p[2].lower() in ['true', 'false']:  # noqa: E125
+                        end_of_sequence = True if p[2].lower() == 'true' \
+                            else False
+                        end_of_sequence_found = True
+                    else:
+                        raise CIMError(CIM_ERR_INVALID_PARAMETER, 'Invalid '
+                                       'value %s on EndOfSequence' % p[2])
 
             elif p[0] == 'EnumerationContext':
-                if p[2] is None:
-                    valid_result = True
                 if isinstance(p[2], six.string_types):
                     enumeration_context = p[2]
-                    valid_result = True
+                    enumeration_context_found = True
 
             elif p[0] == "IRETURNVALUE":
                 rtn_objects = p[2]
 
-        if not valid_result:
+        if not end_of_sequence_found and not enumeration_context_found:
             raise CIMError(CIM_ERR_INVALID_PARAMETER, "EndOfSequence "
                            "or EnumerationContext required")
 
-        # convert enum context if eos is True
-        # Otherwise, returns tuple of enumeration context and namespace
+        # Drop enumeration_context if eos True
+        # Returns tuple of enumeration context and namespace
         rtn_ctxt = None if end_of_sequence else (enumeration_context,
                                                  namespace)
         return (rtn_objects, end_of_sequence, rtn_ctxt)
