@@ -161,12 +161,13 @@ class TestIterEnumerateInstances(object):
         # pylint: disable=protected-access
         assert(conn._use_enum_inst_pull_operations is True)
 
-        with pytest.raises(CIMError) as er:
+        with pytest.raises(CIMError) as exec_info:
             # pylint: disable=unused-argument
             _ = [i for i in conn.IterEnumerateInstances('CIM_Foo')]  # noqa=F841
 
-        assert('%s' % CIM_ERR_NOT_SUPPORTED in str(er.value))
-        assert('description' in str(er.value))
+        exc = exec_info.value
+        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+
         # pylint: disable=protected-access
         assert(conn._use_enum_inst_pull_operations is True)
         assert(conn.use_pull_operations is True)
@@ -356,12 +357,13 @@ class TestIterEnumerateInstancePaths(object):
         # pylint: disable=protected-access
         assert(conn._use_enum_path_pull_operations is True)
 
-        with pytest.raises(CIMError) as er:
+        with pytest.raises(CIMError) as exec_info:
             # pylint: disable=expression-not-assigned
             [i for i in conn.IterEnumerateInstancePaths('CIM_Foo')]  # noqa=F841
 
-        assert('%s' % CIM_ERR_NOT_SUPPORTED in str(er.value))
-        assert('description' in str(er.value))
+        exc = exec_info.value
+        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+
         # pylint: disable=protected-access
         assert(conn._use_enum_path_pull_operations is True)
         assert(conn.use_pull_operations is True)
@@ -581,13 +583,14 @@ class TestIterReferenceInstances(object):
         # pylint: disable=protected-access
         assert(conn._use_ref_inst_pull_operations is True)
 
-        with pytest.raises(CIMError) as er:
+        with pytest.raises(CIMError) as exec_info:
             # pylint: disable=unused-argument
             _ = [i for i in conn.IterReferenceInstances(  # noqa=F841
                 self.target_path('root/cimv2'))]
 
-        assert('%s' % CIM_ERR_NOT_SUPPORTED in str(er.value))
-        assert('description' in str(er.value))
+        exc = exec_info.value
+        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+
         # pylint: disable=protected-access
         assert(conn._use_ref_inst_pull_operations is True)
         assert(conn.use_pull_operations is True)
@@ -814,13 +817,14 @@ class TestIterReferenceInstancePaths(object):
         # pylint: disable=protected-access
         assert(conn._use_ref_path_pull_operations is True)
 
-        with pytest.raises(CIMError) as er:
+        with pytest.raises(CIMError) as exec_info:
             # pylint: disable=unused-argument
             _ = [i for i in conn.IterReferenceInstancePaths(  # noqa=F841
                 self.target_path('root/cimv2'))]
 
-        assert('%s' % CIM_ERR_NOT_SUPPORTED in str(er.value))
-        assert('description' in str(er.value))
+        exc = exec_info.value
+        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+
         # pylint: disable=protected-access
         assert(conn._use_ref_path_pull_operations is True)
         assert(conn.use_pull_operations is True)
@@ -1049,13 +1053,14 @@ class TestIterAssociatorInstances(object):
         # pylint: disable=protected-access
         assert(conn._use_assoc_inst_pull_operations is True)
 
-        with pytest.raises(CIMError) as er:
+        with pytest.raises(CIMError) as exec_info:
             # pylint: disable=unused-argument
             _ = [i for i in conn.IterAssociatorInstances(  # noqa=F841
                 self.target_path('root/cimv2'))]
 
-        assert('%s' % CIM_ERR_NOT_SUPPORTED in str(er.value))
-        assert('description' in str(er.value))
+        exc = exec_info.value
+        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+
         # pylint: disable=protected-access
         assert(conn._use_assoc_inst_pull_operations is True)
         assert(conn.use_pull_operations is True)
@@ -1290,13 +1295,14 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
         # pylint: disable=protected-access
         assert(conn._use_assoc_path_pull_operations is True)
 
-        with pytest.raises(CIMError) as er:
+        with pytest.raises(CIMError) as exec_info:
             # pylint: disable=unused-argument
             _ = [i for i in conn.IterAssociatorInstancePaths(  # noqa=F841
                 self.target_path('root/cimv2'))]
 
-        assert('%s' % CIM_ERR_NOT_SUPPORTED in str(er.value))
-        assert('description' in str(er.value))
+        exc = exec_info.value
+        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+
         # pylint: disable=protected-access
         assert(conn._use_assoc_path_pull_operations is True)
         assert(conn.use_pull_operations is True)
@@ -1495,13 +1501,14 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
         # pylint: disable=protected-access
         assert(conn._use_query_pull_operations is True)
 
-        with pytest.raises(CIMError) as er:
+        with pytest.raises(CIMError) as exec_info:
             # pylint: disable=unused-variable
             q_result = conn.IterQueryInstances(  # noqa=F841
                 'CQL', 'Select from *')
 
-        assert('%s' % CIM_ERR_NOT_SUPPORTED in str(er.value))
-        assert('description' in str(er.value))
+        exc = exec_info.value
+        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+
         # pylint: disable=protected-access
         assert(conn._use_query_pull_operations is True)
         assert(conn.use_pull_operations is True)
