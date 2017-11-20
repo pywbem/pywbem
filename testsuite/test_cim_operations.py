@@ -157,50 +157,53 @@ class TestGetRsltParams(object):
     """Test WBEMConnection._get_rslt_params method."""
 
     @pytest.mark.parametrize(
-        'irval, ec, eos, eos_exp', [
-            [None, u'contextblah', u'False', False],
-            [None, "", u'True', True],
-            [None, u'contextblah', u'True', True],
+        'irval', [None, 'bla', [], {}])
+    @pytest.mark.parametrize(
+        # enumctxt input, eos input, expected_eos, exception_expected
+        'ec, eos, eos_exp, exc_exp', [
+            # following are successul returns
+            [u'contextblah', u'False', False, False],   # normal enumctxt rtn
+            ["", u'True', True, False],              # eos true, enmctxt empty
+            [None, u'True', True, False],              # eos true, enmctxt None
+            [u'contextblah', u'True', True, False],    # eos tru, cts with value
+            # following are exceptions
+            [None, None, None, True],       # fail,no values in eos or enumctxt
+            [None, u'False', None, True],   # fail,no value in ec and eos False
         ]
     )
     # pylint: disable=no-self-use
-    def test_pass(self, irval, ec, eos, eos_exp):
-        """Test good combinations of EndOfSequence and EnumerationContext"""
+    def test_with_params(self, irval, ec, eos, eos_exp, exc_exp):
+        """
+        Test combminations of IRETURNVALUE, EOS and EnumerationContext for
+        both good and fail responses.
+        """
         result = [
             (u'IRETURNVALUE', {}, irval),
             (u'EnumerationContext', None, ec),
             (u'EndOfSequence', None, eos)
         ]
-        # pylint: disable=protected-access
-        result = WBEMConnection._get_rslt_params(result, 'namespace')
-        # the _get_rslt_params method sets context to None if eos True
-        ecs = None if eos_exp is True else (ec, 'namespace')
-        assert result == (None, eos_exp, ecs)
 
-    @pytest.mark.parametrize(
-        'irval, ec, eos', [
-            [None, None, None],
-            [None, None, u'False'],
-        ]
-    )
-    def test_fail(self, irval, ec, eos):  # pylint: disable=no-self-use
-        """Test EndOfSequence and EnumerationContext variations that should
-           cause exception."""
-        result = [
-            (u'IRETURNVALUE', {}, irval),
-            (u'EnumerationContext', None, ec),
-            (u'EndOfSequence', None, eos)
-        ]
-        with pytest.raises(CIMError) as exec_info:
+        if exc_exp:
+            with pytest.raises(CIMError) as exec_info:
+                # pylint: disable=protected-access
+                result = WBEMConnection._get_rslt_params(result, 'root/blah')
+
+            exc = exec_info.value
+            assert exc.status_code_name == 'CIM_ERR_INVALID_PARAMETER'
+
+        else:
             # pylint: disable=protected-access
-            result = WBEMConnection._get_rslt_params(result, 'namespace')
-
-        exc = exec_info.value
-        assert exc.status_code_name == 'CIM_ERR_INVALID_PARAMETER'
+            result = WBEMConnection._get_rslt_params(result, 'root/blah')
+            # the _get_rslt_params method sets context to None if eos True
+            ecs = None if eos_exp is True else (ec, 'root/blah')
+            assert result == (irval, eos_exp, ecs)
 
     # pylint: disable=no-self-use
     def test_missing(self):
-        """Test both Enum context and EndOfSequence completely missing"""
+        """
+        Test both Enum context and EndOfSequence completely missing.
+        Generates exception
+        """
         result = [
             (u'IRETURNVALUE', {}, {})
         ]

@@ -1948,8 +1948,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         rtn_objects = []
         end_of_sequence = False
         enumeration_context = None
-        end_of_sequence_found = False
-        enumeration_context_found = False
+        end_of_sequence_found = False  # flag True if found and valid value
+        enumeration_context_found = False  # flag True if ec tuple found
         for p in result:
             if p[0] == 'EndOfSequence':
                 if isinstance(p[2], six.string_types):
@@ -1962,19 +1962,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                        'value %s on EndOfSequence' % p[2])
 
             elif p[0] == 'EnumerationContext':
+                enumeration_context_found = True
                 if isinstance(p[2], six.string_types):
                     enumeration_context = p[2]
-                    enumeration_context_found = True
 
             elif p[0] == "IRETURNVALUE":
                 rtn_objects = p[2]
 
         if not end_of_sequence_found and not enumeration_context_found:
             raise CIMError(CIM_ERR_INVALID_PARAMETER, "EndOfSequence "
-                           "or EnumerationContext required")
+                           "or EnumerationContext required in response.")
         if not end_of_sequence and enumeration_context is None:
             raise CIMError(CIM_ERR_INVALID_PARAMETER, "EndOfSequence False"
-                           "and invalid EnumerationContext found")
+                           "and EnumerationContext Null value or missing.")
 
         # Drop enumeration_context if eos True
         # Returns tuple of enumeration context and namespace

@@ -615,5 +615,67 @@
   pywbem_response:
         exception: TypeError
 
+- name: PullInstancePathsF5
+  description: PullInstancePaths request fails. eos and context missing
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: PullInstancePaths
+      MaxObjectCount: 100
+      context:
+      - '500182'
+      - root/cimv2
+  pywbem_response:
+        cim_status: 4
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: PullInstancePaths
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="PullInstancePaths">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="EnumerationContext">
+      <VALUE>500182</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>100</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+
+  http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="PullInstancePaths">
+                            <IRETURNVALUE>
+                            </IRETURNVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+
 
 
