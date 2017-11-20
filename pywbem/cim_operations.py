@@ -1950,7 +1950,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         enumeration_context = None
         end_of_sequence_found = False
         enumeration_context_found = False
-
         for p in result:
             if p[0] == 'EndOfSequence':
                 if isinstance(p[2], six.string_types):
@@ -1973,6 +1972,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         if not end_of_sequence_found and not enumeration_context_found:
             raise CIMError(CIM_ERR_INVALID_PARAMETER, "EndOfSequence "
                            "or EnumerationContext required")
+        if not end_of_sequence and enumeration_context is None:
+            raise CIMError(CIM_ERR_INVALID_PARAMETER, "EndOfSequence False"
+                           "and invalid EnumerationContext found")
 
         # Drop enumeration_context if eos True
         # Returns tuple of enumeration context and namespace

@@ -100,7 +100,7 @@ class TestCreateConnection(object):
     Test construction of WBEMConnection and those functions that do not
     depend on actually creating a connection
     """
-    def test_connection_defaults(self):
+    def test_connection_defaults(self):  # pylint: disable=no-self-use
         """Test creation of a connection with default constructor
            parameters.
         """
@@ -111,7 +111,7 @@ class TestCreateConnection(object):
         assert conn.use_pull_operations is False
         assert conn.stats_enabled is False
 
-    def test_no_recorder(self):
+    def test_no_recorder(self):  # pylint: disable=no-self-use
         """Test creation of wbem connection with specific parameters"""
         creds = ('myname', 'mypw')
         x509 = {'cert_file': 'mycertfile.crt', 'key_file': 'mykeyfile.key'}
@@ -126,14 +126,14 @@ class TestCreateConnection(object):
         assert conn.stats_enabled is True
         assert conn.use_pull_operations is True
 
-    def test_add_operation_recorder(self):
+    def test_add_operation_recorder(self):  # pylint: disable=no-self-use
         """Test addition of an operation recorder"""
         conn = WBEMConnection('http://localhost')
         conn.add_operation_recorder(LogOperationRecorder())
         # pylint: disable=protected-access
         assert len(conn._operation_recorders) == 1
 
-    def test_add_operation_recorders(self):
+    def test_add_operation_recorders(self):  # pylint: disable=no-self-use
         """Test addition of multiple operation recorders"""
         conn = WBEMConnection('http://localhost')
         conn.add_operation_recorder(LogOperationRecorder())
@@ -142,7 +142,7 @@ class TestCreateConnection(object):
         # pylint: disable=protected-access
         assert len(conn._operation_recorders) == 2
 
-    def test_add_same_twice(self):
+    def test_add_same_twice(self):  # pylint: disable=no-self-use
         """ Test addition of same recorder twice"""
         conn = WBEMConnection('http://localhost')
         conn.add_operation_recorder(LogOperationRecorder())
@@ -157,12 +157,14 @@ class TestGetRsltParams(object):
     """Test WBEMConnection._get_rslt_params method."""
 
     @pytest.mark.parametrize(
-        'irval, ec, eos, eos_exp', [[None, u'contextblah', u'False', False],
-                                    [None, "", u'True', True],
-                                    [None, u'contextblah', u'True', True]]
+        'irval, ec, eos, eos_exp', [
+            [None, u'contextblah', u'False', False],
+            [None, "", u'True', True],
+            [None, u'contextblah', u'True', True],
+        ]
     )
-    @staticmethod
-    def test_pass(irval, ec, eos, eos_exp):
+    # pylint: disable=no-self-use
+    def test_pass(self, irval, ec, eos, eos_exp):
         """Test good combinations of EndOfSequence and EnumerationContext"""
         result = [
             (u'IRETURNVALUE', {}, irval),
@@ -176,11 +178,12 @@ class TestGetRsltParams(object):
         assert result == (None, eos_exp, ecs)
 
     @pytest.mark.parametrize(
-        'irval, ec, eos', [[None, None, None],
-                           [None, None, u'False']]
+        'irval, ec, eos', [
+            [None, None, None],
+            [None, None, u'False'],
+        ]
     )
-    @staticmethod
-    def test_fail(irval, ec, eos):
+    def test_fail(self, irval, ec, eos):  # pylint: disable=no-self-use
         """Test EndOfSequence and EnumerationContext variations that should
            cause exception."""
         result = [
@@ -195,8 +198,8 @@ class TestGetRsltParams(object):
         exc = exec_info.value
         assert exc.status_code_name == 'CIM_ERR_INVALID_PARAMETER'
 
-    @staticmethod
-    def test_missing():
+    # pylint: disable=no-self-use
+    def test_missing(self):
         """Test both Enum context and EndOfSequence completely missing"""
         result = [
             (u'IRETURNVALUE', {}, {})
@@ -207,27 +210,3 @@ class TestGetRsltParams(object):
 
         exc = exec_info.value
         assert exc.status_code_name == 'CIM_ERR_INVALID_PARAMETER'
-
-    @pytest.mark.parametrize(
-        'result_input, ec_exp, eos_exp, exec_exp', [[
-            (u'IRETURNVALUE', {}, None),
-            (u'EnumerationContext', None, 'context-blah'),
-            (u'EndOfSequence', None, False),
-            ('context-blah', 'ns'), False, None]]
-    )
-    @staticmethod
-    def test_all(result_input, ec_exp, eos_exp, exec_exp):
-        """
-        """
-        if exec_exp:
-            with pytest.raises(CIMError) as exec_info:
-                # pylint: disable=protected-access
-                result = WBEMConnection._get_rslt_params(result_input, 'ns')
-
-            exc = exec_info.value
-            assert exc.status_code_name == 'CIM_ERR_INVALID_PARAMETER'
-
-        else:
-            # pylint: disable=protected-access
-            result = WBEMConnection._get_rslt_params(result_input, 'ns')
-            assert result == (None, eos_exp, ec_exp)
