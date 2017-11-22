@@ -88,10 +88,10 @@ class CIMObjectMixin(object):
         Verify the attributes of the CIMInstanceName object in `obj` against
         expected values passed as the remaining arguments.
         """
-        self.assertEqual(obj.classname, classname, "classname attribute")
-        self.assertEqual(obj.keybindings, keybindings, "keybindings attribute")
-        self.assertEqual(obj.host, host, "host attribute")
-        self.assertEqual(obj.namespace, namespace, "namespace attribute")
+        self.assertEqual(obj.classname, classname)
+        self.assertEqual(obj.keybindings, keybindings)
+        self.assertEqual(obj.host, host)
+        self.assertEqual(obj.namespace, namespace)
 
     def assertCIMProperty(self, obj, name, value, type_=None,
                           class_origin=None, array_size=None, propagated=None,
@@ -101,41 +101,30 @@ class CIMObjectMixin(object):
         Verify the attributes of the CIMProperty object in `obj` against
         expected values passed as the remaining arguments.
         """
-        self.assertEqual(obj.name, name, "name attribute")
-        self.assertEqual(obj.value, value, "value attribute")
-        self.assertEqual(obj.type, type_, "type attribute")
-        self.assertEqual(obj.class_origin, class_origin,
-                         "class_origin attribute")
-        self.assertEqual(obj.array_size, array_size, "array_size attribute")
-        self.assertEqual(obj.propagated, propagated, "propagated attribute")
-        self.assertEqual(obj.is_array, is_array, "is_array attribute")
-        self.assertEqual(obj.reference_class, reference_class,
-                         "reference_class attribute")
-        self.assertEqual(obj.qualifiers, NocaseDict(qualifiers),
-                         "qualifiers attribute")
-        self.assertEqual(obj.embedded_object, embedded_object,
-                         "embedded_object attribute")
+        self.assertEqual(obj.name, name)
+        self.assertEqual(obj.value, value)
+        self.assertEqual(obj.type, type_)
+        self.assertEqual(obj.class_origin, class_origin)
+        self.assertEqual(obj.array_size, array_size)
+        self.assertEqual(obj.propagated, propagated)
+        self.assertEqual(obj.is_array, is_array)
+        self.assertEqual(obj.reference_class, reference_class)
+        self.assertEqual(obj.qualifiers, NocaseDict(qualifiers))
+        self.assertEqual(obj.embedded_object, embedded_object)
 
     def assertEqualCIMClass(self, act_class, exp_class):
         """
         Verify that two CIMClass objects are equal.
         """
-        self.assertEqual(act_class.classname,
-                         exp_class.classname,
-                         "Unexpected classname: %s" % act_class.classname)
+        self.assertEqual(act_class.classname, exp_class.classname)
         context = "class %s" % act_class.classname
-        self.assertEqual(act_class.superclass,
-                         exp_class.superclass,
-                         "Unexpected superclass: %s" % act_class.superclass)
+        self.assertEqual(act_class.superclass, exp_class.superclass)
         self.assertEqualProperties(
-            act_class.properties, exp_class.properties,
-            context)
+            act_class.properties, exp_class.properties, context)
         self.assertEqualMethods(
-            act_class.methods, exp_class.methods,
-            context)
+            act_class.methods, exp_class.methods, context)
         self.assertEqualQualifiers(
-            act_class.qualifiers, exp_class.qualifiers,
-            context)
+            act_class.qualifiers, exp_class.qualifiers, context)
 
     def assertEqualProperties(self, act_properties, exp_properties, context):
         """

@@ -21,12 +21,12 @@ import re
 import inspect
 import os.path
 from datetime import timedelta, datetime
-import unittest
+import unittest2 as unittest  # we use assertRaises(exc) introduced in py27
 
 import pytest
 import six
 
-from pywbem import cim_obj, cim_types
+from pywbem import cim_obj, cim_types, __version__
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, Uint8, Uint16, Uint32, \
@@ -37,6 +37,11 @@ from validate import validate_xml
 from unittest_extensions import RegexpMixin, CIMObjectMixin
 
 unimplemented = pytest.mark.skipif(True, reason="test not implemented")
+
+# Controls whether the new behavior for CIM objects in 0.12.0 is checked.
+CHECK_0_12_0 = (__version__.split('.') >= ['0', '12', '0'])
+
+print("Debug: CHECK_0_12_0 = %s" % CHECK_0_12_0)
 
 
 class ValidateTest(unittest.TestCase):
@@ -300,7 +305,12 @@ class InitCIMInstanceName(unittest.TestCase, CIMObjectMixin):
 
     def test_all(self):
 
-        # Initialize with class name only
+        # Initialize with classname being None
+
+        with self.assertRaises(ValueError):
+            CIMInstanceName(None)
+
+        # Initialize with classname only
 
         obj = CIMInstanceName('CIM_Foo')
         self.assertCIMInstanceName(obj, 'CIM_Foo', {})
@@ -318,18 +328,59 @@ class InitCIMInstanceName(unittest.TestCase, CIMObjectMixin):
         obj = CIMInstanceName('CIM_Foo', keybindings=kb)
         self.assertCIMInstanceName(obj, 'CIM_Foo', kb)
 
+        self.assertIsInstance(obj.keybindings, NocaseDict)
+        self.assertEqual(obj.keybindings['naMe'], 'Foo')  # different case
+        self.assertEqual(obj.keybindings['ChIcKeN'], 'Ham')  # different case
+
         kb2 = NocaseDict({'Name': 'Foo', 'Chicken': 'Ham'})
 
         obj = CIMInstanceName('CIM_Foo', kb2)
         self.assertCIMInstanceName(obj, 'CIM_Foo', kb2)
 
-        kb3 = {'Name': 'Foo',
-               'Number': 42,
-               'Boolean': False,
-               'Ref': CIMInstanceName('CIM_Bar')}
+        kb3 = {
+            'NameU': u'Foo',
+            'NameB': b'Bar',
+            'NumUi8': Uint8(42),
+            'NumUi16': Uint16(43),
+            'NumUi32': Uint32(44),
+            'NumUi64': Uint64(45),
+            'NumSi8': Sint8(-42),
+            'NumSi16': Sint16(-43),
+            'NumSi32': Sint32(-44),
+            'NumSi64': Sint64(-45),
+            'NumR32': Real32(42.0),
+            'NumR64': Real64(43.0),
+            'Boolean': False,
+            'Ref': CIMInstanceName('CIM_Bar'),
+            'DTP': CIMDateTime(datetime(2014, 9, 22, 10, 49, 20, 524789)),
+            'DTI': CIMDateTime(timedelta(10, 49, 20)),
+        }
 
         obj = CIMInstanceName('CIM_Foo', kb3)
         self.assertCIMInstanceName(obj, 'CIM_Foo', kb3)
+
+        # Initialize with keybindings that are CIMProperty objects
+
+        if CHECK_0_12_0:
+
+            kb3a_in = {'Name': CIMProperty('Name', 'Foo')}
+            kb3a_exp = {'Name': 'Foo'}  # ... and that only the value is stored
+            obj = CIMInstanceName('CIM_Foo', kb3a_in)
+            self.assertCIMInstanceName(obj, 'CIM_Foo', kb3a_exp)
+
+            kb3b_in = {'Name': CIMProperty('NameX', 'Foo')}
+            with self.assertRaises(ValueError):
+                CIMInstanceName('CIM_Foo', kb3b_in)
+
+        # Initialize with keybindings that are int and float
+
+        kb3c = {'KeyInt': 42,
+                'KeyFloat': 7.5}
+        obj = CIMInstanceName('CIM_Foo', kb3c)
+        self.assertCIMInstanceName(obj, 'CIM_Foo', kb3c)
+        if CHECK_0_12_0:
+            # TODO: Verify DeprecationWarning after migrating to py.test
+            pass
 
         # Initialize with namespace in addition
 
@@ -400,7 +451,26 @@ class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
         self.assertCIMInstanceName(obj, 'CIM_Foo', kb,
                                    'woot.com', 'root/cimv2')
 
-        kb2 = {'InstanceID': '5678'}
+        # Check that attributes can be modified
+
+        kb2 = {
+            'NameU': u'Foo',
+            'NameB': b'Bar',
+            'NumUi8': Uint8(42),
+            'NumUi16': Uint16(43),
+            'NumUi32': Uint32(44),
+            'NumUi64': Uint64(45),
+            'NumSi8': Sint8(-42),
+            'NumSi16': Sint16(-43),
+            'NumSi32': Sint32(-44),
+            'NumSi64': Sint64(-45),
+            'NumR32': Real32(42.0),
+            'NumR64': Real64(43.0),
+            'Boolean': False,
+            'Ref': CIMInstanceName('CIM_Bar'),
+            'DTP': CIMDateTime(datetime(2014, 9, 22, 10, 49, 20, 524789)),
+            'DTI': CIMDateTime(timedelta(10, 49, 20)),
+        }
 
         obj.classname = 'CIM_Bar'
         obj.keybindings = kb2
@@ -409,6 +479,38 @@ class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
 
         self.assertCIMInstanceName(obj, 'CIM_Bar', kb2,
                                    'woom.com', 'root/interop')
+
+        # Setting classname to None
+
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                obj.classname = None
+        else:
+            obj.classname = None
+            self.assertIs(obj.classname, None)
+
+        # Setting keybindings with CIMProperty objects
+
+        if CHECK_0_12_0:
+
+            kb3_in = {'Name': CIMProperty('Name', 'Foo')}
+            kb3_exp = {'Name': 'Foo'}  # ... and that only the value is stored
+            obj.keybindings = kb3_in
+            self.assertEqual(obj.keybindings, kb3_exp)
+
+            kb4_in = {'Name': CIMProperty('NameX', 'Foo')}
+            with self.assertRaises(ValueError):
+                obj.keybindings = kb4_in
+
+        # Setting keybindings with int and float
+
+        kb5 = {'KeyInt': 42,
+               'KeyFloat': 7.5}
+        obj.keybindings = kb5
+        self.assertEqual(obj.keybindings, kb5)
+        if CHECK_0_12_0:
+            # TODO: Verify DeprecationWarning after migrating to py.test
+            pass
 
 
 class CIMInstanceNameDict(DictTest):
@@ -695,6 +797,18 @@ class InitCIMInstance(unittest.TestCase):
 
     def test_all(self):
 
+        # Initialize with classname being None
+
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                CIMInstance(None)
+        else:
+            # Before 0.12.0, the implementation allowed the classname to be
+            # None, although the documentation required it not to be None.
+            # We test the implemented behavior.
+            obj = CIMInstance(None)
+            self.assertIs(obj.classname, None)
+
         # Initialize with class name only
 
         obj = CIMInstance('CIM_Foo')
@@ -713,13 +827,18 @@ class InitCIMInstance(unittest.TestCase):
         self.assertEqual(obj.path, None)
         self.assertEqual(obj.property_list, None)
 
-        # Initialize with properties of all valid non-array, non-ref types
+        # Initialize with scalar properties of all valid simple types
 
         props_input = {}
         props_input[1] = {
             'S1': b'Ham',
             'S2': u'H\u00E4m',  # U+00E4 = lower case a umlaut
-            'B': True,
+            'B1': True,
+            'B2': False,
+            'B3': CIMProperty(name='B3', type='boolean', value='bla'),
+            'B4': CIMProperty(name='B4', type='boolean', value=''),
+            'B5': CIMProperty(name='B5', type='boolean', value=1),
+            'B6': CIMProperty(name='B6', type='boolean', value=0),
             'UI8': Uint8(42),
             'UI16': Uint16(4216),
             'UI32': Uint32(4232),
@@ -739,8 +858,18 @@ class InitCIMInstance(unittest.TestCase):
                               value=b'Ham', is_array=False),
             'S2': CIMProperty(name='S2', type='string',
                               value=u'H\u00E4m', is_array=False),  # a umlaut
-            'B': CIMProperty(name='B', type='boolean',
-                             value=True, is_array=False),
+            'B1': CIMProperty(name='B1', type='boolean',
+                              value=True, is_array=False),
+            'B2': CIMProperty(name='B2', type='boolean',
+                              value=False, is_array=False),
+            'B3': CIMProperty(name='B3', type='boolean',
+                              value=True, is_array=False),
+            'B4': CIMProperty(name='B4', type='boolean',
+                              value=False, is_array=False),
+            'B5': CIMProperty(name='B5', type='boolean',
+                              value=True, is_array=False),
+            'B6': CIMProperty(name='B6', type='boolean',
+                              value=False, is_array=False),
             'UI8': CIMProperty(name='UI8', type='uint8',
                                value=Uint8(42), is_array=False),
             'UI16': CIMProperty(name='UI16', type='uint16',
@@ -777,7 +906,7 @@ class InitCIMInstance(unittest.TestCase):
             obj = CIMInstance('CIM_Foo', props_input[i])
 
             self.assertEqual(obj.classname, 'CIM_Foo')
-            self.assertEqual(obj.properties, props_obj)
+            assert obj.properties == props_obj, "for i=%d" % i
             self.assertEqual(obj.qualifiers, {})
             self.assertEqual(obj.path, None)
             self.assertEqual(obj.property_list, None)
@@ -785,49 +914,23 @@ class InitCIMInstance(unittest.TestCase):
             obj = CIMInstance('CIM_Foo', properties=props_input[i])
 
             self.assertEqual(obj.classname, 'CIM_Foo')
-            self.assertEqual(obj.properties, props_obj)
+            assert obj.properties == props_obj, "for i=%d" % i
             self.assertEqual(obj.qualifiers, {})
             self.assertEqual(obj.path, None)
             self.assertEqual(obj.property_list, None)
 
-        # Check that initialization with Python integer and floating point
-        # values is rejected
+        # Initialize with properties that are int, float and long
 
-        num_values = [42, 42.1]
+        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+            CIMInstance('CIM_Foo', properties={'Age': 42})
+
+        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+            CIMInstance('CIM_Foo', properties={'Age': 42.1})
+
         if six.PY2:
-            num_values.append(long(42))  # noqa: F821
-        for num_value in num_values:
-            try:
-                inst = CIMInstance('CIM_Foo',
-                                   properties={'Age': CIMProperty('Age',
-                                                                  num_value)})
-            except TypeError:
-                pass
-            else:
-                self.fail('TypeError not raised for invalid value %s '
-                          '(type %s) for property of unspecified type\n'
-                          'Instance properties: %r' %
-                          (num_value, type(num_value), inst.properties))
-
-        # Check that initialization with string values for boolean types
-        # is rejected.
-        #
-        # TODO Re-enable this test once this check is implemented.
-        # pylint: disable=using-constant-test
-        if False:
-            try:
-                inst = CIMInstance('CIM_Foo',
-                                   properties={'Old':
-                                               CIMProperty('Old',
-                                                           type='boolean',
-                                                           value='TRUE')})
-            except TypeError:
-                pass
-            else:
-                self.fail('TypeError not raised for invalid value \'TRUE\' '
-                          '(type string) for property of type boolean'
-                          'Instance properties: %r' %
-                          (inst.properties,))
+            with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+                CIMInstance('CIM_Foo',
+                            properties={'Age': long(42)})  # noqa: F821
 
         # Initialize with some qualifiers
 
@@ -976,6 +1079,18 @@ class CIMInstanceAttrs(unittest.TestCase):
         self.assertEqual(obj.qualifiers, quals)
         self.assertEqual(obj.path, path)
 
+        # Setting classname to None
+
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                obj.classname = None
+        else:
+            # Before 0.12.0, the implementation allowed the classname to be
+            # None, although the documentation required it not to be None.
+            # We test the implemented behavior.
+            obj.classname = None
+            self.assertIs(obj.classname, None)
+
 
 class CIMInstanceDict(DictTest):
     """Test the Python dictionary interface for CIMInstance."""
@@ -988,17 +1103,19 @@ class CIMInstanceDict(DictTest):
 
         self.runtest_dict(obj, props)
 
-        # Test CIM type checking
+        # Setting properties to int, float and long
 
-        try:
+        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
             obj['Foo'] = 43
-        except TypeError:
-            pass
-        else:
-            self.fail('TypeError not raised for invalid value 43 '
-                      '(type int) for property of unspecified type'
-                      'Instance properties: %r' %
-                      (obj.properties,))
+
+        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+            obj['Foo'] = 43.1
+
+        if six.PY2:
+            with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+                obj['Foo'] = long(43)  # noqa: F821
+
+        # Setting properties to CIM data type values
 
         obj['Foo'] = Uint32(43)
 
@@ -1476,7 +1593,21 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
     # pylint: disable=too-many-branches
     def test_all(self):
 
+        # Note: The inferring of the type attribute of CIMProperty changed over
+        # time: Before pywbem 0.8.1, a value of None required specifying a
+        # type. In 0.8.1, a rather complex logic was implemented that tried to
+        # be perfect in inferring unspecified input properties, at the price of
+        # considerable complexity. In 0.12.0, this complex logic was
+        # drastically simplified again. Some cases are still nicely inferred,
+        # but some less common cases now require specifying the type again.
+
         quals = {'Key': CIMQualifier('Key', True)}
+
+        # Initialization with name being None
+
+        # Starting with 0.8.1, the implementation enforced name to be non-None
+        with self.assertRaises(ValueError):
+            CIMProperty(None, 42)
 
         # Initialization to CIM string type
 
@@ -1554,13 +1685,13 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
                                 seconds=55, microseconds=654321)
         cim_datetime_1 = '12345678224455.654321:000'
 
-        # This test failed in the old constructor implementation, because
+        # This test failed in the pre-0.8.1 implementation, because
         # the timedelta object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', timedelta_1)
         self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
                                'datetime')
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # timedelta object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', timedelta_1, 'datetime')
         self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
@@ -1574,7 +1705,7 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
                                'datetime')
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # datetime formatted string was not converted to a CIMDateTime object.
         p = CIMProperty('Age', cim_datetime_1, 'datetime')
         self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
@@ -1593,13 +1724,13 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
                               tzinfo=cim_types.MinutesFromUTC(120))
         cim_datetime_2 = '20140924193040.654321+120'
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # datetime object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', datetime_2)
         self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
                                'datetime')
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # datetime object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', datetime_2, 'datetime')
         self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
@@ -1613,7 +1744,7 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
                                'datetime')
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # datetime formatted string was not converted to a CIMDateTime object.
         p = CIMProperty('Age', cim_datetime_2, 'datetime')
         self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
@@ -1633,26 +1764,26 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         self.assertCIMProperty(p, 'Foo', None, 'reference',
                                reference_class=None)
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # reference_class argument was required to be provided for references.
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'))
         self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
                                'reference')
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # reference_class argument was required to be provided for references.
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference')
         self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
                                'reference')
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # reference_class argument was required to be provided for references.
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
                         qualifiers=quals)
         self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
                                'reference', qualifiers=quals)
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # reference_class argument was required to be provided for references.
         p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference',
                         qualifiers=quals)
@@ -1686,11 +1817,16 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
 
         # Initialization to CIM embedded object / instance
 
-        # This test failed in the old constructor implementation, because the
-        # type argument was required to be provided for embedded objects.
-        p = CIMProperty('Bar', None, embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', None, 'string',
-                               embedded_object='object')
+        # This test failed in the pre-0.8.1 implementation, succeeded in the
+        # pre-0.12.0 implementation, and fails again from 0.12.0 on (because
+        # type is required):
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                CIMProperty('Bar', None, embedded_object='object')
+        else:  # starting with 0.8.1
+            p = CIMProperty('Bar', None, embedded_object='object')
+            self.assertCIMProperty(p, 'Bar', None, 'string',
+                                   embedded_object='object')
 
         p = CIMProperty('Bar', None, 'string', embedded_object='object')
         self.assertCIMProperty(p, 'Bar', None, 'string',
@@ -1701,7 +1837,7 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         p = CIMProperty('Bar', ec)
         self.assertCIMProperty(p, 'Bar', ec, 'string', embedded_object='object')
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # embedded_object attribute was not implied from the value argument if
         # the type argument was also provided.
         p = CIMProperty('Bar', ec, 'string')
@@ -1718,11 +1854,12 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
 
         ei = CIMInstance('CIM_Bar')
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # embedded_object argument value of 'object' was changed to 'instance'
         # when a CIMInstance typed value was provided.
         p = CIMProperty('Bar', ei, embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', ei, 'string', embedded_object='object')
+        self.assertCIMProperty(p, 'Bar', ei, 'string',
+                               embedded_object='object')
 
         p = CIMProperty('Bar', ei, 'string', embedded_object='object')
         self.assertCIMProperty(p, 'Bar', ei, 'string',
@@ -1732,7 +1869,7 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         self.assertCIMProperty(p, 'Bar', ei, 'string',
                                embedded_object='instance')
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # embedded_object attribute was not implied from the value argument if
         # the type argument was also provided.
         p = CIMProperty('Bar', ei, 'string')
@@ -1750,26 +1887,34 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         # Check that initialization with Null without specifying a type is
         # rejected
 
-        try:
+        with self.assertRaises(ValueError):
             CIMProperty('Spotty', None)
-        except (ValueError, TypeError):
-            pass
-        else:
-            self.fail('ValueError or TypeError not raised')
 
-        # Check that initialization with Python integer and floating point
-        # values without specifying a type is rejected
+        # Initialize with int, float and long, without specifying a type
 
-        num_values = [42, 42.0]
+        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+            CIMProperty('Age', 42)
+
+        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+            CIMProperty('Age', 42.1)
+
         if six.PY2:
-            num_values.append(long(42))  # noqa: F821
-        for val in num_values:
-            try:
-                CIMProperty('Age', val)
-            except TypeError:
-                pass
-            else:
-                self.fail('TypeError not raised')
+            with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+                CIMProperty('Age', long(42))  # noqa: F821
+
+        # Arrays with unspecified is_array
+
+        # Check that a value of None results in a scalar
+        p = CIMProperty('Foo', None, 'uint32', is_array=None)
+        self.assertEqual(p.is_array, False)
+
+        # Check that a scalar value results in a scalar
+        p = CIMProperty('Foo', 42, 'uint32', is_array=None)
+        self.assertEqual(p.is_array, False)
+
+        # Check that an array value results in an array
+        p = CIMProperty('Foo', [42], 'uint32', is_array=None)
+        self.assertEqual(p.is_array, True)
 
         # Arrays of CIM string and numeric types
 
@@ -1825,13 +1970,13 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
                                 seconds=55, microseconds=654321)
         cim_datetime_1 = '12345678224455.654321:000'
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # timedelta object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', [timedelta_1])
         self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
                                'datetime', is_array=True)
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # timedelta object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', [timedelta_1], 'datetime')
         self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
@@ -1845,7 +1990,7 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
                                'datetime', is_array=True)
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # datetime formatted string was not converted to a CIMDateTime object.
         p = CIMProperty('Age', [cim_datetime_1], 'datetime')
         self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
@@ -1867,13 +2012,13 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
                               tzinfo=cim_types.MinutesFromUTC(120))
         cim_datetime_2 = '20140924193040.654321+120'
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # datetime object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', [datetime_2])
         self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
                                'datetime', is_array=True)
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # datetime object was not converted to a CIMDateTime object.
         p = CIMProperty('Age', [datetime_2], 'datetime')
         self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
@@ -1887,7 +2032,7 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
         self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
                                'datetime', is_array=True)
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # datetime formatted string was not converted to a CIMDateTime object.
         p = CIMProperty('Age', [cim_datetime_2], 'datetime')
         self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
@@ -1905,26 +2050,37 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
 
         # Arrays of CIM embedded objects / instances
 
-        # This test failed in the old constructor implementation, because the
-        # first array element was used for defaulting the type, without
-        # checking for None.
-        p = CIMProperty('Bar', [None], embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [None], 'string',
-                               embedded_object='object',
-                               is_array=True)
+        # This test failed in the pre-0.8.1 implementation (because the first
+        # array element was used for defaulting the type, without checking for
+        # None), succeeded in the pre-0.12.0 implementation, and fails again
+        # from 0.12.0 on (because type is required when no value is provided):
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                CIMProperty('Bar', [None], embedded_object='object')
+        else:  # starting with 0.8.1
+            p = CIMProperty('Bar', [None], embedded_object='object')
+            self.assertCIMProperty(p, 'Bar', [None], 'string',
+                                   embedded_object='object',
+                                   is_array=True)
 
         p = CIMProperty('Bar', [None], 'string', embedded_object='object')
         self.assertCIMProperty(p, 'Bar', [None], 'string',
                                embedded_object='object',
                                is_array=True)
 
-        # This test failed in the old constructor implementation, because
-        # the type of the empty array could not be defaulted from the
-        # embedded_object argument.
-        p = CIMProperty('Bar', [], embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [], 'string',
-                               embedded_object='object',
-                               is_array=True)
+        # This test failed in the pre-0.8.1 implementation (because the type of
+        # the empty array could not be inferred from the embedded_object
+        # argument), succeeded in the pre-0.12.0 implementation, and fails
+        # again from 0.12.0 on (because type is required when no value is
+        # provided in the array):
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                CIMProperty('Bar', [], embedded_object='object')
+        else:  # starting with 0.8.1
+            p = CIMProperty('Bar', [], embedded_object='object')
+            self.assertCIMProperty(p, 'Bar', [], 'string',
+                                   embedded_object='object',
+                                   is_array=True)
 
         p = CIMProperty('Bar', [], 'string', embedded_object='object')
         self.assertCIMProperty(p, 'Bar', [], 'string',
@@ -1938,7 +2094,7 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
                                embedded_object='object',
                                is_array=True)
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # embedded_object attribute was not implied from the value argument if
         # the type argument was also provided.
         p = CIMProperty('Bar', [ec], 'string')
@@ -1958,7 +2114,7 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
 
         ei = CIMInstance('CIM_Bar')
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # embedded_object argument value of 'object' was changed to 'instance'
         # when a CIMInstance typed value was provided.
         p = CIMProperty('Bar', [ei], embedded_object='object')
@@ -1976,7 +2132,7 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
                                embedded_object='instance',
                                is_array=True)
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # embedded_object attribute was not implied from the value argument if
         # the type argument was also provided.
         p = CIMProperty('Bar', [ei], 'string')
@@ -1994,38 +2150,66 @@ class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
                                embedded_object='instance',
                                is_array=True)
 
-        # Check that initialization with array being Null, array being empty,
-        # or first array element being Null without specifying a type is
-        # rejected
+        # Check that initialization with certain invalid arrays without
+        # specifying a type is rejected
 
-        for val in [None, [], [None], [None, "abc"]]:
+        with self.assertRaises(ValueError):
+            CIMProperty('Foo', None, is_array=True)
 
-            try:
-                CIMProperty('Foo', val, is_array=True)
-            except (ValueError, TypeError):
-                pass
-            else:
-                self.fail('ValueError or TypeError not raised')
+        with self.assertRaises(ValueError):
+            CIMProperty('Foo', [], is_array=True)
 
-        for val in [[], [None], [None, "abc"]]:
+        with self.assertRaises(ValueError):
+            CIMProperty('Foo', [None], is_array=True)
 
-            try:
-                CIMProperty('Foo', val)
-            except (ValueError, TypeError):
-                pass
-            else:
-                self.fail('ValueError or TypeError not raised')
+        with self.assertRaises(ValueError):
+            CIMProperty('Foo', [None, "abc"], is_array=True)
 
-        # Check that initialization of array elements with Python integer and
-        # floating point values without specifying a type is rejected
+        with self.assertRaises(ValueError):
+            CIMProperty('Foo', [])
 
-        for val in [[1, 2, 3], [1.0, 2.0]]:
-            try:
-                CIMProperty('Foo', val)
-            except (ValueError, TypeError):
-                pass
-            else:
-                self.fail('ValueError or TypeError not raised')
+        with self.assertRaises(ValueError):
+            CIMProperty('Foo', [None])
+
+        with self.assertRaises(ValueError):
+            CIMProperty('Foo', [None, "abc"])
+
+        # Initialize with arrays of int, float and long, without type
+
+        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+            CIMProperty('Foo', [1, 2, 3])
+
+        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+            CIMProperty('Foo', [1.0, 2.0])
+
+        if six.PY2:
+            with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+                CIMProperty('Foo', [long(42), long(43)])  # noqa: F821
+
+        # Check that the documented examples don't fail:
+
+        CIMProperty("MyString", "abc")
+
+        if CHECK_0_12_0:
+            p = CIMProperty("MyNum", 42, "uint8")
+            self.assertCIMProperty(p, 'MyNum', Uint8(42), 'uint8')
+        else:
+            p = CIMProperty("MyNum", 42, "uint8")
+            self.assertCIMProperty(p, 'MyNum', 42, 'uint8')
+
+        CIMProperty("MyNum", Uint8(42))
+        CIMProperty("MyNumArray", [1, 2, 3], "uint8")
+        CIMProperty("MyRef", CIMInstanceName("Foo"))
+        CIMProperty("MyEmbObj", CIMClass("Foo"))
+        CIMProperty("MyEmbObj", CIMInstance("Foo"),
+                    embedded_object="object")
+        CIMProperty("MyEmbInst", CIMInstance("Foo"))
+        CIMProperty("MyString", None, "string")
+        CIMProperty("MyNum", None, "uint8")
+        CIMProperty("MyRef", None, "reference", reference_class="MyClass")
+        CIMProperty("MyEmbObj", None, "string", embedded_object="object")
+        CIMProperty("MyEmbInst", None, "string",
+                    embedded_object="instance")
 
 
 class CopyCIMProperty(unittest.TestCase, CIMObjectMixin):
@@ -2062,11 +2246,22 @@ class CIMPropertyAttrs(unittest.TestCase, CIMObjectMixin):
 
         # Attributes for property reference
 
-        # This test failed in the old constructor implementation, because the
+        # This test failed in the pre-0.8.1 implementation, because the
         # reference_class argument was required to be provided for references.
         v = CIMInstanceName('CIM_Bar')
         obj = CIMProperty('Foo', v)
         self.assertCIMProperty(obj, 'Foo', v, type_='reference')
+
+        if CHECK_0_12_0:
+            # Check that name cannot be set to None
+            with self.assertRaises(ValueError):
+                obj.name = None
+        else:
+            # Before 0.12.0, the implementation allowed the name to be
+            # None, although the documentation required it not to be None.
+            # We test the implemented behavior.
+            obj.name = None
+            self.assertIs(obj.name, None)
 
 
 class CIMPropertyEquality(unittest.TestCase):
@@ -2220,9 +2415,88 @@ class InitCIMQualifier(unittest.TestCase):
 
     def test_all(self):
 
+        # Initialization with name being None
+
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                CIMQualifier(None, None, 'string')
+        else:
+            # Before 0.12.0, the implementation allowed the name to be None,
+            # although the documentation required it not to be None.
+            # We test the implemented behavior
+            q = CIMQualifier(None, None, 'string')
+            self.assertIs(q.name, None)
+
+        # Initialization with type being None
+
+        q = CIMQualifier('Qoo', u'bla')
+        assert q.type == 'string'
+
+        q = CIMQualifier('Qoo', b'bla')
+        assert q.type == 'string'
+
+        q = CIMQualifier('Qoo', True)
+        assert q.type == 'boolean'
+
+        q = CIMQualifier('Qoo', False)
+        assert q.type == 'boolean'
+
+        q = CIMQualifier('Qoo', [u'bla'])
+        assert q.type == 'string'
+
+        q = CIMQualifier('Qoo', [b'bla'])
+        assert q.type == 'string'
+
+        q = CIMQualifier('Qoo', [True])
+        assert q.type == 'boolean'
+
+        q = CIMQualifier('Qoo', [False])
+        assert q.type == 'boolean'
+
+        # Initialize with type being None and value not being type-derivable
+
+        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+            CIMQualifier('Qoo', None)
+
+        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+            CIMQualifier('Qoo', [None])
+
+        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+            CIMQualifier('Qoo', [])
+
+        # Initialize with type being None and value being int, float and long
+
+        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+            CIMQualifier('Qoo', 42)
+
+        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+            CIMQualifier('Qoo', 42.1)
+
+        if six.PY2:
+            with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+                CIMQualifier('Qoo', long(42))  # noqa: F821
+
+        # Some normal cases
+
         CIMQualifier('Revision', '2.7.0', 'string')
         CIMQualifier('RevisionList', ['1', '2', '3'], propagated=False)
         CIMQualifier('Null', None, 'string')
+
+        # Check that the documented examples don't fail:
+
+        CIMQualifier("MyString", "abc")
+
+        if CHECK_0_12_0:
+            q = CIMQualifier("MyNum", 42, "uint8")
+            self.assertEqual(q.value, Uint8(42))
+        else:
+            with self.assertRaises(TypeError):
+                CIMQualifier("MyNum", 42, "uint8")
+
+        CIMQualifier("MyNum", Uint8(42))
+        CIMQualifier("MyNumArray", [1, 2, 3], "uint8")
+        CIMQualifier("MyString", None, "string")
+        CIMQualifier("MyNum", None, "uint8")
 
 
 class CopyCIMQualifier(unittest.TestCase):
@@ -2263,6 +2537,17 @@ class CIMQualifierAttrs(unittest.TestCase):
         self.assertEqual(q.name, 'RevisionList')
         self.assertEqual(q.value, [1, 2, 3])
         self.assertEqual(q.propagated, False)
+
+        if CHECK_0_12_0:
+            # Check that name cannot be set to None
+            with self.assertRaises(ValueError):
+                q.name = None
+        else:
+            # Before 0.12.0, the implementation allowed the name to be
+            # None, although the documentation required it not to be None.
+            # We test the implemented behavior.
+            q.name = None
+            self.assertIs(q.name, None)
 
 
 class CIMQualifierEquality(unittest.TestCase):
@@ -2330,6 +2615,15 @@ class InitCIMClassName(unittest.TestCase):
 
     def test_all(self):
 
+        if CHECK_0_12_0:
+            # Check that classname is enforced not to be None
+            with self.assertRaises(ValueError):
+                CIMClassName(None)
+        else:
+            # Check that classname is enforced not to be None
+            with self.assertRaises(TypeError):
+                CIMClassName(None)
+
         # Initialise with classname, superclass
 
         CIMClassName('CIM_Foo')
@@ -2372,6 +2666,17 @@ class CIMClassNameAttrs(unittest.TestCase):
         self.assertEqual(obj.host, 'fred')
         self.assertEqual(obj.namespace, 'root/cimv2')
 
+        if CHECK_0_12_0:
+            # Check that classname cannot be set to None
+            with self.assertRaises(ValueError):
+                obj.classname = None
+        else:
+            # Before 0.12.0, the implementation allowed the classname to be
+            # None, although the documentation required it not to be None.
+            # We test the implemented behavior.
+            obj.classname = None
+            self.assertIs(obj.classname, None)
+
 
 class CIMClassNameEquality(unittest.TestCase):
 
@@ -2405,6 +2710,18 @@ class CIMClassNameToXML(ValidateTest):
 class InitCIMClass(unittest.TestCase):
 
     def test_all(self):
+
+        # Class name is None
+
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                CIMClass(None)
+        else:
+            # Before 0.12.0, the implementation allowed the name to be None,
+            # although the documentation required it not to be None.
+            # We test the implemented behavior.
+            obj = CIMClass(None)
+            self.assertIs(obj.classname, None)
 
         # Initialise with classname, superclass
 
@@ -2440,7 +2757,7 @@ class CopyCIMClass(unittest.TestCase):
 
         c = CIMClass('CIM_Foo',
                      methods={'Delete': CIMMethod('Delete', 'uint32')},
-                     qualifiers={'Key': CIMQualifier('Value', True)},
+                     qualifiers={'Key': CIMQualifier('Key', True)},
                      path=path)
 
         co = c.copy()
@@ -2471,6 +2788,17 @@ class CIMClassAttrs(unittest.TestCase):
         self.assertEqual(obj.methods, {})
         self.assertEqual(obj.qualifiers, {})
         self.assertEqual(obj.path, None)
+
+        if CHECK_0_12_0:
+            # Check that classname cannot be set to None
+            with self.assertRaises(ValueError):
+                obj.classname = None
+        else:
+            # Before 0.12.0, the implementation allowed the classname to be
+            # None, although the documentation required it not to be None.
+            # We test the implemented behavior.
+            obj.classname = None
+            self.assertIs(obj.classname, None)
 
 
 class CIMClassEquality(unittest.TestCase):
@@ -2879,6 +3207,18 @@ class InitCIMMethod(unittest.TestCase):
 
     def test_all(self):
 
+        # Initialization with name being None
+
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                CIMMethod(None, 'uint32')
+        else:
+            # Before 0.12.0 (at least in 0.11.0, maybe earlier), the
+            # implementation already checked for None, but raised a different
+            # exception.
+            with self.assertRaises(TypeError):
+                CIMMethod(None, 'uint32')
+
         CIMMethod('FooMethod', 'uint32')
 
         CIMMethod('FooMethod', 'uint32',
@@ -2927,6 +3267,17 @@ class CIMMethodAttrs(unittest.TestCase):
         self.assertEqual(m.return_type, 'uint32')
         self.assertEqual(len(m.parameters), 2)
         self.assertEqual(m.qualifiers, {})
+
+        if CHECK_0_12_0:
+            # Check that name cannot be set to None
+            with self.assertRaises(ValueError):
+                m.name = None
+        else:
+            # Before 0.12.0, the implementation allowed the name to be
+            # None, although the documentation required it not to be None.
+            # We test the implemented behavior.
+            m.name = None
+            self.assertIs(m.name, None)
 
 
 class CIMMethodEquality(unittest.TestCase):
@@ -3003,6 +3354,30 @@ class InitCIMParameter(unittest.TestCase):
 
     def test_all(self):
 
+        # Initialization with name being None
+
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                CIMParameter(None, 'uint32')
+        else:
+            # Before 0.12.0, the implementation allowed the name to be None,
+            # although the documentation required it not to be None.
+            # We test the implemented behavior
+            p = CIMParameter(None, 'uint32')
+            self.assertIs(p.name, None)
+
+        # Initialization with type being None
+
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                CIMParameter('Foo', type=None)
+        else:
+            # Before 0.12.0, the implementation allowed the type to be None,
+            # although the documentation required it not to be None.
+            # We test the implemented behavior
+            p = CIMParameter('Foo', type=None)
+            self.assertIs(p.type, None)
+
         # Single-valued parameters
 
         CIMParameter('Param1', 'uint32')
@@ -3016,6 +3391,42 @@ class InitCIMParameter(unittest.TestCase):
         CIMParameter('ArrayParam', 'uint32', is_array=True, array_size=10)
         CIMParameter('ArrayParam', 'uint32', is_array=True, array_size=10,
                      qualifiers={'Key': CIMQualifier('Key', True)})
+
+        # Check unspecified is_array
+
+        if CHECK_0_12_0:
+
+            # Check that a value of None results in a scalar
+            p = CIMParameter('Foo', 'uint32', is_array=None, value=None)
+            self.assertEqual(p.is_array, False)
+
+            # Check that a scalar value results in a scalar
+            p = CIMParameter('Foo', 'uint32', is_array=None, value=42)
+            self.assertEqual(p.is_array, False)
+
+            # Check that an array value results in an array
+            p = CIMParameter('Foo', 'uint32', is_array=None, value=[42])
+            self.assertEqual(p.is_array, True)
+
+        else:
+
+            # Before 0.12.0, the implementation just stored the provided
+            # is_array value without checking or inferring it. The
+            # documentation was inconsistent about that: In the description of
+            # the is_array constructor parameter, it stated that `None` is
+            # stored as-is, and in the description of the is_array attribute,
+            # it stated that it will never be `None`.
+
+            # The following tests verify the implemented behavior.
+
+            p = CIMParameter('Foo', 'uint32', is_array=None, value=None)
+            self.assertIs(p.is_array, None)
+
+            p = CIMParameter('Foo', 'uint32', is_array=None, value=42)
+            self.assertIs(p.is_array, None)
+
+            p = CIMParameter('Foo', 'uint32', is_array=None, value=[42])
+            self.assertIs(p.is_array, None)
 
         # Reference parameters
 
@@ -3062,6 +3473,30 @@ class CIMParameterAttrs(unittest.TestCase):
 
     def test_all(self):
 
+        obj = CIMParameter('Param0', 'string')
+
+        # Setting the name to None
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                obj.name = None
+        else:
+            # Before 0.12.0, the implementation allowed the name to be
+            # None, although the documentation required it not to be None.
+            # We test the implemented behavior.
+            obj.name = None
+            self.assertIs(obj.name, None)
+
+        # Setting the type to None
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                obj.type = None
+        else:
+            # Before 0.12.0, the implementation allowed the type to be None,
+            # although the documentation required it not to be None.
+            # We test the implemented behavior
+            obj.type = None
+            self.assertIs(obj.type, None)
+
         # Single-valued parameters
 
         p = CIMParameter('Param1', 'string')
@@ -3098,6 +3533,17 @@ class CIMParameterAttrs(unittest.TestCase):
         self.assertEqual(p.array_size, 10)
         self.assertEqual(p.is_array, True)
         self.assertEqual(p.qualifiers, {})
+
+        if CHECK_0_12_0:
+            # Check that name cannot be set to None
+            with self.assertRaises(ValueError):
+                p.name = None
+        else:
+            # Before 0.12.0, the implementation allowed the name to be
+            # None, although the documentation required it not to be None.
+            # We test the implemented behavior.
+            p.name = None
+            self.assertIs(p.name, None)
 
 
 class CIMParameterEquality(unittest.TestCase):
@@ -3308,6 +3754,32 @@ class InitCIMQualifierDeclaration(unittest.TestCase):
     def test_all(self):
         """Test the constructor options."""
 
+        # Initialization with name being None
+
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                CIMQualifierDeclaration(None, 'string')
+        else:
+            # Before 0.12.0, the implementation allowed the name to be None,
+            # although the documentation required it not to be None.
+            # We test the implemented behavior
+            qd = CIMQualifierDeclaration(None, 'string')
+            self.assertIs(qd.name, None)
+
+        # Initialization with type being None
+
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                CIMQualifierDeclaration('Qoo', None, value='abc')
+        else:
+            # Before 0.12.0, the implementation allowed the type to be None,
+            # although the documentation required it not to be None.
+            # We test the implemented behavior
+            qd = CIMQualifierDeclaration('Qoo', None, value='abc')
+            self.assertIs(qd.type, None)
+
+        # Some normal cases
+
         CIMQualifierDeclaration('FooQualDecl', 'uint32')
 
         CIMQualifierDeclaration('FooQualDecl', 'string', value='my string')
@@ -3316,27 +3788,57 @@ class InitCIMQualifierDeclaration(unittest.TestCase):
                                 array_size=4,
                                 overridable=True, tosubclass=True,
                                 toinstance=True, translatable=False)
+
         scopes = {'CLASS': False, 'ANY': False, 'ASSOCIATION': False}
         CIMQualifierDeclaration('FooQualDecl', 'uint64', is_array=True,
                                 array_size=4, scopes=scopes,
                                 overridable=True, tosubclass=True,
                                 toinstance=True, translatable=False)
+
         CIMQualifierDeclaration('FooQualDecl', 'uint32', is_array=True,
                                 value=[Uint32(x) for x in [1, 2, 3]],
                                 overridable=True, tosubclass=True,
                                 toinstance=True, translatable=False)
+
         CIMQualifierDeclaration('FooQualDecl', 'uint32', is_array=False,
                                 value=Uint32(3),
                                 overridable=True, tosubclass=True,
                                 toinstance=True, translatable=False)
 
+        # Check unspecified is_array
+
+        if CHECK_0_12_0:
+
+            # Check that a value of None results in a scalar
+            qd = CIMQualifierDeclaration('FooQualDecl', 'uint32', value=None,
+                                         is_array=None)
+            self.assertEqual(qd.is_array, False)
+
+            # Check that a scalar value results in a scalar
+            qd = CIMQualifierDeclaration('FooQualDecl', 'uint32', value=42,
+                                         is_array=None)
+            self.assertEqual(qd.is_array, False)
+
+            # Check that an array value results in an array
+            qd = CIMQualifierDeclaration('FooQualDecl', 'uint32', value=[42],
+                                         is_array=None)
+            self.assertEqual(qd.is_array, True)
+
+        else:
+
+            with self.assertRaises(ValueError):
+                CIMQualifierDeclaration('FooQualDecl', 'uint32', value=None,
+                                        is_array=None)
+            with self.assertRaises(ValueError):
+                CIMQualifierDeclaration('FooQualDecl', 'uint32', value=42,
+                                        is_array=None)
+            with self.assertRaises(ValueError):
+                CIMQualifierDeclaration('FooQualDecl', 'uint32', value=[42],
+                                        is_array=None)
+
     def test_errors(self):
         """Test constructors that should generate errors"""
-        try:
-            CIMQualifierDeclaration('FooIs_ArrayNone', 'uint32', is_array=None)
-            self.fail('Exception expected')
-        except ValueError:
-            pass
+
         try:
             CIMQualifierDeclaration('is_arraySizeMismatch', 'string',
                                     is_array=False,
@@ -3386,7 +3888,32 @@ class CopyCIMQualifierDeclaration(unittest.TestCase):
 
 
 class CIMQualifierDeclarationAttrs(unittest.TestCase):
-    pass
+
+    def test_all(self):
+
+        obj = CIMQualifierDeclaration('Foo', 'string')
+
+        # Setting the name to None
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                obj.name = None
+        else:
+            # Before 0.12.0, the implementation allowed the name to be
+            # None, although the documentation required it not to be None.
+            # We test the implemented behavior.
+            obj.name = None
+            self.assertIs(obj.name, None)
+
+        # Setting the type to None
+        if CHECK_0_12_0:
+            with self.assertRaises(ValueError):
+                obj.type = None
+        else:
+            # Before 0.12.0, the implementation allowed the type to be None,
+            # although the documentation required it not to be None.
+            # We test the implemented behavior
+            obj.type = None
+            self.assertIs(obj.type, None)
 
 
 class CIMQualifierDeclarationEquality(unittest.TestCase):

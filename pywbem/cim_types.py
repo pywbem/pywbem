@@ -717,6 +717,10 @@ def cimtype(obj):
     For an array, the type is determined from the first array element
     (CIM arrays must be homogeneous w.r.t. the type of their elements).
 
+    Note that Python integer and float values are not valid input objects
+    because determining their CIM data type (e.g. Uint8, Real32) would require
+    knowing the value range. Therefore, `TypeError` is raised in this case.
+
     Parameters:
 
       obj (:term:`CIM data type`):
@@ -727,25 +731,52 @@ def cimtype(obj):
         The CIM data type name of the object, as a string (e.g. ``"uint8"``).
 
     Raises:
-        TypeError: Type is not a CIM data type.
+        TypeError: The object does not have a valid CIM data type.
         ValueError: Cannot determine CIM data type from an empty array.
     """
+
     if isinstance(obj, CIMType):
         return obj.cimtype
+
     if isinstance(obj, bool):
         return 'boolean'
+
     if isinstance(obj, (six.binary_type, six.text_type)):
         # accept both possible types
         return 'string'
+
     if isinstance(obj, list):
-        if not obj:
-            raise ValueError(
-                "Cannot determine CIM data type from an empty array")
-        return cimtype(obj[0])
+        try:
+            obj = obj[0]
+        except IndexError:
+            raise ValueError("Cannot determine CIM data type from empty array")
+        return cimtype(obj)
+
     if isinstance(obj, (datetime, timedelta)):
         return 'datetime'
-    raise TypeError("Type %s of this object is not a CIM data type: %r" %
-                    (type(obj), obj))
+
+    try:
+        instancename_type = CIMInstanceName
+    except NameError:
+        from pywbem.cim_obj import CIMInstanceName as instancename_type
+    if isinstance(obj, instancename_type):
+        return 'reference'
+
+    try:
+        instance_type = CIMInstance
+    except NameError:
+        from pywbem.cim_obj import CIMInstance as instance_type
+    if isinstance(obj, instance_type):  # embedded instance
+        return 'string'
+
+    try:
+        class_type = CIMClass
+    except NameError:
+        from pywbem.cim_obj import CIMClass as class_type
+    if isinstance(obj, class_type):  # embedded class
+        return 'string'
+
+    raise TypeError("Object does not have a valid CIM data type: %r" % obj)
 
 
 _TYPE_FROM_NAME = {
@@ -777,6 +808,23 @@ def type_from_name(type_name):
     For CIM data type names ``"string"`` and ``"char16"``, the
     :term:`unicode string` type is returned (Unicode strings are the preferred
     representation for these CIM data types).
+
+    The returned type can be used to 'cast' a value to that type in most cases,
+    except for "string" and "char16" typed values:
+
+    * In Python 3, the :class:`py3:str` type when passing in a byte string
+      results in a unicode string that is a `repr()` representation of the
+      byte string::
+
+          string_type = type_from_name('string')  # str
+          s1 = b'abc'
+          s2 = string_type(s1)  # "b'abc'"
+
+      In Python 2, the :func:`py2:unicode` function converts a byte string
+      argument properly to unicode.
+
+      Use `decode()` and `encode()` for strings instead of type conversion
+      syntax (in both Python 2 and 3, for consistency).
 
     Parameters:
 

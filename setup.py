@@ -366,6 +366,7 @@ def main():
             # Python prereqs for 'develop' command. Handled by os_setup module.
             "coverage>=4.3",
             "pytest>=2.4",
+            "unittest2",
             "pytest-cov",
             'testfixtures>=4.13.3',
             "Sphinx>=1.3" if sys.version_info[0:2] != (2, 6) else None,
