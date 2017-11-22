@@ -751,7 +751,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                  "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
                  "classname=u'CIM_Foo', keybindings=NocaseDict("
-                 "{'Chicken': 'Ham'}), namespace=u'root/cimv2', "
+                 "{'Chicken': u'Ham'}), namespace=u'root/cimv2', "
                  "host=u'woot.com'), LocalOnly=True, "
                  "PropertyList=['propertyblah'])"),)
 
@@ -961,7 +961,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
                  "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                 "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
+                 "u'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ('pywbem.ops', 'DEBUG',
                  'Return:test_id GetInstance(CIMInstanc...)'))
@@ -1003,7 +1003,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
                  "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                 "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
+                 "u'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ("pywbem.ops", "DEBUG",
                  "Exception:test_id GetInstance('CIMError(6...)"))
@@ -1038,7 +1038,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                 ("pywbem.ops", "DEBUG",
                  "Request:test_id GetInstance(InstanceName=CIMInstanceName("
                  "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                 "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'))"),
+                 "u'Ham'}), namespace=u'root/cimv2', host=u'woot.com'))"),
                 ("pywbem.ops", "DEBUG",
                  "Exception:test_id GetInstance('CIMError(6: Fake "
                  "CIMError)')"),)
@@ -1077,7 +1077,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
                  "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                 "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
+                 "u'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ('pywbem.ops',
                  'DEBUG',
@@ -1242,9 +1242,9 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "pull_path_result_tuple(context=('test_rtn_context', "
                  "'root/blah'), eos=False, paths=[CIMInstanceName("
                  "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                 "'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
+                 "u'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
                  "CIMInstanceName(classname=u'CIM_Foo', keybindings="
-                 "NocaseDict({'Chicken': 'Ham'}), namespace=u'root/cimv2',"
+                 "NocaseDict({'Chicken': u'Ham'}), namespace=u'root/cimv2',"
                  " host=u'woot.com')]))"))
 
         else:
@@ -1294,7 +1294,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "Request:test_id Associators(AssocClass='BLAH_Assoc', "
                  "IncludeClassOrigin=True, IncludeQualifiers=True, "
                  "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
-                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "keybindings=NocaseDict({'Chicken': u'Ham'}), "
                  "namespace=u'root/cimv2', host=u'woot.com'), "
                  "PropertyList=['propertyblah', 'propertyblah2'], "
                  "ResultClass='BLAH_Result')"),

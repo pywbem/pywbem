@@ -100,6 +100,13 @@ Incompatible changes
   acceptable because that should not be a common case (and has not been
   supported before pywbem v0.8.1 anyway).
 
+* When converting a `CIMInstance` object to CIM-XML using its `tocimxml()`
+  method, instance properties whose values are simple types instead of
+  `CIMProperty` objects are no longer converted into `CIMProperty` objects
+  because that has worked only for a very limited set of cases, and
+  because they are required to be `CIMProperty` objects anyway. A `TypeError`
+  is now raised if that is detected.
+
 Deprecations
 ^^^^^^^^^^^^
 
@@ -113,6 +120,12 @@ Enhancements
 * For `CIMInstanceName`, the values of keybindings can now be specified as
   `CIMProperty` objects from which their value will be used (this is in
   addition to specfying the values of keybindings as CIM data types).
+
+* For `CIMInstanceName`, values of keybindings specified as binary strings are
+  now converted to Unicode.
+
+* For `CIMInstanceName`, the type of the input keybindings is now checked
+  and TypeError is raised if the value is not a CIM data type.
 
 * Updating attributes of CIM objects (e.g. updating `CIMInstance.properties`)
   now goes through the same conversions (e.g. binary string to unicode string)
@@ -152,6 +165,12 @@ Bug fixes
   component is not required.  This should not change operations except that
   when we were mocking the methods, it returns sees the parameter as name=value
   rather than value. See issue #833
+
+* Fixed the bug that `CIMInstanceName.tocimxml()` produced invalid CIM-XML
+  if a keybinding value was set to an invalid CIM object type (e.g. to
+  `CIMParameter`). The only allowed CIM object type for a keybinding value
+  is `CIMInstanceName`, for keys that are references. Now, `TypeError` is
+  raised in that case.
 
 Cleanup
 ^^^^^^^
