@@ -277,11 +277,9 @@ pylint: pylint.log
 	@echo '$@ done.'
 
 .PHONY: install
-install: _pip $(sdist_file)
-	mkdir tmp_install
-	tar -x -C tmp_install -f $(sdist_file)
-	sh -c "cd tmp_install/$(package_name)-$(package_version) && python setup.py install_os && python setup.py install"
-	rm -Rf tmp_install
+install: _pip
+	python setup.py install_os
+	pip install -e .
 	@echo 'Done: Installed pywbem into current Python environment.'
 	@echo '$@ done.'
 
@@ -377,7 +375,7 @@ endif
 
 $(test_log_file): makefile $(package_name)/*.py testsuite/*.py coveragerc
 	rm -f $(test_log_file)
-	bash -c "set -o pipefail; PYTHONWARNINGS=default PYTHONPATH=. py.test --cov $(package_name) $(coverage_report) --cov-config coveragerc --ignore=attic --ignore=releases --ignore=testsuite/testclient -s 2>&1 |tee $(test_tmp_file)"
+	bash -c "set -o pipefail; PYTHONWARNINGS=default py.test --cov $(package_name) $(coverage_report) --cov-config coveragerc --ignore=attic --ignore=releases --ignore=testsuite/testclient -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
 	@echo 'Done: Created test log file: $@'
 
