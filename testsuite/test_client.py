@@ -752,7 +752,9 @@ class ClientTest(unittest.TestCase):
         else:
             cim_status = 0
         self.assertEqual(cim_status, exp_cim_status,
-                         "WBEMConnection operation CIM status code")
+                         "Error in WBEMConnection operation CIM status code. "
+                         "Expected %s; received %s" %
+                         (exp_cim_status, cim_status))
 
         # Returns either exp_result or exp_pull_result
         if exp_result is not None:
