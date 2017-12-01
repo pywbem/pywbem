@@ -105,9 +105,13 @@ class StatisticsTests(unittest.TestCase):
         statistics = Statistics()
         statistics.enable()
 
-        duration = 0.4
-        # On Windows has only a precision of 1/60 sec:
-        delta = 0.04
+        duration = 1
+
+        # Allowable delta in seconds between expected and actual duration.
+        # Notes:
+        # * Windows has only a precision of 1/60 sec.
+        # * In CI environments, the tests sometimes run slow.
+        delta = 0.5
 
         stats = statistics.start_timer('EnumerateInstances')
         time.sleep(duration)
@@ -138,9 +142,13 @@ class StatisticsTests(unittest.TestCase):
         statistics = Statistics()
         statistics.enable()
 
-        duration = 0.4
-        # On Windows has only a precision of 1/60 sec:
-        delta = 0.04
+        duration = 1
+
+        # Allowable delta in seconds between expected and actual duration.
+        # Notes:
+        # * Windows has only a precision of 1/60 sec.
+        # * In CI environments, the tests sometimes run slow.
+        delta = 0.5
 
         stats = statistics.start_timer('EnumerateInstances')
         time.sleep(duration)
@@ -198,9 +206,13 @@ class StatisticsTests(unittest.TestCase):
         statistics = Statistics()
         statistics.enable()
 
-        duration = 0.4
-        # On Windows has only a precision of 1/60 sec:
-        delta = 0.04
+        duration = 1
+
+        # Allowable delta in seconds between expected and actual duration.
+        # Notes:
+        # * Windows has only a precision of 1/60 sec.
+        # * In CI environments, the tests sometimes run slow.
+        delta = 0.5
 
         stats = statistics.start_timer('EnumerateInstances')
         time.sleep(duration)
@@ -228,9 +240,13 @@ class StatisticsTests(unittest.TestCase):
         statistics = Statistics()
         statistics.enable()
 
-        duration = 0.4
-        # On Windows has only a precision of 1/60 sec:
-        delta = 0.04
+        duration = 1
+
+        # Allowable delta in seconds between expected and actual duration.
+        # Notes:
+        # * Windows has only a precision of 1/60 sec.
+        # * In CI environments, the tests sometimes run slow.
+        delta = 0.5
 
         stats = statistics.start_timer('EnumerateInstances')
         time.sleep(duration)
@@ -258,9 +274,13 @@ class StatisticsTests(unittest.TestCase):
         statistics = Statistics()
         statistics.enable()
 
-        duration = 0.4
-        # On Windows has only a precision of 1/60 sec:
-        delta = 0.04
+        duration = 1
+
+        # Allowable delta in seconds between expected and actual duration.
+        # Notes:
+        # * Windows has only a precision of 1/60 sec.
+        # * In CI environments, the tests sometimes run slow.
+        delta = 0.5
 
         stats = statistics.start_timer('GetInstance')
         time.sleep(duration)
