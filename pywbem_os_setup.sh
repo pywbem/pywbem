@@ -100,6 +100,7 @@ if [[ "$distro_family" == "redhat" ]]; then
   else
     sudo $installer -y install python${py_mn}-devel  # for M2Crypto installation
   fi
+  sudo $installer -y install libxml2  # for xmllint (for testing)
 
 elif [[ "$distro_family" == "debian" ]]; then
 
@@ -113,6 +114,7 @@ elif [[ "$distro_family" == "debian" ]]; then
   else
     sudo apt-get --yes install python${py_m}-dev  # for M2Crypto installation
   fi
+  sudo apt-get --yes install libxml2-utils  # for xmllint (for testing)
 
 elif [[ "$distro_family" == "suse" ]]; then
 
@@ -126,11 +128,13 @@ elif [[ "$distro_family" == "suse" ]]; then
   else
     sudo zypper -y install python${py_mn}-devel  # for M2Crypto installation
   fi
+  sudo zypper -y install libxml2  # for xmllint (for testing)
 
 else
 
   echo "Error: Installation of OS-level packages not supported on platform ${platform}."
   echo "The equivalent packages for the redhat family of Linux distros are:"
+  echo "  * libxml2 (at least ?)"
   echo "  * openssl-devel (at least 1.0.1)"
   echo "  * gcc-c++ (at least 4.4)"
   echo "  * swig (at least 2.0)"

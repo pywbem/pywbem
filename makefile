@@ -20,6 +20,28 @@
 #
 # ------------------------------------------------------------------------------
 
+# Python / Pip commands
+ifndef PYTHON_CMD
+  PYTHON_CMD := python
+endif
+ifndef PIP_CMD
+  PIP_CMD := pip
+endif
+
+# Package level
+ifndef PACKAGE_LEVEL
+  PACKAGE_LEVEL := latest
+endif
+ifeq ($(PACKAGE_LEVEL),minimum)
+  pip_level_opts := -c minimum-constraints.txt
+else
+  ifeq ($(PACKAGE_LEVEL),latest)
+    pip_level_opts := --upgrade
+  else
+    $(error Error: Invalid value for PACKAGE_LEVEL variable: $(PACKAGE_LEVEL))
+  endif
+endif
+
 # Determine OS platform make runs on
 ifeq ($(OS),Windows_NT)
   PLATFORM := Windows
@@ -44,18 +66,12 @@ endif
 # Directory for coverage html output. Must be in sync with the one in coveragerc.
 coverage_html_dir := coverage_html
 
-# Package version as specified in pywbem/_version.py
-package_specified_version := $(shell sh -c "grep -E '^ *__version__ *= ' pywbem/_version.py |sed 's/__version__ *= \(.*\).*/\1/' |sed 's/\x27//g'")
-
-# Normalized package version (as normalized by setup.py during building)
-package_version := $(shell sh -c "echo $(package_specified_version) |sed 's/[.-]\?\(rc[0-9]\+\)$$/\1/' |sed 's/[.]\?dev[0-9]\*$$/\.dev0/'")
-
-# Final version of this package (M.N.U)
-package_final_version := $(shell sh -c "echo $(package_version) |sed 's/rc[0-9]\+$$//' |sed 's/\.dev0$$//'")
+# Package version (full version, including any pre-release suffixes, e.g. "0.1.0-dev1")
+package_version := $(shell $(PYTHON_CMD) -c "from pbr.version import VersionInfo; vi=VersionInfo('pywbem'); print(vi.version_string_with_vcs())")
 
 # Python versions
-python_version := $(shell python -c "import sys; sys.stdout.write('%s.%s.%s'%sys.version_info[0:3])")
-python_mn_version := $(shell python -c "import sys; sys.stdout.write('%s%s'%sys.version_info[0:2])")
+python_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s.%s.%s'%sys.version_info[0:3])")
+python_mn_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s%s'%sys.version_info[0:2])")
 
 # Directory for the generated distribution files
 dist_dir := dist
@@ -65,6 +81,11 @@ bdist_file := $(dist_dir)/$(package_name)-$(package_version)-py2.py3-none-any.wh
 sdist_file := $(dist_dir)/$(package_name)-$(package_version).tar.gz
 
 dist_files := $(bdist_file) $(sdist_file)
+
+# Source files in the packages
+package_py_files := \
+    $(wildcard $(package_name)/*.py) \
+    $(wildcard $(package_name)/*/*.py) \
 
 # Lex/Yacc table files, generated from and by mof_compiler.py
 moftab_files := $(package_name)/mofparsetab.py $(package_name)/moflextab.py
@@ -122,7 +143,6 @@ flake8_rc_file := .flake8
 # Python source files to be checked by PyLint and Flake8
 py_src_files := \
     setup.py \
-    os_setup.py \
     $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
     $(wildcard testsuite/*.py) \
     wbemcli \
@@ -158,8 +178,7 @@ dist_dependent_files := \
 
 .PHONY: help
 help:
-	@echo 'makefile for $(package_name)'
-	@echo 'Package version will be: $(package_version) (from _version.py: $(package_specified_version))'
+	@echo 'makefile for $(package_name) version $(package_version)'
 	@echo 'Uses the currently active Python environment: Python $(python_version)'
 	@echo 'Valid targets are (they do just what is stated, i.e. no automatic prereq targets):'
 	@echo '  develop    - Prepare the development environment by installing prerequisites'
@@ -177,18 +196,24 @@ help:
 # Keep the condition for the 'wheel' package consistent with setup.py.
 .PHONY: _pip
 _pip:
-	@echo 'Installing/upgrading pip, setuptools and wheel'
-	pip install --upgrade pip setuptools
+	@echo 'Installing/upgrading pip, setuptools, wheel and pbr with PACKAGE_LEVEL=$(PACKAGE_LEVEL)'
 ifeq ($(python_mn_version),26)
-	pip install --upgrade 'wheel<0.30.0'
-else
-	pip install --upgrade wheel
+	$(PIP_CMD) install importlib
 endif
+	$(PYTHON_CMD) remove_duplicate_setuptools.py
+	$(PIP_CMD) install $(pip_level_opts) setuptools
+	$(PIP_CMD) install $(pip_level_opts) pip
+ifeq ($(python_mn_version),26)
+	$(PIP_CMD) install $(pip_level_opts) 'wheel<0.30.0'
+else
+	$(PIP_CMD) install $(pip_level_opts) wheel
+endif
+	$(PIP_CMD) install $(pip_level_opts) pbr
 
 .PHONY: develop
-develop: _pip
-	python setup.py develop_os
-	python setup.py develop
+develop: _pip dev-requirements.txt
+	@echo 'Installing Python runtime and development requirements with PACKAGE_LEVEL=$(PACKAGE_LEVEL)'
+	$(PIP_CMD) install $(pip_level_opts) -r dev-requirements.txt
 	@echo '$@ done.'
 
 .PHONY: build
@@ -276,12 +301,23 @@ check: flake8.log
 pylint: pylint.log
 	@echo '$@ done.'
 
+# Note: "pip install -e ." fails on Windows with :
+#       error: could not create 'pywbem.egg-info': Cannot create a file when that file already exists
 .PHONY: install
-install: _pip
-	python setup.py install_os
-	pip install -e .
-	@echo 'Done: Installed pywbem into current Python environment.'
-	@echo '$@ done.'
+install: _pip requirements.txt win32-requirements.txt win64-requirements.txt setup.py setup.cfg $(package_py_files)
+	@echo 'Installing runtime requirements with PACKAGE_LEVEL=$(PACKAGE_LEVEL)'
+	rm -Rf build $(package_name).egg-info .eggs
+	sh -c "./pywbem_os_setup.sh"
+	$(PIP_CMD) install $(pip_level_opts) -r requirements.txt
+ifeq ($(PYTHON_ARCH),32)
+	$(PIP_CMD) install $(pip_level_opts) -r win32-requirements.txt
+endif
+ifeq ($(PYTHON_ARCH),64)
+	$(PIP_CMD) install $(pip_level_opts) -r win64-requirements.txt
+endif
+	$(PIP_CMD) install $(pip_level_opts) -e .
+	$(PYTHON_CMD) -c "import $(package_name); print('ok')"
+	@echo 'Done: Installed $(package_name) into current Python environment.'
 
 .PHONY: test
 test: $(test_log_file)
@@ -331,13 +367,13 @@ MANIFEST.in: makefile
 # which can lead to incorrect hashbangs in the pywbem scripts in wheel archives.
 $(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	rm -rf MANIFEST $(package_name).egg-info .eggs build
-	python setup.py sdist -d $(dist_dir) bdist_wheel -d $(dist_dir) --universal
+	$(PYTHON_CMD) setup.py sdist -d $(dist_dir) bdist_wheel -d $(dist_dir) --universal
 	@echo 'Done: Created distribution files: $@'
 
 # Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)
 $(moftab_files): $(moftab_dependent_files) build_moftab.py
 	rm -f $(package_name)/mofparsetab.py* $(package_name)/moflextab.py*
-	python -c "from pywbem import mof_compiler; mof_compiler._build(verbose=True)"
+	$(PYTHON_CMD) -c "from pywbem import mof_compiler; mof_compiler._build(verbose=True)"
 	@echo 'Done: Created LEX/YACC table modules: $@'
 
 # TODO: Once pylint has no more errors, remove the dash "-"

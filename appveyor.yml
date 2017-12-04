@@ -44,12 +44,17 @@ environment:
 #    - PYTHON_VERSION: 3.5
 #      PYTHON_ARCH: 64
 #      PYTHON_HOME: C:\Python35-x64
-    - PYTHON_VERSION: 3.6
-      PYTHON_ARCH: 32
-      PYTHON_HOME: C:\Python36
 #    - PYTHON_VERSION: 3.6
-#      PYTHON_ARCH: 64
-#      PYTHON_HOME: C:\Python36-x64
+#      PYTHON_ARCH: 32
+#      PYTHON_HOME: C:\Python36
+    - PYTHON_VERSION: 3.6
+      PYTHON_ARCH: 64
+      PYTHON_HOME: C:\Python36-x64
+
+configuration:
+# These values will become the values of the PACKAGE_LEVEL env.var.
+#  - minimum
+  - latest
 
 install:
 
@@ -66,6 +71,9 @@ install:
   - where where
   - where choco
   - choco --version
+
+  # Set PACKAGE_LEVEL for make
+  - set PACKAGE_LEVEL=%configuration%
 
   # Examine the initial environment
   - ver
@@ -147,7 +155,7 @@ install:
   #- set INCLUDE=C:\ProgramData\chocolatey\lib\libiconv\build\native\include;%INCLUDE%
   #- set _LIB_ICONV=C:\ProgramData\chocolatey\lib\libiconv\build\native\lib\v110\Win32\Release\static\cdecl
   #- set LIB=%_LIB_ICONV%;%LIB%
-  #- copy %_LIB_ICONV%\libiconv.lib %_LIB_ICONV%\iconv.lib 
+  #- copy %_LIB_ICONV%\libiconv.lib %_LIB_ICONV%\iconv.lib
   #- dir %_LIB_ICONV%
   #- find c:/ProgramData/chocolatey -name "*.h"
   #- find c:/ProgramData/chocolatey -name "*.lib"
@@ -291,7 +299,8 @@ install:
   - where find
   - find --version
 
-build: false # Not a C# project, build stuff at the test step instead.
+# Not a C# project, build stuff at the test step instead.
+build: false
 
 before_test:
 

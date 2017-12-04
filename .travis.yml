@@ -23,31 +23,90 @@ matrix:
     - os: linux
       language: python
       python: "2.6"
+      env:
+        - PACKAGE_LEVEL=minimum
+#    - os: linux
+#      language: python
+#      python: "2.6"
+#      env:
+#        - PACKAGE_LEVEL=latest
+#    - os: linux
+#      language: python
+#      python: "2.7"
+#      env:
+#        - PACKAGE_LEVEL=minimum
     - os: linux
       language: python
       python: "2.7"
+      env:
+        - PACKAGE_LEVEL=latest
     - os: linux
       language: python
       python: "3.4"
+      env:
+        - PACKAGE_LEVEL=minimum
+#    - os: linux
+#      language: python
+#      python: "3.4"
+#      env:
+#        - PACKAGE_LEVEL=latest
 #    - os: linux
 #      language: python
 #      python: "3.5"
+#      env:
+#        - PACKAGE_LEVEL=minimum
+#    - os: linux
+#      language: python
+#      python: "3.5"
+#      env:
+#        - PACKAGE_LEVEL=latest
+#    - os: linux
+#      language: python
+#      python: "3.6"
+#      env:
+#        - PACKAGE_LEVEL=minimum
     - os: linux
       language: python
       python: "3.6"
+      env:
+        - PACKAGE_LEVEL=latest
+# Note: pywbem does not install on pypy, because M2Crypto does not install.
 #    - os: linux
 #      language: python
 #      python: "pypy-5.3.1"  # Python 2.7.10
+#      env:
+#        - PACKAGE_LEVEL=minimum
+#    - os: linux
+#      language: python
+#      python: "pypy-5.3.1"  # Python 2.7.10
+#      env:
+#        - PACKAGE_LEVEL=latest
+# Note: pywbem does not install on OS-X, because pywbem_os_setup.sh does not
+# support OS-X yet for automatic install of OS-level packages (i.e. swig).
 #    - os: osx
 #      language: generic
 #      python:
 #      env:
 #        - PYTHON=2
+#        - PACKAGE_LEVEL=minimum
+#    - os: osx
+#      language: generic
+#      python:
+#      env:
+#        - PYTHON=2
+#        - PACKAGE_LEVEL=latest
 #    - os: osx
 #      language: generic
 #      python:
 #      env:
 #        - PYTHON=3
+#        - PACKAGE_LEVEL=minimum
+#    - os: osx
+#      language: generic
+#      python:
+#      env:
+#        - PYTHON=3
+#        - PACKAGE_LEVEL=latest
 
 before_install:
   - if [[ "$TRAVIS_BRANCH" == "manual-ci-run" ]]; then
@@ -95,14 +154,9 @@ install:
       virtualenv venv -p $PYTHON_CMD && source venv/bin/activate;
     fi
   - env |sort
-  - pip list
 # TODO: Replace the following quick fix for installing swig with a real fix.
   - if [[ $TRAVIS_OS_NAME == linux ]]; then sudo apt-get install -y swig; fi
 # end of swig quick fix
-  - pip install --upgrade pip
-  - python uninstall_pbr_on_py26.py
-  - make clobber
-  - pip list
 # TODO: Replace the following quick fix for installing M2Crypto with a real fix.
 # The problem happens only with Python 2.6 on Ubuntu 16.04, see pywbem issue #750.
   - if [[ -f /usr/include/x86_64-linux-gnu/openssl/opensslconf.h && ! -f /usr/include/openssl/opensslconf.h ]]; then echo "Linking openssl/opensslconf.h"; sudo ln -s /usr/include/x86_64-linux-gnu/openssl/opensslconf.h /usr/include/openssl/opensslconf.h; fi
@@ -113,14 +167,18 @@ install:
       export CPPFLAGS="-I/usr/local/opt/openssl/include $CPPFLAGS";
     fi
 # end of m2crypto quick fix
-  - make develop
-  - pip install python-coveralls
-# Update coverage because the version defined for python-coveralls breaks
-# some of our tests (they specify a specific version) see pr #734 where at
-# least on python 2.6, the test_wbemcli.py code catches a deprecation warning
-# from coverage 4.03 or earlier.
-  - pip install -U coverage
   - pip list
+  - make install
+  - pip list
+  - make develop
+  - pip list
+#  - pip install python-coveralls
+## Update coverage because the version defined for python-coveralls breaks
+## some of our tests (they specify a specific version) see pr #734 where at
+## least on python 2.6, the test_wbemcli.py code catches a deprecation warning
+## from coverage 4.03 or earlier.
+#  - pip install -U coverage
+#  - pip list
 
 # commands to run builds & tests
 script:
