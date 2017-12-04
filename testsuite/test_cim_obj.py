@@ -43,9 +43,10 @@ from unittest_extensions import RegexpMixin, CIMObjectMixin
 unimplemented = pytest.mark.skipif(True, reason="test not implemented")
 
 # Controls whether the new behavior for CIM objects in 0.12.0 is checked.
-CHECK_0_12_0 = (__version__.split('.') >= ['0', '12', '0'])
+CHECK_0_12_0 = (__version__.split('.') > ['0', '11', '0'])
 
-print("Debug: CHECK_0_12_0 = %s" % CHECK_0_12_0)
+print("Debug: CHECK_0_12_0 = %s, __version__ = %s" %
+      (CHECK_0_12_0, __version__))
 
 
 class ValidationTestCase(unittest.TestCase):

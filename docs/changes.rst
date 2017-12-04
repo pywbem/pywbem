@@ -23,6 +23,10 @@ Released: Not yet
 Incompatible changes
 ^^^^^^^^^^^^^^^^^^^^
 
+* The installation for Windows on Python 2.7 now requires an additional
+  manual step for installing the M2CryptoWin32/64 Python package. For details,
+  see the Installation section in the documentation.
+
 * The following initialization parameters of some CIM object classes that are
   required not to be `None` (as per the documentation) are now enforced not to
   be `None`, and `ValueError` is now raised when providing them as `None`:
@@ -148,6 +152,9 @@ Enhancements
   object classes (e.g. `CIMInstance`). This solves the Sphinx warnings about
   duplicate 'host' attribute when building the documentation (issue #761).
 
+* Added `libxml2` operating system package as a dependency. It provides xmllint,
+  which is used for testing.
+
 * Docs: Editorial improvements in the documentation (links, typos, formatting).
 
 * Docs: Clarifications and small fixes in the documentation of the
@@ -190,6 +197,32 @@ Build, test, quality
   that pywbem can compile this DMTF released schema. See issue #816
 
 * Add unit tests for the iter... operations. See issue #818
+
+* Migrated installation and development setup to use pbr and requirements
+  files. As a consequence, removed files no longer used: `os_setup.py`,
+  `uninstall_pbr_on_py26.py`.
+
+* Added ability to test with minimum Python package level, according
+  to the package versions defined in `minimum-constraints.txt`.
+
+* Fixed a setup issue on Travis CI with duplicate metadata directories for the
+  setuptools package. This issue prevented downgrading setuptools for the test
+  with minimum package levels. Added script `remove_duplicate_setuptools.py`
+  for that.
+
+* Reorganized the make targets for installing pywbem and its dependencies
+  somewhat. They now need to be used in this order:
+
+  - make install - installs pywbem and dependencies for runtime
+  - make develop - installs dependencies for development
+
+  There are two new targets (that are included in the targets above,
+  when first run after a `make clobber`):
+
+  - make install_os - installs OS-level dependencies for runtime
+  - make develop_os - installs OS-level dependencies for development
+
+* Enabled testing on OS-X in the Travis CI.
 
 Documentation
 ^^^^^^^^^^^^^
