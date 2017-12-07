@@ -181,19 +181,20 @@ help:
 	@echo 'makefile for $(package_name) version $(package_version)'
 	@echo 'Uses the currently active Python environment: Python $(python_version)'
 	@echo 'Valid targets are (they do just what is stated, i.e. no automatic prereq targets):'
-	@echo '  develop    - Prepare the development environment by installing prerequisites'
-	@echo '  build      - Build the distribution files in: $(dist_dir)'
+	@echo '  os_setup   - Install OS-level prereqs for this package (to run and develop)'
+	@echo '  install    - Install this pkg and Python prereqs for running it into active Python env.'
+	@echo '  develop    - Install Python prereqs for development into the active Python environment'
+	@echo '  build      - Build the distribution archives in: $(dist_dir)'
 	@echo '  builddoc   - Build documentation in: $(doc_build_dir)'
 	@echo '  check      - Run Flake8 on sources and save results in: flake8.log'
 	@echo '  pylint     - Run PyLint on sources and save results in: pylint.log'
-	@echo '  test       - Run unit tests and save results in: $(test_log_file)'
+	@echo '  test       - Run tests and save results in: $(test_log_file)'
 	@echo '  all        - Do all of the above'
-	@echo '  install    - Install distribution archive to active Python environment'
 	@echo '  upload     - build + upload the distribution files to PyPI'
 	@echo '  clean      - Remove any temporary files'
 	@echo '  clobber    - Remove everything; ensure clean start like a fresh clone'
 
-# Keep the condition for the 'wheel' package consistent with setup.py.
+# Keep the condition for the 'wheel' package consistent with the requirements & constraints files.
 .PHONY: _pip
 _pip:
 	@echo 'Installing/upgrading pip, setuptools, wheel and pbr with PACKAGE_LEVEL=$(PACKAGE_LEVEL)'
@@ -209,6 +210,11 @@ else
 	$(PIP_CMD) install $(pip_level_opts) wheel
 endif
 	$(PIP_CMD) install $(pip_level_opts) pbr
+
+.PHONY: os_setup
+os_setup: pywbem_os_setup.sh
+	./pywbem_os_setup.sh
+	@echo '$@ done.'
 
 .PHONY: develop
 develop: _pip dev-requirements.txt
@@ -301,13 +307,10 @@ check: flake8.log
 pylint: pylint.log
 	@echo '$@ done.'
 
-# Note: "pip install -e ." fails on Windows with :
-#       error: could not create 'pywbem.egg-info': Cannot create a file when that file already exists
 .PHONY: install
 install: _pip requirements.txt win32-requirements.txt win64-requirements.txt setup.py setup.cfg $(package_py_files)
 	@echo 'Installing runtime requirements with PACKAGE_LEVEL=$(PACKAGE_LEVEL)'
 	rm -Rf build $(package_name).egg-info .eggs
-	sh -c "./pywbem_os_setup.sh"
 	@echo "Debug code for determining (addressing) bit size of Python executable:"
 	$(PYTHON_CMD) -c "import ctypes; print(ctypes.sizeof(ctypes.c_void_p)*8)"
 	$(PYTHON_CMD) -c "import sys; print(64 if sys.maxsize > 2**32 else 32)"
@@ -346,7 +349,7 @@ clean:
 	@echo '$@ done.'
 
 .PHONY: all
-all: develop build builddoc check pylint test
+all: os_setup install develop build builddoc check pylint test
 	@echo '$@ done.'
 
 .PHONY: upload
