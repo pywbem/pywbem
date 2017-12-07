@@ -308,6 +308,10 @@ install: _pip requirements.txt win32-requirements.txt win64-requirements.txt set
 	@echo 'Installing runtime requirements with PACKAGE_LEVEL=$(PACKAGE_LEVEL)'
 	rm -Rf build $(package_name).egg-info .eggs
 	sh -c "./pywbem_os_setup.sh"
+	@echo "Debug code for determining (addressing) bit size of Python executable:"
+	$(PYTHON_CMD) -c "import ctypes; print(ctypes.sizeof(ctypes.c_void_p)*8)"
+	$(PYTHON_CMD) -c "import sys; print(64 if sys.maxsize > 2**32 else 32)"
+	$(PYTHON_CMD) -c "import platform; print(int(platform.architecture()[0].rstrip('bit')))"
 	$(PIP_CMD) install $(pip_level_opts) -r requirements.txt
 ifeq ($(PYTHON_ARCH),32)
 	$(PIP_CMD) install $(pip_level_opts) -r win32-requirements.txt
