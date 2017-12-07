@@ -6364,7 +6364,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         The `PropertyList` parameter determines the set of properties that are
         designated to be modified. The WBEM server shall reject modification
-        requests for key properties.
+        requests for key properties and for properties that are not exposed
+        by the creation class of the target instance.
 
         Pywbem sends the property values provided in the `ModifiedInstance`
         parameter to the WBEM server as provided; it does not add any default
@@ -6448,9 +6449,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             This parameter defines which properties are designated to be
             modified.
 
-            It is an iterable specifying the names of the properties, or a
-            string that specifies a single property name. In all cases, the
-            property names are matched case insensitively.
+            This parameter is an iterable specifying the names of the
+            properties, or a string that specifies a single property name. In
+            all cases, the property names are matched case insensitively.
             The specified properties are designated to be modified. Properties
             not specified are not designated to be modified.
 
