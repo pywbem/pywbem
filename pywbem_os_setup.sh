@@ -130,6 +130,23 @@ elif [[ "$distro_family" == "suse" ]]; then
   fi
   sudo zypper -y install libxml2  # for xmllint (for testing)
 
+elif [[ "$distro_family" == "osx" ]]; then
+
+  brew --help
+  brew install --help
+
+  brew update
+
+  brew install openssl-devel  # at least 1.0.1, for M2Crypto installation
+  brew install gcc-c++  # at least 4.4, for M2Crypto installation
+  brew install swig  # at least 2.0, for M2Crypto installation
+  if [[ "$py_m" == "2" ]]; then
+    brew install python-devel  # for M2Crypto installation
+  else
+    brew install python${py_mn}-devel  # for M2Crypto installation
+  fi
+  brew install libxml2  # for xmllint (for testing)
+
 else
 
   echo "Error: Installation of OS-level packages not supported on platform ${platform}."
