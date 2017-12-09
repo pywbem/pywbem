@@ -12,6 +12,8 @@ tmp.*
 .*~
 pywbem.egg-info
 MANIFEST
+/AUTHORS
+/ChangeLog
 parser.out
 moflog*.txt
 test_recorder.yaml

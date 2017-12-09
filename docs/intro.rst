@@ -101,6 +101,21 @@ a `virtual Python environment`_ is recommended).
 The command syntax above is shown for Linux, but works in similar ways on
 Windows and OS-X.
 
+To install pywbem on Windows, there is a prerequisite step when Python 2.7 is
+used (Python 2.6 is not supported on Windows): The M2Crypto Python package does
+not work on Windows, and instead the M2CryptoWin32 or M2CryptoWin64 Python
+package must be used, dependent on whether your Python executable is compiled
+for 32-bit or 64-bit. Because the bit-size of the Python executable is not one
+of the legal environment markers in pip requirement files, this dependency
+cannot be specified in the requirements.txt file, so the installation of these
+packages is a manual step:
+
+.. code-block:: bash
+
+    $ pip install M2CryptoWin32  # for 32-bit python.exe
+
+    $ pip install M2CryptoWin64  # for 64-bit python.exe
+
 In case of trouble with the installation, see the :ref:`Troubleshooting`
 section.
 
@@ -222,6 +237,8 @@ by the scripts:
 |                            |                     | IUS (python3{N})         |
 |                            +---------------------+--------------------------+
 |                            | swig                | >=2.0                    |
+|                            +---------------------+--------------------------+
+|                            | libxml2 (1)         | >=2.7                    |
 +----------------------------+---------------------+--------------------------+
 | Ubuntu, Debian, LinuxMint  | libssl-dev          | >=1.0.1                  |
 |                            +---------------------+--------------------------+
@@ -232,6 +249,8 @@ by the scripts:
 |                            | python3-dev         | for Python 3.4 - 3.6     |
 |                            +---------------------+--------------------------+
 |                            | swig                | >=2.0                    |
+|                            +---------------------+--------------------------+
+|                            | libxml2-utils (1)   | >=2.7                    |
 +----------------------------+---------------------+--------------------------+
 | SLES, OpenSUSE             | openssl-devel       | >=1.0.1                  |
 |                            +---------------------+--------------------------+
@@ -242,7 +261,13 @@ by the scripts:
 |                            | python3-devel       | for Python 3.4 - 3.6     |
 |                            +---------------------+--------------------------+
 |                            | swig                | >=2.0                    |
+|                            +---------------------+--------------------------+
+|                            | libxml2 (1)         | >=2.7                    |
 +----------------------------+---------------------+--------------------------+
+
+(1) The ``libxml2`` / ``libxml2-utils`` package is only needed for testing
+    pywbem. It provides the ``xmllint`` utility and can be omitted when only
+    running pywbem.
 
 On some distributions, the ``swig`` package is not available in the required
 version. In such cases, it can be built from its sources, as follows:

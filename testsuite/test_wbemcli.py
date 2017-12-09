@@ -143,8 +143,7 @@ class ContainerMeta(type):
                 # Disable python warnings for wbemcli call
                 # because some imports generate deprecated warnings
                 # that appear in std_err when nothing expected
-                bash_cmd = 'bash -c "set -o pipefail;  PYTHONPATH=. ' \
-                           'PYTHONWARNINGS= %s"' % cmd
+                bash_cmd = 'bash -c "PYTHONWARNINGS= %s"' % cmd
 
                 proc = Popen(bash_cmd, shell=True, stdout=PIPE, stderr=PIPE)
                 std_out, std_err = proc.communicate()
@@ -159,29 +158,30 @@ class ContainerMeta(type):
 
                 if test_params.expected_exitcode is not None:
                     self.assertEqual(exitcode, test_params.expected_exitcode,
-                                     ('Test %s: Unexpected ExitCode Err. '
-                                      'Expected %s: cmd="%s": '
-                                      'exitcode %s: stderr=%s' %
+                                     ("Test %s: Unexpected exit code "
+                                      "(expected %s, got %s) from command:\n"
+                                      "%s\n"
+                                      "stderr:\n"
+                                      "%s" %
                                       (test_name, test_params.expected_exitcode,
-                                       cmd,
-                                       exitcode, std_err)))
+                                       exitcode, cmd, std_err)))
 
                 if test_params.expected_stderr is None:
                     if re.search('ImportWarning', std_err) is None:
                         self.assertEqual(std_err, "",
-                                         'Test %s stderr not empty as '
+                                         'Test %s: stderr not empty as '
                                          'expected. Returned %s'
                                          % (test_name, std_err))
                     else:
                         print('Ignored junk in stderr %s' % std_err)
                     self.assertEqual(std_err, "",
-                                     'Test %s stderr not empty as expected. '
+                                     'Test %s: stderr not empty as expected. '
                                      'Returned %s'
                                      % (test_name, std_err))
                 else:
                     for item in test_params.expected_stderr:
                         match_result = re.search(item, std_err)
-                        self.assertNotEqual(match_result, None, 'Test %s, '
+                        self.assertNotEqual(match_result, None, 'Test %s: '
                                             'stderr did not match test '
                                             'definition. Expected %s in %s' %
                                             (test_name, item, std_err))
@@ -190,12 +190,12 @@ class ContainerMeta(type):
                     for item in test_params.expected_stdout:
                         match_result = re.search(item, std_out)
                         self.assertNotEqual(match_result, None,
-                                            'Test=%s, stdout did not match '
+                                            'Test=%s: stdout did not match '
                                             'test definition. Expected %s in %s'
                                             % (test_name, item, std_out))
                 else:
                     self.assertEqual(std_out, "",
-                                     'Test %s stdout not empty as expected. '
+                                     'Test %s: stdout not empty as expected. '
                                      'Returned %s'
                                      % (test_name, std_out))
             return test

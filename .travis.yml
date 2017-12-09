@@ -23,31 +23,89 @@ matrix:
     - os: linux
       language: python
       python: "2.6"
+      env:
+        - PACKAGE_LEVEL=minimum
+#    - os: linux
+#      language: python
+#      python: "2.6"
+#      env:
+#        - PACKAGE_LEVEL=latest
+#    - os: linux
+#      language: python
+#      python: "2.7"
+#      env:
+#        - PACKAGE_LEVEL=minimum
     - os: linux
       language: python
       python: "2.7"
+      env:
+        - PACKAGE_LEVEL=latest
     - os: linux
       language: python
       python: "3.4"
+      env:
+        - PACKAGE_LEVEL=minimum
+#    - os: linux
+#      language: python
+#      python: "3.4"
+#      env:
+#        - PACKAGE_LEVEL=latest
 #    - os: linux
 #      language: python
 #      python: "3.5"
+#      env:
+#        - PACKAGE_LEVEL=minimum
+#    - os: linux
+#      language: python
+#      python: "3.5"
+#      env:
+#        - PACKAGE_LEVEL=latest
+#    - os: linux
+#      language: python
+#      python: "3.6"
+#      env:
+#        - PACKAGE_LEVEL=minimum
     - os: linux
       language: python
       python: "3.6"
+      env:
+        - PACKAGE_LEVEL=latest
+# Note: pywbem does not install on pypy, because M2Crypto does not install.
 #    - os: linux
 #      language: python
 #      python: "pypy-5.3.1"  # Python 2.7.10
-#    - os: osx
-#      language: generic
-#      python:
 #      env:
-#        - PYTHON=2
-#    - os: osx
-#      language: generic
-#      python:
+#        - PACKAGE_LEVEL=minimum
+#    - os: linux
+#      language: python
+#      python: "pypy-5.3.1"  # Python 2.7.10
 #      env:
-#        - PYTHON=3
+#        - PACKAGE_LEVEL=latest
+# TODO: Disable OS-X again before merging to master.
+    - os: osx
+      language: generic
+      python:
+      env:
+        - PYTHON=2
+        - PACKAGE_LEVEL=minimum
+    - os: osx
+      language: generic
+      python:
+      env:
+        - PYTHON=2
+        - PACKAGE_LEVEL=latest
+    - os: osx
+      language: generic
+      python:
+      env:
+        - PYTHON=3
+        - PACKAGE_LEVEL=minimum
+    - os: osx
+      language: generic
+      python:
+      env:
+        - PYTHON=3
+        - PACKAGE_LEVEL=latest
 
 before_install:
   - if [[ "$TRAVIS_BRANCH" == "manual-ci-run" ]]; then
@@ -92,34 +150,31 @@ install:
       brew search python && brew ls --versions $OSX_PYTHON_PKG && brew upgrade $OSX_PYTHON_PKG || brew install $OSX_PYTHON_PKG;
     fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      virtualenv venv -p $PYTHON_CMD && source venv/bin/activate;
+      virtualenv $HOME/venv -p $PYTHON_CMD && source $HOME/venv/bin/activate;
     fi
   - env |sort
-  - pip list
-# TODO: Replace the following quick fix for installing swig with a real fix.
-  - if [[ $TRAVIS_OS_NAME == linux ]]; then sudo apt-get install -y swig; fi
-# end of swig quick fix
-  - pip install --upgrade pip
-  - python uninstall_pbr_on_py26.py
-  - make clobber
-  - pip list
-# TODO: Replace the following quick fix for installing M2Crypto with a real fix.
-# The problem happens only with Python 2.6 on Ubuntu 16.04, see pywbem issue #750.
-  - if [[ -f /usr/include/x86_64-linux-gnu/openssl/opensslconf.h && ! -f /usr/include/openssl/opensslconf.h ]]; then echo "Linking openssl/opensslconf.h"; sudo ln -s /usr/include/x86_64-linux-gnu/openssl/opensslconf.h /usr/include/openssl/opensslconf.h; fi
-  - (find /usr -type d -name "openssl" && echo "dummy") |xargs find 2>/dev/null |grep "\.h$" |sort || true
+  - make os_setup
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew info openssl;
-      export LDFLAGS="-L/usr/local/opt/openssl/lib $LDFLAGS";
-      export CPPFLAGS="-I/usr/local/opt/openssl/include $CPPFLAGS";
+      openssl_dir=$(brew --prefix openssl);
+      echo "Setting LDFLAGS/CFLAGS/SWIG_FEATURES env.vars to $openssl_dir/...";
+      export LDFLAGS="-L$openssl_dir/lib $LDFLAGS";
+      export CFLAGS="-I$openssl_dir/include $CFLAGS";
+      export SWIG_FEATURES="-I$openssl_dir/include $SWIG_FEATURES";
     fi
-# end of m2crypto quick fix
+# Begin of m2crypto quick fix.
+# The problem happens only with Python 2.6 on Ubuntu 16.04, see pywbem issue #750.
+# TODO: Replace the following quick fix for installing M2Crypto with a real fix.
+  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PYTHON_VERSION" == "2.6" ]]; then
+      if [[ -f /usr/include/x86_64-linux-gnu/openssl/opensslconf.h && ! -f /usr/include/openssl/opensslconf.h ]]; then
+        echo "Quickfix for M2Crypto swig run - Linking openssl/opensslconf.h";
+        sudo ln -s /usr/include/x86_64-linux-gnu/openssl/opensslconf.h /usr/include/openssl/opensslconf.h;
+      fi
+    fi
+# End of m2crypto quick fix.
+  - pip list
+  - make install
+  - pip list
   - make develop
-  - pip install python-coveralls
-# Update coverage because the version defined for python-coveralls breaks
-# some of our tests (they specify a specific version) see pr #734 where at
-# least on python 2.6, the test_wbemcli.py code catches a deprecation warning
-# from coverage 4.03 or earlier.
-  - pip install -U coverage
   - pip list
 
 # commands to run builds & tests

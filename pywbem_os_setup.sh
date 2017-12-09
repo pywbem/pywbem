@@ -22,6 +22,31 @@
 # This script installs the OS-level prerequisite package that users of
 # pywbem need.
 
+function install_redhat() {
+  installer="$1"
+  pkg="$2"
+  echo "Installing package: $pkg"
+  sudo $installer -y install $pkg
+}
+
+function install_debian() {
+  pkg="$1"
+  echo "Installing package: $pkg"
+  sudo apt-get --yes install $pkg
+}
+
+function install_suse() {
+  pkg="$1"
+  echo "Installing package: $pkg"
+  sudo zypper install -y $pkg
+}
+
+function install_osx() {
+  pkg="$1"
+  echo "Upgrading or installing package: $pkg"
+  brew upgrade $pkg || brew install $pkg
+}
+
 if [[ "$OS" == "Windows_NT" ]]; then
   distro_id="windows"
   distro_family=$distro_id
@@ -75,8 +100,8 @@ else
 fi
 
 
-py_m=$(python -c "import sys; print(sys.version_info.major)")
-py_mn=$(python -c "import sys; print('%s.%s' % (sys.version_info.major, sys.version_info.minor))")
+py_m=$(python -c "import sys; print(sys.version_info[0])")
+py_mn=$(python -c "import sys; print('%s.%s' % (sys.version_info[0], sys.version_info[1]))")
 
 echo "Installing OS-level prerequisite packages on platform ${platform}..."
 
@@ -87,57 +112,62 @@ if [[ "$distro_family" == "redhat" ]]; then
   else
     installer=yum
   fi
-
   echo "Using installer: $installer"
 
   sudo $installer makecache fast
-
-  sudo $installer -y install openssl-devel  # at least 1.0.1, for M2Crypto installation
-  sudo $installer -y install gcc-c++  # at least 4.4, for M2Crypto installation
-  sudo $installer -y install swig  # at least 2.0, for M2Crypto installation
   if [[ "$py_m" == "2" ]]; then
-    sudo $installer -y install python-devel  # for M2Crypto installation
-  else
-    sudo $installer -y install python${py_mn}-devel  # for M2Crypto installation
+    # For M2Crypto:
+    install_redhat $installer openssl-devel
+    install_redhat $installer gcc-c++
+    install_redhat $installer swig
+    install_redhat $installer python-devel
   fi
+  install_redhat $installer libxml2
 
 elif [[ "$distro_family" == "debian" ]]; then
 
   sudo apt-get --quiet update
-
-  sudo apt-get --yes install libssl-dev  # at least 1.0.1, for M2Crypto installation
-  sudo apt-get --yes install g++  # at least 4.4, for M2Crypto installation
-  sudo apt-get --yes install swig  # at least 2.0, for M2Crypto installation
   if [[ "$py_m" == "2" ]]; then
-    sudo apt-get --yes install python-dev  # for M2Crypto installation
-  else
-    sudo apt-get --yes install python${py_m}-dev  # for M2Crypto installation
+    # For M2Crypto:
+    install_debian libssl-dev
+    install_debian g++
+    install_debian swig
+    install_debian python-dev
   fi
+  install_debian libxml2-utils
 
 elif [[ "$distro_family" == "suse" ]]; then
 
   # TODO: update zypper package list
-
-  sudo zypper -y install openssl-devel  # at least 1.0.1, for M2Crypto installation
-  sudo zypper -y install gcc-c++  # at least 4.4, for M2Crypto installation
-  sudo zypper -y install swig  # at least 2.0, for M2Crypto installation
   if [[ "$py_m" == "2" ]]; then
-    sudo zypper -y install python-devel  # for M2Crypto installation
-  else
-    sudo zypper -y install python${py_mn}-devel  # for M2Crypto installation
+    # For M2Crypto:
+    install_suse openssl-devel
+    install_suse gcc-c++
+    install_suse swig
+    install_suse python-devel
   fi
+  install_suse libxml2
+
+elif [[ "$distro_family" == "osx" ]]; then
+
+  brew update
+  if [[ "$py_m" == "2" ]]; then
+    # For M2Crypto:
+    install_osx openssl
+    install_osx gcc
+    install_osx swig
+  fi
+  install_osx libxml2
 
 else
 
   echo "Error: Installation of OS-level packages not supported on platform ${platform}."
-  echo "The equivalent packages for the redhat family of Linux distros are:"
-  echo "  * openssl-devel (at least 1.0.1)"
-  echo "  * gcc-c++ (at least 4.4)"
-  echo "  * swig (at least 2.0)"
-  if [[ "$py_m" == "2" ]]; then
-    echo "  * python-devel"
-  else
-    echo "  * python${py_mn}-devel"
-  fi
+  echo "The equivalent packages for the Redhat family of Linux distros are:"
+  echo "  * openssl-devel (at least 1.0.1, only on Python 2)"
+  echo "  * gcc-c++ (at least 4.4, only on Python 2)"
+  echo "  * swig (at least 2.0, only on Python 2)"
+  echo "  * python-devel (only on Python 2"
+  echo "  * libxml2 (on Python 2 and 3)"
 
 fi
+
