@@ -105,7 +105,7 @@ class StatisticsTests(unittest.TestCase):
         statistics = Statistics()
         statistics.enable()
 
-        duration = 1
+        duration = 1.0
 
         # Allowable delta in seconds between expected and actual duration.
         # Notes:
@@ -119,9 +119,12 @@ class StatisticsTests(unittest.TestCase):
 
         for _, stats in statistics.snapshot():
             self.assertEqual(stats.count, 1)
-            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta)
-            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta)
-            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta)
+            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta,
+                            "actual avg duration: %r" % stats.avg_time)
+            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta,
+                            "actual min duration: %r" % stats.min_time)
+            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta,
+                            "actual max duration: %r" % stats.max_time)
             self.assertEqual(stats.max_request_len, 100)
             self.assertEqual(stats.min_request_len, 100)
             self.assertEqual(stats.avg_request_len, 100)
@@ -142,7 +145,7 @@ class StatisticsTests(unittest.TestCase):
         statistics = Statistics()
         statistics.enable()
 
-        duration = 1
+        duration = 1.0
 
         # Allowable delta in seconds between expected and actual duration.
         # Notes:
@@ -156,16 +159,22 @@ class StatisticsTests(unittest.TestCase):
 
         for _, stats in statistics.snapshot():
             self.assertEqual(stats.count, 1)
-            self.assertTrue(time_abs_delta(stats.avg_time, duration) <= delta)
-            self.assertTrue(time_abs_delta(stats.min_time, duration) <= delta)
-            self.assertTrue(time_abs_delta(stats.max_time, duration) <= delta)
+            self.assertTrue(time_abs_delta(stats.avg_time, duration) <= delta,
+                            "actual avg duration: %r" % stats.avg_time)
+            self.assertTrue(time_abs_delta(stats.min_time, duration) <= delta,
+                            "actual min duration: %r" % stats.min_time)
+            self.assertTrue(time_abs_delta(stats.max_time, duration) <= delta,
+                            "actual max duration: %r" % stats.max_time)
 
             self.assertTrue(
-                time_abs_delta(stats.avg_server_time, duration) <= delta)
+                time_abs_delta(stats.avg_server_time, duration) <= delta,
+                "actual avg server duration: %r" % stats.avg_server_time)
             self.assertTrue(
-                time_abs_delta(stats.min_server_time, duration) <= delta)
+                time_abs_delta(stats.min_server_time, duration) <= delta,
+                "actual min server duration: %r" % stats.min_server_time)
             self.assertTrue(
-                time_abs_delta(stats.max_server_time, duration) <= delta)
+                time_abs_delta(stats.max_server_time, duration) <= delta,
+                "actual max server duration: %r" % stats.max_server_time)
 
             self.assertEqual(stats.max_request_len, 1000)
             self.assertEqual(stats.min_request_len, 1000)
@@ -206,7 +215,7 @@ class StatisticsTests(unittest.TestCase):
         statistics = Statistics()
         statistics.enable()
 
-        duration = 1
+        duration = 1.0
 
         # Allowable delta in seconds between expected and actual duration.
         # Notes:
@@ -224,9 +233,12 @@ class StatisticsTests(unittest.TestCase):
 
         for _, stats in statistics.snapshot():
             self.assertEqual(stats.count, 2)
-            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta)
-            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta)
-            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta)
+            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta,
+                            "actual avg duration: %r" % stats.avg_time)
+            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta,
+                            "actual min duration: %r" % stats.min_time)
+            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta,
+                            "actual max duration: %r" % stats.max_time)
             self.assertEqual(stats.max_request_len, 200)
             self.assertEqual(stats.min_request_len, 100)
             self.assertEqual(stats.avg_request_len, 150)
@@ -240,7 +252,7 @@ class StatisticsTests(unittest.TestCase):
         statistics = Statistics()
         statistics.enable()
 
-        duration = 1
+        duration = 1.0
 
         # Allowable delta in seconds between expected and actual duration.
         # Notes:
@@ -258,9 +270,12 @@ class StatisticsTests(unittest.TestCase):
 
         for _, stats in statistics.snapshot():
             self.assertEqual(stats.count, 2)
-            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta)
-            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta)
-            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta)
+            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta,
+                            "actual avg duration: %r" % stats.avg_time)
+            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta,
+                            "actual min duration: %r" % stats.min_time)
+            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta,
+                            "actual max duration: %r" % stats.max_time)
             self.assertEqual(stats.max_request_len, 200)
             self.assertEqual(stats.min_request_len, 100)
             self.assertEqual(stats.avg_request_len, 150)
@@ -274,7 +289,7 @@ class StatisticsTests(unittest.TestCase):
         statistics = Statistics()
         statistics.enable()
 
-        duration = 1
+        duration = 1.0
 
         # Allowable delta in seconds between expected and actual duration.
         # Notes:
@@ -297,9 +312,12 @@ class StatisticsTests(unittest.TestCase):
         # verify that only the first set of data is in the snapshot
         for _, stats in snapshot:
             self.assertEqual(stats.count, 1)
-            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta)
-            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta)
-            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta)
+            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta,
+                            "actual avg duration: %r" % stats.avg_time)
+            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta,
+                            "actual min duration: %r" % stats.min_time)
+            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta,
+                            "actual max duration: %r" % stats.max_time)
 
 
 class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
