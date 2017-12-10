@@ -22,6 +22,9 @@
 Version of the pywbem package.
 """
 
+import sys
+
+
 #: Version of the pywbem package, as a :term:`string`.
 #:
 #: Possible formats for the version string are:
@@ -32,3 +35,11 @@ Version of the pywbem package.
 #:   PyPI)
 #: * "M.N.U": The final M.N.U release
 __version__ = '0.12.0.dev0'
+
+# Check supported Python versions
+_PYTHON_M = sys.version_info[0]
+_PYTHON_N = sys.version_info[1]
+if _PYTHON_M == 2 and _PYTHON_N < 6:
+    raise RuntimeError('On Python 2, pywbem requires Python 2.6 or higher')
+elif _PYTHON_M == 3 and _PYTHON_N < 4:
+    raise RuntimeError('On Python 3, pywbem requires Python 3.4 or higher')
