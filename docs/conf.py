@@ -367,6 +367,16 @@ texinfo_documents = [
 # For documentation, see
 # http://www.sphinx-doc.org/en/stable/ext/autodoc.html
 
+# Note on the :special-members: option:
+# In Sphinx releases azt least up to 1.6.5, this option does not behave
+# as documented. Its behavior is that it only has an effect on the presence
+# of the __init__ member in the documentation, which is shown when the
+# option is specified without arguments or with an an argument list that
+# includes __init__. Other special members that exist in the code are
+# always shown (regardless of whether the option is omitted, specified without
+# arguments, or specified with an argument list that may or may not
+# include the special member).
+
 # Selects what content will be inserted into a class description.
 # The possible values are:
 #   "class" - Only the class’ docstring is inserted. This is the default.
@@ -374,7 +384,11 @@ texinfo_documents = [
 #             concatenated and inserted.
 #   "init"  - Only the __init__ method’s docstring is inserted.
 # In all cases, the __init__ method is still independently rendered as a
-# special method, e.g. when the :special-members: option is set.
+# special method when the :special-members: option of the autoclass
+# directive includes __init__ or is specified with no arguments.
+# Based upon the behavior of the :special-members: option described above,
+# the recommendation is to not specify the :special-members: option
+# when this config value is set to "both" or "init".
 autoclass_content = "both"
 
 # Selects if automatically documented members are sorted alphabetically
@@ -382,12 +396,21 @@ autoclass_content = "both"
 # order (value 'bysource'). The default is alphabetical.
 autodoc_member_order = "bysource"
 
-# This value is a list of autodoc directive flags that should be automatically
-# applied to all autodoc directives. The supported flags are:
-# 'members', 'undoc-members', 'private-members', 'special-members',
-# 'inherited-members' and 'show-inheritance'.
-# If you set one of these flags in this config value, you can use a negated
-# form, 'no-flag', in an autodoc directive, to disable it once.
+# This value is a list of autodoc directive options (flags) that should be
+# automatically applied to all autodoc directives. The supported options
+# are:
+#   'members', 'undoc-members', 'private-members', 'special-members',
+#   'inherited-members' and 'show-inheritance'.
+# If you set one of these options in this config value, they behave as if
+# they had been specified without arguments on each applicable autodoc
+# directive. If needed, an autodoc directive can then unspecify the option
+# for the current autodoc directive with a negated form :no-{option}:.
+# For example, you would specify an option :no-members: on an autoclass
+# directive to unspecify a 'members' option included in this config value.
+# Note that the :members: option on automodule is recursive w.r.t. the
+# classes or other items in the module, so when you want to have specific
+# autoclass directives, make sure that the :nmembers: option is not
+# set for automodule.
 autodoc_default_flags = []
 
 # Functions imported from C modules cannot be introspected, and therefore the
