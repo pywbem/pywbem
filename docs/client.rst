@@ -49,7 +49,6 @@ WBEMConnection
 
 .. autoclass:: pywbem.WBEMConnection
    :members:
-   :special-members: __str__, __repr__
 
 .. # TODO: Requesting all members (by means of :members: without a list
 .. # of members) causes the internal methods imethodcall() and methodcall()
@@ -195,63 +194,54 @@ CIMInstanceName
 
 .. autoclass:: pywbem.CIMInstanceName
    :members:
-   :special-members: __str__, __repr__
 
 CIMInstance
 ^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMInstance
    :members:
-   :special-members: __str__, __repr__
 
 CIMClassName
 ^^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMClassName
    :members:
-   :special-members: __str__, __repr__
 
 CIMClass
 ^^^^^^^^
 
 .. autoclass:: pywbem.CIMClass
    :members:
-   :special-members: __str__, __repr__
 
 CIMProperty
 ^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMProperty
    :members:
-   :special-members: __str__, __repr__
 
 CIMMethod
 ^^^^^^^^^
 
 .. autoclass:: pywbem.CIMMethod
    :members:
-   :special-members: __str__, __repr__
 
 CIMParameter
 ^^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMParameter
    :members:
-   :special-members: __str__, __repr__
 
 CIMQualifier
 ^^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMQualifier
    :members:
-   :special-members: __str__, __repr__
 
 CIMQualifierDeclaration
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMQualifierDeclaration
    :members:
-   :special-members: __str__, __repr__
 
 Conversion functions
 ^^^^^^^^^^^^^^^^^^^^
@@ -276,11 +266,9 @@ CIM data types
 
 .. autoclass:: pywbem.CIMType
    :members:
-   :special-members: __repr__
 
 .. autoclass:: pywbem.CIMDateTime
    :members:
-   :special-members: __str__, __repr__
 
 .. autoclass:: pywbem.MinutesFromUTC
    :members:
@@ -337,22 +325,25 @@ Exceptions
 .. automodule:: pywbem.exceptions
 
 .. autoclass:: pywbem.Error
+   :members:
 
 .. autoclass:: pywbem.ConnectionError
+   :members:
 
 .. autoclass:: pywbem.AuthError
+   :members:
 
 .. autoclass:: pywbem.HTTPError
    :members:
-   :special-members: __str__
 
 .. autoclass:: pywbem.TimeoutError
+   :members:
 
 .. autoclass:: pywbem.ParseError
+   :members:
 
 .. autoclass:: pywbem.CIMError
    :members:
-   :special-members: __str__
 
 .. _`Statistics`:
 
@@ -363,11 +354,9 @@ Statistics
 
 .. autoclass:: pywbem.Statistics
    :members:
-   :special-members: __str__
 
 .. autoclass:: pywbem.OperationStatistic
    :members:
-   :special-members: __str__
 
 .. _`Logging`:
 
@@ -377,9 +366,13 @@ Logging
 .. automodule:: pywbem._logging
    :members:
 
-.. autoclass:: pywbem.PywbemLoggers
-   :members:
-   :special-members: __str__
+.. # Note: Using the :members: option on automodule includes its data
+.. # members automatically, but also recursively includes its class
+.. # PywbemLoggers, showing it with the submodule namespace:
+.. # pywbem._logging.PywbemLoggers. It seems the only way to not show the
+.. # submodule namespace would be to have an autodata directive for each of
+.. # the 6 (or so) public data items in the module, and a separate autoclass
+.. # directive.
 
 
 .. _`WBEM Operation recorder`:
@@ -412,31 +405,24 @@ Class                                    Purpose
 
 .. autoclass:: pywbem.BaseOperationRecorder
    :members:
-   :special-members: __str__, __repr__
 
 .. autoclass:: pywbem.OpArgs
    :members:
-   :special-members: __repr__
 
 .. autoclass:: pywbem.OpResult
    :members:
-   :special-members: __repr__
 
 .. autoclass:: pywbem.HttpRequest
    :members:
-   :special-members: __repr__
 
 .. autoclass:: pywbem.HttpResponse
    :members:
-   :special-members: __repr__
 
 .. autoclass:: pywbem.TestClientRecorder
    :members:
-   :special-members: __str__, __repr__
 
 .. autoclass:: pywbem.LogOperationRecorder
    :members:
-   :special-members: __str__, __repr__
 
 .. _`Security considerations`:
 
