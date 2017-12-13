@@ -198,6 +198,8 @@ Documentation
   CIM element names, or making copies of input parameters vs. storing the
   provided object.
 
++ Improved the description of the `WBEMConnection.ModifyInstance()` method.
+
 
 pywbem v0.11.0
 --------------

@@ -6359,6 +6359,54 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
         methods performing such operations.
 
+        The `PropertyList` parameter determines the set of properties that are
+        designated to be modified (see its description for details).
+
+        The properties provided in the `ModifiedInstance` parameter specify
+        the new property values for the properties that are designated to be
+        modified.
+
+        Pywbem sends the property values provided in the `ModifiedInstance`
+        parameter to the WBEM server as provided; it does not add any default
+        values for properties not provided but designated to be modified, nor
+        does it reduce the properties by those not designated to be modified.
+
+        The properties that are actually modified by the WBEM server as a result
+        of this operation depend on a number of things:
+
+        * The WBEM server will reject modification requests for key properties
+          and for properties that are not exposed by the creation class of the
+          target instance.
+
+        * The WBEM server may consider some properties as read-only, as a
+          result of requirements at the CIM modeling level (schema or
+          management profiles), or as a result of an implementation decision.
+
+          Note that the WRITE qualifier on a property is not a safe indicator
+          as to whether the property can actually be modified. It is an
+          expression at the level of the CIM schema that may or may not be
+          considered in DMTF management profiles or in implementations.
+          Specifically, a qualifier value of True on a property does not
+          guarantee modifiability of the property, and a value of False does
+          not prevent modifiability.
+
+        * The WBEM server may detect invalid new values or conflicts resulting
+          from the new property values and may reject modification of a property
+          for such reasons.
+
+        If the WBEM server rejects modification of a property for any reason,
+        it will cause this operation to fail and will not modify any property
+        on the target instance. If this operation succeeds, all properties
+        designated to be modified have their new values (see the description
+        of the `ModifiedInstance` parameter for details on how the new values
+        are determined).
+
+        Note that properties (including properties not designated to be
+        modified) may change their values as an indirect result of this
+        operation. For example, a property that was not designated to be
+        modified may be derived from another property that was modified, and
+        may show a changed value due to that.
+
         If the operation succeeds, this method returns.
         Otherwise, this method raises an exception.
 
@@ -6377,9 +6425,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             attribute of the instance must specify the same class name.
 
             The properties defined in this object specify the new property
-            values for the instance to be modified. Missing properties
-            (relative to the class declaration) and properties provided with
-            a value of `None` will be set to NULL.
+            values (including `None` for NULL). If a property is designated to
+            be modified but is not specified in this object, the WBEM server
+            will use the default value of the property declaration if specified
+            (including `None`), and otherwise may update the property to any
+            value (including `None`).
 
             Typically, this object has been retrieved by other operations,
             such as :meth:`~pywbem.WBEMConnection.GetInstance`.
@@ -6399,12 +6449,23 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             cannot rely on it being implemented by WBEM servers.
 
           PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
-            An iterable specifying the names of the properties (or a string
-            that defines a single property) to be modified (case independent).
+            This parameter defines which properties are designated to be
+            modified.
 
-            An empty iterable indicates to modify no properties.
+            This parameter is an iterable specifying the names of the
+            properties, or a string that specifies a single property name. In
+            all cases, the property names are matched case insensitively.
+            The specified properties are designated to be modified. Properties
+            not specified are not designated to be modified.
 
-            If `None`, all properties are modified.
+            An empty iterable indicates that no properties are designated to be
+            modified.
+
+            If `None`, DSP0200 states that the properties with values different
+            from the current values in the instance are designated to be
+            modified, but for all practical purposes this is equivalent to
+            stating that all properties exposed by the instance are designated
+            to be modified.
 
         Keyword Arguments:
 
