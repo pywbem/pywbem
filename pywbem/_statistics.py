@@ -16,6 +16,8 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 """
+*New in pywbem 0.11 as experimental and finalized in 0.12.*
+
 Pywbem supports measuring the elapsed times of the WBEM operations that
 were performed in context of a connection, and maintaining a statistics
 over these times.
@@ -43,8 +45,6 @@ name (see the table of WBEMConnection methods in the :ref:`WBEM operations`
 section for the operation names).
 The :class:`~pywbem.OperationStatistic` objects are under control of the
 :class:`~pywbem.Statistics` class.
-
-**Experimental:** The statistics support is experimental for this release.
 """
 
 from __future__ import absolute_import
@@ -58,6 +58,8 @@ __all__ = ['Statistics', 'OperationStatistic']
 class OperationStatistic(object):
     # pylint: disable=too-many-instance-attributes
     """
+    *New in pywbem 0.11 as experimental and finalized in 0.12.*
+
     A statistics data keeper for the executions of all operations with the
     same operation name.
 
@@ -71,8 +73,6 @@ class OperationStatistic(object):
         stats = container.start_timer('EnumerateInstances')
         ...
         stats.stop_timer(request_len, reply_len, server_time, exc)
-
-    **Experimental:** This class is experimental for this release.
     """
 
     def __init__(self, container, name):
@@ -458,6 +458,8 @@ class OperationStatistic(object):
 
 class Statistics(object):
     """
+    *New in pywbem 0.11 as experimental and finalized in 0.12.*
+
     A container class for multiple operation statistic objects (of class
     :class:`~pywbem.OperationStatistic`).
 
@@ -475,8 +477,6 @@ class Statistics(object):
     :meth:`~pywbem.Statistics.disable` methods. Its current enablement
     state can be accessed via the :attr:`~pywbem.Statistics.enabled`
     property.
-
-    **Experimental:** This class is experimental for this release.
     """
 
     def __init__(self, enable=False):
