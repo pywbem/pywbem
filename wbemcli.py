@@ -139,6 +139,8 @@ def iei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None, fl=None,
         fq=None, ot=None, coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT,):
     # pylint: disable=too-many-arguments, redefined-outer-name
     """
+    *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
     WBEM operation: IterEnumerateInstances
 
     A generator function to retrieve instances from a WBEM Server.
@@ -258,6 +260,8 @@ def ieip(cn, ns=None, fl=None, fq=None, ot=None, coe=None,
          moc=DEFAULT_ITER_MAXOBJECTCOUNT,):
     # pylint: disable=too-many-arguments
     """
+    *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
     WBEM operation: IterEnumerateInstancePaths
 
     A generator function to retrieve instance paths from a WBEM Server.
@@ -361,14 +365,14 @@ def iri(op, rc=None, r=None, iq=None, ico=None, pl=None, fl=None, fq=None,
         ot=None, coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT):
     # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
     """
+    *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
     WBEM operation: IterReferenceInstances
 
     A generator function to retrieve references from a WBEM Server.
     This method frees the user of choices between the multiple
     ReferenceNames/ReferenceInstancePaths methods and reduces
     the enumeration to a pythonic iterator idiom.
-
-    **Experimental:** This method is experimental in this release.
 
     This method performs either the
     :meth:`~pywbem.OpenReferenceInstances operation
@@ -470,14 +474,14 @@ def irip(op, rc=None, r=None, fl=None, fq=None, ot=None, coe=None,
          moc=DEFAULT_ITER_MAXOBJECTCOUNT):
     # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
     """
+    *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
     WBEM operation: IterReferenceInstancePaths
 
     A generator function to retrieve associator paths from a WBEM Server.
     This method frees the user of choices between the multiple
     AssociatorNames/AssociatorInstancePaths methods and reduces
     the enumeration to a pythonic iterator idiom.
-
-    **Experimental:** This method is experimental in this release.
 
     This method performs either the
     :meth:`~pywbem.OpenAssociatorInstancePaths operation
@@ -558,14 +562,14 @@ def iai(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None,
         fl=None, fq=None, ot=None, coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT):
     # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
     """
+    *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
     WBEM operation: IterAssociatorInstances
 
     A generator function to retrieve instances from a WBEM Server.
     This method frees the user of choices between the multiple
     Associators/OpenAssociatorInstance methods and reduces
     the enumeration to a pythonic iterator idiom.
-
-    **Experimental:** This method is experimental in this release.
 
     This method performs either the
     :meth:`~pywbem.WBEMConnection.OpenAssociatorInstances` and
@@ -682,22 +686,22 @@ def iaip(op, ac=None, rc=None, r=None, rr=None, fl=None, fq=None, ot=None,
          coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT):
     # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
     """
+    *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
     WBEM operation: IterAssociatorInstancePaths
 
-        A generator function to retrieve associators from a WBEM Server.
-        This method frees the user of choices between the multiple
-        AssociatorNames/AssociatorInstancePaths methods and reduces
-        the enumeration to a pythonic iterator idiom.
+    A generator function to retrieve associators from a WBEM Server.
+    This method frees the user of choices between the multiple
+    AssociatorNames/AssociatorInstancePaths methods and reduces
+    the enumeration to a pythonic iterator idiom.
 
-        **Experimental:** This method is experimental in this release.
-
-        This method performs either the
-        :meth:`~pywbem.OpenAssociatorInstancePaths operation
-        (see :term:`DSP0200`) and :meth:`~pywbem.PullInstancePaths operation or
-        the:meth:`~pywbem.WBEMConnection.AssociatorNames` operation
-        (traditional operation) if the WBEM server does not support the
-        pull operations. It is an alternative to using these operations
-        directly, that automatically uses the pull operations if supported.
+    This method performs either the
+    :meth:`~pywbem.OpenAssociatorInstancePaths operation
+    (see :term:`DSP0200`) and :meth:`~pywbem.PullInstancePaths operation or
+    the :meth:`~pywbem.WBEMConnection.AssociatorNames` operation
+    (traditional operation) if the WBEM server does not support the
+    pull operations. It is an alternative to using these operations
+    directly, that automatically uses the pull operations if supported.
 
     Parameters:
 
@@ -783,14 +787,14 @@ def iaip(op, ac=None, rc=None, r=None, rr=None, fl=None, fq=None, ot=None,
 def iqi(ql, qi, ns=None, rc=None, ot=None, coe=None,
         moc=DEFAULT_ITER_MAXOBJECTCOUNT,):
     """
+    *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
     WBEM operation: IterQueryInstances
 
     A generator function to retrieve instances from a WBEM Server.
     This method frees the user of choices between the multiple
     ExecQuery/OpenQueryInstances methods and reduces
     the enumeration to a pythonic iterator idiom.
-
-    **Experimental:** This method is experimental in this release.
 
     This method performs either the
     :meth:`~pywbem.WBEMConnection.OpenQueryInstances` and
