@@ -334,10 +334,7 @@ The following namespaces are used (as of v0.9.0):
 * `pywbem`: WBEM client API, WBEM indication API.
 
   It provides the traditional PyWBEM stuff, minus the MOF compiler and any
-  stuff that was moved to the attic (e.g. `cim_provider`):
-
-  Note that the `irecv` namespace was always experimental and will be go to
-  the attic.
+  stuff that was moved to the attic (e.g. `irecv`, `cim_provider`).
 
   For backwards compatibility, some content of this namespace is also available
   in the historical `pywbem.cim_obj` etc. namespaces.
