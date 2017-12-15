@@ -1,0 +1,45 @@
+# Additional pip requirements file for pywbem development dependencies.
+#
+# The order of packages is significant, because pip processes them in the order
+# of appearance.
+
+# Make sure that the package versions in minimum-constraints.txt are also
+# the minimum versions required in requirements.txt and dev-requirements.txt.
+
+
+# Direct dependencies:
+
+# Unit test (imports into testcases):
+unittest2>=1.1.0
+pytest>=3.0.7,<3.3.0; python_version == '2.6'
+pytest>=3.0.7; python_version > '2.6'
+testfixtures>=4.3.3
+mock>=2.0.0
+httpretty>=0.8.14
+lxml>=4.0.0
+requests>=2.12.4
+
+# Unit test (no imports, invoked via py.test script):
+pytest-cov>=2.4.0
+
+# Coverage reporting (no imports, invoked via coveralls script, only used on py27):
+python-coveralls>=2.8.0; python_version == '2.7'
+coverage>=4.0.3; python_version == '2.7'
+
+# Sphinx (no imports, invoked via sphinx-build script, issues on py26):
+Sphinx>=1.5.1; python_version >= '2.7'
+sphinx-git>=10.0.0; python_version >= '2.7'
+GitPython>=2.1.1; python_version >= '2.7'
+
+# PyLint (no imports, invoked via pylint script) - does not support py3:
+pylint>=1.6.4; python_version == '2.7'
+
+# Flake8 (no imports, invoked via flake8 script):
+flake8>=2.6.2,<3.0.0; python_version == '2.6'
+flake8>=3.2.1; python_version > '2.6'
+
+# Twine (no imports, invoked via twine script):
+twine>=1.8.1; python_version >= '2.7'
+
+# Jupyter Notebook (no imports, invoked via jupyter script, some deps do not support py26):
+jupyter>=1.0.0; python_version >= '2.7'

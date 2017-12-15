@@ -20,15 +20,19 @@
 
 """
 Version of the pywbem package.
+
+Note: The package version is not defined here, but determined dynamically by
+the `pbr` package from Git information.
 """
 
-#: Version of the pywbem package, as a :term:`string`.
+import pbr.version
+
+#: The full version of this package including any development levels, as a
+#: :term:`string`.
 #:
-#: Possible formats for the version string are:
+#: Possible formats for this version string are:
 #:
-#: * "M.N.U.dev0": During development of future M.N.U release (not released to
-#:   PyPI)
-#: * "M.N.U.rcX": Release candidate X of future M.N.U release (not released to
-#:   PyPI)
-#: * "M.N.U": The final M.N.U release
-__version__ = '0.12.0.dev0'
+#: * "M.N.P.devNNN": Development level NNN of a not yet released assumed M.N.P
+#:   version
+#: * "M.N.P": A released M.N.P version
+__version__ = pbr.version.VersionInfo('pywbem').release_string()

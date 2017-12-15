@@ -19,8 +19,59 @@
 # Author: Andreas Maier <maiera@de.ibm.com>
 #
 
-# This script installs the OS-level prerequisite package that users of
-# pywbem need.
+arg1="${1:-install}"
+arg2="${2:-}"
+myname=$(basename $0)
+
+if [[ "$arg1" == "--help" || "$arg1" == "-h" ]]; then
+  echo ""
+  echo "$myname: Install OS-level packages needed by pywbem."
+  echo ""
+  echo "Usage:"
+  echo "  $myname [PURPOSE]"
+  echo ""
+  echo "Where:"
+  echo "  PURPOSE     Purpose of the OS-level package installation, with values:"
+  echo "                install: Packages needed for installing pywbem (default)."
+  echo "                develop: Additional packages needed for developing pywbem."
+  echo ""
+  exit 2
+fi
+if [[ "$arg2" != "" ]]; then
+  echo "$myname: Error: Too many arguments; Invoke with --help for usage." >&2
+  exit 2
+fi
+
+purpose="$arg1"
+if [[ "$purpose" != "install" && "$purpose" != "develop" ]]; then
+  echo "$myname: Error: Invalid purpose: $purpose; Invoke with --help for usage." >&2
+  exit 2
+fi
+
+function install_redhat() {
+  installer="$1"
+  pkg="$2"
+  echo "$myname: Installing package: $pkg"
+  sudo $installer -y install $pkg
+}
+
+function install_debian() {
+  pkg="$1"
+  echo "$myname: Installing package: $pkg"
+  sudo apt-get --yes install $pkg
+}
+
+function install_suse() {
+  pkg="$1"
+  echo "$myname: Installing package: $pkg"
+  sudo zypper install -y $pkg
+}
+
+function install_osx() {
+  pkg="$1"
+  echo "$myname: Upgrading or installing package: $pkg"
+  brew upgrade $pkg || brew install $pkg
+}
 
 if [[ "$OS" == "Windows_NT" ]]; then
   distro_id="windows"
@@ -35,20 +86,20 @@ elif [[ "$(uname -s)" == "Linux" ]]; then
   if [[ $? != 0 ]]; then
     pyenv=$(python -c "import sys; out='venv' if hasattr(sys, 'real_prefix') or getattr(sys, 'base_prefix', None) == sys.prefix else 'system'; print(out)")
     if [[ $pyenv == "venv" ]]; then
-      echo "Installing the Python 'distro' package into the current virtual Python environment."
+      echo "$myname: Installing the Python 'distro' package into the current virtual Python environment."
       pip install distro
       if [[ $? != 0 ]]; then
-        echo "Error: Cannot install Python 'distro' package into current virtual Python environment."
+        echo "$myname: Error: Cannot install Python 'distro' package into current virtual Python environment." >&2
         exit  1
       fi
       distro_id=$(python -c "import distro; print(distro.id())")
     else
-      echo "Error: The Python 'distro' package is not installed, and you do not currently have a virtual Python environment active."
+      echo "$myname: Error: The Python 'distro' package is not installed, and you do not currently have a virtual Python environment active." >&2
       exit  1
     fi
   fi
   if [[ -z $distro_id ]]; then
-    echo "Error: Cannot determine Linux distro."
+    echo "$myname: Error: Cannot determine Linux distro." >&2
     exit  1
   fi
   case $distro_id in
@@ -67,18 +118,17 @@ elif [[ "$(uname -s)" == "Darwin" ]]; then
   distro_family=$distro_id
   platform="OS-X"
 else
-  echo "Error: Cannot determine operating system:"
-  echo "  uname -a: $(uname -a)"
-  echo "  uname -s: $(uname -s)"
-  echo "  OS var.: $OS"
-  exit  1
+  echo "$myname: Error: Cannot determine operating system. Diagnostic info:" >&2
+  echo ". uname -a: $(uname -a)" >&2
+  echo ". uname -s: $(uname -s)" >&2
+  echo ". OS env.var: $OS" >&2
+  exit 1
 fi
 
+py_m=$(python -c "import sys; print(sys.version_info[0])")
+py_mn=$(python -c "import sys; print('%s.%s' % (sys.version_info[0], sys.version_info[1]))")
 
-py_m=$(python -c "import sys; print(sys.version_info.major)")
-py_mn=$(python -c "import sys; print('%s.%s' % (sys.version_info.major, sys.version_info.minor))")
-
-echo "Installing OS-level prerequisite packages on platform ${platform}..."
+echo "$myname: Installing OS-level prerequisite packages for $purpose on platform ${platform}..."
 
 if [[ "$distro_family" == "redhat" ]]; then
 
@@ -87,57 +137,87 @@ if [[ "$distro_family" == "redhat" ]]; then
   else
     installer=yum
   fi
-
-  echo "Using installer: $installer"
+  echo "$myname: Using installer: $installer"
 
   sudo $installer makecache fast
 
-  sudo $installer -y install openssl-devel  # at least 1.0.1, for M2Crypto installation
-  sudo $installer -y install gcc-c++  # at least 4.4, for M2Crypto installation
-  sudo $installer -y install swig  # at least 2.0, for M2Crypto installation
-  if [[ "$py_m" == "2" ]]; then
-    sudo $installer -y install python-devel  # for M2Crypto installation
-  else
-    sudo $installer -y install python${py_mn}-devel  # for M2Crypto installation
+  if [[ "$purpose" == "install" ]]; then
+    if [[ "$py_m" == "2" ]]; then
+      # For M2Crypto:
+      install_redhat $installer openssl-devel
+      install_redhat $installer gcc-c++
+      install_redhat $installer swig
+      install_redhat $installer python-devel
+    fi
+  fi
+
+  if [[ "$purpose" == "develop" ]]; then
+    install_redhat $installer libxml2
   fi
 
 elif [[ "$distro_family" == "debian" ]]; then
 
   sudo apt-get --quiet update
 
-  sudo apt-get --yes install libssl-dev  # at least 1.0.1, for M2Crypto installation
-  sudo apt-get --yes install g++  # at least 4.4, for M2Crypto installation
-  sudo apt-get --yes install swig  # at least 2.0, for M2Crypto installation
-  if [[ "$py_m" == "2" ]]; then
-    sudo apt-get --yes install python-dev  # for M2Crypto installation
-  else
-    sudo apt-get --yes install python${py_m}-dev  # for M2Crypto installation
+  if [[ "$purpose" == "install" ]]; then
+    if [[ "$py_m" == "2" ]]; then
+      # For M2Crypto:
+      install_debian libssl-dev
+      install_debian g++
+      install_debian swig
+      install_debian python-dev
+    fi
+  fi
+
+  if [[ "$purpose" == "develop" ]]; then
+    install_debian libxml2-utils
   fi
 
 elif [[ "$distro_family" == "suse" ]]; then
 
-  # TODO: update zypper package list
+  sudo zypper refresh
 
-  sudo zypper -y install openssl-devel  # at least 1.0.1, for M2Crypto installation
-  sudo zypper -y install gcc-c++  # at least 4.4, for M2Crypto installation
-  sudo zypper -y install swig  # at least 2.0, for M2Crypto installation
-  if [[ "$py_m" == "2" ]]; then
-    sudo zypper -y install python-devel  # for M2Crypto installation
-  else
-    sudo zypper -y install python${py_mn}-devel  # for M2Crypto installation
+  if [[ "$purpose" == "install" ]]; then
+    if [[ "$py_m" == "2" ]]; then
+      # For M2Crypto:
+      install_suse openssl-devel
+      install_suse gcc-c++
+      install_suse swig
+      install_suse python-devel
+    fi
+  fi
+
+  if [[ "$purpose" == "develop" ]]; then
+    install_suse libxml2
+  fi
+
+elif [[ "$distro_family" == "osx" ]]; then
+
+  brew update
+
+  if [[ "$purpose" == "install" ]]; then
+    if [[ "$py_m" == "2" ]]; then
+      # For M2Crypto:
+      install_osx openssl
+      install_osx gcc
+      install_osx swig
+      # Python devel seems to be there already. Not clear about package name.
+    fi
+  fi
+
+  if [[ "$purpose" == "develop" ]]; then
+    install_osx libxml2
   fi
 
 else
 
-  echo "Error: Installation of OS-level packages not supported on platform ${platform}."
-  echo "The equivalent packages for the redhat family of Linux distros are:"
-  echo "  * openssl-devel (at least 1.0.1)"
-  echo "  * gcc-c++ (at least 4.4)"
-  echo "  * swig (at least 2.0)"
-  if [[ "$py_m" == "2" ]]; then
-    echo "  * python-devel"
-  else
-    echo "  * python${py_mn}-devel"
-  fi
-
+  echo "$myname: Warning: Installation of OS-level packages not supported on platform ${platform}." >&2
+  echo ". The equivalent packages for the Linux RedHat family are:" >&2
+  echo ". For installing pywbem:" >&2
+  echo ".   * openssl-devel (at least 1.0.1, only on Python 2)" >&2
+  echo ".   * gcc-c++ (at least 4.4, only on Python 2)" >&2
+  echo ".   * swig (at least 2.0, only on Python 2)" >&2
+  echo ".   * python-devel (only on Python 2" >&2
+  echo ". In addition, for developing pywbem:" >&2
+  echo ".   * libxml2 (on Python 2 and 3)" >&2
 fi

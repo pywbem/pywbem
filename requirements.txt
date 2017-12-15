@@ -1,0 +1,17 @@
+# Pip requirements file for pywbem runtime dependencies.
+#
+# The order of packages is significant, because pip processes them in the order
+# of appearance.
+
+# Make sure that the package versions in minimum-constraints.txt are also
+# the minimum versions required in requirements.txt and dev-requirements.txt.
+
+
+# Direct dependencies (except pip, setuptools, wheel):
+
+pbr>=1.10.0
+six>=1.10.0
+ply>=3.10
+PyYAML>=3.12  # yaml package
+M2Crypto>=0.24.0,!=0.27.0; (python_version == '2.6' or python_version == '2.7') and sys_platform != 'win32'
+# M2CryptoWin32/64 are specified in win32/64-requirements.txt
