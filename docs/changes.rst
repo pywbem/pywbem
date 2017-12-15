@@ -117,6 +117,12 @@ Deprecations
 Enhancements
 ^^^^^^^^^^^^
 
+* Finalized the time statistics support that was experimental so far. This
+  affects classes `OperationStatistic`, `Statistics`, the init argument
+  `enable_stats` of class `WBEMConnection`, and the properties
+  `stats_enabled`, `statistics`, `last_operation_time`, and
+  `last_server_response_time` of class `WBEMConnection`.
+
 * For `CIMInstanceName`, the values of keybindings can now be specified as
   `CIMProperty` objects from which their value will be used (this is in
   addition to specfying the values of keybindings as CIM data types).

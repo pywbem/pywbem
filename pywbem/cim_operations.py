@@ -832,6 +832,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             operations.
 
           enable_stats (:class:`py:bool`):
+            *New in pywbem 0.11 as experimental and finalized in 0.12.*
+
             Initial enablement status for maintaining statistics about the
             WBEM operations executed via this connection. See the
             :ref:`Statistics` section for details.
@@ -839,8 +841,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Statistics may also be enabled or disabled with the WBEMConnection
             property `stats_enabled`. This may be used to view the current
             status or change the status (ex. `conn.stats_enabled(False)`)
-
-            **Experimental:** This argument is experimental for this release.
         """
 
         # Connection attributes
@@ -993,12 +993,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def stats_enabled(self):
         """
+        *New in pywbem 0.11 as experimental and finalized in 0.12.*
+
         :class:`py:bool`: Statistics enablement status for this connection.
 
         This is a writeable property; setting this property will change the
         statistics enablement status accordingly.
-
-        **Experimental:** This property is experimental for this release.
         """
         return self.statistics.enabled
 
@@ -1012,6 +1012,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def statistics(self):
         """
+        *New in pywbem 0.11 as experimental and finalized in 0.12.*
+
         :class:`~pywbem.Statistics`: Statistics for this connection.
 
         Statistics are disabled by default and can be enabled via the
@@ -1019,28 +1021,28 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         later via modifying the :attr:`~pywbem.WBEMConnection.stats_enabled`
         property on this connection object. See the :ref:`Statistics` section
         for more details.
-
-        **Experimental:** This property is experimental for this release.
         """
         return self._statistics
 
     @property
     def last_operation_time(self):
         """
+        *New in pywbem 0.11 as experimental and finalized in 0.12.*
+
         :class:`py:float`: Elapsed time of the last operation that was executed
         via this connection in seconds or `None`.
 
         This time is available only subsequent to the execution of an operation
         on this connection, and if the statistics are enabled on this
         connection. Otherwise, the value is `None`.
-
-        **Experimental:** This property is experimental for this release.
         """
         return self._last_operation_time
 
     @property
     def last_server_response_time(self):
         """
+        *New in pywbem 0.11 as experimental and finalized in 0.12.*
+
         :class:`py:float`: Server measured response time of the last
         request. This is optionally returned from the server in HTTP
         header
@@ -1048,8 +1050,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This time is available only subsequent to the execution of an operation
         on this connection if the WBEMServerResponseTime is received from the
         WBEM server. Otherwise, the value is `None`.
-
-        **Experimental:** This property is experimental for this release.
         """
         return self._last_server_response_time
 
