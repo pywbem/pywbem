@@ -15,6 +15,8 @@
 #
 
 """
+*New in pywbem 0.9 as experimental and finalized in 0.10.*
+
 The :class:`~pywbem.WBEMSubscriptionManager` class is a subscription manager
 that provides for creating and removing indication subscriptions (including
 indication filters and listener destinations) for multiple WBEM servers and
@@ -160,6 +162,8 @@ __all__ = ['WBEMSubscriptionManager']
 
 class WBEMSubscriptionManager(object):
     """
+    *New in pywbem 0.9 as experimental and finalized in 0.10.*
+
     A class for managing subscriptions for CIM indications in a WBEM server.
 
     The class may be used as a Python context manager, in order to get
@@ -226,6 +230,8 @@ class WBEMSubscriptionManager(object):
 
     def __enter__(self):
         """
+        *New in pywbem 0.10.*
+
         Enter method when the class is used as a context manager.
         Returns the subscription manager object
         """
@@ -233,6 +239,8 @@ class WBEMSubscriptionManager(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         """
+        *New in pywbem 0.10.*
+
         Exit method when the class is used as a context manager.
 
         It cleans up by calling
@@ -728,6 +736,8 @@ class WBEMSubscriptionManager(object):
             multiple filters.
 
           name (:term:`string`)
+            *New in pywbem 0.10.*
+
             The filter name to be used directly for the `Name` property of the
             filter instance, or `None` if the ``filter_id`` parameter is
             specified.

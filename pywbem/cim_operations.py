@@ -794,6 +794,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             and should be avoided!
 
           timeout (:term:`number`):
+            *New in pywbem 0.8.*
+
             Timeout in seconds, for requests sent to the server. If the server
             did not respond within the timeout duration, the socket for the
             connection will be closed, causing a :exc:`~pywbem.TimeoutError` to
@@ -943,6 +945,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def host(self):
         """
+        *New in pywbem 0.11.*
+
         :term:`unicode string`: The ``{host}[:{port}]``component of the
         WBEM server's URL, as specified in the ``url`` attribute.
         """
@@ -4048,6 +4052,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # pylint: disable=invalid-name
 
         """
+        *New in pywbem 0.9.*
+
         Open an enumeration session to enumerate the instance paths of
         instances of a class (including instances of its subclasses) in
         a namespace.
@@ -4255,7 +4261,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
         """
-        Open an enumeration session to get instances of a class
+        *New in pywbem 0.9.*
+
         (including instances of its subclasses).
 
         This method performs the OpenEnumerateInstances operation
@@ -4535,6 +4542,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
         """
+        *New in pywbem 0.9.*
+
         Open an enumeration session to retrieve the instance paths of
         the association instances that reference a source instance.
 
@@ -4754,6 +4763,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # pylint: disable=invalid-name
         # pylint: disable=invalid-name,line-too-long
         """
+        *New in pywbem 0.9.*
+
         Open an enumeration session to retrieve the association instances
         that reference a source instance.
 
@@ -5009,6 +5020,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                     MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
         """
+        *New in pywbem 0.9.*
+
         Open an enumeration session to retrieve the instance paths of the
         instances associated to a source instance.
 
@@ -5246,6 +5259,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # pylint: disable=invalid-name
         # pylint: disable=invalid-name,line-too-long
         """
+        *New in pywbem 0.9.*
+
         Open an enumeration session to retrieve the instances associated
         to a source instance.
 
@@ -5517,6 +5532,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                            MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
         """
+        *New in pywbem 0.9.*
+
         Open an enumeration session to execute a query in a namespace.
 
         This method performs the OpenQueryInstances operation
@@ -5727,6 +5744,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # pylint: disable=invalid-name
 
         """
+        *New in pywbem 0.9.*
+
         Retrieve the next set of instances with path from an open enumeraton
         session defined by the `enumeration_context` parameter.  The retrieved
         instances include their instance paths.
@@ -5870,6 +5889,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # pylint: disable=invalid-name
 
         """
+        *New in pywbem 0.9.*
+
         Retrieve the next set of instance paths from an open enumeraton
         session defined by the `enumeration_context` parameter.
 
@@ -6008,6 +6029,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def PullInstances(self, context, MaxObjectCount, **extra):
         # pylint: disable=invalid-name
         """
+        *New in pywbem 0.9.*
+
         Retrieve the next set of instances from an open enumeraton
         session defined by the `enumeration_context` parameter.
 
@@ -6142,6 +6165,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def CloseEnumeration(self, context, **extra):
         # pylint: disable=invalid-name
         """
+        *New in pywbem 0.9.*
+
         The CloseEnumeration closes an open enumeration session, performing
         an early termination of an incomplete enumeration session.
 
@@ -6579,6 +6604,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             of this object will be ignored.
 
           namespace (:term:`string`):
+            *New in pywbem 0.9.*
+
             Name of the CIM namespace to be used (case independent).
 
         Keyword Arguments:

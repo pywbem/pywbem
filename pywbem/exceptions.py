@@ -200,7 +200,10 @@ class CIMError(Error):
 
     @property
     def status_code(self):
-        """Numeric CIM status code.
+        """
+        *New in pywbem 0.9.*
+
+        Numeric CIM status code.
 
         See :ref:`CIM status codes` for constants defining the numeric CIM
         status code values."""
@@ -208,7 +211,10 @@ class CIMError(Error):
 
     @property
     def status_code_name(self):
-        """Symbolic name of the CIM status code.
+        """
+        *New in pywbem 0.9.*
+
+        Symbolic name of the CIM status code.
 
         If the CIM status code is invalid, the string
         ``"Invalid status code <code>"`` is returned."""
@@ -216,7 +222,10 @@ class CIMError(Error):
 
     @property
     def status_description(self):
-        """CIM status description text returned by the server, representing a
+        """
+        *New in pywbem 0.9.*
+
+        CIM status description text returned by the server, representing a
         human readable message describing the error.
 
         If the server did not return a description, a short default text for

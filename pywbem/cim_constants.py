@@ -131,36 +131,45 @@ CIM_ERR_METHOD_NOT_FOUND = 17
 # 18 and 19 existed once and had been removed again.
 
 #: The specified namespace is not empty.
+#: *New in pywbem 0.9.*
 CIM_ERR_NAMESPACE_NOT_EMPTY = 20
 
 #: The enumeration identified by the specified context cannot be found, is in
 #: a closed state, does not exist, or is otherwise invalid.
+#: *New in pywbem 0.9.*
 CIM_ERR_INVALID_ENUMERATION_CONTEXT = 21
 
 #: The specified operation timeout is not supported by the WBEM server.
+#: *New in pywbem 0.9.*
 CIM_ERR_INVALID_OPERATION_TIMEOUT = 22
 
 #: The pull operation has been abandoned due to execution of a concurrent
 #: CloseEnumeration operation on the same enumeration.
+#: *New in pywbem 0.9.*
 CIM_ERR_PULL_HAS_BEEN_ABANDONED = 23
 
 #: The attempt to abandon a concurrent pull operation on the same enumeration
 #: failed. The concurrent pull operation proceeds normally.
+#: *New in pywbem 0.9.*
 CIM_ERR_PULL_CANNOT_BE_ABANDONED = 24
 
 #: Using a a filter query in pulled enumerations is not supported by the WBEM
 #: server.
+#: *New in pywbem 0.9.*
 #pylint: disable=invalid-name
 CIM_ERR_FILTERED_ENUMERATION_NOT_SUPPORTED = 25
 
 #: The WBEM server does not support continuation on error.
+#: *New in pywbem 0.9.*
 #pylint: disable=invalid-name
 CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED = 26
 
 #: The WBEM server has failed the operation based upon exceeding server limits.
+#: *New in pywbem 0.9.*
 CIM_ERR_SERVER_LIMITS_EXCEEDED = 27
 
 #: The WBEM server is shutting down and cannot process the operation.
+#: *New in pywbem 0.9.*
 CIM_ERR_SERVER_IS_SHUTTING_DOWN = 28
 
 #pylint: disable=line-too-long

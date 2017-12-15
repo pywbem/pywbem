@@ -321,6 +321,8 @@ class NocaseDict(object):
 
     def __iter__(self):
         """
+        *New in pywbem 0.8.*
+
         Invoked when iterating through the dictionary using `for key in d`.
 
         The returned keys have their original case.
@@ -1203,6 +1205,8 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def get(self, key, default=None):
         """
+        *New in pywbem 0.8.*
+
         Return the value of the keybinding with name `key`, or a default
         value if a keybinding with that name does not exist.
         """
@@ -1325,6 +1329,8 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
+        *New in pywbem 0.9.*
+
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMInstanceName` object, as a :term:`unicode string`.
 
@@ -1351,6 +1357,8 @@ class CIMInstanceName(_CIMComparisonMixin):
     @staticmethod
     def from_wbem_uri(wbem_uri):
         """
+        *New in pywbem 0.12.*
+
         Return a new :class:`~pywbem.CIMInstanceName` object from the specified
         WBEM URI string.
 
@@ -1847,6 +1855,8 @@ class CIMInstance(_CIMComparisonMixin):
 
     def get(self, key, default=None):
         """
+        *New in pywbem 0.8.*
+
         Return the value of the property with name `key`, or a default value if
         a property with that name does not exist.
         """
@@ -1935,6 +1945,8 @@ class CIMInstance(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
+        *New in pywbem 0.9.*
+
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMInstance` object, as a :term:`unicode string`.
 
@@ -2193,6 +2205,8 @@ class CIMClassName(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
+        *New in pywbem 0.9.*
+
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMClassName` object, as a :term:`unicode string`.
 
@@ -2219,6 +2233,8 @@ class CIMClassName(_CIMComparisonMixin):
     @staticmethod
     def from_wbem_uri(wbem_uri):
         """
+        *New in pywbem 0.12.*
+
         Return a new :class:`~pywbem.CIMClassName` object from the specified
         WBEM URI string.
 
@@ -2350,6 +2366,8 @@ class CIMClass(_CIMComparisonMixin):
             `None` is interpreted as an empty set of qualifiers.
 
           path (:class:`~pywbem.CIMClassName`):
+            *New in pywbem 0.11.*
+
             Class path for the class.
 
             The provided object will be stored in the ``CIMClass`` object
@@ -2553,6 +2571,8 @@ class CIMClass(_CIMComparisonMixin):
     @property
     def path(self):
         """
+        *New in pywbem 0.11.*
+
         :class:`~pywbem.CIMClassName`: Class path of the CIM class.
 
         `None` means that the class path is unspecified.
@@ -2663,6 +2683,8 @@ class CIMClass(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
+        *New in pywbem 0.9.*
+
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMClass` object, as a :term:`unicode string`.
 
@@ -3313,6 +3335,8 @@ class CIMProperty(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
+        *New in pywbem 0.9.*
+
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMProperty` object, as a :term:`unicode string`.
 
@@ -3388,6 +3412,8 @@ class CIMProperty(_CIMComparisonMixin):
 
     def tomof(self, is_instance=True, indent=0):
         """
+        *New in pywbem 0.9.*
+
         Return a string representing the MOF definition of a single property.
 
         Parameters:
@@ -3814,6 +3840,8 @@ class CIMMethod(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
+        *New in pywbem 0.9.*
+
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMMethod` object, as a :term:`unicode string`.
 
@@ -4256,6 +4284,8 @@ class CIMParameter(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
+        *New in pywbem 0.9.*
+
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMParameter` object, as a :term:`unicode string`.
 
@@ -4733,6 +4763,8 @@ class CIMQualifier(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
+        *New in pywbem 0.9.*
+
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMQualifier` object, as a :term:`unicode string`.
 
@@ -5290,6 +5322,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
+        *New in pywbem 0.9.*
+
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMQualifierDeclaration` object, as a
         :term:`unicode string`.
@@ -5404,6 +5438,8 @@ def tocimxml(value):
 
 def tocimxmlstr(value, indent=None):
     """
+    *New in pywbem 0.9.*
+
     Return the CIM-XML representation of the CIM object or CIM data type,
     as a :term:`unicode string`.
 
@@ -5648,6 +5684,8 @@ def tocimobj(type_, value):
 def cimvalue(value, type):
     # pylint: disable=redefined-builtin
     """
+    *New in pywbem 0.12.*
+
     Return a :term:`CIM data type` representing the specified value in the
     specified CIM type.
 

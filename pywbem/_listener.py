@@ -15,6 +15,8 @@
 #
 
 """
+*New in pywbem 0.9 as experimental and finalized in 0.10.*
+
 The :class:`~pywbem.WBEMListener` class provides a thread-based WBEM listener
 service that can receive CIM indications from multiple WBEM servers and that
 calls registered callback functions to deliver the received indications.
@@ -575,6 +577,8 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 # pylint: disable=too-many-instance-attributes
 class WBEMListener(object):
     """
+    *New in pywbem 0.9 as experimental and finalized in 0.10.*
+
     A WBEM listener.
 
     The listener supports starting and stopping threads that listen for
@@ -887,6 +891,8 @@ class WBEMListener(object):
 def callback_interface(indication, host):
     # pylint: disable=unused-argument
     """
+    *New in pywbem 0.9 as experimental and finalized in 0.10.*
+
     Interface of a callback function that is provided by the user of the API
     and that will be called by the listener for each received CIM indication.
 

@@ -15,6 +15,8 @@
 #
 
 """
+**Experimental:** *New in pywbem 0.9 as experimental.*
+
 Operation recorder interface and implementations.
 """
 
@@ -109,6 +111,8 @@ yaml.SafeDumper.represent_undefined = _represent_undefined
 
 class OpArgs(OpArgsTuple):
     """
+    **Experimental:** *New in pywbem 0.9 as experimental.*
+
     A named tuple representing the name and input arguments of the invocation
     of a :class:`~pywbem.WBEMConnection` method, with the following named fields
     and attributes:
@@ -132,6 +136,8 @@ OpResultTuple = namedtuple("OpResultTuple", ["ret", "exc"])
 
 class OpResult(OpResultTuple):
     """
+    **Experimental:** *New in pywbem 0.9 as experimental.*
+
     A named tuple representing the result of the invocation of a
     :class:`~pywbem.WBEMConnection` method, with the following named fields
     and attributes:
@@ -162,6 +168,8 @@ HttpRequestTuple = namedtuple("HttpRequestTuple",
 
 class HttpRequest(HttpRequestTuple):
     """
+    **Experimental:** *New in pywbem 0.9 as experimental.*
+
     A named tuple representing the HTTP request sent by the WBEM client, with
     the following named fields and attributes:
 
@@ -204,6 +212,8 @@ HttpResponseTuple = namedtuple("HttpResponseTuple",
 
 class HttpResponse(HttpResponseTuple):
     """
+    **Experimental:** *New in pywbem 0.9 as experimental.*
+
     A named tuple representing the HTTP response received by the WBEM client,
     with the following named fields and attributes:
 
@@ -238,6 +248,8 @@ class HttpResponse(HttpResponseTuple):
 class BaseOperationRecorder(object):
     # pylint: disable=too-many-instance-attributes
     """
+    **Experimental:** *New in pywbem 0.9 as experimental.*
+
     Abstract base class defining the interface to an operation recorder,
     that records the WBEM operations executed in a connection to a WBEM
     server.
@@ -264,25 +276,39 @@ class BaseOperationRecorder(object):
         self.reset()
 
     def enable(self):
-        """Enable the recorder."""
+        """
+        *New in pywbem 0.10.*
+
+        Enable the recorder.
+        """
         self._enabled = True
 
     def disable(self):
-        """Disable the recorder."""
+        """
+        *New in pywbem 0.10.*
+
+        Disable the recorder.
+        """
         self._enabled = False
 
     @property
     def enabled(self):
-        """Indicate whether the recorder is enabled."""
+        """
+        *New in pywbem 0.10.*
+
+        Indicate whether the recorder is enabled.
+        """
         return self._enabled
 
     @staticmethod
     def open_file(filename, file_mode='w'):
         """
-        A static convience function that performs the open of the recorder file
-        correctly for different versions of python.  This covers the
+        *New in pywbem 0.10.*
+
+        A static convenience function that performs the open of the recorder
+        file correctly for different versions of Python.  This covers the
         issue where the file should be opened in text mode but that is
-        done differently in python 2 and python 3
+        done differently in Python 2 and Python 3.
 
         Parameters:
 
@@ -443,6 +469,8 @@ class BaseOperationRecorder(object):
 
 class LogOperationRecorder(BaseOperationRecorder):
     """
+    **Experimental:** *New in pywbem 0.9 as experimental.*
+
     An Operation Recorder that logs the information to a set of named logs.
     This recorder uses two named logs:
 
@@ -631,6 +659,8 @@ class LogOperationRecorder(BaseOperationRecorder):
 
 class TestClientRecorder(BaseOperationRecorder):
     """
+    **Experimental:** *New in pywbem 0.9 as experimental.*
+
     An operation recorder that generates test cases for each recorded
     operation. The test cases are in the YAML format suitable for the
     `test_client` unit test module of the pywbem project.
