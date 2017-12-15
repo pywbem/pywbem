@@ -15,6 +15,8 @@
 #
 
 """
+*New in pywbem 0.9 as experimental and finalized in 0.10.*
+
 The WBEM server API encapsulates certain functionality of a WBEM server for use
 by a WBEM client application, such as determining the Interop namespace of the
 server, or the management profiles advertised by the server.
@@ -31,11 +33,6 @@ This chapter has the following sections:
   corresponding values of the `Values` and `ValueMap` qualifiers of a CIM
   element and supports the translation of the actual value (often an integer)
   to the corresponding value of the `Values` qualifier.
-
-.. note::
-
-   The WBEM server API has been introduced in v0.9.0 as experimental and
-   has been declared final in 0.10.0.
 
 .. _`Server Example`:
 
@@ -117,6 +114,8 @@ __all__ = ['WBEMServer', 'ValueMapping']
 
 class WBEMServer(object):
     """
+    *New in pywbem 0.9 as experimental and finalized in 0.10.*
+
     A representation of a WBEM server that serves as a general access point to
     a client.
 
@@ -730,6 +729,8 @@ class WBEMServer(object):
 
 class ValueMapping(object):
     """
+    *New in pywbem 0.9 as experimental and finalized in 0.10.*
+
     A utility class that translates the values of a corresponding integer-typed
     CIM element (property, method, parameter) that is qualified with the
     ValueMap and Values qualifiers, from the element value space into into its
