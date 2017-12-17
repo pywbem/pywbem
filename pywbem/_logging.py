@@ -73,9 +73,10 @@ from __future__ import absolute_import
 import logging
 import six
 
-__all__ = ['PywbemLoggers', 'LOG_DESTINATIONS', 'LOG_COMPONENTS',
-           'LOG_OPS_CALLS_NAME', 'LOG_DETAIL_LEVELS', 'DEFAULT_LOG_DESTINATION',
-           'MAX_LOG_ENTRY_SIZE']
+__all__ = ['PywbemLoggers',
+           'LOG_OPS_CALLS_NAME', 'LOG_HTTP_NAME', 'LOG_COMPONENTS',
+           'LOG_DESTINATIONS', 'LOG_DETAIL_LEVELS', 'DEFAULT_LOG_DETAIL_LEVEL',
+           'MAX_LOG_ENTRY_SIZE', 'DEFAULT_LOG_DESTINATION']
 
 #: Name of logger for logging user-issued calls to pywbem WBEMConnection
 #: methods functions that drive WBEM operations.
