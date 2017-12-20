@@ -58,10 +58,11 @@ except ImportError as arg:
 from pywbem import WBEMConnection, LogOperationRecorder
 from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
-from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT, DEFAULT_LOG_DESTINATION
+from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT
 
 from pywbem._logging import PywbemLoggers, LOG_DESTINATIONS, \
-    LOG_DETAIL_LEVELS, LOG_COMPONENTS, DEFAULT_LOG_DETAIL_LEVEL
+    LOG_DETAIL_LEVELS, LOG_COMPONENTS, DEFAULT_LOG_DETAIL_LEVEL, \
+    DEFAULT_LOG_DESTINATION
 from pywbem import __version__
 
 # Connection global variable. Set by remote_connection and use
