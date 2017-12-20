@@ -25,30 +25,220 @@ https://github.com/pywbem/pywbem
 Setting up the development environment
 --------------------------------------
 
-The development environment is pretty easy to set up.
+It is recommended to use Linux as the development environment for pywbem.
+OS-X should work as well, but Windows requires a number of manual setup steps.
 
-Besides having a supported operating system with a supported Python version
-(see :ref:`Supported environments`), it is recommended that you set up a
-`virtual Python environment`_.
+1. It is recommended that you set up a `virtual Python environment`_.
+
+2. With a virtual Python environment active, clone the Git repo of this
+   project and switch to its working directory:
+
+   .. code-block:: bash
+
+        $ git clone git@github.com:pywbem/pywbem.git
+        $ cd pywbem
+
+3. Install pywbem and its prerequisites for installing and running it
+   as described in :ref:`Installation`.
+
+4. On Windows, perform the setup steps described in
+   :ref:`Development environment on Windows`.
+
+5. Install the prerequsites for pywbem development (OS-level and Python):
+
+   .. code-block:: bash
+
+        $ make develop
+
+6. This project uses Make to do things in the currently active Python
+   environment. The command:
+
+   .. code-block:: bash
+
+        $ make
+
+   displays a list of valid Make targets and a short description of what each
+   target does.
 
 .. _virtual Python environment: http://docs.python-guide.org/en/latest/dev/virtualenvs/
 
-Then, with a virtual Python environment active, clone the Git repo of this
-project and prepare the development environment with ``make develop``:
 
-::
+.. _`Development environment on Windows`:
 
-    $ git clone git@github.com:pywbem/pywbem.git
-    $ cd pywbem
-    $ make develop
+Development environment on Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This will install all prerequisites the package needs to run, as well as all
-prerequisites that you need for development.
+The development environment needs the ``xmllint`` utility and the ``lxml``
+Python package. To get ``xmllint`` and to prepare the environment for
+installation of the ``lxml`` package, some packages need to be installed.
 
-Generally, this project uses Make to do things in the currently active
-Python environment. The command ``make help`` (or just ``make``) displays a
-list of valid Make targets and a short description of what each target does.
+Some of the steps described below depend on the bit size of the active Python
+environment. You can detect that bit size as follows:
 
+.. code-block:: text
+
+    > python -c "import ctypes; print(ctypes.sizeof(ctypes.c_void_p)*8)"
+    64
+
+Perform these steps (in the plain Windows Command Prompt):
+
+* Set an environment variable to the absolute (!) path of an installation
+  directory for these packages:
+
+  .. code-block:: text
+
+      > set pkgdir=C:\....\packages
+
+* Install the libxml2 package:
+
+  For a 32-bit Python environment:
+
+  .. code-block:: text
+
+      > set pkg=libxml2-2.7.8.win32
+      > wget ftp://ftp.zlatkovic.com/libxml/%pkg%.zip
+      > unzip -d %pkgdir% %pkg%.zip
+      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
+      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
+      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
+
+  For a 64-bit Python environment:
+
+  .. code-block:: text
+
+      > set pkg=libxml2-2.7.8.win32
+      > wget ftp://ftp.zlatkovic.com/libxml/64bit/%pkg%.7z
+      > 7z x -o%pkgdir%\%pkg% %pkg%.7z
+      > set INCLUDE=%pkgdir%\%pkg%\include\libxml2;%INCLUDE%
+      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
+      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
+
+* Install the libxslt package:
+
+  For a 32-bit Python environment:
+
+  .. code-block:: text
+
+      > set pkg=libxslt-1.1.26.win32
+      > wget ftp://ftp.zlatkovic.com/libxml/%pkg%.zip
+      > unzip -d %pkgdir% %pkg%.zip
+      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
+      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
+      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
+
+  For a 64-bit Python environment:
+
+  .. code-block:: text
+
+      > set pkg=libxslt-1.1.28-win32-x86_64
+      > wget ftp://ftp.zlatkovic.com/libxml/64bit/%pkg%.7z
+      > 7z x -o%pkgdir%\%pkg% %pkg%.7z
+      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
+      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
+      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
+
+* Install the zlib package:
+
+  For a 32-bit Python environment:
+
+  .. code-block:: text
+
+      > set pkg=zlib-1.2.5.win32
+      > wget ftp://ftp.zlatkovic.com/libxml/%pkg%.zip
+      > unzip -d %pkgdir% %pkg%.zip
+      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
+      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
+      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
+
+  For a 64-bit Python environment:
+
+  .. code-block:: text
+
+      > set pkg=zlib-1.2.8-win32-x86_64
+      > wget ftp://ftp.zlatkovic.com/libxml/64bit/%pkg%.7z
+      > 7z x -o%pkgdir%\%pkg% %pkg%.7z
+      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
+      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
+      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
+
+* Install the iconv package:
+
+  For a 32-bit Python environment:
+
+  .. code-block:: text
+
+      > set pkg=iconv-1.9.2.win32
+      > wget ftp://ftp.zlatkovic.com/libxml/%pkg%.zip
+      > unzip -d %pkgdir% %pkg%.zip
+      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
+      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
+      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
+
+  For a 64-bit Python environment:
+
+  .. code-block:: text
+
+      > set pkg=iconv-1.14-win32-x86_64
+      > wget ftp://ftp.zlatkovic.com/libxml/64bit/%pkg%.7z
+      > 7z x -o%pkg% %pkg%.7z
+      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
+      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
+      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
+
+
+.. _`Prerequisite operating system packages for development`:
+
+Prerequisite operating system packages for development
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the prerequisite operating system packages along with
+their version requirements for development of pywbem, for the supported
+operating systems and Linux distributions.
+
+The prerequisite operating system packages for installing and running pywbem
+are also needed for development, and can be found in section
+:ref:`Prerequisite operating system packages for install`.
+
++--------------------------+--------------------+----------------------+-------+
+| Op.system / Distribution | Package name       | Version requirements | Notes |
++==========================+====================+======================+=======+
+| Linux RedHat family      | libxml2            | >=2.7.0, !=2.7.4,    |       |
+| (RHEL, CentOS, Fedora)   |                    | !=2.7.5, !=2.7.6     |       |
+|                          +--------------------+----------------------+-------+
+|                          | libxslt            | >=1.1.23, !=1.1.25   |       |
++--------------------------+--------------------+----------------------+-------+
+| Linux Debian family      | libxml2-utils      | >=2.7.0, !=2.7.4,    |       |
+| (Ubuntu, Debian,         |                    | !=2.7.5, !=2.7.6     |       |
+| LinuxMint)               +--------------------+----------------------+-------+
+|                          | libxml2-dev        | >=2.7.0, !=2.7.4,    |       |
+|                          |                    | !=2.7.5, !=2.7.6     |       |
+|                          +--------------------+----------------------+-------+
+|                          | libxslt-dev        | >=1.1.23, !=1.1.25   |       |
++--------------------------+--------------------+----------------------+-------+
+| Linux SUSE family        | libxml2            | >=2.7.0, !=2.7.4,    |       |
+| (SLES, openSUSE)         |                    | !=2.7.5, !=2.7.6     |       |
+|                          +--------------------+----------------------+-------+
+|                          | libxslt            | >=1.1.23, !=1.1.25   |       |
++--------------------------+--------------------+----------------------+-------+
+| OS-X                     | libxml2            | >=2.7.0, !=2.7.4,    |       |
+|                          |                    | !=2.7.5, !=2.7.6     |       |
+|                          +--------------------+----------------------+-------+
+|                          | libxslt            | >=1.1.23, !=1.1.25   |       |
++--------------------------+--------------------+----------------------+-------+
+| Windows                  | libxml2            | >=2.7.0, !=2.7.4,    |       |
+|                          |                    | !=2.7.5, !=2.7.6     |       |
+|                          +--------------------+----------------------+-------+
+|                          | libxslt            | >=1.1.23, !=1.1.25   |       |
+|                          +--------------------+----------------------+-------+
+|                          | iconv              | >=1.9.2              | win   |
+|                          +--------------------+----------------------+-------+
+|                          | zlib               | >=1.2.8              | win   |
++--------------------------+--------------------+----------------------+-------+
+
+Notes:
+
+* win: Only needed for Windows. On Linux and OS-X, the functionality provided
+  by these packages is part of glibc.
 
 .. _`Building the documentation`:
 
