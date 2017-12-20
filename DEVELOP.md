@@ -1,5 +1,5 @@
-Development of PyWBEM Client
-============================
+Releasing PyWBEM
+================
 
 Git workflow
 ------------
@@ -313,37 +313,3 @@ It covers all variants of new versions:
 
 10. On GitHub, list all open issues that still have a milestone of less than
     `M.N.U` set, and update them as needed to target milestone `M.N.U`.
-
-Use of Python namespaces
-========================
-
-This section describes how Python namespaces are used by the pywbem package.
-
-There is obviously a history of namespace usage in pywbem that is different,
-and that we try to still support for compatibility. This section describes both
-the future use and the historical use.
-
-The pywbem package corresponds 1:1 to:
-
-* GitHub repository `pywbem/pywbem`
-* PyPI package `pywbem`
-* Python namespace `pywbem` and its sub-namespaces.
-
-The following namespaces are used (as of v0.9.0):
-
-* `pywbem`: WBEM client API, WBEM indication API.
-
-  It provides the traditional PyWBEM stuff, minus the MOF compiler and any
-  stuff that was moved to the attic (e.g. `cim_provider`):
-
-  Note that the `irecv` namespace was always experimental and will be go to
-  the attic.
-
-  For backwards compatibility, some content of this namespace is also available
-  in the historical `pywbem.cim_obj` etc. namespaces.
-
-* `pywbem.mof_compiler`: MOF compiler API.
-
-   It provides:
-
-   - `MOFCompiler` class etc.
