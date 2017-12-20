@@ -15,6 +15,8 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 """
+**Experimental:** *New in pywbem 0.11 as experimental.*
+
 The pywbem package implements selected logging based on the Python
 :mod:`py:logging` facility.
 
@@ -110,9 +112,10 @@ DEFAULT_LOG_DESTINATION = 'none'
 
 class MetaPywbemLoggers(type):
     """
+    **Experimental:** *New in pywbem 0.11 as experimental.*
+
     This metaclass allows the definition of __str__ and __repr__ at the
     class level in the subclass.
-    **Experimental:** The logging support is experimental for this release.
     """
     loggers = {}
 
@@ -126,6 +129,8 @@ class MetaPywbemLoggers(type):
 # pylint: disable=no-init
 class PywbemLoggers(six.with_metaclass(MetaPywbemLoggers)):
     """
+    **Experimental:** *New in pywbem 0.11 as experimental.*
+
     Container for pywbem logger information when loggers are created. This
     class is a singleton, there is only one set of data for a pywbem
     instantiation.  Its goal is to defined named loggers from data input and
@@ -144,8 +149,6 @@ class PywbemLoggers(six.with_metaclass(MetaPywbemLoggers)):
 
       :meth:`~pywbem.PywbemLoggers.create_logger` - Creates a single logger
       from the separate pywbem logging parameters supplied with the method.
-
-    **Experimental:** The logging support is experimental for this release.
     """
 
     @classmethod
@@ -354,6 +357,8 @@ class PywbemLoggers(six.with_metaclass(MetaPywbemLoggers)):
 
 def get_logger(logger_name):
     """
+    **Experimental:** *New in pywbem 0.11 as experimental.*
+
     Return a :class:`~py:logging.Logger` object with the specified name.
 
     A logger is defined in :class:`~pywbem.PywbemLogger` if it does not
@@ -374,8 +379,6 @@ def get_logger(logger_name):
 
     Exceptions:
         ValueError if the name is not one of the valid pywbem loggers.
-
-    **Experimental:** The logging support is experimental for this release.
     """
     if PywbemLoggers.get_logger_info(logger_name) is None:
         # pylint: disable=unused-variable

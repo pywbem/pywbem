@@ -50,6 +50,8 @@ __all__ = ['ENFORCE_INTEGER_RANGE', 'DEFAULT_ITER_MAXOBJECTCOUNT',
 #: * False: Pywbem does not enforce the allowable value range; Assigning values
 #:   out of range works in pywbem. Note that a WBEM server may or may not
 #:   reject such out-of-range values.
+#:
+#: *New in pywbem 0.9.*
 ENFORCE_INTEGER_RANGE = True
 
 #: Default setting for the MaxObjectCount attribute for all of the
@@ -59,11 +61,17 @@ ENFORCE_INTEGER_RANGE = True
 #: used as the value for MaxObjectCount.
 #: Note that this does not necessarily optimize the performance of these
 #: operations.
+#:
+#: *New in pywbem 0.10 as experimental and finalized in 0.12.*
 DEFAULT_ITER_MAXOBJECTCOUNT = 1000
 
 #: Maximum log entry size. An integer that sets the maximum size of each log
 #: entry if the log_detail_level flag is set.
+#:
+#: **Experimental:** *New in pywbem 0.11 as experimental.*
 DEFAULT_MAX_LOG_ENTRY_SIZE = 1000
 
 #: Set default log destination.  'none' means that there will be no logging.
+#:
+#: **Experimental:** *New in pywbem 0.11 as experimental.*
 DEFAULT_LOG_DESTINATION = 'none'

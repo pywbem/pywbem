@@ -4,6 +4,8 @@
 WBEM indication API
 ===================
 
+*New in pywbem 0.9 as experimental and finalized in 0.10.*
+
 The WBEM indication API supports subscription for and receiving of CIM
 indications.
 
@@ -14,11 +16,6 @@ This chapter has the following sections:
 
 * :ref:`WBEMSubscriptionManager` - The :class:`~pywbem.WBEMSubscriptionManager`
   class provides for managing subscriptions for indications.
-
-.. note::
-
-   The WBEM indication API has been introduced in v0.9.0 as experimental and
-   has been declared final in 0.10.0.
 
 
 .. _`WBEMListener`:

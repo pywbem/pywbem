@@ -166,6 +166,9 @@ Enhancements
 * Docs: Clarifications and small fixes in the documentation of the
   `WBEMConnection.Iter...()` generator functions.
 
+* Docs: Added "New in pywbem M.N ..." text to descriptions of anything that was
+  introduced in version 0.8 or later.
+
 Bug fixes
 ^^^^^^^^^
 
