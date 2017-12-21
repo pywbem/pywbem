@@ -596,22 +596,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
       operation_recorder (:class:`~pywbem.BaseOperationRecorder`):
         This attribute from version 0.10.0 has become a propererty in
         0.11.0. and as a property is marked **deprecated**
-
-      use_pull_operations (:class:`py:bool`):
-        Indicates whether the client will attempt the use of pull operations in
-        any `Iter...()` methods. However, each operation has its own internal
-        equivalent flag based on this flag to allow for WBEM servers that
-        implement only some of the pull operations.
-
-        This attribute is initially set from the same-named constructor
-        parameter.
-        If it is initially `None`, it is modified when `Iter...()` methods are
-        invoked, dependent on the support for pull operations in the WBEM
-        server.
-
-        After the first call , the variable will be either `True` or `False`
-        and indicating whether pull operations will be used in this and
-        subsequent `Iter...()` methods.
     """
 
     # Class level counter. Incremented at each WBEMConnection creation
@@ -824,24 +808,25 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             exception.
 
           use_pull_operations (:class:`py:bool`):
-            Controls the use of pull operations in any `Iter...()` methods, by
-            intializing a corresponding instance variable that is used during
-            any `Iter...()` methods.
-            The default value (`None`) will work on any WBEM server whether or
-            not it supports pull operations.
+            **Experimental:** *New in pywbem 0.11 as experimental.
+
+            Controls the use of pull operations in any `Iter...()` methods.
 
             `None` means that the `Iter...()` methods will attempt a pull
             operation first, and if the WBEM server does not support it, will
-            use a traditional operation. The corresponding instance variable
-            will be adjusted to indicate what the WBEM server supports.
+            use a traditional operation from then on, on this connection.
+            This detection is performed for each pull operation separately, in
+            order to accomodate WBEM servers that support only some of the pull
+            operations. This will work on any WBEM server whether it supports
+            no, some, or all pull operations.
 
             `True` means that the `Iter...()` methods will only use pull
             operations. If the WBEM server does not support pull operations, a
             :exc:`~pywbem.CIMError` with status code `CIM_ERR_NOT_SUPPORTED`
             will be raised.
 
-            `False` means that the `Iter...()` methods will only use traditional
-            operations.
+            `False` (default) means that the `Iter...()` methods will only use
+            traditional operations.
 
           enable_stats (:class:`py:bool`):
             *New in pywbem 0.11 as experimental and finalized in 0.12.*
@@ -885,11 +870,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.__class__._conn_counter,  # pylint: disable=protected-access
             os.getpid()))
 
-        # pull operations control for iter... operations
-        self.use_pull_operations = use_pull_operations
+        # Intent to use pull operations
+        self._use_pull_operations = use_pull_operations
 
-        # set the flags for each individual operation to the initial
-        # value defined by use_pull_operations
+        # Actual status of using pull operations
         self._use_enum_inst_pull_operations = use_pull_operations
         self._use_enum_path_pull_operations = use_pull_operations
         self._use_ref_inst_pull_operations = use_pull_operations
@@ -1067,6 +1051,22 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         WBEM server. Otherwise, the value is `None`.
         """
         return self._last_server_response_time
+
+    @property
+    def use_pull_operations(self):
+        """
+        **Experimental:** *New in pywbem 0.11 as experimental.
+
+        :class:`py:bool`: Indicates whether the client should attempt the use
+        of pull operations in any `Iter...()` methods.
+
+        This property reflects the intent of the user as specified in the
+        same-named constructor parameter. This property is not updated with
+        the status of actually using pull operations. That status is
+        maintained internally for each pull operation separately to accomodate
+        WBEM servers that support only some of the pull operations.
+        """
+        return self._use_pull_operations
 
     def __str__(self):
         """
