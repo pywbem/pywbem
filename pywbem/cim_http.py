@@ -123,9 +123,12 @@ def create_pywbem_ssl_context():
 DEFAULT_PORT_HTTP = 5988        # default port for http
 DEFAULT_PORT_HTTPS = 5989       # default port for https
 
-# TODO 5/16 ks This is a linux based set of defaults:
 
-#: Default directory paths for looking up CA certificates for linux.
+#: Default directory paths to be used when the ``ca_certs`` parameter of
+#: :class:`~pywbem.WBEMConnection` is `None`. The first existing directory is
+#: used as a default for that parameter.
+#: Note that these default directory paths only work on some Linux
+#: distributions.
 DEFAULT_CA_CERT_PATHS = \
     ['/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt',
      '/etc/ssl/certs', '/etc/ssl/certificates']

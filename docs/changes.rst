@@ -169,6 +169,9 @@ Enhancements
 * Docs: Added "New in pywbem M.N ..." text to descriptions of anything that was
   introduced in version 0.8 or later.
 
+* Docs: Clarified use of `ca_certs` parameter of `WBEMConnection` and its
+  defaults in `DEFAULT_CA_CERT_PATHS`.
+
 Bug fixes
 ^^^^^^^^^
 
