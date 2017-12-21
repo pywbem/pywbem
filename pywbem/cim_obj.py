@@ -1389,19 +1389,19 @@ class CIMInstanceName(_CIMComparisonMixin):
         #  'label2=\"Component\""')
 
         nm_space = host = None
-        head, sep, tail = partition(wbem_uri, '//')
+        head, sep, tail = _partition(wbem_uri, '//')
         if sep and head.find('"') == -1:
             # we have a namespace type
-            head, sep, tail = partition(tail, '/')
+            head, sep, tail = _partition(tail, '/')
             host = head
         else:
             tail = head
-        head, sep, tail = partition(tail, ':')
+        head, sep, tail = _partition(tail, ':')
         if sep:
             nm_space = head
         else:
             tail = head
-        head, sep, tail = partition(tail, '.')
+        head, sep, tail = _partition(tail, '.')
 
         if not sep:
             raise ValueError("WBEM URI specifies a class path: %r" % wbem_uri)
@@ -1409,15 +1409,15 @@ class CIMInstanceName(_CIMComparisonMixin):
         classname = head
         key_bindings = {}
         while tail:
-            head, sep, tail = partition(tail, ',')
+            head, sep, tail = _partition(tail, ',')
             if head.count('"') == 1:  # quoted string contains comma
-                tmp, sep, tail = partition(tail, '"')
+                tmp, sep, tail = _partition(tail, '"')
                 head = '%s,%s' % (head, tmp)
-                tail = partition(tail, ',')[2]
+                tail = _partition(tail, ',')[2]
             head = head.strip()
-            key, sep, val = partition(head, '=')
+            key, sep, val = _partition(head, '=')
             if sep:
-                cl_name, s, k = partition(key, '.')
+                cl_name, s, k = _partition(key, '.')
                 if s:
                     if cl_name != classname:
                         raise ValueError('Invalid object path: %r' % wbem_uri)
@@ -2260,19 +2260,19 @@ class CIMClassName(_CIMComparisonMixin):
         """
 
         nm_space = host = None
-        head, sep, tail = partition(wbem_uri, '//')
+        head, sep, tail = _partition(wbem_uri, '//')
         if sep and head.find('"') == -1:
             # we have a namespace type
-            head, sep, tail = partition(tail, '/')
+            head, sep, tail = _partition(tail, '/')
             host = head
         else:
             tail = head
-        head, sep, tail = partition(tail, ':')
+        head, sep, tail = _partition(tail, ':')
         if sep:
             nm_space = head
         else:
             tail = head
-        head, sep, tail = partition(tail, '.')
+        head, sep, tail = _partition(tail, '.')
 
         if sep:
             raise ValueError("WBEM URI specifies an instance path: %r" %
@@ -2953,18 +2953,18 @@ class CIMProperty(_CIMComparisonMixin):
         element_txt = "property %r" % name
 
         if type is None:
-            type = infer_type(value, element_txt)
+            type = _infer_type(value, element_txt)
 
         if is_array is None:
-            is_array = infer_is_array(value)
+            is_array = _infer_is_array(value)
 
-        check_array_parms(is_array, array_size, value, element_txt)
+        _check_array_parms(is_array, array_size, value, element_txt)
 
         if embedded_object is None:
-            embedded_object = infer_embedded_object(value)
+            embedded_object = _infer_embedded_object(value)
 
         if embedded_object is not None:
-            check_embedded_object(embedded_object, type, value, element_txt)
+            _check_embedded_object(embedded_object, type, value, element_txt)
 
         if reference_class is not None:
             if is_array:
@@ -3981,8 +3981,8 @@ class CIMParameter(_CIMComparisonMixin):
         element_txt = "parameter %r" % name
 
         if is_array is None:
-            is_array = infer_is_array(value)
-        check_array_parms(is_array, array_size, value, element_txt)
+            is_array = _infer_is_array(value)
+        _check_array_parms(is_array, array_size, value, element_txt)
 
         # We use the respective setter methods:
         self.type = type
@@ -4485,7 +4485,7 @@ class CIMQualifier(_CIMComparisonMixin):
         element_txt = "qualifier %r" % name
 
         if type is None:
-            type = infer_type(value, element_txt)
+            type = _infer_type(value, element_txt)
 
         # We use the respective setter methods:
         self.type = type
@@ -4988,9 +4988,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         element_txt = "qualifier declaration %r" % name
 
         if is_array is None:
-            is_array = infer_is_array(value)
+            is_array = _infer_is_array(value)
 
-        check_array_parms(is_array, array_size, value, element_txt)
+        _check_array_parms(is_array, array_size, value, element_txt)
 
         # We use the respective setter methods:
         self.type = type
@@ -5622,33 +5622,33 @@ def tocimobj(type_, value):
             return value
         elif isinstance(value, six.string_types):
             nm_space = host = None
-            head, sep, tail = partition(value, '//')
+            head, sep, tail = _partition(value, '//')
             if sep and head.find('"') == -1:
                 # we have a namespace type
-                head, sep, tail = partition(tail, '/')
+                head, sep, tail = _partition(tail, '/')
                 host = head
             else:
                 tail = head
-            head, sep, tail = partition(tail, ':')
+            head, sep, tail = _partition(tail, ':')
             if sep:
                 nm_space = head
             else:
                 tail = head
-            head, sep, tail = partition(tail, '.')
+            head, sep, tail = _partition(tail, '.')
             if not sep:
                 return CIMClassName(head, host=host, namespace=nm_space)
             classname = head
             key_bindings = {}
             while tail:
-                head, sep, tail = partition(tail, ',')
+                head, sep, tail = _partition(tail, ',')
                 if head.count('"') == 1:  # quoted string contains comma
-                    tmp, sep, tail = partition(tail, '"')
+                    tmp, sep, tail = _partition(tail, '"')
                     head = '%s,%s' % (head, tmp)
-                    tail = partition(tail, ',')[2]
+                    tail = _partition(tail, ',')[2]
                 head = head.strip()
-                key, sep, val = partition(head, '=')
+                key, sep, val = _partition(head, '=')
                 if sep:
-                    cl_name, s, k = partition(key, '.')
+                    cl_name, s, k = _partition(key, '.')
                     if s:
                         if cl_name != classname:
                             raise ValueError('Invalid object path: "%s"' %
@@ -5803,9 +5803,9 @@ def cimvalue(value, type):
     return type_obj(value)
 
 
-def partition(str_arg, sep):
+def _partition(str_arg, sep):
     """
-    partition(str_arg, sep) -> (head, sep, tail)
+    _partition(str_arg, sep) -> (head, sep, tail)
 
     Searches for the separator sep in str_arg, and returns the,
     part before it, the separator itself, and the part after it.
@@ -5823,7 +5823,7 @@ def partition(str_arg, sep):
         return (str_arg[:idx], sep, str_arg[idx + len(sep):])
 
 
-def infer_type(value, element_txt):
+def _infer_type(value, element_txt):
     """
     Infer the CIM type name of the value, based upon its Python type.
     """
@@ -5839,7 +5839,7 @@ def infer_type(value, element_txt):
                          (element_txt, exc))
 
 
-def infer_is_array(value):
+def _infer_is_array(value):
     """
     Infer whether the value is an array, based upon its Python type.
 
@@ -5852,13 +5852,13 @@ def infer_is_array(value):
     return isinstance(value, list)
 
 
-def check_array_parms(is_array, array_size, value, element_txt):
+def _check_array_parms(is_array, array_size, value, element_txt):
     """
     Check whether array-related parameters are ok.
     """
 
     assert is_array is not None
-    # infer_is_array() ensures that, and is supposed to be called
+    # _infer_is_array() ensures that, and is supposed to be called
 
     if array_size and not is_array:
         raise ValueError("The array_size parameter of %s is not None but "
@@ -5874,7 +5874,7 @@ def check_array_parms(is_array, array_size, value, element_txt):
                              "the value is not an array." % element_txt)
 
 
-def infer_embedded_object(value):
+def _infer_embedded_object(value):
     """
     Infer CIMProperty.embedded_object from the CIM value.
     """
@@ -5904,7 +5904,7 @@ def infer_embedded_object(value):
     return None
 
 
-def check_embedded_object(embedded_object, type, value, element_txt):
+def _check_embedded_object(embedded_object, type, value, element_txt):
     # pylint: disable=redefined-builtin
     """
     Check whether embedded-object-related parameters are ok.
