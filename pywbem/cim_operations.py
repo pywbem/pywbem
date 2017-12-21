@@ -622,6 +622,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                  x509=None, verify_callback=None, ca_certs=None,
                  no_verification=False, timeout=None, use_pull_operations=False,
                  enable_stats=False):
+        # pylint: disable=line-too-long
         """
         Parameters:
 
@@ -772,12 +773,21 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             This parameter is ignored when HTTP is used.
 
-            The parameter value is either the directory path of a directory
-            prepared using the ``c_rehash`` tool included with OpenSSL, or the
-            file path of a file in PEM format.
+            The parameter value must be one of:
 
-            If `None`, default directory paths will be used to look up CA
-            certificates (see :data:`~pywbem.cim_http.DEFAULT_CA_CERT_PATHS`).
+            * a path to a file containing one or more CA certificates in
+              PEM format. See the description of `CAfile` in the OpenSSL
+              `SSL_CTX_load_verify_locations`_ function for details.
+
+            * a path to a directory with files each of which contains one CA
+              certificate in PEM format. See the description of `CApath` in the
+              OpenSSL `SSL_CTX_load_verify_locations`_ function for details.
+
+            If `None`, the directory path of the first existing directory from
+            the list in :data:`~pywbem.cim_http.DEFAULT_CA_CERT_PATHS` will be
+            used as a default.
+
+            .. _`SSL_CTX_load_verify_locations`: https://www.openssl.org/docs/man1.1.0/ssl/SSL_CTX_load_verify_locations.html
 
           no_verification (:class:`py:bool`):
             Disables verification of the X.509 server certificate returned by
@@ -843,7 +853,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Statistics may also be enabled or disabled with the WBEMConnection
             property `stats_enabled`. This may be used to view the current
             status or change the status (ex. `conn.stats_enabled(False)`)
-        """
+        """  # noqa: E501
+        # pylint: enable=line-too-long
 
         # Connection attributes
         self.url = url
