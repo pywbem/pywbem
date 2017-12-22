@@ -55,38 +55,31 @@ WBEMConnection method                                       Purpose
 ----------------------------------------------------------  --------------------------------------------------------------
 :meth:`~pywbem.WBEMConnection.ExecQuery`                    Execute a query in a namespace
 ----------------------------------------------------------  --------------------------------------------------------------
-:meth:`~pywbem.WBEMConnection.IterEnumerateInstances`       Experimental:
-                                                            Iterator API that uses either OpenEnumerateInstances and
+:meth:`~pywbem.WBEMConnection.IterEnumerateInstances`       Iterator API that uses either OpenEnumerateInstances and
                                                             PullInstancesWithPath or EnumerateInstances depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
-:meth:`~pywbem.WBEMConnection.IterEnumerateInstancePaths`   Experimental:
-                                                            Iterator API that uses either OpenEnumerateInstances and
+:meth:`~pywbem.WBEMConnection.IterEnumerateInstancePaths`   Iterator API that uses either OpenEnumerateInstances and
                                                             PullInstancesWithPath or EnumerateInstances depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
-:meth:`~pywbem.WBEMConnection.IterReferenceInstances`       Experimental:
-                                                            Iterator API that uses either OpenReferenceInstances and
+:meth:`~pywbem.WBEMConnection.IterReferenceInstances`       Iterator API that uses either OpenReferenceInstances and
                                                             PullInstancesWithPath or References depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
-:meth:`~pywbem.WBEMConnection.IterReferenceInstancePaths`   Experimental:
-                                                            Iterator API that uses either OpenReferenceInstances and
+:meth:`~pywbem.WBEMConnection.IterReferenceInstancePaths`   Iterator API that uses either OpenReferenceInstances and
                                                             PullInstancesWithPath or References depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
-:meth:`~pywbem.WBEMConnection.IterAssociatorInstances`      Experimental:
-                                                            Iterator API that uses either OpenAssociatorInstances and
+:meth:`~pywbem.WBEMConnection.IterAssociatorInstances`      Iterator API that uses either OpenAssociatorInstances and
                                                             PullInstancesWithPath or Associators depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
-:meth:`~pywbem.WBEMConnection.IterAssociatorInstancePaths`  Experimental:
-                                                            Iterator API that uses either OpenAssociatorInstances and
+:meth:`~pywbem.WBEMConnection.IterAssociatorInstancePaths`  Iterator API that uses either OpenAssociatorInstances and
                                                             PullInstancesWithPath or Associators depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
-:meth:`~pywbem.WBEMConnection.IterQueryInstances`           Experimental:
-                                                            Iterator API that uses either OpenQueryInstances and
+:meth:`~pywbem.WBEMConnection.IterQueryInstances`           Iterator API that uses either OpenQueryInstances and
                                                             PullInstances or ExecQuery depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
@@ -2007,6 +2000,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                **extra):
         # pylint: disable=invalid-name,line-too-long
         """
+        *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
         Enumerate the instances of a class (including instances of its
         subclasses) in a namespace,
         using the corresponding pull operations if supported by the WBEM server
@@ -2016,8 +2011,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
         pull operations.
-
-        **Experimental:** This method is experimental in this release.
 
         This method is a generator function that retrieves instances from
         the WBEM server and returns them one by one (using :keyword:`yield`)
@@ -2348,6 +2341,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
                                    **extra):
         """
+        *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
         Enumerate the instance paths of instances of a class (including
         instances of its subclasses) in a namespace,
         using the corresponding pull operations if supported by the WBEM server
@@ -2357,8 +2352,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
         pull operations.
-
-        **Experimental:** This method is experimental in this release.
 
         This method is a generator function that retrieves instance paths from
         the WBEM server and returns them one by one (using :keyword:`yield`)
@@ -2617,6 +2610,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    **extra):
         # pylint: disable=invalid-name
         """
+        *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
         Retrieve the instance paths of the association instances that reference
         a source instance,
         using the corresponding pull operations if supported by the WBEM server
@@ -2626,8 +2621,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
         pull operations.
-
-        **Experimental:** This method is experimental in this release.
 
         This method is a generator function that retrieves instance paths from
         the WBEM server and returns them one by one (using :keyword:`yield`)
@@ -2879,6 +2872,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                **extra):
         # pylint: disable=invalid-name
         """
+        *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
         Retrieve the association instances that reference a source instance,
         using the corresponding pull operations if supported by the WBEM server
         or otherwise the corresponding traditional operation, and using the
@@ -2887,8 +2882,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
         pull operations.
-
-        **Experimental:** This method is experimental in this release.
 
         This method is a generator function that retrieves instances from
         the WBEM server and returns them one by one (using :keyword:`yield`)
@@ -3179,6 +3172,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                     **extra):
         # pylint: disable=invalid-name
         """
+        *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
         Retrieve the instance paths of the instances associated to a source
         instance,
         using the corresponding pull operations if supported by the WBEM server
@@ -3188,8 +3183,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
         pull operations.
-
-        **Experimental:** This method is experimental in this release.
 
         This method is a generator function that retrieves instance paths from
         the WBEM server and returns them one by one (using :keyword:`yield`)
@@ -3460,6 +3453,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                 **extra):
         # pylint: disable=invalid-name
         """
+        *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
         Retrieve the instances associated to a source instance,
         using the corresponding pull operations if supported by the WBEM server
         or otherwise the corresponding traditional operation, and using the
@@ -3468,8 +3463,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
         pull operations.
-
-        **Experimental:** This method is experimental in this release.
 
         This method is a generator function that retrieves instances from
         the WBEM server and returns them one by one (using :keyword:`yield`)
@@ -3785,6 +3778,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                            **extra):
         # pylint: disable=line-too-long
         """
+        *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
         Execute a query in a namespace,
         using the corresponding pull operations if supported by the WBEM server
         or otherwise the corresponding traditional operation, and using the
@@ -3793,8 +3788,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
         pull operations.
-
-        **Experimental:** This method is experimental in this release.
 
         Other than the other Iter...() methods, this method is not a generator
         function, but returns an object that provides access to a generator

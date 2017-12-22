@@ -27,6 +27,11 @@ Incompatible changes
   manual step for installing the M2CryptoWin32/64 Python package. For details,
   see the Installation section in the documentation.
 
+* Finalized the Iter support that was experimental so far. This affects the
+  `Iter...()` methods of class `WBEMConnection`, the `use_pull_operations`
+  init parameter and instance attribute of class `WBEMConnection`, and the
+  iter-related shortcuts in the `wbemcli` script.
+
 * The following initialization parameters of some CIM object classes that are
   required not to be `None` (as per the documentation) are now enforced not to
   be `None`, and `ValueError` is now raised when providing them as `None`:
