@@ -39,8 +39,8 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMQualifierDeclaration, NocaseDict
 from .cim_types import CIMInt, CIMFloat, CIMDateTime
 from .exceptions import CIMError
-from ._logging import PywbemLoggers, LOG_OPS_CALLS_NAME, LOG_HTTP_NAME
-from .config import DEFAULT_MAX_LOG_ENTRY_SIZE
+from ._logging import PywbemLoggers, LOG_OPS_CALLS_NAME, LOG_HTTP_NAME, \
+    DEFAULT_MAX_LOG_ENTRY_SIZE
 
 if six.PY2:
     import codecs  # pylint: disable=wrong-import-order
@@ -471,12 +471,14 @@ class LogOperationRecorder(BaseOperationRecorder):
     """
     **Experimental:** *New in pywbem 0.9 as experimental.*
 
-    An Operation Recorder that logs the information to a set of named logs.
-    This recorder uses two named logs:
+    A recorder that logs the WBEM operations to a set of named logs.
+    This recorder supports two named logs:
 
-    LOG_OPS_CALLS_NAME - Logger for cim_operations method calls and responses
+    * :attr:`~pywbem._logging.LOG_OPS_CALLS_NAME` - Logger at the level of
+      WBEM operation calls and returns
 
-    LOG_HTTP_NAME - Logger for http_requests and responses
+    * :attr:`~pywbem._logging.LOG_HTTP_NAME` - Logger at the level of HTTP
+      requests and responses
 
     This also implements a method to log information on each connection.
 
@@ -484,15 +486,14 @@ class LogOperationRecorder(BaseOperationRecorder):
     """
     def __init__(self, max_log_entry_size=None):
         """
-        Creates the the loggers and sets the max_log_size for each if
-        the input parameter max_log_entry_size is not `None`.
+        Parameters:
 
-        Parameters: (:term:`integer`)
+          max_log_entry_size (:term:`integer`):
+            The maximum size for each log entry, in Bytes. This is primarily to
+            limit response sizes since they could be enormous.
 
-          max_log_entry_size(:term:`integer`)
-            The maximum size of each log entry. This is primarily to limit
-            response sizes since they could be enormous.
-            If `None`, no size limit and the full request or response is logged.
+            If `None`, the maximum size defaults to
+            :attr:`~pywbem._logging.DEFAULT_MAX_LOG_ENTRY_SIZE`.
         """
         super(LogOperationRecorder, self).__init__()
 
