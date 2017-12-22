@@ -454,11 +454,9 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
               our fix here).
 
             * Ensure that the data are bytes, not unicode.
-              TODO 2016-05 AM: Ensuring bytes at this level can only be a
-                               quick fix. Figure out a better approach.
-            NOTE: The attributes come from the httplib mixins in the
-            subclasses so the disable=no-member hides worthless warnings.
             """
+            # NOTE: The attributes come from the httplib mixins in the
+            # subclasses so the disable=no-member hides worthless warnings.
             if self.sock is None:  # pylint: disable=no-member
                 if self.auto_open:  # pylint: disable=no-member
                     self.connect()  # pylint: disable=no-member
@@ -467,6 +465,8 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
             if self.debuglevel > 0:  # pylint: disable=no-member
                 print("send: %r" % strng)
             blocksize = 8192
+            # TODO 5/16 AM Better approach needed than converting to Bytes. See
+            # pywbem issue #418.
             if hasattr(strng, 'read') and not isinstance(strng, list):
                 if self.debuglevel > 0:  # pylint: disable=no-member
                     print("sendIng a read()able")
@@ -482,7 +482,9 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
     class HTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
         """ Execute client connection without ssl using httplib. """
         def __init__(self, host, port=None, timeout=None):
-            # TODO AM: Should we set strict=True in the following call, for PY2?
+            # Note: We do not use strict=True in the following call, because it
+            # is not clear what side effects that would have, and if no status
+            # line comes back we'll certainly find out about that.
             httplib.HTTPConnection.__init__(self, host=host, port=port,
                                             timeout=timeout)
 
@@ -491,7 +493,9 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
         # pylint: disable=R0913,too-many-arguments
         def __init__(self, host, port=None, key_file=None, cert_file=None,
                      ca_certs=None, verify_callback=None, timeout=None):
-            # TODO AM: Should we set strict=True in the following call, for PY2?
+            # Note: We do not use strict=True in the following call, because it
+            # is not clear what side effects that would have, and if no status
+            # line comes back we'll certainly find out about that.
             httplib.HTTPSConnection.__init__(self, host=host, port=port,
                                              key_file=key_file,
                                              cert_file=cert_file,
@@ -585,17 +589,21 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
             # Connect using Python SSL module
             else:
                 # Setup the socket context
+
+                # Note: PROTOCOL_SSLv23 allows talking to servers with TLS but
+                # not with SSL. For details, see the table in
+                # https://docs.python.org/3/library/ssl.html#ssl.wrap_socket
                 # TODO ks 4/16: confirm that we cannot use the default_context()
                 # Selects the highest protocol version that both the
                 # client and server support (SSLV23)
                 ctx = SSL.SSLContext(SSL.PROTOCOL_SSLv23)
 
-                # TODO ks 4/16: Is there a use for the CERT_OPTIONAL mode
                 if self.cert_file:
                     ctx.load_cert(self.cert_file, keyfile=self.key_file)
                 if self.ca_certs:
-                    # CERT_REQUIRED validates server certificate:
-                    # against certificates in ca_certs
+                    # We need to use CERT_REQUIRED to require that the server
+                    # certificate is being validated by the client (against the
+                    # certificates in ca_certs).
                     ctx.verify_mode = SSL.CERT_REQUIRED
                     if os.path.isdir(self.ca_certs):
                         ctx.load_verify_locations(capath=self.ca_certs)
