@@ -344,7 +344,7 @@ def get_default_ca_certs():
 
 
 # pylint: disable=too-many-branches,too-many-statements,too-many-arguments
-def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
+def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                  verify_callback=None, ca_certs=None,
                  no_verification=False, timeout=None, recorders=None,
                  conn_id=None):
@@ -370,11 +370,14 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
         For details, see the ``creds`` parameter of
         :meth:`WBEMConnection.__init__`.
 
-      headers (:term:`py:iterable` of :term:`string`):
-        Iterable of HTTP header fields to be added to the request, in addition
-        to the standard header fields such as ``Content-type``,
-        ``Content-length``, and ``Authorization``.
-        A value of None causes no headers to be added.
+      cimxml_headers (:term:`py:iterable` of tuple(string,string)):
+        Where each tuple contains: header name, header value.
+
+        CIM-XML extension header fields for the request. The header value
+        is a string (unicode or binary) that is not encoded, and the two-step
+        encoding required by DSP0200 is performed inside of this function.
+
+        A value of `None` is treated like an empty iterable.
 
       debug (:class:`py:bool`):
         Boolean indicating whether to create debug information.
@@ -647,8 +650,8 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
             self.sock = socket.socket(socket_af, socket.SOCK_STREAM)
             self.sock.connect(self.uds_path)
 
-    if not headers:
-        headers = []
+    if not cimxml_headers:
+        cimxml_headers = []
 
     host, port, use_ssl = parse_url(_ensure_unicode(url))
 
@@ -718,33 +721,10 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
     method = 'POST'
     target = '/cimom'
 
-    header_tuples = []
-    header_tuples.append(('Content-type', 'application/xml; charset="utf-8"'))
-    header_tuples.append(('Content-length', str(len(data))))
-    if local_auth_header is not None:
-        # The following pylint stmt disables a false positive, see
-        # https://github.com/PyCQA/pylint/issues/701
-        # TODO 3/16 AM: Track resolution of this Pylint bug.
-        # pylint: disable=not-an-iterable
-        header_tuples.append(*local_auth_header)
-    elif creds is not None:
-        auth = '%s:%s' % (creds[0], creds[1])
-        auth64 = _ensure_unicode(base64.b64encode(
-            _ensure_bytes(auth))).replace('\n', '')
-        header_tuples.append(('Authorization', 'Basic %s' % auth64))
-    elif locallogin is not None:
-        header_tuples.append(('PegasusAuthorization',
-                              'Local "%s"' % locallogin))
-    for hdr in headers:
-        hdr = _ensure_unicode(hdr)
-        hdr_pieces = [x.strip() for x in hdr.split(':', 1)]
-        header_tuples.append((urllib.parse.quote(hdr_pieces[0]),
-                              urllib.parse.quote(hdr_pieces[1])))
-
     if recorders:
         for recorder in recorders:
             recorder.stage_http_request(conn_id, 11, url, target, method,
-                                        dict(header_tuples), data)
+                                        dict(cimxml_headers), data)
 
             # We want clean response data when an exception is raised before
             # the HTTP response comes in:
@@ -758,7 +738,32 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
 
             client.putrequest(method, target)
 
-            for n, v in header_tuples:
+            standard_headers = [
+                ('Content-type', 'application/xml; charset="utf-8"'),
+                ('Content-length', str(len(data))),
+            ]
+            if local_auth_header:
+                standard_headers.append(local_auth_header)
+            elif creds is not None:
+                auth = '%s:%s' % (creds[0], creds[1])
+                auth64 = _ensure_unicode(base64.b64encode(
+                    _ensure_bytes(auth))).replace('\n', '')
+                standard_headers.append(('Authorization', 'Basic %s' % auth64))
+            elif locallogin is not None:
+                standard_headers.append(('PegasusAuthorization',
+                                        'Local "%s"' % locallogin))
+
+            # Note: RFC2616 does not permit the use percent-escaping for
+            # the standard header fields. It allows octets (except CTL) for
+            # the field values. DSP0200 requires the use of UTF-8 encoding
+            # followed by percent-encoding for its extension headers.
+            # Therefore, we don't encode the standard headers but do encode
+            # the CIM-XML extension headers.
+            for n, v in standard_headers:
+                client.putheader(n, v)
+            for n, v in cimxml_headers:
+                v = _ensure_unicode(v)
+                v = urllib.parse.quote(v)
                 client.putheader(n, v)
 
             try:
@@ -930,24 +935,42 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
     return body, svr_resp_time
 
 
-def get_object_header(obj):
-    """Return the HTTP header required to make a CIM operation request
-    using the given object.  Return None if the object does not need
-    to have a header."""
+def get_cimobject_header(obj):
+    """
+    Return the value for the CIM-XML extension header field 'CIMObject', using
+    the given object.
 
-    # Local namespacepath
+    This function implements the rules defined in DSP0200 section 6.3.7
+    "CIMObject". The format of the CIMObject value is similar but not identical
+    to a local WBEM URI (one without namespace type and authority), as defined
+    in DSP0207.
 
+    One difference is that DSP0207 requires a leading slash for a local WBEM
+    URI, e.g. '/root/cimv2:CIM_Class.k=1', while the CIMObject value has no
+    leading slash, e.g. 'root/cimv2:CIM_Class.k=1'.
+
+    Another difference is that the CIMObject value for instance paths has
+    provisions for an instance path without keys, while WBEM URIs do not have
+    that. Pywbem does not support that.
+    """
+
+    # Local namespace path
     if isinstance(obj, six.string_types):
-        return 'CIMObject: %s' % obj
+        return obj
 
-    # CIMLocalClassPath
-
+    # Local class path
     if isinstance(obj, CIMClassName):
-        return 'CIMObject: %s:%s' % (obj.namespace, obj.classname)
+        return '%s:%s' % (obj.namespace, obj.classname)
 
-    # CIMInstanceName with namespace
+    # Local instance path
+    if isinstance(obj, CIMInstanceName):
+        # In order to represent the instance paths of associations properly, a
+        # recursive approach of escaping the key values is needed. The
+        # following code draws on the WBEM URI string generated by
+        # CIMInstanceName.__str__(), which happens to not produce the leading
+        # slash (by mistake?). If and when that is changed, this code here
+        # also needs to be adjusted.
+        return str(obj)
 
-    if isinstance(obj, CIMInstanceName) and obj.namespace is not None:
-        return 'CIMObject: %s' % obj
-
-    raise TypeError('Don\'t know how to generate HTTP headers for %s' % obj)
+    raise TypeError("Invalid object type %s to generate CIMObject header "
+                    "value from" % type(obj))

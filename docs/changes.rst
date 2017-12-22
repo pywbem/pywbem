@@ -216,6 +216,10 @@ Bug fixes
   the values were not properly converted to CIM-XML. They are now properly
   converted using `atomic_to_cim_xml()`.
 
+* Fixed local authentication for OpenWBEM and OpenPegasus. Due to one bug
+  introduced in pywbem 0.9.0, it was disabled by accident. A second bug in
+  local authentication has been there at least since pywbem 0.7.0.
+
 * Docs: Clarified that the return type of `BaseOperationRecorder.open_file()`
   is a file-like object and that the caller is responsible for closing that
   file.
