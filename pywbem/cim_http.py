@@ -577,13 +577,8 @@ def wbem_request(url, data, creds, headers=None, debug=False, x509=None,
                                     'SSL error: post connection check failed')
                     return ret
 
-                # TODO 2/16 AM: Verify whether the additional exceptions
-                #               in the M2Crypto code can
-                #               really be omitted:
-                #               Err.SSLError, SSL.SSLError, SSL.Checker.
-                #               WrongHost,
-                #               SSLTimeoutError
-                except SSLError as arg:
+                except (SSLError, SSL.SSLError,
+                        SSL.Checker.SSLVerificationError) as arg:
                     raise ConnectionError(
                         "SSL error %s: %s" % (arg.__class__, arg))
 
