@@ -166,6 +166,12 @@ Enhancements
 * Added `libxml2` operating system package as a dependency. It provides xmllint,
   which is used for testing.
 
+* Added catching of some exceptions M2Cryptro can raise that were not caught
+  so far: SSL.SSLError, SSL.Checker.SSLVerificationError. These exceptions
+  are now transformed into `pywbem.ConnectionError` and will therefore be
+  caught by a caller of pywbem who is prepared for pywbem's own exceptions,
+  but not necessarily aware of these M2Crypto exceptions. (issue #891)
+
 * Docs: Editorial improvements in the documentation (links, typos, formatting).
 
 * Docs: Clarifications and small fixes in the documentation of the
