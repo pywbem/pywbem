@@ -213,6 +213,11 @@ Cleanup
 
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
+
+* Added a boolean config variable `DEBUG_WARNING_ORIGIN` that when enabled
+  causes a stack traceback to be added to the message of most warnings issued
+  by pywbem. This allows identifying which code originated the warning.
+
 * Cleaned up a lot of pylint warnings, for things like missing-doc, etc. so that
   we can actually review the remainder.  See issue #808.
 

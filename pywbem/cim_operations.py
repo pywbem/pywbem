@@ -911,7 +911,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             "Directly getting operation recorder has been deprecated. There"
             "is no way to remove an operation recorder once it has been "
             "added to a WBEMConnection object",
-            DeprecationWarning)
+            DeprecationWarning, 2)
         return self._operation_recorder
 
     @operation_recorder.setter
@@ -928,7 +928,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             "Directly setting operation recorder has been deprecated. Use "
             "the WBEMConnection method 'add_operation_recorder(...)' to "
             "activate recorders",
-            DeprecationWarning)
+            DeprecationWarning, 2)
 
     @property
     def host(self):
@@ -1181,7 +1181,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         warnings.warn(
             "Calling imethodcall() directly is deprecated",
-            DeprecationWarning)
+            DeprecationWarning, 2)
         return self._imethodcall(methodname, namespace,
                                  response_params_rqd=response_params_rqd,
                                  **params)
@@ -1365,7 +1365,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         warnings.warn(
             "Calling methodcall() directly is deprecated",
-            DeprecationWarning)
+            DeprecationWarning, 2)
         return self._methodcall(methodname, localobject, Params, **params)
 
     def _methodcall(self, methodname, localobject, Params=None, **params):

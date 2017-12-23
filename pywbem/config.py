@@ -63,3 +63,7 @@ ENFORCE_INTEGER_RANGE = True
 #:
 #: *New in pywbem 0.10 as experimental and finalized in 0.12.*
 DEFAULT_ITER_MAXOBJECTCOUNT = 1000
+
+#: Add a stack traceback to the message text of most warnings issued by pywbem.
+#: This allows identifying which code originated the warning.
+DEBUG_WARNING_ORIGIN = False

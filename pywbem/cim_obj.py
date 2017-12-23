@@ -67,12 +67,15 @@ the ``>``, ``>``, ``<=``, ``>=`` operators has been deprecated.
 
 from __future__ import print_function, absolute_import
 
+import inspect
 import warnings
 from copy import copy
+import traceback
 
 import six
 
 from . import cim_xml
+from .config import DEBUG_WARNING_ORIGIN
 from .cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
     atomic_to_cim_xml, CIMType, CIMDateTime, Uint8, Sint8, Uint16, Sint16, \
     Uint32, Sint32, Uint64, Sint64, Real32, Real64
@@ -410,14 +413,15 @@ class NocaseDict(object):
         """
         return not self == other
 
-    @staticmethod
-    def __ordering_deprecated():
+    def __ordering_deprecated(self):
         """Function to issue deprecation warning for ordered comparisons
         """
-
-        warnings.warn(
-            "Ordering comparisons for pywbem.NocaseDict are deprecated",
-            DeprecationWarning)
+        msg = "Ordering comparisons involving %s objects are deprecated." % \
+            self.__class__.__name__
+        if DEBUG_WARNING_ORIGIN:
+            msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
+        warnings.warn(msg, DeprecationWarning,
+                      stacklevel=_stacklevel_above_module(__name__))
 
     def __lt__(self, other):
         self.__ordering_deprecated()
@@ -729,6 +733,25 @@ def moftype(cim_type, refclass):
     return (refclass + ' REF') if cim_type == 'reference' else cim_type
 
 
+def _stacklevel_above_module(mod_name):
+    """
+    Return the stack level (with 1 = caller of this function) of the first
+    caller that is not defined in the specified module (e.g. "pywbem.cim_obj").
+
+    The returned stack level can be used directly by the caller of this
+    function as an argument for the stacklevel parameter of warnings.warn().
+    """
+    stacklevel = 2  # start with caller of our caller
+    frame = inspect.stack()[stacklevel][0]  # stack() level is 0-based
+    while True:
+        if frame.f_globals.get('__name__', None) != mod_name:
+            break
+        stacklevel += 1
+        frame = frame.f_back
+    del frame
+    return stacklevel
+
+
 def _cim_keybinding(key, value):
     """
     Return a keybinding value, from dict item input (key+value).
@@ -761,11 +784,13 @@ def _cim_keybinding(key, value):
         # compatibility, we deprecate that but do not raise an exception.
         # Note: The CIM data types are derived from the built-in types, so we
         # cannot use isinstance() for this test.
-        warnings.warn(
-            "Using Python numeric type %s for the value of keybinding "
-            "%s is deprecated; use CIM data type classes instead" %
-            (builtin_type(value), key),
-            DeprecationWarning)
+        msg = "Setting a CIMInstanceName keybinding to a %s value is " \
+            "deprecated; use a CIM data type (e.g. Uint32) instead." % \
+            builtin_type(value)
+        if DEBUG_WARNING_ORIGIN:
+            msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
+        warnings.warn(msg, DeprecationWarning,
+                      stacklevel=_stacklevel_above_module(__name__))
         return value
 
     if isinstance(value, (CIMClass, CIMInstance)):
@@ -1717,9 +1742,14 @@ class CIMInstance(_CIMComparisonMixin):
     def property_list(self, property_list):
         """Setter method; for a description see the getter method."""
         if property_list is not None:
-            warnings.warn("The 'property_list' init parameter and attribute "
-                          "of CIMInstance is deprecated; Set only the desired "
-                          "properties instead.", DeprecationWarning)
+            msg = "The 'property_list' init parameter and attribute of " \
+                "CIMInstance is deprecated; Set only the desired properties " \
+                "instead."
+            if DEBUG_WARNING_ORIGIN:
+                msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
+            warnings.warn(msg, DeprecationWarning,
+                          stacklevel=_stacklevel_above_module(__name__))
+
             property_list = [_ensure_unicode(x).lower()
                              for x in property_list]
         # pylint: disable=attribute-defined-outside-init
@@ -3607,8 +3637,13 @@ class CIMMethod(_CIMComparisonMixin):
         """
 
         if methodname is not None:
-            warnings.warn("CIMMethod 'methodname' parameter is deprecated; "
-                          "use 'name' instead", DeprecationWarning)
+            msg = "The 'methodname' init parameter and attribute of " \
+                "CIMMethod is deprecated; use 'name' instead."
+            if DEBUG_WARNING_ORIGIN:
+                msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
+            warnings.warn(msg, DeprecationWarning,
+                          stacklevel=_stacklevel_above_module(__name__))
+
             if name is not None:
                 raise ValueError("CIMMethod 'name' and 'methodname' "
                                  "parameters cannot be specified both")
@@ -4183,10 +4218,13 @@ class CIMParameter(_CIMComparisonMixin):
     def value(self, value):
         """Setter method; for a description see the getter method."""
         if value is not None:
-            warnings.warn(
-                "The value attribute of CIMParameter (name=%r) is deprecated" %
-                self.name,
-                DeprecationWarning)
+            msg = "The 'value' init parameter and attribute of " \
+                "CIMParameter is deprecated."
+            if DEBUG_WARNING_ORIGIN:
+                msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
+            warnings.warn(msg, DeprecationWarning,
+                          stacklevel=_stacklevel_above_module(__name__))
+
         # pylint: disable=attribute-defined-outside-init
         self._value = cimvalue(value, self.type)
 
