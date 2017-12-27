@@ -860,38 +860,42 @@ def type_from_name(type_name):
 
 def atomic_to_cim_xml(obj):
     """
-    Convert a value of an atomic scalar CIM data type to a CIM-XML string and
-    return that string.
+    Convert an atomic scalar value to a CIM-XML string and return that string.
 
-    TODO: Verify whether we can change this function to raise a ValueError in
-    case the value is not CIM typed.
+    The returned CIM-XML string is ready for use as the text of a CIM-XML
+    'VALUE' element.
 
     Parameters:
 
-      obj (atomic scalar CIM typed value):
-        The CIM typed value, including `None`. Must be a scalar (not an array).
-        Must be an atomic type (i.e. those listed in :ref:`CIM data types`,
-        except any :ref:`CIM objects`).
+      obj (:term:`CIM data type`, :term:`number`, :class:`py:datetime`):
+        The input value. May be `None`.
+
+        Must not be an array/list/tuple. Must not be a :ref:`CIM object`.
 
     Returns:
 
         A :term:`unicode string` object in CIM-XML value format representing
-        the CIM typed value. For a value of `None`, `None` is returned.
+        the input value. `None`, if the input value is `None`.
+
+    Raises:
+
+        TypeError
     """
-    # pylint: disable=too-many-return-statements
     from .cim_obj import _ensure_unicode  # due to cycles
-    if isinstance(obj, bool):
-        return u"true" if obj else u"false"
-    elif isinstance(obj, CIMDateTime):
+    if obj is None:
+        return obj
+    elif isinstance(obj, six.string_types):
+        return _ensure_unicode(obj)
+    elif isinstance(obj, bool):
+        return u'TRUE' if obj else u'FALSE'
+    elif isinstance(obj, (CIMInt, number_types, CIMDateTime)):
         return six.text_type(obj)
     elif isinstance(obj, datetime):
         return six.text_type(CIMDateTime(obj))
-    elif obj is None:
-        return obj
-    elif cimtype(obj) == 'real32':
+    elif isinstance(obj, Real32):
         return u'%.8E' % obj
-    elif cimtype(obj) == 'real64':
+    elif isinstance(obj, Real64):
         return u'%.16E' % obj
-    elif isinstance(obj, six.string_types):
-        return _ensure_unicode(obj)
-    return six.text_type(obj)  # e.g. int
+    else:
+        raise TypeError("Value %r has invalid type %s for conversion to a "
+                        "CIM-XML string" % (obj, type(obj)))

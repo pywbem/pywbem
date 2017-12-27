@@ -56,7 +56,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -146,7 +146,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -222,7 +222,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -282,7 +282,7 @@
                       <NAMESPACE NAME="bad"/>
                     </LOCALNAMESPACEPATH>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
@@ -357,10 +357,10 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="BadParam">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -427,7 +427,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -494,7 +494,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -561,7 +561,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>

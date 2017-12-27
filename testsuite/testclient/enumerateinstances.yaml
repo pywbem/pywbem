@@ -84,7 +84,7 @@
                                 <CLASSNAME NAME="PyWBEM_Person"/>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="LocalOnly">
-                                <VALUE>False</VALUE>
+                                <VALUE>FALSE</VALUE>
                             </IPARAMVALUE>
                         </IMETHODCALL>
                     </SIMPLEREQ>
@@ -222,7 +222,7 @@
                                 <CLASSNAME NAME="PyWBEM_Person"/>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="LocalOnly">
-                                <VALUE>False</VALUE>
+                                <VALUE>FALSE</VALUE>
                             </IPARAMVALUE>
                         </IMETHODCALL>
                     </SIMPLEREQ>
@@ -303,7 +303,7 @@
                                 <CLASSNAME NAME="PyWBEM_Nothing"/>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="LocalOnly">
-                                <VALUE>False</VALUE>
+                                <VALUE>FALSE</VALUE>
                             </IPARAMVALUE>
                         </IMETHODCALL>
                     </SIMPLEREQ>
@@ -362,7 +362,7 @@
                                 <CLASSNAME NAME="PyWBEM_Nothing"/>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="LocalOnly">
-                                <VALUE>False</VALUE>
+                                <VALUE>FALSE</VALUE>
                             </IPARAMVALUE>
                         </IMETHODCALL>
                     </SIMPLEREQ>
@@ -423,7 +423,7 @@
                                 <CLASSNAME NAME="PyWBEM_Nothing"/>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="LocalOnly">
-                                <VALUE>False</VALUE>
+                                <VALUE>FALSE</VALUE>
                             </IPARAMVALUE>
                         </IMETHODCALL>
                     </SIMPLEREQ>
@@ -485,7 +485,7 @@
                                 <CLASSNAME NAME="PyWBEM_Nothing"/>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="LocalOnly">
-                                <VALUE>False</VALUE>
+                                <VALUE>FALSE</VALUE>
                             </IPARAMVALUE>
                         </IMETHODCALL>
                     </SIMPLEREQ>
@@ -578,16 +578,16 @@
                                 <CLASSNAME NAME="PyWBEM_Person"/>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="LocalOnly">
-                                <VALUE>False</VALUE>
+                                <VALUE>FALSE</VALUE>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="DeepInheritance">
-                                <VALUE>False</VALUE>
+                                <VALUE>FALSE</VALUE>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="IncludeQualifiers">
-                                <VALUE>True</VALUE>
+                                <VALUE>TRUE</VALUE>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="IncludeClassOrigin">
-                                <VALUE>True</VALUE>
+                                <VALUE>TRUE</VALUE>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="PropertyList">
                                 <VALUE.ARRAY>
@@ -701,7 +701,7 @@
                                 <CLASSNAME NAME="PyWBEM_Person"/>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="LocalOnly">
-                                <VALUE>False</VALUE>
+                                <VALUE>FALSE</VALUE>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="PropertyList">
                                 <VALUE.ARRAY>
@@ -876,10 +876,10 @@
                         <CLASSNAME NAME="PyWBEM_Person"/>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="ExtraParam">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -950,7 +950,7 @@
                                 <CLASSNAME NAME="PyWBEM_Person"/>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="LocalOnly">
-                                <VALUE>False</VALUE>
+                                <VALUE>FALSE</VALUE>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="PropertyList">
                                 <VALUE.ARRAY>
@@ -1081,7 +1081,7 @@
                                 <CLASSNAME NAME="PyWBEM_Person"/>
                             </IPARAMVALUE>
                             <IPARAMVALUE NAME="LocalOnly">
-                                <VALUE>False</VALUE>
+                                <VALUE>FALSE</VALUE>
                             </IPARAMVALUE>
                         </IMETHODCALL>
                     </SIMPLEREQ>
@@ -1350,13 +1350,13 @@
             <NAMESPACE NAME="cimv2"/>
             </LOCALNAMESPACEPATH>
             <IPARAMVALUE NAME="LocalOnly">
-            <VALUE>False</VALUE>
+            <VALUE>FALSE</VALUE>
             </IPARAMVALUE>
             <IPARAMVALUE NAME="ClassName">
             <CLASSNAME NAME="CIM_ComputerSystem"/>
             </IPARAMVALUE>
             <IPARAMVALUE NAME="DeepInheritance">
-            <VALUE>True</VALUE>
+            <VALUE>TRUE</VALUE>
             </IPARAMVALUE>
             </IMETHODCALL>
             </SIMPLEREQ>
@@ -1631,7 +1631,7 @@
                         <CLASSNAME NAME="PyWBEM_Person"/>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="ExtraParam">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>

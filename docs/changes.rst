@@ -116,6 +116,13 @@ Incompatible changes
   because they are required to be `CIMProperty` objects anyway. A `TypeError`
   is now raised if that is detected.
 
+* The `atomic_to_cim_xml()` function now raises `TypeError` if it cannot
+  convert the input value. Previously, it used `str()` on the input value
+  as a last resort.
+
+* The global `tocimxml()` function now raises `TypeError` if it cannot
+  convert the input value. Previously, it raised `ValueError`.
+
 Deprecations
 ^^^^^^^^^^^^
 
@@ -202,6 +209,10 @@ Bug fixes
   missing enumeration_context and eos would pass one of the internal tests.
   See issue #844
 
+* Fixed an error in the CIM-XML representation of qualifier values where
+  the values were not properly converted to CIM-XML. They are now properly
+  converted using `atomic_to_cim_xml()`.
+
 * Docs: Clarified that the return type of `BaseOperationRecorder.open_file()`
   is a file-like object and that the caller is responsible for closing that
   file.
@@ -210,6 +221,10 @@ Cleanup
 ^^^^^^^
 
 * Removed the unimplemented and unused `popitem()` method of `NocaseDict`.
+
+* The `atomic_to_cim_xml()` function and any generated CIM-XML now generates
+  boolean values in upper case 'TRUE' and 'FALSE', following the recommendation
+  in DSP0201.
 
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^

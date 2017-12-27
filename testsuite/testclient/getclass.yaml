@@ -525,7 +525,7 @@
       </VALUE.ARRAY>
       </IPARAMVALUE>
       <IPARAMVALUE NAME="LocalOnly">
-      <VALUE>False</VALUE>
+      <VALUE>FALSE</VALUE>
       </IPARAMVALUE>
       </IMETHODCALL>
       </SIMPLEREQ>
@@ -826,7 +826,7 @@
       </VALUE.ARRAY>
       </IPARAMVALUE>
       <IPARAMVALUE NAME="LocalOnly">
-      <VALUE>False</VALUE>
+      <VALUE>FALSE</VALUE>
       </IPARAMVALUE>
       </IMETHODCALL>
       </SIMPLEREQ>

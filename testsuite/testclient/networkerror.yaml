@@ -44,7 +44,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -98,7 +98,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -152,7 +152,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -206,7 +206,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -216,7 +216,7 @@
         exception: socket_timeout
 -
     name: HTTPSSocketTimeoutError
-    ignore_python_version: 2    
+    ignore_python_version: 2
     description: HTTPS GetInstance raises ConnectionError because of send timeout
     pywbem_request:
         url: https://acme.com:80
@@ -261,7 +261,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
