@@ -74,9 +74,10 @@ from datetime import tzinfo, datetime, timedelta
 import re
 import warnings
 import copy
+import traceback
 import six
 
-from . import config
+from .config import DEBUG_WARNING_ORIGIN, ENFORCE_INTEGER_RANGE
 
 if six.PY2:
     _Longint = long  # noqa: F821
@@ -120,12 +121,13 @@ class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
         """
         return self._cmp(other) != 0
 
-    @staticmethod
-    def __ordering_deprecated():
+    def __ordering_deprecated(self):
         """Deprecated warning for pywbem CIM Objects"""
-        warnings.warn(
-            "Ordering comparisons for pywbem CIM objects are deprecated",
-            DeprecationWarning)
+        msg = "Ordering comparisons involving %s objects are deprecated." % \
+            self.__class__.__name__
+        if DEBUG_WARNING_ORIGIN:
+            msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
+        warnings.warn(msg, DeprecationWarning, stacklevel=3)
 
     def __lt__(self, other):
         """
@@ -584,7 +586,7 @@ class CIMInt(CIMType, _Longint):
 
     def __new__(cls, *args, **kwargs):
         value = _Longint(*args, **kwargs)
-        if config.ENFORCE_INTEGER_RANGE:
+        if ENFORCE_INTEGER_RANGE:
             if value > cls.maxvalue or value < cls.minvalue:
                 raise ValueError("Integer value %s is out of range for CIM "
                                  "datatype %s" % (value, cls.cimtype))
