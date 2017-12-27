@@ -1535,6 +1535,10 @@ class CIMInstance(_CIMComparisonMixin):
             same-named attribute in the ``CIMInstance`` object will also be
             `None`.
 
+            **Deprecated:** This parameter has been deprecated in pywbem
+            0.12.0. Set only the desired properties on the object, instead of
+            working with this property filter.
+
         Raises:
 
           ValueError: classname is `None`, a property or qualifier name is
@@ -1702,6 +1706,10 @@ class CIMInstance(_CIMComparisonMixin):
 
         This attribute is settable. For details, see the description of the
         same-named constructor parameter.
+
+        **Deprecated:** This attribute has been deprecated in pywbem v0.12.0.
+        Set only the desired properties on the object, instead of working with
+        this property filter.
         """
         return self._property_list
 
@@ -1709,6 +1717,9 @@ class CIMInstance(_CIMComparisonMixin):
     def property_list(self, property_list):
         """Setter method; for a description see the getter method."""
         if property_list is not None:
+            warnings.warn("The 'property_list' init parameter and attribute "
+                          "of CIMInstance is deprecated; Set only the desired "
+                          "properties instead.", DeprecationWarning)
             property_list = [_ensure_unicode(x).lower()
                              for x in property_list]
         # pylint: disable=attribute-defined-outside-init
@@ -1766,9 +1777,14 @@ class CIMInstance(_CIMComparisonMixin):
 
     def __setitem__(self, key, value):
 
-        # Ignore properties that are excluded via property list, except
-        # if they are used in the instance path.
-        # TODO: Clarify why we ignore such properties.
+        # The property_list attribute has been deprecated in pywbem 0.12.0.
+        # It is used to ignore the setting of properties under certain
+        # conditions. Note that the purpose of these conditions is unclear,
+        # given the code below (whose logic is unchanged since at least as far
+        # back as pywbem 0.7.0): For instances that do not have a path set,
+        # the property_list is effectively disabled. Nevertheless, the logic
+        # has been kept in place because the property_list feature may be
+        # removed anyway in a future release of pywbem.
         if self.property_list is not None and \
                 key.lower() not in self.property_list and \
                 self.path is not None and \
