@@ -206,6 +206,10 @@ Bug fixes
   missing enumeration_context and eos would pass one of the internal tests.
   See issue #844
 
+* Docs: Clarified that the return type of `BaseOperationRecorder.open_file()`
+  is a file-like object and that the caller is responsible for closing that
+  file.
+
 Cleanup
 ^^^^^^^
 

@@ -565,7 +565,8 @@ def _makequalifiers(qualifiers, indent):
     """
     if not qualifiers:
         return ''
-    qual_list = [q.tomof(indent + 2) for q in sorted(qualifiers.values())]
+    qual_list = [qualifiers[qn].tomof(indent + 2)
+                 for qn in sorted(qualifiers.keys())]
     qual_str = ',\n '.ljust(indent + 2).join(qual_list)
     return '%s[%s]' % (_indent_str(indent), qual_str)
 

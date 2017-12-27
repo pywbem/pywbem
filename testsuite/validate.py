@@ -77,6 +77,7 @@ def validate_xml(data, dtd_directory=None, root_elem=None):
         sys.stdout.write(x)
 
     status = p.wait()
+    p.stdout.close()
 
     if status != 0:
         return False

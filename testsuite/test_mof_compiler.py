@@ -8,7 +8,7 @@
 from __future__ import print_function, absolute_import
 
 import os
-from time import time
+# from time import time
 from zipfile import ZipFile
 import unittest
 import six
@@ -55,13 +55,19 @@ def setUpModule():
         schema mof from DMTF web
     """
 
-    print("")
+    first = True
 
     if not os.path.isdir(SCHEMA_DIR):
+        if first:
+            print("")
+            first = False
         print("Creating directory for CIM Schema archive: %s" % SCHEMA_DIR)
         os.mkdir(SCHEMA_DIR)
 
     if not os.path.isfile(MOF_ZIP_FN):
+        if first:
+            print("")
+            first = False
         print("Downloading CIM Schema archive from: %s" % MOF_ZIP_URL)
         ufo = urlopen(MOF_ZIP_URL)
         with open(MOF_ZIP_FN, 'w') as fp:
@@ -69,11 +75,17 @@ def setUpModule():
                 fp.write(data)
 
     if not os.path.isdir(SCHEMA_MOF_DIR):
+        if first:
+            print("")
+            first = False
         print("Creating directory for CIM Schema MOF files: %s" %
               SCHEMA_MOF_DIR)
         os.mkdir(SCHEMA_MOF_DIR)
 
     if not os.path.isfile(SCHEMA_MOF_FN):
+        if first:
+            print("")
+            first = False
         print("Unpacking CIM Schema archive: %s" % MOF_ZIP_FN)
         try:
             zfp = ZipFile(MOF_ZIP_FN, 'r')
@@ -108,6 +120,10 @@ class MOFTest(unittest.TestCase):
             search_paths=[SCHEMA_MOF_DIR],
             verbose=False,
             log_func=moflog)
+
+    def tearDown(self):
+        """Close the log file."""
+        self.logfile.close()
 
 
 class TestFlavors(MOFTest):
@@ -1397,24 +1413,32 @@ class TestFullSchema(MOFTest):
         """
 
         # original compile and write of output mof
-        start_time = time()
+        # start_time = time()
         self.mofcomp.compile_file(SCHEMA_MOF_FN, NAME_SPACE)
-
-        print('elapsed compile: %f  ' % (time() - start_time))
+        # print('elapsed compile: %f  ' % (time() - start_time))
 
         repo = self.mofcomp.handle
 
         # Create file for mof output
         mofout_filename = os.path.join(SCRIPT_DIR, TMP_FILE)
         mof_out_hndl = open(mofout_filename, 'w')
-        qual_decls = repo.qualifiers[NAME_SPACE]
 
-        for qd in sorted(repo.qualifiers[NAME_SPACE].values()):
-            print(qd.tomof(), file=mof_out_hndl)
+        # Output and verify the qualifier declarations
+        orig_qual_decls = repo.qualifiers[NAME_SPACE]
+        self.assertEqual(len(orig_qual_decls), TOTAL_QUALIFIERS)
+        for qn in sorted(orig_qual_decls.keys()):
+            orig_qual_decl = orig_qual_decls[qn]
+            self.assertTrue(isinstance(orig_qual_decl, CIMQualifierDeclaration))
+            print(orig_qual_decl.tomof(), file=mof_out_hndl)
 
+        # Output and verify the classes
         orig_classes = repo.classes[NAME_SPACE]
-        for cl_ in repo.compile_ordered_classnames:
-            print(orig_classes[cl_].tomof(), file=mof_out_hndl)
+        self.assertEqual(len(orig_classes), TOTAL_CLASSES)
+        self.assertEqual(len(repo.compile_ordered_classnames), TOTAL_CLASSES)
+        for cn in repo.compile_ordered_classnames:
+            orig_class = orig_classes[cn]
+            self.assertTrue(isinstance(orig_class, CIMClass))
+            print(orig_class.tomof(), file=mof_out_hndl)
 
         mof_out_hndl.flush()
         mof_out_hndl.close()
@@ -1427,35 +1451,27 @@ class TestFullSchema(MOFTest):
 
         repo2 = self.mofcomp2.handle
 
-        print('Start recompile file= %s' % mofout_filename)
-
+        # print('Start recompile file= %s' % mofout_filename)
+        # start_time = time()
         self.mofcomp2.compile_file(mofout_filename, NAME_SPACE)
+        # print('elapsed recompile: %f  ' % (time() - start_time))
 
-        # Confirm lengths for qualifiers compiled, orig and recompile
-        # This always works so we fail if there is an error.
-        self.assertEqual(len(repo2.qualifiers[NAME_SPACE]),
-                         TOTAL_QUALIFIERS)
-        self.assertEqual(len(qual_decls),
-                         len(repo2.qualifiers[NAME_SPACE]))
-        # compare the qualifier declaractions. They must be the same
-        for qd in sorted(qual_decls.values()):
-            nextqd = repo2.qualifiers[NAME_SPACE][qd.name]
-            self.assertEqual(nextqd, qd)
+        # Verify the recompiled qualifier declaractions are like the originals
+        recompiled_qual_decls = repo2.qualifiers[NAME_SPACE]
+        self.assertEqual(len(recompiled_qual_decls), len(orig_qual_decls))
+        for qn in sorted(orig_qual_decls.keys()):
+            orig_qual_decl = orig_qual_decls[qn]
+            recompiled_qual_decl = recompiled_qual_decls[qn]
+            self.assertEqual(recompiled_qual_decl, orig_qual_decl)
 
-        self.assertEqual(len(repo2.classes[NAME_SPACE]),
-                         TOTAL_CLASSES)
+        # Verify the recompiled classes are like the originals
+        recompiled_classes = repo2.classes[NAME_SPACE]
+        self.assertEqual(len(recompiled_classes), len(orig_classes))
+        for cn in orig_classes:
+            orig_class = orig_classes[cn]
+            recompiled_class = recompiled_classes[cn]
+            self.assertEqual(recompiled_class, orig_class)
 
-        self.assertEqual(len(orig_classes),
-                         len(repo2.classes[NAME_SPACE]))
-
-        for cl_ in orig_classes:
-            orig_class = orig_classes[cl_]
-            recompiled_class = repo2.classes[NAME_SPACE][cl_]
-            self.assertTrue(isinstance(recompiled_class, CIMClass))
-            self.assertTrue(isinstance(orig_class, CIMClass))
-            self.assertTrue(recompiled_class == orig_class)
-
-        print('elapsed recompile: %f  ' % (time() - start_time))
         os.remove(mofout_filename)
 
 

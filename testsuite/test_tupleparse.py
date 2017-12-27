@@ -73,7 +73,7 @@ class ParseCIMInstanceName(TupleTest):
 
         self._run_single(
             CIMInstanceName('CIM_Foo', {'Name': 'Foo',
-                                        'Number': 42,
+                                        'Number': Uint8(42),
                                         'Boolean': False,
                                         'Ref': CIMInstanceName('CIM_Bar')}))
 
