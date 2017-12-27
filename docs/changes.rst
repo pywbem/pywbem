@@ -119,10 +119,6 @@ Incompatible changes
 Deprecations
 ^^^^^^^^^^^^
 
-* For `CIMInstanceName`, specifying input keybindings as Python numeric types
-  (`int`, `float`) has been deprecated, and an according deprecation warning
-  will now be raised.
-
 Enhancements
 ^^^^^^^^^^^^
 

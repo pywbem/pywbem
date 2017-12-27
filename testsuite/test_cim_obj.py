@@ -448,25 +448,14 @@ class Test_CIMInstanceName_init(object):
             None, True
         ),
         (
-            "Verify keybinding with int value (before 0.12)",
+            "Verify keybinding with int value",
             dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=42)),
             dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=42)),
-            None, not CHECK_0_12_0
-        ),
-        (
-            "Verify keybinding with int value (with DeprecationWarning "
-            "since 0.12)",
-            dict(
-                classname='CIM_Foo',
-                keybindings=dict(K1=42)),
-            dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(K1=42)),
-            DeprecationWarning, CHECK_0_12_0
+            None, True
         ),
         (
             "Verify keybinding with Uint8 value",
@@ -549,25 +538,14 @@ class Test_CIMInstanceName_init(object):
             None, True
         ),
         (
-            "Verify keybinding with float value (before 0.12)",
+            "Verify keybinding with float value",
             dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=42.1)),
             dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=42.1)),
-            None, not CHECK_0_12_0
-        ),
-        (
-            "Verify keybinding with float value (with DeprecationWarning "
-            "since 0.12)",
-            dict(
-                classname='CIM_Foo',
-                keybindings=dict(K1=42.1)),
-            dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(K1=42.1)),
-            DeprecationWarning, CHECK_0_12_0
+            None, True
         ),
         (
             "Verify keybinding with Real32 value",
@@ -940,13 +918,10 @@ class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
 
         # Setting keybindings with int and float
 
-        kb5 = {'KeyInt': Uint8(42),
-               'KeyFloat': Real32(7.5)}
+        kb5 = {'KeyInt': 42,
+               'KeyFloat': 7.5}
         obj.keybindings = kb5
         self.assertEqual(obj.keybindings, kb5)
-        if CHECK_0_12_0:
-            # TODO: Verify DeprecationWarning after migrating to py.test
-            pass
 
         # Setting keybindings with key being None
 
@@ -1417,7 +1392,7 @@ class Test_CIMInstanceName_from_wbem_uri(object):
                 keybindings=NocaseDict(k1=42, k2=True, k3=u'abc', k4=u'42'),
                 namespace=u'cimv2',
                 host=u'10.11.12.13'),
-            DeprecationWarning, CHECK_0_12_0
+            None, CHECK_0_12_0
         ),
     ]
 
@@ -8736,17 +8711,10 @@ class ToCIMObj(unittest.TestCase):
         self.assertTrue(path.namespace is None)
         self.assertTrue(path.host is None)
 
-        if CHECK_0_12_0:
-            with pytest.warns(DeprecationWarning):
-                path = cim_obj.tocimobj(
-                    'reference',
-                    "Acme_User.uid=33,OSName=\"acmeunit\","
-                    "SystemName=\"UnixHost\"")
-        else:
-            path = cim_obj.tocimobj(
-                'reference',
-                "Acme_User.uid=33,OSName=\"acmeunit\","
-                "SystemName=\"UnixHost\"")
+        path = cim_obj.tocimobj(
+            'reference',
+            "Acme_User.uid=33,OSName=\"acmeunit\","
+            "SystemName=\"UnixHost\"")
         self.assertTrue(isinstance(path, CIMInstanceName))
         self.assertTrue(path.namespace is None)
         self.assertTrue(path.host is None)
@@ -8766,15 +8734,9 @@ class ToCIMObj(unittest.TestCase):
         self.assertEqual(path['key1'], 'value1')
         self.assertEqual(len(path.keybindings), 1)
 
-        if CHECK_0_12_0:
-            with pytest.warns(DeprecationWarning):
-                path = cim_obj.tocimobj(
-                    'reference',
-                    "ex_sampleClass.label1=9921,label2=8821")
-        else:
-            path = cim_obj.tocimobj(
-                'reference',
-                "ex_sampleClass.label1=9921,label2=8821")
+        path = cim_obj.tocimobj(
+            'reference',
+            "ex_sampleClass.label1=9921,label2=8821")
         self.assertTrue(isinstance(path, CIMInstanceName))
         self.assertTrue(path.namespace is None)
         self.assertTrue(path.host is None)
@@ -8801,15 +8763,9 @@ class ToCIMObj(unittest.TestCase):
         self.assertEqual(path['Drive'], 'C')
         self.assertEqual(len(path.keybindings), 2)
 
-        if CHECK_0_12_0:
-            with pytest.warns(DeprecationWarning):
-                path = cim_obj.tocimobj(
-                    'reference',
-                    "X.key1=\"John Smith\",key2=33.3")
-        else:
-            path = cim_obj.tocimobj(
-                'reference',
-                "X.key1=\"John Smith\",key2=33.3")
+        path = cim_obj.tocimobj(
+            'reference',
+            "X.key1=\"John Smith\",key2=33.3")
         self.assertTrue(isinstance(path, CIMInstanceName))
         self.assertTrue(path.namespace is None)
         self.assertTrue(path.host is None)
