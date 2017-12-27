@@ -310,6 +310,8 @@ class BaseOperationRecorder(object):
         issue where the file should be opened in text mode but that is
         done differently in Python 2 and Python 3.
 
+        The returned file-like object must be closed by the caller.
+
         Parameters:
 
           filename(:term:`string`):
@@ -320,10 +322,18 @@ class BaseOperationRecorder(object):
             existing file.  if 'a' is used, the data is appended to any
             existing file.
 
+        Returns:
+
+          File-like object.
+
         Example::
 
-            recorder = TestClientRecorder(
-                BaseOperationRecorder.open_file('recorder.log'))
+            recorder = TestClientRecorder(...)
+            recorder_file = recorder.open_file('recorder.log')
+
+            . . . # Perform WBEM operations using the recorder
+
+            recorder_file.close()
         """
         if six.PY2:
             # Open with codecs to define text mode

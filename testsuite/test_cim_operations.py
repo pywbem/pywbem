@@ -7,6 +7,7 @@ Unittest functions in cim_operations.
 
 from __future__ import print_function, absolute_import
 
+import os
 import pytest
 
 from pywbem.cim_operations import check_utf8_xml_chars, ParseError, \
@@ -137,10 +138,13 @@ class TestCreateConnection(object):
         """Test addition of multiple operation recorders"""
         conn = WBEMConnection('http://localhost')
         conn.add_operation_recorder(LogOperationRecorder())
-        tcr_file = MyTestClientRecorder.open_file('blah.yaml', 'a')
+        tcr_fn = 'blah.yaml'
+        tcr_file = MyTestClientRecorder.open_file(tcr_fn, 'a')
         conn.add_operation_recorder(MyTestClientRecorder(tcr_file))
         # pylint: disable=protected-access
         assert len(conn._operation_recorders) == 2
+        tcr_file.close()
+        os.remove(tcr_fn)
 
     def test_add_same_twice(self):  # pylint: disable=no-self-use
         """ Test addition of same recorder twice"""
