@@ -42,8 +42,30 @@ from unittest_extensions import RegexpMixin, CIMObjectMixin
 
 unimplemented = pytest.mark.skipif(True, reason="test not implemented")
 
-# Controls whether the new behavior for CIM objects in 0.12.0 is checked.
+# Controls whether the new behavior for CIM objects in 0.12 is checked.
 CHECK_0_12_0 = (__version__.split('.') > ['0', '11', '0'])
+
+# Values for expected 'type' property; since 0.12 they are converted to unicode
+exp_type_char16 = u'char16' if CHECK_0_12_0 else 'char16'
+exp_type_string = u'string' if CHECK_0_12_0 else 'string'
+exp_type_boolean = u'boolean' if CHECK_0_12_0 else 'boolean'
+exp_type_uint8 = u'uint8' if CHECK_0_12_0 else 'uint8'
+exp_type_uint16 = u'uint16' if CHECK_0_12_0 else 'uint16'
+exp_type_uint32 = u'uint32' if CHECK_0_12_0 else 'uint32'
+exp_type_uint64 = u'uint64' if CHECK_0_12_0 else 'uint64'
+exp_type_sint8 = u'sint8' if CHECK_0_12_0 else 'sint8'
+exp_type_sint16 = u'sint16' if CHECK_0_12_0 else 'sint16'
+exp_type_sint32 = u'sint32' if CHECK_0_12_0 else 'sint32'
+exp_type_sint64 = u'sint64' if CHECK_0_12_0 else 'sint64'
+exp_type_real32 = u'real32' if CHECK_0_12_0 else 'real32'
+exp_type_real64 = u'real64' if CHECK_0_12_0 else 'real64'
+exp_type_datetime = u'datetime' if CHECK_0_12_0 else 'datetime'
+exp_type_reference = u'reference' if CHECK_0_12_0 else 'reference'
+
+# Values for expected 'embedded_object' property; since 0.12 they are converted
+# to unicode
+exp_eo_object = u'object' if CHECK_0_12_0 else 'object'
+exp_eo_instance = u'instance' if CHECK_0_12_0 else 'instance'
 
 print("Debug: CHECK_0_12_0 = %s, __version__ = %s" %
       (CHECK_0_12_0, __version__))
@@ -290,8 +312,7 @@ class DictionaryTestCase(unittest.TestCase):
 
 class Test_CIMInstanceName_init(object):
     """
-    Test the initialization of `CIMInstanceName` objects and the resulting
-    attributes.
+    Test CIMInstanceName.__init__().
 
     Note that the order of the arguments `host` and `namespace` in the
     constructor is swapped compared to their optionality, for historical
@@ -311,14 +332,32 @@ class Test_CIMInstanceName_init(object):
     timedelta1_td = timedelta(183, (13 * 60 + 25) * 60 + 42, 234567)
     timedelta1_obj = CIMDateTime(timedelta1_td)
 
+    def test_CIMInstanceName_init_pos_args(self):
+        # pylint: disable=unused-argument
+        """Test position of arguments in CIMInstanceName.__init__()."""
+
+        keybindings = dict(P1=True)
+
+        # The code to be tested
+        obj = CIMInstanceName(
+            'CIM_Foo',
+            keybindings,
+            'woot.com',
+            'cimv2')
+
+        assert obj.classname == u'CIM_Foo'
+        assert obj.keybindings == NocaseDict(keybindings)
+        assert obj.host == u'woot.com'
+        assert obj.namespace == u'cimv2'
+
     testcases_succeeds = [
-        # Testcases for test_succeeds(); each testcase has these items:
+        # Testcases where CIMInstanceName.__init__() succeeds.
+        # Each testcase has these items:
         # * desc: Short testcase description.
         # * kwargs: Dict of keyword arguments for __init__().
         # * exp_attrs: Dict of expected attributes of resulting object.
         # * exp_warn_type: Expected warning type.
         # * condition: Condition for testcase to run.
-
         (
             "Verify that binary classname is converted to unicode",
             dict(classname=b'CIM_Foo'),
@@ -372,7 +411,7 @@ class Test_CIMInstanceName_init(object):
             None, True
         ),
         (
-            "Verify keybinding with int value (before v0.12.0)",
+            "Verify keybinding with int value (before 0.12)",
             dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=42)),
@@ -383,7 +422,7 @@ class Test_CIMInstanceName_init(object):
         ),
         (
             "Verify keybinding with int value (with DeprecationWarning "
-            "since v0.12.0)",
+            "since 0.12)",
             dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=42)),
@@ -473,7 +512,7 @@ class Test_CIMInstanceName_init(object):
             None, True
         ),
         (
-            "Verify keybinding with float value (before v0.12.0)",
+            "Verify keybinding with float value (before 0.12)",
             dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=42.1)),
@@ -484,7 +523,7 @@ class Test_CIMInstanceName_init(object):
         ),
         (
             "Verify keybinding with float value (with DeprecationWarning "
-            "since v0.12.0)",
+            "since 0.12)",
             dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=42.1)),
@@ -611,13 +650,56 @@ class Test_CIMInstanceName_init(object):
         ),
     ]
 
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_attrs, exp_warn_type, condition",
+        testcases_succeeds
+    )
+    def test_CIMInstanceName_init_succeeds(
+            self, desc, kwargs, exp_attrs, exp_warn_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMInstanceName.__init__() succeeds."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        exp_classname = exp_attrs['classname']
+        exp_keybindings = exp_attrs.get(
+            'keybindings', self.default_exp_attrs['keybindings'])
+        exp_host = exp_attrs.get(
+            'host', self.default_exp_attrs['host'])
+        exp_namespace = exp_attrs.get(
+            'namespace', self.default_exp_attrs['namespace'])
+
+        if exp_warn_type is None:
+
+            # The code to be tested
+            obj = CIMInstanceName(**kwargs)
+
+        else:
+            with pytest.warns(exp_warn_type):
+
+                # The code to be tested
+                obj = CIMInstanceName(**kwargs)
+
+        assert obj.classname == exp_classname
+        assert isinstance(obj.classname, type(exp_classname))
+
+        assert obj.keybindings == exp_keybindings
+        assert isinstance(obj.keybindings, type(exp_keybindings))
+
+        assert obj.host == exp_host
+        assert isinstance(obj.host, type(exp_host))
+
+        assert obj.namespace == exp_namespace
+        assert isinstance(obj.namespace, type(exp_namespace))
+
     testcases_fails = [
-        # Testcases for test_fails(); each testcase has these items:
+        # Testcases where CIMInstanceName.__init__() fails.
+        # Each testcase has these items:
         # * desc: Short testcase description.
         # * kwargs: Dict of keyword arguments for __init__().
         # * exp_exc_type: Expected exception type.
         # * condition: Condition for testcase to run.
-
         (
             "Verify that classname None fails",
             dict(classname=None),
@@ -626,7 +708,7 @@ class Test_CIMInstanceName_init(object):
         ),
         (
             "Verify that keybinding with name None fails (with TypeError "
-            "before v0.12.0",
+            "before 0.12",
             dict(
                 classname='CIM_Foo',
                 keybindings={None: 'abc'}),
@@ -635,7 +717,7 @@ class Test_CIMInstanceName_init(object):
         ),
         (
             "Verify that keybinding with name None fails (with ValueError "
-            "since v0.12.0",
+            "since 0.12",
             dict(
                 classname='CIM_Foo',
                 keybindings={None: 'abc'}),
@@ -650,80 +732,59 @@ class Test_CIMInstanceName_init(object):
             ValueError,
             CHECK_0_12_0
         ),
+        (
+            "Verify that keybinding with a value of an embedded class fails",
+            dict(
+                classname='CIM_Foo',
+                keybindings=dict(K1=CIMClass('CIM_EmbClass'))),
+            TypeError,
+            CHECK_0_12_0
+        ),
+        (
+            "Verify that keybinding with a value of an embedded instance fails",
+            dict(
+                classname='CIM_Foo',
+                keybindings=dict(K1=CIMInstance('CIM_EmbInst'))),
+            TypeError,
+            CHECK_0_12_0
+        ),
+        (
+            "Verify that keybinding with an array value fails",
+            dict(
+                classname='CIM_Foo',
+                keybindings=dict(K1=[1, 2])),
+            TypeError,
+            CHECK_0_12_0
+        ),
+        (
+            "Verify that keybinding with a value of some other unsupported "
+            "object type (e.g. exception type) fails",
+            dict(
+                classname='CIM_Foo',
+                keybindings=dict(K1=TypeError)),
+            TypeError,
+            CHECK_0_12_0
+        ),
     ]
 
-    def test_pos_args(self):
-        # pylint: disable=unused-argument
-        """Test position of arguments in `CIMInstanceName.__init__()`."""
-
-        # The code to be tested
-        obj = CIMInstanceName(
-            'CIM_Foo',
-            dict(P1=True),
-            'woot.com',
-            'cimv2')
-
-        assert obj.classname == u'CIM_Foo'
-        assert obj.keybindings == NocaseDict(P1=True)
-        assert obj.host == u'woot.com'
-        assert obj.namespace == u'cimv2'
-
     @pytest.mark.parametrize(
-        "desc, kwargs, exp_attrs, exp_warn_type, condition",
-        testcases_succeeds
-    )
-    def test_succeeds(self, desc, kwargs, exp_attrs, exp_warn_type, condition):
+        "desc, kwargs, exp_exc_type, condition",
+        testcases_fails)
+    def test_CIMInstanceName_init_fails(
+            self, desc, kwargs, exp_exc_type, condition):
         # pylint: disable=unused-argument
-        """All tests for initializing `CIMInstanceName` objects that succeed."""
+        """All test cases where CIMInstanceName.__init__() fails."""
 
-        if condition:
+        if not condition:
+            pytest.skip("Condition for test case not met")
 
-            exp_classname = exp_attrs['classname']
-            exp_keybindings = exp_attrs.get(
-                'keybindings', self.default_exp_attrs['keybindings'])
-            exp_host = exp_attrs.get(
-                'host', self.default_exp_attrs['host'])
-            exp_namespace = exp_attrs.get(
-                'namespace', self.default_exp_attrs['namespace'])
+        with pytest.raises(exp_exc_type):
 
-            if exp_warn_type is None:
-
-                # The code to be tested
-                obj = CIMInstanceName(**kwargs)
-
-            else:
-                with pytest.warns(exp_warn_type):
-
-                    # The code to be tested
-                    obj = CIMInstanceName(**kwargs)
-
-            assert obj.classname == exp_classname
-            assert type(obj.classname) is type(exp_classname)
-
-            assert obj.keybindings == exp_keybindings
-            assert type(obj.keybindings) is type(exp_keybindings)
-
-            assert obj.host == exp_host
-            assert type(obj.host) is type(exp_host)
-
-            assert obj.namespace == exp_namespace
-            assert type(obj.namespace) is type(exp_namespace)
-
-    @pytest.mark.parametrize("desc, kwargs, exp_exc_type, condition",
-                             testcases_fails)
-    def test_fails(self, desc, kwargs, exp_exc_type, condition):
-        # pylint: disable=unused-argument
-        """All tests for initializing `CIMInstanceName` objects that fail."""
-
-        if condition:
-
-            with pytest.raises(exp_exc_type):
-
-                # The code to be tested
-                CIMInstanceName(**kwargs)
+            # The code to be tested
+            CIMInstanceName(**kwargs)
 
 
-class CopyCIMInstanceName(unittest.TestCase, CIMObjectMixin):
+class CIMInstanceNameCopy(unittest.TestCase, CIMObjectMixin):
     """
     Test the copy() method of `CIMInstanceName` objects.
 
@@ -1058,58 +1119,68 @@ class CIMInstanceNameSort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
-class Test_CIMInstanceName_str(RegexpMixin):
+class Test_CIMInstanceName_str(object):
     """
-    Test `CIMInstanceName.__str__() (returns instance path as WBEM URI)`.
+    Test CIMInstanceName.__str__().
+
+    That function returns the instance path as a WBEM URI string.
     """
 
+    testcases_single_key_succeeds = [
+        # Testcases where CIMInstanceName.__str__() with single key succeeds.
+        # Each testcase has these items:
+        # * obj: CIMInstanceName object to be tested.
+        # * exp_uri: Expected WBEM URI string.
+        (CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=None),
+         'CIM_Foo'),
+        (CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=dict()),
+         'CIM_Foo'),
+        (CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=dict(InstanceID=None)),
+         'CIM_Foo.InstanceID="None"'),
+        (CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=dict(InstanceID='1234')),
+         'CIM_Foo.InstanceID="1234"'),
+        (CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=dict(InstanceID='1234'),
+            namespace='cimv2'),
+         'cimv2:CIM_Foo.InstanceID="1234"'),
+        (CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=dict(InstanceID='1234'),
+            namespace='root/cimv2',
+            host='10.11.12.13:5989'),
+         '//10.11.12.13:5989/root/cimv2:CIM_Foo.InstanceID="1234"'),
+        (CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=dict(InstanceID='1234'),
+            namespace='root/cimv2',
+            host='jdd:test@10.11.12.13'),
+         '//jdd:test@10.11.12.13/root/cimv2:CIM_Foo.InstanceID="1234"'),
+    ]
+
     @pytest.mark.parametrize(
-        "obj, exp_uri", [
-            (CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=None),
-             'CIM_Foo'),
-            (CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=dict()),
-             'CIM_Foo'),
-            (CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=dict(InstanceID=None)),
-             'CIM_Foo.InstanceID="None"'),
-            (CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=dict(InstanceID='1234')),
-             'CIM_Foo.InstanceID="1234"'),
-            (CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=dict(InstanceID='1234'),
-                namespace='cimv2'),
-             'cimv2:CIM_Foo.InstanceID="1234"'),
-            (CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=dict(InstanceID='1234'),
-                namespace='root/cimv2',
-                host='10.11.12.13:5989'),
-             '//10.11.12.13:5989/root/cimv2:CIM_Foo.InstanceID="1234"'),
-            (CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=dict(InstanceID='1234'),
-                namespace='root/cimv2',
-                host='jdd:test@10.11.12.13'),
-             '//jdd:test@10.11.12.13/root/cimv2:CIM_Foo.InstanceID="1234"'),
-        ]
-    )
-    def test_single_key_succeeds(self, obj, exp_uri):
-        """All test cases for CIMInstanceName.__str__() with single key that
-        succeed."""
+        "obj, exp_uri",
+        testcases_single_key_succeeds)
+    def test_CIMInstanceName_str_single_key_succeeds(
+            self, obj, exp_uri):
+        """All test cases where CIMInstanceName.__str__() with single key
+        succeeds."""
 
         s = str(obj)
 
         assert s == exp_uri
 
-    def test_multi_key(self):
-        """A test case for CIMInstanceName.__str__() with multiple keys."""
+    def test_CIMInstanceName_str_multi_key_succeeds(self):
+        """A test case where CIMInstanceName.__str__() with multiple keys
+        succeeds."""
 
         obj = CIMInstanceName('CIM_Foo', {'Name': 'Foo', 'Secret': 42})
 
@@ -1126,27 +1197,80 @@ class Test_CIMInstanceName_str(RegexpMixin):
         assert s == ','
 
 
-class Test_CIMInstanceName_repr(RegexpMixin):
+class Test_CIMInstanceName_repr(object):
     """
-    Test `CIMInstanceName.__repr__()`.
+    Test CIMInstanceName.__repr__().
     """
 
-    def test_all(self):
+    testcases_succeeds = [
+        # Testcases where CIMInstanceName.__repr__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMInstanceName object to be tested.
+        (
+            CIMInstanceName(
+                classname='CIM_Foo',
+                keybindings=None)
+        ),
+        (
+            CIMInstanceName(
+                classname='CIM_Foo',
+                keybindings=dict())
+        ),
+        (
+            CIMInstanceName(
+                classname='CIM_Foo',
+                keybindings=dict(InstanceID=None))
+        ),
+        (
+            CIMInstanceName(
+                classname='CIM_Foo',
+                keybindings=dict(InstanceID='1234'))
+        ),
+        (
+            CIMInstanceName(
+                classname='CIM_Foo',
+                keybindings=dict(InstanceID='1234'),
+                namespace='cimv2')
+        ),
+        (
+            CIMInstanceName(
+                classname='CIM_Foo',
+                keybindings=dict(InstanceID='1234'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989')
+        ),
+        (
+            CIMInstanceName(
+                classname='CIM_Foo',
+                keybindings=dict(InstanceID='1234'),
+                namespace='root/cimv2',
+                host='jdd:test@10.11.12.13')
+        ),
+    ]
 
-        obj = CIMInstanceName('CIM_Foo',
-                              keybindings={'Name': 'Foo', 'Secret': 42},
-                              namespace='root/cimv2',
-                              host='woot.com')
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMInstanceName_repr_succeeds(self, obj):
 
         r = repr(obj)
 
         assert re.match(r'^CIMInstanceName\(', r)
-        assert 'classname=%r' % obj.classname in r
+
+        exp_classname = 'classname=%r' % obj.classname
+        assert exp_classname in r
+
         assert 'keybindings=' in r
-        assert re.search('u?[\'"]Secret[\'"]: 42', r)
-        assert re.search('u?[\'"]Name[\'"]: u?[\'"]Foo[\'"]', r)
-        assert 'namespace=%r' % obj.namespace in r
-        assert 'host=%r' % obj.host in r
+        if obj.keybindings:
+            for key in obj.keybindings.keys():
+                search_str = 'u?[\'"]%s[\'"]: ' % key
+                assert re.search(search_str, r), "For key %r" % key
+
+        exp_namespace = 'namespace=%r' % obj.namespace
+        assert exp_namespace in r
+
+        exp_host = 'host=%r' % obj.host
+        assert exp_host in r
 
 
 class CIMInstanceNameToXML(ValidationTestCase):
@@ -1201,101 +1325,166 @@ class CIMInstanceNameToXML(ValidationTestCase):
 
 class Test_CIMInstanceName_from_wbem_uri(object):
     """
-    Test `CIMInstanceName.from_wbem_uri()`.
+    Test CIMInstanceName.from_wbem_uri().
     """
 
+    testcases_succeeds = [
+        # Testcases where CIMInstanceName.from_wbem_uri() succeeds.
+        # Each testcase has these items:
+        # * uri: WBEM URI string to be tested.
+        # * exp_obj: Expected CIMInstanceName object.
+        (
+            'https://jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            CIMInstanceName(
+                classname='CIM_Foo',
+                keybindings=dict(k1='v1'),
+                namespace='root/cimv2',
+                host='jdd:test@10.11.12.13:5989')
+        ),
+        (
+            'https://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1",k2="v2"',
+            CIMInstanceName(
+                classname='CIM_Foo',
+                keybindings=dict(k1='v1', k2='v2'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989')
+        ),
+        (
+            'http://10.11.12.13/root/cimv2:CIM_Foo.k1="v1"',
+            CIMInstanceName(
+                classname='CIM_Foo',
+                keybindings=dict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13')
+        ),
+        (
+            'http://10.11.12.13/cimv2:CIM_Foo.k1="v1"',
+            CIMInstanceName(
+                classname='CIM_Foo',
+                keybindings=dict(k1='v1'),
+                namespace='cimv2',
+                host='10.11.12.13')
+        ),
+        (
+            'http://10.11.12.13/cimv2:CIM_Foo.k1=42,k2=true,k3="abc",k4="42"',
+            CIMInstanceName(
+                classname='CIM_Foo',
+                keybindings=dict(k1=42, k2=True, k3='abc', k4='42'),
+                namespace='cimv2',
+                host='10.11.12.13')
+        ),
+    ]
+
     @pytest.mark.parametrize(
-        "uri, exp_obj", [
-            ('https://jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
-             CIMInstanceName(
-                 classname='CIM_Foo',
-                 keybindings=dict(k1='v1'),
-                 namespace='root/cimv2',
-                 host='jdd:test@10.11.12.13:5989')),
-            ('https://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1",k2="v2"',
-             CIMInstanceName(
-                 classname='CIM_Foo',
-                 keybindings=dict(k1='v1', k2='v2'),
-                 namespace='root/cimv2',
-                 host='10.11.12.13:5989')),
-            ('http://10.11.12.13/root/cimv2:CIM_Foo.k1="v1"',
-             CIMInstanceName(
-                 classname='CIM_Foo',
-                 keybindings=dict(k1='v1'),
-                 namespace='root/cimv2',
-                 host='10.11.12.13')),
-            ('http://10.11.12.13/cimv2:CIM_Foo.k1="v1"',
-             CIMInstanceName(
-                 classname='CIM_Foo',
-                 keybindings=dict(k1='v1'),
-                 namespace='cimv2',
-                 host='10.11.12.13')),
-            ('http://10.11.12.13/cimv2:CIM_Foo.k1=42,k2=true,k3="abc",k4="42"',
-             CIMInstanceName(
-                 classname='CIM_Foo',
-                 keybindings=dict(k1=42, k2=True, k3='abc', k4='42'),
-                 namespace='cimv2',
-                 host='10.11.12.13')),
-        ]
-    )
-    def test_succeeds(self, uri, exp_obj):
-        """All test cases for CIMInstanceName.from_wbem_uri() that succeed."""
+        "uri, exp_obj",
+        testcases_succeeds)
+    def test_CIMInstanceName_from_wbem_uri_succeeds(self, uri, exp_obj):
+        """All test cases where CIMInstanceName.from_wbem_uri() succeeds."""
 
         if CHECK_0_12_0:
 
             obj = CIMInstanceName.from_wbem_uri(uri)
 
             assert isinstance(obj, CIMInstanceName)
+
             assert obj.classname == exp_obj.classname
+            assert isinstance(obj.classname, type(exp_obj.classname))
+
             assert obj.keybindings == exp_obj.keybindings
+            assert isinstance(obj.keybindings, type(exp_obj.keybindings))
+
             assert obj.namespace == exp_obj.namespace
+            assert isinstance(obj.namespace, type(exp_obj.namespace))
+
             assert obj.host == exp_obj.host
+            assert isinstance(obj.host, type(exp_obj.host))
+
+    testcases_fails = [
+        # Testcases where CIMInstanceName.from_wbem_uri() fails.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * uri: WBEM URI string to be tested.
+        # * exp_exc_type: Expected exception type.
+
+        # TODO: Improve implementation to make it fail for the disabled cases.
+        (
+            "missing '/' after scheme",
+            'https:/10.11.12.13:5989/cimv2:CIM_Foo.k1="v1"',
+            ValueError
+        ),
+        # (
+        #     "invalid scheme",
+        #     'xyz://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1"',
+        #     ValueError
+        # ),
+        # (
+        #     "invalid ';' between host and port",
+        #     'https://10.11.12.13;5989/cimv2:CIM_Foo.k1="v1"',
+        #     ValueError
+        # ),
+        (
+            "invalid ':' between port and namespace",
+            'https://10.11.12.13:5989:cimv2:CIM_Foo.k1="v1"',
+            ValueError
+        ),
+        # (
+        #     "invalid '.' between namespace and classname",
+        #     'https://10.11.12.13:5989/cimv2.CIM_Foo.k1="v1"',
+        #     ValueError
+        # ),
+        # (
+        #     "invalid '/' between namespace and classname",
+        #     'https://10.11.12.13:5989/cimv2/CIM_Foo.k1="v1"',
+        #     ValueError
+        # ),
+        (
+            "invalid ':' between classname and key k1",
+            'https://10.11.12.13:5989/cimv2:CIM_Foo:k1="v1"',
+            ValueError
+        ),
+        (
+            "invalid '/' between classname and key k1",
+            'https://10.11.12.13:5989/cimv2:CIM_Foo/k1="v1"',
+            ValueError
+        ),
+        # (
+        #     "invalid '.' between key k1 and key k2",
+        #     'https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1".k2="v2"',
+        #     ValueError
+        # ),
+        # (
+        #     "invalid ':' between key k1 and key k2",
+        #     'https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1":k2="v2"',
+        #     ValueError
+        # ),
+        (
+            "double quotes missing around value of key k2",
+            'https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1".k2=v2',
+            ValueError
+        ),
+        (
+            "single quotes used around value of key k2",
+            'https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1".k2=\'v2\'',
+            ValueError
+        ),
+    ]
 
     @pytest.mark.parametrize(
-        # TODO: Improve implementation to make it fail for the disabled cases.
-        "uri, exp_exc", [
-            ('https:/10.11.12.13:5989/cimv2:CIM_Foo.k1="v1"',
-             ValueError),  # missing '/' after scheme
-            # ('xyz://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1"',
-            #  ValueError),  # invalid scheme
-            # ('https://10.11.12.13;5989/cimv2:CIM_Foo.k1="v1"',
-            #  ValueError),  # invalid ';' between host and port
-            ('https://10.11.12.13:5989:cimv2:CIM_Foo.k1="v1"',
-             ValueError),  # invalid ':' between port and namespace
-            # ('https://10.11.12.13:5989/cimv2.CIM_Foo.k1="v1"',
-            #  ValueError),  # invalid '.' between namespace and classname
-            # ('https://10.11.12.13:5989/cimv2/CIM_Foo.k1="v1"',
-            #  ValueError),  # invalid '/' between namespace and classname
-            ('https://10.11.12.13:5989/cimv2:CIM_Foo:k1="v1"',
-             ValueError),  # invalid ':' between classname and key k1
-            ('https://10.11.12.13:5989/cimv2:CIM_Foo/k1="v1"',
-             ValueError),  # invalid '/' between classname and key k1
-            # ('https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1".k2="v2"',
-            #  ValueError),  # invalid '.' between key k1 and key k2
-            # ('https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1":k2="v2"',
-            #  ValueError),  # invalid ':' between key k1 and key k2
-            ('https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1".k2=v2',
-             ValueError),  # double quotes missing around value of key k2
-            ('https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1".k2=\'v2\'',
-             ValueError),  # single quotes used around value of key k2
-        ]
-    )
-    def test_fails(self, uri, exp_exc):
-        """All test cases for CIMInstanceName.from_wbem_uri() that fail."""
+        "desc, uri, exp_exc_type",
+        testcases_fails)
+    def test_CIMInstanceName_from_wbem_uri_fails(self, desc, uri, exp_exc_type):
+        # pylint: disable=unused-argument
+        """All test cases where CIMInstanceName.from_wbem_uri() fails."""
 
         if CHECK_0_12_0:
 
-            with pytest.raises(Exception) as exc_info:
+            with pytest.raises(exp_exc_type):
                 CIMInstanceName.from_wbem_uri(uri)
-            exc = exc_info.value
-
-            assert isinstance(exc, exp_exc)
 
 
 class Test_CIMInstance_init(object):
     """
-    Test the initialization of `CIMInstance` objects and the resulting
-    attributes.
+    Test CIMInstance.__init__().
 
     Some notes on testing input parameters of this class:
 
@@ -1320,16 +1509,38 @@ class Test_CIMInstance_init(object):
         property_list=None,
     )
 
+    def test_CIMInstance_init_pos_args(self):
+        # pylint: disable=unused-argument
+        """Test position of arguments in CIMInstance.__init__()."""
+
+        properties = dict(P1=CIMProperty('P1', value=True))
+        qualifiers = dict(Q1=CIMQualifier('Q1', value=True))
+        path = CIMInstanceName('CIM_Foo')
+
+        # The code to be tested
+        obj = CIMInstance(
+            'CIM_Foo',
+            properties,
+            qualifiers,
+            path,
+            ['P1'])
+
+        assert obj.classname == u'CIM_Foo'
+        assert obj.properties == NocaseDict(properties)
+        assert obj.qualifiers == NocaseDict(qualifiers)
+        assert obj.path == path
+        assert obj.property_list == ['p1']
+
     testcases_succeeds = [
-        # Testcases for test_succeeds(); each testcase has these items:
+        # Testcases where CIMInstance.__init__() succeeds.
+        # Each testcase has these items:
         # * desc: Short testcase description.
         # * kwargs: Dict of keyword arguments for __init__().
         # * exp_attrs: Dict of expected attributes of resulting object.
         # * exp_warn_type: Expected warning type.
         # * condition: Condition for testcase to run.
-
         (
-            "Verify that classname None is accepted (before 0.12.0)",
+            "Verify that classname None is accepted (before 0.12)",
             dict(classname=None),
             dict(classname=None),
             None, not CHECK_0_12_0
@@ -1594,15 +1805,62 @@ class Test_CIMInstance_init(object):
         ),
     ]
 
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_attrs, exp_warn_type, condition",
+        testcases_succeeds)
+    def test_CIMInstance_init_succeeds(
+            self, desc, kwargs, exp_attrs, exp_warn_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMInstance.__init__() succeeds."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        exp_classname = exp_attrs['classname']
+        exp_properties = exp_attrs.get(
+            'properties', self.default_exp_attrs['properties'])
+        exp_qualifiers = exp_attrs.get(
+            'qualifiers', self.default_exp_attrs['qualifiers'])
+        exp_path = exp_attrs.get(
+            'path', self.default_exp_attrs['path'])
+        exp_property_list = exp_attrs.get(
+            'property_list', self.default_exp_attrs['property_list'])
+
+        if exp_warn_type is None:
+
+            # The code to be tested
+            obj = CIMInstance(**kwargs)
+
+        else:
+            with pytest.warns(exp_warn_type):
+
+                # The code to be tested
+                obj = CIMInstance(**kwargs)
+
+        assert obj.classname == exp_classname
+        assert isinstance(obj.classname, type(exp_classname))
+
+        assert obj.properties == exp_properties
+        assert isinstance(obj.properties, type(exp_properties))
+
+        assert obj.qualifiers == exp_qualifiers
+        assert isinstance(obj.qualifiers, type(exp_qualifiers))
+
+        assert obj.path == exp_path
+        assert isinstance(obj.path, type(exp_path))
+
+        assert obj.property_list == exp_property_list
+        assert isinstance(obj.property_list, type(exp_property_list))
+
     testcases_fails = [
-        # Testcases for test_fails(); each testcase has these items:
+        # Testcases where CIMInstance.__init__() fails.
+        # Each testcase has these items:
         # * desc: Short testcase description.
         # * kwargs: Dict of keyword arguments for __init__().
         # * exp_exc_type: Expected exception type.
         # * condition: Condition for testcase to run.
-
         (
-            "Verify that classname None fails (since 0.12.0)",
+            "Verify that classname None fails (since 0.12)",
             dict(classname=None),
             ValueError,
             CHECK_0_12_0
@@ -1617,7 +1875,7 @@ class Test_CIMInstance_init(object):
         ),
         (
             "Verify that property CIMProperty with inconsistent name fails "
-            "(since 0.12.0)",
+            "(since 0.12)",
             dict(
                 classname='CIM_Foo',
                 properties=dict(P1=CIMProperty('P1_X', 'abc'))),
@@ -1626,7 +1884,7 @@ class Test_CIMInstance_init(object):
         ),
         (
             "Verify that property with int value fails (with ValueError since "
-            "0.12.0)",
+            "0.12)",
             dict(
                 classname='CIM_Foo',
                 properties=dict(P1=42)),
@@ -1635,7 +1893,7 @@ class Test_CIMInstance_init(object):
         ),
         (
             "Verify that property with int value fails (with TypeError before "
-            "0.12.0)",
+            "0.12)",
             dict(
                 classname='CIM_Foo',
                 properties=dict(P1=42)),
@@ -1644,7 +1902,7 @@ class Test_CIMInstance_init(object):
         ),
         (
             "Verify that property with float value fails (with ValueError "
-            "since 0.12.0)",
+            "since 0.12)",
             dict(
                 classname='CIM_Foo',
                 properties=dict(P1=42.1)),
@@ -1653,7 +1911,7 @@ class Test_CIMInstance_init(object):
         ),
         (
             "Verify that property with float value fails (with TypeError "
-            "before 0.12.0)",
+            "before 0.12)",
             dict(
                 classname='CIM_Foo',
                 properties=dict(P1=42.1)),
@@ -1662,7 +1920,7 @@ class Test_CIMInstance_init(object):
         ),
         (
             "Verify that property with float value fails (on Python 2 only, "
-            "with ValueError since 0.12.0)",
+            "with ValueError since 0.12)",
             dict(
                 classname='CIM_Foo',
                 properties=dict(P1=_Longint(42))),
@@ -1671,7 +1929,7 @@ class Test_CIMInstance_init(object):
         ),
         (
             "Verify that property with float value fails (on Python 2 only, "
-            "with TypeError before 0.12.0)",
+            "with TypeError before 0.12)",
             dict(
                 classname='CIM_Foo',
                 properties=dict(P1=_Longint(42))),
@@ -1680,7 +1938,7 @@ class Test_CIMInstance_init(object):
         ),
         (
             "Verify that qualifier with name None fails (with TypeError "
-            "before 0.12.0)",
+            "before 0.12)",
             dict(
                 classname='CIM_Foo',
                 qualifiers={None: 'abc'}),
@@ -1689,7 +1947,7 @@ class Test_CIMInstance_init(object):
         ),
         (
             "Verify that qualifier with name None fails (with ValueError "
-            "since 0.12.0)",
+            "since 0.12)",
             dict(
                 classname='CIM_Foo',
                 qualifiers={None: 'abc'}),
@@ -1698,7 +1956,7 @@ class Test_CIMInstance_init(object):
         ),
         (
             "Verify that qualifier CIMQualifier with inconsistent name fails "
-            "(since 0.12.0)",
+            "(since 0.12)",
             dict(
                 classname='CIM_Foo',
                 qualifiers=dict(Q1=CIMQualifier('Q1_X', 'abc'))),
@@ -1707,84 +1965,24 @@ class Test_CIMInstance_init(object):
         ),
     ]
 
-    def test_pos_args(self):
-        # pylint: disable=unused-argument
-        """Test position of arguments in `CIMInstance.__init__()`."""
-
-        # The code to be tested
-        obj = CIMInstance(
-            'CIM_Foo',
-            dict(P1=True),
-            dict(Q1=CIMQualifier('Q1', value=True)),
-            CIMInstanceName('CIM_Foo'),
-            ['P1'])
-
-        assert obj.classname == u'CIM_Foo'
-        assert obj.properties == NocaseDict(P1=CIMProperty('P1', value=True))
-        assert obj.qualifiers == NocaseDict(Q1=CIMQualifier('Q1', value=True))
-        assert obj.path == CIMInstanceName('CIM_Foo')
-        assert obj.property_list == ['p1']
-
     @pytest.mark.parametrize(
-        "desc, kwargs, exp_attrs, exp_warn_type, condition",
-        testcases_succeeds)
-    def test_succeeds(self, desc, kwargs, exp_attrs, exp_warn_type, condition):
+        "desc, kwargs, exp_exc_type, condition",
+        testcases_fails)
+    def test_CIMInstance_init_fails(
+            self, desc, kwargs, exp_exc_type, condition):
         # pylint: disable=unused-argument
-        """All tests for initializing `CIMInstance` objects that succeed."""
+        """All test cases where CIMInstance.__init__() fails."""
 
-        if condition:
+        if not condition:
+            pytest.skip("Condition for test case not met")
 
-            exp_classname = exp_attrs['classname']
-            exp_properties = exp_attrs.get(
-                'properties', self.default_exp_attrs['properties'])
-            exp_qualifiers = exp_attrs.get(
-                'qualifiers', self.default_exp_attrs['qualifiers'])
-            exp_path = exp_attrs.get(
-                'path', self.default_exp_attrs['path'])
-            exp_property_list = exp_attrs.get(
-                'property_list', self.default_exp_attrs['property_list'])
+        with pytest.raises(exp_exc_type):
 
-            if exp_warn_type is None:
-
-                # The code to be tested
-                obj = CIMInstance(**kwargs)
-
-            else:
-                with pytest.warns(exp_warn_type):
-
-                    # The code to be tested
-                    obj = CIMInstance(**kwargs)
-
-            assert obj.classname == exp_classname
-            assert type(obj.classname) is type(exp_classname)
-
-            assert obj.properties == exp_properties
-            assert type(obj.properties) is type(exp_properties)
-
-            assert obj.qualifiers == exp_qualifiers
-            assert type(obj.qualifiers) is type(exp_qualifiers)
-
-            assert obj.path == exp_path
-            assert type(obj.path) is type(exp_path)
-
-            assert obj.property_list == exp_property_list
-            assert type(obj.property_list) is type(exp_property_list)
-
-    @pytest.mark.parametrize("desc, kwargs, exp_exc_type, condition",
-                             testcases_fails)
-    def test_fails(self, desc, kwargs, exp_exc_type, condition):
-        # pylint: disable=unused-argument
-        """All tests for initializing `CIMInstance` objects that fail."""
-
-        if condition:
-
-            with pytest.raises(exp_exc_type):
-
-                # The code to be tested
-                CIMInstance(**kwargs)
+            # The code to be tested
+            CIMInstance(**kwargs)
 
 
-class CopyCIMInstance(unittest.TestCase):
+class CIMInstanceCopy(unittest.TestCase):
     """
     Test the copy() method of `CIMInstance` objects.
 
@@ -2054,55 +2252,117 @@ class CIMInstanceSort(unittest.TestCase):
 
 class Test_CIMInstance_str(object):
     """
-    Test `CIMInstance.__str__()`.
+    Test CIMInstance.__str__().
+
+    That function returns for example::
+
+       CIMInstance(classname=CIM_Foo, path=CIMINstanceName(...), ...)
     """
 
-    def test_all(self):
+    instpath_1 = CIMInstanceName(
+        'CIM_Foo',
+        keybindings=dict(Name='Spottyfoot'))
 
-        path = CIMInstanceName(
-            'CIM_Foo',
-            keybindings=dict(Name='Spottyfoot'))
+    testcases_succeeds = [
+        # Testcases where CIMInstance.__str__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMInstance object to be tested.
+        (
+            CIMInstance(
+                classname='CIM_Foo')
+        ),
+        (
+            CIMInstance(
+                classname='CIM_Foo',
+                properties=dict(
+                    Name='Spottyfoot',
+                    Ref1=CIMInstanceName('CIM_Bar')))
+        ),
+        (
+            CIMInstance(
+                classname='CIM_Foo',
+                properties=dict(
+                    Name='Spottyfoot',
+                    Ref1=CIMInstanceName('CIM_Bar')),
+                path=instpath_1)
+        ),
+    ]
 
-        obj = CIMInstance(
-            'CIM_Foo',
-            properties=dict(
-                Name='Spottyfoot',
-                Ref1=CIMInstanceName('CIM_Bar')),
-            path=path)
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMInstance_str_succeeds(self, obj):
+        """All test cases where CIMInstance.__str__() succeeds."""
 
         s = str(obj)
 
         assert re.match(r'^CIMInstance\(', s)
-        assert 'classname=%r' % obj.classname in s
-        assert 'path=CIMInstanceName(' in s
+
+        exp_classname = 'classname=%r' % obj.classname
+        assert exp_classname in s
+
+        exp_path = 'path=%r' % obj.path
+        assert exp_path in s
 
 
 class Test_CIMInstance_repr(object):
     """
-    Test `CIMInstance.__repr__()`.
+    Test CIMInstance.__repr__().
     """
 
-    def test_all(self):
+    instpath_1 = CIMInstanceName(
+        'CIM_Foo',
+        keybindings=dict(Name='Spottyfoot'))
 
-        path = CIMInstanceName(
-            'CIM_Foo',
-            keybindings=dict(Name='Spottyfoot'))
+    testcases_succeeds = [
+        # Testcases where CIMInstance.__repr__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMInstance object to be tested.
+        (
+            CIMInstance(
+                classname='CIM_Foo')
+        ),
+        (
+            CIMInstance(
+                classname='CIM_Foo',
+                properties=dict(
+                    Name='Spottyfoot',
+                    Ref1=CIMInstanceName('CIM_Bar')))
+        ),
+        (
+            CIMInstance(
+                classname='CIM_Foo',
+                properties=dict(
+                    Name='Spottyfoot',
+                    Ref1=CIMInstanceName('CIM_Bar')),
+                path=instpath_1)
+        ),
+    ]
 
-        obj = CIMInstance(
-            'CIM_Foo',
-            properties=dict(
-                Name='Spottyfoot',
-                Ref1=CIMInstanceName('CIM_Bar')),
-            path=path)
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMInstance_repr_succeeds(self, obj):
+        """All test cases where CIMInstance.__repr__() succeeds."""
 
         r = repr(obj)
 
         assert re.match(r'^CIMInstance\(', r)
-        assert 'classname=%r' % obj.classname in r
-        assert 'path=CIMInstanceName(' in r
-        assert 'properties=' in r
-        assert 'property_list=' in r
-        assert 'qualifiers=' in r
+
+        exp_classname = 'classname=%r' % obj.classname
+        assert exp_classname in r
+
+        exp_path = 'path=%r' % obj.path
+        assert exp_path in r
+
+        exp_properties = 'properties=%r' % obj.properties
+        assert exp_properties in r
+
+        exp_property_list = 'property_list=%r' % obj.property_list
+        assert exp_property_list in r
+
+        exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+        assert exp_qualifiers in r
 
 
 class CIMInstanceToXML(ValidationTestCase):
@@ -2443,688 +2703,1307 @@ class CIMInstanceUpdateExisting(unittest.TestCase):
         self.assertEqual(i['string'], 'STRING')
 
 
-class InitCIMProperty(unittest.TestCase, CIMObjectMixin):
+class Test_CIMProperty_init(object):
     """
-    Test the initialization of `CIMProperty` objects, and that their instance
-    attributes have the expected values.
+    Test CIMProperty.__init__().
 
     On qualifiers: The full range of input variations is not tested, because
     we know that the input argument is just turned into a `NocaseDict` and
     otherwise left unchanged, so the full range testing is expected to be done
     in the test cases for `CIMQualifier`.
+
+    Note: The inferring of the type attribute of CIMProperty changed over
+    time: Before pywbem 0.8.1, a value of None required specifying a
+    type. In 0.8.1, a rather complex logic was implemented that tried to
+    be perfect in inferring unspecified input properties, at the price of
+    considerable complexity. In 0.12.0, this complex logic was
+    drastically simplified again. Some cases are still nicely inferred,
+    but some less common cases now require specifying the type again.
     """
 
     _INT_TYPES = ['uint8', 'uint16', 'uint32', 'uint64',
                   'sint8', 'sint16', 'sint32', 'sint64']
     _REAL_TYPES = ['real32', 'real64']
 
-    # pylint: disable=too-many-branches
-    def test_all(self):
+    def test_CIMProperty_init_pos_args(self):
+        # pylint: disable=unused-argument
+        """Test position of arguments in CIMProperty.__init__()."""
 
-        # Note: The inferring of the type attribute of CIMProperty changed over
-        # time: Before pywbem 0.8.1, a value of None required specifying a
-        # type. In 0.8.1, a rather complex logic was implemented that tried to
-        # be perfect in inferring unspecified input properties, at the price of
-        # considerable complexity. In 0.12.0, this complex logic was
-        # drastically simplified again. Some cases are still nicely inferred,
-        # but some less common cases now require specifying the type again.
+        qualifiers = {'Key': CIMQualifier('Key', True)}
 
-        quals = {'Key': CIMQualifier('Key', True)}
+        # The code to be tested
+        obj = CIMProperty(
+            'FooProp',
+            ['abc'],
+            'string',
+            'CIM_Origin',
+            2,
+            False,
+            True,
+            None,
+            qualifiers,
+            None)
 
-        # Initialization with name being None
+        assert obj.name == u'FooProp'
+        assert obj.value == [u'abc']
+        assert obj.type == u'string'
+        assert obj.class_origin == u'CIM_Origin'
+        assert obj.array_size == 2
+        assert obj.propagated is False
+        assert obj.is_array is True
+        assert obj.reference_class is None
+        assert obj.qualifiers == NocaseDict(qualifiers)
+        assert obj.embedded_object is None
 
-        # Starting with 0.8.1, the implementation enforced name to be non-None
-        with self.assertRaises(ValueError):
-            CIMProperty(None, 42)
+    # Defaults to expect for attributes when not specified in testcase
+    default_exp_attrs = dict(
+        class_origin=None,
+        array_size=None,
+        propagated=None,
+        is_array=False,
+        reference_class=None,
+        qualifiers=NocaseDict(),
+        embedded_object=None
+    )
+
+    qualifier_Q1 = CIMQualifier('Q1', value='abc')
+
+    # A timedelta and corresponding CIM datetime value
+    timedelta_1 = timedelta(days=12345678, hours=22, minutes=44,
+                            seconds=55, microseconds=654321)
+    cim_timedelta_1 = '12345678224455.654321:000'
+
+    # A datetime and corresponding CIM datetime value
+    datetime_2 = datetime(year=2014, month=9, day=24, hour=19, minute=30,
+                          second=40, microsecond=654321,
+                          tzinfo=cim_types.MinutesFromUTC(120))
+    cim_datetime_2 = '20140924193040.654321+120'
+
+    emb_instance_1 = CIMInstance('CIM_Instance1')
+    emb_class_1 = CIMClass('CIM_Class1')
+    inst_path_1 = CIMInstanceName('CIM_Ref1')
+
+    testcases_succeeds = [
+        # Testcases where CIMProperty.__init__() succeeds.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_attrs: Dict of expected attributes of resulting object.
+        # * exp_warn_type: Expected warning type.
+        # * condition: Condition for testcase to run.
+
+        (
+            "Verify that binary name is converted to unicode",
+            dict(name=b'FooProp', value=u'abc'),
+            dict(name=u'FooProp', value=u'abc', type=exp_type_string),
+            None, True
+        ),
+        (
+            "Verify that unicode name remains unicode",
+            dict(name=u'FooProp', value=u'abc'),
+            dict(name=u'FooProp', value=u'abc', type=exp_type_string),
+            None, True
+        ),
 
         # Initialization to CIM string type
+        (
+            "Verify binary string without type",
+            dict(name=u'FooProp', value=b'abc'),
+            dict(name=u'FooProp', value=u'abc', type=exp_type_string),
+            None, True
+        ),
+        (
+            "Verify unicode string without type",
+            dict(name=u'FooProp', value=u'abc'),
+            dict(name=u'FooProp', value=u'abc', type=exp_type_string),
+            None, True
+        ),
+        (
+            "Verify binary string with type",
+            dict(name=u'FooProp', value=b'abc', type='string'),
+            dict(name=u'FooProp', value=u'abc', type=u'string'),
+            None, True
+        ),
+        (
+            "Verify unicode string with type",
+            dict(name=u'FooProp', value=u'abc', type='string'),
+            dict(name=u'FooProp', value=u'abc', type=u'string'),
+            None, True
+        ),
+        (
+            "Verify None with type string",
+            dict(name=u'FooProp', value=None, type='string'),
+            dict(name=u'FooProp', value=None, type=u'string'),
+            None, True
+        ),
 
-        p = CIMProperty('Spotty', 'Foot')
-        self.assertCIMProperty(p, 'Spotty', 'Foot', 'string')
+        # Initialization to CIM integer types
+        (
+            "Verify Uint8 value without type",
+            dict(name=u'FooProp', value=Uint8(32)),
+            dict(name=u'FooProp', value=Uint8(32), type=exp_type_uint8),
+            None, True
+        ),
+        (
+            "Verify Uint8 value with type uint8",
+            dict(name=u'FooProp', value=Uint8(32), type='uint8'),
+            dict(name=u'FooProp', value=Uint8(32), type=u'uint8'),
+            None, True
+        ),
+        (
+            "Verify None value with type uint8",
+            dict(name=u'FooProp', value=None, type='uint8'),
+            dict(name=u'FooProp', value=None, type=u'uint8'),
+            None, True
+        ),
+        (
+            "Verify Uint16 value without type",
+            dict(name=u'FooProp', value=Uint16(32)),
+            dict(name=u'FooProp', value=Uint16(32), type=exp_type_uint16),
+            None, True
+        ),
+        (
+            "Verify Uint16 value with type uint16",
+            dict(name=u'FooProp', value=Uint16(32), type='uint16'),
+            dict(name=u'FooProp', value=Uint16(32), type=u'uint16'),
+            None, True
+        ),
+        (
+            "Verify None value with type uint16",
+            dict(name=u'FooProp', value=None, type='uint16'),
+            dict(name=u'FooProp', value=None, type=u'uint16'),
+            None, True
+        ),
+        (
+            "Verify Uint32 value without type",
+            dict(name=u'FooProp', value=Uint32(32)),
+            dict(name=u'FooProp', value=Uint32(32), type=exp_type_uint32),
+            None, True
+        ),
+        (
+            "Verify Uint32 value with type uint32",
+            dict(name=u'FooProp', value=Uint32(32), type='uint32'),
+            dict(name=u'FooProp', value=Uint32(32), type=u'uint32'),
+            None, True
+        ),
+        (
+            "Verify None value with type uint32",
+            dict(name=u'FooProp', value=None, type='uint32'),
+            dict(name=u'FooProp', value=None, type=u'uint32'),
+            None, True
+        ),
+        (
+            "Verify Uint64 value without type",
+            dict(name=u'FooProp', value=Uint64(32)),
+            dict(name=u'FooProp', value=Uint64(32), type=exp_type_uint64),
+            None, True
+        ),
+        (
+            "Verify Uint64 value with type uint64",
+            dict(name=u'FooProp', value=Uint64(32), type='uint64'),
+            dict(name=u'FooProp', value=Uint64(32), type=u'uint64'),
+            None, True
+        ),
+        (
+            "Verify None value with type uint64",
+            dict(name=u'FooProp', value=None, type='uint64'),
+            dict(name=u'FooProp', value=None, type=u'uint64'),
+            None, True
+        ),
+        (
+            "Verify Sint8 value without type",
+            dict(name=u'FooProp', value=Sint8(32)),
+            dict(name=u'FooProp', value=Sint8(32), type=exp_type_sint8),
+            None, True
+        ),
+        (
+            "Verify Sint8 value with type sint8",
+            dict(name=u'FooProp', value=Sint8(32), type='sint8'),
+            dict(name=u'FooProp', value=Sint8(32), type=u'sint8'),
+            None, True
+        ),
+        (
+            "Verify None value with type sint8",
+            dict(name=u'FooProp', value=None, type='sint8'),
+            dict(name=u'FooProp', value=None, type=u'sint8'),
+            None, True
+        ),
+        (
+            "Verify Sint16 value without type",
+            dict(name=u'FooProp', value=Sint16(32)),
+            dict(name=u'FooProp', value=Sint16(32), type=exp_type_sint16),
+            None, True
+        ),
+        (
+            "Verify Sint16 value with type sint16",
+            dict(name=u'FooProp', value=Sint16(32), type='sint16'),
+            dict(name=u'FooProp', value=Sint16(32), type=u'sint16'),
+            None, True
+        ),
+        (
+            "Verify None value with type sint16",
+            dict(name=u'FooProp', value=None, type='sint16'),
+            dict(name=u'FooProp', value=None, type=u'sint16'),
+            None, True
+        ),
+        (
+            "Verify Sint32 value without type",
+            dict(name=u'FooProp', value=Sint32(32)),
+            dict(name=u'FooProp', value=Sint32(32), type=exp_type_sint32),
+            None, True
+        ),
+        (
+            "Verify Sint32 value with type sint32",
+            dict(name=u'FooProp', value=Sint32(32), type='sint32'),
+            dict(name=u'FooProp', value=Sint32(32), type=u'sint32'),
+            None, True
+        ),
+        (
+            "Verify None value with type sint32",
+            dict(name=u'FooProp', value=None, type='sint32'),
+            dict(name=u'FooProp', value=None, type=u'sint32'),
+            None, True
+        ),
+        (
+            "Verify Sint64 value without type",
+            dict(name=u'FooProp', value=Sint64(32)),
+            dict(name=u'FooProp', value=Sint64(32), type=exp_type_sint64),
+            None, True
+        ),
+        (
+            "Verify Sint64 value with type sint64",
+            dict(name=u'FooProp', value=Sint64(32), type='sint64'),
+            dict(name=u'FooProp', value=Sint64(32), type=u'sint64'),
+            None, True
+        ),
+        (
+            "Verify None value with type sint64",
+            dict(name=u'FooProp', value=None, type='sint64'),
+            dict(name=u'FooProp', value=None, type=u'sint64'),
+            None, True
+        ),
 
-        p = CIMProperty(name='Spotty', value='Foot')
-        self.assertCIMProperty(p, 'Spotty', 'Foot', 'string')
-
-        p = CIMProperty('Spotty', 'Foot', 'string')
-        self.assertCIMProperty(p, 'Spotty', 'Foot', 'string')
-
-        p = CIMProperty('Spotty', 'Foot', type='string')
-        self.assertCIMProperty(p, 'Spotty', 'Foot', 'string')
-
-        p = CIMProperty('Spotty', None, type='string')
-        self.assertCIMProperty(p, 'Spotty', None, 'string')
-
-        p = CIMProperty(u'Name', u'Brad')
-        self.assertCIMProperty(p, u'Name', u'Brad', 'string')
-
-        p = CIMProperty('Spotty', 'Foot', qualifiers=quals)
-        self.assertCIMProperty(p, 'Spotty', 'Foot', 'string', qualifiers=quals)
-
-        p = CIMProperty('Spotty', None, 'string', qualifiers=quals)
-        self.assertCIMProperty(p, 'Spotty', None, 'string', qualifiers=quals)
-
-        # Initialization to CIM integer and real types
-
-        p = CIMProperty('Age', Uint16(32))
-        self.assertCIMProperty(p, 'Age', 32, 'uint16')
-
-        p = CIMProperty('Age', Uint16(32), 'uint16')
-        self.assertCIMProperty(p, 'Age', 32, 'uint16')
-
-        p = CIMProperty('Age', Real32(32.0))
-        self.assertCIMProperty(p, 'Age', 32.0, 'real32')
-
-        p = CIMProperty('Age', Real32(32.0), 'real32')
-        self.assertCIMProperty(p, 'Age', 32.0, 'real32')
-
-        for type_ in InitCIMProperty._INT_TYPES + InitCIMProperty._REAL_TYPES:
-
-            p = CIMProperty('Age', 32, type_)
-            self.assertCIMProperty(p, 'Age', 32, type_)
-
-            p = CIMProperty('Age', None, type_)
-            self.assertCIMProperty(p, 'Age', None, type_)
-
-        for type_ in InitCIMProperty._REAL_TYPES:
-
-            p = CIMProperty('Age', 32.0, type_)
-            self.assertCIMProperty(p, 'Age', 32.0, type_)
+        # Initialization to CIM float types
+        (
+            "Verify Real32 value without type",
+            dict(name=u'FooProp', value=Real32(32.0)),
+            dict(name=u'FooProp', value=Real32(32.0), type=exp_type_real32),
+            None, True
+        ),
+        (
+            "Verify Real32 value with type real32",
+            dict(name=u'FooProp', value=Real32(32.0), type='real32'),
+            dict(name=u'FooProp', value=Real32(32.0), type=u'real32'),
+            None, True
+        ),
+        (
+            "Verify None value with type real32",
+            dict(name=u'FooProp', value=None, type='real32'),
+            dict(name=u'FooProp', value=None, type=u'real32'),
+            None, True
+        ),
+        (
+            "Verify Real64 value without type",
+            dict(name=u'FooProp', value=Real64(32.0)),
+            dict(name=u'FooProp', value=Real64(32.0), type=exp_type_real64),
+            None, True
+        ),
+        (
+            "Verify Real64 value with type real64",
+            dict(name=u'FooProp', value=Real64(32.0), type='real64'),
+            dict(name=u'FooProp', value=Real64(32.0), type=u'real64'),
+            None, True
+        ),
+        (
+            "Verify None value with type real64",
+            dict(name=u'FooProp', value=None, type='real64'),
+            dict(name=u'FooProp', value=None, type=u'real64'),
+            None, True
+        ),
 
         # Initialization to CIM boolean type
-
-        p = CIMProperty('Aged', True)
-        self.assertCIMProperty(p, 'Aged', True, 'boolean')
-
-        p = CIMProperty('Aged', True, 'boolean')
-        self.assertCIMProperty(p, 'Aged', True, 'boolean')
-
-        p = CIMProperty('Aged', False)
-        self.assertCIMProperty(p, 'Aged', False, 'boolean')
-
-        p = CIMProperty('Aged', False, 'boolean')
-        self.assertCIMProperty(p, 'Aged', False, 'boolean')
-
-        p = CIMProperty('Aged', None, 'boolean')
-        self.assertCIMProperty(p, 'Aged', None, 'boolean')
+        (
+            "Verify bool value True without type",
+            dict(name=u'FooProp', value=True),
+            dict(name=u'FooProp', value=True, type=exp_type_boolean),
+            None, True
+        ),
+        (
+            "Verify bool value True with type boolean",
+            dict(name=u'FooProp', value=True, type='boolean'),
+            dict(name=u'FooProp', value=True, type=u'boolean'),
+            None, True
+        ),
+        (
+            "Verify bool value False without type",
+            dict(name=u'FooProp', value=False),
+            dict(name=u'FooProp', value=False, type=exp_type_boolean),
+            None, True
+        ),
+        (
+            "Verify bool value False with type boolean",
+            dict(name=u'FooProp', value=False, type='boolean'),
+            dict(name=u'FooProp', value=False, type=u'boolean'),
+            None, True
+        ),
+        (
+            "Verify None value with type boolean",
+            dict(name=u'FooProp', value=None, type='boolean'),
+            dict(name=u'FooProp', value=None, type=u'boolean'),
+            None, True
+        ),
 
         # Initialization to CIM datetime type
+        (
+            "Verify timedelta interval value without type (since 0.8.1)",
+            dict(name=u'FooProp', value=timedelta_1),
+            dict(name=u'FooProp', value=CIMDateTime(cim_timedelta_1),
+                 type=exp_type_datetime),
+            None, True
+        ),
+        (
+            "Verify timedelta interval value with type (since 0.8.1)",
+            dict(name=u'FooProp', value=timedelta_1, type='datetime'),
+            dict(name=u'FooProp', value=CIMDateTime(cim_timedelta_1),
+                 type=u'datetime'),
+            None, True
+        ),
+        (
+            "Verify CIMDateTime interval value without type",
+            dict(name=u'FooProp', value=CIMDateTime(timedelta_1)),
+            dict(name=u'FooProp', value=CIMDateTime(cim_timedelta_1),
+                 type=exp_type_datetime),
+            None, True
+        ),
+        (
+            "Verify CIMDateTime interval value with type",
+            dict(name=u'FooProp', value=CIMDateTime(timedelta_1),
+                 type='datetime'),
+            dict(name=u'FooProp', value=CIMDateTime(cim_timedelta_1),
+                 type=u'datetime'),
+            None, True
+        ),
+        (
+            "Verify CIM datetime string interval value with type",
+            dict(name=u'FooProp', value=cim_timedelta_1,
+                 type='datetime'),
+            dict(name=u'FooProp', value=CIMDateTime(cim_timedelta_1),
+                 type=u'datetime'),
+            None, True
+        ),
+        (
+            "Verify datetime point in time value without type (since 0.8.1)",
+            dict(name=u'FooProp', value=datetime_2),
+            dict(name=u'FooProp', value=CIMDateTime(cim_datetime_2),
+                 type=exp_type_datetime),
+            None, True
+        ),
+        (
+            "Verify datetime point in time value with type (since 0.8.1)",
+            dict(name=u'FooProp', value=datetime_2, type='datetime'),
+            dict(name=u'FooProp', value=CIMDateTime(cim_datetime_2),
+                 type=u'datetime'),
+            None, True
+        ),
+        (
+            "Verify CIMDateTime point in time value without type",
+            dict(name=u'FooProp', value=CIMDateTime(datetime_2)),
+            dict(name=u'FooProp', value=CIMDateTime(cim_datetime_2),
+                 type=exp_type_datetime),
+            None, True
+        ),
+        (
+            "Verify CIMDateTime point in time value with type",
+            dict(name=u'FooProp', value=CIMDateTime(datetime_2),
+                 type='datetime'),
+            dict(name=u'FooProp', value=CIMDateTime(cim_datetime_2),
+                 type=u'datetime'),
+            None, True
+        ),
+        (
+            "Verify CIM datetime point in time string value with type",
+            dict(name=u'FooProp', value=cim_datetime_2,
+                 type='datetime'),
+            dict(name=u'FooProp', value=CIMDateTime(cim_datetime_2),
+                 type=u'datetime'),
+            None, True
+        ),
+
+        # Initialization to CIM reference type
+        (
+            "Verify that reference_class None is permitted for reference type",
+            dict(name=u'FooProp', value=None, type='reference',
+                 reference_class=None),
+            dict(name=u'FooProp', value=None, type=u'reference',
+                 reference_class=None),
+            None, True
+        ),
+        (
+            "Verify that binary reference_class is converted to unicode",
+            dict(name=u'FooProp', value=None, type='reference',
+                 reference_class=b'CIM_Ref'),
+            dict(name=u'FooProp', value=None, type=u'reference',
+                 reference_class=u'CIM_Ref'),
+            None, True
+        ),
+        (
+            "Verify that unicode reference_class remains unicode",
+            dict(name=u'FooProp', value=None, type='reference',
+                 reference_class=u'CIM_Ref'),
+            dict(name=u'FooProp', value=None, type=u'reference',
+                 reference_class=u'CIM_Ref'),
+            None, True
+        ),
+        (
+            "Verify that reference type is implied from CIMInstanceName value "
+            "(since 0.8.1)",
+            dict(name=u'FooProp', value=inst_path_1),
+            dict(name=u'FooProp', value=inst_path_1, type=exp_type_reference),
+            None, True
+        ),
+        (
+            "Verify normal case with value, type, reference_class specified",
+            dict(name=u'FooProp', value=inst_path_1,
+                 type='reference', reference_class=inst_path_1.classname),
+            dict(name=u'FooProp', value=inst_path_1,
+                 type=u'reference', reference_class=inst_path_1.classname),
+            None, True
+        ),
+        (
+            # This is just a rough test whether a WBEM URI string will be
+            # converted into a CIMInstanceName object. A more thorough test
+            # with variations of WBEM URI strings is in the test cases for
+            # CIMInstanceName.from_wbem_uri().
+            "Verify that WBEM URI string value is converted to CIMInstanceName",
+            dict(name=u'FooProp',
+                 value='https://10.1.2.3:5989/root/cimv2:C1.k1="v1",k2=2',
+                 type='reference'),
+            dict(name=u'FooProp',
+                 value=CIMInstanceName(
+                     'C1', keybindings=dict(k1='v1', k2=2),
+                     namespace='root/cimv2', host='10.1.2.3:5989'),
+                 type=u'reference'),
+            None, CHECK_0_12_0
+        ),
+
+        # Initialization to CIM embedded object (instance or class)
+        (
+            "Verify that type string for value None is implied from "
+            "embedded_object (since 0.8.1 and before 0.12)",
+            dict(name=u'FooProp', value=None,
+                 embedded_object='object'),
+            dict(name=u'FooProp', value=None, type=exp_type_string,
+                 embedded_object=u'object'),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that value None is permitted with embedded_object",
+            dict(name=u'FooProp', value=None, type='string',
+                 embedded_object='object'),
+            dict(name=u'FooProp', value=None, type=u'string',
+                 embedded_object=u'object'),
+            None, True
+        ),
+        (
+            "Verify that value CIMClass implies type and embedded_object",
+            dict(name=u'FooProp', value=emb_class_1),
+            dict(name=u'FooProp', value=emb_class_1, type=exp_type_string,
+                 embedded_object=exp_eo_object),
+            None, True
+        ),
+        (
+            "Verify that value CIMClass and type string imply embedded_object "
+            "(since 0.8.1)",
+            dict(name=u'FooProp', value=emb_class_1, type='string'),
+            dict(name=u'FooProp', value=emb_class_1, type=u'string',
+                 embedded_object=exp_eo_object),
+            None, True
+        ),
+        (
+            "Verify that value CIMClass and embedded_object imply type string",
+            dict(name=u'FooProp', value=emb_class_1,
+                 embedded_object='object'),
+            dict(name=u'FooProp', value=emb_class_1, type=exp_type_string,
+                 embedded_object=u'object'),
+            None, True
+        ),
+        (
+            "Verify normal case with value, type, embedded_object specified",
+            dict(name=u'FooProp', value=emb_class_1, type='string',
+                 embedded_object='object'),
+            dict(name=u'FooProp', value=emb_class_1, type=u'string',
+                 embedded_object=u'object'),
+            None, True
+        ),
+        (
+            "Verify that value CIMInstance and embedded_object imply type "
+            "string (since 0.8.1)",
+            dict(name=u'FooProp', value=emb_instance_1,
+                 embedded_object='object'),
+            dict(name=u'FooProp', value=emb_instance_1, type=exp_type_string,
+                 embedded_object=u'object'),
+            None, True
+        ),
+        (
+            "Verify normal case with value CIMInstance, type, embedded_object "
+            "specified",
+            dict(name=u'FooProp', value=emb_instance_1, type='string',
+                 embedded_object='object'),
+            dict(name=u'FooProp', value=emb_instance_1, type=u'string',
+                 embedded_object=u'object'),
+            None, True
+        ),
+
+        # Initialization to CIM embedded instance
+        (
+            "Verify that value CIMInstance implies type and embedded_object",
+            dict(name=u'FooProp', value=emb_instance_1),
+            dict(name=u'FooProp', value=emb_instance_1, type=exp_type_string,
+                 embedded_object=exp_eo_instance),
+            None, True
+        ),
+        (
+            "Verify that value CIMInstance and type string imply "
+            "embedded_object (since 0.8.1)",
+            dict(name=u'FooProp', value=emb_instance_1, type='string'),
+            dict(name=u'FooProp', value=emb_instance_1, type=u'string',
+                 embedded_object=exp_eo_instance),
+            None, True
+        ),
+        (
+            "Verify that value CIMInstance and embedded_object imply type "
+            "string",
+            dict(name=u'FooProp', value=emb_instance_1,
+                 embedded_object='instance'),
+            dict(name=u'FooProp', value=emb_instance_1, type=exp_type_string,
+                 embedded_object=u'instance'),
+            None, True
+        ),
+        (
+            "Verify normal case with value CIMInstance, type, embedded_object "
+            "specified",
+            dict(name=u'FooProp', value=emb_instance_1, type='string',
+                 embedded_object='instance'),
+            dict(name=u'FooProp', value=emb_instance_1, type=u'string',
+                 embedded_object=u'instance'),
+            None, True
+        ),
+
+        # Array tests with different is_array and array_size
+        (
+            "Verify that is_array 42 is converted to bool (since 0.12)",
+            dict(name=u'FooProp', value=[u'abc'], type=u'string',
+                 is_array=42),
+            dict(name=u'FooProp', value=[u'abc'], type=u'string',
+                 is_array=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that is_array 'false' is converted to bool using Python "
+            "bool rules(since 0.12)",
+            dict(name=u'FooProp', value=[u'abc'], type=u'string',
+                 is_array='false'),
+            dict(name=u'FooProp', value=[u'abc'], type=u'string',
+                 is_array=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that unspecified is_array is implied to scalar with "
+            "None value and type string",
+            dict(name=u'FooProp', value=None, type=u'string'),
+            dict(name=u'FooProp', value=None, type=u'string',
+                 is_array=False),
+            None, True
+        ),
+        (
+            "Verify that unspecified is_array is implied to scalar with "
+            "scalar string value but without type",
+            dict(name=u'FooProp', value=u'abc', type=u'string'),
+            dict(name=u'FooProp', value=u'abc', type=u'string',
+                 is_array=False),
+            None, True
+        ),
+        (
+            "Verify that unspecified is_array is implied to array with "
+            "array value",
+            dict(name=u'FooProp', value=[u'abc'], type=u'string'),
+            dict(name=u'FooProp', value=[u'abc'], type=u'string',
+                 is_array=True),
+            None, True
+        ),
+        (
+            "Verify that array_size 2 remains int",
+            dict(name=u'FooProp', value=[u'abc'], type=u'string',
+                 is_array=True, array_size=2),
+            dict(name=u'FooProp', value=[u'abc'], type=u'string',
+                 is_array=True, array_size=2),
+            None, True
+        ),
+
+        # Initialization to arrays of CIM string and numeric types
+        (
+            "Verify that value None is permitted for string array",
+            dict(name=u'FooProp', value=None, type=u'string', is_array=True),
+            dict(name=u'FooProp', value=None, type=u'string', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that value empty list is permitted for string array",
+            dict(name=u'FooProp', value=[], type=u'string', is_array=True),
+            dict(name=u'FooProp', value=[], type=u'string', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from value empty list",
+            dict(name=u'FooProp', value=[], type=u'string'),
+            dict(name=u'FooProp', value=[], type=u'string', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that value list(None) is permitted for string array",
+            dict(name=u'FooProp', value=[None], type=u'string', is_array=True),
+            dict(name=u'FooProp', value=[None], type=u'string', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from value list(None)",
+            dict(name=u'FooProp', value=[None], type=u'string'),
+            dict(name=u'FooProp', value=[None], type=u'string', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that type string is implied from value list(string)",
+            dict(name=u'FooProp', value=[u'abc'],
+                 is_array=True),
+            dict(name=u'FooProp', value=[u'abc'], type=exp_type_string,
+                 is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from type string and value "
+            "list(string)",
+            dict(name=u'FooProp', value=[u'abc'], type=u'string'),
+            dict(name=u'FooProp', value=[u'abc'], type=u'string',
+                 is_array=True),
+            None, True
+        ),
+        (
+            "Verify that type string and is_array are implied from value "
+            "list(string)",
+            dict(name=u'FooProp', value=[u'abc']),
+            dict(name=u'FooProp', value=[u'abc'], type=exp_type_string,
+                 is_array=True),
+            None, True
+        ),
+        (
+            "Verify that type uint8 is implied from value list(uint8)",
+            dict(name=u'FooProp', value=[Uint8(42)],
+                 is_array=True),
+            dict(name=u'FooProp', value=[Uint8(42)], type=exp_type_uint8,
+                 is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from type uint8 and value "
+            "list(uint8)",
+            dict(name=u'FooProp', value=[Uint8(42)], type=u'uint8'),
+            dict(name=u'FooProp', value=[Uint8(42)], type=u'uint8',
+                 is_array=True),
+            None, True
+        ),
+        (
+            "Verify that type uint8 and is_array are implied from value "
+            "list(uint8)",
+            dict(name=u'FooProp', value=[Uint8(42)]),
+            dict(name=u'FooProp', value=[Uint8(42)], type=exp_type_uint8,
+                 is_array=True),
+            None, True
+        ),
+
+        # Initialization to arrays of CIM boolean type
+        (
+            "Verify that is_array is implied from value empty list",
+            dict(name=u'FooProp', value=[], type=u'boolean'),
+            dict(name=u'FooProp', value=[], type=u'boolean', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from value list(None)",
+            dict(name=u'FooProp', value=[None], type=u'boolean'),
+            dict(name=u'FooProp', value=[None], type=u'boolean', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that type boolean and is_array are implied from value "
+            "list(boolean)",
+            dict(name=u'FooProp', value=[True]),
+            dict(name=u'FooProp', value=[True], type=exp_type_boolean,
+                 is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from type boolean and value "
+            "list(boolean)",
+            dict(name=u'FooProp', value=[False], type=u'boolean'),
+            dict(name=u'FooProp', value=[False], type=u'boolean',
+                 is_array=True),
+            None, True
+        ),
+        (
+            "Verify that type boolean and is_array are implied from value "
+            "list(boolean)",
+            dict(name=u'FooProp', value=[True]),
+            dict(name=u'FooProp', value=[True], type=exp_type_boolean,
+                 is_array=True),
+            None, True
+        ),
+
+        # Initialization to arrays of CIM datetime type
+        (
+            "Verify that type datetime and is_array are implied from value "
+            "list(timedelta) (since 0.8.1)",
+            dict(name=u'FooProp', value=[timedelta_1]),
+            dict(name=u'FooProp', value=[CIMDateTime(cim_timedelta_1)],
+                 type=exp_type_datetime, is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from type datetime and value "
+            "list(timedelta) (since 0.8.1)",
+            dict(name=u'FooProp', value=[timedelta_1],
+                 type='datetime'),
+            dict(name=u'FooProp', value=[CIMDateTime(cim_timedelta_1)],
+                 type=u'datetime', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that type datetime and is_array are implied from value "
+            "list(CIMDateTime)",
+            dict(name=u'FooProp', value=[CIMDateTime(cim_timedelta_1)]),
+            dict(name=u'FooProp', value=[CIMDateTime(cim_timedelta_1)],
+                 type=exp_type_datetime, is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from type datetime and value "
+            "list(CIMDateTime)",
+            dict(name=u'FooProp', value=[CIMDateTime(cim_timedelta_1)],
+                 type='datetime'),
+            dict(name=u'FooProp', value=[CIMDateTime(cim_timedelta_1)],
+                 type=u'datetime', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that type datetime and is_array are implied from value "
+            "list(datetime) (since 0.8.1)",
+            dict(name=u'FooProp', value=[datetime_2]),
+            dict(name=u'FooProp', value=[CIMDateTime(cim_datetime_2)],
+                 type=exp_type_datetime, is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from type datetime and value "
+            "list(datetime) (since 0.8.1)",
+            dict(name=u'FooProp', value=[datetime_2],
+                 type='datetime'),
+            dict(name=u'FooProp', value=[CIMDateTime(cim_datetime_2)],
+                 type=u'datetime', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that type datetime and is_array are implied from value "
+            "list(CIMDateTime)",
+            dict(name=u'FooProp', value=[CIMDateTime(cim_datetime_2)]),
+            dict(name=u'FooProp', value=[CIMDateTime(cim_datetime_2)],
+                 type=exp_type_datetime, is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from type datetime and value "
+            "list(CIMDateTime)",
+            dict(name=u'FooProp', value=[CIMDateTime(cim_datetime_2)],
+                 type='datetime'),
+            dict(name=u'FooProp', value=[CIMDateTime(cim_datetime_2)],
+                 type=u'datetime', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from type datetime and value "
+            "list(None)",
+            dict(name=u'FooProp', value=[None],
+                 type='datetime'),
+            dict(name=u'FooProp', value=[None],
+                 type=u'datetime', is_array=True),
+            None, True
+        ),
+
+        # Initialization to arrays of CIM embedded objects (class and inst)
+        (
+            "Verify that is_array and type string are implied from "
+            "embedded_object, for value list(None) (since 0.8.1 and "
+            "before 0.12)",
+            dict(name=u'FooProp', value=[None],
+                 embedded_object=u'object'),
+            dict(name=u'FooProp', value=[None], type=exp_type_string,
+                 embedded_object=u'object', is_array=True),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that is_array and type string are implied from "
+            "embedded_object, for value list() (since 0.8.1 and "
+            "before 0.12)",
+            dict(name=u'FooProp', value=[],
+                 embedded_object=u'object'),
+            dict(name=u'FooProp', value=[], type=exp_type_string,
+                 embedded_object=u'object', is_array=True),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that is_array is implied from type string, "
+            "embedded_object, for value list(None)",
+            dict(name=u'FooProp', value=[None], type='string',
+                 embedded_object=u'object'),
+            dict(name=u'FooProp', value=[None], type=u'string',
+                 embedded_object=u'object', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from type string, "
+            "embedded_object, for value list()",
+            dict(name=u'FooProp', value=[], type='string',
+                 embedded_object=u'object'),
+            dict(name=u'FooProp', value=[], type=u'string',
+                 embedded_object=u'object', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array, type and embedded_object are implied "
+            "from value list(CIMClass)",
+            dict(name=u'FooProp', value=[emb_class_1]),
+            dict(name=u'FooProp', value=[emb_class_1], type=exp_type_string,
+                 embedded_object=exp_eo_object, is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array and embedded_object are implied from type "
+            "and value list(CIMClass) (since 0.8.1)",
+            dict(name=u'FooProp', value=[emb_class_1], type='string'),
+            dict(name=u'FooProp', value=[emb_class_1], type=u'string',
+                 embedded_object=exp_eo_object, is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array and type are implied from embedded_object "
+            "and value list(CIMClass)",
+            dict(name=u'FooProp', value=[emb_class_1],
+                 embedded_object='object'),
+            dict(name=u'FooProp', value=[emb_class_1], type=exp_type_string,
+                 embedded_object=u'object', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from type, embedded_object "
+            "and value list(CIMClass)",
+            dict(name=u'FooProp', value=[emb_class_1], type='string',
+                 embedded_object='object'),
+            dict(name=u'FooProp', value=[emb_class_1], type=u'string',
+                 embedded_object=u'object', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array and type are implied from embedded_object "
+            "and value list(CIMInstance)",
+            dict(name=u'FooProp', value=[emb_instance_1],
+                 embedded_object='object'),
+            dict(name=u'FooProp', value=[emb_instance_1], type=exp_type_string,
+                 embedded_object=u'object', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from type, embedded_object "
+            "and value list(CIMInstance)",
+            dict(name=u'FooProp', value=[emb_instance_1], type='string',
+                 embedded_object='object'),
+            dict(name=u'FooProp', value=[emb_instance_1], type=u'string',
+                 embedded_object=u'object', is_array=True),
+            None, True
+        ),
+
+        # Initialization to arrays of CIM embedded instances
+        (
+            "Verify that is_array, type and embedded_object are implied from "
+            "value list(CIMInstance)",
+            dict(name=u'FooProp', value=[emb_instance_1]),
+            dict(name=u'FooProp', value=[emb_instance_1], type=exp_type_string,
+                 embedded_object=exp_eo_instance, is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array and type are implied from embedded_object "
+            "and value list(CIMInstance)",
+            dict(name=u'FooProp', value=[emb_instance_1],
+                 embedded_object='instance'),
+            dict(name=u'FooProp', value=[emb_instance_1], type=exp_type_string,
+                 embedded_object=u'instance', is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array and embedded_object are implied from type "
+            "and value list(CIMInstance) (since 0.8.1)",
+            dict(name=u'FooProp', value=[emb_instance_1], type='string'),
+            dict(name=u'FooProp', value=[emb_instance_1], type=u'string',
+                 embedded_object=exp_eo_instance, is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array is implied from type, embedded_object "
+            "and value list(CIMInstance)",
+            dict(name=u'FooProp', value=[emb_instance_1], type='string',
+                 embedded_object='instance'),
+            dict(name=u'FooProp', value=[emb_instance_1], type=u'string',
+                 embedded_object=u'instance', is_array=True),
+            None, True
+        ),
+
+        # Check that the documented examples don't fail
+        (
+            "Verify documented example 1",
+            dict(name='MyNum', value=42, type='uint8'),
+            dict(name=u'MyNum', value=Uint8(42),
+                 type=u'uint8'),
+            None, True
+        ),
+        (
+            "Verify documented example 2",
+            dict(name='MyNum', value=Uint8(42)),
+            dict(name=u'MyNum', value=Uint8(42), type=exp_type_uint8),
+            None, True
+        ),
+        (
+            "Verify documented example 3",
+            dict(name='MyNumArray', value=[1, 2, 3], type='uint8'),
+            dict(name=u'MyNumArray', value=[Uint8(1), Uint8(2), Uint8(3)],
+                 type=u'uint8', is_array=True),
+            None, True
+        ),
+        (
+            "Verify documented example 4",
+            dict(name='MyRef', value=inst_path_1),
+            dict(name=u'MyRef', value=inst_path_1, type=exp_type_reference),
+            None, True
+        ),
+        (
+            "Verify documented example 5",
+            dict(name='MyEmbObj', value=emb_class_1),
+            dict(name=u'MyEmbObj', value=emb_class_1, type=exp_type_string,
+                 embedded_object=exp_eo_object),
+            None, True
+        ),
+        (
+            "Verify documented example 6",
+            dict(name='MyEmbObj', value=emb_instance_1,
+                 embedded_object='object'),
+            dict(name=u'MyEmbObj', value=emb_instance_1, type=exp_type_string,
+                 embedded_object=u'object'),
+            None, True
+        ),
+        (
+            "Verify documented example 7",
+            dict(name='MyEmbInst', value=emb_instance_1),
+            dict(name=u'MyEmbInst', value=emb_instance_1, type=exp_type_string,
+                 embedded_object=exp_eo_instance),
+            None, True
+        ),
+        (
+            "Verify documented example 8",
+            dict(name='MyString', value=None, type='string'),
+            dict(name=u'MyString', value=None, type=u'string'),
+            None, True
+        ),
+        (
+            "Verify documented example 9",
+            dict(name='MyNum', value=None, type='uint8'),
+            dict(name=u'MyNum', value=None, type=u'uint8'),
+            None, True
+        ),
+        (
+            "Verify documented example 10",
+            dict(name='MyRef', value=None, type='reference',
+                 reference_class='MyClass'),
+            dict(name=u'MyRef', value=None, type=u'reference',
+                 reference_class=u'MyClass'),
+            None, True
+        ),
+        (
+            "Verify documented example 11",
+            dict(name='MyEmbObj', value=None, type='string',
+                 embedded_object='object'),
+            dict(name=u'MyEmbObj', value=None, type=u'string',
+                 embedded_object=u'object'),
+            None, True
+        ),
+        (
+            "Verify documented example 12",
+            dict(name='MyEmbInst', value=None, type='string',
+                 embedded_object='instance'),
+            dict(name=u'MyEmbInst', value=None, type=u'string',
+                 embedded_object=u'instance'),
+            None, True
+        ),
+
+        # Qualifiers
+        (
+            "Verify that qualifiers dict is converted to NocaseDict",
+            dict(name=u'FooProp', value=u'abc', type=u'string',
+                 qualifiers=dict(Q1=qualifier_Q1)),
+            dict(name=u'FooProp', value=u'abc', type=u'string',
+                 qualifiers=NocaseDict(Q1=qualifier_Q1)),
+            None, True
+        ),
+        (
+            "Verify that qualifiers as NocaseDict is permitted",
+            dict(name=u'FooProp', value=u'abc', type=u'string',
+                 qualifiers=NocaseDict(Q1=qualifier_Q1)),
+            dict(name=u'FooProp', value=u'abc', type=u'string',
+                 qualifiers=NocaseDict(Q1=qualifier_Q1)),
+            None, True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_attrs, exp_warn_type, condition",
+        testcases_succeeds)
+    def test_CIMProperty_init_succeeds(
+            self, desc, kwargs, exp_attrs, exp_warn_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMProperty.__init__() succeeds."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        exp_name = exp_attrs['name']
+        exp_value = exp_attrs['value']
+        exp_type = exp_attrs['type']
+        exp_class_origin = exp_attrs.get(
+            'class_origin', self.default_exp_attrs['class_origin'])
+        exp_array_size = exp_attrs.get(
+            'array_size', self.default_exp_attrs['array_size'])
+        exp_propagated = exp_attrs.get(
+            'propagated', self.default_exp_attrs['propagated'])
+        exp_is_array = exp_attrs.get(
+            'is_array', self.default_exp_attrs['is_array'])
+        exp_reference_class = exp_attrs.get(
+            'reference_class', self.default_exp_attrs['reference_class'])
+        exp_qualifiers = exp_attrs.get(
+            'qualifiers', self.default_exp_attrs['qualifiers'])
+        exp_embedded_object = exp_attrs.get(
+            'embedded_object', self.default_exp_attrs['embedded_object'])
+
+        if exp_warn_type is None:
+
+            # The code to be tested
+            obj = CIMProperty(**kwargs)
 
-        timedelta_1 = timedelta(days=12345678, hours=22, minutes=44,
-                                seconds=55, microseconds=654321)
-        cim_datetime_1 = '12345678224455.654321:000'
-
-        # This test failed in the pre-0.8.1 implementation, because
-        # the timedelta object was not converted to a CIMDateTime object.
-        p = CIMProperty('Age', timedelta_1)
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
-                               'datetime')
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # timedelta object was not converted to a CIMDateTime object.
-        p = CIMProperty('Age', timedelta_1, 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
-                               'datetime')
-
-        p = CIMProperty('Age', CIMDateTime(timedelta_1))
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
-                               'datetime')
-
-        p = CIMProperty('Age', CIMDateTime(timedelta_1), 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
-                               'datetime')
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # datetime formatted string was not converted to a CIMDateTime object.
-        p = CIMProperty('Age', cim_datetime_1, 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
-                               'datetime')
-
-        p = CIMProperty('Age', CIMDateTime(cim_datetime_1))
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
-                               'datetime')
-
-        p = CIMProperty('Age', CIMDateTime(cim_datetime_1), 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_1),
-                               'datetime')
-
-        datetime_2 = datetime(year=2014, month=9, day=24, hour=19, minute=30,
-                              second=40, microsecond=654321,
-                              tzinfo=cim_types.MinutesFromUTC(120))
-        cim_datetime_2 = '20140924193040.654321+120'
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # datetime object was not converted to a CIMDateTime object.
-        p = CIMProperty('Age', datetime_2)
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
-                               'datetime')
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # datetime object was not converted to a CIMDateTime object.
-        p = CIMProperty('Age', datetime_2, 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
-                               'datetime')
-
-        p = CIMProperty('Age', CIMDateTime(datetime_2))
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
-                               'datetime')
-
-        p = CIMProperty('Age', CIMDateTime(datetime_2), 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
-                               'datetime')
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # datetime formatted string was not converted to a CIMDateTime object.
-        p = CIMProperty('Age', cim_datetime_2, 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
-                               'datetime')
-
-        p = CIMProperty('Age', CIMDateTime(cim_datetime_2))
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
-                               'datetime')
-
-        p = CIMProperty('Age', CIMDateTime(cim_datetime_2), 'datetime')
-        self.assertCIMProperty(p, 'Age', CIMDateTime(cim_datetime_2),
-                               'datetime')
-
-        # Reference properties
-
-        p = CIMProperty('Foo', None, 'reference')
-        self.assertCIMProperty(p, 'Foo', None, 'reference',
-                               reference_class=None)
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # reference_class argument was required to be provided for references.
-        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'))
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
-                               'reference')
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # reference_class argument was required to be provided for references.
-        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference')
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
-                               'reference')
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # reference_class argument was required to be provided for references.
-        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
-                        qualifiers=quals)
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
-                               'reference', qualifiers=quals)
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # reference_class argument was required to be provided for references.
-        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference',
-                        qualifiers=quals)
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
-                               'reference', qualifiers=quals)
-
-        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
-                        reference_class='CIM_Foo')
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
-                               'reference',
-                               reference_class='CIM_Foo')
-
-        # This is just a rough test whether a WBEM URI string will be converted
-        # into a CIMInstanceName object. A more thorough test with variations
-        # of WBEM URI strings is where CIMInstanceName.from_wbem_uri() is
-        # tested.
-        if CHECK_0_12_0:
-            path_uri = 'https://10.11.12.13:5989/root/cimv2:' \
-                       'CIM_Fo.k1="v1",k2="v2"'
-            path_obj = CIMInstanceName('CIM_Fo',
-                                       keybindings={'k1': 'v1', 'k2': 'v2'},
-                                       namespace='root/cimv2',
-                                       host='10.11.12.13:5989')
-            p = CIMProperty('Foo', path_uri, 'reference',
-                            reference_class='CIM_Fo')
-            self.assertCIMProperty(p, 'Foo', path_obj, 'reference',
-                                   reference_class='CIM_Fo')
-
-        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'), 'reference',
-                        reference_class='CIM_Foo')
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
-                               'reference',
-                               reference_class='CIM_Foo')
-
-        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
-                        reference_class='CIM_Foo', qualifiers=quals)
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
-                               'reference',
-                               reference_class='CIM_Foo', qualifiers=quals)
-
-        p = CIMProperty('Foo', CIMInstanceName('CIM_Foo'),
-                        'reference',
-                        reference_class='CIM_Foo', qualifiers=quals)
-        self.assertCIMProperty(p, 'Foo', CIMInstanceName('CIM_Foo'),
-                               'reference',
-                               reference_class='CIM_Foo', qualifiers=quals)
-
-        # Initialization to CIM embedded object / instance
-
-        # This test failed in the pre-0.8.1 implementation, succeeded in the
-        # pre-0.12.0 implementation, and fails again from 0.12.0 on (because
-        # type is required):
-        if CHECK_0_12_0:
-            with self.assertRaises(ValueError):
-                CIMProperty('Bar', None, embedded_object='object')
-        else:  # starting with 0.8.1
-            p = CIMProperty('Bar', None, embedded_object='object')
-            self.assertCIMProperty(p, 'Bar', None, 'string',
-                                   embedded_object='object')
-
-        p = CIMProperty('Bar', None, 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', None, 'string',
-                               embedded_object='object')
-
-        ec = CIMClass('CIM_Bar')
-
-        p = CIMProperty('Bar', ec)
-        self.assertCIMProperty(p, 'Bar', ec, 'string', embedded_object='object')
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # embedded_object attribute was not implied from the value argument if
-        # the type argument was also provided.
-        p = CIMProperty('Bar', ec, 'string')
-        self.assertCIMProperty(p, 'Bar', ec, 'string',
-                               embedded_object='object')
-
-        p = CIMProperty('Bar', ec, embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', ec, 'string',
-                               embedded_object='object')
-
-        p = CIMProperty('Bar', ec, 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', ec, 'string',
-                               embedded_object='object')
-
-        ei = CIMInstance('CIM_Bar')
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # embedded_object argument value of 'object' was changed to 'instance'
-        # when a CIMInstance typed value was provided.
-        p = CIMProperty('Bar', ei, embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', ei, 'string',
-                               embedded_object='object')
-
-        p = CIMProperty('Bar', ei, 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', ei, 'string',
-                               embedded_object='object')
-
-        p = CIMProperty('Bar', ei)
-        self.assertCIMProperty(p, 'Bar', ei, 'string',
-                               embedded_object='instance')
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # embedded_object attribute was not implied from the value argument if
-        # the type argument was also provided.
-        p = CIMProperty('Bar', ei, 'string')
-        self.assertCIMProperty(p, 'Bar', ei, 'string',
-                               embedded_object='instance')
-
-        p = CIMProperty('Bar', ei, embedded_object='instance')
-        self.assertCIMProperty(p, 'Bar', ei, 'string',
-                               embedded_object='instance')
-
-        p = CIMProperty('Bar', ei, 'string', embedded_object='instance')
-        self.assertCIMProperty(p, 'Bar', ei, 'string',
-                               embedded_object='instance')
-
-        # Invalid embedded_object value
-
-        with self.assertRaises(ValueError):
-            CIMProperty('Bar', value=None, type='string',
-                        embedded_object='objectx')
-
-        # Invalid CIM type for an embedded object
-
-        with self.assertRaises(ValueError):
-            CIMProperty('Bar', value=None, type='reference',
-                        embedded_object='object')
-
-        # Invalid value for an embedded object
-
-        invalid_eo = CIMProperty('Boo', '')
-
-        with self.assertRaises(ValueError):
-            CIMProperty('Bar', value=invalid_eo, type='string',
-                        embedded_object='object')
-
-        with self.assertRaises(ValueError):
-            CIMProperty('Bar', value=[invalid_eo], type='string',
-                        embedded_object='object')
-
-        # Check that initialization with Null without specifying a type is
-        # rejected
-
-        with self.assertRaises(ValueError):
-            CIMProperty('Spotty', None)
-
-        # Initialize with int, float and long, without specifying a type
-
-        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-            CIMProperty('Age', 42)
-
-        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-            CIMProperty('Age', 42.1)
-
-        if six.PY2:
-            with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-                CIMProperty('Age', long(42))  # noqa: F821
-
-        # Arrays with unspecified is_array
-
-        # Check that a value of None results in a scalar
-        p = CIMProperty('Foo', None, 'uint32', is_array=None)
-        self.assertEqual(p.is_array, False)
-
-        # Check that a scalar value results in a scalar
-        p = CIMProperty('Foo', 42, 'uint32', is_array=None)
-        self.assertEqual(p.is_array, False)
-
-        # Check that an array value results in an array
-        p = CIMProperty('Foo', [42], 'uint32', is_array=None)
-        self.assertEqual(p.is_array, True)
-
-        # Arrays of CIM string and numeric types
-
-        p = CIMProperty('Foo', None, 'string', is_array=True)
-        self.assertCIMProperty(p, 'Foo', None, 'string', is_array=True)
-
-        p = CIMProperty('Foo', [], 'string')
-        self.assertCIMProperty(p, 'Foo', [], 'string', is_array=True)
-
-        p = CIMProperty('Foo', [], 'string', is_array=True)
-        self.assertCIMProperty(p, 'Foo', [], 'string', is_array=True)
-
-        p = CIMProperty('Foo', [None], 'string')
-        self.assertCIMProperty(p, 'Foo', [None], 'string', is_array=True)
-
-        p = CIMProperty('Foo', [None], 'string', is_array=True)
-        self.assertCIMProperty(p, 'Foo', [None], 'string', is_array=True)
-
-        p = CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]])
-        self.assertCIMProperty(p, 'Foo', [Uint8(x) for x in [1, 2, 3]],
-                               'uint8', is_array=True)
-
-        p = CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]], is_array=True)
-        self.assertCIMProperty(p, 'Foo', [Uint8(x) for x in [1, 2, 3]],
-                               'uint8', is_array=True)
-
-        p = CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]], type='uint8')
-        self.assertCIMProperty(p, 'Foo', [Uint8(x) for x in [1, 2, 3]],
-                               'uint8', is_array=True)
-
-        p = CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]], qualifiers=quals)
-        self.assertCIMProperty(p, 'Foo', [Uint8(x) for x in [1, 2, 3]],
-                               'uint8', is_array=True, qualifiers=quals)
-
-        # Arrays of CIM boolean type
-
-        p = CIMProperty('Aged', [True])
-        self.assertCIMProperty(p, 'Aged', [True], 'boolean', is_array=True)
-
-        p = CIMProperty('Aged', [False, True], 'boolean')
-        self.assertCIMProperty(p, 'Aged', [False, True], 'boolean',
-                               is_array=True)
-
-        p = CIMProperty('Aged', [None], 'boolean')
-        self.assertCIMProperty(p, 'Aged', [None], 'boolean', is_array=True)
-
-        p = CIMProperty('Aged', [], 'boolean')
-        self.assertCIMProperty(p, 'Aged', [], 'boolean', is_array=True)
-
-        # Arrays of CIM datetime type
-
-        timedelta_1 = timedelta(days=12345678, hours=22, minutes=44,
-                                seconds=55, microseconds=654321)
-        cim_datetime_1 = '12345678224455.654321:000'
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # timedelta object was not converted to a CIMDateTime object.
-        p = CIMProperty('Age', [timedelta_1])
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
-                               'datetime', is_array=True)
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # timedelta object was not converted to a CIMDateTime object.
-        p = CIMProperty('Age', [timedelta_1], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
-                               'datetime', is_array=True)
-
-        p = CIMProperty('Age', [CIMDateTime(timedelta_1)])
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
-                               'datetime', is_array=True)
-
-        p = CIMProperty('Age', [CIMDateTime(timedelta_1)], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
-                               'datetime', is_array=True)
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # datetime formatted string was not converted to a CIMDateTime object.
-        p = CIMProperty('Age', [cim_datetime_1], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
-                               'datetime', is_array=True)
-
-        p = CIMProperty('Age', [CIMDateTime(cim_datetime_1)])
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
-                               'datetime', is_array=True)
-
-        p = CIMProperty('Age', [CIMDateTime(cim_datetime_1)], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_1)],
-                               'datetime', is_array=True)
-
-        p = CIMProperty('Age', [None], 'datetime')
-        self.assertCIMProperty(p, 'Age', [None], 'datetime', is_array=True)
-
-        datetime_2 = datetime(year=2014, month=9, day=24, hour=19, minute=30,
-                              second=40, microsecond=654321,
-                              tzinfo=cim_types.MinutesFromUTC(120))
-        cim_datetime_2 = '20140924193040.654321+120'
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # datetime object was not converted to a CIMDateTime object.
-        p = CIMProperty('Age', [datetime_2])
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
-                               'datetime', is_array=True)
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # datetime object was not converted to a CIMDateTime object.
-        p = CIMProperty('Age', [datetime_2], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
-                               'datetime', is_array=True)
-
-        p = CIMProperty('Age', [CIMDateTime(datetime_2)])
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
-                               'datetime', is_array=True)
-
-        p = CIMProperty('Age', [CIMDateTime(datetime_2)], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
-                               'datetime', is_array=True)
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # datetime formatted string was not converted to a CIMDateTime object.
-        p = CIMProperty('Age', [cim_datetime_2], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
-                               'datetime', is_array=True)
-
-        p = CIMProperty('Age', [CIMDateTime(cim_datetime_2)])
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
-                               'datetime', is_array=True)
-
-        p = CIMProperty('Age', [CIMDateTime(cim_datetime_2)], 'datetime')
-        self.assertCIMProperty(p, 'Age', [CIMDateTime(cim_datetime_2)],
-                               'datetime', is_array=True)
-
-        # Arrays of reference properties are not allowed in CIM v2.
-
-        with self.assertRaises(ValueError):
-            CIMProperty('Bar', [None], 'reference',
-                        reference_class='CIM_Foo')
-
-        # Arrays of CIM embedded objects / instances
-
-        # This test failed in the pre-0.8.1 implementation (because the first
-        # array element was used for defaulting the type, without checking for
-        # None), succeeded in the pre-0.12.0 implementation, and fails again
-        # from 0.12.0 on (because type is required when no value is provided):
-        if CHECK_0_12_0:
-            with self.assertRaises(ValueError):
-                CIMProperty('Bar', [None], embedded_object='object')
-        else:  # starting with 0.8.1
-            p = CIMProperty('Bar', [None], embedded_object='object')
-            self.assertCIMProperty(p, 'Bar', [None], 'string',
-                                   embedded_object='object',
-                                   is_array=True)
-
-        p = CIMProperty('Bar', [None], 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [None], 'string',
-                               embedded_object='object',
-                               is_array=True)
-
-        # This test failed in the pre-0.8.1 implementation (because the type of
-        # the empty array could not be inferred from the embedded_object
-        # argument), succeeded in the pre-0.12.0 implementation, and fails
-        # again from 0.12.0 on (because type is required when no value is
-        # provided in the array):
-        if CHECK_0_12_0:
-            with self.assertRaises(ValueError):
-                CIMProperty('Bar', [], embedded_object='object')
-        else:  # starting with 0.8.1
-            p = CIMProperty('Bar', [], embedded_object='object')
-            self.assertCIMProperty(p, 'Bar', [], 'string',
-                                   embedded_object='object',
-                                   is_array=True)
-
-        p = CIMProperty('Bar', [], 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [], 'string',
-                               embedded_object='object',
-                               is_array=True)
-
-        ec = CIMClass('CIM_Bar')
-
-        p = CIMProperty('Bar', [ec])
-        self.assertCIMProperty(p, 'Bar', [ec], 'string',
-                               embedded_object='object',
-                               is_array=True)
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # embedded_object attribute was not implied from the value argument if
-        # the type argument was also provided.
-        p = CIMProperty('Bar', [ec], 'string')
-        self.assertCIMProperty(p, 'Bar', [ec], 'string',
-                               embedded_object='object',
-                               is_array=True)
-
-        p = CIMProperty('Bar', [ec], embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [ec], 'string',
-                               embedded_object='object',
-                               is_array=True)
-
-        p = CIMProperty('Bar', [ec], 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [ec], 'string',
-                               embedded_object='object',
-                               is_array=True)
-
-        ei = CIMInstance('CIM_Bar')
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # embedded_object argument value of 'object' was changed to 'instance'
-        # when a CIMInstance typed value was provided.
-        p = CIMProperty('Bar', [ei], embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [ei], 'string',
-                               embedded_object='object',
-                               is_array=True)
-
-        p = CIMProperty('Bar', [ei], 'string', embedded_object='object')
-        self.assertCIMProperty(p, 'Bar', [ei], 'string',
-                               embedded_object='object',
-                               is_array=True)
-
-        p = CIMProperty('Bar', [ei])
-        self.assertCIMProperty(p, 'Bar', [ei], 'string',
-                               embedded_object='instance',
-                               is_array=True)
-
-        # This test failed in the pre-0.8.1 implementation, because the
-        # embedded_object attribute was not implied from the value argument if
-        # the type argument was also provided.
-        p = CIMProperty('Bar', [ei], 'string')
-        self.assertCIMProperty(p, 'Bar', [ei], 'string',
-                               embedded_object='instance',
-                               is_array=True)
-
-        p = CIMProperty('Bar', [ei], embedded_object='instance')
-        self.assertCIMProperty(p, 'Bar', [ei], 'string',
-                               embedded_object='instance',
-                               is_array=True)
-
-        p = CIMProperty('Bar', [ei], 'string', embedded_object='instance')
-        self.assertCIMProperty(p, 'Bar', [ei], 'string',
-                               embedded_object='instance',
-                               is_array=True)
-
-        # Check that initialization with certain invalid arrays without
-        # specifying a type is rejected
-
-        with self.assertRaises(ValueError):
-            CIMProperty('Foo', None, is_array=True)
-
-        with self.assertRaises(ValueError):
-            CIMProperty('Foo', [], is_array=True)
-
-        with self.assertRaises(ValueError):
-            CIMProperty('Foo', [None], is_array=True)
-
-        with self.assertRaises(ValueError):
-            CIMProperty('Foo', [None, "abc"], is_array=True)
-
-        with self.assertRaises(ValueError):
-            CIMProperty('Foo', [])
-
-        with self.assertRaises(ValueError):
-            CIMProperty('Foo', [None])
-
-        with self.assertRaises(ValueError):
-            CIMProperty('Foo', [None, "abc"])
-
-        # Initialize with arrays of int, float and long, without type
-
-        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-            CIMProperty('Foo', [1, 2, 3])
-
-        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-            CIMProperty('Foo', [1.0, 2.0])
-
-        if six.PY2:
-            with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-                CIMProperty('Foo', [long(42), long(43)])  # noqa: F821
-
-        # Check that the documented examples don't fail:
-
-        CIMProperty("MyString", "abc")
-
-        if CHECK_0_12_0:
-            p = CIMProperty("MyNum", 42, "uint8")
-            self.assertCIMProperty(p, 'MyNum', Uint8(42), 'uint8')
         else:
-            p = CIMProperty("MyNum", 42, "uint8")
-            self.assertCIMProperty(p, 'MyNum', 42, 'uint8')
+            with pytest.warns(exp_warn_type):
 
-        CIMProperty("MyNum", Uint8(42))
-        CIMProperty("MyNumArray", [1, 2, 3], "uint8")
-        CIMProperty("MyRef", CIMInstanceName("Foo"))
-        CIMProperty("MyEmbObj", CIMClass("Foo"))
-        CIMProperty("MyEmbObj", CIMInstance("Foo"),
-                    embedded_object="object")
-        CIMProperty("MyEmbInst", CIMInstance("Foo"))
-        CIMProperty("MyString", None, "string")
-        CIMProperty("MyNum", None, "uint8")
-        CIMProperty("MyRef", None, "reference", reference_class="MyClass")
-        CIMProperty("MyEmbObj", None, "string", embedded_object="object")
-        CIMProperty("MyEmbInst", None, "string",
-                    embedded_object="instance")
+                # The code to be tested
+                obj = CIMProperty(**kwargs)
+
+        assert obj.name == exp_name
+        assert isinstance(obj.name, type(exp_name))
+
+        assert obj.value == exp_value
+        assert isinstance(obj.value, type(exp_value))
+
+        assert obj.type == exp_type
+        assert isinstance(obj.type, type(exp_type))
+
+        assert obj.class_origin == exp_class_origin
+        assert isinstance(obj.class_origin, type(exp_class_origin))
+
+        assert obj.array_size == exp_array_size
+        assert isinstance(obj.array_size, type(exp_array_size))
+
+        assert obj.propagated == exp_propagated
+        assert isinstance(obj.propagated, type(exp_propagated))
+
+        assert obj.is_array == exp_is_array
+        assert isinstance(obj.is_array, type(exp_is_array))
+
+        assert obj.reference_class == exp_reference_class
+        assert isinstance(obj.reference_class, type(exp_reference_class))
+
+        assert obj.qualifiers == exp_qualifiers
+        assert isinstance(obj.qualifiers, type(exp_qualifiers))
+
+        assert obj.embedded_object == exp_embedded_object
+        assert isinstance(obj.embedded_object, type(exp_embedded_object))
+
+    testcases_fails = [
+        # Testcases where CIMProperty.__init__() fails.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_exc_type: Expected exception type.
+        # * condition: Condition for testcase to run.
+        (
+            "Verify that name None fails (since 0.8.1)",
+            dict(name=None, value='abc'),
+            ValueError, True
+        ),
+        (
+            "Verify that value None without type fails",
+            dict(name='FooProp', value=None),
+            ValueError, True
+        ),
+        (
+            "Verify that qualifier with inconsistent key / name fails "
+            "(since 0.12)",
+            dict(name='FooProp', value='abc',
+                 qualifiers=dict(Q1_x=qualifier_Q1)),
+            ValueError, CHECK_0_12_0
+        ),
+        (
+            "Verify that type string for value None is not implied from "
+            "embedded_object (before 0.8.1 and since 0.12)",
+            dict(name='FooProp', value=None, embedded_object='object'),
+            ValueError, CHECK_0_12_0
+        ),
+        (
+            "Verify that invalid embedded_object value fails",
+            dict(name='FooProp', value=None, type='string',
+                 embedded_object='objectx'),
+            ValueError, True
+        ),
+        (
+            "Verify that invalid type for embedded_object fails",
+            dict(name='FooProp', value=None, type='reference',
+                 embedded_object='object'),
+            ValueError, True
+        ),
+        (
+            "Verify that invalid value for embedded_object fails",
+            dict(name='FooProp', value=CIMProperty('Boo', ''),
+                 type='string', embedded_object='object'),
+            ValueError, True
+        ),
+        (
+            "Verify that invalid array value for embedded_object fails",
+            dict(name='FooProp', value=[CIMProperty('Boo', '')],
+                 type='string', embedded_object='object'),
+            ValueError, True
+        ),
+        (
+            "Verify that a value of int without a type fails",
+            dict(name='FooProp', value=42),
+            ValueError if CHECK_0_12_0 else TypeError, True
+        ),
+        (
+            "Verify that a value of float without a type fails",
+            dict(name='FooProp', value=42.1),
+            ValueError if CHECK_0_12_0 else TypeError, True
+        ),
+        (
+            "Verify that a value of long without a type fails (Python 2 only)",
+            dict(name='FooProp', value=_Longint(42)),
+            ValueError if CHECK_0_12_0 else TypeError, six.PY2
+        ),
+        (
+            "Verify that arrays of reference properties are not allowed in "
+            "CIM v2",
+            dict(name='FooProp', value=[None], type='reference',
+                 reference_class='CIM_Foo'),
+            ValueError, True
+        ),
+        (
+            "Verify that is_array and type string are not implied from "
+            "embedded_object, for value list(None) (before 0.8.1 and "
+            "since 0.12)",
+            dict(name=u'FooProp', value=[None], embedded_object=u'object'),
+            ValueError, CHECK_0_12_0
+        ),
+        (
+            "Verify that is_array and type string are not implied from "
+            "embedded_object, for value list() (before 0.8.1 and "
+            "since 0.12)",
+            dict(name=u'FooProp', value=[], embedded_object=u'object'),
+            ValueError, CHECK_0_12_0
+        ),
+        (
+            "Verify that value None witout type fails also for arrays",
+            dict(name=u'FooProp', value=None, is_array=True),
+            ValueError, True
+        ),
+        (
+            "Verify that value list() without type fails also for arrays",
+            dict(name=u'FooProp', value=[], is_array=True),
+            ValueError, True
+        ),
+        (
+            "Verify that value list(None) without type fails also for arrays",
+            dict(name=u'FooProp', value=[None], is_array=True),
+            ValueError, True
+        ),
+        (
+            "Verify that value list(None,str) without type fails also for "
+            "arrays",
+            dict(name=u'FooProp', value=[None, 'abc'], is_array=True),
+            ValueError, True
+        ),
+        (
+            "Verify that value list() without type fails also when "
+            "is_array is unspecified",
+            dict(name=u'FooProp', value=[]),
+            ValueError, True
+        ),
+        (
+            "Verify that value list(None) without type fails also when "
+            "is_array is unspecified",
+            dict(name=u'FooProp', value=[None]),
+            ValueError, True
+        ),
+        (
+            "Verify that value list(None,str) without type fails also when "
+            "is_array is unspecified",
+            dict(name=u'FooProp', value=[None, 'abc']),
+            ValueError, True
+        ),
+        (
+            "Verify that value list(int) without type fails",
+            dict(name=u'FooProp', value=[1]),
+            ValueError if CHECK_0_12_0 else TypeError, True
+        ),
+        (
+            "Verify that value list(float) without type fails",
+            dict(name=u'FooProp', value=[1.1]),
+            ValueError if CHECK_0_12_0 else TypeError, True
+        ),
+        (
+            "Verify that value list(long) without type fails (Python 2 only)",
+            dict(name=u'FooProp', value=[_Longint(1)]),
+            ValueError if CHECK_0_12_0 else TypeError, True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_exc_type, condition",
+        testcases_fails)
+    def test_CIMProperty_init_fails(
+            self, desc, kwargs, exp_exc_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMProperty.__init__() fails."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        with pytest.raises(exp_exc_type):
+
+            # The code to be tested
+            CIMProperty(**kwargs)
 
 
-class CopyCIMProperty(unittest.TestCase, CIMObjectMixin):
+class CIMPropertyCopy(unittest.TestCase, CIMObjectMixin):
 
     def test_all(self):
 
@@ -3135,7 +4014,7 @@ class CopyCIMProperty(unittest.TestCase, CIMObjectMixin):
 
         c.name = '1234'
         c.value = '1234'
-        c.qualifiers = {'Key': CIMQualifier('Value', True)}
+        c.qualifiers = {'Key': CIMQualifier('Key', True)}
 
         self.assertCIMProperty(p, 'Spotty', 'Foot', type_='string',
                                qualifiers={})
@@ -3301,46 +4180,197 @@ class CIMPropertySort(unittest.TestCase):
 
 class Test_CIMProperty_str(object):
     """
-    Test `CIMProperty.__str__()`.
+    Test CIMProperty.__str__().
+
+    That function returns for example::
+
+       CIMProperty(name=Prop, value=..., type=..., reference_class=...
+       embedded_object=..., is_array=...)
     """
 
-    def test_all(self):
+    emb_classname = 'CIM_Bar'
+    emb_instance = CIMInstance(emb_classname)
+    emb_class = CIMClass(emb_classname)
 
-        obj = CIMProperty('Spotty', 'Foot', type='string')
+    testcases_succeeds = [
+        # Testcases where CIMProperty.__str__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMProperty object to be tested.
+        (
+            CIMProperty(
+                name='Spotty',
+                value='Foot')
+        ),
+        (
+            CIMProperty(
+                name='Spotty',
+                value='Foot',
+                type='string')
+        ),
+        (
+            CIMProperty(
+                name='Spotty',
+                value=None,
+                type='reference',
+                reference_class='CIM_Foo')
+        ),
+        (
+            CIMProperty(
+                name='Spotty',
+                value=emb_instance,
+                type='string',
+                embedded_object='instance')
+        ),
+        (
+            CIMProperty(
+                name='Spotty',
+                value=emb_instance,
+                type='string',
+                embedded_object='object')
+        ),
+        (
+            CIMProperty(
+                name='Spotty',
+                value=emb_class,
+                type='string',
+                embedded_object='object')
+        ),
+        (
+            CIMProperty(
+                name='Spotty',
+                value=['Foot'],
+                is_array=True)
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMProperty_str_succeeds(self, obj):
+        """All test cases where CIMProperty.__str__() succeeds."""
 
         s = str(obj)
 
         assert re.match(r'^CIMProperty\(', s)
-        assert 'name=%r' % obj.name in s
-        assert 'value=%r' % obj.value in s
-        assert 'type=%r' % obj.type in s
-        assert 'reference_class=%r' % obj.reference_class in s
-        assert 'embedded_object=%r' % obj.embedded_object in s
-        assert 'is_array=%r' % obj.is_array in s
+
+        exp_name = 'name=%r' % obj.name
+        assert exp_name in s
+
+        exp_value = 'value=%r' % obj.value
+        assert exp_value in s
+
+        exp_type = 'type=%r' % obj.type
+        assert exp_type in s
+
+        exp_reference_class = 'reference_class=%r' % obj.reference_class
+        assert exp_reference_class in s
+
+        exp_embedded_object = 'embedded_object=%r' % obj.embedded_object
+        assert exp_embedded_object in s
+
+        exp_is_array = 'is_array=%r' % obj.is_array
+        assert exp_is_array in s
 
 
 class Test_CIMProperty_repr(object):
     """
-    Test `CIMProperty.__repr__()`.
+    Test CIMProperty.__repr__().
     """
 
-    def test_all(self):
+    emb_classname = 'CIM_Bar'
+    emb_instance = CIMInstance(emb_classname)
+    emb_class = CIMClass(emb_classname)
 
-        obj = CIMProperty('Spotty', 'Foot', type='string')
+    testcases_succeeds = [
+        # Testcases where CIMProperty.__repr__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMProperty object to be tested.
+        (
+            CIMProperty(
+                name='Spotty',
+                value='Foot')
+        ),
+        (
+            CIMProperty(
+                name='Spotty',
+                value='Foot',
+                type='string')
+        ),
+        (
+            CIMProperty(
+                name='Spotty',
+                value=None,
+                type='reference',
+                reference_class='CIM_Foo')
+        ),
+        (
+            CIMProperty(
+                name='Spotty',
+                value=emb_instance,
+                type='string',
+                embedded_object='instance')
+        ),
+        (
+            CIMProperty(
+                name='Spotty',
+                value=emb_instance,
+                type='string',
+                embedded_object='object')
+        ),
+        (
+            CIMProperty(
+                name='Spotty',
+                value=emb_class,
+                type='string',
+                embedded_object='object')
+        ),
+        (
+            CIMProperty(
+                name='Spotty',
+                value=['Foot'],
+                is_array=True)
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMProperty_repr_succeeds(self, obj):
+        """All test cases where CIMProperty.__repr__() succeeds."""
 
         r = repr(obj)
 
         assert re.match(r'^CIMProperty\(', r)
-        assert 'name=%r' % obj.name in r
-        assert 'value=%r' % obj.value in r
-        assert 'type=%r' % obj.type in r
-        assert 'reference_class=%r' % obj.reference_class in r
-        assert 'embedded_object=%r' % obj.embedded_object in r
-        assert 'is_array=%r' % obj.is_array in r
-        assert 'array_size=%r' % obj.array_size in r
-        assert 'class_origin=%r' % obj.class_origin in r
-        assert 'propagated=%r' % obj.propagated in r
-        assert 'qualifiers=' in r
+
+        exp_name = 'name=%r' % obj.name
+        assert exp_name in r
+
+        exp_value = 'value=%r' % obj.value
+        assert exp_value in r
+
+        exp_type = 'type=%r' % obj.type
+        assert exp_type in r
+
+        exp_reference_class = 'reference_class=%r' % obj.reference_class
+        assert exp_reference_class in r
+
+        exp_embedded_object = 'embedded_object=%r' % obj.embedded_object
+        assert exp_embedded_object in r
+
+        exp_is_array = 'is_array=%r' % obj.is_array
+        assert exp_is_array in r
+
+        exp_array_size = 'array_size=%r' % obj.array_size
+        assert exp_array_size in r
+
+        exp_class_origin = 'class_origin=%r' % obj.class_origin
+        assert exp_class_origin in r
+
+        exp_propagated = 'propagated=%r' % obj.propagated
+        assert exp_propagated in r
+
+        exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+        assert exp_qualifiers in r
 
 
 class CIMPropertyToXML(ValidationTestCase):
@@ -3400,96 +4430,344 @@ class CIMPropertyToXML(ValidationTestCase):
                       root_elem_CIMProperty_ref)
 
 
-class InitCIMQualifier(unittest.TestCase):
-    """Test initialising a CIMQualifier object."""
+class Test_CIMQualifier_init(object):
+    """
+    Test CIMQualifier.__init__().
+    """
 
-    def test_all(self):
+    def test_CIMQualifier_init_pos_args(self):
+        # pylint: disable=unused-argument
+        """Test position of arguments in CIMQualifier.__init__()."""
 
-        # Initialization with name being None
+        # The code to be tested
+        obj = CIMQualifier(
+            'FooQual',
+            'abc',
+            'string',
+            False,
+            True,
+            True,
+            False,
+            True)
 
-        if CHECK_0_12_0:
-            with self.assertRaises(ValueError):
-                CIMQualifier(None, None, 'string')
+        assert obj.name == u'FooQual'
+        assert obj.value == u'abc'
+        assert obj.type == u'string'
+        assert obj.propagated is False
+        assert obj.overridable is True
+        assert obj.tosubclass is True
+        assert obj.toinstance is False
+        assert obj.translatable is True
+
+    # Defaults to expect for attributes when not specified in testcase
+    default_exp_attrs = dict(
+        type=None,
+        propagated=None,
+        overridable=None,
+        tosubclass=None,
+        toinstance=None,
+        translatable=None
+    )
+
+    testcases_succeeds = [
+        # Testcases where CIMQualifier.__init__() succeeds.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_attrs: Dict of expected attributes of resulting object.
+        # * exp_warn_type: Expected warning type.
+        # * condition: Condition for testcase to run.
+        (
+            "Verify that name can be None although documented otherwise "
+            "(before 0.12)",
+            dict(name=None, value=u'abc'),
+            dict(name=None, value=u'abc', type=exp_type_string),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that binary name is converted to unicode",
+            dict(name=b'FooParam', value=u'abc'),
+            dict(name=u'FooParam', value=u'abc', type=exp_type_string),
+            None, True
+        ),
+        (
+            "Verify that unicode name remains unicode",
+            dict(name=u'FooParam', value=u'abc'),
+            dict(name=u'FooParam', value=u'abc', type=exp_type_string),
+            None, True
+        ),
+        (
+            "Verify that binary value is converted to unicode and "
+            "type is implied to string",
+            dict(name=u'FooParam', value=b'abc'),
+            dict(name=u'FooParam', value=u'abc' if CHECK_0_12_0 else b'abc',
+                 type=exp_type_string),
+            None, True
+        ),
+        (
+            "Verify that unicode value remains unicode and "
+            "type is implied to string",
+            dict(name=u'FooParam', value=u'abc'),
+            dict(name=u'FooParam', value=u'abc', type=exp_type_string),
+            None, True
+        ),
+        (
+            "Verify uint8 value without type",
+            dict(name=u'FooParam', value=Uint8(42)),
+            dict(name=u'FooParam', value=Uint8(42), type=exp_type_uint8),
+            None, True
+        ),
+        (
+            "Verify uint8 value with type",
+            dict(name=u'FooParam', value=Uint8(42), type='uint8'),
+            dict(name=u'FooParam', value=Uint8(42), type=u'uint8'),
+            None, True
+        ),
+        (
+            "Verify that boolean value True remains boolean and "
+            "type is implied to boolean",
+            dict(name=u'FooParam', value=True),
+            dict(name=u'FooParam', value=True, type=exp_type_boolean),
+            None, True
+        ),
+        (
+            "Verify that boolean value False remains boolean and "
+            "type is implied to boolean",
+            dict(name=u'FooParam', value=False),
+            dict(name=u'FooParam', value=False, type=exp_type_boolean),
+            None, True
+        ),
+        (
+            "Verify that binary array value is converted to unicode and "
+            "type is implied to string",
+            dict(name=u'FooParam', value=[b'abc']),
+            dict(name=u'FooParam', value=[u'abc' if CHECK_0_12_0 else b'abc'],
+                 type=exp_type_string),
+            None, True
+        ),
+        (
+            "Verify that unicode array value remains unicode and "
+            "type is implied to string",
+            dict(name=u'FooParam', value=[u'abc']),
+            dict(name=u'FooParam', value=[u'abc'], type=exp_type_string),
+            None, True
+        ),
+        (
+            "Verify that boolean array value [False] remains boolean and "
+            "type is implied to boolean",
+            dict(name=u'FooParam', value=[False]),
+            dict(name=u'FooParam', value=[False], type=exp_type_boolean),
+            None, True
+        ),
+        (
+            "Verify that boolean array value [True] remains boolean and "
+            "type is implied to boolean",
+            dict(name=u'FooParam', value=[True]),
+            dict(name=u'FooParam', value=[True], type=exp_type_boolean),
+            None, True
+        ),
+        (
+            "Verify that setting boolean properties to 42 results in True "
+            "(since 0.12)",
+            dict(name=u'FooParam', value=u'abc',
+                 propagated=42, overridable=42, tosubclass=42,
+                 toinstance=42, translatable=42),
+            dict(name=u'FooParam', value=u'abc', type=exp_type_string,
+                 propagated=True, overridable=True, tosubclass=True,
+                 toinstance=True, translatable=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that setting boolean properties to 'false' results in True "
+            "(using Python bool rules, since 0.12)",
+            dict(name=u'FooParam', value=u'abc',
+                 propagated='false', overridable='false', tosubclass='false',
+                 toinstance='false', translatable='false'),
+            dict(name=u'FooParam', value=u'abc', type=exp_type_string,
+                 propagated=True, overridable=True, tosubclass=True,
+                 toinstance=True, translatable=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that setting boolean properties to 0 results in False "
+            "(since 0.12)",
+            dict(name=u'FooParam', value=u'abc',
+                 propagated=0, overridable=0, tosubclass=0,
+                 toinstance=0, translatable=0),
+            dict(name=u'FooParam', value=u'abc', type=exp_type_string,
+                 propagated=False, overridable=False, tosubclass=False,
+                 toinstance=False, translatable=False),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify documented example 1",
+            dict(name='MyString', value=u'abc'),
+            dict(name=u'MyString', value=u'abc', type=exp_type_string),
+            None, True
+        ),
+        (
+            "Verify documented example 2 (since 0.12)",
+            dict(name='MyNum', value=42, type='uint8'),
+            dict(name=u'MyNum', value=Uint8(42), type=exp_type_uint8),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify documented example 3",
+            dict(name='MyNum', value=Uint8(42)),
+            dict(name=u'MyNum', value=Uint8(42), type=exp_type_uint8),
+            None, True
+        ),
+        (
+            "Verify documented example 4",
+            dict(name='MyNumArray', value=[1, 2, 3], type='uint8'),
+            dict(name=u'MyNumArray', value=[Uint8(1), Uint8(2), Uint8(3)],
+                 type=u'uint8'),
+            None, True
+        ),
+        (
+            "Verify documented example 5",
+            dict(name='MyString', value=None, type='string'),
+            dict(name=u'MyString', value=None, type=u'string'),
+            None, True
+        ),
+        (
+            "Verify documented example 6",
+            dict(name='MyNum', value=None, type='uint8'),
+            dict(name=u'MyNum', value=None, type=u'uint8'),
+            None, True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_attrs, exp_warn_type, condition",
+        testcases_succeeds)
+    def test_CIMQualifier_init_succeeds(
+            self, desc, kwargs, exp_attrs, exp_warn_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMQualifier.__init__() succeeds."""
+
+        # import pdb; pdb.set_trace()
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        exp_name = exp_attrs['name']
+        exp_value = exp_attrs['value']
+        exp_type = exp_attrs.get(
+            'type', self.default_exp_attrs['type'])
+        exp_propagated = exp_attrs.get(
+            'propagated', self.default_exp_attrs['propagated'])
+        exp_overridable = exp_attrs.get(
+            'overridable', self.default_exp_attrs['overridable'])
+        exp_tosubclass = exp_attrs.get(
+            'tosubclass', self.default_exp_attrs['tosubclass'])
+        exp_toinstance = exp_attrs.get(
+            'toinstance', self.default_exp_attrs['toinstance'])
+        exp_translatable = exp_attrs.get(
+            'translatable', self.default_exp_attrs['translatable'])
+
+        if exp_warn_type is None:
+
+            # The code to be tested
+            obj = CIMQualifier(**kwargs)
+
         else:
-            # Before 0.12.0, the implementation allowed the name to be None,
-            # although the documentation required it not to be None.
-            # We test the implemented behavior
-            q = CIMQualifier(None, None, 'string')
-            self.assertIs(q.name, None)
+            with pytest.warns(exp_warn_type):
 
-        # Initialization with type being None
+                # The code to be tested
+                obj = CIMQualifier(**kwargs)
 
-        q = CIMQualifier('Qoo', u'bla')
-        assert q.type == 'string'
+        assert obj.name == exp_name
+        assert isinstance(obj.name, type(exp_name))
 
-        q = CIMQualifier('Qoo', b'bla')
-        assert q.type == 'string'
+        assert obj.value == exp_value
+        assert isinstance(obj.value, type(exp_value))
 
-        q = CIMQualifier('Qoo', True)
-        assert q.type == 'boolean'
+        assert obj.type == exp_type
+        assert isinstance(obj.type, type(exp_type))
 
-        q = CIMQualifier('Qoo', False)
-        assert q.type == 'boolean'
+        assert obj.propagated == exp_propagated
+        assert isinstance(obj.propagated, type(exp_propagated))
 
-        q = CIMQualifier('Qoo', [u'bla'])
-        assert q.type == 'string'
+        assert obj.overridable == exp_overridable
+        assert isinstance(obj.overridable, type(exp_overridable))
 
-        q = CIMQualifier('Qoo', [b'bla'])
-        assert q.type == 'string'
+        assert obj.tosubclass == exp_tosubclass
+        assert isinstance(obj.tosubclass, type(exp_tosubclass))
 
-        q = CIMQualifier('Qoo', [True])
-        assert q.type == 'boolean'
+        assert obj.toinstance == exp_toinstance
+        assert isinstance(obj.toinstance, type(exp_toinstance))
 
-        q = CIMQualifier('Qoo', [False])
-        assert q.type == 'boolean'
+        assert obj.translatable == exp_translatable
+        assert isinstance(obj.translatable, type(exp_translatable))
 
-        # Initialize with type being None and value not being type-derivable
+    testcases_fails = [
+        # Testcases where CIMQualifier.__init__() fails.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_exc_type: Expected exception type.
+        # * condition: Condition for testcase to run.
+        (
+            "Verify that name None fails (since 0.12)",
+            dict(name=None, value='abc'),
+            ValueError, CHECK_0_12_0
+        ),
+        (
+            "Verify that value None without type fails",
+            dict(name='FooQual', value=None),
+            ValueError if CHECK_0_12_0 else TypeError, True
+        ),
+        (
+            "Verify that value [None] without type fails",
+            dict(name='FooQual', value=[None]),
+            ValueError if CHECK_0_12_0 else TypeError, True
+        ),
+        (
+            "Verify that value [] without type fails",
+            dict(name='FooQual', value=[]),
+            ValueError if CHECK_0_12_0 else TypeError, True
+        ),
+        (
+            "Verify that value of int without type fails",
+            dict(name='FooQual', value=42),
+            ValueError if CHECK_0_12_0 else TypeError, True
+        ),
+        (
+            "Verify that value of float without type fails",
+            dict(name='FooQual', value=42.1),
+            ValueError if CHECK_0_12_0 else TypeError, True
+        ),
+        (
+            "Verify that value of long without type fails (on Python 2)",
+            dict(name='FooQual', value=_Longint(42)),
+            ValueError if CHECK_0_12_0 else TypeError, six.PY2
+        ),
+        (
+            "Verify documented example 3 (before 0.12)",
+            dict(name='MyNum', value=42, type='uint8'),
+            TypeError, not CHECK_0_12_0
+        ),
+    ]
 
-        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-            CIMQualifier('Qoo', None)
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_exc_type, condition",
+        testcases_fails)
+    def test_CIMQualifier_init_fails(
+            self, desc, kwargs, exp_exc_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMQualifier.__init__() fails."""
 
-        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-            CIMQualifier('Qoo', [None])
+        if not condition:
+            pytest.skip("Condition for test case not met")
 
-        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-            CIMQualifier('Qoo', [])
+        with pytest.raises(exp_exc_type):
 
-        # Initialize with type being None and value being int, float and long
-
-        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-            CIMQualifier('Qoo', 42)
-
-        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-            CIMQualifier('Qoo', 42.1)
-
-        if six.PY2:
-            with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-                CIMQualifier('Qoo', long(42))  # noqa: F821
-
-        # Some normal cases
-
-        CIMQualifier('Revision', '2.7.0', 'string')
-        CIMQualifier('RevisionList', ['1', '2', '3'], propagated=False)
-        CIMQualifier('Null', None, 'string')
-
-        # Check that the documented examples don't fail:
-
-        CIMQualifier("MyString", "abc")
-
-        if CHECK_0_12_0:
-            q = CIMQualifier("MyNum", 42, "uint8")
-            self.assertEqual(q.value, Uint8(42))
-        else:
-            with self.assertRaises(TypeError):
-                CIMQualifier("MyNum", 42, "uint8")
-
-        CIMQualifier("MyNum", Uint8(42))
-        CIMQualifier("MyNumArray", [1, 2, 3], "uint8")
-        CIMQualifier("MyString", None, "string")
-        CIMQualifier("MyNum", None, "uint8")
+            # The code to be tested
+            CIMQualifier(**kwargs)
 
 
-class CopyCIMQualifier(unittest.TestCase):
+class CIMQualifierCopy(unittest.TestCase):
 
     def test_all(self):
 
@@ -3586,43 +4864,105 @@ class CIMQualifierSort(unittest.TestCase):
 
 class Test_CIMQualifier_str(object):
     """
-    Test `CIMQualifier.__str__()`.
+    Test CIMQualifier.__str__().
+
+    That function returns for example::
+
+       CIMQualifier(name='Foo', value=True, type='boolean', ...)
     """
 
-    def test_all(self):
+    testcases_succeeds = [
+        # Testcases where CIMQualifier.__str__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMQualifier object to be tested.
+        (
+            CIMQualifier('Spotty', 'Foot')
+        ),
+        (
+            CIMQualifier('Revision', Real32(2.7))
+        ),
+        (
+            CIMQualifier('RevisionList',
+                         [Uint16(x) for x in [1, 2, 3]],
+                         propagated=False)
+        ),
+    ]
 
-        obj = CIMQualifier('RevisionList', ['1', '2', '3'],
-                           propagated=False)
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMQualifier_str_succeeds(self, obj):
+        """All test cases where CIMQualifier.__str__() succeeds."""
 
         s = str(obj)
 
         assert re.match(r'^CIMQualifier\(', s)
-        assert 'name=%r' % obj.name in s
-        assert 'value=%r' % obj.value in s
-        assert 'type=%r' % obj.type in s
+
+        exp_name = 'name=%r' % obj.name
+        assert exp_name in s
+
+        exp_value = 'value=%r' % obj.value
+        assert exp_value in s
+
+        exp_type = 'type=%r' % obj.type
+        assert exp_type in s
 
 
 class Test_CIMQualifier_repr(object):
     """
-    Test `CIMQualifier.__repr__()`.
+    Test CIMQualifier.__repr__().
     """
 
-    def test_all(self):
+    testcases_succeeds = [
+        # Testcases where CIMQualifier.__repr__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMQualifier object to be tested.
+        (
+            CIMQualifier('Spotty', 'Foot')
+        ),
+        (
+            CIMQualifier('Revision', Real32(2.7))
+        ),
+        (
+            CIMQualifier('RevisionList',
+                         [Uint16(x) for x in [1, 2, 3]],
+                         propagated=False)
+        ),
+    ]
 
-        obj = CIMQualifier('RevisionList', ['1', '2', '3'],
-                           propagated=False)
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMQualifier_repr_succeeds(self, obj):
+        """All test cases where CIMQualifier.__repr__() succeeds."""
 
         r = repr(obj)
 
         assert re.match(r'^CIMQualifier\(', r)
-        assert 'name=%r' % obj.name in r
-        assert 'value=%r' % obj.value in r
-        assert 'type=%r' % obj.type in r
-        assert 'tosubclass=%r' % obj.tosubclass in r
-        assert 'overridable=%r' % obj.overridable in r
-        assert 'translatable=%r' % obj.translatable in r
-        assert 'toinstance=%r' % obj.toinstance in r
-        assert 'propagated=%r' % obj.propagated in r
+
+        exp_name = 'name=%r' % obj.name
+        assert exp_name in r
+
+        exp_value = 'value=%r' % obj.value
+        assert exp_value in r
+
+        exp_type = 'type=%r' % obj.type
+        assert exp_type in r
+
+        exp_tosubclass = 'tosubclass=%r' % obj.tosubclass
+        assert exp_tosubclass in r
+
+        exp_overridable = 'overridable=%r' % obj.overridable
+        assert exp_overridable in r
+
+        exp_translatable = 'translatable=%r' % obj.translatable
+        assert exp_translatable in r
+
+        exp_toinstance = 'toinstance=%r' % obj.toinstance
+        assert exp_toinstance in r
+
+        exp_propagated = 'propagated=%r' % obj.propagated
+        assert exp_propagated in r
 
 
 class CIMQualifierToXML(ValidationTestCase):
@@ -3644,26 +4984,168 @@ class CIMQualifierToXML(ValidationTestCase):
                       root_elem_CIMQualifier)
 
 
-class InitCIMClassName(unittest.TestCase):
+class Test_CIMClassName_init(object):
+    """
+    Test CIMClassName.__init__().
+    """
 
-    def test_all(self):
+    # Defaults to expect for attributes when not specified in testcase
+    default_exp_attrs = dict(
+        host=None,
+        namespace=None,
+    )
 
-        if CHECK_0_12_0:
-            # Check that classname is enforced not to be None
-            with self.assertRaises(ValueError):
-                CIMClassName(None)
+    def test_CIMClassName_init_pos_args(self):
+        # pylint: disable=unused-argument
+        """Test position of arguments in CIMClassName.__init__()."""
+
+        # The code to be tested
+        obj = CIMClassName(
+            'CIM_Foo',
+            'woot.com',
+            'cimv2')
+
+        assert obj.classname == u'CIM_Foo'
+        assert obj.host == u'woot.com'
+        assert obj.namespace == u'cimv2'
+
+    testcases_succeeds = [
+        # Testcases where CIMClassName.__init__() succeeds.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_attrs: Dict of expected attributes of resulting object.
+        # * exp_warn_type: Expected warning type.
+        # * condition: Condition for testcase to run.
+        (
+            "Verify that binary classname is converted to unicode",
+            dict(classname=b'CIM_Foo'),
+            dict(classname=u'CIM_Foo'),
+            None, True
+        ),
+        (
+            "Verify that unicode classname remains unicode",
+            dict(classname=u'CIM_Foo'),
+            dict(classname=u'CIM_Foo'),
+            None, True
+        ),
+        (
+            "Verify that binary namespace is converted to unicode",
+            dict(
+                classname='CIM_Foo',
+                namespace=b'root/cimv2'),
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2'),
+            None, True
+        ),
+        (
+            "Verify that unicode namespace remains unicode",
+            dict(
+                classname='CIM_Foo',
+                namespace=u'root/cimv2'),
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2'),
+            None, True
+        ),
+        (
+            "Verify that binary host is converted to unicode",
+            dict(
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host=b'woot.com'),
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=u'woot.com'),
+            None, True
+        ),
+        (
+            "Verify that unicode host remains unicode",
+            dict(
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host=u'woot.com'),
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=u'woot.com'),
+            None, True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_attrs, exp_warn_type, condition",
+        testcases_succeeds
+    )
+    def test_CIMClassName_init_succeeds(
+            self, desc, kwargs, exp_attrs, exp_warn_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMClassName.__init__() succeeds."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        exp_classname = exp_attrs['classname']
+        exp_host = exp_attrs.get(
+            'host', self.default_exp_attrs['host'])
+        exp_namespace = exp_attrs.get(
+            'namespace', self.default_exp_attrs['namespace'])
+
+        if exp_warn_type is None:
+
+            # The code to be tested
+            obj = CIMClassName(**kwargs)
+
         else:
-            # Check that classname is enforced not to be None
-            with self.assertRaises(TypeError):
-                CIMClassName(None)
+            with pytest.warns(exp_warn_type):
 
-        # Initialise with classname, superclass
+                # The code to be tested
+                obj = CIMClassName(**kwargs)
 
-        CIMClassName('CIM_Foo')
-        CIMClassName('CIM_Foo', host='fred', namespace='root/blah')
+        assert obj.classname == exp_classname
+        assert isinstance(obj.classname, type(exp_classname))
+
+        assert obj.host == exp_host
+        assert isinstance(obj.host, type(exp_host))
+
+        assert obj.namespace == exp_namespace
+        assert isinstance(obj.namespace, type(exp_namespace))
+
+    testcases_fails = [
+        # Testcases where CIMClassName.__init__() fails.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_exc_type: Expected exception type.
+        # * condition: Condition for testcase to run.
+        (
+            "Verify that classname None fails",
+            dict(classname=None),
+            ValueError if CHECK_0_12_0 else TypeError,
+            True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_exc_type, condition",
+        testcases_fails)
+    def test_CIMClassName_init_fails(
+            self, desc, kwargs, exp_exc_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMClassName.__init__() fails."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        with pytest.raises(exp_exc_type):
+
+            # The code to be tested
+            CIMClassName(**kwargs)
 
 
-class CopyCIMClassName(unittest.TestCase):
+class CIMClassNameCopy(unittest.TestCase):
 
     def test_all(self):
 
@@ -3770,42 +5252,62 @@ class CIMClassNameEquality(unittest.TestCase):
 
 class Test_CIMClassName_str(object):
     """
-    Test `CIMClassName.__str__() (returns class path as WBEM URI)`.
+    Test CIMClassName.__str__().
+
+    That function returns the class path as a WBEM URI string.
     """
 
-    @pytest.mark.parametrize(
-        "obj, exp_uri", [
-            (CIMClassName(
+    testcases_succeeds = [
+        # Testcases where CIMClassName.__str__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMClassName object to be tested.
+        # * exp_uri: Expected WBEM URI string.
+        (
+            CIMClassName(
                 classname='CIM_Foo'),
-             'CIM_Foo'),
-            (CIMClassName(
+            'CIM_Foo'
+        ),
+        (
+            CIMClassName(
                 classname='CIM_Foo',
                 namespace='cimv2'),
-             'cimv2:CIM_Foo'),
-            (CIMClassName(
+            'cimv2:CIM_Foo'
+        ),
+        (
+            CIMClassName(
                 classname='CIM_Foo',
                 namespace='cimv2',
                 host='10.11.12.13'),
-             '//10.11.12.13/cimv2:CIM_Foo'),
-            (CIMClassName(
+            '//10.11.12.13/cimv2:CIM_Foo'
+        ),
+        (
+            CIMClassName(
                 classname='CIM_Foo',
                 namespace='root/cimv2',
                 host='10.11.12.13'),
-             '//10.11.12.13/root/cimv2:CIM_Foo'),
-            (CIMClassName(
+            '//10.11.12.13/root/cimv2:CIM_Foo'
+        ),
+        (
+            CIMClassName(
                 classname='CIM_Foo',
                 namespace='root/cimv2',
                 host='10.11.12.13:5989'),
-             '//10.11.12.13:5989/root/cimv2:CIM_Foo'),
-            (CIMClassName(
+            '//10.11.12.13:5989/root/cimv2:CIM_Foo'
+        ),
+        (
+            CIMClassName(
                 classname='CIM_Foo',
                 namespace='root/cimv2',
                 host='jdd:test@10.11.12.13:5989'),
-             '//jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo'),
-        ]
-    )
-    def test_succeeds(self, obj, exp_uri):
-        """All test cases for CIMClassName.__str__() that succeed."""
+            '//jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo'
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "obj, exp_uri",
+        testcases_succeeds)
+    def test_CIMClassName_str_succeeds(self, obj, exp_uri):
+        """All test cases where CIMClassName.__str__() succeeds."""
 
         s = str(obj)
 
@@ -3814,21 +5316,66 @@ class Test_CIMClassName_str(object):
 
 class Test_CIMClassName_repr(object):
     """
-    Test `CIMClassName.__repr__()`.
+    Test CIMClassName.__repr__().
     """
 
-    def test_all(self):
+    testcases_succeeds = [
+        # Testcases where CIMClassName.__repr__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMClassName object to be tested.
+        (
+            CIMClassName(
+                classname='CIM_Foo')
+        ),
+        (
+            CIMClassName(
+                classname='CIM_Foo',
+                namespace='cimv2')
+        ),
+        (
+            CIMClassName(
+                classname='CIM_Foo',
+                namespace='cimv2',
+                host='10.11.12.13')
+        ),
+        (
+            CIMClassName(
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13')
+        ),
+        (
+            CIMClassName(
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989')
+        ),
+        (
+            CIMClassName(
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='jdd:test@10.11.12.13:5989')
+        ),
+    ]
 
-        obj = CIMClassName('CIM_Foo',
-                           namespace='root/cimv2',
-                           host='woot.com')
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMClassName_str_succeeds(self, obj):
+        """All test cases where CIMClassName.__str__() succeeds."""
 
         r = repr(obj)
 
         assert re.match(r'^CIMClassName\(', r)
-        assert 'classname=%r' % obj.classname in r
-        assert 'namespace=%r' % obj.namespace in r
-        assert 'host=%r' % obj.host in r
+
+        exp_classname = 'classname=%r' % obj.classname
+        assert exp_classname in r
+
+        exp_namespace = 'namespace=%r' % obj.namespace
+        assert exp_namespace in r
+
+        exp_host = 'host=%r' % obj.host
+        assert exp_host in r
 
 
 class CIMClassNameToXML(ValidationTestCase):
@@ -3850,223 +5397,400 @@ class CIMClassNameToXML(ValidationTestCase):
 
 class Test_CIMClassName_from_wbem_uri(object):
     """
-    Test `CIMClassName.from_wbem_uri()`.
+    Test CIMClassName.from_wbem_uri().
     """
 
+    testcases_succeeds = [
+        # Testcases where CIMClassName.from_wbem_uri() succeeds.
+        # Each testcase has these items:
+        # * uri: WBEM URI string to be tested.
+        # * exp_obj: Expected CIMClassName object.
+        (
+            'https://jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo',
+            CIMClassName(
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='jdd:test@10.11.12.13:5989')
+        ),
+        (
+            'https://10.11.12.13:5989/root/cimv2:CIM_Foo',
+            CIMClassName(
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989')
+        ),
+        (
+            'http://10.11.12.13/root/cimv2:CIM_Foo',
+            CIMClassName(
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13')
+        ),
+        (
+            'http://10.11.12.13/cimv2:CIM_Foo',
+            CIMClassName(
+                classname='CIM_Foo',
+                namespace='cimv2',
+                host='10.11.12.13')
+        ),
+    ]
+
     @pytest.mark.parametrize(
-        "uri, exp_obj", [
-            ('https://jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo',
-             CIMClassName(
-                 classname='CIM_Foo',
-                 namespace='root/cimv2',
-                 host='jdd:test@10.11.12.13:5989')),
-            ('https://10.11.12.13:5989/root/cimv2:CIM_Foo',
-             CIMClassName(
-                 classname='CIM_Foo',
-                 namespace='root/cimv2',
-                 host='10.11.12.13:5989')),
-            ('http://10.11.12.13/root/cimv2:CIM_Foo',
-             CIMClassName(
-                 classname='CIM_Foo',
-                 namespace='root/cimv2',
-                 host='10.11.12.13')),
-            ('http://10.11.12.13/cimv2:CIM_Foo',
-             CIMClassName(
-                 classname='CIM_Foo',
-                 namespace='cimv2',
-                 host='10.11.12.13')),
-        ]
-    )
-    def test_succeeds(self, uri, exp_obj):
-        """All test cases for CIMClassName.from_wbem_uri() that succeed."""
+        "uri, exp_obj",
+        testcases_succeeds)
+    def test_CIMClassName_from_wbem_uri_succeeds(self, uri, exp_obj):
+        """All test cases where CIMClassName.from_wbem_uri() succeeds."""
 
         if CHECK_0_12_0:
 
             obj = CIMClassName.from_wbem_uri(uri)
 
             assert isinstance(obj, CIMClassName)
+
             assert obj.classname == exp_obj.classname
+            assert isinstance(obj.classname, type(exp_obj.classname))
+
             assert obj.namespace == exp_obj.namespace
+            assert isinstance(obj.namespace, type(exp_obj.namespace))
+
             assert obj.host == exp_obj.host
+            assert isinstance(obj.host, type(exp_obj.host))
+
+    testcases_fails = [
+        # Testcases where CIMClassName.from_wbem_uri() succeeds.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * uri: WBEM URI string to be tested.
+        # * exp_exc_type: Expected exception type.
+
+        # TODO: Improve implementation to make it fail for the disabled cases.
+        (
+            "missing '/' after scheme",
+            'https:/10.11.12.13:5989/cimv2:CIM_Foo',
+            ValueError
+        ),
+        # (
+        #     "invalid scheme",
+        #     'xyz://10.11.12.13:5989/cimv2:CIM_Foo',
+        #     ValueError
+        # ),
+        # (
+        #     "invalid ';' between host and port",
+        #     'https://10.11.12.13;5989/cimv2:CIM_Foo',
+        #     ValueError
+        # ),
+        # (
+        #     "invalid ':' between port and namespace",
+        #     'https://10.11.12.13:5989:cimv2:CIM_Foo',
+        #     ValueError
+        # ),
+        # (
+        #     "invalid '.' between namespace and classname",
+        #     'https://10.11.12.13:5989/cimv2.CIM_Foo',
+        #     ValueError
+        # ),
+        # (
+        #     "invalid '/' between namespace and classname",
+        #     'https://10.11.12.13:5989/cimv2/CIM_Foo',
+        #     ValueError
+        # ),
+        (
+            "instance path used as class path",
+            'https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1"',
+            ValueError
+        ),
+    ]
 
     @pytest.mark.parametrize(
-        # TODO: Improve implementation to make it fail for the disabled cases.
-        "uri, exp_exc", [
-            ('https:/10.11.12.13:5989/cimv2:CIM_Foo',
-             ValueError),  # missing '/' after scheme
-            # ('xyz://10.11.12.13:5989/cimv2:CIM_Foo',
-            #  ValueError),  # invalid scheme
-            # ('https://10.11.12.13;5989/cimv2:CIM_Foo',
-            #  ValueError),  # invalid ';' between host and port
-            # ('https://10.11.12.13:5989:cimv2:CIM_Foo',
-            #  ValueError),  # invalid ':' between port and namespace
-            # ('https://10.11.12.13:5989/cimv2.CIM_Foo',
-            #  ValueError),  # invalid '.' between namespace and classname
-            # ('https://10.11.12.13:5989/cimv2/CIM_Foo',
-            #  ValueError),  # invalid '/' between namespace and classname
-            ('https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1"',
-             ValueError),  # instance path used as class path
-        ]
-    )
-    def test_fails(self, uri, exp_exc):
-        """All test cases for CIMClassName.from_wbem_uri() that fail."""
+        "desc, uri, exp_exc_type",
+        testcases_fails)
+    def test_CIMClassName_from_wbem_uri_fails(self, desc, uri, exp_exc_type):
+        # pylint: disable=unused-argument
+        """All test cases where CIMClassName.from_wbem_uri() fails."""
 
         if CHECK_0_12_0:
 
-            with pytest.raises(Exception) as exc_info:
+            with pytest.raises(exp_exc_type):
                 CIMClassName.from_wbem_uri(uri)
-            exc = exc_info.value
-
-            assert isinstance(exc, exp_exc)
 
 
-class InitCIMClass(unittest.TestCase):
+class Test_CIMClass_init(object):
 
-    def test_all(self):
+    # Defaults to expect for attributes when not specified in testcase
+    default_exp_attrs = dict(
+        properties=NocaseDict(),
+        methods=NocaseDict(),
+        superclass=None,
+        qualifiers=NocaseDict(),
+        path=None,
+    )
 
-        # Class name is None
+    def test_CIMClass_init_pos_args(self):
+        # pylint: disable=unused-argument
+        """Test position of arguments in CIMClass.__init__()."""
 
-        if CHECK_0_12_0:
-            with self.assertRaises(ValueError):
-                CIMClass(None)
+        properties = dict(P1=CIMProperty('P1', value=True))
+        methods = dict(M1=CIMMethod('M1', return_type='string'))
+        qualifiers = dict(Q1=CIMQualifier('Q1', value=True))
+        path = CIMClassName('CIM_Foo')
+
+        # The code to be tested
+        obj = CIMClass(
+            'CIM_Foo',
+            properties,
+            methods,
+            'CIM_SuperFoo',
+            qualifiers,
+            path)
+
+        assert obj.classname == u'CIM_Foo'
+        assert obj.properties == NocaseDict(properties)
+        assert obj.methods == NocaseDict(methods)
+        assert obj.superclass == u'CIM_SuperFoo'
+        assert obj.qualifiers == NocaseDict(qualifiers)
+        assert obj.path == path
+
+    property_P1 = CIMProperty('P1', value='abc')
+    method_M1 = CIMMethod('M1', return_type='string')
+    qualifier_Q1 = CIMQualifier('Q1', value='abc')
+    classpath_1 = CIMClassName('CIM_Foo')
+
+    testcases_succeeds = [
+        # Testcases where CIMClass.__init__() succeeds.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_attrs: Dict of expected attributes of resulting object.
+        # * exp_warn_type: Expected warning type.
+        # * condition: Condition for testcase to run.
+        (
+            "Verify that classname None is accepted (before 0.12)",
+            dict(classname=None),
+            dict(classname=None),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that binary classname is converted to unicode",
+            dict(classname=b'CIM_Foo'),
+            dict(classname=u'CIM_Foo'),
+            None, True
+        ),
+        (
+            "Verify that unicode classname remains unicode",
+            dict(classname=u'CIM_Foo'),
+            dict(classname=u'CIM_Foo'),
+            None, True
+        ),
+        (
+            "Verify that binary superclass is converted to unicode",
+            dict(classname=u'CIM_Foo', superclass=b'CIM_Foo'),
+            dict(classname=u'CIM_Foo', superclass=u'CIM_Foo'),
+            None, True
+        ),
+        (
+            "Verify that unicode superclass remains unicode",
+            dict(classname=u'CIM_Foo', superclass=u'CIM_Foo'),
+            dict(classname=u'CIM_Foo', superclass=u'CIM_Foo'),
+            None, True
+        ),
+        (
+            "Verify that properties dict is converted to NocaseDict",
+            dict(classname=u'CIM_Foo', properties=dict(P1=property_P1)),
+            dict(classname=u'CIM_Foo', properties=NocaseDict(P1=property_P1)),
+            None, True
+        ),
+        (
+            "Verify that property provided as simple value is stored as "
+            "provided (before 0.12)",
+            dict(classname=u'CIM_Foo',
+                 properties=dict(P1=property_P1.value)),
+            dict(classname=u'CIM_Foo',
+                 properties=NocaseDict(P1=property_P1.value)),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that methods dict is converted to NocaseDict",
+            dict(classname=u'CIM_Foo', methods=dict(M1=method_M1)),
+            dict(classname=u'CIM_Foo', methods=NocaseDict(M1=method_M1)),
+            None, True
+        ),
+        (
+            "Verify that qualifiers dict is converted to NocaseDict",
+            dict(classname=u'CIM_Foo', qualifiers=dict(Q1=qualifier_Q1)),
+            dict(classname=u'CIM_Foo', qualifiers=NocaseDict(Q1=qualifier_Q1)),
+            None, True
+        ),
+        (
+            "Verify that qualifier provided as simple value is stored as "
+            "provided (before 0.12)",
+            dict(classname=u'CIM_Foo',
+                 qualifiers=dict(Q1=qualifier_Q1.value)),
+            dict(classname=u'CIM_Foo',
+                 qualifiers=NocaseDict(Q1=qualifier_Q1.value)),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that qualifier provided as simple value is converted to "
+            "CIMQualifier (since 0.12)",
+            dict(classname=u'CIM_Foo',
+                 qualifiers=dict(Q1=qualifier_Q1.value)),
+            dict(classname=u'CIM_Foo',
+                 qualifiers=NocaseDict(Q1=qualifier_Q1)),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that CIMClassName path is accepted",
+            dict(classname=u'CIM_Foo', path=classpath_1),
+            dict(classname=u'CIM_Foo', path=classpath_1),
+            None, True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_attrs, exp_warn_type, condition",
+        testcases_succeeds)
+    def test_CIMClass_init_succeeds(
+            self, desc, kwargs, exp_attrs, exp_warn_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMClass.__init__() succeeds."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        exp_classname = exp_attrs['classname']
+        exp_properties = exp_attrs.get(
+            'properties', self.default_exp_attrs['properties'])
+        exp_methods = exp_attrs.get(
+            'methods', self.default_exp_attrs['methods'])
+        exp_superclass = exp_attrs.get(
+            'superclass', self.default_exp_attrs['superclass'])
+        exp_qualifiers = exp_attrs.get(
+            'qualifiers', self.default_exp_attrs['qualifiers'])
+        exp_path = exp_attrs.get(
+            'path', self.default_exp_attrs['path'])
+
+        if exp_warn_type is None:
+
+            # The code to be tested
+            obj = CIMClass(**kwargs)
+
         else:
-            # Before 0.12.0, the implementation allowed the name to be None,
-            # although the documentation required it not to be None.
-            # We test the implemented behavior.
-            obj = CIMClass(None)
-            self.assertIs(obj.classname, None)
+            with pytest.warns(exp_warn_type):
 
-        # Initialise with classname, superclass
+                # The code to be tested
+                obj = CIMClass(**kwargs)
 
-        CIMClass('CIM_Foo')
-        CIMClass('CIM_Foo', superclass='CIM_Bar')
+        assert obj.classname == exp_classname
+        assert isinstance(obj.classname, type(exp_classname))
 
-        # Initialise with properties
+        assert obj.properties == exp_properties
+        assert isinstance(obj.properties, type(exp_properties))
 
-        CIMClass('CIM_Foo', properties={'InstanceID':
-                                        CIMProperty('InstanceID', None,
-                                                    type='string')})
+        assert obj.methods == exp_methods
+        assert isinstance(obj.methods, type(exp_methods))
 
-        # Initialise with properties with inconsistent name
+        assert obj.superclass == exp_superclass
+        assert isinstance(obj.superclass, type(exp_superclass))
 
-        if CHECK_0_12_0:
-            with self.assertRaises(ValueError):
-                CIMClass('CIM_Foo',
-                         properties={'Name': CIMProperty('NameX', 'Foo')})
-        else:
-            obj = CIMClass('CIM_Foo',
-                           properties={'Name': CIMProperty('NameX', 'Foo')})
-            self.assertEqual(len(obj.properties), 1)
-            self.assertEqual(obj.properties['Name'].name, 'NameX')
+        assert obj.qualifiers == exp_qualifiers
+        assert isinstance(obj.qualifiers, type(exp_qualifiers))
 
-        # Initialise with properties with name being None.
+        assert obj.path == exp_path
+        assert isinstance(obj.path, type(exp_path))
 
-        # Note that the name of the CIMProperty object is intentionally
-        # not None, in order to get over that check, and to get to the
-        # check for None as a dict key.
-        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-            CIMClass('CIM_Foo',
-                     properties={None: CIMProperty('Name', 'Foo')})
+    testcases_fails = [
+        # Testcases where CIMClass.__init__() fails.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_exc_type: Expected exception type.
+        # * condition: Condition for testcase to run.
+        (
+            "Verify that classname None fails (since 0.12)",
+            dict(classname=None),
+            ValueError,
+            CHECK_0_12_0
+        ),
+        (
+            "Verify that property with key None fails",
+            dict(
+                classname='CIM_Foo',
+                properties={None: property_P1}),
+            ValueError if CHECK_0_12_0 else TypeError,
+            True
+        ),
+        (
+            "Verify that property with inconsistent key / name fails "
+            "(since 0.12)",
+            dict(
+                classname='CIM_Foo',
+                properties=dict(P1_X=property_P1)),
+            ValueError,
+            CHECK_0_12_0
+        ),
+        (
+            "Verify that property provided as simple value fails "
+            "(since 0.12)",
+            dict(
+                classname='CIM_Foo',
+                properties=dict(P1=property_P1.value)),
+            TypeError,
+            CHECK_0_12_0
+        ),
+        (
+            "Verify that method with key None fails",
+            dict(
+                classname='CIM_Foo',
+                methods={None: method_M1}),
+            ValueError if CHECK_0_12_0 else TypeError,
+            True
+        ),
+        (
+            "Verify that method with inconsistent key / name fails "
+            "(since 0.12)",
+            dict(
+                classname='CIM_Foo',
+                methods=dict(M1_X=method_M1)),
+            ValueError,
+            CHECK_0_12_0
+        ),
+        (
+            "Verify that qualifier with key None fails",
+            dict(
+                classname='CIM_Foo',
+                qualifiers={None: qualifier_Q1}),
+            ValueError if CHECK_0_12_0 else TypeError,
+            True
+        ),
+        (
+            "Verify that qualifier with inconsistent key / name fails "
+            "(since 0.12)",
+            dict(
+                classname='CIM_Foo',
+                qualifiers=dict(Q1_X=qualifier_Q1)),
+            ValueError,
+            CHECK_0_12_0
+        ),
+    ]
 
-        # Initialise with properties using invalid object type
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_exc_type, condition",
+        testcases_fails)
+    def test_CIMClass_init_fails(
+            self, desc, kwargs, exp_exc_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMClass.__init__() fails."""
 
-        if CHECK_0_12_0:
-            with self.assertRaises(TypeError):
-                CIMClass('CIM_Foo',
-                         properties={'Name': 'Foo'})
-        else:
-            obj = CIMClass('CIM_Foo',
-                           properties={'Name': 'Foo'})
-            self.assertEqual(len(obj.properties), 1)
-            self.assertEqual(obj.properties['Name'], 'Foo')
+        if not condition:
+            pytest.skip("Condition for test case not met")
 
-        # Initialise with method
+        with pytest.raises(exp_exc_type):
 
-        CIMClass('CIM_Foo', methods={'Delete': CIMMethod('Delete',
-                                                         'uint32')})
-
-        # Initialise with methods with inconsistent name
-
-        if CHECK_0_12_0:
-            with self.assertRaises(ValueError):
-                CIMClass('CIM_Foo',
-                         methods={'Name': CIMMethod('NameX', 'uint32')})
-        else:
-            obj = CIMClass('CIM_Foo',
-                           methods={'Name': CIMMethod('NameX', 'uint32')})
-            self.assertEqual(len(obj.methods), 1)
-            self.assertEqual(obj.methods['Name'].name, 'NameX')
-
-        # Initialise with methods with name being None
-
-        # Note that the name of the CIMMethod object is intentionally
-        # not None, in order to get over that check, and to get to the
-        # check for None as a dict key.
-        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-            CIMClass('CIM_Foo',
-                     methods={None: CIMMethod('Name', 'uint32')})
-
-        # Initialise with methods using invalid object type
-
-        if CHECK_0_12_0:
-            with self.assertRaises(TypeError):
-                CIMClass('CIM_Foo', methods={'Name': 'Foo'})
-        else:
-            obj = CIMClass('CIM_Foo', methods={'Name': 'Foo'})
-            self.assertEqual(len(obj.methods), 1)
-            self.assertEqual(obj.methods['Name'], 'Foo')
-
-        # Initialise with qualifiers using CIMQualifier
-
-        obj = CIMClass('CIM_Foo',
-                       qualifiers={'Key': CIMQualifier('Key', True)})
-        self.assertEqual(len(obj.qualifiers), 1)
-        self.assertEqual(obj.qualifiers['Key'], CIMQualifier('Key', True))
-
-        # Initialise with qualifiers using simple type
-
-        obj = CIMClass('CIM_Foo', qualifiers={'Key': True})
-        self.assertEqual(len(obj.qualifiers), 1)
-        qual = obj.qualifiers['Key']
-        if CHECK_0_12_0:
-            self.assertIsInstance(qual, CIMQualifier)
-            self.assertEqual(qual, CIMQualifier('Key', True))
-        else:
-            self.assertIsInstance(qual, bool)
-            self.assertEqual(qual, True)
-            with self.assertRaises(TypeError):
-                # We want to invoke the equal comparison, and use assert only
-                # to avoid that checkers complain about the unused expression.
-                assert qual == CIMQualifier('Key', True)
-
-        # Initialise with qualifiers with inconsistent name
-
-        if CHECK_0_12_0:
-            with self.assertRaises(ValueError):
-                CIMClass('CIM_Foo',
-                         qualifiers={'Key': CIMQualifier('KeyX', True)})
-        else:
-            obj = CIMClass('CIM_Foo',
-                           qualifiers={'Key': CIMQualifier('KeyX', True)})
-            self.assertEqual(len(obj.qualifiers), 1)
-            self.assertEqual(obj.qualifiers['Key'].name, 'KeyX')
-
-        # Initialise with qualifiers with name being None
-
-        # Note that the name of the CIMMethod object is intentionally
-        # not None, in order to get over that check, and to get to the
-        # check for None as a dict key.
-        with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
-            CIMClass('CIM_Foo',
-                     qualifiers={None: CIMQualifier('Key', True)})
-
-        # Initialise with path
-
-        path = CIMClassName('CIM_Bar', host='fred', namespace='root/cimv2')
-        CIMClass('CIM_Foo', path=path)
+            # The code to be tested
+            CIMClass(**kwargs)
 
 
-class CopyCIMClass(unittest.TestCase):
+class CIMClassCopy(unittest.TestCase):
 
     def test_all(self):
 
@@ -4310,51 +6034,113 @@ class CIMClassSort(unittest.TestCase):
 
 class Test_CIMClass_str(object):
     """
-    Test `CIMClass.__str__()`.
+    Test CIMClass.__str__().
+
+    That function returns for example::
+
+       CIMClass(classname=CIM_Foo, ...)
     """
 
-    def test_all(self):
+    classpath_1 = CIMClassName('CIM_Foo')
 
-        path = CIMClassName('CIM_Foo')
+    testcases_succeeds = [
+        # Testcases where CIMClass.__str__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMClass object to be tested.
+        (
+            CIMClass(
+                classname='CIM_Foo')
+        ),
+        (
+            CIMClass(
+                classname='CIM_Foo',
+                properties=dict(
+                    Name=CIMProperty('Name', 'string'),
+                    Ref1=CIMProperty('Ref1', 'reference')))
+        ),
+        (
+            CIMClass(
+                classname='CIM_Foo',
+                properties=dict(
+                    Name=CIMProperty('Name', 'string'),
+                    Ref1=CIMProperty('Ref1', 'reference')),
+                path=classpath_1)
+        ),
+    ]
 
-        obj = CIMClass(
-            'CIM_Foo',
-            properties=dict(
-                Name=CIMProperty('Name', 'string'),
-                Ref1=CIMProperty('Ref1', 'reference')),
-            path=path)
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMClass_str_succeeds(self, obj):
+        """All test cases where CIMClass.__str__() succeeds."""
 
         s = str(obj)
 
         assert re.match(r'^CIMClass\(', s)
-        assert 'classname=%r' % obj.classname in s
+
+        exp_classname = 'classname=%r' % obj.classname
+        assert exp_classname in s
 
 
 class Test_CIMClass_repr(object):
     """
-    Test `CIMClass.__repr__()`.
+    Test CIMClass.__repr__().
     """
 
-    def test_all(self):
+    classpath_1 = CIMClassName('CIM_Foo')
 
-        path = CIMClassName('CIM_Foo')
+    testcases_succeeds = [
+        # Testcases where CIMClass.__repr__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMClass object to be tested.
+        (
+            CIMClass(
+                classname='CIM_Foo')
+        ),
+        (
+            CIMClass(
+                classname='CIM_Foo',
+                properties=dict(
+                    Name=CIMProperty('Name', 'string'),
+                    Ref1=CIMProperty('Ref1', 'reference')))
+        ),
+        (
+            CIMClass(
+                classname='CIM_Foo',
+                properties=dict(
+                    Name=CIMProperty('Name', 'string'),
+                    Ref1=CIMProperty('Ref1', 'reference')),
+                path=classpath_1)
+        ),
+    ]
 
-        obj = CIMClass(
-            'CIM_Foo',
-            properties=dict(
-                Name=CIMProperty('Name', 'string'),
-                Ref1=CIMProperty('Ref1', 'reference')),
-            path=path)
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMClass_repr_succeeds(self, obj):
+        """All test cases where CIMClass.__repr__() succeeds."""
 
         r = repr(obj)
 
         assert re.match(r'^CIMClass\(', r)
-        assert 'classname=%r' % obj.classname in r
-        assert 'superclass=%r' % obj.superclass in r
-        assert 'properties=' in r
-        assert 'methods=' in r
-        assert 'qualifiers=' in r
-        assert 'path=CIMClassName(' in r
+
+        exp_classname = 'classname=%r' % obj.classname
+        assert exp_classname in r
+
+        exp_superclass = 'superclass=%r' % obj.superclass
+        assert exp_superclass in r
+
+        exp_properties = 'properties=%r' % obj.properties
+        assert exp_properties in r
+
+        exp_methods = 'methods=%r' % obj.methods
+        assert exp_methods in r
+
+        exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+        assert exp_qualifiers in r
+
+        exp_path = 'path=%r' % obj.path
+        assert exp_path in r
 
 
 class CIMClassToXML(ValidationTestCase):
@@ -4569,8 +6355,8 @@ class CIMClassWQualToMOF(unittest.TestCase):
     def test_all(self):
 
         # predefine qualifiers, params
-        pquals = {'ModelCorresponse': CIMQualifier('ModelCorrespondense',
-                                                   'BlahBlahClass'),
+        pquals = {'ModelCorrespondence': CIMQualifier('ModelCorrespondence',
+                                                      'BlahBlahClass'),
                   'Description': CIMQualifier('Description', "This is a"
                                               " description for a property"
                                               " that serves no purpose"
@@ -4701,51 +6487,289 @@ class CIMClassWoQualifiersToMof(unittest.TestCase, RegexpMixin):
         self.assertRegexpContains(clmof, r"\n\};",)
 
 
-class Test_InitCIMMethod(object):
+class Test_CIMMethod_init(object):
+    """
+    Test CIMMethod.__init__().
+    """
 
-    def test_all(self):
+    def test_CIMMethod_init_pos_args(self):
+        # pylint: disable=unused-argument
+        """Test position of arguments in CIMMethod.__init__()."""
 
-        # Initialization with name being None
+        parameters = {'Param1': CIMParameter('Param1', 'uint32')}
+        qualifiers = {'Key': CIMQualifier('Key', True)}
+
+        # The code to be tested
+        obj = CIMMethod(
+            'FooMethod',
+            'uint32',
+            parameters,
+            'CIM_Origin',
+            True,
+            qualifiers)
+
+        assert obj.name == u'FooMethod'
+        assert obj.return_type == u'uint32'
+        assert obj.parameters == NocaseDict(parameters)
+        assert obj.class_origin == u'CIM_Origin'
+        assert obj.propagated is True
+        assert obj.qualifiers == NocaseDict(qualifiers)
+
+    def test_CIMMethod_init_methodname(self):
+        # pylint: disable=unused-argument
+        """Test deprecated methodname argument of CIMMethod.__init__()."""
+
+        # The code to be tested
+        with pytest.warns(DeprecationWarning):
+            obj = CIMMethod(
+                methodname='FooMethod',
+                return_type='string')
+
+        assert obj.name == u'FooMethod'
+
+    def test_CIMMethod_init_name_methodname(self):
+        # pylint: disable=unused-argument
+        """Test both name and methodname argument of CIMMethod.__init__()."""
 
         if CHECK_0_12_0:
-            with pytest.raises(ValueError):
-                CIMMethod(None, 'uint32')
+            exp_exc_type = ValueError
         else:
-            # Before 0.12.0 (at least in 0.11.0, maybe earlier), the
-            # implementation already checked for None, but raised a different
-            # exception.
-            with pytest.raises(TypeError):
-                CIMMethod(None, 'uint32')
+            exp_exc_type = TypeError
 
-        CIMMethod('FooMethod', 'uint32')
+        # The code to be tested
+        with pytest.raises(exp_exc_type):
+            CIMMethod(
+                name='FooMethod',
+                methodname='FooMethod',
+                return_type='string')
 
-        CIMMethod('FooMethod', 'uint32',
-                  parameters={'Param1': CIMParameter('Param1', 'uint32'),
-                              'Param2': CIMParameter('Param2', 'string')})
+    # Defaults to expect for attributes when not specified in testcase
+    default_exp_attrs = dict(
+        parameters=NocaseDict(),
+        class_origin=None,
+        propagated=False,
+        qualifiers=NocaseDict(),
+    )
 
-        CIMMethod('FooMethod', 'uint32',
-                  parameters={'Param1': CIMParameter('Param1', 'uint32'),
-                              'Param2': CIMParameter('Param2', 'string')},
-                  qualifiers={'Key': CIMQualifier('Key', True)})
+    parameter_P1 = CIMParameter('P1', type='uint32')
+    qualifier_Q1 = CIMQualifier('Q1', value='abc')
 
-        # Verify the deprecated methodname parameter
+    testcases_succeeds = [
+        # Testcases where CIMMethod.__init__() succeeds.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_attrs: Dict of expected attributes of resulting object.
+        # * exp_warn_type: Expected warning type.
+        # * condition: Condition for testcase to run.
+        (
+            "Verify that binary name and return type are converted to unicode",
+            dict(name=b'FooMethod', return_type=b'string'),
+            dict(name=u'FooMethod', return_type=u'string'),
+            None, True
+        ),
+        (
+            "Verify that unicode name and return type remain unicode",
+            dict(name=u'FooMethod', return_type=u'string'),
+            dict(name=u'FooMethod', return_type=u'string'),
+            None, True
+        ),
+        (
+            "Verify that parameters dict is converted to NocaseDict",
+            dict(name=u'FooMethod', return_type=u'string',
+                 parameters=dict(P1=parameter_P1)),
+            dict(name=u'FooMethod', return_type=u'string',
+                 parameters=NocaseDict(P1=parameter_P1)),
+            None, True
+        ),
+        (
+            "Verify that qualifiers dict is converted to NocaseDict",
+            dict(name=u'FooMethod', return_type=u'string',
+                 qualifiers=dict(Q1=qualifier_Q1)),
+            dict(name=u'FooMethod', return_type=u'string',
+                 qualifiers=NocaseDict(Q1=qualifier_Q1)),
+            None, True
+        ),
+        (
+            "Verify that binary class_origin is converted to unicode",
+            dict(name=u'FooMethod', return_type=u'string',
+                 class_origin=b'CIM_Origin'),
+            dict(name=u'FooMethod', return_type=u'string',
+                 class_origin=u'CIM_Origin'),
+            None, True
+        ),
+        (
+            "Verify that unicode class_origin remains unicode",
+            dict(name=u'FooMethod', return_type=u'string',
+                 class_origin=u'CIM_Origin'),
+            dict(name=u'FooMethod', return_type=u'string',
+                 class_origin=u'CIM_Origin'),
+            None, True
+        ),
+        (
+            "Verify that propagated int 42 is converted to bool True",
+            dict(name=u'FooMethod', return_type=u'string',
+                 propagated=42),
+            dict(name=u'FooMethod', return_type=u'string',
+                 propagated=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that propagated int 0 is converted to bool False",
+            dict(name=u'FooMethod', return_type=u'string',
+                 propagated=0),
+            dict(name=u'FooMethod', return_type=u'string',
+                 propagated=False),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that propagated string 'false' is converted to bool True",
+            dict(name=u'FooMethod', return_type=u'string',
+                 propagated='false'),
+            dict(name=u'FooMethod', return_type=u'string',
+                 propagated=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that propagated string 'true' is converted to bool True",
+            dict(name=u'FooMethod', return_type=u'string',
+                 propagated='true'),
+            dict(name=u'FooMethod', return_type=u'string',
+                 propagated=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that propagated bool True remains True",
+            dict(name=u'FooMethod', return_type=u'string',
+                 propagated=True),
+            dict(name=u'FooMethod', return_type=u'string',
+                 propagated=True),
+            None, True
+        ),
+        (
+            "Verify that propagated bool False remains False",
+            dict(name=u'FooMethod', return_type=u'string',
+                 propagated=False),
+            dict(name=u'FooMethod', return_type=u'string',
+                 propagated=False),
+            None, True
+        ),
+    ]
 
-        obj = CIMMethod(methodname='FooMethod', return_type='uint32')
-        assert obj.name == 'FooMethod'
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_attrs, exp_warn_type, condition",
+        testcases_succeeds)
+    def test_CIMMethod_init_succeeds(
+            self, desc, kwargs, exp_attrs, exp_warn_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMMethod.__init__() succeeds."""
 
-        if CHECK_0_12_0:
-            with pytest.raises(ValueError):
-                CIMMethod(methodname='FooMethod', name='FooMethod',
-                          return_type='uint32')
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        exp_name = exp_attrs['name']
+        exp_return_type = exp_attrs['return_type']
+        exp_parameters = exp_attrs.get(
+            'parameters', self.default_exp_attrs['parameters'])
+        exp_class_origin = exp_attrs.get(
+            'class_origin', self.default_exp_attrs['class_origin'])
+        exp_propagated = exp_attrs.get(
+            'propagated', self.default_exp_attrs['propagated'])
+        exp_qualifiers = exp_attrs.get(
+            'qualifiers', self.default_exp_attrs['qualifiers'])
+
+        if exp_warn_type is None:
+
+            # The code to be tested
+            obj = CIMMethod(**kwargs)
+
         else:
-            # Before 0.12.0, the implementation already checked for this, but
-            # raised a different exception.
-            with pytest.raises(TypeError):
-                CIMMethod(methodname='FooMethod', name='FooMethod',
-                          return_type='uint32')
+            with pytest.warns(exp_warn_type):
+
+                # The code to be tested
+                obj = CIMMethod(**kwargs)
+
+        assert obj.name == exp_name
+        assert isinstance(obj.name, type(exp_name))
+
+        assert obj.return_type == exp_return_type
+        assert isinstance(obj.return_type, type(exp_return_type))
+
+        assert obj.parameters == exp_parameters
+        assert isinstance(obj.parameters, type(exp_parameters))
+
+        assert obj.class_origin == exp_class_origin
+        assert isinstance(obj.class_origin, type(exp_class_origin))
+
+        assert obj.propagated == exp_propagated
+        assert isinstance(obj.propagated, type(exp_propagated))
+
+        assert obj.qualifiers == exp_qualifiers
+        assert isinstance(obj.qualifiers, type(exp_qualifiers))
+
+    testcases_fails = [
+        # Testcases where CIMMethod.__init__() fails.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_exc_type: Expected exception type.
+        # * condition: Condition for testcase to run.
+        (
+            "Verify that name None fails (with ValueError since 0.12)",
+            dict(name=None, return_type='string'),
+            ValueError, CHECK_0_12_0
+        ),
+        (
+            "Verify that name None fails (with TypeError before 0.12)",
+            dict(name=None, return_type='string'),
+            TypeError, not CHECK_0_12_0
+        ),
+        (
+            "Verify that name and methodname fails (ValueError since 0.12)",
+            dict(name='M', methodname='M', return_type='string'),
+            ValueError, CHECK_0_12_0
+        ),
+        (
+            "Verify that name and methodname fails (TypeError before 0.12)",
+            dict(name='M', methodname='M', return_type='string'),
+            TypeError, not CHECK_0_12_0
+        ),
+        (
+            "Verify that parameters with inconsistent name fails "
+            "(since 0.12)",
+            dict(
+                name='M',
+                parameters=dict(P1=CIMParameter('P1_X', 'abc'))),
+            ValueError, CHECK_0_12_0
+        ),
+        (
+            "Verify that qualifiers with inconsistent name fails "
+            "(since 0.12)",
+            dict(
+                name='M',
+                qualifiers=dict(Q1=CIMQualifier('Q1_X', 'abc'))),
+            ValueError, CHECK_0_12_0
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_exc_type, condition",
+        testcases_fails)
+    def test_CIMMethod_init_fails(
+            self, desc, kwargs, exp_exc_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMMethod.__init__() fails."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        with pytest.raises(exp_exc_type):
+
+            # The code to be tested
+            CIMMethod(**kwargs)
 
 
-class CopyCIMMethod(unittest.TestCase):
+class CIMMethodCopy(unittest.TestCase):
 
     def test_all(self):
 
@@ -4833,36 +6857,108 @@ class CIMMethodSort(unittest.TestCase):
 
 class Test_CIMMethod_str(object):
     """
-    Test `CIMMethod.__str__()`.
+    Test CIMMethod.__str__().
+
+    That function returns for example::
+
+       CIMMethod(name='FooMethod', return_type='string')
     """
 
-    def test_all(self):
+    parameter_P1 = CIMParameter('P1', type='uint32')
+    qualifier_Q1 = CIMQualifier('Q1', value=True)
 
-        obj = CIMMethod('FooMethod', 'uint32')
+    testcases_succeeds = [
+        # Testcases where CIMMethod.__str__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMMethod object to be tested.
+        (
+            CIMMethod(
+                name='FooMethod',
+                return_type='uint32')
+        ),
+        (
+            CIMMethod(
+                name='FooMethod',
+                return_type='uint32',
+                parameters=dict(P1=parameter_P1),
+                class_origin='CIM_Origin',
+                propagated=True,
+                qualifiers=dict(Q1=qualifier_Q1))
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMMethod_str_succeeds(self, obj):
+        """All test cases where CIMMethod.__str__() succeeds."""
 
         s = str(obj)
 
         assert re.match(r'^CIMMethod\(', s)
-        assert 'return_type=%r' % obj.return_type in s
+
+        exp_name = 'name=%r' % obj.name
+        assert exp_name in s
+
+        exp_return_type = 'return_type=%r' % obj.return_type
+        assert exp_return_type in s
 
 
 class Test_CIMMethod_repr(object):
     """
-    Test `CIMMethod.__repr__()`.
+    Test CIMMethod.__repr__().
     """
 
-    def test_all(self):
+    parameter_P1 = CIMParameter('P1', type='uint32')
+    qualifier_Q1 = CIMQualifier('Q1', value=True)
 
-        obj = CIMMethod('FooMethod', 'uint32')
+    testcases_succeeds = [
+        # Testcases where CIMMethod.__repr__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMMethod object to be tested.
+        (
+            CIMMethod(
+                name='FooMethod',
+                return_type='uint32')
+        ),
+        (
+            CIMMethod(
+                name='FooMethod',
+                return_type='uint32',
+                parameters=dict(P1=parameter_P1),
+                class_origin='CIM_Origin',
+                propagated=True,
+                qualifiers=dict(Q1=qualifier_Q1))
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMMethod_repr_succeeds(self, obj):
+        """All test cases where CIMMethod.__repr__() succeeds."""
 
         r = repr(obj)
 
         assert re.match(r'^CIMMethod\(', r)
-        assert 'return_type=%r' % obj.return_type in r
-        assert 'class_origin=%r' % obj.class_origin in r
-        assert 'propagated=%r' % obj.propagated in r
-        assert 'parameters=' in r
-        assert 'qualifiers=' in r
+
+        exp_name = 'name=%r' % obj.name
+        assert exp_name in r
+
+        exp_return_type = 'return_type=%r' % obj.return_type
+        assert exp_return_type in r
+
+        exp_parameters = 'parameters=%r' % obj.parameters
+        assert exp_parameters in r
+
+        exp_class_origin = 'class_origin=%r' % obj.class_origin
+        assert exp_class_origin in r
+
+        exp_propagated = 'propagated=%r' % obj.propagated
+        assert exp_propagated in r
+
+        exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+        assert exp_qualifiers in r
 
 
 class CIMMethodNoReturn(unittest.TestCase):
@@ -4895,103 +6991,302 @@ class CIMMethodToXML(ValidationTestCase):
             root_elem_CIMMethod)
 
 
-class InitCIMParameter(unittest.TestCase):
+class Test_CIMParameter_init(object):
+    """
+    Test CIMParameter.__init__().
+    """
 
-    def test_all(self):
+    def test_CIMParameter_init_pos_args(self):
+        # pylint: disable=unused-argument
+        """Test position of arguments in CIMParameter.__init__()."""
 
-        # Initialization with name being None
+        qualifiers = {'Key': CIMQualifier('Key', True)}
 
-        if CHECK_0_12_0:
-            with self.assertRaises(ValueError):
-                CIMParameter(None, 'uint32')
+        # The code to be tested
+        obj = CIMParameter(
+            'FooParam',
+            'uint32',
+            'CIM_Ref',
+            True,
+            2,
+            qualifiers,
+            None)
+
+        assert obj.name == u'FooParam'
+        assert obj.type == u'uint32'
+        assert obj.reference_class == u'CIM_Ref'
+        assert obj.is_array is True
+        assert obj.array_size == 2
+        assert obj.qualifiers == NocaseDict(qualifiers)
+        assert obj.value is None
+
+    # Defaults to expect for attributes when not specified in testcase
+    default_exp_attrs = dict(
+        reference_class=None,
+        is_array=False if CHECK_0_12_0 else None,
+        array_size=None,
+        qualifiers=NocaseDict(),
+        value=None,
+    )
+
+    qualifier_Q1 = CIMQualifier('Q1', value='abc')
+
+    testcases_succeeds = [
+        # Testcases where CIMParameter.__init__() succeeds.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_attrs: Dict of expected attributes of resulting object.
+        # * exp_warn_type: Expected warning type.
+        # * condition: Condition for testcase to run.
+        (
+            "Verify that name can be None although documented otherwise "
+            "(before 0.12)",
+            dict(name=None, type=u'string'),
+            dict(name=None, type=u'string'),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that type can be None although documented otherwise "
+            "(before 0.12)",
+            dict(name=u'FooParam', type=None),
+            dict(name=u'FooParam', type=None),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that binary name and type are converted to unicode",
+            dict(name=b'FooParam', type=b'string'),
+            dict(name=u'FooParam', type=u'string'),
+            None, True
+        ),
+        (
+            "Verify that unicode name and type remain unicode",
+            dict(name=u'FooParam', type=u'string'),
+            dict(name=u'FooParam', type=u'string'),
+            None, True
+        ),
+        (
+            "Verify that binary reference_class is converted to unicode",
+            dict(name=u'FooParam', type=u'string',
+                 reference_class=b'CIM_Ref'),
+            dict(name=u'FooParam', type=u'string',
+                 reference_class=u'CIM_Ref'),
+            None, True
+        ),
+        (
+            "Verify that unicode reference_class remains unicode",
+            dict(name=u'FooParam', type=u'string',
+                 reference_class=u'CIM_Ref'),
+            dict(name=u'FooParam', type=u'string',
+                 reference_class=u'CIM_Ref'),
+            None, True
+        ),
+        (
+            "Verify that array reference_class is accepted",
+            dict(name=u'FooParam', type=u'string', is_array=True,
+                 reference_class=b'CIM_Ref'),
+            dict(name=u'FooParam', type=u'string', is_array=True,
+                 reference_class=u'CIM_Ref'),
+            None, True
+        ),
+        (
+            "Verify that is_array 42 is converted to bool (since 0.12)",
+            dict(name=u'FooParam', type=u'string',
+                 is_array=42),
+            dict(name=u'FooParam', type=u'string',
+                 is_array=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that is_array 'false' is converted to bool using Python "
+            "bool rules(since 0.12)",
+            dict(name=u'FooParam', type=u'string',
+                 is_array='false'),
+            dict(name=u'FooParam', type=u'string',
+                 is_array=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that unspecified is_array is implied to scalar by value "
+            "None (since 0.12)",
+            dict(name='FooParam', type='string',
+                 is_array=None, value=None),
+            dict(name=u'FooParam', type=u'string',
+                 is_array=False, value=None),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that unspecified is_array is implied to scalar by scalar "
+            "value (since 0.12)",
+            dict(name='FooParam', type='string',
+                 is_array=None, value=u'abc'),
+            dict(name=u'FooParam', type=u'string',
+                 is_array=False, value=u'abc'),
+            DeprecationWarning, CHECK_0_12_0
+        ),
+        (
+            "Verify that unspecified is_array is implied to array by array "
+            "value (since 0.12)",
+            dict(name='FooParam', type='string',
+                 is_array=None, value=[u'abc']),
+            dict(name=u'FooParam', type=u'string',
+                 is_array=True, value=[u'abc']),
+            DeprecationWarning, CHECK_0_12_0
+        ),
+        (
+            "Verify that unspecified is_array remains unspecified with value "
+            "None (before 0.12)",
+            dict(name='FooParam', type='string',
+                 is_array=None, value=None),
+            dict(name=u'FooParam', type=u'string',
+                 is_array=None, value=None),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that unspecified is_array remains unspecified with scalar "
+            "value (before 0.12)",
+            dict(name='FooParam', type='string',
+                 is_array=None, value=u'abc'),
+            dict(name=u'FooParam', type=u'string',
+                 is_array=None, value=u'abc'),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that unspecified is_array remains unspecified with array "
+            "value (before 0.12)",
+            dict(name='FooParam', type='string',
+                 is_array=None, value=[u'abc']),
+            dict(name=u'FooParam', type=u'string',
+                 is_array=None, value=[u'abc']),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that array_size 2 remains int",
+            dict(name=u'FooParam', type=u'string', is_array=True,
+                 array_size=2),
+            dict(name=u'FooParam', type=u'string', is_array=True,
+                 array_size=2),
+            None, True
+        ),
+        (
+            "Verify that qualifiers dict is converted to NocaseDict",
+            dict(name=u'FooParam', type=u'string',
+                 qualifiers=dict(Q1=qualifier_Q1)),
+            dict(name=u'FooParam', type=u'string',
+                 qualifiers=NocaseDict(Q1=qualifier_Q1)),
+            None, True
+        ),
+        (
+            "Verify that value is stored as provided (and issues deprecation "
+            "warning since 0.12)",
+            dict(name=u'FooParam', type=u'string',
+                 value='abc'),
+            dict(name=u'FooParam', type=u'string',
+                 value=u'abc' if CHECK_0_12_0 else 'abc'),
+            DeprecationWarning if CHECK_0_12_0 else None, True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_attrs, exp_warn_type, condition",
+        testcases_succeeds)
+    def test_CIMParameter_init_succeeds(
+            self, desc, kwargs, exp_attrs, exp_warn_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMParameter.__init__() succeeds."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        exp_name = exp_attrs['name']
+        exp_type = exp_attrs['type']
+        exp_reference_class = exp_attrs.get(
+            'reference_class', self.default_exp_attrs['reference_class'])
+        exp_is_array = exp_attrs.get(
+            'is_array', self.default_exp_attrs['is_array'])
+        exp_array_size = exp_attrs.get(
+            'array_size', self.default_exp_attrs['array_size'])
+        exp_qualifiers = exp_attrs.get(
+            'qualifiers', self.default_exp_attrs['qualifiers'])
+        exp_value = exp_attrs.get(
+            'value', self.default_exp_attrs['value'])
+
+        if exp_warn_type is None:
+
+            # The code to be tested
+            obj = CIMParameter(**kwargs)
+
         else:
-            # Before 0.12.0, the implementation allowed the name to be None,
-            # although the documentation required it not to be None.
-            # We test the implemented behavior
-            p = CIMParameter(None, 'uint32')
-            self.assertIs(p.name, None)
+            with pytest.warns(exp_warn_type):
 
-        # Initialization with type being None
+                # The code to be tested
+                obj = CIMParameter(**kwargs)
 
-        if CHECK_0_12_0:
-            with self.assertRaises(ValueError):
-                CIMParameter('Foo', type=None)
-        else:
-            # Before 0.12.0, the implementation allowed the type to be None,
-            # although the documentation required it not to be None.
-            # We test the implemented behavior
-            p = CIMParameter('Foo', type=None)
-            self.assertIs(p.type, None)
+        assert obj.name == exp_name
+        assert isinstance(obj.name, type(exp_name))
 
-        # Single-valued parameters
+        assert obj.type == exp_type
+        assert isinstance(obj.type, type(exp_type))
 
-        CIMParameter('Param1', 'uint32')
-        CIMParameter('Param2', 'string')
-        CIMParameter('Param2', 'string',
-                     qualifiers={'Key': CIMQualifier('Key', True)})
+        assert obj.reference_class == exp_reference_class
+        assert isinstance(obj.reference_class, type(exp_reference_class))
 
-        # Array parameters
+        assert obj.is_array == exp_is_array
+        assert isinstance(obj.is_array, type(exp_is_array))
 
-        CIMParameter('ArrayParam', 'uint32', is_array=True)
-        CIMParameter('ArrayParam', 'uint32', is_array=True, array_size=10)
-        CIMParameter('ArrayParam', 'uint32', is_array=True, array_size=10,
-                     qualifiers={'Key': CIMQualifier('Key', True)})
+        assert obj.array_size == exp_array_size
+        assert isinstance(obj.array_size, type(exp_array_size))
 
-        # Check unspecified is_array
+        assert obj.qualifiers == exp_qualifiers
+        assert isinstance(obj.qualifiers, type(exp_qualifiers))
 
-        if CHECK_0_12_0:
+        assert obj.value == exp_value
+        assert isinstance(obj.value, type(exp_value))
 
-            # Check that a value of None results in a scalar
-            p = CIMParameter('Foo', 'uint32', is_array=None, value=None)
-            self.assertEqual(p.is_array, False)
+    testcases_fails = [
+        # Testcases where CIMParameter.__init__() fails.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_exc_type: Expected exception type.
+        # * condition: Condition for testcase to run.
+        (
+            "Verify that name None fails (since 0.12)",
+            dict(name=None, type='string'),
+            ValueError, CHECK_0_12_0
+        ),
+        (
+            "Verify that type None fails (since 0.12)",
+            dict(name='M', type=None),
+            ValueError, CHECK_0_12_0
+        ),
+        (
+            "Verify that qualifier with inconsistent key / name fails "
+            "(since 0.12)",
+            dict(name='M', type='string',
+                 qualifiers=dict(Q1=CIMQualifier('Q1_X', 'abc'))),
+            ValueError, CHECK_0_12_0
+        ),
+    ]
 
-            # Check that a scalar value results in a scalar
-            p = CIMParameter('Foo', 'uint32', is_array=None, value=42)
-            self.assertEqual(p.is_array, False)
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_exc_type, condition",
+        testcases_fails)
+    def test_CIMParameter_init_fails(
+            self, desc, kwargs, exp_exc_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMParameter.__init__() fails."""
 
-            # Check that an array value results in an array
-            p = CIMParameter('Foo', 'uint32', is_array=None, value=[42])
-            self.assertEqual(p.is_array, True)
+        if not condition:
+            pytest.skip("Condition for test case not met")
 
-        else:
+        with pytest.raises(exp_exc_type):
 
-            # Before 0.12.0, the implementation just stored the provided
-            # is_array value without checking or inferring it. The
-            # documentation was inconsistent about that: In the description of
-            # the is_array constructor parameter, it stated that `None` is
-            # stored as-is, and in the description of the is_array attribute,
-            # it stated that it will never be `None`.
-
-            # The following tests verify the implemented behavior.
-
-            p = CIMParameter('Foo', 'uint32', is_array=None, value=None)
-            self.assertIs(p.is_array, None)
-
-            p = CIMParameter('Foo', 'uint32', is_array=None, value=42)
-            self.assertIs(p.is_array, None)
-
-            p = CIMParameter('Foo', 'uint32', is_array=None, value=[42])
-            self.assertIs(p.is_array, None)
-
-        # Reference parameters
-
-        CIMParameter('RefParam', 'reference', reference_class='CIM_Foo')
-        CIMParameter('RefParam', 'reference', reference_class='CIM_Foo',
-                     qualifiers={'Key': CIMQualifier('Key', True)})
-
-        # Refarray parameters
-
-        CIMParameter('RefArrayParam', 'reference', is_array=True)
-        CIMParameter('RefArrayParam', 'reference', reference_class='CIM_Foo',
-                     is_array=True)
-        CIMParameter('RefArrayParam', 'reference', is_array=True,
-                     reference_class='CIM_Foo', array_size=10)
-        CIMParameter('RefArrayParam', 'reference', is_array=True,
-                     reference_class='CIM_Foo', array_size=10,
-                     qualifiers={'Key': CIMQualifier('Key', True)})
+            # The code to be tested
+            CIMParameter(**kwargs)
 
 
-class CopyCIMParameter(unittest.TestCase):
+class CIMParameterCopy(unittest.TestCase):
 
     def test_all(self):
 
@@ -5242,40 +7537,115 @@ class CIMParameterSort(unittest.TestCase):
 
 class Test_CIMParameter_str(object):
     """
-    Test `CIMParameter.__str__()`.
+    Test CIMParameter.__str__().
+
+    That function returns for example::
+
+       CIMParameter(name='Param1', type='string', reference_class=None,
+                    is_array=True, ...)
     """
 
-    def test_all(self):
+    qualifier_Q1 = CIMQualifier('Q1', value=Uint32(42))
 
-        obj = CIMParameter('Param1', 'uint32')
+    testcases_succeeds = [
+        # Testcases where CIMParameter.__str__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMParameter object to be tested.
+        (
+            CIMParameter(
+                name='Param1',
+                type='uint32')
+        ),
+        (
+            CIMParameter(
+                name='Param1',
+                type='uint32',
+                reference_class='CIM_Ref',
+                is_array=False,
+                array_size=None,
+                qualifiers=dict(Q1=qualifier_Q1),
+                value=None)
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMParameter_str_succeeds(self, obj):
+        """All test cases where CIMParameter.__str__() succeeds."""
 
         s = str(obj)
 
         assert re.match(r'^CIMParameter\(', s)
-        assert 'name=%r' % obj.name in s
-        assert 'type=%r' % obj.type in s
-        assert 'reference_class=%r' % obj.reference_class in s
-        assert 'is_array=%r' % obj.is_array in s
+
+        exp_name = 'name=%r' % obj.name
+        assert exp_name in s
+
+        exp_type = 'type=%r' % obj.type
+        assert exp_type in s
+
+        exp_reference_class = 'reference_class=%r' % obj.reference_class
+        assert exp_reference_class in s
+
+        exp_is_array = 'is_array=%r' % obj.is_array
+        assert exp_is_array in s
 
 
 class Test_CIMParameter_repr(object):
     """
-    Test `CIMParameter.__repr__()`.
+    Test CIMParameter.__repr__().
     """
 
-    def test_all(self):
+    qualifier_Q1 = CIMQualifier('Q1', value=Uint32(42))
 
-        obj = CIMParameter('Param1', 'uint32')
+    testcases_succeeds = [
+        # Testcases where CIMParameter.__str__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMParameter object to be tested.
+        (
+            CIMParameter(
+                name='Param1',
+                type='uint32')
+        ),
+        (
+            CIMParameter(
+                name='Param1',
+                type='uint32',
+                reference_class='CIM_Ref',
+                is_array=False,
+                array_size=None,
+                qualifiers=dict(Q1=qualifier_Q1),
+                value=None)
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMParameter_repr_succeeds(self, obj):
+        """All test cases where CIMParameter.__repr__() succeeds."""
 
         r = repr(obj)
 
         assert re.match(r'^CIMParameter\(', r)
-        assert 'name=%r' % obj.name in r
-        assert 'type=%r' % obj.type in r
-        assert 'reference_class=%r' % obj.reference_class in r
-        assert 'is_array=%r' % obj.is_array in r
-        assert 'array_size=%r' % obj.array_size in r
-        assert 'qualifiers=' in r
+
+        exp_name = 'name=%r' % obj.name
+        assert exp_name in r
+
+        exp_type = 'type=%r' % obj.type
+        assert exp_type in r
+
+        exp_reference_class = 'reference_class=%r' % obj.reference_class
+        assert exp_reference_class in r
+
+        exp_is_array = 'is_array=%r' % obj.is_array
+        assert exp_is_array in r
+
+        exp_array_size = 'array_size=%r' % obj.array_size
+        assert exp_array_size in r
+
+        exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+        assert exp_qualifiers in r
 
 
 class CIMParameterToXML(ValidationTestCase):
@@ -5346,129 +7716,531 @@ class CIMParameterToXML(ValidationTestCase):
                       root_elem_CIMParameter_refarray)
 
 
-class InitCIMQualifierDeclaration(unittest.TestCase):
-    """Test construction of CIMQualifierDeclarations."""
+class Test_CIMQualifierDeclaration_init(object):
+    """
+    Test CIMQualifierDeclaration.__init__().
+    """
 
-    def test_all(self):
-        """Test the constructor options."""
+    def test_CIMQualifierDeclaration_init_pos_args(self):
+        # pylint: disable=unused-argument
+        """Test position of arguments in CIMQualifierDeclaration.__init__()."""
 
-        # Initialization with name being None
+        scopes = dict(CLASS=True)
 
-        if CHECK_0_12_0:
-            with self.assertRaises(ValueError):
-                CIMQualifierDeclaration(None, 'string')
+        # The code to be tested
+        obj = CIMQualifierDeclaration(
+            'FooQual',
+            'uint32',
+            [Uint32(42)],
+            True,
+            2,
+            scopes,
+            True,
+            False,
+            True,
+            False)
+
+        assert obj.name == u'FooQual'
+        assert obj.type == u'uint32'
+        assert obj.value == [Uint32(42)]
+        assert obj.is_array is True
+        assert obj.array_size == 2
+        assert obj.scopes == NocaseDict(scopes)
+        assert obj.overridable is True
+        assert obj.tosubclass is False
+        assert obj.toinstance is True
+        assert obj.translatable is False
+
+    # Defaults to expect for attributes when not specified in testcase
+    default_exp_attrs = dict(
+        value=None,
+        is_array=False,
+        array_size=None,
+        scopes=NocaseDict(),
+        overridable=None,
+        tosubclass=None,
+        toinstance=None,
+        translatable=None
+    )
+
+    scopes1 = dict(CLASS=True)
+
+    testcases_succeeds = [
+        # Testcases where CIMQualifierDeclaration.__init__() succeeds.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_attrs: Dict of expected attributes of resulting object.
+        # * exp_warn_type: Expected warning type.
+        # * condition: Condition for testcase to run.
+        (
+            "Verify that name can be None although documented otherwise "
+            "(before 0.12)",
+            dict(name=None, type=u'string'),
+            dict(name=None, type=u'string'),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that type can be None although documented otherwise "
+            "(before 0.12)",
+            dict(name=u'FooQual', type=None),
+            dict(name=u'FooQual', type=None),
+            None, not CHECK_0_12_0
+        ),
+        (
+            "Verify that binary name and return type are converted to unicode",
+            dict(name=b'FooQual', type=b'string'),
+            dict(name=u'FooQual', type=u'string'),
+            None, True
+        ),
+        (
+            "Verify that unicode name and return type remain unicode",
+            dict(name=u'FooQual', type=u'string'),
+            dict(name=u'FooQual', type=u'string'),
+            None, True
+        ),
+        (
+            "Verify that is_array int 42 is converted to bool True",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                is_array=42),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                is_array=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that is_array int 0 is converted to bool False",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                is_array=0),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                is_array=False),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that is_array bool True remains True",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                is_array=True),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                is_array=True),
+            None, True
+        ),
+        (
+            "Verify that is_array bool False remains False",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                is_array=False),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                is_array=False),
+            None, True
+        ),
+        (
+            "Verify that unspecified is_array is implied to scalar by value "
+            "None (since 0.12)",
+            dict(name='FooQual', type='string',
+                 is_array=None, value=None),
+            dict(name=u'FooQual', type=u'string',
+                 is_array=False, value=None),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that unspecified is_array is implied to scalar by scalar "
+            "value (since 0.12)",
+            dict(name='FooQual', type='string',
+                 is_array=None, value=u'abc'),
+            dict(name=u'FooQual', type=u'string',
+                 is_array=False, value=u'abc'),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that unspecified is_array is implied to array by array "
+            "value (since 0.12)",
+            dict(name='FooQual', type='string',
+                 is_array=None, value=[u'abc']),
+            dict(name=u'FooQual', type=u'string',
+                 is_array=True, value=[u'abc']),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that array_size int 42 remains int",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                is_array=True,
+                array_size=42),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                is_array=True,
+                array_size=42),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that scopes dict is converted to NocaseDict",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                scopes=scopes1),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                scopes=NocaseDict(scopes1)),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that overridable int 42 is converted to bool True",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                overridable=42),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                overridable=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that overridable int 0 is converted to bool False",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                overridable=0),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                overridable=False),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that overridable bool True remains True",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                overridable=True),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                overridable=True),
+            None, True
+        ),
+        (
+            "Verify that overridable bool False remains False",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                overridable=False),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                overridable=False),
+            None, True
+        ),
+        (
+            "Verify that tosubclass int 42 is converted to bool True",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                tosubclass=42),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                tosubclass=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that tosubclass int 0 is converted to bool False",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                tosubclass=0),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                tosubclass=False),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that tosubclass bool True remains True",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                tosubclass=True),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                tosubclass=True),
+            None, True
+        ),
+        (
+            "Verify that tosubclass bool False remains False",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                tosubclass=False),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                tosubclass=False),
+            None, True
+        ),
+        (
+            "Verify that toinstance int 42 is converted to bool True",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                toinstance=42),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                toinstance=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that toinstance int 0 is converted to bool False",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                toinstance=0),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                toinstance=False),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that toinstance bool True remains True",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                toinstance=True),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                toinstance=True),
+            None, True
+        ),
+        (
+            "Verify that toinstance bool False remains False",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                toinstance=False),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                toinstance=False),
+            None, True
+        ),
+        (
+            "Verify that translatable int 42 is converted to bool True",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                translatable=42),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                translatable=True),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that translatable int 0 is converted to bool False",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                translatable=0),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                translatable=False),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Verify that translatable bool True remains True",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                translatable=True),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                translatable=True),
+            None, True
+        ),
+        (
+            "Verify that translatable bool False remains False",
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                translatable=False),
+            dict(
+                name=u'FooQual',
+                type=u'string',
+                translatable=False),
+            None, True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_attrs, exp_warn_type, condition",
+        testcases_succeeds)
+    def test_CIMQualifierDeclaration_init_succeeds(
+            self, desc, kwargs, exp_attrs, exp_warn_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMQualifierDeclaration.__init__() succeeds."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        exp_name = exp_attrs['name']
+        exp_type = exp_attrs['type']
+        exp_value = exp_attrs.get(
+            'value', self.default_exp_attrs['value'])
+        exp_is_array = exp_attrs.get(
+            'is_array', self.default_exp_attrs['is_array'])
+        exp_array_size = exp_attrs.get(
+            'array_size', self.default_exp_attrs['array_size'])
+        exp_scopes = exp_attrs.get(
+            'scopes', self.default_exp_attrs['scopes'])
+        exp_overridable = exp_attrs.get(
+            'overridable', self.default_exp_attrs['overridable'])
+        exp_tosubclass = exp_attrs.get(
+            'tosubclass', self.default_exp_attrs['tosubclass'])
+        exp_toinstance = exp_attrs.get(
+            'toinstance', self.default_exp_attrs['toinstance'])
+        exp_translatable = exp_attrs.get(
+            'translatable', self.default_exp_attrs['translatable'])
+
+        if exp_warn_type is None:
+
+            # The code to be tested
+            obj = CIMQualifierDeclaration(**kwargs)
+
         else:
-            # Before 0.12.0, the implementation allowed the name to be None,
-            # although the documentation required it not to be None.
-            # We test the implemented behavior
-            qd = CIMQualifierDeclaration(None, 'string')
-            self.assertIs(qd.name, None)
+            with pytest.warns(exp_warn_type):
 
-        # Initialization with type being None
+                # The code to be tested
+                obj = CIMQualifierDeclaration(**kwargs)
 
-        if CHECK_0_12_0:
-            with self.assertRaises(ValueError):
-                CIMQualifierDeclaration('Qoo', None, value='abc')
-        else:
-            # Before 0.12.0, the implementation allowed the type to be None,
-            # although the documentation required it not to be None.
-            # We test the implemented behavior
-            qd = CIMQualifierDeclaration('Qoo', None, value='abc')
-            self.assertIs(qd.type, None)
+        assert obj.name == exp_name
+        assert isinstance(obj.name, type(exp_name))
 
-        # Some normal cases
+        assert obj.type == exp_type
+        assert isinstance(obj.type, type(exp_type))
 
-        CIMQualifierDeclaration('FooQualDecl', 'uint32')
+        assert obj.value == exp_value
+        assert isinstance(obj.value, type(exp_value))
 
-        CIMQualifierDeclaration('FooQualDecl', 'string', value='my string')
+        assert obj.is_array == exp_is_array
+        assert isinstance(obj.is_array, type(exp_is_array))
 
-        CIMQualifierDeclaration('FooQualDecl', 'string', is_array=True,
-                                array_size=4,
-                                overridable=True, tosubclass=True,
-                                toinstance=True, translatable=False)
+        assert obj.array_size == exp_array_size
+        assert isinstance(obj.array_size, type(exp_array_size))
 
-        scopes = {'CLASS': False, 'ANY': False, 'ASSOCIATION': False}
-        CIMQualifierDeclaration('FooQualDecl', 'uint64', is_array=True,
-                                array_size=4, scopes=scopes,
-                                overridable=True, tosubclass=True,
-                                toinstance=True, translatable=False)
+        assert obj.scopes == exp_scopes
+        assert isinstance(obj.scopes, type(exp_scopes))
 
-        CIMQualifierDeclaration('FooQualDecl', 'uint32', is_array=True,
-                                value=[Uint32(x) for x in [1, 2, 3]],
-                                overridable=True, tosubclass=True,
-                                toinstance=True, translatable=False)
+        assert obj.overridable == exp_overridable
+        assert isinstance(obj.overridable, type(exp_overridable))
 
-        CIMQualifierDeclaration('FooQualDecl', 'uint32', is_array=False,
-                                value=Uint32(3),
-                                overridable=True, tosubclass=True,
-                                toinstance=True, translatable=False)
+        assert obj.tosubclass == exp_tosubclass
+        assert isinstance(obj.tosubclass, type(exp_tosubclass))
 
-        # Check unspecified is_array
+        assert obj.toinstance == exp_toinstance
+        assert isinstance(obj.toinstance, type(exp_toinstance))
 
-        if CHECK_0_12_0:
+        assert obj.translatable == exp_translatable
+        assert isinstance(obj.translatable, type(exp_translatable))
 
-            # Check that a value of None results in a scalar
-            qd = CIMQualifierDeclaration('FooQualDecl', 'uint32', value=None,
-                                         is_array=None)
-            self.assertEqual(qd.is_array, False)
+    testcases_fails = [
+        # Testcases where CIMQualifierDeclaration.__init__() fails.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for __init__().
+        # * exp_exc_type: Expected exception type.
+        # * condition: Condition for testcase to run.
+        (
+            "Verify that name None fails (since 0.12)",
+            dict(name=None, type='string'),
+            ValueError, CHECK_0_12_0
+        ),
+        (
+            "Verify that type None fails (since 0.12)",
+            dict(name='FooQual', type=None),
+            ValueError, CHECK_0_12_0
+        ),
+        (
+            "Verify that mismatch between is_array False and array_size fails",
+            dict(name='FooQual', type='string',
+                 is_array=False, array_size=4),
+            ValueError, True
+        ),
+        (
+            "Verify that mismatch between is_array False and array value fails",
+            dict(name='FooQual', type='uint32',
+                 is_array=False, value=[Uint32(x) for x in [1, 2, 3]]),
+            ValueError, True
+        ),
+        (
+            "Verify that mismatch between is_array True and scalar value fails",
+            dict(name='FooQual', type='uint32',
+                 is_array=True, value=Uint32(3)),
+            ValueError, True
+        ),
+        (
+            "Verify that unspecified is_array fails with value None "
+            "(before 0.12)",
+            dict(name='FooQual', type='string',
+                 is_array=None, value=None),
+            ValueError, not CHECK_0_12_0
+        ),
+        (
+            "Verify that unspecified is_array fails with scalar value "
+            "(before 0.12)",
+            dict(name='FooQual', type='string',
+                 is_array=None, value='abc'),
+            ValueError, not CHECK_0_12_0
+        ),
+        (
+            "Verify that unspecified is_array fails with array value "
+            "(before 0.12)",
+            dict(name='FooQual', type='string',
+                 is_array=None, value=['abc']),
+            ValueError, not CHECK_0_12_0
+        ),
+    ]
 
-            # Check that a scalar value results in a scalar
-            qd = CIMQualifierDeclaration('FooQualDecl', 'uint32', value=42,
-                                         is_array=None)
-            self.assertEqual(qd.is_array, False)
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_exc_type, condition",
+        testcases_fails)
+    def test_CIMQualifierDeclaration_init_fails(
+            self, desc, kwargs, exp_exc_type, condition):
+        # pylint: disable=unused-argument
+        """All test cases where CIMQualifierDeclaration.__init__() fails."""
 
-            # Check that an array value results in an array
-            qd = CIMQualifierDeclaration('FooQualDecl', 'uint32', value=[42],
-                                         is_array=None)
-            self.assertEqual(qd.is_array, True)
+        if not condition:
+            pytest.skip("Condition for test case not met")
 
-        else:
+        with pytest.raises(exp_exc_type):
 
-            with self.assertRaises(ValueError):
-                CIMQualifierDeclaration('FooQualDecl', 'uint32', value=None,
-                                        is_array=None)
-            with self.assertRaises(ValueError):
-                CIMQualifierDeclaration('FooQualDecl', 'uint32', value=42,
-                                        is_array=None)
-            with self.assertRaises(ValueError):
-                CIMQualifierDeclaration('FooQualDecl', 'uint32', value=[42],
-                                        is_array=None)
-
-    def test_errors(self):
-        """Test constructors that should generate errors"""
-
-        try:
-            CIMQualifierDeclaration('is_arraySizeMismatch', 'string',
-                                    is_array=False,
-                                    array_size=4,
-                                    overridable=True, tosubclass=True,
-                                    toinstance=True, translatable=False)
-            self.fail('Exception expected')
-        except ValueError:
-            pass
-
-        try:
-            CIMQualifierDeclaration('is_arrayValueMismatch', 'uint32',
-                                    is_array=False,
-                                    value=[Uint32(x) for x in [1, 2, 3]],
-                                    overridable=True, tosubclass=True,
-                                    toinstance=True, translatable=False)
-            self.fail('Exception expected')
-        except ValueError:
-            pass
-
-        try:
-            CIMQualifierDeclaration('is_arrayValueMismatch', 'uint32',
-                                    is_array=True,
-                                    value=Uint32(3),
-                                    overridable=True, tosubclass=True,
-                                    toinstance=True, translatable=False)
-            self.fail('Exception expected')
-        except ValueError:
-            pass
+            # The code to be tested
+            CIMQualifierDeclaration(**kwargs)
 
 
-class CopyCIMQualifierDeclaration(unittest.TestCase):
+class CIMQualifierDeclarationCopy(unittest.TestCase):
 
     def test_all(self):
 
@@ -5590,50 +8362,129 @@ class CIMQualifierDeclarationSort(unittest.TestCase):
 
 class Test_CIMQualifierDeclaration_str(object):
     """
-    Test `CIMQualifierDeclaration.__str__()`.
+    Test CIMQualifierDeclaration.__str__().
+
+    That function returns for example::
+
+       CIMQualifierDeclaration(name='Qual1', value='abc', type='string',
+                               is_array=False, ...)
     """
 
-    def test_all(self):
+    testcases_succeeds = [
+        # Testcases where CIMParameter.__str__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMParameter object to be tested.
+        (
+            CIMQualifierDeclaration(
+                name='FooQualDecl',
+                type='string')
+        ),
+        (
+            CIMQualifierDeclaration(
+                name='FooQualDecl',
+                type='string',
+                value=['abc'],
+                is_array=True,
+                array_size=1,
+                scopes=dict(CLASS=True),
+                overridable=True,
+                tosubclass=True,
+                toinstance=False,
+                translatable=False)
+        ),
+    ]
 
-        obj = CIMQualifierDeclaration(
-            'FooQualDecl', 'string', is_array=True, array_size=4,
-            scopes=dict(CLASS=True), overridable=True, tosubclass=True,
-            toinstance=True, translatable=False)
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMQualifierDeclaration_str_succeeds(self, obj):
+        """All test cases where CIMQualifierDeclaration.__str__() succeeds."""
 
         s = str(obj)
 
         assert re.match(r'^CIMQualifierDeclaration\(', s)
-        assert 'name=%r' % obj.name in s
-        assert 'value=%r' % obj.value in s
-        assert 'type=%r' % obj.type in s
-        assert 'is_array=%r' % obj.is_array in s
+
+        exp_name = 'name=%r' % obj.name
+        assert exp_name in s
+
+        exp_value = 'value=%r' % obj.value
+        assert exp_value in s
+
+        exp_type = 'type=%r' % obj.type
+        assert exp_type in s
+
+        exp_is_array = 'is_array=%r' % obj.is_array
+        assert exp_is_array in s
 
 
 class Test_CIMQualifierDeclaration_repr(object):
     """
-    Test `CIMQualifierDeclaration.__repr__()`.
+    Test CIMQualifierDeclaration.__repr__().
     """
 
-    def test_all(self):
+    testcases_succeeds = [
+        # Testcases where CIMParameter.__repr__() succeeds.
+        # Each testcase has these items:
+        # * obj: CIMParameter object to be tested.
+        (
+            CIMQualifierDeclaration(
+                name='FooQualDecl',
+                type='string')
+        ),
+        (
+            CIMQualifierDeclaration(
+                name='FooQualDecl',
+                type='string',
+                value=['abc'],
+                is_array=True,
+                array_size=1,
+                scopes=dict(CLASS=True),
+                overridable=True,
+                tosubclass=True,
+                toinstance=False,
+                translatable=False)
+        ),
+    ]
 
-        obj = CIMQualifierDeclaration(
-            'FooQualDecl', 'string', is_array=True, array_size=4,
-            scopes=dict(CLASS=True), overridable=True, tosubclass=True,
-            toinstance=True, translatable=False)
+    @pytest.mark.parametrize(
+        "obj",
+        testcases_succeeds)
+    def test_CIMQualifierDeclaration_repr_succeeds(self, obj):
+        """All test cases where CIMQualifierDeclaration.__repr__() succeeds."""
 
         r = repr(obj)
 
         assert re.match(r'^CIMQualifierDeclaration\(', r)
-        assert 'name=%r' % obj.name in r
-        assert 'value=%r' % obj.value in r
-        assert 'type=%r' % obj.type in r
-        assert 'is_array=%r' % obj.is_array in r
-        assert 'array_size=%r' % obj.array_size in r
-        assert 'scopes=%r' % obj.scopes in r
-        assert 'tosubclass=%r' % obj.tosubclass in r
-        assert 'overridable=%r' % obj.overridable in r
-        assert 'translatable=%r' % obj.translatable in r
-        assert 'toinstance=%r' % obj.toinstance in r
+
+        exp_name = 'name=%r' % obj.name
+        assert exp_name in r
+
+        exp_value = 'value=%r' % obj.value
+        assert exp_value in r
+
+        exp_type = 'type=%r' % obj.type
+        assert exp_type in r
+
+        exp_is_array = 'is_array=%r' % obj.is_array
+        assert exp_is_array in r
+
+        exp_array_size = 'array_size=%r' % obj.array_size
+        assert exp_array_size in r
+
+        exp_scopes = 'scopes=%r' % obj.scopes
+        assert exp_scopes in r
+
+        exp_tosubclass = 'tosubclass=%r' % obj.tosubclass
+        assert exp_tosubclass in r
+
+        exp_overridable = 'overridable=%r' % obj.overridable
+        assert exp_overridable in r
+
+        exp_translatable = 'translatable=%r' % obj.translatable
+        assert exp_translatable in r
+
+        exp_toinstance = 'toinstance=%r' % obj.toinstance
+        assert exp_toinstance in r
 
 
 class CIMQualifierDeclarationToXML(unittest.TestCase):
@@ -5771,156 +8622,163 @@ class Test_cimvalue(object):
     ref1_obj = CIMInstanceName(classname='CN', keybindings=dict(k1=42),
                                namespace='ns', host='host')
 
+    testcases_succeeds = [
+        # Testcases where cimvalue() succeeds.
+        # Each testcase has these items:
+        # * value: The input value.
+        # * type: The input type (as a CIM type name).
+        # * exp_obj: Expected CIM value object.
+
+        # Test cases where: Type is None (and is inferred from the value)
+
+        (None, None, None),
+
+        (u'a', None, u'a'),
+        (b'a', None, u'a'),
+        ('true', None, 'true'),
+        ('false', None, 'false'),
+        (datetime1_str, None, datetime1_str),
+        (timedelta1_str, None, timedelta1_str),
+        (ref1_str, None, ref1_str),
+
+        (True, None, True),
+        (False, None, False),
+
+        (datetime1_dt, None, datetime1_obj),
+        (timedelta1_td, None, timedelta1_obj),
+
+        # Test cases where: Type is string
+
+        (None, 'string', None),
+
+        (u'', 'string', u''),
+        (u'a', 'string', u'a'),
+        (u'abc', 'string', u'abc'),
+        (u'\u00E4', 'string', u'\u00E4'),  # U+00E4 = lower case a umlaut
+
+        (b'', 'string', u''),
+        (b'a', 'string', u'a'),
+        (b'abc', 'string', u'abc'),
+
+        # Test cases where: Type is char16
+
+        (None, 'char16', None),
+
+        (u'', 'char16', u''),
+        (u'a', 'char16', u'a'),
+        (u'\u00E4', 'char16', u'\u00E4'),  # U+00E4 = lower case a umlaut
+
+        (b'', 'char16', u''),
+        (b'a', 'char16', u'a'),
+
+        # Test cases where: Type is boolean
+
+        (None, 'boolean', None),
+
+        (True, 'boolean', True),
+        (False, 'boolean', False),
+
+        ('abc', 'boolean', True),
+        ('true', 'boolean', True),  # No special treatment of that string
+        ('false', 'boolean', True),  # No special treatment of that string
+        ('', 'boolean', False),
+
+        (0, 'boolean', False),
+        (1, 'boolean', True),
+        (-1, 'boolean', True),
+
+        # Test cases where: Type is an unsigned integer
+
+        (None, 'uint8', None),
+        (0, 'uint8', Uint8(0)),
+        (max_uint8, 'uint8', Uint8(max_uint8)),
+        (Uint8(0), 'uint8', Uint8(0)),
+        (Uint8(max_uint8), 'uint8', Uint8(max_uint8)),
+
+        (None, 'uint16', None),
+        (0, 'uint16', Uint16(0)),
+        (max_uint16, 'uint16', Uint16(max_uint16)),
+        (Uint16(0), 'uint16', Uint16(0)),
+        (Uint16(max_uint16), 'uint16', Uint16(max_uint16)),
+
+        (None, 'uint32', None),
+        (0, 'uint32', Uint32(0)),
+        (max_uint32, 'uint32', Uint32(max_uint32)),
+        (Uint32(0), 'uint32', Uint32(0)),
+        (Uint32(max_uint32), 'uint32', Uint32(max_uint32)),
+
+        (None, 'uint64', None),
+        (0, 'uint64', Uint64(0)),
+        (max_uint64, 'uint64', Uint64(max_uint64)),
+        (Uint64(0), 'uint64', Uint64(0)),
+        (Uint64(max_uint64), 'uint64', Uint64(max_uint64)),
+
+        # Test cases where: Type is a signed integer
+
+        (None, 'sint8', None),
+        (min_sint8, 'sint8', Sint8(min_sint8)),
+        (max_sint8, 'sint8', Sint8(max_sint8)),
+        (Sint8(min_sint8), 'sint8', Sint8(min_sint8)),
+        (Sint8(max_sint8), 'sint8', Sint8(max_sint8)),
+
+        (None, 'sint16', None),
+        (min_sint16, 'sint16', Sint16(min_sint16)),
+        (max_sint16, 'sint16', Sint16(max_sint16)),
+        (Sint16(min_sint16), 'sint16', Sint16(min_sint16)),
+        (Sint16(max_sint16), 'sint16', Sint16(max_sint16)),
+
+        (None, 'sint32', None),
+        (min_sint32, 'sint32', Sint32(min_sint32)),
+        (max_sint32, 'sint32', Sint32(max_sint32)),
+        (Sint32(min_sint32), 'sint32', Sint32(min_sint32)),
+        (Sint32(max_sint32), 'sint32', Sint32(max_sint32)),
+
+        (None, 'sint64', None),
+        (min_sint64, 'sint64', Sint64(min_sint64)),
+        (max_sint64, 'sint64', Sint64(max_sint64)),
+        (Sint64(min_sint64), 'sint64', Sint64(min_sint64)),
+        (Sint64(max_sint64), 'sint64', Sint64(max_sint64)),
+
+        # Test cases where: Type is a real
+
+        (None, 'real32', None),
+        (0, 'real32', Real32(0)),
+        (3.14, 'real32', Real32(3.14)),
+        (-42E7, 'real32', Real32(-42E7)),
+        (-42E-7, 'real32', Real32(-42E-7)),
+
+        (None, 'real64', None),
+        (0, 'real64', Real64(0)),
+        (3.14, 'real64', Real64(3.14)),
+        (-42E7, 'real64', Real64(-42E7)),
+        (-42E-7, 'real64', Real64(-42E-7)),
+
+        # Test cases where: Type is datetime
+
+        (None, 'datetime', None),
+
+        (datetime1_dt, 'datetime', datetime1_obj),
+        (datetime1_str, 'datetime', datetime1_obj),
+        (datetime1_obj, 'datetime', datetime1_obj),
+
+        (timedelta1_td, 'datetime', timedelta1_obj),
+        (timedelta1_str, 'datetime', timedelta1_obj),
+        (timedelta1_obj, 'datetime', timedelta1_obj),
+
+        # Test cases where: Type is reference
+
+        (None, 'reference', None),
+
+        (ref1_str, 'reference', ref1_obj),
+        (ref1_obj, 'reference', ref1_obj),
+    ]
+
     @pytest.mark.parametrize(
-        "value, type, exp_obj", [
-
-            # Type is None (and is inferred from the value)
-
-            (None, None, None),
-
-            (u'a', None, u'a'),
-            (b'a', None, u'a'),
-            ('true', None, 'true'),
-            ('false', None, 'false'),
-            (datetime1_str, None, datetime1_str),
-            (timedelta1_str, None, timedelta1_str),
-            (ref1_str, None, ref1_str),
-
-            (True, None, True),
-            (False, None, False),
-
-            (datetime1_dt, None, datetime1_obj),
-            (timedelta1_td, None, timedelta1_obj),
-
-            # Type is string
-
-            (None, 'string', None),
-
-            (u'', 'string', u''),
-            (u'a', 'string', u'a'),
-            (u'abc', 'string', u'abc'),
-            (u'\u00E4', 'string', u'\u00E4'),  # U+00E4 = lower case a umlaut
-
-            (b'', 'string', u''),
-            (b'a', 'string', u'a'),
-            (b'abc', 'string', u'abc'),
-
-            # Type is char16
-
-            (None, 'char16', None),
-
-            (u'', 'char16', u''),
-            (u'a', 'char16', u'a'),
-            (u'\u00E4', 'char16', u'\u00E4'),  # U+00E4 = lower case a umlaut
-
-            (b'', 'char16', u''),
-            (b'a', 'char16', u'a'),
-
-            # Type is boolean
-
-            (None, 'boolean', None),
-
-            (True, 'boolean', True),
-            (False, 'boolean', False),
-
-            ('abc', 'boolean', True),
-            ('true', 'boolean', True),  # No special treatment of that string
-            ('false', 'boolean', True),  # No special treatment of that string
-            ('', 'boolean', False),
-
-            (0, 'boolean', False),
-            (1, 'boolean', True),
-            (-1, 'boolean', True),
-
-            # Type is an unsigned integer
-
-            (None, 'uint8', None),
-            (0, 'uint8', Uint8(0)),
-            (max_uint8, 'uint8', Uint8(max_uint8)),
-            (Uint8(0), 'uint8', Uint8(0)),
-            (Uint8(max_uint8), 'uint8', Uint8(max_uint8)),
-
-            (None, 'uint16', None),
-            (0, 'uint16', Uint16(0)),
-            (max_uint16, 'uint16', Uint16(max_uint16)),
-            (Uint16(0), 'uint16', Uint16(0)),
-            (Uint16(max_uint16), 'uint16', Uint16(max_uint16)),
-
-            (None, 'uint32', None),
-            (0, 'uint32', Uint32(0)),
-            (max_uint32, 'uint32', Uint32(max_uint32)),
-            (Uint32(0), 'uint32', Uint32(0)),
-            (Uint32(max_uint32), 'uint32', Uint32(max_uint32)),
-
-            (None, 'uint64', None),
-            (0, 'uint64', Uint64(0)),
-            (max_uint64, 'uint64', Uint64(max_uint64)),
-            (Uint64(0), 'uint64', Uint64(0)),
-            (Uint64(max_uint64), 'uint64', Uint64(max_uint64)),
-
-            # Type is a signed integer
-
-            (None, 'sint8', None),
-            (min_sint8, 'sint8', Sint8(min_sint8)),
-            (max_sint8, 'sint8', Sint8(max_sint8)),
-            (Sint8(min_sint8), 'sint8', Sint8(min_sint8)),
-            (Sint8(max_sint8), 'sint8', Sint8(max_sint8)),
-
-            (None, 'sint16', None),
-            (min_sint16, 'sint16', Sint16(min_sint16)),
-            (max_sint16, 'sint16', Sint16(max_sint16)),
-            (Sint16(min_sint16), 'sint16', Sint16(min_sint16)),
-            (Sint16(max_sint16), 'sint16', Sint16(max_sint16)),
-
-            (None, 'sint32', None),
-            (min_sint32, 'sint32', Sint32(min_sint32)),
-            (max_sint32, 'sint32', Sint32(max_sint32)),
-            (Sint32(min_sint32), 'sint32', Sint32(min_sint32)),
-            (Sint32(max_sint32), 'sint32', Sint32(max_sint32)),
-
-            (None, 'sint64', None),
-            (min_sint64, 'sint64', Sint64(min_sint64)),
-            (max_sint64, 'sint64', Sint64(max_sint64)),
-            (Sint64(min_sint64), 'sint64', Sint64(min_sint64)),
-            (Sint64(max_sint64), 'sint64', Sint64(max_sint64)),
-
-            # Type is a real
-
-            (None, 'real32', None),
-            (0, 'real32', Real32(0)),
-            (3.14, 'real32', Real32(3.14)),
-            (-42E7, 'real32', Real32(-42E7)),
-            (-42E-7, 'real32', Real32(-42E-7)),
-
-            (None, 'real64', None),
-            (0, 'real64', Real64(0)),
-            (3.14, 'real64', Real64(3.14)),
-            (-42E7, 'real64', Real64(-42E7)),
-            (-42E-7, 'real64', Real64(-42E-7)),
-
-            # Type is datetime
-
-            (None, 'datetime', None),
-
-            (datetime1_dt, 'datetime', datetime1_obj),
-            (datetime1_str, 'datetime', datetime1_obj),
-            (datetime1_obj, 'datetime', datetime1_obj),
-
-            (timedelta1_td, 'datetime', timedelta1_obj),
-            (timedelta1_str, 'datetime', timedelta1_obj),
-            (timedelta1_obj, 'datetime', timedelta1_obj),
-
-            # Type is reference
-
-            (None, 'reference', None),
-
-            (ref1_str, 'reference', ref1_obj),
-            (ref1_obj, 'reference', ref1_obj),
-        ]
-    )
-    def test_succeeds(self, value, type, exp_obj):
+        "value, type, exp_obj",
+        testcases_succeeds)
+    def test_cimvalue_succeeds(self, value, type, exp_obj):
         # pylint: disable=redefined-builtin
-        """All test cases for cimvalue() that succeed."""
+        """All test cases where cimvalue() succeeds."""
 
         if CHECK_0_12_0:
 
@@ -5928,33 +8786,37 @@ class Test_cimvalue(object):
 
             assert obj == exp_obj
 
+    testcases_fails = [
+        # Testcases where cimvalue() fails.
+        # Each testcase has these items:
+        # * value: The input value.
+        # * type: The input type (as a CIM type name).
+        # * exp_exc_type: Expected exception type.
+
+        (42, None, TypeError),  # invalid type of value
+        (-42, None, TypeError),
+        (0, None, TypeError),
+        (42.1, None, TypeError),
+
+        ('abc', 'foo', ValueError),  # invalid CIM type name
+
+        ('000000:000', 'datetime', ValueError),  # invalid dt value
+
+        ('foo', 'reference', ValueError),  # invalid ref value
+        (CIMClassName('CIM_Foo'), 'reference', TypeError),  # invalid type
+    ]
+
     @pytest.mark.parametrize(
-        "value, type, exp_exc", [
-            (42, None, TypeError),  # invalid type of value
-            (-42, None, TypeError),
-            (0, None, TypeError),
-            (42.1, None, TypeError),
-
-            ('abc', 'foo', ValueError),  # invalid CIM type name
-
-            ('000000:000', 'datetime', ValueError),  # invalid dt value
-
-            ('foo', 'reference', ValueError),  # invalid ref value
-            (CIMClassName('CIM_Foo'), 'reference', TypeError),  # invalid type
-        ]
-    )
-    def test_fails(self, value, type, exp_exc):
+        "value, type, exp_exc_type",
+        testcases_fails)
+    def test_cimvalue_fails(self, value, type, exp_exc_type):
         # pylint: disable=redefined-builtin
-        """All test cases for cimvalue() that fail."""
+        """All test cases where cimvalue() fails."""
 
         if CHECK_0_12_0:
-
-            with pytest.raises(Exception) as exc_info:
+            with pytest.raises(exp_exc_type):
 
                 cimvalue(value, type)
-
-            exc = exc_info.value
-            assert isinstance(exc, exp_exc)
 
 
 class MofStr(unittest.TestCase):

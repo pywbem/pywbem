@@ -3224,8 +3224,13 @@ class CIMProperty(_CIMComparisonMixin):
     @qualifiers.setter
     def qualifiers(self, qualifiers):
         """Setter method; for a description see the getter method."""
+        # We make sure that the dictionary is a NocaseDict object, and that the
+        # property values are CIMQualifier objects:
         # pylint: disable=attribute-defined-outside-init
-        self._qualifiers = NocaseDict(qualifiers)
+        self._qualifiers = NocaseDict()
+        if qualifiers:
+            for key, value in qualifiers.items():
+                self._qualifiers[key] = _cim_qualifier(key, value)
 
     def copy(self):
         """
@@ -3760,8 +3765,13 @@ class CIMMethod(_CIMComparisonMixin):
     @qualifiers.setter
     def qualifiers(self, qualifiers):
         """Setter method; for a description see the getter method."""
+        # We make sure that the dictionary is a NocaseDict object, and that the
+        # property values are CIMQualifier objects:
         # pylint: disable=attribute-defined-outside-init
-        self._qualifiers = NocaseDict(qualifiers)
+        self._qualifiers = NocaseDict()
+        if qualifiers:
+            for key, value in qualifiers.items():
+                self._qualifiers[key] = _cim_qualifier(key, value)
 
     def _cmp(self, other):
         """
@@ -4136,8 +4146,13 @@ class CIMParameter(_CIMComparisonMixin):
     @qualifiers.setter
     def qualifiers(self, qualifiers):
         """Setter method; for a description see the getter method."""
+        # We make sure that the dictionary is a NocaseDict object, and that the
+        # property values are CIMQualifier objects:
         # pylint: disable=attribute-defined-outside-init
-        self._qualifiers = NocaseDict(qualifiers)
+        self._qualifiers = NocaseDict()
+        if qualifiers:
+            for key, value in qualifiers.items():
+                self._qualifiers[key] = _cim_qualifier(key, value)
 
     @property
     def value(self):
@@ -4146,17 +4161,16 @@ class CIMParameter(_CIMComparisonMixin):
         this attribute does not make any sense. Accessing it will cause a
         :term:`DeprecationWarning` to be issued.
         """
-        warnings.warn(
-            "The value attribute of CIMParameter is deprecated",
-            DeprecationWarning)
         return self._value
 
     @value.setter
     def value(self, value):
         """Setter method; for a description see the getter method."""
-        warnings.warn(
-            "The value attribute of CIMParameter is deprecated",
-            DeprecationWarning)
+        if value is not None:
+            warnings.warn(
+                "The value attribute of CIMParameter (name=%r) is deprecated" %
+                self.name,
+                DeprecationWarning)
         # pylint: disable=attribute-defined-outside-init
         self._value = cimvalue(value, self.type)
 
@@ -5861,17 +5875,20 @@ def _check_array_parms(is_array, array_size, value, element_txt):
     # _infer_is_array() ensures that, and is supposed to be called
 
     if array_size and not is_array:
-        raise ValueError("The array_size parameter of %s is not None but "
-                         "the is_array parameter is False." % element_txt)
+        raise ValueError("The array_size parameter of %s is %r but "
+                         "the is_array parameter is False." %
+                         (element_txt, array_size))
 
     if value is not None:
         value_is_array = isinstance(value, (list, tuple))
         if not is_array and value_is_array:
             raise ValueError("The is_array parameter of %s is False but "
-                             "the value is an array." % element_txt)
+                             "value %r is an array." %
+                             (element_txt, value))
         if is_array and not value_is_array:
             raise ValueError("The is_array parameter of %s is True but "
-                             "the value is not an array." % element_txt)
+                             "value %r is not an array." %
+                             (element_txt, value))
 
 
 def _infer_embedded_object(value):
