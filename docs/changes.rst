@@ -210,6 +210,14 @@ Bug fixes
   is a file-like object and that the caller is responsible for closing that
   file.
 
+* Docs: Clarified in the description of the `return_type` init parameter of
+  `CIMMethod` that array return types, void return types, and reference
+  return types are all not supported in pywbem.
+
+* Fixed the bug that an (unsupported!) reference type could be specified for
+  the return value of CIM methods, by raising `ValueError` if
+  `CIMMethod.return_value` is initialized or set to "reference".
+
 Cleanup
 ^^^^^^^
 
