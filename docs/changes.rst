@@ -183,6 +183,9 @@ Enhancements
 * Docs: Clarified use of `ca_certs` parameter of `WBEMConnection` and its
   defaults in `DEFAULT_CA_CERT_PATHS`.
 
+* Docs: Clarified that the instance path returned by the `CreateInstance()`
+  operation method has classname, keybindings and namespace set.
+
 Bug fixes
 ^^^^^^^^^
 
