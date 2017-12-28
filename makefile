@@ -244,7 +244,7 @@ ifeq ($(PYTHON_ARCH),64)
 	$(PIP_CMD) install $(pip_level_opts) -r win64-requirements.txt
 endif
 	$(PIP_CMD) install $(pip_level_opts) -e .
-	$(PYTHON_CMD) -c "import $(package_name); print('ok')"
+	$(PYTHON_CMD) -c "import $(package_name); print('ok, version=%r'%$(package_name).__version__)"
 	@echo "makefile: Done installing Python installation and runtime requirements"
 	@echo "makefile: Target $@ done."
 
