@@ -175,6 +175,10 @@ Enhancements
   caught by a caller of pywbem who is prepared for pywbem's own exceptions,
   but not necessarily aware of these M2Crypto exceptions. (issue #891)
 
+* Added the catching of a httplib base exception to make sure all httplib
+  exceptions are surfaced by WBEMConnection methods as a
+  pywbem.ConnectionError (issue #916).
+
 * Docs: Editorial improvements in the documentation (links, typos, formatting).
 
 * Docs: Clarifications and small fixes in the documentation of the
