@@ -1,6 +1,10 @@
 # Control file for Travis CI (http://travis-ci.org)
 # Must be located in the root directory of the Git repository.
 
+# Make a full clone in order to always get the tags (important for pbr)
+git:
+  depth: false
+
 # By default, notification emails are sent to the PR creator and commiter.
 notifications:
   email: false
@@ -114,6 +118,7 @@ before_install:
   - if [[ -n $_NEED_REBASE ]]; then git branch master FETCH_HEAD; fi
   - if [[ -n $_NEED_REBASE ]]; then git rebase master; fi
   - git branch -av
+  - git tag
 
 # commands to install dependencies
 install:
