@@ -6953,6 +6953,20 @@ class Test_CIMMethod_init(object):
                 qualifiers=dict(Q1=CIMQualifier('Q1_X', 'abc'))),
             ValueError, None, CHECK_0_12_0
         ),
+        (
+            "Verify that return_type None fails (since 0.12)",
+            dict(
+                name='M',
+                return_type=None),
+            ValueError, None, CHECK_0_12_0
+        ),
+        (
+            "Verify that return_type 'reference' fails (since 0.12)",
+            dict(
+                name='M',
+                return_type='reference'),
+            ValueError, None, CHECK_0_12_0
+        ),
     ]
 
     @pytest.mark.parametrize(

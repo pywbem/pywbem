@@ -3581,7 +3581,29 @@ class CIMMethod(_CIMComparisonMixin):
             Name of the CIM data type of the method return type
             (e.g. ``"uint32"``).
 
-            Must not be `None`.
+            Must not be `None` or ``"reference"``.
+
+            Support for void return types: Pywbem also does not support void
+            return types, consistent with the CIM architecture and MOF syntax
+            (see :term:`DSP0004`).
+            As a side note, the CIM-XML protocol (see :term:`DSP0200` and
+            :term:`DSP0201`) is able to represent method declarations and
+            method invocations with void return types.
+
+            Support for reference return types: Pywbem does not support
+            reference return types of methods.
+            The CIM architecture and MOF syntax support reference return types.
+            The CIM-XML protocol supports the invocation of methods with
+            reference return types, but it does not support the representation
+            of class declarations with methods that have reference return
+            types. As a result, it is not possible to create such classes in a
+            WBEM server using the CIM-XML protocol. For consistency, pywbem
+            does not support reference return types, not even for method
+            invocations.
+
+            Support for array return types: Pywbem does not support array
+            return types of methods, consistent with the CIM architecture,
+            MOF syntax and the CIM-XML protocol.
 
           parameters (:class:`py:dict` or `NocaseDict`_):
             Parameter declarations for the method.
@@ -3688,8 +3710,7 @@ class CIMMethod(_CIMComparisonMixin):
         :term:`unicode string`: Name of the CIM data type of the method return
         type (e.g. ``"uint32"``).
 
-        Will not be `None`. Note that void return types of
-        methods are not supported in CIM.
+        Will not be `None` or ``"reference"``.
 
         This attribute is settable. For details, see the description of the
         same-named constructor parameter.
@@ -3707,6 +3728,8 @@ class CIMMethod(_CIMComparisonMixin):
         # in test tools that show the object with repr().
         if return_type is None:
             raise ValueError('return_type must not be None')
+        if return_type.lower() == 'reference':
+            raise ValueError('return_type must not be "reference"')
 
     @property
     def class_origin(self):
@@ -3939,12 +3962,11 @@ class CIMMethod(_CIMComparisonMixin):
         if self.qualifiers:
             ret_str += '%s\n' % (_makequalifiers(self.qualifiers,
                                                  (indent + MOF_INDENT)))
-        # TODO is None allowed for return type.
+
         ret_str += _indent_str(indent)
-        if self.return_type is not None:
-            ret_str += '%s ' % moftype(self.return_type, None)
-            # TODO CIM-XML does not support methods returning reference
-            # types(the CIM architecture does).
+
+        # return_type is ensured not to be None or reference
+        ret_str += '%s ' % moftype(self.return_type, None)
 
         if self.parameters.values():
             ret_str += '%s(\n' % (self.name)
