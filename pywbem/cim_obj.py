@@ -787,13 +787,15 @@ def _cim_keybinding(key, value):
         # Note: The CIM data types are derived from the built-in types, so we
         # cannot use isinstance() for this test.
 
-        # Ideally, we won't accept keybinding values specified as Python number
-        # typed values, but require a CIM data type (e.g. Uint32 or Real32).
+        # Ideally, pywbem won't accept keybinding values specified as Python
+        # number typed values, but require a CIM data type (e.g. Uint32 or
+        # Real32).
         # However, there are two reasons for continuing to allow that:
-        # * It was allowed in earlier versions of pywbem
-        # * When parsing the (untyped) WBEM URI of an instance path, we get
-        #   int or float values without size, and don't have any way to
-        #   get hold of the size information.
+        # * It was allowed in earlier versions of pywbem.
+        # * Parsing the (untyped) WBEM URI of an instance path, results in
+        #   int or float values without size, and the size information
+        #   to automatically convert that into numeric CIM data types is
+        #   not available.
         return value
 
     if isinstance(value, (CIMClass, CIMInstance)):
@@ -5821,7 +5823,7 @@ def cimvalue(value, type):
         return None
 
     if type is None:
-        # The following may raise TypeError or ValueError. This enforces that
+        # The following may raise TypeError or ValueError. This ensures that
         # Python number typed values cannot be provided without specifing
         # their CIM type.
         type = cimtype(value)

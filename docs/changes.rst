@@ -224,7 +224,9 @@ Cleanup
 
 * The `atomic_to_cim_xml()` function and any generated CIM-XML now generates
   boolean values in upper case 'TRUE' and 'FALSE', following the recommendation
-  in DSP0201.
+  in DSP0201. Previously, boolean values were produced in lower case. This
+  change is compatible for WBEM servers that meet the requirement of DSP0201
+  to treat boolean values case-insensitively.
 
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^

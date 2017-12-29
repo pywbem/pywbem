@@ -860,7 +860,8 @@ def type_from_name(type_name):
 
 def atomic_to_cim_xml(obj):
     """
-    Convert an atomic scalar value to a CIM-XML string and return that string.
+    Convert an "atomic" scalar value to a CIM-XML string and return that
+    string.
 
     The returned CIM-XML string is ready for use as the text of a CIM-XML
     'VALUE' element.
@@ -868,7 +869,7 @@ def atomic_to_cim_xml(obj):
     Parameters:
 
       obj (:term:`CIM data type`, :term:`number`, :class:`py:datetime`):
-        The input value. May be `None`.
+        The "atomic" input value. May be `None`.
 
         Must not be an array/list/tuple. Must not be a :ref:`CIM object`.
 
