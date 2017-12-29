@@ -78,7 +78,7 @@ from . import cim_xml
 from .config import DEBUG_WARNING_ORIGIN
 from .cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
     atomic_to_cim_xml, CIMType, CIMDateTime, Uint8, Sint8, Uint16, Sint16, \
-    Uint32, Sint32, Uint64, Sint64, Real32, Real64
+    Uint32, Sint32, Uint64, Sint64, Real32, Real64, number_types
 
 if six.PY2:
     # pylint: disable=wrong-import-order
@@ -756,6 +756,11 @@ def _stacklevel_above_module(mod_name):
 def _cim_keybinding(key, value):
     """
     Return a keybinding value, from dict item input (key+value).
+
+    The returned value will be a CIM-typed value, except if it was provided as
+    Python number type (in which case it will remain that type).
+
+    Invalid types or values cause TypeError or ValueError to be raised.
     """
 
     if key is None:
@@ -778,20 +783,17 @@ def _cim_keybinding(key, value):
         return value
 
     # pylint: disable=unidiomatic-typecheck
-    if builtin_type(value) in six.integer_types + (float,):
-        # Ideally, we won't accept keybinding values specified as Python int or
-        # float values, but require a CIM data type (e.g. Uint32 or Real32).
-        # However, that was allowed in earlier versions of pywbem, so for
-        # compatibility, we deprecate that but do not raise an exception.
+    if builtin_type(value) in number_types:
         # Note: The CIM data types are derived from the built-in types, so we
         # cannot use isinstance() for this test.
-        msg = "Setting a CIMInstanceName keybinding to a %s value is " \
-            "deprecated; use a CIM data type (e.g. Uint32) instead." % \
-            builtin_type(value)
-        if DEBUG_WARNING_ORIGIN:
-            msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
-        warnings.warn(msg, DeprecationWarning,
-                      stacklevel=_stacklevel_above_module(__name__))
+
+        # Ideally, we won't accept keybinding values specified as Python number
+        # typed values, but require a CIM data type (e.g. Uint32 or Real32).
+        # However, there are two reasons for continuing to allow that:
+        # * It was allowed in earlier versions of pywbem
+        # * When parsing the (untyped) WBEM URI of an instance path, we get
+        #   int or float values without size, and don't have any way to
+        #   get hold of the size information.
         return value
 
     if isinstance(value, (CIMClass, CIMInstance)):
@@ -826,7 +828,7 @@ def _cim_property_value(key, value):
         prop = value
     else:
         # We no longer check for the common error to set CIM numeric values as
-        # Python int or float, because that is done in the CIMProperty
+        # Python number types, because that is done in the CIMProperty
         # constructor.
         prop = CIMProperty(key, value)
 
@@ -898,7 +900,7 @@ def _cim_qualifier(key, value):
         qual = value
     else:
         # We no longer check for the common error to set CIM numeric values as
-        # Python int or float, because that is done in the CIMQualifier
+        # Python number types, because that is done in the CIMQualifier
         # constructor.
         qual = CIMQualifier(key, value)
 
@@ -914,6 +916,7 @@ class CIMInstanceName(_CIMComparisonMixin):
     """
 
     def __init__(self, classname, keybindings=None, host=None, namespace=None):
+        # pylint: disable=line-too-long
         """
         Parameters:
 
@@ -934,21 +937,21 @@ class CIMInstanceName(_CIMComparisonMixin):
             * key (:term:`string`):
               Keybinding name. Lexical case is preserved. Must not be `None`.
 
-            * value (:term:`CIM data type` or :class:`~pywbem.CIMProperty`):
-              Keybinding value.
+            * value (:term:`CIM data type` or :term:`number` or :class:`~pywbem.CIMProperty`):
+              Keybinding value, as follows:
 
-              If specified as a :term:`CIM data type`, the provided object will
-              be stored in the ``CIMInstanceName`` object.
-              Note that numeric Python types (``int``, ``float``) are not valid
-              CIM data types; their use has been deprecated in pywbem v0.12.0
-              and will cause a :term:`DeprecationWarning` to be issued.
+              - If specified as :term:`CIM data type` or :term:`number`, the
+                provided object will be stored unchanged as the keybinding
+                value.
+              - If specified as a :class:`~pywbem.CIMProperty` object, its
+                `name` attribute must be equal (case insensitively) to the
+                dictionary key (keybinding name), and a copy of its value
+                (a :term:`CIM data type`) will be stored as the keybinding
+                value.
+              - `None` for the keybinding value will be stored unchanged.
 
-              If specified as a :class:`~pywbem.CIMProperty` object, its `name`
-              attribute must be equal (case insensitively) to the dictionary
-              key, and a copy of its value (a :term:`CIM data type`) will be
-              stored in the ``CIMInstanceName`` object.
-
-            `None` is interpreted as an empty set of keybindings.
+            `None` (for the entire dictionary) is interpreted as an empty set
+            of keybindings.
 
           host (:term:`string`):
             Host and optionally port of the WBEM server containing the CIM
@@ -980,9 +983,9 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         Raises:
 
-          ValueError: classname is `None`, or a keybinding name is `None`, or
-            a keybinding name does not match its dictionary key.
-        """
+          ValueError: An error in the provided argument values.
+          TypeError: An error in the provided argument types.
+        """  # noqa: E501
 
         # We use the respective setter methods:
         self.classname = classname
@@ -1035,10 +1038,11 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         The keybindings can also be accessed and manipulated one by one
         because the attribute value is a modifiable dictionary. The provided
-        input value must be specified as a :term:`CIM data type`::
+        input value must be specified as a :term:`CIM data type` or as
+        :term:`number`::
 
             instpath = CIMInstanceName(...)
-            v1 = "abc"  # must be a CIM data type
+            v1 = "abc"  # must be a CIM data type or Python number type
 
             instpath.keybindings['k1'] = v1  # Set "k1" to v1 (add if needed)
             v1 = instpath.keybindings['k1']  # Access value of "k1"
@@ -1047,10 +1051,10 @@ class CIMInstanceName(_CIMComparisonMixin):
         In addition, the keybindings can be accessed and manipulated one by
         one by using the entire ``CIMInstanceName`` object like a dictionary.
         Again, the provided input value must be specified as a
-        :term:`CIM data type`::
+        :term:`CIM data type` or as :term:`number`::
 
             instpath = CIMInstanceName(...)
-            v2 = Uint32(...)  # must be a CIM data type
+            v2 = 42  # must be a CIM data type or Python number type
 
             instpath['k2'] = v2  # Set "k2" to v2 (add if needed)
             v2 = instpath['k2']  # Access value of "k2"
@@ -1061,8 +1065,6 @@ class CIMInstanceName(_CIMComparisonMixin):
     @keybindings.setter
     def keybindings(self, keybindings):
         """Setter method; for a description see the getter method."""
-        # We make sure that the dictionary is a NocaseDict object, and that the
-        # property values are CIMProperty objects:
         # pylint: disable=attribute-defined-outside-init
         self._keybindings = NocaseDict()
         if keybindings:
@@ -1159,7 +1161,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
             ret_str += '%s=' % key
 
-            if isinstance(value, (six.integer_types, bool, float)):
+            if isinstance(value, (number_types, bool)):
                 ret_str += str(value)
             elif isinstance(value, CIMInstanceName):
                 ret_str += '"%s"' % str(value).replace('\\', '\\\\').replace(
@@ -1309,8 +1311,8 @@ class CIMInstanceName(_CIMComparisonMixin):
                     value = 'TRUE'
                 else:
                     value = 'FALSE'
-            elif isinstance(value, six.integer_types + (float,)):
-                # Numeric CIM data types derive from int, long or float.
+            elif isinstance(value, number_types):
+                # Numeric CIM data types derive from Python number types.
                 # Note: int is a subtype of bool, but bool is already
                 # tested further up.
                 type_ = 'numeric'
@@ -5862,7 +5864,7 @@ def cimvalue(value, type):
 
     if type is None:
         # The following may raise TypeError or ValueError. This enforces that
-        # Python integer or float values cannot be provided without specifing
+        # Python number typed values cannot be provided without specifing
         # their CIM type.
         type = cimtype(value)
 

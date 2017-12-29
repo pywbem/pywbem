@@ -712,6 +712,10 @@ class Real64(CIMFloat):
     cimtype = 'real64'
 
 
+# Python number types listed in :term:`number`.
+number_types = six.integer_types + (float,)
+
+
 def cimtype(obj):
     """
     Return the CIM data type name of a CIM typed object, as a string.
@@ -719,9 +723,10 @@ def cimtype(obj):
     For an array, the type is determined from the first array element
     (CIM arrays must be homogeneous w.r.t. the type of their elements).
 
-    Note that Python integer and float values are not valid input objects
-    because determining their CIM data type (e.g. Uint8, Real32) would require
-    knowing the value range. Therefore, `TypeError` is raised in this case.
+    Note that Python number values (of type :term:`number`) are not valid input
+    objects because determining their CIM data type (e.g. Uint8, Real32) would
+    require knowing the value range. Therefore, `TypeError` is raised in this
+    case.
 
     Parameters:
 
