@@ -74,7 +74,7 @@ The following YAML is an example for one testcase in such a file:
                           </INSTANCENAME>
                         </IPARAMVALUE>
                         <IPARAMVALUE NAME="LocalOnly">
-                          <VALUE>False</VALUE>
+                          <VALUE>FALSE</VALUE>
                         </IPARAMVALUE>
                       </IMETHODCALL>
                     </SIMPLEREQ>
@@ -253,7 +253,6 @@ Elements in `pywbem_response` element
     are being returned. The chile element to this element specifies the
     Python object to be constructed in the same manner as the child elements
     of `result`.
-  
 
 Elements in `http_request` element
 ------------------------------------

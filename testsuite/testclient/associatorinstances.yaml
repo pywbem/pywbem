@@ -112,7 +112,7 @@
                 <NAMESPACE NAME="cimv2"/>
               </LOCALNAMESPACEPATH>
               <IPARAMVALUE NAME="IncludeQualifiers">
-                <VALUE>True</VALUE>
+                <VALUE>TRUE</VALUE>
               </IPARAMVALUE>
               <IPARAMVALUE NAME="ObjectName">
                 <INSTANCENAME CLASSNAME="TST_Blah">
@@ -128,7 +128,7 @@
                 <VALUE>myResultRole</VALUE>
               </IPARAMVALUE>
               <IPARAMVALUE NAME="IncludeClassOrigin">
-                <VALUE>True</VALUE>
+                <VALUE>TRUE</VALUE>
               </IPARAMVALUE>
               <IPARAMVALUE NAME="Role">
                 <VALUE>myRole</VALUE>
@@ -274,7 +274,7 @@
                 <NAMESPACE NAME="cimv2"/>
               </LOCALNAMESPACEPATH>
               <IPARAMVALUE NAME="IncludeQualifiers">
-                <VALUE>True</VALUE>
+                <VALUE>TRUE</VALUE>
               </IPARAMVALUE>
               <IPARAMVALUE NAME="ObjectName">
                 <INSTANCENAME CLASSNAME="PG_ComputerSystem">
@@ -293,7 +293,7 @@
                 <VALUE>myResultRole</VALUE>
               </IPARAMVALUE>
               <IPARAMVALUE NAME="IncludeClassOrigin">
-                <VALUE>True</VALUE>
+                <VALUE>TRUE</VALUE>
               </IPARAMVALUE>
               <IPARAMVALUE NAME="Role">
                 <VALUE>myRole</VALUE>
@@ -532,7 +532,7 @@
                 <NAMESPACE NAME="cimv2"/>
               </LOCALNAMESPACEPATH>
               <IPARAMVALUE NAME="IncludeQualifiers">
-                <VALUE>True</VALUE>
+                <VALUE>TRUE</VALUE>
               </IPARAMVALUE>
               <IPARAMVALUE NAME="ObjectName">
                 <INSTANCENAME CLASSNAME="PG_ComputerSystem">
@@ -551,7 +551,7 @@
                 <VALUE>myResultRole</VALUE>
               </IPARAMVALUE>
               <IPARAMVALUE NAME="IncludeClassOrigin">
-                <VALUE>True</VALUE>
+                <VALUE>TRUE</VALUE>
               </IPARAMVALUE>
               <IPARAMVALUE NAME="Role">
                 <VALUE>myRole</VALUE>

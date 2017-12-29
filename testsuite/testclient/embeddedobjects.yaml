@@ -62,7 +62,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -163,7 +163,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -269,7 +269,7 @@
                       </INSTANCENAME>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>
@@ -588,13 +588,13 @@
                       <CLASSNAME NAME="PyWBEM_Person"/>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="LocalOnly">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="IncludeQualifiers">
-                      <VALUE>True</VALUE>
+                      <VALUE>TRUE</VALUE>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="IncludeClassOrigin">
-                      <VALUE>True</VALUE>
+                      <VALUE>TRUE</VALUE>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="PropertyList">
                       <VALUE.ARRAY>
@@ -619,7 +619,7 @@
                       <CLASS NAME="PyWBEM_Person" SUPERCLASS="PyWBEM_Object">
                         <PROPERTY NAME="Name" TYPE="string">
                           <QUALIFIER NAME="Key" TYPE="boolean">
-                            <VALUE>True</VALUE>
+                            <VALUE>TRUE</VALUE>
                           </QUALIFIER>
                         </PROPERTY>
                         <PROPERTY NAME="Address" TYPE="string" EmbeddedObject="instance">
@@ -717,7 +717,7 @@
                       <CLASS NAME="PyWBEM_Person" SUPERCLASS="PyWBEM_Object">
                         <PROPERTY NAME="Name" TYPE="string">
                           <QUALIFIER NAME="Key" TYPE="boolean">
-                            <VALUE>True</VALUE>
+                            <VALUE>TRUE</VALUE>
                           </QUALIFIER>
                         </PROPERTY>
                         <PROPERTY NAME="Address" TYPE="string" EmbeddedObject="instance">

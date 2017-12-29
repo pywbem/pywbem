@@ -17,7 +17,7 @@
         pullresult:
             context: null
             eos: True
-            paths: 
+            paths:
                 -
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -63,7 +63,7 @@
                                  <CLASSNAME NAME="PyWBEM_Person"/>
                              </IPARAMVALUE>
                              <IPARAMVALUE NAME="LocalOnly">
-                                 <VALUE>False</VALUE>
+                                 <VALUE>FALSE</VALUE>
                              </IPARAMVALUE>
                          </IMETHODCALL>
                      </SIMPLEREQ>
@@ -163,7 +163,7 @@
               - abc12345def
               - root/cimv2
             eos: False
-            paths: 
+            paths:
                 -
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -209,7 +209,7 @@
                                  <CLASSNAME NAME="PyWBEM_Person"/>
                              </IPARAMVALUE>
                              <IPARAMVALUE NAME="LocalOnly">
-                                 <VALUE>False</VALUE>
+                                 <VALUE>FALSE</VALUE>
                              </IPARAMVALUE>
                          </IMETHODCALL>
                      </SIMPLEREQ>
@@ -329,7 +329,7 @@
                                  <CLASSNAME NAME="PyWBEM_Person"/>
                              </IPARAMVALUE>
                              <IPARAMVALUE NAME="LocalOnly">
-                                 <VALUE>False</VALUE>
+                                 <VALUE>FALSE</VALUE>
                              </IPARAMVALUE>
                          </IMETHODCALL>
                      </SIMPLEREQ>
@@ -401,7 +401,7 @@
                                  <CLASSNAME NAME="PyWBEM_Person"/>
                              </IPARAMVALUE>
                              <IPARAMVALUE NAME="LocalOnly">
-                                 <VALUE>False</VALUE>
+                                 <VALUE>FALSE</VALUE>
                              </IPARAMVALUE>
                          </IMETHODCALL>
                      </SIMPLEREQ>
@@ -660,7 +660,7 @@
                         <CLASSNAME NAME="PyWBEM_Person"/>
                     </IPARAMVALUE>
                     <IPARAMVALUE NAME="ExtraParam">
-                      <VALUE>False</VALUE>
+                      <VALUE>FALSE</VALUE>
                     </IPARAMVALUE>
                   </IMETHODCALL>
                 </SIMPLEREQ>

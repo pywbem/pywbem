@@ -787,13 +787,15 @@ def _cim_keybinding(key, value):
         # Note: The CIM data types are derived from the built-in types, so we
         # cannot use isinstance() for this test.
 
-        # Ideally, we won't accept keybinding values specified as Python number
-        # typed values, but require a CIM data type (e.g. Uint32 or Real32).
+        # Ideally, pywbem won't accept keybinding values specified as Python
+        # number typed values, but require a CIM data type (e.g. Uint32 or
+        # Real32).
         # However, there are two reasons for continuing to allow that:
-        # * It was allowed in earlier versions of pywbem
-        # * When parsing the (untyped) WBEM URI of an instance path, we get
-        #   int or float values without size, and don't have any way to
-        #   get hold of the size information.
+        # * It was allowed in earlier versions of pywbem.
+        # * Parsing the (untyped) WBEM URI of an instance path, results in
+        #   int or float values without size, and the size information
+        #   to automatically convert that into numeric CIM data types is
+        #   not available.
         return value
 
     if isinstance(value, (CIMClass, CIMInstance)):
@@ -1306,6 +1308,8 @@ class CIMInstanceName(_CIMComparisonMixin):
                 continue
 
             if isinstance(value, bool):
+                # Note: Bool is a subtype of int, therefore bool is tested
+                # before int.
                 type_ = 'boolean'
                 if value:
                     value = 'TRUE'
@@ -1313,8 +1317,6 @@ class CIMInstanceName(_CIMComparisonMixin):
                     value = 'FALSE'
             elif isinstance(value, number_types):
                 # Numeric CIM data types derive from Python number types.
-                # Note: int is a subtype of bool, but bool is already
-                # tested further up.
                 type_ = 'numeric'
                 value = str(value)
             elif isinstance(value, six.string_types):
@@ -1331,27 +1333,25 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         instancename_xml = cim_xml.INSTANCENAME(self.classname, kbs)
 
-        # Instance name plus namespace = LOCALINSTANCEPATH
+        if self.namespace is not None:
 
-        if self.host is None and self.namespace is not None:
-            return cim_xml.LOCALINSTANCEPATH(
-                cim_xml.LOCALNAMESPACEPATH(
-                    [cim_xml.NAMESPACE(ns)
-                     for ns in self.namespace.split('/')]),
-                instancename_xml)
+            localnsp = cim_xml.LOCALNAMESPACEPATH(
+                [cim_xml.NAMESPACE(ns)
+                 for ns in self.namespace.split('/')])
 
-        # Instance name plus host and namespace = INSTANCEPATH
+            if self.host is not None:
 
-        if self.host is not None and self.namespace is not None:
-            return cim_xml.INSTANCEPATH(
-                cim_xml.NAMESPACEPATH(
-                    cim_xml.HOST(self.host),
-                    cim_xml.LOCALNAMESPACEPATH([
-                        cim_xml.NAMESPACE(ns)
-                        for ns in self.namespace.split('/')])),
-                instancename_xml)
+                # Instancename + namespace + host = INSTANCEPATH
 
-        # Just a regular INSTANCENAME
+                return cim_xml.INSTANCEPATH(
+                    cim_xml.NAMESPACEPATH(cim_xml.HOST(self.host), localnsp),
+                    instancename_xml)
+
+            # Instancename + namespace = LOCALINSTANCEPATH
+
+            return cim_xml.LOCALINSTANCEPATH(localnsp, instancename_xml)
+
+        # Just Instancename = INSTANCENAME
 
         return instancename_xml
 
@@ -1989,8 +1989,9 @@ class CIMInstance(_CIMComparisonMixin):
         if self.path is None:
             return instance_xml
 
-        return cim_xml.VALUE_NAMEDINSTANCE(self.path.tocimxml(),
-                                           instance_xml)
+        return cim_xml.VALUE_NAMEDINSTANCE(
+            self.path.tocimxml(),
+            instance_xml)
 
     def tocimxmlstr(self, indent=None):
         """
@@ -4840,10 +4841,11 @@ class CIMQualifier(_CIMComparisonMixin):
         value = None
 
         if isinstance(self.value, list):
-            value = cim_xml.VALUE_ARRAY([cim_xml.VALUE(v) for v in self.value])
+            value = cim_xml.VALUE_ARRAY(
+                [cim_xml.VALUE(atomic_to_cim_xml(v)) for v in self.value])
         elif self.value is not None:
             # used as VALUE.ARRAY and the as VALUE
-            value = cim_xml.VALUE(self.value)
+            value = cim_xml.VALUE(atomic_to_cim_xml(self.value))
 
         return cim_xml.QUALIFIER(self.name,
                                  self.type,
@@ -5482,51 +5484,31 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
 
 def tocimxml(value):
+    # pylint: disable=line-too-long
     """
-    Return the CIM-XML representation of the CIM object or CIM data type,
-    as an :term:`Element` object.
+    Return the CIM-XML representation of the input value, as an
+    :term:`Element` object.
 
     The returned CIM-XML representation is consistent with :term:`DSP0201`.
 
     Parameters:
 
-      value (:term:`CIM object` or :term:`CIM data type`):
-        The value.
+      value (:term:`CIM object`, :term:`CIM data type`, :term:`number`, :class:`py:datetime`, or tuple/list thereof):
+        The input value. May be `None`.
 
     Returns:
 
-        The CIM-XML representation of the specified value,
-        as an instance of an appropriate subclass of :term:`Element`.
+      The CIM-XML representation of the specified value, as an object of an
+      appropriate subclass of :term:`Element`.
+    """  # noqa: E501
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
-    """
-
-    # Python cim_obj object
+    if isinstance(value, (tuple, list)):
+        return cim_xml.VALUE_ARRAY([tocimxml(v) for v in value])
 
     if hasattr(value, 'tocimxml'):
         return value.tocimxml()
 
-    # CIMType or builtin type
-
-    if isinstance(value, (CIMType, int, six.text_type)):
-        return cim_xml.VALUE(six.text_type(value))
-
-    if isinstance(value, six.binary_type):
-        return cim_xml.VALUE(_ensure_unicode(value))
-
-    # TODO: Verify whether this is a bug to have this test after the one for
-    #       int. Bool is a subtype of int, so bool probably matches in the test
-    #       above.
-    if isinstance(value, bool):
-        return cim_xml.VALUE('TRUE') if value else cim_xml.VALUE('FALSE')
-
-    # Iterable of values
-
-    try:
-        return cim_xml.VALUE_ARRAY([tocimxml(v) for v in value])
-    except TypeError:
-        raise ValueError("Can't convert %s (%s) to CIM XML" %
-                         (value, builtin_type(value)))
+    return cim_xml.VALUE(atomic_to_cim_xml(value))
 
 
 def tocimxmlstr(value, indent=None):
@@ -5863,7 +5845,7 @@ def cimvalue(value, type):
         return None
 
     if type is None:
-        # The following may raise TypeError or ValueError. This enforces that
+        # The following may raise TypeError or ValueError. This ensures that
         # Python number typed values cannot be provided without specifing
         # their CIM type.
         type = cimtype(value)
