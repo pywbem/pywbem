@@ -6625,7 +6625,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Returns:
 
             A :class:`~pywbem.CIMInstanceName` object that is the instance
-            path of the new instance.
+            path of the new instance, with classname, keybindings and
+            namespace set.
 
         Raises:
 
@@ -6652,9 +6653,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace = NewInstance.path.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
 
+            instance = NewInstance.copy()
+
             # Strip off path to avoid producing a VALUE.NAMEDINSTANCE element
             # instead of the desired INSTANCE element.
-            instance = NewInstance.copy()
             instance.path = None
 
             result = self._imethodcall(
@@ -6664,8 +6666,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
             instancename = result[0][2][0]
+
+            # CreateInstance returns an INSTANCENAME, which does not have
+            # namespace or host. We want to return a path with namespace,
+            # so we set it to the target namespace.
             instancename.namespace = namespace
-            # TODO: Why not accept returned namespace?
+
             return instancename
 
         except Exception as exce:
