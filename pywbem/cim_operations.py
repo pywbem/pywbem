@@ -1929,11 +1929,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             else:
                 instances = result[0][2]
 
-            # TODO ks 6/16 would the setattr be faster?
-            # TODO: ks 6/16 should we check before setting?
-            # [setattr(i.path, 'namespace', namespace) for i in instances]
+            # EnumerateInstances returns instance paths as INSTANCE elements,
+            # which do not contain namespace or host. We want to return
+            # instance paths with namespace, so we set it to the target
+            # namespace.
             for instance in instances:
                 instance.path.namespace = namespace
+
             return instances
 
         except Exception as exce:
