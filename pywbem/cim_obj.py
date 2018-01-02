@@ -1252,40 +1252,10 @@ class CIMInstanceName(_CIMComparisonMixin):
     def __str__(self):
         """
         Return the untyped WBEM URI of the CIM instance path represented
-        by the :class:`~pywbem.CIMInstanceName` object.
-
-        The returned WBEM URI is consistent with :term:`DSP0207`.
-
-        The key properties in the returned WBEM URI will be ordered by their
-        names.
+        by the :class:`~pywbem.CIMInstanceName` object, as returned by
+        :meth:`~pywbem.CIMInstanceName.to_wbem_uri`.
         """
-
-        ret_str = ''
-
-        if self.host is not None:
-            ret_str += '//%s/' % self.host
-
-        if self.namespace is not None:
-            ret_str += '%s:' % self.namespace
-
-        ret_str += '%s.' % self.classname
-
-        for key in sorted(self.keybindings.iterkeys()):
-            value = self.keybindings[key]
-
-            ret_str += '%s=' % key
-
-            if isinstance(value, (number_types, bool)):
-                ret_str += str(value)
-            elif isinstance(value, CIMInstanceName):
-                ret_str += '"%s"' % str(value).replace('\\', '\\\\').replace(
-                    '"', '\\"')
-            else:
-                ret_str += '"%s"' % value
-
-            ret_str += ','
-
-        return ret_str[:-1]
+        return self.to_wbem_uri()
 
     def __repr__(self):
         """
@@ -1740,6 +1710,124 @@ class CIMInstanceName(_CIMComparisonMixin):
             keybindings=keybindings)
 
         return obj
+
+    def to_wbem_uri(self, omit_local_slash=False):
+        """
+        Return the untyped WBEM URI of the CIM instance path represented
+        by the :class:`~pywbem.CIMInstanceName` object.
+
+        The returned WBEM URI is consistent with :term:`DSP0207`, and contains
+        its components as follows:
+
+        * it does not contain a namespace type (URI scheme).
+        * it contains an authority component according to the
+          :attr:`~pywbem.CIMInstanceName.host` attribute, if that is not
+          `None`. Othwerise, it does not contain the authority component.
+        * it contains a namespace component according to the
+          :attr:`~pywbem.CIMInstanceName.namespace` attribute, if that is not
+          `None`. Othwerise, it does not contain the namespace component.
+        * it contains a class name component according to the
+          :attr:`~pywbem.CIMInstanceName.classname` attribute.
+        * it contains keybindings according to the
+          :attr:`~pywbem.CIMInstanceName.keybindings` attribute, with
+          keys ordered by their names.
+
+        Parameters:
+
+          omit_local_slash (bool): Omit the leading slash in "local" WBEM URIs
+          (that is, in WBEM URIs without authority component). Note that
+          :term:`DSP0207` requires a leading slash in "local" WBEM URIs.
+
+        Examples:
+
+        * With authority and namespace::
+
+            //jdd:test@acme.com:5989/cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
+            //acme.com/cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
+            //acme.com/root/cimv2:CIM_ComputerSystem.CreationClassName="ACME_CS",Name="sys1"
+
+        * Without authority but with namespace::
+
+            /cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
+
+        * Without authority and without namespace::
+
+            /:CIM_RegisteredProfile.InstanceID="acme.1"
+            /:CIM_SubProfile.Main="/:CIM_RegisteredProfile.InstanceID=\"acme.1\"",Sub="/:CIM_RegisteredProfile.InstanceID=\"acme.2\""
+
+        Returns:
+
+          :term:`unicode string`: Untyped WBEM URI of the CIM instance path.
+
+        Raises:
+          TypeError: Invalid type in keybindings
+        """
+
+        ret = []
+
+        if self.host is not None:
+            ret.append('//')
+            ret.append(self.host)
+
+        if self.host is not None or not omit_local_slash:
+            ret.append('/')
+
+        if self.namespace is not None:
+            ret.append(self.namespace)
+
+        ret.append(':')
+        ret.append(self.classname)
+
+        ret.append('.')
+        for key in sorted(self.keybindings.iterkeys()):
+            value = self.keybindings[key]
+
+            ret.append(key)
+            ret.append('=')
+
+            if isinstance(value, bool):
+                # boolean
+                # Note that in Python a bool is an int, so test for bool first
+                ret.append(str(value).upper())
+            elif isinstance(value, (CIMFloat, float)):
+                # realNN
+                # Since Python 2.7 and Python 3.1, repr() prints float numbers
+                # with the shortest representation that does not change its
+                # value. When needed, it shows up to 17 significant digits,
+                # which is the precision needed to round-trip double precision
+                # IEE-754 floating point numbers between decimal and binary
+                # without loss.
+                ret.append(repr(value))
+            elif isinstance(value, (CIMInt, int, _Longint)):
+                # intNN
+                ret.append(str(value))
+            elif isinstance(value, CIMInstanceName):
+                # reference
+                ret.append('"')
+                ret.append(value.to_wbem_uri().
+                           replace('\\', '\\\\').
+                           replace('"', '\\"'))
+                ret.append('"')
+            elif isinstance(value, CIMDateTime):
+                # datetime
+                ret.append('"')
+                ret.append(str(value))
+                ret.append('"')
+            elif isinstance(value, six.string_types):
+                # string, char16
+                ret.append('"')
+                ret.append(value.
+                           replace('\\', '\\\\').
+                           replace('"', '\\"'))
+                ret.append('"')
+            else:
+                raise TypeError("Invalid type %s in keybinding value: %s=%r" %
+                                (type(value), key, value))
+            ret.append(',')
+
+        del ret[-1]
+
+        return _ensure_unicode(''.join(ret))
 
 
 class CIMInstance(_CIMComparisonMixin):
@@ -2462,22 +2550,10 @@ class CIMClassName(_CIMComparisonMixin):
     def __str__(self):
         """
         Return the untyped WBEM URI of the CIM class path represented by the
-        :class:`~pywbem.CIMClassName` object.
-
-        The returned WBEM URI is consistent with :term:`DSP0207`.
+        :class:`~pywbem.CIMClassName` object, as returned by
+        :meth:`~pywbem.CIMClassName.to_wbem_uri`.
         """
-
-        ret_str = ''
-
-        if self.host is not None:
-            ret_str += '//%s/' % self.host
-
-        if self.namespace is not None:
-            ret_str += '%s:' % self.namespace
-
-        ret_str += self.classname
-
-        return ret_str
+        return self.to_wbem_uri()
 
     def __repr__(self):
         """
@@ -2618,6 +2694,67 @@ class CIMClassName(_CIMComparisonMixin):
             namespace=namespace)
 
         return obj
+
+    def to_wbem_uri(self, omit_local_slash=False):
+        """
+        Return the untyped WBEM URI of the CIM class path represented
+        by the :class:`~pywbem.CIMClassName` object.
+
+        The returned WBEM URI is consistent with :term:`DSP0207`, and contains
+        its components as follows:
+
+        * it does not contain a namespace type (URI scheme).
+        * it contains an authority component according to the
+          :attr:`~pywbem.CIMInstanceName.host` attribute, if that is not
+          `None`. Othwerise, it does not contain the authority component.
+        * it contains a namespace component according to the
+          :attr:`~pywbem.CIMInstanceName.namespace` attribute, if that is not
+          `None`. Othwerise, it does not contain the namespace component.
+        * it contains a class name component according to the
+          :attr:`~pywbem.CIMInstanceName.classname` attribute.
+
+        Parameters:
+
+          omit_local_slash (bool): Omit the leading slash in "local" WBEM URIs
+          (that is, in WBEM URIs without authority component). Note that
+          :term:`DSP0207` requires a leading slash in "local" WBEM URIs.
+
+        Examples:
+
+        * With authority and namespace::
+
+            //jdd:test@acme.com:5989/cimv2/test:CIM_RegisteredProfile
+            //acme.com/cimv2/test:CIM_RegisteredProfile
+
+        * Without authority but with namespace::
+
+            /cimv2/test:CIM_RegisteredProfile
+
+        * Without authority and without namespace::
+
+            /:CIM_RegisteredProfile
+
+        Returns:
+
+          :term:`unicode string`: Untyped WBEM URI of the CIM class path.
+        """
+
+        ret = []
+
+        if self.host is not None:
+            ret.append('//')
+            ret.append(self.host)
+
+        if self.host is not None or not omit_local_slash:
+            ret.append('/')
+
+        if self.namespace is not None:
+            ret.append(self.namespace)
+
+        ret.append(':')
+        ret.append(self.classname)
+
+        return _ensure_unicode(''.join(ret))
 
 
 class CIMClass(_CIMComparisonMixin):
