@@ -713,7 +713,7 @@ class Real64(CIMFloat):
 
 
 # Python number types listed in :term:`number`.
-number_types = six.integer_types + (float,)
+number_types = six.integer_types + (float,)  # pylint: disable=invalid-name
 
 
 def cimtype(obj):
