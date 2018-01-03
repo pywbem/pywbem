@@ -206,7 +206,7 @@ class TestFlavors(MOFTest):
 class TestAliases(MOFTest):
     """Test of a mof file that contains aliases"""
 
-    def test_all(self):
+    def test_testmof(self):
         """
         Execute test using test.mof file. This compiles the test.mof file
         and tests for a) valid classes and instances, and then for
@@ -270,6 +270,82 @@ class TestAliases(MOFTest):
                      if inst['member'] == member_path and
                      inst['Collection'] == collection_path]
         self.assertEqual(len(my_member), 1)
+
+    def test_ref_alias(self):
+        """
+        Test for aliases for association classes with reference properties
+        as keys.
+        """
+        mof_str = """
+        Qualifier Association : boolean = false,
+            Scope(association),
+            Flavor(DisableOverride, ToSubclass);
+        Qualifier Description : string = null,
+            Scope(any),
+            Flavor(EnableOverride, ToSubclass, Translatable);
+        Qualifier Key : boolean = false,
+            Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+
+        class TST_Person{
+            [Key] string name;
+        };
+        [Association]
+        class TST_MemberOfFamilyCollection {
+           [key] TST_Person ref family;
+           [key] TST_Person ref member;
+        };
+        class TST_FamilyCollection {
+            [key] string name;
+        };
+
+        instance of TST_Person as $Mike { name = "Mike"; };
+        instance of TST_FamilyCollection as $Family1 { name = "family1"; };
+
+        instance of TST_MemberOfFamilyCollection as $MikeMember
+        {
+            family = $Family1;
+            member = $Mike;
+        };
+        """
+
+        def find_instance(path, repo):
+            """Local method confirms paths found for all created instances."""
+            for inst in repo:
+                if inst.path == path:
+                    return True
+            return False
+
+        self.mofcomp.compile_string(mof_str, NAME_SPACE)
+        repo = self.mofcomp.handle
+
+        cl = repo.GetClass(
+            'TST_Person',
+            LocalOnly=False, IncludeQualifiers=True)
+        self.assertEqual(cl.properties['name'].type, 'string')
+        instances = repo.instances[NAME_SPACE]
+
+        # create list of correct paths and determine that they exist.
+        kbs = NocaseDict()
+        kbs['family'] = CIMInstanceName('TST_FamilyCollection',
+                                        keybindings={'name': 'family1'},
+                                        namespace=NAME_SPACE)
+        kbs['member'] = CIMInstanceName('TST_Person',
+                                        keybindings={'name': 'Mike'},
+                                        namespace=NAME_SPACE)
+
+        exp_paths = [
+            CIMInstanceName('TST_Person', keybindings={'name': 'Mike'},
+                            namespace=NAME_SPACE),
+            CIMInstanceName('TST_FamilyCollection',
+                            keybindings={'name': 'family1'},
+                            namespace=NAME_SPACE),
+            CIMInstanceName('TST_MemberOfFamilyCollection', keybindings=kbs,
+                            namespace=NAME_SPACE)
+        ]
+
+        for path in exp_paths:
+            self.assertTrue(find_instance(path, instances))
 
 
 class TestSchemaError(MOFTest):

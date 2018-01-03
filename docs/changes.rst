@@ -236,6 +236,10 @@ Bug fixes
   the return value of CIM methods, by raising `ValueError` if
   `CIMMethod.return_value` is initialized or set to "reference".
 
+* Fixed issue introduced in mof_compiler when atomic_to_cimxml was cleaned up
+  that did not allow using alias with some association classes.  Also
+  added test for this issue. See issue #936
+
 Cleanup
 ^^^^^^^
 
