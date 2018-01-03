@@ -152,7 +152,7 @@ from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
 from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     NocaseDict, _ensure_unicode, tocimxml, tocimobj
-from .cim_http import get_object_header, wbem_request
+from .cim_http import get_cimobject_header, wbem_request
 from .tupleparse import parse_cim
 from .tupletree import xml_to_tupletree_sax
 from .cim_http import parse_url
@@ -1192,11 +1192,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Perform an intrinsic CIM-XML operation.
         """
 
-        # Create HTTP headers
+        # Create HTTP extension headers for CIM-XML.
+        # Note: The two-step encoding required by DSP0200 will be performed in
+        # wbem_request().
 
-        headers = ['CIMOperation: MethodCall',
-                   'CIMMethod: %s' % methodname,
-                   get_object_header(namespace)]
+        cimxml_headers = [
+            ('CIMOperation', 'MethodCall'),
+            ('CIMMethod', methodname),
+            ('CIMObject', get_cimobject_header(namespace)),
+        ]
 
         # Create parameter list
 
@@ -1232,7 +1236,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             request_data = req_xml.toxml()
             self.last_request_len = len(request_data)
             reply_xml, self._last_server_response_time = wbem_request(
-                self.url, request_data, self.creds, headers,
+                self.url, request_data, self.creds, cimxml_headers,
                 x509=self.x509,
                 verify_callback=self.verify_callback,
                 ca_certs=self.ca_certs,
@@ -1368,21 +1372,44 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             DeprecationWarning, 2)
         return self._methodcall(methodname, localobject, Params, **params)
 
-    def _methodcall(self, methodname, localobject, Params=None, **params):
+    def _methodcall(self, methodname, objectname, Params=None, **params):
         """
         Perform an extrinsic CIM-XML method call.
+
+        Parameters:
+
+          methodname (string): CIM method name.
+
+          objectname (string or CIMInstanceName or CIMClassName):
+            Target object. Strings are interpreted as class names.
+
+          Params: CIM method input parameters, for details see InvokeMethod().
+
+          **params: CIM method input parameters, for details see InvokeMethod().
         """
 
-        # METHODCALL only takes a LOCALCLASSPATH or LOCALINSTANCEPATH
-        if hasattr(localobject, 'host') and localobject.host is not None:
-            localobject = localobject.copy()
+        if isinstance(objectname, (CIMInstanceName, CIMClassName)):
+            localobject = objectname.copy()
+            if localobject.namespace is None:
+                localobject.namespace = self.default_namespace
             localobject.host = None
+        elif isinstance(objectname, six.string_types):
+            # a string is always interpreted as a class name
+            localobject = CIMClassName(objectname,
+                                       namespace=self.default_namespace)
+        else:
+            raise TypeError("Invalid type for ObjectName: %s" %
+                            type(objectname))
 
-        # Create HTTP headers
+        # Create HTTP extension headers for CIM-XML.
+        # Note: The two-step encoding required by DSP0200 will be performed in
+        # wbem_request().
 
-        headers = ['CIMOperation: MethodCall',
-                   'CIMMethod: %s' % methodname,
-                   get_object_header(localobject)]
+        cimxml_headers = [
+            ('CIMOperation', 'MethodCall'),
+            ('CIMMethod', methodname),
+            ('CIMObject', get_cimobject_header(localobject)),
+        ]
 
         # Create parameter list
 
@@ -1476,7 +1503,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             request_data = req_xml.toxml()
             self.last_request_len = len(request_data)
             reply_xml, self._last_server_response_time = wbem_request(
-                self.url, request_data, self.creds, headers,
+                self.url, request_data, self.creds, cimxml_headers,
                 x509=self.x509,
                 verify_callback=self.verify_callback,
                 ca_certs=self.ca_certs,
@@ -7547,19 +7574,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         try:
 
             stats = self.statistics.start_timer('InvokeMethod')
-            # Convert string to CIMClassName
-
-            obj = ObjectName
-
-            if isinstance(obj, six.string_types):
-                obj = CIMClassName(obj, namespace=self.default_namespace)
-
-            if isinstance(obj, CIMInstanceName) and obj.namespace is None:
-                obj = ObjectName.copy()
-                obj.namespace = self.default_namespace
 
             # Make the method call
-            result = self._methodcall(MethodName, obj, Params, **params)
+            result = self._methodcall(MethodName, ObjectName, Params, **params)
 
             # Convert optional RETURNVALUE into a Python object
 
