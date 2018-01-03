@@ -5593,6 +5593,359 @@ class CIMQualifierToXML(ValidationTestCase):
                       root_elem_CIMQualifier)
 
 
+class Test_CIMQualifier_tomof(object):
+    """
+    Test CIMQualifier.tomof().
+    """
+
+    testcases = [
+        # Testcases for CIMQualifier.tomof().
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * obj: Object to be tested.
+        # * indent: Number of spaces to indent the generated MOF lines.
+        # * exp_result: Expected MOF string, if expected to succeed.
+        #     Exception type, if expected to fail.
+        # * exp_warn_type: Expected warning type.
+        #     None, if no warning expected.
+        # * condition: Condition for testcase to run.
+        (
+            "all components",
+            CIMQualifier(
+                name='Q1',
+                value=["abc"],
+                type='string',
+                propagated=True,
+                overridable=True,
+                tosubclass=True,
+                toinstance=True,
+                translatable=True,
+            ),
+            2,
+            u"""Q1 { "abc" }""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 { "abc"}""",
+            None, True
+        ),
+        (
+            "string type, NULL value",
+            CIMQualifier(
+                name='Q1',
+                value=None,
+                type='string',
+            ),
+            2,
+            u"""Q1 ( NULL )""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 (None)""",
+            None, True
+        ),
+        (
+            "string type, value with escape sequences dq,sq,bs",
+            CIMQualifier(
+                name='Q1',
+                value="dq=\",sq=\',bs=\\",
+                type='string',
+            ),
+            2,
+            u"""Q1 ( "dq=\\",sq=\\',bs=\\\\" )""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 ("dq=\\",sq=\\',bs=\\\\")""",
+            None, True
+        ),
+        (
+            "string type, value with escape sequences bt,tb,nl",
+            CIMQualifier(
+                name='Q1',
+                value="bt=\b,tb=\t,nl=\n",
+                type='string',
+            ),
+            2,
+            u"""Q1 ( "bt=\\b,tb=\\t,nl=\\n" )""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 ("bt=\\b,tb=\\t,nl=\\n")""",
+            None, True
+        ),
+        (
+            "string type, value with escape sequences vt,cr",
+            CIMQualifier(
+                name='Q1',
+                value="vt=\f,cr=\r",
+                type='string',
+            ),
+            2,
+            u"""Q1 ( "vt=\\f,cr=\\r" )""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 ("vt=\\f,cr=\\r")""",
+            None, True
+        ),
+        (
+            "string array with a value of two items",
+            CIMQualifier(
+                name='Q1',
+                value=["abc", "def"],
+                type='string',
+            ),
+            2,
+            u"""Q1 { "abc", "def" }""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 { abc, def}""",
+            None, CHECK_0_12_0
+        ),
+        (
+            "string array with a value of two items with one being None",
+            CIMQualifier(
+                name='Q1',
+                value=["abc", None],
+                type='string',
+            ),
+            2,
+            u"""Q1 { "abc", NULL }""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 { abc, None}""",
+            None, CHECK_0_12_0
+        ),
+        (
+            "string type with multi line value",
+            CIMQualifier(
+                name='Q1',
+                value=('abc def ' * 10 + 'z'),
+                type='string',
+            ),
+            12,
+            u"""Q1 (
+            "abc def abc def abc def abc def abc def abc def abc def abc def "
+            "abc def abc def z" )""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 (
+            "abc def abc def abc def abc def abc def abc def abc def abc def "
+            "abc def abc def z")""",
+            None, True
+        ),
+        (
+            "string array type with multi line value with short items",
+            CIMQualifier(
+                name='Q1',
+                value=['abcdef%02d' % i for i in range(0, 10)],
+                type='string',
+            ),
+            12,
+            u"""Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04",
+            "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09" }""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04",
+            "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09"}""",
+            None, True
+        ),
+        (
+            "string array type with with long items",
+            CIMQualifier(
+                name='Q1',
+                value=['abc def ' * 10 + 'z%02d' % i for i in range(0, 2)],
+                type='string',
+            ),
+            12,
+            u"""Q1 {
+            "abc def abc def abc def abc def abc def abc def abc def abc def "
+            "abc def abc def z00",
+            "abc def abc def abc def abc def abc def abc def abc def abc def "
+            "abc def abc def z01" }""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 {
+            "abc def abc def abc def abc def abc def abc def abc def abc def "
+            "abc def abc def z00",
+            "abc def abc def abc def abc def abc def abc def abc def abc def "
+            "abc def abc def z01"}""",
+            None, True
+        ),
+        (
+            "char16 type, value nl",
+            CIMQualifier(
+                name='Q1',
+                value="\n",
+                type='char16',
+            ),
+            2,
+            u"""Q1 ( '\\n' ) """,
+            None, False
+            # TODO 01/18 AM Enable test case once char16 produces single quotes
+        ),
+        (
+            "boolean type, value False",
+            CIMQualifier(
+                name='Q1',
+                value=False,
+                type='boolean',
+            ),
+            2,
+            u"""Q1 ( false )""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 (False)""",
+            None, True
+        ),
+        (
+            "uint32 type, value 42",
+            CIMQualifier(
+                name='Q1',
+                value=Uint32(42),
+                type='uint32',
+            ),
+            2,
+            u"""Q1 ( 42 )""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 (42)""",
+            None, True
+        ),
+        (
+            "real32 type, value 42.1",
+            CIMQualifier(
+                name='Q1',
+                value=Real32(42.1),
+                type='real32',
+            ),
+            2,
+            u"""Q1 ( 42.1 )""",
+            None, CHECK_0_12_0  # Unpredictable string before 0.12
+        ),
+        (
+            "datetime type, with a value",
+            CIMQualifier(
+                name='Q1',
+                value=CIMDateTime('20140924193040.654321+120'),
+                type='datetime',
+            ),
+            2,
+            u"""Q1 ( "20140924193040.654321+120" )""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 (20140924193040.654321+120)""",
+            None, True
+        ),
+        (
+            "flavors ToSubclass EnableOverride",
+            CIMQualifier(
+                name='Q1',
+                value='',
+                type='string',
+                overridable=True,
+                tosubclass=True,
+            ),
+            2,
+            u"""Q1 ( "" )""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 ("")""",
+            None, True
+        ),
+        (
+            "flavor ToSubclass DisableOverride",
+            CIMQualifier(
+                name='Q1',
+                value='',
+                type='string',
+                overridable=False,
+                tosubclass=True,
+            ),
+            2,
+            u"""Q1 ( "" )""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 ("")""",
+            None, True
+        ),
+        (
+            "flavor Restricted",
+            CIMQualifier(
+                name='Q1',
+                value='',
+                type='string',
+                tosubclass=False,
+            ),
+            2,
+            u"""Q1 ( "" )""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 ("")""",
+            None, True
+        ),
+        (
+            "flavor Translatable",
+            CIMQualifier(
+                name='Q1',
+                value='',
+                type='string',
+                translatable=True,
+            ),
+            2,
+            u"""Q1 ( "" )""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 ("")""",
+            None, True
+        ),
+        (
+            "flavor ToInstance (not in DSP0004)",
+            CIMQualifier(
+                name='Q1',
+                value='',
+                type='string',
+                toinstance=True,
+            ),
+            2,
+            u"""Q1 ( "" )""" \
+            if CHECK_0_12_0 else \
+            u"""Q1 ("")""",
+            None, True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, obj, indent, exp_result, exp_warn_type, condition",
+        testcases)
+    def test_CIMQualifier_tomof(
+            self, desc, obj, indent, exp_result, exp_warn_type, condition):
+        """All test cases for CIMQualifier.tomof()."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        if isinstance(exp_result, type) and issubclass(exp_result, Exception):
+            # We expect an exception
+            exp_exc_type = exp_result
+            exp_mof = None
+        else:
+            # We expect the code to return
+            exp_exc_type = None
+            exp_mof = exp_result
+
+        if exp_warn_type:
+            with pytest.warns(exp_warn_type) as rec_warnings:
+                if exp_exc_type:
+                    with pytest.raises(exp_exc_type):
+
+                        # The code to be tested
+                        mof = obj.tomof(indent)
+
+                else:
+
+                    # The code to be tested
+                    mof = obj.tomof(indent)
+
+            assert len(rec_warnings) == 1
+
+        else:
+            if exp_exc_type:
+                with pytest.raises(exp_exc_type):
+
+                    # The code to be tested
+                    mof = obj.tomof(indent)
+
+            else:
+
+                # The code to be tested
+                mof = obj.tomof(indent)
+
+        if exp_mof:
+
+            assert isinstance(mof, six.text_type)
+            assert mof == exp_mof
+
+
 class Test_CIMClassName_init(object):
     """
     Test CIMClassName.__init__().
@@ -6969,6 +7322,126 @@ class CIMClassToXML(ValidationTestCase):
                       root_elem_CIMClass)
 
 
+class Test_CIMClass_tomof(object):
+    """
+    Test CIMClass.tomof().
+    """
+
+    testcases = [
+        # Testcases for CIMClass.tomof().
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * obj: Object to be tested.
+        # * exp_result: Expected MOF string, if expected to succeed.
+        #     Exception type, if expected to fail.
+        # * exp_warn_type: Expected warning type.
+        #     None, if no warning expected.
+        # * condition: Condition for testcase to run.
+        (
+            "all components, normal case",
+            CIMClass(
+                classname=u'C1',
+                superclass=u'C2',
+                properties=NocaseDict(
+                    p2=CIMProperty(
+                        'p2', value=None, type='string',
+                        qualifiers=NocaseDict(
+                            q2=CIMQualifier('q2', value="qv2", type='string'),
+                        ),
+                    ),
+                ),
+                methods=NocaseDict(
+                    m3=CIMMethod(
+                        'm3', return_type='uint32',
+                        qualifiers=NocaseDict(
+                            q3=CIMQualifier('q3', value="qv3", type='string'),
+                        ),
+                    ),
+                ),
+                qualifiers=NocaseDict(
+                    q1=CIMQualifier('q1', value="qv1", type='string'),
+                ),
+                path=None
+            ),
+            """\
+   [q1 ( "qv1" )]
+class C1 : C2 {
+
+      [q2 ( "qv2" )]
+   string p2;
+
+      [q3 ( "qv3" )]
+   uint32 m3();
+};
+""" \
+            if CHECK_0_12_0 else \
+            """\
+    [q1 ("qv1")]
+class C1 : C2 {
+
+        [q2 ("qv2")]
+    string p2;
+
+        [q3 ("qv3")]
+    uint32 m3();
+};
+""",
+            None, True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, obj, exp_result, exp_warn_type, condition",
+        testcases)
+    def test_CIMClass_tomof(
+            self, desc, obj, exp_result, exp_warn_type, condition):
+        """All test cases for CIMClass.tomof()."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        if isinstance(exp_result, type) and issubclass(exp_result, Exception):
+            # We expect an exception
+            exp_exc_type = exp_result
+            exp_mof = None
+        else:
+            # We expect the code to return
+            exp_exc_type = None
+            exp_mof = exp_result
+
+        if exp_warn_type:
+            with pytest.warns(exp_warn_type) as rec_warnings:
+                if exp_exc_type:
+                    with pytest.raises(exp_exc_type):
+
+                        # The code to be tested
+                        mof = obj.tomof()
+
+                else:
+
+                    # The code to be tested
+                    mof = obj.tomof()
+
+            assert len(rec_warnings) == 1
+
+        else:
+            if exp_exc_type:
+                with pytest.raises(exp_exc_type):
+
+                    # The code to be tested
+                    mof = obj.tomof()
+
+            else:
+
+                # The code to be tested
+                mof = obj.tomof()
+
+        if exp_mof:
+
+            assert isinstance(mof, six.text_type)
+            assert mof == exp_mof
+
+
 class CIMClassToMOF(unittest.TestCase, RegexpMixin):
 
     def test_all(self):
@@ -7026,7 +7499,7 @@ class CIMClassPropertyWithValueToMOF(unittest.TestCase, RegexpMixin):
         self.assertRegexpContains(imof, r"\n\};")
 
 
-class CIMClassToMofArrayProperty(unittest.TestCase, RegexpMixin):
+class CIMClassArrayPropertyToMOF(unittest.TestCase, RegexpMixin):
     def test_ArrayDef32(self):
 
         cl = CIMClass(
@@ -7230,7 +7703,8 @@ class CIMClassWQualToMOF(unittest.TestCase):
                       "Generated MOF: \n%s" % (cl, clmof))
 
         # search for EmbeddedInstance ("My_Embedded")]
-        s = re.search(r"\s*EmbeddedInstance\s+\(\"My_Embedded\"\)\]", clmof)
+        s = re.search(r"\s*EmbeddedInstance\s+\(\s?\"My_Embedded\"\s?\)\]",
+                      clmof)
 
         if s is None:
             self.fail("Invalid MOF generated. EmbeddedInstance.\n"
@@ -7246,7 +7720,7 @@ class CIMClassWQualToMOF(unittest.TestCase):
                       "Generated MOF: \n%s" % (cl, clmof))
 
 
-class CIMClassWoQualifiersToMof(unittest.TestCase, RegexpMixin):
+class CIMClassWoQualifiersToMOF(unittest.TestCase, RegexpMixin):
     """Generate class without qualifiers and convert to mof.
     """
 
@@ -8547,6 +9021,290 @@ class CIMParameterToXML(ValidationTestCase):
                       root_elem_CIMParameter_refarray)
 
 
+class Test_CIMParameter_tomof(object):
+    """
+    Test CIMParameter.tomof().
+    """
+
+    testcases = [
+        # Testcases for CIMParameter.tomof().
+        # Note: The deprecated 'value' attribute of CIMParameter is not used in
+        #   its tomof() method, nor does it influence other attributes, hence
+        #   it does not appear in these testcases.
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * obj: Object to be tested.
+        # * indent: Number of spaces to indent the generated MOF lines.
+        # * exp_result: Expected MOF string, if expected to succeed.
+        #     Exception type, if expected to fail.
+        # * exp_warn_type: Expected warning type.
+        #     None, if no warning expected.
+        # * condition: Condition for testcase to run.
+        (
+            "all components",
+            CIMParameter(
+                name='P1',
+                type='string',
+                reference_class=None,
+                is_array=True,
+                array_size=5,
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value='abc', type='string'),
+                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ),
+            ),
+            8,
+            u"""\
+           [Q1 ( "abc" ),
+            Q2 ( 42 )]
+        string P1[5]""" \
+            if CHECK_0_12_0 else \
+            u"""\
+          [Q1 ("abc"),
+          Q2 (42)]
+        string P1[5]""",
+            None, True
+        ),
+        (
+            "no qualifiers",
+            CIMParameter(
+                name='P1',
+                type='string',
+            ),
+            8,
+            u"""\
+        string P1""",
+            None, True
+        ),
+        (
+            "one scalar single line qualifier",
+            CIMParameter(
+                name='P1',
+                type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value='abc', type='string'),
+                ),
+            ),
+            8,
+            u"""\
+           [Q1 ( "abc" )]
+        string P1""" \
+            if CHECK_0_12_0 else \
+            u"""\
+          [Q1 ("abc")]
+        string P1""",
+            None, True
+        ),
+        (
+            "one scalar multi line qualifier",
+            CIMParameter(
+                name='P1',
+                type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
+                                    type='string'),
+                ),
+            ),
+            8,
+            u"""\
+           [Q1 (
+               "abc def abc def abc def abc def abc def abc def abc def abc "
+               "def abc def abc def z" )]
+        string P1""" \
+            if CHECK_0_12_0 else \
+            u"""\
+          [Q1 (
+            "abc def abc def abc def abc def abc def abc def abc def abc def "
+            "abc def abc def z")]
+        string P1""",
+            None, True
+        ),
+        (
+            "two scalar single line qualifiers",
+            CIMParameter(
+                name='P1',
+                type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value='abc', type='string'),
+                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ),
+            ),
+            8,
+            u"""\
+           [Q1 ( "abc" ),
+            Q2 ( 42 )]
+        string P1""" \
+            if CHECK_0_12_0 else \
+            u"""\
+          [Q1 ("abc"),
+          Q2 (42)]
+        string P1""",
+            None, True
+        ),
+        (
+            "two scalar multi line qualifiers",
+            CIMParameter(
+                name='P1',
+                type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
+                                    type='string'),
+                    Q2=CIMQualifier('Q2', value=('rst uvw ' * 10 + 'z'),
+                                    type='string'),
+                ),
+            ),
+            8,
+            u"""\
+           [Q1 (
+               "abc def abc def abc def abc def abc def abc def abc def abc "
+               "def abc def abc def z" ),
+            Q2 (
+               "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst "
+               "uvw rst uvw rst uvw z" )]
+        string P1""" \
+            if CHECK_0_12_0 else \
+            u"""\
+          [Q1 (
+            "abc def abc def abc def abc def abc def abc def abc def abc def "
+            "abc def abc def z"),
+          Q2 (
+            "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw "
+            "rst uvw rst uvw z")]
+        string P1""",
+            None, True
+        ),
+        (
+            "one array single line qualifier",
+            CIMParameter(
+                name='P1',
+                type='string',
+                is_array=True,
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value=['abc', 'def'], type='string'),
+                ),
+            ),
+            8,
+            u"""\
+           [Q1 { "abc", "def" }]
+        string P1[]""" \
+            if CHECK_0_12_0 else \
+            u"""\
+          [Q1 { "abc", "def"}]
+        string P1[]""",
+            None, True
+        ),
+        (
+            "one array multi line qualifier with short items",
+            CIMParameter(
+                name='P1',
+                type='string',
+                is_array=True,
+                qualifiers=dict(
+                    Q1=CIMQualifier(
+                        'Q1',
+                        value=['abcdef%02d' % i for i in range(0, 10)],
+                        type='string'),
+                ),
+            ),
+            8,
+            u"""\
+           [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
+               "abcdef04", "abcdef05", "abcdef06", "abcdef07",
+               "abcdef08", "abcdef09" }]
+        string P1[]""" \
+            if CHECK_0_12_0 else \
+            u"""\
+          [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04",
+            "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09"}]
+        string P1[]""",
+            None, True
+        ),
+        (
+            "one array multi line qualifier with long items",
+            CIMParameter(
+                name='P1',
+                type='string',
+                is_array=True,
+                qualifiers=dict(
+                    Q1=CIMQualifier(
+                        'Q1',
+                        value=['abc def ' * 10 + 'z%02d' % i
+                               for i in range(0, 2)],
+                        type='string'),
+                ),
+            ),
+            8,
+            u"""\
+           [Q1 {
+               "abc def abc def abc def abc def abc def abc def abc def abc "
+               "def abc def abc def z00",
+               "abc def abc def abc def abc def abc def abc def abc def abc "
+               "def abc def abc def z01" }]
+        string P1[]""" \
+            if CHECK_0_12_0 else \
+            u"""\
+          [Q1 {
+            "abc def abc def abc def abc def abc def abc def abc def abc def "
+            "abc def abc def z00",
+            "abc def abc def abc def abc def abc def abc def abc def abc def "
+            "abc def abc def z01"}]
+        string P1[]""",
+            None, True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, obj, indent, exp_result, exp_warn_type, condition",
+        testcases)
+    def test_CIMParameter_tomof(
+            self, desc, obj, indent, exp_result, exp_warn_type, condition):
+        """All test cases for CIMParameter.tomof()."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        if isinstance(exp_result, type) and issubclass(exp_result, Exception):
+            # We expect an exception
+            exp_exc_type = exp_result
+            exp_mof = None
+        else:
+            # We expect the code to return
+            exp_exc_type = None
+            exp_mof = exp_result
+
+        if exp_warn_type:
+            with pytest.warns(exp_warn_type) as rec_warnings:
+                if exp_exc_type:
+                    with pytest.raises(exp_exc_type):
+
+                        # The code to be tested
+                        mof = obj.tomof(indent)
+
+                else:
+
+                    # The code to be tested
+                    mof = obj.tomof(indent)
+
+            assert len(rec_warnings) == 1
+
+        else:
+            if exp_exc_type:
+                with pytest.raises(exp_exc_type):
+
+                    # The code to be tested
+                    mof = obj.tomof(indent)
+
+            else:
+
+                # The code to be tested
+                mof = obj.tomof(indent)
+
+        if exp_mof:
+
+            assert isinstance(mof, six.text_type)
+            assert mof == exp_mof
+
+
 class Test_CIMQualifierDeclaration_init(object):
     """
     Test CIMQualifierDeclaration.__init__().
@@ -9328,6 +10086,446 @@ class CIMQualifierDeclarationToXML(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
+class Test_CIMQualifierDeclaration_tomof(object):
+    """
+    Test CIMQualifierDeclaration.tomof().
+    """
+
+    testcases = [
+        # Testcases for CIMQualifierDeclaration.tomof().
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * obj: Object to be tested.
+        # * exp_result: Expected MOF string, if expected to succeed.
+        #     Exception type, if expected to fail.
+        # * exp_warn_type: Expected warning type.
+        #     None, if no warning expected.
+        # * condition: Condition for testcase to run.
+        (
+            "all components",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                is_array=True,
+                array_size=5,
+                value=["abc"],
+                scopes=dict(PROPERTY=True, METHOD=True, PARAMETER=True),
+                overridable=True,
+                tosubclass=True,
+                toinstance=True,
+                translatable=True,
+            ),
+            u"""\
+Qualifier Q1 : string[5] = { "abc" },
+    Scope(property, method, parameter),
+    Flavor(EnableOverride, ToSubclass, Translatable);
+""",
+            None, CHECK_0_12_0  # unpredictable order of scopes before 0.12
+        ),
+        (
+            "string type, no default value",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                value=None,
+            ),
+            u"""\
+Qualifier Q1 : string,
+    Scope();
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string,
+    Scope();""",
+            None, True
+        ),
+        (
+            "string type, default value with escape sequences dq,sq,bs",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                value="dq=\",sq=\',bs=\\",
+            ),
+            u"""\
+Qualifier Q1 : string = "dq=\\",sq=\\',bs=\\\\",
+    Scope();
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string = dq=\",sq=\',bs=\\,
+    Scope();""",
+            None, True
+        ),
+        (
+            "string type, default value with escape sequences bt,tb,nl,vt,cr",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                value="bt=\b,tb=\t,nl=\n,vt=\f,cr=\r",
+            ),
+            u"""\
+Qualifier Q1 : string = "bt=\\b,tb=\\t,nl=\\n,vt=\\f,cr=\\r",
+    Scope();
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string = bt=\b,tb=\t,nl=\n,vt=\f,cr=\r,
+    Scope();""",
+            None, True
+        ),
+        (
+            "char16 type, default value nl",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='char16',
+                value="\n",
+            ),
+            u"""\
+Qualifier Q1 : char16 = '\\n',
+    Scope();
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : char16 = '\\n',
+    Scope();""",
+            None, False  # TODO 01/18 AM Enable once char16 uses single quotes
+        ),
+        (
+            "boolean type, default value",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='boolean',
+                value=False,
+            ),
+            u"""\
+Qualifier Q1 : boolean = false,
+    Scope();
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : boolean = false,
+    Scope();""",
+            None, True
+        ),
+        (
+            "uint32 type, default value",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='uint32',
+                value=42,
+            ),
+            u"""\
+Qualifier Q1 : uint32 = 42,
+    Scope();
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : uint32 = 42,
+    Scope();""",
+            None, True
+        ),
+        (
+            "real32 type, default value",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='real32',
+                value=Real32(42.1),
+            ),
+            u"""\
+Qualifier Q1 : real32 = 42.1,
+    Scope();
+""",
+            None, CHECK_0_12_0  # unpredictable value before 0.12
+        ),
+        (
+            "datetime type, default value",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='datetime',
+                value=CIMDateTime('20140924193040.654321+120'),
+            ),
+            u"""\
+Qualifier Q1 : datetime = "20140924193040.654321+120",
+    Scope();
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : datetime = 20140924193040.654321+120,
+    Scope();""",
+            None, True
+        ),
+        (
+            "string array of variable size",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                is_array=True,
+                array_size=None,
+                value=["abc", "def"],
+            ),
+            u"""\
+Qualifier Q1 : string[] = { "abc", "def" },
+    Scope();
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string[] = {abc, def},
+    Scope();""",
+            None, True
+        ),
+        (
+            "string array of fixed size",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                is_array=True,
+                array_size=5,
+                value=["abc", "def"],
+            ),
+            u"""\
+Qualifier Q1 : string[5] = { "abc", "def" },
+    Scope();
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string[5] = {abc, def},
+    Scope();""",
+            None, True
+        ),
+        (
+            "single scope",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                scopes=dict(CLASS=True),
+            ),
+            u"""\
+Qualifier Q1 : string,
+    Scope(class);
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string,
+    Scope(class);""",
+            None, True
+        ),
+        (
+            "all scopes as a list",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                scopes=dict(CLASS=True, ASSOCIATION=True, INDICATION=True,
+                            PROPERTY=True, REFERENCE=True, METHOD=True,
+                            PARAMETER=True),
+            ),
+            # pylint: disable=line-too-long
+            u"""\
+Qualifier Q1 : string,
+    Scope(class, association, indication, property, reference, method, parameter);
+""",  # noqa: E501
+            None, CHECK_0_12_0  # unpredictable order of scopes before 0.12
+        ),
+        (
+            "all scopes as any",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                scopes=dict(ANY=True),
+            ),
+            u"""\
+Qualifier Q1 : string,
+    Scope(any);
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string,
+    Scope(any);""",
+            None, True
+        ),
+        (
+            "flavor EnableOverride",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                overridable=True,
+            ),
+            u"""\
+Qualifier Q1 : string,
+    Scope(),
+    Flavor(EnableOverride);
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string,
+    Scope(),
+    Flavor(EnableOverride, Restricted);""",
+            None, True
+        ),
+        (
+            "flavor ToSubclass EnableOverride",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                overridable=True,
+                tosubclass=True,
+            ),
+            u"""\
+Qualifier Q1 : string,
+    Scope(),
+    Flavor(EnableOverride, ToSubclass);
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string,
+    Scope(),
+    Flavor(EnableOverride, ToSubclass);""",
+            None, True
+        ),
+        (
+            "flavor DisableOverride",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                overridable=False,
+            ),
+            u"""\
+Qualifier Q1 : string,
+    Scope(),
+    Flavor(DisableOverride);
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string,
+    Scope();""",
+            None, True
+        ),
+        (
+            "flavor Restricted",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                tosubclass=False,
+            ),
+            u"""\
+Qualifier Q1 : string,
+    Scope(),
+    Flavor(Restricted);
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string,
+    Scope();""",
+            None, True
+        ),
+        (
+            "flavor ToSubclass",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                tosubclass=True,
+            ),
+            u"""\
+Qualifier Q1 : string,
+    Scope(),
+    Flavor(ToSubclass);
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string,
+    Scope(),
+    Flavor(DisableOverride, ToSubclass);""",
+            None, True
+        ),
+        (
+            "flavor Translatable",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                translatable=True,
+            ),
+            u"""\
+Qualifier Q1 : string,
+    Scope(),
+    Flavor(Translatable);
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string,
+    Scope(),
+    Flavor(DisableOverride, Restricted, Translatable);""",
+            None, True
+        ),
+        (
+            "flavor ToInstance (not generated because not in DSP0004)",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                toinstance=True,
+            ),
+            u"""\
+Qualifier Q1 : string,
+    Scope();
+""" \
+            if CHECK_0_12_0 else \
+            u"""\
+Qualifier Q1 : string,
+    Scope();""",
+            None, True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, obj, exp_result, exp_warn_type, condition",
+        testcases)
+    def test_CIMQualifierDeclaration_tomof(
+            self, desc, obj, exp_result, exp_warn_type, condition):
+        """All test cases for CIMQualifierDeclaration.tomof()."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        if isinstance(exp_result, type) and issubclass(exp_result, Exception):
+            # We expect an exception
+            exp_exc_type = exp_result
+            exp_mof = None
+        else:
+            # We expect the code to return
+            exp_exc_type = None
+            exp_mof = exp_result
+
+        if exp_warn_type:
+            with pytest.warns(exp_warn_type) as rec_warnings:
+                if exp_exc_type:
+                    with pytest.raises(exp_exc_type):
+
+                        # The code to be tested
+                        mof = obj.tomof()
+
+                else:
+
+                    # The code to be tested
+                    mof = obj.tomof()
+
+            assert len(rec_warnings) == 1
+
+        else:
+            if exp_exc_type:
+                with pytest.raises(exp_exc_type):
+
+                    # The code to be tested
+                    mof = obj.tomof()
+
+            else:
+
+                # The code to be tested
+                mof = obj.tomof()
+
+        if exp_mof:
+
+            assert isinstance(mof, six.text_type)
+            assert mof == exp_mof
+
+
 class Test_tocimxml(object):
 
     @unimplemented
@@ -9678,7 +10876,7 @@ class MofStr(unittest.TestCase):
         Test function for single invocation of mofstr()
         '''
 
-        ret_value = cim_obj.mofstr(in_value)
+        ret_value = cim_obj.mofstr(in_value, indent=4, maxline=79)
 
         self.assertEqual(ret_value, exp_value)
 

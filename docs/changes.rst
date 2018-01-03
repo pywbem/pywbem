@@ -123,6 +123,16 @@ Incompatible changes
 * The global `tocimxml()` function now raises `TypeError` if it cannot
   convert the input value. Previously, it raised `ValueError`.
 
+* The `CIMQualifierDeclaration.tomof()` method now generates the flavor
+  keywords only if the `tosubclass` and `overridable` attributes are set
+  to `True` or `False`. Previously, default keywords were generated when
+  these attributes were set to `None` (and these defaults were the opposite of
+  the defaults defined in DSP0004 and DSP0201). The new behavior is consistent
+  with the definition that `None` for these attributes means the information is
+  not available, and it is also consistent with the `tocimxml()` method.
+  If you used this method and relied on the defaults being generated, you will
+  now have to set these attributes explicitly.
+
 Deprecations
 ^^^^^^^^^^^^
 
@@ -178,6 +188,9 @@ Enhancements
 * Added the catching of a httplib base exception to make sure all httplib
   exceptions are surfaced by WBEMConnection methods as a
   pywbem.ConnectionError (issue #916).
+
+* In the `tomof()` methods of the CIM object classes, changed the formatting
+  of the generated MOF to be more consistent with the CIM Schema MOF.
 
 * Docs: Editorial improvements in the documentation (links, typos, formatting).
 
