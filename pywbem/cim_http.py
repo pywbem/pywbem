@@ -438,6 +438,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
         :exc:`~pywbem.AuthError`
         :exc:`~pywbem.ConnectionError`
         :exc:`~pywbem.TimeoutError`
+        :exc:`~pywbem.HTTPError`
     """
 
     class HTTPBaseConnection:        # pylint: disable=no-init
@@ -464,6 +465,8 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 if self.auto_open:  # pylint: disable=no-member
                     self.connect()  # pylint: disable=no-member
                 else:
+                    # We raise the same httplib exception the original function
+                    # raises. Our caller will handle it.
                     raise httplib.NotConnected()
             if self.debuglevel > 0:  # pylint: disable=no-member
                 print("send: %r" % strng)
@@ -662,9 +665,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
         cert_file = x509.get('cert_file')
         key_file = x509.get('key_file')
 
-    num_tries = 0
     local_auth_header = None
-    try_limit = 5
 
     # Make sure the data parameter is converted to a UTF-8 encoded byte string.
     # This is important because according to RFC2616, the Content-Length HTTP
@@ -733,8 +734,9 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
 
     with HTTPTimeout(timeout, client):
 
-        while num_tries < try_limit:
-            num_tries = num_tries + 1
+        try_limit = 5  # Number of tries with authentication challenges.
+
+        for num_tries in range(0, try_limit):
 
             client.putrequest(method, target)
 
@@ -790,12 +792,14 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                         if debug:
                             print("Debug: Ignoring socket error ECONNRESET "
                                   "(connection reset) returned by server.")
+                        # continue with reading response
                     elif exc.args[0] == errno.EPIPE:
                         if debug:
                             print("Debug: Ignoring socket error EPIPE "
                                   "(broken pipe) returned by server.")
+                        # continue with reading response
                     else:
-                        raise ConnectionError("Socket error: %s" % exc)
+                        raise
 
                 response = client.getresponse()
 
@@ -821,8 +825,6 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
 
                 if response.status != 200:
                     if response.status == 401:
-                        if num_tries >= try_limit:
-                            raise AuthError(response.reason)
                         if not local:
                             raise AuthError(response.reason)
                         auth_chal = response.getheader('WWW-Authenticate', '')
@@ -839,6 +841,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                 local_auth_header = ('Authorization',
                                                      'OWLocal uid="%d"' % uid)
                                 continue
+                                continue  # with next retry
                             else:
                                 try:
                                     nonce_idx = auth_chal.index('nonce=')
@@ -861,7 +864,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                         'Authorization',
                                         'OWLocal nonce="%s", cookie="%s"' %
                                         (nonce, cookie))
-                                    continue
+                                    continue  # with next retry
                                 # pylint: disable=broad-except
                                 except Exception as exc:
                                     if debug:
@@ -869,7 +872,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                               "in OpenWBEM auth challenge "
                                               "processing." % exc)
                                     local_auth_header = None
-                                    continue
+                                    continue  # with next retry
                         elif 'Local' in auth_chal:
                             try:
                                 beg = auth_chal.index('"') + 1
@@ -883,7 +886,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                         'PegasusAuthorization',
                                         'Local "%s:%s:%s"' %
                                         (locallogin, _file, cookie))
-                                    continue
+                                    continue  # with next retry
                             except ValueError:
                                 pass
                         raise AuthError(response.reason)
@@ -927,9 +930,13 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 raise ConnectionError("HTTP incomplete read: %s" % exc)
             except httplib.NotConnected as exc:
                 raise ConnectionError("HTTP not connected: %s" % exc)
+            except httplib.HTTPException as exc:
+                # Base class for all httplib exceptions
+                raise ConnectionError("HTTP error: %s" % exc)
             except SocketErrors as exc:
                 raise ConnectionError("Socket error: %s" % exc)
 
+            # Operation was successful
             break
 
     return body, svr_resp_time

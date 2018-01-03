@@ -156,8 +156,7 @@ from .cim_http import get_cimobject_header, wbem_request
 from .tupleparse import parse_cim
 from .tupletree import xml_to_tupletree_sax
 from .cim_http import parse_url
-from .exceptions import Error, ParseError, AuthError, ConnectionError, \
-    TimeoutError, CIMError
+from .exceptions import ParseError, CIMError
 from ._statistics import Statistics
 
 __all__ = ['WBEMConnection', 'PegasusUDSConnection', 'SFCBUDSConnection',
@@ -1232,27 +1231,22 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self.last_request_len = 0
         self.last_reply_len = 0
         self._last_server_response_time = None
-        try:
-            request_data = req_xml.toxml()
-            self.last_request_len = len(request_data)
-            reply_xml, self._last_server_response_time = wbem_request(
-                self.url, request_data, self.creds, cimxml_headers,
-                x509=self.x509,
-                verify_callback=self.verify_callback,
-                ca_certs=self.ca_certs,
-                no_verification=self.no_verification,
-                timeout=self.timeout,
-                debug=self.debug,
-                recorders=self._operation_recorders,
-                conn_id=self.conn_id)
-            self.last_reply_len = len(reply_xml)
-        except (AuthError, ConnectionError, TimeoutError, Error):
-            raise
-        # TODO 3/16 AM: Clean up exception handling. The next two lines are a
-        # workaround in order not to ignore TypeError and other exceptions
-        # that may be raised.
-        except Exception:
-            raise
+
+        request_data = req_xml.toxml()
+        self.last_request_len = len(request_data)
+
+        reply_xml, self._last_server_response_time = wbem_request(
+            self.url, request_data, self.creds, cimxml_headers,
+            x509=self.x509,
+            verify_callback=self.verify_callback,
+            ca_certs=self.ca_certs,
+            no_verification=self.no_verification,
+            timeout=self.timeout,
+            debug=self.debug,
+            recorders=self._operation_recorders,
+            conn_id=self.conn_id)
+
+        self.last_reply_len = len(reply_xml)
 
         # Set the raw response before parsing (which can fail)
         if self.debug:
@@ -1499,27 +1493,22 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self.last_request_len = 0
         self.last_reply_len = 0
         self._last_server_response_time = None
-        try:
-            request_data = req_xml.toxml()
-            self.last_request_len = len(request_data)
-            reply_xml, self._last_server_response_time = wbem_request(
-                self.url, request_data, self.creds, cimxml_headers,
-                x509=self.x509,
-                verify_callback=self.verify_callback,
-                ca_certs=self.ca_certs,
-                no_verification=self.no_verification,
-                timeout=self.timeout,
-                debug=self.debug,
-                recorders=self._operation_recorders,
-                conn_id=self.conn_id)
-            self.last_reply_len = len(reply_xml)
-        except (AuthError, ConnectionError, TimeoutError, Error):
-            raise
-        # TODO 3/16 AM: Clean up exception handling. The next two lines are a
-        # workaround in order not to ignore TypeError and other exceptions
-        # that may be raised.
-        except Exception:
-            raise
+
+        request_data = req_xml.toxml()
+        self.last_request_len = len(request_data)
+
+        reply_xml, self._last_server_response_time = wbem_request(
+            self.url, request_data, self.creds, cimxml_headers,
+            x509=self.x509,
+            verify_callback=self.verify_callback,
+            ca_certs=self.ca_certs,
+            no_verification=self.no_verification,
+            timeout=self.timeout,
+            debug=self.debug,
+            recorders=self._operation_recorders,
+            conn_id=self.conn_id)
+
+        self.last_reply_len = len(reply_xml)
 
         # Set the raw response before parsing and checking (which can fail)
         if self.debug:
