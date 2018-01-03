@@ -79,7 +79,8 @@ from . import cim_xml
 from .config import DEBUG_WARNING_ORIGIN
 from .cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
     atomic_to_cim_xml, CIMType, CIMDateTime, Uint8, Sint8, Uint16, Sint16, \
-    Uint32, Sint32, Uint64, Sint64, Real32, Real64, number_types
+    Uint32, Sint32, Uint64, Sint64, Real32, Real64, number_types, CIMInt, \
+    CIMFloat, _Longint
 
 if six.PY2:
     # pylint: disable=wrong-import-order
@@ -94,7 +95,7 @@ __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'cimvalue']
 
 # Constants for MOF formatting output
-MOF_INDENT = 4
+MOF_INDENT = 3
 MAX_MOF_LINE = 79   # use 79 because comma separator sometimes runs over
 
 # Patterns for WBEM URI parsing, consistent with DSP0207, except that for a
@@ -614,22 +615,24 @@ def _makequalifiers(qualifiers, indent):
 
       qualifiers (list): List of qualifiers to format.
 
-      indent (:term:`integer`): Indent level for this set of qualifiers.
+      indent (:term:`integer`): Indent level for this set of qualifiers. This
+        is the number of spaces to the opening square bracket of the list.
     """
     if not qualifiers:
         return ''
-    qual_list = [qualifiers[qn].tomof(indent + 2)
+    qual_list = [qualifiers[qn].tomof(indent + 1 + MOF_INDENT)
                  for qn in sorted(qualifiers.keys())]
-    qual_str = ',\n '.ljust(indent + 2).join(qual_list)
-    return '%s[%s]' % (_indent_str(indent), qual_str)
+    delim = ',\n' + _indent_str(indent + 1)
+    qual_str = delim.join(qual_list)
+    return '%s[%s]\n' % (_indent_str(indent), qual_str)
 
 
 def _indent_str(indent):
     """
-    Return a MOF indent pad string from the indent integer variable
-    that defines number of spaces to indent. Used to format MOF output
+    Return a MOF indent pad unicode string from the indent integer variable
+    that defines number of spaces to indent. Used to format MOF output.
     """
-    return ' '.ljust(indent, ' ')
+    return u''.ljust(indent, u' ')
 
 
 def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
@@ -785,6 +788,62 @@ def moftype(cim_type, refclass):
     """
 
     return (refclass + ' REF') if cim_type == 'reference' else cim_type
+
+
+def scalar_to_mof(value, type, indent=0):
+    # pylint: disable=line-too-long,redefined-builtin
+    """
+    Convert an "atomic" scalar value to a MOF string and return that string.
+
+    Parameters:
+
+      value (:term:`CIM data type`, :term:`number`, :class:`~pywbem.CIMInstance`, :class:`~pywbem.CIMClass`):
+        The "atomic" input value. May be `None`.
+
+        Must not be an array/list/tuple. Must not be a :ref:`CIM object` other
+        than those listed.
+
+      type (string): CIM data type name.
+
+      indent (:term:`integer`): Number of spaces to indent any spilled over
+        strings (i.e. not used for the first line of a string, and not
+        for any other types).
+
+    Returns:
+
+        A :term:`unicode string` in MOF format representing the input value.
+        `"NULL"`, if the input value is `None`.
+    """  # noqa: E501
+    if value is None:
+        return u'NULL'
+    elif type == 'string':
+        if isinstance(value, six.string_types):
+            return mofstr(value, indent=indent)
+        elif isinstance(value, CIMInstance):
+            # embedded instance
+            return value.tomof()
+        elif isinstance(value, CIMClass):
+            # embedded class
+            return value.tomof()
+        else:
+            raise ValueError("Value %r has invalid type %s for a CIM string "
+                             "type" % (value, type(value)))
+    elif type == 'char16':
+        return mofstr(value, indent=indent)
+        # TODO 01/18 AM Return char16 with single quotes
+    elif type == 'boolean':
+        return u'true' if value else u'false'
+    elif type == 'datetime':
+        return u'"%s"' % value
+    elif type == 'reference':
+        return u'"%s"' % value.to_wbem_uri()
+    elif isinstance(value, (CIMInt, int, _Longint)):
+        return six.text_type(value)
+    elif isinstance(value, (CIMFloat, float)):
+        return six.text_type(value)
+    else:
+        raise TypeError("Value %r has invalid type %s for conversion to a "
+                        "MOF string" % (value, type(value)))
 
 
 def _stacklevel_above_module(mod_name):
@@ -3004,8 +3063,7 @@ class CIMClass(_CIMComparisonMixin):
         indent = MOF_INDENT
 
         # Qualifiers definition or empty line
-        ret_str = '%s\n' % (_makequalifiers(self.qualifiers,
-                                            indent))
+        ret_str = _makequalifiers(self.qualifiers, indent)
 
         ret_str += 'class %s ' % self.classname
 
@@ -3724,8 +3782,7 @@ class CIMProperty(_CIMComparisonMixin):
 
             mof = '\n'
             if self.qualifiers:
-                mof += '%s\n' % ((_makequalifiers(self.qualifiers,
-                                                  (indent + MOF_INDENT))))
+                mof += _makequalifiers(self.qualifiers, indent + MOF_INDENT)
 
             mof += '%s%s %s%s' % (_indent_str(indent),
                                   moftype(self.type,
@@ -4193,8 +4250,7 @@ class CIMMethod(_CIMComparisonMixin):
         ret_str = ''
 
         if self.qualifiers:
-            ret_str += '%s\n' % (_makequalifiers(self.qualifiers,
-                                                 (indent + MOF_INDENT)))
+            ret_str += _makequalifiers(self.qualifiers, indent + MOF_INDENT)
 
         ret_str += _indent_str(indent)
 
@@ -4633,7 +4689,7 @@ class CIMParameter(_CIMComparisonMixin):
         """
         return tocimxmlstr(self, indent)
 
-    def tomof(self, indent):
+    def tomof(self, indent=0):
         """
         Return a :term:`unicode string` that is a MOF fragment with the
         parameter definition represented by the :class:`~pywbem.CIMParameter`
@@ -4643,22 +4699,23 @@ class CIMParameter(_CIMComparisonMixin):
             indent (:term:`integer`): Number of spaces to indent each parameter
         """
 
-        if self.is_array:
-            if self.array_size is not None:
-                array_str = "[%s]" % self.array_size
-            else:
-                array_str = "[]"
-        else:
-            array_str = ''
+        mof = []
 
-        rtn_str = ''
         if self.qualifiers:
-            rtn_str = '%s\n' % (_makequalifiers(self.qualifiers,
-                                                indent + 2))
-        rtn_str += '%s%s %s%s' % (_indent_str(indent),
-                                  moftype(self.type, self.reference_class),
-                                  self.name, array_str)
-        return rtn_str
+            mof.append(_makequalifiers(self.qualifiers, indent + MOF_INDENT))
+
+        mof.append(_indent_str(indent))
+        mof.append(moftype(self.type, self.reference_class))
+        mof.append(u' ')
+        mof.append(self.name)
+
+        if self.is_array:
+            mof.append(u'[')
+            if self.array_size is not None:
+                mof.append(six.text_type(self.array_size))
+            mof.append(u']')
+
+        return u''.join(mof)
 
 
 # pylint: disable=too-many-instance-attributes
@@ -5119,19 +5176,22 @@ class CIMQualifier(_CIMComparisonMixin):
         qualifier value represented by the :class:`~pywbem.CIMQualifier`
         object.
 
+        The items of array values are tried to keep on the same line. If the
+        generated line would exceed the maximum MOF line length, the value is
+        split into multiple lines, on array item boundaries, and/or within long
+        strings on word boundaries.
+
+        If a string value (of a scalar value, or of an array item) is split
+        into multiple lines, the first line of the value is put onto a line on
+        its own.
+
         Parameters:
-            indent (:term:`integer`): Number of spaces to indent the second and
-              subsequent lines of a multi-line result. The first line is not
-              indented.
+            indent (:term:`integer`): For a multi-line result, the number of
+              spaces to indent each line except the first line (on which the
+              qualifier name appears).
         """
 
-        def valstr(value):
-            """
-            Return a string that is the MOF literal representing a value.
-            """
-            if isinstance(value, six.string_types):
-                return mofstr(value, indent)
-            return str(value)
+        mof = []
 
         if isinstance(self.value, list):
             line_pos = indent + len(self.name) + 4
@@ -5139,7 +5199,7 @@ class CIMQualifier(_CIMComparisonMixin):
             for i, val in enumerate(self.value):
                 if i != 0:
                     values += ','
-                nextval = valstr(val)
+                nextval = scalar_to_mof(val, self.type, indent)
                 if (line_pos + len(nextval) + 3) > MAX_MOF_LINE:
                     sep = '\n' + _indent_str(indent)
                     line_pos = len(_indent_str(indent)) + 4
@@ -5149,16 +5209,28 @@ class CIMQualifier(_CIMComparisonMixin):
                 line_pos += (len(nextval) + 2)
                 values += sep + nextval
 
-            mof = '%s {%s%s' % (self.name, values, '}')
+            mof.append(self.name)
+            mof.append(u' {')
+            mof.append(values)
+            mof.append(u' }')
 
         else:
-            val = valstr(self.value)
-            if len(val) + indent + 4 >= MAX_MOF_LINE:
-                mof = '%s (\n%s%s)' % (self.name, _indent_str(indent),
-                                       val)
+            val = scalar_to_mof(self.value, self.type, indent)
+
+            # If more than one line, spill the first as well
+            if '\n' in val:
+                mof.append(self.name)
+                mof.append(u' (\n')
+                mof.append(_indent_str(indent))
+                mof.append(val)
+                mof.append(u' )')
             else:
-                mof = '%s (%s)' % (self.name, val)
-        return mof
+                mof.append(self.name)
+                mof.append(u' ( ')
+                mof.append(val)
+                mof.append(u' )')
+
+        return u''.join(mof)
 
 
 # pylint: disable=too-many-instance-attributes
@@ -5201,6 +5273,11 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     those which were not specified in the MOF are set to the DMTF defined
     default values.
     """
+
+    # Order of scopes when externalizing the qualifier declaration
+    ordered_scopes = ["CLASS", "ASSOCIATION", "INDICATION",
+                      "PROPERTY", "REFERENCE", "METHOD", "PARAMETER",
+                      "ANY"]
 
     # pylint: disable=too-many-arguments
     def __init__(self, name, type, value=None, is_array=False,
@@ -5453,8 +5530,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
           qualifier has that scope (i.e. can be applied to a CIM element of
           that kind).
 
-        Valid scope names are "CLASS", "ASSOCIATION", "REFERENCE",
-        "PROPERTY", "METHOD", "PARAMETER", "INDICATION", and "ANY".
+        Valid scope names are "CLASS", "ASSOCIATION", "INDICATION",
+        "PROPERTY", "REFERENCE", "METHOD", "PARAMETER", and "ANY".
 
         Will not be `None`.
 
@@ -5679,38 +5756,66 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         qualifier type represented by the
         :class:`~pywbem.CIMQualifierDeclaration` object.
         """
-        mof = 'Qualifier %s : %s' % (self.name, self.type)
+
+        mof = []
+
+        mof.append(u'Qualifier %s : %s' % (self.name, self.type))
+
         if self.is_array:
-            mof += '['
+            mof.append(u'[')
             if self.array_size is not None:
-                mof += str(self.array_size)
-            mof += ']'
+                mof.append(six.text_type(self.array_size))
+            mof.append(u']')
+
         if self.value is not None:
             if isinstance(self.value, list):
-                mof += ' = {'
-                mof += ', '.join([atomic_to_cim_xml(
-                    tocimobj(self.type, x)) for x in self.value])
-                mof += '}'
+                mof.append(u' = { ')
+                mof_values = []
+                for v in self.value:
+                    mof_values.append(scalar_to_mof(v, self.type))
+                    # TODO 01/18 AM Add support for right margin in MOF
+                mof.append(u', '.join(mof_values))
+                mof.append(u' }')
             else:
-                mof += ' = %s' % atomic_to_cim_xml(
-                    tocimobj(self.type, self.value))
+                mof.append(u' = ')
+                mof.append(scalar_to_mof(self.value, self.type))
 
-        mof += ',\n%sScope(' % _indent_str(MOF_INDENT)
-        mof += ', '.join([x.lower() for x, y in self.scopes.items() if y]) + ')'
+        mof.append(u',\n')
+        mof.append(_indent_str(MOF_INDENT + 1))
+        mof.append(u'Scope(')
+        mof_scopes = []
+        for scope in self.ordered_scopes:
+            if self.scopes.get(scope, False):
+                mof_scopes.append(scope.lower())
+        mof.append(u', '.join(mof_scopes))
+        mof.append(u')')
+
         # toinstance flavor not included here because not part of DSP0004
-        if not self.overridable and not self.tosubclass \
-                and not self.translatable:
-            mof += ';'
-            return mof
+        mof_flavors = []
 
-        mof += ',\n%sFlavor(' % _indent_str(MOF_INDENT)
-        mof += self.overridable and 'EnableOverride' or 'DisableOverride'
-        mof += ', '
-        mof += self.tosubclass and 'ToSubclass' or 'Restricted'
+        if self.overridable is True:
+            mof_flavors.append('EnableOverride')
+        elif self.overridable is False:
+            mof_flavors.append('DisableOverride')
+
+        if self.tosubclass is True:
+            mof_flavors.append('ToSubclass')
+        elif self.tosubclass is False:
+            mof_flavors.append('Restricted')
+
         if self.translatable:
-            mof += ', Translatable'
-        mof += ');'
-        return mof
+            mof_flavors.append('Translatable')
+
+        if mof_flavors:
+            mof.append(u',\n')
+            mof.append(_indent_str(MOF_INDENT + 1))
+            mof.append(u'Flavor(')
+            mof.append(u', '.join(mof_flavors))
+            mof.append(u')')
+
+        mof.append(u';\n')
+
+        return u''.join(mof)
 
 
 def tocimxml(value):
