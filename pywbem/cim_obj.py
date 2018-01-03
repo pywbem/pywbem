@@ -71,6 +71,7 @@ import inspect
 import warnings
 from copy import copy
 import traceback
+import re
 
 import six
 
@@ -95,6 +96,58 @@ __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
 # Constants for MOF formatting output
 MOF_INDENT = 4
 MAX_MOF_LINE = 79   # use 79 because comma separator sometimes runs over
+
+# Patterns for WBEM URI parsing, consistent with DSP0207, except that for a
+# local WBEM URI (no namespace type, no authority), the leading slash required
+# by DSP0207 is optional for pywbem.
+WBEM_URI_CLASSPATH_REGEXP = re.compile(
+    r'^(?:([\w\-]+):)?'  # namespace type (URI scheme)
+    r'(?://([\w.:@\[\]]*))?'  # authority
+    r'(?:/|^/?)(\w+(?:/\w+)*)?'  # namespace name (leading slash optional)
+    r':(\w*)$',  # class name
+    flags=re.UNICODE)
+WBEM_URI_INSTANCEPATH_REGEXP = re.compile(
+    r'^(?:([\w\-]+):)?'  # namespace type (URI scheme)
+    r'(?://([\w.:@\[\]]*))?'  # authority
+    r'(?:/|^/?)(\w+(?:/\w+)*)?'  # namespace name (leading slash optional)
+    r':(\w*)'  # class name
+    r'\.(.+)$',  # key bindings
+    flags=re.UNICODE)
+
+# For parsing the key bindings using a regexp, we just distinguish the
+# differently quoted forms. The exact types of the key values are determined
+# lateron:
+_KB_NOT_QUOTED = r'[^,"\'\\]+'
+_KB_SINGLE_QUOTED = r"'(?:[^'\\]|\\.)*'"
+_KB_DOUBLE_QUOTED = r'"(?:[^"\\]|\\.)*"'
+_KB_VAL = r'(?:%s|%s|%s)' % \
+    (_KB_NOT_QUOTED, _KB_SINGLE_QUOTED, _KB_DOUBLE_QUOTED)
+
+# To get all repetitions, capture a repeated group instead of repeating a
+# capturing group: https://www.regular-expressions.info/captureall.html
+WBEM_URI_KEYBINDINGS_REGEXP = re.compile(
+    r'^(\w+=%s)((?:,\w+=%s)*)$' % (_KB_VAL, _KB_VAL),
+    flags=(re.UNICODE | re.IGNORECASE))
+
+WBEM_URI_KB_FINDALL_REGEXP = re.compile(
+    r',\w+=%s' % _KB_VAL,
+    flags=(re.UNICODE | re.IGNORECASE))
+
+# Pattern for DSP0004 decimalValue
+DECIMAL_VALUE = re.compile(
+    r'^[+\-]?(?:0|[1-9][0-9]*)$',
+    flags=(re.UNICODE))
+
+# Pattern for DSP0004 realValue (extended by INF, -INF, NAN)
+REAL_VALUE = re.compile(
+    r'^(?:[+\-]?[0-9]*\.[0-9]+(?:E[+\-]?[0-9]+)?|INF|-INF|NAN)$',
+    flags=(re.UNICODE | re.IGNORECASE))
+
+# Valid namespace types (URI schemes) for WBEM URI parsing
+WBEM_URI_NAMESPACE_TYPES = [
+    'http', 'https',
+    'cimxml-wbem', 'cimxml-wbems',
+]
 
 
 class NocaseDict(object):
@@ -1383,6 +1436,138 @@ class CIMInstanceName(_CIMComparisonMixin):
         return tocimxmlstr(self, indent)
 
     @staticmethod
+    def _kbstr_to_cimval(key, val):
+        """
+        Convert a keybinding value string as found in a WBEM URI into a
+        CIM object or CIM data type, and return it.
+        """
+
+        if val[0] == '"' and val[-1] == '"':
+            # A double quoted key value. This could be any of these CIM types:
+            # * string (see stringValue in DSP00004)
+            # * datetime (see datetimeValue in DSP0207)
+            # * reference (see referenceValue in DSP0207)
+
+            # Note: The actual definition of referenceValue is missing in
+            # DSP0207, see issue #929. Pywbem implements:
+            # referenceValue = WBEM-URI-UntypedInstancePath.
+            # TODO 01/18 AM Remove note once referenceValue is def'd in DSP0207
+
+            # Note: The definition of stringValue in DSP0004 allows multiple
+            # quoted parts (as in MOF), see issue #931. Pywbem implements only
+            # a single quoted part.
+            # TODO 01/18 AM Remove note once stringValue is fixed in DSP0207
+
+            # We use slicing instead of strip() for removing the surrounding
+            # double quotes, because there could be an escaped double quote
+            # before the terminating double quote.
+            cimval = val[1:-1]
+
+            # Unescape the backslash-escaped string value
+            cimval = re.sub(r'\\(.)', r'\1', cimval)
+
+            # Try all possibilities. Note that this means that string-typed
+            # properties that happen to contain a datetime value will be
+            # converted to datetime, and string-typed properties that happen to
+            # contain a reference value will be converted to a reference.
+            # This is a general limitation of untyped WBEM URIs as defined in
+            # DSP0207 and cannot be solved by using a different parsing logic.
+            try:
+                cimval = CIMInstanceName.from_wbem_uri(cimval)
+            except ValueError:
+                try:
+                    cimval = CIMDateTime(cimval)
+                except ValueError:
+                    cimval = _ensure_unicode(cimval)
+            return cimval
+
+        if val[0] == "'" and val[-1] == "'":
+            # A single quoted key value. This must be CIM type:
+            # * char16 (see charValue in DSP00004)
+
+            # Note: The definition of charValue in DSP0004 allows for integer
+            # numbers in addition to single quoted strings, see issue #932.
+            # Pywbem implements only single quoted strings.
+            # TODO 01/18 AM Remove note once charValue is fixed in DSP0207
+
+            cimval = val[1:-1]
+            cimval = re.sub(r'\\(.)', r'\1', cimval)
+            cimval = _ensure_unicode(cimval)
+            if len(cimval) != 1:
+                raise ValueError("WBEM URI has a char16 keybinding with an "
+                                 "incorrect length: %s=%r" % (key, val))
+            return cimval
+
+        if val.lower() in ('true', 'false'):
+            # The key value must be CIM type:
+            # * boolean (see booleanValue in DSP00004)
+            cimval = val.lower() == 'true'
+            return cimval
+
+        if DECIMAL_VALUE.match(val):
+            # The key value must be one of the integer CIM types:
+            # * uintNN, sintNN (see decimalValue in DSP00004)
+
+            # For integer keybindings in an untyped WBEM URI, it is not
+            # possible to detect the exact CIM data type. Therefore, pywbem
+            # stores the value as a Python int type (or long in Python 2,
+            # if needed).
+
+            # Note that DSP0207 only allows only US-ASCII 0-9 for decimal
+            # numbers. The int() function supports all decimal Unicode
+            # digits (e.g. US-ASCII 0-9, ARABIC-INDIC digits, superscripts,
+            # or subscripts) and raises ValueError for non-decimal digits
+            # (e.g. Kharoshthi digits).
+
+            # Therefore, the decimalValue format has been checked explicitly,
+            # and an error in the int() function is not expected.
+
+            cimval = int(val)  # returns long if needed
+            return cimval
+
+        if REAL_VALUE.match(val):
+            # The key value must be one of the real CIM types:
+            # * realNN (see realValue in DSP00004)
+
+            # For real/float keybindings in an untyped WBEM URI, it is not
+            # possible to detect the exact CIM data type. Therefore, pywbem
+            # stores the value as a Python float type.
+
+            # The float() function supports a superset of input formats
+            # compared to the realValue definition in DSP0004 (for example,
+            # "1." is allowed for float() but not for realValue), plus it
+            # has the same support for decimal Unicode digits as int().
+            # Therefore, the US-ASCII 0-9 digits have been checked explicitly,
+            # and an error in the int() function is not expected.
+
+            # Therefore, the realValue format has been checked explicitly,
+            # and an error in the float() function is not expected.
+
+            # Note that the special values 'INF', '-INF', and 'NAN' are
+            # also covered by Python float().
+
+            cimval = float(val)
+            return cimval
+
+        # At this point, all CIM types have been processed, except:
+        # * datetime, without quotes (see datetimeValue in DSP0207)
+
+        # DSP0207 requires double quotes around datetime strings, but because
+        # earlier versions of pywbem supported them without double quotes,
+        # pywbem continues to support that, but issues a warning.
+
+        try:
+            cimval = CIMDateTime(val)
+        except ValueError:
+            raise ValueError("WBEM URI has invalid value format in a "
+                             "keybinding: %s=%r" % (key, val))
+
+        warnings.warn("Tolerating datetime value without surrounding double "
+                      "quotes in WBEM URI keybinding: %s=%r" % (key, val),
+                      UserWarning)
+        return cimval
+
+    @staticmethod
     def from_wbem_uri(wbem_uri):
         """
         *New in pywbem 0.12.*
@@ -1391,12 +1576,51 @@ class CIMInstanceName(_CIMComparisonMixin):
         WBEM URI string.
 
         The WBEM URI string must be a CIM instance path in untyped WBEM URI
-        format, as defined in :term:`DSP0207`.
+        format, as defined in :term:`DSP0207`, with these extensions:
+
+        * DSP0207 restricts the namespace types (URI schemes) to be one of
+          ``http``, ``https``, ``cimxml-wbem``, or ``cimxml-wbems``. Pywbem
+          tolerates any namespace type, but issues a :exc:`py:UserWarning` if
+          it is not one of the namespace types defined in DSP0207.
+
+        * DSP0207 requires a slash before the namespace name. For local WBEM
+          URIs (no namespace type, no authority), that slash is the first
+          character of the WBEM URI. For historical reasons, pywbem tolerates a
+          missing leading slash for local WBEM URIs. Note that pywbem requires
+          the slash (consistent with DSP0207) when the WBEM URI is not local.
+
+        * DSP0207 requires datetime values in keybindings to be surrounded by
+          double quotes. For historical reasons, pywbem tolerates datetime
+          values that are not surrounded by double quotes, but issues a
+          :exc:`py:UserWarning`.
+
+        * DSP0207 does not allow the special float values INF, -INF, and NaN
+          in WBEM URIs (according to realValue in DSP0004). However, the
+          CIM-XML protocol supports representation of these special values,
+          so to be on the safe side, pywbem supports these special values as
+          keybindings in WBEM URIs.
+
+        Keybindings that are references are supported, recursively.
+
+        CIM instance paths in the typed WBEM URI format defined in DSP0207
+        are not supported.
+
+        The untyped WBEM URI format defined in DSP0207 has the following
+        limitations when interpreting a WBEM URI string:
+
+        * It cannot distinguish string-typed keys with a value that is a
+          datetime value from datetime-typed keys with such a value. Pywbem
+          treats such values as datetime-typed keys.
+
+        * It cannot distinguish string-typed keys with a value that is a
+          WBEM URI from reference-typed keys with such a value. Pywbem
+          treats such values as reference-typed keys.
 
         Examples::
 
             https://jdd:test@acme.com:5989/cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
-            https://acme.com/root/cimv2:CIM_ComputerSystem.CreationClassName="ACME_CS",Name="sys1"
+            http://acme.com/root/cimv2:CIM_ComputerSystem.CreationClassName="ACME_CS",Name="sys1"
+            /:CIM_SubProfile.Main="/:CIM_RegisteredProfile.InstanceID=\"acme.1\"",Sub="/:CIM_RegisteredProfile.InstanceID=\"acme.2\""
 
         Parameters:
 
@@ -1404,73 +1628,59 @@ class CIMInstanceName(_CIMComparisonMixin):
             WBEM URI for an instance path.
 
         Returns:
-          :class:`~pywbem.CIMInstanceName`: The instance path created from
-            the specified WBEM URI.
+          :class:`~pywbem.CIMInstanceName`: The instance path created from the
+            specified WBEM URI string.
 
         Raises:
-          ValueError
+          ValueError: Invalid WBEM URI format for an instance path. This
+            includes typed WBEM URIs.
         """
 
-        # TODO doesn't handle double-quoting, as in refs to refs.  Example:
-        # r'ex_composedof.composer="ex_sampleClass.label1=9921,' +
-        #  'label2=\"SampleLabel\"",component="ex_sampleClass.label1=0121,' +
-        #  'label2=\"Component\""')
+        m = WBEM_URI_INSTANCEPATH_REGEXP.match(wbem_uri)
+        if m is None:
+            raise ValueError("Invalid format for an instance path in "
+                             "WBEM URI: %r" % wbem_uri)
 
-        nm_space = host = None
-        head, sep, tail = _partition(wbem_uri, '//')
-        if sep and head.find('"') == -1:
-            # we have a namespace type
-            head, sep, tail = _partition(tail, '/')
-            host = head
-        else:
-            tail = head
-        head, sep, tail = _partition(tail, ':')
-        if sep:
-            nm_space = head
-        else:
-            tail = head
-        head, sep, tail = _partition(tail, '.')
+        ns_type = m.group(1) or None
+        if ns_type and ns_type.lower() not in WBEM_URI_NAMESPACE_TYPES:
+            warnings.warn("Tolerating unknown namespace type in WBEM URI: %r" %
+                          wbem_uri, UserWarning)
 
-        if not sep:
-            raise ValueError("WBEM URI specifies a class path: %r" % wbem_uri)
+        host = m.group(2) or None
+        namespace = m.group(3) or None
+        classname = m.group(4) or None
+        keybindings_str = m.group(5) or None
 
-        classname = head
-        key_bindings = {}
-        while tail:
-            head, sep, tail = _partition(tail, ',')
-            if head.count('"') == 1:  # quoted string contains comma
-                tmp, sep, tail = _partition(tail, '"')
-                head = '%s,%s' % (head, tmp)
-                tail = _partition(tail, ',')[2]
-            head = head.strip()
-            key, sep, val = _partition(head, '=')
-            if sep:
-                cl_name, s, k = _partition(key, '.')
-                if s:
-                    if cl_name != classname:
-                        raise ValueError('Invalid object path: %r' % wbem_uri)
-                    key = k
-                val = val.strip()
-                if val[0] == '"' and val[-1] == '"':
-                    val = val.strip('"')
-                else:
-                    if val.lower() in ('true', 'false'):
-                        val = val.lower() == 'true'
-                    elif val.isdigit():
-                        val = int(val)
-                    else:
-                        try:
-                            val = float(val)
-                        except ValueError:
-                            try:
-                                val = CIMDateTime(val)
-                            except ValueError:
-                                raise ValueError('Invalid key binding: %r' %
-                                                 val)
-                key_bindings[key] = val
+        m = WBEM_URI_KEYBINDINGS_REGEXP.match(keybindings_str)
+        if m is None:
+            raise ValueError("WBEM URI has an invalid format for its "
+                             "keybindings: %r" % keybindings_str)
 
-        return CIMInstanceName(classname, host=host, namespace=nm_space,
-                               keybindings=key_bindings)
+        if m.group(1):
+            kb_assigns = [m.group(1)]
+
+        if m.group(2):
+            for s in WBEM_URI_KB_FINDALL_REGEXP.findall(m.group(2)):
+                if s[0] == ',':
+                    s = s[1:]
+                kb_assigns.append(s)
+
+        keybindings = {}
+        for kb_assign in kb_assigns:
+            key, sep, val = _partition(kb_assign, '=')
+
+            # the regexp ensures that it's there:
+            assert sep, "kb_assign=%r" % kb_assign
+
+            keybindings[key] = CIMInstanceName._kbstr_to_cimval(key, val)
+
+        obj = CIMInstanceName(
+            classname=classname,
+            host=host,
+            namespace=namespace,
+            keybindings=keybindings)
+
+        return obj
 
 
 class CIMInstance(_CIMComparisonMixin):
@@ -2289,12 +2499,31 @@ class CIMClassName(_CIMComparisonMixin):
         WBEM URI string.
 
         The WBEM URI string must be a CIM class path in untyped WBEM URI
-        format, as defined in :term:`DSP0207`.
+        format, as defined in :term:`DSP0207`, with these extensions:
+
+        * DSP0207 restricts the namespace types (URI schemes) to be one of
+          ``http``, ``https``, ``cimxml-wbem``, or ``cimxml-wbems``. Pywbem
+          tolerates any namespace type, but issues a :exc:`py:UserWarning` if
+          it is not one of the namespace types defined in DSP0207.
+
+        * DSP0207 requires a slash before the namespace name. For local WBEM
+          URIs (no namespace type, no authority), that slash is the first
+          character of the WBEM URI. For historical reasons, pywbem tolerates a
+          missing leading slash for local WBEM URIs. Note that pywbem requires
+          the slash (consistent with DSP0207) when the WBEM URI is not local.
+
+        CIM class paths in the typed WBEM URI format defined in DSP0207
+        are not supported.
 
         Examples::
 
             https://jdd:test@acme.com:5989/cimv2/test:CIM_RegisteredProfile
             http://acme.com/root/cimv2:CIM_ComputerSystem
+            http:/root/cimv2:CIM_ComputerSystem
+            /root/cimv2:CIM_ComputerSystem
+            root/cimv2:CIM_ComputerSystem
+            /:CIM_ComputerSystem
+            :CIM_ComputerSystem
 
         Parameters:
 
@@ -2302,33 +2531,34 @@ class CIMClassName(_CIMComparisonMixin):
             WBEM URI for a class path.
 
         Returns:
-          :class:`~pywbem.CIMClassName`: The class path created from
-            the specified WBEM URI.
+          :class:`~pywbem.CIMClassName`: The class path created from the
+            specified WBEM URI string.
 
         Raises:
-          ValueError
+          ValueError: Invalid WBEM URI format for a class path. This includes
+            typed WBEM URIs.
         """
 
-        nm_space = host = None
-        head, sep, tail = _partition(wbem_uri, '//')
-        if sep and head.find('"') == -1:
-            # we have a namespace type
-            head, sep, tail = _partition(tail, '/')
-            host = head
-        else:
-            tail = head
-        head, sep, tail = _partition(tail, ':')
-        if sep:
-            nm_space = head
-        else:
-            tail = head
-        head, sep, tail = _partition(tail, '.')
+        m = WBEM_URI_CLASSPATH_REGEXP.match(wbem_uri)
+        if m is None:
+            raise ValueError("Invalid format for a class path in "
+                             "WBEM URI: %r" % wbem_uri)
 
-        if sep:
-            raise ValueError("WBEM URI specifies an instance path: %r" %
-                             wbem_uri)
+        ns_type = m.group(1) or None
+        if ns_type and ns_type.lower() not in WBEM_URI_NAMESPACE_TYPES:
+            warnings.warn("Tolerating unknown namespace type in WBEM URI: %r" %
+                          wbem_uri, UserWarning)
 
-        return CIMClassName(head, host=host, namespace=nm_space)
+        host = m.group(2) or None
+        namespace = m.group(3) or None
+        classname = m.group(4) or None
+
+        obj = CIMClassName(
+            classname=classname,
+            host=host,
+            namespace=namespace)
+
+        return obj
 
 
 class CIMClass(_CIMComparisonMixin):
@@ -5882,11 +6112,10 @@ def _partition(str_arg, sep):
     """
     _partition(str_arg, sep) -> (head, sep, tail)
 
-    Searches for the separator sep in str_arg, and returns the,
-    part before it, the separator itself, and the part after it.
+    Searches for the first occurrence of the separator sep in str_arg, and
+    returns the, part before it, the separator itself, and the part after it.
 
-    If the separator is not found, returns str_arg and two empty
-    strings.
+    If the separator is not found, returns str_arg and two empty strings.
     """
     try:
         return str_arg.partition(sep)
