@@ -40,7 +40,7 @@ except ImportError:
     pass
 
 from validate import validate_xml
-from unittest_extensions import RegexpMixin, CIMObjectMixin
+from unittest_extensions import CIMObjectMixin
 
 # A note on using pytest.warns:
 #
@@ -1861,6 +1861,10 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             exp_exc_type = None
             exp_attrs = exp_result
 
+        if condition == 'pdb':
+            import pdb
+            pdb.set_trace()
+
         if exp_warn_type:
             with pytest.warns(exp_warn_type) as rec_warnings:
                 if exp_exc_type:
@@ -2290,6 +2294,10 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
         if func_name == '__str__':
             func_kwargs = dict()
             omit_local_slash = False
+
+        if condition == 'pdb':
+            import pdb
+            pdb.set_trace()
 
         if exp_warn_type:
             with pytest.warns(exp_warn_type) as rec_warnings:
@@ -3443,93 +3451,354 @@ class CIMInstanceToXML(ValidationTestCase):
             obj.tocimxml()
 
 
-class CIMInstanceToMOF(unittest.TestCase):
+class Test_CIMInstance_tomof(object):
     """
-    Test that valid MOF is generated for `CIMInstance` objects.
+    Test CIMInstance.tomof().
     """
 
-    def test_all(self):
+    testcases = [
+        # Testcases for CIMInstance.tomof().
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * obj: Object to be tested.
+        # * exp_result: Expected MOF string, if expected to succeed.
+        #     Exception type, if expected to fail.
+        # * exp_warn_type: Expected warning type.
+        #     None, if no warning expected.
+        # * condition: Condition for testcase to run.
+        (
+            "all components",
+            CIMInstance(
+                classname='C1',
+                properties=dict(
+                    p1=CIMProperty('p1', value=None, type='string'),
+                ),
+            ),
+            """\
+instance of C1 {
+   p1 = NULL;
+};
+""" \
+            if CHECK_0_12_0 else \
+            """\
+instance of C1 {
+    p1 = NULL;
+};
+""",
+            None, True
+        ),
+        (
+            "Instance with NULL value on string property",
+            CIMInstance(
+                classname='C1',
+                properties=dict(
+                    p1=CIMProperty('p1', value=None, type='string'),
+                ),
+            ),
+            """\
+instance of C1 {
+   p1 = NULL;
+};
+""" \
+            if CHECK_0_12_0 else \
+            """\
+instance of C1 {
+    p1 = NULL;
+};
+""",
+            None, True
+        ),
+        (
+            "Instance with string property",
+            CIMInstance(
+                classname='C1',
+                properties=dict(
+                    p1=CIMProperty('p1', value='abc'),
+                ),
+            ),
+            """\
+instance of C1 {
+   p1 = "abc";
+};
+""" \
+            if CHECK_0_12_0 else \
+            """\
+instance of C1 {
+    p1 = "abc";
+};
+""",
+            None, True
+        ),
+        (
+            "Instance with uint8 property",
+            CIMInstance(
+                classname='C1',
+                properties=dict(
+                    p1=CIMProperty('p1', value=Uint8(7)),
+                ),
+            ),
+            """\
+instance of C1 {
+   p1 = 7;
+};
+""" \
+            if CHECK_0_12_0 else \
+            """\
+instance of C1 {
+    p1 = 7;
+};
+""",
+            None, True
+        ),
+        (
+            "Instance with sint8 array property",
+            CIMInstance(
+                classname='C1',
+                properties=dict(
+                    p1=CIMProperty('p1', value=[Sint8(-1), Sint8(5)]),
+                ),
+            ),
+            """\
+instance of C1 {
+   p1 = { -1, 5 };
+};
+""" \
+            if CHECK_0_12_0 else \
+            """\
+instance of C1 {
+    p1 =  = {-1, 5};
+};
+""",  # bug fixed in 0.12
+            None, True
+        ),
+        (
+            "Instance with embedded instance property having one key",
+            CIMInstance(
+                classname='C1',
+                properties=dict(
+                    p1=CIMProperty(
+                        'p1',
+                        value=CIMInstance(
+                            classname='EC',
+                            properties=dict(
+                                e1='abc',
+                            ),
+                        ),
+                        embedded_object='instance',
+                    ),
+                ),
+            ),
+            """\
+instance of C1 {
+   p1 = "instance of EC {\\n   e1 = \\"abc\\";\\n};\\n";
+};
+""" \
+            if CHECK_0_12_0 else \
+            """\
+instance of C1 {
+    p1 = "instance of EC {\\n    e1 = \\"abc\\";\\n};\\n";
+};
+""",
+            None, True
+        ),
+        (
+            "Instance with embedded instance property having multiple keys",
+            CIMInstance(
+                classname='C1',
+                properties=dict(
+                    p1=CIMProperty(
+                        'p1',
+                        value=CIMInstance(
+                            classname='EC',
+                            properties=dict(
+                                e1='abc',
+                                e2=Uint32(42),
+                                e3=CIMDateTime('19980125133015.123456-300'),
+                            ),
+                        ),
+                        embedded_object='instance',
+                    ),
+                ),
+            ),
+            """\
+instance of C1 {
+   p1 =
+      "instance of EC {\\n   e1 = \\"abc\\";\\n   e2 = 42;\\n   e3 = "
+      "\\"19980125133015.123456-300\\";\\n};\\n";
+};
+""",
+            None, CHECK_0_12_0  # Unpredictable order of keys before 0.12
+        ),
+        (
+            "Instance with embedded instance property as EmbeddedObject",
+            CIMInstance(
+                classname='C1',
+                properties=dict(
+                    p1=CIMProperty(
+                        'p1',
+                        value=CIMInstance(
+                            classname='EC',
+                            properties=dict(
+                                e1='abc',
+                            ),
+                        ),
+                        embedded_object='object',
+                    ),
+                ),
+            ),
+            """\
+instance of C1 {
+   p1 = "instance of EC {\\n   e1 = \\"abc\\";\\n};\\n";
+};
+""" \
+            if CHECK_0_12_0 else \
+            """\
+instance of C1 {
+    p1 = "instance of EC {\\n    e1 = \\"abc\\";\\n};\\n";
+};
+""",
+            None, True
+        ),
+        (
+            "Instance with embedded class property as EmbeddedObject",
+            CIMInstance(
+                classname='C1',
+                properties=dict(
+                    p1=CIMProperty(
+                        'p1',
+                        value=CIMClass(
+                            classname='EC',
+                            properties=dict(
+                                e1=CIMProperty(
+                                    'e1',
+                                    value=None,
+                                    type='uint32',
+                                ),
+                            ),
+                        ),
+                        embedded_object='object',
+                    ),
+                ),
+            ),
+            """\
+instance of C1 {
+   p1 = "class EC {\\n\\n   uint32 e1;\\n\\n};\\n";
+};
+""" \
+            if CHECK_0_12_0 else \
+            """\
+instance of C1 {
+    p1 = "\\nclass EC {\\n\\n    uint32 e1;\\n};\\n";
+};
+""",
+            None, True
+        ),
+        (
+            "Instance with reference property",
+            CIMInstance(
+                classname='C1',
+                properties=dict(
+                    p1=CIMProperty(
+                        'p1',
+                        value=CIMInstanceName(
+                            classname='RC',
+                            keybindings=dict(
+                                k1="abc",
+                            ),
+                        ),
+                        reference_class='RC',
+                    ),
+                ),
+            ),
+            """\
+instance of C1 {
+   p1 = "/:RC.k1=\\"abc\\"";
+};
+""" \
+            if CHECK_0_12_0 else \
+            """\
+instance of C1 {
+    p1 = RC.k1="abc";
+};
+""",  # bug fixed in 0.12
+            None, True
+        ),
+    ]
 
-        i = CIMInstance('CIM_Foo',
-                        {'MyString': 'string',
-                         'MyUint8': Uint8(0),
-                         'MyUint8array': [Uint8(1), Uint8(2)],
-                         'MyRef': CIMInstanceName('CIM_Bar')})
+    @pytest.mark.parametrize(
+        "desc, obj, exp_result, exp_warn_type, condition",
+        testcases)
+    def test_CIMInstance_tomof(
+            self, desc, obj, exp_result, exp_warn_type, condition):
+        """All test cases for CIMInstance.tomof()."""
 
-        imof = i.tomof()
+        if not condition:
+            pytest.skip("Condition for test case not met")
 
-        # match first line
-        m = re.match(
-            r"^\s*instance\s+of\s+CIM_Foo\s*\{"
-            r"(?:\s*(\w+)\s*=\s*.*;){4,4}"  # just match the general syntax
-            r"\s*\}\s*;\s*$", imof)
-        if m is None:
-            self.fail("Invalid MOF generated.\n"
-                      "Instance: %r\n"
-                      "Generated MOF: %r" % (i, imof))
-
-        # search for one property
-        if CHECK_0_12_0:
-            s = re.search(r"\n\s*MyRef\s*=\s*/:CIM_Bar;\n", imof)
+        if isinstance(exp_result, type) and issubclass(exp_result, Exception):
+            # We expect an exception
+            exp_exc_type = exp_result
+            exp_mof = None
         else:
-            s = re.search(r"\n\s*MyRef\s*=\s*CIM_Bar;\n", imof)
+            # We expect the code to return
+            exp_exc_type = None
+            exp_mof = exp_result
 
-        if s is None:
-            self.fail("Invalid MOF generated. No MyRef.\n"
-                      "Instance: %r\n"
-                      "Generated MOF: %r" % (i, imof))
+        if condition == 'pdb':
+            import pdb
+            pdb.set_trace()
 
+        if exp_warn_type:
+            with pytest.warns(exp_warn_type) as rec_warnings:
+                if exp_exc_type:
+                    with pytest.raises(exp_exc_type):
 
-class CIMInstanceWithEmbeddedInstToMOF(unittest.TestCase):
-    """Test that MOF with valid embedded insance is generated for instance"""
+                        # The code to be tested
+                        mof = obj.tomof()
 
-    def test_all(self):
+                else:
 
-        str_data = "The pink fox jumped over the big blue dog"
-        dt = datetime(2014, 9, 22, 10, 49, 20, 524789)
+                    # The code to be tested
+                    mof = obj.tomof()
 
-        embed = CIMInstance('CIM_Embedded',
-                            {'EbString': 'string',
-                             'EbUint8': Uint8(0),
-                             'EbStrArray': [str_data, str_data, str_data],
-                             'EbUint8array': [Uint8(1), Uint8(2)],
-                             'EbRef': CIMInstanceName('CIM_Bar'),
-                             'EbUint64Array': [Uint64(123456789),
-                                               Uint64(123456789),
-                                               Uint64(123456789)]})
+            assert len(rec_warnings) == 1
 
-        i = CIMInstance('CIM_Foo',
-                        {'MyString': 'string',
-                         'MyUint8': Uint8(0),
-                         'MyUint8Array': [Uint8(1), Uint8(2)],
-                         'MyUint64Array': [Uint64(123456789),
-                                           Uint64(123456789),
-                                           Uint64(123456789)],
-                         'MyRef': CIMInstanceName('CIM_Bar'),
-                         'MyEmbed': embed,
-                         'MyUint32': Uint32(9999),
-                         'MyDateTimeArray': [dt, dt, dt],
-                         'MyStrLongArray': [str_data, str_data, str_data]})
+        else:
+            if exp_exc_type:
+                with pytest.raises(exp_exc_type):
 
-        imof = i.tomof()
+                    # The code to be tested
+                    mof = obj.tomof()
 
-        m = re.match(
-            r"^\s*instance\s+of\s+CIM_Foo\s*\{",
-            imof)
+            else:
 
-        if m is None:
-            self.fail("Invalid MOF generated.\n"
-                      "Instance: %r\n"
-                      "Generated MOF: %r" % (i, imof))
+                # The code to be tested
+                mof = obj.tomof()
 
-        # search for the CIM_Embedded instance.
-        s = re.search(r"CIM_Embedded", imof)
+        if exp_mof:
 
-        if s is None:
-            self.fail("Invalid MOF embedded generated.\n"
-                      "Instance: %r\n"
-                      "Generated MOF: %r" % (i, imof))
-        # TODO this test only catchs existence of the embedded instance
+            assert isinstance(mof, six.text_type)
+            assert mof == exp_mof
+
+    def test_CIMInstance_tomof_indent_warning(self):
+        """CIMInstance.tomof() with deprecated 'indent' parameter."""
+
+        if not CHECK_0_12_0:
+            pytest.skip("Condition for test case not met")
+
+        obj = CIMInstance('C1')
+
+        exp_mof = "instance of C1 {\n};\n"
+
+        with pytest.warns(DeprecationWarning) as rec_warnings:
+
+            # The code to be tested
+            mof = obj.tomof(indent=5)
+
+        assert len(rec_warnings) == 1
+
+        assert isinstance(mof, six.text_type)
+        assert mof == exp_mof
 
 
 class CIMInstanceUpdatePath(unittest.TestCase):
@@ -5383,6 +5652,643 @@ class CIMPropertyToXML(ValidationTestCase):
                       root_elem_CIMProperty_ref)
 
 
+class Test_CIMProperty_tomof(object):
+    """
+    Test CIMProperty.tomof().
+    """
+
+    testcases = [
+        # Testcases for CIMProperty.tomof().
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * obj: Object to be tested.
+        # * indent: Number of spaces to indent the generated MOF lines.
+        # * is_instance: Create instance MOF instead of class MOF.
+        # * exp_result: Expected MOF string, if expected to succeed.
+        #     Exception type, if expected to fail.
+        # * exp_warn_type: Expected warning type.
+        #     None, if no warning expected.
+        # * condition: Condition for testcase to run.
+        (
+            "class property, all components",
+            CIMProperty(
+                name='P1',
+                value="abc",
+                type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value='abc', type='string'),
+                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ),
+            ),
+            False, 12,
+            u"""\
+               [Q1 ( "abc" ),
+                Q2 ( 42 )]
+            string P1 = "abc";\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+                [Q1 ("abc"),
+                Q2 (42)]
+            string P1 = "abc";\n""",
+            None, True
+        ),
+        (
+            "class property, no qualifiers",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='string',
+            ),
+            False, 12,
+            u"""\
+            string P1;\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+            string P1;\n""",
+            None, True
+        ),
+        (
+            "class property, one scalar single line qualifier",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value='abc', type='string'),
+                ),
+            ),
+            False, 12,
+            u"""\
+               [Q1 ( "abc" )]
+            string P1;\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+                [Q1 ("abc")]
+            string P1;\n""",
+            None, True
+        ),
+        (
+            "class property, one scalar multi line qualifier",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
+                                    type='string'),
+                ),
+            ),
+            False, 12,
+            u"""\
+               [Q1 (
+                   "abc def abc def abc def abc def abc def abc def abc def "
+                   "abc def abc def abc def z" )]
+            string P1;\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+                [Q1 (
+                  "abc def abc def abc def abc def abc def abc def abc def "
+                  "abc def abc def abc def z")]
+            string P1;\n""",
+            None, True
+        ),
+        (
+            "class property, two scalar single line qualifiers",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value='abc', type='string'),
+                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ),
+            ),
+            False, 12,
+            u"""\
+               [Q1 ( "abc" ),
+                Q2 ( 42 )]
+            string P1;\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+                [Q1 ("abc"),
+                Q2 (42)]
+            string P1;\n""",
+            None, True
+        ),
+        (
+            "class property, two scalar multi line qualifiers",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
+                                    type='string'),
+                    Q2=CIMQualifier('Q2', value=('rst uvw ' * 10 + 'z'),
+                                    type='string'),
+                ),
+            ),
+            False, 12,
+            u"""\
+               [Q1 (
+                   "abc def abc def abc def abc def abc def abc def abc def "
+                   "abc def abc def abc def z" ),
+                Q2 (
+                   "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw "
+                   "rst uvw rst uvw rst uvw z" )]
+            string P1;\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+                [Q1 (
+                  "abc def abc def abc def abc def abc def abc def abc def "
+                  "abc def abc def abc def z"),
+                Q2 (
+                  "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw "
+                  "rst uvw rst uvw rst uvw z")]
+            string P1;\n""",
+            None, True
+        ),
+        (
+            "class property, one array single line qualifier",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value=['abc', 'def'], type='string'),
+                ),
+            ),
+            False, 12,
+            u"""\
+               [Q1 { "abc", "def" }]
+            string P1;\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+                [Q1 { "abc", "def"}]
+            string P1;\n""",
+            None, True
+        ),
+        (
+            "class property, one array multi line qualifier with short items",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier(
+                        'Q1',
+                        value=['abcdef%02d' % i for i in range(0, 10)],
+                        type='string'),
+                ),
+            ),
+            False, 12,
+            u"""\
+               [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
+                   "abcdef04", "abcdef05", "abcdef06", "abcdef07",
+                   "abcdef08", "abcdef09" }]
+            string P1;\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+                [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
+                  "abcdef04", "abcdef05", "abcdef06", "abcdef07",
+                  "abcdef08", "abcdef09"}]
+            string P1;\n""",
+            None, True
+        ),
+        (
+            "class property, one array multi line qualifier with long items",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier(
+                        'Q1',
+                        value=['abc def ' * 10 + 'z%02d' % i
+                               for i in range(0, 2)],
+                        type='string'),
+                ),
+            ),
+            False, 12,
+            u"""\
+               [Q1 {
+                   "abc def abc def abc def abc def abc def abc def abc def "
+                   "abc def abc def abc def z00",
+                   "abc def abc def abc def abc def abc def abc def abc def "
+                   "abc def abc def abc def z01" }]
+            string P1;\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+                [Q1 {
+                  "abc def abc def abc def abc def abc def abc def abc def "
+                  "abc def abc def abc def z00",
+                  "abc def abc def abc def abc def abc def abc def abc def "
+                  "abc def abc def abc def z01"}]
+            string P1;\n""",
+            None, True
+        ),
+        (
+            "class property, type string, no default value",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='string',
+            ),
+            False, 12,
+            u"""\
+            string P1;\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+            string P1;\n""",
+            None, True
+        ),
+        (
+            "class property, type string, with default value",
+            CIMProperty(
+                name='P1',
+                value="abc",
+                type='string',
+            ),
+            False, 12,
+            u"""\
+            string P1 = "abc";\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+            string P1 = "abc";\n""",
+            None, True
+        ),
+        (
+            "class property, type char16, no default value",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='char16',
+            ),
+            False, 12,
+            u"""\
+            char16 P1;\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+            char16 P1;\n""",
+            None, True
+        ),
+        (
+            "class property, type char16, with default value",
+            CIMProperty(
+                name='P1',
+                value="a",
+                type='char16',
+            ),
+            False, 12,
+            u"""\
+            char16 P1 = 'a';\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+            char16 P1 = a;\n""",  # bug fixed in 0.12
+            None, True
+        ),
+        (
+            "class property, variable size array of uint32, no default value",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='uint32',
+                is_array=True,
+            ),
+            False, 12,
+            u"""\
+            uint32 P1[];\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+            uint32 P1[];\n""",
+            None, True
+        ),
+        (
+            "class property, variable size array of uint32, with default value",
+            CIMProperty(
+                name='P1',
+                value=[1, 2, 3],
+                type='uint32',
+                is_array=True,
+            ),
+            False, 12,
+            u"""\
+            uint32 P1[] = { 1, 2, 3 };\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+            uint32 P1[] = {1, 2, 3};\n""",
+            None, True
+        ),
+        (
+            "class property, fixed size array of sint64, no default value",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='sint64',
+                is_array=True,
+                array_size=5,
+            ),
+            False, 12,
+            u"""\
+            sint64 P1[5];\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+            sint64 P1[5];\n""",
+            None, True
+        ),
+        (
+            "class property, type reference, no default value",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='reference',
+                reference_class="RC",
+            ),
+            False, 12,
+            u"""\
+            RC REF P1;\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+            RC REF P1;\n""",
+            None, True
+        ),
+        (
+            "class property, type reference, with default value",
+            CIMProperty(
+                name='P1',
+                value=CIMInstanceName("RC", dict(k1='abc')),
+                type='reference',
+                reference_class="RC",
+            ),
+            False, 12,
+            u"""\
+            RC REF P1 = "/:RC.k1=\\"abc\\"";\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+
+            RC REF P1 = RC.k1="abc";\n""",    # bug fixed in 0.12
+            None, True
+        ),
+        (
+            "instance property, all components",
+            CIMProperty(
+                name='P1',
+                value=["abc", "def"],
+                type='string',
+                is_array=True,
+                array_size=5,
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value='abc', type='string'),
+                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ),
+            ),
+            True, 12,
+            u"""\
+            P1 = { "abc", "def" };\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+            P1 =  = {"abc", "def"};\n""",  # bug: '= =', fixed in 0.12
+            None, True
+        ),
+        (
+            "instance string property, with NULL value",
+            CIMProperty(
+                name='P1',
+                value=None,
+                type='string',
+            ),
+            True, 12,
+            u"""\
+            P1 = NULL;\n""",
+            None, True
+        ),
+        (
+            "instance string property, with multi-line scalar value",
+            CIMProperty(
+                name='P1',
+                value=('abc def ' * 10 + 'z'),
+                type='string',
+            ),
+            True, 12,
+            # pylint: disable=line-too-long
+            u"""\
+            P1 =
+               "abc def abc def abc def abc def abc def abc def abc def abc "
+               "def abc def abc def z";\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+            P1 = "abc def abc def abc def abc def abc def abc def abc def abc def "
+            "abc def abc def z";\n""",  # noqa: E501
+            None, True
+        ),
+        (
+            "instance string array property, with multi-line short items",
+            CIMProperty(
+                name='P1',
+                value=['abcdef%02d' % i for i in range(0, 10)],
+                type='string',
+            ),
+            True, 12,
+            u"""\
+            P1 = { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04",
+               "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09" };\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+            P1 =  = {
+                "abcdef00",
+                "abcdef01",
+                "abcdef02",
+                "abcdef03",
+                "abcdef04",
+                "abcdef05",
+                "abcdef06",
+                "abcdef07",
+                "abcdef08",
+                "abcdef09"};\n""",  # noqa: E501  # bug: '= =', fixed in 0.12
+            None, True
+        ),
+        (
+            "instance uint32 property",
+            CIMProperty(
+                name='P1',
+                value=42,
+                type='uint32',
+            ),
+            True, 12,
+            u"""\
+            P1 = 42;\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+            P1 = 42;\n""",
+            None, True
+        ),
+        (
+            "instance uint32 array property, single-line",
+            CIMProperty(
+                name='P1',
+                value=list(range(0, 10)),
+                type='uint32',
+                is_array=True,
+            ),
+            True, 12,
+            u"""\
+            P1 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+            P1 =  = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};\n""",  # bug fixed in 0.12
+            None, True
+        ),
+        (
+            "instance uint32 array property, multi-line",
+            CIMProperty(
+                name='P1',
+                value=list(range(0, 20)),
+                type='uint32',
+                is_array=True,
+            ),
+            True, 12,
+            u"""\
+            P1 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+               17, 18, 19 };\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+            P1 =  = {
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19};\n""",  # bug fixed in 0.12
+            None, True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, obj, is_instance, indent, exp_result, exp_warn_type, condition",
+        testcases)
+    def test_CIMProperty_tomof(
+            self, desc, obj, is_instance, indent, exp_result, exp_warn_type,
+            condition):
+        """All test cases for CIMProperty.tomof()."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        if isinstance(exp_result, type) and issubclass(exp_result, Exception):
+            # We expect an exception
+            exp_exc_type = exp_result
+            exp_mof = None
+        else:
+            # We expect the code to return
+            exp_exc_type = None
+            exp_mof = exp_result
+
+        if condition == 'pdb':
+            import pdb
+            pdb.set_trace()
+
+        if exp_warn_type:
+            with pytest.warns(exp_warn_type) as rec_warnings:
+                if exp_exc_type:
+                    with pytest.raises(exp_exc_type):
+
+                        # The code to be tested
+                        mof = obj.tomof(is_instance, indent)
+
+                else:
+
+                    # The code to be tested
+                    mof = obj.tomof(is_instance, indent)
+
+            assert len(rec_warnings) == 1
+
+        else:
+            if exp_exc_type:
+                with pytest.raises(exp_exc_type):
+
+                    # The code to be tested
+                    mof = obj.tomof(is_instance, indent)
+
+            else:
+
+                # The code to be tested
+                mof = obj.tomof(is_instance, indent)
+
+        if exp_mof:
+
+            assert isinstance(mof, six.text_type)
+            assert mof == exp_mof
+
+    def test_CIMProperty_tomof_fail1(self):
+        """CIMProperty.tomof() failure: Provoke TypeError with string"""
+
+        if not CHECK_0_12_0:
+            pytest.skip("Condition for test case not met")
+
+        datetime_dt = datetime(2018, 1, 5, 15, 0, 0, 0)
+        datetime_obj = CIMDateTime(datetime_dt)
+
+        obj = CIMProperty(name='P1', value=datetime_obj, type='datetime')
+
+        # Set an inconsistent CIM type. This is not prevented at this point.
+        obj.type = 'string'
+        assert obj.type == 'string'
+
+        with pytest.raises(TypeError):
+
+            # The code to be tested
+            obj.tomof(is_instance=False)
+
+    def test_CIMProperty_tomof_success1(self):
+        """CIMProperty.tomof(): Use plain float value"""
+
+        if not CHECK_0_12_0:
+            pytest.skip("Condition for test case not met")
+
+        obj = CIMProperty(name='P1', value=42.1, type='real32')
+        assert isinstance(obj.value, Real32)
+
+        # Set the value back to a plain float.
+        obj.value = 42.1
+        assert isinstance(obj.value, float)
+
+        # The code to be tested
+        mof = obj.tomof(is_instance=False)
+
+        assert mof == u"real32 P1 = 42.1;\n"
+
+
 class Test_CIMQualifier_init(object):
     """
     Test CIMQualifier.__init__().
@@ -5598,8 +6504,6 @@ class Test_CIMQualifier_init(object):
             self, desc, kwargs, exp_attrs, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMQualifier.__init__() succeeds."""
-
-        # import pdb; pdb.set_trace()
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -5967,7 +6871,7 @@ class Test_CIMQualifier_tomof(object):
                 toinstance=True,
                 translatable=True,
             ),
-            2,
+            12,
             u"""Q1 { "abc" }""" \
             if CHECK_0_12_0 else \
             u"""Q1 { "abc"}""",
@@ -5980,7 +6884,7 @@ class Test_CIMQualifier_tomof(object):
                 value=None,
                 type='string',
             ),
-            2,
+            12,
             u"""Q1 ( NULL )""" \
             if CHECK_0_12_0 else \
             u"""Q1 (None)""",
@@ -5993,7 +6897,7 @@ class Test_CIMQualifier_tomof(object):
                 value="dq=\",sq=\',bs=\\",
                 type='string',
             ),
-            2,
+            12,
             u"""Q1 ( "dq=\\",sq=\\',bs=\\\\" )""" \
             if CHECK_0_12_0 else \
             u"""Q1 ("dq=\\",sq=\\',bs=\\\\")""",
@@ -6006,7 +6910,7 @@ class Test_CIMQualifier_tomof(object):
                 value="bt=\b,tb=\t,nl=\n",
                 type='string',
             ),
-            2,
+            12,
             u"""Q1 ( "bt=\\b,tb=\\t,nl=\\n" )""" \
             if CHECK_0_12_0 else \
             u"""Q1 ("bt=\\b,tb=\\t,nl=\\n")""",
@@ -6019,7 +6923,7 @@ class Test_CIMQualifier_tomof(object):
                 value="vt=\f,cr=\r",
                 type='string',
             ),
-            2,
+            12,
             u"""Q1 ( "vt=\\f,cr=\\r" )""" \
             if CHECK_0_12_0 else \
             u"""Q1 ("vt=\\f,cr=\\r")""",
@@ -6032,7 +6936,7 @@ class Test_CIMQualifier_tomof(object):
                 value=["abc", "def"],
                 type='string',
             ),
-            2,
+            12,
             u"""Q1 { "abc", "def" }""" \
             if CHECK_0_12_0 else \
             u"""Q1 { abc, def}""",
@@ -6045,7 +6949,7 @@ class Test_CIMQualifier_tomof(object):
                 value=["abc", None],
                 type='string',
             ),
-            2,
+            12,
             u"""Q1 { "abc", NULL }""" \
             if CHECK_0_12_0 else \
             u"""Q1 { abc, None}""",
@@ -6076,8 +6980,8 @@ class Test_CIMQualifier_tomof(object):
                 type='string',
             ),
             12,
-            u"""Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04",
-            "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09" }""" \
+            u"""Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04", "abcdef05",
+            "abcdef06", "abcdef07", "abcdef08", "abcdef09" }""" \
             if CHECK_0_12_0 else \
             u"""Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04",
             "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09"}""",
@@ -6111,7 +7015,7 @@ class Test_CIMQualifier_tomof(object):
                 value="\n",
                 type='char16',
             ),
-            2,
+            12,
             u"""Q1 ( '\\n' ) """,
             None, False
             # TODO 01/18 AM Enable test case once char16 produces single quotes
@@ -6123,7 +7027,7 @@ class Test_CIMQualifier_tomof(object):
                 value=False,
                 type='boolean',
             ),
-            2,
+            12,
             u"""Q1 ( false )""" \
             if CHECK_0_12_0 else \
             u"""Q1 (False)""",
@@ -6136,7 +7040,7 @@ class Test_CIMQualifier_tomof(object):
                 value=Uint32(42),
                 type='uint32',
             ),
-            2,
+            12,
             u"""Q1 ( 42 )""" \
             if CHECK_0_12_0 else \
             u"""Q1 (42)""",
@@ -6149,7 +7053,7 @@ class Test_CIMQualifier_tomof(object):
                 value=Real32(42.1),
                 type='real32',
             ),
-            2,
+            12,
             u"""Q1 ( 42.1 )""",
             None, CHECK_0_12_0  # Unpredictable string before 0.12
         ),
@@ -6160,7 +7064,7 @@ class Test_CIMQualifier_tomof(object):
                 value=CIMDateTime('20140924193040.654321+120'),
                 type='datetime',
             ),
-            2,
+            12,
             u"""Q1 ( "20140924193040.654321+120" )""" \
             if CHECK_0_12_0 else \
             u"""Q1 (20140924193040.654321+120)""",
@@ -6175,7 +7079,7 @@ class Test_CIMQualifier_tomof(object):
                 overridable=True,
                 tosubclass=True,
             ),
-            2,
+            12,
             u"""Q1 ( "" )""" \
             if CHECK_0_12_0 else \
             u"""Q1 ("")""",
@@ -6190,7 +7094,7 @@ class Test_CIMQualifier_tomof(object):
                 overridable=False,
                 tosubclass=True,
             ),
-            2,
+            12,
             u"""Q1 ( "" )""" \
             if CHECK_0_12_0 else \
             u"""Q1 ("")""",
@@ -6204,7 +7108,7 @@ class Test_CIMQualifier_tomof(object):
                 type='string',
                 tosubclass=False,
             ),
-            2,
+            12,
             u"""Q1 ( "" )""" \
             if CHECK_0_12_0 else \
             u"""Q1 ("")""",
@@ -6218,7 +7122,7 @@ class Test_CIMQualifier_tomof(object):
                 type='string',
                 translatable=True,
             ),
-            2,
+            12,
             u"""Q1 ( "" )""" \
             if CHECK_0_12_0 else \
             u"""Q1 ("")""",
@@ -6232,7 +7136,7 @@ class Test_CIMQualifier_tomof(object):
                 type='string',
                 toinstance=True,
             ),
-            2,
+            12,
             u"""Q1 ( "" )""" \
             if CHECK_0_12_0 else \
             u"""Q1 ("")""",
@@ -6258,6 +7162,10 @@ class Test_CIMQualifier_tomof(object):
             # We expect the code to return
             exp_exc_type = None
             exp_mof = exp_result
+
+        if condition == 'pdb':
+            import pdb
+            pdb.set_trace()
 
         if exp_warn_type:
             with pytest.warns(exp_warn_type) as rec_warnings:
@@ -6899,6 +7807,10 @@ class Test_CIMClassName_from_wbem_uri(object):
             exp_exc_type = None
             exp_attrs = exp_result
 
+        if condition == 'pdb':
+            import pdb
+            pdb.set_trace()
+
         if exp_warn_type:
             with pytest.warns(exp_warn_type) as rec_warnings:
                 if exp_exc_type:
@@ -7105,6 +8017,10 @@ class Test_CIMClassName_to_wbem_uri_str(object):
         if func_name == '__str__':
             func_kwargs = dict()
             omit_local_slash = False
+
+        if condition == 'pdb':
+            import pdb
+            pdb.set_trace()
 
         if exp_warn_type:
             with pytest.warns(exp_warn_type) as rec_warnings:
@@ -7820,13 +8736,13 @@ class Test_CIMClass_tomof(object):
         #     None, if no warning expected.
         # * condition: Condition for testcase to run.
         (
-            "all components, normal case",
+            "all components",
             CIMClass(
                 classname=u'C1',
                 superclass=u'C2',
                 properties=NocaseDict(
                     p2=CIMProperty(
-                        'p2', value=None, type='string',
+                        'p2', value='abc', type='string',
                         qualifiers=NocaseDict(
                             q2=CIMQualifier('q2', value="qv2", type='string'),
                         ),
@@ -7837,6 +8753,15 @@ class Test_CIMClass_tomof(object):
                         'm3', return_type='uint32',
                         qualifiers=NocaseDict(
                             q3=CIMQualifier('q3', value="qv3", type='string'),
+                        ),
+                        parameters=NocaseDict(
+                            p4=CIMParameter(
+                                'p4', type='string',
+                                qualifiers=NocaseDict(
+                                    q4=CIMQualifier('q4', value="qv4",
+                                                    type='string'),
+                                ),
+                            ),
                         ),
                     ),
                 ),
@@ -7850,10 +8775,13 @@ class Test_CIMClass_tomof(object):
 class C1 : C2 {
 
       [q2 ( "qv2" )]
-   string p2;
+   string p2 = "abc";
 
       [q3 ( "qv3" )]
-   uint32 m3();
+   uint32 m3(
+         [q4 ( "qv4" )]
+      string p4);
+
 };
 """ \
             if CHECK_0_12_0 else \
@@ -7862,13 +8790,83 @@ class C1 : C2 {
 class C1 : C2 {
 
         [q2 ("qv2")]
-    string p2;
+    string p2 = "abc";
 
         [q3 ("qv3")]
-    uint32 m3();
+    uint32 m3(
+          [q4 ("qv4")]
+        string p4);
 };
 """,
             None, True
+        ),
+        (
+            "class with embedded instance property with a default value",
+            CIMClass(
+                classname=u'C1',
+                properties=NocaseDict(
+                    p1=CIMProperty(
+                        'p1',
+                        value=CIMInstance(
+                            classname='CE',
+                            properties=dict(
+                                emb1=CIMProperty('emb1', value='abc'),
+                                emb2=CIMProperty('emb2', value=Sint32(-1024)),
+                                emb3=CIMProperty('emb3', value=True),
+                            ),
+                        ),
+                        type='string',
+                        qualifiers=NocaseDict(
+                            EmbeddedInstance=CIMQualifier(
+                                'EmbeddedInstance', value="CE", type='string'),
+                        ),
+                    ),
+                ),
+            ),
+            # pylint: disable=line-too-long
+            u"""\
+class C1 {
+
+      [EmbeddedInstance ( "CE" )]
+   string p1 =
+      "instance of CE {\\n   emb1 = \\"abc\\";\\n   emb2 = -1024;\\n   emb3 = "
+      "true;\\n};\\n";
+
+};
+""",
+            None, CHECK_0_12_0
+        ),
+        (
+            "class with reference property with a multi-line default value",
+            CIMClass(
+                classname=u'C1',
+                properties=NocaseDict(
+                    p1=CIMProperty(
+                        'p1',
+                        value=CIMInstanceName(
+                            host='some.long.host.name:5989',
+                            namespace='root/cimv2',
+                            classname='CIM_ReferencedClass',
+                            keybindings=dict(
+                                k1='key1',
+                                k2='key2',
+                            ),
+                        ),
+                        type='reference',
+                        reference_class='CIM_ReferencedClass',
+                    ),
+                ),
+            ),
+            u"""\
+class C1 {
+
+   CIM_ReferencedClass REF p1 =
+      "//some.long.host.name:5989/root/cimv2:CIM_ReferencedClass.k1=\\"key1\\",k2"
+      "=\\"key2\\"";
+
+};
+""",  # noqa: E501
+            None, CHECK_0_12_0
         ),
     ]
 
@@ -7890,6 +8888,10 @@ class C1 : C2 {
             # We expect the code to return
             exp_exc_type = None
             exp_mof = exp_result
+
+        if condition == 'pdb':
+            import pdb
+            pdb.set_trace()
 
         if exp_warn_type:
             with pytest.warns(exp_warn_type) as rec_warnings:
@@ -7922,322 +8924,6 @@ class C1 : C2 {
 
             assert isinstance(mof, six.text_type)
             assert mof == exp_mof
-
-
-class CIMClassToMOF(unittest.TestCase, RegexpMixin):
-
-    def test_all(self):
-
-        cl = CIMClass(
-            'CIM_Foo',
-            properties={'InstanceID': CIMProperty('InstanceID', None,
-                                                  type='string')})
-
-        imof = cl.tomof()
-
-        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
-
-        self.assertRegexpContains(imof, r"\n\s*string\s+InstanceID")
-        self.assertRegexpContains(imof, r"\n\};")
-
-
-class CIMClassPropertyWithValueToMOF(unittest.TestCase, RegexpMixin):
-
-    def test_ScalarPropertyValues(self):
-
-        cl = CIMClass(
-            'CIM_Foo',
-            properties={'InstanceID': CIMProperty('InstanceID', None,
-                                                  type='string'),
-                        'MyUint8': CIMProperty('MyUint8', Uint8(99),
-                                               type='uint8'),
-                        'MyUint16': CIMProperty('MyUint16', Uint16(999),
-                                                type='uint16'),
-                        'MyUint32': CIMProperty('MyUint32', Uint32(12345),
-                                                type='uint32'),
-                        'MySint32': CIMProperty('MySint32', Sint32(-12345),
-                                                type='sint32'),
-                        'Mydatetime': CIMProperty('Mydatetime',
-                                                  '12345678224455.654321:000',
-                                                  type='datetime'),
-                        'MyStr': CIMProperty('MyStr', 'This is a test',
-                                             type='string')})
-
-        imof = cl.tomof()
-
-        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
-
-        self.assertRegexpContains(imof, r"\n\s*string\s+InstanceID")
-        self.assertRegexpContains(imof, r"\n\s*uint8\s+MyUint8\s+=\s+99;")
-        self.assertRegexpContains(imof, r"\n\s*uint16\s+MyUint16\s+=\s+999;")
-        self.assertRegexpContains(imof, r"\n\s*uint32\s+MyUint32\s+=\s+12345;")
-        self.assertRegexpContains(imof, r"\n\s*sint32\s+MySint32\s+=\s+"
-                                        r"-12345;")
-        self.assertRegexpContains(imof, r"\n\s*datetime\s+Mydatetime\s+=\s+"
-                                        r"\"12345678224455.654321:000\";")
-        self.assertRegexpContains(imof, r"\n\s*string\s+MyStr\s+=\s+"
-                                        r"\"This is a test\";")
-
-        self.assertRegexpContains(imof, r"\n\};")
-
-
-class CIMClassArrayPropertyToMOF(unittest.TestCase, RegexpMixin):
-    def test_ArrayDef32(self):
-
-        cl = CIMClass(
-            'CIM_Foo',
-            properties={'Uint32Array': CIMProperty('Uint32Array', None,
-                                                   type='uint32',
-                                                   is_array=True)})
-
-        imof = cl.tomof()
-
-        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
-
-        self.assertRegexpContains(imof, r"\n\s*uint32\s+Uint32Array\[];\n")
-
-    def test_ArrayDefWSize32(self):
-
-        cl = CIMClass(
-            'CIM_Foo',
-            properties={'Uint32Array': CIMProperty('Uint32Array', None,
-                                                   type='uint32',
-                                                   array_size=9,
-                                                   is_array=True)})
-        imof = cl.tomof()
-
-        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
-        self.assertRegexpContains(imof, r"\n\s*uint32\s+Uint32Array\[9];\n")
-        self.assertRegexpContains(imof, r"\n\};",)
-
-    def test_ArrayDefStr(self):
-
-        cl = CIMClass(
-            'CIM_Foo',
-            properties={'StrArray': CIMProperty('StrArray', None,
-                                                type='string',
-                                                is_array=True)})
-
-        imof = cl.tomof()
-
-        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
-        self.assertRegexpContains(imof, r"\n\s*string\s+StrArray\[];\n")
-        self.assertRegexpContains(imof, r"\n\};",)
-
-    def test_ArrayDefWSizeStr(self):
-
-        cl = CIMClass(
-            'CIM_Foo',
-            properties={'StrArray': CIMProperty('StrArray', None,
-                                                type='string',
-                                                array_size=111,
-                                                is_array=True)})
-        imof = cl.tomof()
-
-        self.assertRegexpContains(imof, r"^\s*class\s+CIM_Foo\s*\{")
-
-        self.assertRegexpContains(imof, r"\n\s*string\s+StrArray\[111];\n")
-        self.assertRegexpContains(imof, r"\n};\n")
-
-    # TODO ks apr 16: extend this test for other alternatives for mof output
-    # of property parameters.
-
-
-class CIMClassMethodsToMOF(unittest.TestCase, RegexpMixin):
-    """Test variations of class method mof output"""
-
-    def test_OneMethod(self):
-        """test a cimple method with no parameters mof output"""
-        cl = CIMClass(
-            'CIM_FooOneMethod',
-            methods={'Simple': CIMMethod('Simple', 'uint32')})
-
-        imof = cl.tomof()
-
-        self.assertRegexpContains(imof, r"^\s*class\s+CIM_FooOneMethod\s*\{")
-        self.assertRegexpContains(imof, r"\s*uint32\s+Simple\(\);")
-        self.assertRegexpContains(imof, r"\n\};",)
-
-    def test_SimpleMethod(self):
-        """Test multiple methods some with parameters"""
-        params = {'Param1': CIMParameter('Param1', 'string'),
-                  'Param2': CIMParameter('Param2', 'uint32')}
-
-        cl = CIMClass(
-            'CIM_FooSimple',
-            methods={'Simple': CIMMethod('Simple', 'uint32'),
-                     'WithParams': CIMMethod('WithParams', 'uint32',
-                                             parameters=params)})
-        imof = cl.tomof()
-
-        self.assertRegexpContains(imof, r"^\s*class\s+CIM_FooSimple\s*\{")
-        self.assertRegexpContains(imof, r"\n\s*uint32\s+Simple\(\);")
-        self.assertRegexpContains(imof, r"\n\s*uint32\s+WithParams\(")
-        self.assertRegexpContains(imof, r"\n\s*uint32\s+Param2")
-        self.assertRegexpContains(imof, r"\n\s*string\s+Param1")
-        self.assertRegexpContains(imof, r"\n\};",)
-
-    def test_ArrayParams(self):
-        """Test methods with parameters that defined arrays"""
-        array_p1 = {'Param3': CIMParameter('Param3', 'string',
-                                           is_array=True)}
-        array_p2 = {'Param4': CIMParameter('Param4', 'sint32',
-                                           is_array=True, array_size=9)}
-
-        cl = CIMClass(
-            'CIM_FooArray',
-            methods={'ArrayP1': CIMMethod('ArrayP1', 'uint32',
-                                          parameters=array_p1),
-                     'ArrayP2': CIMMethod('ArrayP2', 'uint32',
-                                          parameters=array_p2)})
-
-        imof = cl.tomof()
-
-        self.assertRegexpContains(imof, r"^\s*class\s+CIM_FooArray\s*\{")
-        self.assertRegexpContains(imof, r"\n\s*string\s+Param3\[\]\);")
-        self.assertRegexpContains(imof, r"\n\s*sint32\s+Param4\[9\]\);")
-        self.assertRegexpContains(imof, r"\n\};",)
-
-
-class CIMClassWQualToMOF(unittest.TestCase):
-    """Generate mof output for a a class with a qualifiers, multiple
-       properties and methods
-    """
-
-    def test_all(self):
-
-        # predefine qualifiers, params
-        pquals = {'ModelCorrespondence': CIMQualifier('ModelCorrespondence',
-                                                      'BlahBlahClass'),
-                  'Description': CIMQualifier('Description', "This is a"
-                                              " description for a property"
-                                              " that serves no purpose"
-                                              " but is multiline.")}
-        pquals2 = {'ValueMap': CIMQualifier('ValueMap',
-                                            ["0", "1", "2", "3", "4",
-                                             "5", "6"]),
-                   'Values': CIMQualifier('Values',
-                                          ["Unknown", "value1", "value2",
-                                           "value3", "value4", "value5",
-                                           "value6"])}
-        mquals = {'Description': CIMQualifier('Description', "blah blah")}
-
-        prquals = {'Description': CIMQualifier('Description', "more blah"),
-                   'IN': CIMQualifier('in', False)}
-
-        params = {'Param1': CIMParameter('Param1', 'string',
-                                         qualifiers=prquals),
-                  'Param2': CIMParameter('Param2', 'uint32')}
-        embedqual = {'Description': CIMQualifier('Description',
-                                                 "An embedded instance"),
-                     'EmbeddedInstance': CIMQualifier('EmbeddedInstance',
-                                                      "My_Embedded")}
-        # define the target class
-        cl = CIMClass(
-            'CIM_Foo', superclass='CIM_Bar',
-            qualifiers={'Abstract': CIMQualifier('Abstract', True),
-                        'Description': CIMQualifier('Description',
-                                                    'This is a class '
-                                                    'description')},
-
-            properties={'InstanceID': CIMProperty('InstanceID', None,
-                                                  type='string',
-                                                  qualifiers=pquals),
-                        'MyUint8': CIMProperty('MyUint8', None,
-                                               type='uint8',
-                                               qualifiers=pquals),
-                        'MyUint16': CIMProperty('MyUint16', None,
-                                                type='uint16',
-                                                qualifiers=pquals2),
-                        'MyUint32': CIMProperty('MyUint32', None,
-                                                type='uint32',
-                                                qualifiers=pquals),
-                        'MyUint32Ar': CIMProperty('MyUint32Ar', None,
-                                                  type='uint32',
-                                                  is_array=True,
-                                                  qualifiers=pquals),
-                        'MyEmbedded': CIMProperty('MyEmbedded', None,
-                                                  type='string',
-                                                  qualifiers=embedqual)},
-
-            methods={'Delete': CIMMethod('Delete', 'uint32',
-                                         qualifiers=mquals),
-                     'FooMethod': CIMMethod('FooMethod', 'uint32',
-                                            parameters=params,
-                                            qualifiers=mquals)}
-            )  # noqa: E123
-
-        clmof = cl.tomof()
-
-        # match first line for [Abstract (True),
-        m = re.match(r"^\s*\[Abstract", clmof)
-        if m is None:
-            self.fail("Invalid MOF generated. First line\n"
-                      "Class: %r\n"
-                      "Generated MOF: \n%s" % (cl, clmof))
-
-        # search for class CIM_Foo: CIM_Bar {
-        s = re.search(r"\s*class\s+CIM_Foo\s*:\s*CIM_Bar\s*\{", clmof)
-
-        if s is None:
-            self.fail("Invalid MOF generated. Class name line.\n"
-                      "Class: %r\n"
-                      "Generated MOF: \n%s" % (cl, clmof))
-
-        # search for EmbeddedInstance ("My_Embedded")]
-        s = re.search(r"\s*EmbeddedInstance\s+\(\s?\"My_Embedded\"\s?\)\]",
-                      clmof)
-
-        if s is None:
-            self.fail("Invalid MOF generated. EmbeddedInstance.\n"
-                      "Class: %r\n"
-                      "Generated MOF: \n%s" % (cl, clmof))
-
-        # search for 'string MyEmbedded;'
-        s = re.search(r"\s*string\s+MyEmbedded;", clmof)
-
-        if s is None:
-            self.fail("Invalid MOF generated. property string MyEmbedded.\n"
-                      "Class: %r\n"
-                      "Generated MOF: \n%s" % (cl, clmof))
-
-
-class CIMClassWoQualifiersToMOF(unittest.TestCase, RegexpMixin):
-    """Generate class without qualifiers and convert to mof.
-    """
-
-    def test_all(self):
-
-        params = {'Param1': CIMParameter('Param1', 'string'),
-                  'Param2': CIMParameter('Param2', 'uint32')}
-
-        cl = CIMClass(
-            'CIM_FooNoQual', superclass='CIM_Bar',
-
-            properties={'InstanceID': CIMProperty('InstanceID', None,
-                                                  type='string'),
-                        'MyUint8': CIMProperty('MyUint8', None,
-                                               type='uint8'),
-                        'MyUint16': CIMProperty('MyUint16', None,
-                                                type='uint16'),
-                       },  # noqa: E124
-            methods={'Delete': CIMMethod('Delete', 'uint32'),
-                     'FooMethod': CIMMethod('FooMethod', 'uint32',
-                                            parameters=params)
-                    }  # noqa: E124
-            )  # noqa: E123
-
-        # Generate the mof. Does not really test result
-        clmof = cl.tomof()
-
-        # search for class CIM_Foo: CIM_Bar {
-        self.assertRegexpContains(clmof,
-                                  r"^\s*class\s+CIM_FooNoQual\s*:\s*"
-                                  r"CIM_Bar\s*\{")
-
-        # match method Delete,
-        self.assertRegexpContains(clmof, r"\n\s*uint32\s+Delete\(\);\n")
-        self.assertRegexpContains(clmof, r"\n\};",)
 
 
 class Test_CIMMethod_init(object):
@@ -8774,6 +9460,338 @@ class CIMMethodToXML(ValidationTestCase):
                                   'Param2': CIMParameter('Param2', 'string')},
                       qualifiers={'Key': CIMQualifier('Key', True)}),
             root_elem_CIMMethod)
+
+
+class Test_CIMMethod_tomof(object):
+    """
+    Test CIMMethod.tomof().
+    """
+
+    testcases = [
+        # Testcases for CIMMethod.tomof().
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * obj: Object to be tested.
+        # * indent: Number of spaces to indent the generated MOF lines.
+        # * exp_result: Expected MOF string, if expected to succeed.
+        #     Exception type, if expected to fail.
+        # * exp_warn_type: Expected warning type.
+        #     None, if no warning expected.
+        # * condition: Condition for testcase to run.
+        (
+            "all components",
+            CIMMethod(
+                name='M1',
+                return_type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value='abc', type='string'),
+                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ),
+                parameters=NocaseDict(
+                    P1=CIMParameter(
+                        'P1', type='string',
+                        qualifiers=NocaseDict(
+                            Q3=CIMQualifier('Q3', value="def", type='string'),
+                            Q4=CIMQualifier('Q4', value=Sint32(-3),
+                                            type='sint32'),
+                        ),
+                    ),
+                ),
+            ),
+            12,
+            u"""\
+               [Q1 ( "abc" ),
+                Q2 ( 42 )]
+            string M1(
+                  [Q3 ( "def" ),
+                   Q4 ( -3 )]
+               string P1);\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+                [Q1 ("abc"),
+                Q2 (42)]
+            string M1(
+                  [Q3 ("def"),
+                  Q4 (-3)]
+                string P1);\n""",
+            None, True
+        ),
+        (
+            "no qualifiers, no parameters",
+            CIMMethod(
+                name='M1',
+                return_type='string',
+            ),
+            12,
+            u"""\
+            string M1();\n""",
+            None, True
+        ),
+        (
+            "one scalar single line qualifier, no parameters",
+            CIMMethod(
+                name='M1',
+                return_type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value='abc', type='string'),
+                ),
+            ),
+            12,
+            u"""\
+               [Q1 ( "abc" )]
+            string M1();\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+                [Q1 ("abc")]
+            string M1();\n""",
+            None, True
+        ),
+        (
+            "one scalar multi line qualifier, no parameters",
+            CIMMethod(
+                name='M1',
+                return_type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
+                                    type='string'),
+                ),
+            ),
+            12,
+            u"""\
+               [Q1 (
+                   "abc def abc def abc def abc def abc def abc def abc def "
+                   "abc def abc def abc def z" )]
+            string M1();\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+                [Q1 (
+                  "abc def abc def abc def abc def abc def abc def abc def "
+                  "abc def abc def abc def z")]
+            string M1();\n""",
+            None, True
+        ),
+        (
+            "two scalar single line qualifiers, no parameters",
+            CIMMethod(
+                name='M1',
+                return_type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value='abc', type='string'),
+                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ),
+            ),
+            12,
+            u"""\
+               [Q1 ( "abc" ),
+                Q2 ( 42 )]
+            string M1();\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+                [Q1 ("abc"),
+                Q2 (42)]
+            string M1();\n""",
+            None, True
+        ),
+        (
+            "two scalar multi line qualifiers, no parameters",
+            CIMMethod(
+                name='M1',
+                return_type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
+                                    type='string'),
+                    Q2=CIMQualifier('Q2', value=('rst uvw ' * 10 + 'z'),
+                                    type='string'),
+                ),
+            ),
+            12,
+            u"""\
+               [Q1 (
+                   "abc def abc def abc def abc def abc def abc def abc def "
+                   "abc def abc def abc def z" ),
+                Q2 (
+                   "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw "
+                   "rst uvw rst uvw rst uvw z" )]
+            string M1();\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+                [Q1 (
+                  "abc def abc def abc def abc def abc def abc def abc def "
+                  "abc def abc def abc def z"),
+                Q2 (
+                  "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw "
+                  "rst uvw rst uvw rst uvw z")]
+            string M1();\n""",
+            None, True
+        ),
+        (
+            "one array single line qualifier, no parameters",
+            CIMMethod(
+                name='M1',
+                return_type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier('Q1', value=['abc', 'def'], type='string'),
+                ),
+            ),
+            12,
+            u"""\
+               [Q1 { "abc", "def" }]
+            string M1();\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+                [Q1 { "abc", "def"}]
+            string M1();\n""",
+            None, True
+        ),
+        (
+            "one array multi line qualifier with short items, no parameters",
+            CIMMethod(
+                name='M1',
+                return_type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier(
+                        'Q1',
+                        value=['abcdef%02d' % i for i in range(0, 10)],
+                        type='string'),
+                ),
+            ),
+            12,
+            u"""\
+               [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
+                   "abcdef04", "abcdef05", "abcdef06", "abcdef07",
+                   "abcdef08", "abcdef09" }]
+            string M1();\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+                [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
+                  "abcdef04", "abcdef05", "abcdef06", "abcdef07",
+                  "abcdef08", "abcdef09"}]
+            string M1();\n""",
+            None, True
+        ),
+        (
+            "one array multi line qualifier with long items, no parameters",
+            CIMMethod(
+                name='M1',
+                return_type='string',
+                qualifiers=dict(
+                    Q1=CIMQualifier(
+                        'Q1',
+                        value=['abc def ' * 10 + 'z%02d' % i
+                               for i in range(0, 2)],
+                        type='string'),
+                ),
+            ),
+            12,
+            u"""\
+               [Q1 {
+                   "abc def abc def abc def abc def abc def abc def abc def "
+                   "abc def abc def abc def z00",
+                   "abc def abc def abc def abc def abc def abc def abc def "
+                   "abc def abc def abc def z01" }]
+            string M1();\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+                [Q1 {
+                  "abc def abc def abc def abc def abc def abc def abc def "
+                  "abc def abc def abc def z00",
+                  "abc def abc def abc def abc def abc def abc def abc def "
+                  "abc def abc def abc def z01"}]
+            string M1();\n""",
+            None, True
+        ),
+        (
+            "return type string, two parameters with type string",
+            CIMMethod(
+                name='M1',
+                return_type='string',
+                parameters=NocaseDict(
+                    P1=CIMParameter('P1', type='string'),
+                    P2=CIMParameter('P2', type='string'),
+                ),
+            ),
+            12,
+            u"""\
+            string M1(
+               string P1,
+               string P2);\n""",
+            None, CHECK_0_12_0  # Unpredictable order before 0.12
+        ),
+        (
+            "return type uint32, one parameter with type sint32",
+            CIMMethod(
+                name='M1',
+                return_type='uint32',
+                parameters=NocaseDict(
+                    P1=CIMParameter('P1', type='sint32'),
+                ),
+            ),
+            12,
+            u"""\
+            uint32 M1(
+               sint32 P1);\n""" \
+            if CHECK_0_12_0 else \
+            u"""\
+            uint32 M1(
+                sint32 P1);\n""",
+            None, True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, obj, indent, exp_result, exp_warn_type, condition",
+        testcases)
+    def test_CIMMethod_tomof(
+            self, desc, obj, indent, exp_result, exp_warn_type, condition):
+        """All test cases for CIMMethod.tomof()."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        if isinstance(exp_result, type) and issubclass(exp_result, Exception):
+            # We expect an exception
+            exp_exc_type = exp_result
+            exp_mof = None
+        else:
+            # We expect the code to return
+            exp_exc_type = None
+            exp_mof = exp_result
+
+        if condition == 'pdb':
+            import pdb
+            pdb.set_trace()
+
+        if exp_warn_type:
+            with pytest.warns(exp_warn_type) as rec_warnings:
+                if exp_exc_type:
+                    with pytest.raises(exp_exc_type):
+
+                        # The code to be tested
+                        mof = obj.tomof(indent)
+
+                else:
+
+                    # The code to be tested
+                    mof = obj.tomof(indent)
+
+            assert len(rec_warnings) == 1
+
+        else:
+            if exp_exc_type:
+                with pytest.raises(exp_exc_type):
+
+                    # The code to be tested
+                    mof = obj.tomof(indent)
+
+            else:
+
+                # The code to be tested
+                mof = obj.tomof(indent)
+
+        if exp_mof:
+
+            assert isinstance(mof, six.text_type)
+            assert mof == exp_mof
 
 
 class Test_CIMParameter_init(object):
@@ -9535,16 +10553,16 @@ class Test_CIMParameter_tomof(object):
                     Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
                 ),
             ),
-            8,
+            12,
             u"""\
-           [Q1 ( "abc" ),
-            Q2 ( 42 )]
-        string P1[5]""" \
+               [Q1 ( "abc" ),
+                Q2 ( 42 )]
+            string P1[5]""" \
             if CHECK_0_12_0 else \
             u"""\
-          [Q1 ("abc"),
-          Q2 (42)]
-        string P1[5]""",
+              [Q1 ("abc"),
+              Q2 (42)]
+            string P1[5]""",
             None, True
         ),
         (
@@ -9553,9 +10571,9 @@ class Test_CIMParameter_tomof(object):
                 name='P1',
                 type='string',
             ),
-            8,
+            12,
             u"""\
-        string P1""",
+            string P1""",
             None, True
         ),
         (
@@ -9567,14 +10585,14 @@ class Test_CIMParameter_tomof(object):
                     Q1=CIMQualifier('Q1', value='abc', type='string'),
                 ),
             ),
-            8,
+            12,
             u"""\
-           [Q1 ( "abc" )]
-        string P1""" \
+               [Q1 ( "abc" )]
+            string P1""" \
             if CHECK_0_12_0 else \
             u"""\
-          [Q1 ("abc")]
-        string P1""",
+              [Q1 ("abc")]
+            string P1""",
             None, True
         ),
         (
@@ -9587,18 +10605,18 @@ class Test_CIMParameter_tomof(object):
                                     type='string'),
                 ),
             ),
-            8,
+            12,
             u"""\
-           [Q1 (
-               "abc def abc def abc def abc def abc def abc def abc def abc "
-               "def abc def abc def z" )]
-        string P1""" \
+               [Q1 (
+                   "abc def abc def abc def abc def abc def abc def abc def "
+                   "abc def abc def abc def z" )]
+            string P1""" \
             if CHECK_0_12_0 else \
             u"""\
-          [Q1 (
-            "abc def abc def abc def abc def abc def abc def abc def abc def "
-            "abc def abc def z")]
-        string P1""",
+              [Q1 (
+                "abc def abc def abc def abc def abc def abc def abc def abc "
+                "def abc def abc def z")]
+            string P1""",
             None, True
         ),
         (
@@ -9611,16 +10629,16 @@ class Test_CIMParameter_tomof(object):
                     Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
                 ),
             ),
-            8,
+            12,
             u"""\
-           [Q1 ( "abc" ),
-            Q2 ( 42 )]
-        string P1""" \
+               [Q1 ( "abc" ),
+                Q2 ( 42 )]
+            string P1""" \
             if CHECK_0_12_0 else \
             u"""\
-          [Q1 ("abc"),
-          Q2 (42)]
-        string P1""",
+              [Q1 ("abc"),
+              Q2 (42)]
+            string P1""",
             None, True
         ),
         (
@@ -9635,24 +10653,24 @@ class Test_CIMParameter_tomof(object):
                                     type='string'),
                 ),
             ),
-            8,
+            12,
             u"""\
-           [Q1 (
-               "abc def abc def abc def abc def abc def abc def abc def abc "
-               "def abc def abc def z" ),
-            Q2 (
-               "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst "
-               "uvw rst uvw rst uvw z" )]
-        string P1""" \
+               [Q1 (
+                   "abc def abc def abc def abc def abc def abc def abc def "
+                   "abc def abc def abc def z" ),
+                Q2 (
+                   "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw "
+                   "rst uvw rst uvw rst uvw z" )]
+            string P1""" \
             if CHECK_0_12_0 else \
             u"""\
-          [Q1 (
-            "abc def abc def abc def abc def abc def abc def abc def abc def "
-            "abc def abc def z"),
-          Q2 (
-            "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw "
-            "rst uvw rst uvw z")]
-        string P1""",
+              [Q1 (
+                "abc def abc def abc def abc def abc def abc def abc def abc "
+                "def abc def abc def z"),
+              Q2 (
+                "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst "
+                "uvw rst uvw rst uvw z")]
+            string P1""",
             None, True
         ),
         (
@@ -9660,19 +10678,18 @@ class Test_CIMParameter_tomof(object):
             CIMParameter(
                 name='P1',
                 type='string',
-                is_array=True,
                 qualifiers=dict(
                     Q1=CIMQualifier('Q1', value=['abc', 'def'], type='string'),
                 ),
             ),
-            8,
+            12,
             u"""\
-           [Q1 { "abc", "def" }]
-        string P1[]""" \
+               [Q1 { "abc", "def" }]
+            string P1""" \
             if CHECK_0_12_0 else \
             u"""\
-          [Q1 { "abc", "def"}]
-        string P1[]""",
+              [Q1 { "abc", "def"}]
+            string P1""",
             None, True
         ),
         (
@@ -9680,7 +10697,6 @@ class Test_CIMParameter_tomof(object):
             CIMParameter(
                 name='P1',
                 type='string',
-                is_array=True,
                 qualifiers=dict(
                     Q1=CIMQualifier(
                         'Q1',
@@ -9688,17 +10704,18 @@ class Test_CIMParameter_tomof(object):
                         type='string'),
                 ),
             ),
-            8,
+            12,
             u"""\
-           [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
-               "abcdef04", "abcdef05", "abcdef06", "abcdef07",
-               "abcdef08", "abcdef09" }]
-        string P1[]""" \
+               [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
+                   "abcdef04", "abcdef05", "abcdef06", "abcdef07",
+                   "abcdef08", "abcdef09" }]
+            string P1""" \
             if CHECK_0_12_0 else \
             u"""\
-          [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04",
-            "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09"}]
-        string P1[]""",
+              [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
+                "abcdef04", "abcdef05", "abcdef06", "abcdef07",
+                "abcdef08", "abcdef09"}]
+            string P1""",
             None, True
         ),
         (
@@ -9706,7 +10723,6 @@ class Test_CIMParameter_tomof(object):
             CIMParameter(
                 name='P1',
                 type='string',
-                is_array=True,
                 qualifiers=dict(
                     Q1=CIMQualifier(
                         'Q1',
@@ -9715,22 +10731,107 @@ class Test_CIMParameter_tomof(object):
                         type='string'),
                 ),
             ),
-            8,
+            12,
             u"""\
-           [Q1 {
-               "abc def abc def abc def abc def abc def abc def abc def abc "
-               "def abc def abc def z00",
-               "abc def abc def abc def abc def abc def abc def abc def abc "
-               "def abc def abc def z01" }]
-        string P1[]""" \
+               [Q1 {
+                   "abc def abc def abc def abc def abc def abc def abc def "
+                   "abc def abc def abc def z00",
+                   "abc def abc def abc def abc def abc def abc def abc def "
+                   "abc def abc def abc def z01" }]
+            string P1""" \
             if CHECK_0_12_0 else \
             u"""\
-          [Q1 {
-            "abc def abc def abc def abc def abc def abc def abc def abc def "
-            "abc def abc def z00",
-            "abc def abc def abc def abc def abc def abc def abc def abc def "
-            "abc def abc def z01"}]
-        string P1[]""",
+              [Q1 {
+                "abc def abc def abc def abc def abc def abc def abc def abc "
+                "def abc def abc def z00",
+                "abc def abc def abc def abc def abc def abc def abc def abc "
+                "def abc def abc def z01"}]
+            string P1""",
+            None, True
+        ),
+        (
+            "string array parameter, variable size",
+            CIMParameter(
+                name='P1',
+                type='string',
+                is_array=True,
+            ),
+            12,
+            u"""\
+            string P1[]""",
+            None, True
+        ),
+        (
+            "uint32 array parameter, fixed size",
+            CIMParameter(
+                name='P1',
+                type='uint32',
+                is_array=True,
+                array_size=5,
+            ),
+            12,
+            u"""\
+            uint32 P1[5]""",
+            None, True
+        ),
+        (
+            "reference parameter",
+            CIMParameter(
+                name='P1',
+                type='reference',
+                reference_class='RC',
+            ),
+            12,
+            u"""\
+            RC REF P1""",
+            None, True
+        ),
+        (
+            "reference array parameter, variable size",
+            CIMParameter(
+                name='P1',
+                type='reference',
+                reference_class='RC',
+                is_array=True,
+            ),
+            12,
+            u"""\
+            RC REF P1[]""",
+            None, True
+        ),
+        (
+            "datetime parameter",
+            CIMParameter(
+                name='P1',
+                type='datetime',
+            ),
+            12,
+            u"""\
+            datetime P1""",
+            None, True
+        ),
+        (
+            "boolean array parameter, fixed size",
+            CIMParameter(
+                name='P1',
+                type='boolean',
+                is_array=True,
+                array_size=5,
+            ),
+            12,
+            u"""\
+            boolean P1[5]""",
+            None, True
+        ),
+        (
+            "real64 parameter",
+            CIMParameter(
+                name='P1',
+                type='real64',
+            ),
+            12,
+            u"""\
+            real64 P1""",
             None, True
         ),
     ]
@@ -9753,6 +10854,10 @@ class Test_CIMParameter_tomof(object):
             # We expect the code to return
             exp_exc_type = None
             exp_mof = exp_result
+
+        if condition == 'pdb':
+            import pdb
+            pdb.set_trace()
 
         if exp_warn_type:
             with pytest.warns(exp_warn_type) as rec_warnings:
@@ -10975,6 +12080,10 @@ Qualifier Q1 : string,
             exp_exc_type = None
             exp_mof = exp_result
 
+        if condition == 'pdb':
+            import pdb
+            pdb.set_trace()
+
         if exp_warn_type:
             with pytest.warns(exp_warn_type) as rec_warnings:
                 if exp_exc_type:
@@ -11350,190 +12459,618 @@ class Test_cimvalue(object):
                 cimvalue(value, type)
 
 
-class MofStr(unittest.TestCase):
-    """Test cases for mofstr()."""
+class Test_mofstr(object):
+    """Test cases for cim_obj.mofstr()."""
 
-    def _run_single(self, in_value, exp_value):
-        '''
-        Test function for single invocation of mofstr()
-        '''
+    # Default input arguments if not specified in testcase
+    # They do not necessarily have to match the default values.
+    default_kwargs = dict(
+        indent=cim_obj.MOF_INDENT,
+        maxline=cim_obj.MAX_MOF_LINE,
+        line_pos=0,
+        end_space=0,
+        avoid_splits=False,
+        quote_char=u'"',
+    )
 
-        ret_value = cim_obj.mofstr(in_value, indent=4, maxline=79)
+    testcases = [
+        # Testcases for cim_obj.mofstr().
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * kwargs: Dict of keyword arguments for mofstr():
+        #   - value: Value to be tested.
+        #   - indent: Indentation for new lines.
+        #   - maxline: Maximum line length.
+        #   - line_pos: Length of content already on the current line.
+        #   - end_space: Length of space to be left free on the last line.
+        #   - avoid_splits: Avoid splits at the price of starting a new line.
+        #   - quote_char: Character to be used for surrounding the string parts.
+        # * exp_result: Expected result tuple, if expected to succeed.
+        #     Exception type, if expected to fail.
+        # * exp_warn_type: Expected warning type.
+        #     None, if no warning expected.
+        # * condition: Condition for testcase to run.
 
-        self.assertEqual(ret_value, exp_value)
+        # Some simple cases
+        (
+            "Empty string",
+            dict(value=u''), (u'""', 2), None, True,
+        ),
+        (
+            "Single character",
+            dict(value=u'c'), (u'"c"', 3), None, True,
+        ),
 
-    def test_all(self):
-        '''
-        Run all tests for mofstr().
-        '''
+        # Test whitespace preservation
+        (
+            "String with inside blank",
+            dict(value=u'c d'), (u'"c d"', 5), None, True,
+        ),
+        (
+            "String with leading blank",
+            dict(value=u' d'), (u'" d"', 4), None, True,
+        ),
+        (
+            "String with trailing blank",
+            dict(value=u'c '), (u'"c "', 4), None, True,
+        ),
+        (
+            "String that is a blank",
+            dict(value=u' '), (u'" "', 3), None, True,
+        ),
+        (
+            "String with two inside blanks",
+            dict(value=u'c  d'), (u'"c  d"', 6), None, True,
+        ),
 
-        # Note: The following literal strings use normal Python escaping.
+        # Test single quote escaping
+        (
+            "String that is single quote",
+            dict(value=u'\''), (u'"\\\'"', 4), None, True,
+        ),
+        (
+            "String with inside single quote",
+            dict(value=u'c\'d'), (u'"c\\\'d"', 6), None, True,
+        ),
+        (
+            "String with two inside single quotes",
+            dict(value=u'c\'\'d'), (u'"c\\\'\\\'d"', 8), None, True,
+        ),
 
-        # Some standard cases
-        self._run_single('', '""')
-        self._run_single('c', '"c"')
-        self._run_single('c d', '"c d"')
+        # Test double quote escaping
+        (
+            "String that is double quote",
+            dict(value=u'"'), (u'"\\""', 4), None, True,
+        ),
+        (
+            "String with inside double quote",
+            dict(value=u'c"d'), (u'"c\\"d"', 6), None, True,
+        ),
+        (
+            "String with two inside double quotes",
+            dict(value=u'c""d'), (u'"c\\"\\"d"', 8), None, True,
+        ),
 
-        # Whitespace
-        self._run_single(' c', '" c"')
-        self._run_single('c ', '"c "')
-        self._run_single(' ', '" "')
-        self._run_single('c  d', '"c  d"')
+        # Test backslash escaping
+        (
+            "String that is backslash",
+            dict(value=u'\\'), (u'"\\\\"', 4), None, True,
+        ),
+        (
+            "String with leading backslash",
+            dict(value=u'\\d'), (u'"\\\\d"', 5), None, True,
+        ),
+        (
+            "String with trailing backslash",
+            dict(value=u'c\\'), (u'"c\\\\"', 5), None, True,
+        ),
+        (
+            "String with inside backslash",
+            dict(value=u'c\\d'), (u'"c\\\\d"', 6), None, True,
+        ),
+        (
+            "String with two inside backslashes",
+            dict(value=u'c\\\\d'), (u'"c\\\\\\\\d"', 8), None, True,
+        ),
 
-        # Single quote (gets escaped)
-        self._run_single('\'', '"\\\'"')
-        self._run_single('c\'d', '"c\\\'d"')
-        self._run_single('c\'\'d', '"c\\\'\\\'d"')
+        # Test MOF named escape sequences
+        (
+            "String that is escapable character \\b",
+            dict(value=u'\b'), (u'"\\b"', 4), None, True,
+        ),
+        (
+            "String that is escapable character \\t",
+            dict(value=u'\t'), (u'"\\t"', 4), None, True,
+        ),
+        (
+            "String that is escapable character \\n",
+            dict(value=u'\n'), (u'"\\n"', 4), None, True,
+        ),
+        (
+            "String that is escapable character \\f",
+            dict(value=u'\f'), (u'"\\f"', 4), None, True,
+        ),
+        (
+            "String that is escapable character \\r",
+            dict(value=u'\r'), (u'"\\r"', 4), None, True,
+        ),
+        (
+            "String with inside escapable character \\b",
+            dict(value=u'c\bd'), (u'"c\\bd"', 6), None, True,
+        ),
+        (
+            "String with inside escapable character \\t",
+            dict(value=u'c\td'), (u'"c\\td"', 6), None, True,
+        ),
+        (
+            "String with inside escapable character \\n",
+            dict(value=u'c\nd'), (u'"c\\nd"', 6), None, True,
+        ),
+        (
+            "String with inside escapable character \\f",
+            dict(value=u'c\fd'), (u'"c\\fd"', 6), None, True,
+        ),
+        (
+            "String with inside escapable character \\r",
+            dict(value=u'c\rd'), (u'"c\\rd"', 6), None, True,
+        ),
 
-        # Double quote (gets escaped)
-        self._run_single('"', '"\\""')
-        self._run_single('c"d', '"c\\"d"')
-        self._run_single('c""d', '"c\\"\\"d"')
-
-        # Backslash character (gets escaped)
-        self._run_single('\\', '"\\\\"')
-        self._run_single('\\c', '"\\\\c"')
-        self._run_single('c\\', '"c\\\\"')
-        self._run_single('c\\d', '"c\\\\d"')
-        self._run_single('c\\\\d', '"c\\\\\\\\d"')
-
-        # Other MOF-escapable characters (get escaped)
-        self._run_single('\b', '"\\b"')
-        self._run_single('\t', '"\\t"')
-        self._run_single('\n', '"\\n"')
-        self._run_single('\f', '"\\f"')
-        self._run_single('\r', '"\\r"')
-        self._run_single('c\bd', '"c\\bd"')
-        self._run_single('c\td', '"c\\td"')
-        self._run_single('c\nd', '"c\\nd"')
-        self._run_single('c\fd', '"c\\fd"')
-        self._run_single('c\rd', '"c\\rd"')
-
-        # An already MOF-escaped sequence.
+        # Test an already MOF-escaped sequence.
         # Such a sequence is treated as separate characters, i.e. backslash
         # gets escaped, and the following char gets escaped on its own.
         # These sequences were treated specially before v0.9, by parsing them
         # as already-escaped MOF sequences and passing them through unchanged.
-        self._run_single('\\b', '"\\\\b"')
-        self._run_single('\\t', '"\\\\t"')
-        self._run_single('\\n', '"\\\\n"')
-        self._run_single('\\f', '"\\\\f"')
-        self._run_single('\\r', '"\\\\r"')
-        self._run_single('\\\'', '"\\\\\\\'"')  # escape the following quote
-        self._run_single('\\"', '"\\\\\\""')  # escape the following quote
-        self._run_single('c\\bd', '"c\\\\bd"')
-        self._run_single('c\\td', '"c\\\\td"')
-        self._run_single('c\\nd', '"c\\\\nd"')
-        self._run_single('c\\fd', '"c\\\\fd"')
-        self._run_single('c\\rd', '"c\\\\rd"')
-        self._run_single('c\\\'d', '"c\\\\\\\'d"')  # escape the following quote
-        self._run_single('c\\"d', '"c\\\\\\"d"')  # escape the following quote
+        (
+            "String that is escaped character \\b",
+            dict(value=u'\\b'), (u'"\\\\b"', 5), None, True
+        ),
+        (
+            "String that is escaped character \\t",
+            dict(value=u'\\t'), (u'"\\\\t"', 5), None, True
+        ),
+        (
+            "String that is escaped character \\n",
+            dict(value=u'\\n'), (u'"\\\\n"', 5), None, True
+        ),
+        (
+            "String that is escaped character \\f",
+            dict(value=u'\\f'), (u'"\\\\f"', 5), None, True
+        ),
+        (
+            "String that is escaped character \\r",
+            dict(value=u'\\r'), (u'"\\\\r"', 5), None, True
+        ),
+        (
+            "String that is escaped character \' ",
+            dict(value=u'\\\''), (u'"\\\\\\\'"', 6), None, True
+        ),
+        (
+            "String that is escaped character \" ",
+            dict(value=u'\\"'), (u'"\\\\\\""', 6), None, True
+        ),
+        (
+            "String with inside escaped character \\b",
+            dict(value=u'c\\bd'), (u'"c\\\\bd"', 7), None, True
+        ),
+        (
+            "String with inside escaped character \\t",
+            dict(value=u'c\\td'), (u'"c\\\\td"', 7), None, True
+        ),
+        (
+            "String with inside escaped character \\n",
+            dict(value=u'c\\nd'), (u'"c\\\\nd"', 7), None, True
+        ),
+        (
+            "String with inside escaped character \\f",
+            dict(value=u'c\\fd'), (u'"c\\\\fd"', 7), None, True
+        ),
+        (
+            "String with inside escaped character \\r",
+            dict(value=u'c\\rd'), (u'"c\\\\rd"', 7), None, True
+        ),
+        (
+            "String with inside escaped character \' ",
+            dict(value=u'c\\\'d'), (u'"c\\\\\\\'d"', 8), None, True
+        ),
+        (
+            "String with inside escaped character \" ",
+            dict(value=u'c\\"d'), (u'"c\\\\\\"d"', 8), None, True
+        ),
 
-        # Backslash followed by MOF-escapable character (are treated separately)
-        self._run_single('\\\b', '"\\\\\\b"')
-        self._run_single('\\\t', '"\\\\\\t"')
-        self._run_single('\\\n', '"\\\\\\n"')
-        self._run_single('\\\f', '"\\\\\\f"')
-        self._run_single('\\\r', '"\\\\\\r"')
-        self._run_single('c\\\bd', '"c\\\\\\bd"')
-        self._run_single('c\\\td', '"c\\\\\\td"')
-        self._run_single('c\\\nd', '"c\\\\\\nd"')
-        self._run_single('c\\\fd', '"c\\\\\\fd"')
-        self._run_single('c\\\rd', '"c\\\\\\rd"')
+        # Test backslash followed by MOF-escapable character
+        (
+            "String with backslash and escapable character \\b",
+            dict(value=u'\\\b'), (u'"\\\\\\b"', 6), None, True
+        ),
+        (
+            "String with backslash and escapable character \\t",
+            dict(value=u'\\\t'), (u'"\\\\\\t"', 6), None, True
+        ),
+        (
+            "String with backslash and escapable character \\n",
+            dict(value=u'\\\n'), (u'"\\\\\\n"', 6), None, True
+        ),
+        (
+            "String with backslash and escapable character \\f",
+            dict(value=u'\\\f'), (u'"\\\\\\f"', 6), None, True
+        ),
+        (
+            "String with backslash and escapable character \\r",
+            dict(value=u'\\\r'), (u'"\\\\\\r"', 6), None, True
+        ),
+        (
+            "String with inside backslash and escapable character \\b",
+            dict(value=u'c\\\bd'), (u'"c\\\\\\bd"', 8), None, True
+        ),
+        (
+            "String with inside backslash and escapable character \\t",
+            dict(value=u'c\\\td'), (u'"c\\\\\\td"', 8), None, True
+        ),
+        (
+            "String with inside backslash and escapable character \\n",
+            dict(value=u'c\\\nd'), (u'"c\\\\\\nd"', 8), None, True
+        ),
+        (
+            "String with inside backslash and escapable character \\f",
+            dict(value=u'c\\\fd'), (u'"c\\\\\\fd"', 8), None, True
+        ),
+        (
+            "String with inside backslash and escapable character \\r",
+            dict(value=u'c\\\rd'), (u'"c\\\\\\rd"', 8), None, True
+        ),
 
-        # Control character (get escaped)
-        self._run_single(u'\u0001', '"\\x0001"')
-        self._run_single(u'\u0002', '"\\x0002"')
-        self._run_single(u'\u0003', '"\\x0003"')
-        self._run_single(u'\u0004', '"\\x0004"')
-        self._run_single(u'\u0005', '"\\x0005"')
-        self._run_single(u'\u0006', '"\\x0006"')
-        self._run_single(u'\u0007', '"\\x0007"')
-        self._run_single(u'\u0008', '"\\b"')
-        self._run_single(u'\u0009', '"\\t"')
-        self._run_single(u'\u000A', '"\\n"')
-        self._run_single(u'\u000B', '"\\x000B"')
-        self._run_single(u'\u000C', '"\\f"')
-        self._run_single(u'\u000D', '"\\r"')
-        self._run_single(u'\u000E', '"\\x000E"')
-        self._run_single(u'\u000F', '"\\x000F"')
-        self._run_single(u'\u0010', '"\\x0010"')
-        self._run_single(u'\u0011', '"\\x0011"')
-        self._run_single(u'\u0012', '"\\x0012"')
-        self._run_single(u'\u0013', '"\\x0013"')
-        self._run_single(u'\u0014', '"\\x0014"')
-        self._run_single(u'\u0015', '"\\x0015"')
-        self._run_single(u'\u0016', '"\\x0016"')
-        self._run_single(u'\u0017', '"\\x0017"')
-        self._run_single(u'\u0018', '"\\x0018"')
-        self._run_single(u'\u0019', '"\\x0019"')
-        self._run_single(u'\u001A', '"\\x001A"')
-        self._run_single(u'\u001B', '"\\x001B"')
-        self._run_single(u'\u001C', '"\\x001C"')
-        self._run_single(u'\u001D', '"\\x001D"')
-        self._run_single(u'\u001E', '"\\x001E"')
-        self._run_single(u'\u001F', '"\\x001F"')
-        self._run_single(u'\u0020', '" "')
+        # Test control characters
+        (
+            "String that is control character U+0001",
+            dict(value=u'\u0001'), (u'"\\x0001"', 8), None, True
+        ),
+        (
+            "String that is control character U+0002",
+            dict(value=u'\u0002'), (u'"\\x0002"', 8), None, True
+        ),
+        (
+            "String that is control character U+0003",
+            dict(value=u'\u0003'), (u'"\\x0003"', 8), None, True
+        ),
+        (
+            "String that is control character U+0004",
+            dict(value=u'\u0004'), (u'"\\x0004"', 8), None, True
+        ),
+        (
+            "String that is control character U+0005",
+            dict(value=u'\u0005'), (u'"\\x0005"', 8), None, True
+        ),
+        (
+            "String that is control character U+0006",
+            dict(value=u'\u0006'), (u'"\\x0006"', 8), None, True
+        ),
+        (
+            "String that is control character U+0007",
+            dict(value=u'\u0007'), (u'"\\x0007"', 8), None, True
+        ),
+        (
+            "String that is control character U+0008",
+            dict(value=u'\u0008'), (u'"\\b"', 4), None, True
+        ),
+        (
+            "String that is control character U+0009",
+            dict(value=u'\u0009'), (u'"\\t"', 4), None, True
+        ),
+        (
+            "String that is control character U+000A",
+            dict(value=u'\u000A'), (u'"\\n"', 4), None, True
+        ),
+        (
+            "String that is control character U+000B",
+            dict(value=u'\u000B'), (u'"\\x000B"', 8), None, True
+        ),
+        (
+            "String that is control character U+000C",
+            dict(value=u'\u000C'), (u'"\\f"', 4), None, True
+        ),
+        (
+            "String that is control character U+000D",
+            dict(value=u'\u000D'), (u'"\\r"', 4), None, True
+        ),
+        (
+            "String that is control character U+000E",
+            dict(value=u'\u000E'), (u'"\\x000E"', 8), None, True
+        ),
+        (
+            "String that is control character U+000F",
+            dict(value=u'\u000F'), (u'"\\x000F"', 8), None, True
+        ),
+        (
+            "String that is control character U+0010",
+            dict(value=u'\u0010'), (u'"\\x0010"', 8), None, True
+        ),
+        (
+            "String that is control character U+0011",
+            dict(value=u'\u0011'), (u'"\\x0011"', 8), None, True
+        ),
+        (
+            "String that is control character U+0012",
+            dict(value=u'\u0012'), (u'"\\x0012"', 8), None, True
+        ),
+        (
+            "String that is control character U+0013",
+            dict(value=u'\u0013'), (u'"\\x0013"', 8), None, True
+        ),
+        (
+            "String that is control character U+0014",
+            dict(value=u'\u0014'), (u'"\\x0014"', 8), None, True
+        ),
+        (
+            "String that is control character U+0015",
+            dict(value=u'\u0015'), (u'"\\x0015"', 8), None, True
+        ),
+        (
+            "String that is control character U+0016",
+            dict(value=u'\u0016'), (u'"\\x0016"', 8), None, True
+        ),
+        (
+            "String that is control character U+0017",
+            dict(value=u'\u0017'), (u'"\\x0017"', 8), None, True
+        ),
+        (
+            "String that is control character U+0018",
+            dict(value=u'\u0018'), (u'"\\x0018"', 8), None, True
+        ),
+        (
+            "String that is control character U+0019",
+            dict(value=u'\u0019'), (u'"\\x0019"', 8), None, True
+        ),
+        (
+            "String that is control character U+001A",
+            dict(value=u'\u001A'), (u'"\\x001A"', 8), None, True
+        ),
+        (
+            "String that is control character U+001B",
+            dict(value=u'\u001B'), (u'"\\x001B"', 8), None, True
+        ),
+        (
+            "String that is control character U+001C",
+            dict(value=u'\u001C'), (u'"\\x001C"', 8), None, True
+        ),
+        (
+            "String that is control character U+001D",
+            dict(value=u'\u001D'), (u'"\\x001D"', 8), None, True
+        ),
+        (
+            "String that is control character U+001E",
+            dict(value=u'\u001E'), (u'"\\x001E"', 8), None, True
+        ),
+        (
+            "String that is control character U+001F",
+            dict(value=u'\u001F'), (u'"\\x001F"', 8), None, True
+        ),
+        (
+            "String that is control character U+0020",
+            dict(value=u'\u0020'), (u'" "', 3), None, True
+        ),
 
-        # Line break cases
+        # Test line break cases, starting at begin of line
+        (
+            "Line break with split on a space between words",
+            dict(value=u'the big brown fox1 jumps over a big brown fox2 jumps '
+                 u'over a big brown fox3',
+                 maxline=56),
+            (
+                u'"the big brown fox1 jumps over a big brown fox2 jumps "\n'
+                u'   "over a big brown fox3"',
+                26
+            ),
+            None, CHECK_0_12_0
+        ),
+        (
+            "Line break with split in a long word with no blanks",
+            dict(value=u'the_big_brown_fox1_jumps_over_a_big_brown_fox2_jumps_'
+                 u'over_a_big_brown_fox3',
+                 maxline=56),
+            (
+                u'\n'
+                u'   "the_big_brown_fox1_jumps_over_a_big_brown_fox2_jump"\n'
+                u'   "s_over_a_big_brown_fox3"',
+                28
+            ),
+            None, CHECK_0_12_0
+        ),
 
-        self._run_single(
-            # |2                                                          |60
-            'the big brown fox jumps over a big brown fox jumps over a big' \
-            ' brown f jumps over a big brown fox', \
-            '"the big brown fox jumps over a big brown fox jumps over a big' \
-            ' brown f "\n' \
-            '    "jumps over a big brown fox"')
+        # Test initial line position on words without blanks
+        (
+            "No blanks, Line position without new line",
+            dict(value=u'abc', line_pos=8),
+            (u'"abc"', 13),
+            None, CHECK_0_12_0,
+        ),
+        (
+            "No blanks, Line position with new line using max",
+            dict(value=u'abcd_fghi_abcd_fghi_ab',
+                 line_pos=5, maxline=15, indent=2),
+            (u'\n  "abcd_fghi_a"\n  "bcd_fghi_ab"', 15),
+            None, CHECK_0_12_0,
+        ),
+        (
+            "No blanks, Line position with new line using max - 1",
+            dict(value=u'abcd_fghi_abcd_fghi_a',
+                 line_pos=5, maxline=15, indent=2),
+            (u'\n  "abcd_fghi_a"\n  "bcd_fghi_a"', 14),
+            None, CHECK_0_12_0,
+        ),
+        (
+            "No blanks, Line position with new line using max + 1",
+            dict(value=u'abcd_fghi_abcd_fghi_abc',
+                 line_pos=5, maxline=15, indent=2),
+            (u'\n  "abcd_fghi_a"\n  "bcd_fghi_ab"\n  "c"', 5),
+            None, CHECK_0_12_0,
+        ),
+        (
+            "No blanks, Line position starting at maxline",
+            dict(value=u'abcd_fghi',
+                 line_pos=15, maxline=15, indent=2),
+            (u'\n  "abcd_fghi"', 13),
+            None, CHECK_0_12_0,
+        ),
 
-        self._run_single(
-            # |2                                                          |60
-            'the big brown fox jumps over a big brown fox jumps over a big' \
-            ' brown fo jumps over a big brown fox', \
-            '"the big brown fox jumps over a big brown fox jumps over a big' \
-            ' brown fo "\n' \
-            '    "jumps over a big brown fox"')
+        # Test initial line position on words with blanks
+        (
+            "Blanks, Line position with new line using max",
+            dict(value=u'abcd fghij lmnop',
+                 line_pos=5, maxline=15, indent=2),
+            (u'"abcd "\n  "fghij lmnop"', 15),
+            None, CHECK_0_12_0,
+        ),
+        (
+            "Blanks, Line position with new line using max - 1",
+            dict(value=u'abcd fghij lmno',
+                 line_pos=5, maxline=15, indent=2),
+            (u'"abcd "\n  "fghij lmno"', 14),
+            None, CHECK_0_12_0,
+        ),
+        (
+            "Blanks, Line position with new line using max + 1",
+            dict(value=u'abcd fghij lmnopq',
+                 line_pos=5, maxline=15, indent=2),
+            (u'"abcd "\n  "fghij "\n  "lmnopq"', 10),
+            None, CHECK_0_12_0,
+        ),
+        (
+            "Blanks, Line position starting at maxline",
+            dict(value=u'abcd fghi',
+                 line_pos=15, maxline=15, indent=2),
+            (u'\n  "abcd fghi"', 13),
+            None, CHECK_0_12_0,
+        ),
+        (
+            "Blanks, Line position starting to exactly fit first word",
+            dict(value=u'abcd fghi',
+                 line_pos=8, maxline=15, indent=2),
+            (u'"abcd "\n  "fghi"', 8),
+            None, CHECK_0_12_0,
+        ),
+        (
+            "See issue #343",
+            dict(value=u'Linux version 3.13.0-86-generic (buildd@lgw01-51) '
+                 u'(gcc version 4.8.2',
+                 line_pos=18, maxline=80, indent=8),
+            (
+                u'"Linux version 3.13.0-86-generic (buildd@lgw01-51) (gcc "\n'
+                u'        "version 4.8.2"',
+                23
+            ),
+            None, CHECK_0_12_0
+        ),
 
-        self._run_single(
-            # |2                                                          |60
-            'the big brown fox jumps over a big brown fox jumps over a big' \
-            ' brown fox jumps over a big brown fox', \
-            '"the big brown fox jumps over a big brown fox jumps over a big' \
-            ' brown fox "\n' \
-            '    "jumps over a big brown fox"')
+        # Test end space on words with blanks
+        (
+            "Blanks, End space with new line using max",
+            dict(value=u'abcd fghij lmn',
+                 line_pos=5, maxline=15, indent=2, end_space=2),
+            (u'"abcd "\n  "fghij lmn"', 13),
+            None, CHECK_0_12_0,
+        ),
+        (
+            "Blanks, End space with new line using max - 1",
+            dict(value=u'abcd fghij lm',
+                 line_pos=5, maxline=15, indent=2, end_space=2),
+            (u'"abcd "\n  "fghij lm"', 12),
+            None, CHECK_0_12_0,
+        ),
+        (
+            "Blanks, End space with new line using max + 1",
+            dict(value=u'abcd fghij lmno',
+                 line_pos=5, maxline=15, indent=2, end_space=2),
+            (u'"abcd "\n  "fghij "\n  "lmno"', 8),
+            None, CHECK_0_12_0,
+        ),
+        (
+            "Blanks, End space with new line using max + 1, on first part",
+            dict(value=u'abcdefgh',
+                 line_pos=4, maxline=15, indent=2, end_space=2),
+            (u'\n  "abcdefgh"', 12),
+            None, CHECK_0_12_0,
+        ),
+    ]
 
-        self._run_single(
-            # |2                                                          |60
-            'the big brown fox jumps over a big brown fox jumps over a big' \
-            ' brown foxx jumps over a big brown fox', \
-            '"the big brown fox jumps over a big brown fox jumps over a big' \
-            ' brown foxx "\n' \
-            '    "jumps over a big brown fox"')
-        self._run_single(
-            # |2                                                          |60
-            'the big brown fox jumps over a big brown fox jumps over a big' \
-            ' brown foxxx jumps over a big brown fox', \
-            '"the big brown fox jumps over a big brown fox jumps over a big' \
-            ' brown "\n' \
-            '    "foxxx jumps over a big brown fox"')
+    @pytest.mark.parametrize(
+        "desc, kwargs, exp_result, exp_warn_type, condition",
+        testcases)
+    def test_mofstr(
+            self, desc, kwargs, exp_result, exp_warn_type, condition):
+        """All test cases for mofstr()."""
 
-        # TODO: This may be wrong in that it breaks a word, not between words.
-        self._run_single(
-            # |2                                                          |60
-            'the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big' \
-            '_brown_fox_jumps_over a big brown fox', \
-            '"the_big_brown_fox_jumps_over_a_big_brown_fox_jumps_over_a_big' \
-            '_brown_fox_j"\n' \
-            '    "umps_over a big brown fox"')
+        if not condition:
+            pytest.skip("Condition for test case not met")
 
-        self._run_single(
-            # |2                                                          |60
-            'the big brown fox jumps over a big brown fox jumps over a big' \
-            ' brown fox_jumps_over_a_big_brown_fox', \
-            '"the big brown fox jumps over a big brown fox jumps over a big' \
-            ' brown "\n' \
-            '    "fox_jumps_over_a_big_brown_fox"')
+        # Skip testcase if it uses the new args added in 0.12
+        if not CHECK_0_12_0:
+            if 'line_pos' in kwargs or \
+                    'end_space' in kwargs or \
+                    'avoid_splits' in kwargs or \
+                    'quote_char' in kwargs:
+                pytest.skip("test case uses new args added in 0.12")
 
-        return 0
+        if isinstance(exp_result, type) and issubclass(exp_result, Exception):
+            # We expect an exception
+            exp_exc_type = exp_result
+            exp_mof = exp_pos = None
+        else:
+            # We expect the code to return
+            exp_exc_type = None
+            exp_mof, exp_pos = exp_result
+
+        if CHECK_0_12_0:
+            for k in self.default_kwargs:
+                if k not in kwargs:
+                    kwargs[k] = self.default_kwargs[k]
+        else:
+            # Undo the arg rename from strvalue to value
+            if 'value' in kwargs:
+                kwargs['strvalue'] = kwargs['value']
+                del kwargs['value']
+
+        if condition == 'pdb':
+            import pdb
+            pdb.set_trace()
+
+        if exp_warn_type:
+            with pytest.warns(exp_warn_type) as rec_warnings:
+                if exp_exc_type:
+                    with pytest.raises(exp_exc_type):
+
+                        # The code to be tested
+                        result = cim_obj.mofstr(**kwargs)
+
+                else:
+
+                    # The code to be tested
+                    result = cim_obj.mofstr(**kwargs)
+
+            assert len(rec_warnings) == 1
+
+        else:
+            if exp_exc_type:
+                with pytest.raises(exp_exc_type):
+
+                    # The code to be tested
+                    result = cim_obj.mofstr(**kwargs)
+
+            else:
+
+                # The code to be tested
+                result = cim_obj.mofstr(**kwargs)
+
+        if exp_mof:
+            if CHECK_0_12_0:
+                mof, pos = result
+                assert isinstance(mof, six.text_type)
+                assert mof == exp_mof
+                assert isinstance(pos, int)
+                assert pos == exp_pos
+            else:
+                mof = result
+                assert isinstance(mof, six.string_types)
+                assert mof == exp_mof
 
 
 # Determine the directory where this module is located. This must be done

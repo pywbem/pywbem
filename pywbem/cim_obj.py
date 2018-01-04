@@ -96,7 +96,7 @@ __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
 
 # Constants for MOF formatting output
 MOF_INDENT = 3
-MAX_MOF_LINE = 79   # use 79 because comma separator sometimes runs over
+MAX_MOF_LINE = 80
 
 # Patterns for WBEM URI parsing, consistent with DSP0207, except that for a
 # local WBEM URI (no namespace type, no authority), the leading slash required
@@ -605,26 +605,47 @@ def _ensure_bool(obj):
     return obj
 
 
-def _makequalifiers(qualifiers, indent):
+def _qualifiers_tomof(qualifiers, indent, maxline=MAX_MOF_LINE):
     """
-    Return a MOF fragment for a NocaseDict of qualifiers indented the
-    number of spaces defined by indent. Return empty string if no qualifiers.
+    Return a MOF fragment with the qualifier values, including the surrounding
+    square brackets. The qualifiers are ordered by their name.
+
+    Return empty string if no qualifiers.
+
     Normally multiline output and may fold qualifiers into multiple lines.
 
     Parameters:
 
-      qualifiers (list): List of qualifiers to format.
+      qualifiers (NocaseDict): Qualifiers to format.
 
-      indent (:term:`integer`): Indent level for this set of qualifiers. This
-        is the number of spaces to the opening square bracket of the list.
+      indent (:term:`integer`): Number of spaces to indent each line of
+        the returned string, counted to the opening bracket in the first line.
+
+    Returns:
+
+      :term:`unicode string`: MOF fragment.
     """
+
     if not qualifiers:
-        return ''
-    qual_list = [qualifiers[qn].tomof(indent + 1 + MOF_INDENT)
-                 for qn in sorted(qualifiers.keys())]
+        return u''
+
+    mof = []
+
+    mof.append(_indent_str(indent))
+    mof.append(u'[')
+    line_pos = indent + 1
+
+    mof_quals = []
+    # TODO 01/18 AM Preserve order of qualifiers in generated MOF
+    for qn in sorted(qualifiers.keys()):
+        q = qualifiers[qn]
+        mof_quals.append(q.tomof(indent + 1 + MOF_INDENT, maxline, line_pos))
     delim = ',\n' + _indent_str(indent + 1)
-    qual_str = delim.join(qual_list)
-    return '%s[%s]\n' % (_indent_str(indent), qual_str)
+    mof.append(delim.join(mof_quals))
+
+    mof.append(u']\n')
+
+    return u''.join(mof)
 
 
 def _indent_str(indent):
@@ -635,19 +656,18 @@ def _indent_str(indent):
     return u''.ljust(indent, u' ')
 
 
-def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
+def _mof_escaped(strvalue):
     # Note: This is a raw docstring because it shows many backslashes, and
     # that avoids having to double them.
     r"""
-    Convert the string in `strvalue` into a MOF string constant
-    (i.e. a string literal), including the surrounding double quotes, and
-    return that result.
+    Return a MOF-escaped string from the input string.
 
-    The input string must be a :term:`unicode string`, and the returned MOF
-    string constant is also a :term:`unicode string`.
+    Parameters:
 
-    This function handles MOF escaping and breaking the string into multiple
-    lines according to the `maxline` and `indent` parameters.
+      strvalue (:term:`unicode string`): The string value. Must not be `None`.
+        Special characters must not be backslash-escaped.
+
+    Details on backslash-escaping:
 
     `DSP0004` defines that the character repertoire for MOF string constants
     is the entire repertoire for the CIM string datatype. That is, the entire
@@ -690,15 +710,6 @@ def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
 
     (1) Yes, for all other characters in the so called "control range"
         U+0001..U+001F.
-
-    This function does not tolerate that the input string already contains
-    MOF escape sequences (it did so before v0.9, but that created more
-    problems than it solved).
-
-    After escaping, the string is broken into multiple lines, for better
-    readability. The maximum line size is specified via the `maxline`
-    parameter. The indentation for any spilled over lines (i.e. not the first
-    line) is specified via the `indent` parameter.
     """
 
     escaped_str = strvalue
@@ -756,30 +767,188 @@ def mofstr(strvalue, indent=MOF_INDENT, maxline=MAX_MOF_LINE):
     escaped_str = escaped_str.replace('"', '\\"')
     escaped_str = escaped_str.replace("'", "\\'")
 
-    # Break into multiple strings for better readability
-    blankfind = maxline - indent - 2
-    _is = _indent_str(indent)
-    ret_str_list = list()
-    # TODO does not account for the extra char that may be appended
-    # to line (ex. comma). Improvement would to be to test last line
-    # for one char less than max line length and adjust. To get
-    # around this, we set max line length default to 79 ks Mar 2016
-    if escaped_str == '':
-        ret_str_list.append('""')
-    else:
-        while escaped_str != '':
-            if len(escaped_str) <= blankfind:
-                ret_str_list.append('"' + escaped_str + '"')
-                escaped_str = ''
-            else:
-                splitpos = escaped_str.rfind(' ', 0, blankfind)
-                if splitpos < 0:
-                    splitpos = blankfind - 1
-                ret_str_list.append('"' + escaped_str[0:splitpos + 1] + '"')
-                escaped_str = escaped_str[splitpos + 1:]
+    return escaped_str
 
-    ret_str = ('\n' + _is).join(ret_str_list)
-    return ret_str
+
+def mofstr(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
+           end_space=0, avoid_splits=False, quote_char=u'"'):
+    """
+    Low level function that returns the MOF representation of a string value
+    (i.e. a value that can be split into multiple parts, for example a string,
+    reference or datetime typed value).
+
+    The function performs the backslash-escaping of characters in the string
+    (for details, see function _mof_escaped()), handles the splitting into
+    multiple string parts if the current line does not have sufficient space
+    left, and surrounds the string parts (or the entire string, if it ends up
+    having only one part) with the specified quote characters.
+
+    The strategy for starting new lines and for splitting the string into parts
+    is:
+
+    * If the string fits into the current line, it is output.
+    * If the 'avoid_splits' flag is set, a new line is generating. If the
+      string fits onto the new line, it is output. Otherwise, the string is
+      split into parts and these are output starting with the new line,
+      generating additional new lines as needed.
+    * If the 'avoid_splits' flag is not set, the string is split into parts and
+      these are output starting with the current line, generating new lines as
+      needed.
+    * Strings are first tried to split after the rightmost space character that
+      would still make it fit onto the line, and only if there is no space
+      character in that range, the string is split at a non-space position.
+
+    Parameters:
+
+      value (:term:`unicode string`): The string value. Must not be `None`.
+        Special characters must not be backslash-escaped.
+
+      indent (:term:`integer`): Number of spaces to indent any new lines that
+        are generated.
+
+      maxline (:term:`integer`): Maximum line length for the generated MOF.
+
+      line_pos (:term:`integer`): Length of content already on the current
+        line.
+
+      end_space (:term:`integer`): Length of space to be left free on the last
+        line.
+
+      avoid_splits (bool): Avoid splits at the price of starting a new line
+        instead of using the current line.
+
+      quote_char (:term:`unicode string`): Character to be used for surrounding
+        the string parts with. For CIM string typed values, this must be a
+        double quote (the default), and for CIM char16 typed values, this must
+        be a single quote.
+
+    Returns:
+
+      tuple of
+        * :term:`unicode string`: MOF fragment.
+        * new line_pos
+    """
+
+    assert isinstance(value, six.text_type)
+
+    value = _mof_escaped(value)
+
+    quote_len = 2  # length of the quotes surrounding a string part
+    new_line = u'\n' + _indent_str(indent)
+
+    mof = []
+
+    while True:
+
+        # Prepare safety check for endless loops
+        saved_value = value
+
+        avl_len = maxline - line_pos - quote_len
+
+        # Decide whether to start a new line
+        if len(value) > avl_len - end_space:
+            if avoid_splits or avl_len < 0:
+                # Start a new line
+                mof.append(new_line)
+                line_pos = indent
+                avl_len = maxline - indent - quote_len
+            else:
+                # Find last fitting blank
+                blank_pos = value.rfind(u' ', 0, avl_len)
+                if blank_pos < 0:
+                    # We cannot split at a blank -> start a new line
+                    mof.append(new_line)
+                    line_pos = indent
+                    avl_len = maxline - indent - quote_len
+
+        # Check whether the entire string fits (that is a last line, then)
+        if len(value) <= avl_len - end_space:
+            mof.append(quote_char)
+            mof.append(value)
+            mof.append(quote_char)
+            line_pos += quote_len + len(value)
+            break
+
+        # Split the string and output the next part
+        split_pos = value.rfind(u' ', 0, avl_len)
+        if split_pos < 0:
+            # We have to split within a word
+            split_pos = avl_len - 1
+        part_value = value[0:split_pos + 1]
+        value = value[split_pos + 1:]
+        mof.append(quote_char)
+        mof.append(part_value)
+        mof.append(quote_char)
+        line_pos += quote_len + len(part_value)
+
+        if value == u'':
+            break
+
+        # A safety check for endless loops
+        assert value != saved_value, \
+            "Endless loop in mofstr() with state: " \
+            "mof_str=%r, value=%r, avl_len=%s, end_space=%s, split_pos=%s" % \
+            (u''.join(mof), value, avl_len, end_space, split_pos)
+
+    mof_str = u''.join(mof)
+    return mof_str, line_pos
+
+
+def mofval(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
+           end_space=0):
+    """
+    Low level function that returns the MOF representation of a non-string
+    value (i.e. a value that cannot not be split into multiple parts, for
+    example a numeric or boolean value).
+
+    If the MOF representation of the value does not fit into the remaining
+    space of the current line, it is put into a new line, considering the
+    specified indentation. If it also does not fit on the remaining space of
+    the new line, ValueError is raised.
+
+    Parameters:
+
+      value (:term:`unicode string`): The non-string value. Must not be `None`.
+
+      indent (:term:`integer`): Number of spaces to indent any new lines that
+        are generated.
+
+      maxline (:term:`integer`): Maximum line length for the generated MOF.
+
+      line_pos (:term:`integer`): Length of content already on the current
+        line.
+
+      end_space (:term:`integer`): Length of space to be left free on the last
+        line.
+
+    Returns:
+
+      tuple of
+        * :term:`unicode string`: MOF fragment.
+        * new line_pos
+
+    Raises:
+
+      ValueError: The value does not fit onto an entire new line.
+    """
+
+    assert isinstance(value, six.text_type)
+
+    # Check for output on current line
+    avl_len = maxline - line_pos - end_space
+    if len(value) <= avl_len:
+        line_pos += len(value)
+        return value, line_pos
+
+    # Check for output on new line
+    avl_len = maxline - indent - end_space
+    if len(value) <= avl_len:
+        mof_str = u'\n' + _indent_str(indent) + value
+        line_pos = indent + len(value)
+        return mof_str, line_pos
+
+    raise ValueError("Cannot fit value %r onto new MOF line, missing %s "
+                     "characters" % (value, len(value) - avl_len))
 
 
 def moftype(cim_type, refclass):
@@ -790,60 +959,148 @@ def moftype(cim_type, refclass):
     return (refclass + ' REF') if cim_type == 'reference' else cim_type
 
 
-def scalar_to_mof(value, type, indent=0):
+def _scalar_value_tomof(
+        value, type, indent=0, maxline=MAX_MOF_LINE, line_pos=0, end_space=0,
+        avoid_splits=False):
     # pylint: disable=line-too-long,redefined-builtin
     """
-    Convert an "atomic" scalar value to a MOF string and return that string.
+    Return a MOF fragment representing a scalar CIM-typed value.
+
+    `None` is returned as 'NULL'.
 
     Parameters:
 
       value (:term:`CIM data type`, :term:`number`, :class:`~pywbem.CIMInstance`, :class:`~pywbem.CIMClass`):
-        The "atomic" input value. May be `None`.
+        The scalar CIM-typed value. May be `None`.
 
         Must not be an array/list/tuple. Must not be a :ref:`CIM object` other
         than those listed.
 
       type (string): CIM data type name.
 
-      indent (:term:`integer`): Number of spaces to indent any spilled over
-        strings (i.e. not used for the first line of a string, and not
-        for any other types).
+      indent (:term:`integer`): Number of spaces to indent any new lines that
+        are generated.
+
+      maxline (:term:`integer`): Maximum line length for the generated MOF.
+
+      line_pos (:term:`integer`): Length of content already on the current
+        line.
+
+      end_space (:term:`integer`): Length of space to be left free on the last
+        line.
+
+      avoid_splits (bool): Avoid splits at the price of starting a new line
+        instead of using the current line.
 
     Returns:
 
-        A :term:`unicode string` in MOF format representing the input value.
-        `"NULL"`, if the input value is `None`.
+      tuple of
+        * :term:`unicode string`: MOF fragment.
+        * new line_pos
     """  # noqa: E501
+
     if value is None:
-        return u'NULL'
+        return mofval(u'NULL', indent, maxline, line_pos, end_space)
     elif type == 'string':
         if isinstance(value, six.string_types):
-            return mofstr(value, indent=indent)
-        elif isinstance(value, CIMInstance):
-            # embedded instance
-            return value.tomof()
-        elif isinstance(value, CIMClass):
-            # embedded class
-            return value.tomof()
+            return mofstr(value, indent, maxline, line_pos, end_space,
+                          avoid_splits)
+        elif isinstance(value, (CIMInstance, CIMClass)):
+            # embedded instance or class
+            return mofstr(value.tomof(), indent, maxline, line_pos, end_space,
+                          avoid_splits)
         else:
-            raise ValueError("Value %r has invalid type %s for a CIM string "
-                             "type" % (value, type(value)))
+            raise TypeError("Scalar value of CIM type %r has invalid Python "
+                            "type %s for conversion to a MOF string" %
+                            (type, builtin_type(value)))
     elif type == 'char16':
-        return mofstr(value, indent=indent)
-        # TODO 01/18 AM Return char16 with single quotes
+        return mofstr(value, indent, maxline, line_pos, end_space, avoid_splits,
+                      quote_char=u"'")
     elif type == 'boolean':
-        return u'true' if value else u'false'
+        val = u'true' if value else u'false'
+        return mofval(val, indent, maxline, line_pos, end_space)
     elif type == 'datetime':
-        return u'"%s"' % value
+        val = six.text_type(value)
+        return mofstr(val, indent, maxline, line_pos, end_space, avoid_splits)
     elif type == 'reference':
-        return u'"%s"' % value.to_wbem_uri()
-    elif isinstance(value, (CIMInt, int, _Longint)):
-        return six.text_type(value)
-    elif isinstance(value, (CIMFloat, float)):
-        return six.text_type(value)
+        val = value.to_wbem_uri()
+        return mofstr(val, indent, maxline, line_pos, end_space, avoid_splits)
+    elif isinstance(value, (CIMFloat, CIMInt, int, _Longint)):
+        val = six.text_type(value)
+        return mofval(val, indent, maxline, line_pos, end_space)
     else:
-        raise TypeError("Value %r has invalid type %s for conversion to a "
-                        "MOF string" % (value, type(value)))
+        assert isinstance(value, float), \
+            "Scalar value of CIM type %r has invalid Python type %s for " \
+            "conversion to a MOF string" % (type, builtin_type(value))
+        val = repr(value)
+        return mofval(val, indent, maxline, line_pos, end_space)
+
+
+def _value_tomof(
+        value, type, indent=0, maxline=MAX_MOF_LINE, line_pos=0, end_space=0,
+        avoid_splits=False):
+    """
+    Return a MOF fragment representing a CIM-typed value (scalar or array).
+
+    In case of an array, the array items are separated by comma, but the
+    surrounding curly braces are not added.
+
+    Parameters:
+
+      value (CIM-typed value or list of CIM-typed values): The value.
+
+      indent (:term:`integer`): Number of spaces to indent any new lines that
+        are generated.
+
+      maxline (:term:`integer`): Maximum line length for the generated MOF.
+
+      line_pos (:term:`integer`): Length of content already on the current
+        line.
+
+      end_space (:term:`integer`): Length of space to be left free on the last
+        line.
+
+      avoid_splits (bool): Avoid splits at the price of starting a new line
+        instead of using the current line.
+
+    Returns:
+
+      tuple of
+        * :term:`unicode string`: MOF fragment.
+        * new line_pos
+    """
+
+    if isinstance(value, list):
+
+        mof = []
+
+        for i, v in enumerate(value):
+
+            if i > 0:
+                # Assume we would add comma and space as separator
+                line_pos += 2
+
+            val_str, line_pos = _scalar_value_tomof(
+                v, type, indent, maxline, line_pos, end_space + 2, avoid_splits)
+
+            if i > 0:
+                # Add the actual separator
+                mof.append(u',')
+                if val_str[0] != '\n':
+                    mof.append(u' ')
+                else:
+                    # Adjust by the space we did not need
+                    line_pos -= 1
+
+            mof.append(val_str)
+
+        mof_str = u''.join(mof)
+
+    else:
+        mof_str, line_pos = _scalar_value_tomof(
+            value, type, indent, maxline, line_pos, end_space, avoid_splits)
+
+    return mof_str, line_pos
 
 
 def _stacklevel_above_module(mod_name):
@@ -2377,24 +2634,57 @@ class CIMInstance(_CIMComparisonMixin):
         """
         return tocimxmlstr(self, indent)
 
-    def tomof(self, indent=0):
+    def tomof(self, indent=0, maxline=MAX_MOF_LINE):
         """
-        Return a :term:`unicode string` that is a MOF fragment with the
-        instance specification represented by the :class:`~pywbem.CIMInstance`
-        object.
+        Return a MOF string with the instance specification represented by
+        the :class:`~pywbem.CIMInstance` object.
+
+        The returned MOF string conforms to the ``instanceDeclaration``
+        ABNF rule defined in :term:`DSP0004`, with the following limitations:
+
+        * Pywbem does not support instance aliases, so the returned MOF string
+          does not define an alias name for the instance.
+
+        * Even though pywbem supports qualifiers on
+          :class:`~pywbem.CIMInstance` objects, and on
+          :class:`~pywbem.CIMProperty` objects that are used as property values
+          within an instance, the returned MOF string does not contain
+          any qualifier values on the instance or on its property values.
 
         Parameters:
 
-          indent (:term:`integer`):
-              Number of spaces the initial line of the output is indented.
+          indent (:term:`integer`): This parameter has been deprecated in
+            pywbem 0.12.0. A value other than 0 causes a deprecation warning to
+            be issued. Othwerise, the parameter is ignored and the returned MOF
+            instance specification is not indented.
+
+        Returns:
+          :term:`unicode string`: MOF string.
         """
 
-        ret_str = 'instance of %s {\n' % self.classname
-        for prop in self.properties.values():
-            ret_str += prop.tomof(True, (indent + MOF_INDENT))
+        if indent != 0:
+            msg = "The 'indent' parameter of CIMInstance.tomof() is " \
+                "deprecated."
+            if DEBUG_WARNING_ORIGIN:
+                msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
+            warnings.warn(msg, DeprecationWarning,
+                          stacklevel=_stacklevel_above_module(__name__))
 
-        ret_str += '};\n'
-        return ret_str
+        mof = []
+
+        mof.append(u'instance of ')
+        mof.append(self.classname)
+
+        mof.append(u' {\n')
+
+        # TODO 01/18 AM Preserve order of properties in instance MOF
+        for pn in sorted(self.properties.keys()):
+            p = self.properties[pn]
+            mof.append(p.tomof(True, MOF_INDENT, maxline))
+
+        mof.append(u'};\n')
+
+        return u''.join(mof)
 
 
 class CIMClassName(_CIMComparisonMixin):
@@ -3187,43 +3477,52 @@ class CIMClass(_CIMComparisonMixin):
         """
         return tocimxmlstr(self, indent)
 
-    def tomof(self):
+    def tomof(self, maxline=MAX_MOF_LINE):
         """
-        Return a :term:`unicode string` that is a MOF fragment with the
-        class definition represented by the :class:`~pywbem.CIMClass`
-        object.
+        Return a MOF string with the class definition represented by the
+        :class:`~pywbem.CIMClass` object.
 
-        The :attr:`~pywbem.CIMClass.path` attribute of this object will not be
-        included in the returned MOF string.
+        The returned MOF string conforms to the ``classDeclaration``
+        ABNF rule defined in :term:`DSP0004`.
+
+        Consistent with that, class path information is not included in the
+        returned MOF string.
+
+        Returns:
+
+          :term:`unicode string`: MOF string.
         """
 
-        indent = MOF_INDENT
+        mof = []
 
-        # Qualifiers definition or empty line
-        ret_str = _makequalifiers(self.qualifiers, indent)
+        mof.append(_qualifiers_tomof(self.qualifiers, MOF_INDENT, maxline))
 
-        ret_str += 'class %s ' % self.classname
-
-        # Superclass
+        mof.append(u'class ')
+        mof.append(self.classname)
+        mof.append(u' ')
 
         if self.superclass is not None:
-            ret_str += ': %s ' % self.superclass
+            mof.append(u': ')
+            mof.append(self.superclass)
+            mof.append(u' ')
 
-        ret_str += '{\n'
+        mof.append(u'{\n')
 
-        # Properties; indent one level from class definition
+        # TODO 01/18 AM Preserve order of properties in class MOF
+        for pn in sorted(self.properties.keys()):
+            p = self.properties[pn]
+            mof.append(u'\n')
+            mof.append(p.tomof(False, MOF_INDENT, maxline))
 
-        for prop_val in self.properties.values():
+        # TODO 01/18 AM Preserve order of methods in class MOF
+        for mn in sorted(self.methods.keys()):
+            m = self.methods[mn]
+            mof.append(u'\n')
+            mof.append(m.tomof(MOF_INDENT, maxline))
 
-            ret_str += prop_val.tomof(False, indent)
+        mof.append(u'\n};\n')
 
-        # Methods, indent one level from class definition
-        for method in self.methods.values():
-            ret_str += '\n%s' % method.tomof(indent)
-
-        ret_str += '};\n'
-
-        return ret_str
+        return u''.join(mof)
 
 
 # pylint: disable=too-many-statements,too-many-instance-attributes
@@ -3840,112 +4139,101 @@ class CIMProperty(_CIMComparisonMixin):
         """
         return tocimxmlstr(self, indent)
 
-    def _scalar_value2mof(self, value_, indent):
-        """
-        Private function to map provided value to string for MOF output.
-        Used by :meth:`tomof`.
-
-        Parameters:
-
-          value_ (:term:`CIM data type`): Value to be mapped to string for MOF
-            output.
-
-          indent (:term:`integer`): Number of spaces to indent the initial
-            line of the generated MOF.
-        """
-
-        if self.type == 'string':
-            if self.embedded_object is not None:
-                # TODO ks 8/16 do special formatting for this so output
-                # sort of looks like mof, not just a string with lfs
-                val_ = value_.tomof()
-            else:
-                val_ = value_
-            _mof = mofstr(val_, indent=indent)
-        elif self.type == 'datetime':
-            _mof = '"%s"' % str(value_)
-        else:
-            _mof = str(value_)
-        return _mof
-
-    def _array_val2mof(self, indent, fold):
-        """
-        Output array of values either on single line or one line per value.
-        Used by :meth:`tomof`.
-
-        Parameters:
-
-          indent (:term:`integer`): Number of spaces to indent the initiali
-            line of the generated MOF.
-
-          fold (bool): If True, format as instance MOF. Else, format as class
-            MOF.
-        """
-        mof_ = ''
-
-        sep = ', ' if not fold else ',\n' + _indent_str(indent)
-        for i, val_ in enumerate(self.value):
-            if i > 0:
-                mof_ += sep
-            mof_ += self._scalar_value2mof(val_, indent)
-        return mof_
-
-    def tomof(self, is_instance=True, indent=0):
+    def tomof(
+            self, is_instance=True, indent=0, maxline=MAX_MOF_LINE, line_pos=0):
         """
         *New in pywbem 0.9.*
 
-        Return a string representing the MOF definition of a single property.
+        Return a MOF fragment with the property definition (for use in a CIM
+        class) or property value (for use in a CIM instance) represented by the
+        :class:`~pywbem.CIMProperty` object.
+
+        Even though pywbem supports qualifiers on :class:`~pywbem.CIMProperty`
+        objects that are used as property values within an instance, the
+        returned MOF string for property values in instances does not contain
+        any qualifier values.
 
         Parameters:
 
-          is_instance (bool): If True, format as instance MOF. Else, format as
-            class MOF.
+          is_instance (bool): If True, return MOF for a property value in a CIM
+            instance. Else, return MOF for a property definition in a CIM
+            class.
 
-          indent (:term:`integer`): Number of spaces to indent the initial
-            line of the generated MOF.
+          indent (:term:`integer`): Number of spaces to indent each line of
+            the returned string, counted in the line with the property name.
+
+        Returns:
+
+          :term:`unicode string`: MOF fragment.
         """
 
+        mof = []
+
         if is_instance:
-            # is an instance; set name
-            mof = '%s%s = ' % (_indent_str(indent), self.name)
-        else:   # is a class; set type, name, array info
-            if self.is_array:
-                if self.array_size is not None:
-                    array_str = "[%s]" % self.array_size
-                else:
-                    array_str = "[]"
-            else:
-                array_str = ''
+            # Property value in an instance
 
-            mof = '\n'
-            if self.qualifiers:
-                mof += _makequalifiers(self.qualifiers, indent + MOF_INDENT)
+            mof.append(_indent_str(indent))
+            mof.append(self.name)
 
-            mof += '%s%s %s%s' % (_indent_str(indent),
-                                  moftype(self.type,
-                                          self.reference_class),
-                                  self.name, array_str)
-
-        # set the value into the mof
-        if self.value is None:
-            if is_instance:
-                mof += 'NULL'
-        elif self.is_array:
-            mof += ' = {'
-            # output as single line if within width limits
-            arr_str = self._array_val2mof(indent, False)
-            # If too large, redo with on array element per line
-            if len(arr_str) > (MAX_MOF_LINE - indent):
-                arr_str = '\n' + _indent_str(indent + MOF_INDENT)
-                arr_str += self._array_val2mof((indent + MOF_INDENT), True)
-            mof += arr_str + '}'
         else:
-            if not is_instance:
-                mof += ' = '
-            mof += self._scalar_value2mof(self.value, indent)
+            # Property declaration in a class
 
-        mof += ';\n'
-        return mof
+            if self.qualifiers:
+                mof.append(_qualifiers_tomof(self.qualifiers,
+                                             indent + MOF_INDENT, maxline))
+
+            mof.append(_indent_str(indent))
+            mof.append(moftype(self.type, self.reference_class))
+            mof.append(u' ')
+            mof.append(self.name)
+
+            if self.is_array:
+                mof.append(u'[')
+                if self.array_size is not None:
+                    mof.append(six.text_type(self.array_size))
+                mof.append(u']')
+
+        # Generate the property value (nearly common for property values and
+        # property declarations).
+
+        if self.value is not None or is_instance:
+            mof.append(u' =')
+
+            if isinstance(self.value, list):
+                mof.append(u' {')
+                mof_str = u''.join(mof)
+                line_pos = len(mof_str) - mof_str.rfind('\n') - 1
+                # Assume in line_pos that the extra space would be needed
+                val_str, line_pos = _value_tomof(
+                    self.value, self.type, indent + MOF_INDENT, maxline,
+                    line_pos + 1, 1, True)
+                if val_str[0] != '\n':
+                    # The extra space was actually needed
+                    mof.append(u' ')
+                else:
+                    # Adjust by the extra space that was not needed
+                    line_pos -= 1
+                mof.append(val_str)
+                mof.append(u' }')
+
+            else:
+                mof_str = u''.join(mof)
+                line_pos = len(mof_str) - mof_str.rfind('\n') - 1
+                # Assume in line_pos that the extra space would be needed
+                val_str, line_pos = _value_tomof(
+                    self.value, self.type, indent + MOF_INDENT, maxline,
+                    line_pos + 1, 1, True)
+                if val_str[0] != '\n':
+                    # The extra space was actually needed
+                    mof.append(u' ')
+                else:
+                    # Adjust by the extra space that was not needed
+                    line_pos -= 1
+                mof.append(val_str)
+
+        mof.append(';\n')
+
+        return u''.join(mof)
 
     def _cmp(self, other):
         """
@@ -4377,33 +4665,48 @@ class CIMMethod(_CIMComparisonMixin):
         """
         return tocimxmlstr(self, indent)
 
-    def tomof(self, indent):
+    def tomof(self, indent=0, maxline=MAX_MOF_LINE):
         """
-        Return a :term:`unicode string` that is a MOF fragment with the
-        method definition represented by the :class:`~pywbem.CIMMethod`
-        object.
+        Return a MOF fragment with the method definition represented by the
+        :class:`~pywbem.CIMMethod` object.
+
+        Parameters:
+
+          indent (:term:`integer`): Number of spaces to indent each line of
+            the returned string, counted in the line with the method name.
+
+        Returns:
+
+          :term:`unicode string`: MOF fragment.
         """
 
-        ret_str = ''
+        mof = []
 
         if self.qualifiers:
-            ret_str += _makequalifiers(self.qualifiers, indent + MOF_INDENT)
+            mof.append(_qualifiers_tomof(self.qualifiers, indent + MOF_INDENT,
+                                         maxline))
 
-        ret_str += _indent_str(indent)
-
+        mof.append(_indent_str(indent))
         # return_type is ensured not to be None or reference
-        ret_str += '%s ' % moftype(self.return_type, None)
+        mof.append(moftype(self.return_type, None))
+        mof.append(u' ')
+        mof.append(self.name)
 
         if self.parameters.values():
-            ret_str += '%s(\n' % (self.name)
-            ret_str += ',\n'.join([
-                p.tomof(indent + MOF_INDENT)
-                for p in self.parameters.values()])
-            ret_str += ');\n'
-        else:
-            ret_str += '%s();\n' % (self.name)
+            mof.append(u'(\n')
 
-        return ret_str
+            mof_parms = []
+            # TODO 01/18 AM Preserve order of parameters in method MOF
+            for pn in sorted(self.parameters.keys()):
+                p = self.parameters[pn]
+                mof_parms.append(p.tomof(indent + MOF_INDENT, maxline))
+            mof.append(u',\n'.join(mof_parms))
+
+            mof.append(u');\n')
+        else:
+            mof.append(u'();\n')
+
+        return u''.join(mof)
 
 
 class CIMParameter(_CIMComparisonMixin):
@@ -4826,20 +5129,29 @@ class CIMParameter(_CIMComparisonMixin):
         """
         return tocimxmlstr(self, indent)
 
-    def tomof(self, indent=0):
+    def tomof(self, indent=0, maxline=MAX_MOF_LINE):
         """
-        Return a :term:`unicode string` that is a MOF fragment with the
-        parameter definition represented by the :class:`~pywbem.CIMParameter`
-        object.
+        Return a MOF fragment with the parameter definition represented by the
+        :class:`~pywbem.CIMParameter` object.
+
+        The deprecated :attr:`~pywbem.CIMParameter.value` attribute is not
+        included in the returned string.
 
         Parameters:
-            indent (:term:`integer`): Number of spaces to indent each parameter
+
+          indent (:term:`integer`): Number of spaces to indent each line of
+            the returned string, counted in the line with the parameter name.
+
+        Returns:
+
+          :term:`unicode string`: MOF fragment.
         """
 
         mof = []
 
         if self.qualifiers:
-            mof.append(_makequalifiers(self.qualifiers, indent + MOF_INDENT))
+            mof.append(_qualifiers_tomof(self.qualifiers, indent + MOF_INDENT,
+                                         maxline))
 
         mof.append(_indent_str(indent))
         mof.append(moftype(self.type, self.reference_class))
@@ -5307,11 +5619,10 @@ class CIMQualifier(_CIMComparisonMixin):
         """
         return tocimxmlstr(self, indent)
 
-    def tomof(self, indent=MOF_INDENT):
+    def tomof(self, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0):
         """
-        Return a :term:`unicode string` that is a MOF fragment with the
-        qualifier value represented by the :class:`~pywbem.CIMQualifier`
-        object.
+        Return a MOF fragment with the qualifier value represented by the
+        :class:`~pywbem.CIMQualifier` object.
 
         The items of array values are tried to keep on the same line. If the
         generated line would exceed the maximum MOF line length, the value is
@@ -5323,51 +5634,45 @@ class CIMQualifier(_CIMComparisonMixin):
         its own.
 
         Parameters:
-            indent (:term:`integer`): For a multi-line result, the number of
-              spaces to indent each line except the first line (on which the
-              qualifier name appears).
+
+          indent (:term:`integer`): For a multi-line result, the number of
+            spaces to indent each line except the first line (on which the
+            qualifier name appears). For a single-line result, ignored.
+
+        Returns:
+
+          :term:`unicode string`: MOF fragment.
         """
 
         mof = []
 
+        mof.append(self.name)
+        mof.append(u' ')
+
         if isinstance(self.value, list):
-            line_pos = indent + len(self.name) + 4
-            values = ''
-            for i, val in enumerate(self.value):
-                if i != 0:
-                    values += ','
-                nextval = scalar_to_mof(val, self.type, indent)
-                if (line_pos + len(nextval) + 3) > MAX_MOF_LINE:
-                    sep = '\n' + _indent_str(indent)
-                    line_pos = len(_indent_str(indent)) + 4
-                else:
-                    sep = ' '
-
-                line_pos += (len(nextval) + 2)
-                values += sep + nextval
-
-            mof.append(self.name)
-            mof.append(u' {')
-            mof.append(values)
-            mof.append(u' }')
-
+            mof.append(u'{')
         else:
-            val = scalar_to_mof(self.value, self.type, indent)
+            mof.append(u'(')
 
-            # If more than one line, spill the first as well
-            if '\n' in val:
-                mof.append(self.name)
-                mof.append(u' (\n')
-                mof.append(_indent_str(indent))
-                mof.append(val)
-                mof.append(u' )')
-            else:
-                mof.append(self.name)
-                mof.append(u' ( ')
-                mof.append(val)
-                mof.append(u' )')
+        line_pos += len(u''.join(mof))
+        # Assume in line_pos that the extra space would be needed
+        val_str, line_pos = _value_tomof(
+            self.value, self.type, indent, maxline, line_pos + 1, 3, True)
+        if val_str[0] != '\n':
+            # The extra space was actually needed
+            mof.append(u' ')
+        else:
+            # Adjust by the extra space that was not needed
+            line_pos -= 1
+        mof.append(val_str)
 
-        return u''.join(mof)
+        if isinstance(self.value, list):
+            mof.append(u' }')
+        else:
+            mof.append(u' )')
+
+        mof_str = u''.join(mof)
+        return mof_str
 
 
 # pylint: disable=too-many-instance-attributes
@@ -5887,16 +6192,34 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         """
         return tocimxmlstr(self, indent)
 
-    def tomof(self):
+    def tomof(self, maxline=MAX_MOF_LINE):
         """
-        Return a :term:`unicode string` that is a MOF fragment with the
-        qualifier type represented by the
-        :class:`~pywbem.CIMQualifierDeclaration` object.
+        Return a MOF string with the qualifier type declaration represented by
+        the :class:`~pywbem.CIMQualifierDeclaration` object.
+
+        The returned MOF string conforms to the ``qualifierDeclaration``
+        ABNF rule defined in :term:`DSP0004`.
+
+        Qualifier flavors are included in the returned MOF string only when
+        the information is available (i.e. the value of the corresponding
+        attribute is not `None`).
+
+        Because DSP0004 does not support instance qualifiers, and thus does not
+        define a flavor keyword for the
+        :attr:`~pywbem.CIMQualifierDeclaration.toinstance` attribute, that
+        flavor is not included in the returned MOF string.
+
+        Returns:
+
+          :term:`unicode string`: MOF string.
         """
 
         mof = []
 
-        mof.append(u'Qualifier %s : %s' % (self.name, self.type))
+        mof.append(u'Qualifier ')
+        mof.append(self.name)
+        mof.append(u' : ')
+        mof.append(self.type)
 
         if self.is_array:
             mof.append(u'[')
@@ -5905,17 +6228,20 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             mof.append(u']')
 
         if self.value is not None:
+
+            mof.append(u' = ')
+
             if isinstance(self.value, list):
-                mof.append(u' = { ')
-                mof_values = []
-                for v in self.value:
-                    mof_values.append(scalar_to_mof(v, self.type))
-                    # TODO 01/18 AM Add support for right margin in MOF
-                mof.append(u', '.join(mof_values))
+                mof.append(u'{ ')
+
+            mof_str = u''.join(mof)
+            line_pos = len(mof_str) - mof_str.rfind('\n') - 1
+            val_str, line_pos = _value_tomof(
+                self.value, self.type, MOF_INDENT, maxline, line_pos, 3, False)
+            mof.append(val_str)
+
+            if isinstance(self.value, list):
                 mof.append(u' }')
-            else:
-                mof.append(u' = ')
-                mof.append(scalar_to_mof(self.value, self.type))
 
         mof.append(u',\n')
         mof.append(_indent_str(MOF_INDENT + 1))
