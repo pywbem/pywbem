@@ -192,6 +192,13 @@ Enhancements
 * In the `tomof()` methods of the CIM object classes, changed the formatting
   of the generated MOF to be more consistent with the CIM Schema MOF.
 
+* Added new methods `CIMInstanceName.to_wbem_uri()` and
+  `CIMClassName.to_wbem_uri()` that return the path as a WBEM URI compliant to
+  DSP0207, in order to make the conversion explicit instead of relying
+  on the string conversion methods. The string conversion methods are still
+  supported, but see the fix to make them compliant to DSP0207 (added as part
+  of fixing issue #928).
+
 * Docs: Editorial improvements in the documentation (links, typos, formatting).
 
 * Docs: Clarifications and small fixes in the documentation of the
@@ -252,6 +259,16 @@ Bug fixes
 * Fixed issue introduced in mof_compiler when atomic_to_cimxml was cleaned up
   that did not allow using alias with some association classes.  Also
   added test for this issue. See issue #936
+
+* Fixed the `CIMInstanceName.__str__()` and `CIMClassName.__str__()` methods to
+  now return WBEM URI strings that are compliant to DSP0207. Changes include:
+
+  * Local WBEM URIs (i.e. when authority/host is not set) now have a leading
+    slash. That leading slash was previously omitted.
+  * WBEM URIs with no namespace set now have a colon before the class name.
+    Previously, the colon was produced only when a namespace was set.
+
+  Issue #928.
 
 Cleanup
 ^^^^^^^

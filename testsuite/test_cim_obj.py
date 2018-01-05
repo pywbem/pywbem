@@ -15,6 +15,7 @@ from __future__ import absolute_import, print_function
 # Allows use of lots of single character variable names.
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
 # pylint: disable=too-many-lines,no-self-use
+import sys
 import re
 import inspect
 import os.path
@@ -1133,84 +1134,6 @@ class CIMInstanceNameSort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
-class Test_CIMInstanceName_str(object):
-    """
-    Test CIMInstanceName.__str__().
-
-    That function returns the instance path as a WBEM URI string.
-    """
-
-    testcases_single_key_succeeds = [
-        # Testcases where CIMInstanceName.__str__() with single key succeeds.
-        # Each testcase has these items:
-        # * obj: CIMInstanceName object to be tested.
-        # * exp_uri: Expected WBEM URI string.
-        (CIMInstanceName(
-            classname='CIM_Foo',
-            keybindings=None),
-         'CIM_Foo'),
-        (CIMInstanceName(
-            classname='CIM_Foo',
-            keybindings=dict()),
-         'CIM_Foo'),
-        (CIMInstanceName(
-            classname='CIM_Foo',
-            keybindings=dict(InstanceID=None)),
-         'CIM_Foo.InstanceID="None"'),
-        (CIMInstanceName(
-            classname='CIM_Foo',
-            keybindings=dict(InstanceID='1234')),
-         'CIM_Foo.InstanceID="1234"'),
-        (CIMInstanceName(
-            classname='CIM_Foo',
-            keybindings=dict(InstanceID='1234'),
-            namespace='cimv2'),
-         'cimv2:CIM_Foo.InstanceID="1234"'),
-        (CIMInstanceName(
-            classname='CIM_Foo',
-            keybindings=dict(InstanceID='1234'),
-            namespace='root/cimv2',
-            host='10.11.12.13:5989'),
-         '//10.11.12.13:5989/root/cimv2:CIM_Foo.InstanceID="1234"'),
-        (CIMInstanceName(
-            classname='CIM_Foo',
-            keybindings=dict(InstanceID='1234'),
-            namespace='root/cimv2',
-            host='jdd:test@10.11.12.13'),
-         '//jdd:test@10.11.12.13/root/cimv2:CIM_Foo.InstanceID="1234"'),
-    ]
-
-    @pytest.mark.parametrize(
-        "obj, exp_uri",
-        testcases_single_key_succeeds)
-    def test_CIMInstanceName_str_single_key_succeeds(
-            self, obj, exp_uri):
-        """All test cases where CIMInstanceName.__str__() with single key
-        succeeds."""
-
-        s = str(obj)
-
-        assert s == exp_uri
-
-    def test_CIMInstanceName_str_multi_key_succeeds(self):
-        """A test case where CIMInstanceName.__str__() with multiple keys
-        succeeds."""
-
-        obj = CIMInstanceName('CIM_Foo', {'Name': 'Foo', 'Secret': Uint8(42)})
-
-        s = str(obj)
-
-        # We need to tolerate different orders of the key bindings
-        assert re.match(r'^CIM_Foo\.', s)
-        assert 'Secret=42' in s
-        assert 'Name="Foo"' in s
-
-        s = s.replace('CIM_Foo.', '')
-        s = s.replace('Secret=42', '')
-        s = s.replace('Name="Foo"', '')
-        assert s == ','
-
-
 class Test_CIMInstanceName_repr(object):
     """
     Test CIMInstanceName.__repr__().
@@ -1985,6 +1908,425 @@ class Test_CIMInstanceName_from_wbem_uri(object):
 
             assert obj.host == exp_host
             assert isinstance(obj.host, type(exp_host))
+
+
+class Test_CIMInstanceName_to_wbem_uri_str(object):
+    """
+    Test CIMInstanceName.to_wbem_uri() and .__str__().
+    """
+
+    omit_local_slash = [
+        # Fixture for omit_local_slash arg of CIMInstanceName.to_wbem_uri().
+        True, False
+    ]
+
+    func_name = [
+        # Fixture for function to be tested
+        'to_wbem_uri', '__str__'
+    ]
+
+    testcases = [
+        # Testcases for CIMInstanceName.to_wbem_uri().
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * attrs: Dict of input attributes for the CIMInstanceName object
+        #     to be tested.
+        # * exp_result: Expected WBEM URI string, if expected to succeed.
+        #     Exception type, if expected to fail.
+        # * exp_warn_type: Expected warning type.
+        #     None, if no warning expected.
+        # * condition: Condition for testcase to run.
+        (
+            "all components, normal case",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2',
+                host=u'10.11.12.13:5989'),
+            '//10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "no authority",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2',
+                host=None),
+            '/root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "authority with user:password",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2',
+                host=u'jdd:test@10.11.12.13:5989'),
+            '//jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "authority with user (no password)",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2',
+                host=u'jdd@10.11.12.13:5989'),
+            '//jdd@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "authority without port",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2',
+                host=u'10.11.12.13'),
+            '//10.11.12.13/root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "authority with IPv6 address",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2',
+                host=u'[10:11:12:13]'),
+            '//[10:11:12:13]/root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "authority with IPv6 address and port",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2',
+                host=u'[10:11:12:13]:5989'),
+            '//[10:11:12:13]:5989/root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2',
+                host=None),
+            '/root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI with only class name",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=None,
+                host=None),
+            '/:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI with namespace that has only one component",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root',
+                host=None),
+            '/root:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI with namespace that has three components",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2/test',
+                host=None),
+            '/root/cimv2/test:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "multiple keys (bool)",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict(k1=False, k2=True),
+                namespace=u'n',
+                host=None),
+            '/n:C.k1=FALSE,k2=TRUE',
+            None, CHECK_0_12_0
+        ),
+        (
+            "multiple keys (int)",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict(k1=0, k2=-1, k3=-32769, k4=42, k5=42,
+                                       kmax32=4294967295,
+                                       kmin32=-4294967296,
+                                       kmax64=9223372036854775807,
+                                       kmin64=-9223372036854775808,
+                                       klong=9223372036854775808),
+                namespace=u'n',
+                host=None),
+            '/n:C.k1=0,k2=-1,k3=-32769,k4=42,k5=42,'
+            'klong=9223372036854775808,'
+            'kmax32=4294967295,'
+            'kmax64=9223372036854775807,'
+            'kmin32=-4294967296,'
+            'kmin64=-9223372036854775808',
+            None, CHECK_0_12_0
+        ),
+        (
+            "multiple float keys",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict(k1=0.0, k2=-0.1, k3=0.1, k4=31.4E-1,
+                                       k5=0.4E1,
+                                       kmax32=3.402823466E38,
+                                       kmin32=1.175494351E-38,
+                                       kmax64=1.7976931348623157E308,
+                                       kmin64=2.2250738585072014E-308),
+                namespace=u'n',
+                host=None),
+            '/n:C.k1=0.0,k2=-0.1,k3=0.1,k4=3.14,k5=4.0,'
+            'kmax32=3.402823466e+38,'
+            'kmax64=1.7976931348623157e+308,'
+            'kmin32=1.175494351e-38,'
+            'kmin64=2.2250738585072014e-308',
+            None, CHECK_0_12_0 and sys.version_info[0:2] >= (2, 7)
+        ),
+        (
+            "float key with special value INF (allowed by extension)",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict(k1=float('inf')),
+                namespace=u'n',
+                host=None),
+            '/n:C.k1=inf',
+            None, CHECK_0_12_0
+        ),
+        (
+            "float key with special value -INF (allowed by extension)",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict(k1=float('-inf')),
+                namespace=u'n',
+                host=None),
+            '/n:C.k1=-inf',
+            None, CHECK_0_12_0
+        ),
+        (
+            "float key with special value NAN (allowed by extension)",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict(k1=float('nan')),
+                namespace=u'n',
+                host=None),
+            '/n:C.k1=nan',
+            None, False  # float('nan') does not compare equal to itself
+        ),
+        (
+            "multiple string keys",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict(k1='', k2='a', k3='42', k4='"',
+                                       k5='\\', k6='\\"', k7="'"),
+                namespace=u'n',
+                host=None),
+            '/n:C.k1="",k2="a",k3="42",k4="\\\x22",'
+            'k5="\\\\",k6="\\\\\\\x22",k7="\x27"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "string key with keybindings syntax in its value",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict(k1='k2=42,k3=3'),
+                namespace=u'n',
+                host=None),
+            r'/n:C.k1="k2=42,k3=3"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "multiple char16 keys",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict(k1='a', k2='1', k3='"', k4="'", k5='\\'),
+                namespace=u'n',
+                host=None),
+            '/n:C.k1="a",k2="1",k3="\\"",k4="\'",k5="\\\\"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "datetime key for point in time (in quotes)",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict(
+                    k1=CIMDateTime('19980125133015.123456-300')),
+                namespace=u'n',
+                host=None),
+            '/n:C.k1="19980125133015.123456-300"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "datetime key for interval (in quotes)",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict(
+                    k1=CIMDateTime('12345678133015.123456:000')),
+                namespace=u'n',
+                host=None),
+            '/n:C.k1="12345678133015.123456:000"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "reference key that has an int key (normal association)",
+            dict(
+                classname=u'C1',
+                keybindings=NocaseDict(
+                    k1=CIMInstanceName(
+                        classname='C2',
+                        keybindings=NocaseDict(k2=1),
+                        namespace='n2'),
+                ),
+                namespace=u'n1',
+                host=None),
+            '/n1:C1.k1="/n2:C2.k2=1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "reference key that has a string key (normal association)",
+            dict(
+                classname=u'C1',
+                keybindings=NocaseDict(
+                    k1=CIMInstanceName(
+                        classname='C2',
+                        keybindings=NocaseDict(k2='v2'),
+                        namespace='n2'),
+                ),
+                namespace=u'n1',
+                host=None),
+            r'/n1:C1.k1="/n2:C2.k2=\"v2\""',
+            None, CHECK_0_12_0
+        ),
+        (
+            "double nested reference to int key (association to association)",
+            dict(
+                classname=u'C1',
+                keybindings=NocaseDict(
+                    k1=CIMInstanceName(
+                        classname='C2',
+                        keybindings=NocaseDict(
+                            k2=CIMInstanceName(
+                                classname='C3',
+                                keybindings=NocaseDict(
+                                    k3=3
+                                ),
+                                namespace='n3'),
+                        ),
+                        namespace='n2'),
+                ),
+                namespace=u'n1',
+                host=None),
+            r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=3\""',
+            None, CHECK_0_12_0
+        ),
+        (
+            "double nested reference to string key (association to "
+            "association)",
+            dict(
+                classname=u'C1',
+                keybindings=NocaseDict(
+                    k1=CIMInstanceName(
+                        classname='C2',
+                        keybindings=NocaseDict(
+                            k2=CIMInstanceName(
+                                classname='C3',
+                                keybindings=NocaseDict(
+                                    k3='v3'
+                                ),
+                                namespace='n3'),
+                        ),
+                        namespace='n2'),
+                ),
+                namespace=u'n1',
+                host=None),
+            r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=\\\"v3\\\"\""',
+            None, CHECK_0_12_0
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "func_name",
+        func_name)
+    @pytest.mark.parametrize(
+        "omit_local_slash",
+        omit_local_slash)
+    @pytest.mark.parametrize(
+        "desc, attrs, exp_result, exp_warn_type, condition",
+        testcases)
+    def test_CIMInstanceName_to_wbem_uri_str(
+            self, desc, attrs, exp_result, exp_warn_type, condition,
+            omit_local_slash, func_name):
+        """All test cases for CIMInstanceName.to_wbem_uri() and .__str__()."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        if isinstance(exp_result, type) and issubclass(exp_result, Exception):
+            # We expect an exception
+            exp_exc_type = exp_result
+            exp_uri = None
+        else:
+            # We expect the code to return
+            exp_exc_type = None
+            exp_uri = exp_result
+
+        obj = CIMInstanceName(**attrs)
+
+        func = getattr(obj, func_name)
+        if func_name == 'to_wbem_uri':
+            func_kwargs = dict(omit_local_slash=omit_local_slash)
+        if func_name == '__str__':
+            func_kwargs = dict()
+            omit_local_slash = False
+
+        if exp_warn_type:
+            with pytest.warns(exp_warn_type) as rec_warnings:
+                if exp_exc_type:
+                    with pytest.raises(exp_exc_type):
+
+                        # The code to be tested
+                        uri = func(**func_kwargs)
+
+                else:
+
+                    # The code to be tested
+                    uri = func(**func_kwargs)
+
+            assert len(rec_warnings) == 1
+
+        else:
+            if exp_exc_type:
+                with pytest.raises(exp_exc_type):
+
+                    # The code to be tested
+                    uri = func(**func_kwargs)
+
+            else:
+
+                # The code to be tested
+                uri = func(**func_kwargs)
+
+        if exp_uri:
+
+            assert isinstance(uri, six.text_type)
+
+            if omit_local_slash and obj.host is None:
+                assert exp_uri[0] == '/'
+                exp_uri = exp_uri[1:]
+
+            assert uri == exp_uri
 
 
 class Test_CIMInstance_init(object):
@@ -3127,7 +3469,11 @@ class CIMInstanceToMOF(unittest.TestCase):
                       "Generated MOF: %r" % (i, imof))
 
         # search for one property
-        s = re.search(r"\n\s*MyRef\s*=\s*CIM_Bar;\n", imof)
+        if CHECK_0_12_0:
+            s = re.search(r"\n\s*MyRef\s*=\s*/:CIM_Bar;\n", imof)
+        else:
+            s = re.search(r"\n\s*MyRef\s*=\s*CIM_Bar;\n", imof)
+
         if s is None:
             self.fail("Invalid MOF generated. No MyRef.\n"
                       "Instance: %r\n"
@@ -6214,70 +6560,6 @@ class CIMClassNameEquality(unittest.TestCase):
                          CIMClassName('CIM_Foo', namespace=None))
 
 
-class Test_CIMClassName_str(object):
-    """
-    Test CIMClassName.__str__().
-
-    That function returns the class path as a WBEM URI string.
-    """
-
-    testcases_succeeds = [
-        # Testcases where CIMClassName.__str__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMClassName object to be tested.
-        # * exp_uri: Expected WBEM URI string.
-        (
-            CIMClassName(
-                classname='CIM_Foo'),
-            'CIM_Foo'
-        ),
-        (
-            CIMClassName(
-                classname='CIM_Foo',
-                namespace='cimv2'),
-            'cimv2:CIM_Foo'
-        ),
-        (
-            CIMClassName(
-                classname='CIM_Foo',
-                namespace='cimv2',
-                host='10.11.12.13'),
-            '//10.11.12.13/cimv2:CIM_Foo'
-        ),
-        (
-            CIMClassName(
-                classname='CIM_Foo',
-                namespace='root/cimv2',
-                host='10.11.12.13'),
-            '//10.11.12.13/root/cimv2:CIM_Foo'
-        ),
-        (
-            CIMClassName(
-                classname='CIM_Foo',
-                namespace='root/cimv2',
-                host='10.11.12.13:5989'),
-            '//10.11.12.13:5989/root/cimv2:CIM_Foo'
-        ),
-        (
-            CIMClassName(
-                classname='CIM_Foo',
-                namespace='root/cimv2',
-                host='jdd:test@10.11.12.13:5989'),
-            '//jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo'
-        ),
-    ]
-
-    @pytest.mark.parametrize(
-        "obj, exp_uri",
-        testcases_succeeds)
-    def test_CIMClassName_str_succeeds(self, obj, exp_uri):
-        """All test cases where CIMClassName.__str__() succeeds."""
-
-        s = str(obj)
-
-        assert s == exp_uri
-
-
 class Test_CIMClassName_repr(object):
     """
     Test CIMClassName.__repr__().
@@ -6660,6 +6942,206 @@ class Test_CIMClassName_from_wbem_uri(object):
 
             assert obj.host == exp_host
             assert isinstance(obj.host, type(exp_host))
+
+
+class Test_CIMClassName_to_wbem_uri_str(object):
+    """
+    Test CIMClassName.to_wbem_uri() and .__str__().
+    """
+
+    omit_local_slash = [
+        # Fixture for omit_local_slash arg of CIMClassName.to_wbem_uri().
+        True, False
+    ]
+
+    func_name = [
+        # Fixture for function to be tested
+        'to_wbem_uri', '__str__'
+    ]
+
+    testcases = [
+        # Testcases for CIMClassName.to_wbem_uri().
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * attrs: Dict of input attributes for the CIMClassName object
+        #     to be tested.
+        # * exp_result: Expected WBEM URI string, if expected to succeed.
+        #     Exception type, if expected to fail.
+        # * exp_warn_type: Expected warning type.
+        #     None, if no warning expected.
+        # * condition: Condition for testcase to run.
+        (
+            "all components, normal case",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=u'10.11.12.13:5989'),
+            '//10.11.12.13:5989/root/cimv2:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "no authority",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=None),
+            '/root/cimv2:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "authority with user:password",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=u'jdd:test@10.11.12.13:5989'),
+            '//jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "authority with user (no password)",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=u'jdd@10.11.12.13:5989'),
+            '//jdd@10.11.12.13:5989/root/cimv2:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "authority without port",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=u'10.11.12.13'),
+            '//10.11.12.13/root/cimv2:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "authority with IPv6 address",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=u'[10:11:12:13]'),
+            '//[10:11:12:13]/root/cimv2:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "authority with IPv6 address and port",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=u'[10:11:12:13]:5989'),
+            '//[10:11:12:13]:5989/root/cimv2:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI (no authority)",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=None),
+            '/root/cimv2:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI with only class name",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=None,
+                host=None),
+            '/:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI with namespace that has only one component",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root',
+                host=None),
+            '/root:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI with namespace that has three components",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2/test',
+                host=None),
+            '/root/cimv2/test:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "func_name",
+        func_name)
+    @pytest.mark.parametrize(
+        "omit_local_slash",
+        omit_local_slash)
+    @pytest.mark.parametrize(
+        "desc, attrs, exp_result, exp_warn_type, condition",
+        testcases)
+    def test_CIMClassName_to_wbem_uri_str(
+            self, desc, attrs, exp_result, exp_warn_type, condition,
+            omit_local_slash, func_name):
+        """All test cases for CIMClassName.to_wbem_uri() and .__str__()."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        if isinstance(exp_result, type) and issubclass(exp_result, Exception):
+            # We expect an exception
+            exp_exc_type = exp_result
+            exp_uri = None
+        else:
+            # We expect the code to return
+            exp_exc_type = None
+            exp_uri = exp_result
+
+        obj = CIMClassName(**attrs)
+
+        func = getattr(obj, func_name)
+        if func_name == 'to_wbem_uri':
+            func_kwargs = dict(omit_local_slash=omit_local_slash)
+        if func_name == '__str__':
+            func_kwargs = dict()
+            omit_local_slash = False
+
+        if exp_warn_type:
+            with pytest.warns(exp_warn_type) as rec_warnings:
+                if exp_exc_type:
+                    with pytest.raises(exp_exc_type):
+
+                        # The code to be tested
+                        uri = func(**func_kwargs)
+
+                else:
+
+                    # The code to be tested
+                    uri = func(**func_kwargs)
+
+            assert len(rec_warnings) == 1
+
+        else:
+            if exp_exc_type:
+                with pytest.raises(exp_exc_type):
+
+                    # The code to be tested
+                    uri = func(**func_kwargs)
+
+            else:
+
+                # The code to be tested
+                uri = func(**func_kwargs)
+
+        if exp_uri:
+
+            assert isinstance(uri, six.text_type)
+
+            if omit_local_slash and obj.host is None:
+                assert exp_uri[0] == '/'
+                exp_uri = exp_uri[1:]
+
+            assert uri == exp_uri
 
 
 class Test_CIMClass_init(object):
