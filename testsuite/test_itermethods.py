@@ -1631,9 +1631,7 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
             ContinueOnError=None,
             MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT)
 
-        print('rqrc %s result %r qrc %r' % (rqrc_param,
-                                            q_result.query_result_class,
-                                            qrc))
+        # TODO ks: This assert disabled.
         # assert(q_result.query_result_class == rc)
 
         # pylint: disable=protected-access
