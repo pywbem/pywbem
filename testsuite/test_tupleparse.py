@@ -33,7 +33,8 @@ class TupleTest(unittest.TestCase):
 
         # Parse back to an object
 
-        result = tupleparse.parse_any(tupletree.xml_to_tupletree_sax(xml))
+        tt = tupletree.xml_to_tupletree_sax(xml, 'Test-XML')
+        result = tupleparse.parse_any(tt)
 
         # Assert that the before and after objects should be equal
 
@@ -52,7 +53,8 @@ class RawXMLTest(unittest.TestCase):
         """
         # Parse raw XML to an object
 
-        result = tupleparse.parse_any(tupletree.xml_to_tupletree_sax(xml))
+        tt = tupletree.xml_to_tupletree_sax(xml, 'Test-XML')
+        result = tupleparse.parse_any(tt)
 
         # Assert XML parses to particular Python object
 
