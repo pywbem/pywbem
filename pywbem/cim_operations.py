@@ -139,8 +139,6 @@ import os
 import re
 from datetime import datetime, timedelta
 from xml.dom import minidom
-from xml.parsers.expat import ExpatError
-from xml.sax import SAXParseException
 import warnings
 from collections import namedtuple
 
@@ -151,7 +149,7 @@ from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_SUPPORTED
 from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
-    NocaseDict, _ensure_unicode, tocimxml, tocimobj
+    NocaseDict, tocimxml, tocimobj
 from .cim_http import get_cimobject_header, wbem_request
 from .tupleparse import parse_cim
 from .tupletree import xml_to_tupletree_sax
@@ -179,19 +177,6 @@ pull_inst_result_tuple = namedtuple("pull_inst_result_tuple",
 pull_query_result_tuple = namedtuple("pull_query_result_tuple",
                                      ["instances", "eos", "context",
                                       "query_result_class"])
-
-# unicode test to set illegal xml char constant
-if len(u'\U00010122') == 2:
-    # This is a "narrow" Unicode build of Python (the normal case).
-    _ILLEGAL_XML_CHARS_RE = re.compile(
-        u'([\u0000-\u0008\u000B-\u000C\u000E-\u001F\uFFFE\uFFFF])')
-else:
-    # This is a "wide" Unicode build of Python.
-    _ILLEGAL_XML_CHARS_RE = re.compile(
-        u'([\u0000-\u0008\u000B-\u000C\u000E-\u001F\uD800-\uDFFF\uFFFE\uFFFF])')
-
-_ILL_FORMED_UTF8_RE = re.compile(
-    b'(\xED[\xA0-\xBF][\x80-\xBF])')    # U+D800...U+DFFF
 
 
 def _to_pretty_xml(xml_string):
@@ -229,177 +214,6 @@ def _iparam_propertylist(property_list):
     """
     return [property_list] if isinstance(property_list, six.string_types) \
         else property_list
-
-
-def check_utf8_xml_chars(utf8_xml, meaning):
-    """
-    Examine a UTF-8 encoded XML string and raise a `pywbem.ParseError`
-    exception if the response contains Bytes that are invalid UTF-8
-    sequences (incorrectly encoded or ill-formed) or that are invalid XML
-    characters.
-
-    This function works in both "wide" and "narrow" Unicode builds of Python
-    and supports the full range of Unicode characters from U+0000 to U+10FFFF.
-
-    This function is just a workaround for the bad error handling of Python's
-    `xml.dom.minidom` package. It replaces the not very informative
-    `ExpatError` "not well-formed (invalid token): line: x, column: y" with a
-    `pywbem.ParseError` providing more useful information.
-
-    Parameters:
-
-      utf8_xml (:term:`byte string`):
-        The UTF-8 encoded XML string to be examined.
-
-      meaning (:term:`string`):
-        Short text with meaning of the XML string, for messages in exceptions.
-
-    Raises:
-
-      TypeError: Invoked with incorrect Python object type for `utf8_xml`.
-
-      :class:`~pywbem.ParseError: `utf8_xml` contains Bytes that are invalid
-      UTF-8 sequences (incorrectly encoded or ill-formed) or invalid XML
-      characters.
-
-    Notes on Unicode support in Python:
-
-    (1) For internally representing Unicode characters in the unicode type, a
-        "wide" Unicode build of Python uses UTF-32, while a "narrow" Unicode
-        build uses UTF-16. The difference is visible to Python programs for
-        Unicode characters assigned to code points above U+FFFF: The "narrow"
-        build uses 2 characters (a surrogate pair) for them, while the "wide"
-        build uses just 1 character. This affects all position- and
-        length-oriented functions, such as `len()` or string slicing.
-
-    (2) In a "wide" Unicode build of Python, the Unicode characters assigned to
-        code points U+10000 to U+10FFFF are represented directly (using code
-        points U+10000 to U+10FFFF) and the surrogate code points
-        U+D800...U+DFFF are never used; in a "narrow" Unicode build of Python,
-        the Unicode characters assigned to code points U+10000 to U+10FFFF are
-        represented using pairs of the surrogate code points U+D800...U+DFFF.
-
-    Notes on the Unicode code points U+D800...U+DFFF ("surrogate code points"):
-
-    (1) These code points have no corresponding Unicode characters assigned,
-        because they are reserved for surrogates in the UTF-16 encoding.
-
-    (2) The UTF-8 encoding can technically represent the surrogate code points.
-        ISO/IEC 10646 defines that a UTF-8 sequence containing the surrogate
-        code points is ill-formed, but it is technically possible that such a
-        sequence is in a UTF-8 encoded XML string.
-
-    (3) The Python escapes ``\\u`` and ``\\U`` used in literal strings can
-        represent the surrogate code points (as well as all other code points,
-        regardless of whether they are assigned to Unicode characters).
-
-    (4) The Python `encode()` and `decode()` functions successfully
-        translate the surrogate code points back and forth for encoding UTF-8.
-
-        For example, ``b'\\xed\\xb0\\x80'.decode("utf-8") = u'\\udc00'``.
-
-    (5) Because Python supports the encoding and decoding of UTF-8 sequences
-        also for the surrogate code points, the "narrow" Unicode build of
-        Python can be (mis-)used to transport each surrogate unit separately
-        encoded in (ill-formed) UTF-8.
-
-        For example, code point U+10122 can be (illegally) created from a
-        sequence of code points U+D800,U+DD22 represented in UTF-8:
-
-          ``b'\\xED\\xA0\\x80\\xED\\xB4\\xA2'.decode("utf-8") = u'\\U00010122'``
-
-        while the correct UTF-8 sequence for this code point is:
-
-          ``u'\\U00010122'.encode("utf-8") = b'\\xf0\\x90\\x84\\xa2'``
-
-    Notes on XML characters:
-
-    (1) The legal XML characters are defined in W3C XML 1.0 (Fith Edition):
-
-          ::
-
-            Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] |
-                     [#x10000-#x10FFFF]
-
-        These are the code points of Unicode characters using a non-surrogate
-        representation.
-    """
-
-    context_before = 16    # number of chars to print before any bad chars
-    context_after = 16     # number of chars to print after any bad chars
-
-    if not isinstance(utf8_xml, six.binary_type):
-        raise TypeError("utf8_xml parameter is not a byte string, "
-                        "but has type %s" % type(utf8_xml))
-
-    # Check for ill-formed UTF-8 sequences. This needs to be done
-    # before the str type gets decoded to unicode, because afterwards
-    # surrogates produced from ill-formed UTF-8 cannot be distinguished from
-    # legally produced surrogates (for code points above U+FFFF).
-    ifs_list = list()
-    for m in _ILL_FORMED_UTF8_RE.finditer(utf8_xml):
-        ifs_pos = m.start(1)
-        ifs_seq = m.group(1)
-        ifs_list.append((ifs_pos, ifs_seq))
-    if ifs_list:
-        exc_txt = "Ill-formed (surrogate) UTF-8 Byte sequences found in %s:" %\
-                  meaning
-        for (ifs_pos, ifs_seq) in ifs_list:
-            exc_txt += "\n  At offset %d:" % ifs_pos
-            for ifs_ord in six.iterbytes(ifs_seq):
-                exc_txt += " 0x%02X" % ifs_ord
-            cpos1 = max(ifs_pos - context_before, 0)
-            cpos2 = min(ifs_pos + context_after, len(utf8_xml))
-            exc_txt += ", CIM-XML snippet: %r" % utf8_xml[cpos1:cpos2]
-        raise ParseError(exc_txt)
-
-    # Check for incorrectly encoded UTF-8 sequences.
-    # @ibm.13@ Simplified logic (removed loop).
-    try:
-        utf8_xml_u = utf8_xml.decode("utf-8")
-    except UnicodeDecodeError as exc:
-        # Only raised for incorrectly encoded UTF-8 sequences; technically
-        # correct sequences that are ill-formed (e.g. representing surrogates)
-        # do not cause this exception to be raised.
-        # If more than one incorrectly encoded sequence is present, only
-        # information about the first one is returned in the exception object.
-        # Also, the stated reason (in _msg) is not always correct.
-
-        # pylint: disable=unbalanced-tuple-unpacking
-        unused_codec, unused_str, _p1, _p2, unused_msg = exc.args
-
-        exc_txt = "Incorrectly encoded UTF-8 Byte sequences found in %s" %\
-                  meaning
-        exc_txt += "\n  At offset %d:" % _p1
-        ies_seq = utf8_xml[_p1:_p2 + 1]
-        for ies_ord in six.iterbytes(ies_seq):
-            exc_txt += " 0x%02X" % ies_ord
-        cpos1 = max(_p1 - context_before, 0)
-        cpos2 = min(_p2 + context_after, len(utf8_xml))
-        exc_txt += ", CIM-XML snippet: %r" % utf8_xml[cpos1:cpos2]
-        raise ParseError(exc_txt)
-
-    # Now we know the Unicode characters are valid.
-    # Check for Unicode characters that cannot legally be represented as XML
-    # characters.
-    ixc_list = list()
-    last_ixc_pos = -2
-    for m in _ILLEGAL_XML_CHARS_RE.finditer(utf8_xml_u):
-        ixc_pos = m.start(1)
-        ixc_char_u = m.group(1)
-        if ixc_pos > last_ixc_pos + 1:
-            ixc_list.append((ixc_pos, ixc_char_u))
-        last_ixc_pos = ixc_pos
-    if ixc_list:
-        exc_txt = "Invalid XML characters found in %s:" % meaning
-        for (ixc_pos, ixc_char_u) in ixc_list:
-            cpos1 = max(ixc_pos - context_before, 0)
-            cpos2 = min(ixc_pos + context_after, len(utf8_xml_u))
-            exc_txt += "\n  At offset %d: U+%04X, CIM-XML snippet: %r" % \
-                (ixc_pos, ord(ixc_char_u), utf8_xml_u[cpos1:cpos2])
-        raise ParseError(exc_txt)
-
-    return utf8_xml
 
 
 def _validateIterCommonParams(MaxObjectCount, OperationTimeout):
@@ -1251,50 +1065,16 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # Set the raw response before parsing (which can fail)
         if self.debug:
             self.last_raw_reply = reply_xml
-        try:
-            tup_tree = parse_cim(xml_to_tupletree_sax(reply_xml))
-        except ParseError as exc:
-            msg = str(exc)
-            parsing_error = True
-        except SAXParseException as exc:
-            msg = str(exc)
-            parsing_error = True
-        except ExpatError as exc:
-            # This is raised e.g. when XML numeric entity references of
-            # invalid XML characters are used (e.g. '&#0;').
-            # str(exc) is: "{message}, line {X}, offset {Y}"
-            xml_lines = _ensure_unicode(reply_xml).splitlines()
-            if len(xml_lines) >= exc.lineno:
-                parsed_line = xml_lines[exc.lineno - 1]
-            else:
-                parsed_line = "<error: Line number indicated in ExpatError "\
-                              "out of range: %s (only %s lines in XML)>" %\
-                              (exc.lineno, len(xml_lines))
-            msg = "ExpatError %s: %s: %r" % (str(exc.code), str(exc),
-                                             parsed_line)
-            parsing_error = True
-        else:
-            parsing_error = False
 
-        if parsing_error or self.debug:
-            # Here we just improve the quality of the exception information,
-            # so we do this only if it already has failed. Because the check
-            # function we invoke catches more errors than minidom.parseString,
-            # we call it also when debug is turned on.
-            try:
-                check_utf8_xml_chars(reply_xml, "CIM-XML response")
-            except ParseError:
-                raise
-            else:
-                if parsing_error:
-                    # We did not catch it in the check function, but
-                    # parsing failed.
-                    raise ParseError(msg)  # data from previous exception
+        # Parse the XML into a tuple tree (may raise ParseError):
+        tt_ = xml_to_tupletree_sax(reply_xml, "CIM-XML response")
+        tup_tree = parse_cim(tt_)
 
+        # Set the pretty response after parsing (it could fail otherwise)
         if self.debug:
             self.last_reply = _to_pretty_xml(reply_xml)
 
-        # Parse response
+        # Check the tuple tree
 
         if tup_tree[0] != 'CIM':
             raise ParseError('Expecting CIM element, got %s' % tup_tree[0])
@@ -1510,86 +1290,52 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         self.last_reply_len = len(reply_xml)
 
-        # Set the raw response before parsing and checking (which can fail)
+        # Set the raw response before parsing (which can fail)
         if self.debug:
             self.last_raw_reply = reply_xml
 
-        try:
-            tt = parse_cim(xml_to_tupletree_sax(reply_xml))
-        except ParseError as exc:
-            msg = str(exc)
-            parsing_error = True
-        except SAXParseException as exc:
-            msg = str(exc)
-            parsing_error = True
-        except ExpatError as exc:
-            # This is raised e.g. when XML numeric entity references of invalid
-            # XML characters are used (e.g. '&#0;').
-            # str(exc) is: "{message}, line {X}, offset {Y}"
-            xml_lines = _ensure_unicode(reply_xml).splitlines()
-            if len(xml_lines) >= exc.lineno:
-                parsed_line = xml_lines[exc.lineno - 1]
-            else:
-                parsed_line = "<error: Line number indicated in ExpatError "\
-                              "out of range: %s (only %s lines in XML)>" %\
-                              (exc.lineno, len(xml_lines))
-            msg = "ExpatError %s: %s: %r" % (str(exc.code), str(exc),
-                                             parsed_line)
-            parsing_error = True
-        else:
-            parsing_error = False
+        # Parse the XML into a tuple tree (may raise ParseError):
+        tt_ = xml_to_tupletree_sax(reply_xml, "CIM-XML response")
+        tup_tree = parse_cim(tt_)
 
-        if parsing_error or self.debug:
-            # Here we just improve the quality of the exception information,
-            # so we do this only if it already has failed. Because the check
-            # function we invoke catches more errors than minidom.parseString,
-            # we call it also when debug is turned on.
-            try:
-                check_utf8_xml_chars(reply_xml, "CIM-XML response")
-            except ParseError:
-                raise
-            else:
-                if parsing_error:
-                    # We did not catch it in the check function, but
-                    # parsing failed.
-                    raise ParseError(msg)  # data from previous exception
-
+        # Set the pretty response after parsing (it could fail otherwise)
         if self.debug:
             self.last_reply = _to_pretty_xml(reply_xml)
 
-        # Parse response
+        # Check the tuple tree
 
-        if tt[0] != 'CIM':
-            raise ParseError('Expecting CIM element, got %s' % tt[0])
-        tt = tt[2]
+        if tup_tree[0] != 'CIM':
+            raise ParseError('Expecting CIM element, got %s' % tup_tree[0])
+        tup_tree = tup_tree[2]
 
-        if tt[0] != 'MESSAGE':
-            raise ParseError('Expecting MESSAGE element, got %s' % tt[0])
-        tt = tt[2]
+        if tup_tree[0] != 'MESSAGE':
+            raise ParseError('Expecting MESSAGE element, got %s' % tup_tree[0])
+        tup_tree = tup_tree[2]
 
-        if tt[0] != 'SIMPLERSP':
-            raise ParseError('Expecting SIMPLERSP element, got %s' % tt[0])
-        tt = tt[2]
+        if tup_tree[0] != 'SIMPLERSP':
+            raise ParseError('Expecting SIMPLERSP element, got %s' %
+                             tup_tree[0])
+        tup_tree = tup_tree[2]
 
-        if tt[0] != 'METHODRESPONSE':
+        if tup_tree[0] != 'METHODRESPONSE':
             raise ParseError('Expecting METHODRESPONSE element, got %s' %
-                             tt[0])
+                             tup_tree[0])
 
-        if tt[1]['NAME'] != methodname:
+        if tup_tree[1]['NAME'] != methodname:
             raise ParseError('Expecting attribute NAME=%s, got %s' %
-                             (methodname, tt[1]['NAME']))
-        tt = tt[2]
+                             (methodname, tup_tree[1]['NAME']))
+        tup_tree = tup_tree[2]
 
         # At this point we have an optional RETURNVALUE and zero or
         # more PARAMVALUE elements representing output parameters.
 
-        if tt and tt[0][0] == 'ERROR':
-            code = int(tt[0][1]['CODE'])
-            if 'DESCRIPTION' in tt[0][1]:
-                raise CIMError(code, tt[0][1]['DESCRIPTION'])
-            raise CIMError(code, 'Error code %s' % tt[0][1]['CODE'])
+        if tup_tree and tup_tree[0][0] == 'ERROR':
+            code = int(tup_tree[0][1]['CODE'])
+            if 'DESCRIPTION' in tup_tree[0][1]:
+                raise CIMError(code, tup_tree[0][1]['DESCRIPTION'])
+            raise CIMError(code, 'Error code %s' % tup_tree[0][1]['CODE'])
 
-        return tt
+        return tup_tree
 
     def _iparam_namespace_from_namespace(self, obj):
         # pylint: disable=invalid-name,

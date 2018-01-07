@@ -199,6 +199,12 @@ Enhancements
   supported, but see the fix to make them compliant to DSP0207 (added as part
   of fixing issue #928).
 
+* Improved the way CIM-XML parsing errors are handled, by providing the
+  original traceback information when re-raising a low-level exception
+  as pywbem.ParseError, and re-established the improved exception message
+  for invalid UTF-8 and XML characters that was broken since the move to
+  using the SAX parser.
+ 
 * Docs: Editorial improvements in the documentation (links, typos, formatting).
 
 * Docs: Clarifications and small fixes in the documentation of the
@@ -243,6 +249,10 @@ Bug fixes
 * Fixed local authentication for OpenWBEM and OpenPegasus. Due to one bug
   introduced in pywbem 0.9.0, it was disabled by accident. A second bug in
   local authentication has been there at least since pywbem 0.7.0.
+
+* Fixed missing exception handling for CIM-XML parsing errors when parsing
+  embedded objects. This could have caused low-level exceptions to be raised
+  at the pywbem API.
 
 * Docs: Clarified that the return type of `BaseOperationRecorder.open_file()`
   is a file-like object and that the caller is responsible for closing that
