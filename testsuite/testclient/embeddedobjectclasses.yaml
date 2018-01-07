@@ -1,0 +1,2260 @@
+-
+    name: EmbeddedObjectClassXML1
+    description: GetInstance with XML-escaped embedded object (class) in result
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                    Name: Fritz
+            LocalOnly: false
+    pywbem_response:
+        result:
+            pywbem_object: CIMInstance
+            classname: PyWBEM_Person
+            properties:
+                Name: Fritz
+                AddressClass:
+                    pywbem_object: CIMProperty
+                    name: AddressClass
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMClass
+                        classname: PyWBEM_Address
+                        superclass: PyWBEM_Object
+                        properties:
+                            Street:
+                                pywbem_object: CIMProperty
+                                name: Street
+                                type: string
+                                value: Default Street
+                            Town:
+                                pywbem_object: CIMProperty
+                                name: Town
+                                type: string
+                                value: Default Town
+            path:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    Name: Fritz
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>FALSE</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetInstance">
+                    <IRETURNVALUE>
+                      <INSTANCE CLASSNAME="PyWBEM_Person">
+                        <PROPERTY NAME="Name" TYPE="string">
+                          <VALUE>Fritz</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                          <VALUE>
+                            &lt;CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object"&gt;
+                              &lt;PROPERTY NAME="Street" TYPE="string"&gt;
+                                &lt;VALUE&gt;Default Street&lt;/VALUE&gt;
+                              &lt;/PROPERTY&gt;
+                              &lt;PROPERTY NAME="Town" TYPE="string"&gt;
+                                &lt;VALUE&gt;Default Town&lt;/VALUE&gt;
+                              &lt;/PROPERTY&gt;
+                            &lt;/CLASS&gt;
+                          </VALUE>
+                        </PROPERTY>
+                      </INSTANCE>
+                    </IRETURNVALUE>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassXML2
+    description: GetInstance with XML-escaped embedded object (class) in result and chars in strings that need escaping
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                    Name: Fritz & <the cat>
+            LocalOnly: false
+    pywbem_response:
+        result:
+            pywbem_object: CIMInstance
+            classname: PyWBEM_Person
+            properties:
+                Name: Fritz & <the cat>
+                AddressClass:
+                    pywbem_object: CIMProperty
+                    name: AddressClass
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMClass
+                        classname: PyWBEM_Address
+                        superclass: PyWBEM_Object
+                        properties:
+                            Street:
+                                pywbem_object: CIMProperty
+                                name: Street
+                                type: string
+                                value: Default Fritz & <the cat> Ave
+                            Town:
+                                pywbem_object: CIMProperty
+                                name: Town
+                                type: string
+                                value: Default Town
+            path:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    Name: Fritz & <the cat>
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz &amp; &lt;the cat&gt;</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>FALSE</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetInstance">
+                    <IRETURNVALUE>
+                      <INSTANCE CLASSNAME="PyWBEM_Person">
+                        <PROPERTY NAME="Name" TYPE="string">
+                          <VALUE>Fritz &amp; &lt;the cat&gt;</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                          <VALUE>
+                            &lt;CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object"&gt;
+                              &lt;PROPERTY NAME="Street" TYPE="string"&gt;
+                                &lt;VALUE&gt;Default Fritz &amp;amp; &amp;lt;the cat&amp;gt; Ave&lt;/VALUE&gt;
+                              &lt;/PROPERTY&gt;
+                              &lt;PROPERTY NAME="Town" TYPE="string"&gt;
+                                &lt;VALUE&gt;Default Town&lt;/VALUE&gt;
+                              &lt;/PROPERTY&gt;
+                            &lt;/CLASS&gt;
+                          </VALUE>
+                        </PROPERTY>
+                      </INSTANCE>
+                    </IRETURNVALUE>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassXML3
+    description: GetInstance with double nested XML-escaped embedded object (class) in result and chars in strings that need escaping
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                    Name: Fritz & <the cat>
+            LocalOnly: false
+    pywbem_response:
+        result:
+            pywbem_object: CIMInstance
+            classname: PyWBEM_Person
+            properties:
+                Name: Fritz & <the cat>
+                AddressClass:
+                    pywbem_object: CIMProperty
+                    name: AddressClass
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMClass
+                        classname: PyWBEM_Address
+                        superclass: PyWBEM_Object
+                        properties:
+                            Street:
+                                pywbem_object: CIMProperty
+                                name: Street
+                                type: string
+                                value: Default Fritz & <the cat> Ave
+                            TownClass:
+                                pywbem_object: CIMProperty
+                                name: TownClass
+                                type: string
+                                embedded_object: object
+                                value:
+                                    pywbem_object: CIMClass
+                                    classname: PyWBEM_Town
+                                    superclass: PyWBEM_Object
+                                    properties:
+                                        Name:
+                                            pywbem_object: CIMProperty
+                                            name: Name
+                                            type: string
+                                            value: Default Fritz & <the cat> Town
+                                        Zip:
+                                            pywbem_object: CIMProperty
+                                            name: Zip
+                                            type: string
+                                            value: Default Zip
+            path:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    Name: Fritz & <the cat>
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz &amp; &lt;the cat&gt;</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>FALSE</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetInstance">
+                    <IRETURNVALUE>
+                      <INSTANCE CLASSNAME="PyWBEM_Person">
+                        <PROPERTY NAME="Name" TYPE="string">
+                          <VALUE>Fritz &amp; &lt;the cat&gt;</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                          <VALUE>
+                            &lt;CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object"&gt;
+                              &lt;PROPERTY NAME="Street" TYPE="string"&gt;
+                                &lt;VALUE&gt;Default Fritz &amp;amp; &amp;lt;the cat&amp;gt; Ave&lt;/VALUE&gt;
+                              &lt;/PROPERTY&gt;
+                              &lt;PROPERTY NAME="TownClass" TYPE="string" EmbeddedObject="object"&gt;
+                                &lt;VALUE&gt;
+                                  &amp;lt;CLASS NAME="PyWBEM_Town" SUPERCLASS="PyWBEM_Object"&amp;gt;
+                                    &amp;lt;PROPERTY NAME="Name" TYPE="string"&amp;gt;
+                                      &amp;lt;VALUE&amp;gt;Default Fritz &amp;amp;amp; &amp;amp;lt;the cat&amp;amp;gt; Town&amp;lt;/VALUE&amp;gt;
+                                    &amp;lt;/PROPERTY&amp;gt;
+                                    &amp;lt;PROPERTY NAME="Zip" TYPE="string"&amp;gt;
+                                      &amp;lt;VALUE&amp;gt;Default Zip&amp;lt;/VALUE&amp;gt;
+                                    &amp;lt;/PROPERTY&amp;gt;
+                                  &amp;lt;/CLASS&amp;gt;
+                                &lt;/VALUE&gt;
+                              &lt;/PROPERTY&gt;
+                            &lt;/CLASS&gt;
+                          </VALUE>
+                        </PROPERTY>
+                      </INSTANCE>
+                    </IRETURNVALUE>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassXML4
+    description: ModifyInstance with XML-escaped embedded object (class) in input
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: ModifyInstance
+            ModifiedInstance:
+                pywbem_object: CIMInstance
+                classname: PyWBEM_Person
+                path:
+                    pywbem_object: CIMInstanceName
+                    classname: PyWBEM_Person
+                    namespace: root/cimv2
+                    keybindings:
+                        Name: Fritz
+                properties:
+                    Name: Fritz
+                    AddressClass:
+                        pywbem_object: CIMProperty
+                        name: AddressClass
+                        type: string
+                        embedded_object: object
+                        value:
+                            pywbem_object: CIMClass
+                            classname: PyWBEM_Address
+                            superclass: PyWBEM_Object
+                            properties:
+                                Street:
+                                    pywbem_object: CIMProperty
+                                    name: Street
+                                    type: string
+                                    value: Default Street
+                                Town:
+                                    pywbem_object: CIMProperty
+                                    name: Town
+                                    type: string
+                                    value: Default Town
+    pywbem_response:
+        result:
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: ModifyInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="ModifyInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ModifiedInstance">
+                      <VALUE.NAMEDINSTANCE>
+                        <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                          <KEYBINDING NAME="Name">
+                            <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          </KEYBINDING>
+                        </INSTANCENAME>
+                        <INSTANCE CLASSNAME="PyWBEM_Person">
+                          <PROPERTY NAME="Name" TYPE="string">
+                            <VALUE>Fritz</VALUE>
+                          </PROPERTY>
+                          <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                            <VALUE>
+                              &lt;CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object"&gt;
+                                &lt;PROPERTY NAME="Street" TYPE="string"&gt;
+                                  &lt;VALUE&gt;Default Street&lt;/VALUE&gt;
+                                &lt;/PROPERTY&gt;
+                                &lt;PROPERTY NAME="Town" TYPE="string"&gt;
+                                  &lt;VALUE&gt;Default Town&lt;/VALUE&gt;
+                                &lt;/PROPERTY&gt;
+                              &lt;/CLASS&gt;
+                            </VALUE>
+                          </PROPERTY>
+                        </INSTANCE>
+                      </VALUE.NAMEDINSTANCE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="ModifyInstance">
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassXML5
+    description: CreateInstance with XML-escaped embedded object (class) in input
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: CreateInstance
+            NewInstance:
+                pywbem_object: CIMInstance
+                classname: PyWBEM_Person
+                properties:
+                    Name: Fritz
+                    AddressClass:
+                        pywbem_object: CIMProperty
+                        name: AddressClass
+                        type: string
+                        embedded_object: object
+                        value:
+                            pywbem_object: CIMClass
+                            classname: PyWBEM_Address
+                            superclass: PyWBEM_Object
+                            properties:
+                                Street:
+                                    pywbem_object: CIMProperty
+                                    name: Street
+                                    type: string
+                                    value: Default Street
+                                Town:
+                                    pywbem_object: CIMProperty
+                                    name: Town
+                                    type: string
+                                    value: Default Town
+    pywbem_response:
+        result:
+            pywbem_object: CIMInstanceName
+            classname: PyWBEM_Person
+            namespace: root/cimv2
+            keybindings:
+                Name: Fritz
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: CreateInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="CreateInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="NewInstance">
+                      <INSTANCE CLASSNAME="PyWBEM_Person">
+                        <PROPERTY NAME="Name" TYPE="string">
+                          <VALUE>Fritz</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                          <VALUE>
+                            &lt;CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object"&gt;
+                              &lt;PROPERTY NAME="Street" TYPE="string"&gt;
+                                &lt;VALUE&gt;Default Street&lt;/VALUE&gt;
+                              &lt;/PROPERTY&gt;
+                              &lt;PROPERTY NAME="Town" TYPE="string"&gt;
+                                &lt;VALUE&gt;Default Town&lt;/VALUE&gt;
+                              &lt;/PROPERTY&gt;
+                            &lt;/CLASS&gt;
+                          </VALUE>
+                        </PROPERTY>
+                      </INSTANCE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="CreateInstance">
+                    <IRETURNVALUE>
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IRETURNVALUE>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassXML6
+    description: GetClass returning XML-escaped default value for an embedded object (class) property
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetClass
+            ClassName:
+                pywbem_object: CIMClassName
+                classname: PyWBEM_Person
+            LocalOnly: false
+            IncludeQualifiers: true
+            IncludeClassOrigin: true
+            PropertyList:
+                - Address
+    pywbem_response:
+        result:
+            pywbem_object: CIMClass
+            classname: PyWBEM_Person
+            superclass: PyWBEM_Object
+            path:
+              pywbem_object: CIMClassName
+              classname: PyWBEM_Person
+              host: acme.com:80
+              namespace: root/cimv2
+            properties:
+                Name:
+                    pywbem_object: CIMProperty
+                    name: Name
+                    type: string
+                    value:
+                    qualifiers:
+                        Key:
+                            pywbem_object: CIMQualifier
+                            name: Key
+                            value: true
+                AddressClass:
+                    pywbem_object: CIMProperty
+                    name: AddressClass
+                    type: string
+                    embedded_object: object
+                    qualifiers:
+                        EmbeddedObject:
+                            pywbem_object: CIMQualifier
+                            name: EmbeddedObject
+                            value: true
+                    value:
+                        pywbem_object: CIMClass
+                        classname: PyWBEM_Address
+                        superclass: PyWBEM_Object
+                        properties:
+                            Street:
+                                pywbem_object: CIMProperty
+                                name: Street
+                                type: string
+                                value: Default Street
+                            Town:
+                                pywbem_object: CIMProperty
+                                name: Town
+                                type: string
+                                value: Default Town
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetClass
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetClass">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ClassName">
+                      <CLASSNAME NAME="PyWBEM_Person"/>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>FALSE</VALUE>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="IncludeQualifiers">
+                      <VALUE>TRUE</VALUE>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="IncludeClassOrigin">
+                      <VALUE>TRUE</VALUE>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="PropertyList">
+                      <VALUE.ARRAY>
+                        <VALUE>Address</VALUE>
+                      </VALUE.ARRAY>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetClass">
+                    <IRETURNVALUE>
+                      <CLASS NAME="PyWBEM_Person" SUPERCLASS="PyWBEM_Object">
+                        <PROPERTY NAME="Name" TYPE="string">
+                          <QUALIFIER NAME="Key" TYPE="boolean">
+                            <VALUE>TRUE</VALUE>
+                          </QUALIFIER>
+                        </PROPERTY>
+                        <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                          <QUALIFIER NAME="EmbeddedObject" TYPE="boolean">
+                            <VALUE>TRUE</VALUE>
+                          </QUALIFIER>
+                          <VALUE>
+                            &lt;CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object"&gt;
+                              &lt;PROPERTY NAME="Street" TYPE="string"&gt;
+                                &lt;VALUE&gt;Default Street&lt;/VALUE&gt;
+                              &lt;/PROPERTY&gt;
+                              &lt;PROPERTY NAME="Town" TYPE="string"&gt;
+                                &lt;VALUE&gt;Default Town&lt;/VALUE&gt;
+                              &lt;/PROPERTY&gt;
+                            &lt;/CLASS&gt;
+                          </VALUE>
+                        </PROPERTY>
+                      </CLASS>
+                    </IRETURNVALUE>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassXML7
+    description: CreateClass with XML-escaped default value for an embedded object (class) property
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: CreateClass
+            NewClass:
+                pywbem_object: CIMClass
+                classname: PyWBEM_Person
+                superclass: PyWBEM_Object
+                properties:
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        type: string
+                        value:
+                        qualifiers:
+                            Key:
+                                pywbem_object: CIMQualifier
+                                name: Key
+                                value: true
+                    AddressClass:
+                        pywbem_object: CIMProperty
+                        name: AddressClass
+                        type: string
+                        embedded_object: object
+                        qualifiers:
+                            EmbeddedObject:
+                                pywbem_object: CIMQualifier
+                                name: EmbeddedObject
+                                value: true
+                        value:
+                            pywbem_object: CIMClass
+                            classname: PyWBEM_Address
+                            superclass: PyWBEM_Object
+                            properties:
+                                Street:
+                                    pywbem_object: CIMProperty
+                                    name: Street
+                                    type: string
+                                    value: Default Street
+                                Town:
+                                    pywbem_object: CIMProperty
+                                    name: Town
+                                    type: string
+                                    value: Default Town
+    pywbem_response:
+        result:
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: CreateClass
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="CreateClass">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="NewClass">
+                      <CLASS NAME="PyWBEM_Person" SUPERCLASS="PyWBEM_Object">
+                        <PROPERTY NAME="Name" TYPE="string">
+                          <QUALIFIER NAME="Key" TYPE="boolean">
+                            <VALUE>TRUE</VALUE>
+                          </QUALIFIER>
+                        </PROPERTY>
+                        <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                          <QUALIFIER NAME="EmbeddedObject" TYPE="boolean">
+                            <VALUE>TRUE</VALUE>
+                          </QUALIFIER>
+                          <VALUE>
+                            &lt;CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object"&gt;
+                              &lt;PROPERTY NAME="Street" TYPE="string"&gt;
+                                &lt;VALUE&gt;Default Street&lt;/VALUE&gt;
+                              &lt;/PROPERTY&gt;
+                              &lt;PROPERTY NAME="Town" TYPE="string"&gt;
+                                &lt;VALUE&gt;Default Town&lt;/VALUE&gt;
+                              &lt;/PROPERTY&gt;
+                            &lt;/CLASS&gt;
+                          </VALUE>
+                        </PROPERTY>
+                      </CLASS>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="CreateClass">
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassXML8
+    description: InvokeMethod with XML-escaped value for an embedded object (class) input parameter
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: InvokeMethod
+            MethodName: SetAddress
+            ObjectName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    Name: Fritz
+            Params:  # Params is an iterable of tuple(name,value)
+                -
+                    - ModifiedAddressClass
+                    - pywbem_object: CIMClass
+                      classname: PyWBEM_Address
+                      superclass: PyWBEM_Object
+                      properties:
+                          Street:
+                              pywbem_object: CIMProperty
+                              name: Street
+                              type: string
+                              value: Default Street
+                          Town:
+                              pywbem_object: CIMProperty
+                              name: Town
+                              type: string
+                              value: Default Town
+    pywbem_response:
+        result:
+            -
+            - {}
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: SetAddress
+            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <METHODCALL NAME="SetAddress">
+                    <LOCALINSTANCEPATH>
+                      <LOCALNAMESPACEPATH>
+                        <NAMESPACE NAME="root"/>
+                        <NAMESPACE NAME="cimv2"/>
+                      </LOCALNAMESPACEPATH>
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </LOCALINSTANCEPATH>
+                    <PARAMVALUE NAME="ModifiedAddressClass" PARAMTYPE="string" EmbeddedObject="object">
+                      <VALUE>
+                        &lt;CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object"&gt;
+                          &lt;PROPERTY NAME="Street" TYPE="string"&gt;
+                            &lt;VALUE&gt;Default Street&lt;/VALUE&gt;
+                          &lt;/PROPERTY&gt;
+                          &lt;PROPERTY NAME="Town" TYPE="string"&gt;
+                            &lt;VALUE&gt;Default Town&lt;/VALUE&gt;
+                          &lt;/PROPERTY&gt;
+                        &lt;/CLASS&gt;
+                      </VALUE>
+                    </PARAMVALUE>
+                  </METHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <METHODRESPONSE NAME="SetAddress">
+                  </METHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassXML9
+    description: InvokeMethod with XML-escaped value for an embedded object (class) output parameter
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: InvokeMethod
+            MethodName: GetAddress
+            ObjectName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    Name: Fritz
+            Params:
+    pywbem_response:
+        result:
+            -
+            - OutputAddressClass:
+                  pywbem_object: CIMClass
+                  classname: PyWBEM_Address
+                  superclass: PyWBEM_Object
+                  properties:
+                      Street:
+                          pywbem_object: CIMProperty
+                          name: Street
+                          type: string
+                          value: Default Street
+                      Town:
+                          pywbem_object: CIMProperty
+                          name: Town
+                          type: string
+                          value: Default Town
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetAddress
+            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <METHODCALL NAME="GetAddress">
+                    <LOCALINSTANCEPATH>
+                      <LOCALNAMESPACEPATH>
+                        <NAMESPACE NAME="root"/>
+                        <NAMESPACE NAME="cimv2"/>
+                      </LOCALNAMESPACEPATH>
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </LOCALINSTANCEPATH>
+                  </METHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <METHODRESPONSE NAME="GetAddress">
+                    <PARAMVALUE NAME="OutputAddressClass" PARAMTYPE="string" EmbeddedObject="object">
+                      <VALUE>
+                        &lt;CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object"&gt;
+                          &lt;PROPERTY NAME="Street" TYPE="string"&gt;
+                            &lt;VALUE&gt;Default Street&lt;/VALUE&gt;
+                          &lt;/PROPERTY&gt;
+                          &lt;PROPERTY NAME="Town" TYPE="string"&gt;
+                            &lt;VALUE&gt;Default Town&lt;/VALUE&gt;
+                          &lt;/PROPERTY&gt;
+                        &lt;/CLASS&gt;
+                      </VALUE>
+                    </PARAMVALUE>
+                  </METHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassXML10
+    description: InvokeMethod with XML-escaped value for an embedded object (class) return value
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: InvokeMethod
+            MethodName: ReturnAddress
+            ObjectName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    Name: Fritz
+            Params:
+    pywbem_response:
+        result:
+            - pywbem_object: CIMClass
+              classname: PyWBEM_Address
+              superclass: PyWBEM_Object
+              properties:
+                  Street:
+                      pywbem_object: CIMProperty
+                      name: Street
+                      type: string
+                      value: Default Street
+                  Town:
+                      pywbem_object: CIMProperty
+                      name: Town
+                      type: string
+                      value: Default Town
+            - {}
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: ReturnAddress
+            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <METHODCALL NAME="ReturnAddress">
+                    <LOCALINSTANCEPATH>
+                      <LOCALNAMESPACEPATH>
+                        <NAMESPACE NAME="root"/>
+                        <NAMESPACE NAME="cimv2"/>
+                      </LOCALNAMESPACEPATH>
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </LOCALINSTANCEPATH>
+                  </METHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <METHODRESPONSE NAME="ReturnAddress">
+                    <RETURNVALUE PARAMTYPE="string" EmbeddedObject="instance">
+                      <VALUE>
+                        &lt;CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object"&gt;
+                          &lt;PROPERTY NAME="Street" TYPE="string"&gt;
+                            &lt;VALUE&gt;Default Street&lt;/VALUE&gt;
+                          &lt;/PROPERTY&gt;
+                          &lt;PROPERTY NAME="Town" TYPE="string"&gt;
+                            &lt;VALUE&gt;Default Town&lt;/VALUE&gt;
+                          &lt;/PROPERTY&gt;
+                        &lt;/CLASS&gt;
+                      </VALUE>
+                    </RETURNVALUE>
+                  </METHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassCDATA1
+    description: GetInstance with CDATA-escaped embedded object (class) in result
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                    Name: Fritz
+            LocalOnly: false
+    pywbem_response:
+        result:
+            pywbem_object: CIMInstance
+            classname: PyWBEM_Person
+            properties:
+                Name: Fritz
+                AddressClass:
+                    pywbem_object: CIMProperty
+                    name: AddressClass
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMClass
+                        classname: PyWBEM_Address
+                        superclass: PyWBEM_Object
+                        properties:
+                            Street:
+                                pywbem_object: CIMProperty
+                                name: Street
+                                type: string
+                                value: Default Street
+                            Town:
+                                pywbem_object: CIMProperty
+                                name: Town
+                                type: string
+                                value: Default Town
+            path:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    Name: Fritz
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>FALSE</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetInstance">
+                    <IRETURNVALUE>
+                      <INSTANCE CLASSNAME="PyWBEM_Person">
+                        <PROPERTY NAME="Name" TYPE="string">
+                          <VALUE>Fritz</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                          <VALUE>
+                            <![CDATA[
+                              <CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object">
+                                <PROPERTY NAME="Street" TYPE="string">
+                                  <VALUE>Default Street</VALUE>
+                                </PROPERTY>
+                                <PROPERTY NAME="Town" TYPE="string">
+                                  <VALUE>Default Town</VALUE>
+                                </PROPERTY>
+                              </CLASS>
+                            ]]>
+                          </VALUE>
+                        </PROPERTY>
+                      </INSTANCE>
+                    </IRETURNVALUE>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassCDATA2
+    description: GetInstance with CDATA-escaped embedded object (class) in result and chars in strings that need escaping
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                    Name: Fritz & <the cat>
+            LocalOnly: false
+    pywbem_response:
+        result:
+            pywbem_object: CIMInstance
+            classname: PyWBEM_Person
+            properties:
+                Name: Fritz & <the cat>
+                AddressClass:
+                    pywbem_object: CIMProperty
+                    name: AddressClass
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMClass
+                        classname: PyWBEM_Address
+                        superclass: PyWBEM_Object
+                        properties:
+                            Street:
+                                pywbem_object: CIMProperty
+                                name: Street
+                                type: string
+                                value: Default Fritz & <the cat> Ave
+                            Town:
+                                pywbem_object: CIMProperty
+                                name: Town
+                                type: string
+                                value: Default Town
+            path:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    Name: Fritz & <the cat>
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz &amp; &lt;the cat&gt;</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>FALSE</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetInstance">
+                    <IRETURNVALUE>
+                      <INSTANCE CLASSNAME="PyWBEM_Person">
+                        <PROPERTY NAME="Name" TYPE="string">
+                          <VALUE>Fritz &amp; &lt;the cat&gt;</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                          <VALUE>
+                            <![CDATA[
+                              <CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object">
+                                <PROPERTY NAME="Street" TYPE="string">
+                                  <VALUE>Default Fritz &amp; &lt;the cat&gt; Ave</VALUE>
+                                </PROPERTY>
+                                <PROPERTY NAME="Town" TYPE="string">
+                                  <VALUE>Default Town</VALUE>
+                                </PROPERTY>
+                              </CLASS>
+                            ]]>
+                          </VALUE>
+                        </PROPERTY>
+                      </INSTANCE>
+                    </IRETURNVALUE>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassCDATA3
+    description: GetInstance with double nested CDATA-escaped embedded object (class) in result and chars in strings that need escaping
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                    Name: Fritz & <the cat>
+            LocalOnly: false
+    pywbem_response:
+        result:
+            pywbem_object: CIMInstance
+            classname: PyWBEM_Person
+            properties:
+                Name: Fritz & <the cat>
+                AddressClass:
+                    pywbem_object: CIMProperty
+                    name: AddressClass
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMClass
+                        classname: PyWBEM_Address
+                        superclass: PyWBEM_Object
+                        properties:
+                            Street:
+                                pywbem_object: CIMProperty
+                                name: Street
+                                type: string
+                                value: Default Fritz & <the cat> Ave
+                            TownClass:
+                                pywbem_object: CIMProperty
+                                name: TownClass
+                                type: string
+                                embedded_object: object
+                                value:
+                                    pywbem_object: CIMClass
+                                    classname: PyWBEM_Town
+                                    superclass: PyWBEM_Object
+                                    properties:
+                                        Name:
+                                            pywbem_object: CIMProperty
+                                            name: Name
+                                            type: string
+                                            value: Default Fritz & <the cat> Town
+                                        Zip:
+                                            pywbem_object: CIMProperty
+                                            name: Zip
+                                            type: string
+                                            value: Default Zip
+            path:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    Name: Fritz & <the cat>
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz &amp; &lt;the cat&gt;</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>FALSE</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetInstance">
+                    <IRETURNVALUE>
+                      <INSTANCE CLASSNAME="PyWBEM_Person">
+                        <PROPERTY NAME="Name" TYPE="string">
+                          <VALUE>Fritz &amp; &lt;the cat&gt;</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                          <VALUE>
+                            <![CDATA[
+                              <CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object">
+                                <PROPERTY NAME="Street" TYPE="string">
+                                  <VALUE>Default Fritz &amp; &lt;the cat&gt; Ave</VALUE>
+                                </PROPERTY>
+                                <PROPERTY NAME="TownClass" TYPE="string" EmbeddedObject="object">
+                                  <VALUE>
+                                    <![CDATA[
+                                      <CLASS NAME="PyWBEM_Town" SUPERCLASS="PyWBEM_Object">
+                                        <PROPERTY NAME="Name" TYPE="string">
+                                          <VALUE>Default Fritz &amp; &lt;the cat&gt; Town</VALUE>
+                                        </PROPERTY>
+                                        <PROPERTY NAME="Zip" TYPE="string">
+                                          <VALUE>Default Zip</VALUE>
+                                        </PROPERTY>
+                                      </CLASS>
+                                    ]]]]><![CDATA[>
+                                  </VALUE>
+                                </PROPERTY>
+                              </CLASS>
+                            ]]>
+                          </VALUE>
+                        </PROPERTY>
+                      </INSTANCE>
+                    </IRETURNVALUE>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassCDATA4
+    description: ModifyInstance with CDATA-escaped embedded object (class) in input
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: ModifyInstance
+            ModifiedInstance:
+                pywbem_object: CIMInstance
+                classname: PyWBEM_Person
+                path:
+                    pywbem_object: CIMInstanceName
+                    classname: PyWBEM_Person
+                    namespace: root/cimv2
+                    keybindings:
+                        Name: Fritz
+                properties:
+                    Name: Fritz
+                    AddressClass:
+                        pywbem_object: CIMProperty
+                        name: AddressClass
+                        type: string
+                        embedded_object: object
+                        value:
+                            pywbem_object: CIMClass
+                            classname: PyWBEM_Address
+                            superclass: PyWBEM_Object
+                            properties:
+                                Street:
+                                    pywbem_object: CIMProperty
+                                    name: Street
+                                    type: string
+                                    value: Default Street
+                                Town:
+                                    pywbem_object: CIMProperty
+                                    name: Town
+                                    type: string
+                                    value: Default Town
+    pywbem_response:
+        result:
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: ModifyInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="ModifyInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ModifiedInstance">
+                      <VALUE.NAMEDINSTANCE>
+                        <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                          <KEYBINDING NAME="Name">
+                            <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          </KEYBINDING>
+                        </INSTANCENAME>
+                        <INSTANCE CLASSNAME="PyWBEM_Person">
+                          <PROPERTY NAME="Name" TYPE="string">
+                            <VALUE>Fritz</VALUE>
+                          </PROPERTY>
+                          <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                            <VALUE>
+                              <![CDATA[
+                                <CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object">
+                                  <PROPERTY NAME="Street" TYPE="string">
+                                    <VALUE>Default Street</VALUE>
+                                  </PROPERTY>
+                                  <PROPERTY NAME="Town" TYPE="string">
+                                    <VALUE>Default Town</VALUE>
+                                  </PROPERTY>
+                                </CLASS>
+                              ]]>
+                            </VALUE>
+                          </PROPERTY>
+                        </INSTANCE>
+                      </VALUE.NAMEDINSTANCE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="ModifyInstance">
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassCDATA5
+    description: CreateInstance with CDATA-escaped embedded object (class) in input
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: CreateInstance
+            NewInstance:
+                pywbem_object: CIMInstance
+                classname: PyWBEM_Person
+                properties:
+                    Name: Fritz
+                    AddressClass:
+                        pywbem_object: CIMProperty
+                        name: AddressClass
+                        type: string
+                        embedded_object: object
+                        value:
+                            pywbem_object: CIMClass
+                            classname: PyWBEM_Address
+                            superclass: PyWBEM_Object
+                            properties:
+                                Street:
+                                    pywbem_object: CIMProperty
+                                    name: Street
+                                    type: string
+                                    value: Default Street
+                                Town:
+                                    pywbem_object: CIMProperty
+                                    name: Town
+                                    type: string
+                                    value: Default Town
+    pywbem_response:
+        result:
+            pywbem_object: CIMInstanceName
+            classname: PyWBEM_Person
+            namespace: root/cimv2
+            keybindings:
+                Name: Fritz
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: CreateInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="CreateInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="NewInstance">
+                      <INSTANCE CLASSNAME="PyWBEM_Person">
+                        <PROPERTY NAME="Name" TYPE="string">
+                          <VALUE>Fritz</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                          <VALUE>
+                            <![CDATA[
+                              <CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object">
+                                <PROPERTY NAME="Street" TYPE="string">
+                                  <VALUE>Default Street</VALUE>
+                                </PROPERTY>
+                                <PROPERTY NAME="Town" TYPE="string">
+                                  <VALUE>Default Town</VALUE>
+                                </PROPERTY>
+                              </CLASS>
+                            ]]>
+                          </VALUE>
+                        </PROPERTY>
+                      </INSTANCE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="CreateInstance">
+                    <IRETURNVALUE>
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IRETURNVALUE>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassCDATA6
+    description: GetClass returning CDATA-escaped default value for an embedded object (class) property
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: GetClass
+            ClassName:
+                pywbem_object: CIMClassName
+                classname: PyWBEM_Person
+            LocalOnly: false
+            IncludeQualifiers: true
+            IncludeClassOrigin: true
+            PropertyList:
+                - Address
+    pywbem_response:
+        result:
+            pywbem_object: CIMClass
+            classname: PyWBEM_Person
+            superclass: PyWBEM_Object
+            path:
+              pywbem_object: CIMClassName
+              classname: PyWBEM_Person
+              host: acme.com:80
+              namespace: root/cimv2
+            properties:
+                Name:
+                    pywbem_object: CIMProperty
+                    name: Name
+                    type: string
+                    value:
+                    qualifiers:
+                        Key:
+                            pywbem_object: CIMQualifier
+                            name: Key
+                            value: true
+                AddressClass:
+                    pywbem_object: CIMProperty
+                    name: AddressClass
+                    type: string
+                    embedded_object: object
+                    qualifiers:
+                        EmbeddedObject:
+                            pywbem_object: CIMQualifier
+                            name: EmbeddedObject
+                            value: true
+                    value:
+                        pywbem_object: CIMClass
+                        classname: PyWBEM_Address
+                        superclass: PyWBEM_Object
+                        properties:
+                            Street:
+                                pywbem_object: CIMProperty
+                                name: Street
+                                type: string
+                                value: Default Street
+                            Town:
+                                pywbem_object: CIMProperty
+                                name: Town
+                                type: string
+                                value: Default Town
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetClass
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetClass">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="ClassName">
+                      <CLASSNAME NAME="PyWBEM_Person"/>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>FALSE</VALUE>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="IncludeQualifiers">
+                      <VALUE>TRUE</VALUE>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="IncludeClassOrigin">
+                      <VALUE>TRUE</VALUE>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="PropertyList">
+                      <VALUE.ARRAY>
+                        <VALUE>Address</VALUE>
+                      </VALUE.ARRAY>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="GetClass">
+                    <IRETURNVALUE>
+                      <CLASS NAME="PyWBEM_Person" SUPERCLASS="PyWBEM_Object">
+                        <PROPERTY NAME="Name" TYPE="string">
+                          <QUALIFIER NAME="Key" TYPE="boolean">
+                            <VALUE>TRUE</VALUE>
+                          </QUALIFIER>
+                        </PROPERTY>
+                        <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                          <QUALIFIER NAME="EmbeddedObject" TYPE="boolean">
+                            <VALUE>TRUE</VALUE>
+                          </QUALIFIER>
+                          <VALUE>
+                            <![CDATA[
+                              <CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object">
+                                <PROPERTY NAME="Street" TYPE="string">
+                                  <VALUE>Default Street</VALUE>
+                                </PROPERTY>
+                                <PROPERTY NAME="Town" TYPE="string">
+                                  <VALUE>Default Town</VALUE>
+                                </PROPERTY>
+                              </CLASS>
+                            ]]>
+                          </VALUE>
+                        </PROPERTY>
+                      </CLASS>
+                    </IRETURNVALUE>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassCDATA7
+    description: CreateClass with CDATA-escaped default value for an embedded object (class) property
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: CreateClass
+            NewClass:
+                pywbem_object: CIMClass
+                classname: PyWBEM_Person
+                superclass: PyWBEM_Object
+                properties:
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        type: string
+                        value:
+                        qualifiers:
+                            Key:
+                                pywbem_object: CIMQualifier
+                                name: Key
+                                value: true
+                    AddressClass:
+                        pywbem_object: CIMProperty
+                        name: AddressClass
+                        type: string
+                        embedded_object: object
+                        qualifiers:
+                            EmbeddedObject:
+                                pywbem_object: CIMQualifier
+                                name: EmbeddedObject
+                                value: true
+                        value:
+                            pywbem_object: CIMClass
+                            classname: PyWBEM_Address
+                            superclass: PyWBEM_Object
+                            properties:
+                                Street:
+                                    pywbem_object: CIMProperty
+                                    name: Street
+                                    type: string
+                                    value: Default Street
+                                Town:
+                                    pywbem_object: CIMProperty
+                                    name: Town
+                                    type: string
+                                    value: Default Town
+    pywbem_response:
+        result:
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: CreateClass
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="CreateClass">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="NewClass">
+                      <CLASS NAME="PyWBEM_Person" SUPERCLASS="PyWBEM_Object">
+                        <PROPERTY NAME="Name" TYPE="string">
+                          <QUALIFIER NAME="Key" TYPE="boolean">
+                            <VALUE>TRUE</VALUE>
+                          </QUALIFIER>
+                        </PROPERTY>
+                        <PROPERTY NAME="AddressClass" TYPE="string" EmbeddedObject="object">
+                          <QUALIFIER NAME="EmbeddedObject" TYPE="boolean">
+                            <VALUE>TRUE</VALUE>
+                          </QUALIFIER>
+                          <VALUE>
+                            <![CDATA[
+                              <CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object">
+                                <PROPERTY NAME="Street" TYPE="string">
+                                  <VALUE>Default Street</VALUE>
+                                </PROPERTY>
+                                <PROPERTY NAME="Town" TYPE="string">
+                                  <VALUE>Default Town</VALUE>
+                                </PROPERTY>
+                              </CLASS>
+                            ]]>
+                          </VALUE>
+                        </PROPERTY>
+                      </CLASS>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME="CreateClass">
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassCDATA8
+    description: InvokeMethod with CDATA-escaped value for an embedded object (class) input parameter
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: InvokeMethod
+            MethodName: SetAddress
+            ObjectName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    Name: Fritz
+            Params:  # Params is an iterable of tuple(name,value)
+                -
+                    - ModifiedAddressClass
+                    - pywbem_object: CIMClass
+                      classname: PyWBEM_Address
+                      superclass: PyWBEM_Object
+                      properties:
+                          Street:
+                              pywbem_object: CIMProperty
+                              name: Street
+                              type: string
+                              value: Default Street
+                          Town:
+                              pywbem_object: CIMProperty
+                              name: Town
+                              type: string
+                              value: Default Town
+    pywbem_response:
+        result:
+            -
+            - {}
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: SetAddress
+            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <METHODCALL NAME="SetAddress">
+                    <LOCALINSTANCEPATH>
+                      <LOCALNAMESPACEPATH>
+                        <NAMESPACE NAME="root"/>
+                        <NAMESPACE NAME="cimv2"/>
+                      </LOCALNAMESPACEPATH>
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </LOCALINSTANCEPATH>
+                    <PARAMVALUE NAME="ModifiedAddressClass" PARAMTYPE="string" EmbeddedObject="object">
+                      <VALUE>
+                        <![CDATA[
+                          <CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object">
+                            <PROPERTY NAME="Street" TYPE="string">
+                              <VALUE>Default Street</VALUE>
+                            </PROPERTY>
+                            <PROPERTY NAME="Town" TYPE="string">
+                              <VALUE>Default Town</VALUE>
+                            </PROPERTY>
+                          </CLASS>
+                        ]]>
+                      </VALUE>
+                    </PARAMVALUE>
+                  </METHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <METHODRESPONSE NAME="SetAddress">
+                  </METHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassCDATA9
+    description: InvokeMethod with CDATA-escaped value for an embedded object (class) output parameter
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: InvokeMethod
+            MethodName: GetAddress
+            ObjectName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    Name: Fritz
+            Params:
+    pywbem_response:
+        result:
+            -
+            - OutputAddressClass:
+                  pywbem_object: CIMClass
+                  classname: PyWBEM_Address
+                  superclass: PyWBEM_Object
+                  properties:
+                      Street:
+                          pywbem_object: CIMProperty
+                          name: Street
+                          type: string
+                          value: Default Street
+                      Town:
+                          pywbem_object: CIMProperty
+                          name: Town
+                          type: string
+                          value: Default Town
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetAddress
+            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <METHODCALL NAME="GetAddress">
+                    <LOCALINSTANCEPATH>
+                      <LOCALNAMESPACEPATH>
+                        <NAMESPACE NAME="root"/>
+                        <NAMESPACE NAME="cimv2"/>
+                      </LOCALNAMESPACEPATH>
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </LOCALINSTANCEPATH>
+                  </METHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <METHODRESPONSE NAME="GetAddress">
+                    <PARAMVALUE NAME="OutputAddressClass" PARAMTYPE="string" EmbeddedObject="object">
+                      <VALUE>
+                        <![CDATA[
+                          <CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object">
+                            <PROPERTY NAME="Street" TYPE="string">
+                              <VALUE>Default Street</VALUE>
+                            </PROPERTY>
+                            <PROPERTY NAME="Town" TYPE="string">
+                              <VALUE>Default Town</VALUE>
+                            </PROPERTY>
+                          </CLASS>
+                        ]]>
+                      </VALUE>
+                    </PARAMVALUE>
+                  </METHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
+-
+    name: EmbeddedObjectClassCDATA10
+    description: InvokeMethod with CDATA-escaped value for an embedded object (class) return value
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: false
+        operation:
+            pywbem_method: InvokeMethod
+            MethodName: ReturnAddress
+            ObjectName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                namespace: root/cimv2
+                keybindings:
+                    Name: Fritz
+            Params:
+    pywbem_response:
+        result:
+            - pywbem_object: CIMClass
+              classname: PyWBEM_Address
+              superclass: PyWBEM_Object
+              properties:
+                  Street:
+                      pywbem_object: CIMProperty
+                      name: Street
+                      type: string
+                      value: Default Street
+                  Town:
+                      pywbem_object: CIMProperty
+                      name: Town
+                      type: string
+                      value: Default Town
+            - {}
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: ReturnAddress
+            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <METHODCALL NAME="ReturnAddress">
+                    <LOCALINSTANCEPATH>
+                      <LOCALNAMESPACEPATH>
+                        <NAMESPACE NAME="root"/>
+                        <NAMESPACE NAME="cimv2"/>
+                      </LOCALNAMESPACEPATH>
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </LOCALINSTANCEPATH>
+                  </METHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLERSP>
+                  <METHODRESPONSE NAME="ReturnAddress">
+                    <RETURNVALUE PARAMTYPE="string" EmbeddedObject="instance">
+                      <VALUE>
+                        <![CDATA[
+                          <CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object">
+                            <PROPERTY NAME="Street" TYPE="string">
+                              <VALUE>Default Street</VALUE>
+                            </PROPERTY>
+                            <PROPERTY NAME="Town" TYPE="string">
+                              <VALUE>Default Town</VALUE>
+                            </PROPERTY>
+                          </CLASS>
+                        ]]>
+                      </VALUE>
+                    </RETURNVALUE>
+                  </METHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>
