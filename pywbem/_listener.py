@@ -84,8 +84,6 @@ except ImportError:
             pass
     logging.NullHandler = NullHandler
 import ssl
-from xml.parsers.expat import ExpatError
-from xml.sax import SAXParseException
 import threading
 import six
 from six.moves import BaseHTTPServer
@@ -94,8 +92,7 @@ from six.moves import http_client
 
 from . import cim_xml
 from ._version import __version__
-from .cim_obj import CIMInstance, _ensure_unicode
-from .cim_operations import check_utf8_xml_chars
+from .cim_obj import CIMInstance
 from .cim_constants import CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_PARAMETER, \
     _statuscode2name
 from .tupleparse import parse_cim
@@ -449,44 +446,12 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         a tuple(msgid, methodname, params).
         """
 
-        try:
-            tup_tree = parse_cim(xml_to_tupletree_sax(request_str))
-        except ParseError as exc:
-            msg = str(exc)
-            parsing_error = True
-        except SAXParseException as exc:
-            msg = str(exc)
-            parsing_error = True
-        except ExpatError as exc:
-            # This is raised e.g. when XML numeric entity references of
-            # invalid XML characters are used (e.g. '&#0;').
-            # str(exc) is: "{message}, line {X}, offset {Y}"
-            xml_lines = _ensure_unicode(request_str).splitlines()
-            if len(xml_lines) >= exc.lineno:
-                parsed_line = xml_lines[exc.lineno - 1]
-            else:
-                parsed_line = "<error: Line number indicated in " \
-                              "ExpatError out of range: %s " \
-                              "(only %s lines in XML)>" % \
-                              (exc.lineno, len(xml_lines))
-            msg = "ExpatError %s: %s: %r" % \
-                  (str(exc.code), str(exc), parsed_line)
-            parsing_error = True
-        else:
-            parsing_error = False
+        # Parse the XML into a tuple tree (may raise ParseError):
 
-        if parsing_error:
-            # Here we just improve the quality of the exception information,
-            # so we do this only if it already has failed. Because the check
-            # function we invoke catches more errors than minidom.parseString,
-            # we call it also when debug is turned on.
-            try:
-                check_utf8_xml_chars(request_str, "CIM-XML export message")
-            except ParseError:
-                raise
-            raise ParseError(msg)  # data from previous exception
+        tt_ = xml_to_tupletree_sax(request_str, "CIM-XML export request")
+        tup_tree = parse_cim(tt_)
 
-        # Parse response
+        # Check the tuple tree
 
         if tup_tree[0] != 'CIM':
             raise ParseError('Expecting CIM element, got %s' %
