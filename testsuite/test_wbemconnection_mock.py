@@ -38,6 +38,8 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
 
 from pywbem.cim_obj import NocaseDict
 
+from pywbem.cim_operations import pull_path_result_tuple
+
 # TODO switch to using the pywbem package
 from pywbem_mock import FakedWBEMConnection
 
@@ -566,7 +568,7 @@ class TestFakedWBEMConnection(object):
         """ Test output of repr"""
         conn = FakedWBEMConnection(response_delay=3)
         repr_ = '%r' % conn
-        assert repr_.startswith('FakedWBEMConnection(delay=3,')
+        assert repr_.startswith('FakedWBEMConnection(response_delay=3,')
         # print(repr_)
 
     def test_attr(self):
@@ -577,7 +579,7 @@ class TestFakedWBEMConnection(object):
         conn = FakedWBEMConnection()
         assert conn.host == 'FakedUrl'
         assert conn.use_pull_operations is False
-        assert conn._repo_lite is None  # pylint: disable=protected-access
+        assert conn._repo_lite is False  # pylint: disable=protected-access
         assert conn.stats_enabled is False
         assert conn.default_namespace == DEFAULT_NAMESPACE
         assert conn.operation_recorder_enabled is False
@@ -671,7 +673,7 @@ class TestRepoMethods(object):
         "mof", [False, True])
     @pytest.mark.parametrize(
         "cln, lo, iq, ico, pl, exp_prop", [
-            # classname     lo     incq  ico   pl     exp_prop
+            # classname     lo     iq    ico   pl     exp_prop
             ['CIM_Foo_sub', False, True, True, None, ['InstanceID',
                                                       'cimfoo_sub']],
             ['CIM_Foo_sub', False, False, True, None, ['InstanceID',
@@ -684,8 +686,7 @@ class TestRepoMethods(object):
             ['CIM_Foo_sub', True, True, True, None, ['cimfoo_sub']],
             ['CIM_Foo_sub', True, False, True, None, ['cimfoo_sub']],
             ['CIM_Foo_sub', True, True, False, None, ['cimfoo_sub']],
-            # ['CIM_Foo_sub', True, True, False, ['InstanceID'], []],
-            # TODO above failing this test for the moment
+            ['CIM_Foo_sub', True, True, False, ['InstanceID'], []],
             ['CIM_Foo_sub', True, True, False, ['cimfoo_sub'], ['cimfoo_sub']],
         ]
     )
@@ -708,7 +709,7 @@ class TestRepoMethods(object):
 
         cl_props = [p.name for p in six.itervalues(cl.properties)]
 
-        class_repo = conn.get_class_repo(ns)
+        class_repo = conn._get_class_repo(ns)
         tst_class = class_repo[cln]
 
         if ico:
@@ -737,8 +738,8 @@ class TestRepoMethods(object):
             if len(pl) == 1 and pl[0] == '':
                 assert not cl_props
             else:
-                # Covers case where pl is for property not in classname
-                tst_lst = [p for p in pl]
+                # Cover case where pl is for property not in class
+                tst_lst = [p for p in pl if p in cl_props]
                 if tst_lst != pl:
                     assert set(cl_props) == set(tst_lst)
                 else:
@@ -765,7 +766,7 @@ class TestRepoMethods(object):
             ['CIM_Foo_sub', 'CIM_Foo_sub4', None, None, None, ['InstanceID',
                                                                'cimfoo_sub'],
              None],
-            # TODO not sure why I blocked this test.
+
             ['CIM_Foo_sub', 'CIM_Foo_sub99', None, None, None, None,
              'CIM_ERR_NOT_FOUND'],
         ]
@@ -785,7 +786,7 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classes, namespace=ns)
             conn.add_cimobjects(tst_instances, namespace=ns)
 
-        lo = False   # TODO expand to use lo parameterize.  Note that
+        lo = False   # TODO expand to use lo parameterized.  Note that
         # since lo is deprecated we might just drop in and always
         # go false.
 
@@ -839,7 +840,7 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classes, namespace=ns)
             conn.add_cimobjects(tst_instances, namespace=ns)
 
-        inst_repo = conn.get_instance_repo(ns)
+        inst_repo = conn._get_instance_repo(ns)
 
         iname = CIMInstanceName(cln,
                                 keybindings={'InstanceID': key},
@@ -870,10 +871,10 @@ class TestRepoMethods(object):
         conn.add_cimobjects(tst_instances, namespace=ns)
         conn.add_cimobjects(tst_insts_big, namespace=ns)
 
-        class_repo = conn.get_class_repo(ns)
+        class_repo = conn._get_class_repo(ns)
         assert len(class_repo) == len(tst_classes)
 
-        inst_repo = conn.get_instance_repo(ns)
+        inst_repo = conn._get_instance_repo(ns)
         assert len(inst_repo) == len(tst_instances) + len(tst_insts_big)
 
         # pylint: disable=unused-variable
@@ -981,8 +982,12 @@ class TestRepoMethods(object):
         i3 = """
         instance of CIM_Foo as $foo2 { InstanceID = "CIM_Foo3"; };
         """
+        # instance without alias set so compiler does not create path
+        i4 = """
+        instance of CIM_Foo { InstanceID = "CIM_Foo4"; };
+        """
         conn.compile_mof_str(q1, ns)
-        qual_repo = conn.get_qualifier_repo(tst_ns)
+        qual_repo = conn._get_qualifier_repo(tst_ns)
         assert 'Association' in qual_repo
         conn.compile_mof_str(q2, ns)
 
@@ -990,7 +995,7 @@ class TestRepoMethods(object):
         # individual repos. What we should do is to clear each namespace
         # repo instead of clearing the whole class/qualifier, etc. repo
         # TODO modify the merge function to clear each namespace in the repo.
-        qual_repo = conn.get_qualifier_repo(tst_ns)
+        qual_repo = conn._get_qualifier_repo(tst_ns)
         assert 'Association' in qual_repo
         assert 'Description' in qual_repo
         assert 'Key' in qual_repo
@@ -1001,15 +1006,9 @@ class TestRepoMethods(object):
         assert conn.GetClass('CIM_Foo', namespace=ns, LocalOnly=False,
                              IncludeQualifiers=True, IncludeClassOrigin=True)
 
-        conn.display_repository(output_format='mof')
-
         conn.compile_mof_str(c2, ns)
         assert conn.GetClass('CIM_Foo_sub', namespace=ns)
 
-        # compile instances
-        # NOTE: When these are build in separate compile unit, the compiler
-        # apparently does not create the path so this test tests the
-        # local create path also
         conn.compile_mof_str(i1, ns)
         rtn_names = conn.EnumerateInstanceNames('CIM_Foo', namespace=ns)
         assert len(rtn_names) == 1
@@ -1019,11 +1018,14 @@ class TestRepoMethods(object):
         conn.compile_mof_str(i3, ns)
         rtn_names = conn.EnumerateInstanceNames('CIM_Foo', namespace=ns)
         assert len(rtn_names) == 3
+        conn.compile_mof_str(i4, ns)
+        rtn_names = conn.EnumerateInstanceNames('CIM_Foo', namespace=ns)
+        assert len(rtn_names) == 4
         for name in rtn_names:
             inst = conn.GetInstance(name)
             assert inst.classname == 'CIM_Foo'
 
-        for id_ in ['CIM_Foo3', 'CIM_Foo2', 'CIM_Foo1']:
+        for id_ in ['CIM_Foo4', 'CIM_Foo3', 'CIM_Foo2', 'CIM_Foo1']:
             iname = CIMInstanceName('CIM_Foo',
                                     keybindings={'InstanceID': id_},
                                     namespace=tst_ns)
@@ -1045,6 +1047,7 @@ class TestRepoMethods(object):
                              namespace=ns).classname == 'CIM_Foo_sub2'
         assert conn.GetClass('CIM_Foo_sub_sub',
                              namespace=ns).classname == 'CIM_Foo_sub_sub'
+
         clns = conn.EnumerateClassNames(namespace=ns)
         assert len(clns) == 1
         clns = conn.EnumerateClassNames(namespace=ns, DeepInheritance=True)
@@ -1058,7 +1061,8 @@ class TestRepoMethods(object):
     def test_compile_instances(self, conn, ns, tst_classes_mof):
         # pylint: disable=no-self-use
         """
-        Test compile of instance mof into the repository
+        Test compile of instance mof into the repository in single file with
+        classes.
         """
         # get the default namespace if ns is None
         tst_ns = conn.default_namespace if ns is None else ns
@@ -1073,6 +1077,7 @@ class TestRepoMethods(object):
         # compile as single unit by combining classes and instances
         # The compiler builds the instance paths.
         all_mof = '%s\n\n%s' % (tst_classes_mof, insts_mof)
+
         conn.compile_mof_str(all_mof, namespace=ns)
         rtn_names = conn.EnumerateInstanceNames('CIM_Foo', namespace=ns)
         assert len(rtn_names) == 2
@@ -1147,8 +1152,8 @@ class TestRepoMethods(object):
                               search_paths=[SCHEMA_MOF_DIR])
 
         # pylint: disable=protected-access
-        assert len(conn.get_class_repo(ns)) == TOTAL_CLASSES
-        assert len(conn.get_qualifier_repo(ns)) == TOTAL_QUALIFIERS
+        assert len(conn._get_class_repo(ns)) == TOTAL_CLASSES
+        assert len(conn._get_qualifier_repo(ns)) == TOTAL_QUALIFIERS
 
 
 class TestClassOperations(object):
@@ -1418,26 +1423,45 @@ class TestClassOperations(object):
     # repository.
 
     @pytest.mark.parametrize(
-        "tst_class_name, ns, exp_exc", [
-            ['CIM_Foo', None, None],
-            ['CIM_Foo', 'root/blah', None],
-            ['CIM_Foo_sub', None, 'CIM_ERR_INVALID_SUPERCLASS'],
-            ['CIM_Foo_sub', 'root/blah', 'CIM_ERR_INVALID_SUPERCLASS'],
+        "ns", [None, 'root/blah'])
+    @pytest.mark.parametrize(
+        "tcl, exp_err", [
+            # tcl: Either string defining test class in tst_classes or
+            #      CIMClass
+            # exp:err: None if test is to succeed or CIMError status code as
+            #          a string.
+
+            # creates class correctly
+            ['CIM_Foo', None],
+
+            # fails because superclassnot in namespace
+            ['CIM_Foo_sub', 'CIM_ERR_INVALID_SUPERCLASS'],
+
+            # This test not valid because method creates new namespace
+
+            [CIMQualifierDeclaration('blah', 'string'),
+             'CIM_ERR_INVALID_PARAMETER']
         ]
     )
-    def test_createclass(self, conn, tst_class_name, tst_classes, ns, exp_exc):
+    def test_createclass(self, conn, tcl, tst_classes, ns, exp_err):
         # pylint: disable=no-self-use
         """
             Test create class. Tests for namespace variable,
             correctly adding, and invalid add where class has superclass
+            No way to do bad namespace error because this  method creates
+            namespace if it does not exist.
         """
 
         # Create the new_class to send from the existing tst_classes
-        for cc in tst_classes:
-            if cc.classname == tst_class_name:
-                new_class = cc
 
-        if not exp_exc:
+        if isinstance(tcl, six.string_types):
+            for cl in tst_classes:
+                if cl.classname == tcl:
+                    new_class = cl
+        else:
+            new_class = tcl
+
+        if not exp_err:
             conn.CreateClass(new_class, namespace=ns)
 
             rtn_cl = conn.GetClass(new_class.classname, namespace=ns,
@@ -1456,9 +1480,7 @@ class TestClassOperations(object):
                 conn.CreateClass(new_class, namespace=ns)
 
             exc = exec_info.value
-            assert(exc.status_code_name == exp_exc)
-
-    # TODO test_createclass: 1. no class, 2. no superclass, 3. namsepace er
+            assert(exc.status_code_name == exp_err)
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -1653,7 +1675,7 @@ class TestInstanceOperations(object):
 
         nsx = conn_lite.default_namespace if ns is None else ns
 
-        request_inst_names = [i.path for i in conn_lite.get_instance_repo(nsx)
+        request_inst_names = [i.path for i in conn_lite._get_instance_repo(nsx)
                               if i.classname == cln]
 
         assert len(rtn_inst_names) == len(request_inst_names)
@@ -1685,7 +1707,7 @@ class TestInstanceOperations(object):
         exp_subclasses = conn._get_subclass_names(cln, nsx, True)
         exp_subclasses.append(cln)
 
-        request_inst_names = [i.path for i in conn.get_instance_repo(nsx)
+        request_inst_names = [i.path for i in conn._get_instance_repo(nsx)
                               if i.classname in exp_subclasses]
 
         assert len(rtn_inst_names) == len(request_inst_names)
@@ -1916,7 +1938,8 @@ class TestInstanceOperations(object):
         "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
         "di, pl, exp_p, exp_inst", [
-            [None, None, ['InstanceID'], 8],
+            # [None, None, ['InstanceID', 'cimfoo_sub'], 8],
+            [False, None, ['InstanceID'], 8],
         ]
     )
     def test_enumerateinstances_di2(self, conn, tst_classes, tst_instances, ns,
@@ -1935,27 +1958,30 @@ class TestInstanceOperations(object):
 
         assert len(rtn_insts) == exp_inst
 
-        # get proplist from enum class
-        cl_props = []
-        for cl in tst_classes:
-            if cl.classname == cln:
-                cl_props = [prop for prop in cl.properties]
+        target_class = conn.GetClass(cln, namespace=ns, LocalOnly=False)
+        cl_props = [p.name for p in six.itervalues(target_class.properties)]
 
         tst_class_names = [cl.classname for cl in tst_classes]
 
         for inst in rtn_insts:
             assert isinstance(inst, CIMInstance)
             assert inst.classname in tst_class_names
-            props = [p for p in inst]
-            if not di:
-                # TODO fix this.  we are getting 2 properties back
-                print('TODO props %s and %s should match.' % (len(props),
-                                                              len(cl_props)))
+            inst_props = list(set([p for p in inst]))
+            if di is not True:   # inst props should match cl_props
+                if len(inst_props) != len(cl_props):
+                    # TODO: Still have issue with one test.
+                    print('TODO props %s and %s should match.\nprops=%s\n'
+                          'clprops=%s' % (len(inst_props),
+                                          len(cl_props), inst_props, cl_props))
 
-                # assert len(props) == len(cl_props)
+                assert len(inst_props) == len(cl_props)
+                assert set(inst_props) == set(cl_props)
             else:
-                # TODO calculate props for each instance
-                pass
+                di_class = conn.GetClass(inst.classname, namespace=ns,
+                                         LocalOnly=False)
+                cl_props = [p.name for p in six.itervalues(di_class.properties)]
+                assert len(inst_props) == len(cl_props)
+                assert set(inst_props) == set(cl_props)
             # TODO Test actual instance returned
 
     # TODO test for ico and iq
@@ -2065,7 +2091,7 @@ class TestInstanceOperations(object):
         instance and then getting that instance. This also includes error
         tests if exp_err is not None.
         """
-        conn.add_cimobjects(tst_classes, ns)
+        conn.add_cimobjects(tst_classes, namespace=ns)
 
         # modify input in accord with the tst parameter
         if tst == 0:   # pass on the new_inst defined in the parameter
@@ -2103,7 +2129,7 @@ class TestInstanceOperations(object):
         """
         Test duplicate instance cannot be created.
         """
-        conn.add_cimobjects(tst_class, ns)
+        conn.add_cimobjects(tst_class, namespace=ns)
 
         new_inst = tst_instances[0]
 
@@ -2258,7 +2284,7 @@ class TestInstanceOperations(object):
         and then deleting them. Deletes all instances that are CIM_Foo and
         subclasses
         """
-        conn_lite.add_cimobjects(tst_instances, ns)
+        conn_lite.add_cimobjects(tst_instances, namespace=ns)
 
         inst_name_list = conn_lite.EnumerateInstanceNames('CIM_Foo', ns)
 
@@ -2296,8 +2322,8 @@ class TestInstanceOperations(object):
 
         Error cases confirm that exp_err is received
         """
-        conn.add_cimobjects(tst_classes, ns)
-        conn.add_cimobjects(tst_instances, ns)
+        conn.add_cimobjects(tst_classes, namespace=ns)
+        conn.add_cimobjects(tst_instances, namespace=ns)
 
         if not exp_err:
             # Test deletes all instances for defined class
@@ -2366,8 +2392,7 @@ class TestPullOperations(object):
                                                             MaxObjectCount=moc)
         assert result_tuple.eos is True
         assert result_tuple.context is None
-        # TODO drop the following
-        # assert result_tuple.paths == [i.path for i in tst_instances]
+
         tst_paths = [i.path for i in tst_instances
                      if i.classname == 'CIM_Foo']
         exp_ns = conn_lite.default_namespace if ns is None else ns
@@ -2418,7 +2443,6 @@ class TestPullOperations(object):
         else:
             assert isinstance(result_tuple.context[0], six.string_types)
             assert isinstance(result_tuple.context[1], six.string_types)
-            # TODO test namespace in tuple
 
         # open response incomplete, execute a pull
         if not result_tuple.eos:
@@ -2449,7 +2473,8 @@ class TestPullOperations(object):
         exp_total_paths = [i.path for i in tst_instances
                            if i.classname == 'CIM_Foo']
 
-        result_tuple = conn_lite.OpenEnumerateInstancePaths('CIM_Foo', ns,
+        result_tuple = conn_lite.OpenEnumerateInstancePaths('CIM_Foo',
+                                                            namespace=ns,
                                                             MaxObjectCount=omoc)
         paths = result_tuple.paths
 
@@ -2634,6 +2659,153 @@ class TestPullOperations(object):
             exc = exec_info.value
             assert exc.status_code_name == exp_rslt
 
+    @pytest.mark.parametrize(
+        "ns", [None, 'root/blah'])
+    @pytest.mark.parametrize(
+        # src_inst: Source instance definition (classname and name property
+        # ro: Role
+        # ac: AssocClass
+        # rc: ResultClass
+        # rr: ResultRole
+        # exp_rslt: list of tuples where each tuple is class and key for
+        #           expected instance path returned or string if error
+        #           response expected. String contains error code
+        "src_inst, ro, ac, rc, rr, exp_rslt", [
+            [('TST_Person', 'Mike'), 'parent', 'TST_Lineage', 'TST_Person',
+             'child',
+             [('TST_Person', 'Sofi'),
+              ('TST_Person', 'Gabi')]],
+
+            [('TST_Person', 'Mike'), None, 'TST_Lineage', 'TST_Person',
+             'child',
+             [('TST_Person', 'Sofi'),
+              ('TST_Person', 'Gabi')]],
+
+            [('TST_Person', 'Mike'), None, 'TST_Lineage', 'TST_Person',
+             None,
+             [('TST_Person', 'Sofi'),
+              ('TST_Person', 'Gabi')]],
+
+            [('TST_Person', 'Saara'), 'parent', 'TST_Lineage', 'TST_Person',
+             'child', [('TST_Person', 'Sofi'), ]],
+
+            [('TST_Person', 'Saara'), 'parent', 'TST_Lineage', 'TST_Person',
+             'child', 'CIM_ERR_INVALID_NAMESPACE'],
+        ]
+    )
+    def test_openassociatorinstances(self, conn, ns, src_inst, ro, ac,
+                                     rc, rr, exp_rslt, tst_assoc_mof):
+        # pylint: disable=no-self-use,invalid-name
+        """
+            Test openenueratepaths where the open is the complete response
+            and all parameters are default
+        """
+        conn.compile_mof_str(tst_assoc_mof, namespace=ns)
+
+        source_inst_name = CIMInstanceName(src_inst[0],
+                                           keybindings=dict(name=src_inst[1]),
+                                           namespace=ns)
+
+        if isinstance(exp_rslt, (list, tuple)):
+            result_tuple = conn.OpenAssociatorInstances(source_inst_name,
+                                                        AssocClass=ac,
+                                                        Role=ro,
+                                                        ResultClass=rc,
+                                                        ResultRole=rr)
+
+            assert result_tuple.eos is True
+            assert result_tuple.context is None
+
+            exp_ns = ns if ns else conn.default_namespace
+
+            # build list of expected paths from exp_rslt
+            exp_paths = []
+            for exp in exp_rslt:
+                exp_paths.append(CIMInstanceName(
+                    exp[0],
+                    keybindings=dict(name=exp[1]),
+                    namespace=exp_ns))
+
+            rslt_paths = [inst.path for inst in result_tuple.instances]
+
+            assert equal_ciminstname_lists(rslt_paths, exp_paths)
+            # TODO test instances returned rather than just paths and
+            # test for propertylist specifically
+
+        else:
+            if exp_rslt == 'CIM_ERR_INVALID_NAMESPACE':
+                source_inst_name.namespace = 'BadNamespaceName'
+
+            with pytest.raises(CIMError) as exec_info:
+
+                conn.OpenAssociatorInstances(source_inst_name,
+                                             AssocClass=ac,
+                                             Role=ro,
+                                             ResultClass=rc,
+                                             ResultRole=rr)
+            exc = exec_info.value
+            assert exc.status_code_name == exp_rslt
+
+    @pytest.mark.parametrize(
+        "ns", [None, 'root/blah'])
+    @pytest.mark.parametrize(
+        "test, cln, omoc, pmoc, exp_err", [
+
+            # Test closing after open with moc
+            [0, 'CIM_Foo', 0, 1, None],
+
+            # Execute close after sequence conplete
+            [1, 'CIM_Foo', 100, 100, 'Value Not Used'],
+
+            # Execute close with valid context but after sequence complete
+            [2, 'CIM_Foo', 0, 100, 'CIM_ERR_INVALID_ENUMERATION_CONTEXT'],
+            # TODO FUTURE: test with timer
+        ]
+    )
+    def test_closeenumeration(self, conn, ns, test, cln, omoc, pmoc,
+                              exp_err, tst_classes, tst_instances):
+        # pylint: disable=no-self-use
+        """
+        Test variations on closing enumerate the enumeration context with
+        the CloseEnumeration operation.  Tests both valid and invalid
+        calls.
+        """
+        conn.add_cimobjects(tst_classes, namespace=ns)
+        conn.add_cimobjects(tst_instances, namespace=ns)
+
+        result_tuple = conn.OpenEnumerateInstancePaths(
+            cln, namespace=ns, MaxObjectCount=omoc)
+
+        if test == 0:
+            assert result_tuple.eos is False
+            assert result_tuple.context is not None
+            conn.CloseEnumeration(result_tuple.context)
+
+        elif test == 1:
+            while not result_tuple.eos:
+                result_tuple = conn.PullInstancePaths(
+                    result_tuple.context, MaxObjectCount=pmoc)
+            assert result_tuple.eos is True
+            assert result_tuple.context is None
+            with pytest.raises(ValueError) as exec_info:
+                conn.CloseEnumeration(result_tuple.context)
+
+        elif test == 2:
+            save_result_tuple = pull_path_result_tuple(*result_tuple)
+
+            while not result_tuple.eos:
+                result_tuple = conn.PullInstancePaths(
+                    result_tuple.context, MaxObjectCount=pmoc)
+            assert result_tuple.eos is True
+            assert result_tuple.context is None
+            with pytest.raises(CIMError) as exec_info:
+                assert save_result_tuple.context is not None
+                conn.CloseEnumeration(save_result_tuple.context)
+            exc = exec_info.value
+            assert exc.status_code_name == exp_err
+        else:
+            assert False, 'Invalid test code %s' % test
+
 
 class TestQualifierOperations(object):
     """
@@ -2667,7 +2839,7 @@ class TestQualifierOperations(object):
         WBEMConnection get to retrieve it.
         """
         q_list = self._build_qualifiers()
-        conn.add_cimobjects(q_list, ns)
+        conn.add_cimobjects(q_list, namespace=ns)
 
         if not exp_err:
             rtn_q1 = conn.GetQualifier(qname, namespace=ns)
@@ -2693,7 +2865,7 @@ class TestQualifierOperations(object):
         """
         q_list = self._build_qualifiers()
 
-        conn.add_cimobjects(q_list, ns)
+        conn.add_cimobjects(q_list, namespace=ns)
 
         if not exp_err:
             q_rtn = conn.EnumerateQualifiers(namespace=ns)
@@ -2929,7 +3101,7 @@ class TestReferenceOperations(object):
                                       ('TST_Lineage', 'MikeGabi'),)],
             # TODO expand test exp_rslt definition. Need to be able to
             # express keys for TST_Memberof FamilyCollection since it has
-            # 2 keys.
+            # 2 keys. Did in another test and need to copy
             # [None, 'parent', (('TST_Lineage', 'MikeSofi'),
             #                          ('TST_Lineage', 'MikeGabi'),
             #                         ('TST_MemberOfFamilyCollection', TODO ))],
