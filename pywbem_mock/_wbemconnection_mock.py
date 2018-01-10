@@ -62,14 +62,14 @@ DEFAULT_DEEP_INHERITANCE = True
 # allowed output formats for the repository display
 OUTPUT_FORMATS = ['mof', 'xml', 'repr']
 
-# TODO: We have not considered that iq and ico are deprecated in DSP0200
+# TODO: Future We have not considered that iq and ico are deprecated in DSP0200
 # we should set up a default to ignore these parameters for the operations
 # in which they are deprecated and we should/could ignore them
 
 
 def _display(dest, text):
     """
-    Display to dest defined by dest. This function appends the data
+    Display to dest defined by text. This function appends the data
     in text to the file defined by dest or to stdout of dest is None
     """
     # TODO make this unicode file for python 2
@@ -2073,7 +2073,7 @@ class FakedWBEMConnection(WBEMConnection):
     def _fake_referencenames(self, namespace, **params):
         """
         Implements a mock WBEM server responder for
-            :meth:`~pywbem.WBEMConnection.ReferenceNames`
+        :meth:`~pywbem.WBEMConnection.ReferenceNames`
         """
         assert params['ResultClass'] is None or \
             isinstance(params['ResultClass'], CIMClassName)
@@ -2110,7 +2110,7 @@ class FakedWBEMConnection(WBEMConnection):
     def _fake_references(self, namespace, **params):
         """
         Implements a mock WBEM server responder for
-            :meth:`~pywbem.WBEMConnection.References`
+        :meth:`~pywbem.WBEMConnection.References`
         """
         rc = None if params['ResultClass'] is None else \
             params['ResultClass'].classname
@@ -2150,7 +2150,7 @@ class FakedWBEMConnection(WBEMConnection):
         # pylint: disable=invalid-name
         """
         Implements a mock WBEM server responder for
-            :meth:`~pywbem.WBEMConnection.AssociatorNames`
+        :meth:`~pywbem.WBEMConnection.AssociatorNames`
         """
         self._get_instance_repo(namespace)
 
@@ -2181,7 +2181,8 @@ class FakedWBEMConnection(WBEMConnection):
                                                        ac, rc,
                                                        result_role, role)
         results = [p.copy() for p in rtn_paths]
-        # TODO: Should we force this in the repo itself??
+        # TODO: Should we force this in the repo itself??. Should we be
+        # setting the host name when we put instances into the repo
         for iname in results:
             if iname.host is None:
                 iname.host = self.host
@@ -2315,13 +2316,13 @@ class FakedWBEMConnection(WBEMConnection):
             context_data = self.enumeration_contexts[context_id]
         except KeyError:
             raise CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT,
-                           'Enumeration context %s not found in mock context '
-                           ' list.' % context_id)
+                           'EnumerationContext %s not found in mock server '
+                           'contexts.' % context_id)
 
         if context_data['pull_type'] != req_type:
             raise CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT,
-                           'Invalid Pull %s does not match expected %s for '
-                           'EnumerationContext %s'
+                           'Invalid pull operations %s does not match expected '
+                           '%s for EnumerationContext %s'
                            % (context_data['pull_type'], req_type, context_id))
 
         objs_list = context_data['data']
@@ -2366,9 +2367,9 @@ class FakedWBEMConnection(WBEMConnection):
     def _fake_openenumerateinstancepaths(self, namespace, **params):
         # pylint: disable=invalid-name
         """
-            Implements WBEM server responder for
-            :meth:`~pywbem.WBEMConnection.OpenEnumerationInstancePaths`
-            with data from the instance repository.
+        Implements WBEM server responder for
+        :meth:`~pywbem.WBEMConnection.OpenEnumerationInstancePaths`
+        with data from the instance repository.
         """
         self._get_instance_repo(namespace)
 
@@ -2380,9 +2381,9 @@ class FakedWBEMConnection(WBEMConnection):
 
     def _fake_openenumerateinstances(self, namespace, **params):
         """
-            Implements WBEM server responder for
-            :meth:`~pywbem.WBEMConnection.OpenEnumerationInstances`
-            with data from the instance repository.
+        Implements WBEM server responder for
+        :meth:`~pywbem.WBEMConnection.OpenEnumerationInstances`
+        with data from the instance repository.
         """
         self._get_instance_repo(namespace)
         self._validate_open_params(**params)
@@ -2395,9 +2396,9 @@ class FakedWBEMConnection(WBEMConnection):
     def _fake_openreferenceinstancepaths(self, namespace, **params):
         # pylint: disable=invalid-name
         """
-            Implements WBEM server responder for
-            :meth:`~pywbem.WBEMConnection.OpenReferenceInstancePaths`
-            with data from the instance repository.
+        Implements WBEM server responder for
+        :meth:`~pywbem.WBEMConnection.OpenReferenceInstancePaths`
+        with data from the instance repository.
         """
         self._get_instance_repo(namespace)
         self._validate_open_params(**params)
@@ -2413,9 +2414,9 @@ class FakedWBEMConnection(WBEMConnection):
 
     def _fake_openreferenceinstances(self, namespace, **params):
         """
-            Implements WBEM server responder for
-            :meth:`~pywbem.WBEMConnection.OpenReferenceInstances`
-            with data from the instance repository.
+        Implements WBEM server responder for
+        :meth:`~pywbem.WBEMConnection.OpenReferenceInstances`
+        with data from the instance repository.
         """
         self._get_instance_repo(namespace)
         self._validate_open_params(**params)
@@ -2432,9 +2433,9 @@ class FakedWBEMConnection(WBEMConnection):
     def _fake_openassociatorinstancepaths(self, namespace, **params):
         # pylint: disable=invalid-name
         """
-            Implements WBEM server responder for
-            :meth:`~pywbem.WBEMConnection.OpenAssociatorInstancePaths`
-            with data from the instance repository.
+        Implements WBEM server responder for
+        :meth:`~pywbem.WBEMConnection.OpenAssociatorInstancePaths`
+        with data from the instance repository.
         """
         self._get_instance_repo(namespace)
         self._validate_open_params(**params)
@@ -2450,9 +2451,9 @@ class FakedWBEMConnection(WBEMConnection):
 
     def _fake_openassociatorinstances(self, namespace, **params):
         """
-            Implements WBEM server responder for
-            WBEMConnection.OpenAssociatorInstances
-            with data from the instance repository.
+        Implements WBEM server responder for
+        WBEMConnection.OpenAssociatorInstances
+        with data from the instance repository.
         """
         self._get_instance_repo(namespace)
         self._validate_open_params(**params)
@@ -2469,9 +2470,9 @@ class FakedWBEMConnection(WBEMConnection):
     def _fake_openqueryinstances(self, namespace, **params):
         # pylint: disable=invalid_name
         """
-            Implements WBEM server responder for
-            :meth:`~pywbem.WBEMConnection.OpenQueryInstances`
-            with data from the instance repository.
+        Implements WBEM server responder for
+        :meth:`~pywbem.WBEMConnection.OpenQueryInstances`
+        with data from the instance repository.
         """
         self._get_instance_repo(namespace)
         self._validate_open_params(**params)
@@ -2485,26 +2486,26 @@ class FakedWBEMConnection(WBEMConnection):
 
     def _fake_pullinstanceswithpath(self, namespace, **params):
         """
-            Implements WBEM server responder for
-            :meth:`~pywbem.WBEMConnection.OpenPullInstancesWithPath`
-            with data from the instance repository.
+        Implements WBEM server responder for
+        :meth:`~pywbem.WBEMConnection.OpenPullInstancesWithPath`
+        with data from the instance repository.
         """
         return self._pull_response(namespace, 'PullInstancesWithPath',
                                    **params)
 
     def _fake_pullinstancepaths(self, namespace, **params):
         """
-            Implements WBEM server responder for
-            :meth:`~pywbem.WBEMConnection.OpenPullInstancePaths`
-            with data from the instance repository.
+        Implements WBEM server responder for
+        :meth:`~pywbem.WBEMConnection.OpenPullInstancePaths`
+        with data from the instance repository.
         """
         return self._pull_response(namespace, 'PullInstancePaths', **params)
 
     def _fake_pullinstances(self, namespace, **params):
         """
-            Implements WBEM server responder for
-            :meth:`~pywbem.WBEMConnection.OpenPullInstances`
-            with data from the instance repository.
+        Implements WBEM server responder for
+        :meth:`~pywbem.WBEMConnection.OpenPullInstances`
+        with data from the instance repository.
         """
         return self._pull_response(namespace, 'PullInstances', **params)
 
@@ -2523,14 +2524,17 @@ class FakedWBEMConnection(WBEMConnection):
 
         try:
             context_data = self.enumeration_contexts[context_id]
+            # This is probably relatively useless because pywbem handles
+            # namespace internally but it could catch an if user plays
+            # with the context.
             if context_data['namespace'] != namespace:
                 raise CIMError(CIM_ERR_INVALID_NAMESPACE,
                                'Incorrect Namespace %s for CloseEnumeration %s '
                                % (namespace, context_id))
         except KeyError:
             raise CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT,
-                           'Ennumeration context %s not found in mock server '
-                           'EnumerationContext. ' % context_id)
+                           'EnumerationContext %s not found in mock server '
+                           'EnumerationContexts. ' % context_id)
         del self.enumeration_contexts[context_id]
 
     #####################################################################
