@@ -614,7 +614,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             exception.
 
           use_pull_operations (:class:`py:bool`):
-            **Experimental:** *New in pywbem 0.11 as experimental.
+            **Experimental** New in pywbem 0.11 as experimental.
 
             Controls the use of pull operations in any `Iter...()` methods.
 
@@ -861,10 +861,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def use_pull_operations(self):
         """
-        **Experimental:** *New in pywbem 0.11 as experimental.
-
         :class:`py:bool`: Indicates whether the client should attempt the use
         of pull operations in any `Iter...()` methods.
+
+        **Experimental:** New in pywbem 0.11 as experimental.
 
         This property reflects the intent of the user as specified in the
         same-named constructor parameter. This property is not updated with
@@ -3969,6 +3969,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
+
+        Example::
+
+            max_object_count = 100
+            rslt_tuple = conn.OpenEnumerateInstancePaths(
+                'CIM_Blah', MaxObjectCount=max_object_count)
+            paths = rslt_tuple.paths
+            while not rslt_tuple.eos:
+                rslt_tuple = conn.PullInstancePaths(rslt_tupl.context,
+                                                    max_object_count)
+                paths.extend(rslt_tupl.paths)
+            for path in paths:
+                print('path %s' % path)
         """
 
         exc = None
@@ -4235,6 +4248,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
+
+        Example::
+
+            max_object_count = 100
+            rslt_tuple = conn.OpenEnumerateInstances(
+                'CIM_Blah', MaxObjectCount=max_object_count)
+            insts = rslt_tuple.paths
+            while not rslt_tuple.eos:
+                rslt_tuple = conn.PullInstancesWithPath(rslt_tupl.context,
+                                                        max_object_count)
+                insts.extend(rslt_tupl.paths)
+            for inst in insts:
+                print('instance %s' % inst.tomof())
         """  # noqa: E501
 
         exc = None
@@ -5532,7 +5558,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Identifies the enumeration session, including its current
             enumeration state. This must be the value of the `context` item in
             the :class:`py:namedtuple` object returned from the previous
-            open or pull operation for this enumeration.
+            open or pull operation for this enumeration. This should
+            be passed from an Open... or Pull... operation response without
+            modification.
 
             The tuple items are:
 
@@ -5540,7 +5568,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               Enumeration context string returned by the server. This
               string is opaque for the client.
             * namespace (:term:`string`):
-              Name of the CIM namespace to be used for this operation.
+              Name of the CIM namespace being used for this enumeration
+              sequence.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
             Maximum number of instances the WBEM server shall return
@@ -5672,11 +5701,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          context (:term:`string`)
+          context (:func:`py:tuple` of server_context, namespace)
             Identifies the enumeration session, including its current
             enumeration state. This must be the value of the `context` item in
             the :class:`py:namedtuple` object returned from the previous
-            open or pull operation for this enumeration.
+            open or pull operation for this enumeration. This should
+            be passed from an Open... or Pull... operation responsewithout
+            modification.
 
             The tuple items are:
 
@@ -5684,7 +5715,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               Enumeration context string returned by the server. This
               string is opaque for the client.
             * namespace (:term:`string`):
-              Name of the CIM namespace to be used for this operation.
+              Name of the CIM namespace being used for this enumeration
+              sequence.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
             Maximum number of instances the WBEM server shall return
@@ -5812,11 +5844,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          context (:term:`string`)
+          context (:func:`py:tuple` of server_context, namespace)
             Identifies the enumeration session, including its current
             enumeration state. This must be the value of the `context` item in
             the :class:`py:namedtuple` object returned from the previous
-            open or pull operation for this enumeration.
+            open or pull operation for this enumeration sequence. This should
+            be passed from an Open... or Pull... operation response without
+            modification.
 
             The tuple items are:
 
@@ -5824,7 +5858,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               Enumeration context string returned by the server. This
               string is opaque for the client.
             * namespace (:term:`string`):
-              Name of the CIM namespace to be used for this operation.
+              Name of the CIM namespace being used for this enumeration
+              sequence.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
             Maximum number of instances the WBEM server shall return
@@ -5950,11 +5985,22 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          context (:term:`string`)
-            The `enumeration_context` paramater must contain the
-            `Context` value returned by the WBEM server with the
-            response to the previous open or pull operation for this
-            enumeration sequence.
+          context (:func:`py:tuple` of server_context, namespace)
+            Identifies the enumeration session, including its current
+            enumeration state. This must be the value of the `context` item in
+            the :class:`py:namedtuple` object returned from the previous
+            open or pull operation for this enumeration sequence. This should
+            be passed from an Open... or Pull... operation response without
+            modification.
+
+            The tuple items are:
+
+            * server_context (:term:`string`):
+              Enumeration context string returned by the server. This
+              string is opaque for the client.
+            * namespace (:term:`string`):
+              Name of the CIM namespace being used for this enumeration
+              sequence.
 
         Keyword Arguments:
 
@@ -5982,6 +6028,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         try:
 
             stats = self.statistics.start_timer(method_name)
+
+            # entire context is tested for None because the open/pull methods
+            # set the complete context to None when eos received.
             if context is None:
                 raise ValueError('Invalid EnumerationContext')
             self._imethodcall(
