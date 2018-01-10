@@ -1765,14 +1765,16 @@ def parse_embeddedObject(val):  # pylint: disable=invalid-name
     if val is None:
         return None
 
-    tuptree = xml_to_tupletree_sax(val)  # perform the un-embedding
-    # TODO ks 11/14/16 Does not handle exceptions.  See cim_operations l 800
+    # Perform the un-embedding (may raise ParseError)
+    tuptree = xml_to_tupletree_sax(val, "embedded object")
+
     if tuptree[0] == 'INSTANCE':
         return parse_instance(tuptree)
     elif tuptree[0] == 'CLASS':
         return parse_class(tuptree)
     else:
-        raise ParseError('Error parsing embedded object')
+        raise ParseError("Invalid top-level element %r in embedded object "
+                         "value" % tuptree[0])
 
 
 def unpack_value(tup_tree):
