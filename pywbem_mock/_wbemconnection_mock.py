@@ -1,18 +1,22 @@
-# (C) Copyright 2017 IBM Corp.
-# (C) Copyright 2017 Inova Development Inc.
-# All Rights Reserved
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright 2018 InovaDevelopment.com
 #
-#    http://www.apache.org/licenses/LICENSE-2.0)
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Author: Karl  Schopmeyer <inovadevelopment.com>
+#
 
 """
 Mock support for pywbem.
@@ -216,218 +220,11 @@ class FakedWBEMConnection(WBEMConnection):
             (self.__class__.__name__, self.response_delay,
              super(FakedWBEMConnection, self).__repr__())
 
-    ##########################################################
-    #
-    #   Functions Mocked
-    #
-    ##########################################################
-
-    def _mock_imethodcall(self, methodname, namespace, response_params_rqd=None,
-                          **params):
-        """
-        Mocks the WBEMConnection._imethodcall() method.
-
-        This mock calls methods within this class that fake the processing
-        in a WBEM server (at the CIM Object level) for the varisous CIM/XML
-        methods and return.
-
-        Each function is named with the lower case method namd prepended with
-        '_fake_'.
-        """
-        logging.debug('mock_imethodcall method=%s, namespace=%s, '
-                      'response_params_rqd=%s\nparams=%s',
-                      methodname, namespace, response_params_rqd, params)
-
-        method_name = '_fake_' + methodname.lower()
-
-        method_name = getattr(self, method_name)
-        result = method_name(namespace, **params)
-
-        # sleep for defined number of seconds
-        if self._response_delay:
-            time.sleep(self._response_delay)
-
-        logging.debug('mock result %s', result)
-
-        return result
-
-    def _mock_methodcall(self, methodname, localobject, Params=None, **params):
-        # pylint: disable=invalid-name
-        """
-        Mocks the WBEMConnection._methodcall() method.
-        """
-        if self.verbose:
-            logging.debug('mock_imethodcall method=%s, namespace=%s, '
-                          'response_params_rqd=%s\nparams=%s',
-                          methodname, localobject, Params, params)
-
-        result = self._fake_invokemethod(methodname,
-                                         localobject,
-                                         Params=Params,
-                                         **params)
-        # sleep for defined number of seconds
-        if self._response_delay:
-            time.sleep(self._response_delay)
-
-        if self.verbose:
-            print('mock result %s' % result)
-
     ################################################################
     #
     #   Methods to insert data into mock repository
     #
     ################################################################
-
-    @staticmethod
-    def _display_objects(obj_type, objects_repo, namespaces, dest=None,
-                         summary=None, output_format=None):
-        """
-        Display a set of objects of obj_type from the dictionary defined
-        by the parameter objects_dict. obj_type is a string that defines the
-        type of object (instance, class, qualifier declaration).
-
-        """
-        if output_format not in OUTPUT_FORMATS and output_format is not None:
-            raise ValueError('ERROR, invalid output format definition %s. '
-                             '%s are valid.' % (output_format, OUTPUT_FORMATS))
-
-        if not objects_repo:
-            return
-
-        if isinstance(namespaces, six.string_types):
-            namespaces = [namespaces]
-        elif isinstance(namespaces, list):
-            pass
-        else:
-            namespaces = six.iterkeys(objects_repo)
-
-        for ns in six.iterkeys(objects_repo):
-            if namespaces and ns not in namespaces:
-                continue
-            _display(dest, 'Namespace %s: contains %s %s:' %
-                     (ns, len(objects_repo[ns]), obj_type))
-            if not summary:
-                # instances are special because the inner struct is a list
-                if obj_type == 'Instances':
-                    insts = objects_repo[ns]
-                    for inst in insts:
-                        if output_format == 'xml':
-                            _display(dest, 'Path=%s\n%s' %
-                                     (inst.path, inst.tocimxmlstr()))
-                        elif output_format == 'repr':
-                            _display(dest, 'Path: %r\nInst:\n%r\n' %
-                                     (inst.path, inst))
-                        else:
-                            _display(dest, 'Path=%s\n%s' % (inst.path,
-                                                            inst.tomof()))
-
-                else:
-                    for objects in six.itervalues(objects_repo):
-                        for obj in six.itervalues(objects):
-                            if output_format == 'xml':
-                                _display(dest, obj.tocimxmlstr())
-                            elif output_format == 'repr':
-                                _display(dest, '%r' % obj)
-                            else:
-                                _display(dest, obj.tomof())
-
-    def display_repository(self, namespaces=None, dest=None, summary=False,
-                           output_format='mof'):
-        """
-        Display contents of the mock repository in one of the defined formats
-        to a destination defined by output_format.
-
-        Parameters:
-
-          namespaces (:term:`string` or list of :term:`string`):
-            Limits display output to the specified CIM namespace or namespaces.
-            If `None`, all namespaces of the mock repository are displayed.
-
-          dest (:term:`string`):
-            File path of the output file. If `None`, the output is written to
-            stdout.
-
-          summary (:class:`py:bool`):
-            Flag for summary mode. If `True`, only a summary count of CIM
-            objects in the specified namespaces of the mock repository is
-            produced. If `False`, both the summary count and the details of
-            the CIM objects are produced.
-
-          output_format (:term:`string`):
-            Output format, one of: 'mof', 'xml', or 'repr'.
-
-            TODO: FUTURE add more parameters for display and cvt to log.
-        """
-        _display(dest, '===============Repository====================')
-        self._display_objects('Qualifier Declarations', self.qualifiers,
-                              namespaces, dest=dest, summary=summary,
-                              output_format=output_format)
-        self._display_objects('Classes', self.classes, namespaces, dest=dest,
-                              summary=summary, output_format=output_format)
-        self._display_objects('Instances', self.instances, namespaces,
-                              dest=dest, summary=summary,
-                              output_format=output_format)
-        _display(dest, '============End Repository=================')
-
-    def _get_inst_repo(self, namespace=None):
-        """
-        Test support method that returns instances from the repository with
-        no processing.  It uses the default namespace if input parameter
-        for namespace is None
-        """
-        if namespace is None:
-            namespace = self.default_namespace
-        return self.instances[namespace]
-
-    def _setup_mof_repo(self, repo):
-        """
-        Move our repo to the mofcompile repo to provide a basis
-        for the compile.
-        """
-        repo.classes = copy.deepcopy(self.classes)
-        repo.qualifiers = copy.deepcopy(self.qualifiers)
-        repo.instances = copy.deepcopy(self.instances)
-
-    def _merge_repos(self, repo):
-        """
-        Move objects from the repo repository to the self repository. Since the
-        setup copied all existing objects to the compile repo, this clears
-        the repository and them copies all of them back.
-
-        """
-        if repo.classes:
-            self.classes.clear()
-            for ns in repo.classes:
-                for cl in six.itervalues(repo.classes[ns]):
-                    try:
-                        self.classes[ns][cl.classname] = \
-                            repo.classes[ns][cl.classname].copy()
-                    except KeyError:
-                        self.classes[ns] = NocaseDict({cl.classname: cl})
-        if repo.instances:
-            self.instances.clear()
-            for ns, insts in six.iteritems(repo.instances):
-                for inst in insts:
-                    if not inst.path:
-                        # use GetClass to get all properties
-                        cc = self.GetClass(inst.classname, namespace=ns,
-                                           LocalOnly=False,
-                                           IncludeQualifiers=True,
-                                           IncludeClassOrigin=True)
-                        inst.path = self._create_instance_path(cc, inst, ns)
-                    try:
-                        self.instances[ns].append(inst)
-                    except KeyError:
-                        self.instances[ns] = [inst]
-        if repo.qualifiers:
-            self.qualifiers.clear()
-            for ns in repo.qualifiers:
-                for qual in six.itervalues(repo.qualifiers[ns]):
-                    try:
-                        self.qualifiers[ns][qual.name] = \
-                            repo.qualifiers[ns][qual.name].copy()
-                    except KeyError:
-                        self.qualifiers[ns] = NocaseDict({qual.name: qual})
 
     def compile_mof_file(self, mof_file, namespace=None, search_paths=None,
                          verbose=None):
@@ -642,7 +439,8 @@ class FakedWBEMConnection(WBEMConnection):
                         self.instances[namespace] = [inst]
                     else:
                         raise CIMError(CIM_ERR_FAILED, 'Internal failure of '
-                                       'operation')
+                                       'add_cimobject operation. Rcvd '
+                                       ' CIMError %s' % ce)
 
             elif isinstance(obj, CIMQualifierDeclaration):
                 qual = obj.copy()
@@ -653,9 +451,220 @@ class FakedWBEMConnection(WBEMConnection):
             else:
                 assert False, 'add_cimobjects. %s not valid.' % type(obj)
 
-    ###################################################################
+    def display_repository(self, namespaces=None, dest=None, summary=False,
+                           output_format='mof'):
+        """
+        Display contents of the mock repository in one of the defined formats
+        to a destination defined by output_format.
+
+        Parameters:
+
+          namespaces (:term:`string` or list of :term:`string`):
+            Limits display output to the specified CIM namespace or namespaces.
+            If `None`, all namespaces of the mock repository are displayed.
+
+          dest (:term:`string`):
+            File path of the output file. If `None`, the output is written to
+            stdout.
+
+          summary (:class:`py:bool`):
+            Flag for summary mode. If `True`, only a summary count of CIM
+            objects in the specified namespaces of the mock repository is
+            produced. If `False`, both the summary count and the details of
+            the CIM objects are produced.
+
+          output_format (:term:`string`):
+            Output format, one of: 'mof', 'xml', or 'repr'.
+
+            TODO: FUTURE add more parameters for display and cvt to log.
+        """
+        _display(dest, '===============Repository====================')
+        self._display_objects('Qualifier Declarations', self.qualifiers,
+                              namespaces, dest=dest, summary=summary,
+                              output_format=output_format)
+        self._display_objects('Classes', self.classes, namespaces, dest=dest,
+                              summary=summary, output_format=output_format)
+        self._display_objects('Instances', self.instances, namespaces,
+                              dest=dest, summary=summary,
+                              output_format=output_format)
+        _display(dest, '============End Repository=================')
+
+    @staticmethod
+    def _display_objects(obj_type, objects_repo, namespaces, dest=None,
+                         summary=None, output_format=None):
+        """
+        Display a set of objects of obj_type from the dictionary defined
+        by the parameter objects_dict. obj_type is a string that defines the
+        type of object (instance, class, qualifier declaration).
+
+        """
+        if output_format not in OUTPUT_FORMATS and output_format is not None:
+            raise ValueError('Invalid output format definition %s. '
+                             '%s are valid.' % (output_format, OUTPUT_FORMATS))
+
+        if not objects_repo:
+            return
+
+        if isinstance(namespaces, six.string_types):
+            namespaces = [namespaces]
+        elif isinstance(namespaces, list):
+            pass
+        else:
+            namespaces = six.iterkeys(objects_repo)
+
+        for ns in six.iterkeys(objects_repo):
+            if namespaces and ns not in namespaces:
+                continue
+            _display(dest, 'Namespace %s: contains %s %s:' %
+                     (ns, len(objects_repo[ns]), obj_type))
+            if not summary:
+                # instances are special because the inner struct is a list
+                if obj_type == 'Instances':
+                    insts = objects_repo[ns]
+                    for inst in insts:
+                        if output_format == 'xml':
+                            _display(dest, 'Path=%s\n%s' %
+                                     (inst.path, inst.tocimxmlstr()))
+                        elif output_format == 'repr':
+                            _display(dest, 'Path: %r\nInst:\n%r\n' %
+                                     (inst.path, inst))
+                        else:
+                            _display(dest, 'Path=%s\n%s' % (inst.path,
+                                                            inst.tomof()))
+
+                else:
+                    for objects in six.itervalues(objects_repo):
+                        for obj in six.itervalues(objects):
+                            if output_format == 'xml':
+                                _display(dest, obj.tocimxmlstr())
+                            elif output_format == 'repr':
+                                _display(dest, '%r' % obj)
+                            else:
+                                _display(dest, obj.tomof())
+
+    def _get_inst_repo(self, namespace=None):
+        """
+        Test support method that returns instances from the repository with
+        no processing.  It uses the default namespace if input parameter
+        for namespace is None
+        """
+        if namespace is None:
+            namespace = self.default_namespace
+        return self.instances[namespace]
+
+    def _setup_mof_repo(self, repo):
+        """
+        Move our repo to the mofcompile repo to provide a basis
+        for the compile.
+        """
+        repo.classes = copy.deepcopy(self.classes)
+        repo.qualifiers = copy.deepcopy(self.qualifiers)
+        repo.instances = copy.deepcopy(self.instances)
+
+    def _merge_repos(self, repo):
+        """
+        Move objects from the repo repository to the self repository. Since the
+        setup copied all existing objects to the compile repo, this clears
+        the repository and them copies all of them back.
+
+        """
+        if repo.classes:
+            self.classes.clear()
+            for ns in repo.classes:
+                for cl in six.itervalues(repo.classes[ns]):
+                    try:
+                        self.classes[ns][cl.classname] = \
+                            repo.classes[ns][cl.classname].copy()
+                    except KeyError:
+                        self.classes[ns] = NocaseDict({cl.classname: cl})
+        if repo.instances:
+            self.instances.clear()
+            for ns, insts in six.iteritems(repo.instances):
+                for inst in insts:
+                    if not inst.path:
+                        # use GetClass to get all properties
+                        cc = self.GetClass(inst.classname, namespace=ns,
+                                           LocalOnly=False,
+                                           IncludeQualifiers=True,
+                                           IncludeClassOrigin=True)
+                        inst.path = self._create_instance_path(cc, inst, ns)
+                    try:
+                        self.instances[ns].append(inst)
+                    except KeyError:
+                        self.instances[ns] = [inst]
+        if repo.qualifiers:
+            self.qualifiers.clear()
+            for ns in repo.qualifiers:
+                for qual in six.itervalues(repo.qualifiers[ns]):
+                    try:
+                        self.qualifiers[ns][qual.name] = \
+                            repo.qualifiers[ns][qual.name].copy()
+                    except KeyError:
+                        self.qualifiers[ns] = NocaseDict({qual.name: qual})
+
+    ##########################################################
     #
-    #     General support methods for the fake_... methods
+    #   Functions Mocked. WBEMConnection only mocks the WBEMConnection
+    #   _imethodcall and _methodcall methods.  This captures all calls
+    #   to the wbem server.
+    #
+    ##########################################################
+
+    def _mock_imethodcall(self, methodname, namespace, response_params_rqd=None,
+                          **params):
+        """
+        Mocks the WBEMConnection._imethodcall() method.
+
+        This mock calls methods within this class that fake the processing
+        in a WBEM server (at the CIM Object level) for the varisous CIM/XML
+        methods and return.
+
+        Each function is named with the lower case method namd prepended with
+        '_fake_'.
+        """
+        logging.debug('mock_imethodcall method=%s, namespace=%s, '
+                      'response_params_rqd=%s\nparams=%s',
+                      methodname, namespace, response_params_rqd, params)
+
+        method_name = '_fake_' + methodname.lower()
+
+        method_name = getattr(self, method_name)
+        result = method_name(namespace, **params)
+
+        # sleep for defined number of seconds
+        if self._response_delay:
+            time.sleep(self._response_delay)
+
+        logging.debug('mock result %s', result)
+
+        return result
+
+    def _mock_methodcall(self, methodname, localobject, Params=None, **params):
+        # pylint: disable=invalid-name
+        """
+        Mocks the WBEMConnection._methodcall() method.
+        """
+        if self.verbose:
+            logging.debug('mock_imethodcall method=%s, namespace=%s, '
+                          'response_params_rqd=%s\nparams=%s',
+                          methodname, localobject, Params, params)
+
+        result = self._fake_invokemethod(methodname,
+                                         localobject,
+                                         Params=Params,
+                                         **params)
+        # sleep for defined number of seconds
+        if self._response_delay:
+            time.sleep(self._response_delay)
+
+        if self.verbose:
+            print('mock result %s' % result)
+
+    #####################################################################
+    #
+    #     Common methods that the Fake... WBEMConnection methods use to
+    #     to communicate with the Mock repository. These are generally
+    #     private methods.
     #
     #####################################################################
 
@@ -895,7 +904,7 @@ class FakedWBEMConnection(WBEMConnection):
                 except KeyError:
                     cx = cc if super_class is None else super_class
                     raise CIMError(CIM_ERR_INVALID_SUPERCLASS,
-                                   'Class %s has invalid superclass %s' %
+                                   'Class %s has invalid superclass %s.' %
                                    (cx.classname, sc_name))
                 for prop in super_class.properties.values():
                     if prop.name not in cc.properties:
@@ -983,8 +992,9 @@ class FakedWBEMConnection(WBEMConnection):
         # TODO review code to confirm we are consistent with path output
         # in error messages. Should show the same rep for all messages, string.
         if not inst:
-            raise CIMError(CIM_ERR_NOT_FOUND, 'Instance not found in '
-                                              'repository. Path=%s' % iname)
+            raise CIMError(CIM_ERR_NOT_FOUND,
+                           'Instance not found in repository namespace %s. '
+                           'Path=%s' % (iname, namespace))
         else:
             rtn_inst = inst.copy()
 
@@ -1006,7 +1016,7 @@ class FakedWBEMConnection(WBEMConnection):
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_FOUND:
                     raise CIMError(CIM_ERR_INVALID_CLASS, 'Class %s not found '
-                                   ' for instance %s in %s.' %
+                                   ' for instance %s in namespace %s.' %
                                    (iname.classname, iname, namespace))
 
             class_pl = cl.properties.keys()
@@ -1030,7 +1040,7 @@ class FakedWBEMConnection(WBEMConnection):
         """
         if not self._repo_lite:
             if not self._class_exists(classname, namespace):
-                raise CIMError(CIM_ERR_INVALID_CLASS, 'Class %s does not exist '
+                raise CIMError(CIM_ERR_INVALID_CLASS, 'Class %s not found '
                                'in namespace %s' % (classname, namespace))
             clns = self._get_subclass_names(classname, namespace, True) \
                 if self.classes else []
@@ -1085,16 +1095,12 @@ class FakedWBEMConnection(WBEMConnection):
 
     #####################################################################
     #
-    #          Faked WBEMConnection operation methods.
-    #          All the methods
-    #          named _fake_<methodname> are responders that emulate
-    #          the server response.
+    #        Faked WBEMConnection operation methods.
+    #        All the methods are named _fake_<methodname> and
+    #        are responders that emulate the server response.
     #
-    ######################################################################
-
-    #####################################################################
-    #
-    #          Faked Class operations methods
+    #        This is all the WBEMConnection methods that communicate with
+    #        a WBEMServer.
     #
     ######################################################################
 
@@ -1191,7 +1197,8 @@ class FakedWBEMConnection(WBEMConnection):
 
         if not isinstance(new_class, CIMClass):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                           'NewClass not valid class\n%s' % type(new_class))
+                           'NewClass not valid class type: %s' %
+                           type(new_class))
 
         if new_class.superclass:
             try:
@@ -1201,14 +1208,15 @@ class FakedWBEMConnection(WBEMConnection):
                                     include_qualifiers=False)
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_FOUND:
-                    raise CIMError(CIM_ERR_INVALID_SUPERCLASS,
-                                   new_class.superclass)
+                    raise CIMError(CIM_ERR_INVALID_SUPERCLASS, 'Superclass %s '
+                                   ' not found in class %s, namespace %s' %
+                                   (new_class.superclass, new_class, namespace))
                 else:
                     raise
 
         if new_class.classname in self.classes[namespace]:
             raise CIMError(CIM_ERR_ALREADY_EXISTS,
-                           '%s already exists in namespace %s.' %
+                           'Class %s already exists in namespace %s.' %
                            (new_class.classname, namespace))
 
         self.classes[namespace][new_class.classname] = new_class
@@ -1233,7 +1241,8 @@ class FakedWBEMConnection(WBEMConnection):
         print('ModifyClass not supported %s %s' % (namespace, params))
         self._get_class_repo(namespace)
         raise CIMError(CIM_ERR_NOT_SUPPORTED, 'Currently ModifyClass not '
-                                              'supported')
+                                              'supported in '
+                                              'Fake_WBEMConnection')
 
     def _fake_deleteclass(self, namespace, **params):
         """
@@ -1307,7 +1316,7 @@ class FakedWBEMConnection(WBEMConnection):
           method where the data is a QualifierDeclaration
 
         Exceptions:
-            CIMError CIM_ERR_INVALID_NAMESPACE, CIMError(CIM_ERR_NOT_FOUND
+            CIMError CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
         """
         qualifier_repo = self._get_qualifier_repo(namespace)
 
@@ -1344,11 +1353,12 @@ class FakedWBEMConnection(WBEMConnection):
 
         if not isinstance(qual, CIMQualifierDeclaration):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                           'The qualifier declaration parameter is not a '
-                           'valid CIMQualifierDeclaration: %s' % type(qual))
+                           'QualifierDeclaration parameter is not a '
+                           'valid CIMQualifierDeclaration type: %s' %
+                           type(qual))
 
         if qual.name in self.qualifiers[namespace]:
-            raise CIMError(CIM_ERR_ALREADY_EXISTS, '%s' %
+            raise CIMError(CIM_ERR_ALREADY_EXISTS,
                            'Qualifier declaration %s not found in namspace %s.'
                            % (qual.name, namespace))
         try:
@@ -1365,7 +1375,7 @@ class FakedWBEMConnection(WBEMConnection):
         repository for this class and namespace
 
         Exceptions;
-            CIMError CIM_ERR_INVALID_NAMESPACE, CIMError(CIM_ERR_NOT_FOUND
+            CIMError CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
         """
         qualifier_repo = self._get_qualifier_repo(namespace)
 
@@ -1375,7 +1385,7 @@ class FakedWBEMConnection(WBEMConnection):
             del qualifier_repo[qname]
         else:
             raise CIMError(CIM_ERR_NOT_FOUND,
-                           'Qualifier decllaration %s not found in '
+                           'QualifierDeclaration %s not found in '
                            'namespace %s.' % (qname, namespace))
 
     #####################################################################
@@ -1407,8 +1417,8 @@ class FakedWBEMConnection(WBEMConnection):
 
         if not isinstance(new_instance, CIMInstance):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                           'The NewInstance parameter is not a '
-                           'valid CIMInstance: %s' % type(new_instance))
+                           'NewInstance parameter is not a '
+                           'valid CIMInstance type: %s' % type(new_instance))
 
         # Requires corresponding class to build path to be returned
         try:
@@ -1459,8 +1469,8 @@ class FakedWBEMConnection(WBEMConnection):
                 if iprop.is_array != cprop.is_array or \
                         iprop.type != cprop.type:
                     raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                                   'Instance and class property %s type '
-                                   'does not match: instance=%r, class=%r' %
+                                   'Instance and class property %s types '
+                                   'do not match: instance=%r, class=%r' %
                                    (ipname, iprop, cprop))
 
         # Build instance path. We build the complete instance path
@@ -1473,8 +1483,9 @@ class FakedWBEMConnection(WBEMConnection):
             for inst in self.instances[namespace]:
                 if inst.path == new_instance.path:
                     raise CIMError(CIM_ERR_ALREADY_EXISTS,
-                                   'NewInstance already exists. %s.' %
-                                   new_instance.path)
+                                   'NewInstance already exists. %s in '
+                                   'namespace %s.' %
+                                   (new_instance.path, namespace))
             self.instances[namespace].append(new_instance)
         except KeyError:
             self.instances[namespace] = [new_instance]
@@ -1512,12 +1523,13 @@ class FakedWBEMConnection(WBEMConnection):
         if not isinstance(modified_instance, CIMInstance):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            'The ModifiedInstance parameter is not a '
-                           'valid CIMInstance: %s' % type(modified_instance))
+                           'valid CIMInstance type: %s' %
+                           type(modified_instance))
 
         # Classnames in instance and path must match
         if modified_instance.classname != modified_instance.path.classname:
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                           'ModifyInstance: Classname in path and instance do '
+                           'ModifyInstance classname in path and instance do '
                            'not match. classname=%s, path.classname=%s' %
                            (modified_instance.classname,
                             modified_instance.path.classname))
@@ -1685,9 +1697,9 @@ class FakedWBEMConnection(WBEMConnection):
         if not self._repo_lite:
             if not self._class_exists(iname.classname, namespace):
                 raise CIMError(CIM_ERR_INVALID_CLASS,
-                               'Class %s in namespace %s does not exist. '
-                               ' Cannot delete any instance.' %
-                               (iname.classname, namespace))
+                               'Class %s in namespace %s not found. '
+                               ' Cannot delete instance %s' %
+                               (iname.classname, namespace, iname))
 
         del_inst = None
         for enum_tup in enumerate(insts_repo):
@@ -1705,7 +1717,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         if not del_inst:
             raise CIMError(CIM_ERR_NOT_FOUND, 'Instance %s not found in '
-                                              'repository' % iname)
+                           'repository namespace %s' % (iname, namespace))
 
     def _fake_enumerateinstances(self, namespace, **params):
         """
@@ -1800,7 +1812,7 @@ class FakedWBEMConnection(WBEMConnection):
         """
         print('_fake_execquery ns %s, params %s' % (namespace, params))
         self._get_instance_repo(namespace)
-        raise CIMError(CIM_ERR_NOT_SUPPORTED, 'Not Implemented!')
+        raise CIMError(CIM_ERR_NOT_SUPPORTED, 'ExecQuery Not Implemented!')
 
     #####################################################################
     #
@@ -2308,7 +2320,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         if context_data['pull_type'] != req_type:
             raise CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT,
-                           'Invalid Pull . %s does not match expected %s  for '
+                           'Invalid Pull %s does not match expected %s for '
                            'EnumerationContext %s'
                            % (context_data['pull_type'], req_type, context_id))
 
@@ -2517,8 +2529,7 @@ class FakedWBEMConnection(WBEMConnection):
                                % (namespace, context_id))
         except KeyError:
             raise CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT,
-
-                           'Ennumeration context %s not found in mock '
+                           'Ennumeration context %s not found in mock server '
                            'EnumerationContext. ' % context_id)
         del self.enumeration_contexts[context_id]
 
@@ -2541,4 +2552,6 @@ class FakedWBEMConnection(WBEMConnection):
 
         """
         # TODO implement _fake_invoke_method
-        raise CIMError(CIM_ERR_NOT_SUPPORTED, 'Not Implemented!')
+        print('fake_invokemethod %s, %s, %s %s' % (methodname, localobject,
+                                                   Params, params))
+        raise CIMError(CIM_ERR_NOT_SUPPORTED, 'InvokeMethod Not Implemented!')
