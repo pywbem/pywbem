@@ -313,7 +313,7 @@ instance requests.  At the same time, they allow mock repositories that
 would be used to test only instance methods to be built without the
 corresponding classes. They include the following methods:
 
-- AssociatorNames: Behaves like
+- **AssociatorNames**: Behaves like
   :meth:`~pywbem.WBEMConnection.AssociatorNames`. If a classname is specified
   the source, target, and association classes must be in the repository. If
   an instance target is specified, correct results are returned if classes
@@ -321,15 +321,15 @@ corresponding classes. They include the following methods:
   set (the classes in the repository are ignored so do not need to be
   installed.)
 
-- Associators: Behaves like
+- **Associators**: Behaves like
   :meth:`~pywbem.WBEMConnection.Associators` See AssociatorNames above for
   limitations
 
-- ReferenceNames: Behaves like
+- **ReferenceNames**: Behaves like
   :meth:`~pywbem.WBEMConnection.ReferenceNames` See AssociatorNames above
   for limitations
 
-- References: Behaves like
+- **References**: Behaves like
   :meth:`~pywbem.WBEMConnection.References` See AssociatorNames above for
   limitations.
 
@@ -340,17 +340,99 @@ Server InvokeMethod operation method
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The fake InvokeMethod behaves like :meth:`~pywbem.WBEMConnection.InvokeMethod`.
-Since this method is outside the normal operations in that it generally implies
-some sort of side effect it could not be implemented simply to get objects
-from the repository or put them into the repository.
 
-the fake InvokeMethod requires a callback to a user defined function
-based on the namespace, class, and method defined in the call. Because the
-very nature of invoke method, there was no way to define a standard means
+Since this method is outside the normal intrinsic WBEM operations in that it
+generally implies a side effect and not just a get/put interface to a
+repository.  It could not be implemented simply to get objects from the
+repository or put them into the repository.
+
+The fake InvokeMethod requires a callback to a user defined function
+based on the namespace, objectname, and method defined in the call.\
+Because the nature of InvokeMethod, there was no way to define a standard means
 to get information just from the mock repository for the responses.
 
-TODO define further.
+This user defined function acts as the WBEM server implementation of the
+InvokeMethod, processing input parameters and returning a return value and
+output parameters.
 
+The user must create a function that will be executed as a callback for each
+method that is to be tested. This method is attached to the mock repository
+through :meth:`~pywbem_mock.FakedWBEMConnection.subscribe_method` which
+defines the namespace, class, and methodname for the InvokeMethod and the
+callback method to be executed.
+
+
+This user defined callback method should have the signature defined in
+:meth:`~pywbem_mock.FakedWBEMConnection.subscribe_method`.
+
+Generally callback input and output are as follows:
+
+- **conn**: The handle to the mock repository
+
+- **objectname**: The CIMClassName or CIMInstanceName from the InvokeMethod
+  call including the execution namespace.
+
+- **methodname**: The methodname to execute from the client InvokeMethod call
+
+- **params**: The Params input parameter from the client InvokeMethod call.
+
+The callback is expected to return a tuple consiting of ReturnValue and
+a `NocaseDict` containing any output parameters. The following is an example
+of the definition and execution of InvokeMethod.
+
+.. code-block:: python
+
+    import pywbem
+    import pywbem_mock
+
+    def method1_callback(self, conn, methodname, local_object, params=None):
+        """ Callback for method1"""
+
+        # this method can access the repository through pywbem client calls
+        # in this case the CIMClassName in local_object
+        cl = conn.GetClass(local_object)
+
+        rtn_val = 0  # return 0 as a return code
+        rtn_params = NocaseDict('OP1' : 'Some return Data')
+        return (rtn_val, rtn_params)
+
+    mof = """
+        Qualifier In : boolean = true,
+            Scope(parameter),
+            Flavor(DisableOverride, ToSubclass);
+
+        Qualifier Key : boolean = false,
+            Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+
+        Qualifier Out : boolean = false,
+            Scope(parameter),
+            Flavor(DisableOverride, ToSubclass);
+        class TST_Class {
+            string InstanceID;
+                [Description("Sample method with input and output parameters")]
+            uint32 Method1(
+                [IN, Description("Input Param1")]
+              string IP1,
+                [IN ( false), OUT, Description("Response param 1")]
+              string OP1);
+    """
+
+    # Create a faked connection
+    conn = pywbem_mock.FakedWBEMConnection(default_namespace='root/cimv2')
+
+    # Compile the MOF string and add its CIM objects to the default namespace
+    # of the mock repository
+    conn.compile_mof_str(mof)
+
+    # Subscribe the defined Class and method. In this case it is for the
+    # default namespace.
+    conn.subscribe_method('TST_Class', 'Method1',
+                          self.method1_callback)
+
+    # execute the InvokeMethod as a static (class level) method.
+    params = [('IP1', 'someData')]
+    result = conn.InvokeMethod('Method1', 'TST_Class', Params=params)
 
 .. _`Server pull operations methods`:
 
