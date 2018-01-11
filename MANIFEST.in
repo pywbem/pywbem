@@ -4,3 +4,4 @@ include README.rst
 include INSTALL.md
 include *.py
 include pywbem/*.py
+include pywbem_mock/*.py

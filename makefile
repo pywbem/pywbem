@@ -14,7 +14,7 @@
 #   pip (in the active Python environment)
 #   twine
 #
-# Optional environment ariables/command line variables
+# Optional environment variables/command line variables
 #   PYWBEM_COVERAGE_REPORT - When set, forces coverage to create temporary
 #   annotated html output html files showing lines covered and missed
 #   See the directory coverage_html for the html output.
@@ -53,6 +53,8 @@ endif
 
 # Name of this Python package
 package_name := pywbem
+
+mock_package_name := pywbem_mock
 
 # Determine if coverage details report generated
 # The variable can be passed in as either an environment variable or
@@ -133,6 +135,8 @@ doc_dependent_files := \
     $(package_name)/_server.py \
     $(package_name)/_statistics.py \
     $(package_name)/config.py \
+    $(mock_package_name)/__init__.py \
+    $(mock_package_name)/_wbemconnection_mock.py\
     wbemcli.py \
 
 # PyLint config file
@@ -149,6 +153,7 @@ py_src_files := \
     wbemcli \
     wbemcli.py \
     mof_compiler \
+    $(wildcard $(mock_package_name)/*.py) \
 
 # Test log
 test_log_file := test_$(python_mn_version).log
@@ -164,6 +169,7 @@ dist_manifest_in_files := \
     INSTALL.md \
     *.py \
     $(package_name)/*.py \
+    $(mock_package_name)/*.py \
 
 # Files that are dependents of the distribution archive.
 # Keep in sync with dist_manifest_in_files.
@@ -173,6 +179,7 @@ dist_dependent_files := \
     INSTALL.md \
     $(wildcard *.py) \
     $(wildcard $(package_name)/*.py) \
+    $(wildcard $(mock_package_name)/*.py) \
 
 # No built-in rules needed:
 .SUFFIXES:
@@ -460,7 +467,7 @@ endif
 $(test_log_file): makefile $(package_name)/*.py testsuite/*.py coveragerc
 	@echo "makefile: Running tests"
 	rm -f $(test_log_file)
-	bash -c "set -o pipefail; PYTHONWARNINGS=default py.test --cov $(package_name) $(coverage_report) --cov-config coveragerc --ignore=attic --ignore=releases --ignore=testsuite/testclient -s 2>&1 |tee $(test_tmp_file)"
+	bash -c "set -o pipefail; PYTHONWARNINGS=default py.test --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc --ignore=attic --ignore=releases --ignore=testsuite/testclient -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
 	@echo "makefile: Done running tests; Log file: $@"
 

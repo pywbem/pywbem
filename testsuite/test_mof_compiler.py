@@ -8,8 +8,6 @@
 from __future__ import print_function, absolute_import
 
 import os
-# from time import time
-from zipfile import ZipFile
 import unittest
 import six
 from ply import lex
@@ -23,29 +21,11 @@ from pywbem import mof_compiler
 
 from unittest_extensions import CIMObjectMixin
 
-from dmtf_mof_schema_def import MOF_ZIP_BN, MOF_ZIP_URL, SCHEMA_MOF_BN, \
-    TOTAL_QUALIFIERS, TOTAL_CLASSES
-
-if six.PY2:
-    # pylint: disable=wrong-import-order
-    from urllib2 import urlopen
-else:
-    # pylint: disable=wrong-import-order
-    from urllib.request import urlopen
+from dmtf_mof_schema_def import SCRIPT_DIR, SCHEMA_MOF_FN, SCHEMA_MOF_DIR, \
+    install_dmtf_schema, TOTAL_QUALIFIERS, TOTAL_CLASSES
 
 # Constants
 NAME_SPACE = 'root/test'
-
-# Location of the schema for use by test_mof_compiler.
-# This should not change unless you intend to use another schema directory
-SCRIPT_DIR = os.path.dirname(__file__)
-SCHEMA_DIR = os.path.join(SCRIPT_DIR, 'schema')
-SCHEMA_MOF_DIR = os.path.join(SCHEMA_DIR, 'mof')
-
-# DMTF Schema zip filename and mof filename
-MOF_ZIP_FN = os.path.join(SCHEMA_DIR, MOF_ZIP_BN)
-SCHEMA_MOF_FN = os.path.join(SCHEMA_MOF_DIR, SCHEMA_MOF_BN)
-
 
 TMP_FILE = 'test_mofRoundTripOutput.mof'
 
@@ -54,53 +34,7 @@ def setUpModule():
     """ Setup the unittest. Includes possibly getting the
         schema mof from DMTF web
     """
-
-    first = True
-
-    if not os.path.isdir(SCHEMA_DIR):
-        if first:
-            print("")
-            first = False
-        print("Creating directory for CIM Schema archive: %s" % SCHEMA_DIR)
-        os.mkdir(SCHEMA_DIR)
-
-    if not os.path.isfile(MOF_ZIP_FN):
-        if first:
-            print("")
-            first = False
-        print("Downloading CIM Schema archive from: %s" % MOF_ZIP_URL)
-        ufo = urlopen(MOF_ZIP_URL)
-        with open(MOF_ZIP_FN, 'w') as fp:
-            for data in ufo:
-                fp.write(data)
-
-    if not os.path.isdir(SCHEMA_MOF_DIR):
-        if first:
-            print("")
-            first = False
-        print("Creating directory for CIM Schema MOF files: %s" %
-              SCHEMA_MOF_DIR)
-        os.mkdir(SCHEMA_MOF_DIR)
-
-    if not os.path.isfile(SCHEMA_MOF_FN):
-        if first:
-            print("")
-            first = False
-        print("Unpacking CIM Schema archive: %s" % MOF_ZIP_FN)
-        try:
-            zfp = ZipFile(MOF_ZIP_FN, 'r')
-            nlist = zfp.namelist()
-            for i in range(0, len(nlist)):
-                file_ = nlist[i]
-                dfile = os.path.join(SCHEMA_MOF_DIR, file_)
-                if dfile[-1] == '/':
-                    if not os.path.exists(dfile):
-                        os.mkdir(dfile)
-                else:
-                    with open(dfile, 'w+b') as dfp:
-                        dfp.write(zfp.read(file_))
-        finally:
-            zfp.close()
+    install_dmtf_schema()
 
 
 class MOFTest(unittest.TestCase):
@@ -215,7 +149,7 @@ class TestAliases(MOFTest):
         This was easier than trying to create a test case in memory since that
         would involve 3 classes and multiple instances.
         """
-        # compile the mof
+        # compile the mof. The DMTF schema mof is installed by the setup
         self.mofcomp.compile_file(
             os.path.join(SCRIPT_DIR, 'test.mof'), NAME_SPACE)
 

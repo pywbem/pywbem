@@ -5983,7 +5983,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             stats = self.statistics.start_timer(method_name)
             if context is None:
-                raise ValueError('Invalid EnumerationContext')
+                raise ValueError('None is not a valid EnumerationContext')
             self._imethodcall(
                 method_name,
                 namespace=context[1],

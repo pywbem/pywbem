@@ -219,6 +219,15 @@ Enhancements
 * Docs: Clarified that the instance path returned by the `CreateInstance()`
   operation method has classname, keybindings and namespace set.
 
+* Added capability to mock WBEM Operations so that both pywbem and pywbem
+  users can create unit tests without requiring a working WBEM Server,
+  This feature allows the user to create CIM objects
+  in a mock WBEM Server defined with the class FakedWBEMConnection and
+  substitute that class for WBEMConnection to create a mock WBEM Server
+  that responds to wbem operations.
+  This enhancement is documented in the pywbem documentation section 10,
+  MockSupport. . See issue #838.
+
 Bug fixes
 ^^^^^^^^^
 

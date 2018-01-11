@@ -1269,7 +1269,7 @@ class PullEnumerateInstancePaths(ClientTest):
         """
 
         result = self.cimcall(self.conn.OpenEnumerateInstancePaths,
-                              TEST_CLASS,
+                              'Pywbem_person',
                               MaxObjectCount=100)
 
         paths_pulled = result.paths
