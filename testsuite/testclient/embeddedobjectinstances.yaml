@@ -24,13 +24,16 @@
             properties:
                 Name: Fritz
                 Address:
-                    # We are using the short form (omitting the CIMProperty
-                    # object, which will automatically be created)
-                    pywbem_object: CIMInstance
-                    classname: PyWBEM_Address
-                    properties:
-                        Street: Fritz Ave
-                        Town: Fritz Town
+                    pywbem_object: CIMProperty
+                    name: Address
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMInstance
+                        classname: PyWBEM_Address
+                        properties:
+                            Street: Fritz Ave
+                            Town: Fritz Town
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -127,11 +130,16 @@
             properties:
                 Name: Fritz & <the cat>
                 Address:
-                    pywbem_object: CIMInstance
-                    classname: PyWBEM_Address
-                    properties:
-                        Street: Fritz & <the cat> Ave
-                        Town: Fritz Town
+                    pywbem_object: CIMProperty
+                    name: Address
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMInstance
+                        classname: PyWBEM_Address
+                        properties:
+                            Street: Fritz & <the cat> Ave
+                            Town: Fritz Town
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -228,16 +236,26 @@
             properties:
                 Name: Fritz & <the cat>
                 Address:
-                    pywbem_object: CIMInstance
-                    classname: PyWBEM_Address
-                    properties:
-                        Street: Fritz & <the cat> Ave
-                        Town:
-                            pywbem_object: CIMInstance
-                            classname: PyWBEM_Town
-                            properties:
-                                Name: Fritz & <the cat> Town
-                                Zip: z12345
+                    pywbem_object: CIMProperty
+                    name: Address
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMInstance
+                        classname: PyWBEM_Address
+                        properties:
+                            Street: Fritz & <the cat> Ave
+                            Town:
+                                pywbem_object: CIMProperty
+                                name: Town
+                                type: string
+                                embedded_object: object
+                                value:
+                                    pywbem_object: CIMInstance
+                                    classname: PyWBEM_Town
+                                    properties:
+                                        Name: Fritz & <the cat> Town
+                                        Zip: z12345
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -1071,13 +1089,16 @@
             properties:
                 Name: Fritz
                 Address:
-                    # We are using the short form (omitting the CIMProperty
-                    # object, which will automatically be created)
-                    pywbem_object: CIMInstance
-                    classname: PyWBEM_Address
-                    properties:
-                        Street: Fritz Ave
-                        Town: Fritz Town
+                    pywbem_object: CIMProperty
+                    name: Address
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMInstance
+                        classname: PyWBEM_Address
+                        properties:
+                            Street: Fritz Ave
+                            Town: Fritz Town
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -1176,11 +1197,16 @@
             properties:
                 Name: Fritz & <the cat>
                 Address:
-                    pywbem_object: CIMInstance
-                    classname: PyWBEM_Address
-                    properties:
-                        Street: Fritz & <the cat> Ave
-                        Town: Fritz Town
+                    pywbem_object: CIMProperty
+                    name: Address
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMInstance
+                        classname: PyWBEM_Address
+                        properties:
+                            Street: Fritz & <the cat> Ave
+                            Town: Fritz Town
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -1279,16 +1305,26 @@
             properties:
                 Name: Fritz & <the cat>
                 Address:
-                    pywbem_object: CIMInstance
-                    classname: PyWBEM_Address
-                    properties:
-                        Street: Fritz & <the cat> Ave
-                        Town:
-                            pywbem_object: CIMInstance
-                            classname: PyWBEM_Town
-                            properties:
-                                Name: Fritz & <the cat> Town
-                                Zip: z12345
+                    pywbem_object: CIMProperty
+                    name: Address
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMInstance
+                        classname: PyWBEM_Address
+                        properties:
+                            Street: Fritz & <the cat> Ave
+                            Town:
+                                pywbem_object: CIMProperty
+                                name: Town
+                                type: string
+                                embedded_object: object
+                                value:
+                                    pywbem_object: CIMInstance
+                                    classname: PyWBEM_Town
+                                    properties:
+                                        Name: Fritz & <the cat> Town
+                                        Zip: z12345
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -2140,13 +2176,16 @@
             properties:
                 Name: Fritz
                 Address:
-                    # We are using the short form (omitting the CIMProperty
-                    # object, which will automatically be created)
-                    pywbem_object: CIMInstance
-                    classname: PyWBEM_Address
-                    properties:
-                        Street: Fritz Ave
-                        Town: Fritz Town
+                    pywbem_object: CIMProperty
+                    name: Address
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMInstance
+                        classname: PyWBEM_Address
+                        properties:
+                            Street: Fritz Ave
+                            Town: Fritz Town
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -2245,11 +2284,16 @@
             properties:
                 Name: Fritz & <the cat>
                 Address:
-                    pywbem_object: CIMInstance
-                    classname: PyWBEM_Address
-                    properties:
-                        Street: Fritz & <the cat> Ave
-                        Town: Fritz Town
+                    pywbem_object: CIMProperty
+                    name: Address
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMInstance
+                        classname: PyWBEM_Address
+                        properties:
+                            Street: Fritz & <the cat> Ave
+                            Town: Fritz Town
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -2348,16 +2392,26 @@
             properties:
                 Name: Fritz & <the cat>
                 Address:
-                    pywbem_object: CIMInstance
-                    classname: PyWBEM_Address
-                    properties:
-                        Street: Fritz & <the cat> Ave
-                        Town:
-                            pywbem_object: CIMInstance
-                            classname: PyWBEM_Town
-                            properties:
-                                Name: Fritz & <the cat> Town
-                                Zip: z12345
+                    pywbem_object: CIMProperty
+                    name: Address
+                    type: string
+                    embedded_object: object
+                    value:
+                        pywbem_object: CIMInstance
+                        classname: PyWBEM_Address
+                        properties:
+                            Street: Fritz & <the cat> Ave
+                            Town:
+                                pywbem_object: CIMProperty
+                                name: Town
+                                type: string
+                                embedded_object: object
+                                value:
+                                    pywbem_object: CIMInstance
+                                    classname: PyWBEM_Town
+                                    properties:
+                                        Name: Fritz & <the cat> Town
+                                        Zip: z12345
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person

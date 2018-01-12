@@ -296,6 +296,16 @@ Bug fixes
 
   Issue #928.
 
+* Fixed the comparison of `CIMProperty` objects to also consider the
+  `embedded_object` attribute. Previously, this attribute was not considered,
+  probably due to mistake (there is no reason not to consider it, as it is a
+  user-provided input argument). Fixed the yaml testcases for embedded objects
+  that failed as a result of that fix. These testcases did not set the
+  `embedded_object` attribute to 'object', so it got its default value
+  'instance', which caused the testcases to fail. Needed to use the long
+  form for specifying property values inthe yaml now, because the short
+  form does not allow for specifying the embedded_object attribute.
+
 Cleanup
 ^^^^^^^
 
