@@ -17,13 +17,16 @@ from pywbem.cim_obj import NocaseDict
 
 class NonCompare(object):
     # pylint: disable=too-few-public-methods
-    """Class that raises TypeError when comparing for equality."""
+    """Class that raises TypeError when comparing for equality or hashing."""
 
     def __eq__(self, other):
-        raise TypeError("Cannot compare %r to %r" % (self, other))
+        raise TypeError("Cannot compare %s to %s" % (type(self), type(other)))
 
     def __ne__(self, other):
-        raise TypeError("Cannot compare %r to %r" % (self, other))
+        raise TypeError("Cannot compare %s to %s" % (type(self), type(other)))
+
+    def __hash__(self):
+        raise TypeError("Cannot hash %s" % type(self))
 
 
 class TestInit(unittest.TestCase):
@@ -294,7 +297,7 @@ class TestPopItem(BaseTest):
         pass
 
 
-testcases_NocaseDict_equal = [
+testcases_NocaseDict_equal_hash = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -514,8 +517,22 @@ testcases_NocaseDict_equal = [
         ),
         None, None, True
     ),
+]
+
+testcases_NocaseDict_equal = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj1: CIMInstanceName object #1 to use.
+    #   * obj2: CIMInstanceName object #2 to use.
+    #   * exp_obj_equal: Expected equality of the objects.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
     (
-        "A value raises TypeError when compared",
+        "A value raises TypeError when compared (and equal still succeeds)",
         dict(
             obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
             obj2=NocaseDict([('Budgie', NonCompare()), ('Dog', 'Cat')]),
@@ -525,10 +542,33 @@ testcases_NocaseDict_equal = [
     ),
 ]
 
+testcases_NocaseDict_hash = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj1: CIMInstanceName object #1 to use.
+    #   * obj2: CIMInstanceName object #2 to use.
+    #   * exp_obj_equal: Expected equality of the objects.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "A value raises TypeError when compared (and hash fails)",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', NonCompare()), ('Dog', 'Cat')]),
+            exp_obj_equal=False,
+        ),
+        TypeError, None, True
+    ),
+]
+
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_NocaseDict_equal)
+    testcases_NocaseDict_equal_hash + testcases_NocaseDict_equal)
 @pytest_extensions.test_function
 def test_NocaseDict_equal(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
@@ -554,6 +594,31 @@ def test_NocaseDict_equal(
     assert eq2 == exp_obj_equal
     assert ne1 != exp_obj_equal
     assert ne2 != exp_obj_equal
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    testcases_NocaseDict_equal_hash + testcases_NocaseDict_hash)
+@pytest_extensions.test_function
+def test_NocaseDict_hash(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for NocaseDict.__hash__().
+    """
+
+    obj1 = kwargs['obj1']
+    obj2 = kwargs['obj2']
+
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
+    # The code to be tested
+    hash1 = hash(obj1)
+    hash2 = hash(obj2)
+
+    exp_hash_equal = kwargs['exp_obj_equal']
+
+    assert (hash1 == hash2) == exp_hash_equal
 
 
 class TestOrdering(BaseTest):

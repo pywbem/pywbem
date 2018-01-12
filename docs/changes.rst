@@ -204,7 +204,21 @@ Enhancements
   as pywbem.ParseError, and re-established the improved exception message
   for invalid UTF-8 and XML characters that was broken since the move to
   using the SAX parser.
- 
+
+* Added support for properly hashing CIM objects (`CIMClass`, etc.) and
+  CIM data types (particularly `CIMDateTime`), as long as these (mutable)
+  objects are not changed. Because the objects must not be changed while
+  being in a set, a new term "changed-hashable" has been introduced that
+  describes this. This allows to have CIM objects in sets such that they
+  behave as one would expect from a set. Previously, two CIM objects that
+  were equal could both be in the same set, because their hash value was
+  different. Added a new section "Putting CIM objects in sets" that explains
+  the considerations when utilizing the hash value of the mutable CIM objects.
+
+* Docs: Improved the descriptions of CIM objects and their attributes to
+  describe how the attributes are used to determine object equality and
+  the hash value of the object.
+
 * Docs: Editorial improvements in the documentation (links, typos, formatting).
 
 * Docs: Clarifications and small fixes in the documentation of the
@@ -305,6 +319,9 @@ Bug fixes
   'instance', which caused the testcases to fail. Needed to use the long
   form for specifying property values inthe yaml now, because the short
   form does not allow for specifying the embedded_object attribute.
+
+* Docs: Fixed the type `string` for the keys of the `CIMInstance.qualifiers`
+  attribute to be `unicode string`.
 
 Cleanup
 ^^^^^^^
