@@ -384,7 +384,7 @@ class NocaseDict(object):
 
         The returned keys have their original case.
         """
-        return six.iterkeys(self._data)
+        return self.iterkeys()
 
     # Other stuff
 

@@ -263,6 +263,13 @@ Bug fixes
   embedded objects. This could have caused low-level exceptions to be raised
   at the pywbem API.
 
+* Fixed the problem that a `for`-loop over `CIMInstance` / `CIMInstanceName`
+  objects iterated over the lower-case-converted property/key names. They now
+  iterate over the names in their original lexical case, as documented,
+  and consistent with the other iteration mechanisms for CIM objects.
+  The test cases that were supposed to verify that did not perform the
+  correct check and were also fixed.
+
 * Docs: Clarified that the return type of `BaseOperationRecorder.open_file()`
   is a file-like object and that the caller is responsible for closing that
   file.

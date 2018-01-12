@@ -517,7 +517,7 @@ class TestForLoop(BaseTest):
         keys = set()
         for key in self.dic:
             keys.add(key)
-        self.assertTrue(keys, set(['Budgie', 'Dog']))
+        self.assertEqual(keys, set(['Budgie', 'Dog']))
 
 
 class TestIterkeys(BaseTest):
@@ -527,7 +527,7 @@ class TestIterkeys(BaseTest):
         keys = set()
         for key in self.dic.iterkeys():
             keys.add(key)
-        self.assertTrue(keys, set(['Budgie', 'Dog']))
+        self.assertEqual(keys, set(['Budgie', 'Dog']))
 
 
 class TestItervalues(BaseTest):
@@ -537,7 +537,7 @@ class TestItervalues(BaseTest):
         vals = set()
         for val in self.dic.itervalues():
             vals.add(val)
-        self.assertTrue(vals, set(['Cat', 'Fish']))
+        self.assertEqual(vals, set(['Cat', 'Fish']))
 
 
 class TestIteritems(BaseTest):
@@ -547,7 +547,7 @@ class TestIteritems(BaseTest):
         items = set()
         for item in self.dic.iteritems():
             items.add(item)
-        self.assertTrue(items, set([('Budgie', 'Fish'), ('Dog', 'Cat')]))
+        self.assertEqual(items, set([('Budgie', 'Fish'), ('Dog', 'Cat')]))
 
 
 class TestRepr(unittest.TestCase):
