@@ -69,6 +69,7 @@ mock===2.0.0
 httpretty===0.8.14
 lxml===4.0.0
 requests===2.12.4
+decorator===4.0.11
 
 # Unit test (no imports, invoked via py.test script):
 pytest-cov===2.4.0
