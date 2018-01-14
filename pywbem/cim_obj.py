@@ -2372,6 +2372,20 @@ class CIMInstanceName(_CIMComparisonMixin):
           order of keybindings preserved, and the lexical case of keybinding
           names preserved.
 
+        :term:`DSP0004` defines instance paths without a concept of order in
+        their keybindings, and that keybinding names in instance paths match
+        case-insensitively. Because the WBEM URI string returned by this method
+        preserves the order of keybindings (relative to how the keybindings
+        were first added to this object) and because the lexical case of the
+        keybinding names is also preserved, equality of WBEM URIs should *not*
+        be determined by comparing the returned WBEM URI strings. Instead,
+        compare :class:`~pywbem.CIMInstanceName` objects using the ``==``
+        operator, which performs the comparison at the logical level required
+        by DSP0004. If you have WBEM URI strings without the corresponding
+        :class:`~pywbem.CIMInstanceName` object, such an object can be created
+        by using the static method
+        :meth:`~pywbem.CIMInstanceName.from_wbem_uri`.
+
         Parameters:
 
           format (:term:`string`): Format for the generated WBEM URI string,
