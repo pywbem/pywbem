@@ -9,7 +9,21 @@ import unittest
 import warnings
 import six
 
+import pytest
+import pytest_extensions
+
 from pywbem.cim_obj import NocaseDict
+
+
+class NonCompare(object):
+    # pylint: disable=too-few-public-methods
+    """Class that raises TypeError when comparing for equality."""
+
+    def __eq__(self, other):
+        raise TypeError("Cannot compare %r to %r" % (self, other))
+
+    def __ne__(self, other):
+        raise TypeError("Cannot compare %r to %r" % (self, other))
 
 
 class TestInit(unittest.TestCase):
@@ -280,184 +294,266 @@ class TestPopItem(BaseTest):
         pass
 
 
-# TODO: swapcase2() is also defined in test_cim_obj.py. Consolidate.
-def swapcase2(text):
-    """Returns text, where every other character has been changed to swap
-    its lexical case. For strings that contain at least one letter, the
-    returned string is guaranteed to be different from the input string."""
-    text_cs = ''
-    i = 0
-    for c in text:
-        if i % 2 != 0:
-            c = c.swapcase()
-        text_cs += c
-        i += 1
-    return text_cs
+testcases_NocaseDict_equal = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj1: CIMInstanceName object #1 to use.
+    #   * obj2: CIMInstanceName object #2 to use.
+    #   * exp_obj_equal: Expected equality of the objects.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Empty dictionary",
+        dict(
+            obj1=NocaseDict([]),
+            obj2=NocaseDict([]),
+            exp_obj_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "One item, keys and values equal",
+        dict(
+            obj1=NocaseDict([('k1', 'v1')]),
+            obj2=NocaseDict([('k1', 'v1')]),
+            exp_obj_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "One item, keys equal, values different",
+        dict(
+            obj1=NocaseDict([('k1', 'v1')]),
+            obj2=NocaseDict([('k1', 'v1_x')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "One item, keys different, values equal",
+        dict(
+            obj1=NocaseDict([('k1', 'v1')]),
+            obj2=NocaseDict([('k2', 'v1')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "One item, keys equal, values both None",
+        dict(
+            obj1=NocaseDict([('k1', None)]),
+            obj2=NocaseDict([('k1', None)]),
+            exp_obj_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "One item, keys different lexical case, values equal",
+        dict(
+            obj1=NocaseDict([('K1', 'v1')]),
+            obj2=NocaseDict([('k1', 'v1')]),
+            exp_obj_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Two equal items, in same order",
+        dict(
+            obj1=NocaseDict([('k1', 'v1'), ('k2', 'v2')]),
+            obj2=NocaseDict([('k1', 'v1'), ('k2', 'v2')]),
+            exp_obj_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Two items, keys different lexical case, in same order",
+        dict(
+            obj1=NocaseDict([('K1', 'v1'), ('k2', 'v2')]),
+            obj2=NocaseDict([('k1', 'v1'), ('K2', 'v2')]),
+            exp_obj_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Two equal items, in different order",
+        dict(
+            obj1=NocaseDict([('k1', 'v1'), ('k2', 'v2')]),
+            obj2=NocaseDict([('k2', 'v2'), ('k1', 'v1')]),
+            exp_obj_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Two items, keys different lexical case, in different order",
+        dict(
+            obj1=NocaseDict([('k1', 'v1'), ('K2', 'v2')]),
+            obj2=NocaseDict([('k2', 'v2'), ('K1', 'v1')]),
+            exp_obj_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Comparing unicode value with binary value",
+        dict(
+            obj1=NocaseDict([('k1', b'v1')]),
+            obj2=NocaseDict([('k2', u'v2')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching unicode key with string key",
+        dict(
+            obj1=NocaseDict([('k1', 'v1')]),
+            obj2=NocaseDict([(u'k2', 'v2')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Higher key missing",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', 'Fish')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Lower key missing",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Dog', 'Cat')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "First non-matching key is less. But longer size!",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', 'Fish'), ('Curly', 'Snake'),
+                             ('Cozy', 'Dog')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Only non-matching keys that are less. But longer size!",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Alf', 'F'), ('Anton', 'S'), ('Aussie', 'D')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "First non-matching key is greater. But shorter size!",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgio', 'Fish')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Only non-matching keys that are greater. But shorter size!",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Zoe', 'F')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Same size. First non-matching key is less",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', 'Fish'), ('Curly', 'Snake')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Same size. Only non-matching keys that are less",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Alf', 'F'), ('Anton', 'S')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Same size. Only non-matching keys that are greater",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Zoe', 'F'), ('Zulu', 'S')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Same size, only matching keys. First non-matching value is less",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Car')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Same size, only matching keys. First non-matching value is greater",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Caz')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "A value raises TypeError when compared",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', NonCompare()), ('Dog', 'Cat')]),
+            exp_obj_equal=False,
+        ),
+        None, None, True
+    ),
+]
 
 
-class TestEqual(BaseTest):
-    """Class for test equal for dict items"""
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    testcases_NocaseDict_equal)
+@pytest_extensions.test_function
+def test_NocaseDict_equal(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for NocaseDict.__eq__().
+    """
 
-    def assertDictEqual(self, d1, d2, msg=None):
-        """Assert that two NocaseDict objects are equal."""
+    obj1 = kwargs['obj1']
+    obj2 = kwargs['obj2']
 
-        # We override the inherited unittest.Testcase method and do checking in
-        # both directions, because we override the __eq__() and __ne__()
-        # methods on NocaseDict.
-        # Note that the Python docs state that assertDictEqual() has parameters
-        # 'expected', 'actual', but the implemented method has 'd1', 'd2'.
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
 
-        self.assertTrue(d1 == d2, msg)
-        self.assertFalse(d1 != d2, msg)
+    # The code to be tested
+    eq1 = (obj1 == obj2)
+    eq2 = (obj2 == obj1)
+    ne1 = (obj1 != obj2)
+    ne2 = (obj2 != obj1)
 
-        self.assertTrue(d2 == d1, msg)
-        self.assertFalse(d2 != d1, msg)
+    exp_obj_equal = kwargs['exp_obj_equal']
 
-    def assertDictNotEqual(self, d1, d2, msg=None):
-        """Assert that two NocaseDict objects are not equal."""
-
-        # unittest.Testcase does not have an according method. We perform
-        # checking in both directions, because we override the __eq__() and
-        # __ne__() methods on NocaseDict.
-
-        self.assertTrue(d1 != d2, msg)
-        self.assertFalse(d1 == d2, msg)
-
-        self.assertTrue(d2 != d1, msg)
-        self.assertFalse(d2 == d1, msg)
-
-    def run_test_dicts(self, base_dict, test_dicts):
-        """General test_dictionaries"""
-        for test_dict, relation, dict_types, comment in test_dicts:
-
-            if type(test_dict) not in dict_types:  # noqa: E501 pylint: disable=unidiomatic-typecheck
-                continue
-
-            if relation == 'eq':
-                self.assertDictEqual(test_dict, base_dict,
-                                     "Expected test_dict == base_dict:\n"
-                                     "  test case: %s\n"
-                                     "  test_dict: %r\n"
-                                     "  base_dict: %r" %
-                                     (comment, test_dict, base_dict))
-            elif relation == 'ne':
-                self.assertDictNotEqual(test_dict, base_dict,
-                                        "Expected test_dict != base_dict:\n"
-                                        "  test case: %s\n"
-                                        "  test_dict: %r\n"
-                                        "  base_dict: %r" %
-                                        (comment, test_dict, base_dict))
-            else:
-                raise AssertionError("Internal Error: Invalid relation %s"
-                                     "specified in testcase: %s" %
-                                     (relation, comment))
-
-    def test_all(self):
-        """Class for overall test"""
-
-        class C1(object):
-            # pylint: disable=too-few-public-methods
-            """Class used as dict item to provoke non-comparability."""
-
-            def __eq__(self, other):
-                raise TypeError("Cannot compare %r to %r" % (self, other))
-
-            def __ne__(self, other):
-                raise TypeError("Cannot compare %r to %r" % (self, other))
-
-        # The base dictionary that is used for all comparisons
-        base_dict = dict({'Budgie': 'Fish', 'Dog': 'Cat'})
-
-        # Test dictionaries to test against the base dict, as a list of
-        # tuple(dict, relation, comment), with relation being the expected
-        # comparison relation, and one of ('eq', 'ne').
-        test_dicts = [
-
-            (dict({'Budgie': 'Fish', 'Dog': 'Cat'}),
-             'eq',
-             (dict, NocaseDict),
-             'Same'),
-
-            (dict({'Budgie': 'Fish'}),
-             'ne',
-             (dict, NocaseDict),
-             'Higher key missing, shorter size'),
-
-            (dict({'Dog': 'Cat'}),
-             'ne',
-             (dict, NocaseDict),
-             'Lower key missing, shorter size'),
-
-            (dict({'Budgie': 'Fish', 'Curly': 'Snake', 'Cozy': 'Dog'}),
-             'ne',
-             (dict, NocaseDict),
-             'First non-matching key is less. But longer size!'),
-
-            (dict({'Alf': 'F', 'Anton': 'S', 'Aussie': 'D'}),
-             'ne',
-             (dict, NocaseDict),
-             'Only non-matching keys that are less. But longer size!'),
-
-            (dict({'Budgio': 'Fish'}),
-             'ne',
-             (dict, NocaseDict),
-             'First non-matching key is greater. But shorter size!'),
-
-            (dict({'Zoe': 'F'}),
-             'ne',
-             (dict, NocaseDict),
-             'Only non-matching keys that are greater. But shorter size!'),
-
-            (dict({'Budgie': 'Fish', 'Curly': 'Snake'}),
-             'ne',
-             (dict, NocaseDict),
-             'Same size. First non-matching key is less'),
-
-            (dict({'Alf': 'F', 'Anton': 'S'}),
-             'ne',
-             (dict, NocaseDict),
-             'Same size. Only non-matching keys that are less'),
-
-            (dict({'Zoe': 'F', 'Zulu': 'S'}),
-             'ne',
-             (dict, NocaseDict),
-             'Same size. Only non-matching keys that are greater'),
-
-            (dict({'Budgie': 'Fish', 'Dog': 'Car'}),
-             'ne',
-             (dict, NocaseDict),
-             'Same size, only matching keys. First non-matching value is less'),
-
-            (dict({'Budgie': 'Fish', 'Dog': 'Caz'}),
-             'ne',
-             (dict, NocaseDict),
-             'Same size, only matching keys. First non-matching value is grt.'),
-
-            (dict({'Budgie': C1(), 'Dog': 'Cat'}),
-             'ne',
-             (NocaseDict,),
-             'Not-comparable items.'),
-        ]
-
-        # First, run these tests against a standard dictionary to verify
-        # that the test case definitions conform to that
-
-        self.run_test_dicts(base_dict, test_dicts)
-
-        # Then, transform these tests to NocaseDict and run them again
-        TEST_CASE_INSENSITIVITY = True
-        base_ncdict = NocaseDict(base_dict)
-        test_ncdicts = []
-        for test_dict, relation, dict_types, comment in test_dicts:
-            test_ncdict = NocaseDict()
-            for key in test_dict:
-                if TEST_CASE_INSENSITIVITY:
-                    nc_key = swapcase2(key)
-                else:
-                    nc_key = key
-                test_ncdict[nc_key] = test_dict[key]
-            test_ncdicts.append((test_ncdict, relation, dict_types, comment))
-        self.run_test_dicts(base_ncdict, test_ncdicts)
+    assert eq1 == exp_obj_equal
+    assert eq2 == exp_obj_equal
+    assert ne1 != exp_obj_equal
+    assert ne2 != exp_obj_equal
 
 
 class TestOrdering(BaseTest):
