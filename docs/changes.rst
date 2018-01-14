@@ -233,6 +233,9 @@ Enhancements
 * Docs: Clarified that the instance path returned by the `CreateInstance()`
   operation method has classname, keybindings and namespace set.
 
+* Docs: For CIM floating point types (real32, real64), added cautionary text
+  for equality comparison and hash value calculation.
+
 * Added capability to mock WBEM Operations so that both pywbem and pywbem
   users can create unit tests without requiring a working WBEM Server,
   This feature allows the user to create CIM objects

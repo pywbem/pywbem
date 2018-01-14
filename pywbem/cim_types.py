@@ -737,12 +737,28 @@ class CIMFloat(CIMType, float):
     Two objects of subclasses of this base class compare equal if their numeric
     values compare equal. Objects of this class are immutable and
     :term:`hashable`, with the hash value being based on its numeric value.
+
+    Note that equality comparison of floating point numbers in Python (and in
+    almost any programming language) comes with some surprises.
+    See `"Floating Point Arithmetic: Issues and Limitations"
+    <https://docs.python.org/2/tutorial/floatingpoint.html>`_ for details,
+    and specifically `"Comparing Floating Point Numbers, 2012 Edition"
+    <https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/>`_
+    on the topic of equality comparison. The same issues apply to hash values
+    that are based on the numeric value of floating point numbers. Therefore,
+    it is not recommended to perform equality comparison of objects of
+    subclasses of this class, or to use them as dictionary keys or as members
+    in sets.
     """
 
 
 class Real32(CIMFloat):
     """
     A value of CIM data type real32. Derived from :class:`~pywbem.CIMFloat`.
+
+    It is not recommended to perform equality comparison on objects of this
+    class, or to use them as dictionary keys or as members in sets. See
+    :class:`~pywbem.CIMFloat` for details.
     """
     cimtype = 'real32'
 
@@ -750,6 +766,10 @@ class Real32(CIMFloat):
 class Real64(CIMFloat):
     """
     A value of CIM data type real64. Derived from :class:`~pywbem.CIMFloat`.
+
+    It is not recommended to perform equality comparison on objects of this
+    class, or to use them as dictionary keys or as members in sets. See
+    :class:`~pywbem.CIMFloat` for details.
     """
     cimtype = 'real64'
 
