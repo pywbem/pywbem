@@ -4240,9 +4240,9 @@ class CIMProperty(_CIMComparisonMixin):
         Comparator function for two :class:`~pywbem.CIMProperty` objects.
 
         The comparison is based on the `name`, `value`, `type`,
-        `reference_class`, `is_array`, `array_size`, `propagated`,
-        `class_origin`, and `qualifiers` instance attributes, in descending
-        precedence.
+        `reference_class`, `embedded_object`, `is_array`, `array_size`,
+        `propagated`, `class_origin`, and `qualifiers` instance attributes,
+        in descending precedence.
 
         The `name` and `reference_class` attributes are compared
         case-insensitively.
@@ -4259,6 +4259,7 @@ class CIMProperty(_CIMComparisonMixin):
                 cmpitem(self.value, other.value) or
                 cmpitem(self.type, other.type) or
                 cmpname(self.reference_class, other.reference_class) or
+                cmpitem(self.embedded_object, other.embedded_object) or
                 cmpitem(self.is_array, other.is_array) or
                 cmpitem(self.array_size, other.array_size) or
                 cmpitem(self.propagated, other.propagated) or
