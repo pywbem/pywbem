@@ -800,7 +800,6 @@ def p_assocDeclaration(p):
                         | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias superClass '{' associationFeatureList '}' ';'
                         """  # noqa: E501
     aqual = CIMQualifier('ASSOCIATION', True, type='boolean')
-    # TODO flavor trash.
     quals = [aqual] + p[3]
     p[0] = _assoc_or_indic_decl(quals, p)
 
@@ -813,7 +812,6 @@ def p_indicDeclaration(p):
                         | '[' INDICATION qualifierListEmpty ']' CLASS className alias superClass '{' classFeatureList '}' ';'
                         """  # noqa: E501
     iqual = CIMQualifier('INDICATION', True, type='boolean')
-    # TODO flavor trash.
     quals = [iqual] + p[3]
     p[0] = _assoc_or_indic_decl(quals, p)
 
@@ -964,7 +962,9 @@ def p_qualifier(p):
     else:
         qval = tocimobj(qualdecl.type, qval)
     p[0] = CIMQualifier(qname, qval, type=qualdecl.type, **flavors)
-    # TODO propagated?
+
+    # Note: The propagated flag is not set because this is parsed MOF, which
+    # contains specified qualifiers and not propagated qualifiers.
 
 
 def p_flavorList(p):
@@ -987,7 +987,8 @@ def p_qualifierParameter(p):
         p[0] = p[2]
 
 
-# TODO 8/16 ks Consider complete removed of TOINSTANCE from compiler
+# Note: TOINSTANCE is deprecated in DSP0201 and is not specified in DSP004.
+# Pywbem supports TOINSTANCE as deprecated, for historical reasons.
 def p_flavor(p):
     """flavor : ENABLEOVERRIDE
               | DISABLEOVERRIDE
@@ -1113,8 +1114,11 @@ def p_methodDeclaration(p):
     quals = dict([(q.name, q) for q in quals])
     p[0] = CIMMethod(mname, return_type=dt, parameters=params,
                      qualifiers=quals)
-    # note: class_origin is set when adding method to class.
-    # TODO what to do with propagated?
+
+    # Note: class_origin is set when adding method to class.
+
+    # Note: The propagated flag is not set because this is parsed MOF, which
+    # contains specified methods and not any inherited methods.
 
 
 def p_propertyName(p):
@@ -2093,7 +2097,6 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         """
 
         cc = args[0] if args else kwargs['NewClass']
-        # TODO 2016/03 AM: Dubious stmt above.
         if cc.superclass:
             try:
                 _ = self.GetClass(cc.superclass, LocalOnly=True,  # noqa: F841
