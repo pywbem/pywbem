@@ -22,17 +22,15 @@ Operation recorder interface and implementations.
 
 from __future__ import print_function, absolute_import
 from collections import namedtuple
-
 try:
     from collections import OrderedDict  # pylint: disable=import-error
 except ImportError:
     from ordereddict import OrderedDict  # pylint: disable=import-error
-
 from datetime import datetime, timedelta
 import logging
+import six
 import yaml
 from yaml.representer import RepresenterError
-import six
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
