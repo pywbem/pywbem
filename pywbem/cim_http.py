@@ -966,11 +966,11 @@ def get_cimobject_header(obj):
 
     # Local class path
     if isinstance(obj, CIMClassName):
-        return obj.to_wbem_uri(omit_local_slash=True)
+        return obj.to_wbem_uri(format='cimobject')
 
     # Local instance path
     if isinstance(obj, CIMInstanceName):
-        return obj.to_wbem_uri(omit_local_slash=True)
+        return obj.to_wbem_uri(format='cimobject')
 
     raise TypeError("Invalid object type %s to generate CIMObject header "
                     "value from" % type(obj))
