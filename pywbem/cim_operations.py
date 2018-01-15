@@ -6032,7 +6032,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             # entire context is tested for None because the open/pull methods
             # set the complete context to None when eos received.
             if context is None:
-                raise ValueError('None is not a valid EnumerationContext')
+                raise ValueError("Invalid context: None "
+                                 "(Enumeration may be exhausted)")
+
             self._imethodcall(
                 method_name,
                 namespace=context[1],
