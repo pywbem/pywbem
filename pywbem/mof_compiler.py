@@ -1807,11 +1807,11 @@ class BaseRepositoryConnection(object):
     * association or query operations
     * method invocations
 
-    Exceptions:
+    Raises:
 
       Implementation classes should raise only exceptions derived from
-      :exc:`~pywbem.Error`. Other exceptions are considered programming
-      errors.
+        :exc:`~pywbem.Error`. Other exceptions are considered programming
+        errors.
     """
 
     # See below
@@ -1961,10 +1961,10 @@ class MOFWBEMConnection(BaseRepositoryConnection):
     This class implements the
     :class:`~pywbem.BaseRepositoryConnection` interface.
 
-    Exceptions:
+    Raises:
 
       The methods of this class may raise any exceptions described for
-      class :class:`~pywbem.WBEMConnection`.
+        class :class:`~pywbem.WBEMConnection`.
     """
 
     def __init__(self, conn=None):

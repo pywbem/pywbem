@@ -254,21 +254,21 @@ def parse_url(url, allow_defaults=True):
     Examples for valid URLs can be found in the test program
     `testsuite/test_cim_http.py`.
 
-        Parameters:
+    Parameters:
 
-          url:
+      url:
 
-          allow_defaults - If True (default) allow defaults for scheme and
-            port. If false, raise exception for invalid or missing scheme or
-            port.
+      allow_defaults - If True (default) allow defaults for scheme and
+        port. If false, raise exception for invalid or missing scheme or
+        port.
 
-        Returns:
+    Returns:
 
-          tuple of host, port, ssl
+      tuple of host, port, ssl
 
     Raises:
 
-        ValueError Exception raised if allow_defaults = False and either
+      ValueError: Exception raised if allow_defaults = False and either
         scheme or port are invalid or missing
     """
 
@@ -425,6 +425,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
         logs created.
 
     Returns:
+
         Tuple containing:
 
             The CIM-XML formatted response data from the WBEM server, as a
@@ -435,6 +436,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
             from server `None is returned.
 
     Raises:
+
         :exc:`~pywbem.AuthError`
         :exc:`~pywbem.ConnectionError`
         :exc:`~pywbem.TimeoutError`

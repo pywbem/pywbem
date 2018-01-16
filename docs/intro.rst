@@ -108,7 +108,7 @@ for the current user.
 .. _`Installing to Linux`:
 
 Installing to Linux
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 * Download the ``pywbem_os_setup.sh`` script from one of these sources:
 
@@ -160,7 +160,7 @@ Installing to Linux
 .. _`Installing to OS-X`:
 
 Installing to OS-X
-~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^
 
 * Download the ``pywbem_os_setup.sh`` script from one of these sources:
 
@@ -203,7 +203,7 @@ Installing to OS-X
 .. _`Installing to Windows`:
 
 Installing to Windows
-~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^
 
 The pywbem tests that run on the Appveyor CI use CygWin, but you should be able
 to use plain Windows or any Unix-like environment on Windows (such as
@@ -249,7 +249,7 @@ environment. You can detect that bit size as follows:
 .. _`Installing into a different Python environment`:
 
 Installing into a different Python environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The examples in the previous sections install pywbem and its prerequisite
 Python packages using the Pip utility. By default, Pip installs these packages
@@ -320,7 +320,7 @@ For simplicity, the following examples show only the default commands.
 .. _`Installing a different version of pywbem`:
 
 Installing a different version of pywbem
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The examples in the previous sections install the latest version of pywbem that
 is released on `PyPI`_. This section describes how dofferent versions of pywbem
@@ -357,7 +357,7 @@ can be installed.
 .. _`Verifying the installation`:
 
 Verifying the installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can verify that pywbem is installed correctly by importing the package into
 Python (using the Python environment you installed pywbem to):
@@ -374,7 +374,7 @@ section.
 .. _`Prerequisite operating system packages for install`:
 
 Prerequisite operating system packages for install
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following table lists the prerequisite operating system packages along with
 their version requirements for installing and running pywbem, for the
@@ -428,7 +428,7 @@ Notes:
 .. _`Building Swig`:
 
 Building Swig
-~~~~~~~~~~~~~
+^^^^^^^^^^^^^
 
 The installation of M2Crypto needs the Swig utility (e.g. ``swig`` package
 on RedHat). On some Linux distributions, the Swig utility is not available in

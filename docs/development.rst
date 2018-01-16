@@ -66,7 +66,7 @@ OS-X should work as well, but Windows requires a number of manual setup steps.
 .. _`Development environment on Windows`:
 
 Development environment on Windows
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The development environment needs the ``xmllint`` utility and the ``lxml``
 Python package. To get ``xmllint`` and to prepare the environment for
@@ -189,7 +189,7 @@ Perform these steps (in the plain Windows Command Prompt):
 .. _`Prerequisite operating system packages for development`:
 
 Prerequisite operating system packages for development
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following table lists the prerequisite operating system packages along with
 their version requirements for development of pywbem, for the supported

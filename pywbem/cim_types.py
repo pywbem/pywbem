@@ -800,6 +800,7 @@ def cimtype(obj):
         The CIM data type name of the object, as a string (e.g. ``"uint8"``).
 
     Raises:
+
         TypeError: The object does not have a valid CIM data type.
         ValueError: Cannot determine CIM data type from an empty array.
     """
@@ -907,6 +908,7 @@ def type_from_name(type_name):
         :class:`~pywbem.Uint8` or :class:`~pywbem.CIMInstanceName`).
 
     Raises:
+
         ValueError: Unknown CIM data type name.
     """
     if type_name == 'reference':
