@@ -18,6 +18,8 @@ instance of EX_AllTypes as $inner
     psi16 = +32767;
     psi32 = +2147483647;
     psi64 = +9223372036854775807;
+    pr32  = 1.175494351E-38;
+    pr64  = 4.9E-324;
     ps    = "abcdefg";
     pc    = 'a';
     pb    = false;
@@ -38,6 +40,8 @@ instance of EX_AllTypes as $outer
     psi16 = -32768;
     psi32 = -2147483648;
     psi64 = -9223372036854775808;
+    pr32  = 3.402823466E38;
+    pr64  = 1.7976931348623157E308;
     ps    = "abcdefg";
     pc    = 'a';
     pb    = true;
@@ -46,4 +50,34 @@ instance of EX_AllTypes as $outer
 //    pei   = $inner;
 };
 
+instance of EX_AllTypes as $values1
+{
+    k1 = 9923;
+    k2 = "SampleLabelValues1";
+    pui8  = 0101b;
+    pui16 = 077;
+    pui32 = 88;
+    pui64 = 0xabc;
+    psi8  = -0101B;
+    psi16 = -077;
+    psi32 = -88;
+    psi64 = -0xdef;
+    pr32  = .1;
+    pr64  = -1.1e-15;
+};
 
+instance of EX_AllTypes as $zeroes
+{
+    k1 = 9924;
+    k2 = "SampleLabelZeroes";
+    pui8  = 0;
+    pui16 = -0;
+    pui32 = 0b;
+    pui64 = -0b;
+    psi8  = -0x0;
+    psi16 = Null;
+    psi32 = Null;
+    psi64 = Null;
+    pr32  = .0;
+    pr64  = -.0e-0;
+};

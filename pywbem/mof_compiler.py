@@ -224,11 +224,13 @@ def t_MCOMMENT(t):
 
 def t_floatValue(t):
     r'[+-]?[0-9]*\.[0-9]+([eE][+-]?[0-9]+)?'
+    t.value = float(t.value)
     return t
 
 
 def t_hexValue(t):
     r'[+-]?0[xX][0-9a-fA-F]+'
+    t.value = int(t.value, 16)
     return t
 
 
@@ -239,6 +241,7 @@ def t_binaryValue(t):
     # zeros not allowed for decimal) would match 'decimalValue' and only
     # the zero would be taken out.
     if re.search(r'[2-9]', t.value) is not None:
+        # TODO 01/18 AM Replace skipping with raising an error
         msg = "Skipping invalid binary number '%s' in line %d" % \
             (t.value, t.lineno)
         try:
@@ -248,6 +251,8 @@ def t_binaryValue(t):
         t.lexer.parser.log(msg)
         t.type = 'error'
         t.lexer.skip(len(t.value))
+    else:
+        t.value = int(t.value[0:-1], 2)
     return t
 
 
@@ -258,6 +263,7 @@ def t_octalValue(t):
     # zeros not allowed for decimal) would match 'decimalValue' and only
     # the zero would be taken out, and the 8 would be another decimalValue.
     if re.search(r'[8-9]', t.value) is not None:
+        # TODO 01/18 AM Replace skipping with raising an error
         msg = "Skipping invalid octal number '%s' in line %d" % \
             (t.value, t.lineno)
         try:
@@ -267,6 +273,8 @@ def t_octalValue(t):
         t.lexer.parser.log(msg)
         t.type = 'error'
         t.lexer.skip(len(t.value))
+    else:
+        t.value = int(t.value, 8)
     return t
 
 
@@ -274,6 +282,7 @@ def t_octalValue(t):
 # the 0. If not at the end, 0 would match at the begin of e.g. an octal value.
 def t_decimalValue(t):
     r'[+-]?([1-9][0-9]*|0)'
+    t.value = int(t.value)
     return t
 
 
@@ -321,7 +330,7 @@ t_ignore = ' \r\t'
 def t_error(t):
     """ Lexer error callback from PLY Lexer with token in error.
     """
-
+    # TODO 01/18 AM Replace skipping with raising an error
     msg = "Skipping first character of invalid token '%s' in line %d" % \
         (t.value, t.lineno)
     try:
@@ -1347,6 +1356,7 @@ def p_constantValue(p):
                      | booleanValue
                      | nullValue
                      """
+    # The lexer functions (t_floatValue(), etc.) return a properly typed value.
     p[0] = p[1]
 
 
@@ -1356,8 +1366,8 @@ def p_integerValue(p):
                     | decimalValue
                     | hexValue
                     """
-    p[0] = int(p[1])
-    # TODO deal with non-decimal values.
+    # The lexer functions (t_binaryValue(), etc.) return a properly typed value.
+    p[0] = p[1]
 
 
 def p_referenceInitializer(p):

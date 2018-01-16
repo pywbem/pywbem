@@ -14,6 +14,8 @@ class EX_AllTypes
     sint16 psi16;
     sint32 psi32;
     sint64 psi64;
+    real32 pr32;
+    real64 pr64;
     string ps;
     char16 pc;
     boolean pb;

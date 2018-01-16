@@ -482,7 +482,7 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
 
         instances = repo.instances[NAME_SPACE]
 
-        self.assertEqual(len(instances), 2)
+        self.assertEqual(len(instances), 4)
 
         for i in instances:
             # both keys must exist
@@ -498,6 +498,8 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
                 self.assertEqual(i['psi16'], 32767)
                 self.assertEqual(i['psi32'], 2147483647)
                 self.assertEqual(i['psi64'], 9223372036854775807)
+                self.assertEqual(i['pr32'], 1.175494351E-38)
+                self.assertEqual(i['pr64'], 4.9E-324)
                 self.assertEqual(i['ps'], 'abcdefg')
                 self.assertEqual(i['pc'], u"'a'")
                 self.assertEqual(i['pb'], False)
@@ -515,6 +517,8 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
                 self.assertEqual(i['psi16'], -32768)
                 self.assertEqual(i['psi32'], -2147483648)
                 self.assertEqual(i['psi64'], -9223372036854775808)
+                self.assertEqual(i['pr32'], 3.402823466E38)
+                self.assertEqual(i['pr64'], 1.7976931348623157E308)
                 self.assertEqual(i['ps'], 'abcdefg')
                 self.assertEqual(i['pc'], u"'a'")
                 self.assertEqual(i['pb'], True)
@@ -522,6 +526,31 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
                                  CIMDateTime("20160409061213.123456+120"))
                 # self.assertEqual(i['peo'], None)
                 # self.assertEqual(i['pei'], None)
+
+            elif i['k1'] == 9923 and i['k2'] == 'SampleLabelValues1':
+                self.assertEqual(i['pui8'], 0b101)
+                self.assertEqual(i['pui16'], 0o77)
+                self.assertEqual(i['pui32'], 88)
+                self.assertEqual(i['pui64'], 0xabc)
+                self.assertEqual(i['psi8'], -0b101)
+                self.assertEqual(i['psi16'], -0o77)
+                self.assertEqual(i['psi32'], -88)
+                self.assertEqual(i['psi64'], -0xdef)
+                self.assertEqual(i['pr32'], 0.1)
+                self.assertEqual(i['pr64'], -1.1E-15)
+
+            elif i['k1'] == 9924 and i['k2'] == 'SampleLabelZeroes':
+                self.assertEqual(i['pui8'], 0)
+                self.assertEqual(i['pui16'], 0)
+                self.assertEqual(i['pui32'], 0)
+                self.assertEqual(i['pui64'], 0)
+                self.assertEqual(i['psi8'], 0)
+                self.assertEqual(i['psi16'], None)
+                self.assertEqual(i['psi32'], None)
+                self.assertEqual(i['psi64'], None)
+                self.assertEqual(i['pr32'], 0.0)
+                self.assertEqual(i['pr64'], 0.0)
+
             else:
                 self.fail('Cannot find required instance k1=%s, k2=%s' %
                           (i['k1'], i['k2']))
@@ -656,6 +685,10 @@ class TestTypes(MOFTest, CIMObjectMixin):
                                  class_origin=test_class),
             'psi64': CIMProperty('psi64', None, type='sint64',
                                  class_origin=test_class),
+            'pr32': CIMProperty('pr32', None, type='real32',
+                                class_origin=test_class),
+            'pr64': CIMProperty('pr64', None, type='real64',
+                                class_origin=test_class),
             'ps': CIMProperty('ps', None, type='string',
                               class_origin=test_class),
             'pc': CIMProperty('pc', None, type='char16',
@@ -876,22 +909,22 @@ class BaseTestLexer(unittest.TestCase):
                     else:
                         self.assertTrue(
                             act_token.type == exp_token.type,
-                            "Unexpected token type: %s (expected: %s) "
+                            "Unexpected token type: %r (expected: %r) "
                             "in token: %r" %
                             (act_token.type, exp_token.type, act_token))
                         self.assertTrue(
                             act_token.value == exp_token.value,
-                            "Unexpected token value: %s (expected: %s) "
+                            "Unexpected token value: %r (expected: %r) "
                             "in token: %r" %
                             (act_token.value, exp_token.value, act_token))
                         self.assertTrue(
                             act_token.lineno == exp_token.lineno,
-                            "Unexpected token lineno: %s (expected: %s) "
+                            "Unexpected token lineno: %r (expected: %r) "
                             "in token: %r" %
                             (act_token.lineno, exp_token.lineno, act_token))
                         self.assertTrue(
                             act_token.lexpos == exp_token.lexpos,
-                            "Unexpected token lexpos: %s (expected: %s) "
+                            "Unexpected token lexpos: %r (expected: %r) "
                             "in token: %r" %
                             (act_token.lexpos, exp_token.lexpos, act_token))
 
@@ -908,7 +941,7 @@ class TestLexerSimple(BaseTestLexer):
         input_data = "a 42"
         exp_tokens = [
             self.lex_token('IDENTIFIER', 'a', 1, 0),
-            self.lex_token('decimalValue', '42', 1, 2),
+            self.lex_token('decimalValue', 42, 1, 2),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
@@ -921,56 +954,63 @@ class TestLexerNumber(BaseTestLexer):
     def test_decimal_0(self):
         """Test a decimal number 0."""
         input_data = "0"
+        exp_data = 0
         exp_tokens = [
-            self.lex_token('decimalValue', input_data, 1, 0),
+            self.lex_token('decimalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_decimal_plus_0(self):
         """Test a decimal number +0."""
         input_data = "+0"
+        exp_data = 0
         exp_tokens = [
-            self.lex_token('decimalValue', input_data, 1, 0),
+            self.lex_token('decimalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_decimal_minus_0(self):
         """Test a decimal number -0."""
         input_data = "-0"
+        exp_data = 0
         exp_tokens = [
-            self.lex_token('decimalValue', input_data, 1, 0),
+            self.lex_token('decimalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_decimal_small(self):
         """Test a small decimal number."""
         input_data = "12345"
+        exp_data = 12345
         exp_tokens = [
-            self.lex_token('decimalValue', input_data, 1, 0),
+            self.lex_token('decimalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_decimal_small_plus(self):
         """Test a small decimal number with +."""
         input_data = "+12345"
+        exp_data = 12345
         exp_tokens = [
-            self.lex_token('decimalValue', input_data, 1, 0),
+            self.lex_token('decimalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_decimal_small_minus(self):
         """Test a small decimal number with -."""
         input_data = "-12345"
+        exp_data = -12345
         exp_tokens = [
-            self.lex_token('decimalValue', input_data, 1, 0),
+            self.lex_token('decimalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_decimal_long(self):
         """Test a decimal number that is long."""
         input_data = "12345678901234567890"
+        exp_data = 12345678901234567890
         exp_tokens = [
-            self.lex_token('decimalValue', input_data, 1, 0),
+            self.lex_token('decimalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
@@ -979,8 +1019,9 @@ class TestLexerNumber(BaseTestLexer):
     def test_binary_0b(self):
         """Test a binary number 0b."""
         input_data = "0b"
+        exp_data = 0
         exp_tokens = [
-            self.lex_token('binaryValue', input_data, 1, 0),
+            self.lex_token('binaryValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
@@ -988,56 +1029,63 @@ class TestLexerNumber(BaseTestLexer):
         # pylint: disable=invalid-name
         """Test a binary number 0B (upper case B)."""
         input_data = "0B"
+        exp_data = 0
         exp_tokens = [
-            self.lex_token('binaryValue', input_data, 1, 0),
+            self.lex_token('binaryValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_binary_small(self):
         """Test a small binary number."""
         input_data = "101b"
+        exp_data = 0b101
         exp_tokens = [
-            self.lex_token('binaryValue', input_data, 1, 0),
+            self.lex_token('binaryValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_binary_small_plus(self):
         """Test a small binary number with +."""
         input_data = "+1011b"
+        exp_data = 0b1011
         exp_tokens = [
-            self.lex_token('binaryValue', input_data, 1, 0),
+            self.lex_token('binaryValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_binary_small_minus(self):
         """Test a small binary number with -."""
         input_data = "-1011b"
+        exp_data = -0b1011
         exp_tokens = [
-            self.lex_token('binaryValue', input_data, 1, 0),
+            self.lex_token('binaryValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_binary_long(self):
         """Test a binary number that is long."""
         input_data = "1011001101001011101101101010101011001011111001101b"
+        exp_data = 0b1011001101001011101101101010101011001011111001101
         exp_tokens = [
-            self.lex_token('binaryValue', input_data, 1, 0),
+            self.lex_token('binaryValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_binary_leadingzero(self):
         """Test a binary number with a leading zero."""
         input_data = "01b"
+        exp_data = 0b01
         exp_tokens = [
-            self.lex_token('binaryValue', input_data, 1, 0),
+            self.lex_token('binaryValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_binary_leadingzeros(self):
         """Test a binary number with two leading zeros."""
         input_data = "001b"
+        exp_data = 0b001
         exp_tokens = [
-            self.lex_token('binaryValue', input_data, 1, 0),
+            self.lex_token('binaryValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
@@ -1046,56 +1094,63 @@ class TestLexerNumber(BaseTestLexer):
     def test_octal_00(self):
         """Test octal number 00."""
         input_data = "00"
+        exp_data = 0
         exp_tokens = [
-            self.lex_token('octalValue', input_data, 1, 0),
+            self.lex_token('octalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_octal_01(self):
         """Test octal number 01."""
         input_data = "01"
+        exp_data = 0o01
         exp_tokens = [
-            self.lex_token('octalValue', input_data, 1, 0),
+            self.lex_token('octalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_octal_small(self):
         """Test a small octal number."""
         input_data = "0101"
+        exp_data = 0o0101
         exp_tokens = [
-            self.lex_token('octalValue', input_data, 1, 0),
+            self.lex_token('octalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_octal_small_plus(self):
         """Test a small octal number with +."""
         input_data = "+01011"
+        exp_data = 0o1011
         exp_tokens = [
-            self.lex_token('octalValue', input_data, 1, 0),
+            self.lex_token('octalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_octal_small_minus(self):
         """Test a small octal number with -."""
         input_data = "-01011"
+        exp_data = -0o1011
         exp_tokens = [
-            self.lex_token('octalValue', input_data, 1, 0),
+            self.lex_token('octalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_octal_long(self):
         """Test an octal number that is long."""
         input_data = "07051604302011021104151151610403031021011271071701"
+        exp_data = 0o7051604302011021104151151610403031021011271071701
         exp_tokens = [
-            self.lex_token('octalValue', input_data, 1, 0),
+            self.lex_token('octalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_octal_leadingzeros(self):
         """Test an octal number with two leading zeros."""
         input_data = "001"
+        exp_data = 0o001
         exp_tokens = [
-            self.lex_token('octalValue', input_data, 1, 0),
+            self.lex_token('octalValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
@@ -1104,8 +1159,9 @@ class TestLexerNumber(BaseTestLexer):
     def test_hex_0x0(self):
         """Test hex number 0x0."""
         input_data = "0x0"
+        exp_data = 0o0
         exp_tokens = [
-            self.lex_token('hexValue', input_data, 1, 0),
+            self.lex_token('hexValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
@@ -1113,64 +1169,72 @@ class TestLexerNumber(BaseTestLexer):
         # pylint: disable=invalid-name
         """Test hex number 0X0."""
         input_data = "0X0"
+        exp_data = 0x0
         exp_tokens = [
-            self.lex_token('hexValue', input_data, 1, 0),
+            self.lex_token('hexValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_hex_0x1(self):
         """Test hex number 0x1."""
         input_data = "0x1"
+        exp_data = 0x1
         exp_tokens = [
-            self.lex_token('hexValue', input_data, 1, 0),
+            self.lex_token('hexValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_hex_0x01(self):
         """Test hex number 0x01."""
         input_data = "0x01"
+        exp_data = 0x01
         exp_tokens = [
-            self.lex_token('hexValue', input_data, 1, 0),
+            self.lex_token('hexValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_hex_small(self):
         """Test a small hex number."""
         input_data = "0x1F2a"
+        exp_data = 0x1f2a
         exp_tokens = [
-            self.lex_token('hexValue', input_data, 1, 0),
+            self.lex_token('hexValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_hex_small_plus(self):
         """Test a small hex number with +."""
         input_data = "+0x1F2a"
+        exp_data = 0x1f2a
         exp_tokens = [
-            self.lex_token('hexValue', input_data, 1, 0),
+            self.lex_token('hexValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_hex_small_minus(self):
         """Test a small hex number with -."""
         input_data = "-0x1F2a"
+        exp_data = -0x1f2a
         exp_tokens = [
-            self.lex_token('hexValue', input_data, 1, 0),
+            self.lex_token('hexValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_hex_long(self):
         """Test a hex number that is long."""
         input_data = "0x1F2E3D4C5B6A79801f2e3d4c5b6a79801F2E3D4C5B6A7980"
+        exp_data = 0x1F2E3D4C5B6A79801f2e3d4c5b6a79801F2E3D4C5B6A7980
         exp_tokens = [
-            self.lex_token('hexValue', input_data, 1, 0),
+            self.lex_token('hexValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_hex_leadingzeros(self):
         """Test a hex number with two leading zeros."""
         input_data = "0x00F"
+        exp_data = 0x00F
         exp_tokens = [
-            self.lex_token('hexValue', input_data, 1, 0),
+            self.lex_token('hexValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
@@ -1179,64 +1243,72 @@ class TestLexerNumber(BaseTestLexer):
     def test_float_dot0(self):
         """Test a float number '.0'."""
         input_data = ".0"
+        exp_data = 0.0
         exp_tokens = [
-            self.lex_token('floatValue', input_data, 1, 0),
+            self.lex_token('floatValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_float_0dot0(self):
         """Test a float number '0.0'."""
         input_data = "0.0"
+        exp_data = 0.0
         exp_tokens = [
-            self.lex_token('floatValue', input_data, 1, 0),
+            self.lex_token('floatValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_float_plus_0dot0(self):
         """Test a float number '+0.0'."""
         input_data = "+0.0"
+        exp_data = 0.0
         exp_tokens = [
-            self.lex_token('floatValue', input_data, 1, 0),
+            self.lex_token('floatValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_float_minus_0dot0(self):
         """Test a float number '-0.0'."""
         input_data = "-0.0"
+        exp_data = 0.0
         exp_tokens = [
-            self.lex_token('floatValue', input_data, 1, 0),
+            self.lex_token('floatValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_float_small(self):
         """Test a small float number."""
         input_data = "123.45"
+        exp_data = 123.45
         exp_tokens = [
-            self.lex_token('floatValue', input_data, 1, 0),
+            self.lex_token('floatValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_float_small_plus(self):
         """Test a small float number with +."""
         input_data = "+123.45"
+        exp_data = 123.45
         exp_tokens = [
-            self.lex_token('floatValue', input_data, 1, 0),
+            self.lex_token('floatValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_float_small_minus(self):
         """Test a small float number with -."""
         input_data = "-123.45"
+        exp_data = -123.45
         exp_tokens = [
-            self.lex_token('floatValue', input_data, 1, 0),
+            self.lex_token('floatValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_float_long(self):
         """Test a float number that is long."""
         input_data = "1.2345678901234567890"
+        exp_data = 1.2345678901234567890
         exp_tokens = [
-            self.lex_token('floatValue', input_data, 1, 0),
+            self.lex_token('floatValue', exp_data, 1, 0),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
@@ -1277,14 +1349,12 @@ class TestLexerNumber(BaseTestLexer):
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_error_0dot(self):
-        """Test a float number '0.' (not allowed)."""
+        """Test '0.' (not a valid float, is parsed as a decimal '0' followed by
+        an illegal character '.' which is skipped in t_error()."""
         input_data = "0."
         exp_tokens = [
-            # TODO: The current floatValue regexp does not match, so
-            # it treats this as decimal. Improve the handling of this.
-            self.lex_token('decimalValue', '0', 1, 0),
-            # TODO: This testcase succeeds without any expected token for the
-            # '.'. Find out why.
+            self.lex_token('decimalValue', 0, 1, 0),
+            # The '.' is skipped
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
