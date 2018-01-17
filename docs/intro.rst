@@ -112,7 +112,8 @@ Installing to Linux
 
 * Download the ``pywbem_os_setup.sh`` script from one of these sources:
 
-  - :download:`pywbem_os_setup.sh </pywbem_os_setup.sh>` on this documentation site
+  - :download:`pywbem_os_setup.sh <../pywbem_os_setup.sh>` on this documentation site
+
   - `pywbem_os_setup.sh <https://raw.githubusercontent.com/pywbem/pywbem/master/pywbem_os_setup.sh>`_
     on master branch of pywbem repo
 
