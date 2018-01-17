@@ -29,6 +29,10 @@ from __future__ import absolute_import, print_function
 import os
 from datetime import datetime
 import operator
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 import six
 import pytest
 from testfixtures import OutputCapture
@@ -3226,7 +3230,7 @@ class TestReferenceOperations(object):
 
         insts = conn.References(inst_name, ResultClass=rc, Role=role)
 
-        paths = [str(i.path) for i in insts]
+        paths = [i.path for i in insts]
 
         assert isinstance(insts, list)
         assert len(insts) == len(exp_rtn)
@@ -3236,9 +3240,9 @@ class TestReferenceOperations(object):
         exp_ns = conn.default_namespace if ns is None else ns
 
         # create the expected paths from exp_rtn fixture.
-        exp_path_list = []
+        exp_paths = []
         for exp_path in exp_rtn:
-            kbs = {}
+            kbs = OrderedDict()
             kys = exp_path[1]
             if not isinstance(kys[0], (tuple, list)):
                 kys = [ kys ]  # noqa E201, E202 pylint: disable=bad-whitespace
@@ -3251,11 +3255,9 @@ class TestReferenceOperations(object):
                                                  keybindings={ky[2]: ky[3]})
             path = CIMInstanceName(exp_path[0], namespace=exp_ns,
                                    keybindings=kbs, host=conn.host)
-            exp_path_list.append(path)
+            exp_paths.append(path)
 
-        # TODO use the compare path function instead of cvting to string.
-        exp_path_list_strs = [str(p) for p in exp_path_list]
-        assert set(paths) == set(exp_path_list_strs)
+        assert set(paths) == set(exp_paths)
 
     # TODO test for references propertylist.
 
