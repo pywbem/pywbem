@@ -1753,10 +1753,12 @@ def parse_embeddedObject(val):  # pylint: disable=invalid-name
             </INSTANCE>
 
     Returns:
+
       `None` if `val` is `None`.
       `CIMClass` or `CIMInstance` or a list of them, otherwise.
 
     Raises:
+
       ParseError: There is an error in the XML.
     """
 

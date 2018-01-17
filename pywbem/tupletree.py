@@ -140,9 +140,11 @@ def xml_to_tupletree_sax(xml_string, meaning):
         Short text with meaning of the XML string, for messages in exceptions.
 
     Returns:
+
       tupletree tuple with parsed XML tree
 
     Raises:
+
       pywbem.ParseError: Error detected by SAX parser or UTF-8/XML checkers
     """
 
@@ -220,7 +222,7 @@ def check_invalid_utf8_sequences(utf8_string, meaning):
 
       TypeError: Invoked with incorrect Python object type for `utf8_xml`.
 
-      :class:`~pywbem.ParseError: `utf8_xml` contains invalid UTF-8 sequences.
+      pywbem.ParseError: `utf8_xml` contains invalid UTF-8 sequences.
 
     Notes on Unicode support in Python:
 
@@ -364,7 +366,7 @@ def check_invalid_xml_chars(xml_string, meaning):
 
       TypeError: Invoked with incorrect Python object type for `xml_string`.
 
-      :class:`~pywbem.ParseError: `xml_string` contains invalid XML characters.
+      pywbem.ParseError: `xml_string` contains invalid XML characters.
 
     Notes on XML characters:
 

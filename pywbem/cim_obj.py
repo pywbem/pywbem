@@ -2112,10 +2112,12 @@ class CIMInstanceName(_CIMComparisonMixin):
             WBEM URI for an instance path.
 
         Returns:
+
           :class:`~pywbem.CIMInstanceName`: The instance path created from the
-            specified WBEM URI string.
+          specified WBEM URI string.
 
         Raises:
+
           ValueError: Invalid WBEM URI format for an instance path. This
             includes typed WBEM URIs.
         """
@@ -2231,6 +2233,7 @@ class CIMInstanceName(_CIMComparisonMixin):
           in the specified format.
 
         Raises:
+
           TypeError: Invalid type in keybindings
         """
 
@@ -2921,6 +2924,7 @@ class CIMInstance(_CIMComparisonMixin):
             instance specification is not indented.
 
         Returns:
+
           :term:`unicode string`: MOF string.
         """
 
@@ -3010,6 +3014,7 @@ class CIMClassName(_CIMComparisonMixin):
             hash value calculation are performed case-insensitively.
 
         Raises:
+
           ValueError: classname is `None`.
         """
 
@@ -3275,10 +3280,12 @@ class CIMClassName(_CIMComparisonMixin):
             WBEM URI for a class path.
 
         Returns:
+
           :class:`~pywbem.CIMClassName`: The class path created from the
-            specified WBEM URI string.
+          specified WBEM URI string.
 
         Raises:
+
           ValueError: Invalid WBEM URI format for a class path. This includes
             typed WBEM URIs.
         """
@@ -7021,9 +7028,10 @@ def tocimobj(type_, value):
         A :term:`CIM data type` object, representing the specified value and
         type.
 
-    Exceptions:
-        ValueError - Input cannot be converted to defined CIMValue type or
-            invalid CIMDatatype name.
+    Raises:
+
+        ValueError: Input cannot be converted to defined CIMValue type or
+          invalid CIMDatatype name.
     """
 
     if value is None or type_ is None:
@@ -7251,8 +7259,9 @@ def cimvalue(value, type):
         type.
 
     Raises:
-        ValueError - An input parameter has an invalid value.
-        TypeError - An input parameter has an invalid Python type.
+
+        ValueError: An input parameter has an invalid value.
+        TypeError: An input parameter has an invalid Python type.
     """
 
     if value is None:

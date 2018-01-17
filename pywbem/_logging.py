@@ -327,6 +327,7 @@ class PywbemLoggers(six.with_metaclass(MetaPywbemLoggers)):
             The pywbem logger name (ex. ``pywbem.ops``)
 
         Returns:
+
           Tuple with the following information in the tuple:
           (log_detail_level, log_level, log_dest, log_filename)
           or 'None' if the logger has not been defined to PywbemLoggers
@@ -344,11 +345,13 @@ class PywbemLoggers(six.with_metaclass(MetaPywbemLoggers)):
           log_spec_str (:term:`string`): The log spec string.
 
         Returns:
+
           Dictionary containing the parsed information where each entry is
           log_comp (detail_level, dest)
 
-        Exception:
-          ValueError - The parsing of the input string failed.
+        Raises:
+
+          ValueError: The parsing of the input string failed.
         """
         log_specs_dict = dict()
         log_specs = log_spec_str.split(',')

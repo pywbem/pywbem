@@ -225,7 +225,8 @@ def _validateIterCommonParams(MaxObjectCount, OperationTimeout):
     OperationTimeout must be positive integer or zero
 
     Raises:
-      ValueError if these parameters are invalid
+
+      ValueError: if these parameters are invalid
     """
     if MaxObjectCount is None or MaxObjectCount <= 0:
         raise ValueError('MaxObjectCount must be > 0 but is %s' %
@@ -695,6 +696,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def operation_recorder(self):
         """
+        :class:`BaseOperationRecorder`: An operation recorder.
+
+        **Experimental** New in pywbem 0.9 as experimental.
+
         This is a writeable property; setting this property will cause the
         defined recorder to be activated.
 
@@ -707,14 +712,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         value provided. Since there can be multiple simultaneous recorders,
         setting operation_recorder to `None` is no longer valid.
 
-        Parameters:
-           operation_recorder_object ()
-              Object of a subclass of the :class:`BaseOperationRecorder` class.
+        Raises:
 
-        Exceptions:
-            ValueError if operation_recorder_object is `None`.
-
-        **Experimental:** This property is experimental for this release.
+            ValueError: Invalid new value `None`.
 
         **Deprecated:** This property has been marked deprecated.  The method
         :meth:`WBEMConnection.add_operation_recorder` should be used to
@@ -748,7 +748,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         *New in pywbem 0.11.*
 
-        :term:`unicode string`: The ``{host}[:{port}]``component of the
+        :term:`unicode string`: The ``{host}[:{port}]`` component of the
         WBEM server's URL, as specified in the ``url`` attribute.
         """
         host = self.url.split('://')[-1]
@@ -757,23 +757,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def operation_recorder_enabled(self):
         """
-        Operation recorder enablement status for connection.
+        :class:`py:bool`: Enablement status for all operation recorders of the
+        connection.
+
+        **Experimental** New in pywbem 0.11 as experimental.
 
         This is a writeable property; setting this property will change the
-        operation recorder enablement status accordingly for all active
-        operation recorders.
+        operation recorder enablement status accordingly for all operation
+        recorders of the connection.
 
-        This property returns`False` if no operation recorder has been added.
-
-        If any recorder in the recorders list has been enabled, it returns
-        `True`. Otherwise it returns `False`.
-
-        Parameters:
-          value (:class:`py:bool`)
-            Enablement state to which all active recorders are set.
-
-        **Experimental:** This property is experimental for this release.
-        """  # noqa: E501
+        Reading this property returns `True` if one or more operation recorders
+        of the connection are enabled. Otherwise it returns `False`, also
+        when the connection has no operation recorders.
+        """
 
         for recorder in self._operation_recorders:
             if recorder.enabled():
@@ -784,10 +780,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @operation_recorder_enabled.setter
     def operation_recorder_enabled(self, value):
         """
-        # See the property operation_recorder_enabled for documentation.
-
-        **Experimental:** This property setter is experimental for this
-                          release.
+        See the property operation_recorder_enabled for documentation.
         """
         for recorder in self._operation_recorders:
             if value:
@@ -937,7 +930,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Adds the object of the defined recorder class to the list of
             active operation recorders.
 
-        Exception:
+        Raises:
+
             ValueError: If the same recorder class is added multiple times.
         """  # noqa: E501
         for recorder in self._operation_recorders:

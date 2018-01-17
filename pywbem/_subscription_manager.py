@@ -197,7 +197,8 @@ class WBEMSubscriptionManager(object):
 
         Raises:
 
-            ValueError, TypeError for incorrect input parameters.
+            ValueError: Incorrect input parameter values.
+            TypeError: Incorrect input parameter types.
         """
 
         # The following dictionaries have the WBEM server ID as a key.
@@ -306,7 +307,8 @@ class WBEMSubscriptionManager(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ValueError, TypeError for incorrect input parameters.
+            ValueError: Incorrect input parameter values.
+            TypeError: Incorrect input parameter types.
         """
 
         if not isinstance(server, WBEMServer):
@@ -615,7 +617,7 @@ class WBEMSubscriptionManager(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            CIMError(CIM_ERR_FAILED) if there are referencing subscriptions.
+            CIMError: CIM_ERR_FAILED, if there are referencing subscriptions.
         """  # noqa: E501
 
         # Validate server_id
@@ -750,7 +752,8 @@ class WBEMSubscriptionManager(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ValueError, TypeError for incorrect input parameters.
+            ValueError: Incorrect input parameter values.
+            TypeError: Incorrect input parameter types.
         """
 
         # server_id is validated in _create_...() method.
@@ -854,7 +857,7 @@ class WBEMSubscriptionManager(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            CIMError(CIM_ERR_FAILED) if there are referencing subscriptions.
+            CIMError: CIM_ERR_FAILED, if there are referencing subscriptions.
         """
 
         # Validate server_id
@@ -943,7 +946,7 @@ class WBEMSubscriptionManager(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ValueError for incorrect input parameters.
+            ValueError: Incorrect input parameter values.
         """  # noqa: E501
 
         # server_id is validated in _create_...() method.
