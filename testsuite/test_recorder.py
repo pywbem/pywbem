@@ -130,7 +130,7 @@ class ClientRecorderTests(BaseRecorderTests):
         """Load any created yaml file"""
         self.closeYamlFile()
         with _open(self.testyamlfile, encoding="utf-8") as fp:
-            testyaml = yaml.load(fp)
+            testyaml = yaml.safe_load(fp)
         return testyaml
 
 
@@ -278,34 +278,6 @@ class LogOperationStageTests(ClientRecorderTests):
     yaml was created
     """
 
-    def test_err_type(self):
-        """Test for timedelta stage.  This is one that causes error"""
-
-        obj_name = self.create_ciminstancename()
-
-        # TODO the following fails because of issues with timedelta
-        # params = [('Date2', timedelta(60))]
-        params = [('StringParam', 'Spotty')]
-
-        self.test_recorder.stage_pywbem_args(method='InvokeMethod',
-                                             MethodName='Blah',
-                                             ObjectName=obj_name,
-                                             Params=params)
-        method_result_tuple = None
-        method_exception = None
-        self.test_recorder.stage_pywbem_result(method_result_tuple,
-                                               method_exception)
-        # records everything staged to file
-        self.test_recorder.record_staged()
-
-        test_yaml = self.loadYamlFile()
-        test_yaml = test_yaml[0]
-        pywbem_request = test_yaml['pywbem_request']
-        self.assertEqual(pywbem_request['url'], 'http://acme.com:80')
-        operation = pywbem_request['operation']
-        self.assertEqual(operation['pywbem_method'], 'InvokeMethod')
-        # TODO test result  This test goes away when we fix timedelta yaml
-
     def test_invoke_method(self):
         """
         Emulates call to invokemethod to test parameter processing.
@@ -314,6 +286,8 @@ class LogOperationStageTests(ClientRecorderTests):
         create the input for the yaml, create the yaml, and test the result
         """
         obj_name = self.create_ciminstancename()
+
+        dt_now = CIMDateTime.now()
 
         params = [('StringParam', 'Spotty'),
                   ('Uint8', Uint8(1)),
@@ -327,8 +301,8 @@ class LogOperationStageTests(ClientRecorderTests):
                   ('Real32', Real32(8)),
                   ('Real64', Real64(9)),
                   ('Bool', True),
-                  ('DTN', CIMDateTime.now()),
-                  # ('DTI', timedelta(60)),
+                  ('DTN', dt_now),
+                  ('DTI', timedelta(60)),
                   ('Ref', obj_name)]
 
         self.test_recorder.stage_pywbem_args(method='InvokeMethod',
@@ -344,21 +318,30 @@ class LogOperationStageTests(ClientRecorderTests):
         # reload the yaml to test created values
         test_yaml = self.loadYamlFile()
         test_yaml = test_yaml[0]
+
         pywbem_request = test_yaml['pywbem_request']
         self.assertEqual(pywbem_request['url'], 'http://acme.com:80')
+
         operation = pywbem_request['operation']
         self.assertEqual(operation['pywbem_method'], 'InvokeMethod')
         self.assertEqual(operation['MethodName'], 'Blah')
 
         param_dict = dict(params)
-        self.assertEqual(len(param_dict), 14)
-
         self.assertEqual(param_dict['StringParam'], 'Spotty')
         self.assertEqual(param_dict['Uint8'], 1)
+        self.assertEqual(param_dict['Sint8'], 2)
+        self.assertEqual(param_dict['Uint16'], 3)
+        self.assertEqual(param_dict['Sint16'], 3)
+        self.assertEqual(param_dict['Uint32'], 4)
+        self.assertEqual(param_dict['Sint32'], 5)
+        self.assertEqual(param_dict['Uint64'], 6)
+        self.assertEqual(param_dict['Sint64'], 7)
+        self.assertEqual(param_dict['Real32'], 8)
+        self.assertEqual(param_dict['Real64'], 9)
         self.assertEqual(param_dict['Bool'], True)
-        # test other parameters
-        ref = param_dict['Ref']
-        self.assertEqual(ref, obj_name)
+        self.assertEqual(param_dict['DTN'], dt_now)
+        self.assertEqual(param_dict['DTI'], timedelta(60))
+        self.assertEqual(param_dict['Ref'], obj_name)
 
     def test_get_instance(self):
         """

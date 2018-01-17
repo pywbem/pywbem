@@ -334,6 +334,11 @@ Bug fixes
   using the MOFCompiler class, in compliance with DSP0004 (Issue #974).
   Extended the testcases to cover such numbers.
 
+* Fixed the issue that any use of CIMDateTime objects in the TestClientRecorder
+  resulted in a RepresenterError being raised, by adding PyYAML representer and
+  constructor functions that serialize CIMDateTimeobjects to YAML. Extended
+  the testcases in test_recorder.py accordingly. (Issues #702, #588).
+
 Cleanup
 ^^^^^^^
 
