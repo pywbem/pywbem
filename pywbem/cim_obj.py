@@ -1686,11 +1686,31 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def __str__(self):
         """
-        Return the untyped WBEM URI of the CIM instance path represented
-        by the :class:`~pywbem.CIMInstanceName` object, as returned by
+        Return a WBEM URI string of the CIM instance path represented by the
+        :class:`~pywbem.CIMInstanceName` object.
+
+        The returned WBEM URI string is in the historical format returned by
         :meth:`~pywbem.CIMInstanceName.to_wbem_uri`.
+
+        For new code, it is recommended that the standard format is used; it
+        is returned by :meth:`~pywbem.CIMInstanceName.to_wbem_uri` as the
+        default format.
+
+        Examples (for the historical format):
+
+        * With authority and namespace::
+
+            //acme.com/cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
+
+        * Without authority but with namespace::
+
+            cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
+
+        * Without authority and without namespace::
+
+            CIM_RegisteredProfile.InstanceID="acme.1"
         """
-        return self.to_wbem_uri()
+        return self.to_wbem_uri(format='historical')
 
     def __repr__(self):
         """
@@ -2146,13 +2166,12 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         return obj
 
-    def to_wbem_uri(self, omit_local_slash=False):
+    def to_wbem_uri(self, format='standard'):
         """
         Return the untyped WBEM URI of the CIM instance path represented
         by the :class:`~pywbem.CIMInstanceName` object.
 
-        The returned WBEM URI is consistent with :term:`DSP0207`, and contains
-        its components as follows:
+        The returned WBEM URI contains its components as follows:
 
         * it does not contain a namespace type (URI scheme).
         * it contains an authority component according to the
@@ -2169,17 +2188,34 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         Parameters:
 
-          omit_local_slash (bool): Omit the leading slash in "local" WBEM URIs
-          (that is, in WBEM URIs without authority component). Note that
-          :term:`DSP0207` requires a leading slash in "local" WBEM URIs.
+          format (:term:`string`): Format for the generated WBEM URI string,
+            using one of the following values:
 
-        Examples:
+            * ``"standard"`` - Standard format that is conformant to untyped
+              WBEM URIs for instance paths defined in :term:`DSP0207`.
+
+            * ``"cimobject"`` - Format for the `CIMObject` header field in
+              CIM-XML messages for representing instance paths (used
+              internally, see :term:`DSP0200`).
+
+            * ``"historical"`` - Historical format for WBEM URIs (used by
+              :meth:`~pywbem.CIMInstanceName.__str__`; should not be used by
+              new code). The historical format has the following differences to
+              the standard format:
+
+              - If the authority component is not present, the slash after the
+                authority is also omitted. In the standard format, that slash
+                is always present.
+
+              - If the namespace component is not present, the colon after the
+                namespace is also omitted. In the standard format, that colon
+                is always present.
+
+        Examples for the standard format:
 
         * With authority and namespace::
 
-            //jdd:test@acme.com:5989/cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
             //acme.com/cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
-            //acme.com/root/cimv2:CIM_ComputerSystem.CreationClassName="ACME_CS",Name="sys1"
 
         * Without authority but with namespace::
 
@@ -2188,11 +2224,11 @@ class CIMInstanceName(_CIMComparisonMixin):
         * Without authority and without namespace::
 
             /:CIM_RegisteredProfile.InstanceID="acme.1"
-            /:CIM_SubProfile.Main="/:CIM_RegisteredProfile.InstanceID=\"acme.1\"",Sub="/:CIM_RegisteredProfile.InstanceID=\"acme.2\""
 
         Returns:
 
-          :term:`unicode string`: Untyped WBEM URI of the CIM instance path.
+          :term:`unicode string`: Untyped WBEM URI of the CIM instance path,
+          in the specified format.
 
         Raises:
           TypeError: Invalid type in keybindings
@@ -2204,13 +2240,15 @@ class CIMInstanceName(_CIMComparisonMixin):
             ret.append('//')
             ret.append(self.host)
 
-        if self.host is not None or not omit_local_slash:
+        if self.host is not None or format == 'standard':
             ret.append('/')
 
         if self.namespace is not None:
             ret.append(self.namespace)
 
-        ret.append(':')
+        if self.namespace is not None or format in ('standard', 'cimobject'):
+            ret.append(':')
+
         ret.append(self.classname)
 
         ret.append('.')
@@ -3095,11 +3133,36 @@ class CIMClassName(_CIMComparisonMixin):
 
     def __str__(self):
         """
-        Return the untyped WBEM URI of the CIM class path represented by the
-        :class:`~pywbem.CIMClassName` object, as returned by
+        Return a WBEM URI string of the CIM class path represented by the
+        :class:`~pywbem.CIMClassName` object.
+
+        The returned WBEM URI string is in the historical format returned by
         :meth:`~pywbem.CIMClassName.to_wbem_uri`.
+
+        For new code, it is recommended that the standard format is used; it
+        is returned by :meth:`~pywbem.CIMClassName.to_wbem_uri` as the default
+        format.
+
+        If you want to access the class name, use the
+        :attr:`~pywbem.CIMClassName.classname` attribute, instead of relying
+        on the coincidence that the historical format of a WBEM URI without
+        authority and namespace happens to be the class name.
+
+        Examples (for the historical format):
+
+        * With authority and namespace::
+
+            //acme.com/cimv2/test:CIM_RegisteredProfile
+
+        * Without authority but with namespace::
+
+            cimv2/test:CIM_RegisteredProfile
+
+        * Without authority and without namespace::
+
+            CIM_RegisteredProfile
         """
-        return self.to_wbem_uri()
+        return self.to_wbem_uri(format='historical')
 
     def __repr__(self):
         """
@@ -3241,35 +3304,52 @@ class CIMClassName(_CIMComparisonMixin):
 
         return obj
 
-    def to_wbem_uri(self, omit_local_slash=False):
+    def to_wbem_uri(self, format='standard'):
         """
-        Return the untyped WBEM URI of the CIM class path represented
-        by the :class:`~pywbem.CIMClassName` object.
+        Return the untyped WBEM URI of the CIM class path represented by the
+        :class:`~pywbem.CIMClassName` object.
 
-        The returned WBEM URI is consistent with :term:`DSP0207`, and contains
-        its components as follows:
+        The returned WBEM URI contains its components as follows:
 
         * it does not contain a namespace type (URI scheme).
         * it contains an authority component according to the
-          :attr:`~pywbem.CIMInstanceName.host` attribute, if that is not
+          :attr:`~pywbem.CIMClassName.host` attribute, if that is not
           `None`. Othwerise, it does not contain the authority component.
         * it contains a namespace component according to the
-          :attr:`~pywbem.CIMInstanceName.namespace` attribute, if that is not
+          :attr:`~pywbem.CIMClassName.namespace` attribute, if that is not
           `None`. Othwerise, it does not contain the namespace component.
         * it contains a class name component according to the
-          :attr:`~pywbem.CIMInstanceName.classname` attribute.
+          :attr:`~pywbem.CIMClassName.classname` attribute.
 
         Parameters:
 
-          omit_local_slash (bool): Omit the leading slash in "local" WBEM URIs
-          (that is, in WBEM URIs without authority component). Note that
-          :term:`DSP0207` requires a leading slash in "local" WBEM URIs.
+          format (:term:`string`): Format for the generated WBEM URI string,
+            using one of the following values:
 
-        Examples:
+            * ``"standard"`` - Standard format that is conformant to untyped
+              WBEM URIs for class paths defined in :term:`DSP0207`.
+
+            * ``"cimobject"`` - Format for the `CIMObject` header field in
+              CIM-XML messages for representing class paths (used
+              internally, see :term:`DSP0200`).
+
+            * ``"historical"`` - Historical format for WBEM URIs (used by
+              :meth:`~pywbem.CIMClassName.__str__`; should not be used by
+              new code). The historical format has the following differences to
+              the standard format:
+
+              - If the authority component is not present, the slash after the
+                authority is also omitted. In the standard format, that slash
+                is always present.
+
+              - If the namespace component is not present, the colon after the
+                namespace is also omitted. In the standard format, that colon
+                is always present.
+
+        Examples for the standard format:
 
         * With authority and namespace::
 
-            //jdd:test@acme.com:5989/cimv2/test:CIM_RegisteredProfile
             //acme.com/cimv2/test:CIM_RegisteredProfile
 
         * Without authority but with namespace::
@@ -3282,7 +3362,8 @@ class CIMClassName(_CIMComparisonMixin):
 
         Returns:
 
-          :term:`unicode string`: Untyped WBEM URI of the CIM class path.
+          :term:`unicode string`: Untyped WBEM URI of the CIM class path,
+          in the specified format.
         """
 
         ret = []
@@ -3291,13 +3372,15 @@ class CIMClassName(_CIMComparisonMixin):
             ret.append('//')
             ret.append(self.host)
 
-        if self.host is not None or not omit_local_slash:
+        if self.host is not None or format == 'standard':
             ret.append('/')
 
         if self.namespace is not None:
             ret.append(self.namespace)
 
-        ret.append(':')
+        if self.namespace is not None or format in ('standard', 'cimobject'):
+            ret.append(':')
+
         ret.append(self.classname)
 
         return _ensure_unicode(''.join(ret))

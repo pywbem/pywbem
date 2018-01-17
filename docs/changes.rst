@@ -193,11 +193,11 @@ Enhancements
   of the generated MOF to be more consistent with the CIM Schema MOF.
 
 * Added new methods `CIMInstanceName.to_wbem_uri()` and
-  `CIMClassName.to_wbem_uri()` that return the path as a WBEM URI compliant to
-  DSP0207, in order to make the conversion explicit instead of relying
-  on the string conversion methods. The string conversion methods are still
-  supported, but see the fix to make them compliant to DSP0207 (added as part
-  of fixing issue #928).
+  `CIMClassName.to_wbem_uri()` that return the path as a WBEM URI string that
+  conforms to untyped WBEM URIs as defined in DSP0207.
+  The `CIMInstanceName.__str__()` and `CIMClassName.__str__()` methods still
+  return the same WBEM URI string they previously did, but that is a historical
+  format close to but not conformant to DSP0207 (issues #928, #943).
 
 * Improved the way CIM-XML parsing errors are handled, by providing the
   original traceback information when re-raising a low-level exception

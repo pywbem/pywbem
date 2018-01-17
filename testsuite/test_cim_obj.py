@@ -2205,11 +2205,6 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
     Test CIMInstanceName.to_wbem_uri() and .__str__().
     """
 
-    omit_local_slash = [
-        # Fixture for omit_local_slash arg of CIMInstanceName.to_wbem_uri().
-        True, False
-    ]
-
     func_name = [
         # Fixture for function to be tested
         'to_wbem_uri', '__str__'
@@ -2221,29 +2216,77 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
         # * desc: Short testcase description.
         # * attrs: Dict of input attributes for the CIMInstanceName object
         #     to be tested.
+        # * format: Format for to_wbem_uri(): one of 'standard', 'cimobject',
+        #     'historical'.
         # * exp_result: Expected WBEM URI string, if expected to succeed.
         #     Exception type, if expected to fail.
         # * exp_warn_type: Expected warning type.
         #     None, if no warning expected.
         # * condition: Condition for testcase to run.
         (
-            "all components, normal case",
+            "all components, standard format",
             dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
+            'standard',
             '//10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
             None, CHECK_0_12_0
         ),
         (
-            "no authority",
+            "all components, cimobject format",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2',
+                host=u'10.11.12.13:5989'),
+            'cimobject',
+            '//10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "all components, historical format",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2',
+                host=u'10.11.12.13:5989'),
+            'historical',
+            '//10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "no authority, standard format",
             dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=None),
+            'standard',
             '/root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "no authority, cimobject format",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2',
+                host=None),
+            'cimobject',
+            'root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "no authority, historical format",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2',
+                host=None),
+            'historical',
+            'root/cimv2:CIM_Foo.k1="v1"',
             None, CHECK_0_12_0
         ),
         (
@@ -2253,6 +2296,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'jdd:test@10.11.12.13:5989'),
+            'standard',
             '//jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
             None, CHECK_0_12_0
         ),
@@ -2263,6 +2307,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'jdd@10.11.12.13:5989'),
+            'standard',
             '//jdd@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
             None, CHECK_0_12_0
         ),
@@ -2273,6 +2318,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13'),
+            'standard',
             '//10.11.12.13/root/cimv2:CIM_Foo.k1="v1"',
             None, CHECK_0_12_0
         ),
@@ -2283,6 +2329,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'[10:11:12:13]'),
+            'standard',
             '//[10:11:12:13]/root/cimv2:CIM_Foo.k1="v1"',
             None, CHECK_0_12_0
         ),
@@ -2293,6 +2340,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'[10:11:12:13]:5989'),
+            'standard',
             '//[10:11:12:13]:5989/root/cimv2:CIM_Foo.k1="v1"',
             None, CHECK_0_12_0
         ),
@@ -2303,17 +2351,41 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=None),
+            'standard',
             '/root/cimv2:CIM_Foo.k1="v1"',
             None, CHECK_0_12_0
         ),
         (
-            "local WBEM URI with only class name",
+            "local WBEM URI with only class name, standard format",
             dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=None,
                 host=None),
+            'standard',
             '/:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI with only class name, cimobject format",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=None,
+                host=None),
+            'cimobject',
+            ':CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI with only class name, historical format",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=None,
+                host=None),
+            'historical',
+            'CIM_Foo.k1="v1"',
             None, CHECK_0_12_0
         ),
         (
@@ -2323,6 +2395,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root',
                 host=None),
+            'standard',
             '/root:CIM_Foo.k1="v1"',
             None, CHECK_0_12_0
         ),
@@ -2333,6 +2406,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2/test',
                 host=None),
+            'standard',
             '/root/cimv2/test:CIM_Foo.k1="v1"',
             None, CHECK_0_12_0
         ),
@@ -2343,6 +2417,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1=False, k2=True),
                 namespace=u'n',
                 host=None),
+            'standard',
             '/n:C.k1=FALSE,k2=TRUE',
             None, CHECK_0_12_0
         ),
@@ -2358,6 +2433,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                                        klong=9223372036854775808),
                 namespace=u'n',
                 host=None),
+            'standard',
             '/n:C.k1=0,k2=-1,k3=-32769,k4=42,k5=42,'
             'klong=9223372036854775808,'
             'kmax32=4294967295,'
@@ -2378,6 +2454,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                                        kmin64=2.2250738585072014E-308),
                 namespace=u'n',
                 host=None),
+            'standard',
             '/n:C.k1=0.0,k2=-0.1,k3=0.1,k4=3.14,k5=4.0,'
             'kmax32=3.402823466e+38,'
             'kmax64=1.7976931348623157e+308,'
@@ -2392,6 +2469,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1=float('inf')),
                 namespace=u'n',
                 host=None),
+            'standard',
             '/n:C.k1=inf',
             None, CHECK_0_12_0
         ),
@@ -2402,6 +2480,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1=float('-inf')),
                 namespace=u'n',
                 host=None),
+            'standard',
             '/n:C.k1=-inf',
             None, CHECK_0_12_0
         ),
@@ -2412,6 +2491,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1=float('nan')),
                 namespace=u'n',
                 host=None),
+            'standard',
             '/n:C.k1=nan',
             None, False  # float('nan') does not compare equal to itself
         ),
@@ -2423,6 +2503,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                                        k5='\\', k6='\\"', k7="'"),
                 namespace=u'n',
                 host=None),
+            'standard',
             '/n:C.k1="",k2="a",k3="42",k4="\\\x22",'
             'k5="\\\\",k6="\\\\\\\x22",k7="\x27"',
             None, CHECK_0_12_0
@@ -2434,6 +2515,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1='k2=42,k3=3'),
                 namespace=u'n',
                 host=None),
+            'standard',
             r'/n:C.k1="k2=42,k3=3"',
             None, CHECK_0_12_0
         ),
@@ -2444,6 +2526,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 keybindings=NocaseDict(k1='a', k2='1', k3='"', k4="'", k5='\\'),
                 namespace=u'n',
                 host=None),
+            'standard',
             '/n:C.k1="a",k2="1",k3="\\"",k4="\'",k5="\\\\"',
             None, CHECK_0_12_0
         ),
@@ -2455,6 +2538,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                     k1=CIMDateTime('19980125133015.123456-300')),
                 namespace=u'n',
                 host=None),
+            'standard',
             '/n:C.k1="19980125133015.123456-300"',
             None, CHECK_0_12_0
         ),
@@ -2466,6 +2550,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                     k1=CIMDateTime('12345678133015.123456:000')),
                 namespace=u'n',
                 host=None),
+            'standard',
             '/n:C.k1="12345678133015.123456:000"',
             None, CHECK_0_12_0
         ),
@@ -2481,6 +2566,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 ),
                 namespace=u'n1',
                 host=None),
+            'standard',
             '/n1:C1.k1="/n2:C2.k2=1"',
             None, CHECK_0_12_0
         ),
@@ -2496,6 +2582,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 ),
                 namespace=u'n1',
                 host=None),
+            'standard',
             r'/n1:C1.k1="/n2:C2.k2=\"v2\""',
             None, CHECK_0_12_0
         ),
@@ -2518,6 +2605,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 ),
                 namespace=u'n1',
                 host=None),
+            'standard',
             r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=3\""',
             None, CHECK_0_12_0
         ),
@@ -2541,6 +2629,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 ),
                 namespace=u'n1',
                 host=None),
+            'standard',
             r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=\\\"v3\\\"\""',
             None, CHECK_0_12_0
         ),
@@ -2550,14 +2639,11 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
         "func_name",
         func_name)
     @pytest.mark.parametrize(
-        "omit_local_slash",
-        omit_local_slash)
-    @pytest.mark.parametrize(
-        "desc, attrs, exp_result, exp_warn_type, condition",
+        "desc, attrs, format, exp_result, exp_warn_type, condition",
         testcases)
     def test_CIMInstanceName_to_wbem_uri_str(
-            self, desc, attrs, exp_result, exp_warn_type, condition,
-            omit_local_slash, func_name):
+            self, desc, attrs, format, exp_result, exp_warn_type, condition,
+            func_name):
         """All test cases for CIMInstanceName.to_wbem_uri() and .__str__()."""
 
         if not condition:
@@ -2576,10 +2662,12 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
 
         func = getattr(obj, func_name)
         if func_name == 'to_wbem_uri':
-            func_kwargs = dict(omit_local_slash=omit_local_slash)
+            func_kwargs = dict(format=format)
         if func_name == '__str__':
+            if format != 'historical':
+                pytest.skip("Not testing CIMInstanceName.__str__() with "
+                            "format: %r" % format)
             func_kwargs = dict()
-            omit_local_slash = False
 
         if condition == 'pdb':
             import pdb
@@ -2615,11 +2703,6 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
         if exp_uri:
 
             assert isinstance(uri, six.text_type)
-
-            if omit_local_slash and obj.host is None:
-                assert exp_uri[0] == '/'
-                exp_uri = exp_uri[1:]
-
             assert uri == exp_uri
 
 
@@ -9323,11 +9406,6 @@ class Test_CIMClassName_to_wbem_uri_str(object):
     Test CIMClassName.to_wbem_uri() and .__str__().
     """
 
-    omit_local_slash = [
-        # Fixture for omit_local_slash arg of CIMClassName.to_wbem_uri().
-        True, False
-    ]
-
     func_name = [
         # Fixture for function to be tested
         'to_wbem_uri', '__str__'
@@ -9339,27 +9417,71 @@ class Test_CIMClassName_to_wbem_uri_str(object):
         # * desc: Short testcase description.
         # * attrs: Dict of input attributes for the CIMClassName object
         #     to be tested.
+        # * format: Format for to_wbem_uri(): one of 'standard', 'cimobject',
+        #     'historical'.
         # * exp_result: Expected WBEM URI string, if expected to succeed.
         #     Exception type, if expected to fail.
         # * exp_warn_type: Expected warning type.
         #     None, if no warning expected.
         # * condition: Condition for testcase to run.
         (
-            "all components, normal case",
+            "all components, standard format",
             dict(
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
+            'standard',
             '//10.11.12.13:5989/root/cimv2:CIM_Foo',
             None, CHECK_0_12_0
         ),
         (
-            "no authority",
+            "all components, cimobject format",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=u'10.11.12.13:5989'),
+            'cimobject',
+            '//10.11.12.13:5989/root/cimv2:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "all components, historical format",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=u'10.11.12.13:5989'),
+            'historical',
+            '//10.11.12.13:5989/root/cimv2:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "no authority, standard format",
             dict(
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2',
                 host=None),
+            'standard',
             '/root/cimv2:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "no authority, cimobject format",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=None),
+            'cimobject',
+            'root/cimv2:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "no authority, historical format",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=None),
+            'historical',
+            'root/cimv2:CIM_Foo',
             None, CHECK_0_12_0
         ),
         (
@@ -9368,6 +9490,7 @@ class Test_CIMClassName_to_wbem_uri_str(object):
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2',
                 host=u'jdd:test@10.11.12.13:5989'),
+            'standard',
             '//jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo',
             None, CHECK_0_12_0
         ),
@@ -9377,6 +9500,7 @@ class Test_CIMClassName_to_wbem_uri_str(object):
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2',
                 host=u'jdd@10.11.12.13:5989'),
+            'standard',
             '//jdd@10.11.12.13:5989/root/cimv2:CIM_Foo',
             None, CHECK_0_12_0
         ),
@@ -9386,6 +9510,7 @@ class Test_CIMClassName_to_wbem_uri_str(object):
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13'),
+            'standard',
             '//10.11.12.13/root/cimv2:CIM_Foo',
             None, CHECK_0_12_0
         ),
@@ -9395,6 +9520,7 @@ class Test_CIMClassName_to_wbem_uri_str(object):
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2',
                 host=u'[10:11:12:13]'),
+            'standard',
             '//[10:11:12:13]/root/cimv2:CIM_Foo',
             None, CHECK_0_12_0
         ),
@@ -9404,6 +9530,7 @@ class Test_CIMClassName_to_wbem_uri_str(object):
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2',
                 host=u'[10:11:12:13]:5989'),
+            'standard',
             '//[10:11:12:13]:5989/root/cimv2:CIM_Foo',
             None, CHECK_0_12_0
         ),
@@ -9413,16 +9540,38 @@ class Test_CIMClassName_to_wbem_uri_str(object):
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2',
                 host=None),
+            'standard',
             '/root/cimv2:CIM_Foo',
             None, CHECK_0_12_0
         ),
         (
-            "local WBEM URI with only class name",
+            "local WBEM URI with only class name, standard format",
             dict(
                 classname=u'CIM_Foo',
                 namespace=None,
                 host=None),
+            'standard',
             '/:CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI with only class name, cimobject format",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=None,
+                host=None),
+            'cimobject',
+            ':CIM_Foo',
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI with only class name, historical format",
+            dict(
+                classname=u'CIM_Foo',
+                namespace=None,
+                host=None),
+            'historical',
+            'CIM_Foo',
             None, CHECK_0_12_0
         ),
         (
@@ -9431,6 +9580,7 @@ class Test_CIMClassName_to_wbem_uri_str(object):
                 classname=u'CIM_Foo',
                 namespace=u'root',
                 host=None),
+            'standard',
             '/root:CIM_Foo',
             None, CHECK_0_12_0
         ),
@@ -9440,6 +9590,7 @@ class Test_CIMClassName_to_wbem_uri_str(object):
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2/test',
                 host=None),
+            'standard',
             '/root/cimv2/test:CIM_Foo',
             None, CHECK_0_12_0
         ),
@@ -9449,14 +9600,11 @@ class Test_CIMClassName_to_wbem_uri_str(object):
         "func_name",
         func_name)
     @pytest.mark.parametrize(
-        "omit_local_slash",
-        omit_local_slash)
-    @pytest.mark.parametrize(
-        "desc, attrs, exp_result, exp_warn_type, condition",
+        "desc, attrs, format, exp_result, exp_warn_type, condition",
         testcases)
     def test_CIMClassName_to_wbem_uri_str(
-            self, desc, attrs, exp_result, exp_warn_type, condition,
-            omit_local_slash, func_name):
+            self, desc, format, attrs, exp_result, exp_warn_type, condition,
+            func_name):
         """All test cases for CIMClassName.to_wbem_uri() and .__str__()."""
 
         if not condition:
@@ -9475,10 +9623,12 @@ class Test_CIMClassName_to_wbem_uri_str(object):
 
         func = getattr(obj, func_name)
         if func_name == 'to_wbem_uri':
-            func_kwargs = dict(omit_local_slash=omit_local_slash)
+            func_kwargs = dict(format=format)
         if func_name == '__str__':
+            if format != 'historical':
+                pytest.skip("Not testing CIMClassName.__str__() with "
+                            "format: %r" % format)
             func_kwargs = dict()
-            omit_local_slash = False
 
         if condition == 'pdb':
             import pdb
@@ -9514,11 +9664,6 @@ class Test_CIMClassName_to_wbem_uri_str(object):
         if exp_uri:
 
             assert isinstance(uri, six.text_type)
-
-            if omit_local_slash and obj.host is None:
-                assert exp_uri[0] == '/'
-                exp_uri = exp_uri[1:]
-
             assert uri == exp_uri
 
 
