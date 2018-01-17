@@ -28,23 +28,28 @@ Setting up the development environment
 It is recommended to use Linux as the development environment for pywbem.
 OS-X should work as well, but Windows requires a number of manual setup steps.
 
-1. It is recommended that you set up a `virtual Python environment`_.
-
-2. With a virtual Python environment active, clone the Git repo of this
-   project and switch to its working directory:
+1. Clone the Git repo of this project and switch to its working directory:
 
    .. code-block:: bash
 
         $ git clone git@github.com:pywbem/pywbem.git
         $ cd pywbem
 
+2. It is recommended that you set up a `virtual Python environment`_.
+   Have the virtual Python environment active for all remaining steps.
+
 3. Install pywbem and its prerequisites for installing and running it
    as described in :ref:`Installation`.
+   This will install Python packages into the active Python environment,
+   and OS-level packages.
 
 4. On Windows, perform the setup steps described in
-   :ref:`Development environment on Windows`.
+   :ref:`Manual setup on Windows`. On Linux and OS-X, the corresponding
+   setup is performed automatically as part of the next step.
 
-5. Install the prerequsites for pywbem development (OS-level and Python):
+5. Install the prerequsites for pywbem development.
+   This will install Python packages into the active Python environment,
+   and OS-level packages:
 
    .. code-block:: bash
 
@@ -63,10 +68,10 @@ OS-X should work as well, but Windows requires a number of manual setup steps.
 .. _virtual Python environment: http://docs.python-guide.org/en/latest/dev/virtualenvs/
 
 
-.. _`Development environment on Windows`:
+.. _`Manual setup on Windows`:
 
-Development environment on Windows
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Manual setup on Windows
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The development environment needs the ``xmllint`` utility and the ``lxml``
 Python package. To get ``xmllint`` and to prepare the environment for
@@ -185,11 +190,14 @@ Perform these steps (in the plain Windows Command Prompt):
       > set LIB=%pkgdir%\%pkg%\lib;%LIB%
       > set PATH=%pkgdir%\%pkg%\bin;%PATH%
 
+Collect all the ``set`` commands shown above in a batch script for use when
+you re-open the command prompt in the future.
+
 
 .. _`Prerequisite operating system packages for development`:
 
 Prerequisite operating system packages for development
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------------
 
 The following table lists the prerequisite operating system packages along with
 their version requirements for development of pywbem, for the supported
@@ -198,6 +206,9 @@ operating systems and Linux distributions.
 The prerequisite operating system packages for installing and running pywbem
 are also needed for development, and can be found in section
 :ref:`Prerequisite operating system packages for install`.
+
+This section is just for information. These packages will be installed as part
+of the steps described in :ref:`Setting up the development environment`.
 
 +--------------------------+--------------------+----------------------+-------+
 | Op.system / Distribution | Package name       | Version requirements | Notes |
