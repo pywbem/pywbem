@@ -736,7 +736,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
 
         try_limit = 5  # Number of tries with authentication challenges.
 
-        for num_tries in range(0, try_limit):
+        for num_tries in range(0, try_limit):  # pylint: disable=unused-variable
 
             client.putrequest(method, target)
 
@@ -753,7 +753,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 standard_headers.append(('Authorization', 'Basic %s' % auth64))
             elif locallogin is not None:
                 standard_headers.append(('PegasusAuthorization',
-                                        'Local "%s"' % locallogin))
+                                         'Local "%s"' % locallogin))
 
             # Note: RFC2616 does not permit the use percent-escaping for
             # the standard header fields. It allows octets (except CTL) for
@@ -840,7 +840,6 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                         platform.system())
                                 local_auth_header = ('Authorization',
                                                      'OWLocal uid="%d"' % uid)
-                                continue
                                 continue  # with next retry
                             else:
                                 try:
