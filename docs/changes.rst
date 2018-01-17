@@ -330,6 +330,10 @@ Bug fixes
 * Docs: Fixed the type `string` for the keys of the `CIMInstance.qualifiers`
   attribute to be `unicode string`.
 
+* Added support for octal, binary and hex numbers when parsing MOF
+  using the MOFCompiler class, in compliance with DSP0004 (Issue #974).
+  Extended the testcases to cover such numbers.
+
 Cleanup
 ^^^^^^^
 
