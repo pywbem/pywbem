@@ -70,7 +70,7 @@ endif
 coverage_html_dir := coverage_html
 
 # Package version (full version, including any pre-release suffixes, e.g. "0.1.0-dev1")
-package_version := $(shell $(PYTHON_CMD) -c "from pbr.version import VersionInfo; vi=VersionInfo('pywbem'); print(vi.version_string_with_vcs())")
+package_version := $(shell $(PYTHON_CMD) -c "from pbr.version import VersionInfo; print(VersionInfo('pywbem').release_string())")
 
 # Python versions
 python_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s.%s.%s'%sys.version_info[0:3])")
