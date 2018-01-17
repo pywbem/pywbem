@@ -4603,8 +4603,7 @@ class CIMProperty(_CIMComparisonMixin):
                 cmpitem(self.is_array, other.is_array) or
                 cmpitem(self.array_size, other.array_size) or
                 cmpitem(self.propagated, other.propagated) or
-                # TODO 01/18 AM Make comparison of class_origin case-insensitive
-                cmpitem(self.class_origin, other.class_origin) or
+                cmpname(self.class_origin, other.class_origin) or
                 cmpdict(self.qualifiers, other.qualifiers))
 
     def __hash__(self):
@@ -4977,8 +4976,7 @@ class CIMMethod(_CIMComparisonMixin):
                 cmpdict(self.qualifiers, other.qualifiers) or
                 cmpdict(self.parameters, other.parameters) or
                 cmpitem(self.return_type, other.return_type) or
-                # TODO 01/18 AM Make comparison of class_origin case-insensitive
-                cmpitem(self.class_origin, other.class_origin) or
+                cmpname(self.class_origin, other.class_origin) or
                 cmpitem(self.propagated, other.propagated))
 
     def __hash__(self):

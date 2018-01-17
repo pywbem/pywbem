@@ -320,6 +320,10 @@ Bug fixes
   form for specifying property values inthe yaml now, because the short
   form does not allow for specifying the embedded_object attribute.
 
+* Fixed the comparison of `CIMProperty` and `CIMMethod` objects to compare
+  their `class_origin` attribute case-insensitively. If set, it contains a CIM
+  class name. Previously, that attribute was compared case-sensitively.
+
 * Docs: Fixed the type `string` for the keys of the `CIMInstance.qualifiers`
   attribute to be `unicode string`.
 
