@@ -43,6 +43,75 @@ CIM object                                  Purpose
 :class:`~pywbem.CIMQualifierDeclaration`    CIM qualifier type/declaration
 ==========================================  ==========================================================================
 
+
+.. _`Putting CIM objects in sets`:
+
+Putting CIM objects in sets
+---------------------------
+
+Using sets for holding the result of :ref:`WBEM operations` is not uncommon,
+because that allows comparison of results without regard to the (undefined)
+order in which the objects are returned.
+
+CIM objects are mutable and :term:`unchanged-hashable`. This requires some
+caution when putting them in sets, or using them in any other way that relies
+on their hash values.
+
+The caution that is needed is that the public attributes, and therefore the
+state of the CIM objects, must not change as long as they are a member of a
+set, or used in any other way that relies on their hash values.
+
+The following example shows what happens if a CIM object is modified while
+being a member of a set:
+
+::
+
+    import pywbem
+
+    s = set()
+
+    # Create CIM object c1 and show its identity and hash value:
+    c1 = pywbem.CIMClass('C')
+    print(id(c1), hash(c1))  # (140362966049680, -7623128493967117119)
+
+    # Add c1 to the set and verify the set content:
+    s.add(c1)
+    print([id(c) for c in s])  # [140362966049680]
+
+    # Modify the c1 object; it now has changed its hash value:
+    c1.superclass = 'B'
+    print(id(c1), hash(c1))  # (140362966049680, 638672161836520435)
+
+    # Create a CIM object c2 with the same attribute values as c1, and show
+    # that they compare equal and that c2 has the same hash value as c1 now has:
+    c2 = pywbem.CIMClass('C', superclass='B')
+    print(c1 == c2)  # True
+    print(id(c2), hash(c2))  # (140362970983696, 638672161836520435)
+
+    # Add c2 to the set and verify the set content:
+    s.add(c2)
+    print([id(c) for c in s])  # [140362966049680, 140362970983696] !!
+
+At the end, the set contains both objects even though they have the same hash
+value. This is not what one would expect from
+:ref:`set types <py:types-set>`.
+
+The reason is that at the time the object c1 was added to the set, it had a
+different hash value, and the set uses the hash value it found at insertion
+time of its member for identifying the object. When the second object is added,
+it finds it has a yet unknown hash value, and adds it.
+
+While the set type in this particular Python implementation was able to still
+look up the first member object even though its hash value has changed
+meanwhile, other collection types or other Python implementations may not be as
+forgiving and may not even be able to look up the object once its hash value
+has changed.
+
+Therefore, always make sure that the public attributes of CIM objects that are
+put into a set remain unchanged while the object is in the set. The same
+applies to any other usage of CIM objects that relies on their hash values.
+
+
 .. _`NocaseDict`:
 
 NocaseDict
@@ -512,10 +581,26 @@ class NocaseDict(object):
         self.__ordering_deprecated()
         return (self < other) or (self == other)
 
+    def __hash__(self):
+        """
+        Hash this NocaseDict object, case-insensitively w.r.t. to its keys.
+
+        Background: In order to compare sets of objects, the objects must be
+        hashable (See https://docs.python.org/2/glossary.html#term-hashable).
+        The condition from that definition that is not satisfied by the
+        default hash function of objects (which is based on id()), is that
+        hashable objects which compare equal must have the same hash value.
+        This method ensures that that condition is satisfied.
+        """
+        fs = frozenset([(key, self._data[key][1]) for key in self._data])
+        return hash(fs)
+
 
 def cmpname(name1, name2):
     """
-    Compare two CIM names, case-insensitively.
+    Compare two CIM names for equality and ordering.
+
+    The comparison is performed case-insensitively.
 
     One or both of the items may be `None`, and `None` is considered the lowest
     possible value.
@@ -542,18 +627,17 @@ def cmpname(name1, name2):
 
 def cmpitem(item1, item2):
     """
-    Compare two items (CIM values, CIM objects, or NocaseDict objects) for
-    unequality.
+    Compare two items (CIM values, CIM objects) for equality (not for
+    ordering).
 
     Note: Support for comparing the order of the items has been removed
     in pywbem v0.9.0.
 
     One or both of the items may be `None`.
 
-    The implementation uses the '==' operator of the item datatypes.
-
-    If value1 == value2, 0 is returned.
-    If value1 != value2, 1 is returned.
+    Returns:
+        0 if the objects are equal.
+        1 if the objects are not equal.
     """
     if item1 is None and item2 is None:
         return 0
@@ -562,6 +646,61 @@ def cmpitem(item1, item2):
     if item1 == item2:
         return 0
     return 1
+
+
+def cmpdict(dict1, dict2):
+    """
+    Compare two NocaseDict objects for equality (not for ordering).
+
+    The comparison is performed case-insensitively w.r.t. to the dictionary
+    keys.
+
+    One or both of the items may be `None`.
+
+    Returns:
+        0 if the objects are equal.
+        1 if the objects are not equal.
+    """
+    if dict1 is None and dict2 is None:
+        return 0
+    if dict1 is None or dict2 is None:
+        return 1
+    # TODO 01/18 AM Could compare hash(dict) for better perf
+    #      That requires more unicode cleanliness (test_clienti.py fails)
+    if dict1 == dict2:
+        return 0
+    return 1
+
+
+def _hash_name(name):
+    """
+    Hash a CIM name, case-insensitively.
+
+    The name may be `None`.
+    """
+    if name is None:
+        return hash(None)
+    return hash(name.lower())
+
+
+def _hash_item(item):
+    """
+    Hash an item (CIM value, CIM object), by delegating to its hash function.
+
+    The item may be `None`.
+    """
+    if isinstance(item, list):
+        item = tuple(item)
+    return hash(item)
+
+
+def _hash_dict(dict_):
+    """
+    Hash a NocaseDict object, by delegating to its hash function.
+
+    The item may be `None`.
+    """
+    return hash(dict_)
 
 
 def _ensure_unicode(obj):
@@ -1284,6 +1423,12 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     A CIM instance path references a CIM instance in a CIM namespace in a WBEM
     server. Namespace and WBEM server may be unspecified.
+
+    Two objects of this class compare equal if their public attributes compare
+    equal. Objects of this class are :term:`unchanged-hashable`, with the hash
+    value being based on its public attributes. Therefore, objects of this
+    class can be used as members in a set (or as dictionary keys) only during
+    periods in which their public attributes remain unchanged.
     """
 
     def __init__(self, classname, keybindings=None, host=None, namespace=None):
@@ -1296,6 +1441,9 @@ class CIMInstanceName(_CIMComparisonMixin):
 
             Must not be `None`.
 
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
+
           keybindings (:class:`py:dict` or `NocaseDict`_):
             Keybindings for the instance path (that is, the key property values
             of the referenced instance).
@@ -1306,7 +1454,12 @@ class CIMInstanceName(_CIMComparisonMixin):
             Each dictionary item specifies one keybinding, with:
 
             * key (:term:`string`):
-              Keybinding name. Lexical case is preserved. Must not be `None`.
+              Keybinding name.
+
+              Must not be `None`.
+
+              The lexical case of the string is preserved. Object comparison
+              and hash value calculation are performed case-insensitively.
 
             * value (:term:`CIM data type` or :term:`number` or :class:`~pywbem.CIMProperty`):
               Keybinding value, as follows:
@@ -1345,12 +1498,18 @@ class CIMInstanceName(_CIMComparisonMixin):
             same-named attribute in the ``CIMInstanceName`` object will also be
             `None`.
 
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
+
           namespace (:term:`string`):
             Name of the CIM namespace containing the referenced instance.
 
             `None` means that the namespace is unspecified, and the
             same-named attribute in the ``CIMInstanceName`` object will also be
             `None`.
+
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
 
         Raises:
 
@@ -1487,11 +1646,16 @@ class CIMInstanceName(_CIMComparisonMixin):
         """
         Comparator function for two :class:`~pywbem.CIMInstanceName` objects.
 
-        The comparison is based on the `host`, `namespace`, `classname`,
-        and `keybindings`, instance attributes, in descending precedence.
+        The comparison is based on their public attributes, in descending
+        precedence:
 
-        The `host` and `namespace` and `classname` attributes are compared
-        case-insensitively.
+        * `host`
+        * `namespace`
+        * `classname`
+        * `keybindings`
+
+        The comparison takes into account any case insensitivities described
+        for these attributes.
 
         Raises `TypeError', if the `other` object is not a
         :class:`~pywbem.CIMInstanceName` object.
@@ -1504,7 +1668,21 @@ class CIMInstanceName(_CIMComparisonMixin):
         return (cmpname(self.host, other.host) or
                 cmpname(self.namespace, other.namespace) or
                 cmpname(self.classname, other.classname) or
-                cmpitem(self.keybindings, other.keybindings))
+                cmpdict(self.keybindings, other.keybindings))
+
+    def __hash__(self):
+        """
+        Return a hash value based on the public attributes of this class, taking
+        into account any case insensitivities described for these attributes.
+        This approach causes this class to be :term:`unchanged-hashable`.
+        """
+        hashes = (
+            _hash_name(self.host),
+            _hash_name(self.namespace),
+            _hash_name(self.classname),
+            _hash_dict(self.keybindings),
+        )
+        return hash(hashes)
 
     def __str__(self):
         """
@@ -2091,6 +2269,12 @@ class CIMInstance(_CIMComparisonMixin):
     """
     A representation of a CIM instance in a CIM namespace in a WBEM server,
     optionally including its instance path.
+
+    Two objects of this class compare equal if their public attributes compare
+    equal. Objects of this class are :term:`unchanged-hashable`, with the hash
+    value being based on its public attributes. Therefore, objects of this
+    class can be used as members in a set (or as dictionary keys) only during
+    periods in which their public attributes remain unchanged.
     """
 
     # pylint: disable=too-many-arguments
@@ -2104,6 +2288,9 @@ class CIMInstance(_CIMComparisonMixin):
 
             Must not be `None`.
 
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
+
           properties (:class:`py:dict` or `NocaseDict`_):
             Properties for the instance.
 
@@ -2113,7 +2300,13 @@ class CIMInstance(_CIMComparisonMixin):
             Each dictionary item specifies one property value, with:
 
             * key (:term:`string`):
-              Property name. Lexical case is preserved. Must not be `None`.
+              Property name.
+
+              Must not be `None`.
+
+              The lexical case of the string is preserved. Object comparison
+              and hash value calculation are performed case-insensitively.
+
             * value (:term:`CIM data type` or :class:`~pywbem.CIMProperty`):
               Property value.
 
@@ -2137,7 +2330,13 @@ class CIMInstance(_CIMComparisonMixin):
             Each dictionary item specifies one qualifier value, with:
 
             * key (:term:`string`):
-              Qualifier name. Lexical case is preserved. Must not be `None`.
+              Qualifier name.
+
+              Must not be `None`.
+
+              The lexical case of the string is preserved. Object comparison
+              and hash value calculation are performed case-insensitively.
+
             * value (:term:`CIM data type` or :class:`~pywbem.CIMQualifier`):
               Qualifier value.
 
@@ -2285,7 +2484,7 @@ class CIMInstance(_CIMComparisonMixin):
 
         Each dictionary item specifies one qualifier value, with:
 
-        * key (:term:`string`): Qualifier name. Its lexical case was
+        * key (:term:`unicode string`): Qualifier name. Its lexical case was
           preserved.
         * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
 
@@ -2376,10 +2575,20 @@ class CIMInstance(_CIMComparisonMixin):
         """
         Comparator function for two :class:`~pywbem.CIMInstance` objects.
 
-        The comparison is based on the `classname`, `path`, `properties`,
-        and `qualifiers` instance attributes, in descending precedence.
+        The comparison is based on some of their public attributes, in
+        descending precedence:
 
-        The `classname` attribute is compared case-insensitively.
+        * `classname`
+        * `path`
+        * `properties`
+        * `qualifiers`
+
+        The comparison takes into account any case insensitivities described
+        for these attributes.
+
+        The following public attributes are not utilized for the comparison:
+
+        * `property_list`
         """
         if self is other:
             return 0
@@ -2388,8 +2597,23 @@ class CIMInstance(_CIMComparisonMixin):
                             type(other))
         return (cmpname(self.classname, other.classname) or
                 cmpitem(self.path, other.path) or
-                cmpitem(self.properties, other.properties) or
-                cmpitem(self.qualifiers, other.qualifiers))
+                cmpdict(self.properties, other.properties) or
+                cmpdict(self.qualifiers, other.qualifiers))
+
+    def __hash__(self):
+        """
+        Return a hash value based on the same public attributes of this class
+        as used for equality comparison, taking into account any case
+        insensitivities described for these attributes.
+        This approach causes this class to be :term:`unchanged-hashable`.
+        """
+        hashes = (
+            _hash_name(self.classname),
+            _hash_item(self.path),
+            _hash_dict(self.properties),
+            _hash_dict(self.qualifiers),
+        )
+        return hash(hashes)
 
     def __str__(self):
         """
@@ -2693,6 +2917,12 @@ class CIMClassName(_CIMComparisonMixin):
 
     A CIM class path references a CIM class in a CIM namespace in a WBEM
     server. Namespace and WBEM server may be unspecified.
+
+    Two objects of this class compare equal if their public attributes compare
+    equal. Objects of this class are :term:`unchanged-hashable`, with the hash
+    value being based on its public attributes. Therefore, objects of this
+    class can be used as members in a set (or as dictionary keys) only during
+    periods in which their public attributes remain unchanged.
     """
 
     def __init__(self, classname, host=None, namespace=None):
@@ -2703,6 +2933,9 @@ class CIMClassName(_CIMComparisonMixin):
             Class name of the referenced class.
 
             Must not be `None`.
+
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
 
           host (:term:`string`):
             Host and optionally port of the WBEM server containing the CIM
@@ -2725,12 +2958,18 @@ class CIMClassName(_CIMComparisonMixin):
             same-named attribute in the ``CIMClassName`` object will also be
             `None`.
 
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
+
           namespace (:term:`string`):
             Name of the CIM namespace containing the referenced class.
 
             `None` means that the namespace is unspecified, and the
             same-named attribute in the ``CIMClassName`` object will also be
             `None`.
+
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
 
         Raises:
           ValueError: classname is `None`.
@@ -2822,11 +3061,15 @@ class CIMClassName(_CIMComparisonMixin):
         """
         Comparator function for two :class:`~pywbem.CIMClassName` objects.
 
-        The comparison is based on the `host`, `namespace`, and `classname`
-        attributes of the :class:`~pywbem.CIMClassName` objects, in descending
-        precedence.
+        The comparison is based on their public attributes, in descending
+        precedence:
 
-        All of them are compared case-insensitively.
+        * `host`
+        * `namespace`
+        * `classname`
+
+        The comparison takes into account any case insensitivities described
+        for these attributes.
         """
         if self is other:
             return 0
@@ -2836,6 +3079,19 @@ class CIMClassName(_CIMComparisonMixin):
         return (cmpname(self.host, other.host) or
                 cmpname(self.namespace, other.namespace) or
                 cmpname(self.classname, other.classname))
+
+    def __hash__(self):
+        """
+        Return a hash value based on the public attributes of this class, taking
+        into account any case insensitivities described for these attributes.
+        This approach causes this class to be :term:`unchanged-hashable`.
+        """
+        hashes = (
+            _hash_name(self.host),
+            _hash_name(self.namespace),
+            _hash_name(self.classname),
+        )
+        return hash(hashes)
 
     def __str__(self):
         """
@@ -3051,6 +3307,12 @@ class CIMClass(_CIMComparisonMixin):
     """
     A representation of a CIM class in a CIM namespace in a WBEM server,
     optionally including its class path.
+
+    Two objects of this class compare equal if their public attributes compare
+    equal. Objects of this class are :term:`unchanged-hashable`, with the hash
+    value being based on its public attributes. Therefore, objects of this
+    class can be used as members in a set (or as dictionary keys) only during
+    periods in which their public attributes remain unchanged.
     """
 
     # pylint: disable=too-many-arguments
@@ -3064,6 +3326,9 @@ class CIMClass(_CIMComparisonMixin):
 
             Must not be `None`.
 
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
+
           properties (:class:`py:dict` or `NocaseDict`_):
             Properties (declarations) for the class.
 
@@ -3073,9 +3338,16 @@ class CIMClass(_CIMComparisonMixin):
             Each dictionary item specifies one property, with:
 
             * key (:term:`string`):
-              Property name. Lexical case is preserved. Must not be `None`.
+              Property name.
+
+              Must not be `None`.
+
+              The lexical case of the string is preserved. Object comparison
+              and hash value calculation are performed case-insensitively.
+
             * value (:class:`~pywbem.CIMProperty`):
               Property declaration.
+
               The `name` attribute of the provided object must be equal (case
               insensitively) to the dictionary key, and the provided object
               will be stored in the ``CIMClass`` object (no copy is made).
@@ -3091,9 +3363,16 @@ class CIMClass(_CIMComparisonMixin):
             Each dictionary item specifies one method (declaration), with:
 
             * key (:term:`string`):
-              Method name. Lexical case is preserved. Must not be `None`.
+              Method name.
+
+              Must not be `None`.
+
+              The lexical case of the string is preserved. Object comparison
+              and hash value calculation are performed case-insensitively.
+
             * value (:class:`~pywbem.CIMMethod`):
               Method declaration.
+
               The `name` attribute of the provided object must be equal (case
               insensitively) to the dictionary key, and the provided object
               will be stored in the ``CIMClass`` object (no copy is made).
@@ -3107,6 +3386,9 @@ class CIMClass(_CIMComparisonMixin):
             same-named attribute in the ``CIMClass`` object will also be
             `None`.
 
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
+
           qualifiers (:class:`py:dict` or `NocaseDict`_):
             Qualifier values for the class.
 
@@ -3116,7 +3398,13 @@ class CIMClass(_CIMComparisonMixin):
             Each dictionary item specifies one qualifier value, with:
 
             * key (:term:`string`):
-              Qualifier name. Lexical case is preserved. Must not be `None`.
+              Qualifier name.
+
+              Must not be `None`.
+
+              The lexical case of the string is preserved. Object comparison
+              and hash value calculation are performed case-insensitively.
+
             * value (:term:`CIM data type` or :class:`~pywbem.CIMQualifier`):
               Qualifier value.
 
@@ -3371,12 +3659,18 @@ class CIMClass(_CIMComparisonMixin):
         """
         Comparator function for two :class:`~pywbem.CIMClass` objects.
 
-        The comparison is based on the `classname`, `superclass`, `qualifiers`,
-        `properties`, `methods` and `path` instance attributes, in descending
-        precedence.
+        The comparison is based on their public attributes, in descending
+        precedence:
 
-        The `classname` and `superclass` attributes are compared
-        case-insensitively.
+        * `classname`
+        * `superclass`
+        * `qualifiers`
+        * `properties`
+        * `methods`
+        * `path`
+
+        The comparison takes into account any case insensitivities described
+        for these attributes.
         """
         if self is other:
             return 0
@@ -3385,10 +3679,26 @@ class CIMClass(_CIMComparisonMixin):
                             type(other))
         return (cmpname(self.classname, other.classname) or
                 cmpname(self.superclass, other.superclass) or
-                cmpitem(self.qualifiers, other.qualifiers) or
-                cmpitem(self.properties, other.properties) or
-                cmpitem(self.methods, other.methods) or
+                cmpdict(self.qualifiers, other.qualifiers) or
+                cmpdict(self.properties, other.properties) or
+                cmpdict(self.methods, other.methods) or
                 cmpitem(self.path, other.path))
+
+    def __hash__(self):
+        """
+        Return a hash value based on the public attributes of this class, taking
+        into account any case insensitivities described for these attributes.
+        This approach causes this class to be :term:`unchanged-hashable`.
+        """
+        hashes = (
+            _hash_name(self.classname),
+            _hash_name(self.superclass),
+            _hash_dict(self.qualifiers),
+            _hash_dict(self.properties),
+            _hash_dict(self.methods),
+            _hash_item(self.path),
+        )
+        return hash(hashes)
 
     def __str__(self):
         """
@@ -3553,6 +3863,12 @@ class CIMProperty(_CIMComparisonMixin):
     primitive CIM data type, and string type with embedded instance or embedded
     object. Reference types are not allowed in property arrays in CIM, as per
     :term:`DSP0004`.
+
+    Two objects of this class compare equal if their public attributes compare
+    equal. Objects of this class are :term:`unchanged-hashable`, with the hash
+    value being based on its public attributes. Therefore, objects of this
+    class can be used as members in a set (or as dictionary keys) only during
+    periods in which their public attributes remain unchanged.
     """
 
     # pylint: disable=too-many-statements
@@ -3575,6 +3891,9 @@ class CIMProperty(_CIMComparisonMixin):
             Name of the property.
 
             Must not be `None`.
+
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
 
           value (:term:`CIM data type` or other suitable types):
             Value of the property (interpreted as actual value when
@@ -3603,6 +3922,9 @@ class CIMProperty(_CIMComparisonMixin):
             `None` means that class origin information is not available, and
             the same-named attribute in the ``CIMProperty`` object will also be
             `None`.
+
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
 
           array_size (:term:`integer`):
             The size of the array property, for fixed-size arrays.
@@ -3641,6 +3963,9 @@ class CIMProperty(_CIMComparisonMixin):
             same-named attribute in the ``CIMProperty`` object will also be
             `None`.
 
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
+
             Note: Prior to pywbem v0.11.0, the corresponding attribute was
             inferred from the creation class name of a referenced instance.
             This was incorrect and has been fixed in v0.11.0.
@@ -3655,7 +3980,13 @@ class CIMProperty(_CIMComparisonMixin):
             Each dictionary item specifies one qualifier value, with:
 
             * key (:term:`string`):
-              Qualifier name. Lexical case is preserved. Must not be `None`.
+              Qualifier name.
+
+              Must not be `None`.
+
+              The lexical case of the string is preserved. Object comparison
+              and hash value calculation are performed case-insensitively.
+
             * value (:class:`~pywbem.CIMQualifier`):
               Qualifier value.
               The `name` attribute of the provided object must be equal (case
@@ -4239,13 +4570,22 @@ class CIMProperty(_CIMComparisonMixin):
         """
         Comparator function for two :class:`~pywbem.CIMProperty` objects.
 
-        The comparison is based on the `name`, `value`, `type`,
-        `reference_class`, `embedded_object`, `is_array`, `array_size`,
-        `propagated`, `class_origin`, and `qualifiers` instance attributes,
-        in descending precedence.
+        The comparison is based on their public attributes, in descending
+        precedence:
 
-        The `name` and `reference_class` attributes are compared
-        case-insensitively.
+        * `name`
+        * `value`
+        * `type`
+        * `reference_class`
+        * `embedded_object`
+        * `is_array`
+        * `array_size`
+        * `propagated`
+        * `class_origin`
+        * `qualifiers`
+
+        The comparison takes into account any case insensitivities described
+        for these attributes.
 
         Raises `TypeError', if the `other` object is not a
         :class:`~pywbem.CIMProperty` object.
@@ -4263,13 +4603,40 @@ class CIMProperty(_CIMComparisonMixin):
                 cmpitem(self.is_array, other.is_array) or
                 cmpitem(self.array_size, other.array_size) or
                 cmpitem(self.propagated, other.propagated) or
+                # TODO 01/18 AM Make comparison of class_origin case-insensitive
                 cmpitem(self.class_origin, other.class_origin) or
-                cmpitem(self.qualifiers, other.qualifiers))
+                cmpdict(self.qualifiers, other.qualifiers))
+
+    def __hash__(self):
+        """
+        Return a hash value based on the public attributes of this class, taking
+        into account any case insensitivities described for these attributes.
+        This approach causes this class to be :term:`unchanged-hashable`.
+        """
+        hashes = (
+            _hash_name(self.name),
+            _hash_item(self.value),
+            _hash_item(self.type),
+            _hash_name(self.reference_class),
+            _hash_item(self.embedded_object),
+            _hash_item(self.is_array),
+            _hash_item(self.array_size),
+            _hash_item(self.propagated),
+            _hash_name(self.class_origin),
+            _hash_dict(self.qualifiers),
+        )
+        return hash(hashes)
 
 
 class CIMMethod(_CIMComparisonMixin):
     """
     A method (declaration) in a CIM class.
+
+    Two objects of this class compare equal if their public attributes compare
+    equal. Objects of this class are :term:`unchanged-hashable`, with the hash
+    value being based on its public attributes. Therefore, objects of this
+    class can be used as members in a set (or as dictionary keys) only during
+    periods in which their public attributes remain unchanged.
     """
 
     # pylint: disable=too-many-arguments
@@ -4288,6 +4655,9 @@ class CIMMethod(_CIMComparisonMixin):
             or parenthesis).
 
             Must not be `None`.
+
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
 
             Deprecated: This argument has been named `methodname` before
             v0.9.0. Using `methodname` as a named argument still works,
@@ -4330,9 +4700,16 @@ class CIMMethod(_CIMComparisonMixin):
             Each dictionary item specifies one parameter declaration, with:
 
             * key (:term:`string`):
-              Parameter name. Lexical case is preserved. Must not be `None`.
+              Parameter name.
+
+              Must not be `None`.
+
+              The lexical case of the string is preserved. Object comparison
+              and hash value calculation are performed case-insensitively.
+
             * value (:class:`~pywbem.CIMParameter`):
               Parameter value.
+
               The `name` attribute of the provided object must be equal (case
               insensitively) to the dictionary key, and the provided object
               will be stored in the ``CIMMethod`` object (no copy is made).
@@ -4347,6 +4724,9 @@ class CIMMethod(_CIMComparisonMixin):
             `None` means that class origin information is not available, and
             the same-named attribute in the ``CIMMethod`` object will also be
             `None`.
+
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
 
           propagated (:class:`py:bool`):
             If not `None`, indicates whether the method has been propagated
@@ -4365,9 +4745,16 @@ class CIMMethod(_CIMComparisonMixin):
             Each dictionary item specifies one qualifier value, with:
 
             * key (:term:`string`):
-              Qualifier name. Lexical case is preserved. Must not be `None`.
+              Qualifier name.
+
+              Must not be `None`.
+
+              The lexical case of the string is preserved. Object comparison
+              and hash value calculation are performed case-insensitively.
+
             * value (:class:`~pywbem.CIMQualifier`):
               Qualifier value.
+
               The `name` attribute of the provided object must be equal (case
               insensitively) to the dictionary key, and the provided object
               will be stored in the ``CIMMethod`` object (no copy is made).
@@ -4568,11 +4955,18 @@ class CIMMethod(_CIMComparisonMixin):
         """
         Comparator function for two :class:`~pywbem.CIMMethod` objects.
 
-        The comparison is based on the `name`, `qualifiers`, `parameters`,
-        `return_type`, `class_origin` and `propagated` instance attributes,
-        in descending precedence.
+        The comparison is based on their public attributes, in descending
+        precedence:
 
-        The `name` attribute is compared case-insensitively.
+        * `name`
+        * `qualifiers`
+        * `parameters`
+        * `return_type`
+        * `class_origin`
+        * `propagated`
+
+        The comparison takes into account any case insensitivities described
+        for these attributes.
         """
         if self is other:
             return 0
@@ -4580,11 +4974,28 @@ class CIMMethod(_CIMComparisonMixin):
             raise TypeError("other must be CIMMethod, but is: %s" %
                             type(other))
         return (cmpname(self.name, other.name) or
-                cmpitem(self.qualifiers, other.qualifiers) or
-                cmpitem(self.parameters, other.parameters) or
+                cmpdict(self.qualifiers, other.qualifiers) or
+                cmpdict(self.parameters, other.parameters) or
                 cmpitem(self.return_type, other.return_type) or
+                # TODO 01/18 AM Make comparison of class_origin case-insensitive
                 cmpitem(self.class_origin, other.class_origin) or
                 cmpitem(self.propagated, other.propagated))
+
+    def __hash__(self):
+        """
+        Return a hash value based on the public attributes of this class, taking
+        into account any case insensitivities described for these attributes.
+        This approach causes this class to be :term:`unchanged-hashable`.
+        """
+        hashes = (
+            _hash_name(self.name),
+            _hash_dict(self.qualifiers),
+            _hash_dict(self.parameters),
+            _hash_item(self.return_type),
+            _hash_name(self.class_origin),
+            _hash_item(self.propagated),
+        )
+        return hash(hashes)
 
     def __str__(self):
         """
@@ -4713,6 +5124,12 @@ class CIMMethod(_CIMComparisonMixin):
 class CIMParameter(_CIMComparisonMixin):
     """
     A CIM parameter in a method (declaration).
+
+    Two objects of this class compare equal if their public attributes compare
+    equal. Objects of this class are :term:`unchanged-hashable`, with the hash
+    value being based on its public attributes. Therefore, objects of this
+    class can be used as members in a set (or as dictionary keys) only during
+    periods in which their public attributes remain unchanged.
     """
 
     # pylint: disable=too-many-arguments
@@ -4731,6 +5148,9 @@ class CIMParameter(_CIMComparisonMixin):
 
             Must not be `None`.
 
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
+
           type (:term:`string`):
             Name of the CIM data type of the parameter (e.g. ``"uint8"``).
 
@@ -4743,6 +5163,9 @@ class CIMParameter(_CIMComparisonMixin):
             `None` means that the referenced class is unspecified, and the
             same-named attribute in the ``CIMParameter`` object will also be
             `None`.
+
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
 
           is_array (:class:`py:bool`):
             A boolean indicating whether the parameter is an array (`True`) or a
@@ -4770,9 +5193,16 @@ class CIMParameter(_CIMComparisonMixin):
             Each dictionary item specifies one qualifier value, with:
 
             * key (:term:`string`):
-              Qualifier name. Lexical case is preserved. Must not be `None`.
+              Qualifier name.
+
+              Must not be `None`.
+
+              The lexical case of the string is preserved. Object comparison
+              and hash value calculation are performed case-insensitively.
+
             * value (:class:`~pywbem.CIMQualifier`):
               Qualifier value.
+
               The `name` attribute of the provided object must be equal (case
               insensitively) to the dictionary key, and the provided object
               will be stored in the ``CIMParameter`` object (no copy is made).
@@ -4985,11 +5415,19 @@ class CIMParameter(_CIMComparisonMixin):
         """
         Comparator function for two :class:`~pywbem.CIMParameter` objects.
 
-        The comparison is based on the `name`, `type`, `reference_class`,
-        `is_array`, `array_size`, `qualifiers` and `value` instance attributes,
-        in descending precedence.
+        The comparison is based on their public attributes, in descending
+        precedence:
 
-        The `name` attribute is compared case-insensitively.
+        * `name`
+        * `type`
+        * `reference_class`
+        * `is_array`
+        * `array_size`
+        * `qualifiers`
+        * `value`
+
+        The comparison takes into account any case insensitivities described
+        for these attributes.
 
         Raises `TypeError', if the `other` object is not a
         :class:`~pywbem.CIMParameter` object.
@@ -5005,8 +5443,25 @@ class CIMParameter(_CIMComparisonMixin):
                 cmpname(self.reference_class, other.reference_class) or
                 cmpitem(self.is_array, other.is_array) or
                 cmpitem(self.array_size, other.array_size) or
-                cmpitem(self.qualifiers, other.qualifiers) or
+                cmpdict(self.qualifiers, other.qualifiers) or
                 cmpitem(self.value, other.value))
+
+    def __hash__(self):
+        """
+        Return a hash value based on the public attributes of this class, taking
+        into account any case insensitivities described for these attributes.
+        This approach causes this class to be :term:`unchanged-hashable`.
+        """
+        hashes = (
+            _hash_name(self.name),
+            _hash_item(self.type),
+            _hash_name(self.reference_class),
+            _hash_item(self.is_array),
+            _hash_item(self.array_size),
+            _hash_dict(self.qualifiers),
+            _hash_item(self.value),
+        )
+        return hash(hashes)
 
     def __str__(self):
         """
@@ -5207,6 +5662,12 @@ class CIMQualifier(_CIMComparisonMixin):
     been deprecated in :term:`DSP0004`. The implicitly defined qualifier type is
     conceptual and is not materialized as a
     :class:`~pywbem.CIMQualifierDeclaration` object.
+
+    Two objects of this class compare equal if their public attributes compare
+    equal. Objects of this class are :term:`unchanged-hashable`, with the hash
+    value being based on its public attributes. Therefore, objects of this
+    class can be used as members in a set (or as dictionary keys) only during
+    periods in which their public attributes remain unchanged.
     """
 
     # pylint: disable=too-many-arguments
@@ -5227,6 +5688,9 @@ class CIMQualifier(_CIMComparisonMixin):
             Name of the qualifier.
 
             Must not be `None`.
+
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
 
           value (:term:`CIM data type` or other suitable types):
             Value of the qualifier.
@@ -5513,11 +5977,20 @@ class CIMQualifier(_CIMComparisonMixin):
         """
         Comparator function for two :class:`~pywbem.CIMQualifier` objects.
 
-        The comparison is based on the `name`, `type`, `value`, `propagated`,
-        `overridable`, `tosubclass`, `toinstance`, `translatable` instance
-        attributes, in descending precedence.
+        The comparison is based on their public attributes, in descending
+        precedence:
 
-        The `name` attribute is compared case-insensitively.
+        * `name`
+        * `type`
+        * `value`
+        * `propagated`
+        * `overridable`
+        * `tosubclass`
+        * `toinstance`
+        * `translatable`
+
+        The comparison takes into account any case insensitivities described
+        for these attributes.
         """
         if self is other:
             return 0
@@ -5532,6 +6005,24 @@ class CIMQualifier(_CIMComparisonMixin):
                 cmpitem(self.tosubclass, other.tosubclass) or
                 cmpitem(self.toinstance, other.toinstance) or
                 cmpitem(self.translatable, other.translatable))
+
+    def __hash__(self):
+        """
+        Return a hash value based on the public attributes of this class, taking
+        into account any case insensitivities described for these attributes.
+        This approach causes this class to be :term:`unchanged-hashable`.
+        """
+        hashes = (
+            _hash_name(self.name),
+            _hash_item(self.type),
+            _hash_item(self.value),
+            _hash_item(self.propagated),
+            _hash_item(self.overridable),
+            _hash_item(self.tosubclass),
+            _hash_item(self.toinstance),
+            _hash_item(self.translatable),
+        )
+        return hash(hashes)
 
     def __str__(self):
         """
@@ -5715,6 +6206,12 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     The pywbem MOF compiler supplies all of the flavor values so that
     those which were not specified in the MOF are set to the DMTF defined
     default values.
+
+    Two objects of this class compare equal if their public attributes compare
+    equal. Objects of this class are :term:`unchanged-hashable`, with the hash
+    value being based on its public attributes. Therefore, objects of this
+    class can be used as members in a set (or as dictionary keys) only during
+    periods in which their public attributes remain unchanged.
     """
 
     # Order of scopes when externalizing the qualifier declaration
@@ -5735,6 +6232,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             Name of the qualifier.
 
             Must not be `None`.
+
+            The lexical case of the string is preserved. Object comparison and
+            hash value calculation are performed case-insensitively.
 
           type (:term:`string`):
             Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
@@ -5776,8 +6276,10 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
             Each dictionary item specifies one scope value, with:
 
-            * key (:term:`string`): Scope name, in upper case. Must not be
-              `None`.
+            * key (:term:`string`): Scope name, in upper case.
+
+              Must not be `None`.
+
             * value (:class:`py:bool`): Scope value, specifying whether the
               qualifier has that scope (i.e. can be applied to a CIM element of
               that kind).
@@ -5969,6 +6471,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         Each dictionary item specifies one scope value, with:
 
         * key (:term:`string`): Scope name, in upper case.
+
         * value (:class:`py:bool`): Scope value, specifying whether the
           qualifier has that scope (i.e. can be applied to a CIM element of
           that kind).
@@ -6081,11 +6584,22 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         Comparator function for two :class:`~pywbem.CIMQualifierDeclaration`
         objects.
 
-        The comparison is based on the `name`, `type`, `value`, `is_array`,
-        `array_size`, `scopes`, `overridable`, `tosubclass`, `toinstance`,
-        `translatable` instance attributes, in descending precedence.
+        The comparison is based on their public attributes, in descending
+        precedence:
 
-        The `name` attribute is compared case-insensitively.
+        * `name`
+        * `type`
+        * `value`
+        * `is_array`
+        * `array_size`
+        * `scopes`
+        * `overridable`
+        * `tosubclass`
+        * `toinstance`
+        * `translatable`
+
+        The comparison takes into account any case insensitivities described
+        for these attributes.
         """
         if self is other:
             return 0
@@ -6097,11 +6611,31 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
                 cmpitem(self.value, other.value) or
                 cmpitem(self.is_array, other.is_array) or
                 cmpitem(self.array_size, other.array_size) or
-                cmpitem(self.scopes, other.scopes) or
+                cmpdict(self.scopes, other.scopes) or
                 cmpitem(self.overridable, other.overridable) or
                 cmpitem(self.tosubclass, other.tosubclass) or
                 cmpitem(self.toinstance, other.toinstance) or
                 cmpitem(self.translatable, other.translatable))
+
+    def __hash__(self):
+        """
+        Return a hash value based on the public attributes of this class, taking
+        into account any case insensitivities described for these attributes.
+        This approach causes this class to be :term:`unchanged-hashable`.
+        """
+        hashes = (
+            _hash_name(self.name),
+            _hash_item(self.type),
+            _hash_item(self.value),
+            _hash_item(self.is_array),
+            _hash_item(self.array_size),
+            _hash_dict(self.scopes),
+            _hash_item(self.overridable),
+            _hash_item(self.tosubclass),
+            _hash_item(self.toinstance),
+            _hash_item(self.translatable),
+        )
+        return hash(hashes)
 
     def __str__(self):
         """

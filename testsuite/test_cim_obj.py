@@ -41,6 +41,8 @@ except ImportError:
 
 from validate import validate_xml
 from unittest_extensions import CIMObjectMixin
+import pytest_extensions
+
 
 # A note on using pytest.warns:
 #
@@ -952,6 +954,7 @@ class CIMInstanceNameEquality(unittest.TestCase):
     Test the equality comparison of `CIMInstanceName` objects.
     """
 
+    # TODO 01/18 AM Remove test_all() once PR #955 is merged (is in test hash)
     def test_all(self):
 
         # Basic equality tests
@@ -1046,6 +1049,7 @@ class CIMInstanceNameEquality(unittest.TestCase):
             # pylint: disable=expression-not-assigned
             CIMInstanceName('CIM_Foo') == CIMInstance('CIM_Foo')
 
+    # TODO 01/18 AM Reformulate these tests in test hash once PR #955 is merged
     def test_keybindings_order(self):
         """
         Test that two CIMInstanceName objects compare equal if their key
@@ -1132,6 +1136,288 @@ class CIMInstanceNameSort(unittest.TestCase):
     def test_all(self):
         # TODO Implement sorting test for CIMInstanceName
         raise AssertionError("test not implemented")
+
+
+testcases_CIMInstanceName_hash = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj1: CIMInstanceName object #1 to be tested.
+    #   * obj2: CIMInstanceName object #2 to be tested.
+    #   * exp_hash_equal: Expected equality of the object hash values.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Classname tests
+    (
+        "Classname, equal with same lexical case",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo'),
+            obj2=CIMInstanceName('CIM_Foo'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Classname, equal with different lexical case",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo'),
+            obj2=CIMInstanceName('ciM_foO'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Classname, different",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo'),
+            obj2=CIMInstanceName('CIM_Foo_x'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Host tests
+    (
+        "Host name, equal with same lexical case",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', host='woot.com'),
+            obj2=CIMInstanceName('CIM_Foo', host='woot.Com'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Host name, equal with different lexical case",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', host='woot.com'),
+            obj2=CIMInstanceName('CIM_Foo', host='Woot.Com'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Host name, different with None / string",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', host=None),
+            obj2=CIMInstanceName('CIM_Foo', host='woot.com'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Host name, different with string / None",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', host='woot.com'),
+            obj2=CIMInstanceName('CIM_Foo', host=None),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Host name, equal with None / None",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', host=None),
+            obj2=CIMInstanceName('CIM_Foo', host=None),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+
+    # Namespace tests
+    (
+        "Namespace, equal with same lexical case",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', namespace='root/cimv2'),
+            obj2=CIMInstanceName('CIM_Foo', namespace='root/cimv2'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Namespace, equal with different lexical case",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', namespace='root/cimv2'),
+            obj2=CIMInstanceName('CIM_Foo', namespace='Root/CIMv2'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Namespace, different",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', namespace='root/cimv2'),
+            obj2=CIMInstanceName('CIM_Foo', namespace='abc'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Namespace, different with None / string",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', namespace=None),
+            obj2=CIMInstanceName('CIM_Foo', namespace='root/cimv2'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Namespace, different with string / None",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', namespace='root/cimv2'),
+            obj2=CIMInstanceName('CIM_Foo', namespace=None),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Namespace, equal with None / None",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', namespace=None),
+            obj2=CIMInstanceName('CIM_Foo', namespace=None),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+
+    # Keybindings tests
+    (
+        "Matching keybindings, key names with same lexical case",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': 'Birds'}),
+            obj2=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching keybindings, key names with different lexical case",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': 'Birds'}),
+            obj2=CIMInstanceName('CIM_Foo', keybindings={'cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching keybindings, one keybinding more",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo'),
+            obj2=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': 'Birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching keybindings, one keybinding less",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': 'Birds'}),
+            obj2=CIMInstanceName('CIM_Foo'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching keybindings, different keybindings",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': 'Birds'}),
+            obj2=CIMInstanceName('CIM_Foo', keybindings={'Creepy': 'Ants'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching keybindings, with values that differ in lexical case",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': 'Birds'}),
+            obj2=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': 'birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching keybindings, with values that is unicode / string",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': 'Birds'}),
+            obj2=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': u'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Equal keybindings with a number of types",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings={
+                'Name': 'Foo',
+                'Boolean': False,
+                'Number': Uint8(42),
+                'Ref': CIMInstanceName('CIM_Bar'),
+            }),
+            obj2=CIMInstanceName('CIM_Foo', keybindings={
+                'Name': 'Foo',
+                'Boolean': False,
+                'Number': Uint8(42),
+                'Ref': CIMInstanceName('CIM_Bar'),
+            }),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Keybinding with different types (on input!): int / Uint8",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings={'Foo': 42}),
+            obj2=CIMInstanceName('CIM_Foo', keybindings={'Foo': Uint8(42)}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Keybinding with different types: bool True / string 'TRUE'",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings={'Foo': True}),
+            obj2=CIMInstanceName('CIM_Foo', keybindings={'Foo': 'TRUE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Keybinding with different types: bool False / string 'FALSE'",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings={'Foo': False}),
+            obj2=CIMInstanceName('CIM_Foo', keybindings={'Foo': 'FALSE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    testcases_CIMInstanceName_hash)
+@pytest_extensions.test_function
+def test_CIMInstanceName_hash(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMInstanceName.__hash__().
+    """
+
+    obj1 = kwargs['obj1']
+    obj2 = kwargs['obj2']
+
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
+    # The code to be tested
+    hash1 = hash(obj1)
+    hash2 = hash(obj2)
+
+    exp_hash_equal = kwargs['exp_hash_equal']
+
+    assert (hash1 == hash2) == exp_hash_equal
 
 
 class Test_CIMInstanceName_repr(object):
@@ -3201,6 +3487,367 @@ class CIMInstanceSort(unittest.TestCase):
     def test_all(self):
         # TODO Implement sorting test for CIMInstance
         raise AssertionError("test not implemented")
+
+
+testcases_CIMInstance_hash = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj1: CIMInstance object #1 to be tested.
+    #   * obj2: CIMInstance object #2 to be tested.
+    #   * exp_hash_equal: Expected equality of the object hash values.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Classname tests
+    (
+        "Classname, equal with same lexical case",
+        dict(
+            obj1=CIMInstance('CIM_Foo'),
+            obj2=CIMInstance('CIM_Foo'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Classname, equal with different lexical case",
+        dict(
+            obj1=CIMInstance('CIM_Foo'),
+            obj2=CIMInstance('ciM_foO'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Classname, different",
+        dict(
+            obj1=CIMInstance('CIM_Foo'),
+            obj2=CIMInstance('CIM_Foo_x'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Path tests
+    (
+        "Instance paths, equal with same lexical case",
+        dict(
+            obj1=CIMInstance(
+                'CIM_Foo',
+                path=CIMInstanceName('CIM_Foo', {'k1': 'v1'}),
+            ),
+            obj2=CIMInstance(
+                'CIM_Foo',
+                path=CIMInstanceName('CIM_Foo', {'k1': 'v1'}),
+            ),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Instance paths, equal with different lexical case in classname",
+        dict(
+            obj1=CIMInstance(
+                'CIM_Foo',
+                path=CIMInstanceName('CIM_Foo', {'k1': 'v1'}),
+            ),
+            obj2=CIMInstance(
+                'CIM_Foo',
+                path=CIMInstanceName('CIM_foo', {'k1': 'v1'}),
+            ),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Instance paths, different",
+        dict(
+            obj1=CIMInstance(
+                'CIM_Foo',
+                path=CIMInstanceName('CIM_Foo', {'k1': 'v1'}),
+            ),
+            obj2=CIMInstance(
+                'CIM_Foo',
+                path=CIMInstanceName('CIM_Foo', {'k1': 'v1_x'}),
+            ),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Properties tests
+    (
+        "Matching properties, names with same lexical case",
+        dict(
+            obj1=CIMInstance('CIM_Foo', properties={'Cheepy': 'Birds'}),
+            obj2=CIMInstance('CIM_Foo', properties={'Cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching properties, names with different lexical case",
+        dict(
+            obj1=CIMInstance('CIM_Foo', properties={'Cheepy': 'Birds'}),
+            obj2=CIMInstance('CIM_Foo', properties={'cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+
+    (
+        "Non-matching properties, one property more",
+        dict(
+            obj1=CIMInstance('CIM_Foo'),
+            obj2=CIMInstance('CIM_Foo', properties={'Cheepy': 'Birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching properties, one property less",
+        dict(
+            obj1=CIMInstance('CIM_Foo', properties={'Cheepy': 'Birds'}),
+            obj2=CIMInstance('CIM_Foo'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching properties, different properties",
+        dict(
+            obj1=CIMInstance('CIM_Foo', properties={'Cheepy': 'Birds'}),
+            obj2=CIMInstance('CIM_Foo', properties={'Creepy': 'Ants'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching properties, with values that differ in lexical case",
+        dict(
+            obj1=CIMInstance('CIM_Foo', properties={'Cheepy': 'Birds'}),
+            obj2=CIMInstance('CIM_Foo', properties={'Cheepy': 'birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching properties, with values that is unicode / string",
+        dict(
+            obj1=CIMInstance('CIM_Foo', properties={'Cheepy': 'Birds'}),
+            obj2=CIMInstance('CIM_Foo', properties={'Cheepy': u'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Equal properties with a number of types",
+        dict(
+            obj1=CIMInstance('CIM_Foo', properties={
+                'Name': 'Foo',
+                'Boolean': False,
+                'Number': Uint8(42),
+                'Ref': CIMInstanceName('CIM_Bar'),
+            }),
+            obj2=CIMInstance('CIM_Foo', properties={
+                'Name': 'Foo',
+                'Boolean': False,
+                'Number': Uint8(42),
+                'Ref': CIMInstanceName('CIM_Bar'),
+            }),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Property with different types: bool True / string 'TRUE'",
+        dict(
+            obj1=CIMInstance('CIM_Foo', properties={'Foo': True}),
+            obj2=CIMInstance('CIM_Foo', properties={'Foo': 'TRUE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Property with different types: bool False / string 'FALSE'",
+        dict(
+            obj1=CIMInstance('CIM_Foo', properties={'Foo': False}),
+            obj2=CIMInstance('CIM_Foo', properties={'Foo': 'FALSE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Qualifiers tests
+    (
+        "Matching qualifiers, qualifier names with same lexical case",
+        dict(
+            obj1=CIMInstance('CIM_Foo',
+                             qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMInstance('CIM_Foo',
+                             qualifiers={'Cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, qualifier names with different lexical case",
+        dict(
+            obj1=CIMInstance('CIM_Foo',
+                             qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMInstance('CIM_Foo',
+                             qualifiers={'cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, one qualifier more",
+        dict(
+            obj1=CIMInstance('CIM_Foo'),
+            obj2=CIMInstance('CIM_Foo',
+                             qualifiers={'Cheepy': 'Birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, one qualifier less",
+        dict(
+            obj1=CIMInstance('CIM_Foo'),
+            obj2=CIMInstance('CIM_Foo',
+                             qualifiers={'Cheepy': 'Birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, different qualifiers",
+        dict(
+            obj1=CIMInstance('CIM_Foo',
+                             qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMInstance('CIM_Foo',
+                             qualifiers={'Creepy': 'Ants'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, with values that differ in lexical case",
+        dict(
+            obj1=CIMInstance('CIM_Foo',
+                             qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMInstance('CIM_Foo',
+                             qualifiers={'Cheepy': 'birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, with values that is unicode / string",
+        dict(
+            obj1=CIMInstance('CIM_Foo',
+                             qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMInstance('CIM_Foo',
+                             qualifiers={'Cheepy': u'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Equal qualifiers with a number of types",
+        dict(
+            obj1=CIMInstance(
+                'CIM_Foo',
+                qualifiers={
+                    'Name': 'Foo',
+                    'Boolean': False,
+                    'Number': Uint8(42),
+                    'Ref': CIMInstanceName('CIM_Bar'),
+                }
+            ),
+            obj2=CIMInstance(
+                'CIM_Foo',
+                qualifiers={
+                    'Name': 'Foo',
+                    'Boolean': False,
+                    'Number': Uint8(42),
+                    'Ref': CIMInstanceName('CIM_Bar'),
+                }
+            ),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with different types: bool True / string 'TRUE'",
+        dict(
+            obj1=CIMInstance('CIM_Foo',
+                             qualifiers={'Foo': True}),
+            obj2=CIMInstance('CIM_Foo',
+                             qualifiers={'Foo': 'TRUE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with different types: bool False / string 'FALSE'",
+        dict(
+            obj1=CIMInstance('CIM_Foo',
+                             qualifiers={'Foo': False}),
+            obj2=CIMInstance('CIM_Foo',
+                             qualifiers={'Foo': 'FALSE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Property_list tests
+    (
+        "Different property lists (does not matter for hash and equality)",
+        dict(
+            obj1=CIMInstance(
+                'CIM_Foo',
+                properties={'Cheepy': 'Birds'},
+                property_list=['Cheepy'],
+            ),
+            obj2=CIMInstance(
+                'CIM_Foo',
+                properties={'Cheepy': 'Birds'},
+                property_list=[],
+            ),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    testcases_CIMInstance_hash)
+@pytest_extensions.test_function
+def test_CIMInstance_hash(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMInstance.__hash__().
+    """
+
+    obj1 = kwargs['obj1']
+    obj2 = kwargs['obj2']
+
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
+    # The code to be tested
+    hash1 = hash(obj1)
+    hash2 = hash(obj2)
+
+    exp_hash_equal = kwargs['exp_hash_equal']
+
+    assert (hash1 == hash2) == exp_hash_equal
 
 
 class Test_CIMInstance_str(object):
@@ -5400,6 +6047,413 @@ class CIMPropertySort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
+testcases_CIMProperty_hash = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj1: CIMProperty object #1 to be tested.
+    #   * obj2: CIMProperty object #2 to be tested.
+    #   * exp_hash_equal: Expected equality of the object hash values.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Name tests
+    (
+        "Name, equal with same lexical case",
+        dict(
+            obj1=CIMProperty('Prop1', value=''),
+            obj2=CIMProperty('Prop1', value=''),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Name, equal with different lexical case",
+        dict(
+            obj1=CIMProperty('Prop1', value=''),
+            obj2=CIMProperty('prOP1', value=''),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Name, different",
+        dict(
+            obj1=CIMProperty('Prop1', value=''),
+            obj2=CIMProperty('Prop1_x', value=''),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Value tests
+    (
+        "Value, strings with different lexical case",
+        dict(
+            obj1=CIMProperty('Prop1', value='abc'),
+            obj2=CIMProperty('Prop1', value='Abc'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Value, strings with None / string",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='string'),
+            obj2=CIMProperty('Prop1', value='abc', type='string'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Value, strings with string / None",
+        dict(
+            obj1=CIMProperty('Prop1', value='abc', type='string'),
+            obj2=CIMProperty('Prop1', value=None, type='string'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Value, strings with None / None",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='string'),
+            obj2=CIMProperty('Prop1', value=None, type='string'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+
+    # Type tests
+    (
+        "Type, different",
+        dict(
+            obj1=CIMProperty('Prop1', value=7, type='uint8'),
+            obj2=CIMProperty('Prop1', value=7, type='sint8'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Reference_class tests
+    (
+        "Reference class, equal with same lexical case",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='ref',
+                             reference_class='CIM_Ref'),
+            obj2=CIMProperty('Prop1', value=None, type='ref',
+                             reference_class='CIM_Ref'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Reference class, equal with different lexical case",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='ref',
+                             reference_class='CIM_Ref'),
+            obj2=CIMProperty('Prop1', value=None, type='ref',
+                             reference_class='Cim_ref'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Reference class, different",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='ref',
+                             reference_class='CIM_Ref'),
+            obj2=CIMProperty('Prop1', value=None, type='ref',
+                             reference_class='CIM_Ref_x'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Embedded_object tests
+    (
+        "Embedded object, equal",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='string',
+                             embedded_object='instance'),
+            obj2=CIMProperty('Prop1', value=None, type='string',
+                             embedded_object='instance'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Embedded object, different",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='string',
+                             embedded_object='instance'),
+            obj2=CIMProperty('Prop1', value=None, type='string',
+                             embedded_object='object'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Is_array tests
+    (
+        "Is_array, equal",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='string',
+                             is_array=True),
+            obj2=CIMProperty('Prop1', value=None, type='string',
+                             is_array=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Is_array, different",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='string',
+                             is_array=True),
+            obj2=CIMProperty('Prop1', value=None, type='string',
+                             is_array=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Array_size tests
+    (
+        "Array_size, equal",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='string', is_array=True,
+                             array_size=2),
+            obj2=CIMProperty('Prop1', value=None, type='string', is_array=True,
+                             array_size=2),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Array_size, different",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='string', is_array=True,
+                             array_size=2),
+            obj2=CIMProperty('Prop1', value=None, type='string', is_array=True,
+                             array_size=3),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Propagated tests
+    (
+        "Propagated, equal",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='string',
+                             propagated=True),
+            obj2=CIMProperty('Prop1', value=None, type='string',
+                             propagated=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Propagated, different",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='string',
+                             propagated=True),
+            obj2=CIMProperty('Prop1', value=None, type='string',
+                             propagated=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Class_origin tests
+    (
+        "Class_origin, equal with same lexical case",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='string',
+                             propagated=True, class_origin='CIM_Org'),
+            obj2=CIMProperty('Prop1', value=None, type='string',
+                             propagated=True, class_origin='CIM_Org'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Class_origin, equal with different lexical case",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='string',
+                             propagated=True, class_origin='CIM_Org'),
+            obj2=CIMProperty('Prop1', value=None, type='string',
+                             propagated=True, class_origin='Cim_org'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Class_origin, different",
+        dict(
+            obj1=CIMProperty('Prop1', value=None, type='string',
+                             propagated=True, class_origin='CIM_Org'),
+            obj2=CIMProperty('Prop1', value=None, type='string',
+                             propagated=True, class_origin='CIM_Org_x'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Qualifiers tests
+    (
+        "Matching qualifiers, qualifier names with same lexical case",
+        dict(
+            obj1=CIMProperty('Prop1', value='',
+                             qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMProperty('Prop1', value='',
+                             qualifiers={'Cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, qualifier names with different lexical case",
+        dict(
+            obj1=CIMProperty('Prop1', value='',
+                             qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMProperty('Prop1', value='',
+                             qualifiers={'cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, one qualifier more",
+        dict(
+            obj1=CIMProperty('Prop1', value=''),
+            obj2=CIMProperty('Prop1', value='',
+                             qualifiers={'Cheepy': 'Birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, one qualifier less",
+        dict(
+            obj1=CIMProperty('Prop1', value='',
+                             qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMProperty('Prop1', value=''),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, different qualifiers",
+        dict(
+            obj1=CIMProperty('Prop1', value='',
+                             qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMProperty('Prop1', value='',
+                             qualifiers={'Creepy': 'Ants'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, with values that differ in lexical case",
+        dict(
+            obj1=CIMProperty('Prop1', value='',
+                             qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMProperty('Prop1', value='',
+                             qualifiers={'Cheepy': 'birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, with values that are unicode / string",
+        dict(
+            obj1=CIMProperty('Prop1', value='',
+                             qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMProperty('Prop1', value='',
+                             qualifiers={'Cheepy': u'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Equal qualifiers with a number of types",
+        dict(
+            obj1=CIMProperty(
+                'Prop1', value='',
+                qualifiers={
+                    'Name': 'Foo',
+                    'Boolean': False,
+                    'Number': Uint8(42),
+                    'Ref': CIMInstanceName('CIM_Bar'),
+                }
+            ),
+            obj2=CIMProperty(
+                'Prop1', value='',
+                qualifiers={
+                    'Name': 'Foo',
+                    'Boolean': False,
+                    'Number': Uint8(42),
+                    'Ref': CIMInstanceName('CIM_Bar'),
+                }
+            ),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with different types: bool True / string 'TRUE'",
+        dict(
+            obj1=CIMProperty('Prop1', value='',
+                             qualifiers={'Foo': True}),
+            obj2=CIMProperty('Prop1', value='',
+                             qualifiers={'Foo': 'TRUE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with different types: bool False / string 'FALSE'",
+        dict(
+            obj1=CIMProperty('Prop1', value='',
+                             qualifiers={'Foo': False}),
+            obj2=CIMProperty('Prop1', value='',
+                             qualifiers={'Foo': 'FALSE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    testcases_CIMProperty_hash)
+@pytest_extensions.test_function
+def test_CIMProperty_hash(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMProperty.__hash__().
+    """
+
+    obj1 = kwargs['obj1']
+    obj2 = kwargs['obj2']
+
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
+    # The code to be tested
+    hash1 = hash(obj1)
+    hash2 = hash(obj2)
+
+    exp_hash_equal = kwargs['exp_hash_equal']
+
+    assert (hash1 == hash2) == exp_hash_equal
+
+
 class Test_CIMProperty_str(object):
     """
     Test CIMProperty.__str__().
@@ -6721,6 +7775,243 @@ class CIMQualifierSort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
+testcases_CIMQualifier_hash = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj1: CIMQualifier object #1 to be tested.
+    #   * obj2: CIMQualifier object #2 to be tested.
+    #   * exp_hash_equal: Expected equality of the object hash values.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Name tests
+    (
+        "Name, equal with same lexical case",
+        dict(
+            obj1=CIMQualifier('Qual1', value=''),
+            obj2=CIMQualifier('Qual1', value=''),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Name, equal with different lexical case",
+        dict(
+            obj1=CIMQualifier('Qual1', value=''),
+            obj2=CIMQualifier('quAL1', value=''),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Name, different",
+        dict(
+            obj1=CIMQualifier('Qual1', value=''),
+            obj2=CIMQualifier('Qual1_x', value=''),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Value tests
+    (
+        "Value, strings with different lexical case",
+        dict(
+            obj1=CIMQualifier('Qual1', value='abc'),
+            obj2=CIMQualifier('Qual1', value='Abc'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Value, strings with None / string",
+        dict(
+            obj1=CIMQualifier('Qual1', value=None, type='string'),
+            obj2=CIMQualifier('Qual1', value='abc', type='string'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Value, strings with string / None",
+        dict(
+            obj1=CIMQualifier('Qual1', value='abc', type='string'),
+            obj2=CIMQualifier('Qual1', value=None, type='string'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Value, strings with None / None",
+        dict(
+            obj1=CIMQualifier('Qual1', value=None, type='string'),
+            obj2=CIMQualifier('Qual1', value=None, type='string'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+
+    # Type tests
+    (
+        "Type, different",
+        dict(
+            obj1=CIMQualifier('Qual1', value=7, type='uint8'),
+            obj2=CIMQualifier('Qual1', value=7, type='sint8'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Propagated tests
+    (
+        "Propagated, equal",
+        dict(
+            obj1=CIMQualifier('Qual1', value=None, type='string',
+                              propagated=True),
+            obj2=CIMQualifier('Qual1', value=None, type='string',
+                              propagated=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Propagated, different",
+        dict(
+            obj1=CIMQualifier('Qual1', value=None, type='string',
+                              propagated=True),
+            obj2=CIMQualifier('Qual1', value=None, type='string',
+                              propagated=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Overridable tests
+    (
+        "Overridable, equal",
+        dict(
+            obj1=CIMQualifier('Qual1', value=None, type='string',
+                              overridable=True),
+            obj2=CIMQualifier('Qual1', value=None, type='string',
+                              overridable=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Overridable, different",
+        dict(
+            obj1=CIMQualifier('Qual1', value=None, type='string',
+                              overridable=True),
+            obj2=CIMQualifier('Qual1', value=None, type='string',
+                              overridable=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Tosubclass tests
+    (
+        "Tosubclass, equal",
+        dict(
+            obj1=CIMQualifier('Qual1', value=None, type='string',
+                              tosubclass=True),
+            obj2=CIMQualifier('Qual1', value=None, type='string',
+                              tosubclass=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Tosubclass, different",
+        dict(
+            obj1=CIMQualifier('Qual1', value=None, type='string',
+                              tosubclass=True),
+            obj2=CIMQualifier('Qual1', value=None, type='string',
+                              tosubclass=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Toinstance tests
+    (
+        "Toinstance, equal",
+        dict(
+            obj1=CIMQualifier('Qual1', value=None, type='string',
+                              toinstance=True),
+            obj2=CIMQualifier('Qual1', value=None, type='string',
+                              toinstance=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Toinstance, different",
+        dict(
+            obj1=CIMQualifier('Qual1', value=None, type='string',
+                              toinstance=True),
+            obj2=CIMQualifier('Qual1', value=None, type='string',
+                              toinstance=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Translatable tests
+    (
+        "Translatable, equal",
+        dict(
+            obj1=CIMQualifier('Qual1', value=None, type='string',
+                              translatable=True),
+            obj2=CIMQualifier('Qual1', value=None, type='string',
+                              translatable=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Translatable, different",
+        dict(
+            obj1=CIMQualifier('Qual1', value=None, type='string',
+                              translatable=True),
+            obj2=CIMQualifier('Qual1', value=None, type='string',
+                              translatable=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    testcases_CIMQualifier_hash)
+@pytest_extensions.test_function
+def test_CIMQualifier_hash(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMQualifier.__hash__().
+    """
+
+    obj1 = kwargs['obj1']
+    obj2 = kwargs['obj2']
+
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
+    # The code to be tested
+    hash1 = hash(obj1)
+    hash2 = hash(obj2)
+
+    exp_hash_equal = kwargs['exp_hash_equal']
+
+    assert (hash1 == hash2) == exp_hash_equal
+
+
 class Test_CIMQualifier_str(object):
     """
     Test CIMQualifier.__str__().
@@ -7466,6 +8757,177 @@ class CIMClassNameEquality(unittest.TestCase):
 
         self.assertEqual(CIMClassName('CIM_Foo', namespace=None),
                          CIMClassName('CIM_Foo', namespace=None))
+
+
+testcases_CIMClassName_hash = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj1: CIMClassName object #1 to be tested.
+    #   * obj2: CIMClassName object #2 to be tested.
+    #   * exp_hash_equal: Expected equality of the object hash values.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Classname tests
+    (
+        "Classname, equal with same lexical case",
+        dict(
+            obj1=CIMClassName('CIM_Foo'),
+            obj2=CIMClassName('CIM_Foo'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Classname, equal with different lexical case",
+        dict(
+            obj1=CIMClassName('CIM_Foo'),
+            obj2=CIMClassName('ciM_foO'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Classname, different",
+        dict(
+            obj1=CIMClassName('CIM_Foo'),
+            obj2=CIMClassName('CIM_Foo_x'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Host tests
+    (
+        "Host name, equal with same lexical case",
+        dict(
+            obj1=CIMClassName('CIM_Foo', host='woot.com'),
+            obj2=CIMClassName('CIM_Foo', host='woot.Com'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Host name, equal with different lexical case",
+        dict(
+            obj1=CIMClassName('CIM_Foo', host='woot.com'),
+            obj2=CIMClassName('CIM_Foo', host='Woot.Com'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Host name, different with None / string",
+        dict(
+            obj1=CIMClassName('CIM_Foo', host=None),
+            obj2=CIMClassName('CIM_Foo', host='woot.com'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Host name, different with string / None",
+        dict(
+            obj1=CIMClassName('CIM_Foo', host='woot.com'),
+            obj2=CIMClassName('CIM_Foo', host=None),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Host name, equal with None / None",
+        dict(
+            obj1=CIMClassName('CIM_Foo', host=None),
+            obj2=CIMClassName('CIM_Foo', host=None),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+
+    # Namespace tests
+    (
+        "Namespace, equal with same lexical case",
+        dict(
+            obj1=CIMClassName('CIM_Foo', namespace='root/cimv2'),
+            obj2=CIMClassName('CIM_Foo', namespace='root/cimv2'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Namespace, equal with different lexical case",
+        dict(
+            obj1=CIMClassName('CIM_Foo', namespace='root/cimv2'),
+            obj2=CIMClassName('CIM_Foo', namespace='Root/CIMv2'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Namespace, different",
+        dict(
+            obj1=CIMClassName('CIM_Foo', namespace='root/cimv2'),
+            obj2=CIMClassName('CIM_Foo', namespace='abc'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Namespace, different with None / string",
+        dict(
+            obj1=CIMClassName('CIM_Foo', namespace=None),
+            obj2=CIMClassName('CIM_Foo', namespace='root/cimv2'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Namespace, different with string / None",
+        dict(
+            obj1=CIMClassName('CIM_Foo', namespace='root/cimv2'),
+            obj2=CIMClassName('CIM_Foo', namespace=None),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Namespace, equal with None / None",
+        dict(
+            obj1=CIMClassName('CIM_Foo', namespace=None),
+            obj2=CIMClassName('CIM_Foo', namespace=None),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    testcases_CIMClassName_hash)
+@pytest_extensions.test_function
+def test_CIMClassName_hash(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMClassName.__hash__().
+    """
+
+    obj1 = kwargs['obj1']
+    obj2 = kwargs['obj2']
+
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
+    # The code to be tested
+    hash1 = hash(obj1)
+    hash2 = hash(obj2)
+
+    exp_hash_equal = kwargs['exp_hash_equal']
+
+    assert (hash1 == hash2) == exp_hash_equal
 
 
 class Test_CIMClassName_repr(object):
@@ -8580,6 +10042,470 @@ class CIMClassSort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
+testcases_CIMClass_hash = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj1: CIMClass object #1 to be tested.
+    #   * obj2: CIMClass object #2 to be tested.
+    #   * exp_hash_equal: Expected equality of the object hash values.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Classname tests
+    (
+        "Classname, equal with same lexical case",
+        dict(
+            obj1=CIMClass('CIM_Foo'),
+            obj2=CIMClass('CIM_Foo'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Classname, equal with different lexical case",
+        dict(
+            obj1=CIMClass('CIM_Foo'),
+            obj2=CIMClass('ciM_foO'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Classname, different",
+        dict(
+            obj1=CIMClass('CIM_Foo'),
+            obj2=CIMClass('CIM_Foo_x'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Superclass tests
+    (
+        "Superclass, equal with same lexical case",
+        dict(
+            obj1=CIMClass('CIM_Foo', superclass='CIM_Bar'),
+            obj2=CIMClass('CIM_Foo', superclass='CIM_Bar'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Superclass, equal with different lexical case",
+        dict(
+            obj1=CIMClass('CIM_Foo', superclass='CIM_Bar'),
+            obj2=CIMClass('CIM_Foo', superclass='ciM_bAR'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Superclass, different",
+        dict(
+            obj1=CIMClass('CIM_Foo', superclass='CIM_Bar'),
+            obj2=CIMClass('CIM_Foo', superclass='CIM_Bar_x'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Path tests
+    (
+        "Class paths, equal with same lexical case",
+        dict(
+            obj1=CIMClass(
+                'CIM_Foo',
+                path=CIMClassName('CIM_Foo'),
+            ),
+            obj2=CIMClass(
+                'CIM_Foo',
+                path=CIMClassName('CIM_Foo'),
+            ),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Class paths, equal with different lexical case in classname",
+        dict(
+            obj1=CIMClass(
+                'CIM_Foo',
+                path=CIMClassName('CIM_Foo'),
+            ),
+            obj2=CIMClass(
+                'CIM_Foo',
+                path=CIMClassName('CIM_foo'),
+            ),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Class paths, different",
+        dict(
+            obj1=CIMClass(
+                'CIM_Foo',
+                path=CIMClassName('CIM_Foo'),
+            ),
+            obj2=CIMClass(
+                'CIM_Foo',
+                path=CIMClassName('CIM_Foo_x'),
+            ),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Properties tests
+    (
+        "Matching properties, names with same lexical case",
+        dict(
+            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
+                p1=CIMProperty('p1', value='v1'),
+            )),
+            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
+                p1=CIMProperty('p1', value='v1'),
+            )),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching properties, names with different lexical case",
+        dict(
+            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
+                p1=CIMProperty('p1', value='v1'),
+            )),
+            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
+                P1=CIMProperty('P1', value='v1'),
+            )),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching properties, one property more",
+        dict(
+            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
+                p1=CIMProperty('p1', value='v1'),
+            )),
+            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
+                p1=CIMProperty('p1', value='v1'),
+                p2=CIMProperty('p2', value='v2'),
+            )),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching properties, one property less",
+        dict(
+            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
+                p1=CIMProperty('p1', value='v1'),
+                p2=CIMProperty('p2', value='v2'),
+            )),
+            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
+                p1=CIMProperty('p1', value='v1'),
+            )),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching properties, different properties",
+        dict(
+            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
+                p2=CIMProperty('p2', value='v2'),
+            )),
+            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
+                p1=CIMProperty('p1', value='v1'),
+            )),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching properties, default values with different lexical case",
+        dict(
+            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
+                p1=CIMProperty('p1', value='v1'),
+            )),
+            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
+                p1=CIMProperty('p1', value='V1'),
+            )),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching properties, with default values as unicode / string",
+        dict(
+            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
+                p1=CIMProperty('p1', value='v1'),
+            )),
+            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
+                p1=CIMProperty('p1', value=u'v1'),
+            )),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching properties, equal with a number of types",
+        dict(
+            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
+                pstr=CIMProperty('pstr', value='v1'),
+                pboo=CIMProperty('pboo', value=False),
+                pui8=CIMProperty('pui8', value=Uint8(42)),
+                pref=CIMProperty('pref', value=CIMInstanceName('CIM_Bar')),
+            )),
+            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
+                pstr=CIMProperty('pstr', value='v1'),
+                pboo=CIMProperty('pboo', value=False),
+                pui8=CIMProperty('pui8', value=Uint8(42)),
+                pref=CIMProperty('pref', value=CIMInstanceName('CIM_Bar')),
+            )),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+
+    # Methods tests
+    (
+        "Matching methods, names with same lexical case",
+        dict(
+            obj1=CIMClass('CIM_Foo', methods=NocaseDict(
+                m1=CIMMethod('m1', return_type='string'),
+            )),
+            obj2=CIMClass('CIM_Foo', methods=NocaseDict(
+                m1=CIMMethod('m1', return_type='string'),
+            )),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching methods, names with different lexical case",
+        dict(
+            obj1=CIMClass('CIM_Foo', methods=NocaseDict(
+                m1=CIMMethod('m1', return_type='string'),
+            )),
+            obj2=CIMClass('CIM_Foo', methods=NocaseDict(
+                M1=CIMMethod('M1', return_type='string'),
+            )),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching methods, one method more",
+        dict(
+            obj1=CIMClass('CIM_Foo', methods=NocaseDict(
+                m1=CIMMethod('m1', return_type='string'),
+            )),
+            obj2=CIMClass('CIM_Foo', methods=NocaseDict(
+                m1=CIMMethod('m1', return_type='string'),
+                m2=CIMMethod('m2', return_type='string'),
+            )),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching methods, one method less",
+        dict(
+            obj1=CIMClass('CIM_Foo', methods=NocaseDict(
+                m1=CIMMethod('m1', return_type='string'),
+                m2=CIMMethod('m2', return_type='string'),
+            )),
+            obj2=CIMClass('CIM_Foo', methods=NocaseDict(
+                m1=CIMMethod('m1', return_type='string'),
+            )),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching methods, different methods",
+        dict(
+            obj1=CIMClass('CIM_Foo', methods=NocaseDict(
+                m1=CIMMethod('m1', return_type='string'),
+            )),
+            obj2=CIMClass('CIM_Foo', methods=NocaseDict(
+                m2=CIMMethod('m2', return_type='string'),
+            )),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching methods, different return types",
+        dict(
+            obj1=CIMClass('CIM_Foo', methods=NocaseDict(
+                m1=CIMMethod('m1', return_type='string'),
+            )),
+            obj2=CIMClass('CIM_Foo', methods=NocaseDict(
+                m1=CIMMethod('m1', return_type='uint8'),
+            )),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Qualifiers tests
+    (
+        "Matching qualifiers, qualifier names with same lexical case",
+        dict(
+            obj1=CIMClass('CIM_Foo',
+                          qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMClass('CIM_Foo',
+                          qualifiers={'Cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, qualifier names with different lexical case",
+        dict(
+            obj1=CIMClass('CIM_Foo',
+                          qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMClass('CIM_Foo',
+                          qualifiers={'cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, one qualifier more",
+        dict(
+            obj1=CIMClass('CIM_Foo'),
+            obj2=CIMClass('CIM_Foo',
+                          qualifiers={'Cheepy': 'Birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, one qualifier less",
+        dict(
+            obj1=CIMClass('CIM_Foo',
+                          qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMClass('CIM_Foo'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, different qualifiers",
+        dict(
+            obj1=CIMClass('CIM_Foo',
+                          qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMClass('CIM_Foo',
+                          qualifiers={'Creepy': 'Ants'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, with values that differ in lexical case",
+        dict(
+            obj1=CIMClass('CIM_Foo',
+                          qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMClass('CIM_Foo',
+                          qualifiers={'Cheepy': 'birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, with values that are unicode / string",
+        dict(
+            obj1=CIMClass('CIM_Foo',
+                          qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMClass('CIM_Foo',
+                          qualifiers={'Cheepy': u'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Equal qualifiers with a number of types",
+        dict(
+            obj1=CIMClass(
+                'CIM_Foo',
+                qualifiers={
+                    'Name': 'Foo',
+                    'Boolean': False,
+                    'Number': Uint8(42),
+                    'Ref': CIMInstanceName('CIM_Bar'),
+                }
+            ),
+            obj2=CIMClass(
+                'CIM_Foo',
+                qualifiers={
+                    'Name': 'Foo',
+                    'Boolean': False,
+                    'Number': Uint8(42),
+                    'Ref': CIMInstanceName('CIM_Bar'),
+                }
+            ),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with different types: bool True / string 'TRUE'",
+        dict(
+            obj1=CIMClass('CIM_Foo',
+                          qualifiers={'Foo': True}),
+            obj2=CIMClass('CIM_Foo',
+                          qualifiers={'Foo': 'TRUE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with different types: bool False / string 'FALSE'",
+        dict(
+            obj1=CIMClass('CIM_Foo',
+                          qualifiers={'Foo': False}),
+            obj2=CIMClass('CIM_Foo',
+                          qualifiers={'Foo': 'FALSE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    testcases_CIMClass_hash)
+@pytest_extensions.test_function
+def test_CIMClass_hash(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMClass.__hash__().
+    """
+
+    obj1 = kwargs['obj1']
+    obj2 = kwargs['obj2']
+
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
+    # The code to be tested
+    hash1 = hash(obj1)
+    hash2 = hash(obj2)
+
+    exp_hash_equal = kwargs['exp_hash_equal']
+
+    assert (hash1 == hash2) == exp_hash_equal
+
+
 class Test_CIMClass_str(object):
     """
     Test CIMClass.__str__().
@@ -9324,6 +11250,337 @@ class CIMMethodSort(unittest.TestCase):
     def test_all(self):
         # TODO Implement sorting test for CIMMethod
         raise AssertionError("test not implemented")
+
+
+testcases_CIMMethod_hash = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj1: CIMMethod object #1 to be tested.
+    #   * obj2: CIMMethod object #2 to be tested.
+    #   * exp_hash_equal: Expected equality of the object hash values.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Name tests
+    (
+        "Name, equal with same lexical case",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string'),
+            obj2=CIMMethod('Meth1', return_type='string'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Name, equal with different lexical case",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string'),
+            obj2=CIMMethod('metH1', return_type='string'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Name, different",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string'),
+            obj2=CIMMethod('Meth1_x', return_type='string'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Return_type tests
+    (
+        "Return_type, different",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='uint8'),
+            obj2=CIMMethod('Meth1', return_type='sint8'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Parameters tests
+    (
+        "Matching parameters, names with same lexical case",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
+                p1=CIMParameter('p1', type='string'),
+            )),
+            obj2=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
+                p1=CIMParameter('p1', type='string'),
+            )),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching parameters, names with different lexical case",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
+                p1=CIMParameter('p1', type='string'),
+            )),
+            obj2=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
+                P1=CIMParameter('P1', type='string'),
+            )),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching parameters, one parameter more",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
+                p1=CIMParameter('p1', type='string'),
+            )),
+            obj2=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
+                p1=CIMParameter('p1', type='string'),
+                p2=CIMParameter('p2', type='string'),
+            )),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching parameters, one parameter less",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
+                p1=CIMParameter('p1', type='string'),
+                p2=CIMParameter('p2', type='string'),
+            )),
+            obj2=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
+                p1=CIMParameter('p1', type='string'),
+            )),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching parameters, different parameters",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
+                p2=CIMParameter('p2', type='string'),
+            )),
+            obj2=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
+                p1=CIMParameter('p1', type='string'),
+            )),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Propagated tests
+    (
+        "Propagated, equal",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string',
+                           propagated=True),
+            obj2=CIMMethod('Meth1', return_type='string',
+                           propagated=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Propagated, different",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string',
+                           propagated=True),
+            obj2=CIMMethod('Meth1', return_type='string',
+                           propagated=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Class_origin tests
+    (
+        "Class_origin, equal with same lexical case",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string',
+                           propagated=True, class_origin='CIM_Org'),
+            obj2=CIMMethod('Meth1', return_type='string',
+                           propagated=True, class_origin='CIM_Org'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Class_origin, equal with different lexical case",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string',
+                           propagated=True, class_origin='CIM_Org'),
+            obj2=CIMMethod('Meth1', return_type='string',
+                           propagated=True, class_origin='Cim_org'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Class_origin, different",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string',
+                           propagated=True, class_origin='CIM_Org'),
+            obj2=CIMMethod('Meth1', return_type='string',
+                           propagated=True, class_origin='CIM_Org_x'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Qualifiers tests
+    (
+        "Matching qualifiers, qualifier names with same lexical case",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, qualifier names with different lexical case",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, one qualifier more",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string'),
+            obj2=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Cheepy': 'Birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, one qualifier less",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMMethod('Meth1', return_type='string'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, different qualifiers",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Creepy': 'Ants'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, with values that differ in lexical case",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Cheepy': 'birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, with values that are unicode / string",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Cheepy': u'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Equal qualifiers with a number of types",
+        dict(
+            obj1=CIMMethod(
+                'Meth1', return_type='string',
+                qualifiers={
+                    'Name': 'Foo',
+                    'Boolean': False,
+                    'Number': Uint8(42),
+                    'Ref': CIMInstanceName('CIM_Bar'),
+                }
+            ),
+            obj2=CIMMethod(
+                'Meth1', return_type='string',
+                qualifiers={
+                    'Name': 'Foo',
+                    'Boolean': False,
+                    'Number': Uint8(42),
+                    'Ref': CIMInstanceName('CIM_Bar'),
+                }
+            ),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with different types: bool True / string 'TRUE'",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Foo': True}),
+            obj2=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Foo': 'TRUE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with different types: bool False / string 'FALSE'",
+        dict(
+            obj1=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Foo': False}),
+            obj2=CIMMethod('Meth1', return_type='string',
+                           qualifiers={'Foo': 'FALSE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    testcases_CIMMethod_hash)
+@pytest_extensions.test_function
+def test_CIMMethod_hash(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMMethod.__hash__().
+    """
+
+    obj1 = kwargs['obj1']
+    obj2 = kwargs['obj2']
+
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
+    # The code to be tested
+    hash1 = hash(obj1)
+    hash2 = hash(obj2)
+
+    exp_hash_equal = kwargs['exp_hash_equal']
+
+    assert (hash1 == hash2) == exp_hash_equal
 
 
 class Test_CIMMethod_str(object):
@@ -10338,6 +12595,292 @@ class CIMParameterSort(unittest.TestCase):
     def test_all(self):
         # TODO Implement sorting test for CIMParameter
         raise AssertionError("test not implemented")
+
+
+testcases_CIMParameter_hash = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj1: CIMParameter object #1 to be tested.
+    #   * obj2: CIMParameter object #2 to be tested.
+    #   * exp_hash_equal: Expected equality of the object hash values.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Name tests
+    (
+        "Name, equal with same lexical case",
+        dict(
+            obj1=CIMParameter('Parm1', type='string'),
+            obj2=CIMParameter('Parm1', type='string'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Name, equal with different lexical case",
+        dict(
+            obj1=CIMParameter('Parm1', type='string'),
+            obj2=CIMParameter('pARM1', type='string'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Name, different",
+        dict(
+            obj1=CIMParameter('Parm1', type='string'),
+            obj2=CIMParameter('Parm1_x', type='string'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Type tests
+    (
+        "Type, different",
+        dict(
+            obj1=CIMParameter('Parm1', type='uint8'),
+            obj2=CIMParameter('Parm1', type='sint8'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Reference_class tests
+    (
+        "Reference class, equal with same lexical case",
+        dict(
+            obj1=CIMParameter('Parm1', type='ref',
+                              reference_class='CIM_Ref'),
+            obj2=CIMParameter('Parm1', type='ref',
+                              reference_class='CIM_Ref'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Reference class, equal with different lexical case",
+        dict(
+            obj1=CIMParameter('Parm1', type='ref',
+                              reference_class='CIM_Ref'),
+            obj2=CIMParameter('Parm1', type='ref',
+                              reference_class='Cim_ref'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Reference class, different",
+        dict(
+            obj1=CIMParameter('Parm1', type='ref',
+                              reference_class='CIM_Ref'),
+            obj2=CIMParameter('Parm1', type='ref',
+                              reference_class='CIM_Ref_x'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Is_array tests
+    (
+        "Is_array, equal",
+        dict(
+            obj1=CIMParameter('Parm1', type='string',
+                              is_array=True),
+            obj2=CIMParameter('Parm1', type='string',
+                              is_array=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Is_array, different",
+        dict(
+            obj1=CIMParameter('Parm1', type='string',
+                              is_array=True),
+            obj2=CIMParameter('Parm1', type='string',
+                              is_array=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Array_size tests
+    (
+        "Array_size, equal",
+        dict(
+            obj1=CIMParameter('Parm1', type='string', is_array=True,
+                              array_size=2),
+            obj2=CIMParameter('Parm1', type='string', is_array=True,
+                              array_size=2),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Array_size, different",
+        dict(
+            obj1=CIMParameter('Parm1', type='string', is_array=True,
+                              array_size=2),
+            obj2=CIMParameter('Parm1', type='string', is_array=True,
+                              array_size=3),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Qualifiers tests
+    (
+        "Matching qualifiers, qualifier names with same lexical case",
+        dict(
+            obj1=CIMParameter('Parm1', type='string',
+                              qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMParameter('Parm1', type='string',
+                              qualifiers={'Cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, qualifier names with different lexical case",
+        dict(
+            obj1=CIMParameter('Parm1', type='string',
+                              qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMParameter('Parm1', type='string',
+                              qualifiers={'cheepy': 'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, one qualifier more",
+        dict(
+            obj1=CIMParameter('Parm1', type='string'),
+            obj2=CIMParameter('Parm1', type='string',
+                              qualifiers={'Cheepy': 'Birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, one qualifier less",
+        dict(
+            obj1=CIMParameter('Parm1', type='string',
+                              qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMParameter('Parm1', type='string'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching qualifiers, different qualifiers",
+        dict(
+            obj1=CIMParameter('Parm1', type='string',
+                              qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMParameter('Parm1', type='string',
+                              qualifiers={'Creepy': 'Ants'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, with values that differ in lexical case",
+        dict(
+            obj1=CIMParameter('Parm1', type='string',
+                              qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMParameter('Parm1', type='string',
+                              qualifiers={'Cheepy': 'birds'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching qualifiers, with values that are unicode / string",
+        dict(
+            obj1=CIMParameter('Parm1', type='string',
+                              qualifiers={'Cheepy': 'Birds'}),
+            obj2=CIMParameter('Parm1', type='string',
+                              qualifiers={'Cheepy': u'Birds'}),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Equal qualifiers with a number of types",
+        dict(
+            obj1=CIMParameter(
+                'Parm1', type='string',
+                qualifiers={
+                    'Name': 'Foo',
+                    'Boolean': False,
+                    'Number': Uint8(42),
+                    'Ref': CIMInstanceName('CIM_Bar'),
+                }
+            ),
+            obj2=CIMParameter(
+                'Parm1', type='string',
+                qualifiers={
+                    'Name': 'Foo',
+                    'Boolean': False,
+                    'Number': Uint8(42),
+                    'Ref': CIMInstanceName('CIM_Bar'),
+                }
+            ),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with different types: bool True / string 'TRUE'",
+        dict(
+            obj1=CIMParameter('Parm1', type='string',
+                              qualifiers={'Foo': True}),
+            obj2=CIMParameter('Parm1', type='string',
+                              qualifiers={'Foo': 'TRUE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with different types: bool False / string 'FALSE'",
+        dict(
+            obj1=CIMParameter('Parm1', type='string',
+                              qualifiers={'Foo': False}),
+            obj2=CIMParameter('Parm1', type='string',
+                              qualifiers={'Foo': 'FALSE'}),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    testcases_CIMParameter_hash)
+@pytest_extensions.test_function
+def test_CIMParameter_hash(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMParameter.__hash__().
+    """
+
+    obj1 = kwargs['obj1']
+    obj2 = kwargs['obj2']
+
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
+    # The code to be tested
+    hash1 = hash(obj1)
+    hash2 = hash(obj2)
+
+    exp_hash_equal = kwargs['exp_hash_equal']
+
+    assert (hash1 == hash2) == exp_hash_equal
 
 
 class Test_CIMParameter_str(object):
@@ -11536,6 +14079,357 @@ class CIMQualifierDeclarationSort(unittest.TestCase):
     def test_all(self):
         # TODO Implement sorting test for CIMQualifierDeclaration
         raise AssertionError("test not implemented")
+
+
+testcases_CIMQualifierDeclaration_hash = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj1: CIMQualifierDeclaration object #1 to be tested.
+    #   * obj2: CIMQualifierDeclaration object #2 to be tested.
+    #   * exp_hash_equal: Expected equality of the object hash values.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Name tests
+    (
+        "Name, equal with same lexical case",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', type='string'),
+            obj2=CIMQualifierDeclaration('Qual1', type='string'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Name, equal with different lexical case",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', type='string'),
+            obj2=CIMQualifierDeclaration('quAL1', type='string'),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Name, different",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', type='string'),
+            obj2=CIMQualifierDeclaration('Qual1_x', type='string'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Type tests
+    (
+        "Type, different",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', type='uint8'),
+            obj2=CIMQualifierDeclaration('Qual1', type='sint8'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Value tests
+    (
+        "Value, strings with different lexical case",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', type='string', value='abc'),
+            obj2=CIMQualifierDeclaration('Qual1', type='string', value='Abc'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Value, strings with None / string",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', type='string', value=None),
+            obj2=CIMQualifierDeclaration('Qual1', type='string', value='abc'),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Value, strings with string / None",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', type='string', value='abc'),
+            obj2=CIMQualifierDeclaration('Qual1', type='string', value=None),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Value, strings with None / None",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', type='string', value=None),
+            obj2=CIMQualifierDeclaration('Qual1', type='string', value=None),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+
+
+    # Is_array tests
+    (
+        "Is_array, equal",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', type='string',
+                                         is_array=True),
+            obj2=CIMQualifierDeclaration('Qual1', type='string',
+                                         is_array=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Is_array, different",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', type='string',
+                                         is_array=True),
+            obj2=CIMQualifierDeclaration('Qual1', type='string',
+                                         is_array=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Array_size tests
+    (
+        "Array_size, equal",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', type='string', is_array=True,
+                                         array_size=2),
+            obj2=CIMQualifierDeclaration('Qual1', type='string', is_array=True,
+                                         array_size=2),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Array_size, different",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', type='string', is_array=True,
+                                         array_size=2),
+            obj2=CIMQualifierDeclaration('Qual1', type='string', is_array=True,
+                                         array_size=3),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Scopes tests
+    (
+        "Matching scopes, names with same lexical case",
+        dict(
+            obj1=CIMQualifierDeclaration(
+                'Qual1', type='string', scopes=NocaseDict(
+                    CLASS=True,
+                )
+            ),
+            obj2=CIMQualifierDeclaration(
+                'Qual1', type='string', scopes=NocaseDict(
+                    CLASS=True,
+                )
+            ),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching scopes, names with different lexical case",
+        dict(
+            obj1=CIMQualifierDeclaration(
+                'Qual1', type='string', scopes=NocaseDict(
+                    CLASS=True,
+                )
+            ),
+            obj2=CIMQualifierDeclaration(
+                'Qual1', type='string', scopes=NocaseDict(
+                    claSS=True,
+                )
+            ),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching scopes, one scope more",
+        dict(
+            obj1=CIMQualifierDeclaration(
+                'Qual1', type='string', scopes=NocaseDict(
+                    CLASS=True,
+                )
+            ),
+            obj2=CIMQualifierDeclaration(
+                'Qual1', type='string', scopes=NocaseDict(
+                    CLASS=True,
+                    ASSOCIAION=True,
+                )
+            ),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching scopes, one scope less",
+        dict(
+            obj1=CIMQualifierDeclaration(
+                'Qual1', type='string', scopes=NocaseDict(
+                    CLASS=True,
+                    ASSOCIAION=True,
+                )
+            ),
+            obj2=CIMQualifierDeclaration(
+                'Qual1', type='string', scopes=NocaseDict(
+                    CLASS=True,
+                )
+            ),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching scopes, different scopes",
+        dict(
+            obj1=CIMQualifierDeclaration(
+                'Qual1', type='string', scopes=NocaseDict(
+                    ASSOCIAION=True,
+                )
+            ),
+            obj2=CIMQualifierDeclaration(
+                'Qual1', type='string', scopes=NocaseDict(
+                    CLASS=True,
+                )
+            ),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Overridable tests
+    (
+        "Overridable, equal",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         overridable=True),
+            obj2=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         overridable=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Overridable, different",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         overridable=True),
+            obj2=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         overridable=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Tosubclass tests
+    (
+        "Tosubclass, equal",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         tosubclass=True),
+            obj2=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         tosubclass=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Tosubclass, different",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         tosubclass=True),
+            obj2=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         tosubclass=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Toinstance tests
+    (
+        "Toinstance, equal",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         toinstance=True),
+            obj2=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         toinstance=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Toinstance, different",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         toinstance=True),
+            obj2=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         toinstance=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+
+    # Translatable tests
+    (
+        "Translatable, equal",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         translatable=True),
+            obj2=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         translatable=True),
+            exp_hash_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Translatable, different",
+        dict(
+            obj1=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         translatable=True),
+            obj2=CIMQualifierDeclaration('Qual1', value=None, type='string',
+                                         translatable=False),
+            exp_hash_equal=False,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    testcases_CIMQualifierDeclaration_hash)
+@pytest_extensions.test_function
+def test_CIMQualifierDeclaration_hash(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMQualifierDeclaration.__hash__().
+    """
+
+    obj1 = kwargs['obj1']
+    obj2 = kwargs['obj2']
+
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
+    # The code to be tested
+    hash1 = hash(obj1)
+    hash2 = hash(obj2)
+
+    exp_hash_equal = kwargs['exp_hash_equal']
+
+    assert (hash1 == hash2) == exp_hash_equal
 
 
 class Test_CIMQualifierDeclaration_str(object):

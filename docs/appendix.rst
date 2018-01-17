@@ -42,6 +42,25 @@ This documentation uses a few special terms to refer to Python types:
       new object of the class), or an object with a :meth:`~py:object.__call__`
       method.
 
+   hashable
+      a hashable object. Hashability requires an object not only to be able to
+      produce a hash value with the :func:`py:hash` function, but in addition
+      that objects that are equal (as per the ``==`` operator) produce equal
+      hash values, and that the produced hash value remains unchanged across
+      the lifetime of the object. See `term "hashable"
+      <https://docs.python.org/3/glossary.html#term-hashable>`_
+      in the Python glossary, although the definition there is not very crisp.
+      A more exhaustive discussion of these requirements is in
+      `"What happens when you mess with hashing in Python"
+      <http://www.asmeurer.com/blog/posts/what-happens-when-you-mess-with-hashing-in-python/>`_
+      by Aaron Meurer.
+
+   unchanged-hashable
+      an object that is :term:`hashable` with the exception that its hash value
+      may change over the lifetime of the object. Therefore, it is hashable
+      only for periods in which its hash value remains unchanged.
+      :ref:`CIM objects` are examples of unchanged-hashable objects in pywbem.
+
    DeprecationWarning
       a standard Python warning that indicates a deprecated functionality.
       See section :ref:`Deprecation policy` and the standard Python module

@@ -175,6 +175,20 @@ class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
         """
         raise NotImplementedError
 
+    def __hash__(self):
+        """
+        Interface definition for hash function to be provided by subclasses.
+
+        Background: In order to behave as expected in sets and other hash-based
+        collections, the hash values of objects must be equal when the objects
+        themselves are considered equal. The default hash function for classes
+        is based on `id()` and therefore does not satisfy that requirement.
+
+        Therefore, the CIM objects need to implement a hash function that
+        satisfies that requirement.
+        """
+        raise NotImplementedError
+
 
 class MinutesFromUTC(tzinfo):
     """
@@ -282,6 +296,10 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
 
     The object represents either a timezone-aware point in time, or a time
     interval.
+
+    Two objects of this class compare equal if their public attributes compare
+    equal. Objects of this class are immutable and :term:`hashable`, with the
+    hash value being based on their public attributes.
     """
 
     cimtype = 'datetime'
@@ -529,6 +547,22 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         return (cmpitem(self.datetime, other.datetime) or
                 cmpitem(self.timedelta, other.timedelta))
 
+    def __hash__(self):
+        """
+        Return a hash value based on the public attributes of this class.
+        Because these attributes are not modifiable, objects of this class are
+        :term:`hashable` (and not just :term:`unchanged-hashable`).
+        """
+        from .cim_obj import _hash_item  # defer due to cyclic deps.
+
+        hashes = (
+            _hash_item(self.datetime),
+            _hash_item(self.timedelta),
+            # The 'is_interval' and 'minutes_from_utc' attributes are not used
+            # for hash value calculation because they are derived attributes.
+        )
+        return hash(hashes)
+
 
 # CIM integer types
 
@@ -548,6 +582,10 @@ class CIMInt(CIMType, _Longint):
     valid range raise a :exc:`ValueError`.
     The enforcement of the valid value range can be disabled via the
     configuration variable :data:`~pywbem.config.ENFORCE_INTEGER_RANGE`.
+
+    Two objects of subclasses of this base class compare equal if their numeric
+    values compare equal. Objects of this class are immutable and
+    :term:`hashable`, with the hash value being based on its numeric value.
 
     Instances of subclasses of this class can be initialized with the usual
     input arguments supported by :term:`integer`, for example:
@@ -695,6 +733,10 @@ class Sint64(CIMInt):
 class CIMFloat(CIMType, float):
     """
     Base type for real (floating point) CIM data types.
+
+    Two objects of subclasses of this base class compare equal if their numeric
+    values compare equal. Objects of this class are immutable and
+    :term:`hashable`, with the hash value being based on its numeric value.
     """
 
 
