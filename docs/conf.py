@@ -16,6 +16,8 @@ import sys
 import os
 import re
 
+from pbr.version import VersionInfo
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -71,17 +73,9 @@ _short_description = u'Pywbem - a WBEM client written in pure Python'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 
-def package_version(filename, varname):
-    """Return package version string by reading `filename` and retrieving its
-       module-global variable `varnam`."""
-    _locals = {}
-    with open(filename) as fp:
-        exec(fp.read(), None, _locals)
-    return _locals[varname]
-
 # The short X.Y version.
 # Note: We use the full version in both cases (e.g. 'M.N.U' or 'M.N.U.dev0').
-version = package_version('../pywbem/_version.py', '__version__')
+version = VersionInfo('pywbem').release_string()
 
 # The full version, including alpha/beta/rc tags.
 release = version

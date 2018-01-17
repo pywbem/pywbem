@@ -25,7 +25,7 @@ Note: The package version is not defined here, but determined dynamically by
 the `pbr` package from Git information.
 """
 
-import pbr.version
+from pbr.version import VersionInfo
 
 #: The full version of this package including any development levels, as a
 #: :term:`string`.
@@ -35,4 +35,4 @@ import pbr.version
 #: * "M.N.P.devNNN": Development level NNN of a not yet released assumed M.N.P
 #:   version
 #: * "M.N.P": A released M.N.P version
-__version__ = pbr.version.VersionInfo('pywbem').release_string()
+__version__ = VersionInfo('pywbem').release_string()
