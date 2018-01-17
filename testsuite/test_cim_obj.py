@@ -22,6 +22,10 @@ import os.path
 from datetime import timedelta, datetime
 import unittest2 as unittest  # we use assertRaises(exc) introduced in py27
 import warnings
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 import pytest
 import six
@@ -398,6 +402,8 @@ class Test_CIMInstanceName_init(object):
         # * exp_attrs: Dict of expected attributes of resulting object.
         # * exp_warn_type: Expected warning type.
         # * condition: Condition for testcase to run.
+
+        # Classname tests
         (
             "Verify that binary classname is converted to unicode",
             dict(classname=b'CIM_Foo'),
@@ -408,6 +414,62 @@ class Test_CIMInstanceName_init(object):
             "Verify that unicode classname remains unicode",
             dict(classname=u'CIM_Foo'),
             dict(classname=u'CIM_Foo'),
+            None, True
+        ),
+
+        # Keybinding tests
+        (
+            "Verify keybindings order preservation with list of CIMProperty",
+            dict(
+                classname='CIM_Foo',
+                keybindings=[
+                    CIMProperty('K1', value='Ham'),
+                    CIMProperty('K2', value='Cheese'),
+                ]
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict([
+                    ('K1', 'Ham'),
+                    ('K2', 'Cheese'),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify keybindings order preservation with OrderedDict",
+            dict(
+                classname='CIM_Foo',
+                keybindings=OrderedDict([
+                    ('K1', 'Ham'),
+                    ('K2', 'Cheese'),
+                ])
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict([
+                    ('K1', 'Ham'),
+                    ('K2', 'Cheese'),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify keybindings order preservation with list of tuple(key,val)",
+            dict(
+                classname='CIM_Foo',
+                keybindings=[
+                    ('K1', 'Ham'),
+                    ('K2', 'Cheese'),
+                ]
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict([
+                    ('K1', 'Ham'),
+                    ('K2', 'Cheese'),
+                ])
+            ),
             None, True
         ),
         (
@@ -599,17 +661,17 @@ class Test_CIMInstanceName_init(object):
                 keybindings=dict(K1=CIMProperty('K1', value='Ham'))),
             dict(
                 classname=u'CIM_Foo',
-                keybindings=NocaseDict(K1=u'Ham')),
+                keybindings=NocaseDict([('K1', u'Ham')])),
             None, CHECK_0_12_0
         ),
         (
             "Verify two keybindings",
             dict(
                 classname='CIM_Foo',
-                keybindings=dict(K1='Ham', K2=Uint8(42))),
+                keybindings=OrderedDict([('K1', u'Ham'), ('K2', Uint8(42))])),
             dict(
                 classname=u'CIM_Foo',
-                keybindings=NocaseDict(K1=u'Ham', K2=Uint8(42))),
+                keybindings=NocaseDict([('K1', u'Ham'), ('K2', Uint8(42))])),
             None, True
         ),
         (
@@ -619,9 +681,11 @@ class Test_CIMInstanceName_init(object):
                 keybindings=dict(Key1='Ham')),
             dict(
                 classname=u'CIM_Foo',
-                keybindings=NocaseDict(kEY1=u'Ham')),
+                keybindings=NocaseDict([('kEY1', u'Ham')])),
             None, True
         ),
+
+        # Namespace tests
         (
             "Verify that binary namespace is converted to unicode",
             dict(
@@ -642,6 +706,8 @@ class Test_CIMInstanceName_init(object):
                 namespace=u'root/cimv2'),
             None, True
         ),
+
+        # Host tests
         (
             "Verify that binary host is converted to unicode",
             dict(
@@ -1003,6 +1069,38 @@ class CIMInstanceNameEquality(unittest.TestCase):
         self.assertNotEqual(CIMInstanceName('CIM_Foo', {'Bar': True}),
                             CIMInstanceName('CIM_Foo', {'Bar': 'TRUE'}))
 
+        # Key bindings should compare order-insensitively
+
+        self.assertEqual(
+            CIMInstanceName(
+                'CIM_Foo',
+                keybindings=(
+                    ('Cheepy', 'Birds'),
+                    ('Creepy', 'Ants'),
+                )),
+            CIMInstanceName(
+                'CIM_Foo',
+                keybindings=(
+                    ('Cheepy', 'Birds'),
+                    ('Creepy', 'Ants'),
+                )),
+        )
+
+        self.assertEqual(
+            CIMInstanceName(
+                'CIM_Foo',
+                keybindings=(
+                    ('Cheepy', 'Birds'),
+                    ('Creepy', 'Ants'),
+                )),
+            CIMInstanceName(
+                'CIM_Foo',
+                keybindings=(
+                    ('Creepy', 'Ants'),
+                    ('Cheepy', 'Birds'),
+                )),
+        )
+
         # Host name should be case insensitive
 
         self.assertEqual(CIMInstanceName('CIM_Foo', host='woot.com'),
@@ -1078,11 +1176,11 @@ class CIMInstanceNameEquality(unittest.TestCase):
         value1 = 'a'
         value2 = 'b'
 
-        d1 = {key1: value1, key2: value2}
+        d1 = OrderedDict([(key1, value1), (key2, value2)])
         kb1 = NocaseDict(d1)
         obj1 = CIMInstanceName('CIM_Foo', kb1)
 
-        d2 = {key2: value2, key1: value1}
+        d2 = OrderedDict([(key2, value2), (key1, value1)])
         kb2 = NocaseDict(d2)
         obj2 = CIMInstanceName('CIM_Foo', kb2)
 
@@ -1486,7 +1584,7 @@ class Test_CIMInstanceName_repr(object):
         assert 'keybindings=' in r
         if obj.keybindings:
             for key in obj.keybindings.keys():
-                search_str = 'u?[\'"]%s[\'"]: ' % key
+                search_str = 'u?[\'"]%s[\'"], ' % key
                 assert re.search(search_str, r), "For key %r" % key
 
         exp_namespace = 'namespace=%r' % obj.namespace
@@ -1752,19 +1850,31 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             None, CHECK_0_12_0
         ),
         (
-            "multiple keys (bool)",
+            "multiple keys (bool) - in alphabetical order",
             '/n:C.k1=false,k2=true,k3=False,k4=True,k5=FALSE,k6=TRUE',
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(k1=False, k2=True,
-                                       k3=False, k4=True,
-                                       k5=False, k6=True),
+                keybindings=NocaseDict([('k1', False), ('k2', True),
+                                        ('k3', False), ('k4', True),
+                                        ('k5', False), ('k6', True)]),
                 namespace=u'n',
                 host=None),
             None, CHECK_0_12_0
         ),
         (
-            "multiple keys (int)",
+            "multiple keys (bool) - in non-alphabetical order",
+            '/n:C.k1=false,k3=False,k2=true,k4=True,k5=FALSE,k6=TRUE',
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict([('k1', False), ('k3', False),
+                                        ('k2', True), ('k4', True),
+                                        ('k5', False), ('k6', True)]),
+                namespace=u'n',
+                host=None),
+            None, CHECK_0_12_0
+        ),
+        (
+            "multiple keys (int) - in non-alphabetical order",
             '/n:C.k1=0,k2=-1,k3=-32769,k4=42,k5=+42,'
             'kmax32=4294967295,'
             'kmin32=-4294967296,'
@@ -1773,12 +1883,13 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             'klong=9223372036854775808',
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(k1=0, k2=-1, k3=-32769, k4=42, k5=42,
-                                       kmax32=4294967295,
-                                       kmin32=-4294967296,
-                                       kmax64=9223372036854775807,
-                                       kmin64=-9223372036854775808,
-                                       klong=9223372036854775808),
+                keybindings=NocaseDict([('k1', 0), ('k2', -1), ('k3', -32769),
+                                        ('k4', 42), ('k5', 42),
+                                        ('kmax32', 4294967295),
+                                        ('kmin32', -4294967296),
+                                        ('kmax64', 9223372036854775807),
+                                        ('kmin64', -9223372036854775808),
+                                        ('klong', 9223372036854775808)]),
                 namespace=u'n',
                 host=None),
             None, CHECK_0_12_0
@@ -1814,7 +1925,7 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             None, CHECK_0_12_0
         ),
         (
-            "multiple float keys",
+            "multiple float keys - in non-alphabetical order",
             '/n:C.k1=.0,k2=-0.1,k3=+.1,k4=+31.4E-1,k5=.4e1,'
             'kmax32=3.402823466E38,'
             'kmin32=1.175494351E-38,'
@@ -1822,12 +1933,12 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             'kmin64=4.9E-324',
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(k1=0.0, k2=-0.1, k3=0.1, k4=31.4E-1,
-                                       k5=0.4E1,
-                                       kmax32=3.402823466E38,
-                                       kmin32=1.175494351E-38,
-                                       kmax64=1.7976931348623157E308,
-                                       kmin64=4.9E-324),
+                keybindings=NocaseDict([('k1', 0.0), ('k2', -0.1), ('k3', 0.1),
+                                        ('k4', 31.4E-1), ('k5', 0.4E1),
+                                        ('kmax32', 3.402823466E38),
+                                        ('kmin32', 1.175494351E-38),
+                                        ('kmax64', 1.7976931348623157E308),
+                                        ('kmin64', 4.9E-324)]),
                 namespace=u'n',
                 host=None),
             None, CHECK_0_12_0
@@ -1869,12 +1980,13 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             None, False  # float('nan') does not compare equal to itself
         ),
         (
-            "multiple string keys",
+            "multiple string keys - in alphabetical order",
             r'/n:C.k1="",k2="a",k3="42",k4="\"",k5="\\",k6="\\\"",k7="\'"',
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(k1='', k2='a', k3='42', k4='"', k5='\\',
-                                       k6='\\"', k7="'"),
+                keybindings=NocaseDict([('k1', ''), ('k2', 'a'), ('k3', '42'),
+                                        ('k4', '"'), ('k5', '\\'),
+                                        ('k6', '\\"'), ('k7', "'")]),
                 namespace=u'n',
                 host=None),
             None, CHECK_0_12_0
@@ -1890,11 +2002,12 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             None, CHECK_0_12_0
         ),
         (
-            "multiple char16 keys",
-            "/n:C.k1='a',k2='1',k3='\"',k4='\\'',k5='\\\\'",
+            "multiple char16 keys - in non-alphabetical order",
+            "/n:C.k1='a',k3='\"',k2='1',k4='\\'',k5='\\\\'",
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(k1='a', k2='1', k3='"', k4="'", k5='\\'),
+                keybindings=NocaseDict([('k1', 'a'), ('k3', '"'), ('k2', '1'),
+                                        ('k4', "'"), ('k5', '\\')]),
                 namespace=u'n',
                 host=None),
             None, CHECK_0_12_0
@@ -1916,8 +2029,9 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             '/n:C.k1="19980125133015.123456-300"',
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(
-                    k1=CIMDateTime('19980125133015.123456-300')),
+                keybindings=NocaseDict([
+                    ('k1', CIMDateTime('19980125133015.123456-300')),
+                ]),
                 namespace=u'n',
                 host=None),
             None, CHECK_0_12_0
@@ -1927,8 +2041,9 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             '/n:C.k1="12345678133015.123456:000"',
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(
-                    k1=CIMDateTime('12345678133015.123456:000')),
+                keybindings=NocaseDict([
+                    ('k1', CIMDateTime('12345678133015.123456:000')),
+                ]),
                 namespace=u'n',
                 host=None),
             None, CHECK_0_12_0
@@ -1938,8 +2053,9 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             '/n:C.k1=19980125133015.123456-300',
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(
-                    k1=CIMDateTime('19980125133015.123456-300')),
+                keybindings=NocaseDict([
+                    ('k1', CIMDateTime('19980125133015.123456-300')),
+                ]),
                 namespace=u'n',
                 host=None),
             UserWarning, CHECK_0_12_0
@@ -1949,8 +2065,9 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             '/n:C.k1=12345678133015.123456:000',
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(
-                    k1=CIMDateTime('12345678133015.123456:000')),
+                keybindings=NocaseDict([
+                    ('k1', CIMDateTime('12345678133015.123456:000')),
+                ]),
                 namespace=u'n',
                 host=None),
             UserWarning, CHECK_0_12_0
@@ -1960,12 +2077,14 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             '/n1:C1.k1="/n2:C2.k2=1"',
             dict(
                 classname=u'C1',
-                keybindings=NocaseDict(
-                    k1=CIMInstanceName(
+                keybindings=NocaseDict([
+                    ('k1', CIMInstanceName(
                         classname='C2',
-                        keybindings=NocaseDict(k2=1),
-                        namespace='n2'),
-                ),
+                        keybindings=NocaseDict([
+                            ('k2', 1),
+                        ]),
+                        namespace='n2')),
+                ]),
                 namespace=u'n1',
                 host=None),
             None, CHECK_0_12_0
@@ -1975,12 +2094,14 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             r'/n1:C1.k1="/n2:C2.k2=\"v2\""',
             dict(
                 classname=u'C1',
-                keybindings=NocaseDict(
-                    k1=CIMInstanceName(
+                keybindings=NocaseDict([
+                    ('k1', CIMInstanceName(
                         classname='C2',
-                        keybindings=NocaseDict(k2='v2'),
-                        namespace='n2'),
-                ),
+                        keybindings=NocaseDict([
+                            ('k2', 'v2'),
+                        ]),
+                        namespace='n2')),
+                ]),
                 namespace=u'n1',
                 host=None),
             None, CHECK_0_12_0
@@ -1990,19 +2111,19 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=3\""',
             dict(
                 classname=u'C1',
-                keybindings=NocaseDict(
-                    k1=CIMInstanceName(
+                keybindings=NocaseDict([
+                    ('k1', CIMInstanceName(
                         classname='C2',
-                        keybindings=NocaseDict(
-                            k2=CIMInstanceName(
+                        keybindings=NocaseDict([
+                            ('k2', CIMInstanceName(
                                 classname='C3',
-                                keybindings=NocaseDict(
-                                    k3=3
-                                ),
-                                namespace='n3'),
-                        ),
-                        namespace='n2'),
-                ),
+                                keybindings=NocaseDict([
+                                    ('k3', 3),
+                                ]),
+                                namespace='n3')),
+                        ]),
+                        namespace='n2')),
+                ]),
                 namespace=u'n1',
                 host=None),
             None, CHECK_0_12_0
@@ -2013,19 +2134,19 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=\\\"v3\\\"\""',
             dict(
                 classname=u'C1',
-                keybindings=NocaseDict(
-                    k1=CIMInstanceName(
+                keybindings=NocaseDict([
+                    ('k1', CIMInstanceName(
                         classname='C2',
-                        keybindings=NocaseDict(
-                            k2=CIMInstanceName(
+                        keybindings=NocaseDict([
+                            ('k2', CIMInstanceName(
                                 classname='C3',
-                                keybindings=NocaseDict(
-                                    k3='v3'
-                                ),
-                                namespace='n3'),
-                        ),
-                        namespace='n2'),
-                ),
+                                keybindings=NocaseDict([
+                                    ('k3', 'v3'),
+                                ]),
+                                namespace='n3')),
+                        ]),
+                        namespace='n2')),
+                ]),
                 namespace=u'n1',
                 host=None),
             None, CHECK_0_12_0
@@ -2411,10 +2532,10 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             None, CHECK_0_12_0
         ),
         (
-            "multiple keys (bool)",
+            "multiple keys (bool) - created in alphabetical order",
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(k1=False, k2=True),
+                keybindings=NocaseDict([('k1', False), ('k2', True)]),
                 namespace=u'n',
                 host=None),
             'standard',
@@ -2422,43 +2543,55 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             None, CHECK_0_12_0
         ),
         (
-            "multiple keys (int)",
+            "multiple keys (bool) - created in non-alphabetical order",
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(k1=0, k2=-1, k3=-32769, k4=42, k5=42,
-                                       kmax32=4294967295,
-                                       kmin32=-4294967296,
-                                       kmax64=9223372036854775807,
-                                       kmin64=-9223372036854775808,
-                                       klong=9223372036854775808),
+                keybindings=NocaseDict([('k2', True), ('k1', False)]),
+                namespace=u'n',
+                host=None),
+            'standard',
+            '/n:C.k2=TRUE,k1=FALSE',
+            None, CHECK_0_12_0
+        ),
+        (
+            "multiple keys (int) - created in non-alphabetical order",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict([('k1', 0), ('k2', -1), ('k3', -32769),
+                                        ('k4', 42), ('k5', 42),
+                                        ('kmax32', 4294967295),
+                                        ('kmin32', -4294967296),
+                                        ('kmax64', 9223372036854775807),
+                                        ('kmin64', -9223372036854775808),
+                                        ('klong', 9223372036854775808)]),
                 namespace=u'n',
                 host=None),
             'standard',
             '/n:C.k1=0,k2=-1,k3=-32769,k4=42,k5=42,'
-            'klong=9223372036854775808,'
             'kmax32=4294967295,'
-            'kmax64=9223372036854775807,'
             'kmin32=-4294967296,'
-            'kmin64=-9223372036854775808',
+            'kmax64=9223372036854775807,'
+            'kmin64=-9223372036854775808,'
+            'klong=9223372036854775808',
             None, CHECK_0_12_0
         ),
         (
-            "multiple float keys",
+            "multiple float keys - created in non-alphabetical order",
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(k1=0.0, k2=-0.1, k3=0.1, k4=31.4E-1,
-                                       k5=0.4E1,
-                                       kmax32=3.402823466E38,
-                                       kmin32=1.175494351E-38,
-                                       kmax64=1.7976931348623157E308,
-                                       kmin64=2.2250738585072014E-308),
+                keybindings=NocaseDict([('k1', 0.0), ('k2', -0.1), ('k3', 0.1),
+                                        ('k4', 31.4E-1), ('k5', 0.4E1),
+                                        ('kmax32', 3.402823466E38),
+                                        ('kmin32', 1.175494351E-38),
+                                        ('kmax64', 1.7976931348623157E308),
+                                        ('kmin64', 2.2250738585072014E-308)]),
                 namespace=u'n',
                 host=None),
             'standard',
             '/n:C.k1=0.0,k2=-0.1,k3=0.1,k4=3.14,k5=4.0,'
             'kmax32=3.402823466e+38,'
-            'kmax64=1.7976931348623157e+308,'
             'kmin32=1.175494351e-38,'
+            'kmax64=1.7976931348623157e+308,'
             'kmin64=2.2250738585072014e-308',
             None, CHECK_0_12_0 and sys.version_info[0:2] >= (2, 7)
         ),
@@ -2496,11 +2629,12 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             None, False  # float('nan') does not compare equal to itself
         ),
         (
-            "multiple string keys",
+            "multiple string keys - created in alphabetical order",
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(k1='', k2='a', k3='42', k4='"',
-                                       k5='\\', k6='\\"', k7="'"),
+                keybindings=NocaseDict([('k1', ''), ('k2', 'a'), ('k3', '42'),
+                                        ('k4', '"'), ('k5', '\\'),
+                                        ('k6', '\\"'), ('k7', "'")]),
                 namespace=u'n',
                 host=None),
             'standard',
@@ -2520,22 +2654,24 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             None, CHECK_0_12_0
         ),
         (
-            "multiple char16 keys",
+            "multiple char16 keys - created in non-alphabetical order",
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(k1='a', k2='1', k3='"', k4="'", k5='\\'),
+                keybindings=NocaseDict([('k1', 'a'), ('k3', '"'), ('k2', '1'),
+                                        ('k4', "'"), ('k5', '\\')]),
                 namespace=u'n',
                 host=None),
             'standard',
-            '/n:C.k1="a",k2="1",k3="\\"",k4="\'",k5="\\\\"',
+            '/n:C.k1="a",k3="\\"",k2="1",k4="\'",k5="\\\\"',
             None, CHECK_0_12_0
         ),
         (
             "datetime key for point in time (in quotes)",
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(
-                    k1=CIMDateTime('19980125133015.123456-300')),
+                keybindings=[
+                    ('k1', CIMDateTime('19980125133015.123456-300')),
+                ],
                 namespace=u'n',
                 host=None),
             'standard',
@@ -2546,8 +2682,9 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             "datetime key for interval (in quotes)",
             dict(
                 classname=u'C',
-                keybindings=NocaseDict(
-                    k1=CIMDateTime('12345678133015.123456:000')),
+                keybindings=[
+                    ('k1', CIMDateTime('12345678133015.123456:000')),
+                ],
                 namespace=u'n',
                 host=None),
             'standard',
@@ -2558,12 +2695,14 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             "reference key that has an int key (normal association)",
             dict(
                 classname=u'C1',
-                keybindings=NocaseDict(
-                    k1=CIMInstanceName(
+                keybindings=[
+                    ('k1', CIMInstanceName(
                         classname='C2',
-                        keybindings=NocaseDict(k2=1),
-                        namespace='n2'),
-                ),
+                        keybindings=[
+                            ('k2', 1),
+                        ],
+                        namespace='n2')),
+                ],
                 namespace=u'n1',
                 host=None),
             'standard',
@@ -2574,12 +2713,14 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             "reference key that has a string key (normal association)",
             dict(
                 classname=u'C1',
-                keybindings=NocaseDict(
-                    k1=CIMInstanceName(
+                keybindings=[
+                    ('k1', CIMInstanceName(
                         classname='C2',
-                        keybindings=NocaseDict(k2='v2'),
-                        namespace='n2'),
-                ),
+                        keybindings=[
+                            ('k2', 'v2'),
+                        ],
+                        namespace='n2')),
+                ],
                 namespace=u'n1',
                 host=None),
             'standard',
@@ -2590,19 +2731,19 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             "double nested reference to int key (association to association)",
             dict(
                 classname=u'C1',
-                keybindings=NocaseDict(
-                    k1=CIMInstanceName(
+                keybindings=[
+                    ('k1', CIMInstanceName(
                         classname='C2',
-                        keybindings=NocaseDict(
-                            k2=CIMInstanceName(
+                        keybindings=[
+                            ('k2', CIMInstanceName(
                                 classname='C3',
-                                keybindings=NocaseDict(
-                                    k3=3
-                                ),
-                                namespace='n3'),
-                        ),
-                        namespace='n2'),
-                ),
+                                keybindings=[
+                                    ('k3', 3),
+                                ],
+                                namespace='n3')),
+                        ],
+                        namespace='n2')),
+                ],
                 namespace=u'n1',
                 host=None),
             'standard',
@@ -2614,19 +2755,19 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             "association)",
             dict(
                 classname=u'C1',
-                keybindings=NocaseDict(
-                    k1=CIMInstanceName(
+                keybindings=[
+                    ('k1', CIMInstanceName(
                         classname='C2',
-                        keybindings=NocaseDict(
-                            k2=CIMInstanceName(
+                        keybindings=[
+                            ('k2', CIMInstanceName(
                                 classname='C3',
-                                keybindings=NocaseDict(
-                                    k3='v3'
-                                ),
-                                namespace='n3'),
-                        ),
-                        namespace='n2'),
-                ),
+                                keybindings=[
+                                    ('k3', 'v3'),
+                                ],
+                                namespace='n3')),
+                        ],
+                        namespace='n2')),
+                ],
                 namespace=u'n1',
                 host=None),
             'standard',
@@ -2737,8 +2878,8 @@ class Test_CIMInstance_init(object):
         # pylint: disable=unused-argument
         """Test position of arguments in CIMInstance.__init__()."""
 
-        properties = dict(P1=CIMProperty('P1', value=True))
-        qualifiers = dict(Q1=CIMQualifier('Q1', value=True))
+        properties = [CIMProperty('P1', value=True)]
+        qualifiers = [CIMQualifier('Q1', value=True)]
         path = CIMInstanceName('CIM_Foo')
 
         if CHECK_0_12_0:
@@ -2777,6 +2918,8 @@ class Test_CIMInstance_init(object):
         # * exp_attrs: Dict of expected attributes of resulting object.
         # * exp_warn_type: Expected warning type.
         # * condition: Condition for testcase to run.
+
+        # Classname tests
         (
             "Verify that classname None is accepted (before 0.12)",
             dict(classname=None),
@@ -2795,6 +2938,62 @@ class Test_CIMInstance_init(object):
             dict(classname=u'CIM_Foo'),
             None, True
         ),
+
+        # Properties tests
+        (
+            "Verify properties order preservation with list of CIMProperty",
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    CIMProperty('P1', value='Ham'),
+                    CIMProperty('P2', value='Cheese'),
+                ]
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                properties=NocaseDict([
+                    ('P1', CIMProperty('P1', value='Ham')),
+                    ('P2', CIMProperty('P2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify properties order preservation with OrderedDict",
+            dict(
+                classname='CIM_Foo',
+                properties=OrderedDict([
+                    ('P1', CIMProperty('P1', value='Ham')),
+                    ('P2', CIMProperty('P2', value='Cheese')),
+                ])
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                properties=NocaseDict([
+                    ('P1', CIMProperty('P1', value='Ham')),
+                    ('P2', CIMProperty('P2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify properties order preservation with list of tuple(key,val)",
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    ('P1', CIMProperty('P1', value='Ham')),
+                    ('P2', CIMProperty('P2', value='Cheese')),
+                ]
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                properties=NocaseDict([
+                    ('P1', CIMProperty('P1', value='Ham')),
+                    ('P2', CIMProperty('P2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
         (
             "Verify property with binary string value",
             dict(
@@ -2802,8 +3001,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=b'Ham')),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', value=u'Ham'))),
+                properties=NocaseDict([
+                    CIMProperty('P1', value=u'Ham'),
+                ])),
             None, True
         ),
         (
@@ -2813,8 +3013,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=u'H\u00E4m')),  # lower case a umlaut
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', value=u'H\u00E4m'))),
+                properties=NocaseDict([
+                    CIMProperty('P1', value=u'H\u00E4m'),
+                ])),
             None, True
         ),
         (
@@ -2824,8 +3025,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=True)),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', value=True))),
+                properties=NocaseDict([
+                    CIMProperty('P1', value=True),
+                ])),
             None, True
         ),
         (
@@ -2835,8 +3037,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=False)),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', value=False))),
+                properties=NocaseDict([
+                    CIMProperty('P1', value=False),
+                ])),
             None, True
         ),
         (
@@ -2846,8 +3049,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=Uint8(42))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', type='uint8', value=Uint8(42)))),
+                properties=NocaseDict([
+                    CIMProperty('P1', type='uint8', value=Uint8(42)),
+                ])),
             None, True
         ),
         (
@@ -2857,8 +3061,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=Uint16(4216))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', type='uint16', value=Uint16(4216)))),
+                properties=NocaseDict([
+                    CIMProperty('P1', type='uint16', value=Uint16(4216)),
+                ])),
             None, True
         ),
         (
@@ -2868,8 +3073,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=Uint32(4232))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', type='uint32', value=Uint32(4232)))),
+                properties=NocaseDict([
+                    CIMProperty('P1', type='uint32', value=Uint32(4232)),
+                ])),
             None, True
         ),
         (
@@ -2879,8 +3085,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=Uint64(4264))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', type='uint64', value=Uint64(4264)))),
+                properties=NocaseDict([
+                    CIMProperty('P1', type='uint64', value=Uint64(4264)),
+                ])),
             None, True
         ),
         (
@@ -2890,8 +3097,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=Sint8(-42))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', type='sint8', value=Sint8(-42)))),
+                properties=NocaseDict([
+                    CIMProperty('P1', type='sint8', value=Sint8(-42)),
+                ])),
             None, True
         ),
         (
@@ -2901,8 +3109,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=Sint16(-4216))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', type='sint16', value=Sint16(-4216)))),
+                properties=NocaseDict([
+                    CIMProperty('P1', type='sint16', value=Sint16(-4216)),
+                ])),
             None, True
         ),
         (
@@ -2912,8 +3121,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=Sint32(-4232))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', type='sint32', value=Sint32(-4232)))),
+                properties=NocaseDict([
+                    CIMProperty('P1', type='sint32', value=Sint32(-4232)),
+                ])),
             None, True
         ),
         (
@@ -2923,8 +3133,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=Sint64(-4264))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', type='sint64', value=Sint64(-4264)))),
+                properties=NocaseDict([
+                    CIMProperty('P1', type='sint64', value=Sint64(-4264)),
+                ])),
             None, True
         ),
         (
@@ -2934,8 +3145,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=Real32(-42.32))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', type='real32', value=Real32(-42.32)))),
+                properties=NocaseDict([
+                    CIMProperty('P1', type='real32', value=Real32(-42.32)),
+                ])),
             None, True
         ),
         (
@@ -2945,8 +3157,9 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=Real64(-42.64))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', type='real64', value=Real64(-42.64)))),
+                properties=NocaseDict([
+                    CIMProperty('P1', type='real64', value=Real64(-42.64)),
+                ])),
             None, True
         ),
         (
@@ -2959,10 +3172,11 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=datetime(2014, 9, 22, 10, 49, 20, 524789))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty(
+                properties=NocaseDict([
+                    CIMProperty(
                         'P1', type='datetime',
-                        value=datetime(2014, 9, 22, 10, 49, 20, 524789)))),
+                        value=datetime(2014, 9, 22, 10, 49, 20, 524789)),
+                ])),
             None, True
         ),
         (
@@ -2975,10 +3189,11 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=timedelta(10, 49, 20))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty(
+                properties=NocaseDict([
+                    CIMProperty(
                         'P1', type='datetime',
-                        value=timedelta(10, 49, 20)))),
+                        value=timedelta(10, 49, 20)),
+                ])),
             None, True
         ),
         (
@@ -2990,8 +3205,98 @@ class Test_CIMInstance_init(object):
                 properties=dict(P1=CIMProperty('P1', value='Ham'))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', value=u'Ham'))),
+                properties=NocaseDict([
+                    CIMProperty('P1', value=u'Ham'),
+                ])),
+            None, True
+        ),
+        (
+            "Verify two properties in same order",
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    CIMProperty('P1', value='Ham'),
+                    CIMProperty('P2', value=True),
+                ]),
+            dict(
+                classname=u'CIM_Foo',
+                properties=NocaseDict([
+                    CIMProperty('P1', value='Ham'),
+                    CIMProperty('P2', value=True),
+                ])),
+            None, True
+        ),
+        (
+            "Verify that equality of instances does not depend on order of "
+            "properties",
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    CIMProperty('P1', value='Ham'),
+                    CIMProperty('P2', value=True),
+                ]),
+            dict(
+                classname=u'CIM_Foo',
+                properties=NocaseDict([
+                    CIMProperty('P2', value=True),
+                    CIMProperty('P1', value='Ham'),
+                ])),
+            None, True
+        ),
+
+        # Qualifiers tests
+        (
+            "Verify qualifiers order preservation with list of CIMQualifier",
+            dict(
+                classname='CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q1', value='Ham'),
+                    CIMQualifier('Q2', value='Cheese'),
+                ]
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                qualifiers=NocaseDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify qualifiers order preservation with OrderedDict",
+            dict(
+                classname='CIM_Foo',
+                qualifiers=OrderedDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                qualifiers=NocaseDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify qualifiers order preservation with list of tuple(key,val)",
+            dict(
+                classname='CIM_Foo',
+                qualifiers=[
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ]
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                qualifiers=NocaseDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
             None, True
         ),
         (
@@ -3000,25 +3305,49 @@ class Test_CIMInstance_init(object):
             # CIMQualifier objects is tested in CIMQualifier testcases.
             dict(
                 classname='CIM_Foo',
-                qualifiers=dict(Q1=CIMQualifier('Q1', value='Ham'))),
+                qualifiers=[CIMQualifier('Q1', value='Ham')]),
             dict(
                 classname=u'CIM_Foo',
-                qualifiers=NocaseDict(
-                    Q1=CIMQualifier('Q1', value=u'Ham'))),
+                qualifiers=NocaseDict([
+                    CIMQualifier('Q1', value=u'Ham'),
+                ])),
             None, True
         ),
+        (
+            "Verify that equality of instances does not depend on order of "
+            "qualifiers",
+            dict(
+                classname='CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q1', value='Ham'),
+                    CIMQualifier('Q2', value=True),
+                ]),
+            dict(
+                classname=u'CIM_Foo',
+                qualifiers=NocaseDict([
+                    CIMQualifier('Q2', value=True),
+                    CIMQualifier('Q1', value=u'Ham'),
+                ])),
+            None, True
+        ),
+
+        # Path tests
         (
             "Verify path without corresponding key property",
             dict(
                 classname='CIM_Foo',
                 path=CIMInstanceName(
                     classname='CIM_Foo',
-                    keybindings=dict(K1='Key1'))),
+                    keybindings=dict(K1='Key1')
+                )),
             dict(
                 classname=u'CIM_Foo',
                 path=CIMInstanceName(
                     classname='CIM_Foo',
-                    keybindings=dict(K1='Key1'))),
+                    keybindings=NocaseDict([
+                        ('K1', 'Key1'),
+                    ])
+                )),
             None, True
         ),
         (
@@ -3034,13 +3363,19 @@ class Test_CIMInstance_init(object):
                     keybindings=dict(K1='Key1'))),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    K1=CIMProperty('K1', value='Ham')),
+                properties=NocaseDict([
+                    CIMProperty('K1', value='Ham'),
+                ]),
                 path=CIMInstanceName(
                     classname='CIM_Foo',
-                    keybindings=dict(K1='Ham'))),  # has been updated
+                    keybindings=NocaseDict([
+                        ('K1', 'Ham'),  # keybinding value has been updated
+                    ])
+                )),
             None, True
         ),
+
+        # Property_list tests
         (
             "Verify that using property_list issues DeprecationWarning",
             dict(
@@ -3059,9 +3394,10 @@ class Test_CIMInstance_init(object):
                 property_list=['P1', 'P2']),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', type='string', value='v1'),
-                    P2=CIMProperty('P2', type='string', value='v2')),
+                properties=NocaseDict([
+                    CIMProperty('P1', type='string', value='v1'),
+                    CIMProperty('P2', type='string', value='v2'),
+                ]),
                 property_list=['p1', 'p2']),
             DeprecationWarning if CHECK_0_12_0 else None, True
         ),
@@ -3074,9 +3410,10 @@ class Test_CIMInstance_init(object):
                 property_list=['P2']),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', type='string', value='v1'),
-                    P2=CIMProperty('P2', type='string', value='v2')),
+                properties=NocaseDict([
+                    CIMProperty('P1', type='string', value='v1'),
+                    CIMProperty('P2', type='string', value='v2'),
+                ]),
                 property_list=['p2']),
             DeprecationWarning if CHECK_0_12_0 else None, True
         ),
@@ -3092,12 +3429,16 @@ class Test_CIMInstance_init(object):
                 property_list=['P2', 'K3']),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P2=CIMProperty('P2', type='string', value='v2'),
-                    K3=CIMProperty('K3', type='string', value='v3')),
+                properties=NocaseDict([
+                    CIMProperty('P2', type='string', value='v2'),
+                    CIMProperty('K3', type='string', value='v3'),
+                ]),
                 path=CIMInstanceName(
                     classname='CIM_Foo',
-                    keybindings=dict(K3='v3')),
+                    keybindings=NocaseDict([
+                        ('K3', 'v3'),
+                    ]),
+                ),
                 property_list=['p2', 'k3']),
             DeprecationWarning if CHECK_0_12_0 else None, True
         ),
@@ -3106,20 +3447,25 @@ class Test_CIMInstance_init(object):
             "ignored when a path is set with that property as a keybinding",
             dict(
                 classname='CIM_Foo',
-                properties=dict(P1='v1', P2='v2', K3='v3'),
+                properties=OrderedDict([('P1', 'v1'), ('P2', 'v2'),
+                                        ('K3', 'v3')]),
                 path=CIMInstanceName(
                     classname='CIM_Foo',
                     keybindings=dict(K3='v3')),
                 property_list=['P1', 'P2']),
             dict(
                 classname=u'CIM_Foo',
-                properties=NocaseDict(
-                    P1=CIMProperty('P1', type='string', value='v1'),
-                    P2=CIMProperty('P2', type='string', value='v2'),
-                    K3=CIMProperty('K3', type='string', value='v3')),
+                properties=NocaseDict([
+                    CIMProperty('P1', type='string', value='v1'),
+                    CIMProperty('P2', type='string', value='v2'),
+                    CIMProperty('K3', type='string', value='v3'),
+                ]),
                 path=CIMInstanceName(
                     classname='CIM_Foo',
-                    keybindings=dict(K3='v3')),
+                    keybindings=NocaseDict([
+                        ('K3', 'v3'),
+                    ])
+                ),
                 property_list=['p1', 'p2']),
             DeprecationWarning if CHECK_0_12_0 else None, True
         ),
@@ -3478,6 +3824,38 @@ class CIMInstanceEquality(unittest.TestCase):
         self.assertNotEqual(CIMInstance('CIM_Foo', {'Cheepy': 'Birds'}),
                             CIMInstance('CIM_Foo', {'cheepy': 'birds'}))
 
+        # Properties should compare order-insensitively
+
+        self.assertEqual(
+            CIMInstance(
+                'CIM_Foo',
+                properties=[
+                    ('Cheepy', 'Birds'),
+                    ('Creepy', 'Ants'),
+                ]),
+            CIMInstance(
+                'CIM_Foo',
+                properties=[
+                    ('Cheepy', 'Birds'),
+                    ('Creepy', 'Ants'),
+                ]),
+        )
+
+        self.assertEqual(
+            CIMInstance(
+                'CIM_Foo',
+                properties=[
+                    ('Cheepy', 'Birds'),
+                    ('Creepy', 'Ants'),
+                ]),
+            CIMInstance(
+                'CIM_Foo',
+                properties=[
+                    ('Creepy', 'Ants'),
+                    ('Cheepy', 'Birds'),
+                ]),
+        )
+
         # Qualifiers
 
         self.assertNotEqual(CIMInstance('CIM_Foo'),
@@ -3485,6 +3863,38 @@ class CIMInstanceEquality(unittest.TestCase):
                                         qualifiers={'Key':
                                                     CIMQualifier('Key',
                                                                  True)}))
+
+        # Qualifiers should compare order-insensitively
+
+        self.assertEqual(
+            CIMInstance(
+                'CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+            CIMInstance(
+                'CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+        )
+
+        self.assertEqual(
+            CIMInstance(
+                'CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+            CIMInstance(
+                'CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q2', 'Ants'),
+                    CIMQualifier('Q1', 'Birds'),
+                ]),
+        )
 
         # Path
 
@@ -4200,9 +4610,9 @@ class Test_CIMInstance_tomof(object):
             "all components",
             CIMInstance(
                 classname='C1',
-                properties=dict(
-                    p1=CIMProperty('p1', value=None, type='string'),
-                ),
+                properties=[
+                    CIMProperty('p1', value=None, type='string'),
+                ],
             ),
             """\
 instance of C1 {
@@ -4221,9 +4631,9 @@ instance of C1 {
             "Instance with NULL value on string property",
             CIMInstance(
                 classname='C1',
-                properties=dict(
-                    p1=CIMProperty('p1', value=None, type='string'),
-                ),
+                properties=[
+                    CIMProperty('p1', value=None, type='string'),
+                ],
             ),
             """\
 instance of C1 {
@@ -4242,9 +4652,9 @@ instance of C1 {
             "Instance with string property",
             CIMInstance(
                 classname='C1',
-                properties=dict(
-                    p1=CIMProperty('p1', value='abc'),
-                ),
+                properties=[
+                    CIMProperty('p1', value='abc'),
+                ],
             ),
             """\
 instance of C1 {
@@ -4263,9 +4673,9 @@ instance of C1 {
             "Instance with uint8 property",
             CIMInstance(
                 classname='C1',
-                properties=dict(
-                    p1=CIMProperty('p1', value=Uint8(7)),
-                ),
+                properties=[
+                    CIMProperty('p1', value=Uint8(7)),
+                ],
             ),
             """\
 instance of C1 {
@@ -4284,9 +4694,9 @@ instance of C1 {
             "Instance with sint8 array property",
             CIMInstance(
                 classname='C1',
-                properties=dict(
-                    p1=CIMProperty('p1', value=[Sint8(-1), Sint8(5)]),
-                ),
+                properties=[
+                    CIMProperty('p1', value=[Sint8(-1), Sint8(5)]),
+                ],
             ),
             """\
 instance of C1 {
@@ -4305,18 +4715,18 @@ instance of C1 {
             "Instance with embedded instance property having one key",
             CIMInstance(
                 classname='C1',
-                properties=dict(
-                    p1=CIMProperty(
+                properties=[
+                    CIMProperty(
                         'p1',
                         value=CIMInstance(
                             classname='EC',
-                            properties=dict(
-                                e1='abc',
-                            ),
+                            properties=[
+                                ('e1', 'abc'),
+                            ],
                         ),
                         embedded_object='instance',
                     ),
-                ),
+                ],
             ),
             """\
 instance of C1 {
@@ -4335,20 +4745,21 @@ instance of C1 {
             "Instance with embedded instance property having multiple keys",
             CIMInstance(
                 classname='C1',
-                properties=dict(
-                    p1=CIMProperty(
+                properties=[
+                    CIMProperty(
                         'p1',
                         value=CIMInstance(
                             classname='EC',
-                            properties=dict(
-                                e1='abc',
-                                e2=Uint32(42),
-                                e3=CIMDateTime('19980125133015.123456-300'),
-                            ),
+                            properties=[
+                                ('e1', 'abc'),
+                                ('e2', Uint32(42)),
+                                ('e3',
+                                 CIMDateTime('19980125133015.123456-300')),
+                            ],
                         ),
                         embedded_object='instance',
                     ),
-                ),
+                ],
             ),
             """\
 instance of C1 {
@@ -4363,18 +4774,18 @@ instance of C1 {
             "Instance with embedded instance property as EmbeddedObject",
             CIMInstance(
                 classname='C1',
-                properties=dict(
-                    p1=CIMProperty(
+                properties=[
+                    CIMProperty(
                         'p1',
                         value=CIMInstance(
                             classname='EC',
-                            properties=dict(
-                                e1='abc',
-                            ),
+                            properties=[
+                                ('e1', 'abc'),
+                            ],
                         ),
                         embedded_object='object',
                     ),
-                ),
+                ],
             ),
             """\
 instance of C1 {
@@ -4393,22 +4804,22 @@ instance of C1 {
             "Instance with embedded class property as EmbeddedObject",
             CIMInstance(
                 classname='C1',
-                properties=dict(
-                    p1=CIMProperty(
+                properties=[
+                    CIMProperty(
                         'p1',
                         value=CIMClass(
                             classname='EC',
-                            properties=dict(
-                                e1=CIMProperty(
+                            properties=[
+                                CIMProperty(
                                     'e1',
                                     value=None,
                                     type='uint32',
                                 ),
-                            ),
+                            ],
                         ),
                         embedded_object='object',
                     ),
-                ),
+                ],
             ),
             """\
 instance of C1 {
@@ -4427,18 +4838,18 @@ instance of C1 {
             "Instance with reference property",
             CIMInstance(
                 classname='C1',
-                properties=dict(
-                    p1=CIMProperty(
+                properties=[
+                    CIMProperty(
                         'p1',
                         value=CIMInstanceName(
                             classname='RC',
-                            keybindings=dict(
-                                k1="abc",
-                            ),
+                            keybindings=[
+                                ('k1', "abc"),
+                            ],
                         ),
                         reference_class='RC',
                     ),
-                ),
+                ],
             ),
             """\
 instance of C1 {
@@ -4742,6 +5153,7 @@ class Test_CIMProperty_init(object):
         # * exp_warn_type: Expected warning type.
         # * condition: Condition for testcase to run.
 
+        # Name tests
         (
             "Verify that binary name is converted to unicode",
             dict(name=b'FooProp', value=u'abc'),
@@ -4755,7 +5167,7 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Initialization to CIM string type
+        # Value/type tests: Initialization to CIM string type
         (
             "Verify binary string without type",
             dict(name=u'FooProp', value=b'abc'),
@@ -4787,7 +5199,7 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Initialization to CIM integer types
+        # Value/type tests: Initialization to CIM integer types
         (
             "Verify Uint8 value without type",
             dict(name=u'FooProp', value=Uint8(32)),
@@ -4933,7 +5345,7 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Initialization to CIM float types
+        # Value/type tests: Initialization to CIM float types
         (
             "Verify Real32 value without type",
             dict(name=u'FooProp', value=Real32(32.0)),
@@ -4971,7 +5383,7 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Initialization to CIM boolean type
+        # Value/type tests: Initialization to CIM boolean type
         (
             "Verify bool value True without type",
             dict(name=u'FooProp', value=True),
@@ -5003,7 +5415,7 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Initialization to CIM datetime type
+        # Value/type tests: Initialization to CIM datetime type
         (
             "Verify timedelta interval value without type (since 0.8.1)",
             dict(name=u'FooProp', value=timedelta_1),
@@ -5079,7 +5491,7 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Initialization to CIM reference type
+        # Value/type/reference_class tests: Initialization to CIM ref type
         (
             "Verify that reference_class None is permitted for reference type",
             dict(name=u'FooProp', value=None, type='reference',
@@ -5136,7 +5548,8 @@ class Test_CIMProperty_init(object):
             None, CHECK_0_12_0
         ),
 
-        # Initialization to CIM embedded object (instance or class)
+        # Value/type/embedded_object tests: Initialization to CIM embedded
+        # object (instance or class)
         (
             "Verify that type string for value None is implied from "
             "embedded_object (since 0.8.1 and before 0.12)",
@@ -5204,7 +5617,8 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Initialization to CIM embedded instance
+        # Value/type/embedded_object tests: Initialization to CIM embedded
+        # instance
         (
             "Verify that value CIMInstance implies type and embedded_object",
             dict(name=u'FooProp', value=emb_instance_1),
@@ -5239,7 +5653,8 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Array tests with different is_array and array_size
+        # Is_array/array_size tests: Array tests with different is_array and
+        # array_size
         (
             "Verify that is_array 42 is converted to bool (since 0.12)",
             dict(name=u'FooProp', value=[u'abc'], type=u'string',
@@ -5290,7 +5705,8 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Initialization to arrays of CIM string and numeric types
+        # Value/type tests with arrays: Initialization to arrays of CIM string
+        # and numeric types
         (
             "Verify that value None is permitted for string array",
             dict(name=u'FooProp', value=None, type=u'string', is_array=True),
@@ -5370,7 +5786,8 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Initialization to arrays of CIM boolean type
+        # Value/type tests with arrays: Initialization to arrays of CIM boolean
+        # type
         (
             "Verify that is_array is implied from value empty list",
             dict(name=u'FooProp', value=[], type=u'boolean'),
@@ -5408,7 +5825,8 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Initialization to arrays of CIM datetime type
+        # Value/type tests with arrays: Initialization to arrays of CIM
+        # datetime type
         (
             "Verify that type datetime and is_array are implied from value "
             "list(timedelta) (since 0.8.1)",
@@ -5487,7 +5905,8 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Initialization to arrays of CIM embedded objects (class and inst)
+        # Value/type/embedded_object tests with arrays: Initialization to
+        # arrays of CIM embedded objects (class and inst)
         (
             "Verify that is_array and type string are implied from "
             "embedded_object, for value list(None) (since 0.8.1 and "
@@ -5579,7 +5998,8 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Initialization to arrays of CIM embedded instances
+        # Value/type/embedded_object tests with arrays: Initialization to
+        # arrays of CIM embedded instances
         (
             "Verify that is_array, type and embedded_object are implied from "
             "value list(CIMInstance)",
@@ -5701,7 +6121,61 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
-        # Qualifiers
+        # Qualifiers tests
+        (
+            "Verify qualifiers order preservation with list of CIMQualifier",
+            dict(
+                name='Prop1', value=None, type='string',
+                qualifiers=[
+                    CIMQualifier('Q1', value='Ham'),
+                    CIMQualifier('Q2', value='Cheese'),
+                ]
+            ),
+            dict(
+                name=u'Prop1', value=None, type=u'string',
+                qualifiers=NocaseDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify qualifiers order preservation with OrderedDict",
+            dict(
+                name='Prop1', value=None, type='string',
+                qualifiers=OrderedDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
+            dict(
+                name=u'Prop1', value=None, type=u'string',
+                qualifiers=NocaseDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify qualifiers order preservation with list of tuple(key,val)",
+            dict(
+                name='Prop1', value=None, type='string',
+                qualifiers=[
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ]
+            ),
+            dict(
+                name=u'Prop1', value=None, type=u'string',
+                qualifiers=NocaseDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
         (
             "Verify that qualifiers dict is converted to NocaseDict",
             dict(name=u'FooProp', value=u'abc', type=u'string',
@@ -5711,7 +6185,16 @@ class Test_CIMProperty_init(object):
             None, True
         ),
         (
-            "Verify that qualifiers as NocaseDict is permitted",
+            "Verify that qualifiers as list of CIMQualifier objects is "
+            "converted to NocaseDict",
+            dict(name=u'FooProp', value=u'abc', type=u'string',
+                 qualifiers=[qualifier_Q1]),
+            dict(name=u'FooProp', value=u'abc', type=u'string',
+                 qualifiers=NocaseDict(Q1=qualifier_Q1)),
+            None, True
+        ),
+        (
+            "Verify that qualifiers as NocaseDict stays NocaseDict",
             dict(name=u'FooProp', value=u'abc', type=u'string',
                  qualifiers=NocaseDict(Q1=qualifier_Q1)),
             dict(name=u'FooProp', value=u'abc', type=u'string',
@@ -6112,6 +6595,38 @@ class CIMPropertyEquality(unittest.TestCase):
         with pytest.raises(TypeError):
             # pylint: disable=expression-not-assigned
             CIMProperty('Foo', Uint8(42)) == 42
+
+        # Qualifiers should compare order-insensitively
+
+        self.assertEqual(
+            CIMProperty(
+                'Foo', value='abc',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+            CIMProperty(
+                'Foo', value='abc',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+        )
+
+        self.assertEqual(
+            CIMProperty(
+                'Foo', value='abc',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+            CIMProperty(
+                'Foo', value='abc',
+                qualifiers=[
+                    CIMQualifier('Q2', 'Ants'),
+                    CIMQualifier('Q1', 'Birds'),
+                ]),
+        )
 
 
 class CIMPropertyCompare(unittest.TestCase):
@@ -6812,10 +7327,10 @@ class Test_CIMProperty_tomof(object):
                 name='P1',
                 value="abc",
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value='abc', type='string'),
-                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value='abc', type='string'),
+                    CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ],
             ),
             False, 12,
             u"""\
@@ -6852,9 +7367,9 @@ class Test_CIMProperty_tomof(object):
                 name='P1',
                 value=None,
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value='abc', type='string'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value='abc', type='string'),
+                ],
             ),
             False, 12,
             u"""\
@@ -6873,10 +7388,10 @@ class Test_CIMProperty_tomof(object):
                 name='P1',
                 value=None,
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
-                                    type='string'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
+                                 type='string'),
+                ],
             ),
             False, 12,
             u"""\
@@ -6899,10 +7414,10 @@ class Test_CIMProperty_tomof(object):
                 name='P1',
                 value=None,
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value='abc', type='string'),
-                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value='abc', type='string'),
+                    CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ],
             ),
             False, 12,
             u"""\
@@ -6923,12 +7438,12 @@ class Test_CIMProperty_tomof(object):
                 name='P1',
                 value=None,
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
-                                    type='string'),
-                    Q2=CIMQualifier('Q2', value=('rst uvw ' * 10 + 'z'),
-                                    type='string'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
+                                 type='string'),
+                    CIMQualifier('Q2', value=('rst uvw ' * 10 + 'z'),
+                                 type='string'),
+                ],
             ),
             False, 12,
             u"""\
@@ -6957,9 +7472,9 @@ class Test_CIMProperty_tomof(object):
                 name='P1',
                 value=None,
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value=['abc', 'def'], type='string'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value=['abc', 'def'], type='string'),
+                ],
             ),
             False, 12,
             u"""\
@@ -6978,12 +7493,12 @@ class Test_CIMProperty_tomof(object):
                 name='P1',
                 value=None,
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier(
+                qualifiers=[
+                    CIMQualifier(
                         'Q1',
                         value=['abcdef%02d' % i for i in range(0, 10)],
                         type='string'),
-                ),
+                ],
             ),
             False, 12,
             u"""\
@@ -7006,13 +7521,13 @@ class Test_CIMProperty_tomof(object):
                 name='P1',
                 value=None,
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier(
+                qualifiers=[
+                    CIMQualifier(
                         'Q1',
                         value=['abc def ' * 10 + 'z%02d' % i
                                for i in range(0, 2)],
                         type='string'),
-                ),
+                ],
             ),
             False, 12,
             u"""\
@@ -7191,10 +7706,10 @@ class Test_CIMProperty_tomof(object):
                 type='string',
                 is_array=True,
                 array_size=5,
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value='abc', type='string'),
-                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value='abc', type='string'),
+                    CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ],
             ),
             True, 12,
             u"""\
@@ -7473,6 +7988,8 @@ class Test_CIMQualifier_init(object):
         # * exp_attrs: Dict of expected attributes of resulting object.
         # * exp_warn_type: Expected warning type.
         # * condition: Condition for testcase to run.
+
+        # Name tests
         (
             "Verify that name can be None although documented otherwise "
             "(before 0.12)",
@@ -7492,6 +8009,8 @@ class Test_CIMQualifier_init(object):
             dict(name=u'FooParam', value=u'abc', type=exp_type_string),
             None, True
         ),
+
+        # Value/type tests
         (
             "Verify that binary value is converted to unicode and "
             "type is implied to string",
@@ -7595,6 +8114,8 @@ class Test_CIMQualifier_init(object):
                  toinstance=False, translatable=False),
             None, CHECK_0_12_0
         ),
+
+        # Check documented examples
         (
             "Verify documented example 1",
             dict(name='MyString', value=u'abc'),
@@ -8607,6 +9128,8 @@ class Test_CIMClassName_init(object):
         # * exp_attrs: Dict of expected attributes of resulting object.
         # * exp_warn_type: Expected warning type.
         # * condition: Condition for testcase to run.
+
+        # Classname tests
         (
             "Verify that binary classname is converted to unicode",
             dict(classname=b'CIM_Foo'),
@@ -8619,6 +9142,8 @@ class Test_CIMClassName_init(object):
             dict(classname=u'CIM_Foo'),
             None, True
         ),
+
+        # Namespace tests
         (
             "Verify that binary namespace is converted to unicode",
             dict(
@@ -8639,6 +9164,8 @@ class Test_CIMClassName_init(object):
                 namespace=u'root/cimv2'),
             None, True
         ),
+
+        # Host tests
         (
             "Verify that binary host is converted to unicode",
             dict(
@@ -9716,6 +10243,8 @@ class Test_CIMClass_init(object):
         # * exp_attrs: Dict of expected attributes of resulting object.
         # * exp_warn_type: Expected warning type.
         # * condition: Condition for testcase to run.
+
+        # Classname tests
         (
             "Verify that classname None is accepted (before 0.12)",
             dict(classname=None),
@@ -9734,6 +10263,8 @@ class Test_CIMClass_init(object):
             dict(classname=u'CIM_Foo'),
             None, True
         ),
+
+        # Superclass tests
         (
             "Verify that binary superclass is converted to unicode",
             dict(classname=u'CIM_Foo', superclass=b'CIM_Foo'),
@@ -9744,6 +10275,62 @@ class Test_CIMClass_init(object):
             "Verify that unicode superclass remains unicode",
             dict(classname=u'CIM_Foo', superclass=u'CIM_Foo'),
             dict(classname=u'CIM_Foo', superclass=u'CIM_Foo'),
+            None, True
+        ),
+
+        # Properties tests
+        (
+            "Verify properties order preservation with list of CIMProperty",
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    CIMProperty('P1', value='Ham'),
+                    CIMProperty('P2', value='Cheese'),
+                ]
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                properties=NocaseDict([
+                    ('P1', CIMProperty('P1', value='Ham')),
+                    ('P2', CIMProperty('P2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify properties order preservation with OrderedDict",
+            dict(
+                classname='CIM_Foo',
+                properties=OrderedDict([
+                    ('P1', CIMProperty('P1', value='Ham')),
+                    ('P2', CIMProperty('P2', value='Cheese')),
+                ])
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                properties=NocaseDict([
+                    ('P1', CIMProperty('P1', value='Ham')),
+                    ('P2', CIMProperty('P2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify properties order preservation with list of tuple(key,val)",
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    ('P1', CIMProperty('P1', value='Ham')),
+                    ('P2', CIMProperty('P2', value='Cheese')),
+                ]
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                properties=NocaseDict([
+                    ('P1', CIMProperty('P1', value='Ham')),
+                    ('P2', CIMProperty('P2', value='Cheese')),
+                ])
+            ),
             None, True
         ),
         (
@@ -9761,10 +10348,122 @@ class Test_CIMClass_init(object):
                  properties=NocaseDict(P1=property_P1.value)),
             None, not CHECK_0_12_0
         ),
+
+        # Methods tests
+        (
+            "Verify methods order preservation with list of CIMMethod",
+            dict(
+                classname='CIM_Foo',
+                methods=[
+                    CIMMethod('M1', return_type='string'),
+                    CIMMethod('M2', return_type='uint32'),
+                ]
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                methods=NocaseDict([
+                    ('M1', CIMMethod('M1', return_type='string')),
+                    ('M2', CIMMethod('M2', return_type='uint32')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify methods order preservation with OrderedDict",
+            dict(
+                classname='CIM_Foo',
+                methods=OrderedDict([
+                    ('M1', CIMMethod('M1', return_type='string')),
+                    ('M2', CIMMethod('M2', return_type='uint32')),
+                ])
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                methods=NocaseDict([
+                    ('M1', CIMMethod('M1', return_type='string')),
+                    ('M2', CIMMethod('M2', return_type='uint32')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify methods order preservation with list of tuple(key,val)",
+            dict(
+                classname='CIM_Foo',
+                methods=[
+                    ('M1', CIMMethod('M1', return_type='string')),
+                    ('M2', CIMMethod('M2', return_type='uint32')),
+                ]
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                methods=NocaseDict([
+                    ('M1', CIMMethod('M1', return_type='string')),
+                    ('M2', CIMMethod('M2', return_type='uint32')),
+                ])
+            ),
+            None, True
+        ),
         (
             "Verify that methods dict is converted to NocaseDict",
             dict(classname=u'CIM_Foo', methods=dict(M1=method_M1)),
             dict(classname=u'CIM_Foo', methods=NocaseDict(M1=method_M1)),
+            None, True
+        ),
+
+        # Qualifiers tests
+        (
+            "Verify qualifiers order preservation with list of CIMQualifier",
+            dict(
+                classname='CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q1', value='Ham'),
+                    CIMQualifier('Q2', value='Cheese'),
+                ]
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                qualifiers=NocaseDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify qualifiers order preservation with OrderedDict",
+            dict(
+                classname='CIM_Foo',
+                qualifiers=OrderedDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                qualifiers=NocaseDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify qualifiers order preservation with list of tuple(key,val)",
+            dict(
+                classname='CIM_Foo',
+                qualifiers=[
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ]
+            ),
+            dict(
+                classname=u'CIM_Foo',
+                qualifiers=NocaseDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
             None, True
         ),
         (
@@ -9791,6 +10490,8 @@ class Test_CIMClass_init(object):
                  qualifiers=NocaseDict(Q1=qualifier_Q1)),
             None, CHECK_0_12_0
         ),
+
+        # Path tests
         (
             "Verify that CIMClassName path is accepted",
             dict(classname=u'CIM_Foo', path=classpath_1),
@@ -10169,6 +10870,102 @@ class CIMClassEquality(unittest.TestCase):
         with pytest.raises(TypeError):
             # pylint: disable=expression-not-assigned
             CIMClass('CIM_Foo') == CIMClassName('CIM_Foo')
+
+        # Properties should compare order-insensitively
+
+        self.assertEqual(
+            CIMClass(
+                'CIM_Foo',
+                properties=[
+                    CIMProperty('Cheepy', value='Birds'),
+                    CIMProperty('Creepy', value='Ants'),
+                ]),
+            CIMClass(
+                'CIM_Foo',
+                properties=[
+                    CIMProperty('Cheepy', value='Birds'),
+                    CIMProperty('Creepy', value='Ants'),
+                ]),
+        )
+
+        self.assertEqual(
+            CIMClass(
+                'CIM_Foo',
+                properties=[
+                    CIMProperty('Cheepy', value='Birds'),
+                    CIMProperty('Creepy', value='Ants'),
+                ]),
+            CIMClass(
+                'CIM_Foo',
+                properties=[
+                    CIMProperty('Creepy', value='Ants'),
+                    CIMProperty('Cheepy', value='Birds'),
+                ]),
+        )
+
+        # Methods should compare order-insensitively
+
+        self.assertEqual(
+            CIMClass(
+                'CIM_Foo',
+                methods=[
+                    CIMMethod('Cheepy', return_type='string'),
+                    CIMMethod('Creepy', return_type='uint32'),
+                ]),
+            CIMClass(
+                'CIM_Foo',
+                methods=[
+                    CIMMethod('Cheepy', return_type='string'),
+                    CIMMethod('Creepy', return_type='uint32'),
+                ]),
+        )
+
+        self.assertEqual(
+            CIMClass(
+                'CIM_Foo',
+                methods=[
+                    CIMMethod('Cheepy', return_type='string'),
+                    CIMMethod('Creepy', return_type='uint32'),
+                ]),
+            CIMClass(
+                'CIM_Foo',
+                methods=[
+                    CIMMethod('Creepy', return_type='uint32'),
+                    CIMMethod('Cheepy', return_type='string'),
+                ]),
+        )
+
+        # Qualifiers should compare order-insensitively
+
+        self.assertEqual(
+            CIMClass(
+                'CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+            CIMClass(
+                'CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+        )
+
+        self.assertEqual(
+            CIMClass(
+                'CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+            CIMClass(
+                'CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q2', 'Ants'),
+                    CIMQualifier('Q1', 'Birds'),
+                ]),
+        )
 
 
 class CIMClassCompare(unittest.TestCase):
@@ -10673,16 +11470,18 @@ class Test_CIMClass_str(object):
         (
             CIMClass(
                 classname='CIM_Foo',
-                properties=dict(
-                    Name=CIMProperty('Name', 'string'),
-                    Ref1=CIMProperty('Ref1', 'reference')))
+                properties=[
+                    CIMProperty('Name', 'string'),
+                    CIMProperty('Ref1', 'reference'),
+                ])
         ),
         (
             CIMClass(
                 classname='CIM_Foo',
-                properties=dict(
-                    Name=CIMProperty('Name', 'string'),
-                    Ref1=CIMProperty('Ref1', 'reference')),
+                properties=[
+                    CIMProperty('Name', 'string'),
+                    CIMProperty('Ref1', 'reference'),
+                ],
                 path=classpath_1)
         ),
     ]
@@ -10719,16 +11518,18 @@ class Test_CIMClass_repr(object):
         (
             CIMClass(
                 classname='CIM_Foo',
-                properties=dict(
-                    Name=CIMProperty('Name', 'string'),
-                    Ref1=CIMProperty('Ref1', 'reference')))
+                properties=[
+                    CIMProperty('Name', 'string'),
+                    CIMProperty('Ref1', 'reference'),
+                ])
         ),
         (
             CIMClass(
                 classname='CIM_Foo',
-                properties=dict(
-                    Name=CIMProperty('Name', 'string'),
-                    Ref1=CIMProperty('Ref1', 'reference')),
+                properties=[
+                    CIMProperty('Name', 'string'),
+                    CIMProperty('Ref1', 'reference'),
+                ],
                 path=classpath_1)
         ),
     ]
@@ -10811,34 +11612,34 @@ class Test_CIMClass_tomof(object):
             CIMClass(
                 classname=u'C1',
                 superclass=u'C2',
-                properties=NocaseDict(
-                    p2=CIMProperty(
-                        'p2', value='abc', type='string',
-                        qualifiers=NocaseDict(
-                            q2=CIMQualifier('q2', value="qv2", type='string'),
-                        ),
+                properties=[
+                    CIMProperty(
+                        'p2', value="abc", type='string',
+                        qualifiers=[
+                            CIMQualifier('q2', value="qv2", type='string'),
+                        ],
                     ),
-                ),
-                methods=NocaseDict(
-                    m3=CIMMethod(
+                ],
+                methods=[
+                    CIMMethod(
                         'm3', return_type='uint32',
-                        qualifiers=NocaseDict(
-                            q3=CIMQualifier('q3', value="qv3", type='string'),
-                        ),
-                        parameters=NocaseDict(
-                            p4=CIMParameter(
+                        qualifiers=[
+                            CIMQualifier('q3', value="qv3", type='string'),
+                        ],
+                        parameters=[
+                            CIMParameter(
                                 'p4', type='string',
-                                qualifiers=NocaseDict(
-                                    q4=CIMQualifier('q4', value="qv4",
-                                                    type='string'),
-                                ),
+                                qualifiers=[
+                                    CIMQualifier('q4', value="qv4",
+                                                 type='string'),
+                                ],
                             ),
-                        ),
+                        ],
                     ),
-                ),
-                qualifiers=NocaseDict(
-                    q1=CIMQualifier('q1', value="qv1", type='string'),
-                ),
+                ],
+                qualifiers=[
+                    CIMQualifier('q1', value="qv1", type='string'),
+                ],
                 path=None
             ),
             """\
@@ -10875,24 +11676,24 @@ class C1 : C2 {
             "class with embedded instance property with a default value",
             CIMClass(
                 classname=u'C1',
-                properties=NocaseDict(
-                    p1=CIMProperty(
+                properties=[
+                    CIMProperty(
                         'p1',
                         value=CIMInstance(
                             classname='CE',
-                            properties=dict(
-                                emb1=CIMProperty('emb1', value='abc'),
-                                emb2=CIMProperty('emb2', value=Sint32(-1024)),
-                                emb3=CIMProperty('emb3', value=True),
-                            ),
+                            properties=[
+                                CIMProperty('emb1', value='abc'),
+                                CIMProperty('emb2', value=Sint32(-1024)),
+                                CIMProperty('emb3', value=True),
+                            ],
                         ),
                         type='string',
-                        qualifiers=NocaseDict(
-                            EmbeddedInstance=CIMQualifier(
-                                'EmbeddedInstance', value="CE", type='string'),
-                        ),
+                        qualifiers=[
+                            CIMQualifier('EmbeddedInstance', value="CE",
+                                         type='string'),
+                        ],
                     ),
-                ),
+                ],
             ),
             # pylint: disable=line-too-long
             u"""\
@@ -10911,22 +11712,22 @@ class C1 {
             "class with reference property with a multi-line default value",
             CIMClass(
                 classname=u'C1',
-                properties=NocaseDict(
-                    p1=CIMProperty(
+                properties=[
+                    CIMProperty(
                         'p1',
                         value=CIMInstanceName(
                             host='some.long.host.name:5989',
                             namespace='root/cimv2',
                             classname='CIM_ReferencedClass',
-                            keybindings=dict(
-                                k1='key1',
-                                k2='key2',
-                            ),
+                            keybindings=[
+                                ('k1', 'key1'),
+                                ('k2', 'key2'),
+                            ],
                         ),
                         type='reference',
                         reference_class='CIM_ReferencedClass',
                     ),
-                ),
+                ],
             ),
             u"""\
 class C1 {
@@ -11077,6 +11878,8 @@ class Test_CIMMethod_init(object):
         # * exp_attrs: Dict of expected attributes of resulting object.
         # * exp_warn_type: Expected warning type.
         # * condition: Condition for testcase to run.
+
+        # Name tests
         (
             "Verify that binary name and return type are converted to unicode",
             dict(name=b'FooMethod', return_type=b'string'),
@@ -11089,12 +11892,124 @@ class Test_CIMMethod_init(object):
             dict(name=u'FooMethod', return_type=u'string'),
             None, True
         ),
+
+        # Parameters tests
+        (
+            "Verify parameters order preservation with list of CIMParameter",
+            dict(
+                name='Meth1', return_type='string',
+                parameters=[
+                    CIMParameter('P1', type='string'),
+                    CIMParameter('P2', type='uint32'),
+                ]
+            ),
+            dict(
+                name=u'Meth1', return_type=u'string',
+                parameters=NocaseDict([
+                    ('P1', CIMParameter('P1', type='string')),
+                    ('P2', CIMParameter('P2', type='uint32')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify parameters order preservation with OrderedDict",
+            dict(
+                name='Meth1', return_type='string',
+                parameters=OrderedDict([
+                    ('P1', CIMParameter('P1', type='string')),
+                    ('P2', CIMParameter('P2', type='uint32')),
+                ])
+            ),
+            dict(
+                name=u'Meth1', return_type=u'string',
+                parameters=NocaseDict([
+                    ('P1', CIMParameter('P1', type='string')),
+                    ('P2', CIMParameter('P2', type='uint32')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify parameters order preservation with list of tuple(key,val)",
+            dict(
+                name='Meth1', return_type='string',
+                parameters=[
+                    ('P1', CIMParameter('P1', type='string')),
+                    ('P2', CIMParameter('P2', type='uint32')),
+                ]
+            ),
+            dict(
+                name=u'Meth1', return_type=u'string',
+                parameters=NocaseDict([
+                    ('P1', CIMParameter('P1', type='string')),
+                    ('P2', CIMParameter('P2', type='uint32')),
+                ])
+            ),
+            None, True
+        ),
         (
             "Verify that parameters dict is converted to NocaseDict",
             dict(name=u'FooMethod', return_type=u'string',
                  parameters=dict(P1=parameter_P1)),
             dict(name=u'FooMethod', return_type=u'string',
                  parameters=NocaseDict(P1=parameter_P1)),
+            None, True
+        ),
+
+        # Qualifiers tests
+        (
+            "Verify qualifiers order preservation with list of CIMQualifier",
+            dict(
+                name='Meth1', return_type='string',
+                qualifiers=[
+                    CIMQualifier('Q1', value='Ham'),
+                    CIMQualifier('Q2', value='Cheese'),
+                ]
+            ),
+            dict(
+                name=u'Meth1', return_type=u'string',
+                qualifiers=NocaseDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify qualifiers order preservation with OrderedDict",
+            dict(
+                name='Meth1', return_type='string',
+                qualifiers=OrderedDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
+            dict(
+                name=u'Meth1', return_type=u'string',
+                qualifiers=NocaseDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
+            None, True
+        ),
+        (
+            "Verify qualifiers order preservation with list of tuple(key,val)",
+            dict(
+                name='Meth1', return_type='string',
+                qualifiers=[
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ]
+            ),
+            dict(
+                name=u'Meth1', return_type=u'string',
+                qualifiers=NocaseDict([
+                    ('Q1', CIMQualifier('Q1', value='Ham')),
+                    ('Q2', CIMQualifier('Q2', value='Cheese')),
+                ])
+            ),
             None, True
         ),
         (
@@ -11379,6 +12294,70 @@ class CIMMethodEquality(unittest.TestCase):
         with pytest.raises(TypeError):
             # pylint: disable=expression-not-assigned
             CIMMethod('FooMethod', 'uint32') == 'FooMethod'
+
+        # Parameters should compare order-insensitively
+
+        self.assertEqual(
+            CIMMethod(
+                'FooMethod', return_type='string',
+                parameters=[
+                    CIMParameter('Cheepy', type='string'),
+                    CIMParameter('Creepy', type='uint32'),
+                ]),
+            CIMMethod(
+                'FooMethod', return_type='string',
+                parameters=[
+                    CIMParameter('Cheepy', type='string'),
+                    CIMParameter('Creepy', type='uint32'),
+                ]),
+        )
+
+        self.assertEqual(
+            CIMMethod(
+                'FooMethod', return_type='string',
+                parameters=[
+                    CIMParameter('Cheepy', type='string'),
+                    CIMParameter('Creepy', type='uint32'),
+                ]),
+            CIMMethod(
+                'FooMethod', return_type='string',
+                parameters=[
+                    CIMParameter('Creepy', type='uint32'),
+                    CIMParameter('Cheepy', type='string'),
+                ]),
+        )
+
+        # Qualifiers should compare order-insensitively
+
+        self.assertEqual(
+            CIMMethod(
+                'FooMethod', return_type='string',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+            CIMMethod(
+                'FooMethod', return_type='string',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+        )
+
+        self.assertEqual(
+            CIMMethod(
+                'FooMethod', return_type='string',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+            CIMMethod(
+                'FooMethod', return_type='string',
+                qualifiers=[
+                    CIMQualifier('Q2', 'Ants'),
+                    CIMQualifier('Q1', 'Birds'),
+                ]),
+        )
 
 
 class CIMMethodCompare(unittest.TestCase):
@@ -11885,20 +12864,19 @@ class Test_CIMMethod_tomof(object):
             CIMMethod(
                 name='M1',
                 return_type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value='abc', type='string'),
-                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
-                ),
-                parameters=NocaseDict(
-                    P1=CIMParameter(
+                qualifiers=[
+                    CIMQualifier('Q1', value='abc', type='string'),
+                    CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ],
+                parameters=[
+                    CIMParameter(
                         'P1', type='string',
-                        qualifiers=NocaseDict(
-                            Q3=CIMQualifier('Q3', value="def", type='string'),
-                            Q4=CIMQualifier('Q4', value=Sint32(-3),
-                                            type='sint32'),
-                        ),
+                        qualifiers=[
+                            CIMQualifier('Q3', value="def", type='string'),
+                            CIMQualifier('Q4', value=Sint32(-3), type='sint32'),
+                        ],
                     ),
-                ),
+                ],
             ),
             12,
             u"""\
@@ -11934,9 +12912,9 @@ class Test_CIMMethod_tomof(object):
             CIMMethod(
                 name='M1',
                 return_type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value='abc', type='string'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value='abc', type='string'),
+                ],
             ),
             12,
             u"""\
@@ -11953,10 +12931,10 @@ class Test_CIMMethod_tomof(object):
             CIMMethod(
                 name='M1',
                 return_type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
-                                    type='string'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
+                                 type='string'),
+                ],
             ),
             12,
             u"""\
@@ -11977,10 +12955,10 @@ class Test_CIMMethod_tomof(object):
             CIMMethod(
                 name='M1',
                 return_type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value='abc', type='string'),
-                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value='abc', type='string'),
+                    CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ],
             ),
             12,
             u"""\
@@ -11999,12 +12977,12 @@ class Test_CIMMethod_tomof(object):
             CIMMethod(
                 name='M1',
                 return_type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
-                                    type='string'),
-                    Q2=CIMQualifier('Q2', value=('rst uvw ' * 10 + 'z'),
-                                    type='string'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
+                                 type='string'),
+                    CIMQualifier('Q2', value=('rst uvw ' * 10 + 'z'),
+                                 type='string'),
+                ],
             ),
             12,
             u"""\
@@ -12031,9 +13009,9 @@ class Test_CIMMethod_tomof(object):
             CIMMethod(
                 name='M1',
                 return_type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value=['abc', 'def'], type='string'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value=['abc', 'def'], type='string'),
+                ],
             ),
             12,
             u"""\
@@ -12050,12 +13028,12 @@ class Test_CIMMethod_tomof(object):
             CIMMethod(
                 name='M1',
                 return_type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier(
+                qualifiers=[
+                    CIMQualifier(
                         'Q1',
                         value=['abcdef%02d' % i for i in range(0, 10)],
                         type='string'),
-                ),
+                ],
             ),
             12,
             u"""\
@@ -12076,13 +13054,13 @@ class Test_CIMMethod_tomof(object):
             CIMMethod(
                 name='M1',
                 return_type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier(
+                qualifiers=[
+                    CIMQualifier(
                         'Q1',
                         value=['abc def ' * 10 + 'z%02d' % i
                                for i in range(0, 2)],
                         type='string'),
-                ),
+                ],
             ),
             12,
             u"""\
@@ -12107,10 +13085,10 @@ class Test_CIMMethod_tomof(object):
             CIMMethod(
                 name='M1',
                 return_type='string',
-                parameters=NocaseDict(
-                    P1=CIMParameter('P1', type='string'),
-                    P2=CIMParameter('P2', type='string'),
-                ),
+                parameters=[
+                    CIMParameter('P1', type='string'),
+                    CIMParameter('P2', type='string'),
+                ],
             ),
             12,
             u"""\
@@ -12124,9 +13102,9 @@ class Test_CIMMethod_tomof(object):
             CIMMethod(
                 name='M1',
                 return_type='uint32',
-                parameters=NocaseDict(
-                    P1=CIMParameter('P1', type='sint32'),
-                ),
+                parameters=[
+                    CIMParameter('P1', type='sint32'),
+                ],
             ),
             12,
             u"""\
@@ -12725,6 +13703,38 @@ class CIMParameterEquality(unittest.TestCase):
             # pylint: disable=expression-not-assigned
             CIMParameter('Param1', 'uint32') == 'Param1'
 
+        # Qualifiers should compare order-insensitively
+
+        self.assertEqual(
+            CIMParameter(
+                'Param1', type='string',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+            CIMParameter(
+                'Param1', type='string',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+        )
+
+        self.assertEqual(
+            CIMParameter(
+                'Param1', type='string',
+                qualifiers=[
+                    CIMQualifier('Q1', 'Birds'),
+                    CIMQualifier('Q2', 'Ants'),
+                ]),
+            CIMParameter(
+                'Param1', type='string',
+                qualifiers=[
+                    CIMQualifier('Q2', 'Ants'),
+                    CIMQualifier('Q1', 'Birds'),
+                ]),
+        )
+
 
 class CIMParameterCompare(unittest.TestCase):
 
@@ -13236,10 +14246,10 @@ class Test_CIMParameter_tomof(object):
                 reference_class=None,
                 is_array=True,
                 array_size=5,
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value='abc', type='string'),
-                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value='abc', type='string'),
+                    CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ],
             ),
             12,
             u"""\
@@ -13269,9 +14279,9 @@ class Test_CIMParameter_tomof(object):
             CIMParameter(
                 name='P1',
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value='abc', type='string'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value='abc', type='string'),
+                ],
             ),
             12,
             u"""\
@@ -13288,10 +14298,10 @@ class Test_CIMParameter_tomof(object):
             CIMParameter(
                 name='P1',
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
-                                    type='string'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
+                                 type='string'),
+                ],
             ),
             12,
             u"""\
@@ -13312,10 +14322,10 @@ class Test_CIMParameter_tomof(object):
             CIMParameter(
                 name='P1',
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value='abc', type='string'),
-                    Q2=CIMQualifier('Q2', value=Uint32(42), type='uint32'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value='abc', type='string'),
+                    CIMQualifier('Q2', value=Uint32(42), type='uint32'),
+                ],
             ),
             12,
             u"""\
@@ -13334,12 +14344,12 @@ class Test_CIMParameter_tomof(object):
             CIMParameter(
                 name='P1',
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
-                                    type='string'),
-                    Q2=CIMQualifier('Q2', value=('rst uvw ' * 10 + 'z'),
-                                    type='string'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value=('abc def ' * 10 + 'z'),
+                                 type='string'),
+                    CIMQualifier('Q2', value=('rst uvw ' * 10 + 'z'),
+                                 type='string'),
+                ],
             ),
             12,
             u"""\
@@ -13366,9 +14376,9 @@ class Test_CIMParameter_tomof(object):
             CIMParameter(
                 name='P1',
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier('Q1', value=['abc', 'def'], type='string'),
-                ),
+                qualifiers=[
+                    CIMQualifier('Q1', value=['abc', 'def'], type='string'),
+                ],
             ),
             12,
             u"""\
@@ -13385,12 +14395,12 @@ class Test_CIMParameter_tomof(object):
             CIMParameter(
                 name='P1',
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier(
+                qualifiers=[
+                    CIMQualifier(
                         'Q1',
                         value=['abcdef%02d' % i for i in range(0, 10)],
                         type='string'),
-                ),
+                ],
             ),
             12,
             u"""\
@@ -13411,13 +14421,13 @@ class Test_CIMParameter_tomof(object):
             CIMParameter(
                 name='P1',
                 type='string',
-                qualifiers=dict(
-                    Q1=CIMQualifier(
+                qualifiers=[
+                    CIMQualifier(
                         'Q1',
                         value=['abc def ' * 10 + 'z%02d' % i
                                for i in range(0, 2)],
                         type='string'),
-                ),
+                ],
             ),
             12,
             u"""\
@@ -13637,6 +14647,8 @@ class Test_CIMQualifierDeclaration_init(object):
         # * exp_attrs: Dict of expected attributes of resulting object.
         # * exp_warn_type: Expected warning type.
         # * condition: Condition for testcase to run.
+
+        # Name/type tests
         (
             "Verify that name can be None although documented otherwise "
             "(before 0.12)",
@@ -13644,6 +14656,8 @@ class Test_CIMQualifierDeclaration_init(object):
             dict(name=None, type=u'string'),
             None, not CHECK_0_12_0
         ),
+
+        # Type tests
         (
             "Verify that type can be None although documented otherwise "
             "(before 0.12)",
@@ -13663,6 +14677,8 @@ class Test_CIMQualifierDeclaration_init(object):
             dict(name=u'FooQual', type=u'string'),
             None, True
         ),
+
+        # Type tests with arrays
         (
             "Verify that is_array int 42 is converted to bool True",
             dict(
@@ -13752,6 +14768,8 @@ class Test_CIMQualifierDeclaration_init(object):
                 array_size=42),
             None, CHECK_0_12_0
         ),
+
+        # Scopes tests
         (
             "Verify that scopes dict is converted to NocaseDict",
             dict(
@@ -13764,6 +14782,8 @@ class Test_CIMQualifierDeclaration_init(object):
                 scopes=NocaseDict(scopes1)),
             None, CHECK_0_12_0
         ),
+
+        # Overridable tests
         (
             "Verify that overridable int 42 is converted to bool True",
             dict(
@@ -13812,6 +14832,8 @@ class Test_CIMQualifierDeclaration_init(object):
                 overridable=False),
             None, True
         ),
+
+        # Tosubclass tests
         (
             "Verify that tosubclass int 42 is converted to bool True",
             dict(
@@ -13860,6 +14882,8 @@ class Test_CIMQualifierDeclaration_init(object):
                 tosubclass=False),
             None, True
         ),
+
+        # Toinstance tests
         (
             "Verify that toinstance int 42 is converted to bool True",
             dict(
@@ -13908,6 +14932,8 @@ class Test_CIMQualifierDeclaration_init(object):
                 toinstance=False),
             None, True
         ),
+
+        # Translatable tests
         (
             "Verify that translatable int 42 is converted to bool True",
             dict(
@@ -14114,7 +15140,12 @@ class CIMQualifierDeclarationCopy(unittest.TestCase):
         c = qd.copy()
         self.assertEqual(qd, c)
 
-        scopes = {'CLASS': False, 'ANY': False, 'ASSOCIATION': False}
+        scopes = NocaseDict([
+            ('CLASS', False),
+            ('ANY', False),
+            ('ASSOCIATION', False),
+        ])
+
         qd = CIMQualifierDeclaration('FooQualDecl', 'string', is_array=True,
                                      array_size=4, scopes=scopes,
                                      overridable=True, tosubclass=True,
@@ -14162,7 +15193,12 @@ class CIMQualifierDeclarationEquality(unittest.TestCase):
             CIMQualifierDeclaration('FooQualDecl1', 'uint32'),
             CIMQualifierDeclaration('FooQualDecl2', 'uint32'))
 
-        scopes = {'CLASS': False, 'ANY': False, 'ASSOCIATION': False}
+        scopes = NocaseDict([
+            ('CLASS', False),
+            ('ANY', False),
+            ('ASSOCIATION', False),
+        ])
+
         self.assertEqual(
             CIMQualifierDeclaration('FooQualDecl', 'string', is_array=True,
                                     array_size=4, scopes=scopes,
@@ -14735,7 +15771,8 @@ class Test_CIMQualifierDeclaration_tomof(object):
                 is_array=True,
                 array_size=5,
                 value=["abc"],
-                scopes=dict(PROPERTY=True, METHOD=True, PARAMETER=True),
+                scopes=[('PROPERTY', True), ('METHOD', True),
+                        ('PARAMETER', True)],
                 overridable=True,
                 tosubclass=True,
                 toinstance=True,
@@ -14940,9 +15977,10 @@ Qualifier Q1 : string,
             CIMQualifierDeclaration(
                 name='Q1',
                 type='string',
-                scopes=dict(CLASS=True, ASSOCIATION=True, INDICATION=True,
-                            PROPERTY=True, REFERENCE=True, METHOD=True,
-                            PARAMETER=True),
+                scopes=[('CLASS', True), ('ASSOCIATION', True),
+                        ('INDICATION', True), ('PROPERTY', True),
+                        ('REFERENCE', True), ('METHOD', True),
+                        ('PARAMETER', True)],
             ),
             # pylint: disable=line-too-long
             u"""\

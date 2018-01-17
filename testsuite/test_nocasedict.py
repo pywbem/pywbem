@@ -116,9 +116,18 @@ class BaseTest(unittest.TestCase):
     """
     def setUp(self):
         """unittest setUp creates NoCaseDict"""
+
         self.dic = NocaseDict()
         self.dic['Dog'] = 'Cat'
         self.dic['Budgie'] = 'Fish'
+
+        self.order_tuples = (
+            ('Dog', 'Cat'),
+            ('Budgie', 'Fish'),
+            ('Ham', 'Jam'),
+            ('Sofi', 'Blue'),
+            ('Gabi', 'Red'),
+        )
 
 
 class TestGetitem(BaseTest):
@@ -673,6 +682,7 @@ class TestContains(BaseTest):
 
 class TestForLoop(BaseTest):
     """Class for test for loop with dictionary"""
+
     def test_all(self):
         """Test method for TestForLoop"""
         keys = set()
@@ -680,15 +690,40 @@ class TestForLoop(BaseTest):
             keys.add(key)
         self.assertEqual(keys, set(['Budgie', 'Dog']))
 
+    def test_order_preservation(self):
+        """Test order preservation of for loop on dict"""
+        dic = NocaseDict()
+        for key, value in self.order_tuples:
+            dic[key] = value
+        i = 0
+        for key in dic:
+            item = (key, dic[key])
+            exp_item = self.order_tuples[i]
+            self.assertEqual(item, exp_item)
+            i += 1
+
 
 class TestIterkeys(BaseTest):
     """Class for iterkeys test"""
+
     def test_all(self):
         """iterkeys test method"""
         keys = set()
         for key in self.dic.iterkeys():
             keys.add(key)
         self.assertEqual(keys, set(['Budgie', 'Dog']))
+
+    def test_order_preservation(self):
+        """Test order preservation of iterkeys()"""
+        dic = NocaseDict()
+        for key, value in self.order_tuples:
+            dic[key] = value
+        i = 0
+        for key in dic.iterkeys():
+            item = (key, dic[key])
+            exp_item = self.order_tuples[i]
+            self.assertEqual(item, exp_item)
+            i += 1
 
 
 class TestItervalues(BaseTest):
@@ -700,9 +735,21 @@ class TestItervalues(BaseTest):
             vals.add(val)
         self.assertEqual(vals, set(['Cat', 'Fish']))
 
+    def test_order_preservation(self):
+        """Test order preservation of itervalues()"""
+        dic = NocaseDict()
+        for key, value in self.order_tuples:
+            dic[key] = value
+        i = 0
+        for value in dic.itervalues():
+            exp_value = self.order_tuples[i][1]
+            self.assertEqual(value, exp_value)
+            i += 1
+
 
 class TestIteritems(BaseTest):
     """Class to test iteritems for dict"""
+
     def test_all(self):
         """Method for test iteritems for dict"""
         items = set()
@@ -710,22 +757,34 @@ class TestIteritems(BaseTest):
             items.add(item)
         self.assertEqual(items, set([('Budgie', 'Fish'), ('Dog', 'Cat')]))
 
+    def test_order_preservation(self):
+        """Test order preservation of iteritems()"""
+        dic = NocaseDict()
+        for key, value in self.order_tuples:
+            dic[key] = value
+        i = 0
+        for item in dic.iteritems():
+            exp_item = self.order_tuples[i]
+            self.assertEqual(item, exp_item)
+            i += 1
+
 
 class TestRepr(unittest.TestCase):
     """Class to test repr functionality for NocaseDict"""
+
     def test_reliable_order(self):
-        """Test that repr() has a reliable result despite different orders of
-        insertion into the dictionary."""
+        """Test that repr() has a reliable result for two dicts with the same
+        insertion order."""
 
         dic1 = NocaseDict()
         dic1['Budgie'] = 'Fish'
-        dic1['Dog'] = 'Cat'
         dic1['Foo'] = 'Bla'
+        dic1['Dog'] = 'Cat'
 
         dic2 = NocaseDict()
+        dic2['Budgie'] = 'Fish'
         dic2['Foo'] = 'Bla'
         dic2['Dog'] = 'Cat'
-        dic2['Budgie'] = 'Fish'
 
         self.assertEqual(repr(dic1), repr(dic2))
 

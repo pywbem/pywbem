@@ -19,6 +19,10 @@ from io import open as _open
 import yaml
 import six
 from testfixtures import LogCapture, log_capture
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 from pywbem import CIMInstanceName, CIMInstance, MinutesFromUTC, \
     Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
@@ -63,24 +67,24 @@ class BaseRecorderTests(unittest.TestCase):
                       second=40, microsecond=654321,
                       tzinfo=MinutesFromUTC(120))
         cim_dt = CIMDateTime(dt)
-        props_input = {
-            'S1': b'Ham',
-            'Bool': True,
-            'UI8': Uint8(42),
-            'UI16': Uint16(4216),
-            'UI32': Uint32(4232),
-            'UI64': Uint64(4264),
-            'SI8': Sint8(-42),
-            'SI16': Sint16(-4216),
-            'SI32': Sint32(-4232),
-            'SI64': Sint64(-4264),
-            'R32': Real32(42.0),
-            'R64': Real64(42.64),
-            'DTI': CIMDateTime(timedelta(10, 49, 20)),
-            'DTF': cim_dt,
-            'DTP': CIMDateTime(datetime(2014, 9, 22, 10, 49, 20, 524789,
-                                        tzinfo=TZ())),
-        }
+        props_input = OrderedDict([
+            ('S1', b'Ham'),
+            ('Bool', True),
+            ('UI8', Uint8(42)),
+            ('UI16', Uint16(4216)),
+            ('UI32', Uint32(4232)),
+            ('UI64', Uint64(4264)),
+            ('SI8', Sint8(-42)),
+            ('SI16', Sint16(-4216)),
+            ('SI32', Sint32(-4232)),
+            ('SI64', Sint64(-4264)),
+            ('R32', Real32(42.0)),
+            ('R64', Real64(42.64)),
+            ('DTI', CIMDateTime(timedelta(10, 49, 20))),
+            ('DTF', cim_dt),
+            ('DTP', CIMDateTime(datetime(2014, 9, 22, 10, 49, 20, 524789,
+                                         tzinfo=TZ()))),
+        ])
         # TODO python 2.7 will not write the following unicode character
         # For the moment, only add this property in python 3 test
         if six.PY3:
@@ -90,7 +94,7 @@ class BaseRecorderTests(unittest.TestCase):
         return inst
 
     def create_ciminstancename(self):
-        kb = {'Chicken': 'Ham'}
+        kb = [('Chicken', 'Ham')]
         obj_name = CIMInstanceName('CIM_Foo',
                                    kb,
                                    namespace='root/cimv2',
@@ -192,15 +196,17 @@ class ToYaml(ClientRecorderTests):
         """Test  property with array toyaml"""
         str_data = "The pink fox jumped over the big blue dog"
         dt = datetime(2014, 9, 22, 10, 49, 20, 524789)
-        array_props = {'MyString': str_data,
-                       'MyUint8Array': [Uint8(1), Uint8(2)],
-                       'MySint8Array': [Sint8(1), Sint8(2)],
-                       'MyUint64Array': [Uint64(123456789),
-                                         Uint64(123456789),
-                                         Uint64(123456789)],
-                       'MyUint32Array': [Uint32(9999), Uint32(9999)],
-                       'MyDateTimeArray': [dt, dt, dt],
-                       'MyStrLongArray': [str_data, str_data, str_data]}
+        array_props = [
+            ('MyString', str_data),
+            ('MyUint8Array', [Uint8(1), Uint8(2)]),
+            ('MySint8Array', [Sint8(1), Sint8(2)]),
+            ('MyUint64Array', [Uint64(123456789),
+                               Uint64(123456789),
+                               Uint64(123456789)]),
+            ('MyUint32Array', [Uint32(9999), Uint32(9999)]),
+            ('MyDateTimeArray', [dt, dt, dt]),
+            ('MyStrLongArray', [str_data, str_data, str_data]),
+        ]
         inst = CIMInstance('CIM_FooArray', array_props)
         test_yaml = self.test_recorder.toyaml(inst)
 
@@ -498,130 +504,151 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
 # Long log entry for getInstance return all log
 get_inst_return_all_log = (
     u"Return:test_id GetInstance(CIMInstance(classname='CIM_Foo', path=None, "
-    u"properties=NocaseDict({'Bool': CIMProperty(name='Bool', value=True, "
-    u"type='boolean', reference_class=None, embedded_object=None, "
-    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'DTF': CIMProperty(name='DTF', "
-    u"value=CIMDateTime(cimtype='datetime', '20160331193040.654321+120'), "
-    u"type='datetime', reference_class=None, embedded_object=None, "
-    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'DTI': CIMProperty(name='DTI', "
-    u"value=CIMDateTime(cimtype='datetime', '00000010000049.000020:000'), "
-    u"type='datetime', reference_class=None, embedded_object=None, "
-    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'DTP': CIMProperty(name='DTP', "
-    u"value=CIMDateTime(cimtype='datetime', '20140922104920.524789-399'), "
-    u"type='datetime', reference_class=None, embedded_object=None, "
-    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'R32': CIMProperty(name='R32', "
-    u"value=Real32(cimtype='real32', 42.0), type='real32', "
+    u"properties=NocaseDict(["
+    u"('S1', CIMProperty(name='S1', value='Ham', type='string', "
     u"reference_class=None, embedded_object=None, is_array=False, "
     u"array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'R64': CIMProperty(name='R64', "
-    u"value=Real64(cimtype='real64', 42.64), type='real64', "
+    u"qualifiers=NocaseDict([]))), "
+    u"('Bool', CIMProperty(name='Bool', value=True, type='boolean', "
     u"reference_class=None, embedded_object=None, is_array=False, "
     u"array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'S1': CIMProperty(name='S1', value='Ham', "
-    u"type='string', reference_class=None, embedded_object=None, "
-    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'S2': CIMProperty(name='S2', value='H\u00E4m'"
-    u", type='string', reference_class=None, embedded_object=None, "
-    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'SI16': CIMProperty(name='SI16', "
-    u"value=Sint16(cimtype='sint16', minvalue=-32768, maxvalue=32767, -4216), "
-    u"type='sint16', reference_class=None, embedded_object=None, "
-    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'SI32': CIMProperty(name='SI32', "
-    u"value=Sint32(cimtype='sint32', minvalue=-2147483648, "
-    u"maxvalue=2147483647, -4232), type='sint32', reference_class=None, "
+    u"qualifiers=NocaseDict([]))), "
+    u"('UI8', CIMProperty(name='UI8', value=Uint8(cimtype='uint8', "
+    u"minvalue=0, maxvalue=255, 42), type='uint8', reference_class=None, "
     u"embedded_object=None, is_array=False, array_size=None, "
-    u"class_origin=None, propagated=None, qualifiers=NocaseDict({})), 'SI64': "
-    u"CIMProperty(name='SI64', value=Sint64(cimtype='sint64', "
+    u"class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict([]))), "
+    u"('UI16', CIMProperty(name='UI16', value=Uint16(cimtype='uint16', "
+    u"minvalue=0, maxvalue=65535, 4216), type='uint16', "
+    u"reference_class=None, embedded_object=None, is_array=False, "
+    u"array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict([]))), "
+    u"('UI32', CIMProperty(name='UI32', value=Uint32(cimtype='uint32', "
+    u"minvalue=0, maxvalue=4294967295, 4232), type='uint32', "
+    u"reference_class=None, embedded_object=None, is_array=False, "
+    u"array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict([]))), "
+    u"('UI64', CIMProperty(name='UI64', value=Uint64(cimtype='uint64', "
+    u"minvalue=0, maxvalue=18446744073709551615, 4264), type='uint64', "
+    u"reference_class=None, embedded_object=None, is_array=False, "
+    u"array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict([]))), "
+    u"('SI8', CIMProperty(name='SI8', value=Sint8(cimtype='sint8', "
+    u"minvalue=-128, maxvalue=127, -42), type='sint8', reference_class=None, "
+    u"embedded_object=None, is_array=False, array_size=None, "
+    u"class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict([]))), "
+    u"('SI16', CIMProperty(name='SI16', value=Sint16(cimtype='sint16', "
+    u"minvalue=-32768, maxvalue=32767, -4216), type='sint16', "
+    u"reference_class=None, embedded_object=None, is_array=False, "
+    u"array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict([]))), "
+    u"('SI32', CIMProperty(name='SI32', value=Sint32(cimtype='sint32', "
+    u"minvalue=-2147483648, maxvalue=2147483647, -4232), type='sint32', "
+    u"reference_class=None, embedded_object=None, is_array=False, "
+    u"array_size=None, class_origin=None, propagated=None, "
+    u"qualifiers=NocaseDict([]))), "
+    u"('SI64', CIMProperty(name='SI64', value=Sint64(cimtype='sint64', "
     u"minvalue=-9223372036854775808, maxvalue=9223372036854775807, -4264), "
     u"type='sint64', reference_class=None, embedded_object=None, "
     u"is_array=False, array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'SI8': CIMProperty(name='SI8', "
-    u"value=Sint8(cimtype='sint8', minvalue=-128, maxvalue=127, -42), "
-    u"type='sint8', reference_class=None, embedded_object=None, "
+    u"qualifiers=NocaseDict([]))), "
+    u"('R32', CIMProperty(name='R32', value=Real32(cimtype='real32', 42.0), "
+    u"type='real32', reference_class=None, embedded_object=None, "
     u"is_array=False, array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'UI16': CIMProperty(name='UI16', "
-    u"value=Uint16(cimtype='uint16', minvalue=0, maxvalue=65535, 4216), "
-    u"type='uint16', reference_class=None, embedded_object=None, "
+    u"qualifiers=NocaseDict([]))), "
+    u"('R64', CIMProperty(name='R64', value=Real64(cimtype='real64', 42.64), "
+    u"type='real64', reference_class=None, embedded_object=None, "
     u"is_array=False, array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'UI32': CIMProperty(name='UI32', "
-    u"value=Uint32(cimtype='uint32', minvalue=0, maxvalue=4294967295, 4232), "
-    u"type='uint32', reference_class=None, embedded_object=None, "
-    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'UI64': CIMProperty(name='UI64', "
-    u"value=Uint64(cimtype='uint64', minvalue=0, "
-    u"maxvalue=18446744073709551615, 4264), type='uint64', "
+    u"qualifiers=NocaseDict([]))), "
+    u"('DTI', CIMProperty(name='DTI', value=CIMDateTime(cimtype='datetime', "
+    u"'00000010000049.000020:000'), type='datetime', reference_class=None, "
+    u"embedded_object=None, is_array=False, array_size=None, "
+    u"class_origin=None, propagated=None, qualifiers=NocaseDict([]))), "
+    u"('DTF', CIMProperty(name='DTF', value=CIMDateTime(cimtype='datetime', "
+    u"'20160331193040.654321+120'), type='datetime', reference_class=None, "
+    u"embedded_object=None, is_array=False, array_size=None, "
+    u"class_origin=None, propagated=None, qualifiers=NocaseDict([]))), "
+    u"('DTP', CIMProperty(name='DTP', value=CIMDateTime(cimtype='datetime', "
+    u"'20140922104920.524789-399'), type='datetime', reference_class=None, "
+    u"embedded_object=None, is_array=False, array_size=None, "
+    u"class_origin=None, propagated=None, qualifiers=NocaseDict([]))), "
+    u"('S2', CIMProperty(name='S2', value='H\u00E4m', type='string', "
     u"reference_class=None, embedded_object=None, is_array=False, "
     u"array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({})), 'UI8': CIMProperty(name='UI8', "
-    u"value=Uint8(cimtype='uint8', minvalue=0, maxvalue=255, 42), "
-    u"type='uint8', reference_class=None, embedded_object=None, "
-    u"is_array=False, array_size=None, class_origin=None, propagated=None, "
-    u"qualifiers=NocaseDict({}))}), property_list=None, "
-    u"qualifiers=NocaseDict({})))")
+    u"qualifiers=NocaseDict([])))"
+    u"]), property_list=None, qualifiers=NocaseDict([])))")
 
 
 get_inst_return_all_log_PY2 = (
     "Return:test_id GetInstance(CIMInstance(classname=u'CIM_Foo', path=None, "
-    "properties=NocaseDict({'Bool': CIMProperty(name=u'Bool', value=True, "
-    "type=u'boolean', reference_class=None, embedded_object=None, is_array="
-    "False, array_size=None, class_origin=None, propagated=None, qualifiers="
-    "NocaseDict({})), 'DTF': CIMProperty(name=u'DTF', value=CIMDateTime("
-    "cimtype='datetime', '20160331193040.654321+120'), type=u'datetime', "
-    "reference_class=None, embedded_object=None, is_array=False, array_size="
-    "None, class_origin=None, propagated=None, qualifiers=NocaseDict({})), "
-    "'DTI': CIMProperty(name=u'DTI', value=CIMDateTime(cimtype='datetime', "
+    "properties=NocaseDict(["
+    "('S1', CIMProperty(name=u'S1', value=u'Ham', type=u'string', "
+    "reference_class=None, embedded_object=None, is_array=False, "
+    "array_size=None, class_origin=None, propagated=None, "
+    "qualifiers=NocaseDict([]))), "
+    "('Bool', CIMProperty(name=u'Bool', value=True, type=u'boolean', "
+    "reference_class=None, embedded_object=None, is_array=False, "
+    "array_size=None, class_origin=None, propagated=None, "
+    "qualifiers=NocaseDict([]))), "
+    "('UI8', CIMProperty(name=u'UI8', value=Uint8(cimtype='uint8', "
+    "minvalue=0, maxvalue=255, 42), type=u'uint8', reference_class=None, "
+    "embedded_object=None, is_array=False, array_size=None, "
+    "class_origin=None, propagated=None, qualifiers=NocaseDict([]))), "
+    "('UI16', CIMProperty(name=u'UI16', value=Uint16(cimtype='uint16', "
+    "minvalue=0, maxvalue=65535, 4216), type=u'uint16', reference_class=None, "
+    "embedded_object=None, is_array=False, array_size=None, class_origin=None, "
+    "propagated=None, qualifiers=NocaseDict([]))), "
+    "('UI32', CIMProperty(name=u'UI32', value=Uint32(cimtype='uint32', "
+    "minvalue=0, maxvalue=4294967295, 4232), type=u'uint32', "
+    "reference_class=None, embedded_object=None, is_array=False, "
+    "array_size=None, class_origin=None, propagated=None, "
+    "qualifiers=NocaseDict([]))), "
+    "('UI64', CIMProperty(name=u'UI64', value=Uint64(cimtype='uint64', "
+    "minvalue=0, maxvalue=18446744073709551615, 4264), type=u'uint64', "
+    "reference_class=None, embedded_object=None, is_array=False, "
+    "array_size=None, class_origin=None, propagated=None, "
+    "qualifiers=NocaseDict([]))), "
+    "('SI8', CIMProperty(name=u'SI8', value=Sint8(cimtype='sint8', "
+    "minvalue=-128, maxvalue=127, -42), type=u'sint8', reference_class=None, "
+    "embedded_object=None, is_array=False, array_size=None, "
+    "class_origin=None, propagated=None, qualifiers=NocaseDict([]))), "
+    "('SI16', CIMProperty(name=u'SI16', value=Sint16(cimtype='sint16', "
+    "minvalue=-32768, maxvalue=32767, -4216), type=u'sint16', "
+    "reference_class=None, embedded_object=None, is_array=False, "
+    "array_size=None, class_origin=None, propagated=None, "
+    "qualifiers=NocaseDict([]))), "
+    "('SI32', CIMProperty(name=u'SI32', value=Sint32(cimtype='sint32', "
+    "minvalue=-2147483648, maxvalue=2147483647, -4232), type=u'sint32', "
+    "reference_class=None, embedded_object=None, is_array=False, "
+    "array_size=None, class_origin=None, propagated=None, "
+    "qualifiers=NocaseDict([]))), "
+    "('SI64', CIMProperty(name=u'SI64', value=Sint64(cimtype='sint64', "
+    "minvalue=-9223372036854775808, maxvalue=9223372036854775807, -4264), "
+    "type=u'sint64', reference_class=None, embedded_object=None, "
+    "is_array=False, array_size=None, class_origin=None, propagated=None, "
+    "qualifiers=NocaseDict([]))), "
+    "('R32', CIMProperty(name=u'R32', value=Real32(cimtype='real32', 42.0), "
+    "type=u'real32', reference_class=None, embedded_object=None, "
+    "is_array=False, array_size=None, class_origin=None, propagated=None, "
+    "qualifiers=NocaseDict([]))), "
+    "('R64', CIMProperty(name=u'R64', value=Real64(cimtype='real64', 42.64), "
+    "type=u'real64', reference_class=None, embedded_object=None, "
+    "is_array=False, array_size=None, class_origin=None, propagated=None, "
+    "qualifiers=NocaseDict([]))), "
+    "('DTI', CIMProperty(name=u'DTI', value=CIMDateTime(cimtype='datetime', "
     "'00000010000049.000020:000'), type=u'datetime', reference_class=None, "
     "embedded_object=None, is_array=False, array_size=None, class_origin=None,"
-    " propagated=None, qualifiers=NocaseDict({})), 'DTP': CIMProperty(name="
-    "u'DTP', value=CIMDateTime(cimtype='datetime', '20140922104920.524789-399')"
-    ", type=u'datetime', reference_class=None, embedded_object=None, is_array="
-    "False, array_size=None, class_origin=None, propagated=None, qualifiers="
-    "NocaseDict({})), 'R32': CIMProperty(name=u'R32', value=Real32(cimtype="
-    "'real32', 42.0), type=u'real32', reference_class=None, embedded_object="
-    "None, is_array=False, array_size=None, class_origin=None, propagated="
-    "None, qualifiers=NocaseDict({})), 'R64': CIMProperty(name=u'R64', "
-    "value=Real64(cimtype='real64', 42.64), type=u'real64', reference_class="
-    "None, embedded_object=None, is_array=False, array_size=None, "
-    "class_origin=None, propagated=None, qualifiers=NocaseDict({})), 'S1': "
-    "CIMProperty(name=u'S1', value=u'Ham', type=u'string', reference_class=None"
-    ", embedded_object=None, is_array=False, array_size=None, class_origin="
-    "None, propagated=None, qualifiers=NocaseDict({})), 'SI16': CIMProperty("
-    "name=u'SI16', value=Sint16(cimtype='sint16', minvalue=-32768, maxvalue="
-    "32767, -4216), type=u'sint16', reference_class=None, embedded_object=None"
-    ", is_array=False, array_size=None, class_origin=None, propagated=None, "
-    "qualifiers=NocaseDict({})), 'SI32': CIMProperty(name=u'SI32', value="
-    "Sint32(cimtype='sint32', minvalue=-2147483648, maxvalue=2147483647, -4232"
-    "), type=u'sint32', reference_class=None, embedded_object=None, is_array="
-    "False, array_size=None, class_origin=None, propagated=None, qualifiers="
-    "NocaseDict({})), 'SI64': CIMProperty(name=u'SI64', value=Sint64(cimtype="
-    "'sint64', minvalue=-9223372036854775808, maxvalue=9223372036854775807, "
-    "-4264), type=u'sint64', reference_class=None, embedded_object=None, "
-    "is_array=False, array_size=None, class_origin=None, propagated=None, "
-    "qualifiers=NocaseDict({})), 'SI8': CIMProperty(name=u'SI8', value=Sint8("
-    "cimtype='sint8', minvalue=-128, maxvalue=127, -42), type=u'sint8', "
+    " propagated=None, qualifiers=NocaseDict([]))), "
+    "('DTF', CIMProperty(name=u'DTF', value=CIMDateTime("
+    "cimtype='datetime', '20160331193040.654321+120'), type=u'datetime', "
     "reference_class=None, embedded_object=None, is_array=False, array_size="
-    "None, class_origin=None, propagated=None, qualifiers=NocaseDict({})), "
-    "'UI16': CIMProperty(name=u'UI16', value=Uint16(cimtype='uint16', minvalue"
-    "=0, maxvalue=65535, 4216), type=u'uint16', reference_class=None, "
-    "embedded_object=None, is_array=False, array_size=None, class_origin=None,"
-    " propagated=None, qualifiers=NocaseDict({})), 'UI32': CIMProperty("
-    "name=u'UI32', value=Uint32(cimtype='uint32', minvalue=0, maxvalue="
-    "4294967295, 4232), type=u'uint32', reference_class=None, embedded_object"
-    "=None, is_array=False, array_size=None, class_origin=None, propagated="
-    "None, qualifiers=NocaseDict({})), 'UI64': CIMProperty(name=u'UI64', "
-    "value=Uint64(cimtype='uint64', minvalue=0, maxvalue=18446744073709551615"
-    ", 4264), type=u'uint64', reference_class=None, embedded_object=None, "
-    "is_array=False, array_size=None, class_origin=None, propagated=None, "
-    "qualifiers=NocaseDict({})), 'UI8': CIMProperty(name=u'UI8', "
-    "value=Uint8(cimtype='uint8', minvalue=0, maxvalue=255, 42), "
-    "type=u'uint8', reference_class=None, embedded_object=None, is_array=False"
-    ", array_size=None, class_origin=None, propagated=None, qualifiers="
-    "NocaseDict({}))}), property_list=None, qualifiers=NocaseDict({})))")
+    "None, class_origin=None, propagated=None, qualifiers=NocaseDict([]))), "
+    "('DTP', CIMProperty(name=u'DTP', value=CIMDateTime(cimtype='datetime', "
+    "'20140922104920.524789-399'), type=u'datetime', reference_class=None, "
+    "embedded_object=None, is_array=False, array_size=None, "
+    "class_origin=None, propagated=None, qualifiers=NocaseDict([])))"
+    "]), property_list=None, qualifiers=NocaseDict([])))")
 
 
 class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
@@ -734,7 +761,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                  "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
                  "classname=u'CIM_Foo', keybindings=NocaseDict("
-                 "{'Chicken': u'Ham'}), namespace=u'root/cimv2', "
+                 "[('Chicken', u'Ham')]), namespace=u'root/cimv2', "
                  "host=u'woot.com'), LocalOnly=True, "
                  "PropertyList=['propertyblah'])"),)
 
@@ -744,7 +771,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                  'Request:test_id GetInstance(IncludeClassOrigin=True, '
                  'IncludeQualifiers=True, '
                  "InstanceName=CIMInstanceName(classname='CIM_Foo', "
-                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "keybindings=NocaseDict([('Chicken', 'Ham')]), "
                  "namespace='root/cimv2', "
                  "host='woot.com'), LocalOnly=True, "
                  "PropertyList=['propertyblah'])"),)
@@ -776,54 +803,52 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             lc.check(
                 ("pywbem.ops", "DEBUG",
                  "Return:test_id None(CIMInstance(classname=u'CIM_Foo', "
-                 "path=None,"
-                 " properties=NocaseDict({'Bool': CIMProperty(name=u'Bool', "
-                 "value=True, type=u'boolean', reference_class=None, "
+                 "path=None, properties=NocaseDict(["
+                 "('S1', CIMProperty(name=u'S1', value=u'Ham', "
+                 "type=u'string', reference_class=None, "
                  "embedded_object=None, is_array=False, array_size=None, "
                  "class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict({})),"
-                 " 'DTF': CIMProperty(name=u'DTF', value=CIMDateTime(cimtype"
-                 "='datetime', '20160331193040.654321+120'), type=u'datetime', "
-                 "reference_class=None, embedded_object=None, is_array=False, "
-                 "array_size=None, class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict({})), 'DTI': CIMProperty(name=u'DTI', "
-                 "value=CIMDateTime(cimtype='datetime', "
-                 "'00000010000049.000020:000'), type=u'datetime', "
-                 "reference_class=None, embedded_object=None, is_array=False, "
-                 "array_size=None, class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict({})), 'DTP': CIMProperty(name=u'DTP', "
-                 "value=CIMDateTime(cimtype='datetime', "
-                 "'20140922104920.524789-399'), type=u'datetime', "
-                 "reference_class=None, embedded_object=None, is_array=False, "
-                 "array_size=None, class_origin=No...)"),)
+                 "qualifiers=NocaseDict([]))), "
+                 "('Bool', CIMProperty(name=u'Bool', value=True, "
+                 "type=u'boolean', reference_class=None, "
+                 "embedded_object=None, is_array=False, array_size=None, "
+                 "class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict([]))), "
+                 "('UI8', CIMProperty(name=u'UI8', value=Uint8("
+                 "cimtype='uint8', minvalue=0, maxvalue=255, 42), "
+                 "type=u'uint8', reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, qualifiers=NocaseDict([]))), "
+                 "('UI16', CIMProperty(name=u'UI16', value=Uint16("
+                 "cimtype='uint16', minvalue=0, maxvalue=65535, 4216), "
+                 "type=u'uint16', reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, qualifiers=NocaseDict([]))), "
+                 "('UI32', CIMPr...)"),)
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
                  "Return:test_id None(CIMInstance(classname='CIM_Foo', "
-                 "path=None, "
-                 "properties=NocaseDict({'Bool': CIMProperty(name='Bool', "
-                 "value=True, "
+                 "path=None, properties=NocaseDict(["
+                 "('S1', CIMProperty(name='S1', value='Ham', type='string', "
+                 "reference_class=None, embedded_object=None, is_array=False, "
+                 "array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict([]))), "
+                 "('Bool', CIMProperty(name='Bool', value=True, "
                  "type='boolean', reference_class=None, embedded_object=None, "
                  "is_array=False, array_size=None, class_origin=None, "
-                 "propagated=None, "
-                 "qualifiers=NocaseDict({})), 'DTF': CIMProperty(name='DTF', "
-                 "value=CIMDateTime(cimtype='datetime', "
-                 "'20160331193040.654321+120'), "
-                 "type='datetime', reference_class=None, embedded_object=None, "
-                 'is_array=False, array_size=None, class_origin=None, '
-                 'propagated=None, '
-                 "qualifiers=NocaseDict({})), 'DTI': CIMProperty(name='DTI', "
-                 "value=CIMDateTime(cimtype='datetime', "
-                 "'00000010000049.000020:000'), "
-                 "type='datetime', reference_class=None, embedded_object=None, "
-                 'is_array=False, array_size=None, class_origin=None, '
-                 'propagated=None, '
-                 "qualifiers=NocaseDict({})), 'DTP': CIMProperty(name='DTP', "
-                 "value=CIMDateTime(cimtype='datetime', "
-                 "'20140922104920.524789-399'), "
-                 "type='datetime', reference_class=None, embedded_object=None, "
+                 "propagated=None, qualifiers=NocaseDict([]))), "
+                 "('UI8', CIMProperty(name='UI8', value=Uint8(cimtype='uint8', "
+                 "minvalue=0, maxvalue=255, 42), type='uint8', "
+                 "reference_class=None, embedded_object=None, is_array=False, "
+                 "array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict([]))), "
+                 "('UI16', CIMProperty(name='UI16', value=Uint16("
+                 "cimtype='uint16', minvalue=0, maxvalue=65535, 4216), "
+                 "type='uint16', reference_class=None, embedded_object=None, "
                  "is_array=False, array_size=None, class_origin=None, "
-                 "propa...)"),)
+                 "propagated=None, qualifiers=NocaseDict([]))), "
+                 "('UI32', CIMProperty(nam...)"),)
 
     @log_capture()
     def test_stage_instance_result_all(self, lc):
@@ -836,78 +861,88 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             lc.check(
                 ("pywbem.ops", "DEBUG",
                  "Return:test_id None(CIMInstance(classname=u'CIM_Foo', "
-                 "path=None, properties=NocaseDict({'Bool': CIMProperty("
-                 "name=u'Bool', value=True, type=u'boolean', "
-                 "reference_class=None, embedded_object=None, is_array=False,"
-                 " array_size=None, class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict({})), 'DTF': CIMProperty(name=u'DTF',"
-                 " value=CIMDateTime(cimtype='datetime', "
-                 "'20160331193040.654321+120'), type=u'datetime', "
-                 "reference_class=None, embedded_object=None, is_array=False,"
-                 " array_size=None, class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict({})), 'DTI': CIMProperty(name=u'DTI',"
-                 " value=CIMDateTime(cimtype='datetime', "
-                 "'00000010000049.000020:000'), type=u'datetime', "
-                 "reference_class=None, embedded_object=None, is_array=False,"
-                 " array_size=None, class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict({})), 'DTP': CIMProperty(name=u'DTP',"
-                 " value=CIMDateTime(cimtype='datetime', "
-                 "'20140922104920.524789-399'), type=u'datetime', "
-                 "reference_class=None, embedded_object=None, is_array=False,"
-                 " array_size=None, class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict({})), 'R32': CIMProperty(name=u'R32',"
-                 " value=Real32(cimtype='real32', 42.0), type=u'real32', "
-                 "reference_class=None, embedded_object=None, is_array=False,"
-                 " array_size=None, class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict({})), 'R64': CIMProperty(name=u'R64',"
-                 " value=Real64(cimtype='real64', 42.64), type=u'real64', "
-                 "reference_class=None, embedded_object=None, is_array=False,"
-                 " array_size=None, class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict({})), 'S1': CIMProperty(name=u'S1',"
-                 " value=u'Ham', type=u'string', reference_class=None, "
+                 "path=None, properties=NocaseDict(["
+                 "('S1', CIMProperty(name=u'S1', value=u'Ham', "
+                 "type=u'string', reference_class=None, "
                  "embedded_object=None, is_array=False, array_size=None, "
-                 "class_origin=None, propagated=None, qualifiers=NocaseDict("
-                 "{})), 'SI16': CIMProperty(name=u'SI16', "
-                 "value=Sint16(cimtype='sint16', minvalue=-32768,"
-                 " maxvalue=32767, -4216), type=u'sint16', "
-                 "reference_class=None, embedded_object=None, "
-                 "is_array=False, array_size=None, class_origin=None, "
-                 "propagated=None, qualifiers=NocaseDict({})), 'SI32': "
-                 "CIMProperty(name=u'SI32', value=Sint32(cimtype='sint32', "
-                 "minvalue=-2147483648, maxvalue=2147483647, -4232), "
-                 "type=u'sint32', reference_class=None, embedded_object=None, "
-                 "is_array=False, array_size=None, class_origin=None, "
-                 "propagated=None, qualifiers=NocaseDict({})), 'SI64': "
-                 "CIMProperty(name=u'SI64', value=Sint64(cimtype='sint64', "
-                 "minvalue=-9223372036854775808, maxvalue=9223372036854775807,"
-                 " -4264), type=u'sint64', reference_class=None, "
+                 "class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict([]))), "
+                 "('Bool', CIMProperty(name=u'Bool', value=True, "
+                 "type=u'boolean', reference_class=None, "
                  "embedded_object=None, is_array=False, array_size=None, "
-                 "class_origin=None, propagated=None, qualifiers=NocaseDict("
-                 "{})), 'SI8': CIMProperty(name=u'SI8', value=Sint8("
-                 "cimtype='sint8', minvalue=-128, maxvalue=127, -42), "
-                 "type=u'sint8', reference_class=None, embedded_object=None, "
+                 "class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict([]))), "
+                 "('UI8', CIMProperty(name=u'UI8', value=Uint8("
+                 "cimtype='uint8', minvalue=0, maxvalue=255, 42), "
+                 "type=u'uint8', reference_class=None, embedded_object=None, "
                  "is_array=False, array_size=None, class_origin=None, "
-                 "propagated=None, qualifiers=NocaseDict({})), 'UI16': "
-                 "CIMProperty(name=u'UI16', value=Uint16(cimtype='uint16', "
-                 "minvalue=0, maxvalue=65535, 4216), type=u'uint16', "
-                 "reference_class=None, embedded_object=None, is_array=False,"
-                 " array_size=None, class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict({})), 'UI32': CIMProperty(name=u'UI32',"
-                 " value=Uint32(cimtype='uint32', minvalue=0, "
-                 "maxvalue=4294967295, 4232), type=u'uint32', reference_class="
-                 "None, embedded_object=None, is_array=False, array_size=None,"
-                 " class_origin=None, propagated=None, qualifiers=NocaseDict("
-                 "{})), 'UI64': CIMProperty(name=u'UI64', value=Uint64(cimtype"
+                 "propagated=None, qualifiers=NocaseDict([]))), "
+                 "('UI16', CIMProperty(name=u'UI16', value=Uint16("
+                 "cimtype='uint16', minvalue=0, maxvalue=65535, 4216), "
+                 "type=u'uint16', reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, qualifiers=NocaseDict([]))), "
+                 "('UI32', CIMProperty(name=u'UI32', value=Uint32("
+                 "cimtype='uint32', minvalue=0, maxvalue=4294967295, 4232), "
+                 "type=u'uint32', reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, qualifiers=NocaseDict([]))), "
+                 "('UI64', CIMProperty(name=u'UI64', value=Uint64(cimtype"
                  "='uint64', minvalue=0, maxvalue=18446744073709551615, 4264), "
                  "type=u'uint64', reference_class=None, embedded_object=None, "
                  "is_array=False, array_size=None, class_origin=None, "
-                 "propagated=None, qualifiers=NocaseDict({})), 'UI8': "
-                 "CIMProperty(name=u'UI8', value=Uint8(cimtype='uint8', "
-                 "minvalue=0, maxvalue=255, 42), type=u'uint8', reference_"
-                 "class=None, embedded_object=None, is_array=False, "
+                 "propagated=None, qualifiers=NocaseDict([]))), "
+                 "('SI8', CIMProperty(name=u'SI8', value=Sint8("
+                 "cimtype='sint8', minvalue=-128, maxvalue=127, -42), "
+                 "type=u'sint8', reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, qualifiers=NocaseDict([]))), "
+                 "('SI16', CIMProperty(name=u'SI16', value=Sint16("
+                 "cimtype='sint16', minvalue=-32768, maxvalue=32767, -4216), "
+                 "type=u'sint16', reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, qualifiers=NocaseDict([]))), "
+                 "('SI32', CIMProperty(name=u'SI32', value=Sint32("
+                 "cimtype='sint32', minvalue=-2147483648, "
+                 "maxvalue=2147483647, -4232), type=u'sint32', "
+                 "reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, qualifiers=NocaseDict([]))), "
+                 "('SI64', CIMProperty(name=u'SI64', value=Sint64("
+                 "cimtype='sint64', minvalue=-9223372036854775808, "
+                 "maxvalue=9223372036854775807, -4264), type=u'sint64', "
+                 "reference_class=None, embedded_object=None, is_array=False, "
                  "array_size=None, class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict({}))}), property_list=None, "
-                 "qualifiers=NocaseDict({})))"),)
+                 "qualifiers=NocaseDict([]))), "
+                 "('R32', CIMProperty(name=u'R32', value=Real32("
+                 "cimtype='real32', 42.0), type=u'real32', "
+                 "reference_class=None, embedded_object=None, is_array=False,"
+                 " array_size=None, class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict([]))), "
+                 "('R64', CIMProperty(name=u'R64', value=Real64("
+                 "cimtype='real64', 42.64), type=u'real64', "
+                 "reference_class=None, embedded_object=None, "
+                 "is_array=False, array_size=None, class_origin=None, "
+                 "propagated=None, qualifiers=NocaseDict([]))), "
+                 "('DTI', CIMProperty(name=u'DTI', value=CIMDateTime("
+                 "cimtype='datetime', '00000010000049.000020:000'), "
+                 "type=u'datetime', reference_class=None, "
+                 "embedded_object=None, is_array=False, array_size=None, "
+                 "class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict([]))), "
+                 "('DTF', CIMProperty(name=u'DTF', value=CIMDateTime("
+                 "cimtype='datetime', '20160331193040.654321+120'), "
+                 "type=u'datetime', reference_class=None, "
+                 "embedded_object=None, is_array=False, array_size=None, "
+                 "class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict([]))), "
+                 "('DTP', CIMProperty(name=u'DTP', value=CIMDateTime("
+                 "cimtype='datetime', '20140922104920.524789-399'), "
+                 "type=u'datetime', reference_class=None, "
+                 "embedded_object=None, is_array=False, array_size=None, "
+                 "class_origin=None, propagated=None, "
+                 "qualifiers=NocaseDict([])))"
+                 "]), property_list=None, qualifiers=NocaseDict([])))"),)
         else:
             none_result_all = get_inst_return_all_log.replace('GetInstance',
                                                               'None')
@@ -943,8 +978,8 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                 ("pywbem.ops", "DEBUG",
                  "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
-                 "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                 "u'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
+                 "classname=u'CIM_Foo', keybindings=NocaseDict([('Chicken', "
+                 "u'Ham')]), namespace=u'root/cimv2', host=u'woot.com'), "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ('pywbem.ops', 'DEBUG',
                  'Return:test_id GetInstance(CIMInstanc...)'))
@@ -954,7 +989,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  'Request:test_id GetInstance(IncludeClassOrigin=True, '
                  'IncludeQualifiers=True, '
                  "InstanceName=CIMInstanceName(classname='CIM_Foo', "
-                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "keybindings=NocaseDict([('Chicken', 'Ham')]), "
                  "namespace='root/cimv2', "
                  "host='woot.com'), LocalOnly=True, "
                  "PropertyList=['propertyblah'])"),
@@ -985,8 +1020,8 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                 ("pywbem.ops", "DEBUG",
                  "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
-                 "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                 "u'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
+                 "classname=u'CIM_Foo', keybindings=NocaseDict([('Chicken', "
+                 "u'Ham')]), namespace=u'root/cimv2', host=u'woot.com'), "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ("pywbem.ops", "DEBUG",
                  "Exception:test_id GetInstance('CIMError(6...)"))
@@ -995,8 +1030,8 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                 ("pywbem.ops", "DEBUG",
                  "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
-                 "classname='CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                 "'Ham'}), namespace='root/cimv2', host='woot.com'), "
+                 "classname='CIM_Foo', keybindings=NocaseDict([('Chicken', "
+                 "'Ham')]), namespace='root/cimv2', host='woot.com'), "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ("pywbem.ops", "DEBUG",
                  "Exception:test_id GetInstance('CIMError(6...)"))
@@ -1020,8 +1055,8 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
             lc.check(
                 ("pywbem.ops", "DEBUG",
                  "Request:test_id GetInstance(InstanceName=CIMInstanceName("
-                 "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                 "u'Ham'}), namespace=u'root/cimv2', host=u'woot.com'))"),
+                 "classname=u'CIM_Foo', keybindings=NocaseDict([('Chicken', "
+                 "u'Ham')]), namespace=u'root/cimv2', host=u'woot.com'))"),
                 ("pywbem.ops", "DEBUG",
                  "Exception:test_id GetInstance('CIMError(6: Fake "
                  "CIMError)')"),)
@@ -1029,8 +1064,8 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
             lc.check(
                 ("pywbem.ops", "DEBUG",
                  "Request:test_id GetInstance(InstanceName=CIMInstanceName("
-                 "classname='CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                 "'Ham'}), namespace='root/cimv2', host='woot.com'))"),
+                 "classname='CIM_Foo', keybindings=NocaseDict([('Chicken', "
+                 "'Ham')]), namespace='root/cimv2', host='woot.com'))"),
                 ("pywbem.ops", "DEBUG",
                  "Exception:test_id GetInstance('CIMError(6: Fake "
                  "CIMError)')"),)
@@ -1059,8 +1094,8 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                 ("pywbem.ops", "DEBUG",
                  "Request:test_id GetInstance(IncludeClassOrigin=True, "
                  "IncludeQualifiers=True, InstanceName=CIMInstanceName("
-                 "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                 "u'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
+                 "classname=u'CIM_Foo', keybindings=NocaseDict([('Chicken', "
+                 "u'Ham')]), namespace=u'root/cimv2', host=u'woot.com'), "
                  "LocalOnly=True, PropertyList=['propertyblah'])"),
                 ('pywbem.ops',
                  'DEBUG',
@@ -1071,7 +1106,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  'Request:test_id GetInstance(IncludeClassOrigin=True, '
                  'IncludeQualifiers=True, '
                  "InstanceName=CIMInstanceName(classname='CIM_Foo', "
-                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "keybindings=NocaseDict([('Chicken', 'Ham')]), "
                  "namespace='root/cimv2', "
                  "host='woot.com'), LocalOnly=True, "
                  "PropertyList=['propertyblah'])"),
@@ -1224,10 +1259,10 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "Return:test_id OpenEnumerateInstancePaths("
                  "pull_path_result_tuple(context=('test_rtn_context', "
                  "'root/blah'), eos=False, paths=[CIMInstanceName("
-                 "classname=u'CIM_Foo', keybindings=NocaseDict({'Chicken': "
-                 "u'Ham'}), namespace=u'root/cimv2', host=u'woot.com'), "
+                 "classname=u'CIM_Foo', keybindings=NocaseDict([('Chicken', "
+                 "u'Ham')]), namespace=u'root/cimv2', host=u'woot.com'), "
                  "CIMInstanceName(classname=u'CIM_Foo', keybindings="
-                 "NocaseDict({'Chicken': u'Ham'}), namespace=u'root/cimv2',"
+                 "NocaseDict([('Chicken', u'Ham')]), namespace=u'root/cimv2',"
                  " host=u'woot.com')]))"))
 
         else:
@@ -1244,10 +1279,10 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "context=('test_rtn_context', "
                  "'root/blah'), eos=False, paths=[CIMInstanceName("
                  "classname='CIM_Foo', "
-                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "keybindings=NocaseDict([('Chicken', 'Ham')]), "
                  "namespace='root/cimv2', "
                  "host='woot.com'), CIMInstanceName(classname='CIM_Foo', "
-                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "keybindings=NocaseDict([('Chicken', 'Ham')]), "
                  "namespace='root/cimv2', "
                  "host='woot.com')]))"),)
 
@@ -1277,7 +1312,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "Request:test_id Associators(AssocClass='BLAH_Assoc', "
                  "IncludeClassOrigin=True, IncludeQualifiers=True, "
                  "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
-                 "keybindings=NocaseDict({'Chicken': u'Ham'}), "
+                 "keybindings=NocaseDict([('Chicken', u'Ham')]), "
                  "namespace=u'root/cimv2', host=u'woot.com'), "
                  "PropertyList=['propertyblah', 'propertyblah2'], "
                  "ResultClass='BLAH_Result')"),
@@ -1289,7 +1324,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "Request:test_id Associators(AssocClass='BLAH_Assoc', "
                  'IncludeClassOrigin=True, IncludeQualifiers=True, '
                  "InstanceName=CIMInstanceName(classname='CIM_Foo', "
-                 "keybindings=NocaseDict({'Chicken': 'Ham'}), "
+                 "keybindings=NocaseDict([('Chicken', 'Ham')]), "
                  "namespace='root/cimv2', "
                  "host='woot.com'), PropertyList=['propertyblah', "
                  "'propertyblah2'], "

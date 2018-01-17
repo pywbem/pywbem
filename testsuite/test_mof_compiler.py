@@ -11,6 +11,11 @@ import os
 import unittest
 import six
 from ply import lex
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
+
 from pywbem.cim_operations import CIMError
 from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_INVALID_PARAMETER, \
@@ -726,10 +731,16 @@ def _build_scope(set_true=None):
         for tests. Required because the compiler supplies all
         values in the scope list whether true or false
     """
-    dict_ = {'CLASS': False, 'ANY': False, 'ASSOCIATION': False,
-             'INDICATION': False, 'METHOD': False,
-             'PARAMETER': False, 'PROPERTY': False,
-             'REFERENCE': False}
+    dict_ = OrderedDict([
+        ('CLASS', False),
+        ('ANY', False),
+        ('ASSOCIATION', False),
+        ('INDICATION', False),
+        ('METHOD', False),
+        ('PARAMETER', False),
+        ('PROPERTY', False),
+        ('REFERENCE', False),
+    ])
     for n in set_true:
         dict_[n] = True
     return dict_

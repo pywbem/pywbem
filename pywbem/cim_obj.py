@@ -53,9 +53,9 @@ Using sets for holding the result of :ref:`WBEM operations` is not uncommon,
 because that allows comparison of results without regard to the (undefined)
 order in which the objects are returned.
 
-CIM objects are mutable and :term:`unchanged-hashable`. This requires some
-caution when putting them in sets, or using them in any other way that relies
-on their hash values.
+:ref:`CIM objects` are mutable and :term:`unchanged-hashable`. This requires
+some caution when putting them in sets, or using them in any other way that
+relies on their hash values.
 
 The caution that is needed is that the public attributes, and therefore the
 state of the CIM objects, must not change as long as they are a member of a
@@ -112,18 +112,142 @@ put into a set remain unchanged while the object is in the set. The same
 applies to any other usage of CIM objects that relies on their hash values.
 
 
+.. _`Order of CIM child objects`:
+
+Order of CIM child objects
+--------------------------
+
+:ref:`CIM objects` have zero or more lists of child objects. For example, a CIM
+class (the parent object) has a list of CIM properties, CIM methods and CIM
+qualifiers (the child objects).
+
+In pywbem, the parent CIM object allows initializing each list of child objects
+via an argument of its constructor. For example, the :class:`~pywbem.CIMClass`
+constructor has an argument named ``properties`` that allows specifying the
+properties of the class.
+
+Once the parent CIM object exists, each list of child elements can be modified
+via a settable attribute. For example, the :class:`~pywbem.CIMClass` class has
+a :attr:`~pywbem.CIMClass.properties` attribute for its list of properties.
+
+For such attributes and constructor arguments that specify lists of child
+objects, pywbem supports a number of different ways the child objects can be
+specified.
+
+Some of these ways preserve the order of child objects and some don't.
+
+This section uses properties in classes as an example, but it applies to all
+kinds of child objects in CIM objects.
+
+The possible input objects for the ``properties`` constructor argument
+and for the :attr:`~pywbem.CIMClass.properties` attribute of
+:class:`~pywbem.CIMClass` is described in the type
+:term:`properties input object`, and must be one of these objects:
+
+* iterable of :class:`~pywbem.CIMProperty`
+* iterable of tuple(key, value)
+* :class:`~py:collections.OrderedDict` with key and value
+* :class:`py:dict` with key and value (will not preserve order)
+
+The keys are always the property names, and the values are always
+:class:`~pywbem.CIMProperty` objects (at least when initializing classes).
+
+Even though the :class:`~py:collections.OrderedDict` class preserves the order
+of its items, intializing the dictionary with keyword arguments causes the
+order of items to be lost before the dictionary is even initialized (before
+Python 3.6). The only way to initialize a dictionary without loosing order of
+items is by providing a list of tuples(key,value).
+
+The following examples work but loose the order of properties in the class:
+
+::
+
+    # Examples where order of properties in class is not as specified:
+
+
+    # Using an OrderedDict object, initialized with keyword arguments
+    # (before Python 3.6):
+
+    c1_props = OrderedDict(
+        Prop1=CIMProperty('Prop1', value='abc'),
+        Prop2=CIMProperty('Prop2', value=None, type='string'),
+    )
+
+
+    # Using a dict object, initialized with keyword arguments (This time
+    # specified using key:value notation):
+
+    c1_props = {
+        'Prop1': CIMProperty('Prop1', value='abc'),
+        'Prop2': CIMProperty('Prop2', value=None, type='string'),
+    }
+
+
+    # Using a dict object, initialized with list of tuple(key,value):
+
+    c1_props = dict([
+        ('Prop1', CIMProperty('Prop1', value='abc')),
+        ('Prop2', CIMProperty('Prop2', value=None, type='string')),
+    ])
+
+
+    # Any of the above objects can be used to initialize the class properties:
+
+    c1 = CIMClass('CIM_Foo', properties=c1_props)
+
+The following examples all preserve the order of properties in the class:
+
+::
+
+    # Examples where order of properties in class is as specified:
+
+
+    # Using a list of CIMProperty objects (starting with pywbem 0.12):
+
+    c1_props = [
+        CIMProperty('Prop1', value='abc'),
+        CIMProperty('Prop2', value=None, type='string'),
+    ]
+
+
+    # Using an OrderedDict object, initialized with list of tuple(key,value):
+
+    c1_props = OrderedDict([
+        ('Prop1', CIMProperty('Prop1', value='abc')),
+        ('Prop2', CIMProperty('Prop2', value=None, type='string')),
+    ])
+
+
+    # Using a list of tuple(key,value):
+
+    c1_props = [
+        ('Prop1', CIMProperty('Prop1', value='abc')),
+        ('Prop2', CIMProperty('Prop2', value=None, type='string')),
+    ]
+
+
+    # Any of the above objects can be used to initialize the class properties:
+
+    c1 = CIMClass('CIM_Foo', properties=c1_props)
+
+
 .. _`NocaseDict`:
 
 NocaseDict
 ----------
 
 Class ``NocaseDict`` is a dictionary implementation with case-insensitive but
-case-preserving keys. It is used for sets of named CIM elements (e.g. CIM
-properties in an instance or class, or CIM parameters in a method).
+case-preserving keys, and with preservation of the order of its items.
+
+It is used for lists of child objects of CIM objects (e.g. the list of CIM
+properties in a CIM class, or the list of CIM parameters in a CIM method).
+
+Users of pywbem will notice ``NocaseDict`` objects only as a result of pywbem
+functions. Users cannot create ``NocaseDict`` objects.
 
 Except for the case-insensitivity of its keys, it behaves like the built-in
-:class:`py:dict`. Therefore, ``NocaseDict`` is not described in detail in this
-documentation.
+:class:`~py:collections.OrderedDict`. Therefore, ``NocaseDict`` is not
+described in detail in this documentation.
 
 Deprecated: In v0.9.0, support for comparing two ``NocaseDict`` instances with
 the ``>``, ``>``, ``<=``, ``>=`` operators has been deprecated.
@@ -136,11 +260,16 @@ the ``>``, ``>``, ``<=``, ``>=`` operators has been deprecated.
 
 from __future__ import print_function, absolute_import
 
+import sys
 import inspect
 import warnings
 from copy import copy
 import traceback
 import re
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 import six
 
@@ -250,59 +379,104 @@ class NocaseDict(object):
 
     def __init__(self, *args, **kwargs):
         """
-        Initialize the new dictionary from at most one positional argument and
-        optionally from additional keyword arguments.
+        Initialize the new dictionary from input arguments.
+        This happens in two steps:
 
-        Initialization happens in two steps, first from the positional
-        argument:
+        In the first step, an initial set of items is added to the new
+        dictionary, from the positional argument(s):
 
           * If no positional argument is provided, or if one argument with the
-            value None is provided, the new dictionary will be left empty in
-            this step.
+            value `None` is provided, the new dictionary will be empty in this
+            step.
 
           * If one positional argument of tuple or list type is provided, the
-            items in that iterable must be tuples of key and value,
-            respectively. The key/value pairs will be put into the new
-            dictionary (without copying them).
+            items in that iterable must be tuples of key and value. These
+            key/value pairs will be added to the new dictionary without copying
+            them, preserving their order in the list.
 
-          * If one positional argument of dictionary (mapping) or
-            `NocaseDict`_ type is provided, its key/value
-            pairs are put into the new dictionary (without copying them).
+          * If one positional argument of dictionary kind (dict, OrderedDict,
+            NocaseDict) is provided, its key/value pairs are added to the new
+            dictionary without copying them, preserving their order in case of
+            OrderedDict or NocaseDict. Because dict types inherently do not
+            preserve order, the resulting order of items in the new dictionary
+            will be arbitrary in that case.
 
           * Otherwise, `TypeError` is raised.
 
-        After that, any provided keyword arguments are put into the so
-        initialized dictionary as key/value pairs (without copying them).
+        In the second step, the new dictionary is updated from any provided
+        keyword arguments, without copying them, for each keyword argument
+        using its name as a key and its value as a value. Note that Python
+        before version 3.6 uses standard dict objects for passing keyword
+        arguments, so the resulting order of items in the new dictionary will
+        be arbitrary. From Python 3.6 on, keyword arguments will be passed
+        in the order specified, so they will be added to the new dictionary
+        in the order specified, from left to right.
+
+        Summary w.r.t. preservation of item order: In order to preserve the
+        order of items used to initialize a new NocaseDict object, only the
+        following approaches can be used across all Python versions supported
+        by pywbem:
+
+        * Passing a list or a tuple of key/value pairs as a single positional
+          argument.
+        * Passing an OrderedDict or NocaseDict object as a single positional
+          argument.
+
+        A UserWarning will be issued if the provided constructor arguments will
+        cause the order of provided items not to be preserved when adding them
+        to the new dictionary.
         """
 
-        self._data = {}
+        # The internal dictionary, with lower case keys. An item in this dict
+        # is the tuple (original key, value).
+        self._data = OrderedDict()
 
         # Step 1: Initialize from at most one positional argument
         if len(args) == 1:
-            if isinstance(args[0], (list, tuple)):
-                # Initialize from iterable of tuple(key,value)
-                for item in args[0]:
-                    self[item[0]] = item[1]
-            elif isinstance(args[0], dict):
-                # Initialize from dict/mapping object
-                self.update(args[0])
-            elif isinstance(args[0], NocaseDict):
-                # Initialize from another NocaseDict object
-                # pylint: disable=protected-access
-                self._data = args[0]._data.copy()
-            elif args[0] is None:
+            arg = args[0]
+            if isinstance(arg, (list, tuple)):
+                # Initialize from iterable of: tuple(key,value), or object
+                try:
+                    iterator = arg.items()
+                except AttributeError:
+                    iterator = arg
+                for item in iterator:
+                    try:
+                        key = item.name
+                        value = item
+                    except AttributeError:
+                        key, value = item
+                    self[key] = value
+            elif isinstance(arg, (OrderedDict, NocaseDict)):
+                # Initialize from OrderedDict/NocaseDict object
+                self.update(arg)
+            elif isinstance(arg, dict):
+                # Initialize from dict object
+                if len(arg) > 1:
+                    warnings.warn("Initializing a pywbem.NocaseDict object "
+                                  "from %s will not preserve order of items" %
+                                  type(arg), UserWarning,
+                                  stacklevel=_stacklevel_above_module(__name__))
+                self.update(arg)
+            elif arg is None:
                 # Leave empty
                 pass
             else:
                 raise TypeError(
                     "Invalid type for NocaseDict initialization: %s (%s)" %
-                    (args[0].__class__.__name__, type(args[0])))
+                    (arg.__class__.__name__, type(arg)))
         elif len(args) > 1:
             raise TypeError(
                 "Too many positional arguments for NocaseDict initialization: "
                 "%s (1 allowed)" % len(args))
 
         # Step 2: Add any keyword arguments
+        if len(kwargs) > 1 and sys.version_info[0:2] <= (3, 6):
+            warnings.warn("Initializing a pywbem.NocaseDict object from "
+                          "keyword arguments before Python 3.6 will not "
+                          "preserve order of items",
+                          UserWarning,
+                          stacklevel=_stacklevel_above_module(__name__))
         self.update(kwargs)
 
     # Basic accessor and settor methods
@@ -425,14 +599,15 @@ class NocaseDict(object):
     def iterkeys(self):
         """
         Return an iterator through the dictionary keys in their original
-        case.
+        case, preserving the original order of items.
         """
         for item in six.iteritems(self._data):
             yield item[1][0]
 
     def itervalues(self):
         """
-        Return an iterator through the dictionary values.
+        Return an iterator through the dictionary values, preserving the
+        original order of items.
         """
         for item in six.iteritems(self._data):
             yield item[1][1]
@@ -440,7 +615,8 @@ class NocaseDict(object):
     def iteritems(self):
         """
         Return an iterator through the dictionary items, where each item is a
-        tuple of its original key and its value.
+        tuple of its original key and its value, preserving the original order
+        of items.
         """
         for item in six.iteritems(self._data):
             yield item[1]
@@ -451,7 +627,8 @@ class NocaseDict(object):
 
         Invoked when iterating through the dictionary using `for key in d`.
 
-        The returned keys have their original case.
+        The returned keys have their original case, and preserve the original
+        order of items.
         """
         return self.iterkeys()
 
@@ -463,11 +640,12 @@ class NocaseDict(object):
         `NocaseDict`_ object that is suitable for
         debugging.
 
-        The order of dictionary items in the result will be sorted by keys.
+        The order of dictionary items in the result is the preserved order of
+        adding or deleting items.
         """
-        items = ', '.join([('%r: %r' % (key, self[key]))
-                           for key in sorted(self.iterkeys())])
-        return 'NocaseDict({%s})' % items
+        items = ', '.join(['(%r, %r)' % (key, value)
+                           for key, value in self.iteritems()])
+        return 'NocaseDict([%s])' % items
 
     def update(self, *args, **kwargs):
         """
@@ -752,6 +930,8 @@ def _qualifiers_tomof(qualifiers, indent, maxline=MAX_MOF_LINE):
     Return empty string if no qualifiers.
 
     Normally multiline output and may fold qualifiers into multiple lines.
+
+    The order of qualifiers is preserved.
 
     Parameters:
 
@@ -1444,38 +1624,9 @@ class CIMInstanceName(_CIMComparisonMixin):
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-          keybindings (:class:`py:dict` or `NocaseDict`_):
+          keybindings (:term:`keybindings input object`):
             Keybindings for the instance path (that is, the key property values
             of the referenced instance).
-
-            A a shallow copy of the provided dictionary will be stored in the
-            ``CIMInstanceName`` object.
-
-            Each dictionary item specifies one keybinding, with:
-
-            * key (:term:`string`):
-              Keybinding name.
-
-              Must not be `None`.
-
-              The lexical case of the string is preserved. Object comparison
-              and hash value calculation are performed case-insensitively.
-
-            * value (:term:`CIM data type` or :term:`number` or :class:`~pywbem.CIMProperty`):
-              Keybinding value, as follows:
-
-              - If specified as :term:`CIM data type` or :term:`number`, the
-                provided object will be stored unchanged as the keybinding
-                value.
-              - If specified as a :class:`~pywbem.CIMProperty` object, its
-                `name` attribute must be equal (case insensitively) to the
-                dictionary key (keybinding name), and a copy of its value
-                (a :term:`CIM data type`) will be stored as the keybinding
-                value.
-              - `None` for the keybinding value will be stored unchanged.
-
-            `None` (for the entire dictionary) is interpreted as an empty set
-            of keybindings.
 
           host (:term:`string`):
             Host and optionally port of the WBEM server containing the CIM
@@ -1554,13 +1705,16 @@ class CIMInstanceName(_CIMComparisonMixin):
         `NocaseDict`_: Keybindings of the instance path (that is, the key
         property values of the referenced instance).
 
+        Will not be `None`.
+
         Each dictionary item specifies one keybinding, with:
 
         * key (:term:`unicode string`): Keybinding name. Its lexical case was
           preserved.
-        * value (:term:`CIM data type`): Keybinding value.
 
-        Will not be `None`.
+        * value (:term:`CIM data type` or :term:`number`): Keybinding value.
+
+        The order of keybindings in the instance path is preserved.
 
         This attribute is settable; setting it will cause the current
         keybindings to be replaced with the new keybindings. For details, see
@@ -1598,8 +1752,20 @@ class CIMInstanceName(_CIMComparisonMixin):
         # pylint: disable=attribute-defined-outside-init
         self._keybindings = NocaseDict()
         if keybindings:
-            for key, value in keybindings.items():
-                self._keybindings[key] = _cim_keybinding(key, value)
+            try:
+                iterator = keybindings.items()
+            except AttributeError:
+                iterator = keybindings
+            for item in iterator:
+                if isinstance(item, CIMProperty):
+                    key = item.name
+                    value = item
+                elif isinstance(item, tuple):
+                    key, value = item
+                else:
+                    raise TypeError("Input object for keybindings has "
+                                    "invalid item in iterable: %r" % item)
+                self.keybindings[key] = _cim_keybinding(key, value)
 
     @property
     def namespace(self):
@@ -1783,12 +1949,16 @@ class CIMInstanceName(_CIMComparisonMixin):
         """
         Return a copied list of the keybinding names (in their original
         lexical case).
+
+        The order of keybindings is preserved.
         """
         return self.keybindings.keys()
 
     def values(self):
         """
         Return a copied list of the keybinding values.
+
+        The order of keybindings is preserved.
         """
         return self.keybindings.values()
 
@@ -1796,18 +1966,24 @@ class CIMInstanceName(_CIMComparisonMixin):
         """
         Return a copied list of the keybindings, where each item is a tuple
         of its keybinding name (in the original lexical case) and its value.
+
+        The order of keybindings is preserved.
         """
         return self.keybindings.items()
 
     def iterkeys(self):
         """
-        Iterate through the keybinding names (in their original lexical case).i
+        Iterate through the keybinding names (in their original lexical case).
+
+        The order of keybindings is preserved.
         """
         return self.keybindings.iterkeys()
 
     def itervalues(self):
         """
         Iterate through the keybinding values.
+
+        The order of keybindings is preserved.
         """
         return self.keybindings.itervalues()
 
@@ -1816,6 +1992,8 @@ class CIMInstanceName(_CIMComparisonMixin):
         Iterate through the keybindings, where each item is a tuple of the
         keybinding name (in the original lexical case) and the keybinding
         value.
+
+        The order of keybindings is preserved.
         """
         return self.keybindings.iteritems()
 
@@ -1827,6 +2005,8 @@ class CIMInstanceName(_CIMComparisonMixin):
         as an instance of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        The order of keybindings is preserved.
         """
 
         kbs = []
@@ -1900,6 +2080,8 @@ class CIMInstanceName(_CIMComparisonMixin):
         :class:`~pywbem.CIMInstanceName` object, as a :term:`unicode string`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        The order of keybindings is preserved.
 
         Parameters:
 
@@ -2182,8 +2364,9 @@ class CIMInstanceName(_CIMComparisonMixin):
         * it contains a class name component according to the
           :attr:`~pywbem.CIMInstanceName.classname` attribute.
         * it contains keybindings according to the
-          :attr:`~pywbem.CIMInstanceName.keybindings` attribute, with
-          keys ordered by their names.
+          :attr:`~pywbem.CIMInstanceName.keybindings` attribute, with the
+          order of keybindings preserved, and the lexical case of keybinding
+          names preserved.
 
         Parameters:
 
@@ -2252,8 +2435,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         ret.append(self.classname)
 
         ret.append('.')
-        for key in sorted(self.keybindings.iterkeys()):
-            value = self.keybindings[key]
+        for key, value in self.keybindings.iteritems():
 
             ret.append(key)
             ret.append('=')
@@ -2329,68 +2511,14 @@ class CIMInstance(_CIMComparisonMixin):
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-          properties (:class:`py:dict` or `NocaseDict`_):
-            Properties for the instance.
+          properties (:term:`properties input object`):
+            The property values for the instance.
 
-            A shallow copy of the provided dictionary will be stored in the
-            ``CIMInstance`` object.
+          qualifiers (:term:`qualifiers input object`):
+            The qualifiers for the instance.
 
-            Each dictionary item specifies one property value, with:
-
-            * key (:term:`string`):
-              Property name.
-
-              Must not be `None`.
-
-              The lexical case of the string is preserved. Object comparison
-              and hash value calculation are performed case-insensitively.
-
-            * value (:term:`CIM data type` or :class:`~pywbem.CIMProperty`):
-              Property value.
-
-              If specified as a :term:`CIM data type`, a new
-              :class:`~pywbem.CIMProperty` object will be created from it,
-              and the new object will be stored in the ``CIMInstance`` object.
-
-              If specified as a :class:`~pywbem.CIMProperty` object, its `name`
-              attribute must be equal (case insensitively) to the dictionary
-              key, and the provided object will be stored in the
-              ``CIMInstance`` object (no copy is made).
-
-            `None` is interpreted as an empty set of properties.
-
-          qualifiers (:class:`py:dict` or `NocaseDict`_):
-            Qualifiers for the instance.
-
-            A shallow copy of the provided dictionary will be stored in the
-            ``CIMInstance`` object.
-
-            Each dictionary item specifies one qualifier value, with:
-
-            * key (:term:`string`):
-              Qualifier name.
-
-              Must not be `None`.
-
-              The lexical case of the string is preserved. Object comparison
-              and hash value calculation are performed case-insensitively.
-
-            * value (:term:`CIM data type` or :class:`~pywbem.CIMQualifier`):
-              Qualifier value.
-
-              If specified as a :term:`CIM data type`, a new
-              :class:`~pywbem.CIMQualifier` object will be created from it,
-              and the new object will be stored in the ``CIMInstance`` object.
-
-              If specified as a :class:`~pywbem.CIMQualifier` object, its
-              `name` attribute must be equal (case insensitively) to the
-              dictionary key, and the provided object will be stored in the
-              ``CIMInstance`` object (no copy is made).
-
-            `None` is interpreted as an empty set of qualifiers.
-
-            Note that :term:`DSP0200` has deprecated the presence of qualifier
-            values on CIM instances.
+            Note that :term:`DSP0200` has deprecated the presence of qualifiers
+            on CIM instances.
 
           path (:class:`~pywbem.CIMInstanceName`):
             Instance path for the instance.
@@ -2463,13 +2591,16 @@ class CIMInstance(_CIMComparisonMixin):
         """
         `NocaseDict`_: Properties of the CIM instance.
 
+        Will not be `None`.
+
         Each dictionary item specifies one property value, with:
 
         * key (:term:`unicode string`): Property name. Its lexical case was
           preserved.
+
         * value (:class:`~pywbem.CIMProperty`): Property value.
 
-        Will not be `None`.
+        The order of properties in the CIM instance is preserved.
 
         This attribute is settable; setting it will cause the current CIM
         properties to be replaced with the new properties, and will also cause
@@ -2512,7 +2643,19 @@ class CIMInstance(_CIMComparisonMixin):
         # pylint: disable=attribute-defined-outside-init
         self._properties = NocaseDict()
         if properties:
-            for key, value in properties.items():
+            try:
+                iterator = properties.items()
+            except AttributeError:
+                iterator = properties
+            for item in iterator:
+                if isinstance(item, CIMProperty):
+                    key = item.name
+                    value = item
+                elif isinstance(item, tuple):
+                    key, value = item
+                else:
+                    raise TypeError("Input object for properties has "
+                                    "invalid item in iterable: %r" % item)
                 self.__setitem__(key, value)
 
     @property
@@ -2520,13 +2663,16 @@ class CIMInstance(_CIMComparisonMixin):
         """
         `NocaseDict`_: Qualifiers of the CIM instance.
 
+        Will not be `None`.
+
         Each dictionary item specifies one qualifier value, with:
 
         * key (:term:`unicode string`): Qualifier name. Its lexical case was
           preserved.
+
         * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
 
-        Will not be `None`.
+        The order of qualifiers in the CIM instance is preserved.
 
         This attribute is settable; setting it will cause the current
         qualifiers to be replaced with the new qualifiers. For details, see
@@ -2548,8 +2694,20 @@ class CIMInstance(_CIMComparisonMixin):
         # pylint: disable=attribute-defined-outside-init
         self._qualifiers = NocaseDict()
         if qualifiers:
-            for key, value in qualifiers.items():
-                self._qualifiers[key] = _cim_qualifier(key, value)
+            try:
+                iterator = qualifiers.items()
+            except AttributeError:
+                iterator = qualifiers
+            for item in iterator:
+                if isinstance(item, CIMQualifier):
+                    key = item.name
+                    value = item
+                elif isinstance(item, tuple):
+                    key, value = item
+                else:
+                    raise TypeError("Input object for qualifiers has "
+                                    "invalid item in iterable: %r" % item)
+                self.qualifiers[key] = _cim_qualifier(key, value)
 
     @property
     def path(self):
@@ -2792,12 +2950,16 @@ class CIMInstance(_CIMComparisonMixin):
         """
         Return a copied list of the property names (in their original lexical
         case).
+
+        The order of properties is preserved.
         """
         return self.properties.keys()
 
     def values(self):
         """
         Return a copied list of the property values.
+
+        The order of properties is preserved.
         """
         return [v.value for v in self.properties.values()]
 
@@ -2806,26 +2968,34 @@ class CIMInstance(_CIMComparisonMixin):
         Return a copied list of the properties, where each item is a tuple
         of the property name (in the original lexical case) and the property
         value.
-    """
+
+        The order of properties is preserved.
+        """
         return [(key, v.value) for key, v in self.properties.items()]
 
     def iterkeys(self):
         """
         Iterate through the property names (in their original lexical
         case).
-    """
+
+        The order of properties is preserved.
+        """
         return self.properties.iterkeys()
 
     def itervalues(self):
         """
-    Iterate through the property values.
-    """
+        Iterate through the property values.
+
+        The order of properties is preserved.
+        """
         for _, val in self.properties.iteritems():
             yield val.value
 
     def iteritems(self):
         """
         Iterate through the property names (in their original lexical case).
+
+        The order of properties is preserved.
         """
         for key, val in self.properties.iteritems():
             yield (key, val.value)
@@ -2837,6 +3007,8 @@ class CIMInstance(_CIMComparisonMixin):
         as an instance of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        The order of properties and qualifiers is preserved.
         """
 
         # The items in the self.properties dictionary are required to be
@@ -2878,6 +3050,8 @@ class CIMInstance(_CIMComparisonMixin):
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
 
+        The order of properties and qualifiers is preserved.
+
         Parameters:
 
           indent (:term:`string` or :term:`integer`):
@@ -2912,6 +3086,8 @@ class CIMInstance(_CIMComparisonMixin):
           :class:`~pywbem.CIMProperty` objects that are used as property values
           within an instance, the returned MOF string does not contain
           any qualifier values on the instance or on its property values.
+
+        The order of properties and qualifiers is preserved.
 
         Parameters:
 
@@ -3416,55 +3592,11 @@ class CIMClass(_CIMComparisonMixin):
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-          properties (:class:`py:dict` or `NocaseDict`_):
-            Properties (declarations) for the class.
+          properties (:term:`properties input object`):
+            The property declarations for the class.
 
-            A shallow copy of the provided dictionary will be stored in the
-            ``CIMClass`` object.
-
-            Each dictionary item specifies one property, with:
-
-            * key (:term:`string`):
-              Property name.
-
-              Must not be `None`.
-
-              The lexical case of the string is preserved. Object comparison
-              and hash value calculation are performed case-insensitively.
-
-            * value (:class:`~pywbem.CIMProperty`):
-              Property declaration.
-
-              The `name` attribute of the provided object must be equal (case
-              insensitively) to the dictionary key, and the provided object
-              will be stored in the ``CIMClass`` object (no copy is made).
-
-            `None` is interpreted as an empty set of properties.
-
-          methods (:class:`py:dict` or `NocaseDict`_):
-            Method declarations for the class.
-
-            A shallow copy of the provided dictionary will be stored in the
-            ``CIMClass`` object.
-
-            Each dictionary item specifies one method (declaration), with:
-
-            * key (:term:`string`):
-              Method name.
-
-              Must not be `None`.
-
-              The lexical case of the string is preserved. Object comparison
-              and hash value calculation are performed case-insensitively.
-
-            * value (:class:`~pywbem.CIMMethod`):
-              Method declaration.
-
-              The `name` attribute of the provided object must be equal (case
-              insensitively) to the dictionary key, and the provided object
-              will be stored in the ``CIMClass`` object (no copy is made).
-
-            `None` is interpreted as an empty set of methods.
+          methods (:term:`methods input object`):
+            The method declarations for the class.
 
           superclass (:term:`string`):
             Name of the superclass for the class.
@@ -3476,35 +3608,8 @@ class CIMClass(_CIMComparisonMixin):
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-          qualifiers (:class:`py:dict` or `NocaseDict`_):
-            Qualifier values for the class.
-
-            A shallow copy of the provided dictionary will be stored in the
-            ``CIMClass`` object.
-
-            Each dictionary item specifies one qualifier value, with:
-
-            * key (:term:`string`):
-              Qualifier name.
-
-              Must not be `None`.
-
-              The lexical case of the string is preserved. Object comparison
-              and hash value calculation are performed case-insensitively.
-
-            * value (:term:`CIM data type` or :class:`~pywbem.CIMQualifier`):
-              Qualifier value.
-
-              If specified as a :term:`CIM data type`, a new
-              :class:`~pywbem.CIMQualifier` object will be created from it,
-              and the new object will be stored in the ``CIMClass`` object.
-
-              If specified as a :class:`~pywbem.CIMQualifier` object, its `name`
-              attribute must be equal (case insensitively) to the dictionary
-              key, and the provided object will be stored in the ``CIMClass``
-              object (no copy is made).
-
-            `None` is interpreted as an empty set of qualifiers.
+          qualifiers (:term:`qualifiers input object`):
+            The qualifiers for the class.
 
           path (:class:`~pywbem.CIMClassName`):
             *New in pywbem 0.11.*
@@ -3590,13 +3695,16 @@ class CIMClass(_CIMComparisonMixin):
         """
         `NocaseDict`_: Properties (declarations) of the CIM class.
 
-        Each dictionary item specifies one property, with:
+        Will not be `None`.
+
+        Each dictionary item specifies one property declaration, with:
 
         * key (:term:`unicode string`): Property name. Its lexical case was
           preserved.
+
         * value (:class:`~pywbem.CIMProperty`): Property declaration.
 
-        Will not be `None`.
+        The order of properties in the CIM class is preserved.
 
         This attribute is settable; setting it will cause the current CIM
         properties to be replaced with the new properties. For details, see
@@ -3623,7 +3731,19 @@ class CIMClass(_CIMComparisonMixin):
         # pylint: disable=attribute-defined-outside-init
         self._properties = NocaseDict()
         if properties:
-            for key, value in properties.items():
+            try:
+                iterator = properties.items()
+            except AttributeError:
+                iterator = properties
+            for item in iterator:
+                if isinstance(item, CIMProperty):
+                    key = item.name
+                    value = item
+                elif isinstance(item, tuple):
+                    key, value = item
+                else:
+                    raise TypeError("Input object for properties has "
+                                    "invalid item in iterable: %r" % item)
                 self.properties[key] = _cim_property_decl(key, value)
 
     @property
@@ -3631,13 +3751,16 @@ class CIMClass(_CIMComparisonMixin):
         """
         `NocaseDict`_: Methods (declarations) of the CIM class.
 
+        Will not be `None`.
+
         Each dictionary item specifies one method, with:
 
         * key (:term:`unicode string`): Method name. Its lexical case was
           preserved.
+
         * value (:class:`~pywbem.CIMMethod`): Method declaration.
 
-        Will not be `None`.
+        The order of methods in the CIM class is preserved.
 
         This attribute is settable; setting it will cause the current CIM
         methods to be replaced with the new methods. For details, see
@@ -3664,21 +3787,36 @@ class CIMClass(_CIMComparisonMixin):
         # pylint: disable=attribute-defined-outside-init
         self._methods = NocaseDict()
         if methods:
-            for key, value in methods.items():
-                self._methods[key] = _cim_method(key, value)
+            try:
+                iterator = methods.items()
+            except AttributeError:
+                iterator = methods
+            for item in iterator:
+                if isinstance(item, CIMMethod):
+                    key = item.name
+                    value = item
+                elif isinstance(item, tuple):
+                    key, value = item
+                else:
+                    raise TypeError("Input object for methods has "
+                                    "invalid item in iterable: %r" % item)
+                self.methods[key] = _cim_method(key, value)
 
     @property
     def qualifiers(self):
         """
         `NocaseDict`_: Qualifiers (qualifier values) of the CIM class.
 
-        Each dictionary item specifies one qualifier, with:
+        Will not be `None`.
+
+        Each dictionary item specifies one qualifier value, with:
 
         * key (:term:`unicode string`): Qualifier name. Its lexical case was
           preserved.
+
         * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
 
-        Will not be `None`.
+        The order of qualifiers in the CIM class is preserved.
 
         This attribute is settable; setting it will cause the current
         qualifiers to be replaced with the new qualifiers. For details, see
@@ -3706,8 +3844,20 @@ class CIMClass(_CIMComparisonMixin):
         # pylint: disable=attribute-defined-outside-init
         self._qualifiers = NocaseDict()
         if qualifiers:
-            for key, value in qualifiers.items():
-                self._qualifiers[key] = _cim_qualifier(key, value)
+            try:
+                iterator = qualifiers.items()
+            except AttributeError:
+                iterator = qualifiers
+            for item in iterator:
+                if isinstance(item, CIMQualifier):
+                    key = item.name
+                    value = item
+                elif isinstance(item, tuple):
+                    key, value = item
+                else:
+                    raise TypeError("Input object for qualifiers has "
+                                    "invalid item in iterable: %r" % item)
+                self.qualifiers[key] = _cim_qualifier(key, value)
 
     @property
     def path(self):
@@ -3801,7 +3951,7 @@ class CIMClass(_CIMComparisonMixin):
         Return a string representation of the :class:`~pywbem.CIMClass`
         object that is suitable for debugging.
 
-        The properties, method and qualifiers will be ordered by their names in
+        The order of properties, method and qualifiers will be preserved in
         the result.
         """
 
@@ -3834,6 +3984,9 @@ class CIMClass(_CIMComparisonMixin):
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
 
+        The order of properties, methods, parameters, and qualifiers is
+        preserved.
+
         The :attr:`~pywbem.CIMClass.path` attribute of this object will not be
         included in the returned CIM-XML representation.
         """
@@ -3852,6 +4005,9 @@ class CIMClass(_CIMComparisonMixin):
         :class:`~pywbem.CIMClass` object, as a :term:`unicode string`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        The order of properties, methods, parameters, and qualifiers is
+        preserved.
 
         The :attr:`~pywbem.CIMClass.path` attribute of this object will not be
         included in the returned CIM-XML representation.
@@ -3881,6 +4037,12 @@ class CIMClass(_CIMComparisonMixin):
 
         The returned MOF string conforms to the ``classDeclaration``
         ABNF rule defined in :term:`DSP0004`.
+
+        The order of properties, methods, parameters, and qualifiers is
+        preserved.
+
+        The :attr:`~pywbem.CIMClass.path` attribute of this object will not be
+        included in the returned MOF string.
 
         Consistent with that, class path information is not included in the
         returned MOF string.
@@ -4057,30 +4219,9 @@ class CIMProperty(_CIMComparisonMixin):
             inferred from the creation class name of a referenced instance.
             This was incorrect and has been fixed in v0.11.0.
 
-          qualifiers (:class:`py:dict` or `NocaseDict`_):
-            Qualifier values for the property declaration. Has no meaning for
+          qualifiers (:term:`qualifiers input object`):
+            The qualifiers for the property declaration. Has no meaning for
             property values.
-
-            A shallow copy of the provided dictionary will be stored in the
-            ``CIMProperty`` object.
-
-            Each dictionary item specifies one qualifier value, with:
-
-            * key (:term:`string`):
-              Qualifier name.
-
-              Must not be `None`.
-
-              The lexical case of the string is preserved. Object comparison
-              and hash value calculation are performed case-insensitively.
-
-            * value (:class:`~pywbem.CIMQualifier`):
-              Qualifier value.
-              The `name` attribute of the provided object must be equal (case
-              insensitively) to the dictionary key, and the provided object
-              will be stored in the ``CIMProperty`` object (no copy is made).
-
-            `None` is interpreted as an empty set of qualifiers.
 
           embedded_object (:term:`string`):
             A string value indicating the kind of embedded object represented
@@ -4387,13 +4528,16 @@ class CIMProperty(_CIMComparisonMixin):
         `NocaseDict`_: Qualifiers (qualifier values) of the property
         declaration.
 
-        Each dictionary item specifies one qualifier, with:
+        Will not be `None`.
 
-        * key (:term:`string`): Qualifier name. Its lexical case was
+        Each dictionary item specifies one qualifier value, with:
+
+        * key (:term:`unicode string`): Qualifier name. Its lexical case was
           preserved.
+
         * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
 
-        Will not be `None`.
+        The order of qualifiers in the property is preserved.
 
         This attribute is settable; setting it will cause the current
         qualifiers to be replaced with the new qualifiers. For details, see
@@ -4421,8 +4565,20 @@ class CIMProperty(_CIMComparisonMixin):
         # pylint: disable=attribute-defined-outside-init
         self._qualifiers = NocaseDict()
         if qualifiers:
-            for key, value in qualifiers.items():
-                self._qualifiers[key] = _cim_qualifier(key, value)
+            try:
+                iterator = qualifiers.items()
+            except AttributeError:
+                iterator = qualifiers
+            for item in iterator:
+                if isinstance(item, CIMQualifier):
+                    key = item.name
+                    value = item
+                elif isinstance(item, tuple):
+                    key, value = item
+                else:
+                    raise TypeError("Input object for qualifiers has "
+                                    "invalid item in iterable: %r" % item)
+                self.qualifiers[key] = _cim_qualifier(key, value)
 
     def copy(self):
         """
@@ -4455,7 +4611,7 @@ class CIMProperty(_CIMComparisonMixin):
         Return a string representation of the :class:`~pywbem.CIMProperty`
         object that is suitable for debugging.
 
-        The qualifiers will be ordered by their names in the result.
+        The order of qualifiers will be preserved in the result.
         """
         return '%s(name=%r, value=%r, type=%r, ' \
                'reference_class=%r, embedded_object=%r, ' \
@@ -4475,6 +4631,8 @@ class CIMProperty(_CIMComparisonMixin):
         as an instance of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        The order of qualifiers is preserved.
         """
 
         if self.is_array:
@@ -4539,6 +4697,8 @@ class CIMProperty(_CIMComparisonMixin):
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
 
+        The order of qualifiers is preserved.
+
         Parameters:
 
           indent (:term:`string` or :term:`integer`):
@@ -4570,6 +4730,8 @@ class CIMProperty(_CIMComparisonMixin):
         objects that are used as property values within an instance, the
         returned MOF string for property values in instances does not contain
         any qualifier values.
+
+        The order of qualifiers is preserved.
 
         Parameters:
 
@@ -4777,30 +4939,8 @@ class CIMMethod(_CIMComparisonMixin):
             return types of methods, consistent with the CIM architecture,
             MOF syntax and the CIM-XML protocol.
 
-          parameters (:class:`py:dict` or `NocaseDict`_):
+          parameters (:term:`parameters input object`):
             Parameter declarations for the method.
-
-            A shallow copy of the provided dictionary will be stored in the
-            ``CIMMethod`` object.
-
-            Each dictionary item specifies one parameter declaration, with:
-
-            * key (:term:`string`):
-              Parameter name.
-
-              Must not be `None`.
-
-              The lexical case of the string is preserved. Object comparison
-              and hash value calculation are performed case-insensitively.
-
-            * value (:class:`~pywbem.CIMParameter`):
-              Parameter value.
-
-              The `name` attribute of the provided object must be equal (case
-              insensitively) to the dictionary key, and the provided object
-              will be stored in the ``CIMMethod`` object (no copy is made).
-
-            `None` is interpreted as an empty set of parameters.
 
           class_origin (:term:`string`):
             The CIM class origin of the method (the name
@@ -4822,30 +4962,8 @@ class CIMMethod(_CIMComparisonMixin):
             same-named attribute in the ``CIMMethod`` object will also be
             `None`.
 
-          qualifiers (:class:`py:dict` or `NocaseDict`_):
-            Qualifier values for the method.
-
-            A shallow copy of the provided dictionary will be stored in the
-            ``CIMMethod`` object.
-
-            Each dictionary item specifies one qualifier value, with:
-
-            * key (:term:`string`):
-              Qualifier name.
-
-              Must not be `None`.
-
-              The lexical case of the string is preserved. Object comparison
-              and hash value calculation are performed case-insensitively.
-
-            * value (:class:`~pywbem.CIMQualifier`):
-              Qualifier value.
-
-              The `name` attribute of the provided object must be equal (case
-              insensitively) to the dictionary key, and the provided object
-              will be stored in the ``CIMMethod`` object (no copy is made).
-
-            `None` is interpreted as an empty set of qualifiers.
+          qualifiers (:term:`qualifiers input object`):
+            The qualifiers for the method.
         """
 
         if methodname is not None:
@@ -4964,13 +5082,16 @@ class CIMMethod(_CIMComparisonMixin):
         """
         `NocaseDict`_: Parameters of the method.
 
+        Will not be `None`.
+
         Each dictionary item specifies one parameter, with:
 
-        * key (:term:`string`): Parameter name. Its lexical case was
+        * key (:term:`unicode string`): Parameter name. Its lexical case was
           preserved.
+
         * value (:class:`~pywbem.CIMParameter`): Parameter declaration.
 
-        Will not be `None`.
+        The order of parameters in the method is preserved.
 
         This attribute is settable; setting it will cause the current
         parameters to be replaced with the new parameters. For details, see
@@ -4993,20 +5114,38 @@ class CIMMethod(_CIMComparisonMixin):
     def parameters(self, parameters):
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
-        self._parameters = NocaseDict(parameters)
+        self._parameters = NocaseDict()
+        if parameters:
+            try:
+                iterator = parameters.items()
+            except AttributeError:
+                iterator = parameters
+            for item in iterator:
+                if isinstance(item, CIMParameter):
+                    key = item.name
+                    value = item
+                elif isinstance(item, tuple):
+                    key, value = item
+                else:
+                    raise TypeError("Input object for parameters has "
+                                    "invalid item in iterable: %r" % item)
+                self.parameters[key] = value
 
     @property
     def qualifiers(self):
         """
         `NocaseDict`_: Qualifiers (qualifier values) of the method.
 
-        Each dictionary item specifies one qualifier, with:
+        Will not be `None`.
 
-        * key (:term:`string`): Qualifier name. Its lexical case was
+        Each dictionary item specifies one qualifier value, with:
+
+        * key (:term:`unicode string`): Qualifier name. Its lexical case was
           preserved.
+
         * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
 
-        Will not be `None`.
+        The order of qualifiers in the method is preserved.
 
         This attribute is settable; setting it will cause the current
         qualifiers to be replaced with the new qualifiers. For details, see
@@ -5034,8 +5173,20 @@ class CIMMethod(_CIMComparisonMixin):
         # pylint: disable=attribute-defined-outside-init
         self._qualifiers = NocaseDict()
         if qualifiers:
-            for key, value in qualifiers.items():
-                self._qualifiers[key] = _cim_qualifier(key, value)
+            try:
+                iterator = qualifiers.items()
+            except AttributeError:
+                iterator = qualifiers
+            for item in iterator:
+                if isinstance(item, CIMQualifier):
+                    key = item.name
+                    value = item
+                elif isinstance(item, tuple):
+                    key, value = item
+                else:
+                    raise TypeError("Input object for qualifiers has "
+                                    "invalid item in iterable: %r" % item)
+                self.qualifiers[key] = _cim_qualifier(key, value)
 
     def _cmp(self, other):
         """
@@ -5095,7 +5246,7 @@ class CIMMethod(_CIMComparisonMixin):
         Return a string representation of the :class:`~pywbem.CIMMethod`
         object that is suitable for debugging.
 
-        The parameters and qualifiers will be ordered by their names in the
+        The order of parameters and qualifiers will be preserved in the
         result.
         """
         return '%s(name=%r, return_type=%r, ' \
@@ -5126,6 +5277,8 @@ class CIMMethod(_CIMComparisonMixin):
         as an instance of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        The order of parameters and qualifiers is preserved.
         """
         return cim_xml.METHOD(
             self.name,
@@ -5143,6 +5296,8 @@ class CIMMethod(_CIMComparisonMixin):
         :class:`~pywbem.CIMMethod` object, as a :term:`unicode string`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        The order of parameters and qualifiers is preserved.
 
         Parameters:
 
@@ -5166,6 +5321,8 @@ class CIMMethod(_CIMComparisonMixin):
         """
         Return a MOF fragment with the method definition represented by the
         :class:`~pywbem.CIMMethod` object.
+
+        The order of parameters and qualifiers is preserved.
 
         Parameters:
 
@@ -5269,30 +5426,8 @@ class CIMParameter(_CIMComparisonMixin):
             same-named attribute in the ``CIMParameter`` object will also be
             `None`.
 
-          qualifiers (:class:`py:dict` or `NocaseDict`_):
-            Qualifier values for the parameter.
-
-            A shallow copy of the provided dictionary will be stored in the
-            ``CIMParameter`` object.
-
-            Each dictionary item specifies one qualifier value, with:
-
-            * key (:term:`string`):
-              Qualifier name.
-
-              Must not be `None`.
-
-              The lexical case of the string is preserved. Object comparison
-              and hash value calculation are performed case-insensitively.
-
-            * value (:class:`~pywbem.CIMQualifier`):
-              Qualifier value.
-
-              The `name` attribute of the provided object must be equal (case
-              insensitively) to the dictionary key, and the provided object
-              will be stored in the ``CIMParameter`` object (no copy is made).
-
-            `None` is interpreted as an empty set of qualifiers.
+          qualifiers (:term:`qualifiers input object`):
+            The qualifiers for the parameter.
 
           value:
             Deprecated: Because the object represents a parameter declaration,
@@ -5436,13 +5571,16 @@ class CIMParameter(_CIMComparisonMixin):
         """
         `NocaseDict`_: Qualifiers (qualifier values) of the parameter.
 
-        Each dictionary item specifies one qualifier, with:
+        Will not be `None`.
 
-        * key (:term:`string`): Qualifier name. Its lexical case was
+        Each dictionary item specifies one qualifier value, with:
+
+        * key (:term:`unicode string`): Qualifier name. Its lexical case was
           preserved.
+
         * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
 
-        Will not be `None`.
+        The order of qualifiers in the parameter is preserved.
 
         This attribute is settable; setting it will cause the current
         qualifiers to be replaced with the new qualifiers. For details, see
@@ -5470,8 +5608,20 @@ class CIMParameter(_CIMComparisonMixin):
         # pylint: disable=attribute-defined-outside-init
         self._qualifiers = NocaseDict()
         if qualifiers:
-            for key, value in qualifiers.items():
-                self._qualifiers[key] = _cim_qualifier(key, value)
+            try:
+                iterator = qualifiers.items()
+            except AttributeError:
+                iterator = qualifiers
+            for item in iterator:
+                if isinstance(item, CIMQualifier):
+                    key = item.name
+                    value = item
+                elif isinstance(item, tuple):
+                    key, value = item
+                else:
+                    raise TypeError("Input object for qualifiers has "
+                                    "invalid item in iterable: %r" % item)
+                self.qualifiers[key] = _cim_qualifier(key, value)
 
     @property
     def value(self):
@@ -5565,7 +5715,7 @@ class CIMParameter(_CIMComparisonMixin):
         Return a string representation of the :class:`~pywbem.CIMParameter`
         object that is suitable for debugging.
 
-        The qualifiers will be ordered by their names in the result.
+        The order of qualifiers will be preserved in the result.
         """
         return '%s(name=%r, type=%r, ' \
                'reference_class=%r, ' \
@@ -5598,6 +5748,8 @@ class CIMParameter(_CIMComparisonMixin):
         as an instance of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
+
+        The order of qualifiers is preserved.
         """
         if self.type == 'reference':
 
@@ -5652,6 +5804,8 @@ class CIMParameter(_CIMComparisonMixin):
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
 
+        The order of qualifiers is preserved.
+
         Parameters:
 
           indent (:term:`string` or :term:`integer`):
@@ -5677,6 +5831,8 @@ class CIMParameter(_CIMComparisonMixin):
 
         The deprecated :attr:`~pywbem.CIMParameter.value` attribute is not
         included in the returned string.
+
+        The order of qualifiers is preserved.
 
         Parameters:
 
@@ -6555,7 +6711,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
         Each dictionary item specifies one scope value, with:
 
-        * key (:term:`string`): Scope name, in upper case.
+        * key (:term:`unicode string`): Scope name, in upper case.
 
         * value (:class:`py:bool`): Scope value, specifying whether the
           qualifier has that scope (i.e. can be applied to a CIM element of
