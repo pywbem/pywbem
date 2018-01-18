@@ -215,6 +215,9 @@ Enhancements
   different. Added a new section "Putting CIM objects in sets" that explains
   the considerations when utilizing the hash value of the mutable CIM objects.
 
+* Added support for retrieving the operation recorders of a connection
+  via a new `operation_recorders` read-only property (Issue #976).
+
 * Docs: Improved the descriptions of CIM objects and their attributes to
   describe how the attributes are used to determine object equality and
   the hash value of the object.
