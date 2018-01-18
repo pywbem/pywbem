@@ -59,8 +59,10 @@ Their upstream repos are assumed to have the remote name `origin`.
     - `vi docs/changes.rst`
 
     To make the following changes for the version to be released:
-   
+
     * Finalize the version to the version to be released.
+
+    * Remove the statement that the version is in development.
 
     * Change the release date to today´s date.
 
@@ -267,6 +269,8 @@ It covers all variants of new versions:
     ```
     Version 0.10.0
     ^^^^^^^^^^^^^^
+
+    This version is currently in development and is shown as |version|.
 
     Released: not yet
 

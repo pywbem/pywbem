@@ -122,19 +122,21 @@ doc_dependent_files := \
     $(wildcard $(doc_conf_dir)/*.rst) \
     $(wildcard $(doc_conf_dir)/notebooks/*.ipynb) \
     $(package_name)/__init__.py \
-    $(package_name)/cim_constants.py \
-    $(package_name)/cim_obj.py \
-    $(package_name)/cim_operations.py \
-    $(package_name)/cim_types.py \
-    $(package_name)/cim_http.py \
-    $(package_name)/mof_compiler.py \
-    $(package_name)/exceptions.py \
     $(package_name)/_listener.py \
-    $(package_name)/_subscription_manager.py \
+    $(package_name)/_logging.py \
     $(package_name)/_recorder.py \
     $(package_name)/_server.py \
     $(package_name)/_statistics.py \
+    $(package_name)/_subscription_manager.py \
+    $(package_name)/_version.py \
+    $(package_name)/cim_constants.py \
+    $(package_name)/cim_http.py \
+    $(package_name)/cim_obj.py \
+    $(package_name)/cim_operations.py \
+    $(package_name)/cim_types.py \
     $(package_name)/config.py \
+    $(package_name)/exceptions.py \
+    $(package_name)/mof_compiler.py \
     $(mock_package_name)/__init__.py \
     $(mock_package_name)/_wbemconnection_mock.py\
     wbemcli.py \
