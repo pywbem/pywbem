@@ -2237,36 +2237,44 @@ class CreateInstance(ClientTest):
         dt = datetime(year=2016, month=3, day=31, hour=19, minute=30,
                       second=40, microsecond=654321,
                       tzinfo=MinutesFromUTC(120))
+        td = timedelta(days=1234, seconds=(11 * 3600 + 22 * 60 + 33),
+                       microseconds=654321)
 
         instance_id = 'run_cimoperations_test1'
 
         tst_instance = CIMInstance(
             'PyWBEM_AllTypes',
-            {'InstanceId': instance_id,
-             'scalUint8': Uint8(42),
-             'scalSint8': Sint8(-42),
-             'scalUint16': Uint16(4216),
-             'scalSint16': Sint16(-4216),
-             'scalUint32': Uint32(4232),
-             'scalSint32': Sint32(-4232),
-             'scalUint64': Uint64(99999),
-             'scalSint64': Sint64(-99999),
-             'scalReal32': Real32(42.0),
-             'scalReal64': Real64(42.64),
-             'scalString': 'ham',
-             'scalDateTime': dt,
-             'arrayUint8': [Uint8(x) for x in [0, 1, 44, 127]],
-             'arraySint8': [Sint8(x) for x in [0, -1, 44, 127]],
-             'arrayUint16': [Sint16(x) for x in [0, -1, 44, 127]],
-             'arraySint16': [Sint16(42), Sint16(-99)],
-             'arrayUint32': [Uint32(42), Uint32(99)],
-             'arraySint32': [Sint32(42), Sint32(-99)],
-             'arrayUint64': [Uint64(42), Uint64(999999)],
-             'arraySint64': [Sint64(4222222), Sint64(-999999)],
-             'arrayReal32': [Real32(42.0), Real32(4442.9)],
-             'arrayReal64': [Real64(42.0), Real64(4442.9)],
-             'arrayString': ['ham', u'H\u00E4m'],  # U+00E4=lower case a umlaut
-             'arrayDateTime': [dt, dt], })
+            value=[
+                ('InstanceId', instance_id),
+                ('scalBool', True),
+                ('scalUint8', Uint8(42)),
+                ('scalSint8', Sint8(-42)),
+                ('scalUint16', Uint16(4216)),
+                ('scalSint16', Sint16(-4216)),
+                ('scalUint32', Uint32(4232)),
+                ('scalSint32', Sint32(-4232)),
+                ('scalUint64', Uint64(99999)),
+                ('scalSint64', Sint64(-99999)),
+                ('scalReal32', Real32(42.0)),
+                ('scalReal64', Real64(42.64)),
+                ('scalString', 'ham'),
+                ('scalDateTime', dt),
+                ('scalTimeDelta', td),
+                ('arrayBool', [False, True]),
+                ('arrayUint8', [Uint8(x) for x in [0, 1, 44, 127]]),
+                ('arraySint8', [Sint8(x) for x in [0, -1, 44, 127]]),
+                ('arrayUint16', [Sint16(x) for x in [0, -1, 44, 127]]),
+                ('arraySint16', [Sint16(42), Sint16(-99)]),
+                ('arrayUint32', [Uint32(42), Uint32(99)]),
+                ('arraySint32', [Sint32(42), Sint32(-99)]),
+                ('arrayUint64', [Uint64(42), Uint64(999999)]),
+                ('arraySint64', [Sint64(4222222), Sint64(-999999)]),
+                ('arrayReal32', [Real32(42.0), Real32(4442.9)]),
+                ('arrayReal64', [Real64(42.0), Real64(4442.9)]),
+                ('arrayString', ['ham', u'H\u00E4m']),  # U+00E4=lower a umlaut
+                ('arrayDateTime', [dt, dt]),
+                ('arrayTimeDelta', [td, td]),
+            ])
 
         tst_instance.path = CIMInstanceName(
             'PyWBEM_AllTypes', {'InstanceId': instance_id})
