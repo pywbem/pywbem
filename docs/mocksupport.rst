@@ -357,24 +357,13 @@ output parameters.
 
 The user must create a function that will be executed as a callback for each
 method that is to be tested. This method is attached to the mock repository
-through :meth:`~pywbem_mock.FakedWBEMConnection.subscribe_method` which
+through :meth:`~pywbem_mock.FakedWBEMConnection.add_method_callback` which
 defines the namespace, class, and methodname for the InvokeMethod and the
 callback method to be executed.
 
 
 This user defined callback method should have the signature defined in
-:meth:`~pywbem_mock.FakedWBEMConnection.subscribe_method`.
-
-Generally callback input and output are as follows:
-
-- **conn**: The handle to the mock repository
-
-- **objectname**: The CIMClassName or CIMInstanceName from the InvokeMethod
-  call including the execution namespace.
-
-- **methodname**: The methodname to execute from the client InvokeMethod call
-
-- **params**: The Params input parameter from the client InvokeMethod call.
+:meth:`~pywbem_mock.FakedWBEMConnection.add_method_callback`.
 
 The callback is expected to return a tuple consiting of ReturnValue and
 a `NocaseDict` containing any output parameters. The following is an example
@@ -427,7 +416,7 @@ of the definition and execution of InvokeMethod.
 
     # Subscribe the defined Class and method. In this case it is for the
     # default namespace.
-    conn.subscribe_method('TST_Class', 'Method1',
+    conn.add_method_callback('TST_Class', 'Method1',
                           self.method1_callback)
 
     # execute the InvokeMethod as a static (class level) method.
