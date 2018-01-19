@@ -6979,7 +6979,7 @@ def tocimxmlstr(value, indent=None):
 # internally in the CIM object classes, instead of tocimobj(). However,
 # tocimobj() is still used internally in the tupleparser, plus it is part of
 # the public API.
-# TODO: Move remaining internal uses of tocimobj() to cimvalue() and deprecate
+# TODO 12/16 AM #904: Migr. remaining uses of tocimobj() to cimvalue() and depr.
 #
 # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
 def tocimobj(type_, value):
