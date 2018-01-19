@@ -324,7 +324,7 @@ Installing a different version of pywbem
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The examples in the previous sections install the latest version of pywbem that
-is released on `PyPI`_. This section describes how dofferent versions of pywbem
+is released on `PyPI`_. This section describes how different versions of pywbem
 can be installed.
 
 * To install the latest version of pywbem that is released on PyPI, issue:
@@ -526,8 +526,12 @@ specified when following the links to the standards:
 * The implemented CIM metamodel (e.g. in the :ref:`CIM objects`) conforms to
   :term:`DSP0004`.
 
-* The WBEM URIs produced by the :meth:`pywbem.CIMInstanceName.__str__` and
-  :meth:`pywbem.CIMClassName.__str__` methods conform to :term:`DSP0207`.
+* The WBEM URIs produced by the ``to_wbem_uri()`` methods of
+  :class:`~pywbem.CIMInstanceName` and :class:`~pywbem.CIMClassName` conform to
+  :term:`DSP0207`.
+
+  Note that the ``__str__()`` methods of these two classes produce strings that
+  are similar but not conformant to :term:`DSP0207`, for historical reasons.
 
 * The mechanisms for discovering the Interop namespace of a WBEM server and the
   management profiles advertised by a WBEM server and their central instances

@@ -4,19 +4,19 @@
 Change log
 ==========
 
-.. ifconfig:: version.endswith('dev0')
+.. ifconfig:: '.dev' in version
 
-.. # Reenable the following lines when working on a development version:
+   This version of the documentation is development version |version| and
+   contains the `master` branch up to this commit:
 
-This version of the documentation is development version |version| and
-contains the `master` branch up to this commit:
-
-.. git_changelog::
-   :revisions: 1
+   .. git_changelog::
+      :revisions: 1
 
 
-pywbem v0.12.0.dev0
--------------------
+pywbem v0.12.0
+--------------
+
+This version is currently in development and is shown as |version|.
 
 Released: Not yet
 
