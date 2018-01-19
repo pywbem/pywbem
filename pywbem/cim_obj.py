@@ -437,8 +437,10 @@ class NocaseDict(object):
             if isinstance(arg, (list, tuple)):
                 # Initialize from iterable of: tuple(key,value), or object
                 try:
+                    # This is used for iterables:
                     iterator = arg.items()
                 except AttributeError:
+                    # This is used for dictionaries:
                     iterator = arg
                 for item in iterator:
                     try:
@@ -1753,8 +1755,10 @@ class CIMInstanceName(_CIMComparisonMixin):
         self._keybindings = NocaseDict()
         if keybindings:
             try:
+                # This is used for iterables:
                 iterator = keybindings.items()
             except AttributeError:
+                # This is used for dictionaries:
                 iterator = keybindings
             for item in iterator:
                 if isinstance(item, CIMProperty):
@@ -2644,8 +2648,10 @@ class CIMInstance(_CIMComparisonMixin):
         self._properties = NocaseDict()
         if properties:
             try:
+                # This is used for iterables:
                 iterator = properties.items()
             except AttributeError:
+                # This is used for dictionaries:
                 iterator = properties
             for item in iterator:
                 if isinstance(item, CIMProperty):
@@ -2695,8 +2701,10 @@ class CIMInstance(_CIMComparisonMixin):
         self._qualifiers = NocaseDict()
         if qualifiers:
             try:
+                # This is used for iterables:
                 iterator = qualifiers.items()
             except AttributeError:
+                # This is used for dictionaries:
                 iterator = qualifiers
             for item in iterator:
                 if isinstance(item, CIMQualifier):
@@ -3732,8 +3740,10 @@ class CIMClass(_CIMComparisonMixin):
         self._properties = NocaseDict()
         if properties:
             try:
+                # This is used for iterables:
                 iterator = properties.items()
             except AttributeError:
+                # This is used for dictionaries:
                 iterator = properties
             for item in iterator:
                 if isinstance(item, CIMProperty):
@@ -3788,8 +3798,10 @@ class CIMClass(_CIMComparisonMixin):
         self._methods = NocaseDict()
         if methods:
             try:
+                # This is used for iterables:
                 iterator = methods.items()
             except AttributeError:
+                # This is used for dictionaries:
                 iterator = methods
             for item in iterator:
                 if isinstance(item, CIMMethod):
@@ -3845,8 +3857,10 @@ class CIMClass(_CIMComparisonMixin):
         self._qualifiers = NocaseDict()
         if qualifiers:
             try:
+                # This is used for iterables:
                 iterator = qualifiers.items()
             except AttributeError:
+                # This is used for dictionaries:
                 iterator = qualifiers
             for item in iterator:
                 if isinstance(item, CIMQualifier):
@@ -4566,8 +4580,10 @@ class CIMProperty(_CIMComparisonMixin):
         self._qualifiers = NocaseDict()
         if qualifiers:
             try:
+                # This is used for iterables:
                 iterator = qualifiers.items()
             except AttributeError:
+                # This is used for dictionaries:
                 iterator = qualifiers
             for item in iterator:
                 if isinstance(item, CIMQualifier):
@@ -5117,8 +5133,10 @@ class CIMMethod(_CIMComparisonMixin):
         self._parameters = NocaseDict()
         if parameters:
             try:
+                # This is used for iterables:
                 iterator = parameters.items()
             except AttributeError:
+                # This is used for dictionaries:
                 iterator = parameters
             for item in iterator:
                 if isinstance(item, CIMParameter):
@@ -5174,8 +5192,10 @@ class CIMMethod(_CIMComparisonMixin):
         self._qualifiers = NocaseDict()
         if qualifiers:
             try:
+                # This is used for iterables:
                 iterator = qualifiers.items()
             except AttributeError:
+                # This is used for dictionaries:
                 iterator = qualifiers
             for item in iterator:
                 if isinstance(item, CIMQualifier):
@@ -5609,8 +5629,10 @@ class CIMParameter(_CIMComparisonMixin):
         self._qualifiers = NocaseDict()
         if qualifiers:
             try:
+                # This is used for iterables:
                 iterator = qualifiers.items()
             except AttributeError:
+                # This is used for dictionaries:
                 iterator = qualifiers
             for item in iterator:
                 if isinstance(item, CIMQualifier):
