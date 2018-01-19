@@ -1935,12 +1935,10 @@ class CIMInstanceName(_CIMComparisonMixin):
             # Note: The actual definition of referenceValue is missing in
             # DSP0207, see issue #929. Pywbem implements:
             # referenceValue = WBEM-URI-UntypedInstancePath.
-            # TODO 01/18 AM Remove note once referenceValue is def'd in DSP0207
 
             # Note: The definition of stringValue in DSP0004 allows multiple
             # quoted parts (as in MOF), see issue #931. Pywbem implements only
             # a single quoted part.
-            # TODO 01/18 AM Remove note once stringValue is fixed in DSP0207
 
             # We use slicing instead of strip() for removing the surrounding
             # double quotes, because there could be an escaped double quote
@@ -1972,7 +1970,6 @@ class CIMInstanceName(_CIMComparisonMixin):
             # Note: The definition of charValue in DSP0004 allows for integer
             # numbers in addition to single quoted strings, see issue #932.
             # Pywbem implements only single quoted strings.
-            # TODO 01/18 AM Remove note once charValue is fixed in DSP0207
 
             cimval = val[1:-1]
             cimval = re.sub(r'\\(.)', r'\1', cimval)
@@ -7110,7 +7107,8 @@ def tocimobj(type_, value):
 
     if type_ == 'reference':  # pylint: disable=too-many-nested-blocks
         # pylint: disable=too-many-return-statements,too-many-branches
-        # TODO doesn't handle double-quoting, as in refs to refs.  Example:
+
+        # Note: This doesn't handle double-quoting, as in refs to refs. Example:
         # r'ex_composedof.composer="ex_sampleClass.label1=9921,' +
         #  'label2=\"SampleLabel\"",component="ex_sampleClass.label1=0121,' +
         #  'label2=\"Component\""')
