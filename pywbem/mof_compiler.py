@@ -2127,9 +2127,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             self.classes[self.default_namespace] = \
                 NocaseDict({cc.classname: cc})
 
-        # TODO: should we see if it exists first with
-        # self.conn.GetClass()?  Do we want to create a class
-        # that already existed?
+        # TODO KS #991: CreateClass should reject if the class already exists
         try:
             self.class_names[self.default_namespace].append(cc.classname)
         except KeyError:
@@ -2226,7 +2224,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                 except CIMError as ce:
                     print('Error deleting class %s:%s' % (ns, cname))
                     print('     %s %s' % (ce.args[0], ce.args[1]))
-        # TODO: We want rollback to do something with qualifiers?
+        # TODO #990: Also roll back changes to qualifier declarations
 
 
 def _print_logger(msg):

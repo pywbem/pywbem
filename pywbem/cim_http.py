@@ -473,8 +473,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
             if self.debuglevel > 0:  # pylint: disable=no-member
                 print("send: %r" % strng)
             blocksize = 8192
-            # TODO 5/16 AM Better approach needed than converting to Bytes. See
-            # pywbem issue #418.
+            # TODO 5/16 AM #418 Better approach needed than conv. to Bytes
             if hasattr(strng, 'read') and not isinstance(strng, list):
                 if self.debuglevel > 0:  # pylint: disable=no-member
                     print("sendIng a read()able")
@@ -601,9 +600,10 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 # Note: PROTOCOL_SSLv23 allows talking to servers with TLS but
                 # not with SSL. For details, see the table in
                 # https://docs.python.org/3/library/ssl.html#ssl.wrap_socket
-                # TODO ks 4/16: confirm that we cannot use the default_context()
-                # Selects the highest protocol version that both the
-                # client and server support (SSLV23)
+                # Within the defined set of protocol versions, SSLv23 selects
+                # the highest protocol version that both client and server
+                # support.
+                # TODO 4/16 KS #893: Consider the use of default_context()
                 ctx = SSL.SSLContext(SSL.PROTOCOL_SSLv23)
 
                 if self.cert_file:
