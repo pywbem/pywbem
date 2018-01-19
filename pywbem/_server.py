@@ -953,14 +953,13 @@ class ValueMapping(object):
             valuemap_int = int(valuemap_str)
             return (valuemap_int, valuemap_int, values_str)
         except ValueError:
-            m = re.match(r'^([0-9]*)\.\.([0-9]*)$', valuemap_str)
+            m = re.match(r'^([+-]?[0-9]*)\.\.([+-]?[0-9]*)$', valuemap_str)
             if m is None:
                 raise ValueError("Invalid ValueMap entry: %r" % valuemap_str)
             lo = m.group(1)
             if lo == '':
                 if i == 0:
-                    lo = 0
-                    # TODO: Change to min(cimtype) once issue #268 is solved.
+                    lo = cimtype.minvalue
                 else:
                     _, previous_hi, _ = cls._values_tuple(
                         i - 1, valuemap_list, values_list, cimtype)
@@ -970,8 +969,7 @@ class ValueMapping(object):
             hi = m.group(2)
             if hi == '':
                 if i == len(valuemap_list) - 1:
-                    hi = 32767
-                    # TODO: Change to max(cimtype) once issue #268 is solved.
+                    hi = cimtype.maxvalue
                 else:
                     next_lo, _, _ = cls._values_tuple(
                         i + 1, valuemap_list, values_list, cimtype)
