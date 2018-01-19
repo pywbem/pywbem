@@ -282,18 +282,18 @@ class BaseOperationRecorder(object):
     that records the WBEM operations executed in a connection to a WBEM
     server.
 
-    An operation recorder can be registered by setting the
-    :attr:`~pywbem.WBEMConnection.operation_recorder` instance
-    attribute of the :class:`~pywbem.WBEMConnection` object to an
-    object of a subclass of this base class.
+    An operation recorder can be added to a connection via the
+    :meth:`~pywbem.WBEMConnection.add_operation_recorder` method. The operation
+    recorders of a connection can be retrieved via the
+    :attr:`~pywbem.WBEMConnection.operation_recorders` property.
 
-    When an operation recorder is registered on a connection, each operation
-    that is executed on the connection will cause the :meth:`record`
-    method of the operation recorder object to be called, if the recorder is
-    enabled.
+    Each operation that is executed on a connection will cause the
+    :meth:`record` method of those operation recorders of the connection to be
+    called, that are enabled.
 
-    The operation recorder is by default enabled, and can be disabled and
-    re-enabled using the :meth:`~pywbem.BaseOperationRecorder.disable` and
+    After being added to a connection, an operation recorder is enabled. It can
+    be disabled and re-enabled using the
+    :meth:`~pywbem.BaseOperationRecorder.disable` and
     :meth:`~pywbem.BaseOperationRecorder.enable` methods, respectively.
     This can be used to temporarily pause the recorder.
     """
