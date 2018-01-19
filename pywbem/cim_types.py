@@ -85,9 +85,10 @@ else:
     _Longint = int
 
 
-__all__ = ['MinutesFromUTC', 'CIMType', 'CIMDateTime', 'CIMInt', 'Uint8',
-           'Sint8', 'Uint16', 'Sint16', 'Uint32', 'Sint32', 'Uint64', 'Sint64',
-           'CIMFloat', 'Real32', 'Real64']
+__all__ = ['cimtype', 'type_from_name', 'MinutesFromUTC', 'CIMType',
+           'CIMDateTime', 'CIMInt', 'Uint8', 'Sint8', 'Uint16', 'Sint16',
+           'Uint32', 'Sint32', 'Uint64', 'Sint64', 'CIMFloat', 'Real32',
+           'Real64']
 
 
 class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
@@ -784,11 +785,13 @@ def cimtype(obj):
 
     For an array, the type is determined from the first array element
     (CIM arrays must be homogeneous w.r.t. the type of their elements).
+    If the array is empty, that is not possible and
+    :exc:`~py:exceptions.ValueError` is raised.
 
-    Note that Python number values (of type :term:`number`) are not valid input
-    objects because determining their CIM data type (e.g. Uint8, Real32) would
-    require knowing the value range. Therefore, `TypeError` is raised in this
-    case.
+    Note that Python :term:`numbers <number>` are not valid input objects
+    because determining their CIM data type (e.g. :class:`~pywbem.Uint8`,
+    :class:`~pywbem.Real32`) would require knowing the value range. Therefore,
+    :exc:`~py:exceptions.TypeError` is raised in this case.
 
     Parameters:
 
@@ -797,12 +800,12 @@ def cimtype(obj):
 
     Returns:
 
-        The CIM data type name of the object, as a string (e.g. ``"uint8"``).
+      :term:`string`: The CIM data type name of the object (e.g. ``"uint8"``).
 
     Raises:
 
-        TypeError: The object does not have a valid CIM data type.
-        ValueError: Cannot determine CIM data type from an empty array.
+      TypeError: The object does not have a valid CIM data type.
+      ValueError: Cannot determine CIM data type from an empty array.
     """
 
     if isinstance(obj, CIMType):
@@ -872,33 +875,33 @@ def type_from_name(type_name):
     """
     Return the Python type object for a given CIM data type name.
 
-    For example, type name "uint8" will return type object
+    For example, type name ``"uint8"`` will return type object
     :class:`~pywbem.Uint8`.
 
     For CIM data type names ``"string"`` and ``"char16"``, the
     :term:`unicode string` type is returned (Unicode strings are the preferred
     representation for these CIM data types).
 
-    The returned type can be used to 'cast' a value to that type in most cases,
-    except for "string" and "char16" typed values:
+    The returned type can be used as a constructor from a differently typed
+    input value in many cases. Notable limitations are:
 
-    * In Python 3, the :class:`py3:str` type when passing in a byte string
+    * In Python 3, the :class:`py3:str` type is used to represent CIM string
+      data types. When constructing such an object from a byte string, the
+      resulting string is not a unicode-translated version of the byte string
+      as one would assume (and as is the case in Python 2), but instead that
       results in a unicode string that is a `repr()` representation of the
       byte string::
 
           string_type = type_from_name('string')  # str
           s1 = b'abc'
-          s2 = string_type(s1)  # "b'abc'"
-
-      In Python 2, the :func:`py2:unicode` function converts a byte string
-      argument properly to unicode.
+          s2 = string_type(s1)  # results in u"b'abc'", and not in u"abc"
 
       Use `decode()` and `encode()` for strings instead of type conversion
       syntax (in both Python 2 and 3, for consistency).
 
     Parameters:
 
-      type_name : string
+      type_name (:term:`string`):
         The simple (=non-array) CIM data type name (e.g. ``"uint8"`` or
         ``"reference"``).
 

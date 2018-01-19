@@ -225,6 +225,15 @@ Enhancements
   and to `tocimxmlstr()` to allow control over whether the object is
   interpreted as a value or as a declaration. (Issue #950).
 
+* Added a new conversion function to the public API: `cimtype()` takes a CIM
+  data typed value (e.g. `Uint8(42)`) and returns the CIM data type name for
+  it (e.g. "uint8"). Previously, this was an internal function (Issue #993).
+
+* Added a new conversion function to the public API: `type_from_name()` takes
+  a CIM data type name (e.g. "uint8") and returns the Python type representing
+  that CIM data type (e.g. `Uint8`). Previously, this was an internal
+  function (Issue #993).
+
 * Docs: Improved the descriptions of CIM objects and their attributes to
   describe how the attributes are used to determine object equality and
   the hash value of the object.
