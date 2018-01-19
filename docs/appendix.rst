@@ -78,6 +78,242 @@ This documentation uses a few special terms to refer to Python types:
    CIM object
       one of the types listed in :ref:`CIM objects`.
 
+   keybindings input object
+      a Python object used as input for initializing an ordered list of
+      keybindings in a parent object (i.e. a :class:`~pywbem.CIMInstanceName`
+      object).
+
+      `None` will result in an an empty list of keybindings.
+
+      Otherwise, the type of the input object must be one of:
+
+      * iterable of :class:`~pywbem.CIMProperty`
+      * iterable of tuple(key, value)
+      * :class:`~py:collections.OrderedDict` with key and value
+      * :class:`py:dict` with key and value (will not preserve order)
+
+      with the following definitions for key and value:
+
+      * key (:term:`string`):
+        Keybinding name.
+
+        Must not be `None`.
+
+        The lexical case of the string is preserved. Object comparison
+        and hash value calculation are performed case-insensitively.
+
+      * value (:term:`CIM data type` or :term:`number` or :class:`~pywbem.CIMProperty`):
+        Keybinding value.
+
+        If specified as :term:`CIM data type` or :term:`number`, the provided
+        object will be stored unchanged as the keybinding value.
+
+        If specified as a :class:`~pywbem.CIMProperty` object, its `name`
+        attribute must match the key (case insensitively), and a copy of its
+        value (a :term:`CIM data type`) will be stored as the keybinding value.
+
+        `None` for the keybinding value will be stored unchanged.
+
+      The order of keybindings in the parent object is preserved if the input
+      object is an iterable or a :class:`~py:collections.OrderedDict` object,
+      but not when it is a :class:`py:dict` object.
+
+      The resulting set of keybindings in the parent object is independent of
+      the input object (except for unmutable objects), so that subsequent
+      modifications of the input object by the caller do not affect the parent
+      object.
+
+   methods input object
+      a Python object used as input for initializing an ordered list of
+      methods represented as :class:`~pywbem.CIMMethod` objects in a parent
+      object that is a :class:`~pywbem.CIMClass`.
+
+      `None` will result in an an empty list of methods.
+
+      Otherwise, the type of the input object must be one of:
+
+      * iterable of :class:`~pywbem.CIMMethod`
+      * iterable of tuple(key, value)
+      * :class:`~py:collections.OrderedDict` with key and value
+      * :class:`py:dict` with key and value (will not preserve order)
+
+      with the following definitions for key and value:
+
+      * key (:term:`string`):
+        Method name.
+
+        Must not be `None`.
+
+        The lexical case of the string is preserved. Object comparison
+        and hash value calculation are performed case-insensitively.
+
+      * value (:class:`~pywbem.CIMMethod`):
+        Method declaration.
+
+        Must not be `None`.
+
+        The `name` attribute of the :class:`~pywbem.CIMMethod` object must
+        match the key (case insensitively).
+
+        The provided object is stored in the parent object without making a
+        copy of it.
+
+      The order of methods in the parent object is preserved if the input
+      object is an iterable or a :class:`~py:collections.OrderedDict` object,
+      but not when it is a :class:`py:dict` object.
+
+      The resulting set of methods in the parent object is independent of the
+      input collection object, but consists of the same
+      :class:`~pywbem.CIMMethod` objects that were provided in the input
+      collection. Therefore, a caller must be careful to not accidentally
+      modify the provided :class:`~pywbem.CIMMethod` objects.
+
+   parameters input object
+      a Python object used as input for initializing an ordered list of
+      parameters represented as :class:`~pywbem.CIMParameter` objects in a
+      parent object that is a :class:`~pywbem.CIMMethod`.
+
+      `None` will result in an an empty list of parameters.
+
+      Otherwise, the type of the input object must be one of:
+
+      * iterable of :class:`~pywbem.CIMParameter`
+      * iterable of tuple(key, value)
+      * :class:`~py:collections.OrderedDict` with key and value
+      * :class:`py:dict` with key and value (will not preserve order)
+
+      with the following definitions for key and value:
+
+      * key (:term:`string`):
+        Parameter name.
+
+        Must not be `None`.
+
+        The lexical case of the string is preserved. Object comparison
+        and hash value calculation are performed case-insensitively.
+
+      * value (:class:`~pywbem.CIMParameter`):
+        Parameter (declaration).
+
+        Must not be `None`.
+
+        The `name` attribute of the :class:`~pywbem.CIMParameter` object must
+        match the key (case insensitively).
+
+        The provided object is stored in the parent object without making a
+        copy of it.
+
+      The order of parameters in the parent object is preserved if the input
+      object is an iterable or a :class:`~py:collections.OrderedDict` object,
+      but not when it is a :class:`py:dict` object.
+
+      The resulting set of parameters in the parent object is independent of
+      the input collection object, but consists of the same
+      :class:`~pywbem.CIMParameter` objects that were provided in the input
+      collection. Therefore, a caller must be careful to not accidentally
+      modify the provided :class:`~pywbem.CIMParameter` objects.
+
+   properties input object
+      a Python object used as input for initializing an ordered list of
+      properties represented as :class:`~pywbem.CIMProperty` objects, in a
+      parent object.
+
+      The :class:`~pywbem.CIMProperty` objects represent property values when
+      the parent object is a :class:`~pywbem.CIMInstance`, and property
+      declarations when the parent object is a :class:`~pywbem.CIMClass`.
+
+      `None` will result in an an empty list of properties.
+
+      Otherwise, the type of the input object must be one of:
+
+      * iterable of :class:`~pywbem.CIMProperty`
+      * iterable of tuple(key, value)
+      * :class:`~py:collections.OrderedDict` with key and value
+      * :class:`py:dict` with key and value (will not preserve order)
+
+      with the following definitions for key and value:
+
+      * key (:term:`string`):
+        Property name.
+
+        Must not be `None`.
+
+        The lexical case of the string is preserved. Object comparison
+        and hash value calculation are performed case-insensitively.
+
+      * value (:term:`CIM data type` or :class:`~pywbem.CIMProperty`):
+        Property (value or declaration).
+
+        Must not be `None`.
+
+        :class:`~pywbem.CIMProperty` objects can be used as input for both
+        property values and property declarations. :term:`CIM data type`
+        objects can only be used for property values.
+
+        If specified as a :term:`CIM data type`, a new
+        :class:`~pywbem.CIMProperty` object will be created from the provided
+        value, inferring its CIM data type from the provided value.
+
+        If specified as a :class:`~pywbem.CIMProperty` object, its `name`
+        attribute must match the key (case insensitively), and the provided
+        object is stored in the parent object without making a copy of it.
+
+      The order of properties in the parent object is preserved if the input
+      object is an iterable or a :class:`~py:collections.OrderedDict` object,
+      but not when it is a :class:`py:dict` object.
+
+      The resulting set of properties in the parent object is independent of
+      the input collection object, but consists of the same
+      :class:`~pywbem.CIMProperty` objects that were provided in the input
+      collection. Therefore, a caller must be careful to not accidentally
+      modify the provided :class:`~pywbem.CIMProperty` objects.
+
+   qualifiers input object
+      a Python object used as input for initializing an ordered list of
+      qualifiers represented as :class:`~pywbem.CIMQualifier` objects in a
+      parent object (e.g. in a :class:`~pywbem.CIMClass` object).
+
+      `None` will result in an an empty list of qualifiers.
+
+      Otherwise, the type of the input object must be one of:
+
+      * iterable of :class:`~pywbem.CIMQualifier`
+      * iterable of tuple(key, value)
+      * :class:`~py:collections.OrderedDict` with key and value
+      * :class:`py:dict` with key and value (will not preserve order)
+
+      with the following definitions for key and value:
+
+      * key (:term:`string`):
+        Qualifier name.
+
+        Must not be `None`.
+
+        The lexical case of the string is preserved. Object comparison
+        and hash value calculation are performed case-insensitively.
+
+      * value (:term:`CIM data type` or :class:`~pywbem.CIMQualifier`):
+        Qualifier (value).
+
+        Must not be `None`.
+
+        If specified as a :term:`CIM data type`, a new
+        :class:`~pywbem.CIMQualifier` object will be created from the provided
+        value, inferring its CIM data type from the provided value.
+
+        If specified as a :class:`~pywbem.CIMQualifier` object, its `name`
+        attribute must match the key (case insensitively), and the provided
+        object is stored in the parent object without making a copy of it.
+
+      The order of qualifiers in the parent object is preserved if the input
+      object is an iterable or a :class:`~py:collections.OrderedDict` object,
+      but not when it is a :class:`py:dict` object.
+
+      The resulting set of qualifiers in the parent object is independent of
+      the input collection object, but consists of the same
+      :class:`~pywbem.CIMQualifier` objects that were provided in the input
+      collection. Therefore, a caller must be careful to not accidentally
+      modify the provided :class:`~pywbem.CIMQualifier` objects.
 
 .. _`Troubleshooting`:
 

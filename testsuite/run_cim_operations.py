@@ -4154,8 +4154,8 @@ class PegasusTestEmbeddedInstance(PegasusServerTestBase, RegexpMixin):
                 self.assertRegexpMatches(
                     str_mof, r"instance of Test_CLITestEmbeddedClass {")
                 self.assertRegexpContains(
-                    str_mof,
-                    r"embeddedInst = \"instance of Test_CLITestEmbedded1 {")
+                    str_mof.replace('\n', ' '),
+                    r"embeddedInst = +\"instance of Test_CLITestEmbedded1 {")
 
                 # get the embedded instance property
                 prop = inst.properties[prop_name]

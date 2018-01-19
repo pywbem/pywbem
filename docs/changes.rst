@@ -221,6 +221,21 @@ Enhancements
 * Docs: Improved the descriptions of CIM objects and their attributes to
   describe how the attributes are used to determine object equality and
   the hash value of the object.
+ 
+* The child elements of CIM objects (e.g. properties of `CIMClass`) now
+  preserve the order in which they had been added to their parent object.
+  Methods such as `tomof()`, `tocimxml()`, and `to_wbem_uri()` now
+  output the child elements of the target object in the preserved order.
+  If a child element is initialized with an object that does not preserve
+  order of items (e.g. a standard dict), a UserWarning is now issued.
+
+* Added a new kind of input object for initializing CIM objects: An iterable
+  of the desired CIM object type, and documented the already supported iterable
+  of tuple(key, value) as a further input type.
+
+* Improved checking of input objects when initializing a list of child
+  elements in a CIM object(e.g.  properties of `CIMClass`), and raise
+  TypeError if not supported.
 
 * Docs: Editorial improvements in the documentation (links, typos, formatting).
 
@@ -289,6 +304,14 @@ Bug fixes
   and consistent with the other iteration mechanisms for CIM objects.
   The test cases that were supposed to verify that did not perform the
   correct check and were also fixed.
+
+* Docs: Fixed the documentation of the CIMInstanceName.keybindings setter
+  method, by adding 'number' as an allowed input type.
+
+* Docs: Moved the detail documentation of input to child element lists (e.g.
+  for properties of `CIMInstance`) as a data type 'properties input object',
+  etc., into the glossary. These types are now referenced as the type of
+  the corresponding parameter.
 
 * Docs: Clarified that the return type of `BaseOperationRecorder.open_file()`
   is a file-like object and that the caller is responsible for closing that

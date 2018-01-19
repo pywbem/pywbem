@@ -71,6 +71,10 @@ import sys
 import os
 import re
 from abc import ABCMeta, abstractmethod
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 import six
 from ply import yacc, lex
@@ -776,9 +780,9 @@ def p_classDeclaration(p):
             else:  # superclass
                 superclass = p[4]
                 cfl = p[6]
-    quals = dict([(x.name, x) for x in quals])
-    methods = {}
-    props = {}
+    quals = OrderedDict([(x.name, x) for x in quals])
+    methods = OrderedDict()
+    props = OrderedDict()
     for item in cfl:
         item.class_origin = cname
         if isinstance(item, CIMMethod):
@@ -842,15 +846,15 @@ def _assoc_or_indic_decl(quals, p):
     else:
         superclass = p[7]
         cfl = p[9]
-    props = {}
-    methods = {}
+    props = OrderedDict()
+    methods = OrderedDict()
     for item in cfl:
         item.class_origin = cname
         if isinstance(item, CIMMethod):
             methods[item.name] = item
         else:
             props[item.name] = item
-    quals = dict([(x.name, x) for x in quals])
+    quals = OrderedDict([(x.name, x) for x in quals])
     cc = CIMClass(cname, properties=props, methods=methods,
                   superclass=superclass, qualifiers=quals)
     if alias:
@@ -1046,21 +1050,21 @@ def p_propertyDeclaration_4(p):
 
 def p_propertyDeclaration_5(p):
     """propertyDeclaration_5 : qualifierList dataType propertyName ';'"""
-    quals = dict([(x.name, x) for x in p[1]])
+    quals = OrderedDict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], None, type=p[2], qualifiers=quals)
 
 
 def p_propertyDeclaration_6(p):
     # pylint: disable=line-too-long
     """propertyDeclaration_6 : qualifierList dataType propertyName defaultValue ';'"""  # noqa: E501
-    quals = dict([(x.name, x) for x in p[1]])
+    quals = OrderedDict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], tocimobj(p[2], p[4]),
                        type=p[2], qualifiers=quals)
 
 
 def p_propertyDeclaration_7(p):
     """propertyDeclaration_7 : qualifierList dataType propertyName array ';'"""
-    quals = dict([(x.name, x) for x in p[1]])
+    quals = OrderedDict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], None, type=p[2], qualifiers=quals,
                        is_array=True, array_size=p[4])
 
@@ -1068,7 +1072,7 @@ def p_propertyDeclaration_7(p):
 def p_propertyDeclaration_8(p):
     # pylint: disable=line-too-long
     """propertyDeclaration_8 : qualifierList dataType propertyName array defaultValue ';'"""  # noqa: E501
-    quals = dict([(x.name, x) for x in p[1]])
+    quals = OrderedDict([(x.name, x) for x in p[1]])
     p[0] = CIMProperty(p[3], tocimobj(p[2], p[5]),
                        type=p[2], qualifiers=quals, is_array=True,
                        array_size=p[4])
@@ -1094,7 +1098,7 @@ def p_referenceDeclaration(p):
         pname = p[2]
         if len(p) == 5:
             dv = p[3]
-    quals = dict([(x.name, x) for x in quals])
+    quals = OrderedDict([(x.name, x) for x in quals])
     p[0] = CIMProperty(pname, dv, type='reference',
                        reference_class=cname, qualifiers=quals)
 
@@ -1119,8 +1123,8 @@ def p_methodDeclaration(p):
         mname = p[3]
         if p[5] != ')':
             paramlist = p[5]
-    params = dict([(param.name, param) for param in paramlist])
-    quals = dict([(q.name, q) for q in quals])
+    params = OrderedDict([(param.name, param) for param in paramlist])
+    quals = OrderedDict([(q.name, q) for q in quals])
     p[0] = CIMMethod(mname, return_type=dt, parameters=params,
                      qualifiers=quals)
 
@@ -1207,7 +1211,7 @@ def p_parameter_2(p):
     if len(p) == 5:
         args['is_array'] = True
         args['array_size'] = p[4]
-    quals = dict([(x.name, x) for x in p[1]])
+    quals = OrderedDict([(x.name, x) for x in p[1]])
     p[0] = CIMParameter(p[3], p[2], qualifiers=quals, **args)
 
 
@@ -1230,7 +1234,7 @@ def p_parameter_4(p):
     if len(p) == 5:
         args['is_array'] = True
         args['array_size'] = p[4]
-    quals = dict([(x.name, x) for x in p[1]])
+    quals = OrderedDict([(x.name, x) for x in p[1]])
     p[0] = CIMParameter(p[3], 'reference', qualifiers=quals,
                         reference_class=p[2], **args)
 
