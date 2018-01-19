@@ -94,6 +94,36 @@ yaml.SafeDumper.add_representer(
     _represent_ordereddict(dumper, u'tag:yaml.org,2002:map', value))
 
 
+# Tag for CIMDateTime serialization in yaml files
+CIMDATETIME_TAG = '!CIMDateTime'
+
+
+def _cimdatetime_representer(dumper, cimdatetime):
+    """
+    PyYAML representer function for CIMDateTime objects.
+    This is needed for yaml.safe_dump() to support CIMDateTime.
+    """
+    cimdatetime_str = str(cimdatetime)
+    node = dumper.represent_scalar(CIMDATETIME_TAG, cimdatetime_str)
+    return node
+
+
+yaml.SafeDumper.add_representer(CIMDateTime, _cimdatetime_representer)
+
+
+def _cimdatetime_constructor(loader, node):
+    """
+    PyYAML constructor function for CIMDateTime objects.
+    This is needed for yaml.safe_load() to support CIMDateTime.
+    """
+    cimdatetime_str = loader.construct_scalar(node)
+    cimdatetime = CIMDateTime(cimdatetime_str)
+    return cimdatetime
+
+
+yaml.SafeLoader.add_constructor(CIMDATETIME_TAG, _cimdatetime_constructor)
+
+
 # Some monkey-patching for better diagnostics:
 def _represent_undefined(self, data):
     """Raises flag for objects that cannot be represented"""
