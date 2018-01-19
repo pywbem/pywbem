@@ -45,7 +45,7 @@ import six
 
 from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIMInstance, CIMInstanceName, CIMQualifierDeclaration, \
-    CIMError, \
+    CIMParameter, cimtype, CIMError, \
     CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, CIM_ERR_INVALID_SUPERCLASS, \
     CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, CIM_ERR_ALREADY_EXISTS, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
@@ -106,7 +106,8 @@ def _uprint(dest, text):
             print(btext, file=f)
 
 
-def method_callback_interface(conn, objectname, methodname, Params, **params):
+
+def method_callback_interface(conn, objectname, methodname, **params):
     # pylint: disable=unused-argument, invalid-name
     """
     **Experimental:** *New in pywbem 0.12 as experimental.*
@@ -152,17 +153,18 @@ def method_callback_interface(conn, objectname, methodname, Params, **params):
         a single callback function to be used as the responder
         for multiple methods.
 
-      Params (:term:`py:iterable` of tuples of name,value):
-        Input parameters from the InvokeMethod Params input.
+      params (:term:`py:iterable` of tuples of name,value):
+        Input parameters from the InvokeMethod Params and params input.
 
-        An iterable of input parameters for the CIM method.
+        A  NocaseDict of input parameters for the CIM method as CIMParameters.
 
         Each iterated item represents a single input parameter
-        for the CIM method and must be a ``tuple(name, value)``,
-        with these tuple items:
+        for the CIM method and is a :class:`~pywbem.CIMParameter` with.
 
         * name (:term:`string`):
           Parameter name (case independent)
+        * type (:term:`string`:
+          String representation of parameter type.
         * value (:term:`CIM data type`):
           Parameter value
 
@@ -183,14 +185,17 @@ def method_callback_interface(conn, objectname, methodname, Params, **params):
           * ReturnValue (:term:`CIM data type`):
               Return value from the executed method.
 
-          * outparams (:term:`py:iterable` of tuples of name,value):
+          * outparams (:term:`py:iterable` of CIMParameters):
 
             Each iterated item represents a single output parameter
-            for the CIM method and must be a ``tuple(name, value)``,
-            with these tuple items:
+            for the CIM method and must be a 
+            :class:`~pywbem.CIMParameter` with the
+            following data:
 
               * key (:term:`unicode string`):
-                Parameter name, preserving its lexical case
+                Parameter name
+              * type (:term:`string`:
+                String representation of parameter type.
               * value (:term:`CIM data type`):
                 Parameter value
 
@@ -889,10 +894,9 @@ class FakedWBEMConnection(WBEMConnection):
         """
         Mocks the WBEMConnection._methodcall() method.
         """
-        if self.verbose:
-            logging.debug('mock_imethodcall method=%s, namespace=%s, '
-                          'response_params_rqd=%s\nparams=%s',
-                          methodname, localobject, Params, params)
+        logging.debug('mock_methodcall method=%s, namespace=%s, '
+                      'Params=%s\nparams=%s',
+                      methodname, localobject, Params, params)
 
         result = self._fake_invokemethod(methodname, localobject, Params,
                                          **params)
@@ -901,8 +905,7 @@ class FakedWBEMConnection(WBEMConnection):
         if self._response_delay:
             time.sleep(self._response_delay)
 
-        if self.verbose:
-            print('mock result %s' % result)
+        logging.debug('mock result %s', result)
 
         return result
 
@@ -1133,10 +1136,21 @@ class FakedWBEMConnection(WBEMConnection):
           namespace (:term:`string`):
             Namespace from which to retrieve the class
 
-          params(Dictionary of keywords that determine filtering):
-            The keywords in this dictionary determine any filtering on the
-            class before being returned including LocalOnly, PropertyList,
-            IncludeQualifiers, and IncludeClassOrigin.
+          local_only (:class:`py:bool`):
+            If True, only properties and methods in this specific class are
+            returned. Otherwise properties and methods from the superclasses
+            are included.
+
+          include_qualifiers (:class:`py:bool`):
+            If True, include qualifiers. Otherwise remove all qualifiers
+
+          include_classorigin (:class:`py:bool`):
+            If True return the class_origin attributes of properties and
+            methods.
+
+          property_list ():
+            Properties to be included in returned class.  If None, all
+            properties are returned.  If empty, no properties are returned
 
         Returns:
 
@@ -1328,13 +1342,14 @@ class FakedWBEMConnection(WBEMConnection):
             The class or instance from which properties are to be filtered
 
         property_list(list of :term:`string`):
-            list of properties which are to be included in the result. If
+            List of properties which are to be included in the result. If
             None, remove nothing.  If empty list, remove everything. else
-            remove properties that are not in property_list
+            remove properties that are not in property_list. Duplicated names
+            are allowed in the list and ignored.
         """
         if property_list is not None:
-            # TODO. FUTURE Should be able to delete following.  cim_ops should
-            # have cleaned it.
+            # TODO. FUTURE Should be able to delete following.  We should be
+            #       receiving a good property list from WBEMConnection
             if isinstance(property_list, six.string_types):
                 property_list = [property_list]
             property_list = [p.lower() for p in property_list]
@@ -1854,7 +1869,6 @@ class FakedWBEMConnection(WBEMConnection):
         original_instance = orig_instance_tup[1]
 
         # Remove duplicate properties from property_list
-        # TODO: Should this become general part of property list processing?
         if property_list:
             if len(property_list) != len(set(property_list)):
                 property_list = list(set(property_list))
@@ -2902,20 +2916,40 @@ class FakedWBEMConnection(WBEMConnection):
                                               'registered in repo' %
                            (localobject.classname, methodname, namespace))
 
+<<<<<<< HEAD
         # Call the registered method and catch exceptions.
         try:
             result = bound_method(self, methodname, localobject, Params,
                                   **params)
 
             assert isinstance(result, (list, tuple))
+=======
+        # Map the Params and **params into a single ordered dictionary
+        # of CIMParameters
+        params_dict = NocaseDict()
+        if Params:
+            for param in Params:
+                if isinstance(param, CIMParameter):
+                    params_dict[param.name] = param
+                elif isinstance(param, tuple):
+                    params_dict[param[0]] = CIMParameter(param[0],
+                                                         cimtype(param[1]),
+                                                         value=param[1])
+                else:
+                    CIMError(CIM_ERR_INVALID_PARAMETER, 'Param %s invalid '
+                                                        'type %s' % param,
+                                                        type(param))
+>>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
 
-            # Map output params to NocaseDict to be compatible with return
-            # from _methodcall
-            output_params = NocaseDict()
-            for param in result[1]:
-                output_params[param[0]] = param[1]
+        if params:
+            for param in params:
+                params_dict[param] = CIMParameter(param,
+                                                  cimtype(param[param]),
+                                                  value=param[param])
 
-            return (result[0], output_params)
+        # Call the registered method and catch exceptions.
+        try:
+            result = bound_method(self, methodname, localobject, **params_dict)
 
         except CIMError:
             raise
@@ -2930,3 +2964,22 @@ class FakedWBEMConnection(WBEMConnection):
                                            'input localobject %r, parameters '
                                            '%r. Exception: %r\nTraceback\n%s' %
                            (methodname, namespace, localobject, params, ex, tb))
+
+        # test for valid data in response.
+        if not isinstance(result, (list, tuple)):
+            raise CIMError(CIM_ERR_FAILED, 'Callback method returned %s '
+                           'response type. Expected list or tuple' %
+                           type(result))
+        for param in result[1]:
+            if not isinstance(param, CIMParameter):
+                raise CIMError(CIM_ERR_FAILED, 'Callback method returned '
+                               '%s response type. Expected CIMParameter. '
+                               % type(param))
+
+        # Map output params to NocaseDict to be compatible with return
+        # from _methodcall. The input list is just CIMParameters
+        output_params = NocaseDict()
+        for param in result[1]:
+            output_params[param.name] = param.value
+
+        return (result[0], output_params)
