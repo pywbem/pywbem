@@ -5408,7 +5408,7 @@ class CIMParameter(_CIMComparisonMixin):
       * Qualifiers are allowed.
 
     Scalar (=non-array) parameters and items in array parameters may have a
-    value of NULL (= `None`), any primitive CIM data type, reference type, and
+    value of NULL (= `None`), any primitive CIM data type, reference type, or
     string type with embedded instance or embedded object.
 
     Two objects of this class compare equal if their public attributes compare
@@ -5484,14 +5484,16 @@ class CIMParameter(_CIMComparisonMixin):
 
           embedded_object (:term:`string`):
             A string value indicating the kind of embedded object represented
-            by the parameter value. Has no meaning for parameter declarations.
+            by the parameter value (i.e. the `value` parameter). Has no meaning
+            for parameter declarations.
 
             For details about the possible values, see the corresponding
             attribute.
 
             `None` means that the value is unspecified, causing the same-named
-            attribute in the ``CIMParameter`` object to be inferred. An
-            exception is raised if it cannot be inferred.
+            attribute in the ``CIMParameter`` object to be inferred from
+            the parameter value (i.e. the `value` parameter). An exception is
+            raised if it cannot be inferred.
         """
 
         # We use the respective setter methods:
