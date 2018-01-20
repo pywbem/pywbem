@@ -218,6 +218,13 @@ Enhancements
 * Added support for retrieving the operation recorders of a connection
   via a new `operation_recorders` read-only property (Issue #976).
 
+* Extended `CIMParameter` to represent CIM parameter values in method
+  invocations. As part of that, removed the deprecation from its `value`
+  property and added an `embedded_object` property. Extended the testcases
+  accordingly. Added an `as_value` argument to `CIMParameter.tocimxml()`
+  and to `tocimxmlstr()` to allow control over whether the object is
+  interpreted as a value or as a declaration. (Issue #950).
+
 * Docs: Improved the descriptions of CIM objects and their attributes to
   describe how the attributes are used to determine object equality and
   the hash value of the object.

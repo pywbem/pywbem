@@ -38,7 +38,8 @@ CIM object                                  Purpose
 :class:`~pywbem.CIMProperty`                CIM property, both as property value in a CIM instance and as property
                                             declaration in a CIM class
 :class:`~pywbem.CIMMethod`                  CIM method declaration in a CIM class
-:class:`~pywbem.CIMParameter`               CIM parameter in a CIM method declaration in a CIM class
+:class:`~pywbem.CIMParameter`               CIM parameter, both as a parameter value in a method invocation and as a
+                                            parameter declaration in a CIM method declaration in a CIM class
 :class:`~pywbem.CIMQualifier`               CIM qualifier value
 :class:`~pywbem.CIMQualifierDeclaration`    CIM qualifier type/declaration
 ==========================================  ==========================================================================
@@ -270,6 +271,7 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+from xml.dom.minidom import Element
 
 import six
 
@@ -5389,7 +5391,25 @@ class CIMMethod(_CIMComparisonMixin):
 
 class CIMParameter(_CIMComparisonMixin):
     """
-    A CIM parameter in a method (declaration).
+    A CIM parameter (value or declaration).
+
+    This object can be used as parameter value in the
+    :meth:`~pywbem.WBEMConnection.InvokeMethod` operation, and as a parameter
+    declaration in a :class:`~pywbem.CIMMethod` object.
+
+    For parameter values in method invocations:
+
+      * The `value` attribute is the actual value of the parameter.
+      * Qualifiers are not allowed.
+
+    For parameter declarations in method declarations:
+
+      * The `value` attribute is ignored.
+      * Qualifiers are allowed.
+
+    Scalar (=non-array) parameters and items in array parameters may have a
+    value of NULL (= `None`), any primitive CIM data type, reference type, or
+    string type with embedded instance or embedded object.
 
     Two objects of this class compare equal if their public attributes compare
     equal. Objects of this class are :term:`unchanged-hashable`, with the hash
@@ -5400,7 +5420,8 @@ class CIMParameter(_CIMComparisonMixin):
 
     # pylint: disable=too-many-arguments
     def __init__(self, name, type, reference_class=None, is_array=None,
-                 array_size=None, qualifiers=None, value=None):
+                 array_size=None, qualifiers=None, value=None,
+                 embedded_object=None):
         # pylint: disable=redefined-builtin
         """
         The constructor stores the input parameters as-is and does
@@ -5454,13 +5475,25 @@ class CIMParameter(_CIMComparisonMixin):
             The qualifiers for the parameter.
 
           value:
-            Deprecated: Because the object represents a parameter declaration,
-            this parameter does not make any sense. Specifying a value other
-            than `None` will cause a :term:`DeprecationWarning` to be issued.
+            The value of the CIM method parameter for the method invocation.
+            Has no meaning for parameter declarations.
 
             The specified value will be converted to a :term:`CIM data type`
             using the rules documented in the description of
             :func:`~pywbem.cimvalue`, taking into account the `type` parameter.
+
+          embedded_object (:term:`string`):
+            A string value indicating the kind of embedded object represented
+            by the parameter value (i.e. the `value` parameter). Has no meaning
+            for parameter declarations.
+
+            For details about the possible values, see the corresponding
+            attribute.
+
+            `None` means that the value is unspecified, causing the same-named
+            attribute in the ``CIMParameter`` object to be inferred from
+            the parameter value (i.e. the `value` parameter). An exception is
+            raised if it cannot be inferred.
         """
 
         # We use the respective setter methods:
@@ -5472,6 +5505,12 @@ class CIMParameter(_CIMComparisonMixin):
             is_array = _infer_is_array(value)
         _check_array_parms(is_array, array_size, value, element_txt)
 
+        if embedded_object is None:
+            embedded_object = _infer_embedded_object(value)
+
+        if embedded_object is not None:
+            _check_embedded_object(embedded_object, type, value, element_txt)
+
         # We use the respective setter methods:
         self.type = type
         self.reference_class = reference_class
@@ -5479,6 +5518,7 @@ class CIMParameter(_CIMComparisonMixin):
         self.array_size = array_size
         self.qualifiers = qualifiers
         self.value = value  # value setter relies on self.type being set
+        self.embedded_object = embedded_object
 
     @property
     def name(self):
@@ -5652,25 +5692,53 @@ class CIMParameter(_CIMComparisonMixin):
     @property
     def value(self):
         """
-        Deprecated: Because the object represents a parameter declaration,
-        this attribute does not make any sense. Accessing it will cause a
-        :term:`DeprecationWarning` to be issued.
+        The value of the CIM method parameter for the method invocation.
+        Has no meaning for parameter declarations.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
         """
         return self._value
 
     @value.setter
     def value(self, value):
         """Setter method; for a description see the getter method."""
-        if value is not None:
-            msg = "The 'value' init parameter and attribute of " \
-                "CIMParameter is deprecated."
-            if DEBUG_WARNING_ORIGIN:
-                msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
-            warnings.warn(msg, DeprecationWarning,
-                          stacklevel=_stacklevel_above_module(__name__))
-
         # pylint: disable=attribute-defined-outside-init
         self._value = cimvalue(value, self.type)
+
+    @property
+    def embedded_object(self):
+        """
+        :term:`unicode string`: A string value indicating the kind of embedded
+        object represented by the parameter value.
+        Has no meaning for parameter declarations.
+
+        The following values are defined for this parameter:
+
+        * ``"instance"``: The parameter is declared with the
+          ``EmbeddedInstance`` qualifier, indicating that the parameter
+          value is an embedded instance of the class specified as the value
+          of the ``EmbeddedInstance`` qualifier.
+          The property value must be a :class:`~pywbem.CIMInstance` object,
+          or `None`.
+        * ``"object"``: The parameter is declared with the
+          ``EmbeddedObject`` qualifier, indicating that the parameter
+          value is an embedded object (instance or class) of which the
+          class name is not known.
+          The parameter value must be a :class:`~pywbem.CIMInstance` or
+          :class:`~pywbem.CIMClass` object, or `None`.
+        * `None`, for parameters not representing embedded objects.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._embedded_object
+
+    @embedded_object.setter
+    def embedded_object(self, embedded_object):
+        """Setter method; for a description see the getter method."""
+        # pylint: disable=attribute-defined-outside-init
+        self._embedded_object = _ensure_unicode(embedded_object)
 
     def _cmp(self, other):
         """
@@ -5686,6 +5754,7 @@ class CIMParameter(_CIMComparisonMixin):
         * `array_size`
         * `qualifiers`
         * `value`
+        * `embedded_object`
 
         The comparison takes into account any case insensitivities described
         for these attributes.
@@ -5705,7 +5774,8 @@ class CIMParameter(_CIMComparisonMixin):
                 cmpitem(self.is_array, other.is_array) or
                 cmpitem(self.array_size, other.array_size) or
                 cmpdict(self.qualifiers, other.qualifiers) or
-                cmpitem(self.value, other.value))
+                cmpitem(self.value, other.value) or
+                cmpitem(self.embedded_object, other.embedded_object))
 
     def __hash__(self):
         """
@@ -5721,6 +5791,7 @@ class CIMParameter(_CIMComparisonMixin):
             _hash_item(self.array_size),
             _hash_dict(self.qualifiers),
             _hash_item(self.value),
+            _hash_item(self.embedded_object),
         )
         return hash(hashes)
 
@@ -5746,11 +5817,13 @@ class CIMParameter(_CIMComparisonMixin):
         return '%s(name=%r, type=%r, ' \
                'reference_class=%r, ' \
                'is_array=%r, array_size=%r, ' \
-               'qualifiers=%r)' % \
+               'qualifiers=%r, value=%r, ' \
+               'embedded_object=%r)' % \
                (self.__class__.__name__, self.name, self.type,
                 self.reference_class,
                 self.is_array, self.array_size,
-                self.qualifiers)
+                self.qualifiers, self.value,
+                self.embedded_object)
 
     def copy(self):
         """
@@ -5761,72 +5834,132 @@ class CIMParameter(_CIMComparisonMixin):
                               reference_class=self.reference_class,
                               is_array=self.is_array,
                               array_size=self.array_size,
-                              value=self.value)
+                              value=self.value,
+                              embedded_object=self.embedded_object)
 
         result.qualifiers = self.qualifiers.copy()
 
         return result
 
-    def tocimxml(self):
+    def tocimxml(self, as_value=False):
         """
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMParameter` object,
-        as an instance of an appropriate subclass of :term:`Element`.
+        Return the CIM-XML representation of the :class:`~pywbem.CIMParameter`
+        object, either as a parameter declaration for use in a method
+        declaration, or as a parameter value for use in a method invocation.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+        The CIM-XML representation is consistent with :term:`DSP0201`.
 
-        The order of qualifiers is preserved.
+        Parameters:
+
+          as_value (bool): If `True`, return the object as a parameter value.
+            Otherwise, return the object as a parameter declaration.
+
+        Returns:
+
+            The CIM-XML representation of the object, as an appropriate
+            subclass of :term:`Element`.
         """
-        if self.type == 'reference':
 
-            if self.is_array:
+        if as_value:
+
+            value = self.value
+
+            if value is None:
+                pass
+
+            elif self.is_array:
+
+                if self.type == 'reference':
+                    val_array = []
+                    for v in value:
+                        if v is None:
+                            val_array.append(cim_xml.VALUE_NULL())
+                        else:
+                            val_array.append(
+                                cim_xml.VALUE_REFERENCE(v.tocimxml()))
+                    value = cim_xml.VALUE_REFARRAY(val_array)
+
+                else:
+                    val_array = []
+                    for v in value:
+                        if v is None:
+                            val_array.append(cim_xml.VALUE_NULL())
+                        elif self.embedded_object is not None:
+                            val_array.append(
+                                cim_xml.VALUE(v.tocimxml().toxml()))
+                        else:
+                            val_array.append(
+                                cim_xml.VALUE(atomic_to_cim_xml(v)))
+                    value = cim_xml.VALUE_ARRAY(val_array)
+
+            else:
+                # scalar
+                if self.type == 'reference':
+                    value = cim_xml.VALUE_REFERENCE(value.tocimxml())
+                elif self.embedded_object is not None:
+                    value = cim_xml.VALUE(value.tocimxml().toxml())
+                else:
+                    value = cim_xml.VALUE(atomic_to_cim_xml(value))
+
+            return cim_xml.PARAMVALUE(
+                self.name,
+                value,
+                paramtype=self.type,
+                embedded_object=self.embedded_object)
+
+        else:
+
+            if self.type == 'reference':
+
+                if self.is_array:
+
+                    array_size = None
+
+                    if self.array_size is not None:
+                        array_size = str(self.array_size)
+
+                    return cim_xml.PARAMETER_REFARRAY(
+                        self.name,
+                        self.reference_class,
+                        array_size,
+                        qualifiers=[q.tocimxml()
+                                    for q in self.qualifiers.values()])
+
+                else:
+
+                    return cim_xml.PARAMETER_REFERENCE(
+                        self.name,
+                        self.reference_class,
+                        qualifiers=[q.tocimxml()
+                                    for q in self.qualifiers.values()])
+
+            elif self.is_array:
 
                 array_size = None
 
                 if self.array_size is not None:
                     array_size = str(self.array_size)
 
-                return cim_xml.PARAMETER_REFARRAY(
+                return cim_xml.PARAMETER_ARRAY(
                     self.name,
-                    self.reference_class,
+                    self.type,
                     array_size,
-                    qualifiers=[q.tocimxml()
-                                for q in self.qualifiers.values()])
+                    qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
             else:
 
-                return cim_xml.PARAMETER_REFERENCE(
+                return cim_xml.PARAMETER(
                     self.name,
-                    self.reference_class,
-                    qualifiers=[q.tocimxml()
-                                for q in self.qualifiers.values()])
+                    self.type,
+                    qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
-        elif self.is_array:
-
-            array_size = None
-
-            if self.array_size is not None:
-                array_size = str(self.array_size)
-
-            return cim_xml.PARAMETER_ARRAY(
-                self.name,
-                self.type,
-                array_size,
-                qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
-
-        else:
-
-            return cim_xml.PARAMETER(
-                self.name,
-                self.type,
-                qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
-
-    def tocimxmlstr(self, indent=None):
+    def tocimxmlstr(self, indent=None, as_value=False):
         """
         *New in pywbem 0.9.*
 
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMParameter` object, as a :term:`unicode string`.
+        Return the CIM-XML representation of the :class:`~pywbem.CIMParameter`
+        object, either as a parameter declaration for use in a method
+        declaration, or as a parameter value for use in a method invocation.
 
         The returned CIM-XML representation is consistent with :term:`DSP0201`.
 
@@ -5843,20 +5976,25 @@ class CIMParameter(_CIMComparisonMixin):
             string to be used for each level of nested XML elements. An integer
             value specifies an indentation string of so many blanks.
 
+          as_value (bool): If `True`, return the object as a parameter value.
+            Otherwise, return the object as a parameter declaration.
+
         Returns:
 
             The CIM-XML representation of the object, as a
             :term:`unicode string`.
         """
-        return tocimxmlstr(self, indent)
+        xml_elem = self.tocimxml(as_value)
+        return tocimxmlstr(xml_elem, indent)
 
     def tomof(self, indent=0, maxline=MAX_MOF_LINE):
         """
         Return a MOF fragment with the parameter definition represented by the
         :class:`~pywbem.CIMParameter` object.
 
-        The deprecated :attr:`~pywbem.CIMParameter.value` attribute is not
-        included in the returned string.
+        The object is always interpreted as a parameter declaration; so the
+        :attr:`~pywbem.CIMParameter.value` and
+        :attr:`~pywbem.CIMParameter.embedded_object` attributes are ignored.
 
         The order of qualifiers is preserved.
 
@@ -7122,8 +7260,9 @@ def tocimxmlstr(value, indent=None):
 
     Parameters:
 
-      value (:term:`CIM object` or :term:`CIM data type`):
-        The CIM object or CIM data type to be converted to CIM-XML.
+      value (:term:`CIM object` or :term:`CIM data type` or :term:`Element`):
+        The CIM object or CIM data type to be converted to CIM-XML, or an
+        :term:`Element` object that already is the CIM-XML representation.
 
       indent (:term:`string` or :term:`integer`):
         `None` indicates that a single-line version of the XML should be
@@ -7138,7 +7277,12 @@ def tocimxmlstr(value, indent=None):
 
         The CIM-XML representation of the value, as a :term:`unicode string`.
     """
-    xml_elem = tocimxml(value)
+
+    if isinstance(value, Element):
+        xml_elem = value
+    else:
+        xml_elem = tocimxml(value)
+
     if indent is None:
         xml_str = xml_elem.toxml()
     else:
@@ -7598,7 +7742,7 @@ def _check_embedded_object(embedded_object, type, value, element_txt):
     if type != 'string':
         raise ValueError("%s specifies embedded_object %r but its CIM type is "
                          "invalid: %r (must be 'string')" %
-                         (element_txt, embedded_object, builtin_type(value)))
+                         (element_txt, embedded_object, type))
 
     if value is not None:
         if isinstance(value, list):

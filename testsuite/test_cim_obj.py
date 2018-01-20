@@ -13193,6 +13193,7 @@ class Test_CIMParameter_init(object):
             True,
             2,
             qualifiers,
+            [Uint32(42)],
             None)
 
         assert obj.name == u'FooParam'
@@ -13201,7 +13202,8 @@ class Test_CIMParameter_init(object):
         assert obj.is_array is True
         assert obj.array_size == 2
         assert obj.qualifiers == NocaseDict(qualifiers)
-        assert obj.value is None
+        assert obj.value == [Uint32(42)]
+        assert obj.embedded_object is None
 
     # Defaults to expect for attributes when not specified in testcase
     default_exp_attrs = dict(
@@ -13210,6 +13212,7 @@ class Test_CIMParameter_init(object):
         array_size=None,
         qualifiers=NocaseDict(),
         value=None,
+        embedded_object=None,
     )
 
     qualifier_Q1 = CIMQualifier('Q1', value='abc')
@@ -13305,7 +13308,7 @@ class Test_CIMParameter_init(object):
                  is_array=None, value=u'abc'),
             dict(name=u'FooParam', type=u'string',
                  is_array=False, value=u'abc'),
-            DeprecationWarning, CHECK_0_12_0
+            None, CHECK_0_12_0
         ),
         (
             "Verify that unspecified is_array is implied to array by array "
@@ -13314,7 +13317,7 @@ class Test_CIMParameter_init(object):
                  is_array=None, value=[u'abc']),
             dict(name=u'FooParam', type=u'string',
                  is_array=True, value=[u'abc']),
-            DeprecationWarning, CHECK_0_12_0
+            None, CHECK_0_12_0
         ),
         (
             "Verify that unspecified is_array remains unspecified with value "
@@ -13359,14 +13362,204 @@ class Test_CIMParameter_init(object):
                  qualifiers=NocaseDict(Q1=qualifier_Q1)),
             None, True
         ),
+
+        # Value tests
         (
-            "Verify that value is stored as provided (and issues deprecation "
-            "warning since 0.12)",
+            "Verify that a string value is converted to unicode",
             dict(name=u'FooParam', type=u'string',
                  value='abc'),
             dict(name=u'FooParam', type=u'string',
                  value=u'abc' if CHECK_0_12_0 else 'abc'),
-            DeprecationWarning if CHECK_0_12_0 else None, True
+            None, True
+        ),
+        (
+            "Verify that an integer value is converted to Uint32",
+            dict(name=u'FooParam', type=u'uint32',
+                 value=42),
+            dict(name=u'FooParam', type=u'uint32',
+                 value=Uint32(42)),
+            None, True
+        ),
+        (
+            "Verify that an integer value 1 is converted to bool True",
+            dict(name=u'FooParam', type=u'boolean',
+                 value=1),
+            dict(name=u'FooParam', type=u'boolean',
+                 value=True),
+            None, True
+        ),
+        (
+            "Verify that an integer value 0 is converted to bool False",
+            dict(name=u'FooParam', type=u'boolean',
+                 value=0),
+            dict(name=u'FooParam', type=u'boolean',
+                 value=False),
+            None, True
+        ),
+        (
+            "Verify that a non-empty string value is converted to bool True",
+            dict(name=u'FooParam', type=u'boolean',
+                 value='FALSE'),
+            dict(name=u'FooParam', type=u'boolean',
+                 value=True),
+            None, True
+        ),
+        (
+            "Verify that a float value is converted to real32",
+            dict(name=u'FooParam', type=u'real32',
+                 value=42.1),
+            dict(name=u'FooParam', type=u'real32',
+                 value=Real32(42.1)),
+            None, True
+        ),
+        (
+            "Verify that a datetime string value is converted to CIM datetime",
+            dict(name=u'FooParam', type=u'datetime',
+                 value='19980125133015.123456-300'),
+            dict(name=u'FooParam', type=u'datetime',
+                 value=CIMDateTime('19980125133015.123456-300')),
+            None, True
+        ),
+        (
+            "Verify that an embedded instance is accepted and embedded_object "
+            "defaults to 'instance'",
+            dict(name=u'FooParam', type=u'string',
+                 value=CIMInstance('CIM_Emb')),
+            dict(name=u'FooParam', type=u'string',
+                 value=CIMInstance('CIM_Emb'), embedded_object=u'instance'),
+            None, True
+        ),
+        (
+            "Verify that an embedded instance is accepted with embedded_object "
+            "specified as 'instance'",
+            dict(name=u'FooParam', type=u'string',
+                 value=CIMInstance('CIM_Emb'), embedded_object='instance'),
+            dict(name=u'FooParam', type=u'string',
+                 value=CIMInstance('CIM_Emb'), embedded_object=u'instance'),
+            None, True
+        ),
+        (
+            "Verify that an embedded class is accepted and embedded_object "
+            "defaults to 'object'",
+            dict(name=u'FooParam', type=u'string',
+                 value=CIMClass('CIM_Emb')),
+            dict(name=u'FooParam', type=u'string',
+                 value=CIMClass('CIM_Emb'), embedded_object=u'object'),
+            None, True
+        ),
+        (
+            "Verify that an embedded class is accepted with embedded_object "
+            "specified as 'object'",
+            dict(name=u'FooParam', type=u'string',
+                 value=CIMClass('CIM_Emb'), embedded_object='object'),
+            dict(name=u'FooParam', type=u'string',
+                 value=CIMClass('CIM_Emb'), embedded_object=u'object'),
+            None, True
+        ),
+
+        # Value array tests
+        (
+            "Verify that a string array value causes is_array to be "
+            "defaulted to True",
+            dict(name=u'FooParam', type=u'string',
+                 value=['abc']),
+            dict(name=u'FooParam', type=u'string', is_array=True,
+                 value=[u'abc'] if CHECK_0_12_0 else ['abc']),
+            None, True
+        ),
+        (
+            "Verify that an integer array value is converted to [Uint32]",
+            dict(name=u'FooParam', type=u'uint32',
+                 value=[42]),
+            dict(name=u'FooParam', type=u'uint32', is_array=True,
+                 value=[Uint32(42)]),
+            None, True
+        ),
+        (
+            "Verify that an integer array value 1 is converted to bool True",
+            dict(name=u'FooParam', type=u'boolean',
+                 value=[1]),
+            dict(name=u'FooParam', type=u'boolean', is_array=True,
+                 value=[True]),
+            None, True
+        ),
+        (
+            "Verify that an array item None remains None",
+            dict(name=u'FooParam', type=u'boolean',
+                 value=[None]),
+            dict(name=u'FooParam', type=u'boolean', is_array=True,
+                 value=[None]),
+            None, True
+        ),
+        (
+            "Verify that an integer array value 0 is converted to bool False",
+            dict(name=u'FooParam', type=u'boolean',
+                 value=[0]),
+            dict(name=u'FooParam', type=u'boolean', is_array=True,
+                 value=[False]),
+            None, True
+        ),
+        (
+            "Verify that a non-empty string array value is converted to bool "
+            "True",
+            dict(name=u'FooParam', type=u'boolean',
+                 value=['FALSE']),
+            dict(name=u'FooParam', type=u'boolean', is_array=True,
+                 value=[True]),
+            None, True
+        ),
+        (
+            "Verify that a float array value is converted to real32",
+            dict(name=u'FooParam', type=u'real32',
+                 value=[42.1]),
+            dict(name=u'FooParam', type=u'real32', is_array=True,
+                 value=[Real32(42.1)]),
+            None, True
+        ),
+        (
+            "Verify that a datetime string array value is converted to CIM "
+            "datetime",
+            dict(name=u'FooParam', type=u'datetime',
+                 value=['19980125133015.123456-300']),
+            dict(name=u'FooParam', type=u'datetime', is_array=True,
+                 value=[CIMDateTime('19980125133015.123456-300')]),
+            None, True
+        ),
+        (
+            "Verify that an embedded instance array is accepted and "
+            "embedded_object defaults to 'instance'",
+            dict(name=u'FooParam', type=u'string',
+                 value=[CIMInstance('CIM_Emb')]),
+            dict(name=u'FooParam', type=u'string', is_array=True,
+                 value=[CIMInstance('CIM_Emb')], embedded_object=u'instance'),
+            None, True
+        ),
+        (
+            "Verify that an embedded instance array is accepted with "
+            "embedded_object specified as 'instance'",
+            dict(name=u'FooParam', type=u'string',
+                 value=[CIMInstance('CIM_Emb')], embedded_object='instance'),
+            dict(name=u'FooParam', type=u'string', is_array=True,
+                 value=[CIMInstance('CIM_Emb')], embedded_object=u'instance'),
+            None, True
+        ),
+        (
+            "Verify that an embedded class array is accepted and "
+            "embedded_object defaults to 'object'",
+            dict(name=u'FooParam', type=u'string',
+                 value=[CIMClass('CIM_Emb')]),
+            dict(name=u'FooParam', type=u'string', is_array=True,
+                 value=[CIMClass('CIM_Emb')], embedded_object=u'object'),
+            None, True
+        ),
+        (
+            "Verify that an embedded class array is accepted with "
+            "embedded_object specified as 'object'",
+            dict(name=u'FooParam', type=u'string',
+                 value=[CIMClass('CIM_Emb')], embedded_object='object'),
+            dict(name=u'FooParam', type=u'string', is_array=True,
+                 value=[CIMClass('CIM_Emb')], embedded_object=u'object'),
+            None, True
         ),
     ]
 
@@ -13393,6 +13586,8 @@ class Test_CIMParameter_init(object):
             'qualifiers', self.default_exp_attrs['qualifiers'])
         exp_value = exp_attrs.get(
             'value', self.default_exp_attrs['value'])
+        exp_embedded_object = exp_attrs.get(
+            'embedded_object', self.default_exp_attrs['embedded_object'])
 
         if exp_warn_type is None:
 
@@ -13427,6 +13622,9 @@ class Test_CIMParameter_init(object):
 
         assert obj.value == exp_value
         assert isinstance(obj.value, type(exp_value))
+
+        assert obj.embedded_object == exp_embedded_object
+        assert isinstance(obj.embedded_object, type(exp_embedded_object))
 
     testcases_fails = [
         # Testcases where CIMParameter.__init__() fails.
