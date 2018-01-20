@@ -353,6 +353,17 @@ Bug fixes
   their `class_origin` attribute case-insensitively. If set, it contains a CIM
   class name. Previously, that attribute was compared case-sensitively.
 
+* Fixed the use of hard coded value limits in the `ValueMapping` class
+  for open ranges of the ValueMap qualifier, by making them dependent on
+  the data type of the qualified element. This only affected elements
+  with data types other than Uint32 and only if the ValueMap qualifier
+  defined open ranges whose open side reached the min or max limit (i.e.
+  was first or last in the list). Extended the test cases to include
+  this situation (Issue #992).
+
+* Fixed the lookup of the Values string for negative values in the
+  `ValueMapping` class (found when solving #992).
+ 
 * Docs: Fixed the type `string` for the keys of the `CIMInstance.qualifiers`
   attribute to be `unicode string`.
 
