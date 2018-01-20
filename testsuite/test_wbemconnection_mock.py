@@ -37,10 +37,9 @@ import six
 import pytest
 from testfixtures import OutputCapture
 
-
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
-    CIMError, DEFAULT_NAMESPACE, Uint32
+    CIMError, DEFAULT_NAMESPACE, Uint32, CIM_ERR_FAILED
 
 from pywbem.cim_obj import NocaseDict
 
@@ -97,10 +96,10 @@ def equal_ciminstnames(p1, p2):
     if not equal_model_path(p1, p2):
         return False
     if p1.namespace != p2.namespace:
-        print('match failure ns1=%s, ns2=%s' % (p1.namespace, p2.namespace))
+        print('Match failure ns1=%s, ns2=%s' % (p1.namespace, p2.namespace))
         return False
     if p1.host != p2.host:
-        print('match failure nhost1=%s, host2=%s' % (p1.host, p2.host))
+        print('Match failure nhost1=%s, host2=%s' % (p1.host, p2.host))
         return False
     return True
 
@@ -311,8 +310,16 @@ def tst_qualifiers_mof():
             Scope(any),
             Flavor(EnableOverride, ToSubclass, Translatable);
 
+        Qualifier In : boolean = true,
+            Scope(parameter),
+            Flavor(DisableOverride, ToSubclass);
+
         Qualifier Key : boolean = false,
             Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+
+        Qualifier Out : boolean = false,
+            Scope(parameter),
             Flavor(DisableOverride, ToSubclass);
         """
 
@@ -330,19 +337,58 @@ def tst_classes_mof(tst_qualifiers_mof):
         class CIM_Foo {
                 [Key, Description ("This is key prop")]
             string InstanceID;
-                [Description ("This is a method")]
-            string Fuzzy();
-            uint32 Delete();
+
+                [Description ("This is a method with in and out parameters")]
+            uint32 Fuzzy(
+                [IN, Description("FuzzyMethod Param")]
+              string FuzzyParameter,
+
+                [IN, Description ( "Test of ref input parameter")]
+              CIM_Foo REF Foo,
+
+                [IN ( false ), OUT, Description("TestMethod Param")]
+              string OutputParam,
+
+                [IN  ( false ), OUT, Description ( "Fuzy method ref param out")]
+              CIM_Foo REF Foo);
+
+                [ Description("Method with no Parameters") ]
+            uint32 DeleteNothing();
         };
+
             [Description ("Subclass of CIM_Foo")]
         class CIM_Foo_sub : CIM_Foo {
             string cimfoo_sub;
         };
+
         class CIM_Foo_sub2 : CIM_Foo {
             string cimfoo_sub2;
         };
+
         class CIM_Foo_sub_sub : CIM_Foo_sub {
             string cimfoo_sub_sub;
+                [Description("Sample method with input and output parameters")]
+            uint32 Method1(
+                [IN, Description("Input Param1")]
+              string InputParam1,
+                [IN, Description("Input Param2")]
+              string InputParam2,
+                [IN ( false), OUT, Description("Response param 1")]
+              string OutputParam1,
+                [IN ( false), OUT, Description("Response param 2")]
+              string OutputParam2);
+            uint32 Method2(
+                [IN, Description("Input Param1")]
+              Uint32 InputParam1,
+                [IN, Description("Input Param2")]
+              string InputParam2,
+                [IN, Description("Generate Exception if this exists")]
+              string TestCIMErrorException,
+                [IN ( false), OUT, Description("Response param 1")]
+              string OutputParam1,
+                [IN ( false), OUT, Description("Response param 2")]
+              Uint64 OutputParam2[]);
+
         };
     """
     return tst_qualifiers_mof + '\n\n' + cl_str + '\n\n'
@@ -401,8 +447,16 @@ def tst_assoc_mof():
             Scope(any),
             Flavor(EnableOverride, ToSubclass, Translatable);
 
+        Qualifier In : boolean = true,
+            Scope(parameter),
+            Flavor(DisableOverride, ToSubclass);
+
         Qualifier Key : boolean = false,
             Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+
+        Qualifier Out : boolean = false,
+            Scope(parameter),
             Flavor(DisableOverride, ToSubclass);
 
         class TST_Person{
@@ -593,7 +647,7 @@ class TestFakedWBEMConnection(object):
 
 class TestRepoMethods(object):
     """
-    Test the repository support methods
+    Test the repository support methods.
     """
 
     @pytest.mark.parametrize(
@@ -939,7 +993,7 @@ class TestRepoMethods(object):
         assert conn.GetQualifier('Key', namespace=ns).name == 'Key'
 
         quals = conn.EnumerateQualifiers(namespace=ns)
-        assert len(quals) == 6
+        assert len(quals) == 8
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -2572,7 +2626,6 @@ class TestPullOperations(object):
                 source_inst_name.namespace = 'BadNamespaceName'
 
             with pytest.raises(CIMError) as exec_info:
-
                 conn.OpenReferenceInstancePaths(source_inst_name,
                                                 ResultClass=rc,
                                                 Role=ro)
@@ -2656,7 +2709,6 @@ class TestPullOperations(object):
                 source_inst_name.namespace = 'BadNamespaceName'
 
             with pytest.raises(CIMError) as exec_info:
-
                 conn.OpenAssociatorInstancePaths(source_inst_name,
                                                  AssocClass=ac,
                                                  Role=ro,
@@ -2743,7 +2795,6 @@ class TestPullOperations(object):
                 source_inst_name.namespace = 'BadNamespaceName'
 
             with pytest.raises(CIMError) as exec_info:
-
                 conn.OpenAssociatorInstances(source_inst_name,
                                              AssocClass=ac,
                                              Role=ro,
@@ -3543,3 +3594,283 @@ class TestAssociationOperations(object):
 
         # TODO expand associator classes test to test for correct properties
         # in response
+
+
+class TestInvokeMethod(object):
+    """
+    Test invoking extrinsic methods in Fake_WBEMConnection
+    """
+    def method1_callback(self, conn, methodname, object_name, params=None):
+        """
+        Callback for InvokeMethod with method name method1. This callback is
+        defined by a add_method_callback method call in the test method.
+
+        This method tests for valid object_name type, methodname and returns
+        the return value and params defined by instance attributes of the
+        TestInvokeMethod class.
+
+        In validates the conn is valid acces to repo by executing repo call
+        for the object_name.
+        """
+        # pylint: disable=attribute-defined-outside-init
+        self.executed_method = 'Method1'
+        assert params == self.input_params
+
+        # Test for valid conn by accessing repository for object defined by
+        # object_name. This test should never happen since already
+        # tested in _fake_invokemethod
+        if isinstance(object_name, CIMClassName):
+            cc = conn.GetClass(object_name)
+            assert cc.classname == object_name.classname
+
+        elif isinstance(object_name, CIMInstanceName):
+            inst = conn.GetInstance(object_name)
+            assert inst.classname == object_name.classname
+        else:
+            raise CIMError(CIM_ERR_FAILED,
+                           'Callback Method1 failed because input object_name '
+                           '%r invalid type %s' %
+                           object_name, type(object_name))
+
+        assert object_name.namespace == self.test_namespace
+        return_value = self.return_value
+        return_params = self.return_params
+
+        return (return_value, return_params)
+
+    def method2_callback(self, conn, methodname, object_name, params=None):
+        """
+        InvokeMethod callback.  This is a smiple callback that just tests
+        methodname and then returns returnvalue and params from the
+        TestInvokeMethod object attributes.  It also tests exceptions from
+        the callback by Generating an exception if InputParam1 has the
+        value 'CIM_ERR_FAILED'
+        """
+        # pylint: disable=attribute-defined-outside-init
+        self.executed_method = 'Method2'
+        assert params == self.input_params
+
+        assert object_name.namespace == self.test_namespace
+
+        # if inputparam 1 has defined value, execute exception to test
+        # exception passback.
+        for param in params:
+            if param[0] == 'TestCIMErrorException':
+                # TODO extend so generates whatever exception defined
+                if param[1] == 'CIM_ERR_FAILED':
+                    raise CIMError(CIM_ERR_FAILED,
+                                   'Test of exception in callback')
+        return_value = self.return_value
+        return_params = self.return_params
+
+        return (return_value, return_params)
+
+    def fuzzy_callback(self, conn, methodname, object_name, params=None):
+        """
+        InvokeMethod callback.  This is a smiple callback that just tests
+        methodname and then returns returnvalue and params from the
+        TestInvokeMethod object attributes.
+        """
+        # pylint: disable=attribute-defined-outside-init
+        self.executed_method = 'fuzzy'
+        assert methodname == self.executed_method
+        assert params == self.input_params
+
+        assert object_name.namespace == self.test_namespace
+
+        return_value = self.return_value
+        return_params = self.return_params
+
+        return (return_value, return_params)
+
+    @pytest.mark.parametrize(
+        "ns", [None, 'root/blah'])
+    @pytest.mark.parametrize(
+        # description: description of test
+        # inputs: dictionary of input object_name, methodname, and params
+        # exp_output: dictionary of expected returnvalue ('return') and output
+        #            params('params') as list of tuples.
+        # exp_exception: None or expected exception.
+        # exc_exc_data: None or expected CIMError status msg
+        "description, inputs, exp_output, exp_exception, exp_exc_data", [
+            ['Execution of Method1 method with single input param',
+             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
+              'methodname': 'Method1',
+              'params': [('InputParam1', 'FirstData')], },
+             {'return': 0, 'params': [('OutPutParam1', 'SomeString')]},
+             None, None],
+
+            ['Execution of Method1 method with objectname string',
+             {'object_name': 'CIM_Foo_sub_sub',
+              'methodname': 'Method1',
+              'params': [('InputParam1', 'FirstData')], },
+             {'return': 0, 'params': [('OutPutParam1', 'SomeString')]},
+             None, None],
+
+            ['Execution of Method1 method with multiple input params',
+             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
+              'methodname': 'Method1',
+              'params': [('InputParam1', 'FirstData'),
+                         ('InputParam2', 'SecondData')], },
+             {'return': 0, 'params': [('OutPutParam1', 'SomeString')]},
+             None, None],
+
+            ['Simple Execution of Method2 method with single input param',
+             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
+              'methodname': 'Method2',
+              'params': [('InputParam1', 'FirstData')], },
+             {'return': 0, 'params': [('OutPutParam1', 'SomeString')]},
+             None, None],
+
+            ['Execute Method1 with no input parameters',
+             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
+              'methodname': 'Method1',
+              'params': [], },
+             {'return': 0, 'params': [('OutPutParam1', 'SomeString')]},
+             None, None],
+
+            ['Execute Method1 with no output parameters',
+             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
+              'methodname': 'Method1',
+              'params': [('InputParam1', 'FirstData')], },
+             {'return': 0, 'params': []},
+             None, None],
+
+            ['Execute Method1 with no input/output parameters',
+             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
+              'methodname': 'Method1',
+              'params': [], },
+             {'return': 0, 'params': []},
+             None, None],
+
+            ['Execute Method1 with invalid namespace',
+             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
+              'methodname': 'Method1',
+              'params': [], },
+             {'return': 0, 'params': []},
+             CIMError, 'CIM_ERR_INVALID_NAMESPACE'],
+
+            ['Execute Method2 with invalid namespace',
+             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
+              'methodname': 'Method2',
+              'params': [], },
+             {'return': 0, 'params': []},
+             CIMError, 'CIM_ERR_INVALID_NAMESPACE'],
+
+            ['Execute method name with valid instancename',
+             {'object_name':
+              CIMInstanceName('CIM_Foo_sub_sub',
+                              keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+              'methodname': 'Method1',
+              'params': [], },
+             {'return': 0, 'params': []},
+             None, None],
+
+            ['Execute method name with CIMInsanceName that does not exist',
+             {'object_name': CIMInstanceName('CIM_Foo_sub_sub',
+                                             keybindings={'InstanceID':
+                                                          'blah'}),
+              'methodname': 'Method1',
+              'params': [], },
+             {'return': 0, 'params': []},
+             CIMError, 'CIM_ERR_NOT_FOUND'],
+
+            ['Execute with mathodname that is not in repository',
+             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
+              'methodname': 'Methodx',
+              'params': [], },
+             {'return': 0, 'params': []},
+             CIMError, 'CIM_ERR_NOT_FOUND'],
+
+            ['Execute method name with invalid classname',
+             {'object_name': CIMClassName('CIM_Foo_sub_subx'),
+              'methodname': 'Method1',
+              'params': [], },
+             {'return': 0, 'params': []},
+             CIMError, 'CIM_ERR_NOT_FOUND'],
+
+            ['Execute objectname invalid type',
+             {'object_name': CIMQualifierDeclaration('Key', 'string'),
+              'methodname': 'Method1',
+              'params': [], },
+             {'return': 0, 'params': []},
+             TypeError, None],
+
+            ['Execute Method2 with input param flag to cause exception',
+             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
+              'methodname': 'Method2',
+              'params': [('TestCIMErrorException', 'CIM_ERR_FAILED')], },
+             {'return': 0, 'params': []},
+             CIMError, 'CIM_ERR_FAILED'],
+            ['Execute Fuzzy method',
+             {'object_name': CIMClassName('CIM_Foo'),
+              'methodname': 'Fuzzy',
+              'params': [('FuzzyParameter', 'Some data', )], },
+             {'return': 0, 'params': [('OutputParam', 'Some data'), ]},
+             CIMError, 'CIM_ERR_FAILED'],
+        ]
+    )
+    def test_invokemethod(self, conn, ns, description, inputs, exp_output,
+                          exp_exception, exp_exc_data, tst_instances_mof):
+        """
+        Test extrinnsic method invocation through the InvokeMethod
+        WBEMConnection method
+        """
+        conn.compile_mof_str(tst_instances_mof, namespace=ns)
+
+        # Save expected info so that callbacks can use in in returns and tests
+        # pylint: disable=attribute-defined-outside-init
+        self.return_value = exp_output['return']
+        self.return_params = exp_output['params']
+        self.input_params = inputs['params']
+
+        # Add to InvokeMethod callback methods in the class.
+        conn.add_method_callback('CIM_Foo_sub_sub', 'Method1',
+                                 self.method1_callback,
+                                 namespace=ns)
+        conn.add_method_callback('CIM_Foo_sub_sub', 'Method2',
+                                 self.method2_callback,
+                                 namespace=ns)
+
+        conn.add_method_callback('CIM_Foo', 'Fuzzy',
+                                 self.fuzzy_callback,
+                                 namespace=ns)
+
+        # set namespace in object_name if required.
+        object_name = inputs['object_name']
+        tst_ns = conn.default_namespace if ns is None else ns
+        self.test_namespace = tst_ns
+
+        if isinstance(object_name, (CIMClassName, CIMInstanceName)):
+            object_name.namespace = ns
+        else:
+            # String object_name does not allow anything but default namespace
+            # Bypass test if ns is not None
+            if ns:
+                return
+
+        if not exp_exception:
+            result = conn.InvokeMethod(inputs['methodname'],
+                                       object_name,
+                                       Params=inputs['params'])
+            # Test return values and confirm correct method executed
+            assert result[0] == exp_output['return']
+
+            exp_output_dict = NocaseDict()
+            for param in exp_output['params']:
+                exp_output_dict[param[0]] = param[1]
+            assert result[1] == exp_output_dict
+
+            assert self.executed_method == inputs['methodname']
+
+        else:
+            if exp_exc_data == 'CIM_ERR_INVALID_NAMESPACE':
+                object_name.namespace = 'Reallybadnamespace'
+
+            with pytest.raises(exp_exception) as exec_info:
+                conn.InvokeMethod(inputs['methodname'],
+                                  object_name,
+                                  Params=inputs['params'])
+            exc = exec_info.value
+            if isinstance(exp_exception, CIMError):
+                assert exc.status_code_name == exp_exc_data

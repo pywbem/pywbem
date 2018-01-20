@@ -30,8 +30,11 @@ import copy
 import uuid
 import time
 import logging
+import sys
+import traceback
 from mock import Mock
 import six
+
 
 from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIMInstance, CIMInstanceName, CIMQualifierDeclaration, \
@@ -81,6 +84,98 @@ def _display(dest, text):
         f.close()
 
 
+def method_callback_interface(conn, objectname, methodname, params):
+    # pylint: disable=unused-argument
+    """
+    **Experimental:** *New in pywbem 0.12 as experimental.*
+
+    Interface of a mock method callback function that is provided by the user
+    of the pywbem_mock environment to define mock server-side methods.
+
+    The user-defined function or method that will be called by
+    FakeWBEMConnection when the InvokeMethod for the defined
+    class and methodname is received.  This method will be called
+    with the parameters defined on the InvokeMethod call
+
+    Parameters:
+
+      conn (:class:`~pywbem.WBEMConnection`):
+        Connection to the FakeWBEMConnection and its
+        repository. This can be used to execute requests
+        on the mock repository to manipulate objects in the
+        repository (ex. cc = conn.GetClass(objectname)
+
+      objectname:
+        The object path of the target object, as follows:
+
+        * Instance-level call: The instance path of the
+          target instance, as a :class:`~pywbem.CIMInstanceName`
+          object including the execution namespace (either the
+          namespace defined by the client
+          InvokeMethod or the WBEMConnection default namespace if the
+          client InvokeMethod did not provide a namespace).
+
+        * Class-level call: The class path of the target
+          class, as a :class:`~pywbem.CIMClassName` object
+          including the execution namespace (either the
+          namespace defined by the client InvokeMethod or the
+          WBEMConnection default namespace if the
+          client InvokeMethod did not provide a namespace).
+
+          The :class:`~pywbem.CIMClassName` object,  `host`
+          attribute will be ignored.
+
+      methodname(:term:`string`):
+        The methodname from the InvokeMethod call. This allows
+        a single callback function to be used as the responder
+        for multiple methods.
+
+      params (:term:`py:iterable` of tuples of name,value):
+        Input parameters from the InvokeMethod Params input.
+
+        An iterable of input parameters for the CIM method.
+
+        Each iterated item represents a single input parameter
+        for the CIM method and must be a ``tuple(name, value)``,
+        with these tuple items:
+
+        * name (:term:`string`):
+          Parameter name (case independent)
+        * value (:term:`CIM data type`):
+          Parameter value
+
+    Returns:
+
+      * The user written callback method must return a tuple
+        consisting of
+          * ReturnValue (:term:`CIM data type`):
+              Return value from the executed method.
+
+          * outparams (:term:`py:iterable` of tuples of name,value):
+
+            Each iterated item represents a single output parameter
+            for the CIM method and must be a ``tuple(name, value)``,
+            with these tuple items:
+
+              * key (:term:`unicode string`):
+                Parameter name, preserving its lexical case
+              * value (:term:`CIM data type`):
+                Parameter value
+
+          This is the same format as defined in
+          :meth:`~pywbem.WBEMConnection.InvokeMethod` Return.
+
+    Raises:
+
+      Since the user defined callback method is mocking a
+      WBEMServer method, it should return :class:`~pywbem.CIM_Error`
+      exceptions. Any other exceptions will be mapped to
+      :class:`~pywbem.CIM_Error` with status CIM_ERR_FAILED and
+      information on the exception including a traceback.
+    """
+    raise NotImplementedError
+
+
 class FakedWBEMConnection(WBEMConnection):
     """
     **Experimental:** *New in pywbem 0.12 as experimental.*
@@ -93,7 +188,7 @@ class FakedWBEMConnection(WBEMConnection):
     :class:`pywbem.WBEMConnection`.
 
     Each object of this class has its own mock repository. A mock repository
-    contains multiple CIM namespaces, and each namespace contains CIM
+    contains multiple CIM namespaces, and each namespace may contain CIM
     qualifier types (declarations), CIM classes and CIM instances.
 
     This class provides only a subset of the parameters defined for
@@ -169,6 +264,8 @@ class FakedWBEMConnection(WBEMConnection):
         #  it is probably not important for initial release.
         self.instances = NocaseDict()
 
+        self.methods = NocaseDict()
+
         self._repo_lite = repo_lite
 
         # Open Pull Contexts. The key for each context is an enumeration
@@ -188,7 +285,6 @@ class FakedWBEMConnection(WBEMConnection):
         self.logfile = 'wbemconnection.log'
 
         if self.logfile:
-            # TODO make a more flexible and integrated logger.
             logging.basicConfig(filename=self.logfile, level=logging.INFO)
 
         self._imethodcall = Mock(side_effect=self._mock_imethodcall)
@@ -449,7 +545,49 @@ class FakedWBEMConnection(WBEMConnection):
                 except KeyError:
                     self.qualifiers[namespace] = NocaseDict({qual.name: qual})
             else:
-                assert False, 'add_cimobjects. %s not valid.' % type(obj)
+                assert False, 'Object to add_cimobjects. %s invalid type' \
+                              % type(obj)
+
+    def add_method_callback(self, classname, methodname, method_callback,
+                            namespace=None,):
+        """
+        Add a callback for a method that will be called by the client when
+        InvokeMethod is executed.  This method does no real validation of
+        the classname, methodname or method_callback in put parameters.
+
+          Parameters:
+            classname (:term:`string`):
+                The classname for the class that defines the method named
+                methodname. This is the classname (or superclass) of the
+                CIMClassname or CIMInstanceName defined in the client
+                InvokeMethod objectname parameter. The  mock InvokeMethod uses
+                this class to locate methodname in the method repository.
+
+            methodname (:term: `string`):
+                Name of the method to be executed.
+
+            method_callback (:func:`~pywbem.method_callback_interface`):
+                Callable that is being called for each InvokeMethod executed
+                against the pywbem_mock environment.
+
+            namespace (:term:`string`):
+                Namespace from which the method will be executed in the
+                server or None if the client default namespace is to be
+                used.
+        """
+        if namespace is None:
+            namespace = self.default_namespace
+
+        if not self.methods:
+            self.methods[namespace] = NocaseDict()
+            self.methods[namespace][classname] = NocaseDict()
+
+        # Test if dictionary entry already exists. If not, create it
+        try:
+            self.methods[namespace][classname][methodname] = method_callback
+        except KeyError:
+            mth = NocaseDict(NocaseDict({methodname: method_callback}))
+            self.methods[namespace][classname] = NocaseDict({methodname: mth})
 
     def display_repository(self, namespaces=None, dest=None, summary=False,
                            output_format='mof'):
@@ -487,6 +625,10 @@ class FakedWBEMConnection(WBEMConnection):
         self._display_objects('Instances', self.instances, namespaces,
                               dest=dest, summary=summary,
                               output_format=output_format)
+        self._display_objects('Methods', self.methods, namespaces,
+                              dest=dest, summary=summary,
+                              output_format=output_format)
+
         _display(dest, '============End Repository=================')
 
     @staticmethod
@@ -531,7 +673,14 @@ class FakedWBEMConnection(WBEMConnection):
                         else:
                             _display(dest, 'Path=%s\n%s' % (inst.path,
                                                             inst.tomof()))
-
+                elif obj_type == 'Methods':
+                    methods = objects_repo[ns]
+                    for cln in methods:
+                        for method in methods[cln]:
+                            _display(dest, 'Class: %s, method: %s, '
+                                           'callback: %s' %
+                                     (cln, method,
+                                      methods[cln][method].__name__))
                 else:
                     for objects in six.itervalues(objects_repo):
                         for obj in six.itervalues(objects):
@@ -660,6 +809,8 @@ class FakedWBEMConnection(WBEMConnection):
         if self.verbose:
             print('mock result %s' % result)
 
+        return result
+
     #####################################################################
     #
     #     Common methods that the Fake... WBEMConnection methods use to
@@ -746,15 +897,17 @@ class FakedWBEMConnection(WBEMConnection):
         The class repository is a NocaseDict with class as key and
         the CIMClass as value.
 
-          Parameters:
+        Parameters:
 
-            namespace(:term:`string`):
-                String containing the name of the namespace to get
+          namespace(:term:`string`):
+              String containing the name of the namespace to get
 
-          Returns: Dictionary containing classes that have been inserted
+        Returns:
+          Dictionary containing classes that have been inserted
           into the repository
 
-          Exception: CIM_Error, CIM_ERR_INVALID_NAMESPACE if this namespace
+        Raises:
+          CIM_Error, CIM_ERR_INVALID_NAMESPACE if this namespace
           does not exist in the  classrepository
         """
         return self._validate_repo(namespace, self.classes, 'classes')
@@ -768,14 +921,15 @@ class FakedWBEMConnection(WBEMConnection):
         The instance repository is a list if instances within the
         defined namespace
 
-          Parameters:
+        Parameters:
 
-            namespace(:term:`string`):
-                String containing the name of the namespace to get
+          namespace(:term:`string`):
+            String containing the name of the namespace to get
 
-          Returns: List of instances
+        Returns: List of instances
 
-          Exception: CIM_Error, CIM_ERR_INVALID_NAMESPACE if this namespace
+        Raises:
+           CIM_Error, CIM_ERR_INVALID_NAMESPACE if this namespace
           does not exist in the  classrepository
         """
         return self._validate_repo(namespace, self.instances, 'instances')
@@ -789,17 +943,28 @@ class FakedWBEMConnection(WBEMConnection):
         The instance repository is a list if instances within the
         defined namespace
 
-          Parameters:
+        Parameters:
 
-            namespace(:term:`string`):
-                String containing the name of the namespace to get
+          namespace(:term:`string`):
+              String containing the name of the namespace to get
 
-          Returns: Dictionary of QualifierDeclaration objects in the repo
+        Returns:
+           Dictionary of QualifierDeclaration objects in the repo
 
-          Exception: CIM_Error, CIM_ERR_INVALID_NAMESPACE if this namespace
+        Raises:
+          CIM_Error: CIM_ERR_INVALID_NAMESPACE if this namespace
           does not exist in the  classrepository
         """
         return self._validate_repo(namespace, self.qualifiers, 'qualifiers')
+
+    def _get_methods_repo(self, namespace=None):
+        """
+        Validate that the table of methods exists for this namespace and if
+        it does, return the handle to the dictionary that represents the
+        methods defined for this namespce.  If that repo does not exist,
+        generate a CIM_Error.
+        """
+        return self._validate_repo(namespace, self.methods, 'methods')
 
     def _get_superclassnames(self, cn, namespace):
         """
@@ -879,12 +1044,13 @@ class FakedWBEMConnection(WBEMConnection):
             IncludeQualifiers, and IncludeClassOrigin.
 
         Returns:
+
             Copy of the class if found with superclass properties installed and
             filtered per the keywords in params.
 
-        Exceptions:
-            CIMError (CIM_ERR_NOT_FOUND) if class Not found in repository or
-            CIMError (CIM_ERR_INVALID_NAMESPACE) if namespace does not exist
+        Raises:
+            CIMError: (CIM_ERR_NOT_FOUND) if class Not found in repository or
+            CIMError: (CIM_ERR_INVALID_NAMESPACE) if namespace does not exist
         """
         classes_repo = self._get_class_repo(namespace)
 
@@ -932,7 +1098,7 @@ class FakedWBEMConnection(WBEMConnection):
         Does NOT copy so these are what is in repository. User functions
         MUST NOT modify these classes.
 
-        Return: returns list of classes.
+        Returns: Returns list of classes.
         """
         # TODO: Future. this should become an iterator for efficiency.
         class_repo = self._get_class_repo(namespace)
@@ -948,10 +1114,17 @@ class FakedWBEMConnection(WBEMConnection):
         Find an instance in the instance repo by iname and return the
         index of that instance.
 
+        Parameters:
+
+          iname: CIMInstancename to find
+
+          inst_repo: the instance repo to search
+
         Return (None, None if not found. Otherwise return tuple of
                index, instance
 
-        Exceptions:
+        Raises:
+
           CIMError: Failed if repo invalid.
         """
         rtn_inst = None
@@ -1140,10 +1313,13 @@ class FakedWBEMConnection(WBEMConnection):
         :meth:`~pywbem.WBEMConnection.EnumerateClassNames`.
 
         Returns:
+
             returns classnames.
-        Exceptions:
-            invalid namespace,
-            Classname not found
+
+        Raises:
+
+            CIMError: CIM_ERR_INVALID_NAMESPACE if invalid namespace,
+            CIMError: CIM_ERR_NOT_FOUND if Classname not found
         """
         clns = self._get_subclass_names(params.get('classname', None),
                                         namespace,
@@ -1186,10 +1362,14 @@ class FakedWBEMConnection(WBEMConnection):
         if the class repository for this namespace does not
         exist, this method creates it.
 
-        Returns:
-            None
-        Exceptions:
-            CIMError
+        Raises:
+            CIMError: CIM_ERR_INVALID_SUPERCLASS if superclass specified bu
+              does not exist
+
+            CIMError: CIM_ERR_INVALID_PARAMETER if NewClass parameter not a
+              class
+
+            CIMError: CIM_ERR_ALREADY_EXISTS if class already exists
         """
         new_class = params['NewClass']
         if namespace not in self.classes:
@@ -1233,10 +1413,9 @@ class FakedWBEMConnection(WBEMConnection):
         if the class repository for this namespace does not
         exist, this method creates it.
 
-        Returns:
-            None
-        Exceptions:
-            CIMError
+        Raises:
+
+            CIMError: CIM_ERR_NOT_SUPPORTED
         """
         print('ModifyClass not supported %s %s' % (namespace, params))
         self._get_class_repo(namespace)
@@ -1257,8 +1436,10 @@ class FakedWBEMConnection(WBEMConnection):
 
         Nothing is returned.
 
-        Exceptions:
-            CIMError CIM_ERR_NOT_FOUND
+        Raises:
+
+            CIMError: CIM_ERR_NOT_FOUND if ClassName defines class not in
+                repository
         """
         class_repo = self._get_class_repo(namespace)
 
@@ -1311,12 +1492,15 @@ class FakedWBEMConnection(WBEMConnection):
         Retrieves a qualifier declaration from the local repository of this
         namespace.
 
-        Return:
+        Returns:
+
           Returns a tuple representing the _imethodcall return for this
           method where the data is a QualifierDeclaration
 
-        Exceptions:
-            CIMError CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
+        Raises:
+            CIMError: CIM_ERR_INVALID_NAMESPACE
+
+            CIMError: CIM_ERR_NOT_FOUND
         """
         qualifier_repo = self._get_qualifier_repo(namespace)
 
@@ -1340,9 +1524,10 @@ class FakedWBEMConnection(WBEMConnection):
         class.  This method will create a new namespace for the qualifier
         if none is defined.
 
-        Exceptions:
-            CIMError CIM_ERR_INVALID_PARAMETER or
-            CIMError(CIM_ERR_ALREADY_EXISTS
+        Raises:
+
+            CIMError: CIM_ERR_INVALID_PARAMETER
+            CIMError: CIM_ERR_ALREADY_EXISTS
         """
         qual = params['QualifierDeclaration']
 
@@ -1374,8 +1559,9 @@ class FakedWBEMConnection(WBEMConnection):
         Deletes a single qualifier if it is in the
         repository for this class and namespace
 
-        Exceptions;
-            CIMError CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
+        Raises;
+
+            CIMError: CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
         """
         qualifier_repo = self._get_qualifier_repo(namespace)
 
@@ -1405,8 +1591,11 @@ class FakedWBEMConnection(WBEMConnection):
         pywbem.CreateInstance has captured any namespace in the instance
         path component.
 
-        Exceptions:
-            CIMError CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_CLASS
+        Raisess:
+
+            CIMError: CIM_ERR_ALREADY_EXISTS
+
+            CIMError: CIM_ERR_INVALID_CLASS
         """
 
         new_instance = params['NewInstance']
@@ -1502,8 +1691,9 @@ class FakedWBEMConnection(WBEMConnection):
 
         Modify a CIM instance in the local repository.
 
-        Exceptions:
-            CIMError CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_CLASS
+        Raises:
+
+            CIMError: CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_CLASS
         """
         if self._repo_lite:
             raise CIMError(CIM_ERR_NOT_SUPPORTED, 'ModifyInstance not '
@@ -1654,8 +1844,9 @@ class FakedWBEMConnection(WBEMConnection):
         This method uses a common repository access method _get_instance to
         get, copy, and process the instance.
 
-        Exceptions:
-            CIMError  CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_PARAMETER
+        Raises:
+
+            CIMError:  CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_PARAMETER
               CIM_ERR_NOT_FOUND
         """
         iname = params['InstanceName']
@@ -1728,8 +1919,9 @@ class FakedWBEMConnection(WBEMConnection):
         then executes getInstance for each to create the list of instances
         to be returned.
 
-        Exceptions:
-            CIMError CIM_ERR_INVALID_NAMESPACE
+        Raises:
+
+            CIMError: CIM_ERR_INVALID_NAMESPACE
         """
         inst_repo = self._get_instance_repo(namespace)
 
@@ -2306,8 +2498,9 @@ class FakedWBEMConnection(WBEMConnection):
 
         This method assumes the same context_id throughout the sequence.
 
-        Exceptions:
-            CIMError- CIM_ERR_INVALID_ENUMERATION_CONTEXT
+        Raises:
+
+            CIMError: CIM_ERR_INVALID_ENUMERATION_CONTEXT
         """
         self._get_instance_repo(namespace)
         context_id = params['EnumerationContext']
@@ -2468,7 +2661,7 @@ class FakedWBEMConnection(WBEMConnection):
                                    'PullInstancesWithPath', **params)
 
     def _fake_openqueryinstances(self, namespace, **params):
-        # pylint: disable=invalid_name
+        # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
         :meth:`~pywbem.WBEMConnection.OpenQueryInstances`
@@ -2543,19 +2736,105 @@ class FakedWBEMConnection(WBEMConnection):
     #
     #####################################################################
 
-    def _fake_invokemethod(self, methodname, localobject, Params=None,
+    def _fake_invokemethod(self, methodname, objectname, Params=None,
                            **params):
         # pylint: disable=invalid-name
         """
         Implements a mock WBEM server responder for
         :meth:`~pywbem.WBEMConnection.InvokeMethod`
 
-        with data from the instance repository.
+        This responder calls a function defined by an entry in the methods
+        repository. The return from that function is returned to the user.
 
         Input params are MethodName, ObjectName, and Params
 
+        The return is espected to be the same as the return defined by
+        WBEMConnection.InvokeMethod (ReturnValue, OutputParameters).
+
         """
-        # TODO implement _fake_invoke_method
-        print('fake_invokemethod %s, %s, %s %s' % (methodname, localobject,
-                                                   Params, params))
-        raise CIMError(CIM_ERR_NOT_SUPPORTED, 'InvokeMethod Not Implemented!')
+        if isinstance(objectname, (CIMInstanceName, CIMClassName)):
+            localobject = objectname.copy()
+            if localobject.namespace is None:
+                localobject.namespace = self.default_namespace
+                localobject.host = None
+
+        elif isinstance(objectname, six.string_types):
+            # a string is always interpreted as a class name
+            localobject = CIMClassName(objectname,
+                                       namespace=self.default_namespace)
+
+        else:
+            raise TypeError('FakeWBEMConnection InvokeMethod invalid type for '
+                            'objectname: %s' % type(objectname))
+
+        namespace = localobject.namespace
+        try:
+            methodsrepo = self._get_methods_repo(namespace)
+        except KeyError:
+            raise CIMError(CIM_ERR_NOT_FOUND, 'Method %s in namespace %s not '
+                                              'registered in repo' %
+                           (methodname, namespace))
+
+        # find the methods entry corresponding to classname. It must be in
+        # the class defined by classname or one of its superclasses that
+        # includes this method. Since the classes in the repo are not
+        # resolved
+
+        cc = self._get_class(localobject.classname, namespace,
+                             local_only=True, include_qualifiers=True,
+                             include_classorigin=True)
+
+        try:
+            target_class = cc.methods[methodname].class_origin
+        except KeyError:
+            raise CIMError(CIM_ERR_INVALID_PARAMETER, 'Method %s not found '
+                           'in %s class hiearchy' % (methodname,
+                                                     localobject.classname))
+
+        try:
+            methods = methodsrepo[target_class]
+        except KeyError:
+            raise CIMError(CIM_ERR_NOT_FOUND, 'Class %s for Method %s in'
+                                              'namespace %s not '
+                                              'registered in repo' %
+                           (localobject.classname, methodname, namespace))
+        try:
+            bound_method = methods[methodname]
+        except KeyError:
+            raise CIMError(CIM_ERR_NOT_FOUND, 'Method %s in namespace %s not '
+                                              'registered in repo' %
+                           (methodname, namespace))
+
+        if bound_method is None:
+            raise CIMError(CIM_ERR_NOT_FOUND, 'Class %s for Method %s in'
+                                              'namespace %s not '
+                                              'registered in repo' %
+                           (localobject.classname, methodname, namespace))
+
+        # Call the registered method and catch exceptions.
+        try:
+            result = bound_method(self, methodname, localobject, params=Params)
+
+            # TODO assert isinstance(result, (list, tuple))
+
+            # Map output params to NocaseDict to be compatible with return
+            # from _methodcall
+            output_params = NocaseDict()
+            for param in result[1]:
+                output_params[param[0]] = param[1]
+
+            return (result[0], output_params)
+
+        except CIMError:
+            raise
+
+        except Exception as ex:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            tb = repr(traceback.format_exception(exc_type, exc_value,
+                                                 exc_traceback))
+
+            raise CIMError(CIM_ERR_FAILED, 'Exception failure of invoked '
+                                           'method %s in namespace %s with '
+                                           'input localobject %r, parameters '
+                                           '%s. Exception: %r\nTraceback\n%s' %
+                           (methodname, namespace, localobject, params, ex, tb))

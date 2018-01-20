@@ -1327,7 +1327,27 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 raise CIMError(code, tup_tree[0][1]['DESCRIPTION'])
             raise CIMError(code, 'Error code %s' % tup_tree[0][1]['CODE'])
 
-        return tup_tree
+        # #  Original code return tup_tree
+
+        # Convert optional RETURNVALUE into a Python object
+        returnvalue = None
+
+        if tup_tree and tup_tree[0][0] == 'RETURNVALUE':
+
+            returnvalue = tocimobj(tup_tree[0][1]['PARAMTYPE'], tup_tree[0][2])
+            tup_tree = tup_tree[1:]
+
+        # Convert zero or more PARAMVALUE elements into dictionary
+
+        output_params = NocaseDict()
+
+        for p in tup_tree:
+            if p[1] == 'reference':
+                output_params[p[0]] = p[2]
+            else:
+                output_params[p[0]] = tocimobj(p[1], p[2])
+
+        return (returnvalue, output_params)
 
     def _iparam_namespace_from_namespace(self, obj):
         # pylint: disable=invalid-name,
@@ -7336,7 +7356,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
-
+        print('InvokeMethodClient mn %s, on %r, Params %s' % (MethodName,
+                                                              ObjectName,
+                                                              Params))
         exc = None
         result_tuple = None
 
@@ -7356,27 +7378,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             # Make the method call
             result = self._methodcall(MethodName, ObjectName, Params, **params)
 
-            # Convert optional RETURNVALUE into a Python object
-
-            returnvalue = None
-
-            if result and result[0][0] == 'RETURNVALUE':
-
-                returnvalue = tocimobj(result[0][1]['PARAMTYPE'], result[0][2])
-                result = result[1:]
-
-            # Convert zero or more PARAMVALUE elements into dictionary
-
-            output_params = NocaseDict()
-
-            for p in result:
-                if p[1] == 'reference':
-                    output_params[p[0]] = p[2]
-                else:
-                    output_params[p[0]] = tocimobj(p[1], p[2])
-
-            result_tuple = (returnvalue, output_params)
-            return result_tuple
+            return result
 
         except Exception as exce:
             exc = exce
