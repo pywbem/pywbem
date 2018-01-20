@@ -934,12 +934,12 @@ class TestRepoMethods(object):
             conn.compile_mof_str(tst_instances_mof, namespace=ns)
 
         # Subscribe to InvokeMethod callback methods in the class.
-        conn.subscribe_method('CIM_Foo_sub_sub', 'Method1',
-                              self.method1_callback,
-                              namespace=ns)
-        conn.subscribe_method('CIM_Foo_sub_sub', 'Method2',
-                              self.method2_callback,
-                              namespace=ns)
+        conn.add_method_callback('CIM_Foo_sub_sub', 'Method1',
+                                 self.method1_callback,
+                                 namespace=ns)
+        conn.add_method_callback('CIM_Foo_sub_sub', 'Method2',
+                                 self.method2_callback,
+                                 namespace=ns)
 
         # pylint: disable=unused-variable
         with OutputCapture() as output:  # noqa: F841
