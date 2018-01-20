@@ -957,9 +957,7 @@ def _qualifiers_tomof(qualifiers, indent, maxline=MAX_MOF_LINE):
     line_pos = indent + 1
 
     mof_quals = []
-    # TODO 01/18 AM Preserve order of qualifiers in generated MOF
-    for qn in sorted(qualifiers.keys()):
-        q = qualifiers[qn]
+    for q in qualifiers.itervalues():
         mof_quals.append(q.tomof(indent + 1 + MOF_INDENT, maxline, line_pos))
     delim = ',\n' + _indent_str(indent + 1)
     mof.append(delim.join(mof_quals))
@@ -3138,9 +3136,7 @@ class CIMInstance(_CIMComparisonMixin):
 
         mof.append(u' {\n')
 
-        # TODO 01/18 AM Preserve order of properties in instance MOF
-        for pn in sorted(self.properties.keys()):
-            p = self.properties[pn]
+        for p in self.properties.itervalues():
             mof.append(p.tomof(True, MOF_INDENT, maxline))
 
         mof.append(u'};\n')
@@ -4095,15 +4091,11 @@ class CIMClass(_CIMComparisonMixin):
 
         mof.append(u'{\n')
 
-        # TODO 01/18 AM Preserve order of properties in class MOF
-        for pn in sorted(self.properties.keys()):
-            p = self.properties[pn]
+        for p in self.properties.itervalues():
             mof.append(u'\n')
             mof.append(p.tomof(False, MOF_INDENT, maxline))
 
-        # TODO 01/18 AM Preserve order of methods in class MOF
-        for mn in sorted(self.methods.keys()):
-            m = self.methods[mn]
+        for m in self.methods.itervalues():
             mof.append(u'\n')
             mof.append(m.tomof(MOF_INDENT, maxline))
 
@@ -5384,9 +5376,7 @@ class CIMMethod(_CIMComparisonMixin):
             mof.append(u'(\n')
 
             mof_parms = []
-            # TODO 01/18 AM Preserve order of parameters in method MOF
-            for pn in sorted(self.parameters.keys()):
-                p = self.parameters[pn]
+            for p in self.parameters.itervalues():
                 mof_parms.append(p.tomof(indent + MOF_INDENT, maxline))
             mof.append(u',\n'.join(mof_parms))
 
