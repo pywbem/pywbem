@@ -19,7 +19,11 @@
 #
 
 """
-Mock support for pywbem.
+Mock WBEMConnection to allow pywbem users to test the pywbem client without
+requiring a running WBEM server. This package mocks the WBEMConnection
+methods that communicate with WBEMServers and mantain a fake server
+repository that is the source and destination for information to
+be used by the methods mocked.
 
 For the module-level documentation, see mocksupport.rst.
 """
@@ -32,6 +36,8 @@ import time
 import logging
 import sys
 import traceback
+import re
+from xml.dom import minidom
 from mock import Mock
 import six
 
@@ -174,6 +180,22 @@ def method_callback_interface(conn, objectname, methodname, params):
       information on the exception including a traceback.
     """
     raise NotImplementedError
+
+
+def _pretty_xml(xml_string):
+    """
+    Common function to produce pretty xml string from an input xml_string.
+
+    This function is NOT intended to be used in major code paths since it
+    uses the minidom to produce the prettified xml and that uses a lot
+    of memory
+    """
+
+    result_dom = minidom.parseString(xml_string)
+    pretty_result = result_dom.toprettyxml(indent='  ')
+
+    # remove extra empty lines
+    return re.sub(r'>( *[\r\n]+)+( *)<', r'>\n\2<', pretty_result)
 
 
 class FakedWBEMConnection(WBEMConnection):
@@ -616,80 +638,131 @@ class FakedWBEMConnection(WBEMConnection):
 
             TODO: FUTURE add more parameters for display and cvt to log.
         """
-        _display(dest, '===============Repository====================')
-        self._display_objects('Qualifier Declarations', self.qualifiers,
-                              namespaces, dest=dest, summary=summary,
-                              output_format=output_format)
-        self._display_objects('Classes', self.classes, namespaces, dest=dest,
-                              summary=summary, output_format=output_format)
-        self._display_objects('Instances', self.instances, namespaces,
-                              dest=dest, summary=summary,
-                              output_format=output_format)
-        self._display_objects('Methods', self.methods, namespaces,
-                              dest=dest, summary=summary,
-                              output_format=output_format)
+        if output_format == 'mof':
+            cmt_begin = '# '
+            cmt_end = ''
+        elif output_format == 'xml':
+            cmt_begin = '<!-- '
+            cmt_end = ' ->'
+        else:
+            cmt_begin = ''
+            cmt_end = ''
+        if output_format not in OUTPUT_FORMATS:
+            raise ValueError('Invalid output format definition %s. '
+                             '%s are valid.' % (output_format, OUTPUT_FORMATS))
+
+        _display(dest, '%s========Mock Repo Display fmt=%s namespaces=%s '
+                       '=========%s\n' %
+                 (cmt_begin, output_format,
+                  ('all' if namespaces is None else namespaces), cmt_end))
+
+        # get all namespaces
+        repo_ns = []
+        if self.classes:
+            repo_ns.extend([ns for ns in self.classes])
+        if self.instances:
+            repo_ns.extend([ns for ns in self.instances])
+        if self.qualifiers:
+            repo_ns.extend([ns for ns in self.qualifiers])
+        if self.methods:
+            repo_ns.extend([ns for ns in self.methods])
+        repo_nss = set(repo_ns)
+
+        if namespaces:
+            if isinstance(namespaces, six.string_types):
+                namespaces = [namespaces]
+
+            repo_nss = repo_nss.intersection(set(namespaces))
+        repo_nss = sorted(repo_nss)
+
+        for ns in repo_nss:
+            _display(dest, '\n%sNAMESPACE %s%s\n' % (cmt_begin, ns, cmt_end))
+            self._display_objects('Qualifier Declarations', self.qualifiers,
+                                  ns, cmt_begin, cmt_end, dest=dest,
+                                  summary=summary, output_format=output_format)
+            self._display_objects('Classes', self.classes, ns, cmt_begin,
+                                  cmt_end, dest=dest,
+                                  summary=summary, output_format=output_format)
+            self._display_objects('Instances', self.instances, ns,
+                                  cmt_begin, cmt_end, dest=dest,
+                                  summary=summary, output_format=output_format)
+            self._display_objects('Methods', self.methods, ns,
+                                  cmt_begin, cmt_end, dest=dest,
+                                  summary=summary, output_format=output_format)
 
         _display(dest, '============End Repository=================')
 
     @staticmethod
-    def _display_objects(obj_type, objects_repo, namespaces, dest=None,
-                         summary=None, output_format=None):
+    def _display_objects(obj_type, objects_repo, namespace, cmt_begin, cmt_end,
+                         dest=None, summary=None, output_format=None):
         """
         Display a set of objects of obj_type from the dictionary defined
         by the parameter objects_dict. obj_type is a string that defines the
         type of object (instance, class, qualifier declaration).
 
         """
-        if output_format not in OUTPUT_FORMATS and output_format is not None:
-            raise ValueError('Invalid output format definition %s. '
-                             '%s are valid.' % (output_format, OUTPUT_FORMATS))
+        # TODO, Consider sorting to perserve order of compile/add in the future.
 
-        if not objects_repo:
-            return
+        if namespace in objects_repo:
+            # TODO fix for special counter on methods
+            if obj_type == 'Methods':
+                _display(dest, '%sNamespace %s: contains %s %s:%s\n' %
+                         (cmt_begin, namespace,
+                          len(objects_repo[namespace]),
+                          obj_type, cmt_end))
+            else:
+                _display(dest, '%sNamespace %s: contains %s class%s\n' %
+                         (cmt_begin, namespace,
+                          len(objects_repo[namespace]), cmt_end))
+            if summary:
+                return
+            # instances are special because the inner struct is a list
+            if obj_type == 'Instances':
+                try:
+                    insts = objects_repo[namespace]
+                except KeyError:
+                    return
 
-        if isinstance(namespaces, six.string_types):
-            namespaces = [namespaces]
-        elif isinstance(namespaces, list):
-            pass
-        else:
-            namespaces = six.iterkeys(objects_repo)
+                # TODO sort insts by path order.
+                for inst in insts:
+                    if output_format == 'xml':
+                        _display(dest, '%s Path=%s %s\n%s' %
+                                 (cmt_begin, inst.path.to_wbem_uri(), cmt_end,
+                                  _pretty_xml(inst.tocimxmlstr())))
+                    elif output_format == 'repr':
+                        _display(dest, 'Path:\n%r\nInst:\n%r\n' %
+                                 (inst.path, inst))
+                    else:
+                        _display(dest, '%s Path=%s %s\n%s' %
+                                 (cmt_begin, inst.path.to_wbem_uri(), cmt_end,
+                                  inst.tomof()))
 
-        for ns in six.iterkeys(objects_repo):
-            if namespaces and ns not in namespaces:
-                continue
-            _display(dest, 'Namespace %s: contains %s %s:' %
-                     (ns, len(objects_repo[ns]), obj_type))
-            if not summary:
-                # instances are special because the inner struct is a list
-                if obj_type == 'Instances':
-                    insts = objects_repo[ns]
-                    for inst in insts:
-                        if output_format == 'xml':
-                            _display(dest, 'Path=%s\n%s' %
-                                     (inst.path, inst.tocimxmlstr()))
-                        elif output_format == 'repr':
-                            _display(dest, 'Path: %r\nInst:\n%r\n' %
-                                     (inst.path, inst))
-                        else:
-                            _display(dest, 'Path=%s\n%s' % (inst.path,
-                                                            inst.tomof()))
-                elif obj_type == 'Methods':
-                    methods = objects_repo[ns]
-                    for cln in methods:
-                        for method in methods[cln]:
-                            _display(dest, 'Class: %s, method: %s, '
-                                           'callback: %s' %
-                                     (cln, method,
-                                      methods[cln][method].__name__))
-                else:
-                    for objects in six.itervalues(objects_repo):
-                        for obj in six.itervalues(objects):
-                            if output_format == 'xml':
-                                _display(dest, obj.tocimxmlstr())
-                            elif output_format == 'repr':
-                                _display(dest, '%r' % obj)
-                            else:
-                                _display(dest, obj.tomof())
+            elif obj_type == 'Methods':
+                try:
+                    methods = objects_repo[namespace]
+                except KeyError:
+                    return
+
+                for cln in methods:
+                    for method in methods[cln]:
+                        _display(dest, '%sClass: %s, method: %s, '
+                                       'callback: %s %s' %
+                                 (cmt_begin, cln, method,
+                                  methods[cln][method].__name__, cmt_end))
+            else:
+                # Covers QualifierDeclarations and Classes
+                try:
+                    objs = objects_repo[namespace]
+                except KeyError:
+                    return
+                for key in sorted(objs):
+                    obj = objs[key]
+                    if output_format == 'xml':
+                        _display(dest, _pretty_xml(obj.tocimxmlstr()))
+                    elif output_format == 'repr':
+                        _display(dest, '%r' % obj)
+                    else:
+                        _display(dest, obj.tomof())
 
     def _get_inst_repo(self, namespace=None):
         """
