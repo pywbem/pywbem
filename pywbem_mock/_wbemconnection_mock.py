@@ -73,7 +73,8 @@ OUTPUT_FORMATS = ['mof', 'xml', 'repr']
 
 # TODO: Future We have not considered that iq and ico are deprecated in DSP0200
 # we should set up a default to ignore these parameters for the operations
-# in which they are deprecated and we should/could ignore them
+# in which they are deprecated and we should/could ignore them. We need to
+# document our behavior in relation to the spec.
 
 
 def _display(dest, text):
@@ -635,8 +636,6 @@ class FakedWBEMConnection(WBEMConnection):
 
           output_format (:term:`string`):
             Output format, one of: 'mof', 'xml', or 'repr'.
-
-            TODO: FUTURE add more parameters for display and cvt to log.
         """
         if output_format == 'mof':
             cmt_begin = '# '
@@ -701,10 +700,9 @@ class FakedWBEMConnection(WBEMConnection):
         type of object (instance, class, qualifier declaration).
 
         """
-        # TODO, Consider sorting to perserve order of compile/add in the future.
+        # TODO: FUTUREConsider sorting to perserve order of compile/add.
 
         if namespace in objects_repo:
-            # TODO fix for special counter on methods
             if obj_type == 'Methods':
                 _display(dest, '%sNamespace %s: contains %s %s:%s\n' %
                          (cmt_begin, namespace,
@@ -723,7 +721,7 @@ class FakedWBEMConnection(WBEMConnection):
                 except KeyError:
                     return
 
-                # TODO sort insts by path order.
+                # TODO: Future sort insts by path order.
                 for inst in insts:
                     if output_format == 'xml':
                         _display(dest, '%s Path=%s %s\n%s' %
@@ -1173,7 +1171,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         Returns: Returns list of classes.
         """
-        # TODO: Future. this should become an iterator for efficiency.
+        # TODO: Future. this could become an iterator for efficiency.
         class_repo = self._get_class_repo(namespace)
         associator_classes = []
         for cl in six.itervalues(class_repo):
@@ -1205,8 +1203,8 @@ class FakedWBEMConnection(WBEMConnection):
         for index, inst in enumerate(inst_repo):
             if iname == inst.path:
                 if rtn_inst is not None:
-                    # TODO confirm we that insure no duplicate instance names on
-                    # create. Then we can stop looking through whole list.
+                    # TODO: Future Remove this test since we should be
+                    # insuring no dups on creation
                     raise CIMError(CIM_ERR_FAILED, 'Invalid Repository. '
                                    'Multiple instances with same path %s'
                                    % rtn_inst.path)
@@ -1240,7 +1238,7 @@ class FakedWBEMConnection(WBEMConnection):
         if not inst:
             raise CIMError(CIM_ERR_NOT_FOUND,
                            'Instance not found in repository namespace %s. '
-                           'Path=%s' % (iname, namespace))
+                           'Path=%s' % (namespace, iname))
         else:
             rtn_inst = inst.copy()
 
@@ -1311,7 +1309,7 @@ class FakedWBEMConnection(WBEMConnection):
             remove properties that are not in property_list
         """
         if property_list is not None:
-            # TODO. FUTUREShould be able to delete following.  cim_ops should
+            # TODO. FUTURE Should be able to delete following.  cim_ops should
             # have cleaned it.
             if isinstance(property_list, six.string_types):
                 property_list = [property_list]
@@ -1324,7 +1322,7 @@ class FakedWBEMConnection(WBEMConnection):
     def _create_instance_path(class_, instance, namespace):
         """
         Given a class and corresponding instance, create the instance path
-        TODO. Future This should exist in cim_obj or cim_operations.
+        TODO. Future This code should exist in cim_obj or cim_operations.
         """
         kb = NocaseDict()
         assert class_.classname == instance.classname
@@ -1753,8 +1751,8 @@ class FakedWBEMConnection(WBEMConnection):
             self.instances[namespace] = [new_instance]
 
         # Create instance returns model path, path relative to namespace
-        # TODO per DMTF spec. path returned if any keys are dynamically
-        # allocated. We are not doing that; We always return path.
+        # TODO: Questions per DMTF spec. path returned if any keys are
+        # dynamically allocated. We are not doing that; We always return path.
         return self._make_tuple([new_instance.path.copy()])
 
     def _fake_modifyinstance(self, namespace, **params):
@@ -1819,8 +1817,6 @@ class FakedWBEMConnection(WBEMConnection):
                      if 'key' in p.qualifiers]
 
         # Get original instance in repo.  Does not copy the orig instance.
-        # TODO make common decision on namespace/host compoment of path in
-        # instances directory
         mod_inst_path = modified_instance.path.copy()
         if not modified_instance.path.namespace:
             mod_inst_path.namespace = namespace
@@ -1974,7 +1970,8 @@ class FakedWBEMConnection(WBEMConnection):
                     raise CIMError(CIM_ERR_FAILED, 'Internal Error: Invalid '
                                    ' Repository. Multiple instances with same '
                                    ' path %s' % inst.path)
-                # TODO: Future remove this test for duplicate inst paths
+                # TODO: Future remove this test for duplicate inst paths since
+                # we test for dups on insertion
                 else:
                     del insts_repo[index]
                     del_inst = iname
@@ -2365,7 +2362,6 @@ class FakedWBEMConnection(WBEMConnection):
                                                   rc, role)
         rtn_names = [r.copy() for r in ref_paths]
 
-        # TODO: Should we force this in the repo itself??
         for iname in rtn_names:
             if iname.host is None:
                 iname.host = self.host
@@ -2404,7 +2400,6 @@ class FakedWBEMConnection(WBEMConnection):
                 params['IncludeClassOrigin'],
                 params['IncludeQualifiers']))
 
-        # TODO: Should we force this in the repo itself??
         for inst in rtn_insts:
             if inst.path.host is None:
                 inst.path.host = self.host
@@ -2446,8 +2441,7 @@ class FakedWBEMConnection(WBEMConnection):
                                                        ac, rc,
                                                        result_role, role)
         results = [p.copy() for p in rtn_paths]
-        # TODO: Should we force this in the repo itself??. Should we be
-        # setting the host name when we put instances into the repo
+
         for iname in results:
             if iname.host is None:
                 iname.host = self.host
@@ -2888,7 +2882,7 @@ class FakedWBEMConnection(WBEMConnection):
         try:
             result = bound_method(self, methodname, localobject, params=Params)
 
-            # TODO assert isinstance(result, (list, tuple))
+            # TODO Test return: assert isinstance(result, (list, tuple))
 
             # Map output params to NocaseDict to be compatible with return
             # from _methodcall

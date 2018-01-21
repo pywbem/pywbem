@@ -44,7 +44,6 @@ from pywbem.cim_obj import NocaseDict
 
 from pywbem.cim_operations import pull_path_result_tuple
 
-# TODO switch to using the pywbem package
 from pywbem_mock import FakedWBEMConnection
 
 from dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \

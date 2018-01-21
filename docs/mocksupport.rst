@@ -414,14 +414,16 @@ of the definition and execution of InvokeMethod.
     # of the mock repository
     conn.compile_mof_str(mof)
 
-    # Subscribe the defined Class and method. In this case it is for the
-    # default namespace.
+    # Add the defined class and method to the defaault repository.
     conn.add_method_callback('TST_Class', 'Method1',
                           self.method1_callback)
 
     # execute the InvokeMethod as a static (class level) method.
     params = [('IP1', 'someData')]
     result = conn.InvokeMethod('Method1', 'TST_Class', Params=params)
+
+    print('return value %s' result[0])
+    print('Return parameters %s' % (result[1],))
 
 .. _`Server pull operations methods`:
 
