@@ -19,10 +19,9 @@
 #
 
 """
-Prototype test of using mock to enable tests of pywbemcli with pytest as
-the test driver.
+Test of pywbem_mock package.  This tests the implementation of pywbem_mock
+using a set of local mock qualifiers, classes, and instances.
 
-Creates a class for each pywbemcli subcommand.
 """
 from __future__ import absolute_import, print_function
 
@@ -45,7 +44,6 @@ from pywbem.cim_obj import NocaseDict
 
 from pywbem.cim_operations import pull_path_result_tuple
 
-# TODO switch to using the pywbem package
 from pywbem_mock import FakedWBEMConnection
 
 from dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \
@@ -918,24 +916,30 @@ class TestRepoMethods(object):
             assert inst_tup[0] is None
             assert inst_tup[1] is None
 
-    @pytest.mark.parametrize(
-        "ns", [DEFAULT_NAMESPACE, 'root/blah'])
-    def test_addcimobject(self, conn, ns, tst_classes, tst_instances,
-                          tst_insts_big):
-        """
-        Test inserting all of the object definitions in the fixtues into
-        the repository
-        """
-        # pylint: disable=no-self-use
-        conn.add_cimobjects(tst_classes, namespace=ns)
-        conn.add_cimobjects(tst_instances, namespace=ns)
-        conn.add_cimobjects(tst_insts_big, namespace=ns)
+    @staticmethod
+    def method2_callback(conn, methodname, object_name, params=None):
+        pass
 
-        class_repo = conn._get_class_repo(ns)
-        assert len(class_repo) == len(tst_classes)
+    @staticmethod
+    def method1_callback(conn, methodname, object_name, params=None):
+        pass
 
-        inst_repo = conn._get_instance_repo(ns)
-        assert len(inst_repo) == len(tst_instances) + len(tst_insts_big)
+    def test_display_repository(self, conn, tst_instances_mof):
+        """
+        Test the display of the repository with it various options.
+        """
+        namespaces = ['root/blah', 'interop']
+        for ns in namespaces:
+            conn.compile_mof_str(tst_instances_mof, namespace=ns)
+
+        # Subscribe to InvokeMethod callback methods in the class.
+
+        conn.add_method_callback('CIM_Foo_sub_sub', 'Method1',
+                                 self.method1_callback,
+                                 namespace=ns)
+        conn.add_method_callback('CIM_Foo_sub_sub', 'Method2',
+                                 self.method2_callback,
+                                 namespace=ns)
 
         # pylint: disable=unused-variable
         with OutputCapture() as output:  # noqa: F841
@@ -954,6 +958,25 @@ class TestRepoMethods(object):
         conn.display_repository(dest=tst_file)
         assert os.path.isfile(tst_file)
         os.remove(tst_file)
+
+    @pytest.mark.parametrize(
+        "ns", [DEFAULT_NAMESPACE, 'root/blah'])
+    def test_addcimobject(self, conn, ns, tst_classes, tst_instances,
+                          tst_insts_big):
+        """
+        Test inserting all of the object definitions in the fixtures into
+        the repository
+        """
+        # pylint: disable=no-self-use
+        conn.add_cimobjects(tst_classes, namespace=ns)
+        conn.add_cimobjects(tst_instances, namespace=ns)
+        conn.add_cimobjects(tst_insts_big, namespace=ns)
+
+        class_repo = conn._get_class_repo(ns)
+        assert len(class_repo) == len(tst_classes)
+
+        inst_repo = conn._get_instance_repo(ns)
+        assert len(inst_repo) == len(tst_instances) + len(tst_insts_big)
 
     @pytest.mark.parametrize(
         "ns", [DEFAULT_NAMESPACE, 'root/blah'])
@@ -3647,6 +3670,7 @@ class TestInvokeMethod(object):
         value 'CIM_ERR_FAILED'
         """
         # pylint: disable=attribute-defined-outside-init
+
         self.executed_method = 'Method2'
         assert params == self.input_params
 
