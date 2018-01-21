@@ -1,5 +1,5 @@
 - name: AssociatorNamesClass1
-  description: Associator Names on Class PyWBEM with AssocClass, ResultClass, Role, ResultRole. Returns 1 instance 
+  description: Associator Names on Class PyWBEM with AssocClass, ResultClass, Role, ResultRole. Returns 1 instance
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -83,7 +83,6 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
-
 
 - name: AssociatorNamesClass2
   description: AssociatorName on class PyWBEM no filter params. Returns multiple classnames
@@ -751,7 +750,6 @@
       </MESSAGE>
       </CIM>'
 
-
 - name: AssociatorNamesClassF1
   description: Associator Names on class PyWBEM with AssocClass,ResultClass, Role, and ResultRole Bad Namespace returns Invalid namespace
   pywbem_request:
@@ -818,4 +816,178 @@
                 </SIMPLERSP>
               </MESSAGE>
             </CIM>
-      
+
+- name: AssociatorNamesClassNS1
+  description: AssociatorNames on class, providing class name and default namespace with leading/trailing slashes
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: //root/mycim//
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: AssociatorNames
+      ObjectName: PyWBEM_Person
+      AssocClass: PyWBEM_MemberOfPersonCollection
+      ResultClass: CIM_Collection
+      Role: Member
+      ResultRole: Collection
+  pywbem_response:
+    result:
+    - pywbem_object: CIMClassName
+      classname: CIM_Collection
+      host: sheldon
+      namespace: root/mycim
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: AssociatorNames
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="AssociatorNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ResultClass">
+      <CLASSNAME NAME="CIM_Collection"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Role">
+      <VALUE>Member</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ResultRole">
+      <VALUE>Collection</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="AssocClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="AssociatorNames">
+      <IRETURNVALUE>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Collection"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: AssociatorNamesClassNS2
+  description: AssociatorNames on class, providing CIMClassName object with leading/trailing slashes in its namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: AssociatorNames
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: PyWBEM_Person
+        namespace: //root/mycim//
+      AssocClass: PyWBEM_MemberOfPersonCollection
+      ResultClass: CIM_Collection
+      Role: Member
+      ResultRole: Collection
+  pywbem_response:
+    result:
+    - pywbem_object: CIMClassName
+      classname: CIM_Collection
+      host: sheldon
+      namespace: root/mycim
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: AssociatorNames
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="AssociatorNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ResultClass">
+      <CLASSNAME NAME="CIM_Collection"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Role">
+      <VALUE>Member</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ResultRole">
+      <VALUE>Collection</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="AssocClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="AssociatorNames">
+      <IRETURNVALUE>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Collection"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'

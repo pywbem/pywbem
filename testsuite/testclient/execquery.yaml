@@ -320,6 +320,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: ExecQueryF2
   description: ExecQuery request fails, Invalid query language
   pywbem_request:
@@ -377,6 +378,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: ExecQueryF3
   description: ExecQueryRequest fails, Invalid namespace
   pywbem_request:
@@ -435,3 +437,182 @@
       </MESSAGE>
       </CIM>'
 
+- name: ExecQueryNS1
+  description: ExecQuery, with leading/trailing slashes in default namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: //root/mycim//
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: ExecQuery
+      namespace: null
+      QueryLanguage: WQL
+      Query: Select * from CIM_ComputerSystem
+  pywbem_response:
+    result:
+    - pywbem_object: CIMInstance
+      classname: PG_ComputerSystem
+      path:
+        pywbem_object: CIMInstanceName
+        classname: PG_ComputerSystem
+        namespace: root/mycim
+        host: acme.com:80
+        keybindings:
+          CreationClassName: PG_ComputerSystem
+          Name: sheldon
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMObject: root/mycim
+      CIMMethod: ExecQuery
+      CIMOperation: MethodCall
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="ExecQuery">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="QueryLanguage">
+      <VALUE>WQL</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Query">
+      <VALUE>Select * from CIM_ComputerSystem</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="ExecQuery">
+      <IRETURNVALUE>
+      <VALUE.OBJECTWITHPATH>
+      <INSTANCEPATH>
+      <NAMESPACEPATH>
+      <HOST>acme.com:80</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <INSTANCENAME CLASSNAME="PG_ComputerSystem">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PG_ComputerSystem</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">sheldon</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </INSTANCEPATH>
+      <INSTANCE CLASSNAME="PG_ComputerSystem" >
+      </INSTANCE>
+      </VALUE.OBJECTWITHPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: ExecQueryNS2
+  description: ExecQuery, with leading/trailing slashes in operation namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: ExecQuery
+      namespace: //root/mycim//
+      QueryLanguage: WQL
+      Query: Select * from CIM_ComputerSystem
+  pywbem_response:
+    result:
+    - pywbem_object: CIMInstance
+      classname: PG_ComputerSystem
+      path:
+        pywbem_object: CIMInstanceName
+        classname: PG_ComputerSystem
+        namespace: root/mycim
+        host: acme.com:80
+        keybindings:
+          CreationClassName: PG_ComputerSystem
+          Name: sheldon
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMObject: root/mycim
+      CIMMethod: ExecQuery
+      CIMOperation: MethodCall
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="ExecQuery">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="QueryLanguage">
+      <VALUE>WQL</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Query">
+      <VALUE>Select * from CIM_ComputerSystem</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="ExecQuery">
+      <IRETURNVALUE>
+      <VALUE.OBJECTWITHPATH>
+      <INSTANCEPATH>
+      <NAMESPACEPATH>
+      <HOST>acme.com:80</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <INSTANCENAME CLASSNAME="PG_ComputerSystem">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PG_ComputerSystem</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">sheldon</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </INSTANCEPATH>
+      <INSTANCE CLASSNAME="PG_ComputerSystem" >
+      </INSTANCE>
+      </VALUE.OBJECTWITHPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'

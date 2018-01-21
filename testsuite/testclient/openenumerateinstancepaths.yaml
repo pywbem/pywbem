@@ -1,5 +1,4 @@
--
-    name: OpenEnumerateInstancePaths1
+-   name: OpenEnumerateInstancePaths1
     description: OpenEnumerateInstancePaths succeeds
     pywbem_request:
         url: http://acme.com:80
@@ -142,8 +141,8 @@
                     </SIMPLERSP>
                 </MESSAGE>
             </CIM>
--
-    name: OpenEnumerateInstancePaths2
+
+-   name: OpenEnumerateInstancePaths2
     description: OpenEnumerateInstancePaths succeeds two instances eos=False, context=abcdef
     pywbem_request:
         url: http://acme.com:80
@@ -288,8 +287,8 @@
                     </SIMPLERSP>
                 </MESSAGE>
             </CIM>
--
-    name: OpenEnumerateInstancePaths3
+
+-   name: OpenEnumerateInstancePaths3
     description: OpenEnumerateInstancePaths succeeds zero instances eos=True, context=null
     pywbem_request:
         url: http://acme.com:80
@@ -358,8 +357,7 @@
                 </MESSAGE>
             </CIM>
 
--
-    name: OpenEnumerateInstancePaths4
+-   name: OpenEnumerateInstancePaths4
     description: OpenEnumerateInstancePaths succeeds zero instances eos=False, context=abcdef
     pywbem_request:
         url: http://acme.com:80
@@ -429,8 +427,8 @@
                     </SIMPLERSP>
                 </MESSAGE>
             </CIM>
--
-    name: OpenEnumerateInstancePathsF1
+
+-   name: OpenEnumerateInstancePathsF1
     description: OpenEnumerateInstancePaths fails with CIM_ERR_ACCESS_DENIED
     pywbem_request:
         url: http://acme.com:80
@@ -498,8 +496,8 @@
                 </SIMPLERSP>
               </MESSAGE>
             </CIM>
--
-    name: OpenEnumerateInstancePathsF2
+
+-   name: OpenEnumerateInstancePathsF2
     description: OpenEnumerateInstancePaths, server fails with CIM_ERR_NOT_SUPPORTED
     pywbem_request:
         url: http://acme.com:80
@@ -553,8 +551,8 @@
                 </SIMPLERSP>
               </MESSAGE>
             </CIM>
--
-    name: OpenEnumerateInstancePathsF3
+
+-   name: OpenEnumerateInstancePathsF3
     description: OpenEnumerateInstancePaths fails with CIM_ERR_INVALID_NAMESPACE
     pywbem_request:
         url: http://acme.com:80
@@ -622,8 +620,8 @@
                 </SIMPLERSP>
               </MESSAGE>
             </CIM>
--
-    name: OpenEnumerateInstancePathsF4
+
+-   name: OpenEnumerateInstancePathsF4
     description: OpenEnumerateInstancePaths, server fails with CIM_ERR_INVALID_PARAMETER due to extra parm
     pywbem_request:
         url: http://acme.com:80
@@ -681,8 +679,8 @@
                 </SIMPLERSP>
               </MESSAGE>
             </CIM>
--
-    name: OpenEnumerateInstancePathsF5
+
+-   name: OpenEnumerateInstancePathsF5
     description: OpenEnumerateInstancePaths, server fails with CIM_ERR_INVALID_CLASS
     pywbem_request:
         url: http://acme.com:80
@@ -736,8 +734,8 @@
                 </SIMPLERSP>
               </MESSAGE>
             </CIM>
--
-    name: OpenEnumerateInstancePathsF6
+
+-   name: OpenEnumerateInstancePathsF6
     description: OpenEnumerateInstancePaths, server fails with CIM_ERR_FAILED
     pywbem_request:
         url: http://acme.com:80
@@ -792,5 +790,184 @@
               </MESSAGE>
             </CIM>
 
+-   name: OpenEnumerateInstancePathsNS1
+    description: OpenEnumerateInstancePaths, with leading/trailing slashes in default namespace
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: //root/mycim//
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: OpenEnumerateInstancePaths
+            namespace: null
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        pullresult:
+            context: null
+            eos: True
+            paths:
+                -
+                    pywbem_object: CIMInstanceName
+                    classname: PyWBEM_Person
+                    namespace: root/mycim
+                    keybindings:
+                        CreationClassname: PyWBEM_Person
+                        Name: Fritz
+                    host: acme.com:80
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstancePaths
+            CIMObject: root/mycim
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="OpenEnumerateInstancePaths">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="mycim"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Person"/>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="OpenEnumerateInstancePaths">
+                            <IRETURNVALUE>
+                                <INSTANCEPATH>
+                                  <NAMESPACEPATH>
+                                    <HOST>acme.com:80</HOST>
+                                    <LOCALNAMESPACEPATH>
+                                      <NAMESPACE NAME="root"/>
+                                      <NAMESPACE NAME="mycim"/>
+                                    </LOCALNAMESPACEPATH>
+                                  </NAMESPACEPATH>
+                                  <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                    <KEYBINDING NAME="CreationClassName">
+                                      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                    </KEYBINDING>
+                                    <KEYBINDING NAME="Name">
+                                      <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                    </KEYBINDING>
+                                  </INSTANCENAME>
+                                </INSTANCEPATH>
+                            </IRETURNVALUE>
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>TRUE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE></VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
 
-
+-   name: OpenEnumerateInstancePathsNS1
+    description: OpenEnumerateInstancePaths, with leading/trailing slashes in operation namespace
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: null
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: OpenEnumerateInstancePaths
+            namespace: //root/mycim//
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        pullresult:
+            context: null
+            eos: True
+            paths:
+                -
+                    pywbem_object: CIMInstanceName
+                    classname: PyWBEM_Person
+                    namespace: root/mycim
+                    keybindings:
+                        CreationClassname: PyWBEM_Person
+                        Name: Fritz
+                    host: acme.com:80
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstancePaths
+            CIMObject: root/mycim
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="OpenEnumerateInstancePaths">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="mycim"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Person"/>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="OpenEnumerateInstancePaths">
+                            <IRETURNVALUE>
+                                <INSTANCEPATH>
+                                  <NAMESPACEPATH>
+                                    <HOST>acme.com:80</HOST>
+                                    <LOCALNAMESPACEPATH>
+                                      <NAMESPACE NAME="root"/>
+                                      <NAMESPACE NAME="mycim"/>
+                                    </LOCALNAMESPACEPATH>
+                                  </NAMESPACEPATH>
+                                  <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                    <KEYBINDING NAME="CreationClassName">
+                                      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                    </KEYBINDING>
+                                    <KEYBINDING NAME="Name">
+                                      <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                    </KEYBINDING>
+                                  </INSTANCENAME>
+                                </INSTANCEPATH>
+                            </IRETURNVALUE>
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>TRUE</VALUE>
+                            </PARAMVALUE>
+                            <PARAMVALUE NAME="EnumerationContext">
+                                <VALUE></VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>

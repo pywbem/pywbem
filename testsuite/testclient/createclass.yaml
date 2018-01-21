@@ -106,7 +106,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
-      
+
 - name: CreateClass2
   description: CreateClass requests with valid class and many properties. Successful
   ignore_test: true
@@ -594,6 +594,124 @@
       <SIMPLERSP>
       <IMETHODRESPONSE NAME="CreateClass">
       <ERROR CODE="3" DESCRIPTION="CIM_ERR_INVALID_NAMESPACE: blah"/>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: CreateClassNS1
+  description: CreateClass, with leading/trailing slashes in default namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: //root/mycim//
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: CreateClass
+      namespace: null
+      NewClass:
+        pywbem_object: CIMClass
+        classname: PyWbem_Run_CIM_Operations0
+        superclass: null
+        properties: {}
+        methods: {}
+        qualifiers: {}
+  pywbem_response: {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: CreateClass
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="CreateClass">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="NewClass">
+      <CLASS NAME="PyWbem_Run_CIM_Operations0">
+      </CLASS>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="CreateClass">
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: CreateClassNS2
+  description: CreateClass, with leading/trailing slashes in operation namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: CreateClass
+      namespace: //root/mycim//
+      NewClass:
+        pywbem_object: CIMClass
+        classname: PyWbem_Run_CIM_Operations0
+        superclass: null
+        properties: {}
+        methods: {}
+        qualifiers: {}
+  pywbem_response: {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: CreateClass
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="CreateClass">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="NewClass">
+      <CLASS NAME="PyWbem_Run_CIM_Operations0">
+      </CLASS>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="CreateClass">
       </IMETHODRESPONSE>
       </SIMPLERSP>
       </MESSAGE>

@@ -780,6 +780,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: GetClassF1
   description: Get Class Fails bad namespace
   pywbem_request:
@@ -847,4 +848,141 @@
               </SIMPLERSP>
             </MESSAGE>
           </CIM>
+
 # TODO getclass needs more success tests with different input parameters.
+
+- name: GetClassNS1
+  description: GetClass, with leading/trailing slashes in default namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: //root/mycim//
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: GetClass
+      namespace: null
+      ClassName: CIM_ComputerSystem
+  pywbem_response:
+    result:
+      pywbem_object: CIMClass
+      classname: CIM_ComputerSystem
+      superclass: CIM_System
+      path:
+        pywbem_object: CIMClassName
+        classname: CIM_ComputerSystem
+        host: acme.com:80
+        namespace: root/mycim
+      properties: {}
+      methods: {}
+      qualifiers: {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: GetClass
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="GetClass">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ClassName">
+      <CLASSNAME NAME="CIM_ComputerSystem"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="GetClass">
+      <IRETURNVALUE>
+      <CLASS NAME="CIM_ComputerSystem"  SUPERCLASS="CIM_System" >
+      </CLASS>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: GetClassNS2
+  description: GetClass, with leading/trailing slashes in operation namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: GetClass
+      namespace: //root/mycim//
+      ClassName: CIM_ComputerSystem
+  pywbem_response:
+    result:
+      pywbem_object: CIMClass
+      classname: CIM_ComputerSystem
+      superclass: CIM_System
+      path:
+        pywbem_object: CIMClassName
+        classname: CIM_ComputerSystem
+        host: acme.com:80
+        namespace: root/mycim
+      properties: {}
+      methods: {}
+      qualifiers: {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: GetClass
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="GetClass">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ClassName">
+      <CLASSNAME NAME="CIM_ComputerSystem"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="GetClass">
+      <IRETURNVALUE>
+      <CLASS NAME="CIM_ComputerSystem"  SUPERCLASS="CIM_System" >
+      </CLASS>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'

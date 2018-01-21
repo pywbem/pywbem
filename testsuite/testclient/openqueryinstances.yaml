@@ -253,3 +253,167 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
+- name: OpenQueryInstancesNS1
+  description: OpenQueryInstances, with leading/trailing slashes in default namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: //root/mycim//
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: OpenQueryInstances
+      namespace: null
+      MaxObjectCount: 100
+      FilterQuery: Select * from CIM_ComputerSystem
+      FilterQueryLanguage: WQL
+      ContinueOnError: null
+      OperationTimeout: null
+      ReturnQueryResultClass: null
+  pywbem_response:
+    pullresult:
+        context: null
+        eos: True
+        query_result_class: null
+        instances:
+            - pywbem_object: CIMInstance
+              classname: PG_ComputerSystem
+              properties: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMObject: root/mycim
+      CIMMethod: OpenQueryInstances
+      CIMOperation: MethodCall
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="OpenQueryInstances">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>100</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="FilterQuery">
+      <VALUE>Select * from CIM_ComputerSystem</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="FilterQueryLanguage">
+      <VALUE>WQL</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="OpenQueryInstances">
+      <IRETURNVALUE>
+      <INSTANCE CLASSNAME="PG_ComputerSystem" >
+      </INSTANCE>
+      </IRETURNVALUE>
+      <PARAMVALUE NAME="EndOfSequence">
+      <VALUE>TRUE</VALUE>
+      </PARAMVALUE>
+      <PARAMVALUE NAME="EnumerationContext">
+      <VALUE>
+      </VALUE>
+      </PARAMVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: OpenQueryInstancesNS2
+  description: OpenQueryInstances, with leading/trailing slashes in operation namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: OpenQueryInstances
+      namespace: //root/mycim//
+      MaxObjectCount: 100
+      FilterQuery: Select * from CIM_ComputerSystem
+      FilterQueryLanguage: WQL
+      ContinueOnError: null
+      OperationTimeout: null
+      ReturnQueryResultClass: null
+  pywbem_response:
+    pullresult:
+        context: null
+        eos: True
+        query_result_class: null
+        instances:
+            - pywbem_object: CIMInstance
+              classname: PG_ComputerSystem
+              properties: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMObject: root/mycim
+      CIMMethod: OpenQueryInstances
+      CIMOperation: MethodCall
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="OpenQueryInstances">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>100</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="FilterQuery">
+      <VALUE>Select * from CIM_ComputerSystem</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="FilterQueryLanguage">
+      <VALUE>WQL</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="OpenQueryInstances">
+      <IRETURNVALUE>
+      <INSTANCE CLASSNAME="PG_ComputerSystem" >
+      </INSTANCE>
+      </IRETURNVALUE>
+      <PARAMVALUE NAME="EndOfSequence">
+      <VALUE>TRUE</VALUE>
+      </PARAMVALUE>
+      <PARAMVALUE NAME="EnumerationContext">
+      <VALUE>
+      </VALUE>
+      </PARAMVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'

@@ -228,3 +228,6 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>
+
+# TODO 01/18 AM: Add testcases for namespaces with leading/trailing slashes
+

@@ -70,6 +70,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: GetQualifierF1
   description: GetQualifier fails bad qualifier name
   pywbem_request:
@@ -119,6 +120,136 @@
       <SIMPLERSP>
       <IMETHODRESPONSE NAME="GetQualifier">
       <ERROR CODE="6" DESCRIPTION="CIM_ERR_NOT_FOUND: blahblah"/>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: GetQualifierNS1
+  description: GetQualifier, with leading/trailing slashes in default namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: //root/mycim//
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: GetQualifier
+      namespace: null
+      QualifierName: Abstract
+  pywbem_response:
+    result:
+      pywbem_object: CIMQualifierDeclaration
+      name: Abstract
+      type: boolean
+      value: false
+      scopes:
+        indication: true
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: GetQualifier
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="GetQualifier">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="QualifierName">
+      <VALUE>Abstract</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="GetQualifier">
+      <IRETURNVALUE>
+      <QUALIFIER.DECLARATION NAME="Abstract" TYPE="boolean">
+      <SCOPE INDICATION="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: GetQualifierNS2
+  description: GetQualifier, with leading/trailing slashes in operation namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: GetQualifier
+      namespace: //root/mycim//
+      QualifierName: Abstract
+  pywbem_response:
+    result:
+      pywbem_object: CIMQualifierDeclaration
+      name: Abstract
+      type: boolean
+      value: false
+      scopes:
+        indication: true
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: GetQualifier
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="GetQualifier">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="QualifierName">
+      <VALUE>Abstract</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="GetQualifier">
+      <IRETURNVALUE>
+      <QUALIFIER.DECLARATION NAME="Abstract" TYPE="boolean">
+      <SCOPE INDICATION="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      </IRETURNVALUE>
       </IMETHODRESPONSE>
       </SIMPLERSP>
       </MESSAGE>

@@ -706,6 +706,28 @@ class Test_CIMInstanceName_init(object):
                 namespace=u'root/cimv2'),
             None, True
         ),
+        (
+            "Verify that one leading and trailing slash in namespace get "
+            "stripped",
+            dict(
+                classname='CIM_Foo',
+                namespace='/root/cimv2/'),
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2'),
+            None, True
+        ),
+        (
+            "Verify that two leading and trailing slashes in namespace get "
+            "stripped",
+            dict(
+                classname='CIM_Foo',
+                namespace='//root/cimv2//'),
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2'),
+            None, True
+        ),
 
         # Host tests
         (
@@ -9161,6 +9183,28 @@ class Test_CIMClassName_init(object):
             dict(
                 classname='CIM_Foo',
                 namespace=u'root/cimv2'),
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2'),
+            None, True
+        ),
+        (
+            "Verify that one leading and trailing slash in namespace get "
+            "stripped",
+            dict(
+                classname='CIM_Foo',
+                namespace='/root/cimv2/'),
+            dict(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2'),
+            None, True
+        ),
+        (
+            "Verify that two leading and trailing slashes in namespace get "
+            "stripped",
+            dict(
+                classname='CIM_Foo',
+                namespace='//root/cimv2//'),
             dict(
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2'),

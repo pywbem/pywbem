@@ -149,7 +149,7 @@ from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_SUPPORTED
 from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
-    CIMParameter, NocaseDict, tocimxml, tocimobj
+    CIMParameter, NocaseDict, tocimxml, tocimobj, _ensure_unicode
 from .cim_http import get_cimobject_header, wbem_request
 from .tupleparse import parse_cim
 from .tupletree import xml_to_tupletree_sax
@@ -469,7 +469,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Name of the CIM namespace to be used by default (if no namespace
             is specified for an operation).
 
-            Default: :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`.
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
+
+            `None` will cause the following namespace to be used as a default
+            namespace: :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`.
 
           x509 (:class:`py:dict`):
             :term:`X.509` client certificate and key file to be presented
@@ -645,7 +649,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self.verify_callback = verify_callback
         self.ca_certs = ca_certs
         self.no_verification = no_verification
-        self.default_namespace = default_namespace
+        self.default_namespace = default_namespace  # setter
         self.timeout = timeout
 
         self.debug = False
@@ -681,6 +685,31 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._statistics = Statistics(enable_stats)
         self._last_operation_time = None
         self._last_server_response_time = None
+
+    @property
+    def default_namespace(self):
+        """
+        :term:`unicode string`: Name of the CIM namespace to be used by default
+        (if no namespace is specified for an operation).
+
+        `None` means that the following namespace will be used as a default
+        namespace: :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`.
+
+        Leading and trailing slash characters will be stripped. The lexical
+        case will be preserved.
+
+        This attribute is settable. For details, see the description of the
+        same-named constructor parameter.
+        """
+        return self._default_namespace
+
+    @default_namespace.setter
+    def default_namespace(self, default_namespace):
+        """Setter method; for a description see the getter method."""
+        # pylint: disable=attribute-defined-outside-init
+        if default_namespace is not None:
+            default_namespace = default_namespace.strip('/')
+        self._default_namespace = _ensure_unicode(default_namespace)
 
     @property
     def operation_recorders(self):
@@ -1365,7 +1394,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         imethodcall()."""
 
         if isinstance(obj, six.string_types):
-            namespace = obj
+            namespace = obj.strip('/')
         elif obj is None:
             namespace = obj
         else:
@@ -1479,6 +1508,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           namespace (:term:`string`):
             Name of the CIM namespace to be used (case independent).
 
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
+
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
             also `None`, the default namespace of the connection will be used.
@@ -1575,6 +1607,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           namespace (:term:`string`):
             Name of the CIM namespace to be used (case independent).
+
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
@@ -1858,6 +1893,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           namespace (:term:`string`):
             Name of the CIM namespace to be used (case independent).
+
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
@@ -2199,6 +2237,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           namespace (:term:`string`):
             Name of the CIM namespace to be used (case independent).
+
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
@@ -3629,6 +3670,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           namespace (:term:`string`):
             Name of the CIM namespace to be used (case independent).
 
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
+
             If `None`, the default namespace of the connection object will be
             used.
 
@@ -3870,6 +3914,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           namespace (:term:`string`):
             Name of the CIM namespace to be used (case independent).
 
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
+
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
             also `None`, the default namespace of the connection will be used.
@@ -4089,6 +4136,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           namespace (:term:`string`):
             Name of the CIM namespace to be used (case independent).
+
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
@@ -5378,6 +5428,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           namespace (:term:`string`):
             Name of the CIM namespace to be used (case independent).
 
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
+
             If `None`, the default namespace of the connection object will be
             used.
 
@@ -5520,7 +5573,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         try:
 
             stats = self.statistics.start_timer(method_name)
-            namespace = self._iparam_namespace_from_objectname(namespace)
+            namespace = self._iparam_namespace_from_namespace(namespace)
 
             result = self._imethodcall(
                 method_name,
@@ -6445,6 +6498,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             *New in pywbem 0.9.*
 
             Name of the CIM namespace to be used (case independent).
+
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
 
         Keyword Arguments:
 
@@ -7425,6 +7481,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           namespace (:term:`string`):
             Name of the CIM namespace to be used (case independent).
 
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
+
             If `None`, the default namespace of the connection object will be
             used.
 
@@ -7517,6 +7576,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           namespace (:term:`string`):
             Name of the namespace in which the class names are to be
             enumerated (case independent).
+
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
@@ -7631,6 +7693,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           namespace (:term:`string`):
             Name of the namespace in which the classes are to be enumerated
             (case independent).
+
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
@@ -7790,6 +7855,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Name of the namespace of the class to be retrieved
             (case independent).
 
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
+
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
             also `None`, the default namespace of the connection will be used.
@@ -7927,6 +7995,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Name of the namespace in which the class is to be modified
             (case independent).
 
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
+
             If `None`, the default namespace of the connection object will be
             used.
 
@@ -8004,6 +8075,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Name of the namespace in which the class is to be created
             (case independent).
 
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
+
             If `None`, the default namespace of the connection object will be
             used.
 
@@ -8077,6 +8151,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           namespace (:term:`string`):
             Name of the namespace of the class to be deleted
             (case independent).
+
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
 
             If `None`, the namespace of the `ClassName` parameter will be used,
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
@@ -8152,6 +8229,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           namespace (:term:`string`):
             Name of the namespace in which the qualifier declarations are to be
             enumerated (case independent).
+
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
 
             If `None`, the default namespace of the connection object will be
             used.
@@ -8233,6 +8313,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Name of the namespace of the qualifier declaration
             (case independent).
 
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
+
             If `None`, the default namespace of the connection object will be
             used.
 
@@ -8313,6 +8396,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Name of the namespace in which the qualifier declaration is to be
             created or modified (case independent).
 
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
+
             If `None`, the default namespace of the connection object will be
             used.
 
@@ -8382,6 +8468,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           namespace (:term:`string`):
             Name of the namespace in which the qualifier declaration is to be
             deleted (case independent).
+
+            Leading and trailing slash characters will be stripped. The lexical
+            case will be preserved.
 
             If `None`, the default namespace of the connection object will be
             used.

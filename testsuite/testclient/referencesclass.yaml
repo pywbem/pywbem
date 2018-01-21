@@ -118,3 +118,181 @@
       </MESSAGE>
       </CIM>'
 
+- name: ReferencesClassNS1
+  description: References on class, providing classname string and with leading/trailing slashes in default namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: //root/mycim//
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: References
+      ObjectName: PyWBEM_Person
+      ResultClass: PyWBEM_MemberOfPersonCollection
+      Role: null
+  pywbem_response:
+    result:
+    - - pywbem_object: CIMClassName
+        classname: PyWBEM_MemberOfPersonCollection
+        host: acme.com:80
+        namespace: root/mycim
+      - pywbem_object: CIMClass
+        classname: PyWBEM_MemberOfPersonCollection
+        superclass: CIM_MemberOfCollection
+        path:
+          pywbem_object: CIMClassName
+          classname: PyWBEM_MemberOfPersonCollection
+          host: acme.com:80
+          namespace: root/mycim
+        properties: {}
+        methods: {}
+        qualifiers: {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: References
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="References">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ResultClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="References">
+      <IRETURNVALUE>
+      <VALUE.OBJECTWITHPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>acme.com:80</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </CLASSPATH>
+      <CLASS NAME="PyWBEM_MemberOfPersonCollection" SUPERCLASS="CIM_MemberOfCollection">
+      </CLASS>
+      </VALUE.OBJECTWITHPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: ReferencesClassNS2
+  description: References on class, providing CIMClassName object with leading/trailing slashes in object namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: References
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: PyWBEM_Person
+        namespace: //root/mycim//
+      ResultClass: PyWBEM_MemberOfPersonCollection
+      Role: null
+  pywbem_response:
+    result:
+    - - pywbem_object: CIMClassName
+        classname: PyWBEM_MemberOfPersonCollection
+        host: acme.com:80
+        namespace: root/mycim
+      - pywbem_object: CIMClass
+        classname: PyWBEM_MemberOfPersonCollection
+        superclass: CIM_MemberOfCollection
+        path:
+          pywbem_object: CIMClassName
+          classname: PyWBEM_MemberOfPersonCollection
+          host: acme.com:80
+          namespace: root/mycim
+        properties: {}
+        methods: {}
+        qualifiers: {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: References
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="References">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ResultClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="References">
+      <IRETURNVALUE>
+      <VALUE.OBJECTWITHPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>acme.com:80</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </CLASSPATH>
+      <CLASS NAME="PyWBEM_MemberOfPersonCollection" SUPERCLASS="CIM_MemberOfCollection">
+      </CLASS>
+      </VALUE.OBJECTWITHPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'

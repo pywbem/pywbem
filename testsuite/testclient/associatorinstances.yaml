@@ -68,6 +68,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: AssociatorInsts2
   description: Associators on instance request with most parameters, zero responses, succeeds
   pywbem_request:
@@ -155,6 +156,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: AssociatorInsts3
   description: Associators on instance Request, zero responses, succeeds
   pywbem_request:
@@ -229,6 +231,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: AssociatorInsts4
   description: Associator instances Request with most parameters, zero responses, succeeds
   pywbem_request:
@@ -320,6 +323,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: AssociatorInsts5
   description: Return Associated Instances to PyWBEM_Person Instance
   pywbem_request:
@@ -484,6 +488,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: AssociatorInsts6
   description: Associator instances Request with most parameters, zero responses, succeeds. Statistics enabled
   pywbem_request:
@@ -578,6 +583,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: AssociatorInstsF1
   description: associator Instance Fails with invalid Namespace
   pywbem_request:
@@ -642,3 +648,138 @@
             </MESSAGE>
           </CIM>
 
+- name: AssociatorInstsNS1
+  description: Associator instances, with leading/trailing slashes in default namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: //root/mycim//
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: Associators
+      ObjectName:
+        pywbem_object: CIMInstanceName
+        classname: TST_Blah
+        namespace: null
+        keybindings:
+          Name: Blah
+      AssocClass: null
+      ResultClass: null
+      Role: null
+      ResultRole: null
+  pywbem_response:
+    result: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: Associators
+      CIMObject: root/mycim
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEREQ>
+            <IMETHODCALL NAME="Associators">
+              <LOCALNAMESPACEPATH>
+                <NAMESPACE NAME="root"/>
+                <NAMESPACE NAME="mycim"/>
+              </LOCALNAMESPACEPATH>
+              <IPARAMVALUE NAME="ObjectName">
+                <INSTANCENAME CLASSNAME="TST_Blah">
+                  <KEYBINDING NAME="Name">
+                    <KEYVALUE VALUETYPE="string">Blah</KEYVALUE>
+                  </KEYBINDING>
+                </INSTANCENAME>
+              </IPARAMVALUE>
+            </IMETHODCALL>
+          </SIMPLEREQ>
+        </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="Associators">
+      <IRETURNVALUE>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: AssociatorInstsNS2
+  description: Associator instances, with leading/trailing slashes in ObjectName namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: Associators
+      ObjectName:
+        pywbem_object: CIMInstanceName
+        classname: TST_Blah
+        namespace: //root/mycim//
+        keybindings:
+          Name: Blah
+      AssocClass: null
+      ResultClass: null
+      Role: null
+      ResultRole: null
+  pywbem_response:
+    result: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: Associators
+      CIMObject: root/mycim
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEREQ>
+            <IMETHODCALL NAME="Associators">
+              <LOCALNAMESPACEPATH>
+                <NAMESPACE NAME="root"/>
+                <NAMESPACE NAME="mycim"/>
+              </LOCALNAMESPACEPATH>
+              <IPARAMVALUE NAME="ObjectName">
+                <INSTANCENAME CLASSNAME="TST_Blah">
+                  <KEYBINDING NAME="Name">
+                    <KEYVALUE VALUETYPE="string">Blah</KEYVALUE>
+                  </KEYBINDING>
+                </INSTANCENAME>
+              </IPARAMVALUE>
+            </IMETHODCALL>
+          </SIMPLEREQ>
+        </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="Associators">
+      <IRETURNVALUE>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
