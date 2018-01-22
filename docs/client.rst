@@ -24,6 +24,8 @@ This chapter has the following sections:
   output.
 * :ref:`CIM data types` - Python classes for representing values of CIM data
   types.
+* :ref:`Conversion functions` - Conversion functions related to CIM objects and
+  CIM data types.
 * :ref:`CIM status codes` - CIM status codes returned by failing WBEM
   operations.
 * :ref:`Logging` - Logging of WBEM operations.
@@ -254,20 +256,6 @@ CIMQualifierDeclaration
    :members:
    :exclude-members: __hash__
 
-Conversion functions
-^^^^^^^^^^^^^^^^^^^^
-
-This section describes conversion functions that may be useful for purposes
-such as debugging.
-
-.. autofunction:: pywbem.tocimxml
-
-.. autofunction:: pywbem.tocimxmlstr
-
-.. autofunction:: pywbem.tocimobj
-
-.. autofunction:: pywbem.cimvalue
-
 .. _`CIM data types`:
 
 CIM data types
@@ -320,6 +308,26 @@ CIM data types
 
 .. autoclass:: pywbem.Real64
    :members:
+
+.. _`Conversion functions`:
+
+Conversion functions
+--------------------
+
+This section describes conversion functions related to :ref:`CIM objects` and
+:ref:`CIM data types`.
+
+.. autofunction:: pywbem.tocimxml
+
+.. autofunction:: pywbem.tocimxmlstr
+
+.. autofunction:: pywbem.tocimobj
+
+.. autofunction:: pywbem.cimvalue
+
+.. autofunction:: pywbem.cimtype
+
+.. autofunction:: pywbem.type_from_name
 
 .. _`CIM status codes`:
 

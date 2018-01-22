@@ -8,9 +8,14 @@ from __future__ import absolute_import, print_function
 
 from datetime import timedelta, datetime
 import pytest
+import six
 
 from pywbem import CIMType, CIMInt, CIMFloat, Uint8, Uint16, Uint32, Uint64, \
-    Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime, MinutesFromUTC
+    Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime, \
+    MinutesFromUTC, CIMClass, CIMInstance, CIMInstanceName, CIMClassName, \
+    cimtype, type_from_name
+
+import pytest_extensions
 
 
 #
@@ -400,3 +405,412 @@ def test_datetime_init(datetime_init_tuple):
 # TODO: Add testcases for get_local_utcoffset()
 # TODO: Add testcases for now()
 # TODO: Add testcases for fromtimestamp()
+
+
+testcases_cimtype = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj: object to be tested.
+    #   * exp_type_name: Expected CIM data type name.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+
+    # Special cases
+    (
+        "Object is None",
+        dict(
+            obj=None,
+            exp_type_name=None,
+        ),
+        TypeError, None, True
+    ),
+
+    # Boolean tests
+    (
+        "Object is a bool",
+        dict(
+            obj=True,
+            exp_type_name=u'boolean',
+        ),
+        None, None, True
+    ),
+
+    # String tests
+    (
+        "Object is a unicode string",
+        dict(
+            obj=u"abc",
+            exp_type_name=u'string',
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a byte string",
+        dict(
+            obj=b"abc",
+            exp_type_name=u'string',
+        ),
+        None, None, True
+    ),
+
+    # Integer tests
+    (
+        "Object is an integer",
+        dict(
+            obj=42,
+            exp_type_name=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Object is a Uint8 number",
+        dict(
+            obj=Uint8(42),
+            exp_type_name=u'uint8',
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a Uint16 number",
+        dict(
+            obj=Uint16(42),
+            exp_type_name=u'uint16',
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a Uint32 number",
+        dict(
+            obj=Uint32(42),
+            exp_type_name=u'uint32',
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a Uint64 number",
+        dict(
+            obj=Uint64(42),
+            exp_type_name=u'uint64',
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a Sint8 number",
+        dict(
+            obj=Sint8(42),
+            exp_type_name=u'sint8',
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a Sint16 number",
+        dict(
+            obj=Sint16(42),
+            exp_type_name=u'sint16',
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a Sint32 number",
+        dict(
+            obj=Sint32(42),
+            exp_type_name=u'sint32',
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a Sint64 number",
+        dict(
+            obj=Sint64(42),
+            exp_type_name=u'sint64',
+        ),
+        None, None, True
+    ),
+
+    # Floating point tests
+    (
+        "Object is a float",
+        dict(
+            obj=42.0,
+            exp_type_name=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Object is a Real32 number",
+        dict(
+            obj=Real32(42.0),
+            exp_type_name=u'real32',
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a Real64 number",
+        dict(
+            obj=Real64(42.0),
+            exp_type_name=u'real64',
+        ),
+        None, None, True
+    ),
+
+    # Datetime tests
+    (
+        "Object is a Python datetime object",
+        dict(
+            obj=datetime(year=2014, month=9, day=24, hour=19, minute=30,
+                         second=40, microsecond=654321,
+                         tzinfo=MinutesFromUTC(120)),
+            exp_type_name=u'datetime',
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a Python timedelta object",
+        dict(
+            obj=timedelta(days=12345678, hours=22, minutes=44, seconds=55,
+                          microseconds=654321),
+            exp_type_name=u'datetime',
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a CIMDateTime object",
+        dict(
+            obj=CIMDateTime('20140924193040.654321+000'),
+            exp_type_name=u'datetime',
+        ),
+        None, None, True
+    ),
+
+    # Other CIM object tests
+    (
+        "Object is a CIMClass object",
+        dict(
+            obj=CIMClass('CIM_Foo'),
+            exp_type_name=u'string',  # embedded object
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a CIMInstance object",
+        dict(
+            obj=CIMInstance('CIM_Foo'),
+            exp_type_name=u'string',  # embedded object
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a CIMInstanceName object",
+        dict(
+            obj=CIMInstanceName('CIM_Foo'),
+            exp_type_name=u'reference',
+        ),
+        None, None, True
+    ),
+    (
+        "Object is a CIMClassName object",
+        dict(
+            obj=CIMClassName('CIM_Foo'),
+            exp_type_name=None,
+        ),
+        TypeError, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    testcases_cimtype)
+@pytest_extensions.test_function
+def test_cimtype(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for cimtype().
+    """
+
+    obj = kwargs['obj']
+
+    # The code to be tested
+    type_name = cimtype(obj)
+
+    exp_type_name = kwargs['exp_type_name']
+
+    assert type_name == exp_type_name
+
+
+testcases_type_from_name = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * type_name: CIM type name to be tested.
+    #   * exp_type: Expected Python type object.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Special cases
+    (
+        "Type name is None",
+        dict(
+            type_name=None,
+            exp_type_obj=None,
+        ),
+        ValueError, None, True
+    ),
+    (
+        "Type name is invalid",
+        dict(
+            type_name='foo',
+            exp_type_obj=None,
+        ),
+        ValueError, None, True
+    ),
+
+    # CIM type names
+    (
+        "Type name is boolean",
+        dict(
+            type_name='boolean',
+            exp_type_obj=bool,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is uint8",
+        dict(
+            type_name='uint8',
+            exp_type_obj=Uint8,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is uint16",
+        dict(
+            type_name='uint16',
+            exp_type_obj=Uint16,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is uint32",
+        dict(
+            type_name='uint32',
+            exp_type_obj=Uint32,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is uint64",
+        dict(
+            type_name='uint64',
+            exp_type_obj=Uint64,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is sint8",
+        dict(
+            type_name='sint8',
+            exp_type_obj=Sint8,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is sint16",
+        dict(
+            type_name='sint16',
+            exp_type_obj=Sint16,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is sint32",
+        dict(
+            type_name='sint32',
+            exp_type_obj=Sint32,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is sint64",
+        dict(
+            type_name='sint64',
+            exp_type_obj=Sint64,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is real32",
+        dict(
+            type_name='real32',
+            exp_type_obj=Real32,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is real64",
+        dict(
+            type_name='real64',
+            exp_type_obj=Real64,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is string",
+        dict(
+            type_name='string',
+            exp_type_obj=six.text_type,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is char16",
+        dict(
+            type_name='char16',
+            exp_type_obj=six.text_type,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is datetime",
+        dict(
+            type_name='datetime',
+            exp_type_obj=CIMDateTime,
+        ),
+        None, None, True
+    ),
+    (
+        "Type name is reference",
+        dict(
+            type_name='reference',
+            exp_type_obj=CIMInstanceName,
+        ),
+        None, None, True
+    ),
+
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    testcases_type_from_name)
+@pytest_extensions.test_function
+def test_type_from_name(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for type_from_name().
+    """
+
+    type_name = kwargs['type_name']
+
+    # The code to be tested
+    type_obj = type_from_name(type_name)
+
+    exp_type_obj = kwargs['exp_type_obj']
+
+    assert type_obj is exp_type_obj
