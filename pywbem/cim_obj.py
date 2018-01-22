@@ -1360,6 +1360,7 @@ def _scalar_value_tomof(
 def _value_tomof(
         value, type, indent=0, maxline=MAX_MOF_LINE, line_pos=0, end_space=0,
         avoid_splits=False):
+    # pylint: disable=redefined-builtin
     """
     Return a MOF fragment representing a CIM-typed value (scalar or array).
 
@@ -2236,6 +2237,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     @staticmethod
     def from_wbem_uri(wbem_uri):
+        # pylint: disable=line-too-long
         """
         *New in pywbem 0.12.*
 
@@ -2352,6 +2354,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         return obj
 
     def to_wbem_uri(self, format='standard'):
+        # pylint: disable=redefined-builtin
         """
         Return the untyped WBEM URI of the CIM instance path represented
         by the :class:`~pywbem.CIMInstanceName` object.
@@ -3505,6 +3508,7 @@ class CIMClassName(_CIMComparisonMixin):
         return obj
 
     def to_wbem_uri(self, format='standard'):
+        # pylint: disable=redefined-builtin
         """
         Return the untyped WBEM URI of the CIM class path represented by the
         :class:`~pywbem.CIMClassName` object.
