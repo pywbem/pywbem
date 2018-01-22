@@ -39,6 +39,7 @@ from .tupleparse import *  # noqa: F403,F401
 from .cim_http import *  # noqa: F403,F401
 from .exceptions import *  # noqa: F403,F401
 from .mof_compiler import *  # noqa: F403,F401
+from ._valuemapping import *  # noqa: F403,F401
 from ._server import *  # noqa: F403,F401
 from ._subscription_manager import *  # noqa: F403,F401
 from ._listener import *  # noqa: F403,F401

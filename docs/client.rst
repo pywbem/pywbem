@@ -32,6 +32,8 @@ This chapter has the following sections:
   operation performance.
 * :ref:`WBEM operation recorder` - Python classes that implement the operation
   recorder functions that are used by :class:`~pywbem.WBEMConnection`.
+* :ref:`Value mappings` - Utility class for mapping the values of CIM elements
+  qualified with `ValueMap` and `Values`.
 * :ref:`Security considerations` - Information about authentication types and
   certificates.
 
@@ -433,6 +435,18 @@ Class                                    Purpose
 
 .. autoclass:: pywbem.LogOperationRecorder
    :members:
+
+
+.. _`Value mappings`:
+
+Value mappings
+--------------
+
+.. automodule:: pywbem._valuemapping
+
+.. autoclass:: pywbem.ValueMapping
+   :members:
+
 
 .. _`Security considerations`:
 

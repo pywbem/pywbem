@@ -228,7 +228,7 @@ Enhancements
 * Docs: Improved the descriptions of CIM objects and their attributes to
   describe how the attributes are used to determine object equality and
   the hash value of the object.
- 
+
 * The child elements of CIM objects (e.g. properties of `CIMClass`) now
   preserve the order in which they had been added to their parent object.
   Methods such as `tomof()`, `tocimxml()`, and `to_wbem_uri()` now
@@ -260,6 +260,19 @@ Enhancements
 
 * Docs: For CIM floating point types (real32, real64), added cautionary text
   for equality comparison and hash value calculation.
+
+* Made the `ValueMapping` class more generally available and no longer tied
+  to the `WBEMServer` class. It is now described in the "Client" chapter of the
+  documentation, and it is possible to create new `ValueMapping` objects by
+  providing a `WBEMConnection` object (as an alternative to the `WBEMServer`
+  object that is still supported, for compatibility). Issue #997.
+
+* Extended the `ValueMapping` class; its objects now remember the context in
+  which the value mapping is defined, in terms of the connection, namespace,
+  class, and of the mapped CIM element (i.e. property, method or parameter).
+
+* Extended the `ValueMapping` class by adding a `__repr__()` method that
+  prints all of its attributes, for debug purposes.
 
 * Added capability to mock WBEM Operations so that both pywbem and pywbem
   users can create unit tests without requiring a working WBEM Server,
@@ -370,7 +383,7 @@ Bug fixes
 
 * Fixed the lookup of the Values string for negative values in the
   `ValueMapping` class (found when solving #992).
- 
+
 * Docs: Fixed the type `string` for the keys of the `CIMInstance.qualifiers`
   attribute to be `unicode string`.
 
@@ -382,6 +395,11 @@ Bug fixes
   resulted in a RepresenterError being raised, by adding PyYAML representer and
   constructor functions that serialize CIMDateTimeobjects to YAML. Extended
   the testcases in test_recorder.py accordingly. (Issues #702, #588).
+
+* Fixed an AttributeError when `ValueMapping` was used for methods, when an
+  internal method attempted to access the 'type' attribute of the CIM object.
+  For methods, that attribute is called 'return_type'. Testcases for methods
+  and parameters have now been added.
 
 Cleanup
 ^^^^^^^
