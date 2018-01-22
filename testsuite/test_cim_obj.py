@@ -7758,6 +7758,7 @@ class Test_CIMProperty_tomof(object):
                 type='string',
             ),
             True, 12,
+            # pylint: disable=line-too-long
             u"""\
             P1 = { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04",
                "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09" };\n""" \
@@ -8875,11 +8876,12 @@ class Test_CIMQualifier_tomof(object):
                 type='string',
             ),
             12,
+            # pylint: disable=line-too-long
             u"""Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04", "abcdef05",
             "abcdef06", "abcdef07", "abcdef08", "abcdef09" }""" \
             if CHECK_0_12_0 else \
             u"""Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04",
-            "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09"}""",
+            "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09"}""",  # noqa: E501
             None, True
         ),
         (
@@ -11729,6 +11731,7 @@ class C1 {
                     ),
                 ],
             ),
+            # pylint: disable=line-too-long
             u"""\
 class C1 {
 
