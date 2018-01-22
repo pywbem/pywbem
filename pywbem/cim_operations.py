@@ -149,7 +149,7 @@ from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_SUPPORTED
 from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
-    NocaseDict, tocimxml, tocimobj
+    CIMParameter, NocaseDict, tocimxml, tocimobj
 from .cim_http import get_cimobject_header, wbem_request
 from .tupleparse import parse_cim
 from .tupletree import xml_to_tupletree_sax
@@ -1179,8 +1179,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Create parameter list
 
-        def paramtype(obj):
-            """Return a string to be used as the CIMTYPE for a parameter."""
+        def infer_type(obj):
+            """
+            Infer the CIM data type name of a parameter value.
+            """
             if isinstance(obj, CIMType):
                 return obj.cimtype
             elif isinstance(obj, bool):
@@ -1194,12 +1196,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             elif isinstance(obj, (CIMClass, CIMInstance)):
                 return 'string'
             elif isinstance(obj, list):
-                return paramtype(obj[0]) if obj else None
+                return infer_type(obj[0]) if obj else None
             raise TypeError('Unsupported parameter type "%s"' % type(obj))
 
         def paramvalue(obj):
-            """Return a cim_xml node to be used as the value for a
-            parameter."""
+            """
+            Return a cim_xml node to be used as the value for a parameter.
+            """
             if isinstance(obj, (datetime, timedelta)):
                 obj = CIMDateTime(obj)
             if isinstance(obj, (CIMType, bool, six.string_types)):
@@ -1218,28 +1221,32 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 return cim_xml.VALUE_ARRAY([paramvalue(x) for x in obj])
             raise TypeError('Unsupported parameter type "%s"' % type(obj))
 
-        def is_embedded(obj):
-            """Determine if an object requires an EmbeddedObject attribute"""
+        def infer_embedded_object(obj):
+            """
+            Infer the embedded_object value of a parameter value.
+            """
             if isinstance(obj, list) and obj:
-                return is_embedded(obj[0])
+                return infer_embedded_object(obj[0])
             elif isinstance(obj, CIMClass):
                 return 'object'
             elif isinstance(obj, CIMInstance):
                 return 'instance'
             return None
 
-        if Params is None:
-            Params = []
-        plist = [cim_xml.PARAMVALUE(x[0],
-                                    paramvalue(x[1]),
-                                    paramtype(x[1]),
-                                    embedded_object=is_embedded(x[1]))
-                 for x in Params]
-        plist += [cim_xml.PARAMVALUE(x[0],
-                                     paramvalue(x[1]),
-                                     paramtype(x[1]),
-                                     embedded_object=is_embedded(x[1]))
-                  for x in params.items()]
+        ptuples = []  # tuple (name, value, type, embedded_object)
+        if Params is not None:
+            for p in Params:
+                if isinstance(p, CIMParameter):
+                    ptuple = (p.name, p.value, p.type, p.embedded_object)
+                else:  # tuple of name, value
+                    ptuple = (p[0], p[1], infer_type(p[1]),
+                              infer_embedded_object(p[1]))
+                ptuples.append(ptuple)
+        for ptuple in params.items():
+            ptuples.append(ptuple)
+
+        plist = [cim_xml.PARAMVALUE(n, paramvalue(v), t, embedded_object=eo)
+                 for n, v, t, eo in ptuples]
 
         # Build XML request
 
@@ -7286,9 +7293,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Input parameters for the CIM method can be specified using the
         `Params` parameter, and using keyword parameters.
         The overall list of input parameters is formed from the list of
-        parameters specified in `Params` (preserving its order), followed by
-        the set of keyword parameters (in any order). There is no checking for
-        duplicate parameter names.
+        parameters specified in `Params` (preserving their order), followed by
+        the set of keyword parameters (not preserving their order). There is no
+        checking for duplicate parameter names.
 
         Parameters:
 
@@ -7315,26 +7322,26 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               attribute will be ignored. If this object does not specify
               a namespace, the default namespace of the connection is used.
 
-          Params (:term:`py:iterable` of tuples of name,value):
-            An iterable of input parameters for the CIM method.
+          Params (:term:`py:iterable`):
+            An iterable of input parameter values for the CIM method. Each item
+            in the iterable is a single parameter value and can be any of:
 
-            Each iterated item represents a single input parameter for the CIM
-            method and must be a ``tuple(name, value)``, with these tuple items:
+            * :class:`~pywbem.CIMParameter` representing a parameter value. The
+              `name`, `value`, `type` and `embedded_object` attributes of this
+              object are used.
 
-            * name (:term:`string`):
-              Parameter name (case independent)
-            * value (:term:`CIM data type`):
-              Parameter value
+            * tuple of name, value, with:
+
+                - name (:term:`string`): Parameter name (case independent)
+                - value (:term:`CIM data type`): Parameter value
 
         Keyword Arguments:
 
-          : Each keyword parameter represents a single input parameter for the
-            CIM method, with:
+          : Each keyword parameter is an additional input parameter value for
+            the CIM method, with:
 
-            * key (:term:`string`):
-              Parameter name (case independent)
-            * value (:term:`CIM data type`):
-              Parameter value
+            * key (:term:`string`): Parameter name (case independent)
+            * value (:term:`CIM data type`): Parameter value
 
         Returns:
 
@@ -7356,9 +7363,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
-        print('InvokeMethodClient mn %s, on %r, Params %s' % (MethodName,
-                                                              ObjectName,
-                                                              Params))
+
         exc = None
         result_tuple = None
 
