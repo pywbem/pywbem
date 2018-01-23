@@ -82,7 +82,8 @@ def _display(dest, text):
     Display to dest defined by text. This function appends the data
     in text to the file defined by dest or to stdout of dest is None
     """
-    # TODO make this unicode file for python 2
+    if six.PY2:
+        text = text.encode("utf-8")
     if not dest:
         print(text)
     else:
@@ -709,7 +710,7 @@ class FakedWBEMConnection(WBEMConnection):
         type of object (instance, class, qualifier declaration).
 
         """
-        # TODO: FUTUREConsider sorting to perserve order of compile/add.
+        # TODO: FUTURE Consider sorting to perserve order of compile/add.
 
         if namespace in objects_repo:
             if obj_type == 'Methods':
@@ -1213,7 +1214,7 @@ class FakedWBEMConnection(WBEMConnection):
             if iname == inst.path:
                 if rtn_inst is not None:
                     # TODO: Future Remove this test since we should be
-                    # insuring no dups on creation
+                    # insuring no dups on instance creation
                     raise CIMError(CIM_ERR_FAILED, 'Invalid Repository. '
                                    'Multiple instances with same path %s'
                                    % rtn_inst.path)
@@ -1331,7 +1332,8 @@ class FakedWBEMConnection(WBEMConnection):
     def _create_instance_path(class_, instance, namespace):
         """
         Given a class and corresponding instance, create the instance path
-        TODO. Future This code should exist in cim_obj or cim_operations.
+        TODO. Future This code should exist in cim_obj or cim_operations and
+              not just here.
         """
         kb = NocaseDict()
         assert class_.classname == instance.classname
@@ -1705,7 +1707,7 @@ class FakedWBEMConnection(WBEMConnection):
             else:
                 raise
 
-        # test all key properties in instance. This is our repository limit
+        # Test all key properties in instance. This is our repository limit
         # since the repository cannot add values for key properties. We do
         # no allow creating key properties from class defaults.
         # TODO Discussion. Should we allow key properties from class, in
@@ -2318,7 +2320,7 @@ class FakedWBEMConnection(WBEMConnection):
         rtn_instpaths = []
         role = role.lower() if role else role
         result_role = result_role.lower() if result_role else result_role
-        # TODO the above and all similar do not need the else component.
+
         ref_paths = self._get_reference_instnames(inst_name, namespace,
                                                   assoc_class, role)
         # Get associated instance names
