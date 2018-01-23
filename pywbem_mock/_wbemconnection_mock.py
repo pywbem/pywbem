@@ -91,8 +91,8 @@ def _display(dest, text):
         f.close()
 
 
-def method_callback_interface(conn, objectname, methodname, params):
-    # pylint: disable=unused-argument
+def method_callback_interface(conn, objectname, methodname, Params, **params):
+    # pylint: disable=unused-argument, invalid-name
     """
     **Experimental:** *New in pywbem 0.12 as experimental.*
 
@@ -137,7 +137,7 @@ def method_callback_interface(conn, objectname, methodname, params):
         a single callback function to be used as the responder
         for multiple methods.
 
-      params (:term:`py:iterable` of tuples of name,value):
+      Params (:term:`py:iterable` of tuples of name,value):
         Input parameters from the InvokeMethod Params input.
 
         An iterable of input parameters for the CIM method.
@@ -150,6 +150,16 @@ def method_callback_interface(conn, objectname, methodname, params):
           Parameter name (case independent)
         * value (:term:`CIM data type`):
           Parameter value
+
+        Keyword Arguments:
+
+          : Each keyword parameter represents a single input parameter for the
+            CIM method, with:
+
+            * key (:term:`string`):
+              Parameter name (case independent)
+            * value (:term:`CIM data type`):
+              Parameter value
 
     Returns:
 
@@ -601,16 +611,15 @@ class FakedWBEMConnection(WBEMConnection):
         if namespace is None:
             namespace = self.default_namespace
 
-        if not self.methods:
+        if namespace not in self.methods:
             self.methods[namespace] = NocaseDict()
+
+        if classname not in self.methods[namespace]:
             self.methods[namespace][classname] = NocaseDict()
 
-        # Test if dictionary entry already exists. If not, create it
-        try:
-            self.methods[namespace][classname][methodname] = method_callback
-        except KeyError:
-            mth = NocaseDict(NocaseDict({methodname: method_callback}))
-            self.methods[namespace][classname] = NocaseDict({methodname: mth})
+        if methodname in self.methods[namespace][classname]:
+            raise ValueError("Duplicate method specification")
+        self.methods[namespace][classname][methodname] = method_callback
 
     def display_repository(self, namespaces=None, dest=None, summary=False,
                            output_format='mof'):
@@ -738,6 +747,7 @@ class FakedWBEMConnection(WBEMConnection):
             elif obj_type == 'Methods':
                 try:
                     methods = objects_repo[namespace]
+
                 except KeyError:
                     return
 
@@ -869,11 +879,10 @@ class FakedWBEMConnection(WBEMConnection):
                           'response_params_rqd=%s\nparams=%s',
                           methodname, localobject, Params, params)
 
-        result = self._fake_invokemethod(methodname,
-                                         localobject,
-                                         Params=Params,
+        result = self._fake_invokemethod(methodname, localobject, Params,
                                          **params)
-        # sleep for defined number of seconds
+
+        # Sleep for defined number of seconds
         if self._response_delay:
             time.sleep(self._response_delay)
 
@@ -2803,8 +2812,7 @@ class FakedWBEMConnection(WBEMConnection):
     #
     #####################################################################
 
-    def _fake_invokemethod(self, methodname, objectname, Params=None,
-                           **params):
+    def _fake_invokemethod(self, methodname, objectname, Params, **params):
         # pylint: disable=invalid-name
         """
         Implements a mock WBEM server responder for
@@ -2861,7 +2869,7 @@ class FakedWBEMConnection(WBEMConnection):
         try:
             methods = methodsrepo[target_class]
         except KeyError:
-            raise CIMError(CIM_ERR_NOT_FOUND, 'Class %s for Method %s in'
+            raise CIMError(CIM_ERR_NOT_FOUND, 'Class %s for Method %s in '
                                               'namespace %s not '
                                               'registered in repo' %
                            (localobject.classname, methodname, namespace))
@@ -2880,9 +2888,10 @@ class FakedWBEMConnection(WBEMConnection):
 
         # Call the registered method and catch exceptions.
         try:
-            result = bound_method(self, methodname, localobject, params=Params)
+            result = bound_method(self, methodname, localobject, Params,
+                                  **params)
 
-            # TODO Test return: assert isinstance(result, (list, tuple))
+            assert isinstance(result, (list, tuple))
 
             # Map output params to NocaseDict to be compatible with return
             # from _methodcall
@@ -2903,5 +2912,5 @@ class FakedWBEMConnection(WBEMConnection):
             raise CIMError(CIM_ERR_FAILED, 'Exception failure of invoked '
                                            'method %s in namespace %s with '
                                            'input localobject %r, parameters '
-                                           '%s. Exception: %r\nTraceback\n%s' %
+                                           '%r. Exception: %r\nTraceback\n%s' %
                            (methodname, namespace, localobject, params, ex, tb))
