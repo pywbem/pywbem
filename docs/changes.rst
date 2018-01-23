@@ -234,6 +234,12 @@ Enhancements
   that CIM data type (e.g. `Uint8`). Previously, this was an internal
   function (Issue #993).
 
+* Extended `WBEMConnection.InvokeMethod()` to accept an iterable of
+  `CIMParameter` objects as input parameters, in addition to the currently
+  supported forms of input parameters. This allows specifying the
+  `embedded_object` attribute (instead of inferring it from the value).
+  (Issue #950).
+
 * Docs: Improved the descriptions of CIM objects and their attributes to
   describe how the attributes are used to determine object equality and
   the hash value of the object.
