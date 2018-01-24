@@ -77,12 +77,17 @@ OUTPUT_FORMATS = ['mof', 'xml', 'repr']
 # document our behavior in relation to the spec.
 
 
-def _display(dest, text):
+def _uprint(dest, text):
     """
     Display to dest defined by text. This function appends the data
     in text to the file defined by dest or to stdout of dest is None
     """
-    text = text.encode("utf-8", errors='replace')
+    # replace errors since there are issues with some windows versions.
+    if sys.version_info[0] == 2 and sys.version_info[1] == 6:
+        text = text.encode("utf-8")  # python 2.6 does not support errors=
+    else:
+        text = text.encode("utf-8", errors='replace')
+
     if not dest:
         print(text)
     else:
@@ -659,10 +664,10 @@ class FakedWBEMConnection(WBEMConnection):
             raise ValueError('Invalid output format definition %s. '
                              '%s are valid.' % (output_format, OUTPUT_FORMATS))
 
-        _display(dest, '%s========Mock Repo Display fmt=%s namespaces=%s '
-                       '=========%s\n' %
-                 (cmt_begin, output_format,
-                  ('all' if namespaces is None else namespaces), cmt_end))
+        _uprint(dest, '%s========Mock Repo Display fmt=%s namespaces=%s '
+                      '=========%s\n' %
+                (cmt_begin, output_format,
+                 ('all' if namespaces is None else namespaces), cmt_end))
 
         # get all namespaces
         repo_ns = []
@@ -684,7 +689,7 @@ class FakedWBEMConnection(WBEMConnection):
         repo_nss = sorted(repo_nss)
 
         for ns in repo_nss:
-            _display(dest, '\n%sNAMESPACE %s%s\n' % (cmt_begin, ns, cmt_end))
+            _uprint(dest, '\n%sNAMESPACE %s%s\n' % (cmt_begin, ns, cmt_end))
             self._display_objects('Qualifier Declarations', self.qualifiers,
                                   ns, cmt_begin, cmt_end, dest=dest,
                                   summary=summary, output_format=output_format)
@@ -698,7 +703,7 @@ class FakedWBEMConnection(WBEMConnection):
                                   cmt_begin, cmt_end, dest=dest,
                                   summary=summary, output_format=output_format)
 
-        _display(dest, '============End Repository=================')
+        _uprint(dest, '============End Repository=================')
 
     @staticmethod
     def _display_objects(obj_type, objects_repo, namespace, cmt_begin, cmt_end,
@@ -713,14 +718,14 @@ class FakedWBEMConnection(WBEMConnection):
 
         if namespace in objects_repo:
             if obj_type == 'Methods':
-                _display(dest, '%sNamespace %s: contains %s %s:%s\n' %
-                         (cmt_begin, namespace,
-                          len(objects_repo[namespace]),
-                          obj_type, cmt_end))
+                _uprint(dest, '%sNamespace %s: contains %s %s:%s\n' %
+                        (cmt_begin, namespace,
+                         len(objects_repo[namespace]),
+                         obj_type, cmt_end))
             else:
-                _display(dest, '%sNamespace %s: contains %s class%s\n' %
-                         (cmt_begin, namespace,
-                          len(objects_repo[namespace]), cmt_end))
+                _uprint(dest, '%sNamespace %s: contains %s class%s\n' %
+                        (cmt_begin, namespace,
+                         len(objects_repo[namespace]), cmt_end))
             if summary:
                 return
             # instances are special because the inner struct is a list
@@ -733,16 +738,16 @@ class FakedWBEMConnection(WBEMConnection):
                 # TODO: Future sort insts by path order.
                 for inst in insts:
                     if output_format == 'xml':
-                        _display(dest, '%s Path=%s %s\n%s' %
-                                 (cmt_begin, inst.path.to_wbem_uri(), cmt_end,
-                                  _pretty_xml(inst.tocimxmlstr())))
+                        _uprint(dest, '%s Path=%s %s\n%s' %
+                                (cmt_begin, inst.path.to_wbem_uri(), cmt_end,
+                                 _pretty_xml(inst.tocimxmlstr())))
                     elif output_format == 'repr':
-                        _display(dest, 'Path:\n%r\nInst:\n%r\n' %
-                                 (inst.path, inst))
+                        _uprint(dest, 'Path:\n%r\nInst:\n%r\n' %
+                                (inst.path, inst))
                     else:
-                        _display(dest, '%s Path=%s %s\n%s' %
-                                 (cmt_begin, inst.path.to_wbem_uri(), cmt_end,
-                                  inst.tomof()))
+                        _uprint(dest, '%s Path=%s %s\n%s' %
+                                (cmt_begin, inst.path.to_wbem_uri(), cmt_end,
+                                 inst.tomof()))
 
             elif obj_type == 'Methods':
                 try:
@@ -753,10 +758,10 @@ class FakedWBEMConnection(WBEMConnection):
 
                 for cln in methods:
                     for method in methods[cln]:
-                        _display(dest, '%sClass: %s, method: %s, '
-                                       'callback: %s %s' %
-                                 (cmt_begin, cln, method,
-                                  methods[cln][method].__name__, cmt_end))
+                        _uprint(dest, '%sClass: %s, method: %s, '
+                                      'callback: %s %s' %
+                                (cmt_begin, cln, method,
+                                 methods[cln][method].__name__, cmt_end))
             else:
                 # Covers QualifierDeclarations and Classes
                 try:
@@ -766,11 +771,11 @@ class FakedWBEMConnection(WBEMConnection):
                 for key in sorted(objs):
                     obj = objs[key]
                     if output_format == 'xml':
-                        _display(dest, _pretty_xml(obj.tocimxmlstr()))
+                        _uprint(dest, _pretty_xml(obj.tocimxmlstr()))
                     elif output_format == 'repr':
-                        _display(dest, '%r' % obj)
+                        _uprint(dest, '%r' % obj)
                     else:
-                        _display(dest, obj.tomof())
+                        _uprint(dest, obj.tomof())
 
     def _get_inst_repo(self, namespace=None):
         """
