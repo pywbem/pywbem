@@ -51,6 +51,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: EnumerateClassNames2
   description: Enumerate class names from top without deepInheritance
   pywbem_request:
@@ -307,6 +308,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: EnumerateClassNamesF1
   description: EnumerateClassNames with invalid class name. Returns Exception
   pywbem_request:
@@ -362,5 +364,108 @@
       </MESSAGE>
       </CIM>'
 
+- name: EnumerateClassNamesNS1
+  description: EnumerateClassNames, with leading/trailing slashes in default namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: //root/mycim//
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: EnumerateClassNames
+      ClassName: PyWBEM_Person
+      namespace: null
+  pywbem_response:
+    result: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: EnumerateClassNames
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="EnumerateClassNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ClassName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateClassNames">
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
 
-
+- name: EnumerateClassNamesNS2
+  description: EnumerateClassNames, with leading/trailing slashes in operation namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: EnumerateClassNames
+      ClassName: PyWBEM_Person
+      namespace: //root/mycim//
+  pywbem_response:
+    result: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: EnumerateClassNames
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="EnumerateClassNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ClassName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateClassNames">
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'

@@ -1277,6 +1277,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: EnumerateQualifiersF1
   description: EnumerateQualifiers fails with bad namespace
   pywbem_request:
@@ -1321,6 +1322,130 @@
       <SIMPLERSP>
       <IMETHODRESPONSE NAME="EnumerateQualifiers">
       <ERROR CODE="3" DESCRIPTION="CIM_ERR_INVALID_NAMESPACE: xx"/>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: EnumerateQualifiersNS1
+  description: EnumerateQualifiers, with leading/trailing slashes in default namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: //root/mycim//
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: EnumerateQualifiers
+      namespace: null
+  pywbem_response:
+    result:
+    - pywbem_object: CIMQualifierDeclaration
+      name: Exception
+      type: boolean
+      value: false
+      scopes:
+        indication: true
+        class: true
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: EnumerateQualifiers
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="EnumerateQualifiers">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateQualifiers">
+      <IRETURNVALUE>
+      <QUALIFIER.DECLARATION NAME="Exception" TYPE="boolean">
+      <SCOPE INDICATION="true" CLASS="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: EnumerateQualifiersNS2
+  description: EnumerateQualifiers, with leading/trailing slashes in operation namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: EnumerateQualifiers
+      namespace: //root/mycim//
+  pywbem_response:
+    result:
+    - pywbem_object: CIMQualifierDeclaration
+      name: Exception
+      type: boolean
+      value: false
+      scopes:
+        indication: true
+        class: true
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: EnumerateQualifiers
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="EnumerateQualifiers">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateQualifiers">
+      <IRETURNVALUE>
+      <QUALIFIER.DECLARATION NAME="Exception" TYPE="boolean">
+      <SCOPE INDICATION="true" CLASS="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      </IRETURNVALUE>
       </IMETHODRESPONSE>
       </SIMPLERSP>
       </MESSAGE>

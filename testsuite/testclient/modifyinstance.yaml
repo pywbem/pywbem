@@ -1,5 +1,4 @@
--
-  name: ModifyInstance1
+- name: ModifyInstance1
   description: Simple modification of PyWBEM_Person Instance
   pywbem_request:
     url: http://acme.com:80
@@ -118,8 +117,7 @@
       </MESSAGE>
       </CIM>'
 
--
-  name: ModifyInstanceE1
+- name: ModifyInstanceE1
   description: Modify Instance, Access Denied
   pywbem_request:
     url: http://acme.com:80
@@ -241,3 +239,146 @@
               </MESSAGE>
             </CIM>
 
+- name: ModifyInstanceNS1
+  description: ModifyInstance, with leading/trailing slashes in default namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: //root/mycim//
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: ModifyInstance
+      ModifiedInstance:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Person
+        properties: []
+        path:
+          pywbem_object: CIMInstanceName
+          classname: PyWBEM_Person
+          namespace: null
+          keybindings:
+            CreationClassName: PyWBEM_Person
+            Name: Test
+  pywbem_response: {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: ModifyInstance
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="ModifyInstance">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ModifiedInstance">
+      <VALUE.NAMEDINSTANCE>
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">Test</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      <INSTANCE CLASSNAME="PyWBEM_Person">
+      </INSTANCE>
+      </VALUE.NAMEDINSTANCE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="ModifyInstance">
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: ModifyInstanceNS2
+  description: ModifyInstance, with leading/trailing slashes in object namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: ModifyInstance
+      ModifiedInstance:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Person
+        properties: []
+        path:
+          pywbem_object: CIMInstanceName
+          classname: PyWBEM_Person
+          namespace: //root/mycim//
+          keybindings:
+            CreationClassName: PyWBEM_Person
+            Name: Test
+  pywbem_response: {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: ModifyInstance
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="ModifyInstance">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ModifiedInstance">
+      <VALUE.NAMEDINSTANCE>
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">Test</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      <INSTANCE CLASSNAME="PyWBEM_Person">
+      </INSTANCE>
+      </VALUE.NAMEDINSTANCE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="ModifyInstance">
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'

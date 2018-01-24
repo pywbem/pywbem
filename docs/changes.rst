@@ -416,6 +416,12 @@ Bug fixes
   For methods, that attribute is called 'return_type'. Testcases for methods
   and parameters have now been added.
 
+* Fixed the issue that leading and trailing slash characters in namespace
+  names were preserved. This was leading to empty NAMESPACE.NAME elements,
+  which can be rejected by WBEM servers. Now, leading and trailing slash
+  characters on namespace names are stripped off in pywbem before sending
+  the request to the server. (Issue #255).
+
 Cleanup
 ^^^^^^^
 

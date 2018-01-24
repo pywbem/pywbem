@@ -54,6 +54,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: EnumerateClasses2
   description: EnumerateClasses starting at PyWBEM_Person and test stats
   pywbem_request:
@@ -182,6 +183,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: EnumerateClassesF1
   description: EnumerateClasses for classname that does not exist. Returns CIM_ERR_INVALID_CLASS
   pywbem_request:
@@ -240,4 +242,108 @@
       </MESSAGE>
       </CIM>'
 
+- name: EnumerateClassesNS1
+  description: EnumerateClasses, with leading/trailing slashes in default namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: //root/mycim//
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: EnumerateClasses
+      namespace: null
+      ClassName: PyWBEM_Person
+  pywbem_response:
+    result: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: EnumerateClasses
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="EnumerateClasses">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ClassName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateClasses">
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
 
+- name: EnumerateClassesNS2
+  description: EnumerateClasses, with leading/trailing slashes in operation namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: EnumerateClasses
+      namespace: //root/mycim//
+      ClassName: PyWBEM_Person
+  pywbem_response:
+    result: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: EnumerateClasses
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="EnumerateClasses">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ClassName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateClasses">
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'

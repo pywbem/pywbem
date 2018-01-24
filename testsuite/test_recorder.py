@@ -667,14 +667,26 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         conn.conn_id = '%s-%s' % (22, "1234:34")
         self.test_recorder.stage_wbem_connection(conn)
 
-        lc.check(
-            ("pywbem.ops", "DEBUG",
-             "Connection:22-1234:34 WBEMConnection(url='http://blah', "
-             "creds=None, conn_id=22-1234:34, "
-             "default_namespace='root/cimv2', x509=None, verify_callback=None, "
-             'ca_certs=None, no_verification=False, timeout=None, '
-             'use_pull_operations=False, stats=False, '
-             'recorders=[])'),)
+        # pywbem 2 and 3 differ in only the use of unicode for certain
+        # string properties. (ex. classname)
+        if six.PY2:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Connection:22-1234:34 WBEMConnection(url='http://blah', "
+                 "creds=None, conn_id=22-1234:34, "
+                 "default_namespace=u'root/cimv2', x509=None, "
+                 "verify_callback=None, ca_certs=None, no_verification=False, "
+                 "timeout=None, use_pull_operations=False, stats=False, "
+                 "recorders=[])"),)
+        else:
+            lc.check(
+                ("pywbem.ops", "DEBUG",
+                 "Connection:22-1234:34 WBEMConnection(url='http://blah', "
+                 "creds=None, conn_id=22-1234:34, "
+                 "default_namespace='root/cimv2', x509=None, "
+                 "verify_callback=None, ca_certs=None, no_verification=False, "
+                 "timeout=None, use_pull_operations=False, stats=False, "
+                 "recorders=[])"),)
 
     @log_capture()
     def test_create_connection2(self, lc):
@@ -692,15 +704,28 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         conn.conn_id = '%s-%s' % (23, "1234:34")
         self.test_recorder.stage_wbem_connection(conn)
 
-        lc.check((
-            "pywbem.ops", "DEBUG",
-            "Connection:23-1234:34 WBEMConnection(url='http://blah', "
-            "creds=('username', ...), conn_id=23-1234:34, "
-            "default_namespace='root/blah', "
-            "x509='cert_file': 'Certfile.x', 'key_file': 'keyfile.x', "
-            "verify_callback=None, ca_certs=None, no_verification=True, "
-            "timeout=10, use_pull_operations=True, stats=True, "
-            "recorders=[])"),)
+        # pywbem 2 and 3 differ in only the use of unicode for certain
+        # string properties. (ex. classname)
+        if six.PY2:
+            lc.check((
+                "pywbem.ops", "DEBUG",
+                "Connection:23-1234:34 WBEMConnection(url='http://blah', "
+                "creds=('username', ...), conn_id=23-1234:34, "
+                "default_namespace=u'root/blah', "
+                "x509='cert_file': 'Certfile.x', 'key_file': 'keyfile.x', "
+                "verify_callback=None, ca_certs=None, no_verification=True, "
+                "timeout=10, use_pull_operations=True, stats=True, "
+                "recorders=[])"),)
+        else:
+            lc.check((
+                "pywbem.ops", "DEBUG",
+                "Connection:23-1234:34 WBEMConnection(url='http://blah', "
+                "creds=('username', ...), conn_id=23-1234:34, "
+                "default_namespace='root/blah', "
+                "x509='cert_file': 'Certfile.x', 'key_file': 'keyfile.x', "
+                "verify_callback=None, ca_certs=None, no_verification=True, "
+                "timeout=10, use_pull_operations=True, stats=True, "
+                "recorders=[])"),)
 
     @log_capture()
     def test_stage_result_exception(self, lc):

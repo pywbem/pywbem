@@ -43,9 +43,25 @@ class TestCreateConnection(object):
                               enable_stats=True)
         assert conn.url == 'http://localhost'
         assert conn.creds == creds
+        assert conn.default_namespace == 'root/blah'
         assert conn.x509 == x509
         assert conn.stats_enabled is True
         assert conn.use_pull_operations is True
+
+    def test_namespace_slashes_init(self):  # pylint: disable=no-self-use
+        """Test stripping of leading and trailing slashes in default namespace
+        of wbem connection when initializing"""
+        conn = WBEMConnection('http://localhost', None,
+                              default_namespace='//root/blah//')
+        assert conn.default_namespace == 'root/blah'
+
+    def test_namespace_slashes_set(self):  # pylint: disable=no-self-use
+        """Test stripping of leading and trailing slashes in default namespace
+        of wbem connection when setting the attribute"""
+        conn = WBEMConnection('http://localhost', None,
+                              default_namespace=None)
+        conn.default_namespace = '//root/blah//'
+        assert conn.default_namespace == 'root/blah'
 
     def test_add_operation_recorder(self):  # pylint: disable=no-self-use
         """Test addition of an operation recorder"""

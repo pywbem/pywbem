@@ -1662,6 +1662,7 @@ class CIMInstanceName(_CIMComparisonMixin):
             same-named attribute in the ``CIMInstanceName`` object will also be
             `None`.
 
+            Leading and trailing slash characters will be stripped.
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
@@ -1790,6 +1791,11 @@ class CIMInstanceName(_CIMComparisonMixin):
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
         self._namespace = _ensure_unicode(namespace)
+        if self._namespace is not None:
+            # In Python 3, a byte string cannot be stripped by a unicode char
+            # Therefore, the stripping needs to be done after the unicode
+            # conversion.
+            self._namespace = self._namespace.strip('/')
 
     @property
     def host(self):
@@ -3206,6 +3212,7 @@ class CIMClassName(_CIMComparisonMixin):
             same-named attribute in the ``CIMClassName`` object will also be
             `None`.
 
+            Leading and trailing slash characters will be stripped.
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
@@ -3266,6 +3273,11 @@ class CIMClassName(_CIMComparisonMixin):
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
         self._namespace = _ensure_unicode(namespace)
+        if self._namespace is not None:
+            # In Python 3, a byte string cannot be stripped by a unicode char
+            # Therefore, the stripping needs to be done after the unicode
+            # conversion.
+            self._namespace = self._namespace.strip('/')
 
     @property
     def host(self):

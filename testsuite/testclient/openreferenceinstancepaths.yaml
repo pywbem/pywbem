@@ -28,7 +28,7 @@
     pullresult:
         context:
             - '500060'
-            - root/cimv2            
+            - root/cimv2
         eos: false
         paths:
           - pywbem_object: CIMInstanceName
@@ -134,6 +134,7 @@
             </SIMPLERSP>
           </MESSAGE>
         </CIM>
+
 - name: OpenReferenceInstancePaths2
   description: OpenReferencePaths request with no optional input params that returns instances, eos=true, null context
   pywbem_request:
@@ -268,6 +269,7 @@
             </SIMPLERSP>
           </MESSAGE>
         </CIM>
+
 - name: OpenReferenceInstancePaths3
   description: OpenReferencePaths request with no optional input params that returns instances, eos=true, no context
   pywbem_request:
@@ -399,6 +401,7 @@
             </SIMPLERSP>
           </MESSAGE>
         </CIM>
+
 - name: OpenReferenceInstancePathsE1
   description: OpenReferencePaths request fails bad namespace
   pywbem_request:
@@ -475,4 +478,269 @@
                 </SIMPLERSP>
               </MESSAGE>
             </CIM>
-            
+
+- name: OpenReferenceInstancePathsNS1
+  description: OpenReferenceInstancePaths, with leading/trailing slashes in default namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: //root/mycim//
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: OpenReferenceInstancePaths
+      ResultClass: null
+      Role: null
+      MaxObjectCount: 100
+      InstanceName:
+        pywbem_object: CIMInstanceName
+        classname: PyWBEM_Person
+        namespace: null
+        keybindings:
+          CreationClassName: PyWBEM_Person
+          Name: Alice
+  pywbem_response:
+    pullresult:
+        context:
+            - '500060'
+            - root/mycim
+        eos: false
+        paths:
+          - pywbem_object: CIMInstanceName
+            classname: PyWBEM_MemberOfPersonCollection
+            namespace: root/mycim
+            host: sheldon
+            keybindings:
+              member:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                  CreationClassName: PyWBEM_Person
+                  Name: Alice
+              collection:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_PersonCollection
+                keybindings:
+                  instanceid: PersonCollection
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: OpenReferenceInstancePaths
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="OpenReferenceInstancePaths">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>100</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="InstanceName">
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: >
+        <?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+          <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+            <SIMPLERSP>
+              <IMETHODRESPONSE NAME="OpenReferenceInstancePaths">
+                <IRETURNVALUE>
+                  <INSTANCEPATH>
+                    <NAMESPACEPATH>
+                      <HOST>sheldon</HOST>
+                      <LOCALNAMESPACEPATH>
+                        <NAMESPACE NAME="root"/>
+                        <NAMESPACE NAME="mycim"/>
+                      </LOCALNAMESPACEPATH>
+                    </NAMESPACEPATH>
+                    <INSTANCENAME CLASSNAME="PyWBEM_MemberOfPersonCollection">
+                      <KEYBINDING NAME="Collection">
+                        <VALUE.REFERENCE>
+                          <INSTANCENAME CLASSNAME="PyWBEM_PersonCollection">
+                            <KEYBINDING NAME="InstanceID">
+                              <KEYVALUE VALUETYPE="string">PersonCollection</KEYVALUE>
+                            </KEYBINDING>
+                          </INSTANCENAME>
+                        </VALUE.REFERENCE>
+                      </KEYBINDING>
+                      <KEYBINDING NAME="Member">
+                        <VALUE.REFERENCE>
+                          <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                            <KEYBINDING NAME="CreationClassName">
+                              <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                            </KEYBINDING>
+                            <KEYBINDING NAME="Name">
+                              <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+                            </KEYBINDING>
+                          </INSTANCENAME>
+                        </VALUE.REFERENCE>
+                      </KEYBINDING>
+                    </INSTANCENAME>
+                  </INSTANCEPATH>
+                </IRETURNVALUE>
+                <PARAMVALUE NAME="EndOfSequence">
+                  <VALUE>FALSE</VALUE>
+                </PARAMVALUE>
+                <PARAMVALUE NAME="EnumerationContext">
+                  <VALUE>500060</VALUE>
+                </PARAMVALUE>
+              </IMETHODRESPONSE>
+            </SIMPLERSP>
+          </MESSAGE>
+        </CIM>
+
+- name: OpenReferenceInstancePathsNS2
+  description: OpenReferenceInstancePaths, with leading/trailing slashes in object namespace
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: OpenReferenceInstancePaths
+      ResultClass: null
+      Role: null
+      MaxObjectCount: 100
+      InstanceName:
+        pywbem_object: CIMInstanceName
+        classname: PyWBEM_Person
+        namespace: //root/mycim//
+        keybindings:
+          CreationClassName: PyWBEM_Person
+          Name: Alice
+  pywbem_response:
+    pullresult:
+        context:
+            - '500060'
+            - root/mycim
+        eos: false
+        paths:
+          - pywbem_object: CIMInstanceName
+            classname: PyWBEM_MemberOfPersonCollection
+            namespace: root/mycim
+            host: sheldon
+            keybindings:
+              member:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                  CreationClassName: PyWBEM_Person
+                  Name: Alice
+              collection:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_PersonCollection
+                keybindings:
+                  instanceid: PersonCollection
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: OpenReferenceInstancePaths
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="OpenReferenceInstancePaths">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>100</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="InstanceName">
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: >
+        <?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+          <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+            <SIMPLERSP>
+              <IMETHODRESPONSE NAME="OpenReferenceInstancePaths">
+                <IRETURNVALUE>
+                  <INSTANCEPATH>
+                    <NAMESPACEPATH>
+                      <HOST>sheldon</HOST>
+                      <LOCALNAMESPACEPATH>
+                        <NAMESPACE NAME="root"/>
+                        <NAMESPACE NAME="mycim"/>
+                      </LOCALNAMESPACEPATH>
+                    </NAMESPACEPATH>
+                    <INSTANCENAME CLASSNAME="PyWBEM_MemberOfPersonCollection">
+                      <KEYBINDING NAME="Collection">
+                        <VALUE.REFERENCE>
+                          <INSTANCENAME CLASSNAME="PyWBEM_PersonCollection">
+                            <KEYBINDING NAME="InstanceID">
+                              <KEYVALUE VALUETYPE="string">PersonCollection</KEYVALUE>
+                            </KEYBINDING>
+                          </INSTANCENAME>
+                        </VALUE.REFERENCE>
+                      </KEYBINDING>
+                      <KEYBINDING NAME="Member">
+                        <VALUE.REFERENCE>
+                          <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                            <KEYBINDING NAME="CreationClassName">
+                              <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                            </KEYBINDING>
+                            <KEYBINDING NAME="Name">
+                              <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+                            </KEYBINDING>
+                          </INSTANCENAME>
+                        </VALUE.REFERENCE>
+                      </KEYBINDING>
+                    </INSTANCENAME>
+                  </INSTANCEPATH>
+                </IRETURNVALUE>
+                <PARAMVALUE NAME="EndOfSequence">
+                  <VALUE>FALSE</VALUE>
+                </PARAMVALUE>
+                <PARAMVALUE NAME="EnumerationContext">
+                  <VALUE>500060</VALUE>
+                </PARAMVALUE>
+              </IMETHODRESPONSE>
+            </SIMPLERSP>
+          </MESSAGE>
+        </CIM>
