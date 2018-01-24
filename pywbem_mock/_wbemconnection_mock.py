@@ -82,8 +82,7 @@ def _display(dest, text):
     Display to dest defined by text. This function appends the data
     in text to the file defined by dest or to stdout of dest is None
     """
-    if six.PY2:
-        text = text.encode("utf-8")
+    text = text.encode("utf-8", errors='replace')
     if not dest:
         print(text)
     else:
