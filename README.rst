@@ -244,5 +244,5 @@ License
 
 Pywbem is provided under the
 `GNU Lesser General Public License (LGPL) version 2.1
-<https://raw.githubusercontent.com/pywbem/pywbem/master/pywbem/LICENSE.txt>`_,
+<https://raw.githubusercontent.com/pywbem/pywbem/master/LICENSE.txt>`_,
 or (at your option) any later version.

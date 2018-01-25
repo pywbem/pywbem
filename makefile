@@ -167,7 +167,7 @@ test_tmp_file := test_$(python_mn_version).tmp.log
 # This is used for 'include' statements in MANIFEST.in. The wildcards are used
 # as specified, without being expanded.
 dist_manifest_in_files := \
-    $(package_name)/LICENSE.txt \
+    LICENSE.txt \
     README.rst \
     INSTALL.md \
     *.py \
@@ -177,7 +177,7 @@ dist_manifest_in_files := \
 # Files that are dependents of the distribution archive.
 # Keep in sync with dist_manifest_in_files.
 dist_dependent_files := \
-    $(package_name)/LICENSE.txt \
+    LICENSE.txt \
     README.rst \
     INSTALL.md \
     $(wildcard *.py) \
@@ -255,6 +255,7 @@ ifeq ($(PYTHON_ARCH),64)
 endif
 	$(PIP_CMD) install $(pip_level_opts) -e .
 	$(PYTHON_CMD) -c "import $(package_name); print('ok, version=%r'%$(package_name).__version__)"
+	$(PYTHON_CMD) -c "import $(mock_package_name); print('ok')"
 	@echo "makefile: Done installing Python installation and runtime requirements"
 	@echo "makefile: Target $@ done."
 
