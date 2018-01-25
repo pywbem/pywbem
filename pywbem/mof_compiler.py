@@ -1505,7 +1505,7 @@ def p_qualifierType_2(p):
 def p_scope(p):
     """scope : ',' SCOPE '(' metaElementList ')'"""
     slist = p[4]
-    scopes = {}
+    scopes = OrderedDict()
     for i in ('CLASS',
               'ASSOCIATION',
               'INDICATION',
@@ -1579,7 +1579,7 @@ def p_instanceDeclaration(p):
                            """  # noqa: E501
     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     alias = None
-    quals = {}
+    quals = OrderedDict()
     ns = p.parser.handle.default_namespace
     if isinstance(p[1], six.string_types):  # no qualifiers
         cname = p[3]
