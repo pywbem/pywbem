@@ -80,6 +80,10 @@ representation of CIM in XML by having the following properties:
 
 from __future__ import absolute_import
 import six
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
@@ -937,7 +941,8 @@ def parse_scope(tup_tree):
     check_node(tup_tree, 'SCOPE', [],
                ['CLASS', 'ASSOCIATION', 'REFERENCE', 'PROPERTY', 'METHOD',
                 'PARAMETER', 'INDICATION'], [])
-    return dict([(k, v.lower() == 'true') for k, v in attrs(tup_tree).items()])
+    return OrderedDict([(k, v.lower() == 'true')
+                        for k, v in attrs(tup_tree).items()])
 
 
 def parse_qualifier_declaration(tup_tree):

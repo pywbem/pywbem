@@ -42,6 +42,10 @@ if six.PY2:
     from M2Crypto.Err import SSLError
 else:
     from ssl import SSLError
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 # Directory with the JSON test case files, relative to this script:
 TESTCASE_DIR = os.path.join(os.path.dirname(__file__), "testclient")
@@ -132,14 +136,14 @@ def obj(value, tc_name):
                                       "Unknown type specified in "
                                       "'pywbem_object' attribute: %s" %
                                       (tc_name, ctor_name))
-            ctor_args = {}
+            ctor_args = OrderedDict()
             for arg_name in value:
                 if arg_name == "pywbem_object":
                     continue
                 ctor_args[arg_name] = obj(value[arg_name], tc_name)
             obj_ = ctor_call(**ctor_args)
         else:
-            obj_ = {}
+            obj_ = OrderedDict()
             for key in value:
                 obj_[key] = obj(value[key], tc_name)
     elif isinstance(value, list):
@@ -596,7 +600,7 @@ class ClientTest(unittest.TestCase):
         #  }
 
         op_name = tc_getattr(tc_name, op, "pywbem_method")
-        op_args = {}
+        op_args = OrderedDict()
         for arg_name in op:
             if arg_name == "pywbem_method":
                 continue

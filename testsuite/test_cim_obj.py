@@ -11151,12 +11151,12 @@ testcases_CIMClass_hash = [
     (
         "Matching properties, names with same lexical case",
         dict(
-            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
-                p1=CIMProperty('p1', value='v1'),
-            )),
-            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
-                p1=CIMProperty('p1', value='v1'),
-            )),
+            obj1=CIMClass('CIM_Foo', properties=[
+                CIMProperty('p1', value='v1'),
+            ]),
+            obj2=CIMClass('CIM_Foo', properties=[
+                CIMProperty('p1', value='v1'),
+            ]),
             exp_hash_equal=True,
         ),
         None, None, True
@@ -11164,12 +11164,12 @@ testcases_CIMClass_hash = [
     (
         "Matching properties, names with different lexical case",
         dict(
-            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
-                p1=CIMProperty('p1', value='v1'),
-            )),
-            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
-                P1=CIMProperty('P1', value='v1'),
-            )),
+            obj1=CIMClass('CIM_Foo', properties=[
+                CIMProperty('p1', value='v1'),
+            ]),
+            obj2=CIMClass('CIM_Foo', properties=[
+                CIMProperty('P1', value='v1'),
+            ]),
             exp_hash_equal=True,
         ),
         None, None, True
@@ -11177,13 +11177,13 @@ testcases_CIMClass_hash = [
     (
         "Non-matching properties, one property more",
         dict(
-            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
-                p1=CIMProperty('p1', value='v1'),
-            )),
-            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
-                p1=CIMProperty('p1', value='v1'),
-                p2=CIMProperty('p2', value='v2'),
-            )),
+            obj1=CIMClass('CIM_Foo', properties=[
+                CIMProperty('p1', value='v1'),
+            ]),
+            obj2=CIMClass('CIM_Foo', properties=[
+                CIMProperty('p1', value='v1'),
+                CIMProperty('p2', value='v2'),
+            ]),
             exp_hash_equal=False,
         ),
         None, None, True
@@ -11191,13 +11191,13 @@ testcases_CIMClass_hash = [
     (
         "Non-matching properties, one property less",
         dict(
-            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
-                p1=CIMProperty('p1', value='v1'),
-                p2=CIMProperty('p2', value='v2'),
-            )),
-            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
-                p1=CIMProperty('p1', value='v1'),
-            )),
+            obj1=CIMClass('CIM_Foo', properties=[
+                CIMProperty('p1', value='v1'),
+                CIMProperty('p2', value='v2'),
+            ]),
+            obj2=CIMClass('CIM_Foo', properties=[
+                CIMProperty('p1', value='v1'),
+            ]),
             exp_hash_equal=False,
         ),
         None, None, True
@@ -11205,12 +11205,12 @@ testcases_CIMClass_hash = [
     (
         "Non-matching properties, different properties",
         dict(
-            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
-                p2=CIMProperty('p2', value='v2'),
-            )),
-            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
-                p1=CIMProperty('p1', value='v1'),
-            )),
+            obj1=CIMClass('CIM_Foo', properties=[
+                CIMProperty('p2', value='v2'),
+            ]),
+            obj2=CIMClass('CIM_Foo', properties=[
+                CIMProperty('p1', value='v1'),
+            ]),
             exp_hash_equal=False,
         ),
         None, None, True
@@ -11218,12 +11218,12 @@ testcases_CIMClass_hash = [
     (
         "Matching properties, default values with different lexical case",
         dict(
-            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
-                p1=CIMProperty('p1', value='v1'),
-            )),
-            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
-                p1=CIMProperty('p1', value='V1'),
-            )),
+            obj1=CIMClass('CIM_Foo', properties=[
+                CIMProperty('p1', value='v1'),
+            ]),
+            obj2=CIMClass('CIM_Foo', properties=[
+                CIMProperty('p1', value='V1'),
+            ]),
             exp_hash_equal=False,
         ),
         None, None, True
@@ -11231,12 +11231,12 @@ testcases_CIMClass_hash = [
     (
         "Matching properties, with default values as unicode / string",
         dict(
-            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
-                p1=CIMProperty('p1', value='v1'),
-            )),
-            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
-                p1=CIMProperty('p1', value=u'v1'),
-            )),
+            obj1=CIMClass('CIM_Foo', properties=[
+                CIMProperty('p1', value='v1'),
+            ]),
+            obj2=CIMClass('CIM_Foo', properties=[
+                CIMProperty('p1', value=u'v1'),
+            ]),
             exp_hash_equal=True,
         ),
         None, None, True
@@ -11244,18 +11244,18 @@ testcases_CIMClass_hash = [
     (
         "Matching properties, equal with a number of types",
         dict(
-            obj1=CIMClass('CIM_Foo', properties=NocaseDict(
-                pstr=CIMProperty('pstr', value='v1'),
-                pboo=CIMProperty('pboo', value=False),
-                pui8=CIMProperty('pui8', value=Uint8(42)),
-                pref=CIMProperty('pref', value=CIMInstanceName('CIM_Bar')),
-            )),
-            obj2=CIMClass('CIM_Foo', properties=NocaseDict(
-                pstr=CIMProperty('pstr', value='v1'),
-                pboo=CIMProperty('pboo', value=False),
-                pui8=CIMProperty('pui8', value=Uint8(42)),
-                pref=CIMProperty('pref', value=CIMInstanceName('CIM_Bar')),
-            )),
+            obj1=CIMClass('CIM_Foo', properties=[
+                CIMProperty('pstr', value='v1'),
+                CIMProperty('pboo', value=False),
+                CIMProperty('pui8', value=Uint8(42)),
+                CIMProperty('pref', value=CIMInstanceName('CIM_Bar')),
+            ]),
+            obj2=CIMClass('CIM_Foo', properties=[
+                CIMProperty('pstr', value='v1'),
+                CIMProperty('pboo', value=False),
+                CIMProperty('pui8', value=Uint8(42)),
+                CIMProperty('pref', value=CIMInstanceName('CIM_Bar')),
+            ]),
             exp_hash_equal=True,
         ),
         None, None, True
@@ -11265,12 +11265,12 @@ testcases_CIMClass_hash = [
     (
         "Matching methods, names with same lexical case",
         dict(
-            obj1=CIMClass('CIM_Foo', methods=NocaseDict(
-                m1=CIMMethod('m1', return_type='string'),
-            )),
-            obj2=CIMClass('CIM_Foo', methods=NocaseDict(
-                m1=CIMMethod('m1', return_type='string'),
-            )),
+            obj1=CIMClass('CIM_Foo', methods=[
+                CIMMethod('m1', return_type='string'),
+            ]),
+            obj2=CIMClass('CIM_Foo', methods=[
+                CIMMethod('m1', return_type='string'),
+            ]),
             exp_hash_equal=True,
         ),
         None, None, True
@@ -11278,12 +11278,12 @@ testcases_CIMClass_hash = [
     (
         "Matching methods, names with different lexical case",
         dict(
-            obj1=CIMClass('CIM_Foo', methods=NocaseDict(
-                m1=CIMMethod('m1', return_type='string'),
-            )),
-            obj2=CIMClass('CIM_Foo', methods=NocaseDict(
-                M1=CIMMethod('M1', return_type='string'),
-            )),
+            obj1=CIMClass('CIM_Foo', methods=[
+                CIMMethod('m1', return_type='string'),
+            ]),
+            obj2=CIMClass('CIM_Foo', methods=[
+                CIMMethod('M1', return_type='string'),
+            ]),
             exp_hash_equal=True,
         ),
         None, None, True
@@ -11291,13 +11291,13 @@ testcases_CIMClass_hash = [
     (
         "Non-matching methods, one method more",
         dict(
-            obj1=CIMClass('CIM_Foo', methods=NocaseDict(
-                m1=CIMMethod('m1', return_type='string'),
-            )),
-            obj2=CIMClass('CIM_Foo', methods=NocaseDict(
-                m1=CIMMethod('m1', return_type='string'),
-                m2=CIMMethod('m2', return_type='string'),
-            )),
+            obj1=CIMClass('CIM_Foo', methods=[
+                CIMMethod('m1', return_type='string'),
+            ]),
+            obj2=CIMClass('CIM_Foo', methods=[
+                CIMMethod('m1', return_type='string'),
+                CIMMethod('m2', return_type='string'),
+            ]),
             exp_hash_equal=False,
         ),
         None, None, True
@@ -11305,13 +11305,13 @@ testcases_CIMClass_hash = [
     (
         "Non-matching methods, one method less",
         dict(
-            obj1=CIMClass('CIM_Foo', methods=NocaseDict(
-                m1=CIMMethod('m1', return_type='string'),
-                m2=CIMMethod('m2', return_type='string'),
-            )),
-            obj2=CIMClass('CIM_Foo', methods=NocaseDict(
-                m1=CIMMethod('m1', return_type='string'),
-            )),
+            obj1=CIMClass('CIM_Foo', methods=[
+                CIMMethod('m1', return_type='string'),
+                CIMMethod('m2', return_type='string'),
+            ]),
+            obj2=CIMClass('CIM_Foo', methods=[
+                CIMMethod('m1', return_type='string'),
+            ]),
             exp_hash_equal=False,
         ),
         None, None, True
@@ -11319,12 +11319,12 @@ testcases_CIMClass_hash = [
     (
         "Non-matching methods, different methods",
         dict(
-            obj1=CIMClass('CIM_Foo', methods=NocaseDict(
-                m1=CIMMethod('m1', return_type='string'),
-            )),
-            obj2=CIMClass('CIM_Foo', methods=NocaseDict(
-                m2=CIMMethod('m2', return_type='string'),
-            )),
+            obj1=CIMClass('CIM_Foo', methods=[
+                CIMMethod('m1', return_type='string'),
+            ]),
+            obj2=CIMClass('CIM_Foo', methods=[
+                CIMMethod('m2', return_type='string'),
+            ]),
             exp_hash_equal=False,
         ),
         None, None, True
@@ -11332,12 +11332,12 @@ testcases_CIMClass_hash = [
     (
         "Matching methods, different return types",
         dict(
-            obj1=CIMClass('CIM_Foo', methods=NocaseDict(
-                m1=CIMMethod('m1', return_type='string'),
-            )),
-            obj2=CIMClass('CIM_Foo', methods=NocaseDict(
-                m1=CIMMethod('m1', return_type='uint8'),
-            )),
+            obj1=CIMClass('CIM_Foo', methods=[
+                CIMMethod('m1', return_type='string'),
+            ]),
+            obj2=CIMClass('CIM_Foo', methods=[
+                CIMMethod('m1', return_type='uint8'),
+            ]),
             exp_hash_equal=False,
         ),
         None, None, True
@@ -12479,12 +12479,12 @@ testcases_CIMMethod_hash = [
     (
         "Matching parameters, names with same lexical case",
         dict(
-            obj1=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
-                p1=CIMParameter('p1', type='string'),
-            )),
-            obj2=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
-                p1=CIMParameter('p1', type='string'),
-            )),
+            obj1=CIMMethod('Meth1', return_type='uint8', parameters=[
+                CIMParameter('p1', type='string'),
+            ]),
+            obj2=CIMMethod('Meth1', return_type='uint8', parameters=[
+                CIMParameter('p1', type='string'),
+            ]),
             exp_hash_equal=True,
         ),
         None, None, True
@@ -12492,12 +12492,12 @@ testcases_CIMMethod_hash = [
     (
         "Matching parameters, names with different lexical case",
         dict(
-            obj1=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
-                p1=CIMParameter('p1', type='string'),
-            )),
-            obj2=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
-                P1=CIMParameter('P1', type='string'),
-            )),
+            obj1=CIMMethod('Meth1', return_type='uint8', parameters=[
+                CIMParameter('p1', type='string'),
+            ]),
+            obj2=CIMMethod('Meth1', return_type='uint8', parameters=[
+                CIMParameter('P1', type='string'),
+            ]),
             exp_hash_equal=True,
         ),
         None, None, True
@@ -12505,13 +12505,13 @@ testcases_CIMMethod_hash = [
     (
         "Non-matching parameters, one parameter more",
         dict(
-            obj1=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
-                p1=CIMParameter('p1', type='string'),
-            )),
-            obj2=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
-                p1=CIMParameter('p1', type='string'),
-                p2=CIMParameter('p2', type='string'),
-            )),
+            obj1=CIMMethod('Meth1', return_type='uint8', parameters=[
+                CIMParameter('p1', type='string'),
+            ]),
+            obj2=CIMMethod('Meth1', return_type='uint8', parameters=[
+                CIMParameter('p1', type='string'),
+                CIMParameter('p2', type='string'),
+            ]),
             exp_hash_equal=False,
         ),
         None, None, True
@@ -12519,13 +12519,13 @@ testcases_CIMMethod_hash = [
     (
         "Non-matching parameters, one parameter less",
         dict(
-            obj1=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
-                p1=CIMParameter('p1', type='string'),
-                p2=CIMParameter('p2', type='string'),
-            )),
-            obj2=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
-                p1=CIMParameter('p1', type='string'),
-            )),
+            obj1=CIMMethod('Meth1', return_type='uint8', parameters=[
+                CIMParameter('p1', type='string'),
+                CIMParameter('p2', type='string'),
+            ]),
+            obj2=CIMMethod('Meth1', return_type='uint8', parameters=[
+                CIMParameter('p1', type='string'),
+            ]),
             exp_hash_equal=False,
         ),
         None, None, True
@@ -12533,12 +12533,12 @@ testcases_CIMMethod_hash = [
     (
         "Non-matching parameters, different parameters",
         dict(
-            obj1=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
-                p2=CIMParameter('p2', type='string'),
-            )),
-            obj2=CIMMethod('Meth1', return_type='uint8', parameters=NocaseDict(
-                p1=CIMParameter('p1', type='string'),
-            )),
+            obj1=CIMMethod('Meth1', return_type='uint8', parameters=[
+                CIMParameter('p2', type='string'),
+            ]),
+            obj2=CIMMethod('Meth1', return_type='uint8', parameters=[
+                CIMParameter('p1', type='string'),
+            ]),
             exp_hash_equal=False,
         ),
         None, None, True
@@ -15651,14 +15651,14 @@ testcases_CIMQualifierDeclaration_hash = [
         "Matching scopes, names with same lexical case",
         dict(
             obj1=CIMQualifierDeclaration(
-                'Qual1', type='string', scopes=NocaseDict(
-                    CLASS=True,
-                )
+                'Qual1', type='string', scopes=[
+                    ('CLASS', True),
+                ]
             ),
             obj2=CIMQualifierDeclaration(
-                'Qual1', type='string', scopes=NocaseDict(
-                    CLASS=True,
-                )
+                'Qual1', type='string', scopes=[
+                    ('CLASS', True),
+                ]
             ),
             exp_hash_equal=True,
         ),
@@ -15668,14 +15668,14 @@ testcases_CIMQualifierDeclaration_hash = [
         "Matching scopes, names with different lexical case",
         dict(
             obj1=CIMQualifierDeclaration(
-                'Qual1', type='string', scopes=NocaseDict(
-                    CLASS=True,
-                )
+                'Qual1', type='string', scopes=[
+                    ('CLASS', True),
+                ]
             ),
             obj2=CIMQualifierDeclaration(
-                'Qual1', type='string', scopes=NocaseDict(
-                    claSS=True,
-                )
+                'Qual1', type='string', scopes=[
+                    ('claSS', True),
+                ]
             ),
             exp_hash_equal=True,
         ),
@@ -15685,15 +15685,15 @@ testcases_CIMQualifierDeclaration_hash = [
         "Non-matching scopes, one scope more",
         dict(
             obj1=CIMQualifierDeclaration(
-                'Qual1', type='string', scopes=NocaseDict(
-                    CLASS=True,
-                )
+                'Qual1', type='string', scopes=[
+                    ('CLASS', True),
+                ]
             ),
             obj2=CIMQualifierDeclaration(
-                'Qual1', type='string', scopes=NocaseDict(
-                    CLASS=True,
-                    ASSOCIAION=True,
-                )
+                'Qual1', type='string', scopes=[
+                    ('CLASS', True),
+                    ('ASSOCIAION', True),
+                ]
             ),
             exp_hash_equal=False,
         ),
@@ -15703,15 +15703,15 @@ testcases_CIMQualifierDeclaration_hash = [
         "Non-matching scopes, one scope less",
         dict(
             obj1=CIMQualifierDeclaration(
-                'Qual1', type='string', scopes=NocaseDict(
-                    CLASS=True,
-                    ASSOCIAION=True,
-                )
+                'Qual1', type='string', scopes=[
+                    ('CLASS', True),
+                    ('ASSOCIAION', True),
+                ]
             ),
             obj2=CIMQualifierDeclaration(
-                'Qual1', type='string', scopes=NocaseDict(
-                    CLASS=True,
-                )
+                'Qual1', type='string', scopes=[
+                    ('CLASS', True),
+                ]
             ),
             exp_hash_equal=False,
         ),
@@ -15721,14 +15721,14 @@ testcases_CIMQualifierDeclaration_hash = [
         "Non-matching scopes, different scopes",
         dict(
             obj1=CIMQualifierDeclaration(
-                'Qual1', type='string', scopes=NocaseDict(
-                    ASSOCIAION=True,
-                )
+                'Qual1', type='string', scopes=[
+                    ('ASSOCIAION', True),
+                ]
             ),
             obj2=CIMQualifierDeclaration(
-                'Qual1', type='string', scopes=NocaseDict(
-                    CLASS=True,
-                )
+                'Qual1', type='string', scopes=[
+                    ('CLASS', True),
+                ]
             ),
             exp_hash_equal=False,
         ),

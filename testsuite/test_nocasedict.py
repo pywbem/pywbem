@@ -65,13 +65,17 @@ class TestInit(unittest.TestCase):
 
         # Initialise from dictionary
 
-        dic = NocaseDict({'Dog': 'Cat', 'Budgie': 'Fish'})
+        with pytest.warns(UserWarning) as rec_warnings:
+            dic = NocaseDict({'Dog': 'Cat', 'Budgie': 'Fish'})
+        assert len(rec_warnings) == 1
         self.assertTrue(len(dic) == 2)
         self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
 
         # Initialise from kwargs
 
-        dic = NocaseDict(Dog='Cat', Budgie='Fish')
+        with pytest.warns(UserWarning) as rec_warnings:
+            dic = NocaseDict(Dog='Cat', Budgie='Fish')
+        assert len(rec_warnings) == 1
         self.assertTrue(len(dic) == 2)
         self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
 
