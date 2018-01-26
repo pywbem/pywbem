@@ -38,43 +38,42 @@ representation of CIM in XML by having the following properties:
 
 '''
 
-# Implementation: This works by a recursive descent down the CIM XML
-# tupletree.  As we walk down, we produce cim_obj and cim_type
-# objects representing the CIM message in digested form.
-
+# Implementation:
+#
+# This works by a recursive descent down the CIM XML tupletree.  As we walk
+# down, we produce cim_obj and cim_type objects representing the CIM message
+# in digested form.
+#
 # For each XML node type FOO there is one function parse_foo, which
 # returns the digested form by examining a tuple tree rooted at FOO.
-
+#
 # The resulting objects are constrained to the shape of the CIM XML
 # tree: if one node in XML contains another, then the corresponding
 # CIM object will contain the second.  However, there can be local
 # transformations at each node: some levels are ommitted, some are
 # transformed into lists or hashes.
-
+#
 # We try to validate that the tree is well-formed too.  The validation
 # is more strict than the DTD, but it is forgiving of implementation
 # quirks and bugs in Pegasus.
-
+#
 # Bear in mind in the parse functions that each tupletree tuple is
 # structured as
-
+#
 #   tup_tree[0]: name string             == name(tup_tree)
 #   tup_tree[1]: hash of attributes      == attrs(tup_tree)
 #   tup_tree[2]: sequence of children    == kids(tup_tree)
-
-# At the moment this layer is a little inconsistent: in some places it
-# returns tupletrees, and in others Python objects.  It may be better
-# to hide the tupletree/XML representation from higher level code.
-
-
-# TODO: Maybe take a DTD fragment like "(DECLGROUP |
-# DECLGROUP.WITHNAME | DECLGROUP.WITHPATH)*", parse that and check it
-# directly.
-
-# TODO: Syntax-check some attributes with defined formats, such as NAME
-
-# TODO: Implement qualifiers by making subclasses of CIM types with a
-# .qualifiers property.
+#
+# Note: This layer is inconsistent in what it returns: In some places it
+# returns tupletrees, and in others Python objects. This is likely staying that
+# way in the future.
+#
+# Note: Some attributes have defined values or formats, such as NAME of a CLASS
+# or EMBEDDEDOBJECT. This layer does not check the values or formats. CIM
+# names are not being checked on the client side at all (when receiving names
+# that is not worthwhile at all, and when sending names the server will
+# reject them if there is a problem). Enumerated values may be checked at
+# higher levels.
 
 # This module is meant to be safe for 'import *'.
 
@@ -759,7 +758,12 @@ def parse_instancename(tup_tree):
             raise ParseError('expected only one %s under %s' %
                              k0_name, name(tup_tree))
 
-        # FIXME: This is probably not the best representation of these forms...
+        # TODO: This is probably not the best representation of these forms...
+        # it may be we have a bug here, it is suspicious that the result of a
+        # parse...() function is used directly as a keybinding value. Also not
+        # clear why key name is not set. Need to extend the testclient test
+        # cases to make sure we go through all cases of INSTANCENAME parsing
+        # (e.g. GetInstance on association instance).
         val = parse_any(kid0)
         return CIMInstanceName(classname, {None: val})
     elif k0_name == 'KEYBINDING':
@@ -830,13 +834,14 @@ def parse_keyvalue(tup_tree):
     elif val_type == 'numeric':
 
         try:
-            # XXX: Use TYPE attribute to create named CIM type.
-            # if 'TYPE' in attrs(tup_tree):
-            #    return tocimobj(attrs(tup_tree)['TYPE'], p.strip())
 
-            # XXX: Would like to use long() here, but that tends to cause
-            # trouble when it's written back out as '2L'
+            # TODO: Use TYPE attribute to create CIM typed value, e.g.:
+            #   if 'TYPE' in attrs(tup_tree):
+            #      return cimvalue(p.strip(), attrs(tup_tree)['TYPE'])
+            # This also solves the issue that int in Py2 cannot represent the
+            # longer CIM numeric types.
             return int(pdta.strip())
+
         except ValueError:
             raise ParseError('invalid numeric %r under %s' %
                              (pdta, name(tup_tree)))
@@ -870,7 +875,6 @@ def parse_class(tup_tree):
 
     superclass = attrs(tup_tree).get('SUPERCLASS')
 
-    # TODO: Return these as maps, not lists
     properties = byname(list_of_matching(tup_tree,
                                          ['PROPERTY',
                                           'PROPERTY.REFERENCE',
@@ -904,13 +908,12 @@ def parse_instance(tup_tree):
                ['QUALIFIER', 'PROPERTY', 'PROPERTY.ARRAY',
                 'PROPERTY.REFERENCE'])
 
-    # XXX: This does not enforce ordering constraint
+    # Note: The check above does not enforce the ordering constraint in the DTD
+    # that QUALIFIER elements must appear before PROPERTY* elements.
 
-    # XXX: This does not enforce the constraint that there be only
-    # one PROPERTY or PROPERTY.ARRAY.
-
-    # TODO: Parse instance qualifiers
+    # TODO: Add support for qualifiers (on instances)
     qualifiers = {}
+
     props = list_of_matching(tup_tree, ['PROPERTY.REFERENCE', 'PROPERTY',
                                         'PROPERTY.ARRAY'])
 
@@ -1023,17 +1026,19 @@ def parse_qualifier(tup_tree):
     qual = CIMQualifier(attrl['NAME'], unpack_value(tup_tree),
                         type=attrl['TYPE'])
 
-    # TODO: Lift this out?
     for i in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE',
               'TRANSLATABLE', 'PROPAGATED']:
         rtn_val = attrl.get(i)
-        if rtn_val not in ['true', 'false', None]:
-            raise ParseError("invalid value %r for %s on %s" %
-                             (rtn_val, i, name(tup_tree)))
+
         if rtn_val == 'true':
             rtn_val = True
         elif rtn_val == 'false':
             rtn_val = False
+        elif rtn_val is None:
+            pass
+        else:
+            raise ParseError("Invalid value %r for %s on %s" %
+                             (rtn_val, i, name(tup_tree)))
 
         setattr(qual, i.lower(), rtn_val)
 
@@ -1055,9 +1060,6 @@ def parse_property(tup_tree):
             %Propagated;
             %EmbeddedObject;>
     """
-
-    # TODO: Parse this into NAME, VALUE, where the value contains
-    # magic fields for the qualifiers and the propagated flag.
 
     check_node(tup_tree, 'PROPERTY', ['TYPE', 'NAME'],
                ['NAME', 'CLASSORIGIN', 'PROPAGATED', 'EmbeddedObject',
@@ -1112,6 +1114,7 @@ def parse_property_array(tup_tree):
                ['REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED',
                 'ARRAYSIZE', 'EmbeddedObject', 'EMBEDDEDOBJECT'],
                ['QUALIFIER', 'VALUE.ARRAY'])
+    # TODO: Remove 'REFERENCECLASS' from attrs list, above.
 
     quals = {}
     for qual in list_of_matching(tup_tree, ['QUALIFIER']):
@@ -1136,8 +1139,8 @@ def parse_property_array(tup_tree):
                       qualifiers=quals,
                       is_array=True,
                       embedded_object=embedded_object)
+    # TODO: Add support and tests for arraysize and propagated
 
-    # TODO: qualifiers, other attributes
     return obj
 
 
@@ -1459,9 +1462,9 @@ def parse_paramvalue(tup_tree):
             %ParamType;  #IMPLIED
             %EmbeddedObject;>
     """
-    # TODO ks 6/16 Extended per DSP0201 v 1.4 to include CLASSNAME,
-    #  INSTANCENAME, CLASS, INSTANCE, VALUE.NAMEDINSTANCE but not sure
-    #  we have tests for all of these.
+    # TODO: 6/16 KS: Extended per DSP0201 v 1.4 to include CLASSNAME,
+    # INSTANCENAME, CLASS, INSTANCE, VALUE.NAMEDINSTANCE but not sure
+    # we have tests for all of these.
     # Version 2.1.1 of the DTD lacks the %ParamType attribute but it
     # is present in version 2.2.  Make it optional to be backwards
     # compatible.
@@ -1607,8 +1610,7 @@ def parse_imethodresponse(tup_tree):
     """
 
     check_node(tup_tree, 'IMETHODRESPONSE', ['NAME'], [])
-    # TODO ks 5/16this would be more effective if we had a function that
-    # did list-of-A or list-of-B
+
     return name(tup_tree), attrs(tup_tree), list_of_various(tup_tree,
                                                             ['ERROR',
                                                              'IRETURNVALUE',
@@ -1625,8 +1627,6 @@ def parse_error(tup_tree):
             CODE CDATA #REQUIRED
             DESCRIPTION CDATA #IMPLIED>
     """
-
-    # TODO: Return a CIMError object, not a tuple
 
     check_node(tup_tree, 'ERROR', ['CODE'], ['DESCRIPTION'])
 
@@ -1677,11 +1677,15 @@ def parse_ireturnvalue(tup_tree):
                                 VALUE.INSTANCEWITHPATH*)>
     """
 
-    check_node(tup_tree, 'IRETURNVALUE', [], [])
+    # Note: The check_node() below does not enforce any child elements from the
+    # DTD, and the processing further down does not enforce that VALUE.ARRAY
+    # and VALUE.REFERENCE may appear at most once.
+    # Checking that at this level is not reasonable because the better checks
+    # can be done in context of the intrinsic operation receiving its return
+    # value. The DTD is so broad simply because it needs to cover the possible
+    # return values of all intrinsic operations.
 
-    # XXX: doesn't prohibit the case of only one VALUE.ARRAY or
-    # VALUE.REFERENCE.  But why is that required?  Why can it return
-    # multiple VALUEs but not multiple VALUE.REFERENCEs?
+    check_node(tup_tree, 'IRETURNVALUE', [], [])
 
     values = list_of_same(tup_tree, ['CLASSNAME', 'INSTANCENAME',
                                      'VALUE', 'VALUE.OBJECTWITHPATH',
@@ -1693,8 +1697,7 @@ def parse_ireturnvalue(tup_tree):
                                      'VALUE.NAMEDINSTANCE',
                                      'VALUE.INSTANCEWITHPATH'])
 
-    # TODO: Call unpack_value if appropriate
-
+    # Note: The caller needs to unpack the value.
     return name(tup_tree), attrs(tup_tree), values
 
 
@@ -1791,7 +1794,12 @@ def unpack_value(tup_tree):
     Looks at the TYPE of the node to work out how to decode it.
     Handles nodes with no value (e.g. in CLASS.)
     """
-    # TODO: Handle VALUE.REFERENCE, VALUE.REFARRAY
+
+    # TODO: Handle VALUE.REFERENCE, VALUE.REFARRAY.
+    # Investigation is needed on this to do: Double check whether
+    # unpack_value() is called for VALUE.REFERENCE, VALUE.REFARRAY at all. Is
+    # this about an error or about simplification?  Also, make sure that
+    # testclient has test cases covering this.
 
     valtype = attrs(tup_tree)['TYPE']
 
