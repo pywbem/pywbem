@@ -35,6 +35,7 @@ import uuid
 import time
 import logging
 import sys
+import locale
 import traceback
 import re
 from xml.dom import minidom
@@ -77,23 +78,32 @@ OUTPUT_FORMATS = ['mof', 'xml', 'repr']
 # document our behavior in relation to the spec.
 
 
+STDOUT_ENCODING = getattr(sys.stdout, 'encoding', None)
+if not STDOUT_ENCODING:
+    STDOUT_ENCODING = locale.getpreferredencoding()
+if not STDOUT_ENCODING:
+    STDOUT_ENCODING = 'utf-8'
+
+
 def _uprint(dest, text):
     """
-    Display to dest defined by text. This function appends the data
-    in text to the file defined by dest or to stdout of dest is None
-    """
-    # replace errors since there are issues with some windows versions.
-    if sys.version_info[0] == 2 and sys.version_info[1] == 6:
-        text = text.encode("utf-8")  # python 2.6 does not support errors=
-    else:
-        text = text.encode("utf-8", errors='replace')
+    Write text to dest, adding a newline character.
 
+    Text must be a unicode string and must not be None.
+
+    If dest is a file path, the text is encoded to a UTF-8 Byte sequence and
+    is appended to the file (opening and closing the file).
+
+    If dest is None, the text is encoded to a codepage suitable for the current
+    stdout and is written to stdout.
+    """
     if not dest:
-        print(text)
+        btext = text.encode(STDOUT_ENCODING, 'replace')
+        print(btext)
     else:
+        btext = text.encode('utf-8')
         with open(dest, 'a') as f:
-            print(text, file=f)
-        f.close()
+            print(btext, file=f)
 
 
 def method_callback_interface(conn, objectname, methodname, Params, **params):
