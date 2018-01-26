@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2018 InovaDevelopment.com
 #
@@ -1030,6 +1031,46 @@ class TestRepoMethods(object):
 
         quals = conn.EnumerateQualifiers(namespace=ns)
         assert len(quals) == 8
+
+    def test_unicode(self, conn):
+        """
+        Test compile and display repository with unicode in mof string
+        """
+        ns = 'root/blah'
+
+        qmof = """
+        Qualifier Description : string = null,
+            Scope(any),
+            Flavor(EnableOverride, ToSubclass, Translatable);
+
+        Qualifier Key : boolean = false,
+            Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+        Qualifier Description : string = null,
+            Scope(any),
+            Flavor(EnableOverride, ToSubclass, Translatable);
+        """
+
+        cmof = u"""
+        class CIM_Foo {
+                [Key,
+                 Description ("Å \u0420\u043e\u0441\u0441\u0438\u044f"
+                              "\u00E0 voil\u00e0")]
+            string InstanceID;
+        };
+        """
+
+        conn.compile_mof_str(qmof, ns)
+        conn.compile_mof_str(cmof, ns)
+
+        with OutputCapture() as output:  # noqa: F841
+            conn.display_repository()
+        tst_file_name = 'test_wbemconnection_mock_repo_unicode.txt'
+        tst_file = os.path.join(SCRIPT_DIR, tst_file_name)
+
+        conn.display_repository(dest=tst_file)
+        assert os.path.isfile(tst_file)
+        os.remove(tst_file)
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
