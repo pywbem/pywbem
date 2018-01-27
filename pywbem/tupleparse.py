@@ -108,7 +108,9 @@ def pcdata(tup_tree):
     The tup_tree must not have non-character children."""
     for inst in tup_tree[2]:
         if not isinstance(inst, six.string_types):
-            raise ParseError('unexpected node %r under %r' % (inst, tup_tree))
+            raise ParseError("Element %r has unexpected child elements: %r"
+                             "(allowed is only text content)" %
+                             (name(tup_tree), inst))
     return ''.join(tup_tree[2])
 
 
@@ -147,8 +149,8 @@ def check_node(tup_tree, nodename, required_attrs=None, optional_attrs=None,
     """
 
     if name(tup_tree) != nodename:
-        raise ParseError('expected node type %s, not %s' %
-                         (nodename, name(tup_tree)))
+        raise ParseError("Unexpected element %r (expected element %r)" %
+                         (name(tup_tree), nodename))
 
     # Check we have all the required attributes, and no unexpected ones
     tt_attrs = {}
@@ -158,9 +160,9 @@ def check_node(tup_tree, nodename, required_attrs=None, optional_attrs=None,
     if required_attrs:
         for attr in required_attrs:
             if attr not in tt_attrs:
-                raise ParseError('expected %s attribute on %s node, but only '
-                                 'have %s' % (attr, name(tup_tree),
-                                              attrs(tup_tree).keys()))
+                raise ParseError("Element %r misses required attribute %r "
+                                 "(only has attributes %r)" %
+                                 (name(tup_tree), attr, attrs(tup_tree).keys()))
             del tt_attrs[attr]
 
     if optional_attrs:
@@ -168,23 +170,25 @@ def check_node(tup_tree, nodename, required_attrs=None, optional_attrs=None,
             if attr in tt_attrs:
                 del tt_attrs[attr]
 
-    if tt_attrs.keys():
-        raise ParseError('invalid extra attributes %s' % tt_attrs.keys())
+    for k in tt_attrs.keys():
+        raise ParseError("Element %r has invalid attribute %r " %
+                         (name(tup_tree), k))
 
     if allowed_children is not None:
         for child in kids(tup_tree):
             if name(child) not in allowed_children:
-                raise ParseError('unexpected node %s under %s; wanted %s'
-                                 % (name(child), name(tup_tree),
-                                    allowed_children))
+                raise ParseError("Element %r has invalid child element %r "
+                                 "(allowed are child elements %r)" %
+                                 (name(tup_tree), name(child),
+                                  allowed_children))
 
     if not allow_pcdata:
         for child in tup_tree[2]:
             if isinstance(child, six.string_types):
                 if child.lstrip(' \t\n') != '':
-                    raise ParseError('unexpected non-blank pcdata node %r '
-                                     'under %s' % (child,
-                                                   name(tup_tree)))
+                    raise ParseError("Element %r has unexpected non-blank "
+                                     "text content %r" %
+                                     (name(tup_tree), child))
 
 
 def one_child(tup_tree, acceptable):
@@ -195,19 +199,20 @@ def one_child(tup_tree, acceptable):
 
     k = kids(tup_tree)
 
-    if len(k) != 1:
-        raise ParseError('In element %s with attributes %s, expected just '
-                         'one child element %s, but got child elements %s' %
-                         (name(tup_tree), attrs(tup_tree), acceptable,
-                          [t[0] for t in k]))
+    if len(k) == 0:
+        raise ParseError("Element %r misses required child element %r" %
+                         (name(tup_tree), acceptable))
+    if len(k) > 1:
+        raise ParseError("Element %r has too many child elements %r "
+                         "(allowed is one child element %r)" %
+                         (name(tup_tree), [name(t) for t in k], acceptable))
 
     child = k[0]
 
     if name(child) not in acceptable:
-        raise ParseError('In element %s with attributes %s, expected one '
-                         'child element %s, but got child element %s' %
-                         (name(tup_tree), attrs(tup_tree), acceptable,
-                          name(child)))
+        raise ParseError("Element %s has invalid child element %r "
+                         "(allowed is one child element %r)" %
+                         (name(tup_tree), name(child), acceptable))
 
     return parse_any(child)
 
@@ -219,10 +224,9 @@ def optional_child(tup_tree, allowed):
     k = kids(tup_tree)
 
     if len(k) > 1:
-        raise ParseError('In element %s with attributes %s, expected zero or '
-                         'one child element %s, but got child elements %s' %
-                         (name(tup_tree), attrs(tup_tree), allowed,
-                          [t[0] for t in k]))
+        raise ParseError("Element %r has too many child elements %r "
+                         "(allowed is one optional child element %r)" %
+                         (name(tup_tree), [name(t) for t in k], allowed))
     elif len(k) == 1:
         return one_child(tup_tree, allowed)
     else:
@@ -239,11 +243,9 @@ def list_of_various(tup_tree, acceptable):
 
     for child in kids(tup_tree):
         if name(child) not in acceptable:
-            raise ParseError('In element %s with attributes %s, expected zero '
-                             'or more child elements %s, but got child element '
-                             ' %s' %
-                             (name(tup_tree), attrs(tup_tree), acceptable,
-                              name(child)))
+            raise ParseError("Element %r has invalid child element %r "
+                             "(allowed are child elements %r)" %
+                             (name(tup_tree), name(child), acceptable))
         result.append(parse_any(child))
 
     return result
@@ -271,23 +273,22 @@ def list_of_same(tup_tree, acceptable):
     must all be the same.
     """
 
-    kid = kids(tup_tree)
-    if not kid:            # empty list, consistent with list_of_various
+    k = kids(tup_tree)
+
+    if not k:            # empty list, consistent with list_of_various
         return []
 
-    a_child = name(kid[0])
+    a_child = name(k[0])
     if a_child not in acceptable:
-        raise ParseError('In element %s with attributes %s, expected '
-                         'child elements %s, but got child element %s' %
-                         (name(tup_tree), attrs(tup_tree), acceptable,
-                          a_child))
+        raise ParseError("Element %r has invalid child element %r "
+                         "(allowed is a sequence of like elements from %r)" %
+                         (name(tup_tree), a_child, acceptable))
     result = []
-    for child in kid:
+    for child in k:
         if name(child) != a_child:
-            raise ParseError('In element %s with attributes %s, expected '
-                             'sequence of only child elements %s, but got child'
-                             ' element %s' % (name(tup_tree), attrs(tup_tree),
-                                              a_child, name(child)))
+            raise ParseError("Element %r has invalid child element %r "
+                             "(sequence must have like elements %r)" %
+                             (name(tup_tree), name(child), a_child))
         result.append(parse_any(child))
 
     return result
@@ -295,7 +296,8 @@ def list_of_same(tup_tree, acceptable):
 
 def notimplemented(tup_tree):
     """raise exception for notimplemented function"""
-    raise ParseError('parser for %s not implemented' % name(tup_tree))
+    raise ParseError("Internal Error: Parsing support for element %r is not "
+                     "implemented" % name(tup_tree))
 
 #
 # Root element
@@ -316,7 +318,7 @@ def parse_cim(tup_tree):
     check_node(tup_tree, 'CIM', ['CIMVERSION', 'DTDVERSION'])
 
     if not attrs(tup_tree)['CIMVERSION'].startswith('2.'):
-        raise ParseError('CIMVERSION is %s, expected 2.x.y' %
+        raise ParseError("CIMVERSION is %s, expected 2.x.y" %
                          attrs(tup_tree)['CIMVERSION'])
 
     child = one_child(tup_tree, ['MESSAGE', 'DECLARATION'])
@@ -453,7 +455,10 @@ def parse_value_namedinstance(tup_tree):
 
     k = kids(tup_tree)
     if len(k) != 2:
-        raise ParseError('expecting (INSTANCENAME, INSTANCE), got %r' % k)
+        raise ParseError("Element %r has invalid number of child elements %r "
+                         "(expecting two child elements "
+                         "(INSTANCENAME, INSTANCE))" %
+                         (name(tup_tree), k))
 
     instancename = parse_instancename(k[0])
     instance = parse_instance(k[1])
@@ -478,7 +483,10 @@ def parse_value_instancewithpath(tup_tree):
 
     k = kids(tup_tree)
     if len(k) != 2:
-        raise ParseError('expecting (INSTANCEPATH, INSTANCE), got %r' % k)
+        raise ParseError("Element %r has invalid number of child elements %r "
+                         "(expecting two child elements "
+                         "(INSTANCEPATH, INSTANCE))" %
+                         (name(tup_tree), k))
     path = parse_instancepath(k[0])
     instance = parse_instance(k[1])
 
@@ -506,8 +514,10 @@ def parse_value_namedobject(tup_tree):
 
         _object.path = path
     else:
-        raise ParseError('Expecting one or two elements, got %r' %
-                         kids(tup_tree))
+        raise ParseError("Element %r has invalid number of child elements %r "
+                         "(expecting one or two child elements "
+                         "(CLASS | (INSTANCENAME, INSTANCE)))" %
+                         (name(tup_tree), k))
 
     return (name(tup_tree), attrs(tup_tree), _object)
 
@@ -523,17 +533,22 @@ def parse_value_objectwithlocalpath(tup_tree):
 
     check_node(tup_tree, 'VALUE.OBJECTWITHLOCALPATH')
 
-    if len(kids(tup_tree)) != 2:
-        raise ParseError('Expecting two elements, got %s' %
-                         len(kids(tup_tree)))
+    k = kids(tup_tree)
 
-    if kids(tup_tree)[0][0] == 'LOCALCLASSPATH':
-        _object = (parse_localclasspath(kids(tup_tree)[0]),
-                   parse_class(kids(tup_tree)[1]))
+    if len(k) != 2:
+        raise ParseError("Element %r has invalid number of child elements %r "
+                         "(expecting two child elements "
+                         "((LOCALCLASSPATH, CLASS) | (LOCALINSTANCEPATH, "
+                         "INSTANCE)))" %
+                         (name(tup_tree), k))
+
+    if name(k[0]) == 'LOCALCLASSPATH':
+        _object = (parse_localclasspath(k[0]),
+                   parse_class(k[1]))
     else:
-        path = parse_localinstancepath(kids(tup_tree)[0])
+        path = parse_localinstancepath(k[0])
         # redefines _object from tuple to CIMInstance
-        _object = parse_instance(kids(tup_tree)[1])
+        _object = parse_instance(k[1])
         _object.path = path
 
     return (name(tup_tree), attrs(tup_tree), _object)
@@ -552,7 +567,10 @@ def parse_value_objectwithpath(tup_tree):
     k = kids(tup_tree)
 
     if len(k) != 2:
-        raise ParseError('Expecting two elements, got %s' % k)
+        raise ParseError("Element %r has invalid number of child elements %r "
+                         "(expecting two child elements "
+                         "((CLASSPATH, CLASS) | (INSTANCEPATH, INSTANCE)))" %
+                         (name(tup_tree), k))
 
     if name(k[0]) == 'CLASSPATH':
         _object = (parse_classpath(k[0]), parse_class(k[1]))
@@ -579,12 +597,16 @@ def parse_namespacepath(tup_tree):
 
     check_node(tup_tree, 'NAMESPACEPATH')
 
-    if len(kids(tup_tree)) != 2:
-        raise ParseError('Expecting (HOST, LOCALNAMESPACEPATH) '
-                         'got %s' % kids(tup_tree))
+    k = kids(tup_tree)
 
-    host = parse_host(kids(tup_tree)[0])
-    localnspath = parse_localnamespacepath(kids(tup_tree)[1])
+    if len(k) != 2:
+        raise ParseError("Element %r has invalid number of child elements %r "
+                         "(expecting two child elements "
+                         "(HOST, LOCALNAMESPACEPATH))" %
+                         (name(tup_tree), k))
+
+    host = parse_host(k[0])
+    localnspath = parse_localnamespacepath(k[1])
 
     return (host, localnspath)
 
@@ -599,7 +621,9 @@ def parse_localnamespacepath(tup_tree):
     check_node(tup_tree, 'LOCALNAMESPACEPATH', [], [], ['NAMESPACE'])
 
     if not kids(tup_tree):
-        raise ParseError('Expecting one or more of NAMESPACE, got nothing')
+        raise ParseError("Element %r misses child elements "
+                         "(expecting one or more child elements 'NAMESPACE')" %
+                         name(tup_tree))
 
     ns_list = list_of_various(tup_tree, ['NAMESPACE'])
 
@@ -642,12 +666,16 @@ def parse_classpath(tup_tree):
 
     check_node(tup_tree, 'CLASSPATH')
 
-    if len(kids(tup_tree)) != 2:
-        raise ParseError('Expecting (NAMESPACEPATH, CLASSNAME) '
-                         'got %s' % kids(tup_tree))
+    k = kids(tup_tree)
 
-    nspath = parse_namespacepath(kids(tup_tree)[0])
-    classname = parse_classname(kids(tup_tree)[1])
+    if len(k) != 2:
+        raise ParseError("Element %r has invalid number of child elements %r "
+                         "(expecting two child elements "
+                         "(NAMESPACEPATH, CLASSNAME))" %
+                         (name(tup_tree), k))
+
+    nspath = parse_namespacepath(k[0])
+    classname = parse_classname(k[1])
 
     return CIMClassName(classname.classname,
                         host=nspath[0], namespace=nspath[1])
@@ -662,12 +690,16 @@ def parse_localclasspath(tup_tree):
 
     check_node(tup_tree, 'LOCALCLASSPATH')
 
-    if len(kids(tup_tree)) != 2:
-        raise ParseError('Expecting (LOCALNAMESPACEPATH, CLASSNAME) '
-                         'got %s' % kids(tup_tree))
+    k = kids(tup_tree)
 
-    localnspath = parse_localnamespacepath(kids(tup_tree)[0])
-    classname = parse_classname(kids(tup_tree)[1])
+    if len(k) != 2:
+        raise ParseError("Element %r has invalid number of child elements %r "
+                         "(expecting two child elements "
+                         "(LOCALNAMESPACEPATH, CLASSNAME))" %
+                         (name(tup_tree), k))
+
+    localnspath = parse_localnamespacepath(k[0])
+    classname = parse_classname(k[1])
 
     return CIMClassName(classname.classname, namespace=localnspath)
 
@@ -696,12 +728,16 @@ def parse_instancepath(tup_tree):
 
     check_node(tup_tree, 'INSTANCEPATH')
 
-    if len(kids(tup_tree)) != 2:
-        raise ParseError('Expecting (NAMESPACEPATH, INSTANCENAME), got %r'
-                         % kids(tup_tree))
+    k = kids(tup_tree)
 
-    nspath = parse_namespacepath(kids(tup_tree)[0])
-    instancename = parse_instancename(kids(tup_tree)[1])
+    if len(k) != 2:
+        raise ParseError("Element %r has invalid number of child elements %r "
+                         "(expecting two child elements "
+                         "(NAMESPACEPATH, INSTANCENAME))" %
+                         (name(tup_tree), k))
+
+    nspath = parse_namespacepath(k[0])
+    instancename = parse_instancename(k[1])
 
     instancename.host = nspath[0]
     instancename.namespace = nspath[1]
@@ -719,12 +755,16 @@ def parse_localinstancepath(tup_tree):
 
     check_node(tup_tree, 'LOCALINSTANCEPATH')
 
-    if len(kids(tup_tree)) != 2:
-        raise ParseError('Expecting (LOCALNAMESPACEPATH, INSTANCENAME), '
-                         'got %s' % kids(tup_tree))
+    k = kids(tup_tree)
 
-    localnspath = parse_localnamespacepath(kids(tup_tree)[0])
-    instancename = parse_instancename(kids(tup_tree)[1])
+    if len(k) != 2:
+        raise ParseError("Element %r has invalid number of child elements %r "
+                         "(expecting two child elements "
+                         "(LOCALNAMESPACEPATH, INSTANCENAME))" %
+                         (name(tup_tree), k))
+
+    localnspath = parse_localnamespacepath(k[0])
+    instancename = parse_instancename(k[1])
 
     instancename.namespace = localnspath
 
@@ -755,8 +795,10 @@ def parse_instancename(tup_tree):
 
     if k0_name == 'KEYVALUE' or k0_name == 'VALUE.REFERENCE':
         if len(kids(tup_tree)) != 1:
-            raise ParseError('expected only one %s under %s' %
-                             k0_name, name(tup_tree))
+            raise ParseError("Element %r has more than one child element %r "
+                             "(expecting child elements "
+                             "(KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?))" %
+                             (name(tup_tree), k0_name))
 
         # TODO: This is probably not the best representation of these forms...
         # it may be we have a bug here, it is suspicious that the result of a
@@ -772,8 +814,10 @@ def parse_instancename(tup_tree):
             kbs.update(key_bind)
         return CIMInstanceName(classname, kbs)
     else:
-        raise ParseError('unexpected node %s under %s' %
-                         (name(kids(tup_tree)[0]), name(tup_tree)))
+        raise ParseError("Element %r has invalid child elements %r "
+                         "(expecting child elements "
+                         "(KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?))" %
+                         (name(tup_tree), kids(tup_tree)))
 
 
 def parse_objectpath(tup_tree):
@@ -843,11 +887,12 @@ def parse_keyvalue(tup_tree):
             return int(pdta.strip())
 
         except ValueError:
-            raise ParseError('invalid numeric %r under %s' %
-                             (pdta, name(tup_tree)))
+            raise ParseError("Element %r has invalid numeric content %r" %
+                             (name(tup_tree), pdta))
     else:
-        raise ParseError('invalid VALUETYPE %s in %s' %
-                         (val_type, name(tup_tree)))
+        raise ParseError("Element %r has invalid 'VALUETYPE' attribute value "
+                         "%r" %
+                         (name(tup_tree), val_type))
 
 
 #
@@ -992,11 +1037,15 @@ def parse_qualifier_declaration(tup_tree):
     for child in kids(tup_tree):
         if name(child) == 'SCOPE':
             if scopes is not None:
-                raise ParseError("Multiple SCOPE tags encountered")
+                raise ParseError("Element %r has more than one child element "
+                                 "%r (allowed is only one)" %
+                                 (name(tup_tree), name(child)))
             scopes = parse_any(child)
         else:
             if value is not None:
-                raise ParseError("Multiple VALUE/VALUE.ARRAY tags encountered")
+                raise ParseError("Element %r has more than one child element "
+                                 "%r (allowed is only one)" %
+                                 (name(tup_tree), name(child)))
             value = tocimobj(_type, parse_any(child))
 
     return CIMQualifierDeclaration(qname, _type, value, is_array,
@@ -1075,7 +1124,8 @@ def parse_property(tup_tree):
         val = unpack_value(tup_tree)
     except ValueError as exc:
         msg = str(exc)
-        raise ParseError('Cannot parse value for property "%s": %s' %
+        raise ParseError("Cannot parse content of 'VALUE' child element of "
+                         "'PROPERTY' element with name %r: %s" %
                          (attrl['NAME'], msg))
 
     embedded_object = None
@@ -1166,7 +1216,9 @@ def parse_property_reference(tup_tree):
     elif len(value) == 1:
         value = value[0]
     else:
-        raise ParseError('Too many VALUE.REFERENCE elements.')
+        raise ParseError("Element %r has more than one child element "
+                         "'VALUE.REFERENCE' (allowed are zero or one)" %
+                         name(tup_tree))
 
     quals = dict()
     for qual in list_of_matching(tup_tree, ['QUALIFIER']):
@@ -1357,13 +1409,15 @@ def parse_multireq(tup_tree):   # pylint: disable=unused-argument
     """Not Implemented. Because this request is generally not implemented
        by platforms, It will probably never be implemented
     """
-    raise ParseError('MULTIREQ parser not implemented')
+    raise ParseError("Internal Error: Parsing support for element %r is not "
+                     "implemented" % name(tup_tree))
 
 
 def parse_multiexpreq(tup_tree):   # pylint: disable=unused-argument
     """Not Implemented. Because this request is generally not implemented
        by platforms, It will probably never be implemented"""
-    raise ParseError('MULTIEXPREQ parser not implemented')
+    raise ParseError("Internal Error: Parsing support for element %r is not "
+                     "implemented" % name(tup_tree))
 
 
 def parse_simpleexpreq(tup_tree):
@@ -1403,12 +1457,17 @@ def parse_imethodcall(tup_tree):
 
     check_node(tup_tree, 'IMETHODCALL', ['NAME'])
 
-    if len(kids(tup_tree)) < 1:
-        raise ParseError('Expecting LOCALNAMESPACEPATH, got nothing')
+    k = kids(tup_tree)
 
-    localnspath = parse_localnamespacepath(kids(tup_tree)[0])
+    if len(k) < 1:
+        raise ParseError("Element %r has no child elements "
+                         "(expecting child elements "
+                         "(LOCALNAMESPACEPATH, IPARAMVALUE*))" %
+                         name(tup_tree))
 
-    params = [parse_iparamvalue(x) for x in kids(tup_tree)[1:]]
+    localnspath = parse_localnamespacepath(k[0])
+
+    params = [parse_iparamvalue(x) for x in k[1:]]
 
     return (name(tup_tree), attrs(tup_tree), localnspath, params)
 
@@ -1425,9 +1484,15 @@ def parse_methodcall(tup_tree):
     check_node(tup_tree, 'METHODCALL', ['NAME'], [],
                ['LOCALCLASSPATH', 'LOCALINSTANCEPATH', 'PARAMVALUE'])
     path = list_of_matching(tup_tree, ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
-    if len(path) != 1:
-        raise ParseError('Expecting one of LOCALCLASSPATH or '
-                         'LOCALINSTANCEPATH, got %r' % path)
+    if len(path) == 0:
+        raise ParseError("Element %r misses a required child element "
+                         "'LOCALCLASSPATH' or 'LOCALINSTANCEPATH'" %
+                         name(tup_tree))
+    if len(path) > 1:
+        raise ParseError("Element %r has too many child elements %r "
+                         "(allowed is one of 'LOCALCLASSPATH' or "
+                         "'LOCALINSTANCEPATH')" %
+                         (name(tup_tree), path))
     path = path[0]
     params = list_of_matching(tup_tree, ['PARAMVALUE'])
     return (name(tup_tree), attrs(tup_tree), path, params)
@@ -1543,14 +1608,16 @@ def parse_expparamvalue(tup_tree):
 def parse_multirsp(tup_tree):   # pylint: disable=unused-argument
     """This function not implemented. Because this request is generally not
        implemented. It will probably never be implemented"""
-    raise ParseError('MULTIRSP parser not implemented')
+    raise ParseError("Internal Error: Parsing support for element %r is not "
+                     "implemented" % name(tup_tree))
 
 
 def parse_multiexprsp(tup_tree):   # pylint: disable=unused-argument
     """This function not implemented. Because this request is generally not
        implemented. It will probably never be implemented
     """
-    raise ParseError('MULTIEXPRSP parser not implemented')
+    raise ParseError("Internal Error: Parsing support for element %r is not "
+                     "implemented" % name(tup_tree))
 
 
 def parse_simplersp(tup_tree):
@@ -1573,7 +1640,8 @@ def parse_simpleexprsp(tup_tree):   # pylint: disable=unused-argument
        (indication senders) so it is not implemented in the pywbem
        client.
     """
-    raise ParseError('SIMPLEEXPRSP parser not implemented')
+    raise ParseError("Internal Error: Parsing support for element %r is not "
+                     "implemented" % name(tup_tree))
 
 
 def parse_methodresponse(tup_tree):
@@ -1596,7 +1664,8 @@ def parse_methodresponse(tup_tree):
 
 def parse_expmethodresponse(tup_tree):  # pylint: disable=unused-argument
     """This function not implemented. """
-    raise ParseError('EXPMETHODRESPONSE parser not implemented')
+    raise ParseError("Internal Error: Parsing support for element %r is not "
+                     "implemented" % name(tup_tree))
 
 
 def parse_imethodresponse(tup_tree):
@@ -1721,7 +1790,7 @@ def parse_any(tup_tree):
     fn_name = 'parse_' + nodename
     funct_name = globals().get(fn_name)
     if funct_name is None:
-        raise ParseError('no parser for node type %s' % name(tup_tree))
+        raise ParseError("Invalid element %r" % name(tup_tree))
     else:
         return funct_name(tup_tree)
 
@@ -1776,15 +1845,15 @@ def parse_embeddedObject(val):  # pylint: disable=invalid-name
         return None
 
     # Perform the un-embedding (may raise ParseError)
-    tuptree = xml_to_tupletree_sax(val, "embedded object")
+    tup_tree = xml_to_tupletree_sax(val, "embedded object")
 
-    if tuptree[0] == 'INSTANCE':
-        return parse_instance(tuptree)
-    elif tuptree[0] == 'CLASS':
-        return parse_class(tuptree)
+    if name(tup_tree) == 'INSTANCE':
+        return parse_instance(tup_tree)
+    elif name(tup_tree) == 'CLASS':
+        return parse_class(tup_tree)
     else:
         raise ParseError("Invalid top-level element %r in embedded object "
-                         "value" % tuptree[0])
+                         "value" % name(tup_tree))
 
 
 def unpack_value(tup_tree):
@@ -1807,7 +1876,8 @@ def unpack_value(tup_tree):
     if not raw_val:
         return None
     elif len(raw_val) > 1:
-        raise ParseError('more than one VALUE or VALUE.ARRAY under %s' %
+        raise ParseError("Element %r has too many child elements %r "
+                         "(allowed is one of 'VALUE' or 'VALUE.ARRAY')" %
                          name(tup_tree))
 
     raw_val = raw_val[0]
@@ -1836,4 +1906,4 @@ def unpack_boolean(data):
     elif data == '':
         return None
     else:
-        raise ParseError('invalid boolean %r' % data)
+        raise ParseError("Invalid boolean %r" % data)
