@@ -22,12 +22,17 @@
             pywbem_object: CIMInstance
             classname: PyWBEM_Person
             properties:
-                Name: Fritz
+                Name:
+                    pywbem_object: CIMProperty
+                    name: Name
+                    value: Fritz
+                    propagated: false
                 AddressClass:
                     pywbem_object: CIMProperty
                     name: AddressClass
                     type: string
                     embedded_object: object
+                    propagated: false
                     value:
                         pywbem_object: CIMClass
                         classname: PyWBEM_Address
@@ -38,11 +43,13 @@
                                 name: Street
                                 type: string
                                 value: Default Street
+                                propagated: false
                             Town:
                                 pywbem_object: CIMProperty
                                 name: Town
                                 type: string
                                 value: Default Town
+                                propagated: false
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -137,12 +144,17 @@
             pywbem_object: CIMInstance
             classname: PyWBEM_Person
             properties:
-                Name: Fritz & <the cat>
+                Name:
+                    pywbem_object: CIMProperty
+                    name: Name
+                    value: Fritz & <the cat>
+                    propagated: false
                 AddressClass:
                     pywbem_object: CIMProperty
                     name: AddressClass
                     type: string
                     embedded_object: object
+                    propagated: false
                     value:
                         pywbem_object: CIMClass
                         classname: PyWBEM_Address
@@ -153,11 +165,13 @@
                                 name: Street
                                 type: string
                                 value: Default Fritz & <the cat> Ave
+                                propagated: false
                             Town:
                                 pywbem_object: CIMProperty
                                 name: Town
                                 type: string
                                 value: Default Town
+                                propagated: false
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -252,12 +266,17 @@
             pywbem_object: CIMInstance
             classname: PyWBEM_Person
             properties:
-                Name: Fritz & <the cat>
+                Name:
+                    pywbem_object: CIMProperty
+                    name: Name
+                    value: Fritz & <the cat>
+                    propagated: false
                 AddressClass:
                     pywbem_object: CIMProperty
                     name: AddressClass
                     type: string
                     embedded_object: object
+                    propagated: false
                     value:
                         pywbem_object: CIMClass
                         classname: PyWBEM_Address
@@ -268,11 +287,13 @@
                                 name: Street
                                 type: string
                                 value: Default Fritz & <the cat> Ave
+                                propagated: false
                             TownClass:
                                 pywbem_object: CIMProperty
                                 name: TownClass
                                 type: string
                                 embedded_object: object
+                                propagated: false
                                 value:
                                     pywbem_object: CIMClass
                                     classname: PyWBEM_Town
@@ -283,11 +304,13 @@
                                             name: Name
                                             type: string
                                             value: Default Fritz & <the cat> Town
+                                            propagated: false
                                         Zip:
                                             pywbem_object: CIMProperty
                                             name: Zip
                                             type: string
                                             value: Default Zip
+                                            propagated: false
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -617,6 +640,7 @@
                     name: Name
                     type: string
                     value:
+                    propagated: false
                     qualifiers:
                         Key:
                             pywbem_object: CIMQualifier
@@ -627,6 +651,7 @@
                     name: AddressClass
                     type: string
                     embedded_object: object
+                    propagated: false
                     qualifiers:
                         EmbeddedObject:
                             pywbem_object: CIMQualifier
@@ -642,11 +667,13 @@
                                 name: Street
                                 type: string
                                 value: Default Street
+                                propagated: false
                             Town:
                                 pywbem_object: CIMProperty
                                 name: Town
                                 type: string
                                 value: Default Town
+                                propagated: false
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1064,11 +1091,13 @@
                           name: Street
                           type: string
                           value: Default Street
+                          propagated: false
                       Town:
                           pywbem_object: CIMProperty
                           name: Town
                           type: string
                           value: Default Town
+                          propagated: false
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1155,11 +1184,13 @@
                       name: Street
                       type: string
                       value: Default Street
+                      propagated: false
                   Town:
                       pywbem_object: CIMProperty
                       name: Town
                       type: string
                       value: Default Town
+                      propagated: false
             - {}
     http_request:
         verb: POST
@@ -1239,12 +1270,17 @@
             pywbem_object: CIMInstance
             classname: PyWBEM_Person
             properties:
-                Name: Fritz
+                Name:
+                    pywbem_object: CIMProperty
+                    name: Name
+                    value: Fritz
+                    propagated: false
                 AddressClass:
                     pywbem_object: CIMProperty
                     name: AddressClass
                     type: string
                     embedded_object: object
+                    propagated: false
                     value:
                         pywbem_object: CIMClass
                         classname: PyWBEM_Address
@@ -1255,11 +1291,13 @@
                                 name: Street
                                 type: string
                                 value: Default Street
+                                propagated: false
                             Town:
                                 pywbem_object: CIMProperty
                                 name: Town
                                 type: string
                                 value: Default Town
+                                propagated: false
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -1356,12 +1394,17 @@
             pywbem_object: CIMInstance
             classname: PyWBEM_Person
             properties:
-                Name: Fritz & <the cat>
+                Name:
+                    pywbem_object: CIMProperty
+                    name: Name
+                    value: Fritz & <the cat>
+                    propagated: false
                 AddressClass:
                     pywbem_object: CIMProperty
                     name: AddressClass
                     type: string
                     embedded_object: object
+                    propagated: false
                     value:
                         pywbem_object: CIMClass
                         classname: PyWBEM_Address
@@ -1372,11 +1415,13 @@
                                 name: Street
                                 type: string
                                 value: Default Fritz & <the cat> Ave
+                                propagated: false
                             Town:
                                 pywbem_object: CIMProperty
                                 name: Town
                                 type: string
                                 value: Default Town
+                                propagated: false
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -1473,12 +1518,17 @@
             pywbem_object: CIMInstance
             classname: PyWBEM_Person
             properties:
-                Name: Fritz & <the cat>
+                Name:
+                    pywbem_object: CIMProperty
+                    name: Name
+                    value: Fritz & <the cat>
+                    propagated: false
                 AddressClass:
                     pywbem_object: CIMProperty
                     name: AddressClass
                     type: string
                     embedded_object: object
+                    propagated: false
                     value:
                         pywbem_object: CIMClass
                         classname: PyWBEM_Address
@@ -1489,11 +1539,13 @@
                                 name: Street
                                 type: string
                                 value: Default Fritz & <the cat> Ave
+                                propagated: false
                             TownClass:
                                 pywbem_object: CIMProperty
                                 name: TownClass
                                 type: string
                                 embedded_object: object
+                                propagated: false
                                 value:
                                     pywbem_object: CIMClass
                                     classname: PyWBEM_Town
@@ -1504,11 +1556,13 @@
                                             name: Name
                                             type: string
                                             value: Default Fritz & <the cat> Town
+                                            propagated: false
                                         Zip:
                                             pywbem_object: CIMProperty
                                             name: Zip
                                             type: string
                                             value: Default Zip
+                                            propagated: false
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -1846,6 +1900,7 @@
                     name: Name
                     type: string
                     value:
+                    propagated: false
                     qualifiers:
                         Key:
                             pywbem_object: CIMQualifier
@@ -1856,6 +1911,7 @@
                     name: AddressClass
                     type: string
                     embedded_object: object
+                    propagated: false
                     qualifiers:
                         EmbeddedObject:
                             pywbem_object: CIMQualifier
@@ -1871,11 +1927,13 @@
                                 name: Street
                                 type: string
                                 value: Default Street
+                                propagated: false
                             Town:
                                 pywbem_object: CIMProperty
                                 name: Town
                                 type: string
                                 value: Default Town
+                                propagated: false
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -2301,11 +2359,13 @@
                           name: Street
                           type: string
                           value: Default Street
+                          propagated: false
                       Town:
                           pywbem_object: CIMProperty
                           name: Town
                           type: string
                           value: Default Town
+                          propagated: false
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -2394,11 +2454,13 @@
                       name: Street
                       type: string
                       value: Default Street
+                      propagated: false
                   Town:
                       pywbem_object: CIMProperty
                       name: Town
                       type: string
                       value: Default Town
+                      propagated: false
             - {}
     http_request:
         verb: POST

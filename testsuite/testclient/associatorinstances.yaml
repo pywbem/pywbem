@@ -365,7 +365,7 @@
           is_array: false
           array_size: null
           class_origin: null
-          propagated: null
+          propagated: false
           qualifiers: {}
         caption:
           pywbem_object: CIMProperty

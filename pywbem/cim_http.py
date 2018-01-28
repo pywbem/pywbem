@@ -429,7 +429,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
         Tuple containing:
 
             The CIM-XML formatted response data from the WBEM server, as a
-            :term:`unicode string` object.
+            :term:`byte string` object.
 
             The server response time in seconds as floating point number if
             this data was received from the server. If no data returned

@@ -29,7 +29,11 @@
             pywbem_object: CIMInstance
             classname: PyWBEM_PersonCollection
             properties:
-                InstanceID: PersonCollection
+                InstanceID:
+                    pywbem_object: CIMProperty
+                    name: InstanceID
+                    value: PersonCollection
+                    propagated: false
                 Caption:
                     pywbem_object: CIMProperty
                     name: Caption

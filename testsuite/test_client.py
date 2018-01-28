@@ -33,6 +33,7 @@ from collections import namedtuple
 from io import open as _open
 import six
 import yaml
+import yamlordereddictloader
 import httpretty
 from httpretty.core import HTTPrettyRequestEmpty
 from lxml import etree, doctestcompare
@@ -159,8 +160,8 @@ def tc_getattr(tc_name, dict_, key, default=-1):
         Get the attribute for the key and if the attribute is list or tuple
         only return the first item. If the attribute is a dictionary
         return the attribute
-        If the key is not in the dictionary, return either the provided
-        default or -1 if no default provided
+        If the key is not in the dictionary, return the provided default or
+        raise an error if no default provided.
     """
     try:
         value = dict_[key]
@@ -180,9 +181,8 @@ def tc_getattr_list(tc_name, dict_, key, default=-1):
         a list
         Gets the attribute for the key return it.  Does not test for
         type of the attribute.
-        If the key is not in the dictionary, return either the provided
-        default or -1 if no default provided
-
+        If the key is not in the dictionary, return the provided default or
+        raise an error if no default provided.
     """
     try:
         value = dict_[key]
@@ -509,7 +509,7 @@ class ClientTest(unittest.TestCase):
         print("Process YAML file: %s" % os.path.basename(fn))
 
         with _open(fn, encoding="utf-8") as fp:
-            testcases = yaml.load(fp)
+            testcases = yaml.load(fp, Loader=yamlordereddictloader.Loader)
             for testcase in testcases:
                 self.runtestcase(testcase)
 

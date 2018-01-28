@@ -133,6 +133,15 @@ Incompatible changes
   If you used this method and relied on the defaults being generated, you will
   now have to set these attributes explicitly.
 
+* If a WBEM server specifies contradicting TYPE and VALUETYPE attributes on a
+  KEYVALUE element returned to the client (this element is used in instance
+  paths, e.g. for the result of the EnumerateInstanceNames operation), TYPE now
+  takes precedence. Previously, VALUETYPE took precedence. DSP0201 leaves the
+  handling of such discrepancies open, and it seems more logical to let the
+  more precise value take precedence. Because WBEM servers are required to
+  specify consistent values for these attributes, this change should not affect
+  users of pywbem.
+
 Deprecations
 ^^^^^^^^^^^^
 
@@ -301,6 +310,9 @@ Enhancements
 * Docs: Clarified that CIM-XML multi-requests are not supported by pywbem
   and why that is not a functional limitation.
 
+* Improved the messages in ParseError exceptions raised when parsing CIM-XML
+  received from a WBEM server.
+
 Bug fixes
 ^^^^^^^^^
 
@@ -424,6 +436,27 @@ Bug fixes
   which can be rejected by WBEM servers. Now, leading and trailing slash
   characters on namespace names are stripped off in pywbem before sending
   the request to the server. (Issue #255).
+
+* Fixed the issue that the parser for CIM-XML received from the WBEM server
+  required the VALUETYPE attribute of the KEYVALUE element. DSP0201 defines
+  VALUETYPE as optional, with a default of 'string'. That is now implemented.
+
+* Fixed the issue that the parser for CIM-XML received from the WBEM server
+  did not support hexadecimal representations of integers in the KEYVALUE
+  element. They are now supported.
+
+* Fixed the issue that the parser for CIM-XML received from the WBEM server
+  accepted characters for char16 typed values outside of the range for
+  UCS-2 characters. Such characters are now rejected by raising ParseError.
+
+* Fixed the issue that the parser for CIM-XML received from the WBEM server
+  tolerated invalid child elements under INSTANCE or ERROR elements. This
+  now results in a ParseError being raised.
+
+* Fixed the issue that the parser for CIM-XML received from the WBEM server
+  did not set the `propagated` attribute to False in `CIMProperty` objects
+  retrieved from operations (e.g. as part of a class or instance), as
+  required by DSP0201. It does now.
 
 Cleanup
 ^^^^^^^

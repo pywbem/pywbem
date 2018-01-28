@@ -22,8 +22,16 @@
             pywbem_object: CIMInstance
             classname: PyWBEM_Person
             properties:
-                Name: Fritz
-                Address: Fritz Town
+                Name:
+                    pywbem_object: CIMProperty
+                    name: Name
+                    value: Fritz
+                    propagated: false
+                Address:
+                    pywbem_object: CIMProperty
+                    name: Address
+                    value: Fritz Town
+                    propagated: false
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person
@@ -112,8 +120,16 @@
             pywbem_object: CIMInstance
             classname: PyWBEM_Person
             properties:
-                Name: Fritz
-                Address: Fritz Town
+                Name:
+                    pywbem_object: CIMProperty
+                    name: Name
+                    value: Fritz
+                    propagated: false
+                Address:
+                    pywbem_object: CIMProperty
+                    name: Address
+                    value: Fritz Town
+                    propagated: false
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_Person

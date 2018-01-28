@@ -28,7 +28,7 @@
           is_array: false
           array_size: null
           class_origin: null
-          propagated: null
+          propagated: false
           qualifiers: {}
         powermanagementcapabilities:
           pywbem_object: CIMProperty
@@ -41,7 +41,7 @@
           is_array: true
           array_size: null
           class_origin: null
-          propagated: null
+          propagated: false
           qualifiers: {}
         powerstate:
           pywbem_object: CIMProperty
@@ -53,7 +53,7 @@
           is_array: false
           array_size: null
           class_origin: null
-          propagated: null
+          propagated: false
           qualifiers: {}
         operationalstatus:
           pywbem_object: CIMProperty
@@ -66,7 +66,7 @@
           is_array: true
           array_size: null
           class_origin: null
-          propagated: null
+          propagated: false
           qualifiers: {}
         powermanagementsupported:
           pywbem_object: CIMProperty
@@ -78,7 +78,7 @@
           is_array: false
           array_size: null
           class_origin: null
-          propagated: null
+          propagated: false
           qualifiers: {}
         elementname:
           pywbem_object: CIMProperty
@@ -90,7 +90,7 @@
           is_array: false
           array_size: null
           class_origin: null
-          propagated: null
+          propagated: false
           qualifiers: {}
         description:
           pywbem_object: CIMProperty
@@ -104,7 +104,7 @@
           is_array: false
           array_size: null
           class_origin: null
-          propagated: null
+          propagated: false
           qualifiers: {}
         nameformat:
           pywbem_object: CIMProperty
@@ -116,7 +116,7 @@
           is_array: false
           array_size: null
           class_origin: null
-          propagated: null
+          propagated: false
           qualifiers: {}
         status:
           pywbem_object: CIMProperty
@@ -128,7 +128,7 @@
           is_array: false
           array_size: null
           class_origin: null
-          propagated: null
+          propagated: false
           qualifiers: {}
         caption:
           pywbem_object: CIMProperty
@@ -140,7 +140,7 @@
           is_array: false
           array_size: null
           class_origin: null
-          propagated: null
+          propagated: false
           qualifiers: {}
         creationclassname:
           pywbem_object: CIMProperty
@@ -152,7 +152,7 @@
           is_array: false
           array_size: null
           class_origin: null
-          propagated: null
+          propagated: false
           qualifiers: {}
       path:
         pywbem_object: CIMInstanceName
