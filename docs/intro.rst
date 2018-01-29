@@ -206,9 +206,9 @@ Installing to OS-X
 Installing to Windows
 ^^^^^^^^^^^^^^^^^^^^^
 
-The pywbem tests that run on the Appveyor CI use CygWin, but you should be able
-to use plain Windows or any Unix-like environment on Windows (such as
-CygWin, MinGW, Babun, or Gow).
+The pywbem tests that run on the Appveyor CI use CygWin, but for just running
+pywbem you should be able to use plain Windows or any Unix-like environment on
+Windows (such as CygWin, MinGW, Babun, or Gow).
 
 Note that Unix-like environments on Windows bring their own Python, so double
 check that the active Python environment is the one you want to install to.
@@ -492,13 +492,7 @@ Pywbem is supported in these environments:
 Limitations:
 
 * On Windows, pywbem is not supported on Python 2.6, because M2Crypto in the
-  M2CryptoWin32/64 package does not support Python 2.6.
-
-* On Windows, pywbem has not been tested on 64-bit versions of Python, because
-  the libxslt etc. development packages needed to install lxml that are used
-  do not provide the link libraries in the format needed by lxml. Because
-  lxml is only used for development and test of pywbem, just running pywbem on
-  64-bit versions of Windows may or may not work.
+  M2CryptoWin32/64 packages does not support Python 2.6.
 
 
 .. _`Standards conformance`:

@@ -155,7 +155,6 @@ if [[ "$distro_family" == "redhat" ]]; then
 
   if [[ "$purpose" == "develop" ]]; then
     install_redhat $installer libxml2
-    install_redhat $installer libxslt
   fi
 
 elif [[ "$distro_family" == "debian" ]]; then
@@ -174,8 +173,6 @@ elif [[ "$distro_family" == "debian" ]]; then
 
   if [[ "$purpose" == "develop" ]]; then
     install_debian libxml2-utils
-    install_debian libxml2-dev
-    install_debian libxslt-dev
   fi
 
 elif [[ "$distro_family" == "suse" ]]; then
@@ -194,7 +191,6 @@ elif [[ "$distro_family" == "suse" ]]; then
 
   if [[ "$purpose" == "develop" ]]; then
     install_suse libxml2
-    install_suse libxslt
   fi
 
 elif [[ "$distro_family" == "osx" ]]; then
@@ -213,7 +209,6 @@ elif [[ "$distro_family" == "osx" ]]; then
 
   if [[ "$purpose" == "develop" ]]; then
     install_osx libxml2
-    install_osx libxslt
   fi
 
 elif [[ "$distro_family" == "windows" ]]; then
@@ -222,7 +217,7 @@ elif [[ "$distro_family" == "windows" ]]; then
   # binary packages and don't invoke Swig during their installation.
 
   if [[ "$purpose" == "develop" ]]; then
-    echo "$myname: Warning: Installation of OS-level packages for development supported on platform ${platform}." >&2
+    echo "$myname: Warning: Installation of OS-level packages for development must be performned manually on platform ${platform}." >&2
     echo ". See the 'Development' chapter of the documentation for instructions." >&2
   fi
 
@@ -237,5 +232,4 @@ else
   echo ".   * python-devel (only on Python 2" >&2
   echo ". In addition, for developing pywbem:" >&2
   echo ".   * libxml2 (>=2.7.0,!=2.7.4,!=2.7.5,!=2.7.6 on Python 2 and 3)" >&2
-  echo ".   * libxslt (>=1.1.23,!=1.1.25, on Python 2 and 3)" >&2
 fi

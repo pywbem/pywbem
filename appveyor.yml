@@ -12,13 +12,6 @@ environment:
 #   To support Python 2.6, M2Crypto would need to be built upon install from
 #   the M2Crypto package. See https://github.com/dsoprea/M2CryptoWindows for
 #   details on how to build it.
-# * The use of libxslt devel packages from ftp.zlatkovic.com causes issues
-#   on some 64-bit environments. The 64-bit version of this package contains
-#   the libxslt library in .a format, but the lxml build process wants it
-#   in .lib format, so the linker step fails with:
-#     LINK : fatal error LNK1181: cannot open input file 'libxslt.lib'
-#   For reasons not completely understood, this causes the 64-bit build only
-#   to fail on Python 2.6.
 #------------------------
 #    - PYTHON_VERSION: 2.6
 #      PYTHON_ARCH: 32
@@ -29,9 +22,9 @@ environment:
     - PYTHON_VERSION: 2.7
       PYTHON_ARCH: 32
       PYTHON_HOME: C:\Python27
-#    - PYTHON_VERSION: 2.7
-#      PYTHON_ARCH: 64
-#      PYTHON_HOME: C:\Python27-x64
+    - PYTHON_VERSION: 2.7
+      PYTHON_ARCH: 64
+      PYTHON_HOME: C:\Python27-x64
 #    - PYTHON_VERSION: 3.4
 #      PYTHON_ARCH: 32
 #      PYTHON_HOME: C:\Python34
@@ -125,139 +118,6 @@ install:
   #- ps: (new-object System.Net.WebClient).Downloadfile('https://bootstrap.pypa.io/get-pip.py', 'C:\Users\appveyor\get-pip.py')
   #- ps: Start-Process -FilePath "C:\Python27\python.exe" -ArgumentList "C:\Users\appveyor\get-pip.py" -Wait -Passthru
 
-  ## Disabled: The following is an attempt to install the lxml installation
-  ## prereqs with choco. The lxml installation currently fails with unresolved
-  ## symbols at the link step. Reported the issue to the Appveyor Problems forum:
-  ## http://help.appveyor.com/discussions/problems/5330-pip-install-lxml-fails-with-missing-symbols
-  ##
-  ## Install OS-level prereqs for lxml installation: libxml2, libxslt, zlib,
-  ## libiconv (needs iconv.lib).
-  #- choco source add -n=nuget -s="https://www.nuget.org/api/v2/"
-  #- set PATH=C:\Users\appveyor\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\VC\Bin;%PATH%
-  #- choco install -y -v libxml2
-  #- set INCLUDE=C:\ProgramData\chocolatey\lib\libxml2\build\native\include;%INCLUDE%
-  #- set _LIB_XML2=C:\ProgramData\chocolatey\lib\libxml2\build\native\lib\v110\Win32\Release\static\cdecl
-  #- set LIB=%_LIB_XML2%;%LIB%
-  #- dir %_LIB_XML2%
-  #- dumpbin /symbols %_LIB_XML2%\libxml2.lib
-  #- dumpbin /exports %_LIB_XML2%\libxml2.lib
-  #- choco install -y -v libxslt
-  #- set INCLUDE=C:\ProgramData\chocolatey\lib\libxslt\build\native\include;%INCLUDE%
-  #- set _LIB_XSLT=C:\ProgramData\chocolatey\lib\libxslt\build\native\lib\v110\Win32\Release\static
-  #- set LIB=%_LIB_XSLT%;%LIB%
-  #- dir %_LIB_XSLT%
-  #- choco install -y -v zlib
-  #- set INCLUDE=C:\ProgramData\chocolatey\lib\zlib.v120.windesktop.msvcstl.dyn.rt-dyn\build\native\include;%INCLUDE%
-  #- set _LIB_ZLIB=C:\ProgramData\chocolatey\lib\zlib.v120.windesktop.msvcstl.dyn.rt-dyn\lib\native\v120\windesktop\msvcstl\dyn\rt-dyn\Win32\Release
-  #- set LIB=%_LIB_ZLIB%;%LIB%
-  #- dir %_LIB_ZLIB%
-  #- choco install -y -v libiconv
-  #- set INCLUDE=C:\ProgramData\chocolatey\lib\libiconv\build\native\include;%INCLUDE%
-  #- set _LIB_ICONV=C:\ProgramData\chocolatey\lib\libiconv\build\native\lib\v110\Win32\Release\static\cdecl
-  #- set LIB=%_LIB_ICONV%;%LIB%
-  #- copy %_LIB_ICONV%\libiconv.lib %_LIB_ICONV%\iconv.lib
-  #- dir %_LIB_ICONV%
-  #- find c:/ProgramData/chocolatey -name "*.h"
-  #- find c:/ProgramData/chocolatey -name "*.lib"
-  #- find c:/ProgramData/chocolatey -name "*.dll"
-
-  # Install OS-level prereqs for lxml installation: libxml2, libxslt, zlib,
-  # libiconv (needs iconv.lib). This approach uses the binary libraries
-  # that are linked from the lxml site.
-  - echo set _PWD=%%%%~dp0>tmp_prereq_dir.bat
-  - call tmp_prereq_dir.bat
-  - rm tmp_prereq_dir.bat
-  - set _PREREQ_DIR=prereqs
-  - set _PREREQ_ABSDIR=%_PWD%%_PREREQ_DIR%
-  - echo Installing lxml prereqs into %_PREREQ_ABSDIR%
-  - mkdir %_PREREQ_DIR%
-
-  # Add OS-level prereq: libxml2
-  - if %PYTHON_ARCH%.==32. (
-      set _PKGFILE=libxml2-2.7.8.win32.zip&
-      set _PKGZIPDIR=libxml2-2.7.8.win32&
-      set _PKGLOCALDIR=.)
-    else (
-      set _PKGFILE=libxml2-2.9.3-win32-x86_64.7z&
-      set _PKGZIPDIR=.&
-      set _PKGLOCALDIR=libxml2-2.9.3.win32-x86_64)
-  - if %PYTHON_ARCH%.==32. (
-      wget -q -P %_PREREQ_DIR% ftp://ftp.zlatkovic.com/libxml/%_PKGFILE%&
-      unzip -q -d %_PREREQ_DIR% %_PREREQ_DIR%/%_PKGFILE%)
-    else (
-      wget -q -P %_PREREQ_DIR% ftp://ftp.zlatkovic.com/libxml/64bit/%_PKGFILE%&
-      mkdir %_PREREQ_DIR%\%_PKGLOCALDIR%&
-      7z x -o%_PREREQ_DIR%/%_PKGLOCALDIR% %_PREREQ_DIR%/%_PKGFILE%)
-  - if %PYTHON_ARCH%.==32. (
-      set INCLUDE=%_PREREQ_ABSDIR%\%_PKGLOCALDIR%\%_PKGZIPDIR%\include;%INCLUDE%)
-    else (
-      set INCLUDE=%_PREREQ_ABSDIR%\%_PKGLOCALDIR%\%_PKGZIPDIR%\include\libxml2;%INCLUDE%)
-  - set LIB=%_PREREQ_ABSDIR%\%_PKGLOCALDIR%\%_PKGZIPDIR%\lib;%LIB%
-  - set PATH=%_PREREQ_ABSDIR%\%_PKGLOCALDIR%\%_PKGZIPDIR%\bin;%PATH%
-
-  # Add OS-level prereq: libxslt
-  - if %PYTHON_ARCH%.==32. (
-      set _PKGFILE=libxslt-1.1.26.win32.zip&
-      set _PKGZIPDIR=libxslt-1.1.26.win32&
-      set _PKGLOCALDIR=.)
-    else (
-      set _PKGFILE=libxslt-1.1.28-win32-x86_64.7z&
-      set _PKGZIPDIR=.&
-      set _PKGLOCALDIR=libxslt-1.1.28.win32-x86_64)
-  - if %PYTHON_ARCH%.==32. (
-      wget -q -P %_PREREQ_DIR% ftp://ftp.zlatkovic.com/libxml/%_PKGFILE%&
-      unzip -q -d %_PREREQ_DIR% %_PREREQ_DIR%/%_PKGFILE%)
-    else (
-      wget -q -P %_PREREQ_DIR% ftp://ftp.zlatkovic.com/libxml/64bit/%_PKGFILE%&
-      echo mkdir %_PREREQ_DIR%\%_PKGLOCALDIR%&
-      7z x -o%_PREREQ_DIR%/%_PKGLOCALDIR% %_PREREQ_DIR%/%_PKGFILE%)
-  - set INCLUDE=%_PREREQ_ABSDIR%\%_PKGLOCALDIR%\%_PKGZIPDIR%\include;%INCLUDE%
-  - set LIB=%_PREREQ_ABSDIR%\%_PKGLOCALDIR%\%_PKGZIPDIR%\lib;%LIB%
-  - set PATH=%_PREREQ_ABSDIR%\%_PKGLOCALDIR%\%_PKGZIPDIR%\bin;%PATH%
-
-  # Add OS-level prereq: zlib
-  - if %PYTHON_ARCH%.==32. (
-      set _PKGFILE=zlib-1.2.5.win32.zip&
-      set _PKGZIPDIR=zlib-1.2.5&
-      set _PKGLOCALDIR=.)
-    else (
-      set _PKGFILE=zlib-1.2.8-win32-x86_64.7z&
-      set _PKGZIPDIR=.&
-      set _PKGLOCALDIR=zlib-1.2.8.win32-x86_64)
-  - if %PYTHON_ARCH%.==32. (
-      wget -q -P %_PREREQ_DIR% ftp://ftp.zlatkovic.com/libxml/%_PKGFILE%&
-      unzip -q -d %_PREREQ_DIR% %_PREREQ_DIR%/%_PKGFILE%)
-    else (
-      wget -q -P %_PREREQ_DIR% ftp://ftp.zlatkovic.com/libxml/64bit/%_PKGFILE%&
-      echo mkdir %_PREREQ_DIR%\%_PKGLOCALDIR%&
-      7z x -o%_PREREQ_DIR%/%_PKGLOCALDIR% %_PREREQ_DIR%/%_PKGFILE%)
-  - set INCLUDE=%_PREREQ_ABSDIR%\%_PKGLOCALDIR%\%_PKGZIPDIR%\include;%INCLUDE%
-  - set LIB=%_PREREQ_ABSDIR%\%_PKGLOCALDIR%\%_PKGZIPDIR%\lib;%LIB%
-  - set PATH=%_PREREQ_ABSDIR%\%_PKGLOCALDIR%\%_PKGZIPDIR%\bin;%PATH%
-
-  # Add OS-level prereq: iconv
-  - if %PYTHON_ARCH%.==32. (
-      set _PKGFILE=iconv-1.9.2.win32.zip&
-      set _PKGZIPDIR=iconv-1.9.2.win32&
-      set _PKGLOCALDIR=.)
-    else (
-      set _PKGFILE=iconv-1.14-win32-x86_64.7z&
-      set _PKGZIPDIR=.&
-      set _PKGLOCALDIR=iconv-1.14.win32-x86_64)
-  - if %PYTHON_ARCH%.==32. (
-      wget -q -P %_PREREQ_DIR% ftp://ftp.zlatkovic.com/libxml/%_PKGFILE%&
-      unzip -q -d %_PREREQ_DIR% %_PREREQ_DIR%/%_PKGFILE%)
-    else (
-      wget -q -P %_PREREQ_DIR% ftp://ftp.zlatkovic.com/libxml/64bit/%_PKGFILE%&
-      echo mkdir %_PREREQ_DIR%\%_PKGLOCALDIR%&
-      7z x -o%_PREREQ_DIR%/%_PKGLOCALDIR% %_PREREQ_DIR%/%_PKGFILE%)
-  - set INCLUDE=%_PREREQ_ABSDIR%\%_PKGLOCALDIR%\%_PKGZIPDIR%\include;%INCLUDE%
-  - set LIB=%_PREREQ_ABSDIR%\%_PKGLOCALDIR%\%_PKGZIPDIR%\lib;%LIB%
-  - set PATH=%_PREREQ_ABSDIR%\%_PKGLOCALDIR%\%_PKGZIPDIR%\bin;%PATH%
-
-  # Examine files in OS-level prereq subtree
-  - find %_PREREQ_DIR% -type f
-
   # Examine the final environment
   - 'echo "%PATH%"'
   - 'echo "%PYTHONPATH%"'
@@ -299,6 +159,10 @@ install:
   - where find
   - find --version
 
+  # Verify that the commands used in the pywbem testsuite are available
+  - where xmllint
+  - xmllint --version
+
 # Not a C# project, build stuff at the test step instead.
 build: false
 
@@ -306,4 +170,3 @@ before_test:
 
 test_script:
   - tox -e pywin
-

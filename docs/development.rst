@@ -73,125 +73,22 @@ OS-X should work as well, but Windows requires a number of manual setup steps.
 Manual setup on Windows
 ^^^^^^^^^^^^^^^^^^^^^^^
 
+For development of pywbem, it is recommended to use one of the Unix-like
+environments on Windows (such as CygWin, MinGW, Babun, or Gow). The pywbem
+tests that run on the Appveyor CI use CygWin.
+
+Note that Unix-like environments on Windows bring their own Python, so double
+check that the active Python environment is the one you want to install to.
+
 The development environment needs the ``xmllint`` utility and the ``lxml``
-Python package. To get ``xmllint`` and to prepare the environment for
-installation of the ``lxml`` package, some packages need to be installed.
+Python package.
 
-Some of the steps described below depend on the bit size of the active Python
-environment. You can detect that bit size as follows:
+The ``lxml`` Python package for Windows meanwhile comes as a binary wheel
+archive that includes all of its dependencies, so it has no additional
+dependencies you would need to take care about.
 
-.. code-block:: text
-
-    > python -c "import ctypes; print(ctypes.sizeof(ctypes.c_void_p)*8)"
-    64
-
-Perform these steps (in the plain Windows Command Prompt):
-
-* Set an environment variable to the absolute (!) path of an installation
-  directory for these packages:
-
-  .. code-block:: text
-
-      > set pkgdir=C:\....\packages
-
-* Install the libxml2 package:
-
-  For a 32-bit Python environment:
-
-  .. code-block:: text
-
-      > set pkg=libxml2-2.7.8.win32
-      > wget ftp://ftp.zlatkovic.com/libxml/%pkg%.zip
-      > unzip -d %pkgdir% %pkg%.zip
-      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
-      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
-      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
-
-  For a 64-bit Python environment:
-
-  .. code-block:: text
-
-      > set pkg=libxml2-2.7.8.win32
-      > wget ftp://ftp.zlatkovic.com/libxml/64bit/%pkg%.7z
-      > 7z x -o%pkgdir%\%pkg% %pkg%.7z
-      > set INCLUDE=%pkgdir%\%pkg%\include\libxml2;%INCLUDE%
-      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
-      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
-
-* Install the libxslt package:
-
-  For a 32-bit Python environment:
-
-  .. code-block:: text
-
-      > set pkg=libxslt-1.1.26.win32
-      > wget ftp://ftp.zlatkovic.com/libxml/%pkg%.zip
-      > unzip -d %pkgdir% %pkg%.zip
-      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
-      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
-      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
-
-  For a 64-bit Python environment:
-
-  .. code-block:: text
-
-      > set pkg=libxslt-1.1.28-win32-x86_64
-      > wget ftp://ftp.zlatkovic.com/libxml/64bit/%pkg%.7z
-      > 7z x -o%pkgdir%\%pkg% %pkg%.7z
-      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
-      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
-      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
-
-* Install the zlib package:
-
-  For a 32-bit Python environment:
-
-  .. code-block:: text
-
-      > set pkg=zlib-1.2.5.win32
-      > wget ftp://ftp.zlatkovic.com/libxml/%pkg%.zip
-      > unzip -d %pkgdir% %pkg%.zip
-      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
-      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
-      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
-
-  For a 64-bit Python environment:
-
-  .. code-block:: text
-
-      > set pkg=zlib-1.2.8-win32-x86_64
-      > wget ftp://ftp.zlatkovic.com/libxml/64bit/%pkg%.7z
-      > 7z x -o%pkgdir%\%pkg% %pkg%.7z
-      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
-      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
-      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
-
-* Install the iconv package:
-
-  For a 32-bit Python environment:
-
-  .. code-block:: text
-
-      > set pkg=iconv-1.9.2.win32
-      > wget ftp://ftp.zlatkovic.com/libxml/%pkg%.zip
-      > unzip -d %pkgdir% %pkg%.zip
-      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
-      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
-      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
-
-  For a 64-bit Python environment:
-
-  .. code-block:: text
-
-      > set pkg=iconv-1.14-win32-x86_64
-      > wget ftp://ftp.zlatkovic.com/libxml/64bit/%pkg%.7z
-      > 7z x -o%pkg% %pkg%.7z
-      > set INCLUDE=%pkgdir%\%pkg%\include;%INCLUDE%
-      > set LIB=%pkgdir%\%pkg%\lib;%LIB%
-      > set PATH=%pkgdir%\%pkg%\bin;%PATH%
-
-Collect all the ``set`` commands shown above in a batch script for use when
-you re-open the command prompt in the future.
+The ``xmllint`` utility is part of CygWin and likely also part of the other
+Unix-like environments.
 
 
 .. _`Prerequisite operating system packages for development`:
@@ -213,43 +110,21 @@ of the steps described in :ref:`Setting up the development environment`.
 +--------------------------+--------------------+----------------------+-------+
 | Op.system / Distribution | Package name       | Version requirements | Notes |
 +==========================+====================+======================+=======+
-| Linux RedHat family      | libxml2            | >=2.7.0, !=2.7.4,    |       |
-| (RHEL, CentOS, Fedora)   |                    | !=2.7.5, !=2.7.6     |       |
-|                          +--------------------+----------------------+-------+
-|                          | libxslt            | >=1.1.23, !=1.1.25   |       |
+| Linux RedHat family      |                    |                      |       |
+| (RHEL, CentOS, Fedora)   |                    |                      |       |
 +--------------------------+--------------------+----------------------+-------+
-| Linux Debian family      | libxml2-utils      | >=2.7.0, !=2.7.4,    |       |
-| (Ubuntu, Debian,         |                    | !=2.7.5, !=2.7.6     |       |
-| LinuxMint)               +--------------------+----------------------+-------+
-|                          | libxml2-dev        | >=2.7.0, !=2.7.4,    |       |
-|                          |                    | !=2.7.5, !=2.7.6     |       |
-|                          +--------------------+----------------------+-------+
-|                          | libxslt-dev        | >=1.1.23, !=1.1.25   |       |
+| Linux Debian family      |                    |                      |       |
+| (Ubuntu, Debian,         |                    |                      |       |
+| LinuxMint)               |                    |                      |       |
 +--------------------------+--------------------+----------------------+-------+
-| Linux SUSE family        | libxml2            | >=2.7.0, !=2.7.4,    |       |
-| (SLES, openSUSE)         |                    | !=2.7.5, !=2.7.6     |       |
-|                          +--------------------+----------------------+-------+
-|                          | libxslt            | >=1.1.23, !=1.1.25   |       |
+| Linux SUSE family        |                    |                      |       |
+| (SLES, openSUSE)         |                    |                      |       |
 +--------------------------+--------------------+----------------------+-------+
-| OS-X                     | libxml2            | >=2.7.0, !=2.7.4,    |       |
-|                          |                    | !=2.7.5, !=2.7.6     |       |
-|                          +--------------------+----------------------+-------+
-|                          | libxslt            | >=1.1.23, !=1.1.25   |       |
+| OS-X                     |                    |                      |       |
 +--------------------------+--------------------+----------------------+-------+
-| Windows                  | libxml2            | >=2.7.0, !=2.7.4,    |       |
-|                          |                    | !=2.7.5, !=2.7.6     |       |
-|                          +--------------------+----------------------+-------+
-|                          | libxslt            | >=1.1.23, !=1.1.25   |       |
-|                          +--------------------+----------------------+-------+
-|                          | iconv              | >=1.9.2              | win   |
-|                          +--------------------+----------------------+-------+
-|                          | zlib               | >=1.2.8              | win   |
+| Windows                  | xmllint            |                      |       |
 +--------------------------+--------------------+----------------------+-------+
 
-Notes:
-
-* win: Only needed for Windows. On Linux and OS-X, the functionality provided
-  by these packages is part of glibc.
 
 .. _`Building the documentation`:
 
