@@ -927,10 +927,6 @@ class TestRepoMethods(object):
     def fuzzy_callback(conn, methodname, object_name, **params):
         pass
 
-    @staticmethod
-    def fuzzy_callback(conn, methodname, object_name, params=None):
-        pass
-
     def test_display_repository(self, conn, tst_instances_mof):
         """
         Test the display of the repository with it various options.
@@ -949,15 +945,9 @@ class TestRepoMethods(object):
                                      self.method2_callback,
                                      namespace=ns)
 
-<<<<<<< HEAD
-        conn.add_method_callback('CIM_Foo', 'Fuzzy',
-                                 self.fuzzy_callback,
-                                 namespace=ns)
-=======
             conn.add_method_callback('CIM_Foo', 'Fuzzy',
                                      self.fuzzy_callback,
                                      namespace=ns)
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
 
         # pylint: disable=unused-variable
         # Test various display_repository input and output options
@@ -3689,11 +3679,7 @@ class TestInvokeMethod(object):
     """
     Test invoking extrinsic methods in Fake_WBEMConnection
     """
-<<<<<<< HEAD
-    def method1_callback(self, conn, methodname, object_name, Params, **params):
-=======
     def method1_callback(self, conn, methodname, object_name, **params):
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
         # pylint: disable=unused-argument, invalid-name
         """
         Callback for InvokeMethod with method name method1. This callback is
@@ -3708,12 +3694,8 @@ class TestInvokeMethod(object):
         """
         # pylint: disable=attribute-defined-outside-init
         self.executed_method = 'Method1'
-<<<<<<< HEAD
-        assert Params == self.input_Params
-=======
 
         assert params == self.exp_input_params
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
 
         # Test for valid conn by accessing repository for object defined by
         # object_name. This test should never happen since already
@@ -3735,12 +3717,7 @@ class TestInvokeMethod(object):
 
         return (self.return_value, self.return_params)
 
-
-<<<<<<< HEAD
-    def method2_callback(self, conn, methodname, object_name, Params, **params):
-=======
     def method2_callback(self, conn, methodname, object_name, **params):
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
         # pylint: disable=unused-argument, invalid-name
         """
         InvokeMethod callback.  This is a smiple callback that just tests
@@ -3752,24 +3729,15 @@ class TestInvokeMethod(object):
         # pylint: disable=attribute-defined-outside-init
 
         self.executed_method = 'Method2'
-<<<<<<< HEAD
-        assert Params == self.input_Params
-=======
 
         assert params == self.exp_input_params
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
 
         assert object_name.namespace == self.test_namespace
 
         # if inputparam 1 has defined value, execute exception to test
         # exception passback.
-<<<<<<< HEAD
-        for param in Params:
-            if param[0] == 'TestCIMErrorException':
-=======
         for param in params:
             if param == 'TestCIMErrorException':
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
                 # TODO extend so generates whatever exception defined
                 if params[param].value == 'CIM_ERR_FAILED':
                     raise CIMError(CIM_ERR_FAILED,
@@ -3777,11 +3745,7 @@ class TestInvokeMethod(object):
 
         return (self.return_value, self.return_params)
 
-<<<<<<< HEAD
-    def fuzzy_callback(self, conn, methodname, object_name, Params, **params):
-=======
     def fuzzy_callback(self, conn, methodname, object_name, **params):
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
         # pylint: disable=attribute-defined-outside-init, unused-argument
         # pylint: disable=invalid-name
         """
@@ -3792,13 +3756,8 @@ class TestInvokeMethod(object):
         self.executed_method = 'Fuzzy'
 
         # Test should be subclass
-<<<<<<< HEAD
-        # assert methodname == self.executed_method
-        assert Params == self.input_Params
-=======
         assert methodname == self.executed_method
         assert params == self.exp_input_params
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
 
         assert object_name.namespace == self.test_namespace
 
@@ -3807,7 +3766,7 @@ class TestInvokeMethod(object):
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
-        # description: description of test.
+        # desc: description of test.
         # inputs: dictionary of input object_name, methodname, Params and
         #         optionally params.
         # exp_output: dictionary of expected returnvalue ('return') and output
@@ -3815,17 +3774,13 @@ class TestInvokeMethod(object):
         # exp_exception: None or expected exception.
         # exc_exc_data: None or expected CIMError status msg if exp_exception
         #               is not None.
-        "description, inputs, exp_output, exp_exception, exp_exc_data", [
+        "desc, inputs, exp_output, exp_exception, exp_exc_data", [
             ['Execution of Method1 method with single input param',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Method1',
               'Params': [('InputParam1', 'FirstData')], },
-<<<<<<< HEAD
-             {'return': 0, 'params': [('OutPutParam1', 'SomeString')]},
-=======
-             {'return': 0, 'params': [CIMParameter('OutputParam1',
-                                                   'SomeString')]},
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
+             {'return': 0, 'params': [CIMParameter('OutputParam1', 'string',
+                                                   value='SomeString')]},
              None, None],
 
             ['Execution of Method1 method with objectname string',
@@ -3833,12 +3788,8 @@ class TestInvokeMethod(object):
               'methodname': 'Method1',
               'Params': [('InputParam1', 'FirstData')],
               'params': {}, },
-<<<<<<< HEAD
-             {'return': 0, 'params': [('OutPutParam1', 'SomeString')]},
-=======
-             {'return': 0, 'params': [CIMParameter('OutPutParam1',
-                                                   'SomeString')]},
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
+             {'return': 0, 'params': [CIMParameter('OutPutParam1', 'string',
+                                                   value='SomeString')]},
              None, None],
 
             ['Execution of Method1 method with multiple input params',
@@ -3854,24 +3805,16 @@ class TestInvokeMethod(object):
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Method2',
               'Params': [('InputParam1', 'FirstData')], },
-<<<<<<< HEAD
-             {'return': 0, 'params': [('OutPutParam1', 'SomeString')]},
-=======
-             {'return': 0, 'params': [CIMParameter('OutPutParam1',
-                                                   'SomeString')]},
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
+             {'return': 0, 'params': [CIMParameter('OutPutParam1', 'string',
+                                                   value='SomeString')]},
              None, None],
 
             ['Execute Method1 with no input parameters',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Method1',
               'Params': [], },
-<<<<<<< HEAD
-             {'return': 0, 'params': [('OutPutParam1', 'SomeString')]},
-=======
-             {'return': 0, 'params': [CIMParameter('OutPutParam1',
-                                                   'SomeString')]},
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
+             {'return': 0, 'params': [CIMParameter('OutPutParam1', 'string',
+                                                   value='SomeString')]},
              None, None],
 
             ['Execute Method1 with no output parameters',
@@ -3953,39 +3896,26 @@ class TestInvokeMethod(object):
               'methodname': 'Fuzzy',
               'Params': [], },
              {'return': 0,
-<<<<<<< HEAD
-              'params': [('OutputParam', 'Some data'),
-                         ('foo',
-                          CIMInstanceName('CIM_Foo',
-                                          {'InstanceID': 'CIM_F001'}))]},
-             None, None],
-
-=======
               'params': [CIMParameter('OutputParam', 'string',
                                       value='Some data'),
-                         CIMParameter('foo', 'reference',
-                                      value=CIMInstanceName('CIM_Foo',
-                                          {'InstanceID': 'CIM_F001'}))]},
+                         CIMParameter(
+                             'foo', 'reference',
+                             value=CIMInstanceName(
+                                 'CIM_Foo', {'InstanceID': 'CIM_F001'}))]},
              None, None],
 
 
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
             ['Execute Fuzzy method with where method call is for subclass',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Fuzzy',
               'Params': [], },
              {'return': 0,
-<<<<<<< HEAD
-              'params': [('OutputParam', 'Some data'),
-                         ('foo',
-                          CIMInstanceName('CIM_Foo',
-=======
               'params': [CIMParameter('OutputParam', 'string',
-                                       value='Some data'),
-                         CIMParameter('foo', 'reference',
-                                      value=CIMInstanceName('CIM_Foo',
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
-                                          {'InstanceID': 'CIM_F001'}))]},
+                                      value='Some data'),
+                         CIMParameter(
+                             'foo', 'reference',
+                             value=CIMInstanceName(
+                                 'CIM_Foo', {'InstanceID': 'CIM_F001'}))]},
              None, None],
 
             ['Execute Fuzzy method with CIMInstanceName in input params',
@@ -3995,35 +3925,26 @@ class TestInvokeMethod(object):
                          ('foo',
                           CIMInstanceName('CIM_Foo',
                                           {'InstanceID': 'CIM_F001'}, ), )], },
-<<<<<<< HEAD
-             {'return': 0,
-              'params': [('OutputParam', 'Some data'),
-                         ('foo',
-                          CIMInstanceName('CIM_Foo',
-=======
              {'return': 32,
               'params': [CIMParameter('OutputParam', 'string',
-                                       value='Some data'),
-                         CIMParameter('foo', 'reference',
-                                      value=CIMInstanceName('CIM_Foo',
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
-                                          {'InstanceID': 'CIM_F001'}))]},
+                                      value='Some data'),
+                         CIMParameter(
+                             'foo', 'reference',
+                             value=CIMInstanceName(
+                                 'CIM_Foo', {'InstanceID': 'CIM_F001'}))]},
              None, None],
         ]
     )
-    def test_invokemethod(self, conn, ns, description, inputs, exp_output,
+    def test_invokemethod(self, conn, ns, desc, inputs, exp_output,
                           exp_exception, exp_exc_data, tst_instances_mof):
         """
-        Test extrinnsic method invocation through the InvokeMethod
-        WBEMConnection method
+        Test extrinsic method invocation through the
+        WBEMConnection.InovkeMethod method
         """
         conn.compile_mof_str(tst_instances_mof, namespace=ns)
 
         # Save expected info so that callbacks can use in in returns and tests
         # pylint: disable=attribute-defined-outside-init
-<<<<<<< HEAD
-        self.input_Params = inputs['Params']  # pylint: disable=invalid-name
-=======
 
         # Create dictionary of input parameters to match what the
         # callback should see.
@@ -4042,22 +3963,15 @@ class TestInvokeMethod(object):
 
         if 'params' in inputs:
             for param in inputs['params']:
-                self.xp_input_params[param] = CIMParameter(param,
-                                                           cimtype(param[param]),
-                                                           value=param[param])
+                self.xp_input_params[param] = \
+                    CIMParameter(param, cimtype(param[param]),
+                                 value=param[param])
 
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
         self.return_value = exp_output['return']
 
         # provide for cases where 'params' does not exist.
         self.input_params = inputs['params'] if 'params' in inputs else {}
         self.return_params = exp_output['params']
-<<<<<<< HEAD
-=======
-
-        print('inputs[Params] %s' % inputs['Params'])
-        print('self input_params %s' % self.input_params)
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
 
         # Add to InvokeMethod callback methods in the class.
         conn.add_method_callback('CIM_Foo_sub_sub', 'Method1',
@@ -4085,10 +3999,7 @@ class TestInvokeMethod(object):
                 return
 
         if not exp_exception:
-<<<<<<< HEAD
-
-=======
->>>>>>> 04819ef... Made cimtype() and type_from_name() conversion functions part of public API
+            # Two calls to account for **params
             if self.input_params:
                 result = conn.InvokeMethod(inputs['methodname'],
                                            object_name,
