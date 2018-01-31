@@ -458,6 +458,11 @@ Bug fixes
   retrieved from operations (e.g. as part of a class or instance), as
   required by DSP0201. It does now.
 
+* Fixed the issue that VALUE.NULL (for representing array items that are NULL)
+  was not supported in array values returned by the WBEM server. Note that it
+  already had been supported for array values sent to the server, or in CIM-XML
+  created by `toximcml()` methods (Issue #1022).
+
 Cleanup
 ^^^^^^^
 

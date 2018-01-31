@@ -405,18 +405,18 @@ def parse_value(tup_tree):
 def parse_value_array(tup_tree):
     """
     Parse a VALUE.ARRAY element and return the items in the array as a list of
-    unicode strings. Whitespace is preserved.
+    unicode strings, or None for NULL items. Whitespace is preserved.
 
       ::
 
-        <!ELEMENT VALUE.ARRAY (VALUE*)>
+        <!ELEMENT VALUE.ARRAY (VALUE | VALUE.NULL)*>
     """
 
-    check_node(tup_tree, 'VALUE.ARRAY', [], [], ['VALUE'])
+    check_node(tup_tree, 'VALUE.ARRAY')
 
-    # TODO 1/18 AM: Add support for VALUE.NULL
+    children = list_of_various(tup_tree, ['VALUE', 'VALUE.NULL'])
 
-    return list_of_same(tup_tree, ['VALUE'])
+    return children
 
 
 def parse_value_reference(tup_tree):
@@ -449,16 +449,12 @@ def parse_value_refarray(tup_tree):
 
       ::
 
-        <!ELEMENT VALUE.REFARRAY (VALUE.REFERENCE*)>
+        <!ELEMENT VALUE.REFARRAY (VALUE.REFERENCE | VALUE.NULL)*>
     """
 
     check_node(tup_tree, 'VALUE.REFARRAY')
 
-    # list_of_various() has the same effect as list_of_same() when used with a
-    # single allowed child element, but is a little faster.
-    children = list_of_various(tup_tree, ['VALUE.REFERENCE'])
-
-    # TODO 1/18 AM: Add support for VALUE.NULL
+    children = list_of_various(tup_tree, ['VALUE.REFERENCE', 'VALUE.NULL'])
 
     return children
 
@@ -619,6 +615,20 @@ def parse_value_objectwithpath(tup_tree):
         _object.path = inst_path
 
     return (name(tup_tree), attrs(tup_tree), _object)
+
+
+def parse_value_null(tup_tree):
+    """
+    Parse a VALUE.NULL element and return None.
+
+      ::
+
+        <!ELEMENT VALUE.NULL EMPTY>
+    """
+
+    check_node(tup_tree, 'VALUE.NULL', [], [], [])
+
+    return None
 
 
 #

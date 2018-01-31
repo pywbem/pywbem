@@ -2079,7 +2079,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 1/18 AM: Enable once VALUE.NULL is supported.
         "VALUE.ARRAY with one VALUE.NULL item",
         dict(
             xml_str=''
@@ -2090,10 +2089,9 @@ testcases_tupleparse_xml = [
                 None,
             ],
         ),
-        None, None, False
+        None, None, True
     ),
     (
-        # TODO 1/18 AM: Enable once VALUE.NULL is supported.
         "VALUE.ARRAY with a VALUE.NULL item and a string item",
         dict(
             xml_str=''
@@ -2106,10 +2104,9 @@ testcases_tupleparse_xml = [
                 u'a',
             ],
         ),
-        None, None, False
+        None, None, True
     ),
     (
-        # TODO 1/18 AM: Enable once VALUE.NULL is supported.
         "VALUE.ARRAY with VALUE.NULL, string, VALUE.NULL items",
         dict(
             xml_str=''
@@ -2124,7 +2121,7 @@ testcases_tupleparse_xml = [
                 None,
             ],
         ),
-        None, None, False
+        None, None, True
     ),
 
     # TODO: VALUE.REFERENCE tests
@@ -2217,7 +2214,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 1/18 AM: Enable once VALUE.NULL is supported.
         "VALUE.REFARRAY with one VALUE.NULL item",
         dict(
             xml_str=''
@@ -2228,10 +2224,9 @@ testcases_tupleparse_xml = [
                 None,
             ],
         ),
-        None, None, False
+        None, None, True
     ),
     (
-        # TODO 1/18 AM: Enable once VALUE.NULL is supported.
         "VALUE.REFARRAY with a VALUE.NULL item and a reference item",
         dict(
             xml_str=''
@@ -2246,10 +2241,9 @@ testcases_tupleparse_xml = [
                 CIMInstanceName('CIM_Foo'),
             ],
         ),
-        None, None, False
+        None, None, True
     ),
     (
-        # TODO 1/18 AM: Enable once VALUE.NULL is supported.
         "VALUE.REFARRAY with VALUE.NULL, reference, VALUE.NULL items",
         dict(
             xml_str=''
@@ -2266,10 +2260,52 @@ testcases_tupleparse_xml = [
                 None,
             ],
         ),
-        None, None, False
+        None, None, True
     ),
 
-    # TODO: VALUE.NULL tests (once supported)
+    # VALUE.NULL tests
+    (
+        "VALUE.NULL with invalid child element",
+        dict(
+            xml_str=''
+            '<VALUE.NULL>'
+            '  <XXX></XXX>'
+            '</VALUE.NULL>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "VALUE.NULL with invalid text content",
+        dict(
+            xml_str=''
+            '<VALUE.NULL>'
+            '  xxx'
+            '</VALUE.NULL>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "VALUE.NULL with invalid attribute",
+        dict(
+            xml_str=''
+            '<VALUE.NULL XXX="bla">'
+            '</VALUE.NULL>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "VALUE.NULL (normal case)",
+        dict(
+            xml_str=''
+            '<VALUE.NULL>'
+            '</VALUE.NULL>',
+            exp_result=None,
+        ),
+        None, None, True
+    ),
 
     # VALUE.OBJECT tests
     (
